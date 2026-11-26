@@ -7,6 +7,8 @@
 
 [![Discord](https://discordapp.com/api/guilds/333727978460676096/widget.png?style=banner2)](https://aka.ms/orleans-discord)
 
+本仓库基于 Orleans 上游提交 [`6a0e937f5`](https://github.com/dotnet/orleans/commit/6a0e937f544c35ffcf11b37e4c2b7de5a1580a03)，提供中文文档和源码中文注释。
+
 <a id="orleans-is-a-cross-platform-framework-for-building-robust-scalable-distributed-applications"></a>
 
 ### Orleans 是用于构建可靠、可伸缩的分布式应用的跨平台框架
