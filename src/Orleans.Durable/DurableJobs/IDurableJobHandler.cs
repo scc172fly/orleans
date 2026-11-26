@@ -4,59 +4,59 @@ using System.Threading.Tasks;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Provides contextual information about a durable job execution.
+/// 提供关于持久工作执行的背景资料。
 /// </summary>
 public interface IJobRunContext
 {
     /// <summary>
-    /// Gets the durable job being executed.
+    /// 执行持久工作。
     /// </summary>
     DurableJob Job { get; }
 
     /// <summary>
-    /// Gets the unique identifier for this execution run. A new identifier is generated each time the job is dequeued
-    /// and is not preserved across retries or shard reassignment.
+    /// 获取此执行运行的唯一身份标识符。每次任务被卸排时都会产生新的身份标识符
+    /// 并且不保存于每条线或散装调任之间。
     /// </summary>
     string RunId { get; }
 
     /// <summary>
-    /// Gets the number of times this job has been dequeued for execution, including retries.
+    /// 获得这项工作被卸排执行的次数,包括重试。
     /// </summary>
     int DequeueCount { get; }
 }
 
 /// <summary>
-/// Represents the execution context for a durable job.
+/// 代表持久工作的执行背景。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Jobs.JobRunContext")]
 internal class JobRunContext : IJobRunContext
 {
     /// <summary>
-    /// Gets the durable job being executed.
+    /// 执行持久工作。
     /// </summary>
     [Id(0)]
     public DurableJob Job { get; }
 
     /// <summary>
-    /// Gets the unique identifier for this execution run. A new identifier is generated each time the job is dequeued
-    /// and is not preserved across retries or shard reassignment.
+    /// 获取此执行运行的唯一身份标识符。每次任务被卸排时都会产生新的身份标识符
+    /// 并且不保存于每条线或散装调任之间。
     /// </summary>
     [Id(1)]
     public string RunId { get; }
 
     /// <summary>
-    /// Gets the number of times this job has been dequeued for execution, including retries.
+    /// 获得这项工作被卸排执行的次数,包括重试。
     /// </summary>
     [Id(2)]
     public int DequeueCount { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="JobRunContext"/> class.
+    /// 初始化 <see cref="JobRunContext"/> 类的新实例。
     /// </summary>
-    /// <param name="job">The durable job to execute.</param>
-    /// <param name="runId">The unique identifier for this execution run.</param>
-    /// <param name="retryCount">The number of times this job has been dequeued, including retries.</param>
+    /// <param name="job">持久执行的工作。</param>
+    /// <param name="runId">此执行运行的唯一标识符。</param>
+    /// <param name="retryCount">这项工作被取消排队的次数,包括重试次数。</param>
     public JobRunContext(DurableJob job, string runId, int retryCount)
     {
         Job = job;
@@ -66,30 +66,30 @@ internal class JobRunContext : IJobRunContext
 }
 
 /// <summary>
-/// Defines the interface for handling durable job execution.
-/// Grains implement this interface to receive and process durable jobs.
+/// 定义处理持久任务执行的界面。
+/// Grains 实施此接口以接收和处理持久工作。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Grains that implement this interface can be targeted by durable jobs.
-/// The <see cref="ExecuteJobAsync"/> method is invoked when the job's due time is reached.
+/// 实施此接口的Grains 可针对长期工作。
+/// 当工作达到规定时间时,即援用 <see cref="ExecuteJobAsync"/> 方法。
 /// </para>
 /// <example>
-/// The following example demonstrates a grain that implements <see cref="IDurableJobHandler"/>:
+/// 以下示例表明 grain 执行 <see cref="IDurableJobHandler"/>:
 /// <code>
 /// public class MyGrain : Grain, IDurableJobHandler
 /// {
 ///     public Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
 ///     {
-///         // Process the durable job
+///         // 处理持久作业
 ///         var jobName = context.Job.Name;
 ///         var dueTime = context.Job.DueTime;
 ///
-///         // This token requests cancellation of this execution attempt, for example during silo shutdown.
-///         // The durable job remains eligible for another attempt on another host.
+///         // 此令牌用于请求取消本次执行，例如在 Silo 关闭时。
+///         // 持久作业仍可在另一台主机上重试。
 ///         attemptCancellationToken.ThrowIfCancellationRequested();
 ///
-///         // Perform job logic here
+///         // 在此执行作业逻辑
 ///
 ///         return Task.CompletedTask;
 ///     }
@@ -100,27 +100,27 @@ internal class JobRunContext : IJobRunContext
 public interface IDurableJobHandler
 {
     /// <summary>
-    /// Executes the durable job with the provided context.
+    /// 以所提供的背景执行持久工作。
     /// </summary>
-    /// <param name="context">The context containing information about the durable job execution.</param>
+    /// <param name="context">包含持久工作执行信息的背景。</param>
     /// <param name="attemptCancellationToken">
-    /// A token which cooperatively requests cancellation of the current execution attempt.
-    /// Attempt cancellation does not cancel the durable job itself; the job remains eligible for another attempt.
+    /// 合作要求取消目前执行企图的象征。
+    /// 取消企图并不取消持久工作本身;该工作仍有资格再次尝试。
     /// </param>
-    /// <returns>A task that represents the asynchronous job execution operation.</returns>
+    /// <returns>代表着无休止的 工作执行操作的任务</returns>
     /// <remarks>
     /// <para>
-    /// This method is invoked by the Orleans durable jobs infrastructure when a job's due time is reached.
-    /// Implementations should handle job execution logic and can use information from the <paramref name="context"/>
-    /// to access job metadata, dequeue count for retry logic, and other execution details.
+    /// 使用这种方法的 Orleans 工作达到适当时间后,可持久就业基础设施。
+    /// 执行应处理工作执行逻辑,并可以使用来自 <paramref name="context"/>
+    /// 获取工作元数据、删除重试逻辑的计数和其他执行细节。
     /// </para>
     /// <para>
-    /// If the method throws an exception and a retry policy is configured, the job may be retried.
-    /// The <see cref="IJobRunContext.DequeueCount"/> property can be used to determine if this is a retry attempt.
+    /// 如果该方法丢弃了例外, 并配置重试策略, 可以重新尝试该工作 。
+    /// <see cref="IJobRunContext.DequeueCount"/> 属性可用于确定是否尝试重试。
     /// </para>
     /// <para>
-    /// Durable job cancellation is requested through <see cref="ILocalDurableJobManager.CancelAsync"/>.
-    /// That request prevents future attempts but does not forcibly stop an already-running attempt.
+    /// 要求通过 <see cref="ILocalDurableJobManager.CancelAsync"/>持久取消工作。
+    /// 这项请求防止了今后企图,但并未强行制止已经进行中的企图。
     /// </para>
     /// </remarks>
     Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken);

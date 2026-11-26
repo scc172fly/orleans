@@ -9,7 +9,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Dispatches transaction protocol messages to transactional resources registered on the current grain.
+    /// 将交易协议信息发送到当前 grain上登记的交易资源。
     /// </summary>
     public class TransactionalResourceExtension : ITransactionalResourceExtension
     {
@@ -17,9 +17,9 @@ namespace Orleans.Transactions
         private readonly Dictionary<string, ITransactionalResource> resources;
 
         /// <summary>
-        /// Initializes a new extension for the current grain context.
+        /// 初始化当前 grain 上下文的新扩展名。
         /// </summary>
-        /// <param name="contextAccessor">The accessor for the grain context containing registered transactional resource factories.</param>
+        /// <param name="contextAccessor">用于 grain 包含已登记交易资源厂的背景。</param>
         public TransactionalResourceExtension(IGrainContextAccessor contextAccessor)
         {
             this.factories = contextAccessor.GrainContext.GetResourceFactoryRegistry<ITransactionalResource>()!;

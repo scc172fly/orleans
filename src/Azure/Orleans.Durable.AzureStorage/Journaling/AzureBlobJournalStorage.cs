@@ -12,34 +12,34 @@ namespace Orleans.Durable.Journaling;
 
 internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 {
-    // WAL and checkpoint blobs use this metadata key to declare which journal format their bytes contain.
+    // WAL 和检查站布局使用此元数据键来声明其字节包含的日记格式 。
     internal const string FormatMetadataKey = "format";
 
-    // WAL metadata uses this key to point recovery at the checkpoint blob holding the compacted journal prefix.
+    // WAL元数据使用这个关键值来指向持有紧凑日记前缀的检查站布洛布的回收点。
     internal const string CheckpointMetadataKey = "checkpoint";
 
-    // WAL metadata uses this key to record how many WAL bytes are already included in the checkpoint; recovery skips that prefix before replaying the WAL tail.
+    // WAL 元数据使用此密钥记录检查站中已经包含多少 WAL 字节;在重放 WAL 尾巴之前,回收会跳过前缀。
     internal const string CheckpointOffsetMetadataKey = "checkpoint_offset";
 
-    // WAL metadata uses this provider-owned key to distinguish metadata-only ETag changes from WAL recreation.
+    // 沃尔玛元数据使用这一供应商拥有的钥匙,将仅供数据使用的ETag变化与WAL娱乐区分开来。
     internal const string WalGenerationMetadataKey = "wal_generation";
 
-    // AppendAsync rejects batches above Azure's documented per-block cap before sending an append request.
+    // AppendAsync 在发送附加请求之前,拒绝超过 Azure文件记录的每个区块上限的批次。
     internal const long MaxAppendBlockBytes = 100L * 1024 * 1024;
 
-    // ThrowIfCompactionRequired uses Azure's hard committed-block cap to fail clearly before Azure rejects an append.
+    // ThrowIfCompactionRequired 用途 Azure之前显然会失败的硬性承诺封顶 Azure 拒绝附件。
     private const int MaxBlocksPerBlob = 50_000;
 
-    // ThrowIfCompactionRequired preserves this many blocks of append capacity after compaction becomes mandatory.
+    // ThrowIfCompactionRequired 在硬性压缩后保留了这么多的附加能力块。
     private const int HeadroomBlockCount = 100;
 
-    // IsCompactionRequested trips at this block count so callers compact before the hard append-blob limit.
+    // IsCompactionRequested 如此在硬性附加布蓝限制之前 紧凑起来
     private const int RequestCompactionBlockCount = 49_000;
 
     private readonly AzureBlobJournalStorageShared _shared;
     private readonly JournalId _journalId;
     private readonly AppendBlobClient _walClient;
-    // Null until read or creation, default(ETag) for an absent WAL.
+    // 读取或创建前为空的 WAL 默认值( ETag) 。
     private ETag? _walETag;
     private WalProviderState _walProviderState;
 
@@ -203,7 +203,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
     public async ValueTask AppendAsync(ReadOnlySequence<byte> value, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfZero(value.Length, nameof(value));
-        // Appends are written as one Azure append block, so validate blob limits before touching storage.
+        // 附加内容作为 Azure 附加块写入, 所以在触摸存储前验证 blob 限制 。
         ThrowIfBatchTooLarge(value.Length);
         var startTimestamp = Stopwatch.GetTimestamp();
         var succeeded = false;
@@ -221,7 +221,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
                 using var stream = new ReadOnlySequenceStream(value);
                 try
                 {
-                    // Use the last observed WAL ETag so appends fail if the WAL changed since this instance recovered it.
+                    // 使用上次观察到的 WAL ETag , 如果WAL 自此恢复后更改了附件, 则附件失效 。
                     var result = await _walClient.AppendBlockAsync(
                         stream,
                         new AppendBlobAppendBlockOptions
@@ -235,7 +235,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
                     LogAppend(_shared.Logger, stream.Length, _walClient.BlobContainerName, _walClient.Name);
 
-                    // Cache Azure's post-append state so the next mutation is guarded by the new ETag and block count.
+                    // Cache Azure的后附加状态, 下次突变由新的ETag和区块数来守卫。
                     SetWal(
                         result.Value.ETag,
                         expectedProviderState with
@@ -299,7 +299,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
             var conditions = observedAbsent ? null : new BlobRequestConditions { IfMatch = expectedETag };
             try
             {
-                // Load the WAL manifest under the precondition because deletion makes the checkpoint it names unreachable.
+                // 将WAL清单装入前提条件下,因为删除会使检查站无法进入。
                 walState = await TryLoadWalStateAsync(conditions, cancellationToken).ConfigureAwait(false);
             }
             catch (RequestFailedException exception) when (IsWalMutationConflict(exception))
@@ -336,14 +336,14 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
                     expectedETag);
             }
 
-            // Remember the checkpoint before clearing local WAL state so obsolete checkpoint cleanup can still run.
+            // 记得检查站之前清理当地WAL州,
             var checkpointName = walState.Value.Manifest.Checkpoint?.Name;
             for (var attempt = 0; ; attempt++)
             {
                 var deleteWalState = walState.Value;
                 try
                 {
-                    // Delete the WAL under its ETag before checkpoint cleanup so a racing WAL update cannot lose its checkpoint.
+                    // 在检查站清理前,在ETag下删除WAL,这样赛车WAL更新工作不会失去其检查站。
                     await _walClient.DeleteIfExistsAsync(
                         DeleteSnapshotsOption.None,
                         new BlobRequestConditions { IfMatch = deleteWalState.ETag },
@@ -373,7 +373,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
             if (checkpointName is not null)
             {
-                // Checkpoint cleanup happens after WAL deletion because without the WAL manifest it is unreachable.
+                // 检查点清理在WAL删除后发生,因为没有WAL显示器就无法到达。
                 await DeleteCheckpointIfExistsAsync(checkpointName, cancellationToken).ConfigureAwait(false);
             }
 
@@ -401,7 +401,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
             Response<BlobDownloadStreamingResult> walResult;
             try
             {
-                // Download the WAL first because its metadata is the manifest for any checkpoint that must be replayed.
+                // 首先下载 WAL 是因为其元数据是任何必须重播的检查站的显示器。
                 walResult = await _walClient.DownloadStreamingAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             catch (RequestFailedException exception) when (exception.Status is 404)
@@ -440,7 +440,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
                 var checkpointResult = await checkpointClient.DownloadStreamingAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                 await using var checkpointStream = checkpointResult.Value.Content;
 
-                // Replay the immutable checkpoint first because it represents the compacted prefix before WAL entries.
+                // 首先重放不可变的检查站, 因为它代表着WAL 进入前的紧凑前缀 。
                 var checkpointMetadata = ValidateCheckpointMetadata(checkpoint, checkpointResult.Value.Details, expectedFormat);
                 var totalCheckpointBytes = await consumer.ReadAsync(
                     checkpointStream,
@@ -460,11 +460,11 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
                         $"Azure Blob journal checkpoint offset {checkpointOffset.WalOffset:N0} exceeds WAL length {walDetails.ContentLength:N0}.");
                 }
 
-                // The checkpoint already contains WAL bytes through this offset, so replay only the WAL tail.
+                // 检查站已经包含WAL字节,
                 await AzureBlobJournalStorageStreamHelpers.SkipStreamAsync(walStream, checkpointOffset.WalOffset, cancellationToken).ConfigureAwait(false);
             }
 
-            // Prefer WAL format metadata, falling back to the checkpoint when compaction recreated an empty WAL.
+            // 更倾向于WAL格式元数据, 当压缩重新生成空 WAL时返回检查站。
             var walMetadata = manifest.Metadata.FormatKey is { Length: > 0 }
                 ? manifest.Metadata
                 : expectedFormat is { Length: > 0 }
@@ -478,7 +478,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
             LogRead(_shared.Logger, totalWalBytes, _walClient.BlobContainerName, _walClient.Name);
             bytes += totalWalBytes;
 
-            // Complete only after checkpoint and WAL tail have streamed as one logical journal.
+            // 只有在检查站和WAL尾巴作为一份逻辑日记流出后才完成。
             consumer.Complete(walMetadata);
             SetWal(walDetails.ETag, walProviderState);
             succeeded = true;
@@ -499,7 +499,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
         var succeeded = false;
         try
         {
-            // Compaction publishes through WAL metadata, so first create the WAL whose ETag will be checked if this instance observed it absent.
+            // 压缩通过WAL元数据发布, 所以首先创建WAL, 如果发现没有, 将会检查ETag。
             await EnsureWalAsync(nameof(ReplaceAsync), cancellationToken).ConfigureAwait(false);
 
             var expectedWalETag = _walETag!.Value;
@@ -507,7 +507,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
             WalState? walState;
             try
             {
-                // Read the WAL manifest so compaction preserves caller-owned metadata while replacing provider-owned checkpoint metadata.
+                // 阅读WAL显示,压缩保存呼叫者拥有的元数据,而取代供应商拥有的检查站元数据。
                 walState = await TryLoadWalStateAsync(new BlobRequestConditions { IfMatch = expectedWalETag }, cancellationToken).ConfigureAwait(false);
                 if (walState is null)
                 {
@@ -533,12 +533,12 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
             using var checkpointStream = new ReadOnlySequenceStream(value);
             while (true)
             {
-                // The checkpoint blob is immutable and content-addressed by a random snapshot id for safe retry on collision.
+                // 检查站的布料是不可变换的,内容用随机快照识别码处理,以便在碰撞时安全重试。
                 var checkpointName = GetCheckpointName(Guid.NewGuid().ToString("N"));
                 var checkpointClient = GetCheckpointClient(checkpointName);
                 try
                 {
-                    // Upload the checkpoint before publishing it from WAL metadata so upload failures leave recovery unchanged.
+                    // 上传检查哨后, 从 WAL 元数据发布前先上传检查点, 所以上传失败后恢复不变 。
                     checkpointStream.Position = 0;
                     await checkpointClient.UploadAsync(
                         checkpointStream,
@@ -552,7 +552,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
                 }
                 catch (RequestFailedException exception) when (IsBlobAlreadyExists(exception))
                 {
-                    // Snapshot ids are random, so this should be vanishingly rare. Retry with a new id.
+                    // 抓图id是随机的, 所以这应该很少消失。 用新的ID重新试镜 。
                     _shared.Instruments.OnRetry("checkpoint_collision");
                     continue;
                 }
@@ -562,7 +562,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
                     var publishWalState = walState.Value;
                     try
                     {
-                        // Recreate the WAL under its ETag to publish the checkpoint only if the existing WAL is unchanged.
+                        // 重新创建位于ETag下的WAL, 只有在现有的WAL没有改变的情况下才能公布检查站。
                         var created = await CreateWalAsync(
                             checkpointName,
                             new AppendBlobRequestConditions { IfMatch = publishWalState.ETag },
@@ -592,13 +592,13 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
                 if (previousCheckpointName is not null && !string.Equals(previousCheckpointName, checkpointName, StringComparison.Ordinal))
                 {
-                    // Keep the previous checkpoint until the new WAL is published so its manifest never points at a missing blob.
+                    // 保留以前的检查站,直到新的WAL公布为止,因此其清单从未在缺失的空隙处点到过点。
                     await DeleteCheckpointIfExistsAsync(previousCheckpointName, cancellationToken).ConfigureAwait(false);
                 }
 
                 LogReplace(_shared.Logger, checkpointClient.BlobContainerName, checkpointClient.Name, checkpointStream.Length);
 
-                // At this point the new checkpoint is reachable from WAL metadata and old state has been detached.
+                // 目前,可从WAL元数据进入新的检查站,旧状态已经分离。
                 succeeded = true;
                 return;
             }
@@ -615,7 +615,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private static void ThrowIfBatchTooLarge(long length)
     {
-        // Azure rejects oversize append blocks, so fail locally with the journal-specific guidance.
+        // Azure 拒绝过大附加块大小, 所以无法使用本地的日记专要指南 。
         if (length <= MaxAppendBlockBytes)
         {
             return;
@@ -628,7 +628,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private void ThrowIfCompactionRequired()
     {
-        // Stop before Azure's hard block cap so the caller can compact while there is still append headroom.
+        // 在 Azure硬块盖前停止,以便打电话者可以在仍有附件主机时缩放。
         if (_walProviderState.CommittedBlockCount < MaxBlocksPerBlob - HeadroomBlockCount)
         {
             return;
@@ -653,7 +653,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
         try
         {
-            // This instance observed the WAL absent, so it creates the WAL only while the WAL is still absent.
+            // 实例显示,没有WAL,所以它只是在WAL仍然不存在的情况下才创建WAL。
             var created = await CreateWalAsync(
                 checkpointName: null,
                 new AppendBlobRequestConditions { IfNoneMatch = ETag.All },
@@ -674,7 +674,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
         Response<BlobProperties> walProperties;
         try
         {
-            // Read only WAL properties and metadata; no journal bytes are needed for the mutation state.
+            // 只读取 WAL 属性和元数据; 突变状态不需要日记字节 。
             walProperties = await _walClient.GetPropertiesAsync(conditions, cancellationToken).ConfigureAwait(false);
         }
         catch (RequestFailedException exception) when (exception.Status is 404)
@@ -727,8 +727,8 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
         return walState;
     }
 
-    // Metadata operations never establish or move the content precondition: they refresh only the ETag of the WAL content
-    // version this instance holds.
+    // 元数据操作从未建立或移动内容的先决条件:它们只更新WAL内容的ETag
+    // 此实例将存在版本 。
     private void RefreshWalETag(ETag observedETag, ETag updatedETag, WalProviderState providerState)
     {
         if (WalExists
@@ -747,7 +747,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private AppendBlobClient GetWalClient()
     {
-        // Resolve the provider-specific WAL client once; checkpoint clients are resolved by published name.
+        // 一次性解决供应商特有的WAL客户;检查站客户以公布姓名的方式解决。
         var client = _shared.BlobClientProvider.GetWalClient(_journalId);
         return client ?? throw new InvalidOperationException("The configured Azure Blob journal WAL client provider returned null.");
     }
@@ -759,7 +759,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
         IReadOnlyDictionary<string, string>? callerMetadata = null)
     {
         var metadata = CreateWalMetadata(checkpointName, checkpointOffset: 0, callerMetadata);
-        // Creating an append blob is also how compaction publishes a fresh WAL manifest.
+        // 创建附加体的布罗布也是压实式公布新的WAL清单的方式。
         var response = await _walClient.CreateAsync(
             new AppendBlobCreateOptions
             {
@@ -774,13 +774,13 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private static BlobHttpHeaders? CreateHttpHeaders(string? contentType)
     {
-        // Content type is optional transport metadata; journal format is carried separately in blob metadata.
+        // 内容类型是可选的传输元数据;日记格式在布洛元数据中单独记录。
         return contentType is { Length: > 0 } ? new BlobHttpHeaders { ContentType = contentType } : null;
     }
 
     private string GetCheckpointName(string snapshotId)
     {
-        // Let the configured provider own checkpoint naming so custom layouts stay consistent with WAL naming.
+        // 让配置的供应商拥有检查站命名, 使自定义布局与WAL 命名保持一致 。
         var checkpointName = _shared.BlobClientProvider.GetCheckpointName(_journalId, snapshotId);
         if (string.IsNullOrWhiteSpace(checkpointName))
         {
@@ -792,7 +792,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private BlockBlobClient GetCheckpointClient(string checkpointName)
     {
-        // Resolve by the published checkpoint name so recovery can open checkpoints created by older instances.
+        // 由公布的检查站名称决定,以便恢复工作能够开放旧事件造成的检查站。
         var client = _shared.BlobClientProvider.GetCheckpointClient(_journalId, checkpointName);
         return client ?? throw new InvalidOperationException("The configured Azure Blob journal checkpoint client provider returned null.");
     }
@@ -802,7 +802,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
         var checkpointClient = GetCheckpointClient(checkpointName);
         try
         {
-            // Obsolete checkpoint cleanup is best-effort because the published WAL no longer references it.
+            // 废弃检查站清理工作最努力,因为已公布的WAL不再提及。
             await checkpointClient.DeleteIfExistsAsync(DeleteSnapshotsOption.None, conditions: null, cancellationToken).ConfigureAwait(false);
         }
         catch (RequestFailedException exception)
@@ -813,7 +813,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private Dictionary<string, string> CreateMetadataDictionary()
     {
-        // Start with metadata common to WAL and checkpoint blobs so recovery can verify the journal format.
+        // 以WAL和检查站布局通用元数据开始,以便回收能够验证日记格式。
         var metadata = new Dictionary<string, string>();
         if (_shared.JournalFormatKey is { Length: > 0 })
         {
@@ -830,7 +830,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
         long checkpointOffset,
         IReadOnlyDictionary<string, string>? callerMetadata = null)
     {
-        // WAL metadata is the recovery manifest: common format plus optional checkpoint pointer and WAL offset.
+        // 物价交易元数据是回收清单:通用格式加上任择检查站指示器和物价交易折合。
         var metadata = CreateMetadataDictionary();
         metadata[WalGenerationMetadataKey] = Guid.NewGuid().ToString("N");
         if (callerMetadata is not null)
@@ -860,7 +860,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private static WalManifest CreateWalManifest(IDictionary<string, string>? metadata)
     {
-        // Decode the WAL manifest, accepting non-compacted WALs that have no checkpoint pointer.
+        // 解码WAL舱单,接受没有检查站指示的不规范的WAL。
         var fileMetadata = CreateJournalMetadata(eTag: default, metadata);
         var generation = metadata is not null
             && metadata.TryGetValue(WalGenerationMetadataKey, out var storedGeneration)
@@ -904,7 +904,7 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
 
     private static IJournalMetadata ValidateCheckpointMetadata(CheckpointReference checkpoint, BlobDownloadDetails checkpointDetails, string? expectedFormat)
     {
-        // Refuse to stitch checkpoint and WAL data together if their declared journal formats differ.
+        // 如果所申报的日记格式不同,拒绝同时缝合检查站和WAL数据。
         var checkpointBlobFormat = GetFormatKeyMetadata(checkpointDetails.Metadata);
         if (expectedFormat is { Length: > 0 })
         {
@@ -1071,9 +1071,9 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
     }
 
     /// <summary>
-    /// Returns true when an Azure response indicates an append blob was sealed (HTTP 409 / BlobIsSealed).
-    /// A sealed WAL is permanently closed for new appends; the journaling layer must recover before
-    /// any further writes can proceed.
+    /// 返回为真实,如果 Azure 回复表示已密封了附加布(HTTP 409/ BlobIsSealed)。
+    /// 密封的WAL永久关闭,以接收新的附件;在回收前必须恢复日记层
+    /// 任何进一步写作都可以进行。
     /// </summary>
     private static bool IsBlobSealed(RequestFailedException exception)
         => exception.Status == 409
@@ -1086,19 +1086,19 @@ internal sealed partial class AzureBlobJournalStorage : IJournalStorage
                 || exception.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// Returns true when an Azure response indicates the WAL has been mutated since our cached ETag
-    /// was captured: HTTP 404 (WAL deleted/recreated), HTTP 412 (precondition failed / IfMatch
-    /// rejected), or HTTP 409 with <c>ConditionNotMet</c> (matched-write conflict). When this
-    /// returns true, callers should attempt
-    /// <see cref="RetryAfterMetadataOnlyConflictAsync"/> to refresh the cached ETag in place when
-    /// the change was metadata-only, and otherwise propagate
-    /// <see cref="Orleans.Storage.InconsistentStateException"/> to trigger journaling-layer recovery.
-    /// Transient transport failures (HTTP 5xx, network errors, timeouts) are handled by the Azure
-    /// SDK's built-in retry policy and never reach this classifier.
+    /// 当 Azure 回复表示WAL自我们藏匿的ETag以来就变异时返回为真实
+    /// 捕获的有:HTTP 404(WAL删除/重建)、HTTP 412(先决条件失败/ IfMatch)
+    /// 被拒绝),或 HTTP 409 与 <c>ConditionNotMet</c> (相匹配的写法冲突) 。当此时
+    /// 返回正返回正返回,呼叫者应尝试
+    /// <see cref="RetryAfterMetadataOnlyConflictAsync"/> 以刷新当
+    /// 变化是只使用元数据,否则会传播
+    /// 触发日记层回收的<see cref="Orleans.Storage.InconsistentStateException"/>
+    /// 由 Azure处理中程运输故障(HTTP 5xxx、网络错误、超时)
+    /// SDK的内在再研究政策 永远不能到达这个分类器
     /// </summary>
     private static bool IsWalMutationConflict(RequestFailedException exception)
     {
-        // These failures mean our cached WAL view is stale or gone, so the caller must recover before retrying.
+        // 这些失败意味着我们隐藏的WAL视图已经过时或消失,所以打电话者必须在重新尝试之前恢复。
         return exception.Status is 404 or 412
             || exception.Status == 409 && string.Equals(exception.ErrorCode, "ConditionNotMet", StringComparison.Ordinal);
     }

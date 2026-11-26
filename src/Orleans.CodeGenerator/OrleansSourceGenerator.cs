@@ -9,7 +9,7 @@ using Orleans.CodeGenerator.Model;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Generates Orleans serializers, copiers, activators, RPC proxies, invokers, and registration metadata.
+/// 生成 Orleans 序列器、复印机、活动器、RPC代号、援引器和登记元数据。
 /// </summary>
 [Generator]
 public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
@@ -51,7 +51,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => ctx)
             .Where(static ctx =>
             {
-                // One attributed partial owns generation; Generate reads roots and validates declarations from the whole symbol.
+                // 一种被归为部分自有的一代; 生成读取根和验证整个符号的宣布。
                 var attribute = ctx.TargetSymbol.GetAttributes().First(attribute =>
                     SymbolEqualityComparer.Default.Equals(
                         attribute.AttributeClass?.OriginalDefinition,
@@ -103,7 +103,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
                 GeneratedSourceOutput.EmitSource(productionContext, output);
             });
 
-        // Incremental discovery of [GenerateSerializer] types
+        // 逐步发现[GenerateSerializer]类型
         var serializableTypeContexts = context.SyntaxProvider
             .ForAttributeWithMetadataName<GeneratorAttributeSyntaxContext>(
                 "Orleans.GenerateSerializerAttribute",
@@ -136,8 +136,8 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             }
         });
 
-        // Attribute-driven discovery of [GenerateMethodSerializers] interfaces, plus a
-        // constrained syntax provider for interfaces which inherit the attribute from a base interface.
+        // 属性驱动的[GenerateMethodSerializers]接口发现,加上
+        // 用于从基界面继承属性的接口的制约语法提供者。
         var directProxyInterfaces = context.SyntaxProvider
             .ForAttributeWithMetadataName<ProxyInterfaceModel?>(
                 "Orleans.GenerateMethodSerializersAttribute",
@@ -169,7 +169,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             .WithComparer(ImmutableArrayComparer<ProxyInterfaceModel>.Instance)
             .WithTrackingName(CollectedProxyInterfacesTrackingName);
 
-        // Extract reference assembly data (application parts, well-known type IDs, aliases)
+        // 提取参考组装数据(应用部分、众所周知的型号识别码、别名)
         var refAssemblyDataResults = compilationProvider
             .Combine(generatorOptions)
             .Combine(collectedTypes)
@@ -193,7 +193,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             }
         });
 
-        // Diagnostics about the generated metadata are reported only when implementation outputs are emitted.
+        // 只有在发布执行产出时才报告对生成元数据进行的诊断。
         context.RegisterImplementationSourceOutput(refAssemblyDataResults, static (productionContext, result) =>
         {
             foreach (var diagnostic in result.ImplementationDiagnostics)
@@ -228,7 +228,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             .Select(static (result, _) => result.ProxyOutputModels)
             .WithComparer(ImmutableArrayComparer<ProxyOutputModel>.Instance);
 
-        // Combine source/reference models before metadata generation.
+        // 元数据生成前将源/参考模型组合在一起。
         var metadataAggregate = collectedTypes
             .Combine(preparedProxyOutputModels)
             .Combine(refAssemblyData)
@@ -239,8 +239,8 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
                 input.Right))
             .WithTrackingName(MetadataAggregateTrackingName);
 
-        // Enums have one declaration, so their emission plans can retain the discovery provider's per-owner identity.
-        // Preserve null slots when a type becomes invalid: filtering here can corrupt Roslyn 4.5 tracked state on reparse.
+        // 环境元件有一个声明,所以它们的排放计划 可以保留发现提供者的每个拥有者的身份。
+        // 当类型失效时保留空格: 过滤这里会腐蚀Roslyn 4. 5 在松散状态跟踪 。
         var enumSerializerPlans = serializableTypeResults
             .Select(static (result, _) => result.EnumSerializerPlan)
             .WithTrackingName(EnumSerializerPlansTrackingName);
@@ -271,7 +271,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             .WithComparer(ImmutableArrayComparer<SourceOutputResult>.Instance)
             .WithTrackingName(SerializerOutputsTrackingName);
 
-        // Keep the deduplicated batch intact: Roslyn 4.5 can lose re-added entries when flattening an equal prior batch.
+        // 将已拆卸的批次保持原样:Roslyn 4.5在平整前一批相同批次时,可能会失去再加条目。
         context.RegisterSourceOutput(serializerOutputs, static (productionContext, outputs) =>
         {
             foreach (var output in outputs)

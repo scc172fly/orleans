@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Orleans.Caching.Internal;
 
-// Derived from BitFaster.Caching by Alex Peck
+// 由Alex Peck从 BitFaster.Caching 取出
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/CacheDebugView.cs
 [ExcludeFromCodeCoverage]
 internal sealed class CacheDebugView<K, V>

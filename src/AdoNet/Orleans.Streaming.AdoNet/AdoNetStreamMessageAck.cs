@@ -1,8 +1,8 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// Represents an acknowledgement from storage that a message was enqueued.
-/// This is used to surface any generated identifiers for testing.
+/// 表示存储中确认有一条电文被排入队列。
+/// 用于表面任何生成的测试识别符。
 /// </summary>
 internal record AdoNetStreamMessageAck(
     string ServiceId,

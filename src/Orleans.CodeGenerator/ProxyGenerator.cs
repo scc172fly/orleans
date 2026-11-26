@@ -11,7 +11,7 @@ using static Orleans.CodeGenerator.SerializerGenerator;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Generates RPC proxies.
+/// 产生RPC代理人。
 /// </summary>
 internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenerator copierGenerator)
 {
@@ -23,8 +23,8 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
     private LibraryTypes LibraryTypes => _generatorServices.LibraryTypes;
 
     /// <summary>
-    /// Plans the proxy for an interface. Planning enumerates the interface's methods, which discovers their invokables
-    /// and compatibility invokers, and reports invalid methods.
+    /// 界面的代理计划。 计划列出接口的方法, 发现它们被引用的可使用性
+    /// 和兼容性援引器,报告无效的方法。
     /// </summary>
     public ProxyEmissionPlan CreatePlan(ProxyInterfaceDescription interfaceDescription)
     {
@@ -96,7 +96,7 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
     {
         var fields = new List<GeneratedFieldDescription>();
 
-        // Add a copier field for any method parameter which does not have a static codec.
+        // 添加一个没有静态编码的方法参数的复印机字段。
         var paramCopiers = interfaceDescription.Methods
             .Where(method => method.MethodTypeParameters.Count == 0)
             .SelectMany(method => method.GeneratedInvokable.Members);
@@ -310,13 +310,13 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
                 .Concat(_generatorServices.LibraryTypes.StaticCopiers)
                 .ToList();
 
-        // Set request object fields from method parameters.
+        // 从方法参数中设定对象字段。
         var parameterIndex = 0;
         var parameters = invokable.Members.OfType<MethodParameterFieldDescription>().Select(member => new SerializableMethodMember(member));
         var hasCopyContext = false;
         foreach (var parameter in parameters)
         {
-            // Only create a copy context as needed.
+            // 只创建所需的复制上下文 。
             if (!hasCopyContext && !parameter.IsShallowCopyable)
             {
                 statements.Add($"using var copyContext = base.{CopyContextPoolMemberName}.GetContext();");
@@ -351,22 +351,22 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
         var isVoid = methodReturnType.SpecialType is SpecialType.System_Void;
         if (namedMethodReturnType.TypeArguments.Length == 1)
         {
-            // Task<T> / ValueTask<T>
+            // 任务<T> / ValueTask<T>
             var resultType = namedMethodReturnType.TypeArguments[0];
             baseInvokeExpression = $"base.{CodeText.Identifier(invokeMethodName ?? "InvokeAsync")}<{CodeText.Type(resultType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions))}>";
         }
         else if (isVoid)
         {
-            // void
+            // 无效
             baseInvokeExpression = $"base.{CodeText.Identifier(invokeMethodName ?? "Invoke")}";
         }
         else
         {
-            // Task / ValueTask
+            // 任务/ ValueTask
             baseInvokeExpression = $"base.{CodeText.Identifier(invokeMethodName ?? "InvokeAsync")}";
         }
 
-        // C#: base.InvokeAsync<TReturn>(request);
+        // C: base.InvokeAsync<TReturn>(请求);
         var invocationExpression = $"{baseInvokeExpression}(request)";
 
         var rt = namedMethodReturnType.ConstructedFrom;

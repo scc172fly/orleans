@@ -155,7 +155,7 @@ internal sealed class FaultyMembershipTable(MembershipFaultController control, s
     {
         if (Fault == MembershipFault.IgnoreTableToken)
         {
-            // Make the deliberate violation deterministic: serialize both "ignore table token" commits.
+            // 将两个“不光彩的表牌”承诺连为一。
             lock (control.Backend.Sync)
             {
                 var current = inner.ReadAllAsync(cancellationToken).GetAwaiter().GetResult().Version.Next();
@@ -306,8 +306,8 @@ internal sealed class FaultyMembershipTable(MembershipFaultController control, s
         if (Fault == MembershipFault.TornCleanupReadAll)
         {
             var current = await inner.ReadAllAsync(ct);
-            // The Dead transition has one verification read and two baseline reads before
-            // the gated race. Hold subsequent readers until cleanup has captured that view.
+            // 死路过渡有一个核查,前面有两个基线
+            // 等清理完之后再看
             var racingRead = Volatile.Read(ref control.TornArmed) != 0
                 || (current.Members.Any(row => row.Item1.Status == SiloStatus.Dead)
                     && Interlocked.Increment(ref control.ReadsWithDeadTarget) > 3);
@@ -323,7 +323,7 @@ internal sealed class FaultyMembershipTable(MembershipFaultController control, s
         }
         if (Fault == MembershipFault.TornReadAll)
         {
-            // The last insert verification, two final setup reads, and two round-boundary reads precede the writer barrier.
+            // 最后插入核查,最后两个设置是:两句为:作者屏障之前两句圆边文字。
             var current = await inner.ReadAllAsync(ct);
             var fullReads = current.Version.Version == 5
                 ? Interlocked.Increment(ref control.ReadsAtFiveRows)

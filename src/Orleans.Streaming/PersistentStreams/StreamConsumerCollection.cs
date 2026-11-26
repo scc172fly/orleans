@@ -12,14 +12,14 @@ namespace Orleans.Streams
     internal sealed class StreamConsumerCollection
     {
         [Id(0)]
-        private readonly Dictionary<GuidId, StreamConsumerData> queueData; // map of consumers for one stream: from Guid ConsumerId to StreamConsumerData
+        private readonly Dictionary<GuidId, StreamConsumerData> queueData; // 一张一流消费者地图:取自《指南》 ConsumerId 至 StreamConsumerData
         [Id(1)]
         private DateTime lastActivityTime;
 
         [Id(2)]
         public bool StreamRegistered { get; set; }
 
-        // Not serialized - runtime-only in-flight registration tracking.
+        // 没有序列化 -- -- 运行时间只限飞行中的登记跟踪。
         [NonSerialized]
         public Task? RegistrationTask;
 
@@ -83,11 +83,11 @@ namespace Orleans.Streams
 
         public bool IsInactive(DateTime now, TimeSpan inactivityPeriod)
         {
-            // Consider stream inactive (with all its consumers) from the pulling agent perspective if:
-            // 1) There were no new events received for that stream in the last inactivityPeriod
-            // 2) All consumer for that stream are currently inactive (that is, all cursors are inactive) - 
-            //    meaning there is nothing for those consumers in the adapter cache.
-            // 3) Consumer handshakes have completed and their positions are reconciled.
+            // 从拉动剂的角度考虑(与其所有消费者一起)流不活动,如果:
+            // (1) 最后一个 inactivityPeriod没有收到该流的新事件
+            // (2) 该流的所有消费者目前都处于不活动状态(即所有光标都不活动) - 
+            //    意思是这些消费者在适配器缓存中 没有任何用处
+            // (3) 消费者握手已经完成,其立场得到协调。
             if (now - lastActivityTime < inactivityPeriod) return false;
             return !queueData.Values.Any(data => data.PendingHandshakes != 0 || data.HasUnresolvedHandshake
                 || data.State.Equals(StreamConsumerDataState.Active));

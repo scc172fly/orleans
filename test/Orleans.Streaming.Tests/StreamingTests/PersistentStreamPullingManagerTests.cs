@@ -70,7 +70,7 @@ public class PersistentStreamPullingManagerTests
         {
             Assert.Same(manager, directory.FindTarget(manager.GrainId));
             Assert.Equal(1, directory.Count);
-            // A timer owned before initialization observes directory disposal even when initialization creates no timer.
+            // 初始化前拥有的计时器会观察目录处置,即使初始化不会产生定时器。
             manager.RegisterTimer(_ => Task.CompletedTask, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             var lifetimeProbe = Assert.Single(timeProvider.Timers);
 
@@ -103,7 +103,7 @@ public class PersistentStreamPullingManagerTests
                 }
             }
 
-            // Stopping provider work and completing initialization leave final target ownership with the directory.
+            // 停止提供商的工作并完成初始化,最终目标所有权与目录。
             Assert.Same(manager, directory.FindTarget(manager.GrainId));
             Assert.Equal(0, lifetimeProbe.DisposeCount);
             for (var iteration = 0; iteration < 2; iteration++)

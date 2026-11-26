@@ -1,40 +1,50 @@
 ---
-title: "ORLEANS0206: Run each durable task definition once"
-description: Understand ORLEANS0206, which reports an async DurableTask definition which code runs more than once, and fix it by creating a definition for each run.
+title: "ORLEANS0206:运行每个耐久任务定义一次"
+description: "理解 ORLEANS0206, 它会报告一个自动 DurableTask 定义, 代码不止一次运行, 然后通过为每次运行创建定义来修正它 。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0206: Run each durable task definition once
+<a id="orleans0206-run-each-durable-task-definition-once"></a>
 
-| Property | Value |
+# ORLEANS0206:运行每个耐久任务定义一次
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-A local variable holds a definition which an `async DurableTask` method in the same compilation returned, and code runs it a second time: it awaits, schedules, or posts the variable twice, or in a loop which doesn't create the definition:
+## 原因原因原因
+
+本地变量持有一个定义,该汇编中 `async DurableTask` 方法返回了该定义,代码第二次运行:等待、计划或将变量张贴两次,或在不创建定义的循环圈中:
 
 :::code source="snippets/durable-tasks/Orleans0206.cs" id="orleans0206_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-An `async DurableTask` method returns a single-use definition: it holds the method's state machine, which runs once. The first iteration of the loop runs the definition. The second iteration's run throws `InvalidOperationException` with the message `A deferred durable task definition can execute only once.`, which fails the task after its first reminder.
+## 规则说明
 
-For definitions, see [Starting and observing tasks](../grains/durable-tasks.md#starting-and-observing-tasks).
+A 音 A `async DurableTask` 方法返回单用定义:它持有该方法的状态机器,该机器运行一次。循环的第一迭代运行着定义。第二个迭代是抛出 `InvalidOperationException` 与消息 `A deferred durable task definition can execute only once.`,它未能完成任务后,它第一次提醒。
 
-## How to fix violations
+定义见 [开始和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
 
-**Call the method for each run.** Each call creates a definition for one run:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**调用每次运行的方法。** 每个调用为一次运行设定定义 :
 
 :::code source="snippets/durable-tasks/Orleans0206.cs" id="orleans0206_fix" language="csharp":::
 
-**Keep a factory instead of a definition.** A local function or a delegate which calls the method creates a definition each time the body runs it:
+**保留工厂,而不是定义。** 本地函数或调用该方法的代表在每次运行时都创建定义:
 
 :::code source="snippets/durable-tasks/Orleans0206.cs" id="orleans0206_fix_factory" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic when the paths which reach the second run are mutually exclusive, so each execution runs the definition once.
+## 何时压缩
+
+当到达第二波的路径相互排斥时, 停止诊断, 所以每次执行都会运行一次定义 。

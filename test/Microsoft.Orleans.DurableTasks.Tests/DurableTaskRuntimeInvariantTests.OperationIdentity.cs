@@ -9,9 +9,9 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Operation identity: a replay, or a retry of a root task, is the same operation as a record when it has the record's
-/// kind and identifier and invokes the same method on the same target. Arguments aren't compared, so a deployment which
-/// changes how an argument serializes replays the same operations.
+/// 操作身份: 重放或重试根任务, 当有记录时, 其重播或重试是和记录相同的操作
+/// 参数没有比较,所以是部署
+/// 参数如何序列化重播相同操作,则改变该参数的顺序。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -34,7 +34,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var fingerprint = recorded.RemoteRequestFingerprint;
         using var stalls = new StallRecorder(taskId);
 
-        // A deployment changed how the call's argument serializes: the replay calls the same method on the same grain.
+        // 部署改变了调用参数的顺序:重播对同一 grain采用相同方法。
         var handle = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await CreateRemoteChild(2).WithId("charge")),
@@ -67,8 +67,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var messageId = Assert.Single(transport.SentInvocations);
         var fingerprint = storage.Get(childId).RemoteRequestFingerprint;
 
-        // A replacement activation replays the call with an argument which serializes differently. The call reaches its
-        // record and coalesces with the invocation which the table holds, whose journaled request is kept.
+        // 替换激活程序重放调用参数, 其序列化不同。 调用到它
+        // 与表格的引用合并,并按日记记录和合并,保留其请求。
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         argument = 2;
         var (replacement, _, _, replacementTransport) = CreateRuntime(storage, manager);
@@ -102,7 +102,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         otherTarget.Context!.TargetId = GrainId.Create("target", "two");
         using var stalls = new StallRecorder(taskId);
 
-        // The same method on another grain is another operation.
+        // 另一种 grain 的同一方法是另一种操作。
         _ = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await new TestStateManager.TestRemoteDurableTask(otherTarget).WithId("charge")),
@@ -147,7 +147,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilAsync(() => first.CreateTaskCallCount == 1);
         var fingerprint = storage.Get(rootId).RequestFingerprint;
 
-        // A client retry of the same method under the same identifier reaches the stored task, whatever its arguments.
+        // 客户端在同一身份识别特征下重试同一方法,无论论点如何,都可达到存储的任务。
         var retry = CreateRequest(2);
         var response = await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, retry, TestContext.Current.CancellationToken);
 
@@ -156,7 +156,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Same(first, storage.Get(rootId).Request);
         Assert.Equal(fingerprint, storage.Get(rootId).RequestFingerprint);
 
-        // Another method under the same identifier conflicts.
+        // 同一识别特征冲突下的另一个方法。
         var conflict = await Assert.ThrowsAsync<DurableTaskConflictException>(
             async () => await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, CreateOtherMethodRequest(1), TestContext.Current.CancellationToken));
         Assert.Contains($"Durable task '{rootId}' is already associated with a different request.", conflict.Message, StringComparison.Ordinal);
@@ -181,14 +181,14 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         var fingerprint = storage.Get(storedId).RequestFingerprint;
 
-        // A redelivery whose request serializes differently, here with other invocation options, invokes the same method.
+        // 请求重复交付的重新交付,其顺序不同,这里与其他援引选择一起使用同一方法。
         var reserialized = CreateSerializableRequest(runtime.GrainId);
         reserialized.AddInvokeMethodOptions(InvokeMethodOptions.OneWay);
         Assert.True(handler.TryAccept(Invocation(reserialized), out var redelivered));
         Assert.IsType<DeliveryResult.Accepted>(redelivered.Value);
         Assert.Equal(fingerprint, storage.Get(storedId).RequestFingerprint);
 
-        // An invocation of another method under the caller's identifier conflicts, and the inbox dead-letters it.
+        // 使用另一种方法 在打电话者的身份识别冲突, 和收件箱的死字母。
         var other = new TestOtherMethodDurableTaskRequest
         {
             Context = new DurableTaskRequestContext { CallerId = sender, TargetId = runtime.GrainId, SupportsDurableCompletion = true },
@@ -230,7 +230,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Contains(messageId.ToString(), exception.Message, StringComparison.Ordinal);
     }
 
-    /// <summary>Creates a request for another method than <see cref="CreateRequest"/>'s, addressed like it.</summary>
+    /// <summary>创建一个比 <see cref="CreateRequest"/>的,地址类似它的其他方法的请求。</summary>
     private static RuntimeTestOtherMethodRequest CreateOtherMethodRequest(int argument, GrainId? target = null) =>
         new(null, argument)
         {

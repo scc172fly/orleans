@@ -21,7 +21,7 @@ public sealed class WishlistGrain : DurableGrain
     {
         await CheckStock(item).WithId("check-stock");
 
-        // Changes the list which the value holds: no journal record holds the new item.
+        // 更改值持有的列表:没有日记记录会保留新项目。
         _wishlist.Value!.Items.Add(item);
     }
 
@@ -47,7 +47,7 @@ public sealed class SavedItemsGrain : DurableGrain
     {
         await CheckStock(item).WithId("check-stock");
 
-        // The assignment passes through the value's API, which records the new list.
+        // 任务通过记录新清单的值 API。
         var saved = _saved.Value ?? SavedItems.Empty;
         _saved.Value = saved with { Items = saved.Items.Add(item) };
     }

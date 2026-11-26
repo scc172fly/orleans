@@ -15,7 +15,7 @@ namespace TestGrains
     {
         public const string StreamNamespace = "NonTransientError_RecoverableStream";
 
-        // grain instance state
+        // grain 实例状态
         private readonly ILogger logger;
         private IAsyncStream<GeneratedEvent> stream = null!;
 
@@ -47,15 +47,15 @@ namespace TestGrains
             }
 
             var streamProvider = this.GetStreamProvider(GeneratedStreamTestConstants.StreamProviderName);
-            stream = streamProvider.GetStream<GeneratedEvent>(State.StreamNamespace!, State.StreamGuid); // The namespace is initialized above before the stream is retrieved.
+            stream = streamProvider.GetStream<GeneratedEvent>(State.StreamNamespace!, State.StreamGuid); // 命名空间在获取流之前先于上面初始化 。
 
             await stream.SubscribeAsync(OnNextAsync, OnErrorAsync, State.RecoveryToken!);
         }
 
         private async Task OnNextAsync(GeneratedEvent evt, StreamSequenceToken? sequenceToken)
         {
-            // Ignore duplicates
-            if (State.IsDuplicate(sequenceToken!)) // Generated streams always provide sequence tokens.
+            // 忽略重复
+            if (State.IsDuplicate(sequenceToken!)) // 生成的流总是提供序列符号 。
             {
                 logger.LogInformation("Received duplicate event. StreamGuid: {StreamGuid}, SequenceToken: {SequenceToken}", State.StreamGuid, sequenceToken);
                 return;
@@ -63,14 +63,14 @@ namespace TestGrains
 
             logger.LogInformation("Received event. StreamGuid: {StreamGuid}, SequenceToken: {SequenceToken}", State.StreamGuid, sequenceToken);
 
-            // We will only update the start token if this is the first event we're processed
-            // In that case, we'll want to save the start token in case something goes wrong.
-            if (State.TryUpdateStartToken(sequenceToken!)) // Generated streams always provide sequence tokens.
+            // 我们只会更新启动代号, 如果这是我们处理的第一个事件
+            // 如果那样的话,我们会想保存启动标志 以防出事
+            if (State.TryUpdateStartToken(sequenceToken!)) // 生成的流总是提供序列符号 。
             {
                 await WriteStateAsync();
             }
 
-            // fault on 33rd event until fault is cleared
+            // 发生第33次事故时有缺陷,直到清除过失
             if (State.Accumulator == 32 && !Faults.FaultCleared)
             {
                 InjectFault();
@@ -80,7 +80,7 @@ namespace TestGrains
             State.LastProcessedToken = sequenceToken;
             if (evt.EventType != GeneratedEvent.GeneratedEventType.Report)
             {
-                // every 10 events, checkpoint our grain state
+                // 每10次事件,检查我们的 grain 状态
                 if (State.Accumulator % 10 != 0) return;
                 logger.LogInformation(
                     "Checkpointing: StreamGuid: {StreamGuid}, StreamNamespace: {StreamNamespace}, SequenceToken: {SequenceToken}, Accumulator: {Accumulator}",

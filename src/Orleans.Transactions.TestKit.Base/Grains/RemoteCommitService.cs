@@ -6,49 +6,49 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Defines remote commit outcomes used to test transactional commit participation.
+    /// 定义远程承诺用于测试交易承诺参与的结果。
     /// </summary>
     public interface IRemoteCommitService
     {
         /// <summary>
-        /// Records a successful remote commit.
+        /// 记录成功远程承诺。
         /// </summary>
-        /// <param name="transactionId">The committed transaction identifier.</param>
-        /// <param name="data">The operation data.</param>
-        /// <returns><see langword="true"/> to report a successful commit.</returns>
+        /// <param name="transactionId">承诺的交易识别符。</param>
+        /// <param name="data">运行数据。</param>
+        /// <returns><see langword="true"/> 汇报成功承诺。</returns>
         Task<bool> Pass(Guid transactionId, string data);
 
         /// <summary>
-        /// Records a rejected remote commit.
+        /// 记录被否决的远程实施 。
         /// </summary>
-        /// <param name="transactionId">The rejected transaction identifier.</param>
-        /// <param name="data">The operation data.</param>
-        /// <returns><see langword="false"/> to report a failed commit.</returns>
+        /// <param name="transactionId">被拒绝的交易识别符 。</param>
+        /// <param name="data">运行数据。</param>
+        /// <returns><see langword="false"/> 以报告未执行承诺。</returns>
         Task<bool> Fail(Guid transactionId, string data);
 
         /// <summary>
-        /// Records a remote commit and then throws an exception.
+        /// 记录远程实施,然后宣布例外。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="data">The operation data.</param>
-        /// <returns>A task which always faults.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="data">运行数据。</param>
+        /// <returns>总是有故障的任务。</returns>
         Task<bool> Throw(Guid transactionId, string data);
     }
 
-    // TODO : Replace with more complete service implementation which:
-    // - can be called to verify that commit service receive Callme with proper args.
-    // - can produce errors for fault senarios.
+    // TODO:替换为更完整的服务实施,即:
+    // - 能够被传唤核查是否提供有适当参数的Callme服务。
+    // 会造成错误的预言
     /// <summary>
-    /// Provides deterministic successful, failed, and faulted remote commit outcomes for transaction tests.
+    /// 提供确定性的成功、失败和错误的远程承诺结果,供交易测试使用。
     /// </summary>
     public partial class RemoteCommitService : IRemoteCommitService
     {
         private readonly ILogger logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RemoteCommitService"/> class.
+        /// 初始化 <see cref="RemoteCommitService"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
+        /// <param name="logger">日志器。</param>
         public RemoteCommitService(ILogger<RemoteCommitService> logger)
         {
             this.logger = logger;
@@ -98,33 +98,33 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Represents a remote commit operation which reports success.
+    /// 代表一个远程承诺操作,它报告成功。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class PassOperation : ITransactionCommitOperation<IRemoteCommitService>
     {
         /// <summary>
-        /// Gets or sets the data supplied to the remote commit service.
+        /// 获取或设置远程发送服务的数据。
         /// </summary>
         [Id(0)]
         public string Data { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PassOperation"/> class.
+        /// 初始化 <see cref="PassOperation"/> 类的新实例。
         /// </summary>
-        /// <param name="data">The data supplied to the remote commit service.</param>
+        /// <param name="data">远程发送服务的数据 。</param>
         public PassOperation(string data)
         {
             this.Data = data;
         }
 
         /// <summary>
-        /// Invokes the successful remote commit operation.
+        /// 启动成功的远程任务执行 。
         /// </summary>
-        /// <param name="transactionId">The committed transaction identifier.</param>
-        /// <param name="service">The remote commit service.</param>
-        /// <returns><see langword="true"/> when the remote commit succeeds.</returns>
+        /// <param name="transactionId">承诺的交易识别符。</param>
+        /// <param name="service">远程送件服务。</param>
+        /// <returns><see langword="true"/> 当远方的人成功的时候,</returns>
         public async Task<bool> Commit(Guid transactionId, IRemoteCommitService service)
         {
             ArgumentNullException.ThrowIfNull(service);
@@ -133,33 +133,33 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Represents a remote commit operation which reports failure.
+    /// 代表一个远程承付操作,报告失败。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class FailOperation : ITransactionCommitOperation<IRemoteCommitService>
     {
         /// <summary>
-        /// Gets or sets the data supplied to the remote commit service.
+        /// 获取或设置远程发送服务的数据。
         /// </summary>
         [Id(0)]
         public string Data { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FailOperation"/> class.
+        /// 初始化 <see cref="FailOperation"/> 类的新实例。
         /// </summary>
-        /// <param name="data">The data supplied to the remote commit service.</param>
+        /// <param name="data">远程发送服务的数据 。</param>
         public FailOperation(string data)
         {
             this.Data = data;
         }
 
         /// <summary>
-        /// Invokes the failed remote commit operation.
+        /// 启动失败的远程执行操作 。
         /// </summary>
-        /// <param name="transactionId">The rejected transaction identifier.</param>
-        /// <param name="service">The remote commit service.</param>
-        /// <returns><see langword="false"/> to reject the remote commit.</returns>
+        /// <param name="transactionId">被拒绝的交易识别符 。</param>
+        /// <param name="service">远程送件服务。</param>
+        /// <returns><see langword="false"/> 拒绝远程承诺。</returns>
         public async Task<bool> Commit(Guid transactionId, IRemoteCommitService service)
         {
             ArgumentNullException.ThrowIfNull(service);
@@ -168,33 +168,33 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Represents a remote commit operation which throws an exception.
+    /// 代表一个远程实施操作, 并排除此例外 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class ThrowOperation : ITransactionCommitOperation<IRemoteCommitService>
     {
         /// <summary>
-        /// Gets or sets the data supplied to the remote commit service.
+        /// 获取或设置远程发送服务的数据。
         /// </summary>
         [Id(0)]
         public string Data { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ThrowOperation"/> class.
+        /// 初始化 <see cref="ThrowOperation"/> 类的新实例。
         /// </summary>
-        /// <param name="data">The data supplied to the remote commit service.</param>
+        /// <param name="data">远程发送服务的数据 。</param>
         public ThrowOperation(string data)
         {
             this.Data = data;
         }
 
         /// <summary>
-        /// Invokes the faulting remote commit operation.
+        /// 启动错误远程操作 。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="service">The remote commit service.</param>
-        /// <returns>A task which always faults.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="service">远程送件服务。</param>
+        /// <returns>总是有故障的任务。</returns>
         public async Task<bool> Commit(Guid transactionId, IRemoteCommitService service)
         {
             ArgumentNullException.ThrowIfNull(service);

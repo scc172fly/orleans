@@ -6,81 +6,81 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.Diagnostics;
 
 /// <summary>
-/// Provides the diagnostic listener and event payload types for Orleans reminder events.
+/// 提供 Orleans 提醒事件的诊断听众和事件有效载荷类型。
 /// </summary>
 /// <remarks>
-/// These types are public but may change between minor versions. They are intended for
-/// advanced scenarios such as simulation testing and diagnostics.
+/// 这些类型是公开的,但可能在不同版本之间发生变化。
+/// 模拟测试和诊断等先进假设情景。
 /// </remarks>
 public static class ReminderEvents
 {
     /// <summary>
-    /// The name of the diagnostic listener for reminder events.
+    /// 提醒事件诊断性听众的名字。
     /// </summary>
     public const string ListenerName = "Orleans.Reminders";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// Gets an observable sequence of all reminder events.
+    /// 获得所有提醒事件的可观测序列。
     /// </summary>
     public static IObservable<ReminderEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// Gets an observable sequence of reminder service events.
+    /// 获得一个可观测的提醒服务活动序列。
     /// </summary>
     public static IObservable<ReminderServiceEvent> ServiceEvents { get; } = new ServiceObservable();
 
     /// <summary>
-    /// The base class used for reminder service diagnostic events.
+    /// 用于提醒服务诊断事件的基准等级。
     /// </summary>
-    /// <param name="siloAddress">The address of the silo associated with the event, if any.</param>
+    /// <param name="siloAddress">大会主席的地址 silo 如果与事件有关,请予以说明。</param>
     public abstract class ReminderServiceEvent(SiloAddress? siloAddress)
     {
         /// <summary>
-        /// The address of the silo associated with the event, if any.
+        /// 与事件相关的 silo 地址(如果有的话)。
         /// </summary>
         public readonly SiloAddress? SiloAddress = siloAddress;
     }
 
     /// <summary>
-    /// Event payload for when a reminder service completes startup and is ready for reminder operations.
+    /// 当提醒服务完成启动并准备进行提醒操作时,事件有效载荷。
     /// </summary>
-    /// <param name="siloAddress">The address of the silo whose reminder service started.</param>
+    /// <param name="siloAddress">大会主席的地址 silo 开始提供催复服务。</param>
     public sealed class ReminderServiceStarted(SiloAddress? siloAddress) : ReminderServiceEvent(siloAddress)
     {
     }
 
     /// <summary>
-    /// The base class used for reminder diagnostic events.
+    /// 用于提醒诊断事件的基准类。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="siloAddress">The address of the silo associated with the event, if any.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="siloAddress">大会主席的地址 silo 如果与事件有关,请予以说明。</param>
     public abstract class ReminderEvent(GrainId grainId, string reminderName, SiloAddress? siloAddress)
     {
         /// <summary>
-        /// The grain associated with the reminder.
+        /// 下 grain 与教诲有关。
         /// </summary>
         public readonly GrainId GrainId = grainId;
 
         /// <summary>
-        /// The reminder name.
+        /// 提醒的名字。
         /// </summary>
         public readonly string ReminderName = reminderName;
 
         /// <summary>
-        /// The address of the silo associated with the event, if any.
+        /// 与事件相关的 silo 地址(如果有的话)。
         /// </summary>
         public readonly SiloAddress? SiloAddress = siloAddress;
     }
 
     /// <summary>
-    /// Event payload for when a reminder is registered or updated.
+    /// 登记或更新提醒时的事件有效载荷。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class Registered(
         GrainId grainId,
         string reminderName,
@@ -89,11 +89,11 @@ public static class ReminderEvents
     }
 
     /// <summary>
-    /// Event payload for when a reminder is unregistered.
+    /// 提醒未登记时的事件有效载荷。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="siloAddress">The address of the silo that was handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="siloAddress">大会主席的地址 silo 正在处理这个提醒</param>
     public sealed class Unregistered(
         GrainId grainId,
         string reminderName,
@@ -102,54 +102,54 @@ public static class ReminderEvents
     }
 
     /// <summary>
-    /// The reason a local reminder timer stopped.
+    /// 当地提醒计时器停止的原因
     /// </summary>
     public enum LocalReminderStopReason
     {
         /// <summary>
-        /// The stop reason is unknown.
+        /// 停止的原因不明。
         /// </summary>
         Unknown = 0,
 
         /// <summary>
-        /// The reminder was unregistered.
+        /// 提醒函没有登记。
         /// </summary>
         Unregistered = 1,
 
         /// <summary>
-        /// Unused. Retained for compatibility.
+        /// 未使用,因兼容性而保留
         /// </summary>
         [Obsolete("Unused, will be removed in a future version.")]
         Replaced = 2,
 
         /// <summary>
-        /// The reminder moved outside the silo's responsibility range.
+        /// 提醒通知已移出 silo责任范围以外。
         /// </summary>
         RemovedFromRange = 3,
 
         /// <summary>
-        /// The reminder was removed from the reminder table.
+        /// 提醒函已从提醒表中删除。
         /// </summary>
         RemovedFromTable = 4,
 
         /// <summary>
-        /// The reminder service stopped.
+        /// 提醒服务停止了。
         /// </summary>
         ServiceStopped = 5,
 
         /// <summary>
-        /// The reminder is outside the service's current loading window.
+        /// 提醒不在服务处当前装载窗口内。
         /// </summary>
         OutsideLoadingWindow = 6,
     }
 
     /// <summary>
-    /// Event payload for when a silo starts a local timer for a reminder instance.
+    /// 当 silo 启动提醒实例的本地计时器时, 事件有效载荷。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="identity">The object reference used to correlate this local reminder instance across lifecycle events.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="identity">用于将整个生命周期事件之间本局部提醒实例联系起来的对象引用。</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class LocalReminderStarted(
         GrainId grainId,
         string reminderName,
@@ -157,19 +157,19 @@ public static class ReminderEvents
         SiloAddress? siloAddress) : ReminderEvent(grainId, reminderName, siloAddress)
     {
         /// <summary>
-        /// The object reference used to correlate this local reminder instance across lifecycle events.
+        /// 用于将整个生命周期事件之间的局部提醒实例联系起来的对象引用。
         /// </summary>
         public readonly object Identity = identity;
     }
 
     /// <summary>
-    /// Event payload for when a silo stops a local timer for a reminder instance.
+    /// 当 silo 停止提醒实例的本地计时器时, 事件有效载荷。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="identity">The object reference used to correlate this local reminder instance across lifecycle events.</param>
-    /// <param name="reason">The reason the local timer stopped.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="identity">用于将整个生命周期事件之间本局部提醒实例联系起来的对象引用。</param>
+    /// <param name="reason">本地定时器停止的原因。</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class LocalReminderStopped(
         GrainId grainId,
         string reminderName,
@@ -178,24 +178,24 @@ public static class ReminderEvents
         SiloAddress? siloAddress) : ReminderEvent(grainId, reminderName, siloAddress)
     {
         /// <summary>
-        /// The object reference used to correlate this local reminder instance across lifecycle events.
+        /// 用于将整个生命周期事件之间的局部提醒实例联系起来的对象引用。
         /// </summary>
         public readonly object Identity = identity;
 
         /// <summary>
-        /// The reason the local timer stopped.
+        /// 当地定时器停止的原因
         /// </summary>
         public readonly LocalReminderStopReason Reason = reason;
     }
 
     /// <summary>
-    /// Event payload for when a local reminder schedule is invalidated and must be re-armed.
+    /// 当本地提醒时间表失效时, 事件有效载荷被失效, 必须重新武装 。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="identity">The object reference used to correlate this local reminder instance across lifecycle events.</param>
-    /// <param name="scheduleVersion">The local schedule version associated with the change.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="identity">用于将整个生命周期事件之间本局部提醒实例联系起来的对象引用。</param>
+    /// <param name="scheduleVersion">与更改相关的本地调度版本。</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class LocalReminderScheduleChanged(
         GrainId grainId,
         string reminderName,
@@ -204,24 +204,24 @@ public static class ReminderEvents
         SiloAddress? siloAddress) : ReminderEvent(grainId, reminderName, siloAddress)
     {
         /// <summary>
-        /// The object reference used to correlate this local reminder instance across lifecycle events.
+        /// 用于将整个生命周期事件之间的局部提醒实例联系起来的对象引用。
         /// </summary>
         public readonly object Identity = identity;
 
         /// <summary>
-        /// The local schedule version associated with the change.
+        /// 与更改相关的本地调度版本 。
         /// </summary>
         public readonly long ScheduleVersion = scheduleVersion;
     }
 
     /// <summary>
-    /// Event payload for when a local reminder has armed the wait for its next tick.
+    /// 当本地提醒器已武装等待下一个选中时, 事件有效载荷 。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="identity">The object reference used to correlate this local reminder instance across lifecycle events.</param>
-    /// <param name="scheduleVersion">The local schedule version associated with the armed wait.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="identity">用于将整个生命周期事件之间本局部提醒实例联系起来的对象引用。</param>
+    /// <param name="scheduleVersion">与武装等待相关的本地调度版本。</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class LocalReminderTickWaitArmed(
         GrainId grainId,
         string reminderName,
@@ -230,23 +230,23 @@ public static class ReminderEvents
         SiloAddress? siloAddress) : ReminderEvent(grainId, reminderName, siloAddress)
     {
         /// <summary>
-        /// The object reference used to correlate this local reminder instance across lifecycle events.
+        /// 用于将整个生命周期事件之间的局部提醒实例联系起来的对象引用。
         /// </summary>
         public readonly object Identity = identity;
 
         /// <summary>
-        /// The local schedule version associated with the armed wait.
+        /// 与武装等待有关的本地时间表版本。
         /// </summary>
         public readonly long ScheduleVersion = scheduleVersion;
     }
 
     /// <summary>
-    /// Event payload for when a reminder tick is about to fire.
+    /// 当提醒提示项即将着火时的事件有效载荷 。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="status">The tick status passed to the grain.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="status">滴答状态传递到 grain。</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class TickFiring(
         GrainId grainId,
         string reminderName,
@@ -254,18 +254,18 @@ public static class ReminderEvents
         SiloAddress? siloAddress) : ReminderEvent(grainId, reminderName, siloAddress)
     {
         /// <summary>
-        /// The tick status passed to the grain.
+        /// 选中状态传递到 grain。
         /// </summary>
         public readonly TickStatus Status = status;
     }
 
     /// <summary>
-    /// Event payload for when a reminder tick has completed successfully.
+    /// 提醒选中完成后的事件有效载荷。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="status">The tick status passed to the grain.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="status">滴答状态传递到 grain。</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class TickCompleted(
         GrainId grainId,
         string reminderName,
@@ -273,19 +273,19 @@ public static class ReminderEvents
         SiloAddress? siloAddress) : ReminderEvent(grainId, reminderName, siloAddress)
     {
         /// <summary>
-        /// The tick status passed to the grain.
+        /// 选中状态传递到 grain。
         /// </summary>
         public readonly TickStatus Status = status;
     }
 
     /// <summary>
-    /// Event payload for when a reminder tick has failed.
+    /// 提醒勾选失败时的事件有效载荷 。
     /// </summary>
-    /// <param name="grainId">The grain associated with the reminder.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="status">The tick status passed to the grain.</param>
-    /// <param name="exception">The exception that caused the failure.</param>
-    /// <param name="siloAddress">The address of the silo handling this reminder.</param>
+    /// <param name="grainId">下 grain 与教诲有关。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="status">滴答状态传递到 grain。</param>
+    /// <param name="exception">导致失败的例外</param>
+    /// <param name="siloAddress">处理此提醒的 silo 地址。</param>
     public sealed class TickFailed(
         GrainId grainId,
         string reminderName,
@@ -294,12 +294,12 @@ public static class ReminderEvents
         SiloAddress? siloAddress) : ReminderEvent(grainId, reminderName, siloAddress)
     {
         /// <summary>
-        /// The tick status passed to the grain.
+        /// 选中状态传递到 grain。
         /// </summary>
         public readonly TickStatus Status = status;
 
         /// <summary>
-        /// The exception that caused the failure.
+        /// 导致失败的例外
         /// </summary>
         public readonly Exception Exception = exception;
     }

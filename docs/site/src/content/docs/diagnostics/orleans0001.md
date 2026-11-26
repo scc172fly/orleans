@@ -1,33 +1,43 @@
 ---
-title: "ORLEANS0001: Place AlwaysInterleave on the grain interface"
-description: Understand and resolve ORLEANS0001 when AlwaysInterleave is applied to an implementation method.
+title: "ORLEANS0001:将 AlwaysInterleave 放在 grain 接口上"
+description: "理解和决心 ORLEANS0001 何时 AlwaysInterleave 适用于执行方法。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0001: Place AlwaysInterleave on the grain interface
+<a id="orleans0001-place-alwaysinterleave-on-the-grain-interface"></a>
 
-| Property | Value |
+# ORLEANS0001:将 AlwaysInterleave 放在 grain 接口上
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Error |
-| Code fix | Not available |
+| 类别类 | 用法 |
+| 严重性 | 错误错误 |
+| 代码修正 | 不详 |
 
-## Cause
+<a id="cause"></a>
 
-`[AlwaysInterleave]` is applied to a method declared by a class. The attribute defines scheduling behavior on the grain contract and belongs on the corresponding grain-interface method.
+## 原因原因原因
 
-## Impact
+`[AlwaysInterleave]` 适用于一个类别所申报的方法。属性定义了 grain 合同中的排期行为,属于相应的 grain- 界面方法。
 
-An implementation annotation does not define the remote contract's scheduling behavior. Calls might not interleave as expected, which can create liveness or concurrency problems.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Remove `[AlwaysInterleave]` from the implementation method and apply it to the matching method on the grain interface.
+执行注释并没有定义远程合同的时间安排行为。 电话不会像预期的那样中断,这可能造成生命或同货币问题。
 
-## Suppress the diagnostic
+<a id="how-to-fix"></a>
 
-Suppress only for a verified analyzer false positive on a method which is not part of a grain implementation. Removing the ineffective attribute is preferable.
+## 如何修补
+
+删除执行方法中的 `[AlwaysInterleave]` ,并将其应用到 grain 接口上的匹配方法。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+仅对验证的检测器在不是 grain 执行的一部分的方法上虚正的反向分析器进行禁止。 最好删除无效属性 。
 
 ```ini
 [*.cs]

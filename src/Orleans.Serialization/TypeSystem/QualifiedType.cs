@@ -5,21 +5,21 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// Represents an assembly-qualifies type.
+    /// 表示组装-数量型号。
     /// </summary>
     public readonly struct QualifiedType
     {
         /// <summary>
-        /// Gets the equality comparer.
+        /// 获得平等比较器。
         /// </summary>
-        /// <value>The equality comparer.</value>
+        /// <value>平等比较器。</value>
         public static QualifiedTypeEqualityComparer EqualityComparer { get; } = new QualifiedTypeEqualityComparer();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QualifiedType"/> struct.
+        /// 初始化 <see cref="QualifiedType"/> 结构的新实例。
         /// </summary>
-        /// <param name="assembly">The assembly.</param>
-        /// <param name="type">The type.</param>
+        /// <param name="assembly">组装。</param>
+        /// <param name="type">类型。</param>
         public QualifiedType(string? assembly, string type)
         {
             Assembly = assembly;
@@ -27,22 +27,22 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the assembly.
+        /// 获得集会。
         /// </summary>
-        /// <value>The assembly.</value>
+        /// <value>组装。</value>
         public string? Assembly { get; }
 
         /// <summary>
-        /// Gets the type.
+        /// 得到的类型。
         /// </summary>
-        /// <value>The type.</value>
+        /// <value>类型。</value>
         public string Type { get; }
 
         /// <summary>
-        /// Deconstructs this instance.
+        /// 解除了这个实例 。
         /// </summary>
-        /// <param name="assembly">The assembly.</param>
-        /// <param name="type">The type.</param>
+        /// <param name="assembly">组装。</param>
+        /// <param name="type">类型。</param>
         public void Deconstruct(out string? assembly, out string type)
         {
             assembly = Assembly;
@@ -56,36 +56,36 @@ namespace Orleans.Serialization.TypeSystem
         public override int GetHashCode() => HashCode.Combine(Assembly, Type);
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="System.ValueTuple{T1, T2}"/> to <see cref="QualifiedType"/>.
+        /// 执行从 <see cref="System.ValueTuple{T1, T2}"/> 到 <see cref="QualifiedType"/>的隐含转换。
         /// </summary>
-        /// <param name="args">The arguments.</param>
-        /// <returns>The result of the conversion.</returns>
+        /// <param name="args">参数。</param>
+        /// <returns>转换结果。</returns>
         public static implicit operator QualifiedType((string Assembly, string Type) args) => new(args.Assembly, args.Type);
 
         /// <summary>
-        /// Compares two values for equality.
+        /// 将平等的两个价值观进行比较。
         /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
+        /// <param name="left">左转。</param>
+        /// <param name="right">右边</param>
+        /// <returns>操作员的结果。</returns>
         public static bool operator ==(QualifiedType left, QualifiedType right)
         {
             return left.Equals(right);
         }
 
         /// <summary>
-        /// Compares two values for inequality.
+        /// 不平等的两种价值比较。
         /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
+        /// <param name="left">左转。</param>
+        /// <param name="right">右边</param>
+        /// <returns>操作员的结果。</returns>
         public static bool operator !=(QualifiedType left, QualifiedType right)
         {
             return !(left == right);
         }
 
         /// <summary>
-        /// Equality comparer for <see cref="QualifiedType"/>.
+        /// <see cref="QualifiedType"/>的平等比较器。
         /// </summary>
         public sealed class QualifiedTypeEqualityComparer : IEqualityComparer<QualifiedType>
         {

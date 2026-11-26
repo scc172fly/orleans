@@ -683,7 +683,7 @@ public class DurableTaskModelTests
         };
     }
 
-    /// <summary>The first request records the reason and cancels <see cref="DurableTaskContext.CancellationToken"/>.</summary>
+    /// <summary>第一次请求记录理由并取消 <see cref="DurableTaskContext.CancellationToken"/>.</summary>
     private static DurableCancellationModelState RequestTaskCancellation(
         DurableCancellationModelState state,
         TaskCancellationCommand command)
@@ -701,8 +701,8 @@ public class DurableTaskModelTests
     }
 
     /// <summary>
-    /// The first cancellation of the attempt records its reason and cancels
-    /// <see cref="DurableTaskContext.AttemptCancellationToken"/>, then <see cref="DurableTaskContext.CancellationToken"/>.
+    /// 第一次取消未遂,即记录其理由并取消
+    /// <see cref="DurableTaskContext.AttemptCancellationToken"/>,然后 <see cref="DurableTaskContext.CancellationToken"/>。
     /// </summary>
     private static DurableCancellationModelState CancelAttempt(
         DurableCancellationModelState state,
@@ -721,7 +721,7 @@ public class DurableTaskModelTests
         return next;
     }
 
-    /// <summary>Registers an observer on each token. An observer registered on a canceled token runs at once.</summary>
+    /// <summary>在每个标记上登记观察员。 一位在取消的标记上登记的观察员立即运行 。</summary>
     private static DurableCancellationModelState RegisterObservers(DurableCancellationModelState state)
     {
         var next = CloneCancellationState(state);
@@ -886,15 +886,15 @@ public class DurableTaskModelTests
                 {
                     tokenObserverInvocations++;
 
-                    // The cancellation's state is published before the token's observers run.
+                    // 取消状态在该信的观察者运行前公布。
                     if (!context.IsTaskCancellationRequested && !context.AttemptCancellationToken.IsCancellationRequested)
                     {
                         observerViolations.Add("CancellationToken observer ran before the cancellation was recorded");
                     }
                 }));
 
-                // An attempt's token is canceled before CancellationToken, so its observers find CancellationToken canceled
-                // only by an earlier task cancellation.
+                // 尝试的标记在 CancellationToken之前被取消, 所以它的观察者发现 CancellationToken 已取消
+                // 仅由先前的任务取消 。
                 var registeredBeforeAttemptCancellation = !context.AttemptCancellationToken.IsCancellationRequested;
                 registrations.Add(context.AttemptCancellationToken.Register(() =>
                 {
@@ -921,7 +921,7 @@ public class DurableTaskModelTests
                 unexpectedException = DescribeException(exception);
             }
 
-            // Every durable operation of a canceled attempt throws the attempt's cancellation.
+            // 每一次持久运行的取消尝试 都让尝试取消。
             var response = await DurableTaskRuntimeHelper.RunAsync(DurableTask.Delay(TimeSpan.Zero), context);
             var outcome = response.Exception switch
             {

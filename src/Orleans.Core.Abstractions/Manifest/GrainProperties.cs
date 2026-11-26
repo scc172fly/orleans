@@ -10,7 +10,7 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Information about a logical grain type <see cref="GrainType"/>.
+    /// 关于逻辑 grain 类型 <see cref="GrainType"/>的信息。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class GrainProperties : IEquatable<GrainProperties>
@@ -19,10 +19,10 @@ namespace Orleans.Metadata
         private int? _hashCode;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainProperties"/> class.
+        /// 初始化 <see cref="GrainProperties"/> 类的新实例。
         /// </summary>
         /// <param name="values">
-        /// The underlying property collection.
+        /// 基本财产收集。
         /// </param>
         public GrainProperties(ImmutableDictionary<string, string> values)
         {
@@ -33,16 +33,16 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Gets the properties.
+        /// 得到属性。
         /// </summary>
         [Id(0)]
         public ImmutableDictionary<string, string> Properties { get; }
 
         /// <summary>
-        /// Returns a detailed, string representation of this instance.
+        /// 返回此实例的详细字符串表示。
         /// </summary>
         /// <returns>
-        /// A detailed, string representation of this instance.
+        /// 此实例的详细、 字符串表示 。
         /// </returns>
         public string ToDetailedString()
         {
@@ -134,182 +134,182 @@ namespace Orleans.Metadata
     }
 
     /// <summary>
-    /// Well-known grain properties.
+    /// 众所周知的 grain 属性。
     /// </summary>
     /// <seealso cref="GrainProperties"/>
     public static class WellKnownGrainTypeProperties
     {
         /// <summary>
-        /// The name of the placement strategy for grains of this type.
+        /// 这类 grains 的安置策略的名称。
         /// </summary>
         public const string PlacementStrategy = "placement-strategy";
 
         /// <summary>
-        /// The name of the placement strategy for grains of this type.
+        /// 这类 grains 的安置策略的名称。
         /// </summary>
         public const string PlacementFilter = "placement-filter";
 
         /// <summary>
-        /// The directory policy for grains of this type.
+        /// 此类型 grains 的目录策略 。
         /// </summary>
         public const string GrainDirectory = "directory-policy";
 
         /// <summary>
-        /// Whether or not messages to this grain are unordered.
+        /// 是否未对给此 grain 的信件进行排序 。
         /// </summary>
         public const string Unordered = "unordered";
 
         /// <summary>
-        /// Prefix for keys which indicate <see cref="GrainInterfaceType"/> of interfaces which a grain class implements.
+        /// 显示 <see cref="GrainInterfaceType"/> 界面的接口, grain 类工具。
         /// </summary>
         public const string ImplementedInterfacePrefix = "interface.";
 
         /// <summary>
-        /// The period after which an idle grain will be deactivated.
+        /// 闲置的 grain 将在该期限之后停止使用。
         /// </summary>
         public const string IdleDeactivationPeriod = "idle-duration";
 
         /// <summary>
-        /// The value for <see cref="IdleDeactivationPeriod"/> used to specify that the grain should not be deactivated due to idleness.
+        /// 值的数值 <see cref="IdleDeactivationPeriod"/> 用于指定 grain 不应因闲置而停止使用。
         /// </summary>
         public const string IndefiniteIdleDeactivationPeriodValue = "indefinite";
 
         /// <summary>
-        /// The name of the primary implementation type. Used for convention-based matching of primary interface implementations.
+        /// 主要执行类型的名称:用于在公约基础上对初级接口实施进行匹配。
         /// </summary>
         public const string TypeName = "type-name";
 
         /// <summary>
-        /// The full name of the primary implementation type. Used for prefix-based matching of implementations.
+        /// 主要执行类型的全名。 用于基于前缀的比对执行 。
         /// </summary>
         public const string FullTypeName = "full-type-name";
 
         /// <summary>
-        /// The prefix for binding declarations
+        /// 具有约束力的声明的前缀
         /// </summary>
         public const string BindingPrefix = "binding";
 
         /// <summary>
-        /// The key for defining a binding type.
+        /// 确定约束型的关键。
         /// </summary>
         public const string BindingTypeKey = "type";
 
         /// <summary>
-        /// The binding type for Orleans streams.
+        /// Orleans 流的绑定类型。
         /// </summary>
         public const string StreamBindingTypeValue = "stream";
 
         /// <summary>
-        /// The binding type for Broadcast Channels.
+        /// 广播频道的绑定类型 。
         /// </summary>
         public const string BroadcastChannelBindingTypeValue = "broadcast-channel";
 
         /// <summary>
-        /// The key to specify a stream binding pattern.
+        /// 指定串流绑定模式的密钥。
         /// </summary>
         public const string StreamBindingPatternKey = "pattern";
 
         /// <summary>
-        /// The key to specify a channel binding pattern.
+        /// 指定频道绑定模式的密钥 。
         /// </summary>
         public const string BroadcastChannelBindingPatternKey = "channel-pattern";
 
         /// <summary>
-        /// The key to specify a stream id mapper
+        /// 指定流 ID 映像仪的密钥
         /// </summary>
         public const string StreamIdMapperKey = "streamid-mapper";
 
         /// <summary>
-        /// The key to specify a channel id mapper
+        /// 指定频道 ID 映像仪的密钥
         /// </summary>
         public const string ChannelIdMapperKey = "channelid-mapper";
 
         /// <summary>
-        /// Whether to include the namespace name in the grain id.
+        /// 是否在 grain id 中包含命名空间名称 。
         /// </summary>
         public const string StreamBindingIncludeNamespaceKey = "include-namespace";
 
         /// <summary>
-        /// Key type of the grain, if it implement a legacy interface. Valid values are nameof(String), nameof(Int64) and nameof(Guid)
+        /// grain的密钥类型, 如果它执行了遗留界面。 有效的值是名称( String)、 名称( Int64) 和名称( 指南)
         /// </summary>
         public const string LegacyGrainKeyType = "legacy-grain-key-type";
 
         /// <summary>
-        /// Whether a grain is reentrant or not.
+        /// 是否重新输入一个 grain 。
         /// </summary>
         public const string Reentrant = "reentrant";
 
         /// <summary>
-        /// Specifies the name of a method used to determine if a request can interleave other requests.
+        /// 指定用于确定请求能否将其他请求打断的方法的名称。
         /// </summary>
         public const string MayInterleavePredicate = "may-interleave-predicate";
 
         /// <summary>
-        /// Whether a grain can be migrated by active-rebalancing or not.
+        /// 是否可以通过主动平衡来迁移 grain 。
         /// </summary>
         public const string Immovable = "immovable";
     }
 
     /// <summary>
-    /// Provides grain properties.
+    /// 提供 grain 属性。
     /// </summary>
     public interface IGrainPropertiesProvider
     {
         /// <summary>
-        /// Adds grain properties to <paramref name="properties"/>.
+        /// 将 grain 属性添加到 <paramref name="properties"/>。
         /// </summary>
         /// <param name="grainClass">
-        /// The grain class.
+        /// 下 grain 类.
         /// </param>
         /// <param name="grainType">
-        /// The grain type id.
+        /// 类型 grain 代号。
         /// </param>
         /// <param name="properties">
-        /// The properties collection which calls to this method should populate.
+        /// 使用此方法的属性收藏应该以空格形式显示 。
         /// </param>
         void Populate(Type grainClass, GrainType grainType, Dictionary<string, string> properties);
     }
 
     /// <summary>
-    /// Interface for <see cref="Attribute"/> classes which provide information about a grain.
+    /// <see cref="Attribute"/> 类的接口,该类别提供关于 grain的信息。
     /// </summary>
     public interface IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// Adds grain properties to <paramref name="properties"/>.
+        /// 将 grain 属性添加到 <paramref name="properties"/>。
         /// </summary>
         /// <remarks>
-        /// <see cref="AttributeGrainPropertiesProvider"/> validates that <paramref name="grainClass"/> and
-        /// <paramref name="properties"/> are non-null before dispatching to attributes. Direct callers must
-        /// also provide a non-null grain class and properties collection.
+        /// <see cref="AttributeGrainPropertiesProvider"/> 验证 <paramref name="grainClass"/> 和
+        /// <paramref name="properties"/> 是在发送属性前不中点的。
+        /// 还提供了非null grain 级和财产收藏。
         /// </remarks>
         /// <param name="services">
-        /// The service provider.
+        /// 服务供应商。
         /// </param>
         /// <param name="grainClass">
-        /// The grain class.
+        /// 下 grain 类.
         /// </param>
         /// <param name="grainType">
-        /// The grain type id.
+        /// 类型 grain 代号。
         /// </param>
         /// <param name="properties">
-        /// The properties collection which calls to this method should populate.
+        /// 使用此方法的属性收藏应该以空格形式显示 。
         /// </param>
         void Populate(IServiceProvider services, Type grainClass, GrainType grainType, Dictionary<string, string> properties);
     }
 
     /// <summary>
-    /// Provides grain interface properties from attributes implementing <see cref="IGrainPropertiesProviderAttribute"/>.
+    /// 提供 grain 来自执行属性的界面属性 <see cref="IGrainPropertiesProviderAttribute"/>.
     /// </summary>
     public sealed class AttributeGrainPropertiesProvider : IGrainPropertiesProvider
     {
         private readonly IServiceProvider serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AttributeGrainPropertiesProvider"/> class.
+        /// 初始化 <see cref="AttributeGrainPropertiesProvider"/> 类的新实例。
         /// </summary>
         /// <param name="serviceProvider">
-        /// The service provider.
+        /// 服务供应商。
         /// </param>
         public AttributeGrainPropertiesProvider(IServiceProvider serviceProvider)
         {
@@ -317,7 +317,7 @@ namespace Orleans.Metadata
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> or <paramref name="properties"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> 或 <paramref name="properties"/> 是 <see langword="null"/>。</exception>
         public void Populate(Type grainClass, GrainType grainType, Dictionary<string, string> properties)
         {
             ArgumentNullException.ThrowIfNull(grainClass);
@@ -333,45 +333,45 @@ namespace Orleans.Metadata
     }
 
     /// <summary>
-    /// Interface for <see cref="Attribute"/> classes which provide information about a grain.
+    /// <see cref="Attribute"/> 类的接口,该类别提供关于 grain的信息。
     /// </summary>
     public interface IGrainBindingsProviderAttribute
     {
         /// <summary>
-        /// Gets bindings for the type this attribute is attached to.
+        /// 获取该属性附加的类型的绑定。
         /// </summary>
         /// <param name="services">
-        /// The service provider.
+        /// 服务供应商。
         /// </param>
         /// <param name="grainClass">
-        /// The grain class.
+        /// 下 grain 类.
         /// </param>
         /// <param name="grainType">
-        /// The grain type.
+        /// 类型 grain 。
         /// </param>
         /// <returns>
-        /// The bindings for the specified grain.
+        /// 指定 grain的绑定。
         /// </returns>
         IEnumerable<Dictionary<string, string?>> GetBindings(IServiceProvider services, Type grainClass, GrainType grainType);
     }
 
     /// <summary>
-    /// Provides grain interface properties from attributes implementing <see cref="IGrainPropertiesProviderAttribute"/>.
+    /// 提供 grain 来自执行属性的界面属性 <see cref="IGrainPropertiesProviderAttribute"/>.
     /// </summary>
     public sealed class AttributeGrainBindingsProvider : IGrainPropertiesProvider
     {
         /// <summary>
-        /// A hopefully unique name to describe bindings added by this provider.
-        /// Binding names are meaningless and are only used to group properties for a given binding together.
+        /// 希望能够有一个独有的名称来描述这个提供者添加的约束力。
+        /// 装订名称毫无意义,仅用于将某一约束性组合在一起的属性分组。
         /// </summary>
         private const string BindingPrefix = WellKnownGrainTypeProperties.BindingPrefix + ".attr-";
         private readonly IServiceProvider serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AttributeGrainBindingsProvider"/> class.
+        /// 初始化 <see cref="AttributeGrainBindingsProvider"/> 类的新实例。
         /// </summary>
         /// <param name="serviceProvider">
-        /// The service provider.
+        /// 服务供应商。
         /// </param>
         public AttributeGrainBindingsProvider(IServiceProvider serviceProvider)
         {
@@ -379,7 +379,7 @@ namespace Orleans.Metadata
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> or <paramref name="properties"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> 或 <paramref name="properties"/> 是 <see langword="null"/>。</exception>
         public void Populate(Type grainClass, GrainType grainType, Dictionary<string, string> properties)
         {
             ArgumentNullException.ThrowIfNull(grainClass);
@@ -396,7 +396,7 @@ namespace Orleans.Metadata
                 {
                     foreach (var pair in binding)
                     {
-                        properties[BindingPrefix + bindingIndex.ToString(CultureInfo.InvariantCulture) + '.' + pair.Key] = pair.Value!; // Null is the legacy sentinel for the default mapper.
+                        properties[BindingPrefix + bindingIndex.ToString(CultureInfo.InvariantCulture) + '.' + pair.Key] = pair.Value!; // Null 是默认映像仪的遗留监控器 。
                     }
 
                     ++bindingIndex;

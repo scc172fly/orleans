@@ -1,29 +1,35 @@
 ---
-title: Host Orleans on Kubernetes
-description: Configure networking, lifecycle, probes, and rollouts for an Orleans cluster on Kubernetes.
+title: "东道主主 Orleans 日期 时 Kubernetes"
+description: "配置网络、生命周期、探测和推出 Orleans 组群一一 Kubernetes."
 ms.date: 08/02/2026
 ms.topic: how-to
 ms.custom: devops
 ---
 
-# Host Orleans on Kubernetes
+<a id="host-orleans-on-kubernetes"></a>
 
-Kubernetes can host Orleans when pods have direct network connectivity and the application uses a production clustering provider. Orleans doesn't require a Kubernetes-specific hosting package. The recommended approach is to configure each silo explicitly from the pod name and pod IP supplied by the Kubernetes [downward API](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/).
+# 东道主主 Orleans 日期 时 Kubernetes
 
-For Azure networking, workload identity, availability zones, node pools, autoscaling, managed upgrades, and Azure Monitor guidance, see [Host Orleans on Azure Kubernetes Service](azure-kubernetes-service.md).
+Kubernetes 能够主机 Orleans 当播客具有直接网络连接,而且应用程序使用生产集群供应商时。 Orleans 不需要 Kubernetes- 特定的主机软件包。推荐的方法是配置每个 silo 由 IP 提供的 pod 名称和 cod IP 明确 Kubernetes [[下向 API](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/).
 
-## Configure the silo
+Azure 联网、工作量识别、可用区、节点集合、自动升级、管理下的升级和 Azure 监测指南见 [东道主主 Orleans 日期 时 Azure Kubernetes 服务处](azure-kubernetes-service.md)。
 
-Reference `Microsoft.Orleans.Server` and a production clustering provider package. Configure the pod IP as the advertised address, listen on all pod interfaces, and use the pod name as the silo name:
+<a id="configure-the-silo"></a>
+
+## 配置 silo
+
+引用 `Microsoft.Orleans.Server` 和一个生产组群提供商软件包。 配置 pod IP 作为广告地址, 监听所有 pod 接口, 并使用 pod 名称作为 silo 名称 :
 
 :::code language="csharp" source="../snippets/compiled/Deployment/DeploymentSnippets.cs" id="kubernetes_usings":::
 :::code language="csharp" source="../snippets/compiled/Deployment/DeploymentSnippets.cs" id="configure_kubernetes_silo":::
 
-All silos and clients must use the same service ID, cluster ID, and clustering provider. The example explicitly uses silo port `11111` and gateway port `30000`.
+所有 silos 和客户必须使用相同的服务编号、组群识别和集群提供者。示例明确使用了 silo 港口 `11111` 和网关港口 `30000`。
 
-## Apply a production baseline
+<a id="apply-a-production-baseline"></a>
 
-The following baseline intentionally omits the clustering provider credentials and application ingress. Supply those resources using workload identity and provider-specific configuration.
+## 适用生产基准
+
+以下基线有意省略集群提供商的证书和应用程序。
 
 ```yaml
 apiVersion: apps/v1
@@ -114,46 +120,50 @@ spec:
       app.kubernetes.io/name: dictionary-app
 ```
 
-Apply the manifest in a namespace dedicated or appropriately shared for the application:
+应用专用于或适当共享应用程序的名称空间中的显示器:
 
 ```bash
 kubectl apply --namespace <namespace> --filename orleans.yaml
 ```
 
-The baseline disables [service account token mounting](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) because Orleans doesn't need to call the Kubernetes API. Add a service account and permissions only for application features that require them.
+基准禁用 [服务账户代号正在安装](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) ,因为 Orleans 不需要调用 Kubernetes API。仅对需要应用功能的应用程序添加服务账户和权限。
 
-## Deploy with Aspire
+<a id="deploy-with-aspire"></a>
 
-[Aspire](../host/aspire-integration.md) can model an Orleans application and its backing resources in an AppHost. The `Aspire.Hosting.Kubernetes` integration can publish that application model as a Helm chart or deploy it to the Kubernetes cluster selected by the current `kubectl` context.
+## 与 派遣部署
 
-Aspire doesn't change the Orleans networking and lifecycle requirements described on this page. Before deploying generated resources:
+[指定](../host/aspire-integration.md) 能够模拟 Orleans 及其支持资源在 AppHost. The `Aspire.Hosting.Kubernetes` 集成可将该应用模型作为 Helm 图表发布,或将其用于 Kubernetes 由当前列表选择的 `kubectl` 上下文。
 
-- Configure a production clustering provider and durable state providers in the Orleans resource model.
-- Run multiple silo replicas across failure domains.
-- Ensure each silo receives its own pod name and pod IP and advertises that pod IP.
-- Expose the silo and gateway container ports to the required pod and client networks.
-- Add application-owned startup, readiness, and liveness probes.
-- Set resource requests, disruption budgets, rollout policy, and termination grace periods from measured behavior.
+提示不会改变本页描述的 Orleans 网络和生命周期要求。 在部署生成的资源之前:
 
-Review the generated Helm chart before applying it. Use the Kubernetes integration's resource customization APIs when the generated workload doesn't include these Orleans-specific requirements.
+- 在 Orleans 资源模型中配置生产组群供应商和耐久国家供应商。
+- 运行多个 silo 重复, 并运行多个失败域的复制。
+- 确保每个 silo 都获得自己的舱名和舱名IP,并广告贴出舱名IP。
+- 向所需舱位和客户网络展示 silo 和集装箱港口网关。
+- 添加应用程序自有启动、准备状态和活性探测。
+- 设定资源请求、干扰预算、推出政策以及从计量行为中得出的终止宽限期。
 
-For the supported APIs and deployment commands, see [Orleans and Aspire integration](../host/aspire-integration.md), [Aspire Kubernetes integration](https://aspire.dev/integrations/compute/kubernetes/), and [Deploy with Aspire](https://aspire.dev/deployment/deploy-with-aspire/).
+在应用之前先审查生成的 Helm 图表。使用 Kubernetes 当产生的工作量不包括这些工作量时,资源自定制的API Orleans- 具体要求。
 
-## Optional Kubernetes hosting package
+所支持的API和部署命令见 [Orleans 和指定集成](../host/aspire-integration.md)、 [指定 Kubernetes 整合](https://aspire.dev/integrations/compute/kubernetes/)和 [与 派遣部署](https://aspire.dev/deployment/deploy-with-aspire/)。
 
-The [`Microsoft.Orleans.Hosting.Kubernetes`](https://www.nuget.org/packages/Microsoft.Orleans.Hosting.Kubernetes) package is optional and isn't generally recommended. Consider it only for a simple topology where exactly one Kubernetes `Deployment` object owns exactly one Orleans cluster.
+<a id="optional-kubernetes-hosting-package"></a>
+
+## 可选 Kubernetes 主机包
+
+[`Microsoft.Orleans.Hosting.Kubernetes`](https://www.nuget.org/packages/Microsoft.Orleans.Hosting.Kubernetes) 软件包是可选的,一般不推荐。 仅考虑一个简单的表层, 其中一 Kubernetes `Deployment` 对象拥有一个 Orleans 集。
 
 > [!IMPORTANT]
-> Don't use the package for an Orleans cluster composed from multiple `Deployment` objects, StatefulSets, custom controllers, or blue-green or canary workloads sharing a cluster identity. Configure endpoints explicitly instead.
+> 不要用包包当 Orleans 由多个 `Deployment` 物体, StatefulSets,自定义控制器,或蓝绿色或金丝雀工作量,共享集束特性。而明确配置端点。
 
-For the supported simple topology, <xref:Orleans.Hosting.KubernetesHostingExtensions.UseKubernetesHosting*> configures the silo name, pod IP, listening endpoints, service ID, and cluster ID from pod metadata. It also calls the Kubernetes API to reconcile Orleans membership with matching pods. It supplements a production clustering provider; it doesn't replace one.
+对于支持的简单地表学来说 <xref:Orleans.Hosting.KubernetesHostingExtensions.UseKubernetesHosting*> 配置 silo IP 名称、 IP 名称、 监听端点、 服务 ID 和 Cdom 元数据中的集号 。 它还呼吁 Kubernetes API 调节和对账 Orleans 与相配的播客组。 它补充生产集群提供商; 它不替换一个。
 
-To use it:
+使用它:
 
-1. Reference `Microsoft.Orleans.Hosting.Kubernetes` and call `UseKubernetesHosting()`.
-1. Add `orleans/serviceId` and `orleans/clusterId` labels to the `Deployment` pod template.
-1. Supply `POD_NAME`, `POD_NAMESPACE`, `POD_IP`, `ORLEANS_SERVICE_ID`, and `ORLEANS_CLUSTER_ID` through the downward API.
-1. Mount a dedicated service account token and grant this namespace-scoped role:
+1. 参考 `Microsoft.Orleans.Hosting.Kubernetes` ,拨打 `UseKubernetesHosting()`。
+1. 将 `orleans/serviceId` 和 `orleans/clusterId` 标签添加到 `Deployment` 舱位模板中。
+1. 供应 `POD_NAME`, `POD_NAMESPACE`, `POD_IP`, `ORLEANS_SERVICE_ID`,和 `ORLEANS_CLUSTER_ID` 下至 API.
+1. 挂载一个专用服务账户代号, 并授予此命名空间范围作用 :
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -166,58 +176,68 @@ rules:
     verbs: ["get", "list", "watch", "patch"]
 ```
 
-Bind the role to the workload's dedicated service account. If you explicitly enable <xref:Orleans.Hosting.Kubernetes.KubernetesHostingOptions.DeleteDefunctSiloPods>, also grant `delete`. Keep that option disabled unless its operational consequences have been reviewed.
+将这一作用绑在工作量专用服务账户中。 如果您明确启用了 <xref:Orleans.Hosting.Kubernetes.KubernetesHostingOptions.DeleteDefunctSiloPods>, 也准予使用 `delete`。 保持该选项的功能性, 除非已经审查其操作后果 。
 
-## Network requirements
+<a id="network-requirements"></a>
 
-Allow direct pod-IP TCP traffic:
+## 网络需求
 
-- Every silo pod to port `11111` on every silo pod.
-- Every Orleans client to port `30000` on every silo pod.
-- Every silo and client to the clustering provider.
-- Silo pods to the Kubernetes API only when the optional hosting package is enabled.
+允许直接的缓冲点IP TCP 流量 :
 
-Don't place a Kubernetes `Service` virtual IP in <xref:Orleans.Configuration.EndpointOptions.AdvertisedIPAddress>. Orleans advertises each pod IP so peers can contact that specific silo. A `Service` can expose application HTTP ingress, but it doesn't replace Orleans membership or direct silo connectivity.
+- 每一 silo pod 移动到端口 `11111` 上每 silo pod.
+- 每一 Orleans 到客户端端口 `30000` 上每 silo pod.
+- 每个 silo 和集群提供者的客户。
+- 只有当启用了可选主机包时,Silo 舱才切换到 Kubernetes API 。
 
-If a service mesh intercepts TCP, validate long-lived connections, pod-address preservation, mutual TLS policy, shutdown ordering, and retries. Exclude Orleans ports from interception if the mesh can't preserve the required semantics.
+不要将 Kubernetes `Service` 虚拟IP放在 <xref:Orleans.Configuration.EndpointOptions.AdvertisedIPAddress>。 Orleans 广告每个播客IP,以便同侪能够联系到特定的 silo。一个 `Service` 可以暴露应用 HTTP 的入侵,但它不能取代 Orleans 成员资格或直接连接 silo 。
 
-## Health probes
+如果服务网格拦截 TCP, 验证长寿命连接、 缓冲地址保护、 相互的 TLS 政策、 关闭命令和重试。 如果网格无法保存所需的语义, 则排除 Orleans 港口被截获 。
 
-The three paths in the manifest are [startup, readiness, and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) that the application must implement according to [Health and observability](health-and-observability.md):
+<a id="health-probes"></a>
 
-- Startup succeeds after the silo joins the cluster and required initialization completes.
-- Readiness becomes false before shutdown and whenever the application can't safely accept new traffic.
-- Liveness performs only a local forward-progress check and doesn't call grains or dependencies.
+## 健康检测
 
-The five-minute startup allowance is an example, not a universal default. Set it from measured startup and recovery time. Aggressive probes can turn provider latency or CPU pressure into a cluster-wide restart loop.
+舱中的三个道路, [启动、准备和活性探测](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) 申请必须依照 [健康和可观察性](health-and-observability.md):
 
-## Resource requests and limits
+- silo 加入该组并完成所需的启动完成后,启动成功。
+- 关闭前准备就绪是假的,只要申请无法安全地接受新的交通。
+- 生命只进行本地的前瞻性检查,不呼叫 grains 或依赖关系。
 
-Set [container resource requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) from measurements under representative load, including a silo loss and rolling deployment. Kubernetes uses requests for scheduling and uses limits to constrain a running container; they aren't interchangeable capacity settings.
+5分钟启动允许是一个例子, 不是通用的默认。 从测量的启动和恢复时间设置它。 侵略性探测可以将供应商的延迟或CPU压力转换为整个集束范围的重新启动循环 。
 
-- **CPU requests** reserve scheduling capacity. If requests are too low, Kubernetes can place too many silos on one node and create contention during bursts or failover.
-- **CPU limits** can throttle the .NET process even when the node has spare CPU. Tail latency, membership probes, garbage collection, and activation recovery can all suffer under throttling. The baseline intentionally specifies a CPU request without a CPU limit.
-- **Memory requests** should cover a representative working set, including activations, caches, serialization buffers, and expected failover growth.
-- **Memory limits** are enforced by terminating the container when it exceeds the cgroup limit. Leave headroom for bursts and failover; don't rely on a managed <xref:System.OutOfMemoryException> or graceful shutdown.
+<a id="resource-requests-and-limits"></a>
 
-Monitor CPU throttling, working set, allocation rate, garbage collection, scheduler delay, activation count, and pod restarts. Revisit resource settings when grain state, placement, traffic, runtime, or node sizes change.
+## 资源要求和限额
 
-Namespace [`ResourceQuota`](https://kubernetes.io/docs/concepts/policy/resource-quotas/) and [`LimitRange`](https://kubernetes.io/docs/concepts/policy/limit-range/) policies can reject pods or inject defaults. Verify the effective pod specification after admission rather than assuming the submitted manifest is what runs.
+设定 [要求和限制](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) 包括 a 和 a 等具有代表性载量下的测量数据,包括 silo 损失和滚动部署。 Kubernetes 使用时间和用途限制请求,以限制运行中的集装箱;它们不是可互换的能力环境。
 
-For workload sizing, overload protection, and scaling signals, see [Capacity planning and scaling](capacity-planning.md).
+- **CPU 请求** 如果请求太少, Kubernetes 位置可放置太多 silos 在一个节点上,在连续或失败期间引起争论。
+- **CPU 限制** 能够加速 .NET 即使在节点有备用 CPU 时, 程序也会受到冲击。 尾部延缓、 会员探测器、 垃圾收集以及激活恢复都会受到冲击。 基准有意指定 CPU 请求没有CPU 限制 。
+- **内存请求** 应涵盖一套具有代表性的工作,包括启动、缓冲、序列缓冲和预期的不相容增长。
+- 内存限制**通过在容器超过组限时终止容器** 加以执行。离开会议室,可以连续和故障;不要依赖管理良好的 <xref:System.OutOfMemoryException> 或优雅的关闭。
 
-## Shutdown, rollouts, and scaling
+监控 CPU 的抽压、 工作设置、 分配率、 垃圾收集、 排程延迟、 激活计数和缓存重新启动。 当 grain 状态、 位置、 流量、 运行时间或节点大小发生变化时, 重现资源设置 。
 
-Kubernetes sends `SIGTERM` and begins the pod termination grace period. The .NET host must observe the signal, report not ready, and receive enough time to stop Orleans gracefully. In the example, the 150-second pod grace period is longer than the 120-second host shutdown timeout.
+命名空间 [`ResourceQuota`](https://kubernetes.io/docs/concepts/policy/resource-quotas/) 和 [`LimitRange`](https://kubernetes.io/docs/concepts/policy/limit-range/) 策略可以拒绝缓存或输入默认值。 进入后验证有效的缓存规格,而不是假设提交的舱单是运行的 。
 
-Keep `maxUnavailable: 0` and some surge capacity when the cluster can't tolerate losing a ready silo during rollout. The PodDisruptionBudget protects against voluntary disruptions, not node failure.
+工作量大小、超载防护和缩放信号见 [能力规划和规模](capacity-planning.md)。
 
-Scale in gradually. Verify that membership stabilizes and remaining silos have capacity before removing more pods. See [Graceful shutdown and upgrades](upgrades.md).
+<a id="shutdown-rollouts-and-scaling"></a>
 
-## Troubleshoot Kubernetes hosting
+## 关闭、推出和升级
 
-For explicit endpoint configuration, compare `POD_NAME`, `POD_IP`, service ID, cluster ID, and the advertised membership endpoint.
+Kubernetes 发送 `SIGTERM` 并开始播客舱终止宽限期。 .NET 主机必须观察信号,报告未准备好,并获得足够时间优雅地停止 Orleans 。 例如,150秒的播客宽限期比120秒的主机停机超时长。
 
-If the optional hosting package reports missing `KUBERNETES_SERVICE_HOST` or `KUBERNETES_SERVICE_PORT`, verify that the process is running in a pod and that service environment links haven't been disabled. If the API returns `403 Forbidden`, check the pod's service account, role binding namespace, and required pod verbs.
+保留 `maxUnavailable: 0` 和一些快速增援能力 当集群无法忍受失去一个准备 silo 时段展开。 PodDisruptionBudget 保护不受自愿中断,而不是节点故障的影响。
 
-For broader triage, see [Troubleshoot deployments](troubleshooting-deployments.md). For target comparisons and the shared production-coverage matrix, see [Choose a deployment target](choose-deployment-target.md).
+逐步按比例。在删除更多的播客之前,核查会籍是否稳定且剩余 silos 具有能力。见 [优优优停机和升级](upgrades.md)。
+
+<a id="troubleshoot-kubernetes-hosting"></a>
+
+## 排除 Kubernetes 主机
+
+对于明确的端点配置,比较 `POD_NAME`、 `POD_IP`、服务编号、组群识别和公布的会员端点。
+
+如果选择主机软件包报告丢失 `KUBERNETES_SERVICE_HOST` 或 `KUBERNETES_SERVICE_PORT`, 请确认该程序是在一个舱内运行的, 而服务环境链接没有被禁用。 如果 API 返回 `403 Forbidden`, 请检查舱的服务账户、 角色约束命名空间 和所需的舱动词 。
+
+更广泛的分类见 [故障解决部署](troubleshooting-deployments.md)。目标比较和共同生产覆盖矩阵见 [选择部署目标](choose-deployment-target.md)。

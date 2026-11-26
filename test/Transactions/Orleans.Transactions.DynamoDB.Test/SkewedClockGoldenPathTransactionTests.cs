@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for transaction golden path scenarios with skewed clocks using DynamoDB.
+    /// 使用 DynamoDB的斜时钟测试交易金色路径假想。
     /// </summary>
     [TestCategory("DynamoDB"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

@@ -8,19 +8,19 @@ using Orleans.Configuration;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// Benchmark that runs indefinitely and uses hill climbing to tune concurrency
-/// for maximum throughput. Useful for finding optimal concurrency levels and
-/// for long-running performance testing.
+/// 基准线,无限期运行,利用山坡来调节货币
+/// 用于寻找最佳的货币汇率水平和
+/// 进行长期性能测试。
 /// </summary>
 public class AdaptivePingBenchmark : IDisposable
 {
     public enum BenchmarkMode
     {
-        /// <summary>Client runs inside the silo process (lowest latency)</summary>
+        /// <summary>客户在 silo 程序(低时档)</summary>内运行
         HostedClient,
-        /// <summary>External client connects to silo(s)</summary>
+        /// <summary>外部客户端连接到 silo(s)</summary>
         ExternalClient,
-        /// <summary>Calls go from one silo to another (tests cross-silo performance)</summary>
+        /// <summary>调用从一个 silo 转到另一个(测试跨silo 性能)</summary>
         SiloToSilo
     }
 
@@ -46,7 +46,7 @@ public class AdaptivePingBenchmark : IDisposable
         _mode = mode;
         _numSilos = numSilos;
 
-        // Determine configuration based on mode
+        // 根据模式确定配置
         bool startClient = mode == BenchmarkMode.ExternalClient;
         bool grainsOnSecondariesOnly = mode == BenchmarkMode.SiloToSilo;
 
@@ -65,7 +65,7 @@ public class AdaptivePingBenchmark : IDisposable
             _ => mode.ToString()
         };
 
-        // Start silos
+        // 开始 silos
         for (int i = 0; i < numSilos; i++)
         {
             var primary = i == 0 ? null : new IPEndPoint(IPAddress.Loopback, 11111);
@@ -81,7 +81,7 @@ public class AdaptivePingBenchmark : IDisposable
                     options.Interfaces.Add(typeof(IPingGrain));
                     options.Classes.Add(typeof(PingGrain));
 
-                    // For SiloToSilo mode: remove grains from primary silo to force cross-silo calls
+                    // 用于 SiloToSilo 模式:删除 grains 从小学开始 silo 强迫交叉silo 调来电话
                     if (i == 0 && grainsOnSecondariesOnly)
                     {
                         options.Classes.Remove(typeof(PingGrain));
@@ -94,13 +94,13 @@ public class AdaptivePingBenchmark : IDisposable
             _hosts.Add(host);
         }
 
-        // Wait for cluster to stabilize in multi-silo mode
+        // 等待集集稳定在多silo 模式下
         if (numSilos > 1)
         {
             Thread.Sleep(4000);
         }
 
-        // Start external client if needed
+        // 必要时启动外部客户端
         if (startClient)
         {
             var hostBuilder = new HostBuilder().UseOrleansClient((ctx, clientBuilder) =>
@@ -122,12 +122,12 @@ public class AdaptivePingBenchmark : IDisposable
             _clientHost.StartAsync().GetAwaiter().GetResult();
             _client = _clientHost.Services.GetRequiredService<IClusterClient>();
 
-            // Warm up the client connection
+            // 暖和客户端连接
             var grain = _client.GetGrain<IPingGrain>(0);
             grain.Run().AsTask().GetAwaiter().GetResult();
         }
 
-        // Wire up Ctrl+C to cancel
+        // 连接 Ctrl+C 取消
         Console.CancelKeyPress += (_, e) =>
         {
             e.Cancel = true;
@@ -137,7 +137,7 @@ public class AdaptivePingBenchmark : IDisposable
     }
 
     /// <summary>
-    /// Gets the grain factory based on the current mode.
+    /// 根据当前模式获取 grain 工厂。
     /// </summary>
     private IGrainFactory GetGrainFactory()
     {
@@ -147,8 +147,8 @@ public class AdaptivePingBenchmark : IDisposable
     }
 
     /// <summary>
-    /// Runs the adaptive benchmark, tuning concurrency via hill climbing.
-    /// Terminates after maxStableRounds without a statistically significant improvement (default 5), or runs forever if 0.
+    /// 运行适应基准,通过攀山调整货币。
+    /// 在 maxStableRounds 之后终止,但无统计上显著的改进(默认5),或如果0将永远持续。
     /// </summary>
     public async Task RunAsync(
         int initialConcurrency = 100,
@@ -186,7 +186,7 @@ public class AdaptivePingBenchmark : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // Expected on Ctrl+C
+            // Ctrl+C 上的预期值
         }
 
         BestConcurrency = loadGenerator.BestConcurrency;
@@ -225,7 +225,7 @@ public class AdaptivePingBenchmark : IDisposable
     }
 
     /// <summary>
-    /// Runs all adaptive ping benchmark scenarios and prints a summary.
+    /// 运行所有适应性活性定点基准情景,并打印摘要。
     /// </summary>
     public static async Task RunAllScenariosAsync(int maxStableRounds = DefaultMaxStableRounds)
     {
@@ -258,10 +258,10 @@ public class AdaptivePingBenchmark : IDisposable
             Console.WriteLine();
 
             GC.Collect();
-            await Task.Delay(1000); // Brief pause between scenarios
+            await Task.Delay(1000); // 两种设想方案间短暂间隔
         }
 
-        // Print summary in GitHub-flavored markdown table format
+        // 以 GitHub- 保存的标记表格格式打印摘要
         Console.WriteLine();
         Console.WriteLine("## Adaptive Ping Benchmark Results");
         Console.WriteLine();

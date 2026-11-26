@@ -109,7 +109,7 @@ public sealed class InboxHeaderBehaviorTests : MessagingBehaviorTestBase
         _ = await receiver.GetSnapshotAsync();
         var previous = Fixture.GetGrainContext(receiver);
 
-        // Each failed attempt fails its activation, and the next activation recovers the message and charges the attempt.
+        // 每一次失败的尝试都未能激活,下一次启动则收回信息并指控未遂。
         var retry = Fixture.Metrics.WaitForCountAsync("orleans-messaging-inbox-messages-processed", 1, "retry");
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, message));
         await WaitAsync(previous.Deactivated);
@@ -130,7 +130,7 @@ public sealed class InboxHeaderBehaviorTests : MessagingBehaviorTestBase
             Assert.Equal(8675309, new Serializer<int>(Sessions).Deserialize(number));
         });
 
-        // The retry runs once its window has closed and fails again, so the next recovery dead-letters the message.
+        // 重试一旦窗口关闭并再次失败, 重新运行就会运行, 所以下次恢复时会给信件写上死字 。
         Fixture.Clock.Advance(TimeSpan.FromHours(1));
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, message));
         await WaitAsync(current.Deactivated);

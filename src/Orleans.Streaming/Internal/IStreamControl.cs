@@ -3,15 +3,15 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Stream control interface to allow stream runtime to perform management operations on streams 
-    /// without needing to worry about concrete generic types used by this stream
+    /// 流流控制界面,让流流运行时间用于在流上执行管理操作 
+    /// 无需担心此流所使用的具体通用类型
     /// </summary>
     internal interface IStreamControl
     {
         /// <summary>
-        /// Perform cleanup functions for this stream.
+        /// 为此流执行清理功能 。
         /// </summary>
-        /// <returns>Completion promise for the cleanup operations for this stream.</returns>
+        /// <returns>完成此流清理作业的完工承诺。</returns>
         Task Cleanup(bool cleanupProducers, bool cleanupConsumers);
     }
 }

@@ -83,16 +83,16 @@ namespace Orleans.Runtime.Metadata
         public GrainManifest LocalGrainManifest { get; }
 
         /// <summary>
-        /// Gets a snapshot describing this provider's most recent manifest-update attempt, including the
-        /// membership version being reconciled, the silos still pending a manifest, and the latest fetch
-        /// failure, if any. Used to diagnose a stalled convergence wait without reproducing it.
+        /// 简略描述该供应商最近最新数据更新的尝试,包括
+        /// 正在对成员版本进行校正, silos 仍在等待一份清单和最新检索
+        /// 曾经诊断过停滞的趋同,等待而不重复。
         /// </summary>
         internal ManifestUpdateAttemptDiagnostics? LastAttemptDiagnostics => Volatile.Read(ref _lastAttemptDiagnostics);
 
         /// <summary>
-        /// Gets the published manifest and latest attempt diagnostics which coexisted during the read.
-        /// The attempt's membership version identifies the reconciliation in progress; the manifest can
-        /// reflect newer membership synchronized by <see cref="Current"/> before its next attempt starts.
+        /// 获取在阅读期间共存的已公布的清单和最新尝试诊断。
+        /// 尝试的入会版的企图成员名单可以确定正在进行的和解;显示可
+        /// 反映新的成员数目,在下次尝试开始前同步到 <see cref="Current"/> 。
         /// </summary>
         internal (ClusterManifest Manifest, ManifestUpdateAttemptDiagnostics? Diagnostics) GetManifestAndDiagnosticsSnapshot()
         {
@@ -109,13 +109,13 @@ namespace Orleans.Runtime.Metadata
         }
 
         /// <summary>
-        /// Records a fetch completion for its originating attempt. Compare-and-swap preserves concurrent
-        /// completions, and the attempt identity keeps late fetches isolated from newer attempts.
+        /// 记录其原始尝试的抓取完成记录。 比较和擦拭同时保存
+        /// 尝试身份使得晚进与新尝试隔离
         /// </summary>
-        /// <param name="attemptId">The identity of the attempt this fetch was started for.</param>
-        /// <param name="siloAddress">The silo whose fetch is no longer outstanding.</param>
-        /// <param name="exception">The failure, if the fetch did not succeed. <see langword="null"/> for a success
-        /// (including one superseded by peer repair) or cancellation requested by the fetch's token.</param>
+        /// <param name="attemptId">开始获取此抓取的尝试的身份。</param>
+        /// <param name="siloAddress">下 silo 其取回已不再未了。</param>
+        /// <param name="exception">如果抓取失败, 失败。 <see langword="null"/> 成功失败
+        /// (包括由同行修理取代的) 或根据取回的标记要求取消 。</param>
         private void MarkManifestFetchComplete(long attemptId, SiloAddress siloAddress, Exception? exception)
         {
             ManifestUpdateAttemptDiagnostics? original;
@@ -222,7 +222,7 @@ namespace Orleans.Runtime.Metadata
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // Ignore during shutdown.
+                // 关闭时忽略 。
             }
             catch (Exception exception) when (_fatalErrorHandler.IsUnexpected(exception))
             {
@@ -237,7 +237,7 @@ namespace Orleans.Runtime.Metadata
         private async Task<bool> UpdateManifest(ClusterMembershipSnapshot clusterMembership, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // An update overtaken by a newer publication keeps populating its original cache.
+            // 更新后被新出版物取代了 不断充斥着它原来的缓存
             var cache = Volatile.Read(ref _manifestCache);
             var existingManifest = EnsureValidManifestForCurrentMembership(clusterMembership);
             if (existingManifest.Version.Major > clusterMembership.Version.Value)
@@ -248,21 +248,21 @@ namespace Orleans.Runtime.Metadata
             var builder = existingManifest.Silos.ToBuilder();
             var modified = false;
 
-            // Fill missing entries.
+            // 填充缺失的条目
             var missingSilos = new List<SiloAddress>();
             foreach (var entry in clusterMembership.Members)
             {
                 var member = entry.Value;
                 if (member.Status != SiloStatus.Active)
                 {
-                    // If the member is not yet active, it may not be ready to process requests.
+                    // 如果成员尚未积极开展活动,则可能无法处理请求。
                     continue;
                 }
 
                 var siloAddress = member.SiloAddress;
                 if (builder.ContainsKey(siloAddress))
                 {
-                    // Manifest has already been retrieved for the cluster member.
+                    // 已为该组成员检索到声明。
                     continue;
                 }
 
@@ -313,7 +313,7 @@ namespace Orleans.Runtime.Metadata
                 }
                 catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
-                    // Direct retrieval supplied every missing manifest.
+                    // 直接检索提供所有缺失的物品
                 }
             }
             else
@@ -346,7 +346,7 @@ namespace Orleans.Runtime.Metadata
                     }
                 }
 
-                // Each fetch observes its own failures, so redundant requests can finish independently.
+                // 每个取回都观察自己的失败, 所以多余的请求可以独立完成 。
                 if (tasks.Count == 0)
                 {
                     return true;
@@ -400,7 +400,7 @@ namespace Orleans.Runtime.Metadata
                 }
             }
 
-            // Regardless of success or failure, update the manifest if it has been modified.
+            // 无论成功与否,如果经过修改,更新清单。
             var version = new MajorMinorVersion(clusterMembership.Version.Value, existingManifest.Version.Minor + 1);
             if (modified)
             {
@@ -420,8 +420,8 @@ namespace Orleans.Runtime.Metadata
                 return;
             }
 
-            // Each publication seeds a new read-through cache with its live manifests. Fetches populate
-            // their captured cache instance, keeping late completions isolated in their original epoch.
+            // 每个出版物都用其现场清单播种一个新的读通缓存。
+            // 保存了在他们最初时代的孤立状态
             var cache = new ConcurrentDictionary<ManifestHash, GrainManifest>();
             foreach (var grainManifest in manifest.AllGrainManifests)
             {
@@ -429,7 +429,7 @@ namespace Orleans.Runtime.Metadata
             }
 
             cache[ManifestHashCalculator.ComputeHash(LocalGrainManifest)] = LocalGrainManifest;
-            // Readers capture the cache before checking the manifest version, so expose the version first.
+            // 读者在检查清单版本之前先捕捉缓存, 所以首先曝光版本 。
             Interlocked.Exchange(ref _current, manifest);
             Interlocked.Exchange(ref _manifestCache, cache);
         }
@@ -535,8 +535,8 @@ namespace Orleans.Runtime.Metadata
 
                 probeToken.ThrowIfCancellationRequested();
 
-                // No per-peer manifest body is retained, so request a complete update instead of synthesizing a
-                // baseline from the local provider's version.
+                // 没有保留每个同比的表列体,所以要求完整更新,而不是综合
+                // 当地供应商版本的基准。
                 var updateTask = remoteManifestProvider.GetClusterManifestUpdate(MajorMinorVersion.MinValue, probeToken).AsTask();
                 probeTask = updateTask;
                 var update = await updateTask
@@ -843,20 +843,20 @@ namespace Orleans.Runtime.Metadata
     }
 
     /// <summary>
-    /// A point-in-time snapshot of a <see cref="ClusterManifestProvider"/>'s most recent manifest-update
-    /// attempt, used to diagnose a convergence wait that did not complete within its deadline.
+    /// 最新 <see cref="ClusterManifestProvider"/>的最近一份清点更新的点对时间的快照
+    /// 用来判断未在最后期限内完成的趋同等待。
     /// </summary>
-    /// <param name="AttemptId">A per-provider monotonically increasing identity for this attempt, used to
-    /// discard completions from a direct fetch that outlived its attempt (e.g. one superseded by peer repair)
-    /// once a newer attempt has started.</param>
-    /// <param name="MembershipVersion">The membership version this attempt is reconciling against.</param>
-    /// <param name="AttemptStartedAt">The UTC time at which this attempt began.</param>
-    /// <param name="PendingSilos">The silos whose manifest fetch is still outstanding for this attempt. Shrinks
-    /// as each fetch completes (successfully, via peer repair, or by failing); empty once every fetch has
-    /// concluded, even if the attempt has not yet published a manifest.</param>
-    /// <param name="LastFailedSilo">The silo targeted by the most recent fetch failure, if any.</param>
-    /// <param name="LastFailureMessage">The exception message from the most recent fetch failure, if any.</param>
-    /// <param name="LastFailureAt">The UTC time of the most recent fetch failure, if any.</param>
+    /// <param name="AttemptId">一名每个提供者单质增加这一企图的识别特征,过去曾
+    /// 直接取出后遗漏的完成量,超过其尝试(e.g.一个被同侪修理所取代)
+    /// 一旦新的尝试开始。</param>
+    /// <param name="MembershipVersion">成员版的这一尝试与会员国文本相协调。</param>
+    /// <param name="AttemptStartedAt">协调世界时,这一尝试开始。</param>
+    /// <param name="PendingSilos">其舱单取出尚未进行此项尝试的 silos 。
+    /// 每件取来都完成( 成功、 通过同行修理或失败); 每次取回一空, 就会空
+    /// 即使未遂行为尚未公布清单,也已完成。</param>
+    /// <param name="LastFailedSilo">被最近的调试失败(如果有的话)所针对 silo 。</param>
+    /// <param name="LastFailureMessage">最近的调取失败的例外信息。</param>
+    /// <param name="LastFailureAt">最新调取失败(如果有的话)的UTC时间。</param>
     internal sealed record ManifestUpdateAttemptDiagnostics(
         long AttemptId,
         MembershipVersion MembershipVersion,

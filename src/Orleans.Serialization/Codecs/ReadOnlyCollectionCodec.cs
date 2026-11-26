@@ -7,31 +7,31 @@ using System.Collections.ObjectModel;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Surrogate type used by <see cref="ReadOnlyCollectionCodec{T}"/>.
+    /// <see cref="ReadOnlyCollectionCodec{T}"/>所使用的代金矿类型。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct ReadOnlyCollectionSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public List<T> Values;
     }
 
     /// <summary>
-    /// Serializer for <see cref="ReadOnlyCollection{T}"/>.
+    /// <see cref="ReadOnlyCollection{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ReadOnlyCollectionCodec<T> : GeneralizedReferenceTypeSurrogateCodec<ReadOnlyCollection<T>, ReadOnlyCollectionSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReadOnlyCollectionCodec{T}"/> class.
+        /// 初始化 <see cref="ReadOnlyCollectionCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public ReadOnlyCollectionCodec(IValueSerializer<ReadOnlyCollectionSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -44,9 +44,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="ReadOnlyCollection{T}"/>.
+    /// <see cref="ReadOnlyCollection{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class ReadOnlyCollectionCopier<T> : IDeepCopier<ReadOnlyCollection<T>>
     {
@@ -54,9 +54,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _elementCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReadOnlyCollectionCopier{T}"/> class.
+        /// 初始化 <see cref="ReadOnlyCollectionCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">The element copier.</param>
+        /// <param name="elementCopier">元素复印机。</param>
         public ReadOnlyCollectionCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = elementCopier;
@@ -79,8 +79,8 @@ namespace Orleans.Serialization.Codecs
                 return context.DeepCopy(input);
             }
 
-            // There is a possibility for infinite recursion here if any value in the input collection is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var tempResult = new T[input.Count];

@@ -8,7 +8,7 @@ namespace Tester.AzureUtils
 {
     public static class AzureStorageOperationOptionsExtensions
     {
-        // Keep stalled table storage requests within Orleans' 30-second response timeout.
+        // 将搁置的表存储请求保持在 Orleans30秒答复超时之内。
         private const int TableStorageMaxRetries = 2;
         private static readonly TimeSpan TableStorageNetworkTimeout = TimeSpan.FromSeconds(5);
 

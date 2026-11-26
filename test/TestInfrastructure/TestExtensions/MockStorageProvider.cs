@@ -202,7 +202,7 @@ namespace UnitTests.StorageTests
             {
                 var storedState = GetLastState(grainType, grainId, grainState);
                 grainState.RecordExists = storedState != null;
-                grainState.State = (T)this.copier.Copy(storedState)!; // Read current state data
+                grainState.State = (T)this.copier.Copy(storedState)!; // 读取当前状态数据
             }
             return Task.CompletedTask;
         }
@@ -213,7 +213,7 @@ namespace UnitTests.StorageTests
             Interlocked.Increment(ref writeCount);
             lock (StateStore)
             {
-                var storedState = this.copier.Copy(grainState.State); // Store current state data
+                var storedState = this.copier.Copy(grainState.State); // 存储当前状态数据
                 var stateStore = new Dictionary<string, object?> { { stateStoreKey, storedState } };
                 StateStore.WriteRow(MakeGrainStateKeys(grainType, grainId), stateStore, grainState.ETag);
 
@@ -260,10 +260,10 @@ namespace UnitTests.StorageTests
         }
 
         /// <summary>
-        /// A function to execute a control command.
+        /// 函数来执行控制命令。
         /// </summary>
-        /// <param name="command">A serial number of the command.</param>
-        /// <param name="arg">An opaque command argument</param>
+        /// <param name="command">命令的序列号。</param>
+        /// <param name="arg">一个不透明的命令参数</param>
         public virtual Task<object?> ExecuteCommand(int command, object? arg)
         {
             switch ((Commands)command)

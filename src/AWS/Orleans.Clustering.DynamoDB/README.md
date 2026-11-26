@@ -1,16 +1,24 @@
-# Microsoft Orleans Clustering for DynamoDB
+<a id="microsoft-orleans-clustering-for-dynamodb"></a>
 
-## Introduction
-Microsoft Orleans Clustering for DynamoDB provides cluster membership functionality for Microsoft Orleans using Amazon's DynamoDB. This allows Orleans silos to coordinate and form a cluster using DynamoDB as the backing store.
+# Microsoft Orleans 分组 DynamoDB
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 分组 DynamoDB 提供分组成员功能 Microsoft Orleans 使用亚马逊 DynamoDB。此选项允许 Orleans silos 协调和组成一个组群,使用 DynamoDB 做为后援商店
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Clustering.DynamoDB
 ```
 
-## Example - Configuring DynamoDB Membership
+<a id="example---configuring-dynamodb-membership"></a>
+
+## 示例 - 配置 DynamoDB 成员
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -63,22 +71,28 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-## Endpoints and credentials
+<a id="endpoints-and-credentials"></a>
 
-`Service` selects an AWS region or an HTTP/HTTPS endpoint URL. `AccessKey` and `SecretKey` supply explicit credentials; adding `Token` supplies session credentials. `ProfileName` selects a named AWS profile when explicit keys are omitted. These credentials apply to both regions and endpoint URLs.
+## 终点和全权证书
 
-The AWS SDK credential chain supplies credentials for regions and HTTPS endpoints when explicit keys and a profile are omitted. HTTP endpoints use the local-development credentials `dummy` and `dummyKey` in that case. Configure explicit credentials when a DynamoDB Local instance uses an access key to select its database.
+`Service` 选择 AWS 区域或 HTTP/HTTPS 端点 URL。 `AccessKey` 和 `SecretKey` 提供明确的全权证书;添加 `Token` 会话证书。 `ProfileName` 在省略明确密钥时选择名为 AWS 的配置文件。这些全权证书适用于区域和端点 URL 。
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Configuration Guide](https://dotnet.github.io/orleans/docs/host/configuration-guide/)
-- [Orleans Clustering](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
-- [AWS SDK for .NET Documentation](https://docs.aws.amazon.com/sdk-for-net/index.html)
+AWS SDK 证书链路由提供区域及HTTPS终点点的证书,如果删除明确的密钥和剖面, HTTP终点点在这种情况下使用当地开发证书 `dummy` 和 `dummyKey` 。当 DynamoDB 地方机构使用访问键选择数据库时,配置明确的全权证书。
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+<a id="documentation"></a>
+
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [配置指南](https://dotnet.github.io/orleans/docs/host/configuration-guide/)
+- [Orleans 组合](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
+- [.NET 文档的 AWSSDK](https://docs.aws.amazon.com/sdk-for-net/index.html)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

@@ -15,13 +15,13 @@ using Orleans.Storage.Internal;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// This is a simple in-memory grain implementation of a storage provider.
+    /// 这是储存提供者在存储器的简单(Q0Q)执行中的一种简单的模拟 grain 。
     /// </summary>
     /// <remarks>
-    /// This storage provider is ONLY intended for simple in-memory Development / Unit Test scenarios.
-    /// This class should NOT be used in Production environment,
-    ///  because [by-design] it does not provide any resilience
-    ///  or long-term persistence capabilities.
+    /// 该储存提供者仅用于简单的模拟开发/单元测试设想。
+    /// 这一类不应用于生产环境,
+    ///  由于[按设计 无法提供任何抗御力
+    ///  或长期持久性能力。
     /// </remarks>
     [DebuggerDisplay("MemoryStore:{" + nameof(name) + "}")]
     public partial class MemoryGrainStorage : IGrainStorage, IDisposable
@@ -34,18 +34,18 @@ namespace Orleans.Storage
         private readonly bool _overridesLegacyWriteState;
         private readonly bool _overridesLegacyClearState;
 
-        /// <summary> Name of this storage provider instance. </summary>
+        /// <summary> 此存储提供者实例的名称。 </summary>
         private readonly string name;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryGrainStorage"/> class.
+        /// 初始化 <see cref="MemoryGrainStorage"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="options">The options.</param>
-        /// <param name="logger">The logger.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="defaultGrainStorageSerializer">The default grain storage serializer.</param>
-        /// <param name="activatorProvider">The provider used to create grain state instances.</param>
+        /// <param name="name">名称。</param>
+        /// <param name="options">选项。</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="defaultGrainStorageSerializer">默认默认 grain 存储序列器。</param>
+        /// <param name="activatorProvider">用于创建 grain 状态实例的提供者。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the resolved options instance.")]
         public MemoryGrainStorage(
             string name,
@@ -64,7 +64,7 @@ namespace Orleans.Storage
             storageGrains = new Lazy<IMemoryStorageGrain>[options.NumStorageGrains];
             for (int i = 0; i < storageGrains.Length; i++)
             {
-                int idx = i; // Capture variable to avoid modified closure error
+                int idx = i; // 避免修改关闭错误的抓取变量
                 storageGrains[idx] = new Lazy<IMemoryStorageGrain>(() => grainFactory.GetGrain<IMemoryStorageGrain>(idx));
             }
 
@@ -257,9 +257,9 @@ namespace Orleans.Storage
         public void Dispose() { }
 
         /// <summary>
-        /// Deserialize from binary data
+        /// 从二进制数据进行脱序
         /// </summary>
-        /// <param name="data">The serialized stored data</param>
+        /// <param name="data">序列存储数据</param>
         internal T? ConvertFromStorageFormat<T>(ReadOnlyMemory<byte> data)
         {
             T? dataValue = default;
@@ -287,17 +287,17 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Serialize to the storage format.
+        /// 序列化为存储格式。
         /// </summary>
-        /// <param name="grainState">The grain state data to be serialized</param>
+        /// <param name="grainState"> grain 国家数据将按序号</param>
         /// <remarks>
-        /// See:
+        /// 见:
         /// http://msdn.microsoft.com/en-us/library/system.web.script.serialization.javascriptserializer.aspx
-        /// for more on the JSON serializer.
+        /// 更多 JSON 连环器
         /// </remarks>
         internal ReadOnlyMemory<byte> ConvertToStorageFormat<T>(T? grainState)
         {
-            // Convert to binary format
+            // 转换为二进制格式
             return this.storageSerializer.Serialize<T>(grainState);
         }
 
@@ -335,16 +335,16 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// Factory for creating MemoryGrainStorage
+    /// 创建 MemoryGrainStorage工厂
     /// </summary>
     public static class MemoryGrainStorageFactory
     {
         /// <summary>
-        /// Creates a new <see cref="MemoryGrainStorage"/> instance.
+        /// 创建新的 <see cref="MemoryGrainStorage"/> 实例。
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="name">The name.</param>
-        /// <returns>The storage.</returns>
+        /// <param name="services">服务。</param>
+        /// <param name="name">名称。</param>
+        /// <returns>储存。</returns>
         public static MemoryGrainStorage Create(IServiceProvider services, string name)
         {
             return ActivatorUtilities.CreateInstance<MemoryGrainStorage>(services,

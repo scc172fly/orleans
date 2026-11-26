@@ -1,198 +1,212 @@
 ---
-title: Migrate Durable Jobs storage
-description: Move new Durable Jobs to a named journal provider while draining existing storage and verifying retirement.
+title: "移徙持久就业储存"
+description: "将新的持久工作移至名为日记提供商的名下, 同时消耗现有的存储和核查退休情况。"
 ms.date: 09/16/2026
 ms.topic: how-to
 ---
 
-# Migrate Durable Jobs storage
+<a id="migrate-durable-jobs-storage"></a>
 
-Durable Jobs uses journal storage for shard metadata and job records. Select a
-write provider for new shards and keep previous providers selected for draining
-their existing jobs. Most deployments use a single provider; additional
-providers are needed only while work remains in other storage namespaces.
+# 移徙持久就业储存
 
-This procedure directs **new work** to B while existing journals drain in place.
-Keep one authoritative location for each shard throughout its lifetime.
+持久工作使用日记存储用于碎裂元数据和工作记录。
+新的碎片写器的写器, 并保留先前选择用于排水的提供者
+大多数部署使用单一的供应商;额外
+仅在工作仍留在其他存储命名空间时需要提供方。
 
-## Prepare the bindings
+这一程序指导 **新工作** 至B,而现有的日记本则排水。
+每一碎片在其整个寿命期间都保留一个权威位置。
 
-1. Register A's existing namespace and B's new namespace using the named
+<a id="prepare-the-bindings"></a>
+
+## 准备装订
+
+1. 注册名 A 现有命名空间和 B 使用所命名名称的新命名空间
    [Azure Blob/Table](azure-storage.md#named-storage-namespaces),
-   [Redis](redis-journal-storage.md#configure-redis-journal-storage), or S3
-   journal registration. Use separate accounts, containers, tables, buckets,
-   or key prefixes as appropriate. Each selected namespace has one binding.
-1. Retain A's identity, namespace mapping, journal format readers, and payload
-   codecs. Its credentials must permit reads, listing, conditional metadata
-   updates, journal writes, compaction, and deletion throughout the drain.
-1. Register <xref:Orleans.Hosting.DurableJobsExtensions.UseJournaledDurableJobs*>
-   and configure <xref:Orleans.Hosting.DurableJobsOptions.ActiveProviderName>
-   and <xref:Orleans.Hosting.DurableJobsOptions.DrainingProviderNames>.
-   The default write name is `Default`; the draining list is initially empty.
-1. Validate both namespaces and permissions in an isolated environment. Startup
-   validates selected storage, catalog, and factory bindings. Physical
-   availability and access still need operational checks.
+   [Redis](redis-journal-storage.md#configure-redis-journal-storage),或S3
+   使用单独的账户、集装箱、表格、桶、
+   或酌情按键前缀。每个选定命名空间都有一个绑定符。
+1. 保留 A 的身份、 命名空间绘图、 日记格式读取器和有效载荷
+   其全权证书必须允许读、上列名、有条件元数据
+   更新、日记写、压缩和删除整个排水管。
+1. 登记册 <xref:Orleans.Hosting.DurableJobsExtensions.UseJournaledDurableJobs*>
+   配置 <xref:Orleans.Hosting.DurableJobsOptions.ActiveProviderName>
+   和 <xref:Orleans.Hosting.DurableJobsOptions.DrainingProviderNames>。
+   默认的写入名称是 `Default`; 下划线列表初始为空 。
+1. 在孤立环境中校验命名空间和权限。 启动
+   验证所选存储、目录和工厂装配。
+   是否提供和获得仍然需要业务检查。
 
-Named journal providers resolve storage, catalog, and state-manager factory
-from the same binding. The default provider used by grain-owned
+名下日记账提供者解决存储、目录和国营管理工厂问题
+同一约束性。 grain- 拥有
 <xref:Orleans.Durable.Journaling.IDurableStateManager> instances remains independent of explicitly named
-Durable Jobs providers. The in-memory and Azure Durable Jobs convenience
-methods compose the same common registration path for the default binding.
+提供可持久就业的提供者:即时和 Azure 可持久就业便利
+方法构成相同的默认约束性共同登记路径。
 
-For executable configuration and verification, use the
-[Durable Jobs migration sample](https://github.com/dotnet/orleans/tree/main/samples/DurableJobsMigration).
-It runs separate prepare/drain console processes against disk-backed Azurite,
-persists a future job handle, recovers and executes A work after restart, creates
-B work, and reports complete inventories locally. Named-provider APIs require
-packages built from sources containing this feature; the repository's sample
-build supplies those packages.
+用于可执行配置和核查,使用
+[持久就业移徙抽样](https://github.com/dotnet/orleans/tree/main/samples/DurableJobsMigration).
+它运行单独的准备/排水控制器程序 与磁盘支持的Azurite,
+恢复后A工作,创建
+B工作,报告在当地完成清单。
+由包含此特性的源构建的包包; 存储库样本
+建造这些包件的补给。
 
-## Stage the deployment
+<a id="stage-the-deployment"></a>
 
-Provider selection is fixed at process startup. Restart silos when changing
-bindings or selection.
+## 部署阶段
 
-| Stage | Write provider | Draining providers | Required condition |
+启动进程时固定提供方选择。更改后重新启动 silos
+约束或选择。
+
+| 阶段 | 写作提供者 | 排排提供者 | 所需条件 |
 | --- | --- | --- | --- |
-| Steady state | A | Empty | All work resides in A |
-| Prepare | A | B | Every scheduling silo can discover and locate both A and B before B receives new work |
-| Cut over | B | A | Restart all scheduling silos with this selection and finish prior scheduling calls |
-| Retire | B | Empty | Verify the complete drain and stop every remaining A writer first |
+| 稳定状态 | A | 空空 | 所有工作均在A类 |
+| 准备 | A | B | 每项日程安排 silo 都能够在B收到新工作之前发现和找到A和B |
+| 切换剪切 | B | A | 以此选中选择重新开始全部调度 silos 并完成前期日程安排调用 |
+| 退休人员e | B | 空空 | 检查完全部排水管,停止所有剩下的工作 |
 
-During an ordinary rolling cutover, older A-configured silos can still create
-A shards. Treat deployment completion and the end of admitted scheduling calls
-as part of the boundary. If the application requires a strict cutover time,
-pause application scheduling, finish in-flight scheduling, update all scheduling
-silos, verify their configuration, and then resume.
+在普通滚动切换期间,A型更老的配置 silos 仍然可以创建
+处理完成部署和结束已获准的预约电话
+作为边界的一部分。如果申请要求严格的截止时间,
+暂停应用程序调度,完成飞行中日程安排,更新所有日程安排
+silos,核查其配置,然后恢复。
 
-Retain A's credentials and namespace through its final cleanup. Existing A work
-continues mutating A while B receives new jobs.
+通过最后清理保留A的证书和命名空间。
+变异A继续发生,B得到新的工作。
 
-During graceful shutdown, each silo drains admitted requests and stops active
-job attempts, then releases populated shards for another silo to claim and
-deletes empty shard journals. This includes active shards waiting for a future
-start time or queue changes. Cleanup uses the host's shutdown deadline, so allow
-time for storage operations and investigate logged ownership or cleanup failures
-before retiring a provider.
+在宽度关闭期间,每个 silo 排水管都接受请求并停止活动
+尝试工作后,释放人口散块,供另一个 silo 提出和
+删除空的 hard 日记。 这包括等待未来的活动 shard
+开始时间或队列更改。清理使用主机关闭的截止时间, 允许
+储存操作时间,调查登记的所有权或清理失败
+在供应商退休之前。
 
-## Understand routing during the drain
+<a id="understand-routing-during-the-drain"></a>
 
-New schedules use newly created shards in B. Discovery sweeps A and B with one
-oldest-first ordering and aggregate claim budget, then opens each shard with
-the binding of the provider which contained it. Execution, ownership changes,
-retries, rescheduling, cancellation, snapshots, and deletion retain that binding.
-Draining shards stay closed to new schedules.
+## 排水时要了解路由
 
-Shard IDs retain their timestamp/GUID representation, and journal IDs remain
-`jobs/shards/<id>`. Serialized <xref:Orleans.Durable.Jobs.DurableJob> handles keep
-their existing provider-independent shape.
-Application code can keep using a previously saved handle after cutover.
+B. 发现式扫描 A和B
+最最先订购的合计索赔预算,然后打开每块碎片
+执行、所有权变更、
+重试、重新安排、取消、快照和删除保留了这一约束力。
+排水碎片对新的时间表关闭
 
-For an uncached known shard:
+硬身份证保留其时印/通用身份识别标志,日记身份证也保留
+`jobs/shards/<id>`. 序列化 <xref:Orleans.Durable.Jobs.DurableJob> 控件保存
+其现有的自发性供应商形状。
+切换后应用程序代码可以保留使用先前保存的控件 。
 
-- With one selected provider, the runtime reads that provider's metadata
-  directly. This path performs one metadata read regardless of other registered
-  providers.
-- With multiple selected providers, it reads the exact journal ID in the write
-  provider first, then draining providers as needed. This lookup also finds
-  future shards outside normal discovery lookahead.
-- Once the shard is located, operations use its original binding. A tracked
-  shard already has this binding.
+以被一个未朽的、已知的碎片所迷惑:
 
-Successful absence checks across all selected providers establish absence.
-Provider failures that leave a lookup unresolved surface as an
+- 运行时间为提供商元数据
+  直接。此路径运行一个元数据,而不论其他已注册的元数据是否被读取
+  提供商。
+- 使用多个选中的提供者, 它在写时读取精确日记 ID
+  首先提供商,然后根据需要排干供应商。
+  未来碎片 正常发现外的 前景。
+- 一旦碎片找到,操作使用原始装订。
+  碎片已经具有此绑定性 。
+
+对所有选定提供者成功进行缺勤检查,确定缺勤。
+提供方的故障,使未解决表面作为
 <xref:System.AggregateException>. If another provider supplies the authoritative
-shard, that binding can be used while the earlier failure remains observable.
-Discovery reports each provider's failures with its configured name. A later
-fresh sweep retries failed providers.
+碎片,在早期失败仍然可以观察到时,可使用这一约束。
+发现报告每个提供者的配置名称都存在故障。
+新的扫描重试失败提供者 。
 
-Each sweep enumerates the selected catalogs in configured order and buffers each
-provider's candidates until its enumeration succeeds. Shard assignment starts
-after all selected catalogs have completed or faulted, using the successful
-results for the shared oldest-first claim budget. A catalog failure discards that
-provider's partial results.
+每次扫描都以配置顺序和缓冲来列出所选目录
+提供商的候选人,直到其查点成功为止。
+使用成功日期完成或错误后
+表1. 第一批索赔共有预算的
+供应商的部分结果。
 
-Recovery latency therefore includes catalog listing requests and storage-client
-retry delays. Configure request timeouts and retry limits on each storage client
-to match the required recovery latency, and monitor catalog latency during the
-drain. The shard check interval schedules fresh sweeps; storage-client settings
-govern pending request attempts.
+因此,回收期包括目录列出申请和存储客户
+重新试运行延迟。 配置每个存储客户端的请求超时和重试限制
+以与所需的回收延迟时间匹配,并在
+硬检查间隔时间,重新清扫;存储客户设置
+管理请求尝试。
 
-## Verify retirement
+<a id="verify-retirement"></a>
 
-Resolve <xref:Orleans.Durable.Jobs.IDurableJobsStorageInspector> from the host's
-services and call its <xref:Orleans.Durable.Jobs.IDurableJobsStorageInspector.InspectAsync*>
-method with A's configured name and a cancellation token.
-The returned <xref:Orleans.Durable.Jobs.DurableJobsStorageStatus> describes a full
-`jobs/shards/` catalog snapshot through the caller using read-only catalog and
-metadata operations. It includes future shards outside lookahead and poisoned
-shards requiring operator recovery.
+## 核查退休
 
-| Result | Operational meaning |
+决 定 <xref:Orleans.Durable.Jobs.IDurableJobsStorageInspector> 发自主机
+服务单位和调用其 <xref:Orleans.Durable.Jobs.IDurableJobsStorageInspector.InspectAsync*>
+方法,使用 A 配置的名称和取消符。
+返回的 <xref:Orleans.Durable.Jobs.DurableJobsStorageStatus> 表示完整
+`jobs/shards/` 使用只读目录和
+包括未来外头的碎片和有毒
+碎片需要操作员恢复
+
+| 结果成果结果成果成果 | 业务含义 |
 | --- | --- |
-| `ProviderName`, `IsWriteProvider` | The caller's configured binding and write selection |
-| `ShardCount` | Existing journals in the shard namespace, including unrecognized entries; each recognized shard can contain many jobs |
-| `OwnedShardCount` | Shards with an owner recorded in metadata; evaluate owner liveness separately through cluster membership |
-| `PoisonedShardCount` | Shards requiring investigation before normal processing can continue |
-| `UnrecognizedShardCount` | Entries with uninterpretable shard metadata; resolve them before retirement |
-| `OldestShardStartTime`, `NewestShardStartTime` | Nullable bounds from recognized shard-window metadata; retries and reschedules can move attempts beyond these windows |
+| `ProviderName`, `IsWriteProvider` | 调用器配置的绑定和写选择 |
+| `ShardCount` | 硬化名称空间中的现有日记,包括未经承认的条目;每个得到承认的散页都可包含许多工作 |
+| `OwnedShardCount` | 元数据中记录有拥有主机主的碎片;通过分组成员身份分别评价所有人的生活状况 |
+| `PoisonedShardCount` | 正常处理工作能够继续之前需要调查的碎片 |
+| `UnrecognizedShardCount` | 含有无法解释的碎片元数据条目; 在退休前解决 |
+| `OldestShardStartTime`, `NewestShardStartTime` | 由公认的软窗元数据生成的无线界限;回溯和重新安排可以将尝试移到这些窗口之外 |
 
-Counts are 64-bit values. Owned and poisoned counts can overlap. Inspection
-failure or cancellation faults the operation. A successful result covers the
-complete enumeration. Display **unknown** and preserve the error on failure.
+计数为 64 位值。 拥有和中毒的计数可以重叠。 检查
+操作失败或取消失败或注销导致操作故障。成功的结果涵盖
+完整查点。显示未知的 **** 并保存错误失败时的错误。
 
-Require all of the following before removing A:
+删除 A 之前要求全部以下要求:
 
-- Every scheduling silo and other A writer has cut over, and prior scheduling
-  requests have finished.
-- A successful complete inventory reports a total shard count of zero,
-  including unrecognized entries.
-- Future-dated, owned, poisoned, and repeatedly rescheduled work has been
-  resolved through the application's recovery/cancellation procedures.
-- Completion and empty-shard deletion have succeeded; storage authorization and
-  cleanup errors have been investigated.
-- Repeated inventories, as required by the backend's live-listing semantics,
-  agree with the deployment evidence.
-- Other consumers of the same binding have finished using it.
+- 每一排期 silo 和其他一位作家已缩短,并提前排定
+  请求已完成 。
+- 成功完成的库存报告 完全零分数
+  包括未经承认的条目。
+- 工作日期、自有、中毒和反复重新安排
+  通过申请的追偿/注销程序解决了问题。
+- 完成和空式硬删除成功; 保存授权
+  清理错误已经调查。
+- 重复的库存清单, 按照后端的 名列名的实时语义要求,
+  同意部署证据。
+- 同一约束体的其他消费者也已经使用完毕。
 
-Retirement requires both a successful full-zero inventory and completed
-cluster-wide writer cutover. An inventory is a live observation, and
-`IsWriteProvider` reflects the inspecting process's configuration. Keep
-independent deployment evidence for every writer's cutover and the time of
-each successful inventory.
+退休既需要成功的完全零库存,也需要完成
+集束范围作者切换。 清点是现场观察, 以及
+`IsWriteProvider` 反映检查过程的配置。
+每位作家的截断时间和
+每项成功的清单。
 
-Remove A from the draining list and restart with B alone after these conditions
-hold. Retire A's storage binding and credentials only when all other consumers
-are also finished. The runtime returns to the single-provider direct-lookup
-path. Handles for already completed jobs retain the existing cancellation
-outcome when their shards are absent.
+从排出排出列表中删除 A 并在这些条件之后仅B 重新启动
+持有退休人员A的储存装订和全权证书,但只有在所有其他消费者都持有
+也已完成。运行时返回到单提供者直接查看
+路径。处理已完成的工作时保留现有的取消
+当他们的碎片消失的时候,
 
-## Roll back safely
+<a id="roll-back-safely"></a>
 
-Keep both providers selected and retain provider-aware binaries. Switch writes
-back to A while B drains, using the same staged-deployment discipline. Existing
-B shards keep executing and mutating B. Keep both namespaces, permissions,
-format readers, and payload codecs available through the rollback window.
+## 安全后退,安全后退
 
-## Monitor and diagnose
+保留选中的供应商并保留提供商对软件的认知二进制。 Switch写道:
+B排水管,使用同样的分阶段部署纪律。
+B 片块继续执行并突变 B。 保留命名空间, 权限,
+格式化阅读器,和有效载荷代码,可以通过回滚窗口提供。
 
-Follow [provider-scoped drain monitoring](operations.md#monitor-durable-jobs-provider-draining).
-Record inventory timestamps and failures alongside deployment versions and
-configured provider names. Successful inspection emits a structured
-Information-level inventory log; provider failures emit structured Error-level
-logs with the configured name. Use these logs and inspector snapshots for
-provider-scoped progress, alongside existing Durable Jobs and journal metrics.
+<a id="monitor-and-diagnose"></a>
 
-| Symptom | Check and response |
+## 监测和诊断
+
+之后 [供应者范围排水监测](operations.md#monitor-durable-jobs-provider-draining)。
+记录库存时间戳和故障,同时记录部署版本和
+配置的提供供应商名称。 成功检查后释放了结构化
+信息级清单日志;供应商的故障排放结构化错误级别
+带有配置名称的日志。使用这些日志和检查员快照
+与现有的《持久就业》和期刊指标一样,提供范围广的进展。
+
+| 症状 | 检查和答复 |
 | --- | --- |
-| A's count grows after B is enabled | Find silos or other writers still configured to create A shards; complete cutover before evaluating retirement |
-| A remains populated while due-job execution is idle | Inspect the full namespace for future, poisoned, owned, or repeatedly rescheduled work |
-| A jobs execute but its count remains above zero | Investigate remaining writable shards, retry/reschedule activity, and failed empty-shard deletion |
-| Cancellation after cutover reports a storage error | Check reachability and mutation permissions of every selected provider; preserve the storage error and restore access before retrying the request |
-| One provider's inventory is stale | Mark its status unknown; inspect listing, metadata reads, throttling, and authorization |
+| 启动 B 后 A 的数增长 | 查找 silos 或其他仍然配置成创建碎片的作者; 在评估退休前完成切换 |
+| 留在人口中,无执行正当工作 | 检查未来、中毒、自有或反复重排期工作的全名空间 |
+| A 执行一个任务,但数数仍然高于零 | 调查剩余可写碎片、重试/重新安排活动以及失败的空硬删除 |
+| 切结报告存储错误后取消 | 每一个选定供应商的可切可及性和突变权限;保存存储错误,在重新尝试请求前恢复访问 |
+| 一家供应商的库存已陈旧 | 标记身份未知; 检查列表、元数据读、 抽动和授权 |
 
-Inventory can be expensive on large catalogs. Run it at a controlled cadence
-with a bounded operator timeout, restrict access to operational results, and
-keep credentials out of logs. The sample reports inventory through local
-console output. Apply authentication and authorization to any operational
-interfaces added by a deployment.
+大型目录的库存成本昂贵。 在控制区运行
+装有约束操作器的超时、限制获取业务结果,以及
+样本报告通过当地
+控件输出。对操作中的任何
+部署后添加的界面。

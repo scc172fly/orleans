@@ -12,18 +12,18 @@ using Xunit;
 namespace UnitTests.Management
 {
     /// <summary>
-    /// Tests for the Orleans Management Grain, which provides runtime statistics and cluster management.
+    /// 提供运行时统计和集群管理的 Orleans 管理 Grain测试。
     /// 
-    /// The Management Grain (IManagementGrain) is a system grain that provides:
-    /// - Cluster topology information (active silos, their status)
-    /// - Grain activation statistics (counts per type, per silo)
-    /// - Runtime metrics and diagnostics
+    /// 管理 Grain (IManagementGrain)是一个系统 grain ,提供:
+    /// - 群集地形信息(活动 silos,状况)
+    /// - Grain 激活统计数据(每类型、每 silo)
+    /// - 运行时间衡量和诊断
     /// 
-    /// These capabilities are essential for:
-    /// - Monitoring cluster health
-    /// - Debugging activation distribution
-    /// - Building management dashboards
-    /// - Implementing custom placement strategies based on current load
+    /// 这些能力对于下列工作至关重要:
+    /// - 监测群组保健
+    /// - 调试启动发布
+    /// - 房舍管理仪表板
+    /// - 根据当前负荷量实施海关安置战略
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -47,18 +47,18 @@ namespace UnitTests.Management
         {
             protected override void ConfigureTestCluster(TestClusterBuilder builder)
             {
-                // The ActivationCount tests rely on CounterStatistic, which is a shared static value, so isolation
-                // between silos is obtained using external processes. This ensures each silo maintains independent
-                // statistics rather than sharing them through static fields in the same process.
+                // ActivationCount 测试依赖 CounterStatistic,这是一个共享静态值,因此分离
+                // 介间 silos 使用外部程序获取。这确保了每个 silo 保持独立
+                // 统计不是在同一过程中通过静态字段分享。
                 builder.CreateSiloAsync = StandaloneSiloHandle.CreateForAssembly(this.GetType().Assembly);
                 builder.Properties["GrainAssembly"] = $"{typeof(SimpleGrain).Assembly}";
             }
         }
 
         /// <summary>
-        /// Tests retrieval of cluster topology information.
-        /// GetHosts returns all active silos in the cluster with their current status.
-        /// This is fundamental for understanding cluster composition and health.
+        /// 测试集束地形学信息的检索。
+        /// GetHosts 返回组内所有活动状态的 silos 。
+        /// 这对理解集群组成和健康至关重要。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Management")]
         public async Task GetHosts()
@@ -69,7 +69,7 @@ namespace UnitTests.Management
                 await HostedCluster.WaitForLivenessToStabilizeAsync();
             }
 
-            var numberOfActiveSilos = 1 + HostedCluster.SecondarySilos.Count; // Primary + secondaries
+            var numberOfActiveSilos = 1 + HostedCluster.SecondarySilos.Count; // 小学+二年级
             Dictionary<SiloAddress, SiloStatus> siloStatuses = await mgmtGrain.GetHosts(
                 true,
                 TestContext.Current.CancellationToken);
@@ -78,9 +78,9 @@ namespace UnitTests.Management
         }
 
         /// <summary>
-        /// Tests retrieval of detailed host information including additional metadata.
-        /// GetDetailedHosts provides more comprehensive information about each silo,
-        /// useful for detailed diagnostics and monitoring dashboards.
+        /// 测试检索详细的主机信息,包括补充元数据。
+        /// GetDetailedHosts 提供关于每个 silo,
+        /// 可用于详细的诊断和监测仪表板。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Management")]
         public async Task GetDetailedHosts()
@@ -91,7 +91,7 @@ namespace UnitTests.Management
                 await HostedCluster.WaitForLivenessToStabilizeAsync();
             }
 
-            var numberOfActiveSilos = 1 + HostedCluster.SecondarySilos.Count; // Primary + secondaries
+            var numberOfActiveSilos = 1 + HostedCluster.SecondarySilos.Count; // 小学+二年级
             var siloStatuses = await mgmtGrain.GetDetailedHosts(
                 true,
                 TestContext.Current.CancellationToken);
@@ -101,11 +101,11 @@ namespace UnitTests.Management
 
 
         /// <summary>
-        /// Tests basic grain statistics retrieval.
-        /// Verifies that:
-        /// - Statistics are returned for active grain types
-        /// - Grain type names are properly formatted (without 'Activation' suffix)
-        /// This data is crucial for understanding what grains are active in the cluster.
+        /// 测试基本 grain 统计检索。
+        /// 证明:
+        /// - 统计为活动 grain 类型返回
+        /// - Grain 类型名称格式正确(没有“激活”后缀)
+        /// 这些数据对于了解该组群中哪些 grains 活动至关重要。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Management")]
         public void GetSimpleGrainStatistics()
@@ -119,11 +119,11 @@ namespace UnitTests.Management
         }
 
         /// <summary>
-        /// Tests that activation counts are correctly tracked for SimpleGrain.
-        /// Verifies that:
-        /// - Creating a new grain activation increments the count
-        /// - Statistics accurately reflect the number of active grains
-        /// This is essential for load monitoring and placement decisions.
+        /// 激活计数的测试被正确跟踪到 SimpleGrain。
+        /// 证明:
+        /// - 创建新的 grain 激活增量
+        /// - 统计准确反映活动 grains数量
+        /// 这对于进行载荷监测和安置决定至关重要。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Management")]
         public async Task GetSimpleGrainStatistics_ActivationCounts()
@@ -138,12 +138,12 @@ namespace UnitTests.Management
         }
 
         /// <summary>
-        /// Generic test helper that verifies activation counting for any grain type.
-        /// Process:
-        /// 1. Get initial statistics and count existing activations
-        /// 2. Create and activate a new grain by calling a method
-        /// 3. Verify the activation count increased by exactly 1
-        /// This ensures the management grain correctly tracks grain lifecycle events.
+        /// 用于核查激活的通用测试助手,可计算任何类型 grain 。
+        /// 进程:
+        /// 1. 获得初步统计数据并计算现有启动的启动数据
+        /// 2. 调用一种方法创建并激活新的 grain
+        /// 3. 核查启动数增加1个精确
+        /// 这确保了管理层 grain 正确正对音轨 grain 生命周期事件。
         /// </summary>
         private async Task RunGetStatisticsTest<TGrainInterface, TGrain>(Func<TGrainInterface, Task> callGrainMethodAction)
             where TGrainInterface : IGrainWithIntegerKey
@@ -156,7 +156,7 @@ namespace UnitTests.Management
             int initialStatisticsCount = stats.Count(s => s.GrainType == grainType);
             int initialActivationsCount = stats.Where(s => s.GrainType == grainType).Sum(s => s.ActivationCount);
             var grain1 = this.fixture.Client.GetGrain<TGrainInterface>(Random.Shared.Next());
-            await callGrainMethodAction(grain1); // Call grain method to ensure activation
+            await callGrainMethodAction(grain1); // 调用 grain 确保激活的方法
             stats = this.GetSimpleGrainStatisticsRunner("After Invoke");
             Assert.True(stats.Count(s => s.GrainType == grainType) >= initialStatisticsCount, "Activation counter now exists for grain: " + grainType);
             int expectedActivationsCount = initialActivationsCount + 1;

@@ -4,63 +4,63 @@ using StackExchange.Redis;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Options for configuring Redis journal storage.
+/// 配置 Redis 日记存储的选项。
 /// </summary>
 public sealed class RedisJournalStorageOptions
 {
     /// <summary>
-    /// The default compaction threshold, in bytes.
+    /// 默认缩压阈值,以字节表示。
     /// </summary>
     public const long DEFAULT_COMPACTION_THRESHOLD_BYTES = 128L * 1024 * 1024;
 
     /// <summary>
-    /// Gets or sets the Redis client configuration.
+    /// 获取或设置 Redis 客户端配置。
     /// </summary>
     [RedactRedisConfigurationOptions]
     public ConfigurationOptions? ConfigurationOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets the delegate used to create the Redis connection multiplexer.
+    /// 获取或设置用于创建 Redis 连接多路驱动器的代表。
     /// </summary>
     public Func<RedisJournalStorageOptions, Task<(IConnectionMultiplexer Multiplexer, bool IsShared)>> CreateMultiplexer { get; set; } = DefaultCreateMultiplexer;
 
     /// <summary>
-    /// Gets or sets the stage of the silo lifecycle when storage should be initialized.
+    /// 获取或设置 silo 生命周期阶段,即储存应初始化的周期。
     /// </summary>
     public int InitStage { get; set; } = ServiceLifecycleStage.RuntimeInitialize;
 
     /// <summary>
-    /// Gets or sets the Redis key prefix used by the provider.
+    /// 获取或设置提供者使用的 Redis 密钥前缀。
     /// </summary>
     /// <remarks>
-    /// If not set, the provider uses <c>{ServiceId}/journaling</c>.
+    /// 如果未设定,供应商使用 <c>{ServiceId}/journaling</c>。
     /// </remarks>
     public string? KeyPrefix { get; set; }
 
     /// <summary>
-    /// Gets or sets the delegate used to convert a journal id to the Redis key name component.
+    /// 获取或设置用于将日记 ID 转换为 Redis 密钥名组件的代表。
     /// </summary>
     /// <remarks>
-    /// The default mapping preserves the journal id, allowing discovery to filter keys by prefix
-    /// and recover ids without reading metadata. Custom mappings require metadata reads to recover journal ids.
+    /// 默认映射保存日记 ID, 允许通过前缀过滤密钥
+    /// 用户制图要求元数据读取日记代号。
     /// </remarks>
     public Func<JournalId, string> GetKeyName { get; set; } = DefaultGetKeyName;
 
     /// <summary>
-    /// Gets or sets the journal length, in bytes, at which <see cref="IJournalStorage.IsCompactionRequested"/> returns <see langword="true"/>.
+    /// 获取或设置日记长度, 以字节计, 其中 <see cref="IJournalStorage.IsCompactionRequested"/> 返回 <see langword="true"/>。
     /// </summary>
     public long CompactionThresholdBytes { get; set; } = DEFAULT_COMPACTION_THRESHOLD_BYTES;
 
     /// <summary>
-    /// Gets or sets the maximum number of bytes supplied to the journal consumer in each recovery segment.
+    /// 在每个回收段中获取或设定向日记消费者提供的字节的最大数量。
     /// </summary>
     public int ReadChunkSize { get; set; } = 1024 * 1024;
 
     /// <summary>
-    /// Creates the default Redis connection multiplexer.
+    /// 创建默认 Redis 连接多路驱动器。
     /// </summary>
-    /// <param name="options">The Redis journal storage options.</param>
-    /// <returns>The Redis connection multiplexer and a value indicating whether it is shared.</returns>
+    /// <param name="options">下 Redis 日记存储选项。</param>
+    /// <returns>下 Redis 连接多路驱动器,并有一个值来显示它是否共享。</returns>
     public static async Task<(IConnectionMultiplexer Multiplexer, bool IsShared)> DefaultCreateMultiplexer(RedisJournalStorageOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);

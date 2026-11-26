@@ -14,7 +14,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// Tests for EventHub stream recovery with implicit subscriptions handling transient and non-transient errors.
+    /// 测试 EventHub 流回收,含暗订阅处理瞬时和非瞬时错误。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -33,7 +33,7 @@ namespace ServiceBus.Tests.StreamingTests
         {
             protected override void ConfigureTestCluster(TestClusterBuilder builder)
             {
-                // poor fault injection requires grain instances stay on same host, so only single host for this test
+                // 输入缺缺错误需要 grain 示例在同一个主机上停留, 所以只有这个测试的单个主机
                 builder.Options.InitialSilosCount = 1;
                 builder.AddSiloBuilderConfigurator<MySiloBuilderConfigurator>();
                 builder.AddClientBuilderConfigurator<MyClientBuilderConfigurator>();
@@ -110,13 +110,13 @@ namespace ServiceBus.Tests.StreamingTests
 
             for (int i = 0; i < eventsInStream - 1; i++)
             {
-                // send event on each stream
+                // 每个溪流上的事件
                 for (int j = 0; j < streamCount; j++)
                 {
                     await producers[j].OnNextAsync(new GeneratedEvent { EventType = GeneratedEvent.GeneratedEventType.Fill });
                 }
             }
-            // send end events
+            // 发送结束事件
             for (int j = 0; j < streamCount; j++)
             {
                 await producers[j].OnNextAsync(new GeneratedEvent { EventType = GeneratedEvent.GeneratedEventType.Report });

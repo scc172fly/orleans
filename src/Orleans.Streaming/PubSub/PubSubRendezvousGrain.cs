@@ -90,7 +90,7 @@ namespace Orleans.Streams
         private readonly IClusterMembershipService _clusterMembershipService;
         private readonly UnknownSiloStatusCache _unknownSiloStatusCache;
 
-        private PubSubGrainState State => _storage.State!; // OnActivateAsync reads state before grain calls are dispatched.
+        private PubSubGrainState State => _storage.State!; // OnActivateAsync 表示发出 grain 电话之前已通知状态。
 
         public PubSubRendezvousGrain(
             PubSubGrainStateStorageFactory storageFactory,
@@ -199,7 +199,7 @@ namespace Orleans.Streams
             {
                 LogErrorRegisterProducer(streamId, streamProducer, exc);
 
-                // Corrupted state, deactivate grain.
+                // 状态不健全,停止使用 grain。
                 DeactivateOnIdle();
                 throw;
             }
@@ -210,7 +210,7 @@ namespace Orleans.Streams
                     $"Cannot register stream producer {streamProducer}. Registration requires a known, non-terminating producer silo.");
             }
 
-            // The LINQ query is non-null, so ToSet cannot return null.
+            // LINQ 查询为非null, 因此 ToSet 不能返回无效 。
             return State.Consumers.Where(c => !c.IsFaulted).ToSet()!;
         }
 
@@ -355,8 +355,8 @@ namespace Orleans.Streams
             HashSet<SiloAddress>? silosRequiringFreshValidation = null;
             foreach (var (siloAddress, version) in siloMembershipVersions)
             {
-                // Recreated membership storage can reuse a persisted version. An absent silo at that
-                // boundary requires a fresh observation to establish its status.
+                // 重新创建的成员存储可再使用一个已存在版本。 silo 时
+                // 边界需要重新观察才能确定其地位。
                 if (!HasMembershipVersion(version)
                     || version > membershipSnapshot.Version
                     || (version == membershipSnapshot.Version
@@ -434,7 +434,7 @@ namespace Orleans.Streams
                 if (numRemoved > 0)
                 {
                     Task updateStorageTask = State.Producers.Count == 0 && State.Consumers.Count == 0
-                        ? ((IStorage)_storage).ClearStateAsync(cancellationToken) //State contains no producers or consumers, remove it from storage
+                        ? ((IStorage)_storage).ClearStateAsync(cancellationToken) //国家不包含任何生产者或消费者,将其从储存中清除
                         : ((IStorage)_storage).WriteStateAsync(cancellationToken);
                     await updateStorageTask;
                     StreamingEvents.EmitProducerUnregistered(streamId.ProviderName, streamId.StreamId, streamProducer, GrainContext.Address.SiloAddress);
@@ -449,13 +449,13 @@ namespace Orleans.Streams
             {
                 LogErrorUnregisterProducer(streamId, streamProducer, exc);
 
-                // Corrupted state, deactivate grain.
+                // 状态不健全,停止使用 grain。
                 DeactivateOnIdle();
                 throw;
             }
             if (State.Producers.Count == 0 && State.Consumers.Count == 0)
             {
-                DeactivateOnIdle(); // No producers or consumers left now, so flag ourselves to expedite Deactivation
+                DeactivateOnIdle(); // 已经没有生产者或消费者离开,所以请自己加快停产
             }
         }
 
@@ -501,7 +501,7 @@ namespace Orleans.Streams
             {
                 LogErrorRegisterConsumer(streamId, subscriptionId, streamConsumer, exc);
 
-                // Corrupted state, deactivate grain.
+                // 状态不健全,停止使用 grain。
                 DeactivateOnIdle();
                 throw;
             }
@@ -512,7 +512,7 @@ namespace Orleans.Streams
 
             LogDebugNotifyProducersOfNewConsumer(numProducers, streamConsumer, new(State.Producers));
 
-            // Notify producers about a new streamConsumer.
+            // 通知生产商新的 streamConsumer。
             var tasks = new List<Task>();
             var producers = State.Producers.ToList();
             int initialProducerCount = producers.Count;
@@ -533,7 +533,7 @@ namespace Orleans.Streams
                     exception = exc;
                 }
 
-                // if the number of producers has been changed, resave state.
+                // 如果生产者数量已经改变, 则恢复状态 。
                 if (State.Producers.Count != initialProducerCount)
                 {
                     await ((IStorage)_storage).WriteStateAsync(CancellationToken.None);
@@ -553,7 +553,7 @@ namespace Orleans.Streams
                     streamConsumer,
                     exc);
 
-                // Corrupted state, deactivate grain.
+                // 状态不健全,停止使用 grain。
                 DeactivateOnIdle();
                 throw;
             }
@@ -605,7 +605,7 @@ namespace Orleans.Streams
 
                 if (await TryClearState(cancellationToken))
                 {
-                    // If state was cleared expedite Deactivation
+                    // 如果州得到清理,加快取消活动
                     DeactivateOnIdle();
                 }
                 else
@@ -632,7 +632,7 @@ namespace Orleans.Streams
             {
                 LogErrorUnregisterConsumer(streamId, subscriptionId, exc);
 
-                // Corrupted state, deactivate grain.
+                // 状态不健全,停止使用 grain。
                 DeactivateOnIdle();
                 throw;
             }
@@ -678,7 +678,7 @@ namespace Orleans.Streams
             }
         }
 
-        // Check that what we have cached locally matches what is in the persistent table.
+        // 检查我们隐藏的本地文件是否与持久性表格中的内容相符。
         public async Task Validate(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -759,7 +759,7 @@ namespace Orleans.Streams
             {
                 LogErrorSetSubscriptionToFaulted(subscriptionId, exc);
 
-                // Corrupted state, deactivate grain.
+                // 状态不健全,停止使用 grain。
                 DeactivateOnIdle();
                 throw;
             }
@@ -772,13 +772,13 @@ namespace Orleans.Streams
             {
                 LogDebugNotifyProducersOfRemovedConsumer(numProducersBeforeNotify);
 
-                // Notify producers about unregistered consumer.
+                // 向生产者通报未登记的消费者。
                 var producers = State.Producers.ToList();
                 List<Task> tasks = producers
                     .Select(producerState => ExecuteProducerTask(producerState, p => p.RemoveSubscriber(subscriptionId, streamId, cancellationToken)))
                     .ToList();
                 await Task.WhenAll(tasks);
-                //if producers got removed
+                //如果生产商被删除
                 if (State.Producers.Count < numProducersBeforeNotify)
                 {
                     await ((IStorage)_storage).WriteStateAsync(cancellationToken);
@@ -788,14 +788,14 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Try clear state will only clear the state if there are no producers or consumers.
+        /// 只有在没有生产者或消费者时,
         /// </summary>
         /// <returns></returns>
         private async Task<bool> TryClearState(CancellationToken cancellationToken)
         {
-            if (State.Producers.Count == 0 && State.Consumers.Count == 0) // + we already know that numProducers == 0 from previous if-clause
+            if (State.Producers.Count == 0 && State.Consumers.Count == 0) // + 我们已经知道 numProducers = 0
             {
-                await ((IStorage)_storage).ClearStateAsync(cancellationToken); //State contains no producers or consumers, remove it from storage
+                await ((IStorage)_storage).ClearStateAsync(cancellationToken); //国家不包含任何生产者或消费者,将其从储存中清除
                 return true;
             }
             return false;
@@ -818,12 +818,12 @@ namespace Orleans.Streams
             }
             catch (OrleansMessageRejectionException)
             {
-                // if producer is a system target on and unavailable silo, remove it.
+                // 如果生产商是系统目标且无法使用 silo,就将其删除。
                 if (producer.Producer.IsSystemTarget())
                 {
                     RemoveProducer(producer);
                 }
-                else // otherwise, throw
+                else // 否则,扔
                 {
                     throw;
                 }

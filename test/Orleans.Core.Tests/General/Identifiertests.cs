@@ -14,7 +14,7 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests for various Orleans identifier types including GrainId, UniqueKey, SiloAddress, and related functionality.
+    /// 各种 Orleans 识别符号类型的测试,包括 GrainId、 UniqueKey、 SiloAddress和相关功能。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestArea("Runtime")]
@@ -35,7 +35,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that GrainId.GetUniformHashCode returns a stable value.
+        /// 证明 GrainId.GetUniformHashCode 返回一个稳定的值。
         /// </summary>
         [Fact]
         public void GrainIdUniformHashCodeIsStable()
@@ -139,26 +139,26 @@ namespace UnitTests.General
             UniqueKey expected1 = UniqueKey.NewKey(Guid.NewGuid());
             string str1 = expected1.ToHexString();
             UniqueKey actual1 = UniqueKey.Parse(str1.AsSpan());
-            Assert.Equal(expected1, actual1); // UniqueKey.ToString() and UniqueKey.Parse() failed to reproduce an identical object (case 1).
+            Assert.Equal(expected1, actual1); // UniqueKey.ToString()和 UniqueKey.Parse()未能复制一个相同的对象(案例1)。
 
             string kx3 = "case 3";
             UniqueKey expected3 = UniqueKey.NewKey(Guid.NewGuid(), category: UniqueKey.Category.KeyExtGrain, keyExt: kx3);
             string str3 = expected3.ToHexString();
             UniqueKey actual3 = UniqueKey.Parse(str3.AsSpan());
-            Assert.Equal(expected3, actual3); // UniqueKey.ToString() and UniqueKey.Parse() failed to reproduce an identical object (case 3).
+            Assert.Equal(expected3, actual3); // UniqueKey.ToString()和 UniqueKey.Parse()未能复制一个相同的对象(案件3)。
 
             long pk = random.Next();
             UniqueKey expected4 = UniqueKey.NewKey(pk);
             string str4 = expected4.ToHexString();
             UniqueKey actual4 = UniqueKey.Parse(str4.AsSpan());
-            Assert.Equal(expected4, actual4); // UniqueKey.ToString() and UniqueKey.Parse() failed to reproduce an identical object (case 4).
+            Assert.Equal(expected4, actual4); // UniqueKey.ToString()和 UniqueKey.Parse()未能复制一个相同的对象(案件4)。
 
             pk = random.Next();
             string kx5 = "case 5";
             UniqueKey expected5 = UniqueKey.NewKey(pk, category: UniqueKey.Category.KeyExtGrain, keyExt: kx5);
             string str5 = expected5.ToHexString();
             UniqueKey actual5 = UniqueKey.Parse(str5.AsSpan());
-            Assert.Equal(expected5, actual5); // UniqueKey.ToString() and UniqueKey.Parse() failed to reproduce an identical object (case 5).
+            Assert.Equal(expected5, actual5); // UniqueKey.ToString()和 UniqueKey.Parse()未能复制一个相同的对象(案件5)。
         }
 
 
@@ -173,12 +173,12 @@ namespace UnitTests.General
                 Guid expected = Guid.NewGuid();
                 GrainId grainId = GrainId.Create(GrainType.Create("foo"), GrainIdKeyExtensions.CreateGuidKey(expected));
                 Guid actual = grainId.GetGuidKey();
-                Assert.Equal(expected, actual); // Failed to encode and decode grain id
+                Assert.Equal(expected, actual); // 编码和解码 grain id 失败
             }
         }
 
         /// <summary>
-        /// Tests GrainId serialization and deserialization through printable string representation.
+        /// 通过可打印字符串表示法测试 GrainId 序列化和消毒。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -220,7 +220,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests GrainId JSON serialization and deserialization round-trip.
+        /// 测试 GrainId JSON 序列化和解除航空化回程。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -287,16 +287,16 @@ namespace UnitTests.General
             var uk1 = UniqueKey.NewKey(expectedKey1, UniqueKey.Category.KeyExtGrain, all32Bits, expectedKeyExt1);
             string? actualKeyExt1;
             var actualKey1 = uk1.PrimaryKeyToGuid(out actualKeyExt1);
-            Assert.Equal(expectedKey1, actualKey1); //"UniqueKey objects should preserve the value of their primary key (Guid case #1).");
-            Assert.Equal(expectedKeyExt1, actualKeyExt1); //"UniqueKey objects should preserve the value of their key extension (Guid case #1).");
+            Assert.Equal(expectedKey1, actualKey1); //"UniqueKey 物体应保留其主要钥匙的价值(Guid 例1)";
+            Assert.Equal(expectedKeyExt1, actualKeyExt1); //"UniqueKey 物体应保留其关键扩展号(Guid 例1)的价值。"
 
             var expectedKey2 = Guid.NewGuid();
             const string expectedKeyExt2 = "2";
             var uk2 = UniqueKey.NewKey(expectedKey2, UniqueKey.Category.KeyExtGrain, all32Bits, expectedKeyExt2);
             string? actualKeyExt2;
             var actualKey2 = uk2.PrimaryKeyToGuid(out actualKeyExt2);
-            Assert.Equal(expectedKey2, actualKey2); // "UniqueKey objects should preserve the value of their primary key (Guid case #2).");
-            Assert.Equal(expectedKeyExt2, actualKeyExt2); // "UniqueKey objects should preserve the value of their key extension (Guid case #2).");
+            Assert.Equal(expectedKey2, actualKey2); // “UniqueKey 物体应保持其主要钥匙的价值(Guid 例2)”。
+            Assert.Equal(expectedKeyExt2, actualKeyExt2); // “UniqueKey 物体应保留其关键扩展号(Guid 例2)的价值。”
         }
 
         [TestSuite("BVT")]
@@ -315,12 +315,12 @@ namespace UnitTests.General
             string? actualKeyExt;
             var actualKey = uk.PrimaryKeyToLong(out actualKeyExt);
 
-            Assert.Equal(expectedKey, actualKey); // "UniqueKey objects should preserve the value of their primary key (long case).");
-            Assert.Equal(expectedKeyExt, actualKeyExt); // "UniqueKey objects should preserve the value of their key extension (long case).");
+            Assert.Equal(expectedKey, actualKey); // "UniqueKey 物体应保存其主钥匙的价值。
+            Assert.Equal(expectedKeyExt, actualKeyExt); // "UniqueKey 物体应保留其关键扩展值(长例)”。
         }
 
         /// <summary>
-        /// Tests GrainId interning functionality to ensure identical IDs reference the same object.
+        /// 测试 GrainId 内插功能以确保相同的ID引用同一对象。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -330,12 +330,12 @@ namespace UnitTests.General
             Guid guid = new Guid();
             GrainId gid1 = LegacyGrainId.FromParsableString(guid.ToString("B"));
             GrainId gid2 = LegacyGrainId.FromParsableString(guid.ToString("N"));
-            Assert.Equal(gid1, gid2); // Should be equal GrainId's
+            Assert.Equal(gid1, gid2); // 应该是相等 GrainId
 
-            // Round-trip through Serializer
+            // 通过序列器的圆曲程
             GrainId gid3 = this.environment.Serializer.Deserialize<GrainId>(environment.Serializer.SerializeToArray(gid1));
-            Assert.Equal(gid1, gid3); // Should be equal GrainId's
-            Assert.Equal(gid2, gid3); // Should be equal GrainId's
+            Assert.Equal(gid1, gid3); // 应该是相等 GrainId
+            Assert.Equal(gid2, gid3); // 应该是相等 GrainId
         }
 
         [TestSuite("BVT")]
@@ -346,17 +346,17 @@ namespace UnitTests.General
             using var interner = new Interner<string, string>();
             const string str = "1";
             string r1 = interner.FindOrCreate("1", _ => str);
-            string r2 = interner.FindOrCreate("1", _ => null!); // Should always be found
+            string r2 = interner.FindOrCreate("1", _ => null!); // 始终应找到
 
-            Assert.Equal(r1, r2); // 1: Objects should be equal
-            Assert.Same(r1, r2); // 2: Objects should be same / intern'ed
+            Assert.Equal(r1, r2); // 1:物体应相等
+            Assert.Same(r1, r2); // 2:物体应相同/实习生
 
-            // Round-trip through Serializer
+            // 通过序列器的圆曲程
             string? r3 = this.environment.Serializer.Deserialize<string>(environment.Serializer.SerializeToArray(r1));
 
             Assert.NotNull(r3);
-            Assert.Equal(r1, r3); // 3: Should be equal
-            Assert.Equal(r2, r3); // 4: Should be equal
+            Assert.Equal(r1, r3); // 3:应平等
+            Assert.Equal(r2, r3); // 4: 平等
         }
 
         [TestSuite("BVT")]
@@ -370,50 +370,50 @@ namespace UnitTests.General
             var obj3 = new B();
 
             var r1 = interner.FindOrCreate(1, _ => obj1);
-            Assert.Equal(obj1, r1); // Objects should be equal
-            Assert.Same(obj1, r1); // Objects should be same / intern'ed
+            Assert.Equal(obj1, r1); // 对象应相等
+            Assert.Same(obj1, r1); // 对象应该相同/ 实习生
 
             var r2 = interner.FindOrCreate(2, _ => obj2);
-            Assert.Equal(obj2, r2); // Objects should be equal
-            Assert.Same(obj2, r2); // Objects should be same / intern'ed
+            Assert.Equal(obj2, r2); // 对象应相等
+            Assert.Same(obj2, r2); // 对象应该相同/ 实习生
 
-            // FindOrCreate should not replace instances of same class
+            // FindOrCreate 不应取代同类情况
             var r3 = interner.FindOrCreate(2, _ => obj3);
-            Assert.Same(obj2, r3); // FindOrCreate should return previous object
-            Assert.NotSame(obj3, r3); // FindOrCreate should not replace previous object of same class
+            Assert.Same(obj2, r3); // FindOrCreate 将返回上一个对象
+            Assert.NotSame(obj3, r3); // FindOrCreate 不应替换同一类的上一个对象
 
-            // FindOrCreate should not replace cached instances with instances of most derived class
+            // FindOrCreate 不应用大多数衍生类别取代缓存实例
             var r4 = interner.FindOrCreate(1, _ => obj2);
-            Assert.Same(obj1, r4); // FindOrCreate return previously cached object
-            Assert.NotSame(obj2, r4); // FindOrCreate should not replace previously cached object
+            Assert.Same(obj1, r4); // FindOrCreate 返回先前缓存的物件
+            Assert.NotSame(obj2, r4); // FindOrCreate 不应替换先前的缓存对象
 
-            // FindOrCreate should not replace cached instances with instances of less derived class
+            // FindOrCreate 不应用从来性较低类取代缓存实例
             var r5 = interner.FindOrCreate(2, _ => obj1);
-            Assert.NotSame(obj1, r5); // FindOrCreate should not replace previously cached object
-            Assert.Same(obj2, r5); // FindOrCreate return previously cached object
+            Assert.NotSame(obj1, r5); // FindOrCreate 不应替换先前的缓存对象
+            Assert.Same(obj2, r5); // FindOrCreate 返回先前缓存的物件
         }
 
         /// <summary>
-        /// Tests SiloAddress interning to ensure identical addresses reference the same object.
+        /// 测试 SiloAddress 内插以确保相同的地址引用同一对象。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
         [Fact, TestCategory("BVT"), TestCategory("Identifiers")]
         public void Interning_SiloAddress()
         {
-            //string addrStr1 = "1.2.3.4@11111@1";
+            //字符串 addrStr1 = "1.2.3.4@11111@ 1";
             SiloAddress a1 = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 1111), 12345);
             SiloAddress a2 = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 1111), 12345);
-            Assert.Equal(a1, a2); // Should be equal SiloAddress's
-            Assert.Same(a1, a2); // Should be same / intern'ed SiloAddress object
+            Assert.Equal(a1, a2); // 应该是相等 SiloAddress
+            Assert.Same(a1, a2); // 应该是相同的/ 实习生 SiloAddress 对象
 
-            // Round-trip through Serializer
+            // 通过序列器的圆曲程
             SiloAddress? a3 = this.environment.Serializer.Deserialize<SiloAddress>(environment.Serializer.SerializeToArray(a1));
             Assert.NotNull(a3);
-            Assert.Equal(a1, a3); // Should be equal SiloAddress's
-            Assert.Equal(a2, a3); // Should be equal SiloAddress's
-            Assert.Same(a1, a3); // Should be same / intern'ed SiloAddress object
-            Assert.Same(a2, a3); // Should be same / intern'ed SiloAddress object
+            Assert.Equal(a1, a3); // 应该是相等 SiloAddress
+            Assert.Equal(a2, a3); // 应该是相等 SiloAddress
+            Assert.Same(a1, a3); // 应该是相同的/ 实习生 SiloAddress 对象
+            Assert.Same(a2, a3); // 应该是相同的/ 实习生 SiloAddress 对象
         }
 
         [TestSuite("BVT")]
@@ -423,8 +423,8 @@ namespace UnitTests.General
         {
             SiloAddress a1 = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 1111), 12345);
             SiloAddress a2 = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 2222), 12345);
-            Assert.NotEqual(a1, a2); // Should not be equal SiloAddress's
-            Assert.NotSame(a1, a2); // Should not be same / intern'ed SiloAddress object
+            Assert.NotEqual(a1, a2); // 不应该等于 SiloAddress
+            Assert.NotSame(a1, a2); // 不应该是相同的/ 实习生 SiloAddress 对象
         }
 
         [TestSuite("BVT")]
@@ -434,11 +434,11 @@ namespace UnitTests.General
         {
             SiloAddress a1 = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 1111), 12345);
 
-            // Round-trip through Serializer
+            // 通过序列器的圆曲程
             SiloAddress? a3 = this.environment.Serializer.Deserialize<SiloAddress>(environment.Serializer.SerializeToArray(a1));
             Assert.NotNull(a3);
-            Assert.Equal(a1, a3); // Should be equal SiloAddress's
-            Assert.Same(a1, a3); // Should be same / intern'ed SiloAddress object
+            Assert.Equal(a1, a3); // 应该是相等 SiloAddress
+            Assert.Same(a1, a3); // 应该是相同的/ 实习生 SiloAddress 对象
         }
 
         [TestSuite("BVT")]
@@ -454,9 +454,9 @@ namespace UnitTests.General
             output.WriteLine("Convert -- From: {0} Got result string: '{1}' object: {2}",
                 address1, addressStr1, addressObj1);
 
-            Assert.Equal(address1, addressObj1); // SiloAddress equal after To-From-ParsableString
+            Assert.Equal(address1, addressObj1); // SiloAddress 等值后ParsableString
 
-            //const string addressStr2 = "127.0.0.1-11111-144611139";
+            //等同字符串 addressStr2 = "127.0.0.1-11111-144611139";
             const string addressStr2 = "127.0.0.1:11111@144611139";
             SiloAddress addressObj2 = SiloAddress.FromParsableString(addressStr2);
             string addressStr2Out = addressObj2.ToParsableString();
@@ -464,7 +464,7 @@ namespace UnitTests.General
             output.WriteLine("Convert -- From: {0} Got result string: '{1}' object: {2}",
                 addressStr2, addressStr2Out, addressObj2);
 
-            Assert.Equal(addressStr2, addressStr2Out); // SiloAddress equal after From-To-ParsableString
+            Assert.Equal(addressStr2, addressStr2Out); // SiloAddress 从- 至- 等同ParsableString
         }
 
         [TestSuite("BVT")]
@@ -971,7 +971,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests GrainReference creation, serialization, and round-trip operations.
+        /// 测试 GrainReference 的创建、序列和往返作业。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]

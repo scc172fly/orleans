@@ -29,7 +29,7 @@ internal interface IStreamMessageQueries
 }
 
 /// <summary>
-/// Receives message batches from an individual queue of an ADO.NET provider.
+/// 接收来自 ADO.NET 提供者单列的批量信件。
 /// </summary>
 internal partial class AdoNetQueueAdapterReceiver(string providerId, string queueId, AdoNetStreamOptions streamOptions, ClusterOptions clusterOptions, SimpleQueueCacheOptions cacheOptions, IStreamMessageQueries queries, AdoNetStreamPositions positions, Serializer<AdoNetBatchContainer> serializer, ILogger<AdoNetQueueAdapterReceiver> logger) : IQueueAdapterReceiver
 {
@@ -53,12 +53,12 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
     }
 
     /// <summary>
-    /// Completes initialization immediately.
+    /// 立即完成初始化。
     /// </summary>
     public Task Initialize(TimeSpan timeout) => Task.CompletedTask;
 
     /// <summary>
-    /// Closes admission, drains accepted operations, and releases pending messages.
+    /// 关闭接收、排水管接受操作和发布待发信息。
     /// </summary>
     public async Task Shutdown(TimeSpan timeout)
     {
@@ -115,7 +115,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
             return [];
         }
 
-        // cap max count as appropriate
+        // 酌情计入上限
         maxCount = Math.Min(maxCount, cacheOptions.CacheSize);
 
         try
@@ -131,7 +131,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
                 streamOptions.EvictionInterval.TotalSecondsCeiling(),
                 streamOptions.EvictionBatchSize);
 
-            // the queue cache requires sequence tokens which increase across reads, so tokens are assigned positions rather than message identifiers
+            // 队列缓存需要序列顺序符号, 且会增加符号的读数, 所以表示符号是指定的位置而不是信件标识符
             var dequeued = new List<(AdoNetStreamMessage Message, long Position)>(messages.Count);
             lock (_lock)
             {
@@ -149,7 +149,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
                 }
             }
 
-            // convert the messages into standard batch containers
+            // 将信息转换成标准批量容器
             return dequeued.Select(x => AdoNetBatchContainer.FromMessage(serializer, x.Message, x.Position)).Cast<IBatchContainer>().ToList();
         }
         catch (Exception ex)
@@ -162,7 +162,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
     /// <inheritdoc />
     public async Task MessagesDeliveredAsync(IList<IBatchContainer> messages)
     {
-        // skip work if there are no messages to deliver
+        // 如果没有要发送的信件, 跳过工作
         if (messages.Count == 0)
         {
             return;
@@ -174,8 +174,8 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
             return;
         }
 
-        // release the positions of messages which have left the cache and confirm each message once with its latest receipt,
-        // as redelivery can cache several attempts of the same message and only the latest receipt matches storage
+        // 释放留下暗藏处的邮件位置,并用最新收到的信件确认每封信一次,
+        // 因为再交付可以隐藏一些相同的电文尝试, 并且只有最新的收据匹配存储
         var receipts = new Dictionary<long, int>(messages.Count);
         foreach (AdoNetBatchContainer message in messages)
         {

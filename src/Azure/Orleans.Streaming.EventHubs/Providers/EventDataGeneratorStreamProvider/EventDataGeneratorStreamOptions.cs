@@ -2,17 +2,17 @@
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Setting class for EHGeneratorStreamProvider
+    /// EHGeneratorStreamProvider设置类
     /// </summary>
     public class EventDataGeneratorStreamOptions
     {
         /// <summary>
-        /// Configure eventhub partition count wanted. EventDataGeneratorStreamProvider would generate the same set of partitions based on the count, when initializing.
-        /// For example, if partition count set at 5, the generated partitions will be  partition-0, partition-1, partition-2, partition-3, partition-4
+        /// 配置 Eventhub 分区计数 。 EventDataGeneratorStreamProvider 在初始化时, 将生成基于此计数的相同组分隔 。
+        /// 例如,如果分区计数为5时,则产生的分区将是分区-0、分区1、分区2、分区3、分区3、分区4
         /// </summary>
         public int EventHubPartitionCount = DefaultEventHubPartitionCount;
         /// <summary>
-        /// Default EventHubPartitionRangeStart
+        /// 默认 EventHubPartitionRangeStart
         /// </summary>
         public const int DefaultEventHubPartitionCount = 4;
     }

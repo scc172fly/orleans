@@ -2,14 +2,14 @@ using Orleans.Streams;
 
 namespace Tester.StreamingTests
 {
-    //one lease manager grain per stream provider, so its key is stream provider name
+    //每个流服务商一个租赁经理 grain ,因此其关键是流服务商名称
     public interface ILeaseManagerGrain : IGrainWithStringKey
     {
         Task<QueueId> Acquire();
         Task<bool> Renew(QueueId leaseNumber);
         Task Release(QueueId leaseNumber);
         Task SetQueuesAsLeases(IEnumerable<QueueId> queues);
-        //methods used in test asserts
+        //试验用的方法
         Task RecordBalancerResponsibility(string balancerId, int ownedQueues);
         Task<Dictionary<string, int>> GetResponsibilityMap(CancellationToken cancellationToken = default);
 
@@ -17,7 +17,7 @@ namespace Tester.StreamingTests
 
     public class LeaseManagerGrain : Grain, ILeaseManagerGrain
     {
-        //queueId is the lease id here
+        //queueId 是这里的租赁代号
         private static readonly DateTime UnAssignedLeaseTime = DateTime.MinValue;
         private Dictionary<QueueId, DateTime> queueLeaseToRenewTimeMap = null!;
         public override Task OnActivateAsync(CancellationToken cancellationToken)
@@ -31,7 +31,7 @@ namespace Tester.StreamingTests
         {
             foreach (var lease in this.queueLeaseToRenewTimeMap)
             {
-                //find the first unassigned lease and assign it
+                //找到第一个未指定的租赁, 然后转让它
                 if (lease.Value.Equals(UnAssignedLeaseTime))
                 {
                     this.queueLeaseToRenewTimeMap[lease.Key] = DateTime.UtcNow;
@@ -60,10 +60,10 @@ namespace Tester.StreamingTests
 
         public Task SetQueuesAsLeases(IEnumerable<QueueId> queueIds)
         {
-            //if already set up, return
+            //如果已经设置, 返回
             if (this.queueLeaseToRenewTimeMap.Count > 0)
                 return Task.CompletedTask;
-            //set up initial lease map
+            //建立初始租赁地图
             foreach (var queueId in queueIds)
             {
                 this.queueLeaseToRenewTimeMap.Add(queueId, UnAssignedLeaseTime);
@@ -71,7 +71,7 @@ namespace Tester.StreamingTests
             return Task.CompletedTask;
         }
 
-        //methods used in test asserts
+        //试验用的方法
         private Dictionary<string, int> responsibilityMap = null!;
         public Task RecordBalancerResponsibility(string balancerId, int ownedQueues)
         {

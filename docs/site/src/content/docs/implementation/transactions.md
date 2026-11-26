@@ -1,19 +1,23 @@
 ---
-title: Transaction implementation
-description: Explain Orleans transaction coordination, participant queues, commit decisions, and recovery behavior.
+title: "交易交易执行"
+description: "解释 Orleans 交易协调、参与者排队、做出决策和恢复行为。"
 ms.date: 08/11/2026
 ms.topic: concept-article
 ---
 
-# Transaction implementation
+<a id="transaction-implementation"></a>
 
-Orleans transactions coordinate transactional state across grains. The runtime uses a transaction agent to collect participants and choose a commit path, a transaction manager to make the durable decision, and a `TransactionQueue` at each participant to serialize versions and apply or restore state.
+# 交易交易执行
 
-## Coordination model
+Orleans 交易协调整个 grains的交易状态。运行时间使用交易代理来收集参与者并选择承诺路径,使用交易管理人作出持久决定,使用每个参与者的 `TransactionQueue` 进行序列化和适用或恢复状态。
 
-`TransactionAgent.StartTransaction` creates a transaction ID and causal timestamp. The overload detector admits a new transaction when the silo has safe transactional capacity and returns a start failure under overload. As grain calls access transactional resources, the transaction context records read and write counters and identifies a manager. Read-only transactions can contact resources directly. Read-write transactions send prepare messages to other resources and ask the manager to prepare and commit.
+<a id="coordination-model"></a>
 
-The manager is selected from the participants, with an explicit priority manager taking precedence. The agent sends one-way prepare notifications to non-manager resources, then waits for the manager's result. This reduces coordination round trips while keeping one authoritative decision for write transactions.
+## 协调模式
+
+`TransactionAgent.StartTransaction` 创建交易标识和因果时间戳。当 silo 具有安全的交易能力并返回在超载情况下的启动失败时,过量检测器会接受新的交易。由于 grain 呼叫访问交易资源,交易背景记录读写计数并识别管理器。只读交易可以直接联系资源。阅读-文字交易将信息发送到其他资源,并要求管理员准备和进行承诺。
+
+经理从参与者中挑选,由明确的优先主管优先负责。代理将单向准备通知发送给非管理资源,然后等待管理人员的结果。这减少了协调往返旅行,同时保留了写作交易的权威性决定。
 
 ```mermaid
 sequenceDiagram
@@ -28,32 +32,40 @@ sequenceDiagram
     Resource->>Store: apply or restore state
 ```
 
-## Participant queues and isolation
+<a id="participant-queues-and-isolation"></a>
 
-`TransactionQueue` keeps pending transaction records, commit records, and a stable sequence for a transactional state. It uses access counters to determine whether a transaction read or wrote a resource, holds the required locks while a transaction is unresolved, and applies the committed state in order. A participant can therefore reject a conflicting access before the manager has committed.
+## 参与者排队和隔离
 
-Transactional storage extends grain persistence with queue load, commit, restore, and recovery operations. A storage failure can leave a transaction in a prepared or uncertain state, so the queue persists enough information to recover after activation or process restart.
+`TransactionQueue` 保存待决交易记录、 承诺记录和交易状态的稳定序列。 它使用访问对账来确定交易是否读写资源, 在交易未解决时持有所需的锁, 并按顺序应用承诺状态。 因此参与者可以在经理实施前拒绝有冲突的访问。
 
-## Decisions and failure behavior
+交易存储延展 grain 耐久性, 包括队列负荷、 承诺、 恢复和回收操作。 存储失败可能会使交易处于准备状态或不确定状态, 因此队列会持续足够的信息, 以便在激活后或进程重新启动后恢复 。
 
-The agent distinguishes a successful decision, a participant response timeout, a transaction-manager response timeout, and a presumed abort. A timeout leaves participant outcome uncertain because the manager might have committed durably before losing its response. For definite aborts where the agent retains notification ownership, it sends cancellation messages to release participant locks.
+<a id="decisions-and-failure-behavior"></a>
 
-The manager's durable local commit completes the caller's transaction promise. It then schedules the confirmation worker to notify and collect the remaining participants. Recovery replays pending commit confirmations and aborts from manager or participant queue records, so participant notification can continue after the caller receives a successful result.
+## 决定和失败行为
 
-The disabled agent explicitly rejects transactional operations. Overload throttling returns transaction-start failures while bounding queued work.
+代理商区分成功的决定、参与人反应超时、交易管理者反应超时和推定的中止。 超时让参与者产生不确定的结果,因为经理在失去回应之前可能已经做出了长期承诺。 对于特定中止,如果代理人保留通知所有权,它会发送取消信息以释放参与人锁。
 
-## Activation shutdown
+经理的持久本地承诺完成调用人的交易承诺,然后安排确认工作人员通知和收集其余参与者。 恢复工作将重播,等待确认承诺书的兑现以及管理人员或参与人队列记录中的中止,这样在调用人获得成功后,可以继续发出参与人通知。
 
-Normal grain deactivation waits for active requests to finish. Transaction queues also run background storage cycles which can continue after a protocol request returns. During lifecycle shutdown, each queue signals cancellation to stop new lock, storage, confirmation, and collection cycles, then waits for its storage worker to finish.
+禁用代理器明确拒绝交易操作。 超载减速返回交易启动失败, 而将队列工作捆绑在一起 。
 
-The storage wait covers the active cycle's persistence outcome, state updates, recovery, and batch follow-up callbacks. Its budget comes from the lifecycle cancellation token, which reflects host cancellation and the configured grain deactivation timeout. Cancellation ends the wait while an already-started storage operation retains its outcome-processing path.
+<a id="activation-shutdown"></a>
 
-Confirmation and collection stop through the queue's shutdown signal. Durable commit and prepare records let subsequent activations resume unresolved protocol work. The queue participates in both state setup cleanup and the final lifecycle stage so normal shutdown and partially completed activation both stop background processing.
+## 停止启动
 
-## Trade-offs and boundaries
+正常 grain 取消退出会等待主动请求完成。 交易队列也会运行背景存储周期, 在协议请求返回后可以继续。 在生命周期关闭期间, 每一个队列信号都取消以停止新的锁、 储存、 确认和收集周期, 然后等待其存储工人完成 。
 
-The protocol favors serializable state transitions and recovery over low latency. Read-only work uses a direct resource path, while write transactions pay for coordination and durable records. Transaction atomicity covers registered transactional resources; applications coordinate or compensate external side effects separately.
+存储等待包含当前周期的持久性结果、状态更新、恢复和批次后续回馈。 其预算来自生命周期取消符号,这反映了主机取消和配置的 grain 停止运行超时。 取消结束等待而已经启动的存储操作保留了结果处理路径 。
 
-Application guidance belongs in [transactions](../grains/transactions.md). Provider implementations and fault-injection tests are useful source authorities when evaluating a storage provider's recovery behavior.
+校验和收藏停止在队列关闭信号中进行。 永久承诺并准备记录让随后的激活恢复未解决的协议工作。 队列既参与州立设置清理,也参加最终生命周期阶段, 以便正常关闭并部分完成停止背景处理的启动。
 
-Source: [`TransactionAgent`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Transactions/DistributedTM/TransactionAgent.cs), [`TransactionManager`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Transactions/State/TransactionManager.cs), and [`TransactionQueue`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Transactions/State/TransactionQueue.cs).
+<a id="trade-offs-and-boundaries"></a>
+
+## 权衡取舍和边界
+
+协议支持可以连串转换和复原而不是低潜伏状态。 只读工作使用直接资源路径,而写交易支付协调和耐久记录的费用。 交易原本涵盖已登记的交易资源;应用程序单独协调或补偿外部副作用。
+
+应用指导属于 [交易交易](../grains/transactions.md)。在评价储存提供者的回收行为时,提供方实施和错误注射测试是有用的来源当局。
+
+来源: [`TransactionAgent`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Transactions/DistributedTM/TransactionAgent.cs)、 [`TransactionManager`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Transactions/State/TransactionManager.cs)和 [`TransactionQueue`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Transactions/State/TransactionQueue.cs)。

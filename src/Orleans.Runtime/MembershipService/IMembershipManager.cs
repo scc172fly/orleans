@@ -6,97 +6,97 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// Manages cluster membership state and lifecycle for the local silo.
-/// This is the primary abstraction for membership management, supporting
-/// both passive (table-based) and active (consensus-based) implementations.
+/// 管理当地 silo的集群成员状况和生命周期。
+/// 这是成员管理的主要抽象概念,支持
+/// 既包括被动(基于表格)的执行,也包括主动(基于共识)的执行。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Implementations must participate in the silo lifecycle and health checks.
-/// This follows the same pattern as <see cref="IClusterHealthMonitor"/>.
+/// 执行方必须参与 silo 生命周期和健康检查。
+/// 这与 <see cref="IClusterHealthMonitor"/>的格局相同。
 /// </para>
 /// </remarks>
 internal interface IMembershipManager : ILifecycleParticipant<ISiloLifecycle>, IHealthCheckParticipant
 {
     /// <summary>
-    /// Gets the current membership snapshot.
+    /// 获得当前会员的快照。
     /// </summary>
     MembershipTableSnapshot CurrentSnapshot { get; }
 
     /// <summary>
-    /// Gets a stream of membership updates.
-    /// Updates are published whenever the membership view changes.
-    /// Consumers should process updates in order.
+    /// 获得一连串的成员更新。
+    /// 成员认为有变化时,随时公布最新情况。
+    /// 消费者应处理更新工作。
     /// </summary>
     IAsyncEnumerable<MembershipTableSnapshot> MembershipUpdates { get; }
 
     /// <summary>
-    /// Gets the local silo's current status.
+    /// 获取本地 silo的当前状态 。
     /// </summary>
     SiloStatus LocalSiloStatus { get; }
 
     /// <summary>
-    /// Updates the local silo's status in the cluster.
+    /// 更新该组群中本地 silo的地位。
     /// </summary>
-    /// <param name="status">The new status.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task that completes when the status is updated.</returns>
-    /// <exception cref="OrleansException">If the update fails.</exception>
+    /// <param name="status">新状态。</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>任务在状态更新后完成。</returns>
+    /// <exception cref="OrleansException">如果更新失败。</exception>
     Task UpdateLocalStatus(SiloStatus status, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Requests that a silo be declared dead.
-    /// For passive systems, this triggers the voting/kill process.
-    /// For active systems, this may trigger a view change proposal.
+    /// 要求宣布一个 silo 死亡。
+    /// 对于被动系统,这触发了投票/杀戮过程。
+    /// 对于运行中的系统,这可能会引发观点改变提案。
     /// </summary>
-    /// <param name="silo">The silo to kill.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>True if the silo was killed, false otherwise.</returns>
+    /// <param name="silo">下 silo 杀。</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>如果真实 silo 被杀死,否则是假的。</returns>
     Task<bool> TryKillSilo(SiloAddress silo, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Requests that a silo be suspected (may lead to killing).
-    /// For passive systems, this adds a vote.
-    /// For active systems, this may be a no-op (FD handles this).
+    /// 要求怀疑 silo (可能导致杀害)。
+    /// 对于被动系统,这增加了一票。
+    /// 对于运行中的系统,这可能是无操作(FD处理此事)。
     /// </summary>
-    /// <param name="silo">The silo to suspect.</param>
-    /// <param name="indirectProbingSilo">The silo that also detected the failure, or <see langword="null"/>.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>True if action was taken.</returns>
+    /// <param name="silo">怀疑的 silo 。</param>
+    /// <param name="indirectProbingSilo">下 silo 也检测到故障,或 <see langword="null"/>.</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>如果采取了行动,是真实的。</returns>
     Task<bool> TrySuspectSilo(SiloAddress silo, SiloAddress? indirectProbingSilo, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Refreshes the membership view from the source of truth.
-    /// For passive systems, this reads from the membership table.
-    /// For active systems, this may be a no-op or request latest view.
+    /// 重新从真相来源了解成员观点。
+    /// 对于被动系统,这来自成员表。
+    /// 对于运行中的系统,这可能是不操作或要求获取最新视图。
     /// </summary>
     /// <param name="targetVersion">
-    /// Target version to wait for, or <see langword="null"/> for a single refresh.
-    /// If specified, the method will continue refreshing until the membership
-    /// reaches at least this version.
+    /// 等待的目标版本, 或 <see langword="null"/> 的单一更新 。
+    /// 如果有指定,该方法将继续更新,直到成员
+    /// 至少达到此版本 。
     /// </param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
     /// <param name="requireFresh">
-    /// Whether to require a source-of-truth observation which began after this method was invoked.
+    /// 是否要求从源真相观察开始,而这种观察是在采用这种方法之后开始的。
     /// </param>
     /// <remarks>
-    /// When <paramref name="requireFresh"/> is <see langword="true"/>, implementations can satisfy the
-    /// freshness barrier using a full read or a write which produces and publishes a complete membership view.
+    /// <paramref name="requireFresh"/> 是 <see langword="true"/>时,执行可以满足
+    /// 使用全读或全写来制作和出版完整的会员观点的新屏障。
     /// </remarks>
     Task Refresh(MembershipVersion? targetVersion, CancellationToken cancellationToken, bool requireFresh = false);
 
     /// <summary>
-    /// Processes a membership snapshot received via gossip.
+    /// 处理通过八卦收到的会员简况。
     /// </summary>
-    /// <param name="snapshot">The gossiped snapshot.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <param name="snapshot">流言蜚语的快照</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
     Task ProcessGossipSnapshot(MembershipTableSnapshot snapshot, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Updates the "I Am Alive" timestamp for the local silo.
-    /// For passive systems, this writes to the membership table.
-    /// For active systems, this may be a no-op (heartbeats handled differently).
+    /// 更新本地 silo的“ 我还活着” 时间戳 。
+    /// 对于被动系统,这是写在成员表上。
+    /// 对于运行中的系统,这可能是不操作(心跳处理方式不同)。
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
     Task UpdateIAmAlive(CancellationToken cancellationToken);
 }

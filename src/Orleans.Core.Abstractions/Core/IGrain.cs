@@ -5,42 +5,42 @@ namespace Orleans
     using Orleans.Runtime;
 
     /// <summary>
-    /// Marker interface for grains
+    /// Grain 的标记接口。
     /// </summary>
     public interface IGrain : IAddressable
     {
     }
 
     /// <summary>
-    /// Marker interface for grains with <see cref="Guid"/> keys.
+    /// 使用 <see cref="Guid"/> 键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithGuidKey : IGrain
     {
     }
 
     /// <summary>
-    /// Marker interface for grains with <see cref="long"/> keys.
+    /// 使用 <see cref="long"/> 键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithIntegerKey : IGrain
     {
     }
 
     /// <summary>
-    /// Marker interface for grains with <see cref="string"/> keys.
+    /// 使用 <see cref="string"/> 键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithStringKey : IGrain
     {
     }
 
     /// <summary>
-    /// Marker interface for grains with compound keys.
+    /// 使用复合键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithGuidCompoundKey : IGrain
     {
     }
 
     /// <summary>
-    /// Marker interface for grains with compound keys.
+    /// 使用复合键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithIntegerCompoundKey : IGrain
     {

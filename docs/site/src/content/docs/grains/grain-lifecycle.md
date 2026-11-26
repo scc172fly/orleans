@@ -1,97 +1,111 @@
 ---
-title: Grain activation and lifecycle
-description: Understand grain activation, deactivation, collection, lifecycle participation, and migration in Orleans.
+title: "Grain 激活和生命周期"
+description: "理解 grain 激活、停止使用、收集、生命周期参与和迁移 Orleans。"
 ms.date: 08/07/2026
 ms.topic: concept-article
 ---
 
-# Grain activation and lifecycle
+<a id="grain-activation-and-lifecycle"></a>
 
-Orleans activates grains on demand and deactivates idle activations to reclaim resources. Activation is an implementation detail of a grain's stable logical identity: callers continue using the same grain reference across activation changes.
+# Grain 激活和生命周期
 
-## Activation
+Orleans 应要求启动 grains ,并停止闲置激活以回收资源。启动是 grain稳定逻辑身份的实施细节:在激活变化中,调用者继续使用相同的 grain 参考值。
 
-Orleans creates grain classes through dependency injection, establishes their grain context, loads configured persistent state, and then calls <xref:Orleans.Grain.OnActivateAsync*>.
+<a id="activation"></a>
 
-Override the cancellation-token overload:
+## 激活
+
+Orleans 通过自给性注射创建 grain 类, 建立其 grain 上下文, 负载配置的持久性状态, 然后调用 <xref:Orleans.Grain.OnActivateAsync*>。
+
+覆盖取消的当量超载 :
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="activate_grain":::
 
-<xref:Orleans.Grain.OnActivateAsync*> accepts a <xref:System.Threading.CancellationToken>; there is no parameterless overload. If activation fails, Orleans doesn't make that activation available for calls.
+<xref:Orleans.Grain.OnActivateAsync*> 接受一个 <xref:System.Threading.CancellationToken>;没有无参数超载。如果激活失败, Orleans 不提供该启动用于呼叫。
 
-Avoid doing unnecessary work during activation. Activations can be recreated after collection, migration, silo restart, or failure.
+避免在激活期间做不必要的工作。 在收集、迁移、 silo 重新启动或失败后,可以重新恢复活动。
 
-## Deactivation
+<a id="deactivation"></a>
 
-Orleans can deactivate an activation because it has been idle, the silo is stopping, the application requested deactivation, migration is occurring, or an error made the activation invalid.
+## 解除活动
+
+Orleans 能够解除激活,因为它已经闲置、 silo 停止、申请请求的禁用、迁移发生或错误导致启动无效。
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="deactivate_grain":::
 
-Deactivation is best effort. <xref:Orleans.Grain.OnDeactivateAsync*> doesn't run if the process terminates abruptly or in some failure cases. Persist important state as part of the operation that changes it, not only during deactivation.
+关闭是最好的努力。 <xref:Orleans.Grain.OnDeactivateAsync*> 如果进程突然终止或有些失败, 则不会运行。 作为改变它的行动的一部分, 不仅在停止操作期间, 并且作为该操作的一部分存在重要状态 。
 
-## Influence activation lifetime
+<a id="influence-activation-lifetime"></a>
 
-Call <xref:Orleans.Grain.DeactivateOnIdle> to ask Orleans to deactivate the grain after the current request and queued work complete:
+## 影响启动寿命
+
+在当前请求和排队工作完成后,调用 <xref:Orleans.Grain.DeactivateOnIdle> 询问 Orleans 停止 grain :
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="deactivate_on_idle":::
 
-Call <xref:Orleans.Grain.DelayDeactivation*> to keep an otherwise idle activation eligible for a specified period. This is a hint, not a durability guarantee; failures and shutdown can still remove the activation.
+呼叫 <xref:Orleans.Grain.DelayDeactivation*> , 以保持一个其他闲置激活在特定期限内的合格状态。 这是提示, 不是持久性保证; 故障和关闭仍然可以取消激活 。
 
-Grain timers don't keep an activation alive by default. Set <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive?displayProperty=nameWithType> only when timer activity should extend the activation lifetime.
+Grain 计时器无法默认保持激活活性。 仅在定时器活动延长激活寿命时才设定 <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive?displayProperty=nameWithType> 。
 
-## Lifecycle stages and participants
+<a id="lifecycle-stages-and-participants"></a>
 
-The grain lifecycle exposes ordered stages:
+## 生命周期阶段和参与者
 
-| Stage | Purpose |
+grain 生命周期暴露了定序阶段:
+
+| 阶段 | 目的目的宗旨 |
 |---|---|
-| <xref:Orleans.Runtime.GrainLifecycleStage.First?displayProperty=nameWithType> | Earliest subscription point. |
-| <xref:Orleans.Runtime.GrainLifecycleStage.SetupState?displayProperty=nameWithType> | State setup and loading. |
-| <xref:Orleans.Runtime.GrainLifecycleStage.Activate?displayProperty=nameWithType> | Grain activation and deactivation callbacks. |
-| <xref:Orleans.Runtime.GrainLifecycleStage.Last?displayProperty=nameWithType> | Latest subscription point. |
+| <xref:Orleans.Runtime.GrainLifecycleStage.First?displayProperty=nameWithType> | 最迫切的订阅点 |
+| <xref:Orleans.Runtime.GrainLifecycleStage.SetupState?displayProperty=nameWithType> | 国家设置和装货。 |
+| <xref:Orleans.Runtime.GrainLifecycleStage.Activate?displayProperty=nameWithType> | Grain 启动和解除回击 |
+| <xref:Orleans.Runtime.GrainLifecycleStage.Last?displayProperty=nameWithType> | 最新订阅点。 |
 
-Components that need ordered activation-scoped behavior can implement <xref:Orleans.ILifecycleParticipant`1> for <xref:Orleans.Runtime.IGrainLifecycle> and subscribe through <xref:Orleans.Runtime.IGrainContext.ObservableLifecycle>. Use distinct stages when one component's startup depends on another completing. Callbacks within a stage can execute concurrently.
+需要有定序启动波及行为 <xref:Orleans.ILifecycleParticipant`1> 用于 <xref:Orleans.Runtime.IGrainLifecycle> 订阅 <xref:Orleans.Runtime.IGrainContext.ObservableLifecycle>。当一个部件的启动取决于另一个部件完成时,使用不同的阶段。在某一阶段内进行回调可以同时执行。
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="lifecycle_participant":::
 
-The runtime calls `Participate` on a grain object which implements the participant interface. Services use an explicit enrollment owner, such as a facet factory or the shared activation setup described below.
+运行时间调用 `Participate` 上a grain 服务使用明确的注册所有人,例如面板工厂或下文所述的共享启动装置。
 
-### Shared activation setup
+<a id="shared-activation-setup"></a>
 
-Use <xref:Orleans.Runtime.IConfigureGrainTypeComponents> to select features for a grain implementation class and register reusable setup actions with <xref:Orleans.Runtime.GrainTypeSharedContext.AddActivationSetup*>. This example selects classes implementing an application-owned `ICachedGrain` marker:
+### 共享激活集共享设置
+
+使用 <xref:Orleans.Runtime.IConfigureGrainTypeComponents> 选择一个 grain 执行类别的特点,并用 <xref:Orleans.Runtime.GrainTypeSharedContext.AddActivationSetup*>登记可重复使用的设置行动。本示例选择实施应用程序自有 `ICachedGrain` 标记的分类:
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="activation_setup":::
 
-Register the configurator as a singleton and the feature state as scoped:
+将配置登记为单吨,并将特征状态登记为范围:
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="activation_setup_registration":::
 
-Orleans caches the selected setup actions in the shared grain type context. Each activation runs those actions in registration order after its grain constructor completes and <xref:Orleans.Runtime.IGrainContext.GrainInstance> is assigned. All setup actions finish before the runtime calls the grain object's `Participate` method and starts lifecycle callbacks. Each stateless worker activation runs the same shared setup with its own context.
+Orleans 缓存共享 grain 类型中选定的设置动作。 每次激活都在 grain 构建器完成和指定 <xref:Orleans.Runtime.IGrainContext.GrainInstance> 后按登记顺序运行这些动作。所有设置动作在运行时间拨打 grain 对象的 `Participate` 方法之前就结束,并开始生命周期回调。每个无国籍工人启动时都使用与其自身背景相同的共享设置。
 
-The shared action resolves `CacheParticipant` only for selected grains. Resolution uses the activation scope, so constructor injection of `CacheParticipant` and setup share the same scoped service. For interface injection, register an alias factory which resolves that concrete service. Ordinary concrete, keyed, and participant-interface DI registrations retain their explicit enrollment behavior.
+共同行动决心 `CacheParticipant` 仅为选中 grains分辨率使用激活范围,因此制造器注入 `CacheParticipant` 并设置相同的服务范围。 对于界面注射,注册一个别名工厂解决具体服务问题。普通混凝土、密钥和参与者界面识别码登记保留了明确的入学行为。
 
-Setup actions can run concurrently for different activations. Keep shared actions stateless, or make captured shared data safe for concurrent access; keep activation-specific state in the activation scope. Add actions during shared type configuration. Use synchronous setup to enroll services and lifecycle callbacks for asynchronous initialization and shutdown. Assign one enrollment owner to each feature so that subscriptions are established once.
+设置动作可以同时运行不同激活。 保持共享行动无国籍状态, 或者让捕获的共享数据安全地同时访问; 保持启动范围中特定激活状态; 在共享类型配置中添加动作 。 使用同步设置来注册服务和生命周期回调不同步初始化和关闭。 给每个特性指派一个注册所有人, 以便一次建立订阅 。
 
-A setup exception fails the activation, skips remaining setup actions and lifecycle startup, and triggers grain and activation-scope disposal. A fresh activation resolves fresh scoped state and runs the cached setup again.
+设置例外失败了激活, 跳过剩余设置动作和生命周期启动, 触发 grain 和激活范围处置。 新的激活可以解决新扩展状态并再次运行缓存设置 。
 
-For the runtime lifecycle model shared by silos and grain activations, see [Orleans runtime lifecycle](../implementation/orleans-lifecycle.md).
+关于 silos 和 grain 激活所共有的运行时生命周期模型,见 [Orleans 运行时间生命周期](../implementation/orleans-lifecycle.md)。
 
-## Grain migration
+<a id="grain-migration"></a>
 
-Migration moves an activation to another silo while preserving migration-participating in-memory state. Call <xref:Orleans.Grain.MigrateOnIdle> to request migration after the activation finishes its current work:
+## Grain 移徙
+
+移徙会将一个活动转移到另一个 silo 保留移民参与的模拟状态。 <xref:Orleans.Grain.MigrateOnIdle> 激活完成当前工作后请求迁移:
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="migrate_on_idle":::
 
-The request is advisory. Migration occurs only if placement selects another compatible silo. Orleans carries the current <xref:Orleans.Runtime.RequestContext> into the placement decision.
+只有在安置选择另一个兼容的 silo时,才进行移民。 Orleans 将目前的 <xref:Orleans.Runtime.RequestContext> 纳入安置决定。
 
-Implement <xref:Orleans.Runtime.IGrainMigrationParticipant> for custom activation state that must survive migration:
+执行必须生存下来的自定义活化状态 <xref:Orleans.Runtime.IGrainMigrationParticipant> :
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="migration_participant":::
 
-Persistent-state components supplied by Orleans participate automatically. Migration isn't a replacement for durable storage: migrated state is still lost if the source process fails before transfer completes.
+由 Orleans 提供的持久性状态组件自动参与。移民不能替代耐久储存:如果源程序在传输完成之前失败,迁移状态仍然会消失。
 
-Automatic activation repartitioning and rebalancing use migration to improve locality or cluster balance. See [Grain placement](grain-placement.md) for their configuration.
+自动激活重新分配和再平衡利用迁移来改善地点或组群的平衡。 [Grain 安置](grain-placement.md) 用于配置。
 
-Use <xref:Orleans.Placement.ImmovableAttribute> to exclude a grain type from automatic migration. It doesn't block an explicit <xref:Orleans.Grain.MigrateOnIdle> request.
+使用 <xref:Orleans.Placement.ImmovableAttribute> 将一个 grain 类型排除在自动迁移之外。 它不阻拦明确的 <xref:Orleans.Grain.MigrateOnIdle> 请求 。
 
-For the runtime protocols behind activation, collection, deactivation, and migration, see [Activation lifecycle and migration](../implementation/activation-lifecycle.md). Application code should continue to rely on the public lifecycle APIs described here rather than runtime internals.
+启动、收集、禁用和迁移后运行时间协议,请参见 [激活生命周期和移徙](../implementation/activation-lifecycle.md)。应用代码应继续依赖此处描述的公共生命周期API,而不是运行时内部。

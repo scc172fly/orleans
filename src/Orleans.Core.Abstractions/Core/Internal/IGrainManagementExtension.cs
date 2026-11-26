@@ -5,37 +5,37 @@ using Orleans.Runtime;
 namespace Orleans.Core.Internal
 {
     /// <summary>
-    /// Provides functionality for performing management operations on a grain activation.
+    /// 提供功能,用于在启动 grain 时开展管理业务。
     /// </summary>
     public interface IGrainManagementExtension : IGrainExtension
     {
         /// <summary>
-        /// Deactivates the current instance once it becomes idle.
+        /// 当当前实例闲置时, 即将其禁用 。
         /// </summary>
-        /// <returns>A <see cref="Task"/> which represents the method call.</returns>
+        /// <returns>A <see cref="Task"/> ,代表方法调用。</returns>
         [Alias("DeactivateOnIdle")]
         ValueTask DeactivateOnIdle();
 
         /// <summary>
-        /// Deactivates the current instance once it becomes idle.
+        /// 当当前实例闲置时, 即将其禁用 。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> which represents the method call.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> ,代表方法调用。</returns>
         [Alias("1B9614D1")]
         ValueTask DeactivateOnIdle(CancellationToken cancellationToken) => DeactivateOnIdle();
 
         /// <summary>
-        /// Attempts to migrate the current instance to a new location once it becomes idle.
+        /// 试图将当前实例在闲置后迁移到新地点。
         /// </summary>
-        /// <returns>A <see cref="Task"/> which represents the method call.</returns>
+        /// <returns>A <see cref="Task"/> ,代表方法调用。</returns>
         [Alias("MigrateOnIdle")]
         ValueTask MigrateOnIdle();
 
         /// <summary>
-        /// Attempts to migrate the current instance to a new location once it becomes idle.
+        /// 试图将当前实例在闲置后迁移到新地点。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> which represents the method call.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> ,代表方法调用。</returns>
         [Alias("4CC93B45")]
         ValueTask MigrateOnIdle(CancellationToken cancellationToken) => MigrateOnIdle();
     }

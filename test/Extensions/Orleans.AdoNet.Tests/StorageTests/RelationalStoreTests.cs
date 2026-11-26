@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.StorageTests.AdoNet
 {
     /// <summary>
-    /// Test data model for streaming tests.
+    /// 溪流测试的试验数据模型。
     /// </summary>
     public class StreamingTest
     {
@@ -17,11 +17,11 @@ namespace UnitTests.StorageTests.AdoNet
     }
 
     /// <summary>
-    /// Base class for relational storage tests.
+    /// 关系储存测试的基础等级。
     /// </summary>
     public abstract class RelationalStoreTestsBase
     {
-        //This timeout limit should be clearly less than that defined in RelationalStorageForTesting.CancellationTestQuery. 
+        //这一超时期限应明显低于 RelationalStorageForTesting.CancellationTestQuery中定义的限值。 
         protected readonly TimeSpan CancellationTestTimeoutLimit = TimeSpan.FromSeconds(5);
         protected readonly TimeSpan StreamCancellationTimeoutLimit = TimeSpan.FromSeconds(15);
         protected const int MiB = 1048576;
@@ -37,7 +37,7 @@ namespace UnitTests.StorageTests.AdoNet
         {
             Assert.SkipWhen(string.IsNullOrEmpty(sut.CurrentConnectionString), "Database was not initialized correctly");
 
-            //Stream in and steam out three binary streams in parallel.
+            //平行流进并蒸发三条二元溪流
             var streamChecks = new Task<bool>[countOfStreams];
             for (int i = 0; i < countOfStreams; ++i)
             {
@@ -58,7 +58,7 @@ namespace UnitTests.StorageTests.AdoNet
         protected static async Task InsertIntoDatabaseUsingStream(RelationalStorageForTesting sut, int streamId, byte[] dataToInsert, CancellationToken cancellationToken)
         {
             Assert.SkipWhen(string.IsNullOrEmpty(sut.CurrentConnectionString), "Database was not initialized correctly");
-            //The dataToInsert could be inserted here directly, but it wouldn't be streamed.
+            //dataToInsert 可以直接插入到此处,但不会流出。
             using (var ms = new MemoryStream(dataToInsert))
             {
                 await sut.Storage.ExecuteAsync(sut.StreamTestInsert, command =>
@@ -68,10 +68,10 @@ namespace UnitTests.StorageTests.AdoNet
                     p1.Value = streamId;
                     command.Parameters.Add(p1);
 
-                    //MySQL does not support streams in and for the time being there
-                    //is not a custom stream defined. For ideas, see http://dev.mysql.com/doc/refman/5.7/en/blob.html
-                    //for string operations for blobs and http://rusanu.com/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/
-                    //on how one could go defining one.
+                    //MySQL 不支持流流流的进出和暂时支持流流
+                    //并不是定义的自定义流。对于想法,请参见 http://dev.mysql.com/doc/refman/5.7/en/blob.html
+                    //用于 blobs 和 http://rusanu.com/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/字符串操作的字符串操作
+                    //如何去定义一个。
                     var p2 = command.CreateParameter();
                     p2.ParameterName = "StreamData";
                     p2.Value = dataToInsert;
@@ -119,8 +119,8 @@ namespace UnitTests.StorageTests.AdoNet
                 tokenSource.CancelAfter(timeoutLimit);
                 try
                 {
-                    //Here one second is added to the task timeout limit in order to account for the delays.
-                    //The delays are mainly in the underlying ADO.NET libraries and database.
+                    //在此,任务超时期限后增加一秒钟,以说明延误的原因。
+                    //延误主要发生在基本 ADO.NET 图书馆和数据库。
                     var task = sut.Storage.ReadAsync<int>(sut.CancellationTestQuery, tokenSource.Token);
                     if (!task.Wait(timeoutLimit.Add(TimeSpan.FromSeconds(2)), testCancellationToken))
                     {
@@ -131,15 +131,15 @@ namespace UnitTests.StorageTests.AdoNet
                 {
                     testCancellationToken.ThrowIfCancellationRequested();
 
-                    //There can be a DbException due to the operation being forcefully cancelled...
-                    //... Unless this is a test for a provider which does not support for cancellation.
-                    //The exception is wrapped into an AggregrateException due to the test arrangement of hard synchronous
-                    //wait to force for actual cancellation check and remove "natural timeout" causes.
+                    //由于行动被强行取消, 可能会有 DbException ...
+                    //除非这是对不支持取消的供应商的测试
+                    //由于硬同步的测试安排,例外被包嵌到 AggregrateException
+                    //等待实际取消检查后强制取消,并删除“自然超时”原因。
                     var innerException = ex?.InnerException;
                     if (sut.Storage.SupportsCommandCancellation())
                     {
-                        //If the operation is cancelled already before database calls, a OperationCancelledException
-                        //will be thrown in any case.
+                        //如果在数据库呼叫前已经取消操作,则使用 OperationCancelledException
+                        //在任何情况下,都必被抛下。
                         Assert.True(innerException is DbException || innerException is OperationCanceledException, $"Unexpected exception: {ex}");
                     }
                     else

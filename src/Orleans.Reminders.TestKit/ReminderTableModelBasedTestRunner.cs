@@ -12,49 +12,49 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// Configures the generated model-based conformance tests for an <see cref="IReminderTable"/> implementation.
+/// 配置生成的 <see cref="IReminderTable"/> 执行模式合规测试。
 /// </summary>
 public sealed class ReminderTableModelBasedConformanceOptions
 {
     /// <summary>
-    /// Gets or sets the provider name reported in generated failures.
+    /// 获取或设置在生成失败时报告的提供者名 。
     /// </summary>
     public string ProviderName { get; set; } = "ReminderTable";
 
     /// <summary>
-    /// Gets or sets the grain type used for generated reminder identities.
+    /// 获取或设置用于生成提醒身份的 grain 类型。
     /// </summary>
     public string GrainType { get; set; } = "reminder-testkit-model-grain";
 
     /// <summary>
-    /// Gets or sets an optional fixed prefix for generated grain keys.
+    /// 获取或设置生成 grain 密钥的可选固定前缀。
     /// </summary>
     public string? KeyPrefix { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum depth explored while generating operation sequences.
+    /// 获取或设定生成操作序列时所探索的最大深度。
     /// </summary>
     public int MaxDepth { get; set; } = 3;
 
     /// <summary>
-    /// Gets or sets the maximum number of operations in a generated sequence.
+    /// 在生成的序列中获取或设定最大操作次数 。
     /// </summary>
     public int MaxSequenceLength { get; set; } = 3;
 
     /// <summary>
-    /// Gets or sets the deterministic seed used to generate reminder identities.
+    /// 获取或设置用于生成提醒身份的决定性种子。
     /// </summary>
     public int Seed { get; set; }
 }
 
 /// <summary>
-/// Generates sequences of reminder table operations and verifies an <see cref="IReminderTable"/> implementation
-/// against a behavioral model.
+/// 生成提醒表操作序列,并核查 <see cref="IReminderTable"/> 实施情况
+/// 与行为模型相对
 /// </summary>
 /// <remarks>
-/// The modeled state tracks reminder identity, the persisted schedule, the current and previous ETags, existence and
-/// hash ownership. Generated failures report the operation sequence, the provider, the inputs, the expected state and
-/// the observed result.
+/// 模拟状态跟踪跟踪模式提醒身份、持续的时间表、当前和以往的ETAGs、存在和
+/// 产生故障报告运行序列、供应商、投入、预期状态和
+/// 观察到的结果。
 /// </remarks>
 public sealed class ReminderTableModelBasedTestRunner
 {
@@ -63,11 +63,11 @@ public sealed class ReminderTableModelBasedTestRunner
     private readonly Action<string>? _output;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderTableModelBasedTestRunner"/> class.
+    /// 初始化 <see cref="ReminderTableModelBasedTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="reminderTable">The reminder table to test.</param>
-    /// <param name="providerName">The provider name reported in generated failures.</param>
-    /// <param name="output">An optional callback which receives failure details.</param>
+    /// <param name="reminderTable">用于测试的提醒表。</param>
+    /// <param name="providerName">由生成失败报告供应商名称。</param>
+    /// <param name="output">接收故障细节的可选回调。</param>
     public ReminderTableModelBasedTestRunner(IReminderTable reminderTable, string providerName, Action<string>? output = null)
         : this(
             reminderTable,
@@ -77,11 +77,11 @@ public sealed class ReminderTableModelBasedTestRunner
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderTableModelBasedTestRunner"/> class.
+    /// 初始化 <see cref="ReminderTableModelBasedTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="reminderTable">The reminder table to test.</param>
-    /// <param name="options">The generated test configuration.</param>
-    /// <param name="output">An optional callback which receives failure details.</param>
+    /// <param name="reminderTable">用于测试的提醒表。</param>
+    /// <param name="options">生成的测试配置。</param>
+    /// <param name="output">接收故障细节的可选回调。</param>
     public ReminderTableModelBasedTestRunner(IReminderTable reminderTable, ReminderTableModelBasedConformanceOptions options, Action<string>? output = null)
     {
         _reminderTable = reminderTable ?? throw new ArgumentNullException(nameof(reminderTable));
@@ -90,18 +90,18 @@ public sealed class ReminderTableModelBasedTestRunner
     }
 
     /// <summary>
-    /// Generates and executes reminder table operation sequences.
+    /// 生成并执行提醒表格操作序列。
     /// </summary>
-    /// <returns>A task which represents the asynchronous test run.</returns>
-    /// <exception cref="ReminderConformanceException">One or more generated test cases failed.</exception>
+    /// <returns>代表无同步测试运行的任务。</returns>
+    /// <exception cref="ReminderConformanceException">一个或多个生成的测试案例失败。</exception>
     public Task RunGeneratedConformanceTests() => RunGeneratedConformanceTests(CancellationToken.None);
 
     /// <summary>
-    /// Generates and executes reminder table operation sequences.
+    /// 生成并执行提醒表格操作序列。
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>A task which represents the asynchronous test run.</returns>
-    /// <exception cref="ReminderConformanceException">One or more generated test cases failed.</exception>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>代表无同步测试运行的任务。</returns>
+    /// <exception cref="ReminderConformanceException">一个或多个生成的测试案例失败。</exception>
     public async Task RunGeneratedConformanceTests(CancellationToken cancellationToken)
     {
         await ReminderTableModelBasedConformance.ExecuteWithCleanup(
@@ -180,7 +180,7 @@ internal static class ReminderTableModelBasedConformance
                     }
                     catch when (!info.Success || cancellationToken.IsCancellationRequested)
                     {
-                        // Preserve the generated failure or test cancellation.
+                        // 保全产生的故障或测试取消。
                     }
 
                     if (!info.Success)

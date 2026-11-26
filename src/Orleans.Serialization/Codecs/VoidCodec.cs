@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for unknown types.
+    /// 未知类型序列的序列器
     /// </summary>
     internal sealed class VoidCodec : IFieldCodec
     {
@@ -34,7 +34,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for unknown types.
+    /// 不明类型复印机
     /// </summary>
     internal sealed class VoidCopier : IDeepCopier
     {

@@ -1,35 +1,35 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-Updates open GitHub pull request branches using GitHub's server-side rebase.
+更新打开 GitHub 使用 GitHub服务器的侧面重置基准
 .DESCRIPTION
-Defaults to dotnet/orleans and the main base branch. Includes all open pull
-requests targeting BaseBranch, including drafts. Updates branches which are
-behind and which GitHub reports as mergeable and rebaseable.
-GitHub CLI supplies the expected head SHA and GitHub enforces update permissions
-and conflict checks. Resolves BaseBranch from the repository's Git ref once per
-run and uses that snapshot to assess every PR and confirm each successful update.
-Processes each PR's branch update and review feedback together, then prints a
-compact summary grouped by branch, review, and CI status, ordered by mergeability.
-Current, conflict-free PRs with approval recommended and passing checks appear
-first; PRs needing updates, review, CI completion, changes, or conflict resolution
-follow. Lists PR numbers, titles, PR links, and status icons. Use -Verbose for
-diagnostics and individual thread locations. Returns exit code 1 on failures.
-Use -PassThru to emit full result objects. Their Review property contains unresolved
-threads (including outdated threads), code suggestion counts, and the latest
-Copilot review's state, overview recommendation, URL, reviewed commit, and body.
-Review.Checks contains GitHub's aggregate check state and counts for the head commit.
-CompletedWithoutConclusion retains runs reported as COMPLETED separately from
-outcome counts; GitHub's aggregate state determines the CI grouping.
-Recommendations are extracted from Copilot's Markdown overview heading.
+默认值到 dotnet/orleans 和主基分支。 包括所有打开的拉
+以目标为对象的要求 BaseBranch更新以下分支:
+并且 GitHub 报告其后面为可合并和可重新计算。
+GitHub CLI 供应预期的叙利亚叙利亚和 GitHub 执行更新许可
+和冲突校验。从存储库 Git 的 Git 中找到一个 BaseBranch
+并使用该快照来评估每个PR,确认每项成功更新。
+处理每个PRP分支的每个分支更新和审查反馈,然后打印
+由分支、审查和CI地位分类的契约摘要,根据合并性顺序排列。
+提出批准建议,并进行通过检查的当前无冲突、无冲突的PRP
+需要更新、审查、综合服务完成、改变或解决冲突的PR;
+列出PR编号、标题、PR链接和状态图标。
+返回关于故障的退出代码1
+- 使用 -PassThru 来发放全部结果对象。
+代码建议计数和最新
+联合试点审查的状况、概览建议、URL、被审评的承诺和身体。
+Review.Checks 包含 GitHub的总检查状态和头部死亡的计数。
+CompletedWithoutConclusion 留存量留存量报告为与
+结果计数; GitHub的总状态决定了 CI 的分组。
+有关建议摘自副驾驶的马克唐概览标题。
 .EXAMPLE
-.\update-pr-branches.ps1 -WhatIf
+.\更新4月-branches.ps1 -WhatIf
 .EXAMPLE
-.\update-pr-branches.ps1
+.\n更新 4-branches.ps1
 .EXAMPLE
-.\update-pr-branches.ps1 -WhatIf -Verbose
+。\ 更新 -branches.ps1 -WhatIf - 版本
 .EXAMPLE
-.\update-pr-branches.ps1 -WhatIf -PassThru | ConvertTo-Json -Depth 12 | Set-Content pr-review-report.json
+.\更新4月-branches.ps1 -WhatIf -PassThru | ConvertTo- Json - 12号 - 设定审查report.json
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
@@ -51,7 +51,7 @@ function Invoke-Gh {
 
     $originalEncoding = [Console]::OutputEncoding
     try {
-        # PowerShell decodes native output using the console encoding; gh emits UTF-8.
+        # PowerShell 使用控制台编码解码本地输出;gh 发布 UTF-8。
         [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
         $output = & gh @Arguments 2>&1
         $exitCode = $LASTEXITCODE
@@ -85,7 +85,7 @@ function Get-PullRequest {
             return $pull
         }
 
-        # GitHub computes mergeability asynchronously after the first request.
+        # GitHub 计算在第一次请求之后是否可不同步地合并。
         if ($attempt -lt 4) {
             Start-Sleep -Seconds 2
         }
@@ -204,7 +204,7 @@ query($id: ID!, $endCursor: String) {
         }
     )
 
-    # Fetch all authors: GitHub's review author filter does not reliably match bot accounts.
+    # 获取所有作者: GitHub的复议作者过滤器不可靠匹配机器人账户 。
     $reviewPages = @(Get-GraphQLPages -Fields $fields -Query @'
 query($owner: String!, $name: String!, $number: Int!, $endCursor: String) {
   repository(owner: $owner, name: $name) {

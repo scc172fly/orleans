@@ -5,24 +5,24 @@ using System.Runtime.InteropServices;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Utility class for encoding data into an ArraySegment.
+    /// 将数据编码为 ArraySegment的实用类。
     /// </summary>
     public static class SegmentBuilder
     {
         /// <summary>
-        /// Calculates how much space will be needed to append the provided bytes into the segment.
+        /// 计算在段中附加提供的字节需要多少空间。
         /// </summary>
         public static int CalculateAppendSize(ReadOnlySpan<byte> memory) => memory.Length + sizeof(int);
 
         /// <summary>
-        /// Calculates how much space will be needed to append the provided string into the segment.
+        /// 计算在段中追加提供字符串需要多少空间。
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
         public static int CalculateAppendSize(string? str) => str is null ? sizeof(int) : str.Length * sizeof(char) + sizeof(int);
 
         /// <summary>
-        /// Appends a <see cref="ReadOnlyMemory{T}"/> of bytes to the end of the segment
+        /// 在段末加上 <see cref="ReadOnlyMemory{T}"/> 字节的字节
         /// </summary>
         /// <param name="writerOffset"></param>
         /// <param name="bytes"></param>
@@ -46,7 +46,7 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Appends a string to the end of the segment
+        /// 将字符串附加到段末
         /// </summary>
         /// <param name="writerOffset"></param>
         /// <param name="str"></param>
@@ -70,7 +70,7 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Reads the next item in the segment as a byte array.  For performance, this is returned as a sub-segment of the original segment.
+        /// 将段内的下一个项作为字节数组读取。对于性能,此项作为原段的一个子部分返回。
         /// </summary>
         /// <returns></returns>
         public static ArraySegment<byte> ReadNextBytes(ArraySegment<byte> segment, ref int readerOffset)
@@ -87,7 +87,7 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Reads the next item in the segment as a string.
+        /// 将段内的下一个项目作为字符串读取。
         /// </summary>
         /// <returns></returns>
         public static string? ReadNextString(ArraySegment<byte> segment, ref int readerOffset)

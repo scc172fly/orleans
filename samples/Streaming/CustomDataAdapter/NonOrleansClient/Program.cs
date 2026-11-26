@@ -21,8 +21,8 @@ if (secrets is null)
     return 1;
 }
 
-// Sending event to a stream
-// Here the StreamGuid will be encoded as the PartitionKey, and the namespace as a property of the event
+// 将事件发送到流流
+// 在此 StreamGuid 将被编码为 PartitionKey, 命名空间将作为事件属性
 
 await using (var client = new EventHubProducerClient(secrets.EventHubConnectionString, Constants.EHPath))
 {

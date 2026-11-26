@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>Builds compiler-lowered asynchronous methods which return <see cref="DurableTask"/>.</summary>
+/// <summary>构建返回 <see cref="DurableTask"/>的编译器低调的非同步方法。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Compiler method builders are mutable protocol values without an equality contract.")]
 public struct DurableTaskMethodBuilder
 {
@@ -13,13 +13,13 @@ public struct DurableTaskMethodBuilder
     private readonly VoidDurableTaskMethodInvocation Invocation
         => _invocation ?? throw new InvalidOperationException("The durable task builder has not started.");
 
-    /// <summary>Gets the deferred durable task definition.</summary>
+    /// <summary>获得推迟的持久任务定义。</summary>
     public readonly DurableTask Task => Invocation;
 
-    /// <summary>Creates a builder.</summary>
+    /// <summary>创建一个构建器。</summary>
     public static DurableTaskMethodBuilder Create() => new();
 
-    /// <summary>Captures <paramref name="stateMachine"/> without executing it.</summary>
+    /// <summary>捕获 <paramref name="stateMachine"/> 而不执行。</summary>
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
         var invocation = new VoidDurableTaskMethodInvocation<TStateMachine>();
@@ -34,13 +34,13 @@ public struct DurableTaskMethodBuilder
         Debug.Fail("The durable task builder stores its own boxed state machine.");
     }
 
-    /// <summary>Completes the definition with an exception.</summary>
+    /// <summary>完成定义,但有例外。</summary>
     public readonly void SetException(Exception exception) => Invocation.SetException(exception);
 
-    /// <summary>Completes the definition successfully.</summary>
+    /// <summary>成功完成定义。</summary>
     public readonly void SetResult() => Invocation.SetResult();
 
-    /// <summary>Registers the next state-machine step with a safe awaiter.</summary>
+    /// <summary>登记下一个州机器步骤,并配备一名安全的等待者。</summary>
     public readonly void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -49,7 +49,7 @@ public struct DurableTaskMethodBuilder
         awaiter.OnCompleted(invocation.MoveNextAction);
     }
 
-    /// <summary>Registers the next state-machine step with a critical awaiter.</summary>
+    /// <summary>与一位关键等待者登记下一个州机器步骤。</summary>
     public readonly void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -59,7 +59,7 @@ public struct DurableTaskMethodBuilder
     }
 }
 
-/// <summary>Builds compiler-lowered asynchronous methods which return <see cref="DurableTask{TResult}"/>.</summary>
+/// <summary>构建返回 <see cref="DurableTask{TResult}"/>的编译器低调的非同步方法。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Compiler method builders are mutable protocol values without an equality contract.")]
 public struct DurableTaskMethodBuilder<TResult>
 {
@@ -68,13 +68,13 @@ public struct DurableTaskMethodBuilder<TResult>
     private readonly DurableTaskMethodInvocation<TResult> Invocation
         => _invocation ?? throw new InvalidOperationException("The durable task builder has not started.");
 
-    /// <summary>Gets the deferred durable task definition.</summary>
+    /// <summary>获得推迟的持久任务定义。</summary>
     public readonly DurableTask<TResult> Task => Invocation;
 
-    /// <summary>Creates a builder.</summary>
+    /// <summary>创建一个构建器。</summary>
     public static DurableTaskMethodBuilder<TResult> Create() => new();
 
-    /// <summary>Captures <paramref name="stateMachine"/> without executing it.</summary>
+    /// <summary>捕获 <paramref name="stateMachine"/> 而不执行。</summary>
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
         var invocation = new DurableTaskMethodInvocation<TResult, TStateMachine>();
@@ -89,13 +89,13 @@ public struct DurableTaskMethodBuilder<TResult>
         Debug.Fail("The durable task builder stores its own boxed state machine.");
     }
 
-    /// <summary>Completes the definition with an exception.</summary>
+    /// <summary>完成定义,但有例外。</summary>
     public readonly void SetException(Exception exception) => Invocation.SetException(exception);
 
-    /// <summary>Completes the definition successfully with <paramref name="result"/>.</summary>
+    /// <summary>成功完成定义,使用 <paramref name="result"/>。</summary>
     public readonly void SetResult(TResult result) => Invocation.SetResult(result);
 
-    /// <summary>Registers the next state-machine step with a safe awaiter.</summary>
+    /// <summary>登记下一个州机器步骤,并配备一名安全的等待者。</summary>
     public readonly void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -104,7 +104,7 @@ public struct DurableTaskMethodBuilder<TResult>
         awaiter.OnCompleted(invocation.MoveNextAction);
     }
 
-    /// <summary>Registers the next state-machine step with a critical awaiter.</summary>
+    /// <summary>与一位关键等待者登记下一个州机器步骤。</summary>
     public readonly void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
     {

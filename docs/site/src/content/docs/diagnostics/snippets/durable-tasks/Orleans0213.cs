@@ -8,7 +8,7 @@ public sealed class AuditGrain(IEmailSender email) : DurableGrain
     {
         await Close(customer).WithId("close");
 
-        // The body returns before the email is sent, and a failure to send escapes the body.
+        // 身体在电子邮件发送前返回,而未能发送尸体则会越狱。
         NotifyClosed(customer);
 
         async void NotifyClosed(string recipient) =>
@@ -23,7 +23,7 @@ public sealed class AuditGrain(IEmailSender email) : DurableGrain
         await Close(customer).WithId("close");
         await NotifyClosed(customer).WithId("notify");
 
-        // A step which the body awaits: the body observes its completion and its failure, and a replay returns its record.
+        // 该机构等待着一个步骤:该机构观察其完成和失败,重播回回录记录。
         async DurableTask NotifyClosed(string recipient) =>
             await email.SendAsync(recipient, "Your account is closed", DurableTask.Current.CancellationToken);
     }
@@ -34,7 +34,7 @@ public sealed class AuditGrain(IEmailSender email) : DurableGrain
     {
         await Close(customer).WithId("close");
 
-        // A delegate which returns a task, run as a step which the body awaits.
+        // 代表返回任务,作为机构等待的一个步骤运行。
         await DurableTask.Run(_ => onClosed(customer)).WithId("on-closed");
     }
     // </orleans0213_fix_func>

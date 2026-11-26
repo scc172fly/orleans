@@ -5,10 +5,10 @@ using Orleans.Placement;
 namespace Orleans.Runtime.Placement.Filtering;
 
 /// <summary>
-/// Attribute to specify that a silo must have a specific metadata key-value pair matching the local (calling) silo to be considered for placement.
+/// 属性可以指定, silo 必须有一个与本地(调用) silo 相匹配的特定元数据关键值对, 以考虑放置。
 /// </summary>
-/// <param name="metadataKeys">The metadata keys whose values must match those of the calling silo.</param>
-/// <param name="order">The order in which this filter is applied relative to other placement filters.</param>
+/// <param name="metadataKeys">元数据键的数值必须与调用 silo的数值相符。</param>
+/// <param name="order">相对于其他放置过滤器应用此过滤器的顺序。</param>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 [Experimental("ORLEANSEXP004")]
 public class RequiredMatchSiloMetadataPlacementFilterAttribute(string[] metadataKeys, int order = 0)

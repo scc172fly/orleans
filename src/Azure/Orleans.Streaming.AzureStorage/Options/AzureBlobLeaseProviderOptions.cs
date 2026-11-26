@@ -12,35 +12,35 @@ using Orleans.Streaming.AzureStorage;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for configuring a lease provider backed by Azure Blob Storage leases.
+    /// 配置一个以 Azure 布洛布存储租赁为后盾的租赁供应商的备选方案。
     /// </summary>
     public class AzureBlobLeaseProviderOptions
     {
         private BlobServiceClient? _blobServiceClient;
 
         /// <summary>
-        /// Gets or sets the name of the Azure Blob container used to store lease blobs.
+        /// 获取或设置用于存储租赁布束的 Azure 布束容器的名称。
         /// </summary>
         public string BlobContainerName { get; set; } = DefaultBlobContainerName;
 
         /// <summary>
-        /// The default Azure Blob container name used to store lease blobs.
+        /// 用于存储租赁布料的默认 Azure 布洛布容器名称 。
         /// </summary>
         public const string DefaultBlobContainerName = "Leases";
 
         /// <summary>
-        /// Options to be used when configuring the blob storage client, or <see langword="null"/> to use the default options.
+        /// 当配置 blob 存储客户端时, 或者 <see langword="null"/> 使用默认选项时要使用的选项 。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public BlobClientOptions? ClientOptions { get; set; }
 
         /// <summary>
-        /// The optional delegate used to create a <see cref="BlobServiceClient"/> instance.
+        /// 用于创建 <see cref="BlobServiceClient"/> 实例的可选代表 。
         /// </summary>
         internal Func<Task<BlobServiceClient>>? CreateClient { get; private set; }
 
         /// <summary>
-        /// Gets or sets the client used to access the Azure Blob Service.
+        /// 获取或设置用于访问 Azure 球形服务的客户端。
         /// </summary>
         [DisallowNull]
         public BlobServiceClient? BlobServiceClient
@@ -55,7 +55,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="BlobServiceClient"/> using a connection string.
+        /// 使用连接字符串配置 <see cref="BlobServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(string connectionString)
@@ -64,7 +64,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI.
+        /// 使用验证的服务 URI 配置 <see cref="BlobServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri)
@@ -73,7 +73,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="BlobServiceClient"/> using the provided callback.
+        /// 使用所提供的回调配置 <see cref="BlobServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Func<Task<BlobServiceClient>> createClientCallback)
@@ -82,7 +82,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI and a <see cref="Azure.Core.TokenCredential"/>.
+        /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.Core.TokenCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri, TokenCredential tokenCredential)
@@ -91,7 +91,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI and a <see cref="Azure.AzureSasCredential"/>.
+        /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.AzureSasCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri, AzureSasCredential azureSasCredential)
@@ -100,7 +100,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI and a <see cref="StorageSharedKeyCredential"/>.
+        /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="StorageSharedKeyCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri, StorageSharedKeyCredential sharedKeyCredential)
@@ -110,7 +110,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Configuration validator for AzureBlobLeaseProviderOptions
+    /// AzureBlobLeaseProviderOptions的配置验证符
     /// </summary>
     public class AzureBlobLeaseProviderOptionsValidator : IConfigurationValidator
     {
@@ -118,9 +118,9 @@ namespace Orleans.Configuration
         private readonly string? name;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
-        /// <param name="options">The option to be validated.</param>
+        /// <param name="options">选项将生效。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the registered options instance.")]
         public AzureBlobLeaseProviderOptionsValidator(IOptions<AzureBlobLeaseProviderOptions> options)
         {
@@ -128,7 +128,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Creates creates validator for named instance of AzureBlobLeaseProviderOptions options.
+        /// 创建指定 AzureBlobLeaseProviderOptions 选项实例的验证符。
         /// </summary>
         /// <param name="services"></param>
         /// <param name="name"></param>
@@ -140,10 +140,10 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
-        /// <param name="options">The option to be validated.</param>
-        /// <param name="name">The option name to be validated.</param>
+        /// <param name="options">选项将生效。</param>
+        /// <param name="name">需要验证的选项名称。</param>
         private AzureBlobLeaseProviderOptionsValidator(AzureBlobLeaseProviderOptions options, string? name)
         {
             this.options = options;
@@ -151,12 +151,12 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Validates the configured container name and Azure Blob Service client.
+        /// 校验配置的容器名称和 Azure Blob Service 客户端。
         /// </summary>
-        /// <exception cref="OrleansConfigurationException">The configuration is invalid.</exception>
+        /// <exception cref="OrleansConfigurationException">配置无效。</exception>
         public void ValidateConfiguration()
         {
-            // name can be null, but not empty or white space.
+            // 名称可以是空的,但不是空白或白的空格。
             if (this.name != null && string.IsNullOrWhiteSpace(this.name))
             {
                 throw new OrleansConfigurationException($"Named option {nameof(AzureBlobLeaseProviderOptions)} of name {this.name} is invalid.  Name cannot be empty or whitespace.");

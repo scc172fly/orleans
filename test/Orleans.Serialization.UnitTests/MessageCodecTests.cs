@@ -95,7 +95,7 @@ public sealed class MessageCodecTests
             var messaging = new MessagingInstruments(instruments);
             var trace = new MessagingTrace(NullLoggerFactory.Instance, messaging, new MessagingProcessingInstruments(instruments));
             var sessions = services.GetRequiredService<SerializerSessionPool>();
-            // These tests encode messages without routing them.
+            // 这些测试将信息编码, 而不设定路径。
             return new MessageHandlerShared(
                 trace,
                 new ConnectionTrace(NullLoggerFactory.Instance),

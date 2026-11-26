@@ -5,11 +5,11 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Binary codec for durable task completion source journal entries, preserving the legacy Orleans binary wire format.
+/// 保存遗留的 Orleans 双线格式。
 /// </summary>
 /// <remarks>
-/// Unlike other durable type codecs, the TCS format uses a status byte instead of a
-/// VarUInt32 command discriminator.
+/// 与其他耐久型代码编码器不同,TCCS格式使用状态字节而不是
+/// VarUInt32 命令歧视者。
 /// </remarks>
 internal sealed class OrleansBinaryDurableTaskCompletionSourceCommandCodec<T>(
     IFieldCodec<T> codec,

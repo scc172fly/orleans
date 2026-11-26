@@ -1,41 +1,51 @@
 ---
-title: Grain extensions
-description: Add runtime-provided interfaces to Orleans grains.
+title: "Grain 扩展"
+description: "将运行时提供的接口添加到 Orleans grains。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# Grain extensions
+<a id="grain-extensions"></a>
 
-Grain extensions attach an additional callable interface to grain activations. Orleans uses extensions internally for features such as cancellation and streaming. Applications can use them for infrastructure behavior that should be available across many grain types.
+# Grain 扩展
 
-Extensions are an advanced integration mechanism. Prefer a normal grain interface when the behavior is part of the grain's domain contract.
+Grain 扩展附加一个可调用界面,用于启动 grain 。 Orleans 内部使用取消和流流等功能的扩展。应用程序可用于基础设施行为,而这种行为应该可以跨越许多类型 grain 提供。
 
-## Define an extension
+扩展期是先进的一体化机制。 grain 当行为是 grain域合同
 
-The interface derives from <xref:Orleans.Runtime.IGrainExtension> and uses normal grain method return types:
+<a id="define-an-extension"></a>
+
+## 定义扩展名
+
+接口来自 <xref:Orleans.Runtime.IGrainExtension> ,使用正常 grain 方法返回类型:
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="diagnostics_extension":::
-Orleans generates extension request and reference code at build time.
+Orleans 在构建时生成延期请求和参考代码。
 
-## Register the extension
+<a id="register-the-extension"></a>
 
-Register a default implementation on the silo:
+## 登记延期
+
+登记 silo的默认履行情况:
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="register_diagnostics_extension":::
-The implementation is created through dependency injection for the target grain context.
+实施是通过为目标 grain 背景提供依赖注射来实施的。
 
-## Call the extension
+<a id="call-the-extension"></a>
 
-Cast an existing grain reference to the extension interface:
+## 延长的调用
+
+刻录现有扩展界面的 grain 引用 :
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="use_diagnostics_extension":::
-The extension reference keeps the same grain identity. It doesn't address a separate grain.
+扩展引用保留了相同的 grain 身份。 它不处理单独的 grain。
 
-Incoming [grain call filters](interceptors.md) run for extension calls. Filters should not assume every `ImplementationMethod` belongs to the grain implementation class.
+收到用于扩展呼叫的 [grain 调用过滤器](interceptors.md) 运行。过滤器不应假设每个 `ImplementationMethod` 都属于 grain 执行类别。
 
-## Per-activation components
+<a id="per-activation-components"></a>
 
-Framework components can use <xref:Orleans.Runtime.IGrainContext> component APIs and `GetGrainExtension<T>()` to provide an activation-specific extension. Those APIs are intended for runtime integrations that control grain activation setup. Application code should normally use `AddGrainExtension` and constructor-injected dependencies instead of mutating a grain context during activation.
+## 活性部件
 
-Avoid exposing mutable grain state through a generic extension. Doing so bypasses the grain's domain invariants and couples infrastructure to implementation details.
+框架组件可以使用 <xref:Orleans.Runtime.IGrainContext> 组件API和 `GetGrainExtension<T>()` 提供激活特定扩展。这些API用于控制 grain 启动设置的运行时间整合。应用程序代码通常应使用 `AddGrainExtension` 和构建器输入依赖性,而不是在激活过程中突变一个 grain 环境。
+
+通过通用扩展避免暴露可变 grain 状态。 这样做绕过 grain域变量和夫妇基础设施,而忽略了实施细节。

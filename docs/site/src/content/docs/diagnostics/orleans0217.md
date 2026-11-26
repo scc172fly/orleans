@@ -1,49 +1,59 @@
 ---
-title: "ORLEANS0217: Pass AttemptCancellationToken to calls in task-cancellation cleanup"
-description: Understand ORLEANS0217, which reports cleanup after task cancellation which passes the already-canceled CancellationToken to a call, and fix it with AttemptCancellationToken or a shielded step.
+title: "ORLEANS0217:通过 AttemptCancellationToken 电话来清理任务取消的清除"
+description: "理解 ORLEANS0217, 其中报告任务取消后清理工作, 将已经排出 CancellationToken 的调用通过一个调用, 并用 AttemptCancellationToken 或屏蔽步骤来修正它。"
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
-# ORLEANS0217: Pass AttemptCancellationToken to calls in task-cancellation cleanup
+<a id="orleans0217-pass-attemptcancellationtoken-to-calls-in-task-cancellation-cleanup"></a>
 
-| Property | Value |
+# ORLEANS0217:通过 AttemptCancellationToken 电话来清理任务取消的清除
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | Available |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-Code which runs only after task cancellation passes `DurableTaskContext.CancellationToken` to a call. Such code is the handler of a `catch` clause, or the true branch of an `if` statement or a conditional expression, whose filter or condition is `DurableTaskContext.IsTaskCancellationRequested`, alone or as an operand of `&&`:
+## 原因原因原因
+
+仅在任务取消后运行的代码通过 `DurableTaskContext.CancellationToken` 呼叫。该代码是 `catch` 条款或 `if` 语句或有条件表达的真正分支的处理者,其过滤器或条件为 `DurableTaskContext.IsTaskCancellationRequested`,单独或作为 `&&`的操作:
 
 :::code source="snippets/durable-tasks/Orleans0217.cs" id="orleans0217_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-A durable task's context carries two cancellation tokens:
+## 规则说明
 
-- `CancellationToken` is canceled by task cancellation and by attempt cancellation, so the calls which ordinary task code makes end promptly in both cases.
-- `AttemptCancellationToken` is canceled only by attempt cancellation, for example when the task's activation stops.
+长期任务的背景包含两个取消标记:
 
-Task cancellation is recorded with the task, so `IsTaskCancellationRequested` stays `true`, and `CancellationToken` stays canceled, in the canceled attempt and in every later attempt. Cleanup which runs after task cancellation therefore passes a canceled token, and a call which observes it ends at once. In the example, `ReleaseAsync` throws `OperationCanceledException` before it releases the room, the exception escapes the body, and the task ends canceled with the room still held.
+- `CancellationToken` 被取消任务和尝试取消取消,因此普通任务代码在这两种情况下迅速终止的电话。
+- `AttemptCancellationToken` 仅通过尝试取消来取消, 例如当任务启动停止时 。
 
-The rule inspects the code of the region itself. Lambdas and local functions in the region can run in another task's context, such as a step's, so the rule skips them.
+任务取消会随任务记录, 所以 `IsTaskCancellationRequested` 将保留 `true`, `CancellationToken` 也将在取消的尝试中和以后每一次尝试中继续取消。 在任务取消后进行的清理会传递一个取消的牌子, 以及一个同时结束观察的电话。 例如, `ReleaseAsync` 在释放房间之前扔出 `OperationCanceledException` , 例外就会脱离身体, 而任务结束时仍然保持着房间。
 
-For the two tokens, see [Task cancellation and attempt cancellation](../grains/durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation), and for cleanup, see [Compensate inline when the workflow is canceled](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled).
+规则检查了区域本身的代码。 区域中的兰巴兹和当地功能可以在另一个任务背景下运行, 比如一步, 因此规则可以跳过它们 。
 
-## How to fix violations
+两只牌子,见 [任务取消和任务取消](../grains/durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation),清理见 [当工作流程取消时进行内线补偿](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled)。
 
-**Pass `AttemptCancellationToken`.** The code fix replaces `CancellationToken` with `AttemptCancellationToken` and keeps the receiver. The call runs to completion, and it still ends promptly when the host cancels the attempt:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**通行证通过 `AttemptCancellationToken`.** 代码修正替换 `CancellationToken` 与 `AttemptCancellationToken` 并保留接收器。 呼叫会运行到完成, 当主机取消尝试时仍然会迅速结束:
 
 :::code source="snippets/durable-tasks/Orleans0217.cs" id="orleans0217_fix_attempt_token" language="csharp":::
 
-**Release in a shielded step.** A step receives its own cancellation token, and the task's cancellation doesn't reach a shielded step. The step records its outcome, so a replay of the handler returns it and releases the room once:
+**以屏蔽的步数释放。** 一步收到自己的取消标记, 而任务取消没有达到屏蔽的步数。 步骤记录了结果, 因此一个处理器的重放返回它并一次性释放房间:
 
 :::code source="snippets/durable-tasks/Orleans0217.cs" id="orleans0217_fix_shielded_step" language="csharp":::
 
-In-process cleanup, such as releasing a semaphore or disposing a resource, belongs in `finally` blocks and `using` statements, which run for both kinds of cancellation.
+流程中的清理,如释放一个血肿或处置资源,属于 `finally` 区块和 `using` 语句中,这两种语句都适用取消。
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic for a call which is meant to end at once after task cancellation, such as optional work which the cleanup skips once the task is canceled.
+## 何时压缩
+
+任务取消后, 终止该通话的诊断, 例如任务取消后清理会跳过的任选工作 。

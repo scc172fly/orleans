@@ -21,7 +21,7 @@ public sealed class MessagingKeepAliveTests : MessagingBehaviorTestBase
         await handler.WaitUntilEnteredAsync();
         var context = Fixture.GetGrainContext(receiver);
 
-        // The handler runs outside of any grain request, so only the pump's hold prevents idle collection.
+        // 处理器运行在任何 grain 请求之外, 所以只有泵的持有防止闲置收藏 。
         var management = Fixture.Client.GetGrain<IManagementGrain>(0);
         await management.ForceActivationCollection(TimeSpan.Zero, TestContext.Current.CancellationToken);
         Assert.False(context.Deactivated.IsCompleted);

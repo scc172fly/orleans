@@ -4,32 +4,32 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
-/// <summary>A representative workflow which a fault scenario runs.</summary>
+/// <summary>一种有代表性的工作流程,即发生故障的情况。</summary>
 public enum FaultWorkflow
 {
-    /// <summary>A local step, an effect, a call which signals back, a signal wait, a delay, and a detached start.</summary>
+    /// <summary>本地步骤、效果、信号回的呼叫、信号等待、延迟和分离启动。</summary>
     Pipeline,
 
-    /// <summary>A race whose loser compensates through a shielded child, then a signal wait which times out.</summary>
+    /// <summary>失败者通过一个被保护的孩子来补偿的种族 然后信号等待</summary>
     RaceAndCompensate,
 }
 
-/// <summary>A grain which participates in a fault scenario.</summary>
+/// <summary>A grain 参与过失情况。</summary>
 public enum FaultRole
 {
     Workflow,
     Partner,
 }
 
-/// <summary>A fault to arm on a scenario's grain.</summary>
+/// <summary>无法解除假设情景的 grain.</summary>
 public sealed record FaultSpec(FaultPoint Point, FaultRole Role, int Occurrence, string? Subject = null)
 {
     public override string ToString() => $"{Point} #{Occurrence} on {Role}{(Subject is null ? "" : $" ({Subject})")}";
 }
 
 /// <summary>
-/// The outcome of a scenario run: whether its faults fired, the journal writes and durable task segments of each grain,
-/// and every violation of the contract, including a stall.
+/// 假设情景的运行结果:无论是否断层破裂,期刊都写作和每个主题的持久任务部分 grain,
+/// 以及每一起违反合同的行为,包括一个摊位。
 /// </summary>
 public sealed record FaultRunOutcome(
     bool Fired,
@@ -38,8 +38,8 @@ public sealed record FaultRunOutcome(
     List<string> Violations);
 
 /// <summary>
-/// Runs a representative workflow on fresh grains with faults armed, and checks the contract: the fault-free result, each
-/// effect exactly once in the grains' journaled state, and no dead letters.
+/// 运行有故障新 grains 的有代表性工作流程,检查合同:无故障结果,每个
+/// 完全在 grains日记状态下生效一次,没有死信。
 /// </summary>
 internal static class FaultScenario
 {
@@ -66,7 +66,7 @@ internal static class FaultScenario
         var hangs = armed.Where(static fault => fault.Point == FaultPoint.DeliveryHangs).ToList();
         foreach (var hang in hangs)
         {
-            // The hung call times out once it is observed to hang.
+            // 被观察到的挂号时间
             _ = hang.Fired.ContinueWith(_ => hang.Release(), TaskScheduler.Default);
         }
 
@@ -90,8 +90,8 @@ internal static class FaultScenario
                 violations.Add($"result '{result}', expected '{expected}'");
             }
 
-            // Completions retire and records are deleted after the result, so the run's last writes follow it. A crashed
-            // silo's wake-ups move to a remaining silo once the cluster has declared it dead.
+            // 完成后退休,记录在结果之后被删除, 所以运行的最后一个写道跟随它。 一个崩溃了 。
+            // silo的警醒在组群宣布死亡后移到剩余 silo 。
             await harness.Crash.WaitAsync(DurableTaskFaultHarness.RunTimeout, cancellationToken);
             await harness.SettleAsync(grains.Values.Select(static grain => grain.GetGrainId()), cancellationToken);
             foreach (var (role, grain) in grains)
@@ -117,7 +117,7 @@ internal static class FaultScenario
             violations);
     }
 
-    /// <summary>Returns the violations of a grain's effects and dead letters against the expected effect counts.</summary>
+    /// <summary>违反《公约》 grain和死亡信件 相对于预期效果的计算。</summary>
     public static async Task<List<string>> CheckGrainAsync(
         DurableTaskFaultHarness harness,
         string name,
@@ -143,7 +143,7 @@ internal static class FaultScenario
         return violations;
     }
 
-    /// <summary>Describes each task the grain holds, with its status, response, and request.</summary>
+    /// <summary>描述每项任务 grain 符合其地位、回应和要求。</summary>
     public static Task<string> DescribeTasksAsync(DurableTaskFaultHarness harness, IAddressable grain) =>
         harness.CallAsync(async cancellationToken =>
         {

@@ -16,7 +16,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// Compares Orleans deserialization performance against other popular serializers for class types.
+/// 将 Orleans 的解序性能与其他各类流行的连续制导器进行比较。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -24,7 +24,7 @@ namespace Benchmarks.Serialization.Comparison;
 [TestArea("Serialization")]
 [Config(typeof(BenchmarkConfig))]
 [BenchmarkCategory("Serialization")]
-//[DisassemblyDiagnoser(recursiveDepth: 2, printSource: true)]
+//DisassemblyDiagnoser(recursiveDepth:2, printSource:真
 //[EtwProfiler]
 public class ClassDeserializeBenchmark
 {
@@ -111,7 +111,7 @@ public class ClassDeserializeBenchmark
     {
         Session.Reset();
         var instance = Serializer.Deserialize(Input, Session);
-        return SumResult(instance!); // The benchmark input is a serialized IntClass.
+        return SumResult(instance!); // 基准输入是按序序号 IntClass。
     }
 
     [Benchmark]

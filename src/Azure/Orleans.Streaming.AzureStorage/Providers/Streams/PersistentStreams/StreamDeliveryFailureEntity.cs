@@ -7,57 +7,57 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.PersistentStreams
 {
     /// <summary>
-    /// Delivery failure table storage entity.
+    /// 交付表存储实体。
     /// </summary>
     public class StreamDeliveryFailureEntity : ITableEntity
     {
         /// <summary>
-        /// Gets or sets the table partition key identifying the stream provider and deployment.
+        /// 获取或设置表格分区密钥, 以识别流提供方和部署 。
         /// </summary>
         public string PartitionKey { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the table row key identifying and ordering the delivery failure.
+        /// 获取或设置表格行键,确定并订购交付失败。
         /// </summary>
         public string RowKey { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the timestamp maintained by the Azure Table service.
+        /// 获取或设置 Azure 表格服务所维护的时间戳。
         /// </summary>
         public DateTimeOffset? Timestamp { get; set; }
 
         /// <summary>
-        /// Gets or sets the entity tag used for optimistic concurrency.
+        /// 获取或设置用于乐观货币的实体标签。
         /// </summary>
         public ETag ETag { get; set; }
 
         /// <summary>
-        /// Id of the subscription on which this delivery failure occurred.
+        /// 发生交付失败的订阅日期的ID。
         /// </summary>
         public Guid SubscriptionId { get; set; }
 
         /// <summary>
-        /// Name of the stream provider generating this failure.
+        /// 生成此失败的流源提供者的名称 。
         /// </summary>
         public string StreamProviderName { get; set; } = null!;
 
         /// <summary>
-        /// Guid Id of the stream on which the failure occurred.
+        /// 引导失败的河流
         /// </summary>
         public string StreamGuid { get; set; } = null!;
 
         /// <summary>
-        /// Namespace of the stream on which the failure occurred.
+        /// 失败发生时所在的流的命名空间 。
         /// </summary>
         public string? StreamNamespace { get; set; }
 
         /// <summary>
-        /// Serialized sequence token of the event that failed delivery.
+        /// 无法交付的事件的序列符号 。
         /// </summary>
         public byte[]? SequenceToken { get; set; }
 
         /// <summary>
-        /// Sets the partition key before persist call.
+        /// 在持续调用前设定分区密钥 。
         /// </summary>
         public virtual void SetPartitionKey(string deploymentId)
         {
@@ -65,7 +65,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Default partition key
+        /// 默认分区密钥
         /// </summary>
         public static string MakeDefaultPartitionKey(string streamProviderName, string deploymentId)
         {
@@ -73,7 +73,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Sets the row key before persist call
+        /// 在持续调用前设定行键
         /// </summary>
         public virtual void SetRowkey()
         {
@@ -81,7 +81,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Sets sequence token by serializing it to property.
+        /// 设置序列符号, 将其序列序列编号为属性 。
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="token"></param>
@@ -92,7 +92,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Gets sequence token by deserializing it from property.
+        /// 将序列符号从属性中解密, 以获取顺序符。
         /// </summary>
         /// <returns></returns>
         public virtual StreamSequenceToken? GetSequenceToken(Serializer<StreamSequenceToken> serializer)
@@ -102,13 +102,13 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Returns the number of ticks from now (UTC) to the year 9683.
+        /// 返回从现在( UTC) 到9683年的秒数。
         /// </summary>
         /// <remarks>
-        /// This is useful for ordering the most recent failures at the start of the partition.  While useful
-        ///  for efficient table storage queries, under heavy failure load this may cause a hot spot in the
-        ///  table. This is not an expected occurrence, but if it happens, we recommend subdividing your row
-        ///  key with some other field (stream namespace?).
+        /// 用于在分区起始时排序最近的失败。 虽然有用, 但可以
+        ///  高故障负荷下,在重负载下,这可能导致
+        ///  表格中。这不是预期发生的情况,但如果发生了,我们建议对您的行进行分解
+        ///  键,使用其他字段(流命名空间?) 。
         /// </remarks>
         /// <returns></returns>
         protected static long ReverseOrderTimestampTicks()

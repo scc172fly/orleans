@@ -10,7 +10,7 @@ using Orleans.TestingHost;
 namespace UnitTests.TimerTests;
 
 /// <summary>
-/// Coordinates the observable phases of reminder lifecycle tests.
+/// 协调提醒生命周期测试的可观测阶段。
 /// </summary>
 public sealed class ReminderLifecycleHarness : IDisposable
 {

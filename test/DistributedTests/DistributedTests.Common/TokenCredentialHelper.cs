@@ -19,7 +19,7 @@ public static class TokenCredentialHelper
     {
         if (azureTableUri.IsLoopback)
         {
-            // Assume it's the emulator/azurite
+            // 假设是模拟器/黄润
             return new TableServiceClient(EmulatorConnectionString);
         }
         return new TableServiceClient(azureTableUri, GetTokenCredential());
@@ -29,7 +29,7 @@ public static class TokenCredentialHelper
     {
         if (azureQueueUri.IsLoopback)
         {
-            // Assume it's the emulator/azurite
+            // 假设是模拟器/黄润
             return new QueueServiceClient(EmulatorConnectionString);
         }
         return new QueueServiceClient(azureQueueUri, GetTokenCredential());
@@ -41,12 +41,12 @@ public static class TokenCredentialHelper
         var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
         if (tenantId != null && clientId != null)
         {
-            // Uses Federated Id Creds, from here:
+            // 使用联邦红心病,从这里:
             // https://review.learn.microsoft.com/en-us/identity/microsoft-identity-platform/federated-identity-credentials?branch=main&tabs=dotnet#azure-sdk-for-net
             return new ClientAssertionCredential(
-              tenantId, // Tenant ID for destination resource
-              clientId,  // Client ID of the app we're federating to
-              () => GetManagedIdentityToken(null, "api://AzureADTokenExchange")) // null here for default MSI
+              tenantId, // 目的地资源租户身份识别号
+              clientId,  // 客户端 身份 应用程序的用户 身份 我们正在加入
+              () => GetManagedIdentityToken(null, "api://AzureADTokenExchange")) // 在此为默认 MSI 设置无效的无效
             ;
         }
         else
@@ -56,11 +56,11 @@ public static class TokenCredentialHelper
     }
 
     /// <summary>
-    /// Gets a token for the user-assigned Managed Identity.
+    /// 获取用户指定的管理身份的标记。
     /// </summary>
-    /// <param name="msiClientId">Client ID for the Managed Identity.</param>
-    /// <param name="audience">Target audience. For public clouds should be api://AzureADTokenExchange.</param>
-    /// <returns>If successful, returns an access token.</returns>
+    /// <param name="msiClientId">管理身份的客户端 ID。</param>
+    /// <param name="audience">目标受众:公众云层应pi@AzureADTokenExchange.</param>
+    /// <returns>如果成功, 返回访问标记。</returns>
     public static string GetManagedIdentityToken(string? msiClientId, string audience)
     {
         var managedIdentityId = string.IsNullOrEmpty(msiClientId)

@@ -119,7 +119,7 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
             if (range.LowerBound is { } lowerBound)
             {
                 var lowerKey = GetPartitionKeyBound(lowerBound);
-                // A longer bound sorts after its longest possible stored prefix.
+                // 保存时间最长的前缀后,有更长的界限。
                 filter += lowerBound.Length > MaximumDefaultJournalIdLength
                     ? TableClient.CreateQueryFilter($" and PartitionKey gt {lowerKey}")
                     : TableClient.CreateQueryFilter($" and PartitionKey ge {lowerKey}");
@@ -134,7 +134,7 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
             if (range.Prefix is { } prefix)
             {
                 var prefixKey = AzureTableJournalStorageOptions.EncodePartitionKey(prefix);
-                // At the length limit only the exact id can match; shorter prefixes can have descendants.
+                // 长度限制只有精确的ID才能匹配;较短的前缀可以有后代。
                 filter += prefix.Length == MaximumDefaultJournalIdLength
                     ? TableClient.CreateQueryFilter($" and PartitionKey le {prefixKey}")
                     : TableClient.CreateQueryFilter($" and PartitionKey lt {prefixKey + "G"}");
@@ -142,7 +142,7 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
         }
         else
         {
-            // Ordinal UTF-16 boundaries can contain unpaired surrogates. Keep those constraints local.
+            // Ordinal UTF-16 边界可以包含未受控制的代孕体, 将这些限制保留在本地。
             if (range.LowerBound is { } lowerBound && IsWellFormedUnicode(lowerBound))
             {
                 filter += TableClient.CreateQueryFilter($" and JournalId ge {lowerBound}");
@@ -168,8 +168,8 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
             return AzureTableJournalStorageOptions.EncodePartitionKey(value);
         }
 
-        // No stored id can equal an unsupported bound. At its first unsupported code unit,
-        // 1F sorts after the exact prefix but before any descendant; 7F sorts after all descendants.
+        // 没有任何存储的代号可以等同一个无支持的受约束。
+        // 1F 排序与确切的前缀相同,但先于任何后代;7F 排序则先于所有后代。
         return AzureTableJournalStorageOptions.EncodePartitionKey(value[..index])
             + (value[index] < ' ' ? "1F" : "7F");
     }

@@ -16,7 +16,7 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// A client which is hosted within a silo.
+    /// 客户端位于 silo内。
     /// </summary>
     internal sealed partial class HostedClient : IGrainContext, IGrainExtensionBinder, IDisposable, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -204,7 +204,7 @@ namespace Orleans.Runtime
 
             if (msg.Direction == Message.Directions.Response)
             {
-                // Requests are made through the runtime client, so deliver responses to the runtime client so that the request callback can be executed.
+                // 请求通过运行时间客户提出,因此向运行时间客户提供回复,以便可以执行回调。
                 this.runtimeClient.ReceiveResponse(msg);
             }
             else if (InvokableObjectManager.IsCancellationRequest(msg))
@@ -213,7 +213,7 @@ namespace Orleans.Runtime
             }
             else
             {
-                // Requests against client objects are scheduled for execution on the client.
+                // 针对客户物品的要求预定对客户执行。
                 if (!this.incomingMessages.Writer.TryWrite(msg))
                 {
                     this.invokableObjects.RejectMessage(msg);
@@ -318,10 +318,10 @@ namespace Orleans.Runtime
             {
                 if (cancellation.IsCancellationRequested) return Task.CompletedTask;
 
-                // Register with the message center so that we can receive messages.
+                // 使用信息中心注册,以便接收信息。
                 this.siloMessageCenter.SetHostedClient(this);
 
-                // Start pumping messages.
+                // 开始抽水信息
                 this.Start();
                 return Task.CompletedTask;
             }
@@ -426,13 +426,13 @@ namespace Orleans.Runtime
 
         public void Rehydrate(IRehydrationContext context)
         {
-            // Migration is not supported, but we need to dispose of the context if it's provided
+            // 移民得不到支持,但是如果有背景情况的话,我们需要处理它。
             (context as IDisposable)?.Dispose();
         }
 
         public void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken)
         {
-            // Migration is not supported. Do nothing: the contract is that this method attempts migration, but does not guarantee it will occur.
+            // 移民得不到支持,什么都不要做:合同是这种方式试图移徙,但不能保证移徙会发生。
         }
 
         [LoggerMessage(

@@ -8,7 +8,7 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Persistence.Cosmos;
 
 /// <summary>
-/// Stores Orleans grain state in Azure Cosmos DB.
+/// 仓库 Orleans grain 状态内 Azure 宇宙DB号
 /// </summary>
 public sealed partial class CosmosGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -27,17 +27,17 @@ public sealed partial class CosmosGrainStorage : IGrainStorage, ILifecyclePartic
     private Container _container = default!;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CosmosGrainStorage"/> class.
+    /// 初始化 <see cref="CosmosGrainStorage"/> 类的新实例。
     /// </summary>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="options">The storage provider options.</param>
-    /// <param name="loggerFactory">The logger factory.</param>
-    /// <param name="serviceProvider">The service provider.</param>
-    /// <param name="clusterOptions">The cluster options.</param>
-    /// <param name="documentIdProvider">The provider used to create Cosmos DB document identifiers.</param>
-    /// <param name="activatorProvider">The provider used to create grain state instances.</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="options">储存提供者的选项。</param>
+    /// <param name="loggerFactory">伐木厂</param>
+    /// <param name="serviceProvider">服务供应商。</param>
+    /// <param name="clusterOptions">组合组合选项。</param>
+    /// <param name="documentIdProvider">用于创建宇宙 DB 文件标识符的提供者。</param>
+    /// <param name="activatorProvider">用于创建 grain 状态实例的提供者。</param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="options"/> or <paramref name="clusterOptions"/> is <see langword="null"/>.
+    /// <paramref name="options"/> 或 <paramref name="clusterOptions"/> 是 <see langword="null"/>。
     /// </exception>
     public CosmosGrainStorage(
         string name,
@@ -104,7 +104,7 @@ public sealed partial class CosmosGrainStorage : IGrainStorage, ILifecyclePartic
         {
             if (dce.StatusCode == HttpStatusCode.NotFound)
             {
-                // State is new, just activate a default and return.
+                // 国家是新的,只是启动违约和返回。
                 ResetGrainState(grainState);
                 return;
             }
@@ -230,14 +230,14 @@ public sealed partial class CosmosGrainStorage : IGrainStorage, ILifecyclePartic
                         },
                         (this, id, pk, cancellationToken), cancellationToken).ConfigureAwait(false);
 
-                        // State exists but the current activation has not observed state creation. Therefore, we have inconsistent
-                        // state and should throw to give the grain a chance to deactivate and recover.
+                        // 国家存在,但目前的启动没有观察到国家创建。
+                        // 状态,应投出给 grain 一个停止使用和恢复的机会。
                         throw new CosmosConditionNotSatisfiedException(grainType, grainId, _options.ContainerName, "None", entity.ETag);
                     }
                     catch (CosmosException dce) when (dce.StatusCode == HttpStatusCode.NotFound)
                     {
-                        // Ignore, since this is the expected outcome.
-                        // All other exceptions will be handled by the outer catch blocks.
+                        // 忽略,因为这是预期的结果。
+                        // 所有其他例外将由外壳区块处理。
                     }
                 }
                 else
@@ -382,7 +382,7 @@ public sealed partial class CosmosGrainStorage : IGrainStorage, ILifecyclePartic
 
             if (retry == maxRetries || dbResponse.StatusCode != HttpStatusCode.Created || containerResponse.StatusCode == HttpStatusCode.Created)
             {
-                break;  // Apparently some throttling logic returns HttpStatusCode.OK (not 429) when the collection wasn't created in a new DB.
+                break;  // 显然,有些令人振奋的逻辑返回 HttpStatusCode.OK (而不是429) ,因为收藏不是在新的 DB 中创建的。
             }
             await Task.Delay(1000);
         }
@@ -494,16 +494,16 @@ public sealed partial class CosmosGrainStorage : IGrainStorage, ILifecyclePartic
 }
 
 /// <summary>
-/// Creates configured <see cref="CosmosGrainStorage"/> instances.
+/// 创建已配置 <see cref="CosmosGrainStorage"/> 实例。
 /// </summary>
 public static class CosmosStorageFactory
 {
     /// <summary>
-    /// Creates a Cosmos DB grain storage provider with the specified name.
+    /// 创建带有指定名称的宇宙 DB grain 存储提供者。
     /// </summary>
-    /// <param name="services">The service provider.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <returns>The configured grain storage provider.</returns>
+    /// <param name="services">服务供应商。</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <returns>配置的 grain 存储提供者。</returns>
     public static CosmosGrainStorage Create(IServiceProvider services, string name)
     {
         var optionsMonitor = services.GetRequiredService<IOptionsMonitor<CosmosGrainStorageOptions>>();

@@ -36,7 +36,7 @@ public interface IDurableHttpTestGrain : IGrainWithStringKey
     DurableTask<string> ApplyEffectAsync(string id);
 }
 
-/// <summary>Runs the durable tasks which the HTTP endpoints under test start.</summary>
+/// <summary>运行测试中 HTTP 端点开始的耐久任务。</summary>
 [GrainType("durable-http-test")]
 public sealed class DurableHttpTestGrain(
     IHttpClientFactory httpClients,
@@ -46,10 +46,10 @@ public sealed class DurableHttpTestGrain(
     public static readonly DurableSignal<string> Shipped = new("shipped");
     public static readonly DurableSignal<bool> Confirmed = new("confirmed");
 
-    /// <summary>Gets the current activations of the grain, by identity, which tests deactivate while they run a step.</summary>
+    /// <summary>可以通过身份获取 grain当前启动的状态,该状态在运行一步时测试停止作用。</summary>
     /// <remarks>
-    /// A step runs as a non-interleaving request, so a deactivation which a grain call requests waits for it. Deactivating
-    /// the activation directly, as a silo which shuts down does, aborts the step instead.
+    /// 一步运行为非互不连接请求,因此,一个 grain 调用的请求等待其取消。
+    /// 直接激活,作为关闭的 silo ,将中止该步骤。
     /// </remarks>
     public static System.Collections.Concurrent.ConcurrentDictionary<GrainId, IGrainContext> Activations { get; } = new();
 
@@ -61,7 +61,7 @@ public sealed class DurableHttpTestGrain(
 
     public DurableTask<string> EchoAsync(string value) => DurableTask.FromResult(value);
 
-    /// <summary>Waits for an approver, failing when the approver is <c>reject</c>.</summary>
+    /// <summary>等待批准者, 批准者失败时失败 <c>reject</c>.</summary>
     public async DurableTask<string> WaitForApprovalAsync(string item)
     {
         string approver;
@@ -77,7 +77,7 @@ public sealed class DurableHttpTestGrain(
         return approver == "reject" ? throw new InvalidOperationException($"{item} was rejected.") : $"{item} approved by {approver}";
     }
 
-    /// <summary>Waits for an approver, then for a carrier.</summary>
+    /// <summary>等待批准者,然后等待承运人。</summary>
     public async DurableTask<string> WaitForShipmentAsync(string item)
     {
         var approver = await Approved.WaitAsync();
@@ -85,35 +85,35 @@ public sealed class DurableHttpTestGrain(
         return $"{item} approved by {approver}, shipped by {carrier}";
     }
 
-    /// <summary>Waits for a confirmation, whose value is a <see cref="bool"/>.</summary>
+    /// <summary>等待确认,其价值为 <see cref="bool"/>。</summary>
     public async DurableTask<string> WaitForConfirmationAsync(string item) => $"{item} confirmed: {await Confirmed.WaitAsync()}";
 
-    /// <summary>Returns <paramref name="value"/> after a durable delay, so an HTTP client observes a running operation.</summary>
+    /// <summary>返回 <paramref name="value"/> 长期拖延之后,HTTP客户会观察运行中的操作。</summary>
     public async DurableTask<string> EchoLaterAsync(string value)
     {
         await DurableTask.Delay(TimeSpan.FromMilliseconds(100));
         return value;
     }
 
-    /// <summary>Completes without a result after a durable delay.</summary>
+    /// <summary>拖延时间过后完成,无结果。</summary>
     public async DurableTask CompleteLaterAsync(string value) => await DurableTask.Delay(TimeSpan.FromMilliseconds(100));
 
-    /// <summary>Fails after a durable delay.</summary>
+    /// <summary>长期拖延之后失败。</summary>
     public async DurableTask<string> FailLaterAsync(string value)
     {
         await DurableTask.Delay(TimeSpan.FromMilliseconds(100));
         throw new InvalidOperationException($"{value} failed.");
     }
 
-    /// <summary>Starts the operation at <paramref name="path"/> and durably waits for its result.</summary>
+    /// <summary>启动在 <paramref name="path"/> 的操作,并可持久地等待结果。</summary>
     public DurableTask<string> RunRemoteOperationAsync(string path, string value, DurableHttpWaitMode mode) =>
         api.RunOperationAsync<string>(
             () => new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(new EchoRequest(value)) },
             new DurableHttpOperationOptions { Mode = mode, PollInterval = TimeSpan.FromMilliseconds(100) });
 
     /// <summary>
-    /// Starts an approval of the order, reads its running status, approves it with <paramref name="approver"/>, and
-    /// returns its result.
+    /// 启动对订单的批准,读取运行状态,以 <paramref name="approver"/>批准,以及
+    /// 返回结果。
     /// </summary>
     public async DurableTask<string> ApproveRemoteOperationAsync(string orderId, string approver)
     {
@@ -125,8 +125,8 @@ public sealed class DurableHttpTestGrain(
     }
 
     /// <summary>
-    /// Starts an approval of the order, cancels it with <paramref name="reason"/>, and returns the error with which its
-    /// wait fails.
+    /// 启动对订单的批准,以 <paramref name="reason"/>取消订单,并返回其错误
+    /// 等待失败 。
     /// </summary>
     public async DurableTask<string> CancelRemoteOperationAsync(string orderId, string reason)
     {
@@ -144,8 +144,8 @@ public sealed class DurableHttpTestGrain(
     }
 
     /// <summary>
-    /// Sends a <c>POST</c> and a <c>GET</c> request with <see cref="IDurableHttpClient.SendAsync"/>, and returns the
-    /// idempotency keys which the server received.
+    /// 发送a <c>POST</c> 和 a 以及 <c>GET</c> 请求中 <see cref="IDurableHttpClient.SendAsync"/>返回
+    /// 服务器收到的有效密钥 。
     /// </summary>
     public async DurableTask<string[]> SendRemoteRequestsAsync()
     {
@@ -155,8 +155,8 @@ public sealed class DurableHttpTestGrain(
     }
 
     /// <summary>
-    /// Applies the effect <paramref name="id"/> at the server with <see cref="IDurableHttpClient.SendAsync"/>, then waits for
-    /// an approver, and returns how many requests the server had applied and the approver.
+    /// 应用效果 <paramref name="id"/> 服务器上的 <see cref="IDurableHttpClient.SendAsync"/>,然后等待
+    /// 批准者, 并返回服务器应用过多少次请求和批准者 。
     /// </summary>
     public async DurableTask<string> ApplyEffectAsync(string id)
     {
@@ -171,8 +171,8 @@ public sealed class DurableHttpTestGrain(
             Content = JsonContent.Create(new ApprovalRequest("widget")),
         });
     /// <summary>
-    /// Sends a <c>POST</c> and a <c>GET</c> request from a step, and returns the step's identifier, the idempotency keys
-    /// which the server received, and the step's incarnation.
+    /// 发送 <c>POST</c> 和 <c>GET</c> 请求,并返回该步骤的标识符即“应急”键
+    /// 服务器接收到的,以及阶梯的化身。
     /// </summary>
     public async DurableTask<string[]> SendIdempotencyKeyAsync() =>
         await DurableTask.Run(async cancellationToken =>

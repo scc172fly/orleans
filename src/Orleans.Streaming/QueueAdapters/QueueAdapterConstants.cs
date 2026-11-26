@@ -1,12 +1,12 @@
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Constants for queue adapters.
+    /// 队列适配器的常数 。
     /// </summary>
     public static class QueueAdapterConstants
     {
         /// <summary>
-        /// The value used to indicate an unlimited number of messages can be retrieved, when returned by <see cref="IQueueFlowController.GetMaxAddCount"/>.
+        /// 当 <see cref="IQueueFlowController.GetMaxAddCount"/>返回时,用于表示无限数量信件的值可以检索。
         /// </summary>
         public const int UNLIMITED_GET_QUEUE_MSG = -1;
     }

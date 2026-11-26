@@ -54,7 +54,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
         {
             ValidatePolicy(nextPolicy, request.OnSuccess!.Kind, now);
         }
-        // The extra wake-up can be orphaned by a failed owner write. Its handler reads only committed owner state.
+        // 额外的警醒可能因失败的所有人写作而成为孤儿。 其处理者只读到承诺的所有国 。
         await ArmAsync(now);
         var effect = new EffectRecord
         {
@@ -75,7 +75,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
 
     public async Task<EffectRecord?> GetAsync(EffectIdentity identity)
     {
-        // Capture before the write: an interleaved decision after its capture belongs to a later acknowledgement.
+        // 写作前的抓捕:在抓获后,
         var result = _effects.TryGetValue(Key(identity), out var effect) ? effect : null;
         await WriteStateAsync();
         return result;
@@ -137,7 +137,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             throw new InvalidOperationException("Resolve an outstanding effect using provider evidence or an authorized business decision.");
         }
 
-        // A decision closes dispatch for this identity. A deliberate resend is a separately authorized effect.
+        // 决定关闭此身份的发送。 故意重发是单独授权的效果 。
         var next = Complete(effect, outcome, $"operator: {evidence}");
         var saved = await SaveAsync(next);
         if (_active.TryGetValue(effect.ProviderKey, out var attempt))
@@ -182,8 +182,8 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             ValidatePolicy(nextPolicy, followUpRequest.OnSuccess!.Kind, now);
         }
         await ArmAsync(now);
-        // A due job can interleave with scheduling. An attempt which became active, or which already recorded a newer
-        // revision, still owns the original's outcome, so authorization waits until that attempt settles.
+        // 合适的工作可以与日程安排发生间断。 尝试开始活动,或者已经录下了新工作的
+        // 修改后,仍拥有原产结果,所以授权要等到尝试解决为止。
         CheckRevision(_effects[effect.ProviderKey], effect.Revision);
         ThrowIfFollowUpBlocked();
         var next = new EffectRecord
@@ -200,8 +200,8 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             Authorization = authorization,
             OnSuccessPolicy = nextPolicy
         };
-        // The original retains uncertainty and its evidence. Authorization transfers the next business action, rather
-        // than inventing a provider outcome. Cancellation prevents another dispatch under the original identity.
+        // 原始文件保留不确定因素及其证据。
+        // 取消合同阻止了原始身份下的另一发件人。
         _effects[effect.ProviderKey] = effect with
         {
             CancellationRequested = true,
@@ -283,7 +283,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
                 NextAction = effect.Policy.Execution is EffectExecution.RetrySafe ? "retry-same-key-or-lookup" : "lookup-or-operator-decision"
             };
             await SaveAsync(marked);
-            // Cancel/Resolve can interleave with storage acknowledgement. Only the current revision may dispatch.
+            // 取消/解决可与存储确认中断。 只有当前版本才能发送 。
             if (!ReferenceEquals(_effects[key], marked) || cancellation.IsCancellationRequested)
             {
                 return;
@@ -315,7 +315,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             }
             catch (Exception exception)
             {
-                // Timeout, cancellation and arbitrary provider/transport errors are evidence of uncertainty.
+                // 超时、取消和任意的供应商/运输错误是不确定性的证据。
                 result = new(ProviderOutcome.Unknown, $"{exception.GetType().Name}: {exception.Message}");
             }
 
@@ -347,7 +347,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
 
     private async Task ReconcileAsync(EffectRecord effect, CancellationToken cancellationToken)
     {
-        // Schedule the next action before issuing the query, so an unavailable provider leaves a responsible owner.
+        // 发布查询前的下一步动作时间安排, 因此无法提供的提供者会留下一个负责的所有人 。
         var checking = effect with
         {
             Status = EffectStatus.Reconciling,
@@ -419,7 +419,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             await ArmAsync(next.NextActionAt);
         }
 
-        // Scheduling awaited before staging. An interleaved decision may have advanced the revision meanwhile.
+        // 等待中转前的日程安排,可能同时作出跨胎决定,从而推进了修订。
         if (_effects.TryGetValue(next.ProviderKey, out var current) && current.Revision >= next.Revision)
         {
             await WriteStateAsync();

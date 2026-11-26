@@ -48,10 +48,10 @@ public sealed class InMemoryJournalBatchTests : JournalBatchTests
 }
 
 /// <summary>
-/// Base class for testing journal storage implementations.
-/// Derived classes must implement <see cref="ConfigureServices"/> to register the specific storage factory.
-/// This class provides a suite of common tests for validating the behavior of <see cref="DurableList{T}"/>
-/// against different storage backends.
+/// 测试日记存储实施情况的基础等级。
+/// 衍生类别必须实施 <see cref="ConfigureServices"/> ,以登记具体的储存厂。
+/// 此类为验证 <see cref="DurableList{T}"/>的行为提供一套通用测试
+/// 相对于不同的存储后端。
 /// </summary>
 public abstract class JournalBatchTests : IAsyncLifetime
 {
@@ -126,13 +126,13 @@ public abstract class JournalBatchTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests basic Add, Update (by index), and RemoveAt operations.
+    /// 测试基本添加、更新(按指数)和 RemoveAt 操作。
     /// </summary>
     [Fact]
     public async Task DurableList_BasicOperations_Test()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var grainId = GrainId.Create("test-grain", $"basicList-{Guid.NewGuid()}"); // Unique ID for this test run
+        var grainId = GrainId.Create("test-grain", $"basicList-{Guid.NewGuid()}"); // 此测试运行的唯一身份标识
         var (manager, list, _) = CreateTestComponents<string>("basicList", grainId);
         await manager.InitializeAsync(cts.Token);
 
@@ -160,14 +160,14 @@ public abstract class JournalBatchTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests that list state is correctly persisted and can be recovered by a new instance.
+    /// 列表状态的测试正确持续,可以通过新实例恢复。
     /// </summary>
     [Fact]
     public async Task DurableList_Persistence_Test()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var listName = "persistenceList";
-        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // Consistent GrainId for recovery
+        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // 恢复的一致 GrainId
         var (manager1, list1, storage) = CreateTestComponents<string>(listName, grainId);
         await manager1.InitializeAsync(cts.Token);
 
@@ -189,14 +189,14 @@ public abstract class JournalBatchTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests storing and retrieving complex objects, including updates to mutable properties.
+    /// 试验储存和检索复杂物体,包括更新变异特性。
     /// </summary>
     [Fact]
     public async Task DurableList_ComplexValues_Test()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var listName = "personList";
-        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // Consistent GrainId for recovery
+        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // 恢复的一致 GrainId
         var (manager, list, _) = CreateTestComponents<TestPerson>(listName, grainId);
         await manager.InitializeAsync(cts.Token);
 
@@ -214,21 +214,21 @@ public abstract class JournalBatchTests : IAsyncLifetime
         list[0] = list[0] with { Age = 31 };
         await manager.WriteStateAsync(cts.Token);
 
-        // Re-read to confirm persistence of the change
-        var (manager2, list2, _) = CreateTestComponents<TestPerson>(listName, grainId); // Use same GrainId to reload
+        // 重新阅读以确认变化的持久性
+        var (manager2, list2, _) = CreateTestComponents<TestPerson>(listName, grainId); // 使用相同的 GrainId 重新装入
         await manager2.InitializeAsync(cts.Token);
         Assert.Equal(31, list2[0].Age);
     }
 
     /// <summary>
-    /// Tests the Clear operation and its persistence.
+    /// 测试清除操作及其持久性。
     /// </summary>
     [Fact]
     public async Task DurableList_Clear_Test()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var listName = "clearList";
-        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // Consistent GrainId for recovery
+        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // 恢复的一致 GrainId
         var (manager, list, _) = CreateTestComponents<string>(listName, grainId);
         await manager.InitializeAsync(cts.Token);
 
@@ -242,20 +242,20 @@ public abstract class JournalBatchTests : IAsyncLifetime
 
         Assert.Empty(list);
 
-        // Verify persistence of Clear
-        var (manager2, list2, _) = CreateTestComponents<string>(listName, grainId); // Use same GrainId to reload
+        // 清除的核查持久性
+        var (manager2, list2, _) = CreateTestComponents<string>(listName, grainId); // 使用相同的 GrainId 重新装入
         await manager2.InitializeAsync(cts.Token);
         Assert.Empty(list2);
     }
 
     /// <summary>
-    /// Tests the Contains method and Remove (by value) operation.
+    /// 测试“包含”方法和删除(按值)操作。
     /// </summary>
     [Fact]
     public async Task DurableList_Contains_Test()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var grainId = GrainId.Create("test-grain", $"containsList-{Guid.NewGuid()}"); // Unique ID for this test run
+        var grainId = GrainId.Create("test-grain", $"containsList-{Guid.NewGuid()}"); // 此测试运行的唯一身份标识
         var (manager, list, _) = CreateTestComponents<string>("containsList", grainId);
         await manager.InitializeAsync(cts.Token);
 
@@ -274,13 +274,13 @@ public abstract class JournalBatchTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests Insert and Remove (by value) operations.
+    /// 插入和删除(按值)操作。
     /// </summary>
     [Fact]
     public async Task DurableList_InsertAndRemove_Test()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var grainId = GrainId.Create("test-grain", $"insertList-{Guid.NewGuid()}"); // Unique ID for this test run
+        var grainId = GrainId.Create("test-grain", $"insertList-{Guid.NewGuid()}"); // 此测试运行的唯一身份标识
         var (manager, list, _) = CreateTestComponents<string>("insertList", grainId);
         await manager.InitializeAsync(cts.Token);
 
@@ -306,13 +306,13 @@ public abstract class JournalBatchTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests list enumeration using ToList() (which relies on GetEnumerator).
+    /// 使用 ToList() ((依赖 GetEnumerator) 进行测试列表查点。
     /// </summary>
     [Fact]
     public async Task DurableList_Enumeration_Test()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var grainId = GrainId.Create("test-grain", $"enumList-{Guid.NewGuid()}"); // Unique ID for this test run
+        var grainId = GrainId.Create("test-grain", $"enumList-{Guid.NewGuid()}"); // 此测试运行的唯一身份标识
         var (manager, list, _) = CreateTestComponents<string>("enumList", grainId);
         await manager.InitializeAsync(cts.Token);
 
@@ -331,25 +331,25 @@ public abstract class JournalBatchTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Tests behavior with a larger number of operations (add, update) and multiple writes,
-    /// potentially triggering snapshotting behavior in the storage provider. Also tests recovery.
+    /// 测试行为,
+    /// 可能引发存储供应商的即时行为 还有测试回收
     /// </summary>
     [Fact]
     public async Task DurableList_LargeNumberOfOperations_And_Snapshot_Test()
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)); // Increased timeout
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)); // 超时时间增加
         var listName = "largeList";
-        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // Consistent GrainId for recovery
+        var grainId = GrainId.Create("test-grain", $"{listName}-{Guid.NewGuid()}"); // 恢复的一致 GrainId
         var (manager, list, storage) = CreateTestComponents<int>(listName, grainId);
         await manager.InitializeAsync(cts.Token);
 
-        const int itemCount = 100; // Reduced for faster testing, increase if needed
+        const int itemCount = 100; // 减少速度更快的测试,必要时增加
         for (int i = 0; i < itemCount; i++)
         {
             list.Add(i);
         }
 
-        // Write multiple times to potentially trigger snapshotting
+        // 多次写信,以触发快速抓捕
         for (int j = 0; j < 5; ++j)
         {
             await manager.WriteStateAsync(cts.Token);
@@ -362,7 +362,7 @@ public abstract class JournalBatchTests : IAsyncLifetime
             list[i] = list[i] * 2;
         }
 
-        // Write multiple times again
+        // 重复写多次
         for (int j = 0; j < 5; ++j)
         {
             await manager.WriteStateAsync(cts.Token);
@@ -374,10 +374,10 @@ public abstract class JournalBatchTests : IAsyncLifetime
             else Assert.Equal(i, list[i]);
         }
 
-        // Test recovery (potentially from snapshot)
+        // 测试恢复(可能从快照中)
         var sessionPool = _serviceProvider.GetRequiredService<SerializerSessionPool>();
         var codecProvider = _serviceProvider.GetRequiredService<ICodecProvider>();
-        var manager2 = new JournaledStateManager(CreateShared(), storage); // Reuses the storage object linked via grainId
+        var manager2 = new JournaledStateManager(CreateShared(), storage); // 重新使用通过 grainId连接的存储对象
         var list2 = new DurableList<int>(listName, manager2, new OrleansBinaryDurableListCommandCodec<int>(codecProvider.GetCodec<int>(), sessionPool));
         await manager2.InitializeAsync(cts.Token);
 
@@ -389,7 +389,7 @@ public abstract class JournalBatchTests : IAsyncLifetime
         }
     }
 
-    // Keep TestGrainContext and add TestPerson record needed for one of the tests
+    // 保留 TestGrainContext 并添加其中一项试验所需的 TestPerson 记录
     [GenerateSerializer, Immutable]
     internal sealed record TestPerson
     {

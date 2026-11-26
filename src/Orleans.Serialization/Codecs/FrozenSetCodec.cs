@@ -8,16 +8,16 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="FrozenSet{T}"/>.
+    /// <see cref="FrozenSet{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class FrozenSetCodec<T> : GeneralizedReferenceTypeSurrogateCodec<FrozenSet<T>, FrozenSetSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FrozenSetCodec{T}"/> class.
+        /// 初始化 <see cref="FrozenSetCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public FrozenSetCodec(IValueSerializer<FrozenSetSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -35,31 +35,31 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="FrozenSetCodec{T}"/>.
+    /// <see cref="FrozenSetCodec{T}"/>所使用的代金矿类型。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct FrozenSetSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public List<T> Values;
 
         /// <summary>
-        /// Gets or sets the key comparer.
+        /// 获取或设置密钥比较器 。
         /// </summary>
-        /// <value>The key comparer.</value>
+        /// <value>密钥比较器。</value>
         [Id(1)]
         public IEqualityComparer<T>? KeyComparer;
     }
 
     /// <summary>
-    /// Copier for <see cref="FrozenSet{T}"/>.
+    /// <see cref="FrozenSet{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class FrozenSetCopier<T> : IDeepCopier<FrozenSet<T>>, IOptionalDeepCopier, IDerivedTypeCopier
     {
@@ -67,9 +67,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FrozenSetCopier{T}"/> class.
+        /// 初始化 <see cref="FrozenSetCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">The element copier.</param>
+        /// <param name="copier">元素复印机。</param>
         public FrozenSetCopier(IDeepCopier<T> copier) => _copier = OrleansGeneratedCodeHelper.UnwrapService(this, copier);
 
         /// <inheritdoc />
@@ -89,8 +89,8 @@ namespace Orleans.Serialization.Codecs
             if (input.Count == 0 || IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input collection is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var items = new List<T>(input.Count);

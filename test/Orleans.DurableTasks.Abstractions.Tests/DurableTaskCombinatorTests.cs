@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>Verifies combinator outcomes, enumerable inputs, and operation naming with <c>WithId</c>.</summary>
+/// <summary>验证组合结果、可量化的投入和以 <c>WithId</c>命名的操作。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -41,7 +41,7 @@ public class DurableTaskCombinatorTests
             generic ? DurableTask.WhenAll<int>(inputs) : DurableTask.WhenAll((IReadOnlyList<DurableTask>)inputs),
             host.CreateContext(RootId)).AsTask();
 
-        // The canceled input and the later failure complete first; the combinator waits for the others.
+        // 取消输入后失败先完成; 组合器等待其它的 。
         Assert.Equal(DurableTaskStatus.Canceled, (await ObserveAsync(inputs[1])).Status);
         Assert.Equal(DurableTaskStatus.Failed, (await ObserveAsync(inputs[3])).Status);
         releaseFirstFailure.SetResult();
@@ -223,7 +223,7 @@ public class DurableTaskCombinatorTests
         Assert.Equal([1, 2], result.All);
         Assert.Equal(0, result.Any);
 
-        // The combinators run as part of the root, so neither they nor their combined results are stored.
+        // 组合体作为根部的一部分运行,所以它们和合并结果都不储存。
         Assert.Equal(
         [
             RootId,
@@ -301,7 +301,7 @@ public class DurableTaskCombinatorTests
     private static Task<DurableTaskResponse> ObserveAsync<TResult>(ObservedDurableTask<TResult> input)
         => input.Response.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
 
-    /// <summary>Runs an input definition and publishes its terminal response before the host records it.</summary>
+    /// <summary>运行输入定义,并在主机记录前公布其终端响应。</summary>
     private sealed class ObservedDurableTask<TResult>(DurableTask<TResult> inner) : DurableTask<TResult>
     {
         private readonly TaskCompletionSource<DurableTaskResponse> _response = new(TaskCreationOptions.RunContinuationsAsynchronously);

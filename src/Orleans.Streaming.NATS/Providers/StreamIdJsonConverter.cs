@@ -60,7 +60,7 @@ internal class StreamIdJsonConverter : JsonConverter<StreamId>
             throw new JsonException("StreamId key is empty");
         }
 
-        // Preserve the legacy wire format for identities which round-trip through namespace/key text.
+        // 保留通过命名空间/关键文字进行双程访问的身份的遗留电线格式。
         if (!value.Namespace.IsEmpty
             && !value.Namespace.Span.Contains((byte)'/')
             && Utf8.IsValid(value.Namespace.Span)

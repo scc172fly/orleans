@@ -9,24 +9,24 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// A deterministic, strongly consistent, in-memory reference implementation of the <see cref="IReminderTable"/>
-/// contract, written independently of every production reminder provider.
+/// 确定性、强烈一致和初步参照 <see cref="IReminderTable"/>
+/// 合同,与每个生产提醒提供者独立订立。
 /// </summary>
 /// <remarks>
 /// <para>
-/// The oracle exists so that the conformance suite can be validated against a known-correct implementation before it
-/// is pointed at a real provider. It is not a wrapper over a production provider: it maintains its own storage, its
-/// own monotonic ETag sequence and its own range evaluation derived directly from the documented contract.
+/// 甲骨文的存在,以便能对照已知的正确执行程序验证符合性套件
+/// 指出的是真正的供应商,它不是生产供应商的包装纸:它维持自己的储存、其销售和销售。
+/// 自己的单体ETag序列和其本身的射程评价直接来自有文件证明的合同。
 /// </para>
-/// <para>Introspection: <see cref="Snapshot"/>, <see cref="Operations"/>, <see cref="OperationCount"/>.</para>
+/// <para>内审: <see cref="Snapshot"/>, <see cref="Operations"/>, <see cref="OperationCount"/>.</para>
 /// <para>
-/// Controls: <see cref="SetAvailable"/> (storage outage), <see cref="InjectFailure"/> (transient failures),
-/// <see cref="BlockNext"/> (deterministic synchronization barriers), <see cref="FreezeReads"/> (stale snapshots) and
-/// cancellation observation on <see cref="StartAsync"/> and <see cref="StopAsync"/>.
+/// 控制: <see cref="SetAvailable"/> (储存中断)、 <see cref="InjectFailure"/> (中度故障),
+/// <see cref="BlockNext"/> (确定同步障碍)、 <see cref="FreezeReads"/> (短片)和
+/// 对 <see cref="StartAsync"/> 和 <see cref="StopAsync"/>的注销观测。
 /// </para>
 /// <para>
-/// Invariant violations are detected at the operation which causes them and are reported as
-/// <see cref="ReminderConformanceException"/> carrying a structured <see cref="ReminderFailureReport"/>.
+/// 导致这些侵犯行为的行动发现各种侵犯行为,报告为:
+/// <see cref="ReminderConformanceException"/> 带有结构化 <see cref="ReminderFailureReport"/>。
 /// </para>
 /// </remarks>
 public sealed class IdealizedReminderTable : IReminderTable
@@ -46,21 +46,21 @@ public sealed class IdealizedReminderTable : IReminderTable
     private bool _started;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IdealizedReminderTable"/> class.
+    /// 初始化 <see cref="IdealizedReminderTable"/> 类的新实例。
     /// </summary>
-    /// <param name="name">A name used to identify this instance in diagnostics.</param>
+    /// <param name="name">用于识别诊断中此实例的名称。</param>
     public IdealizedReminderTable(string name = "IdealizedReminderTable")
     {
         Name = string.IsNullOrWhiteSpace(name) ? "IdealizedReminderTable" : name;
     }
 
     /// <summary>
-    /// Gets the name used to identify this instance in diagnostics.
+    /// 获取用于在诊断中识别此实例的名称 。
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// Gets a value indicating whether <see cref="StartAsync"/> has completed more recently than <see cref="StopAsync"/>.
+    /// 获得一个值,以显示 <see cref="StartAsync"/> 是否最近完成过 <see cref="StopAsync"/>。
     /// </summary>
     public bool IsStarted
     {
@@ -74,7 +74,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Gets a value indicating whether the table is currently serving requests.
+    /// 获得一个值,以显示表格是否正在满足请求。
     /// </summary>
     public bool IsAvailable
     {
@@ -88,9 +88,9 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Returns a deterministically ordered snapshot of every durable record.
+    /// 返回的每个持久记录都有一个定序快照。
     /// </summary>
-    /// <returns>The records ordered by uniform hash code, grain identifier and reminder name.</returns>
+    /// <returns>统一散列码下的命令记录 grain 和提醒名称。</returns>
     public IReadOnlyList<ReminderTableRecord> Snapshot()
     {
         lock (_gate)
@@ -100,11 +100,11 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Attempts to read a single durable record.
+    /// 试图阅读一份单一的持久记录。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <returns>The record, or <see langword="null"/> when it does not exist.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <returns>(a) 记录,或 <see langword="null"/> 不存在时。</returns>
     public ReminderTableRecord? Find(GrainId grainId, string reminderName)
     {
         lock (_gate)
@@ -114,7 +114,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Returns the ordered log of every operation observed by this table.
+    /// 返回本表格所观察到的每个操作的顺序日志。
     /// </summary>
     public IReadOnlyList<ReminderTableOperation> Operations
     {
@@ -128,10 +128,10 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Counts the operations of the specified kind observed so far.
+    /// 计及迄今观察到的指定类型的操作。
     /// </summary>
-    /// <param name="kind">The operation kind.</param>
-    /// <returns>The count.</returns>
+    /// <param name="kind">操作类型。</param>
+    /// <returns>计数。</returns>
     public int OperationCount(ReminderTableOperationKind kind)
     {
         lock (_gate)
@@ -141,7 +141,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Clears the recorded operation log without affecting durable state.
+    /// 清除记录中的操作日志,不影响耐久状态。
     /// </summary>
     public void ClearOperations()
     {
@@ -152,9 +152,9 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Marks the table available or unavailable, simulating a storage outage and its recovery.
+    /// 标出可用或无法使用的表格,模拟储存中断和回收。
     /// </summary>
-    /// <param name="available">Whether the table should serve requests.</param>
+    /// <param name="available">表格是否满足请求。</param>
     public void SetAvailable(bool available)
     {
         lock (_gate)
@@ -164,11 +164,11 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Queues one or more injected failures for the specified operation kind.
+    /// 将指定操作种类的一个或多个注射失败。
     /// </summary>
-    /// <param name="kind">The operation kind to fail.</param>
-    /// <param name="count">The number of consecutive occurrences to fail.</param>
-    /// <param name="exceptionFactory">A factory producing the exception, or <see langword="null"/> for the default.</param>
+    /// <param name="kind">操作类型失败。</param>
+    /// <param name="count">连续发生失败的次数。</param>
+    /// <param name="exceptionFactory">生产例外情形或 <see langword="null"/> 的工厂,因违约。</param>
     public void InjectFailure(ReminderTableOperationKind kind, int count = 1, Func<Exception>? exceptionFactory = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
@@ -189,7 +189,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Removes every queued injected failure.
+    /// 删除每个队列的注射失败 。
     /// </summary>
     public void ClearInjectedFailures()
     {
@@ -200,10 +200,10 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Blocks the next operation of the specified kind until the returned gate is released.
+    /// 屏蔽指定类型的下一次操作,直到返回的大门被释放。
     /// </summary>
-    /// <param name="kind">The operation kind to block.</param>
-    /// <returns>The gate.</returns>
+    /// <param name="kind">封堵的操作类型。</param>
+    /// <returns>大门</returns>
     public ReminderTableOperationGate BlockNext(ReminderTableOperationKind kind)
     {
         var gate = new ReminderTableOperationGate(this, kind);
@@ -216,10 +216,10 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// Freezes reads against the current durable state, so subsequent reads observe a stale snapshot while writes
-    /// continue to be applied.
+    /// 冻结规定与目前的耐久状态相反,
+    /// 继续适用。
     /// </summary>
-    /// <returns>A handle which restores live reads when disposed.</returns>
+    /// <returns>处理时恢复活的控点读作。</returns>
     public IDisposable FreezeReads()
     {
         lock (_gate)
@@ -388,7 +388,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // Internals
+    // 内部内部
     // ---------------------------------------------------------------------------------------------------------
 
     private async Task BeforeOperationAsync(
@@ -533,14 +533,14 @@ public sealed class IdealizedReminderTable : IReminderTable
     };
 
     /// <summary>
-    /// Determines whether a uniform hash code falls in the range (<paramref name="begin"/>, <paramref name="end"/>].
+    /// 确定统一的散列代码是否属于范围(<paramref name="begin"/>、 <paramref name="end"/>)
     /// </summary>
-    /// <param name="hash">The uniform hash code.</param>
-    /// <param name="begin">The exclusive lower bound.</param>
-    /// <param name="end">The inclusive upper bound.</param>
-    /// <returns><see langword="true"/> when the hash is in range.</returns>
-    /// <remarks>When <paramref name="begin"/> is greater than or equal to <paramref name="end"/> the range wraps
-    /// around zero and matches hashes above <paramref name="begin"/> or at or below <paramref name="end"/>.</remarks>
+    /// <param name="hash">统一的散列代码。</param>
+    /// <param name="begin">排他性下限约束</param>
+    /// <param name="end">包含式上约束。</param>
+    /// <returns><see langword="true"/> 当散列在范围之内时。</returns>
+    /// <remarks>当 <paramref name="begin"/> 大于或等于 <paramref name="end"/> 时, 范围包
+    /// 零周围和匹配的支盘高于 <paramref name="begin"/> 或位于或低于 <paramref name="end"/>。</remarks>
     public static bool InRange(uint hash, uint begin, uint end)
         => begin < end ? hash > begin && hash <= end : hash > begin || hash <= end;
 

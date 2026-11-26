@@ -1,6 +1,6 @@
 ---
-title: Deploy and scale an Orleans app on Azure
-description: Host and scale an Orleans app on Azure Container Apps with Azure Container Registry and Azure Table Storage or Azure Cosmos DB for NoSQL.
+title: "部署和规模 a Orleans 应用 Azure"
+description: "主办方和比例 a Orleans 应用 Azure 集装箱容器 Azure 集装箱登记和 Azure 表格储存或 Azure 宇宙 DB NoSQL."
 ms.topic: how-to
 ms.devlang: csharp
 ms.date: 08/02/2026
@@ -8,55 +8,61 @@ zone_pivot_groups: orleans-persistence-option
 # CustomerIntent: As a developer, I want to host my Orleans application in Azure so that I can take advantage of the scaling capabilities for the database and application services.
 ---
 
-# Deploy and scale an Orleans app on Azure
+<a id="deploy-and-scale-an-orleans-app-on-azure"></a>
 
-In this quickstart, you deploy and scale an Orleans URL shortener app on Azure Container Apps. The app allows users to submit a full URL to the app, which returns a shortened version they can share with others to direct them to the original site. Orleans and Azure provide the scalability features necessary to host high traffic apps like URL shorteners. Orleans is also compatible with any other hosting service that supports .NET.
+# 部署和规模 a Orleans 应用 Azure
 
-At the end of this quickstart, you have a scalable app running in Azure to provide URL shortener functionality. Along the way you learn to:
+快速启动,你部署和调整 Orleans URL 缩短程序 Azure 容器应用程序。 该应用程序允许用户向应用程序提交完整的 URL , 返回一个缩短的版本, 以便与其他人共享, 将它们传送到原始网站 。 Orleans 和 Azure 提供安装像 URL 缩短器等高流量应用程序所需的可缩放性功能。 Orleans 也符合支持 .NET.
 
-- Pull an Azure Developer CLI template
-- Deploy an Orleans app to Azure
-- Scale the app to multiple instances
+快速启动结束时, 您有一个在 Azure 运行的可缩放应用程序, 以提供 URL 缩短功能。 在学习到 :
 
-## Prerequisites
+- 拉动 Azure 开发者 CLI 模板
+- 将 Orleans 应用程序安装到 Azure
+- 将应用程序缩放到多个实例
 
-- An Azure account with an active subscription. [Create an account for free](https://azure.microsoft.com/pricing/purchase-options/azure-account?cid=msft_learn).
-- [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
+<a id="prerequisites"></a>
+
+## 先决条件
+
+- 具有有效订阅功能的 Azure 账户。 [创建免费账户](https://azure.microsoft.com/pricing/purchase-options/azure-account?cid=msft_learn)
+- [Azure 开发者 CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Docker](https://www.docker.com/)
+- [嵌入器](https://www.docker.com/)
 
-## Get and deploy the sample application
+<a id="get-and-deploy-the-sample-application"></a>
 
-The sample application is available as an Azure Developer CLI template. Through this quickstart: you pull the template application, deploy the template and sample code to Azure, change the template to implement your preferred persistence grain, deploy the necessary resources, and then deploy the final application.
+## 获取并部署样本应用
 
-1. Open a terminal in an empty directory.
+样本应用程序作为 Azure 开发器 CLI 模板可用。 通过此快速启动: 您拉动模板应用程序, 将模板和样本代码部署到 Azure, 修改模板以实施您首选的持久性 grain, 部署必要的资源, 然后部署最后应用程序 。
 
-1. Authenticate to the Azure Developer CLI using `azd auth login`. Follow the steps specified by the tool to authenticate to the CLI using your preferred Azure credentials.
+1. 在空目录中打开终端 。
+
+1. 认证到 Azure 开发者 CLI 使用 `azd auth login`。遵循工具指定的步骤,以验证 CLI 使用首选 Azure 全权证书。
 
    ```azuredeveloper
    azd auth login
    ```
 
-1. Get the sample application using the AZD template `orleans-url-shortener` and the `azd init` command.
+1. 使用 AZD 模板 `orleans-url-shortener` 和 `azd init` 命令获取样本应用程序。
 
    ```azuredeveloper
    azd init --template orleans-url-shortener
    ```
 
-1. During initialization, configure a unique environment name.
+1. 初始化时, 配置一个独特的环境名称 。
 
    > [!TIP]
-   > The environment name will also be used as the target resource group name. For this quickstart, consider using `msdocs-orleans-url-shortener`.
+   > 环境名称也将用作目标资源组的名称。 对于此快速启动, 请考虑使用 `msdocs-orleans-url-shortener`。
 
-1. Deploy the Azure Cosmos DB for NoSQL account using `azd up`. The Bicep templates also deploy a sample web application.
+1. 部署 Azure 宇宙 DB NoSQL 账户使用 `azd up`Bicep 模板还安装了一个网络应用程序样本。
 
    ```azuredeveloper
    azd up
    ```
 
-1. During the provisioning process, select your subscription and desired location. Wait for the provisioning and deployment process to complete. The process can take **approximately five minutes**.
+1. 在供给过程中,选择您的订阅和所需位置。等待供给和部署过程完成。该过程大约需要5分钟 ****。
 
-1. Once the provisioning of your Azure resources is done, a URL to the running web application is included in the output.
+1. 一旦提供您的 Azure 资源,输出中将包含运行中的网络应用程序的 URL。
 
    ```output
    Deploying services (azd deploy)
@@ -67,11 +73,11 @@ The sample application is available as an Azure Developer CLI template. Through 
    SUCCESS: Your application was provisioned and deployed to Azure in 5 minutes 0 seconds.
    ```
 
-1. Use the URL in the console to navigate to your web application in the browser.
+1. 使用控制台中的 URL 浏览浏览器中您 Web 应用程序的导航。
 
-   :::image type="content" source="media/deploy-scale-orleans-on-azure/web-application.png" alt-text="Screenshot of the running URL shortener web application.":::
+   :::image type="content" source="media/deploy-scale-orleans-on-azure/web-application.png" alt-text="运行中的 URL 缩短器网络应用程序的截图 。":::
 
-1. In the browser address bar, test the `shorten` endpoint by adding a URL path such as `/shorten?url=https://www.microsoft.com`. The page should reload and provide a new URL with a shortened path at the end. Copy the new URL to your clipboard.
+1. 在浏览器地址栏中测试 `shorten` 通过添加 URL 路径等 `/shorten?url=https://www.microsoft.com`页面应重新装入并提供一个新的URL,并在结尾处提供一条缩短路径。将新 URL 复制到剪贴板。
 
    ```output
    {
@@ -80,15 +86,17 @@ The sample application is available as an Azure Developer CLI template. Through 
    }
    ```
 
-1. Paste the shortened URL into the address bar and press enter. The page should reload and redirect you to the URL you specified.
+1. 将缩短的 URL 粘贴到地址栏中, 按下输入。 该页面应该重新装入并重定向到您指定的 URL 上。
 
-## Deploy extra services
+<a id="deploy-extra-services"></a>
 
-The original deployment only deployed the minimal services necessary to host the URL shortener app. To use an Azure data service for grain persistence, you must first configure the template to deploy your preferred service.
+## 部署额外服务
+
+最初部署仅部署了主机 URL 缩短程序所需的最起码服务。 要使用 Azure 数据服务来保持 grain 持久性, 您必须首先配置模板以部署首选服务 。
 
 :::zone pivot="azure-storage"
 
-1. Using the terminal, run `azd env set` to configure the `DEPLOY_AZURE_TABLE_STORAGE` environment variable to enable deployment of Azure Table Storage.
+1. 使用终端运行 `azd env set` 配置 `DEPLOY_AZURE_TABLE_STORAGE` 环境变量,以便能够部署 Azure 表格存储。
 
    ```azuredeveloper
    azd env set DEPLOY_AZURE_TABLE_STORAGE true
@@ -98,7 +106,7 @@ The original deployment only deployed the minimal services necessary to host the
 
 :::zone pivot="azure-cosmos-db-nosql"
 
-1. Using the terminal, run `azd env set` to configure the `DEPLOY_AZURE_COSMOS_DB_NOSQL` environment variable to enable deployment of Azure Cosmos DB for NoSQL.
+1. 使用终端终端,运行 `azd env set` 配置 `DEPLOY_AZURE_COSMOS_DB_NOSQL` 环境变量,以启用 Azure 宇宙 DB NoSQL.
 
    ```azuredeveloper
    azd env set DEPLOY_AZURE_COSMOS_DB_NOSQL true
@@ -106,51 +114,53 @@ The original deployment only deployed the minimal services necessary to host the
 
 :::zone-end
 
-1. Run `azd provision` to redeploy your application architecture with the new configuration. Wait for the provisioning process to complete. The process can take **approximately two minutes**.
+1. 运行 `azd provision` 以将您的应用程序架构与新配置相调换。 等待供给进程完成。 程序大约需要两分钟 ****。
 
    ```azuredeveloper
    azd provision
    ```
 
    > [!TIP]
-   > Alternatively, you can run `azd up` again which will both provision your architecture and redeploy your application.
+   > 或者,您可以再次运行 `azd up` ,这将提供您的架构并重新配置您的应用程序。
 
-## Install NuGet packages
+<a id="install-nuget-packages"></a>
 
-Before adding shared providers, align the template with the snippets:
+## 安装 NuGet 软件包
 
-1. Change the working directory to _./src/web/_.
+在添加共享提供者之前, 请将模板与片段匹配 :
+
+1. 将工作目录更改为 _./src/web/_。
 
    ```bash
    cd ./src/web
    ```
 
-1. In the project file, change `TargetFramework` to `net10.0`.
+1. 在项目文件中,将 `TargetFramework` 改为 `net10.0`。
 
-1. In _./src/web/Dockerfile_, update both [.NET container images](https://learn.microsoft.com/dotnet/core/docker/container-images): use `mcr.microsoft.com/dotnet/sdk:10.0` for the build stage and `mcr.microsoft.com/dotnet/aspnet:10.0` for the runtime stage.
+1. 在 _./src/web/Dockerfiles_中,更新两个 [.NET 容器图像](https://learn.microsoft.com/dotnet/core/docker/container-images):在建设阶段使用 `mcr.microsoft.com/dotnet/sdk:10.0` ,在运行时间阶段使用 `mcr.microsoft.com/dotnet/aspnet:10.0` 。
 
-1. Upgrade the Orleans host package:
+1. 升级 Orleans 主机软件包:
 
    ```dotnetcli
    dotnet package add Microsoft.Orleans.Server --version 10.2.2
    ```
 
-Next, install the corresponding `Microsoft.Orleans.Clustering.*` and `Microsoft.Orleans.Persistence.*` NuGet packages. These services use role-based access control for passwordless authentication, so you must also import the `Azure.Identity` NuGet package.
+下一步,安装相应的 `Microsoft.Orleans.Clustering.*` 和 `Microsoft.Orleans.Persistence.*` NuGet 软件包。这些服务使用基于角色的访问控制进行无密码认证,所以您也必须导入 `Azure.Identity` NuGet 软件包。
 
 :::zone pivot="azure-storage"
 
-1. Import the `Azure.Identity` package from NuGet:
+1. 导入 `Azure.Identity` 软件包 NuGet:
 
    ```dotnetcli
    dotnet package add Azure.Identity
    ```
 
-1. Import the `Microsoft.Orleans.Clustering.AzureStorage` and `Microsoft.Orleans.Persistence.AzureStorage` packages.
+1. 导入 `Microsoft.Orleans.Clustering.AzureStorage` 和 `Microsoft.Orleans.Persistence.AzureStorage` 软件包。
 
-   | Feature         | NuGet package                                |
+   | 特征         | NuGet 套货包                                |
    |-----------------|----------------------------------------------|
-   | **Clustering**  | `Microsoft.Orleans.Clustering.AzureStorage`  |
-   | **Persistence** | `Microsoft.Orleans.Persistence.AzureStorage` |
+   | **组合** | `Microsoft.Orleans.Clustering.AzureStorage`  |
+   | **持久性** | `Microsoft.Orleans.Persistence.AzureStorage` |
 
    ```dotnetcli
    dotnet package add Microsoft.Orleans.Clustering.AzureStorage --version 10.2.2
@@ -161,18 +171,18 @@ Next, install the corresponding `Microsoft.Orleans.Clustering.*` and `Microsoft.
 
 :::zone pivot="azure-cosmos-db-nosql"
 
-1. Import the `Azure.Identity` package from NuGet:
+1. 导入 `Azure.Identity` 软件包 NuGet:
 
    ```dotnetcli
    dotnet package add Azure.Identity
    ```
 
-1. Import the `Microsoft.Orleans.Clustering.Cosmos` and `Microsoft.Orleans.Persistence.Cosmos` packages.
+1. 导入 `Microsoft.Orleans.Clustering.Cosmos` 和 `Microsoft.Orleans.Persistence.Cosmos` 软件包。
 
-   | Feature         | NuGet package                          |
+   | 特征         | NuGet 套货包                          |
    |-----------------|----------------------------------------|
-   | **Clustering**  | `Microsoft.Orleans.Clustering.Cosmos`  |
-   | **Persistence** | `Microsoft.Orleans.Persistence.Cosmos` |
+   | **组合** | `Microsoft.Orleans.Clustering.Cosmos`  |
+   | **持久性** | `Microsoft.Orleans.Persistence.Cosmos` |
 
    ```dotnetcli
    dotnet package add Microsoft.Orleans.Clustering.Cosmos --version 10.2.2
@@ -181,25 +191,27 @@ Next, install the corresponding `Microsoft.Orleans.Clustering.*` and `Microsoft.
 
 :::zone-end
 
-## Configure and redeploy the sample app
+<a id="configure-and-redeploy-the-sample-app"></a>
 
-The sample app initially creates a localhost cluster and persists grain state in memory. When hosted in Azure, Orleans can use a shared data service for cluster membership and durable grain state.
+## 配置并重新调配样本应用程序
 
-1. Find and remove the existing `builder` configuration code in the _src/web/Program.cs_ file.
+样本应用程序最初创建了一个本地主机群集, 并保持了 grain 状态。 当位于 Azure时, Orleans 可以使用共享数据服务来组成群集和保持耐用 grain 状态 。
+
+1. 查找并删除现有 `builder` _src/web/ 中的设置代码Program.cs_ 文件。
 
    :::code source="snippets/url-shortener/orleansurlshortener/Program.cs" id="orleans-configuration":::
 
 :::zone pivot="azure-storage"
 
-1. Add the required `using` directives:
+1. 添加所需的 `using` 指令:
 
    :::code source="snippets/deploy-scale-orleans-on-azure/azure-storage/Program.cs" id="azure-storage-usings":::
 
-1. Replace the `builder` configuration with the example here, which implements these key concepts:
+1. 将 `builder` 配置替换为此处示例,用于实施这些关键概念:
 
-   - A conditional environment check is added to ensure the app runs properly in both local development and Azure hosted scenarios.
-   - <xref:Orleans.Hosting.AzureTableClusteringExtensions.UseAzureStorageClustering*?displayProperty=nameWithType> configures the Orleans cluster to use Azure Table Storage and authenticates using <xref:Azure.Identity.DefaultAzureCredential>.
-   - The configuration assigns <xref:Orleans.Configuration.ClusterOptions.ClusterId> and <xref:Orleans.Configuration.ClusterOptions.ServiceId>.
+   - 添加有条件的环境检查,以确保应用程序在当地开发和 Azure 托管情景中运行正常。
+   - <xref:Orleans.Hosting.AzureTableClusteringExtensions.UseAzureStorageClustering*?displayProperty=nameWithType> 配置 Orleans 组,使用 Azure 表格存储和认证 <xref:Azure.Identity.DefaultAzureCredential>。
+   - 配置指派 <xref:Orleans.Configuration.ClusterOptions.ClusterId> 和 <xref:Orleans.Configuration.ClusterOptions.ServiceId>。
    - <xref:Orleans.Configuration.ClusterOptions.ClusterId> identifies a cluster so its clients and silos can communicate. Use a different value for deployments that must remain isolated.
    - <xref:Orleans.Configuration.ClusterOptions.ServiceId> identifies the application and should remain consistent across deployments.
 
@@ -209,15 +221,15 @@ The sample app initially creates a localhost cluster and persists grain state in
 
 :::zone pivot="azure-cosmos-db-nosql"
 
-1. Add the required `using` directives:
+1. 添加所需的 `using` 指令:
 
    :::code source="snippets/deploy-scale-orleans-on-azure/cosmos/Program.cs" id="cosmos-usings":::
 
-1. Replace the `builder` configuration with the example here, which implements these key concepts:
+1. 将 `builder` 配置替换为此处示例,用于实施这些关键概念:
 
-   - A conditional environment check is added to ensure the app runs properly in both local development and Azure hosted scenarios.
-   - <xref:Orleans.Hosting.HostingExtensions.UseCosmosClustering*?displayProperty=nameWithType> configures the Orleans cluster to use Azure Cosmos DB for NoSQL and authenticates using <xref:Azure.Identity.DefaultAzureCredential>.
-   - The configuration assigns <xref:Orleans.Configuration.ClusterOptions.ClusterId> and <xref:Orleans.Configuration.ClusterOptions.ServiceId>.
+   - 添加有条件的环境检查,以确保应用程序在当地开发和 Azure 托管情景中运行正常。
+   - <xref:Orleans.Hosting.HostingExtensions.UseCosmosClustering*?displayProperty=nameWithType> 配置 Orleans 要使用的组群 Azure 宇宙 DB NoSQL 和使用 <xref:Azure.Identity.DefaultAzureCredential>.
+   - 配置指派 <xref:Orleans.Configuration.ClusterOptions.ClusterId> 和 <xref:Orleans.Configuration.ClusterOptions.ServiceId>。
    - <xref:Orleans.Configuration.ClusterOptions.ClusterId> identifies a cluster so its clients and silos can communicate. Use a different value for deployments that must remain isolated.
    - <xref:Orleans.Configuration.ClusterOptions.ServiceId> identifies the application and should remain consistent across deployments.
 
@@ -225,20 +237,22 @@ The sample app initially creates a localhost cluster and persists grain state in
 
 :::zone-end
 
-1. Run `azd deploy` to redeploy your application code as a Docker container. Wait for the deployment process to complete. The process can take **approximately one minute**.
+1. 运行运行 `azd deploy` 将应用程序代码重新定位为 docker 容器。等待部署进程完成。该程序可以进行 **大约一分钟**.
 
    ```azuredeveloper
    azd deploy
    ```
 
    > [!TIP]
-   > Alternatively, you can run `azd up` again which will both provision your architecture and redeploy your application.
+   > 或者,您可以再次运行 `azd up` ,这将提供您的架构并重新配置您的应用程序。
 
-## Verify the app's behavior
+<a id="verify-the-apps-behavior"></a>
 
-Validate that your updated code works by using the deployed application again and checking to see where it stores data.
+## 验证应用程序的行为
 
-1. In the browser address bar, test the `shorten` endpoint again by adding a URL path such as `/shorten?url=https://learn.microsoft.com/dotnet/orleans`. The page should reload and provide a new URL with a shortened path at the end. Copy the new URL to your clipboard.
+校验您更新过的代码是否有效, 方法是再次使用已部署的应用程序, 并检查其存储数据的位置 。
+
+1. 在浏览器地址栏中测试 `shorten` 通过添加 URL 路径等 `/shorten?url=https://learn.microsoft.com/dotnet/orleans`页面应重新装入并提供一个新的URL,并在结尾处提供一条缩短路径。将新 URL 复制到剪贴板。
 
    ```output
    {
@@ -247,74 +261,80 @@ Validate that your updated code works by using the deployed application again an
    }
    ```
 
-1. Paste the shortened URL into the address bar and press enter. The page should reload and redirect you to the URL you specified.
+1. 将缩短的 URL 粘贴到地址栏中, 按下输入。 该页面应该重新装入并重定向到您指定的 URL 上。
 
-Optionally, you can verify that the cluster and state data is stored as expected in the storage account you created.
+可以选择,您可以核实数据组和国家数据是否按照您创建的存储账户中预期的那样存储。
 
-1. In the Azure portal, navigate to the resource group that was deployed in this quickstart.
+1. 在 Azure 门户网站中,导航到在快速启动时部署的资源小组。
 
    > [!IMPORTANT]
-   > The environment name specified earlier in this quickstart is also the target resource group name.
+   > 在此快速启动中早些时候指定的环境名称也是目标资源组的名称 。
 
 :::zone pivot="azure-storage"
 
-1. Navigate to the overview page of the Azure Storage account.
+1. 导航至 Azure 存储账户概览页面。
 
-1. Within the navigation, select **Storage browser**.
+1. 在导航中,选择 **存储浏览器**。
 
-1. Expand the **Tables** navigation item to discover two tables created by Orleans:
+1. 展开 **表** 导航项目,以发现由 Orleans创建的两个表格:
 
-   - **OrleansGrainState**: This table stores the persistent state grain data used by the application to handle the URL redirects.
-   - **OrleansSiloInstances**: This table tracks essential silo data for the Orleans cluster.
+   - **OrleansGrainState**:本表格储存持久性状态 grain 应用程序用于处理 URL 重定向的数据。
+   - **OrleansSiloInstances**:此表格的曲目 silo 数据的数据 Orleans 组。
 
-1. Select the **OrleansGrainState** table. The table holds a row entry for every URL redirect persisted by the app during your testing.
+1. 选择 **OrleansGrainState** 表格。该表为在测试期间应用过程中持续的所有 URL 重新定向保留的一个行条目。
 
-   :::image type="content" source="media/deploy-scale-orleans-on-azure/storage-table-entities.png" alt-text="A screenshot showing Orleans data in Azure Table Storage.":::
+   :::image type="content" source="media/deploy-scale-orleans-on-azure/storage-table-entities.png" alt-text="屏幕截图显示 Orleans 数据以 Azure 桌子储存。":::
 
 :::zone-end
 
 :::zone pivot="azure-cosmos-db-nosql"
 
-1. Navigate to the overview page of the Azure Cosmos DB for NoSQL account.
+1. 导航至 Azure 宇宙DB NoSQL 账户的概览页。
 
-1. Within the navigation, select **Data Explorer**.
+1. 在导航中,选择 **数据探索器**。
 
-1. Observe the following containers you created earlier in this guide:
+1. 观察本指南早些时候建立的下列集装箱:
 
-   - **OrleansStorage**: This table stores the persistent state grain data used by the application to handle the URL redirects.
+   - **OrleansStorage**:本表格储存持久性状态 grain 应用程序用于处理 URL 重定向的数据。
 
-   - **OrleansCluster**: This table tracks essential silo data for the Orleans cluster.
+   - **OrleansCluster**:此表格的曲目 silo 数据的数据 Orleans 组。
 
 :::zone-end
 
-## Scale the app
+<a id="scale-the-app"></a>
 
-Don't increase the replica count of the single silo Container App created by this
-quickstart. Orleans requires every silo to advertise a unique, directly reachable
-endpoint pair, while Azure Container Apps doesn't provide stable per-replica
-addresses for one app.
+## 缩放应用程序
 
-To scale this topology, deploy additional one-replica silo apps with distinct
-advertised endpoints. See [Deploy Orleans to Azure Container Apps](../deployment/deploy-to-azure-container-apps.md)
-for the supported topology, networking requirements, and upgrade procedure.
+不要增加由此创建的单 silo 容器 App的复制数
+快速启动。 Orleans 要求每个 silo 都发布一个独特、可直接获取的广告
+端点对配,而 Azure 容器应用不提供稳定的每个复制
+一个应用程序的地址 。
 
-## Related content
+为了扩大这一地形图表的规模,再部署一个复制件 silo 具有
+广告公布的终点。见 [部署 Orleans 至 Azure 集装箱应用软件](../deployment/deploy-to-azure-container-apps.md)
+支持的地形、联网要求和升级程序。
+
+<a id="related-content"></a>
+
+## 相关内容
 
 :::zone pivot="azure-storage"
 
-- [Azure Table Storage](https://learn.microsoft.com/azure/storage/tables/table-storage-overview)
-- [Azure Storage grain persistence](../grains/grain-persistence/azure-storage.md)
+- [Azure 表格储存](https://learn.microsoft.com/azure/storage/tables/table-storage-overview)
+- [Azure 储存 grain 持久性](../grains/grain-persistence/azure-storage.md)
 
 :::zone-end
 
 :::zone pivot="azure-cosmos-db-nosql"
 
-- [Azure Cosmos DB for NoSQL](https://learn.microsoft.com/azure/cosmos-db/nosql/overview)
-- [Azure Cosmos DB grain persistence](../grains/grain-persistence/azure-cosmos-db.md)
+- [Azure 宇宙 DB NoSQL](https://learn.microsoft.com/azure/cosmos-db/nosql/overview)
+- [Azure 宇宙DB grain 持久性](../grains/grain-persistence/azure-cosmos-db.md)
 
 :::zone-end
 
-## Next step
+<a id="next-step"></a>
 
-> [!div class="nextstepaction"]
-> [Grain persistence](../grains/grain-persistence/index.md)
+## 下一步
+
+> [! div 类=" 超后"]
+> [Grain 持久性](../grains/grain-persistence/index.md)

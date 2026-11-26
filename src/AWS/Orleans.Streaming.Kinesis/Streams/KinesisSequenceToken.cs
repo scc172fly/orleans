@@ -15,11 +15,11 @@ namespace Orleans.Streaming.Kinesis
         private BigInteger? _numericShardSequence;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KinesisSequenceToken" /> class.
+        /// 初始化 <see cref="KinesisSequenceToken" /> 类的新实例。
         /// </summary>
-        /// <param name="shardSequence">Kinesis offset within the shard (partition) from which this message came.</param>
-        /// <param name="sequenceNumber">Receiver-generated sequenceNumber for this message.</param>
-        /// <param name="eventIndex">Index into a batch of events, if multiple events were delivered within a single Kinesis record.</param>
+        /// <param name="shardSequence">Kinesis 折叠在发出此信件的碎片( 分割区) 内。</param>
+        /// <param name="sequenceNumber">收件人为此信件生成了 sequenceNumber 。</param>
+        /// <param name="eventIndex">指数,如果在一个单一的Kinesis记录中提供多个事件,则按一系列活动分列。</param>
         [JsonConstructor]
         public KinesisSequenceToken(string shardSequence, long sequenceNumber, int eventIndex)
             : base(sequenceNumber, eventIndex)
@@ -28,17 +28,17 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KinesisSequenceToken" /> class.
+        /// 初始化 <see cref="KinesisSequenceToken" /> 类的新实例。
         /// </summary>
         /// <remarks>
-        /// This constructor is exposed for serializer use only.
+        /// 此构建器仅暴露于序列器使用。
         /// </remarks>
         public KinesisSequenceToken() : base()
         {
         }
 
         /// <summary>
-        /// Offset of the message within an Kinesis shard.
+        /// 偏移 Kinesis 碎片内的信件 。
         /// </summary>
         [Id(0)]
         [JsonProperty]
@@ -78,8 +78,8 @@ namespace Orleans.Streaming.Kinesis
         /// <inheritdoc />
         public override int GetHashCode() => HashCode.Combine(NumericShardSequence, EventIndex);
 
-        /// <summary>Returns a string that represents the current object.</summary>
-        /// <returns>A string that represents the current object.</returns>
+        /// <summary>返回一个代表当前对象的字符串。</summary>
+        /// <returns>一个代表当前对象的字符串。</returns>
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {

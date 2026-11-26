@@ -13,7 +13,7 @@ using static System.String;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// Tests for SQL Server ADO.NET subscription observer with implicit subscribing.
+/// 使用隐性签名的 SQL 服务器 ADO.NET 订阅观察员测试。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -23,7 +23,7 @@ public class SqlServerAdoNetSubscriptionObserverWithImplicitSubscribingTests() :
 }
 
 /// <summary>
-/// Tests for MySQL ADO.NET subscription observer with implicit subscribing.
+/// 使用隐性签名的 MySQL ADO.NET 订阅观察员测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -37,7 +37,7 @@ public class MySqlAdoNetSubscriptionObserverWithImplicitSubscribingTests : AdoNe
 }
 
 /// <summary>
-/// Tests for PostgreSQL ADO.NET subscription observer with implicit subscribing.
+/// 使用隐性签名的 PostgreSQL ADO.NET 订阅观察员测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -47,7 +47,7 @@ public class PostgreSqlAdoNetSubscriptionObserverWithImplicitSubscribingTests() 
 }
 
 /// <summary>
-/// Base class for ADO.NET subscription observer with implicit subscribing tests.
+/// ADO.NET 订阅观察员的基级,含暗签名测试。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming"), TestCategory("Functional")]
 [TestSuite("Functional")]
@@ -78,7 +78,7 @@ public abstract class AdoNetSubscriptionObserverWithImplicitSubscribingTests(Ado
 
         public override async ValueTask InitializeAsync()
         {
-            // set up the adonet environment before the base initializes
+            // 在基初始化前设置 adonet 环境
             _testing = await RelationalStorageForTesting.SetupInstance(
                 _invariant,
                 TestDatabaseName,

@@ -42,7 +42,7 @@ public static class StreamingConsumer
         catch (OperationCanceledException)
             when (cancellationToken.IsCancellationRequested)
         {
-            // The caller requested cancellation.
+            // 呼叫者请求取消 。
         }
     }
     // </cancel_stream>
@@ -60,7 +60,7 @@ public static class StreamingConsumer
         }
         catch (EnumerationAbortedException)
         {
-            // The grain deactivated or Orleans removed an idle enumerator.
+            // grain 已停止使用或 Orleans 清除了闲置的分子。
         }
     }
     // </handle_interruption>

@@ -80,7 +80,7 @@ public sealed class MembershipTableSystemTargetTests : IDisposable
 
         await _target.DeleteMembershipTableEntriesAsync(ClusterId, _cancellationToken);
 
-        // Deletion ends this target's table lifetime, including after another initialization request.
+        // 删除结束此目标的表寿命, 包括在其他启动请求之后。
         await Assert.ThrowsAsync<NullReferenceException>(() => _target.ReadAllAsync(_cancellationToken));
         await _target.InitializeMembershipTableAsync(true, _cancellationToken);
         await Assert.ThrowsAsync<NullReferenceException>(() => _target.ReadAllAsync(_cancellationToken));

@@ -4,7 +4,7 @@
     string? CurrentChannel = null)
 {
     /// <summary>
-    /// Check if the client is connected to a channel.
+    /// 检查客户端是否连接到频道 。
     /// </summary>
     public bool IsConnectedToChannel => CurrentChannel is not null;
 }

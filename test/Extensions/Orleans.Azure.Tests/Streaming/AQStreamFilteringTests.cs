@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.AzureUtils.Streaming
 {
     /// <summary>
-    /// Tests for stream filtering functionality with Azure Queue streaming providers.
+    /// 使用 Azure 队列流源提供方测试流过滤功能。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("AzureQueue")]
     [TestSuite("BVT")]
@@ -101,7 +101,7 @@ namespace Tester.AzureUtils.Streaming
             }
             catch (Xunit.Sdk.SkipException)
             {
-                // Ignore
+                // 忽略忽略
             }
         }
     }

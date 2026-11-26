@@ -1,35 +1,45 @@
 ---
-title: "ORLEANS0013: Remove serialization identity attributes from a grain class"
-description: Understand and resolve ORLEANS0013 when a grain implementation is marked for data serialization.
+title: "ORLEANS0013:从 grain 类中删除序列化身份属性"
+description: "理解和决心 ORLEANS0013 时 grain 执行中标记数据序列化。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0013: Remove serialization identity attributes from a grain class
+<a id="orleans0013-remove-serialization-identity-attributes-from-a-grain-class"></a>
 
-| Property | Value |
+# ORLEANS0013:从 grain 类中删除序列化身份属性
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Error |
-| Code fix | Available |
+| 类别类 | 用法 |
+| 严重性 | 错误错误 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-A class deriving from <xref:Orleans.Grain>, including `Grain<TState>`, is marked `[Alias]` or `[GenerateSerializer]`.
+## 原因原因原因
 
-## Impact
+源自 <xref:Orleans.Grain>,包括 `Grain<TState>`,则标记了 `[Alias]` 或 `[GenerateSerializer]`.
 
-Grain implementation instances are activation objects, not application payloads. Serializing the implementation introduces an incorrect data contract and can create alias conflicts.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Remove `[Alias]` and `[GenerateSerializer]` from the grain implementation. Apply serialization attributes to grain state and message types instead.
+Grain 实施实例是激活物体,而不是应用有效载荷。执行的顺序安排引入了错误的数据合同,并可能造成别名冲突。
 
-The code fix removes the attribute list containing the invalid attribute. Review the diff when the same attribute list contains unrelated attributes.
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Suppress only for an unconventional integration which deliberately serializes the class independently of Orleans activation.
+删除删除 `[Alias]` 和 `[GenerateSerializer]` 从 grain 应用序列属性 grain 替换状态和电文类型。
+
+代码修正删除含有无效属性的属性列表。 当同一属性列表包含不相关的属性时, 请审查 diff 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+仅禁止非常规一体化,这种融合有意将该类人与 Orleans 激活分开连续排列。
 
 ```ini
 [*.cs]

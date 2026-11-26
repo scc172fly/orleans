@@ -59,7 +59,7 @@ public sealed class WorkflowTests : IAsyncLifetime
         var result = await RunAsync(Client.GetGrain<IWorkflowGrain>(id).RunFanOutAsync(items), $"fanout-{id}");
 
         Assert.Equal(items.Select(item => item.ToUpperInvariant()), result.Branches.Select(branch => branch.Output));
-        // Each branch runs on its activity grain under its caller-scoped ID, which ends with the workflow's stable child ID.
+        // 每个分支都根据其调用员范围ID grain 开展活动,以工作流程的稳定儿童身份结束。
         Assert.All(
             result.Branches.Select((branch, index) => (branch.TaskId, Expected: $"/fanout-{id}/branches/{index}")),
             branch => Assert.EndsWith(branch.Expected, branch.TaskId, StringComparison.Ordinal));
@@ -96,8 +96,8 @@ public sealed class WorkflowTests : IAsyncLifetime
         var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
             RunAsync(Client.GetGrain<IWorkflowGrain>(id).RunFanOutAsync(null!), $"fanout-{id}"));
 
-        // Orleans serializes an exception's type, message, stack trace, inner exception, HResult, and data, so the
-        // parameter name arrives in the message.
+        // Orleans 序列序列式将例外的类型、信息、堆叠跟踪、内部例外、HResult和数据序列成序号,所以
+        // 参数名称在信件中到达 。
         Assert.Equal(new ArgumentNullException("items").Message, exception.Message);
     }
 
@@ -192,7 +192,7 @@ public sealed class WorkflowTests : IAsyncLifetime
         var effects = (await Client.GetGrain<IInventoryGrain>(id).GetSnapshotAsync()).Effects;
         if (response.Status is DurableTaskStatus.Canceled)
         {
-            // A root canceled before its body starts applies no effects.
+            // 根在正文开始前已取消, 无效效果不生效 。
             Assert.Empty(effects);
             return;
         }
@@ -242,7 +242,7 @@ public sealed class WorkflowTests : IAsyncLifetime
         var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
             RunAsync(Client.GetGrain<IWorkflowGrain>(orderId).RunOrderSagaAsync(new(otherOrderId, FailShipping: false)), $"order-{orderId}"));
 
-        // The saga fails before it starts a step, so neither order's participants record an effect.
+        // 传说在开始一步之前失败了 所以任何订单参与者都没有记录效果
         Assert.Contains(otherOrderId, exception.Message, StringComparison.Ordinal);
         foreach (var id in new[] { orderId, otherOrderId })
         {
@@ -287,7 +287,7 @@ public sealed class WorkflowTests : IAsyncLifetime
     internal static VolatileJournalStorageProvider CreateStorage() =>
         new(Options.Create(new JournaledStateManagerOptions { JournalFormatKey = "orleans-binary" }));
 
-    // The silos share one volatile journal store, so a grain recovers its durable tasks on any silo.
+    // silos 共用一个挥发性日记存储,因此 grain 收回其对任何 silo的持久任务。
     internal static InProcessTestCluster CreateCluster(
         short silos,
         VolatileJournalStorageProvider storage,
@@ -309,7 +309,7 @@ public sealed class WorkflowTests : IAsyncLifetime
             siloBuilder.Services.AddSingleton<IJournalStorageCatalog>(storage);
             if (timeProvider is not null)
             {
-                // Durable tasks measure retention, like delays, on the Durable Jobs clock.
+                // 长期任务衡量在 " 持久工作钟 " 上保留像拖延一样。
                 siloBuilder.Services.AddKeyedSingleton(DurableJobTimeProviderNames.DurableJobs, timeProvider);
             }
         });
@@ -452,7 +452,7 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
         using var start = await _http.PostAsync($"/workflows/approval/{id}?subject=production", null);
         Assert.Equal(HttpStatusCode.Accepted, start.StatusCode);
 
-        // The workflow ID names the running approval, so a submission which names another subject reaches it.
+        // 工作流程编号指定正在运行的审批, 提交时指定另一个主题, 才能到达它 。
         using var otherSubject = await _http.PutAsJsonAsync(
             $"/workflows/approval/{id}",
             new ApprovalSubmission("staging", Approved: false, "other subject"));
@@ -477,7 +477,7 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
         using var first = await _http.PostAsync($"/workflows/basic/{id}?input=first", null);
         using var repeat = await _http.PostAsync($"/workflows/basic/{id}?input=second", null);
 
-        // The workflow ID names the workflow, so a repeat with other arguments returns the original workflow's result.
+        // 工作流程编号为工作流程,所以重复其他参数返回原始工作流程的结果。
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, repeat.StatusCode);
         Assert.Equal(await first.Content.ReadAsStringAsync(), await repeat.Content.ReadAsStringAsync());
@@ -496,7 +496,7 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, nullItems.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, noItems.StatusCode);
 
-        // A rejected submission starts nothing.
+        // 被拒绝的提交书没有起任何作用。
         Assert.Equal(HttpStatusCode.NotFound, approvalStatus.StatusCode);
 
         static StringContent JsonNull() => new("null", System.Text.Encoding.UTF8, "application/json");
@@ -509,7 +509,7 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
         using var first = await _http.PostAsJsonAsync($"/workflows/fan-out/{id}", new[] { "first" });
         using var repeat = await _http.PostAsJsonAsync($"/workflows/fan-out/{id}", new[] { "second" });
 
-        // The workflow ID names the workflow, so a repeat with other arguments returns the original workflow's result.
+        // 工作流程编号为工作流程,所以重复其他参数返回原始工作流程的结果。
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, repeat.StatusCode);
         Assert.Equal(await first.Content.ReadAsStringAsync(), await repeat.Content.ReadAsStringAsync());
@@ -522,7 +522,7 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
         using var first = await _http.PostAsync($"/workflows/orders/{id}?failShipping=false", null);
         using var repeat = await _http.PostAsync($"/workflows/orders/{id}?failShipping=true", null);
 
-        // The workflow ID names the workflow, so a repeat with other arguments returns the original workflow's result.
+        // 工作流程编号为工作流程,所以重复其他参数返回原始工作流程的结果。
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, repeat.StatusCode);
         Assert.Equal(await first.Content.ReadAsStringAsync(), await repeat.Content.ReadAsStringAsync());
@@ -545,7 +545,7 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
         Assert.Equal(firstAccepted, duplicateAccepted);
         Assert.Equal("pending", (await GetStatusAsync(location)).Status);
 
-        // Cancel once the body has reserved stock; a root canceled before its body starts finishes as canceled instead.
+        // 一旦身体保留了储备, 则取消; 在身体开始完成之前根被删除, 而不是取消 。
         var inventory = _cluster.Client.GetGrain<IInventoryGrain>(id);
         await WorkflowTests.WaitUntilAsync(async () => (await inventory.GetSnapshotAsync()).Effects.ContainsKey($"{id}:reserve"));
         using var cancel = await _http.DeleteAsync($"/workflows/cancellation/{id}?reason=operator-request");
@@ -599,7 +599,7 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
         var workflow = _cluster.Client.GetGrain<IWorkflowGrain>(id);
         if (kind == "approval")
         {
-            // A decision for an approval which hasn't started is rejected without starting it.
+            // 申请批准的决定,如果还没有开始, 未经启动就被驳回。
             Assert.Equal(
                 DurableSignalResult.TaskNotFound,
                 await workflow.TrySignalDurableTaskAsync($"approval-{id}", WorkflowSignals.ApprovalDecided, new ApprovalDecision(true, "early")));
@@ -630,11 +630,11 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
             : await _http.DeleteAsync($"/workflows/cancellation/{id}?reason=completed");
         Assert.Equal(HttpStatusCode.Accepted, submit.StatusCode);
         var location = $"/workflows/{kind}/{id}/status";
-        // DELETE cancels the workflow as soon as it schedules it, so the root finishes as canceled if the runtime
-        // records the cancellation before the body starts.
+        // DELETE 一旦计划取消工作流程, 即立即取消它, 所以根完成时如果运行时间已取消
+        // 记录在正文启动前的注销。
         await WaitForStatusAsync(location, "succeeded", "canceled");
 
-        // The grain deletes the client-scheduled task once its retention period has elapsed, which activation checks.
+        // grain 一旦保留期届满,即删除客户计划的任务,该任务将启动检查。
         _timeProvider.Advance(TimeSpan.FromHours(2));
         var workflow = _cluster.Client.GetGrain<IWorkflowGrain>(id);
         await _cluster.DeactivateAsync(workflow);
@@ -729,8 +729,8 @@ public sealed class WorkflowEndpointTests : IAsyncLifetime
     private sealed record StatusDocument(string TaskId, string Status, JsonElement Result, string? Error);
 }
 
-// Follows real time plus an offset which a test advances, so Durable Jobs keeps running while due times and retention
-// periods pass.
+// 之后是实时,加上一个抵消, 测试进展,所以“持久工作”在到期时间和保留期间继续运行
+// 时间跨过。
 internal sealed class OffsetTimeProvider : TimeProvider
 {
     private long _offsetTicks;
@@ -740,8 +740,8 @@ internal sealed class OffsetTimeProvider : TimeProvider
     public void Advance(TimeSpan delta) => Interlocked.Add(ref _offsetTicks, delta.Ticks);
 }
 
-// Schedules a task on a workflow grain which fails with DurableTaskNotFoundException for its own ID, the exception which
-// polling a missing task throws, so the status endpoint must report it as a retained failure rather than a missing workflow.
+// 将任务排在工作流 grain 上,该工作流程与 DurableTaskNotFoundException 的自有ID 不符,但有一个例外
+// 缺少的测试任务投出, 因此状态终点必须报告为保留失败而不是缺失工作流程 。
 public interface IWorkflowTestExtension : IGrainExtension
 {
     DurableTask<ApprovalWorkflowResult> FailWithNotFoundAsync();

@@ -7,15 +7,15 @@ using Orleans.Streaming.Kinesis;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Configures an Amazon Kinesis Data Streams-backed persistent stream provider on an Orleans client.
+    /// 配置一个 Amazon Kinesis 数据流支持的 持续流提供商, 在一个 Orleans 客户端上 。
     /// </summary>
     public class ClusterClientKinesisStreamConfigurator : ClusterClientPersistentStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterClientKinesisStreamConfigurator"/> class.
+        /// 初始化 <see cref="ClusterClientKinesisStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="builder">The client builder.</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="builder">客户端构建器。</param>
         public ClusterClientKinesisStreamConfigurator(string name, IClientBuilder builder)
             : base(name, builder, KinesisAdapterFactory.Create)
         {
@@ -28,12 +28,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the Kinesis options for the stream provider.
+        /// 配置流提供方的 Kinesis 选项 。
         /// </summary>
         /// <param name="configureOptions">
-        /// The delegate used to configure the named <see cref="KinesisStreamOptions"/>.
+        /// 用于配置命名 <see cref="KinesisStreamOptions"/>的代表。
         /// </param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <returns>流体提供者配置器。</returns>
         public ClusterClientKinesisStreamConfigurator ConfigureKinesis(Action<OptionsBuilder<KinesisStreamOptions>> configureOptions)
         {
             this.Configure(configureOptions);
@@ -41,10 +41,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the Kinesis options for the stream provider.
+        /// 配置流提供方的 Kinesis 选项 。
         /// </summary>
-        /// <param name="configureOptions">The delegate used to configure the Kinesis options.</param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <param name="configureOptions">代表用于配置 Kinesis 选项。</param>
+        /// <returns>流体提供者配置器。</returns>
         public ClusterClientKinesisStreamConfigurator ConfigureKinesis(Action<KinesisStreamOptions> configureOptions)
         {
             this.ConfigureKinesis(ob => ob.Configure(configureOptions));

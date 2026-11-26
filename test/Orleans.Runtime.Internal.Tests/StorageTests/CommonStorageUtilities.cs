@@ -4,14 +4,14 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Common utilities to be used while testing storage providers.
+    /// 测试储存提供者时使用通用公用设施。
     /// </summary>
     public static class CommonStorageUtilities
     {
         /// <summary>
-        /// Asserts certain information is present in the <see cref="Orleans.Storage.InconsistentStateException"/>.
+        /// 发信确认 <see cref="Orleans.Storage.InconsistentStateException"/>中存在某些信息。
         /// </summary>
-        /// <param name="exceptionMessage">The exception message to assert.</param>
+        /// <param name="exceptionMessage">要求声明的例外电文。</param>
         public static void AssertRelationalInconsistentExceptionMessage(string exceptionMessage)
         {
             Assert.Contains("ServiceId=", exceptionMessage);

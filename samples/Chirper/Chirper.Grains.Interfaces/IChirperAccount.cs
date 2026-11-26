@@ -4,50 +4,50 @@ using Chirper.Grains.Models;
 namespace Chirper.Grains;
 
 /// <summary>
-/// Orleans grain interface IChirperAccount -- This is the user-facing control grain for a particular user.
-/// A suitably authenticated external application can perform both publisher and subscriber functions on behalf of a user through this grain.
-/// This grain mediates command and communications between the external application and that user's publisher &amp; subscriber agent grains.
+/// Orleans grain 接口 IChirperAccount -- 这是特定用户的用户端控制 grain 。
+/// 适当认证的外部应用程序可通过该 grain代表用户履行出版商和订阅者的职能。
+/// 该 grain 介质将外部应用程序与用户的出版商 &amp; 订阅代理器 grains之间的命令和通信连接。
 /// </summary>
 public interface IChirperAccount : IChirperPublisher, IChirperSubscriber
 {
-    /// <summary>Add a new follower subscription from this user to the specified publisher</summary>
-    /// <param name="userNameToFollow">The user name of the new publisher now being followed by this user</param>
-    /// <returns>Task status for this operation</returns>
+    /// <summary>向指定的出版商添加用户的新的后续订阅</summary>
+    /// <param name="userNameToFollow">用户现在跟随的新出版商的用户名</param>
+    /// <returns>运行此操作的任务状态</returns>
     ValueTask FollowUserIdAsync(string userNameToFollow);
 
-    /// <summary>Remove a follower subscription from this user to the specified publisher</summary>
-    /// <param name="userNameToUnfollow">The user name of the publisher no longer being followed by this user</param>
-    /// <returns>AsyncCompletion status for this operation</returns>
+    /// <summary>从用户中删除一个跟随器订阅到指定的出版商</summary>
+    /// <param name="userNameToUnfollow">用户不再跟随出版商的用户名</param>
+    /// <returns>AsyncCompletion 此项操作的状态</returns>
     ValueTask UnfollowUserIdAsync(string userNameToUnfollow);
 
-    /// <summary>Get the list of publishers who this user is following</summary>
-    /// <returns>List of users being followed</returns>
+    /// <summary>获取用户跟踪的出版商名单</summary>
+    /// <returns>被跟踪的用户名单</returns>
     ValueTask<ImmutableList<string>> GetFollowingListAsync();
 
-    /// <summary>Get the list of subscribers who are following this user</summary>
-    /// <returns>List of users who are following this user</returns>
+    /// <summary>获取跟踪此用户的订阅者名单</summary>
+    /// <returns>跟踪此用户的用户列表</returns>
     ValueTask<ImmutableList<string>> GetFollowersListAsync();
 
-    /// <summary>Publish a new Chirp message</summary>
-    /// <param name="chirpMessage">The message text to be published as a new Chirp</param>
-    /// <returns>Completion status for the publish operation</returns>
+    /// <summary>发布新的千里普消息</summary>
+    /// <param name="chirpMessage">将作为新的 Chirp</param>发布的信息文本
+    /// <returns>出版作业的完成状态</returns>
     ValueTask PublishMessageAsync(string chirpMessage);
 
-    /// <summary>Request the most recent 'n' Chirp messages received by this subscriber, from the specified start position.</summary>
-    /// <param name="n">Number of Chirp messages requested. A value of -1 means all messages.</param>
-    /// <param name="start">The start position for returned messages. A value of 0 means start with most recent message. A positive value means skip past that many of the most recent messages</param>
-    /// <returns>List of Chirp messages received by this subscriber</returns>
-    /// <remarks>The subscriber might only return a partial record of historic events due to message retention policies.</remarks>
+    /// <summary>请求用户从指定的起始位置收到最新“n” Chirp 消息。</summary>
+    /// <param name="n">请求的千分点消息数。 -1 值是指全部信件。</param>
+    /// <param name="start">返回的信件的起始位置。 0 值意味着以最近的信件开头。正值意味着跳过许多最近的邮件</param>
+    /// <returns>该订阅者收到的千里普电文列表</returns>
+    /// <remarks>由于信息保留政策,用户可能只能归还部分历史事件记录。</remarks>
     ValueTask<ImmutableList<ChirperMessage>> GetReceivedMessagesAsync(int n = 10, int start = 0);
 
     /// <summary>
-    /// Subscribes to real-time notifications from this grain.
+    /// 订阅本 grain的实时通知。
     /// </summary>
-    /// <param name="viewer">The observer to receive notifications.</param>
+    /// <param name="viewer">接收通知的观察员。</param>
     ValueTask SubscribeAsync(IChirperViewer viewer);
 
     /// <summary>
-    /// Unsubscribes the given viewer from real-time notifications from this grain.
+    /// 取消从此 grain的实时通知中订阅给定查看器。
     /// </summary>
     /// <param name="viewer"></param>
     ValueTask UnsubscribeAsync(IChirperViewer viewer);

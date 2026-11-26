@@ -1,7 +1,7 @@
 name: Locker - Lock stale issues and PRs
 on:
   schedule:
-    - cron: '0 9 * * *' # Once per day, early morning PT
+    - cron: '0 9 * * *' # 每天一次,清晨
 
   workflow_dispatch:
     # Manual triggering through the GitHub UI, API, or CLI
@@ -28,7 +28,7 @@ jobs:
         with:
           repository: "microsoft/vscode-github-triage-actions"
           path: ./actions
-          ref: cd16cd2aad6ba2da74bb6c6f7293adddd579a90e # locker action commit sha
+          ref: cd16cd2aad6ba2da74bb6c6f7293adddd579a90e # 执行 sha
       - name: Install Actions
         run: npm install --production --prefix ./actions
       - name: Run Locker

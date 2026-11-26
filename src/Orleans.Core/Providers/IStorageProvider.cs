@@ -5,30 +5,30 @@ using Orleans.Runtime;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Exception thrown whenever a grain call is attempted with a bad / missing storage provider configuration settings for that grain.
+    /// 发生时的例外 grain 尝试在错误/ 缺失存储服务提供商配置设置的情况下拨打电话 grain.
     /// </summary>
     [Serializable, GenerateSerializer]
     public sealed class BadProviderConfigException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="BadProviderConfigException"/> class.
+        /// 初始化 <see cref="BadProviderConfigException"/> 类的新实例。
         /// </summary>
         public BadProviderConfigException()
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BadProviderConfigException"/> class.
+        /// 初始化 <see cref="BadProviderConfigException"/> 类的新实例。
         /// </summary>
-        /// <param name="msg">The message that describes the error.</param>
+        /// <param name="msg">描述错误的电文。</param>
         public BadProviderConfigException(string msg)
             : base(msg)
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BadProviderConfigException"/> class.
+        /// 初始化 <see cref="BadProviderConfigException"/> 类的新实例。
         /// </summary>
-        /// <param name="msg">The message that describes the error.</param>
-        /// <param name="exc">The exception that caused the current exception.</param>
+        /// <param name="msg">描述错误的电文。</param>
+        /// <param name="exc">造成当前例外的例外。</param>
         public BadProviderConfigException(string msg, Exception exc)
             : base(msg, exc)
         { }

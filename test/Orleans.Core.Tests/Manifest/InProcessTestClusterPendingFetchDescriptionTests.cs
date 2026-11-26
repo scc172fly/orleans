@@ -9,9 +9,9 @@ using Xunit;
 namespace UnitTests.Manifest;
 
 /// <summary>
-/// Exercises <see cref="InProcessTestCluster.DescribePendingFetch"/> directly, addressing a Copilot-review
-/// finding on dotnet/orleans#11438 that no test covered the exact formatting of this diagnostic string
-/// (membership version, published version, pending silos, elapsed time, and the most recent failure).
+/// 直接演习 <see cref="InProcessTestCluster.DescribePendingFetch"/> ,涉及联合试验审查
+/// 在端网/ 点网上查找orleans# 11438, 没有测试覆盖此诊断字符串的精确格式化
+/// (成员版、公布版本、待 silos处理、过时和最近的失败)
 /// </summary>
 public class InProcessTestClusterPendingFetchDescriptionTests
 {

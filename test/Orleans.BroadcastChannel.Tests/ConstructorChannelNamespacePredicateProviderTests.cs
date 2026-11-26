@@ -10,7 +10,7 @@ using System.Collections;
 namespace UnitTests;
 
 /// <summary>
-/// Tests for <see cref="ConstructorChannelNamespacePredicateProvider"/> predicate type registration and resolution.
+/// <see cref="ConstructorChannelNamespacePredicateProvider"/> 上游型号登记和分辨率测试。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

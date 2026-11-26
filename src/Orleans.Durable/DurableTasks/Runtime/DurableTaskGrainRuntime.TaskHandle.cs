@@ -22,8 +22,8 @@ internal sealed partial class DurableTaskGrainRuntime
         public TaskId TaskId { get; } = taskId;
         public GrainId RemoteTarget => _remoteTarget;
 
-        // If this is false, the task was rehydrated from storage but has not started running yet.
-        // This will happen if the task is non-serializable, like a local method invocation.
+        // 如果这是假的, 任务已经从存储中补水, 但还没有开始运行 。
+        // 如果任务无法连载, 就会发生这种情况, 就像当地的方法引用。
         public bool IsRunning { get; set; }
 
         public async ValueTask CancelAsync(string? reason, CancellationToken cancellationToken)
@@ -77,8 +77,8 @@ internal sealed partial class DurableTaskGrainRuntime
 
         public bool TrySetResponse(DurableTaskResponse response) => _responseTcs.TrySetResult(response);
 
-        /// <summary>Fails the handle's waiters because the activation stops, while the task continues in the next activation.</summary>
-        /// <remarks>The handle may have no waiter, so the failure is marked observed.</remarks>
+        /// <summary>使接柄服务员无法工作,因为激活停止,而任务在下一次激活时继续。</summary>
+        /// <remarks>处理器可能没有服务员,所以可以观察到故障。</remarks>
         public void SetStopping(DurableTaskAttemptCanceledException exception)
         {
             if (_responseTcs.TrySetException(exception))

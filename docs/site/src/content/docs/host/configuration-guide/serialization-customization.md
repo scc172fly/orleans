@@ -1,44 +1,50 @@
 ---
-title: Serialization customization in Orleans
-description: Learn how to customize serialization in .NET Orleans.
+title: "Orleans中序号定制"
+description: "学习如何自定义 .NET Orleans中的序列。"
 ms.date: 07/03/2024
 uid: orleans-serialization-customization
 ---
 
-# Serialization customization in Orleans
+<a id="serialization-customization-in-orleans"></a>
 
-One important aspect of Orleans is its support for customization of serialization, which is the process of converting an object or data structure into a format that can be stored or transmitted, and reconstructed later. This allows developers to control how data is encoded and decoded when it is sent between different parts of the system. Serialization customization can be useful for optimizing performance, interoperability, and security.
+# Orleans中序号定制
 
-## Serialization providers
+Orleans 的一个重要方面是支持对序列化的定制,即将对象或数据结构转换成一种可以储存或传输的格式,然后再重建。这样开发者就可以控制数据在系统不同部分之间发送时如何编码和解码。 序列化定制对于优化性能、互操作性和安全可能有用。
 
-Orleans provides two serializer implementations:
+<a id="serialization-providers"></a>
+
+## 分级供应者
+
+Orleans 提供两个序列器执行:
 
 - [Microsoft.Orleans.Serialization.SystemTextJson](https://nuget.org/packages/Microsoft.Orleans.Serialization.SystemTextJson)
 - [Microsoft.Orleans.Serialization.NewtonsoftJson](https://nuget.org/packages/Microsoft.Orleans.Serialization.NewtonsoftJson)
 
-To configure either of these packages, see [Serialization configuration in Orleans](serialization-configuration.md).
+要配置这些软件包中的任何一个,请参见 [Orleans中的序列配置](serialization-configuration.md)。
 
-## Custom serializer implementation
+<a id="custom-serializer-implementation"></a>
 
-To create a custom serializer implementation, there are a few common steps involved. You have to implement several interfaces and then register your serializer with the Orleans runtime. The following sections describe the steps in more detail.
+## 自定义序列器执行
 
-Start by implementing the following Orleans serialization interfaces:
+要创建自定义序列器执行, 需要采取一些共同的步骤。 您必须安装多个接口, 然后将您的序列器注册到 Orleans 运行时。以下章节更详细地描述步骤。
+
+启动程序,先安装以下 Orleans 序列化接口:
 
 - <xref:Orleans.Serialization.Serializers.IGeneralizedCodec>: A codec which supports multiple types.
 - <xref:Orleans.Serialization.Cloning.IGeneralizedCopier>: Provides functionality for copying objects of multiple types.
 - <xref:Orleans.Serialization.ITypeFilter>: Functionality for allowing types to be loaded and to participate in serialization and deserialization.
 
-Consider the following example of a custom serializer implementation:
+考虑以下定制序列器实施实例:
 
 :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="custom_serializer":::
 
-In the preceding example implementation:
+在前一实例的实施中:
 
-- Each interface is explicitly implemented to avoid conflicts with method name resolution.
-- Each method throws a <xref:System.NotImplementedException> to indicate that the method is not implemented. You'll need to implement each method to provide the desired functionality.
+- 每个接口都明确安装,以避免与方法名称解决办法发生冲突。
+- 每个方法都投出 <xref:System.NotImplementedException> 来表示该方法没有被执行。 您需要应用每种方法来提供所需的功能 。
 
-The next step is to register your serializer with the Orleans runtime. This is typically achieved by extending <xref:Orleans.Serialization.ISerializerBuilder> and exposing a custom `AddCustomSerializer` extension method. The following example demonstrates the typical pattern:
+下一步是将您的序列器注册为 Orleans 运行时间。通常通过扩展 <xref:Orleans.Serialization.ISerializerBuilder> 和暴露自定义的 `AddCustomSerializer` 扩展方法来实现这一点。以下示例显示了典型模式:
 
 :::code language="csharp" source="../../snippets/compiled/Host/SerializationRegistrationSnippets.cs" id="register_custom_serializer":::
 
-Additional considerations would be to expose an overload that accepts custom serialization options specific to your custom implementation. These options could be configured along with the registration in the builder. These options could be dependency injected into your custom serializer implementation.
+额外的考虑是暴露超负荷, 从而接受与您定制的安装相关的自定义序列选项。 这些选项可以与在构建器中的注册一同配置。 这些选项可以在您的自定义序列仪实施中注入依赖性 。

@@ -5,7 +5,7 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Binary codec for durable persistent state journal entries, preserving the legacy Orleans binary wire format.
+/// 耐久的国家日记条目二进制代码,保存遗留的 Orleans 双线格式。
 /// </summary>
 internal sealed class OrleansBinaryPersistentStateCommandCodec<T>(
     IFieldCodec<T> codec,

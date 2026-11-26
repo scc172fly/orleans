@@ -1,66 +1,74 @@
 ---
-title: Host Orleans on Azure App Service
-description: Choose and operate the supported Orleans topology on Windows or Linux Azure App Service.
+title: "东道主主 Orleans 日期 时 Azure 服务处处长"
+description: "选择并操作支持的 Orleans Windows 或 Linux 上的地貌学 Azure 服务处。"
 ms.date: 08/21/2026
 ms.topic: overview
 ms.custom: devops
 ---
 
-# Host Orleans on Azure App Service
+<a id="host-orleans-on-azure-app-service"></a>
 
-Azure App Service can host Orleans by cohosting one silo with the application on every worker in a dedicated multi-instance plan. Each worker advertises its private instance address and a dynamically allocated private port. Azure Table Storage provides shared cluster membership and durable grain state in the maintained sample.
+# 东道主主 Orleans 日期 时 Azure 服务处处长
 
-Choose the operating-system guide for the target plan:
+Azure 应用程序服务可托管 Orleans ,办法是共同主办一个 silo ,在专门的多企业计划中对每个工人提出申请。每个工人都宣传其私人实例地址和动态分配的私营港口。 Azure 表格存储提供所保持样本中的共享集群成员以及耐用 grain 状态。
 
-| Target | Use this guide | Platform-specific behavior |
+选择目标计划操作系统指南:
+
+| 具体目标具体目标 | 使用此指南 | 平台特定行为 |
 | --- | --- | --- |
-| Windows App Service | [Deploy Orleans to Azure App Service on Windows](deploy-to-azure-app-service.md) | IIS integration, Windows paths and process model, and the Windows App Service Authentication module |
-| Linux App Service | [Deploy Orleans to Azure App Service on Linux](deploy-to-azure-app-service-linux.md) | Built-in Linux .NET stack, container startup deadlines and paths, and the App Service Authentication ambassador sidecar |
+| Windows App 服务 | [在 Windows 上部署 Orleans 到 Azure 应用程序服务](deploy-to-azure-app-service.md) | IIS集成、Windows路径和流程模型以及WindowsApp服务认证模块 |
+| Linux Apper 服务 | [部署 Orleans 到 Linux 上的 Azure 应用服务](deploy-to-azure-app-service-linux.md) | 内置Linux .NET 堆叠、集装箱启动期限和路径以及App Servication App Servication代理大使随车 |
 
-Both guides use the same application, Bicep modules, staging-slot workflow, managed identity, health endpoints, and operational model.
+这两本指南使用相同的应用程序、Bicep模块、中转站点工作流程、管理身份、健康终点和业务模式。
 
-## Supported topology
+<a id="supported-topology"></a>
 
-The maintained topology uses:
+## 支助的地形表
 
-- A dedicated Premium v3 App Service plan with at least three workers in the maintained sample.
-- One application process and one Orleans silo on every worker.
-- `WEBSITE_PRIVATE_IP` and the first port in the comma-separated `WEBSITE_PRIVATE_PORTS` allocation as the advertised silo endpoint.
-- A cohosted local Orleans client, with the Orleans gateway disabled.
-- Azure Table Storage for clustering and grain state, authorized by managed identity.
-- Separate production and staging cluster IDs with a shared stable service ID.
+维持的地表学用途:
 
-The App Service front end handles HTTP traffic. Orleans silo connections use the private per-worker endpoints. If trusted external Orleans clients are required, allocate and validate a second private port for the gateway and ensure every client network can route to every advertised gateway mapping.
+- 专门制定的Premium v3 App服务计划,保留样本中至少有三名工人。
+- 每名工人有一个申请过程和一个 Orleans silo 。
+- `WEBSITE_PRIVATE_IP` 和以逗号分隔的 `WEBSITE_PRIVATE_PORTS` 分配的第一个端口作为公布的 silo 终点。
+- 共同托管的本地 Orleans 客户端, 且 Orleans 网关已禁用。
+- Azure 用于集聚和 grain 状态的表格储存,经管理身份授权。
+- 单独制作和中转集束识别码,并有一个共同的稳定服务识别码。
 
-## Qualify the target environment
+应用服务处前端处理 HTTP 传输。 Orleans silo 使用每个工人的私人端点。如果信任外部 Orleans 客户需要、分配和验证门户的第二个私人港口,并确保每个客户网络都能通过每一个广告网关图绘制。
 
-App Service publishes the private instance settings used by the sample. The application validates their presence during startup and advertises the resulting endpoint.
+<a id="qualify-the-target-environment"></a>
 
-Establish production evidence on the selected operating system, region, plan tier, networking configuration, and scale:
+## 目标环境的定性
 
-1. Scale to at least three workers.
-1. Confirm every worker receives a distinct private address and the required private port count.
-1. Match each active Orleans membership row to one worker instance.
-1. Test bidirectional TCP connectivity among every advertised silo endpoint.
-1. Repeat the checks during scale-out, scale-in, worker replacement, restart, and slot swap.
+App Service公布了样本使用的私人实例设置,应用程序验证了这些样本在启动期间的存在,并宣传由此产生的终点。
 
-Regional virtual network integration supplies the private worker address and outbound virtual-network path. The allocated private ports establish the target-specific inbound silo path. Keep the integration subnets sized for planned scale, upgrades, and worker replacement.
+建立关于选定操作系统、区域、计划层级、网络配置和规模的生产证据:
 
-App Service distributes multiple plan workers across platform fault domains. For an availability objective that includes zone failure, enable [App Service zone redundancy](https://learn.microsoft.com/azure/reliability/reliability-app-service) on a supported Premium plan and confirm that the selected region, scale unit, tier, and worker count meet the platform requirements. The maintained sample creates multiple Premium v3 workers but leaves zone redundancy as an environment-specific production adaptation.
+1. 规模至少为三名工人。
+1. 确认每个工人都收到一个单独的私人地址和所需的私人港口点票。
+1. 将每个活跃 Orleans 成员与一个工人实例匹配。
+1. 每个广告的 silo 终点之间测试双向 TCP连接。
+1. 在扩大规模、按比例调整、工人更换、重新启动和换换职位期间,重复检查。
 
-## Production checklist
+区域虚拟网络一体化区域虚拟网络提供私人工人地址和出境的虚拟网络路径。 silo 路径。保持集成子网的大小,以适应计划的规模、升级和工人替换。
 
-Use the detailed Windows or Linux guide to complete each outcome.
+App Service 将多个计划工人分布于平台故障域。 对于包括区故障在内的可用目标,允许使用支持的钚计划 [服务区冗余](https://learn.microsoft.com/azure/reliability/reliability-app-service) ,并确认选定区域、规模单位、层级和工人计数符合平台要求。 保存的样本创造了多个Premium v3工人,但作为环境特定生产适应而留下区冗余。
 
-| Concern | App Service outcome |
+<a id="production-checklist"></a>
+
+## 生产清单
+
+使用详细的 Windows 或 Linux 指南来完成每个结果 。
+
+| 关注问题 | 服务结果 |
 | --- | --- |
-| Topology and networking | Every worker advertises its private instance address and allocated silo port, and every worker can connect to every active membership endpoint. |
-| Dependencies and data | Azure Table clustering and durable grain state use environment-specific tables. Applications configure reminder and stream providers explicitly when those features are used. |
-| Identity and secrets | A user-assigned managed identity receives narrow data-plane roles. App Service Authentication and deployment identities remain separate, and secrets use protected settings or Key Vault references. |
-| Health and lifecycle | Startup warm-up and `/health/ready` complete after Orleans starts. Readiness becomes unavailable before host shutdown, and the host uses the available App Service termination interval. |
-| Scaling and resilience | The plan retains the tested minimum worker count and spare capacity. Fault-domain distribution and any required zone redundancy are documented. Scale, replacement, zone or worker loss, and dependency-failure behavior are validated under load. |
-| Upgrades and rollback | Compatible releases warm in a staging slot and join the production cluster during swap. Incompatible releases use a separate app and cluster ID. |
-| Observability and incidents | Application Insights, Log Analytics, Orleans telemetry, App Service instance metadata, membership evidence, and slot operations are correlated. |
-| Infrastructure delivery | Bicep and the GitHub OIDC workflow create reproducible infrastructure and deploy immutable application artifacts through staging. |
+| 地形学和联网 | 每个工人都登广告,宣传其私人网站地址并分配 silo 港口,每个工人都可以与每一个积极成员端点连接。 |
+| 依赖和数据 | Azure 表群和耐用 grain 状态使用环境特定表格。应用程序在使用这些特征时明确配置提醒和流源提供者。 |
+| 身份和机密 | 用户指定的管理身份具有狭窄的数据机作用,应用程序服务认证和部署身份仍然分开,机密使用受保护的环境或关键跳跃引用。 |
+| 健康和生命周期 | 启动热和 `/health/ready` 完成后 Orleans 启动。在主机关闭前,准备状态将无法可用,主机使用可用的 AppService 终止间隔。 |
+| 规模和复原力 | 该计划保留了经过测试的最低工人数和剩余能力,记录了过失域分布和任何必要的区冗余。 规模、更换、区或工人损失以及依赖性失职行为在负载下得到验证。 |
+| 升级和回调 | 兼容释放在中转位置热能释放,并在交换时加入生产组群。不兼容释放使用单独的应用程序和集束识别码。 |
+| 观察和事件 | 应用程序透视、日志分析、 Orleans 遥测、应用服务实例元数据、成员资格证据和空档业务是相互关联的。 |
+| 基础设施交付 | Bicep和OIDC的 GitHub 工作流程创建可复制的基础设施,并通过中转部署不可变应用文物。 |
 
-Complete the [production-readiness checklist](production-readiness.md), [Topology, networking, and clustering](networking.md), [Health and observability](health-and-observability.md), [Capacity planning and scaling](capacity-planning.md), [Graceful shutdown and upgrades](upgrades.md), and [Troubleshoot deployments](troubleshooting-deployments.md) guidance for the target environment.
+完成目标环境的 [生产准备状态清单](production-readiness.md)、 [地形学、联网和集群](networking.md)、 [健康和可观察性](health-and-observability.md)、 [能力规划和规模](capacity-planning.md)、 [优优优停机和升级](upgrades.md)和 [故障解决部署](troubleshooting-deployments.md) 指南。

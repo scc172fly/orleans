@@ -9,12 +9,12 @@ using Orleans.TestingHost;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// Base fixture for exercising an <see cref="IReminderTable"/> implementation which is hosted by a silo.
+/// 使用 <see cref="IReminderTable"/> 由《公约》执行《公约》的 silo.
 /// </summary>
 /// <remarks>
-/// The fixture deploys an <see cref="InProcessTestCluster"/>, configures the provider under test through
-/// <see cref="ConfigureSilo"/>, and resolves the reminder table from the first silo. Connect
-/// <see cref="InitializeAsync()"/> and <see cref="DisposeAsync()"/> to the lifecycle hooks of your test framework.
+/// 固定置件部署 <see cref="InProcessTestCluster"/>,配置正在测试的供应商
+/// <see cref="ConfigureSilo"/>,并从第一个 silo中解析提醒表。
+/// <see cref="InitializeAsync()"/> 和 <see cref="DisposeAsync()"/> 与生命周期钩 你测试框架。
 /// </remarks>
 public abstract class ReminderTableTestFixture
 {
@@ -24,17 +24,17 @@ public abstract class ReminderTableTestFixture
     private IReminderTable? _reminderTable;
 
     /// <summary>
-    /// Gets the deployed in-process test cluster.
+    /// 获得在过程测试组群中部署的测试组群。
     /// </summary>
     protected InProcessTestCluster Cluster => _cluster ?? throw new InvalidOperationException("The test cluster has not been initialized.");
 
     /// <summary>
-    /// Gets the grain factory of the cluster client.
+    /// 获取集束客户端的 grain 工厂。
     /// </summary>
     public IGrainFactory GrainFactory => Cluster.Client;
 
     /// <summary>
-    /// Gets the reminder table under test.
+    /// 测试提醒表
     /// </summary>
     public IReminderTable ReminderTable
     {
@@ -46,49 +46,49 @@ public abstract class ReminderTableTestFixture
     }
 
     /// <summary>
-    /// Configures the silo with the reminder provider to test.
+    /// 配置 silo ,并使用提醒提供者测试。
     /// </summary>
-    /// <param name="siloBuilder">The silo builder.</param>
+    /// <param name="siloBuilder">下 silo 建筑商</param>
     protected abstract void ConfigureSilo(ISiloBuilder siloBuilder);
 
     /// <summary>
-    /// Configures additional test cluster options.
+    /// 配置额外的测试组选项 。
     /// </summary>
-    /// <param name="builder">The test cluster builder.</param>
+    /// <param name="builder">测试组群构建器。</param>
     protected virtual void ConfigureTestCluster(InProcessTestClusterBuilder builder)
     {
     }
 
     /// <summary>
-    /// Resolves the reminder table under test from a silo's service provider.
+    /// 解决 silo服务供应商在测试中的提醒表。
     /// </summary>
-    /// <param name="services">The silo's service provider.</param>
-    /// <returns>The reminder table.</returns>
+    /// <param name="services">下 silo服务供应商。</param>
+    /// <returns>提醒表。</returns>
     protected virtual IReminderTable ResolveReminderTable(IServiceProvider services) => services.GetRequiredService<IReminderTable>();
 
     /// <summary>
-    /// Checks preconditions such as the availability of an external service.
+    /// 检查是否有外部服务等先决条件。
     /// </summary>
     protected virtual void CheckPreconditionsOrThrow()
     {
     }
 
     /// <summary>
-    /// Rethrows the captured precondition failure, if any.
+    /// 重置所捕捉的前提条件失败,如果有的话。
     /// </summary>
     public void EnsurePreconditionsMet() => _preconditionException?.Throw();
 
     /// <summary>
-    /// Deploys the cluster and resolves the reminder table.
+    /// 部署该组群并解决提醒表。
     /// </summary>
-    /// <returns>A task which represents the asynchronous initialization.</returns>
+    /// <returns>代表非同步初始化的任务。</returns>
     public virtual ValueTask InitializeAsync() => InitializeAsync(CancellationToken.None);
 
     /// <summary>
-    /// Deploys the cluster and resolves the reminder table.
+    /// 部署该组群并解决提醒表。
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>A task which represents the asynchronous initialization.</returns>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>代表非同步初始化的任务。</returns>
     public virtual async ValueTask InitializeAsync(CancellationToken cancellationToken)
     {
         try
@@ -125,16 +125,16 @@ public abstract class ReminderTableTestFixture
     }
 
     /// <summary>
-    /// Stops and disposes the cluster.
+    /// 停止并处置该组。
     /// </summary>
-    /// <returns>A task which represents the asynchronous disposal.</returns>
+    /// <returns>代表非同步处置的任务。</returns>
     public virtual ValueTask DisposeAsync() => DisposeAsync(CancellationToken.None);
 
     /// <summary>
-    /// Stops and disposes the cluster.
+    /// 停止并处置该组。
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>A task which represents the asynchronous disposal.</returns>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>代表非同步处置的任务。</returns>
     public virtual async ValueTask DisposeAsync(CancellationToken cancellationToken)
     {
         if (_cluster is not { } cluster)

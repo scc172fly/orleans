@@ -10,21 +10,21 @@ using Orleans.Timers;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Provides extension methods for registering reminder services.
+/// 提供登记催复服务推广方法。
 /// </summary>
 public static class SiloBuilderReminderExtensions
 {
     /// <summary>
-    /// Adds support for reminders to this silo.
+    /// 添加对本 silo提醒的支援。
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">建筑工。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder AddReminders(this ISiloBuilder builder) => builder.ConfigureServices(services => AddReminders(services));
 
     /// <summary>
-    /// Add support for reminders to this client.
+    /// 添加给此客户端的提醒支持 。
     /// </summary>
-    /// <param name="services">The services.</param>
+    /// <param name="services">服务。</param>
     public static void AddReminders(this IServiceCollection services)
     {
         if (services.Any(service => service.ServiceType.Equals(typeof(LocalReminderService))))

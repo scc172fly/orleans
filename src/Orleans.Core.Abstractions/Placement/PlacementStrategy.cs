@@ -5,40 +5,40 @@ using Orleans.Metadata;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// The base type for all placement strategies.
+    /// 所有安置战略的基础类型。
     /// </summary>
     /// <remarks>
-    /// Orleans uses a configurable placement system to decide which server to place a grain on.
-    /// Placement directors are used to decide where a grain activation should be placed.
-    /// Placement directors are associated with grains using a placement strategy.
-    /// Grains indicate their preferred placement strategy using an attribute on the grain class.
+    /// Orleans 使用可配置的定位系统决定安装哪个服务器 grain 。
+    /// 由职位安排主任决定应在何处启动 grain 激活。
+    /// 采用安置策略,与 grains 职位的安置主任有联系。
+    /// Grains 使用 grain 类的属性表示其首选安置策略。
     /// </remarks>
     [Serializable, SerializerTransparent]
     public abstract class PlacementStrategy
     {
         /// <summary>
-        /// Gets a value indicating whether or not this placement strategy requires activations to be registered in
-        /// the grain directory.
+        /// 获得一个值, 显示是否该安置策略要求启动程序注册
+        /// grain 目录。
         /// </summary>
         public virtual bool IsUsingGrainDirectory => true;
 
         /// <summary>
-        /// Initializes an instance of this type using the provided grain properties.
+        /// 使用所提供的 grain 属性初始化这种类型的实例。
         /// </summary>
         /// <param name="properties">
-        /// The grain properties.
+        /// grain 属性。
         /// </param>
         public virtual void Initialize(GrainProperties properties)
         {
         }
 
         /// <summary>
-        /// Populates grain properties to specify the preferred placement strategy.
+        /// 弹出 grain 属性以指定首选安插策略。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="grainClass">The grain class.</param>
-        /// <param name="grainType">The grain type.</param>
-        /// <param name="properties">The grain properties which will be populated by this method call.</param>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="grainClass"> grain 类。</param>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <param name="properties">将使用此方法调用来填充的 grain 属性。</param>
         public virtual void PopulateGrainProperties(IServiceProvider services, Type grainClass, GrainType grainType, Dictionary<string, string> properties)
         {
             properties[WellKnownGrainTypeProperties.PlacementStrategy] = this.GetType().Name;

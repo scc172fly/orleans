@@ -11,18 +11,18 @@ using Orleans.TestingHost;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for <see cref="IServiceCollection"/>.
+    /// <see cref="IServiceCollection"/>的推广方法。
     /// </summary>
     public static class FaultInjectionStorageServiceCollectionExtensions
     {
         /// <summary>
-        /// Configures a silo to use <see cref="FaultInjectionGrainStorage" />.
+        /// 配置 silo 使用 <see cref="FaultInjectionGrainStorage" />.
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <param name="configureOptions">The memory storage configuration delegate.</param>
-        /// <param name="configureFaultInjectionOptions">The fault injection provider configuration delegate.</param>
-        /// <returns>The service collection.</returns>
+        /// <param name="services">服务。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <param name="configureOptions">内存存储配置代表。</param>
+        /// <param name="configureFaultInjectionOptions">注射故障供应商配置代表。</param>
+        /// <returns>服务收藏。</returns>
         public static IServiceCollection AddFaultInjectionMemoryStorage(
             this IServiceCollection services,
             string name,
@@ -34,13 +34,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures a silo to use <see cref="FaultInjectionGrainStorage" />.
+        /// 配置 silo 使用 <see cref="FaultInjectionGrainStorage" />.
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <param name="configureOptions">The memory storage configuration delegate.</param>
-        /// <param name="configureFaultInjectionOptions">The fault injection provider configuration delegate.</param>
-        /// <returns>The service collection.</returns>
+        /// <param name="services">服务。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <param name="configureOptions">内存存储配置代表。</param>
+        /// <param name="configureFaultInjectionOptions">注射故障供应商配置代表。</param>
+        /// <returns>服务收藏。</returns>
         public static IServiceCollection AddFaultInjectionMemoryStorage(
             this IServiceCollection services,
             string name,

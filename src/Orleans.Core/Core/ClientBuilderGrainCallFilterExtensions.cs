@@ -3,27 +3,27 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extensions for configuring grain call filters.
+/// 配置 grain 调用过滤器的扩展名 。
 /// </summary>
 public static class ClientBuilderGrainCallFilterExtensions
 {
     /// <summary>
-    /// Adds an <see cref="IIncomingGrainCallFilter"/> to the filter pipeline.
+    /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <param name="filter">The filter.</param>
-    /// <returns>The builder.</returns>
+    /// <param name="builder">建筑工。</param>
+    /// <param name="filter">过滤器。</param>
+    /// <returns>建筑工。</returns>
     public static IClientBuilder AddIncomingGrainCallFilter(this IClientBuilder builder, IIncomingGrainCallFilter filter)
     {
         return builder.ConfigureServices(services => services.AddIncomingGrainCallFilter(filter));
     }
 
     /// <summary>
-    /// Adds an <see cref="IIncomingGrainCallFilter"/> to the filter pipeline.
+    /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
     /// </summary>
-    /// <typeparam name="TImplementation">The filter implementation type.</typeparam>
-    /// <param name="builder">The builder.</param>
-    /// <returns>The builder.</returns>
+    /// <typeparam name="TImplementation">过滤器执行类型。</typeparam>
+    /// <param name="builder">建筑工。</param>
+    /// <returns>建筑工。</returns>
     public static IClientBuilder AddIncomingGrainCallFilter<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
         this IClientBuilder builder)
@@ -33,33 +33,33 @@ public static class ClientBuilderGrainCallFilterExtensions
     }
 
     /// <summary>
-    /// Adds an <see cref="IIncomingGrainCallFilter"/> to the filter pipeline via a delegate.
+    /// 通过代表向过滤管道添加 <see cref="IIncomingGrainCallFilter"/> 。
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <param name="filter">The filter.</param>
-    /// <returns>The builder.</returns>
+    /// <param name="builder">建筑工。</param>
+    /// <param name="filter">过滤器。</param>
+    /// <returns>建筑工。</returns>
     public static IClientBuilder AddIncomingGrainCallFilter(this IClientBuilder builder, IncomingGrainCallFilterDelegate filter)
     {
         return builder.ConfigureServices(services => services.AddIncomingGrainCallFilter(filter));
     }
 
     /// <summary>
-    /// Adds an <see cref="IOutgoingGrainCallFilter"/> to the filter pipeline.
+    /// 在过滤管道中添加 <see cref="IOutgoingGrainCallFilter"/> 。
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <param name="filter">The filter.</param>
-    /// <returns>The <see cref="IClientBuilder"/>.</returns>
+    /// <param name="builder">建筑工。</param>
+    /// <param name="filter">过滤器。</param>
+    /// <returns>下 <see cref="IClientBuilder"/>.</returns>
     public static IClientBuilder AddOutgoingGrainCallFilter(this IClientBuilder builder, IOutgoingGrainCallFilter filter)
     {
         return builder.ConfigureServices(services => services.AddOutgoingGrainCallFilter(filter));
     }
 
     /// <summary>
-    /// Adds an <see cref="IOutgoingGrainCallFilter"/> to the filter pipeline.
+    /// 在过滤管道中添加 <see cref="IOutgoingGrainCallFilter"/> 。
     /// </summary>
-    /// <typeparam name="TImplementation">The filter implementation type.</typeparam>
-    /// <param name="builder">The builder.</param>
-    /// <returns>The <see cref="IClientBuilder"/>.</returns>
+    /// <typeparam name="TImplementation">过滤器执行类型。</typeparam>
+    /// <param name="builder">建筑工。</param>
+    /// <returns>下 <see cref="IClientBuilder"/>.</returns>
     public static IClientBuilder AddOutgoingGrainCallFilter<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
         this IClientBuilder builder)
@@ -69,11 +69,11 @@ public static class ClientBuilderGrainCallFilterExtensions
     }
 
     /// <summary>
-    /// Adds an <see cref="IOutgoingGrainCallFilter"/> to the filter pipeline via a delegate.
+    /// 通过代表向过滤管道添加 <see cref="IOutgoingGrainCallFilter"/> 。
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <param name="filter">The filter.</param>
-    /// <returns>The <see cref="IClientBuilder"/>.</returns>
+    /// <param name="builder">建筑工。</param>
+    /// <param name="filter">过滤器。</param>
+    /// <returns>下 <see cref="IClientBuilder"/>.</returns>
     public static IClientBuilder AddOutgoingGrainCallFilter(this IClientBuilder builder, OutgoingGrainCallFilterDelegate filter)
     {
         return builder.ConfigureServices(services => services.AddOutgoingGrainCallFilter(filter));

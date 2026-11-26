@@ -8,11 +8,11 @@ using UnitTests.Grains;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Tests for Orleans providers and grain extensions.
-    /// Providers are pluggable components that extend grain functionality,
-    /// while grain extensions allow grains to expose additional interfaces
-    /// that can be dynamically installed. This enables modular grain design
-    /// where optional functionality can be added as needed.
+    /// Orleans 提供者和 grain 扩展的测试。
+    /// 供应商是扩展 grain 功能的可插入组件,
+    /// 扩展 grain 允许 grains 暴露其他接口
+    /// 能够动态安装。这可以进行模块 grain 设计
+    /// 可根据需要添加任择功能。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -43,12 +43,12 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests grain extension installation and invocation.
-        /// Verifies that:
-        /// - Calling uninstalled extensions throws GrainExtensionNotInstalledException
-        /// - Extensions can be dynamically installed on grains
-        /// - Installed extensions can be invoked through their interfaces
-        /// This demonstrates the dynamic nature of grain extensions.
+        /// 测试 grain 扩展安装和调用。
+        /// 证明:
+        /// - 调用未安装的扩展投出 GrainExtensionNotInstalledException
+        /// - 扩展可动态安装在 grains
+        /// - 可通过接口引用安装的扩展名
+        /// 这显示了 grain 延期的动态性质。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Providers")]
         public async Task Providers_TestExtensions()
@@ -65,14 +65,14 @@ namespace DefaultCluster.Tests
             }
             catch (GrainExtensionNotInstalledException)
             {
-                // This is the expected behavior
+                // 这是预期的行为
             }
             catch (AggregateException ex)
             {
                 var baseEx = ex.GetBaseException();
                 if (baseEx is GrainExtensionNotInstalledException)
                 {
-                    // This is also the expected behavior
+                    // 这也是预期的行为
                 }
                 else
                 {
@@ -116,20 +116,20 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests activating a non-generic extension on a generic grain interface.
-        /// Verifies that when a generic grain has a non-generic extension,
-        /// the grain can be activated through the extension reference without
-        /// issues, demonstrating extension compatibility with generic grains.
+        /// 测试在通用 grain 界面上激活非遗传扩展。
+        /// 证明当通用 grain 具有非通用扩展,
+        /// grain 可通过扩展参比激活,而无需
+        /// 问题,证明扩展与通用 grains的兼容性。
         /// </summary>
         [Fact, TestCategory("Providers"), TestCategory("BVT"), TestCategory("Cast"), TestCategory("Generics")]
         public async Task Providers_ActivateNonGenericExtensionOfGenericInterface()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IGenericGrainWithNonGenericExtension<int>>(GetRandomGrainId());
-            var extension = grain.AsReference<ISimpleExtension>(); //generic base grain not yet activated - virt refs only
+            var extension = grain.AsReference<ISimpleExtension>(); //通用基底 grain 尚未激活 - 仅 virt refs
 
             try
             {
-                var res = await extension.CheckExtension_1(); //now activation occurs, but with non-generic reference
+                var res = await extension.CheckExtension_1(); //现发生激活,但有非遗传参考
             }
             catch (Exception ex)
             {
@@ -140,16 +140,16 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests referencing a non-generic extension after generic grain activation.
-        /// Verifies that after a generic grain is activated normally,
-        /// its non-generic extension can still be obtained and invoked,
-        /// ensuring extensions work correctly with already-activated generic grains.
+        /// 用于参考通用 grain 激活后非遗传扩展的测试。
+        /// 证明在一般 grain 正常激活后,
+        /// 其非基因延伸仍可被获取和援引,
+        /// 确保已激活的通用 grains扩展工作正确。
         /// </summary>
         [Fact, TestCategory("Providers"), TestCategory("BVT"), TestCategory("Cast"), TestCategory("Generics")]
         public async Task Providers_ReferenceNonGenericExtensionOfGenericInterface()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IGenericGrainWithNonGenericExtension<int>>(GetRandomGrainId());
-            await grain.DoSomething(); //original generic grain activates here
+            await grain.DoSomething(); //原通用 grain 在此激活
 
             var extension = grain.AsReference<ISimpleExtension>();
             try
@@ -165,11 +165,11 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests automatic installation of grain extensions.
-        /// Verifies that extensions configured with AddGrainExtension are
-        /// automatically available on grains without manual installation,
-        /// while non-configured extensions still require explicit installation.
-        /// This demonstrates the auto-wiring capability for common extensions.
+        /// 测试自动安装 grain 扩展。
+        /// 验证配置为 AddGrainExtension 的扩展名
+        /// 在 grains 上自动可用,无需手动安装,
+        /// 而在非配置扩展仍然需要安装明确装置。
+        /// 这显示了通用扩展的自动电线能力。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Providers")]
         public async Task Providers_AutoInstallExtensionTest()

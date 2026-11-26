@@ -6,15 +6,15 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.Configuration
 {
     /// <summary>
-    /// Defines a metadata provider for this assembly.
+    /// 定义此组件的元数据提供者。
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class TypeManifestProviderAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TypeManifestProviderAttribute"/> class.
+        /// 初始化 <see cref="TypeManifestProviderAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="providerType">The metadata provider type.</param>
+        /// <param name="providerType">元数据提供者类型。</param>
         public TypeManifestProviderAttribute(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
@@ -35,7 +35,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the manifest provider type.
+        /// 获得舱单提供者的类型。
         /// </summary>
 #if NET5_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]

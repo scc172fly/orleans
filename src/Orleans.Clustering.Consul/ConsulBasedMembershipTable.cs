@@ -15,7 +15,7 @@ using Orleans.Runtime.Host;
 namespace Orleans.Runtime.Membership
 {
     /// <summary>
-    /// A Membership Table implementation using Consul 0.6.0  https://consul.io/
+    /// 使用领事0.6.0 https://consul.io/执行成员表的情况
     /// </summary>
     public partial class ConsulBasedMembershipTable : IMembershipTable
     {
@@ -30,11 +30,11 @@ namespace Orleans.Runtime.Membership
         private readonly string versionKey;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConsulBasedMembershipTable"/> class.
+        /// 初始化 <see cref="ConsulBasedMembershipTable"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="membershipTableOptions">The Consul clustering options.</param>
-        /// <param name="clusterOptions">The cluster identity options.</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="membershipTableOptions">领事分组办法。</param>
+        /// <param name="clusterOptions">集群识别选项。</param>
         public ConsulBasedMembershipTable(
             ILogger<ConsulBasedMembershipTable> logger,
             IOptions<ConsulClusteringOptions> membershipTableOptions,
@@ -51,9 +51,9 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Initializes the Consul based membership table.
+        /// 开始使用领事成员表。
         /// </summary>
-        /// <param name="tryInitTableVersion">Whether to create the initial table version if it does not exist.</param>
+        /// <param name="tryInitTableVersion">如果初始表格版本不存在, 是否创建该版本 。</param>
         /// <returns></returns>
         [Obsolete("Use InitializeMembershipTableAsync instead.")]
         public Task InitializeMembershipTable(bool tryInitTableVersion) => InitializeMembershipTableAsync(tryInitTableVersion, CancellationToken.None);
@@ -99,28 +99,28 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Reads all membership entries for a cluster from Consul.
+        /// 由领事负责阅读群组的所有成员条目。
         /// </summary>
-        /// <param name="consulClient">The Consul client.</param>
-        /// <param name="clusterId">The cluster identifier.</param>
-        /// <param name="kvRootFolder">The optional root folder containing Orleans keys.</param>
-        /// <param name="logger">The logger.</param>
-        /// <param name="versionKey">The key containing the membership table version, or <see langword="null"/> to use the cluster's default version key.</param>
-        /// <returns>The cluster membership entries and table version.</returns>
+        /// <param name="consulClient">领事客户</param>
+        /// <param name="clusterId">集束识别符号。</param>
+        /// <param name="kvRootFolder">含有 Orleans 密钥的可选根文件夹。</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="versionKey">包含成员表格版本的密钥,或 <see langword="null"/> 键,使用该组的默认版本密钥。</param>
+        /// <returns>分组成员条目和表格版本。</returns>
         [Obsolete("Use ReadAllAsync instead.")]
         public static Task<MembershipTableData> ReadAll(IConsulClient consulClient, string clusterId, string? kvRootFolder, ILogger logger, string? versionKey) =>
             ReadAllAsync(consulClient, clusterId, kvRootFolder, logger, versionKey, CancellationToken.None);
 
         /// <summary>
-        /// Reads all membership entries for a cluster from Consul.
+        /// 由领事负责阅读群组的所有成员条目。
         /// </summary>
-        /// <param name="consulClient">The Consul client.</param>
-        /// <param name="clusterId">The cluster identifier.</param>
-        /// <param name="kvRootFolder">The optional root folder containing Orleans keys.</param>
-        /// <param name="logger">The logger.</param>
-        /// <param name="versionKey">The key containing the membership table version, or <see langword="null"/> to use the cluster's default version key.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
-        /// <returns>The cluster membership entries and table version.</returns>
+        /// <param name="consulClient">领事客户</param>
+        /// <param name="clusterId">集束识别符号。</param>
+        /// <param name="kvRootFolder">含有 Orleans 密钥的可选根文件夹。</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="versionKey">包含成员表格版本的密钥,或 <see langword="null"/> 键,使用该组的默认版本密钥。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <returns>分组成员条目和表格版本。</returns>
         public static async Task<MembershipTableData> ReadAllAsync(IConsulClient consulClient, string clusterId, string? kvRootFolder, ILogger logger, string? versionKey, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -155,7 +155,7 @@ namespace Orleans.Runtime.Membership
             ArgumentNullException.ThrowIfNull(tableVersion);
             try
             {
-                // Consul treats a CAS index of zero as an insert.
+                // 领事将零的化学文摘社指数作为插入。
                 var siloRegistration = ConsulSiloRegistrationAssembler.FromMembershipEntry(this.clusterId, entry, "0");
                 var insertKV = ConsulSiloRegistrationAssembler.ToKVPair(siloRegistration, this.kvRootFolder);
                 var rowInsert = new KVTxnOp(insertKV.Key, KVTxnVerb.CAS) { Index = siloRegistration.LastIndex, Value = insertKV.Value };
@@ -189,7 +189,7 @@ namespace Orleans.Runtime.Membership
             try
             {
                 var expectedIndex = ulong.Parse(etag, CultureInfo.InvariantCulture);
-                // Index zero means insert in Consul; an update requires a token from an existing row.
+                // 零指数指在领事中插入;更新需要现有行的象征性。
                 if (expectedIndex == 0)
                 {
                     LogDebugConsulMembershipProviderFailedCASCheck(entry.SiloAddress);
@@ -281,7 +281,7 @@ namespace Orleans.Runtime.Membership
                 return true;
             }
 
-            // Consul uses HTTP 409 for both stale-index conflicts and per-operation failures such as ACL denial.
+            // 领事利用HTTP 409处理陈旧指数冲突和操作失败,如ACL拒绝。
             if (response.Errors.Count > 0 && response.Errors.All(error =>
                 (error.What.StartsWith("failed to set key ", StringComparison.Ordinal)
                     || error.What.StartsWith("failed to delete key ", StringComparison.Ordinal))
@@ -322,7 +322,7 @@ namespace Orleans.Runtime.Membership
                 var entries = (await _consulClient.KV.List(siloKey, ConsistentRead, cancellationToken)).Response;
                 var versionAfter = (await _consulClient.KV.Get(versionKey, ConsistentRead, cancellationToken)).Response;
 
-                // An unchanged version ETag places the atomic row/heartbeat read within this table version.
+                // 与原版本相同的ETag将原子行/心跳放在本表格版本中。
                 if (versionBefore?.ModifyIndex != versionAfter?.ModifyIndex)
                 {
                     await Task.Delay(ConflictRetryDelay, cancellationToken);
@@ -383,7 +383,7 @@ namespace Orleans.Runtime.Membership
                     var response = await _consulClient.KV.Txn(new List<KVTxnOp>
                     {
                         new(entry.RegistrationKey, KVTxnVerb.DeleteCAS) { Index = entry.Registration.LastIndex },
-                        // DeleteCAS with index zero guards the absence of a legacy heartbeat key.
+                        // DeleteCAS 以零指数保护没有遗留心跳键。
                         new(ConsulSiloRegistrationAssembler.FormatSiloIAmAliveKey(entry.RegistrationKey), KVTxnVerb.DeleteCAS) { Index = entry.Heartbeat?.ModifyIndex ?? 0 }
                     }, cancellationToken);
                     if (!IsTransactionSuccessful(response.Response))

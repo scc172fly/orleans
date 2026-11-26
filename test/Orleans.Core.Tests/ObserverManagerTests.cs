@@ -71,7 +71,7 @@ public sealed class ObserverManagerTests
             observerManager.Subscribe(i, i);
         }
 
-        // Using predicate for an easier simulation of inserting item while enumerating.
+        // 使用前置数据来比较容易地模拟插入项,同时进行数字计算。
         bool Predicate(int observer)
         {
             if (observer == 5)
@@ -96,7 +96,7 @@ public sealed class ObserverManagerTests
         var notifiedObservers = new List<int>();
         var newlyAddedObserverNotified = false;
 
-        // Subscribe some initial observers.
+        // 聘请一些初步观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
@@ -106,16 +106,16 @@ public sealed class ObserverManagerTests
         {
             notifiedObservers.Add(observer);
 
-            // Add a new observer during notification of the first observer.
+            // 在通知第一观察员期间增加一名新观察员。
             if (observer == 0)
             {
                 observerManager.Subscribe(100, 100);
 
-                // Verify that the newly added observer is immediately visible in the collection.
+                // 校验新增加的观察员是否立即在收藏中可见。
                 Assert.Contains(100, observerManager.Observers.Values);
             }
 
-            // Check if we're processing the newly added observer.
+            // 检查我们是否正在处理新加入的观察家
             if (observer == 100)
             {
                 newlyAddedObserverNotified = true;
@@ -126,10 +126,10 @@ public sealed class ObserverManagerTests
 
         await observerManager.Notify(NotificationAsync);
 
-        // Only the original observers should have been notified, not the one added during notification.
+        // 只有原始观察员才应得到通知,而不是通知期间增加的观察员。
         Assert.Equal(5, notifiedObservers.Count);
 
-        // The newly added observer was not notified.
+        // 新的观察员没有得到通知。
         Assert.DoesNotContain(100, notifiedObservers);
         Assert.False(newlyAddedObserverNotified);
     }
@@ -141,7 +141,7 @@ public sealed class ObserverManagerTests
         var notifiedObservers = new List<int>();
         var unsubscribedObserverNotified = false;
 
-        // Subscribe some initial observers.
+        // 聘请一些初步观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
@@ -151,16 +151,16 @@ public sealed class ObserverManagerTests
         {
             notifiedObservers.Add(observer);
 
-            // Unsubscribe an observer during notification of the first observer.
+            // 在第一观察员通知期间不订阅观察员。
             if (observer == 0)
             {
                 observerManager.Unsubscribe(3);
 
-                // Verify that the unsubscribed observer is immediately removed from the collection.
+                // 核实未订阅的观察员是否立即从收藏中移除。
                 Assert.DoesNotContain(3, observerManager.Observers.Values);
             }
 
-            // Check if we're processing the unsubscribed observer.
+            // 检查一下我们是否正在处理未注册的观察者
             if (observer == 3)
             {
                 unsubscribedObserverNotified = true;
@@ -171,12 +171,12 @@ public sealed class ObserverManagerTests
 
         await observerManager.Notify(NotificationAsync);
 
-        // Even though we unsubscribed during iteration, the snapshot still contains the original observers.
-        // All original observers were notified due to snapshot.
+        // 尽管我们在迭代期间没有被订名,但照片上仍然有原始观察员。
+        // 所有原始观察员均因快照而获得通知。
         Assert.Equal(5, notifiedObservers.Count);
-        // Observer 3 was notified because it was in the snapshot.
+        // 观察员3之所以得到通知,是因为其是在快照中。
         Assert.True(unsubscribedObserverNotified);
-        // But it's no longer in the collection after notification completed.
+        // 但是在通知完成后 已经不在收集了
         Assert.Equal(4, observerManager.Count);
     }
 
@@ -186,7 +186,7 @@ public sealed class ObserverManagerTests
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
         var notifiedObservers = new List<int>();
 
-        // Subscribe some initial observers.
+        // 聘请一些初步观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
@@ -196,7 +196,7 @@ public sealed class ObserverManagerTests
         {
             notifiedObservers.Add(observer);
 
-            // Add new observers and remove existing ones during notification.
+            // 在通知中增加新的观察员并删除现有的观察员。
             if (observer == 0)
             {
                 observerManager.Subscribe(100, 100);
@@ -206,13 +206,13 @@ public sealed class ObserverManagerTests
 
         observerManager.Notify(Notification);
 
-        // All original observers were notified.
+        // 所有原始观察员都得到通知。
         Assert.Equal(5, notifiedObservers.Count);
-        // Observer 3 was notified because it was in the snapshot.
+        // 观察员3之所以得到通知,是因为其是在快照中。
         Assert.Contains(3, notifiedObservers);
-        // New observer wasn't in the original snapshot.
+        // 新观察家没有在原始的快照中
         Assert.DoesNotContain(100, notifiedObservers);
-        // 5 original - 1 removed + 1 added = 5 total.
+        // 5 原为1,删除+ 1 加= 5 总计。
         Assert.Equal(5, observerManager.Count);
     }
 
@@ -221,7 +221,7 @@ public sealed class ObserverManagerTests
     {
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
@@ -229,7 +229,7 @@ public sealed class ObserverManagerTests
 
         async Task NotificationAsync(int observer)
         {
-            // Throw exception for specific observer.
+            // 将特定观察员的例外排除在外。
             if (observer == 2)
             {
                 throw new InvalidOperationException("Test exception");
@@ -240,9 +240,9 @@ public sealed class ObserverManagerTests
 
         await observerManager.Notify(NotificationAsync);
 
-        // One observer should be removed.
+        // 应撤除一名观察员。
         Assert.Equal(4, observerManager.Count);
-        // Observer 2 should be removed due to exception.
+        // 由于例外情况,观察员2应被撤除。
         Assert.DoesNotContain(2, observerManager.Observers.Values);
     }
 
@@ -251,7 +251,7 @@ public sealed class ObserverManagerTests
     {
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
@@ -259,7 +259,7 @@ public sealed class ObserverManagerTests
 
         void Notification(int observer)
         {
-            // Throw exception for specific observer.
+            // 将特定观察员的例外排除在外。
             if (observer == 2)
             {
                 throw new InvalidOperationException("Test exception");
@@ -268,9 +268,9 @@ public sealed class ObserverManagerTests
 
         observerManager.Notify(Notification);
 
-        // One observer should be removed.
+        // 应撤除一名观察员。
         Assert.Equal(4, observerManager.Count);
-        // Observer 2 should be removed due to exception.
+        // 由于例外情况,观察员2应被撤除。
         Assert.DoesNotContain(2, observerManager.Observers.Values);
     }
 
@@ -281,20 +281,20 @@ public sealed class ObserverManagerTests
         var currentTime = DateTime.UtcNow;
         var notifiedObservers = new List<int>();
 
-        // Mock GetDateTime to control time.
+        // 模拟 GetDateTime 控制时间 。
         observerManager.GetDateTime = () => currentTime;
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
         }
 
-        // Move some observers into the past to make them expire.
-        // Advance time by 1 hour.
+        // 将一些观察者移入过去,使其过期。
+        // 提前一小时到
         currentTime = DateTime.UtcNow.AddHours(1);
 
-        // Notification function that tracks which observers were called.
+        // 通知函数,可追踪被召唤的观察员所在的轨道。
         async Task NotificationAsync(int observer)
         {
             notifiedObservers.Add(observer);
@@ -303,9 +303,9 @@ public sealed class ObserverManagerTests
 
         await observerManager.Notify(NotificationAsync);
 
-        // No observers should be notified as all are expired.
+        // 观察员的所有发言均过期,不应通知任何观察员。
         Assert.Empty(notifiedObservers);
-        // All observers should be removed due to expiration.
+        // 所有观察员因任期届满应被撤职。
         Assert.Equal(0, observerManager.Count);
     }
 
@@ -315,41 +315,41 @@ public sealed class ObserverManagerTests
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromMinutes(30), NullLogger.Instance);
         var startTime = DateTime.UtcNow;
 
-        // Mock GetDateTime to control time.
+        // 模拟 GetDateTime 控制时间 。
         observerManager.GetDateTime = () => startTime;
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 10; i++)
         {
             observerManager.Subscribe(i, i);
         }
 
-        // Update last seen time for half of the observers.
+        // 半数观察员最后一次看到最新情况。
         var halfTime = startTime.AddMinutes(25);
         observerManager.GetDateTime = () => halfTime;
 
         for (var i = 5; i < 10; i++)
         {
-            // This refreshes the LastSeen time.
+            // 这将刷新 LastSeen 时间 。
             observerManager.Subscribe(i, i);
         }
 
-        // Advance time to expire only the first half.
+        // 仅前半期到期的预发时间。
         observerManager.GetDateTime = () => startTime.AddMinutes(35);
 
         observerManager.ClearExpired();
 
-        // Half should be removed due to expiration.
+        // 一半因过期应删除。
         Assert.Equal(5, observerManager.Count);
         for (var i = 0; i < 5; i++)
         {
-            // First half should be removed.
+            // 上半部分应删除。
             Assert.DoesNotContain(i, observerManager.Observers.Values);
         }
 
         for (var i = 5; i < 10; i++)
         {
-            // Second half should remain.
+            // 下半部分应保留。
             Assert.Contains(i, observerManager.Observers.Values);
         }
     }
@@ -359,13 +359,13 @@ public sealed class ObserverManagerTests
     {
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 10; i++)
         {
             observerManager.Subscribe(i, i);
         }
 
-        // Verify initial count.
+        // 校验初始数 。
         Assert.Equal(10, observerManager.Count);
 
         observerManager.Clear();
@@ -381,7 +381,7 @@ public sealed class ObserverManagerTests
         var scheduler = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, 1);
         const int observerCount = 100;
 
-        // Task 1: Subscribe observers.
+        // 任务1:登记观察员。
         var task1 = Task.Factory.StartNew(() =>
         {
             for (var i = 0; i < observerCount; i++)
@@ -393,12 +393,12 @@ public sealed class ObserverManagerTests
         TaskCreationOptions.RunContinuationsAsynchronously,
         scheduler.ConcurrentScheduler);
 
-        // Task 2: Also subscribe same observers (to test update scenario).
+        // 任务2:还认可同样的观察员(测试更新设想方案)。
         var task2 = Task.Factory.StartNew(() =>
         {
             for (var i = 0; i < observerCount; i++)
             {
-                // Different value to test updates.
+                // 测试更新的不同值 。
                 observerManager.Subscribe(i, i * 10);
             }
         },
@@ -406,12 +406,12 @@ public sealed class ObserverManagerTests
         TaskCreationOptions.RunContinuationsAsynchronously,
         scheduler.ConcurrentScheduler);
 
-        // Wait for both tasks to complete.
+        // 等待完成这两项任务。
         await Task.WhenAll(task1, task2);
 
         Assert.Equal(observerCount, observerManager.Count);
 
-        // Now run notification on a different thread while modifying on main thread.
+        // 现在对主线修改时, 以不同的线索运行通知 。
         var notifiedCount = 0;
         var tcs = new TaskCompletionSource();
         var startedTcs = new TaskCompletionSource();
@@ -429,7 +429,7 @@ public sealed class ObserverManagerTests
         scheduler.ConcurrentScheduler).Unwrap();
         await startedTcs.Task;
 
-        // Simultaneously modify the collection.
+        // 同时修改收藏 。
         for (var i = observerCount; i < observerCount + 50; i++)
         {
             observerManager.Subscribe(i, i);
@@ -438,8 +438,8 @@ public sealed class ObserverManagerTests
         tcs.TrySetResult();
         await notifyTask;
 
-        // We should have notified exactly observerCount observers
-        // (those that were present when the snapshot was created).
+        // 我们本应该通知 observerCount 观察员的
+        // (在快照诞生时在场的)
         Assert.Equal(observerCount, notifiedCount);
         Assert.Equal(observerCount + 50, observerManager.Count);
     }
@@ -450,7 +450,7 @@ public sealed class ObserverManagerTests
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
         var notifiedObservers = new List<int>();
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 10; i++)
         {
             observerManager.Subscribe(i, i);
@@ -465,9 +465,9 @@ public sealed class ObserverManagerTests
 
         observerManager.Notify(Notification, EvenNumberPredicate);
 
-        // Only even observers should be notified.
+        // 即使是观察员也应得到通知。
         Assert.Equal(5, notifiedObservers.Count);
-        // All notified observers should be even.
+        // 所有被通知的观察员应均衡。
         Assert.All(notifiedObservers, observer => Assert.True(observer % 2 == 0));
     }
 
@@ -477,7 +477,7 @@ public sealed class ObserverManagerTests
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
         var notifiedObservers = new List<int>();
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 10; i++)
         {
             observerManager.Subscribe(i, i);
@@ -493,9 +493,9 @@ public sealed class ObserverManagerTests
 
         await observerManager.Notify(NotificationAsync, OddNumberPredicate);
 
-        // Only odd observers should be notified.
+        // 只有奇特的观察员才应获得通知。
         Assert.Equal(5, notifiedObservers.Count);
-        // All notified observers should be odd.
+        // 所有已通知的观察员应奇特。
         Assert.All(notifiedObservers, observer => Assert.True(observer % 2 == 1));
     }
 
@@ -504,7 +504,7 @@ public sealed class ObserverManagerTests
     {
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
@@ -526,27 +526,27 @@ public sealed class ObserverManagerTests
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromMinutes(30), NullLogger.Instance);
         var startTime = DateTime.UtcNow;
 
-        // Mock GetDateTime to control time.
+        // 模拟 GetDateTime 控制时间 。
         observerManager.GetDateTime = () => startTime;
 
-        // Subscribe initial observer.
+        // 订阅初始观察员。
         observerManager.Subscribe(1, 42);
 
-        // Advance time to near expiration but not quite.
+        // 接近到期的提前时间,但还不是完全。
         var laterTime = startTime.AddMinutes(25);
         observerManager.GetDateTime = () => laterTime;
 
-        // Update the subscription (same ID, same observer value).
+        // 更新订阅( 同号ID, 观察员值) 。
         observerManager.Subscribe(1, 42);
 
-        // Advance time to past the original subscription time + expiration.
+        // 超过原订阅时间+到期的提前时间。
         var expirationCheckTime = startTime.AddMinutes(35);
         observerManager.GetDateTime = () => expirationCheckTime;
 
         var notified = false;
         observerManager.Notify(observer => notified = true);
 
-        // Observer should still be active due to the refresh.
+        // 由于情况好转,观察员仍应积极活动。
         Assert.True(notified);
         Assert.Equal(1, observerManager.Count);
     }
@@ -556,16 +556,16 @@ public sealed class ObserverManagerTests
     {
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
 
-        // Subscribe initial observer.
+        // 订阅初始观察员。
         observerManager.Subscribe(1, 100);
 
-        // Update the subscription (same ID, different observer value).
+        // 更新订阅( 同ID, 不同的观察者值) 。
         observerManager.Subscribe(1, 200);
 
         var observedValue = 0;
         observerManager.Notify(observer => observedValue = observer);
 
-        // Should get the updated value.
+        // 应该得到更新值。
         Assert.Equal(200, observedValue);
     }
 
@@ -575,29 +575,29 @@ public sealed class ObserverManagerTests
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
         var startTime = DateTime.UtcNow;
 
-        // Mock GetDateTime to control time.
+        // 模拟 GetDateTime 控制时间 。
         observerManager.GetDateTime = () => startTime;
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
         }
 
-        // Change expiration to a shorter duration after subscribing.
+        // 签署后期满改为较短期限。
         observerManager.ExpirationDuration = TimeSpan.FromMinutes(30);
 
-        // Advance time to between the old and new expiration durations.
-        // Past 30min, but before 1hr.
+        // 预发时间间隔为新旧的到期期限。
+        // 30分钟前,但1小时之前
         var laterTime = startTime.AddMinutes(45);
         observerManager.GetDateTime = () => laterTime;
 
         var notifiedObservers = new List<int>();
         observerManager.Notify(observer => notifiedObservers.Add(observer));
 
-        // No observers should be notified due to expiration.
+        // 任何观察员不得因任期届满而得到通知。
         Assert.Empty(notifiedObservers);
-        // All observers should be removed.
+        // 所有观察员均应被撤职。
         Assert.Equal(0, observerManager.Count);
     }
 
@@ -608,13 +608,13 @@ public sealed class ObserverManagerTests
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
         var notifiedObservers = new ConcurrentBag<int>();
 
-        // Subscribe some observers.
+        // 聘请一些观察员。
         for (var i = 0; i < 10; i++)
         {
             observerManager.Subscribe(i, i);
         }
 
-        // Start notification.
+        // 启动通知。
         var notifyStartedTcs = new TaskCompletionSource();
         var notifyTask = Task.Run(() =>
         {
@@ -625,17 +625,17 @@ public sealed class ObserverManagerTests
             });
         }, cancellationToken);
 
-        // Clear while notification is happening.
+        // 通知发生时清楚无误 。
         await notifyStartedTcs.Task.WaitAsync(cancellationToken);
         observerManager.Clear();
 
-        // Wait for notification to complete.
+        // 等待通知完成。
         await notifyTask.WaitAsync(cancellationToken);
 
-        // Assert - We should still have notified all the original observers in the snapshot.
+        // 声明 - 我们还是应该通知所有原始观察员
         Assert.Equal(10, notifiedObservers.Count);
 
-        // But the collection should now be empty.
+        // 但收藏现在应该是空的 。
         Assert.Equal(0, observerManager.Count);
         Assert.Empty(observerManager.Observers);
     }
@@ -645,7 +645,7 @@ public sealed class ObserverManagerTests
     {
         var observerManager = new ObserverManager<int, int>(TimeSpan.FromHours(1), NullLogger.Instance);
 
-        // Subscribe some initial observers.
+        // 聘请一些初步观察员。
         for (var i = 0; i < 5; i++)
         {
             observerManager.Subscribe(i, i);
@@ -655,26 +655,26 @@ public sealed class ObserverManagerTests
         var newObserversAdded = new List<int>();
         var removedObserver = -1;
 
-        // Enumerate using foreach which uses GetEnumerator under the hood.
+        // 使用在引擎盖下使用 GetEnumerator 的每个数字。
         foreach (var observer in observerManager)
         {
             enumeratedObservers.Add(observer);
 
-            // Add and remove observers during enumeration.
+            // 在点名时添加和删除观察员。
             if (observer == 2)
             {
-                // Add new observers.
+                // 增加新的观察员。
                 for (var i = 10; i < 15; i++)
                 {
                     observerManager.Subscribe(i, i);
                     newObserversAdded.Add(i);
                 }
 
-                // Remove an observer.
+                // 删除观察者。
                 observerManager.Unsubscribe(4);
                 removedObserver = 4;
 
-                // Verify immediate visibility in the collection (but not in the enumeration).
+                // 核实收集中的立即可见度(但不在查点中)。
                 Assert.DoesNotContain(4, observerManager.Observers.Values);
                 foreach (var newObserver in newObserversAdded)
                 {
@@ -683,13 +683,13 @@ public sealed class ObserverManagerTests
             }
         }
 
-        // Original enumeration should complete with all original observers.
+        // 原始点数应全部与原观察员一起完成。
         Assert.Equal(5, enumeratedObservers.Count);
-        // Even though we removed it during enumeration.
+        // 即便我们在点数时删除了它
         Assert.Contains(removedObserver, enumeratedObservers);
 
-        // Verify final collection state.
-        // 5 original - 1 removed + 5 added = 9 total.
+        // 验证最后收集状态 。
+        // 5 原为 - 1 去除+ 5 加= 9 共计。
         Assert.Equal(9, observerManager.Count);
         Assert.DoesNotContain(removedObserver, observerManager);
         foreach (var newObserver in newObserversAdded)

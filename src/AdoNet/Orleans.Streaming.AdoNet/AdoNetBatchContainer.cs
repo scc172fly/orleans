@@ -1,12 +1,12 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// The <see cref="IBatchContainer"/> implementation for the ADONET provider.
+/// ADONET 提供者的 <see cref="IBatchContainer"/> 实施。
 /// </summary>
 /// <remarks>
-/// 1. This class only supports binary serialization as performance and data size is the priority for database storage.
-/// 2. Though the <see cref="SequenceToken"/> is supported here, it is not yet used, as the ADO.NET provider is not rewindable.
-/// 3. The <see cref="SequenceToken"/> holds the queue cache position assigned by the receiver, not the <see cref="MessageId"/>.
+/// 1. 本类仅支持二进制序列化,因为性能和数据大小是数据库储存的优先事项。
+/// 2. 虽然 <see cref="SequenceToken"/> 在这里得到支持,但目前尚未使用,因为 ADO.NET 提供者无法倒转。
+/// 3. <see cref="SequenceToken"/> 持有接收器指定的队列缓存位置,而不是 <see cref="MessageId"/>。
 /// </remarks>
 [GenerateSerializer]
 [Alias("Orleans.Streaming.AdoNet.AdoNetBatchContainer")]
@@ -36,7 +36,7 @@ internal class AdoNetBatchContainer : IBatchContainer
     public EventSequenceTokenV2 SequenceToken { get; internal set; } = null!;
 
     /// <summary>
-    /// Holds the receipt for message confirmation.
+    /// 持有信件确认的收据。
     /// </summary>
     [Id(4)]
     public int Dequeued { get; internal set; }
@@ -47,7 +47,7 @@ internal class AdoNetBatchContainer : IBatchContainer
     private long _messageId;
 
     /// <summary>
-    /// Identifies the stored message for confirmation by the receiving silo.
+    /// 确定存储的电文,供接收方确认 silo。
     /// </summary>
     public long MessageId => _messageId;
 
@@ -80,14 +80,14 @@ internal class AdoNetBatchContainer : IBatchContainer
     #region Conversion
 
     /// <summary>
-    /// Creates a new <see cref="AdoNetBatchContainer"/> from the specified <see cref="AdoNetStreamMessage"/> at the specified queue cache position.
+    /// 创建新 <see cref="AdoNetBatchContainer"/> 指定发自 <see cref="AdoNetStreamMessage"/> 的队列缓存位置。
     /// </summary>
     public static AdoNetBatchContainer FromMessage(Serializer<AdoNetBatchContainer> serializer, AdoNetStreamMessage message, long position)
     {
         ArgumentNullException.ThrowIfNull(serializer);
         ArgumentNullException.ThrowIfNull(message);
 
-        // A stored stream message always contains a serialized batch container.
+        // 存储的流信息总是包含一个分批处理的分批货箱。
         var container = serializer.Deserialize(message.Payload)!;
         container.SequenceToken = new(position);
         container._messageId = message.MessageId;
@@ -97,7 +97,7 @@ internal class AdoNetBatchContainer : IBatchContainer
     }
 
     /// <summary>
-    /// Converts the specified <see cref="AdoNetBatchContainer"/> to a message payload.
+    /// 将指定的 <see cref="AdoNetBatchContainer"/> 转换为信件有效载荷。
     /// </summary>
     public static byte[] ToMessagePayload(Serializer<AdoNetBatchContainer> serializer, StreamId streamId, List<object> events, Dictionary<string, object>? requestContext)
     {

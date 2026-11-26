@@ -5,8 +5,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Pins the wire names of the abstraction types which hosts persist, such as recorded responses in a journal, so a rename
-/// of a type leaves recorded data readable.
+/// 输入主机所在的抽象类型(如在日记中记录的答复)的电线名, 重命名
+/// 类型叶上记录的数据可读。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

@@ -8,7 +8,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Associates a <see cref="GrainInterfaceType"/> with a <see cref="Type" />.
+    /// a <see cref="GrainInterfaceType"/> 与 <see cref="Type" />有关。
     /// </summary>
     public class GrainInterfaceTypeResolver
     {
@@ -17,13 +17,13 @@ namespace Orleans.Metadata
         private readonly ConcurrentDictionary<Type, GrainInterfaceType> _interfaceTypes = new();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainInterfaceTypeResolver"/> class.
+        /// 初始化 <see cref="GrainInterfaceTypeResolver"/> 类的新实例。
         /// </summary>
         /// <param name="providers">
-        /// The collection of grain interface type providers.
+        /// 收集 grain 接口类型提供者。
         /// </param>
         /// <param name="typeConverter">
-        /// The type converter, used for generic parameter names.
+        /// 用于通用参数名称的型号转换器。
         /// </param>
         public GrainInterfaceTypeResolver(
             IEnumerable<IGrainInterfaceTypeProvider> providers,
@@ -34,14 +34,14 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Returns the cached <see cref="GrainInterfaceType"/> for the provided interface.
+        /// 返回为提供接口而缓存的 <see cref="GrainInterfaceType"/> 。
         /// </summary>
         /// <remarks>
-        /// Identities are cached per resolver and CLR interface type, including closed generic arguments.
-        /// Configured providers define stable identities for the lifetime of the resolver.
+        /// 每个解决者和CLR接口类型都隐藏身份,包括封闭的通用参数。
+        /// 配置的提供者定义了解决者一生的稳定身份 。
         /// </remarks>
-        /// <param name="type">The grain interface.</param>
-        /// <returns>The <see cref="GrainInterfaceType"/> for the provided interface.</returns>
+        /// <param name="type"> grain 接口。</param>
+        /// <returns>下 <see cref="GrainInterfaceType"/> 提供的接口。</returns>
         public GrainInterfaceType GetGrainInterfaceType(Type type)
         {
             return _interfaceTypes.GetOrAdd(type, static (interfaceType, resolver) => resolver.ResolveGrainInterfaceType(interfaceType), this);
@@ -54,7 +54,7 @@ namespace Orleans.Metadata
                 throw new ArgumentException($"Argument {nameof(type)} must be an interface. Provided value, \"{type}\", is not an interface.", nameof(type));
             }
 
-            // Configured providers take precedence
+            // 配置的提供者优先
             foreach (var provider in _providers)
             {
                 if (provider.TryGetGrainInterfaceType(type, out var interfaceType))
@@ -64,20 +64,20 @@ namespace Orleans.Metadata
                 }
             }
 
-            // Conventions are used as a fallback.
+            // 公约被用作一种退让。
             return GetGrainInterfaceTypeByConvention(type);
         }
 
         /// <summary>
-        /// Gets a grain interface type based upon the default conventions.
+        /// 根据默认常规获取 grain 接口类型。
         /// </summary>
-        /// <param name="type">The grain interface type.</param>
-        /// <returns>The grain interface type name.</returns>
+        /// <param name="type"> grain 接口类型。</param>
+        /// <returns> grain 接口类型名称。</returns>
         public GrainInterfaceType GetGrainInterfaceTypeByConvention(Type type)
         {
             var result = GrainInterfaceType.Create(_typeConverter.Format(type, input => input switch
             {
-                AssemblyQualifiedTypeSpec asm => asm.Type, // drop outer assembly qualification
+                AssemblyQualifiedTypeSpec asm => asm.Type, // 外流浮浮表面组装资格
                 _ => input
             }));
 

@@ -11,8 +11,8 @@ internal sealed class OwnedBenchmarkResource(
     {
         report.Ownership = "creation-unconfirmed";
         report.Cleanup = "manual-check-required";
-        // A retried create can return 409 after the original success response was lost.
-        // Only an acknowledged success establishes ownership; every failure requires inspection.
+        // 重新开发的发明可以在最初的成功反应失败后返回409。
+        // 只有公认的成功才能确立所有权;每次失败都需要检查。
         await create(cancellationToken);
 
         _owned = true;

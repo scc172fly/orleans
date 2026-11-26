@@ -5,44 +5,44 @@ using System.Threading.Tasks;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// Represents a message transport listener, which provides active message transports.
+/// 代表信息传输听众,提供主动信息传输。
 /// </summary>
 public abstract class MessageTransportListener : IAsyncDisposable
 {
     /// <summary>
-    /// Gets a value indicating whether this instance is valid and should be used.
+    /// 获得一个值,以显示此实例是否有效并应当使用。
     /// </summary>
     public abstract bool IsValid { get; }
 
     /// <summary>
-    /// Gets the name of the listener.
+    /// 取出听众的名字
     /// </summary>
     public abstract string ListenerName { get; }
 
     /// <summary>
-    /// Gets the collection of features available on the listener.
+    /// 收集听众的特写。
     /// </summary>
     public abstract IFeatureCollection Features { get; }
 
     /// <summary>
-    /// Binds to the configured endpoint and begins listening for incoming connections.
+    /// 绑在配置的终点上,开始监听连接。
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A <see cref="ValueTask"/> which completes once the listener has been bound.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>A <see cref="ValueTask"/> ,一旦听众受约束即完成。</returns>
     public abstract ValueTask BindAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Accepts an incoming connection.
+    /// 接受连接。
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The message transport, or <see langword="null"/> if the listener has been stopped.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>电文传输,或 <see langword="null"/> 如果听众已被阻止,</returns>
     public abstract ValueTask<MessageTransport?> AcceptAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Unbinds from the configured endpoint.
+    /// 从配置的终点卸载 。
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A <see cref="ValueTask"/> representing the operation.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>A <see cref="ValueTask"/> 代表操作。</returns>
     public abstract ValueTask UnbindAsync(CancellationToken cancellationToken = default);
 
     /// <inheritdoc/>

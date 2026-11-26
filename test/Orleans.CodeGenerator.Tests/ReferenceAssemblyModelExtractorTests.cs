@@ -37,7 +37,7 @@ public class ReferenceAssemblyModelExtractorTests
         Assert.Equal(metadataName, identity.MetadataName);
         Assert.Same(symbol, compilation.Assembly.GetTypeByMetadataName(identity.MetadataName));
 
-        // Exercise discovery separately from the namespace emission issue tracked by #11640.
+        // 与11640号记录的空间排放问题分开。
         var driver = CreateTrackedDriver().RunGenerators(compilation, TestContext.Current.CancellationToken);
         var result = Assert.Single(driver.GetRunResult().Results);
         Assert.Empty(result.Diagnostics);
@@ -479,7 +479,7 @@ public class ReferenceAssemblyModelExtractorTests
         var types = compilation.Assembly.GetDeclaredTypes().ToArray();
         Assert.Equal(512, types.Length);
 
-        // Warm Roslyn's symbol and syntax caches before comparing synchronous, thread-local allocations.
+        // 温·罗斯林的符号和语法暗藏 比较同步的,细线的地方分配
         _ = Extract();
         _ = FormatTypes();
         var start = GC.GetAllocatedBytesForCurrentThread();

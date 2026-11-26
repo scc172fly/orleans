@@ -9,15 +9,15 @@ public interface ICatalogItemGrain : IGrainWithIntegerKey
 
     DurableTask<bool> ReserveAsync(Guid orderId, int units);
 
-    // Returns whether the order held a reservation, so releasing is idempotent.
+    // 返回命令是否持有保留,因此释放是无效的。
     DurableTask<bool> ReleaseAsync(Guid orderId);
 
     DurableTask CommitAsync(Guid orderId);
 }
 
-// One grain per product owns its stock. Orders reserve stock while they await validation,
-// commit it once paid, and release it when cancelled. Each operation's state change commits with its result.
-// Reservation outcomes retain each order's effect independently of durable-task retention.
+// 每产品一个 grain 拥有其库存。
+// 支付后, 承诺偿还, 取消时释放。 每一次行动都承诺国家变化 并承诺结果 。
+// 保留结果保留每个订单的效力,而不考虑是否保留持久任务。
 public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 {
     private readonly IDurableValue<CatalogItem> _item;
@@ -33,7 +33,7 @@ public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 
     private int ProductId => (int)this.GetPrimaryKeyLong();
 
-    // The journal holds the item once its stock first changes; until then, it is the seed entry.
+    // 日记在股票首次变化时持有该物品;在此之前,它是种子条目。
     private CatalogItem? Item => _item.Value ?? CatalogData.Find(ProductId);
 
     public Task<CatalogItem?> GetAsync() => Task.FromResult(Item);

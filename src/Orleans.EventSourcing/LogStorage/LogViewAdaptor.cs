@@ -10,19 +10,19 @@ using Orleans.EventSourcing.Common;
 namespace Orleans.EventSourcing.LogStorage
 {
     /// <summary>
-    /// A log view adaptor that wraps around a traditional storage adaptor, and uses batching and e-tags
-    /// to append entries.
+    /// 环绕传统储存适配器并使用批量和电子标签的日志查看调整器
+    /// 键附加条目。
     ///<para>
-    /// The log itself is transient, i.e. not actually saved to storage - only the latest view and some
-    /// metadata (the log position, and write flags) are stored.
+    /// 日志本身是短暂的, i.e.没有实际保存到存储中 - 只有最新的视图和一些
+    /// 元数据(日志位置和写标记)被存储。
     /// </para>
     /// </summary>
-    /// <typeparam name="TLogView">Type of log view</typeparam>
-    /// <typeparam name="TLogEntry">Type of log entry</typeparam>
+    /// <typeparam name="TLogView">日志视图类型</typeparam>
+    /// <typeparam name="TLogEntry">日志输入类型</typeparam>
     internal class LogViewAdaptor<TLogView, TLogEntry> : PrimaryBasedLogViewAdaptor<TLogView, TLogEntry, SubmissionEntry<TLogEntry>> where TLogView : class, new() where TLogEntry : class
     {
         /// <summary>
-        /// Initialize a StorageProviderLogViewAdaptor class
+        /// 初始化 StorageProviderLogViewAdaptor 类
         /// </summary>
         public LogViewAdaptor(ILogViewAdaptorHost<TLogView, TLogEntry> host, TLogView initialState, IGrainStorage globalGrainStorage, string grainTypeName, ILogConsistencyProtocolServices services)
             : base(host, initialState, services)
@@ -36,10 +36,10 @@ namespace Orleans.EventSourcing.LogStorage
         private readonly IGrainStorage globalGrainStorage;
         private readonly string grainTypeName;
 
-        // the object containing the entire log, as retrieved from / sent to storage
+        // 包含全部日志的天体,该天体从 / 发送到存储
         private LogStateWithMetaDataAndETag<TLogEntry> GlobalLog = null!;
 
-        // the confirmed view
+        // 确认意见
         private TLogView ConfirmedViewInternal = null!;
         private int ConfirmedVersionInternal;
 
@@ -91,13 +91,13 @@ namespace Orleans.EventSourcing.LogStorage
         public override Task<IReadOnlyList<TLogEntry>> RetrieveLogSegment(int fromVersion, int toVersion)
         {
 
-            // make a copy of the entries in the range asked for
+            // 复制要求的区域内条目
             IReadOnlyList<TLogEntry> segment = GlobalLog.StateAndMetaData.Log.GetRange(fromVersion, (toVersion - fromVersion));
 
             return Task.FromResult(segment);
         }
 
-        // no special tagging is required, thus we create a plain submission entry
+        // 不需要特殊标签,因此我们创建了简单的提交条目
         /// <inheritdoc/>
         protected override SubmissionEntry<TLogEntry> MakeSubmissionEntry(TLogEntry entry)
         {
@@ -114,7 +114,7 @@ namespace Orleans.EventSourcing.LogStorage
             {
                 try
                 {
-                    // for manual testing
+                    // 供手工测试
                     //await Task.Delay(5000);
 
                     await globalGrainStorage.ReadStateAsync(grainTypeName, Services.GrainId, GlobalLog);
@@ -125,7 +125,7 @@ namespace Orleans.EventSourcing.LogStorage
 
                     LastPrimaryIssue.Resolve(Host, Services);
 
-                    break; // successful
+                    break; // 成功
                 }
                 catch (Exception e)
                 {
@@ -155,7 +155,7 @@ namespace Orleans.EventSourcing.LogStorage
 
             try
             {
-                // for manual testing
+                // 供手工测试
                 //await Task.Delay(5000);
 
                 await globalGrainStorage.WriteStateAsync(grainTypeName, Services.GrainId, GlobalLog);
@@ -177,7 +177,7 @@ namespace Orleans.EventSourcing.LogStorage
             {
                 Services.Log(LogLevel.Debug, "write apparently failed {0}", LastPrimaryIssue);
 
-                while (true) // be stubborn until we can read what is there
+                while (true) // 顽固到我们看得懂为止
                 {
 
                     await LastPrimaryIssue.DelayBeforeRetry();
@@ -202,7 +202,7 @@ namespace Orleans.EventSourcing.LogStorage
                     Services.Log(LogLevel.Debug, "read failed {0}", LastPrimaryIssue);
                 }
 
-                // check if last apparently failed write was in fact successful
+                // 检查是否上次明显失败的写成功
 
                 if (writebit == GlobalLog.StateAndMetaData.GetBit(Services.MyClusterId))
                 {
@@ -222,7 +222,7 @@ namespace Orleans.EventSourcing.LogStorage
 
 
         /// <summary>
-        /// Describes a connection issue that occurred when updating the primary storage.
+        /// 描述更新主贮存时出现的连接问题。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -237,7 +237,7 @@ namespace Orleans.EventSourcing.LogStorage
 
 
         /// <summary>
-        /// Describes a connection issue that occurred when reading from the primary storage.
+        /// 描述读取主贮存时出现的连接问题。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -252,7 +252,7 @@ namespace Orleans.EventSourcing.LogStorage
 
 
         /// <summary>
-        /// A notification message sent to remote instances after updating this grain in storage.
+        /// 在更新存储中的 grain 后,向远程实例发送通知信息。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -262,15 +262,15 @@ namespace Orleans.EventSourcing.LogStorage
             [Id(0)]
             public int Version { get; set; }
 
-            /// <summary> The cluster that performed the update </summary>
+            /// <summary> 进行更新的组群 </summary>
             [Id(1)]
             public string Origin { get; set; } = null!;
 
-            /// <summary> The list of updates that were applied </summary>
+            /// <summary> 适用更新的清单 </summary>
             [Id(2)]
             public List<TLogEntry> Updates { get; set; } = null!;
 
-            /// <summary> The e-tag of the storage after applying the updates</summary>
+            /// <summary> 应用更新后存储的电子标签</summary>
             [Id(3)]
             public string? ETag { get; set; }
 
@@ -302,7 +302,7 @@ namespace Orleans.EventSourcing.LogStorage
                 };
 
             else
-                return base.Merge(earlierMessage, laterMessage); // keep only the version number
+                return base.Merge(earlierMessage, laterMessage); // 只保留版本号
         }
 
         private readonly SortedList<long, UpdateNotificationMessage> notifications = new SortedList<long, UpdateNotificationMessage>();
@@ -320,20 +320,20 @@ namespace Orleans.EventSourcing.LogStorage
         /// <inheritdoc/>
         protected override void ProcessNotifications()
         {
-            // discard notifications that are behind our already confirmed state
+            // 已经确认的状态背后的废弃通知
             while (notifications.Count > 0 && notifications.ElementAt(0).Key < GlobalLog.StateAndMetaData.GlobalVersion)
             {
                 Services.Log(LogLevel.Debug, "discarding notification {0}", notifications.ElementAt(0).Value);
                 notifications.RemoveAt(0);
             }
 
-            // process notifications that reflect next global version
+            // 反映下一个全球版本的处理通知
             while (notifications.Count > 0 && notifications.ElementAt(0).Key == GlobalLog.StateAndMetaData.GlobalVersion)
             {
                 var updateNotification = notifications.ElementAt(0).Value;
                 notifications.RemoveAt(0);
 
-                // append all operations in pending
+                // 附加所有待处理的操作
                 foreach (var u in updateNotification.Updates)
                     GlobalLog.StateAndMetaData.Log.Add(u);
 

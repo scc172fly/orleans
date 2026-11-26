@@ -5,16 +5,16 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Stream position uniquely identifies the position of an event in a stream.
-    /// If acquiring a stream position for a batch of events, the stream position will be of the first event in the batch.
+    /// 流位置为在流中指定事件的位置。
+    /// 如果为一系列事件获取流位置, 则流位置将是批次中的第一个事件 。
     /// </summary>
     public class StreamPosition
     {
         /// <summary>
-        /// Stream position consists of the stream identity and the sequence token
+        /// 流流位置由流流身份和序列符号组成
         /// </summary>
-        /// <param name="streamId">The stream identity.</param>
-        /// <param name="sequenceToken">The stream sequence token.</param>
+        /// <param name="streamId">流体身份。</param>
+        /// <param name="sequenceToken">流序序列符号。</param>
         public StreamPosition(StreamId streamId, StreamSequenceToken sequenceToken)
         {
             if (sequenceToken == null)
@@ -26,12 +26,12 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Gets the identity of the stream
+        /// 获取流的特性
         /// </summary>
         public StreamId StreamId { get; }
 
         /// <summary>
-        /// Gets the position in the stream
+        /// 获得流中的位置
         /// </summary>
         public StreamSequenceToken SequenceToken { get; }
     }

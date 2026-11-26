@@ -6,10 +6,10 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// Tests for the analyzer that prevents incorrect use of serialization attributes on grain classes.
-/// Grain classes (inheriting from Grain or Grain&lt;T&gt;) should not be marked with [Alias] or
-/// [GenerateSerializer] because grains are not serialized - only their state and method parameters are.
-/// This analyzer helps developers avoid confusion between grain implementations and serializable data types.
+/// 用于分析器的测试,以防止在 grain 类中错误使用序列属性。
+/// Grain 类别(继承) Grain 或 Grain&lt;T&gt;)不应用[Alias]或
+/// GenerateSerializer是因为 grains 没有序列化,而只有其状态和方法参数。
+/// 此分析器有助于开发者避免混淆 grain 执行和可序列数据类型。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -37,9 +37,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     #region Grain
 
     /// <summary>
-    /// Verifies that the analyzer detects when a class inheriting from Grain has
-    /// serialization attributes applied. Grains are not serialized themselves,
-    /// so these attributes are meaningless and indicate a misunderstanding of the Orleans model.
+    /// 证明分析器检测到从 Grain 继承的某一类人何时继承
+    /// 应用序列属性。 Grains 他们没有被连成若干级,
+    /// 因此这些属性毫无意义,表明对 Orleans 模式的误解。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -57,9 +57,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// Verifies that the analyzer allows serialization attributes on regular classes
-    /// that don't inherit from Grain. These classes can be serialized as method parameters
-    /// or grain state.
+    /// 证明分析器允许正常班级的序列属性
+    /// 无法继承 Grain。这些类别可以作为方法参数序列化
+    /// 或 grain 状态。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -77,8 +77,8 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// Verifies that grain classes without serialization attributes don't trigger
-    /// the analyzer. This is the correct pattern for grain implementations.
+    /// 证明没有序列属性的 grain 类不会触发
+    /// 分析器。 这是执行 grain 的正确模式 。
     /// </summary>
     [Fact]
     public Task ClassInheritingFromGrain_NotHavingAttributeApplied_ShouldNotTriggerDiagnostic()
@@ -98,9 +98,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     #region Grain<TGrainState>
 
     /// <summary>
-    /// Verifies that the analyzer detects when a class inheriting from Grain&lt;T&gt; has
-    /// serialization attributes applied. Like non-generic grains, stateful grains
-    /// are not serialized themselves - only their state is.
+    /// 证明分析器检测到从 Grain&lt;T&gt; 继承的某一类人何时继承
+    /// 应用的序列属性。与非通用 grains、状态 grains一样
+    /// 他们没有被连为系列 - 只有他们的状况。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -123,9 +123,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// Verifies that the analyzer allows serialization attributes on regular classes
-    /// that don't inherit from Grain&lt;T&gt;. These classes can be serialized as method parameters
-    /// or grain state.
+    /// 证明分析器允许正常班级的序列属性
+    /// 继承遗产 Grain&lt;T&gt;。这些类别可以作为方法参数序列
+    /// 或 grain 状态。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -143,8 +143,8 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// Verifies that stateful grain classes without serialization attributes don't trigger
-    /// the analyzer. This is the correct pattern for stateful grain implementations.
+    /// 证明没有序列属性的状态 grain 类不会触发
+    /// 分析器。 这是显示状态的正确模式 grain 执行。
     /// </summary>
     [Fact]
     public Task ClassInheritingFromGenericGrain_NotHavingAttributeApplied_ShouldNotTriggerDiagnostic()

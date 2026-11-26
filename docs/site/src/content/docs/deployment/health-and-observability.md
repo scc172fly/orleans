@@ -1,84 +1,98 @@
 ---
-title: Health and observability
-description: Design Orleans startup, readiness, liveness, dependency health, telemetry, and alerts.
+title: "健康和可观察性"
+description: "设计 Orleans 启动、准备状态、生命状态、依赖性健康、遥测和警报。"
 ms.date: 08/15/2026
 ms.topic: concept-article
 ---
 
-# Health and observability
+<a id="health-and-observability"></a>
 
-Health endpoints are application-owned. Orleans cluster membership detects failed silos, but membership isn't a substitute for orchestrator probes or dependency health checks.
+# 健康和可观察性
 
-## Separate the health signals
+健康终点由应用程序所有。 Orleans 群组成员发现失败 silos,但成员资格不能替代管弦探针或依赖性健康检查。
 
-| Signal | Question | Failure action |
+<a id="separate-the-health-signals"></a>
+
+## 分开健康信号
+
+| 信号信号 | 问题问题(问题),问 | 失失败行动 |
 | --- | --- | --- |
-| Startup | Has initialization completed within its allowed window? | Delay liveness and readiness evaluation; restart only after the startup deadline |
-| Readiness | Should this instance receive new application traffic? | Remove it from traffic without restarting it |
-| Liveness | Can this process still make local forward progress? | Restart the process |
-| Dependency health | Which required or optional dependency is degraded? | Degrade, reject, or alert according to application policy |
+| 启动开始 | 是否在允许窗口内完成初始化? | 延迟寿命和准备状态评估;仅在启动期限之后重新开始 |
+| 准备就就绪 | 是否应该让这个案例收到新的申请流量? | 将其从流量中删除, 不重新启动它 |
+| 生命 | 这一进程能否仍然使地方取得前进进展? | 重新启动进程 |
+| 依赖性健康 | 哪些要求或任选依赖性已经退化? | 根据应用政策降低、拒绝或警惕 |
 
-Don't make liveness depend on the clustering provider, grain storage, a remote silo, or another network service. A shared dependency outage would cause every instance to restart simultaneously, adding load and erasing useful diagnostics.
+不要让生命依赖于集群提供商、 grain 存储、远程 silo或其他网络服务。 共同依赖性断绝会同时导致所有情况重新出现,增加负荷并删除有用的诊断。
 
-## Startup
+<a id="startup"></a>
 
-Startup should remain incomplete until:
+## 启动开始
 
-- Configuration and credentials are valid.
-- Required listeners are bound.
-- The silo has joined the intended cluster.
-- Dependencies required to safely accept traffic have passed initialization.
+启动工作应一直不完全,直至:
 
-Set the platform startup deadline longer than the worst measured initialization time, including membership cleanup and provider recovery. A startup failure should log the stage, dependency, and exception before the platform restarts the process.
+- 配置和全权证书有效。
+- 需要的听众被绑定
+- silo 加入了预期的组群。
+- 安全接受交通所需的依赖已经过初始化。
 
-## Readiness
+设定平台启动期限,时间要长于最差的初始化时间,包括会员清理和供应商恢复。 启动失败应该在平台重新启动进程之前记录阶段、依赖性和例外性。
 
-Readiness should become false when:
+<a id="readiness"></a>
 
-- The silo hasn't completed startup.
-- Graceful shutdown or scale-in has started.
-- The application can't safely accept new work.
-- A required dependency is unavailable and the application has no safe degraded mode.
-- Local saturation exceeds a deliberately chosen load-shedding threshold.
+## 准备就就绪
 
-Keep optional dependencies out of aggregate readiness when the application can serve a documented degraded response. Publish their state separately and alert on sustained degradation.
+在下列情况下,就绪情况应是假的:
 
-Removing an HTTP endpoint from a load balancer doesn't stop direct Orleans traffic. During shutdown, combine readiness removal with graceful host shutdown and enough time for the silo to leave membership.
+- 下 silo 还没有完成启动。
+- 优雅的关闭或规模化已经开始
+- 应用程序无法安全地接受新的工作。
+- 无法提供所需的依赖性,而且应用程序没有安全降解模式。
+- 本地饱和度超过故意选择的卸载断裂阈值。
 
-## Liveness
+当申请可以满足有记录的退化反应,则使任择依赖性保持不为总体准备状态。 单独公布其状况并警惕持续退化。
 
-Use a cheap, local check. It can verify that the health endpoint is responsive and that a local progress signal has advanced within a conservative interval. Avoid grain calls and remote I/O.
+从负载平衡器中删除 HTTP 端点不会停止直接 Orleans 的交通。 在关闭时, 将准备状态清除与优雅的主机关闭结合起来, 并有足够的时间让 silo 退出会籍 。
 
-Allow transient pauses caused by garbage collection, CPU contention, or diagnostic collection. Aggressive liveness thresholds turn temporary overload into a restart loop.
+<a id="liveness"></a>
 
-## Dependency degradation
+## 生命
 
-Classify dependencies before deployment:
+使用廉价的本地检查。 它可以验证健康端点是否反应灵敏, 并且本地的进步信号在保守间隔内已经进步。 避免调用 grain 和远程 I/ O 。
 
-- **Required for correctness**: Reject new work when unavailable.
-- **Required for durability**: Don't acknowledge operations that can't meet durability requirements.
-- **Optional**: Continue with a visible degraded mode.
-- **Asynchronous**: Buffer only within a bounded, monitored capacity.
+允许垃圾收集、 CPU 争论或诊断收集导致的短暂暂停。 侵略性活性阈值将临时超载变成一个重新启动循环 。
 
-Apply timeouts and concurrency limits at every remote boundary. Use circuit breakers to stop repeated calls to an unhealthy dependency. Retry only when the operation is safe to repeat and the caller still has time available.
+<a id="dependency-degradation"></a>
 
-## Telemetry
+## 依赖性退化
 
-Orleans uses `Microsoft.Extensions.Logging`, `System.Diagnostics.Metrics`, and distributed tracing. Configure a central exporter, see [Orleans observability](../host/monitoring/index.md) for signal configuration, and use [Monitor Orleans metrics](../host/monitoring/metrics.md) to interpret runtime instruments.
+部署前的属地分类:
 
-At minimum, correlate these dimensions:
+- **正确性要求**:在无法完成时拒绝新工作。
+- **耐久性所需**:不要承认无法满足耐久性要求的操作。
+- **任择**:继续采用可见的退化模式。
+- **单向**:只在受约束、监测的能力范围内缓冲。
 
-- Service ID, cluster ID, deployment version, silo name, and host instance.
-- Grain type and operation name where cardinality remains bounded.
-- Dependency name and outcome, without grain keys, secrets, or tenant data as metric dimensions.
+在每个边远边界应用超时和同值货币限制。 使用断路器停止重复呼叫, 以不健康的依赖性。 只有在操作可以安全重复且呼叫者仍有时间的情况下才重新尝试 。
 
-Monitor:
+<a id="telemetry"></a>
 
-- Ready and active silo count, joins, departures, and suspected silos.
-- Grain call rate, latency, timeouts, rejections, dropped messages, and failures.
-- Activation count, activation failures, scheduler delay, and long-running turns.
-- Gateway connections and load shedding.
-- Process CPU, allocation rate, garbage collection, working set, thread pool, and socket counts.
-- Provider latency, throttling, errors, capacity, credential expiry, and circuit state.
+## 遥测
 
-Alert on sustained user impact, reduced redundancy, saturation, and exhausted error budgets. A single silo departure during a controlled rollout is an event to correlate, not necessarily an incident.
+Orleans 使用 `Microsoft.Extensions.Logging`、 `System.Diagnostics.Metrics`和分布追踪。配置一个中央出口国,在信号配置中见 [Orleans 易观测](../host/monitoring/index.md) ,并使用 [监测 Orleans 指标](../host/monitoring/metrics.md) 解释运行时仪器。
+
+至少,这些层面是相互关联的:
+
+- 服务编号、群组识别号、部署版本、 silo 名称和主机实例。
+- Grain 类型和操作名称,其中仍以主要特征为界。
+- 依赖性名称和结果,没有 grain 钥匙、秘密或租户数据作为衡量尺度。
+
+监视器 :
+
+- 备战和主动 silo 计数、加入、离开和怀疑 silos。
+- Grain 呼叫率、延迟、超时、拒绝、投出信息以及失败。
+- 激活计数,启动失败,调度延迟,以及长程转弯。
+- 网关连接和装载层
+- 处理CPU、分配率、垃圾收集、工作套、线性池和套座计数。
+- 提供方的延迟、节奏、错误、容量、证书过期和电路状态。
+
+持续用户影响、减少冗余、饱和和以及耗尽错误预算的警报。 在控制推出期间单 silo 离开是一个相关事件,不一定是事故。

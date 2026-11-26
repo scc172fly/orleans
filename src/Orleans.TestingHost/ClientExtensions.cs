@@ -4,20 +4,20 @@ using Orleans.Runtime.TestHooks;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// Extension methods for <see cref="IClusterClient"/>.
+    /// <see cref="IClusterClient"/>的推广方法。
     /// </summary>
     internal static class ClientExtensions
     {
         /// <summary>
-        /// Returns test hooks for the specified silo.
+        /// 返回指定 silo的回溯测试钩。
         /// </summary>
-        /// <param name="client">The client.</param>
-        /// <param name="silo">The silo.</param>
-        /// <returns>Test hooks for the specified silo.</returns>
+        /// <param name="client">客户。</param>
+        /// <param name="silo">下 silo.</param>
+        /// <returns>指定 silo的测试钩。</returns>
         public static ITestHooks GetTestHooks(this IClusterClient client, SiloHandle silo)
         {
-            // Use the siloAddress here, not the gateway address, since we may be targeting a silo on which we are not 
-            // connected to the gateway
+            // 使用此处的 siloAddress ,而不是网关地址,因为我们可能针对的是我们没有选择的 silo 
+            // 连接到网关
             var internalClient = (IInternalClusterClient)client;
             return internalClient.GetSystemTarget<ITestHooksSystemTarget>(Constants.TestHooksSystemTargetType, silo.SiloAddress);
         }

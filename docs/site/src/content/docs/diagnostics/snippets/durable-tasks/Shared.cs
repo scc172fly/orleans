@@ -1,6 +1,6 @@
 namespace Documentation.Diagnostics.DurableTasks;
 
-// Declarations which the examples share. The external services stand in for clients of systems outside Orleans.
+// 外部服务为 Orleans以外的系统的客户提供服务。
 
 public enum OrderStatus
 {
@@ -45,13 +45,13 @@ public interface IRoomInventory
     Task ReleaseAsync(string room, CancellationToken cancellationToken);
 }
 
-// Stands in for a grain interface whose durable methods return DurableTask, such as an order grain's.
+// 支持 grain 接口,其耐久方法返回 DurableTask,例如命令 grain。
 public interface IOrderWorkflows
 {
     DurableTask<OrderResult> PlaceOrderAsync(Guid orderId);
 }
 
-// Grains whose durable methods other examples call, so a detached start runs the call as a root task on its grain.
+// 其耐久方法的Grains ,其他示例也要求使用,所以独立启动将调用作为调用 grain的一个根任务。
 public interface ICustomerSurveys : IGrainWithStringKey
 {
     DurableTask SendSurveyAsync(string customer);

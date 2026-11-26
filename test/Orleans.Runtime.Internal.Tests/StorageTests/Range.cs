@@ -4,29 +4,29 @@ using System.Diagnostics;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Implements the concept of a contiguous range.
+    /// 实施毗连范围的概念。
     /// </summary>
-    /// <typeparam name="T">The type of the range.</typeparam>
-    /// <remarks>A rudimentary implementation.</remarks>
+    /// <typeparam name="T">范围的类型。</typeparam>
+    /// <remarks>初步执行。</remarks>
     [DebuggerDisplay("Start = {Start}, End = {End}")]
     public sealed class Range<T> : IEquatable<Range<T>> where T : notnull
     {
         /// <summary>
-        /// The start of a contiguous range.
+        /// 毗连范围的起始范围。
         /// </summary>
         public T Start { get; }
 
         /// <summary>
-        /// The end of a contiguous range.
+        /// 毗连范围的终点。
         /// </summary>
         public T End { get; }
 
         /// <summary>
-        /// Constructor.
+        /// 构造器
         /// </summary>
-        /// <param name="start">The start of the range.</param>
-        /// <param name="end">The end of the range.</param>
-        /// <param name="comparer">The range comparer.</param>
+        /// <param name="start">范围起始。</param>
+        /// <param name="end">范围末端。</param>
+        /// <param name="comparer">区域比较器。</param>
         /// <exception cref="ArgumentOutOfRangeException"/>.
         public Range(T start, T end, IComparer<T>? comparer = null)
         {

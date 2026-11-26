@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Internal
 {
     /// <summary>
-    /// Random TimeSpan generator
+    /// 随机 TimeSpan 生成器
     /// </summary>
     internal static class RandomTimeSpan
     {

@@ -6,8 +6,8 @@ namespace Orleans.Runtime
     internal static class RuntimeVersion
     {
         /// <summary>
-        /// The informational version of the Orleans runtime and its build configuration,
-        /// or the assembly version when informational version metadata is unavailable.
+        /// Orleans 运行时间及其构建配置的信息版本,
+        /// 当信息版本元数据无法使用时, 或组装版本 。
         /// </summary>
         public static string Current => GetVersion(typeof(RuntimeVersion).Assembly);
 
@@ -23,13 +23,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns a value indicating whether the provided <paramref name="assembly"/> was built in debug mode.
+        /// 返回一个数值,以显示所提供的 <paramref name="assembly"/> 是否在调试模式下建。
         /// </summary>
         /// <param name="assembly">
-        /// The assembly to check.
+        /// 装配检查。
         /// </param>
         /// <returns>
-        /// A value indicating whether the provided assembly was built in debug mode.
+        /// 表示所提供的装配是否以调试模式构建的值。
         /// </returns>
         internal static bool IsAssemblyDebugBuild(Assembly assembly)
         {

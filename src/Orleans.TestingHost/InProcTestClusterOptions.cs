@@ -7,108 +7,108 @@ using Orleans.Hosting;
 namespace Orleans.TestingHost;
 
 /// <summary>
-/// Configuration options for test clusters.
+/// 测试组群配置选项 。
 /// </summary>
 public sealed class InProcessTestClusterOptions
 {
     /// <summary>
-    /// Gets or sets the cluster identifier.
+    /// 获取或设置集束识别码。
     /// </summary>
     /// <seealso cref="ClusterOptions.ClusterId"/>
-    /// <value>The cluster identifier.</value>
+    /// <value>集束识别符号。</value>
     public string ClusterId { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the service identifier.
+    /// 获取或设置服务标识符。
     /// </summary>
     /// <seealso cref="ClusterOptions.ServiceId"/>
-    /// <value>The service identifier.</value>
+    /// <value>服务标识符。</value>
     public string ServiceId { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the base silo port, which is the port for the first silo. Other silos will use subsequent ports.
+    /// 获取或设置基 silo 端口,这是第一个 silo的端口。其他 silos 将使用随后的端口。
     /// </summary>
-    /// <value>The base silo port.</value>
+    /// <value>基地 silo 端口。</value>
     internal int BaseSiloPort { get; set; }
 
     /// <summary>
-    /// Gets or sets the base gateway port, which is the gateway port for the first silo. Other silos will use subsequent ports.
+    /// 获取或设置基端网关,这是第一个 silo的网关。其他 silos 将使用随后的港口。
     /// </summary>
-    /// <value>The base gateway port.</value>
+    /// <value>基端网关端口。</value>
     internal int BaseGatewayPort { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to use test cluster membership.
+    /// 获取或设定一个数值,显示是否使用测试组群成员资格。
     /// </summary>
-    /// <value><see langword="true" /> if test cluster membership should be used; otherwise, <see langword="false" />.</value>
+    /// <value><see langword="true" /> 如果采用测试组群成员制;否则, <see langword="false" />.</value>
     public bool UseTestClusterMembership { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to use test cluster grain directory, which is only applicable if <see cref="UseTestClusterMembership"/> is <see langword="true"/>.
+    /// 获取或设定一个数值,以显示是否使用测试组 grain 目录,该数值只有在 <see cref="UseTestClusterMembership"/> 是 <see langword="true"/>时才适用。
     /// </summary>
-    /// <value><see langword="true" /> if test cluster grain directory should be used; otherwise, <see langword="false" />.</value>
+    /// <value><see langword="true" /> 如果使用测试组 grain 目录;否则, <see langword="false" />。</value>
     internal bool UseTestClusterGrainDirectory { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to select the distributed grain directory after applying silo configuration delegates.
+    /// 获取或设置一个值,以显示是否选择分布的 grain 应用后目录 silo 组合代表。
     /// </summary>
     /// <value>
-    /// <see langword="true"/> to select the distributed directory as the default;
-    /// <see langword="false"/> to use the applicable test-directory substitution or configured silo directory.
-    /// The default is <see langword="false"/>.
+    /// <see langword="true"/> 选择分布式目录为默认值;
+    /// <see langword="false"/> 使用适用的测试指令替换或配置 silo 目录。
+    /// 默认为 <see langword="false"/>。
     /// </value>
     /// <remarks>
-    /// With test membership and the test grain directory enabled, <see langword="false"/> selects the in-process test directory.
-    /// Otherwise, <see langword="false"/> preserves the directory selected by silo configuration, including the runtime default.
-    /// To select the legacy directory, call <see cref="CoreHostingExtensions.UseLegacyGrainDirectory"/>
-    /// from <see cref="InProcessTestClusterBuilder.ConfigureSilo"/> and leave this option <see langword="false"/>.
+    /// 随着测试会籍和测试 grain 目录启用, <see langword="false"/> 选择了在程序中的测试目录。
+    /// 否则, <see langword="false"/> 将保存由 silo 配置选定的目录,包括运行时默认。
+    /// 要选择遗留目录,请调用 <see cref="CoreHostingExtensions.UseLegacyGrainDirectory"/>
+    /// 从 <see cref="InProcessTestClusterBuilder.ConfigureSilo"/> 中退出, 并离开此选项 <see langword="false"/>。
     /// </remarks>
     public bool UseDistributedGrainDirectory { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to use the real environment statistics.
+    /// 获取或设定一个数值,以显示是否使用实际环境统计数据。
     /// </summary>
     public bool UseRealEnvironmentStatistics { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to initialize the client immediately on deployment.
+    /// 获取或设定一个值,以显示是否在部署后立即初始化客户。
     /// </summary>
-    /// <value><see langword="true" /> if the client should be initialized immediately on deployment; otherwise, <see langword="false" />.</value>
+    /// <value><see langword="true" /> ,如果客户部署后应立即启动;否则, <see langword="false" />。</value>
     public bool InitializeClientOnDeploy { get; set; }
 
     /// <summary>
-    /// Gets or sets the initial silos count.
+    /// 获取或设置初始 silos 数。
     /// </summary>
-    /// <value>The initial silos count.</value>
+    /// <value>初始 silos 计数。</value>
     public short InitialSilosCount { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to configure file logging.
+    /// 获取或设置一个值,以显示是否配置文件记录。
     /// </summary>
-    /// <value><see langword="true" /> if file logging should be configured; otherwise, <see langword="false" />.</value>
+    /// <value><see langword="true" /> 如果文件记录应该配置; 否则, <see langword="false" />。</value>
     public bool ConfigureFileLogging { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to assume homogeneous silos for testing purposes.
+    /// 获取或设定一个数值,表明是否为测试目的假设同质 silos 。
     /// </summary>
-    /// <value><see langword="true" /> if the cluster should assume homogeneous silos; otherwise, <see langword="false" />.</value>
+    /// <value><see langword="true" /> 如果组群应假定同质 silos;否则, <see langword="false" />。</value>
     public bool AssumeHomogenousSilosForTesting { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether each silo should host a gateway.
+    /// 获取或设置一个值,以显示每个 silo 是否应该主持网关。
     /// </summary>
-    /// <value><see langword="true" /> if each silo should host a gateway; otherwise, <see langword="false" />.</value>
+    /// <value><see langword="true" /> ,如果每个 silo 都设有网关;否则, <see langword="false" />。</value>
     public bool GatewayPerSilo { get; set; } = true;
 
     /// <summary>
-    /// Gets the silo host configuration delegates.
+    /// 得到 silo 东道国配置代表。
     /// </summary>
-    /// <value>The silo host configuration delegates.</value>
+    /// <value>下 silo 东道国配置代表。</value>
     public List<Action<InProcessTestSiloSpecificOptions, IHostApplicationBuilder>> SiloHostConfigurationDelegates { get; } = [];
 
     /// <summary>
-    /// Gets the client host configuration delegates.
+    /// 获取客户主机配置代表。
     /// </summary>
-    /// <value>The client host configuration delegates.</value>
+    /// <value>客户主机配置代表。</value>
     public List<Action<IHostApplicationBuilder>> ClientHostConfigurationDelegates { get; } = [];
 }

@@ -7,17 +7,17 @@ using Orleans.Durable.Http;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-/// <summary>Registers the services which serve durable tasks as HTTP operations.</summary>
+/// <summary>登记作为人道主义过渡工作队业务的持久任务所服务的服务。</summary>
 public static class DurableHttpServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the services which the durable operation endpoints use, which
-    /// <see cref="Microsoft.AspNetCore.Builder.DurableHttpEndpointRouteBuilderExtensions"/> and
-    /// <see cref="Microsoft.AspNetCore.Builder.NexusEndpointRouteBuilderExtensions"/> map.
+    /// 添加持久操作终端点使用的服务,
+    /// <see cref="Microsoft.AspNetCore.Builder.DurableHttpEndpointRouteBuilderExtensions"/> 和
+    /// <see cref="Microsoft.AspNetCore.Builder.NexusEndpointRouteBuilderExtensions"/> 地图。
     /// </summary>
-    /// <param name="services">The service collection, which also provides an Orleans <see cref="Orleans.IGrainFactory"/>.</param>
-    /// <param name="configureOptions">Configures the operations, or <see langword="null"/> for the defaults.</param>
-    /// <returns>The service collection.</returns>
+    /// <param name="services">服务收藏,它也提供 Orleans <see cref="Orleans.IGrainFactory"/>。</param>
+    /// <param name="configureOptions">配置操作,或默认的 <see langword="null"/> 。</param>
+    /// <returns>服务收藏。</returns>
     public static IServiceCollection AddDurableHttp(this IServiceCollection services, Action<DurableHttpOptions>? configureOptions = null)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -38,15 +38,15 @@ public static class DurableHttpServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds an <see cref="IDurableHttpClient"/>, which durable tasks inject as a keyed service named
-    /// <paramref name="name"/>, and returns the builder of the named <see cref="HttpClient"/> which it sends requests with.
+    /// 添加 <see cref="IDurableHttpClient"/>,该耐久任务将输入为
+    /// <paramref name="name"/>,并返回它发送请求的命名 <see cref="HttpClient"/> 的建设者。
     /// </summary>
-    /// <param name="services">The silo's service collection.</param>
-    /// <param name="name">The client's name, which keys the service and names the <see cref="HttpClient"/>.</param>
-    /// <param name="configureOptions">Configures the client, or <see langword="null"/> for the defaults.</param>
+    /// <param name="services">下 silo服务收藏。</param>
+    /// <param name="name">客户名,即服务键和 <see cref="HttpClient"/>的名称。</param>
+    /// <param name="configureOptions">配置客户端,或默认值的 <see langword="null"/> 。</param>
     /// <returns>
-    /// The builder of the named client, whose first handler is a <see cref="DurableIdempotencyKeyHandler"/>, so handlers
-    /// which the builder adds, such as a resilience handler, retry requests with their keys.
+    /// 名客户端的创建者,第一个处理者是 <see cref="DurableIdempotencyKeyHandler"/>,所以处理者
+    /// 并且,建筑商(例如复原力处理者)会添加这些内容,用他们的钥匙重新研究请求。
     /// </returns>
     /// <example>
     /// <code>
@@ -79,35 +79,35 @@ public static class DurableHttpServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds the services with which silos deliver callbacks, which requests register with an <c>Operation-Callback</c>
-    /// header or a Nexus <c>callback</c>, and returns the builder of the <see cref="HttpClient"/> which delivers them.
+    /// 添加 silos 发送回调的服务,其中要求以 <c>Operation-Callback</c>注册
+    /// 头或 Nexus <c>callback</c>, 并返回交付它们的 <see cref="HttpClient"/> 的构建器。
     /// </summary>
-    /// <param name="services">The silo's service collection.</param>
-    /// <param name="configureOptions">Configures delivery, or <see langword="null"/> for the defaults.</param>
+    /// <param name="services">下 silo服务收藏。</param>
+    /// <param name="configureOptions">配置交付,或默认的 <see langword="null"/> 。</param>
     /// <returns>
-    /// The builder of the client which delivers callbacks, which configures its handlers, such as a proxy. The client
-    /// doesn't follow redirects, which retries as undelivered, and connects only to the addresses which
-    /// <see cref="DurableCallbackOptions.AllowAddress"/> accepts.
+    /// 发送回馈的客户端创建器, 配置其处理器, 如代理服务器。 客户端
+    /// 与未交付的重写 仅连接到地址
+    /// <see cref="DurableCallbackOptions.AllowAddress"/> 接受。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// Each callback is a detached durable task on a relay grain, which waits for its operation's outcome and delivers it
-    /// with durable retries. Deliveries describe failures with <see cref="DurableHttpOptions.CreateError"/>, so configure
-    /// <see cref="DurableHttpOptions"/> in the silos as in the hosts which serve the operations; a host which runs both
-    /// shares one configuration. Register an <see cref="IDurableWebhookSigner"/> to sign webhooks.
+    /// 每一个回调都是一个中继器上的一项独立、耐久的任务 grain等待其行动的结果 并交付
+    /// 含有耐久再试的中继重试。交付方描述失败时 <see cref="DurableHttpOptions.CreateError"/>,因此配置
+    /// <see cref="DurableHttpOptions"/> 中在 silos 用于运行的东道主; 运行两个功能的东道主
+    /// 共享一个配置。 注册一个 <see cref="IDurableWebhookSigner"/> 以签署 Webhooks 。
     /// </para>
     /// <para>
-    /// The hosts protect the values of the headers which callbacks carry, which can be credentials, with ASP.NET Core Data
-    /// Protection before the silos store them, and deliveries unprotect them, so hosts and silos share a Data Protection
-    /// key ring and application name, such as with <c>AddDataProtection().PersistKeysTo...().SetApplicationName(...)</c>.
+    /// 主机保护回回调所携带的页眉的值, 这可能具有 ASP.NET 核心数据
+    /// 在 silos 储存之前保护,交付前保护,不保护它们,所以主机和 silos 共享数据保护
+    /// 键和应用程序名称,例如 <c>AddDataProtection().PersistKeysTo...().SetApplicationName(...)</c>。
     /// </para>
     /// <para>
-    /// The client's primary handler is a <see cref="SocketsHttpHandler"/>, whose <c>ConnectCallback</c> applies
-    /// <see cref="DurableCallbackOptions.AllowAddress"/>. A primary handler which the application configures is a
-    /// <see cref="SocketsHttpHandler"/> without a <c>ConnectCallback</c>, or, when <c>AllowAddress</c> is
-    /// <see langword="null"/>, a <see cref="SocketsHttpHandler"/> or an <see cref="HttpClientHandler"/>; building the client
-    /// with another handler throws <see cref="InvalidOperationException"/>, since the package can't keep it from following
-    /// redirects or connecting to internal addresses.
+    /// 客户主控管器是 <see cref="SocketsHttpHandler"/>,其 <c>ConnectCallback</c> 适用
+    /// <see cref="DurableCallbackOptions.AllowAddress"/>. 应用程序配置为
+    /// <see cref="SocketsHttpHandler"/> 没有 a 中 <c>ConnectCallback</c>,或,当 <c>AllowAddress</c> 是
+    /// <see langword="null"/>、 a <see cref="SocketsHttpHandler"/> 或 a <see cref="HttpClientHandler"/>; 构建客户端
+    /// 使用另一个处理器丢弃 <see cref="InvalidOperationException"/>,因为软件包无法阻止它跟随
+    /// 重定向或连接到内部地址。
     /// </para>
     /// </remarks>
     public static IHttpClientBuilder AddDurableHttpCallbacks(this IServiceCollection services, Action<DurableCallbackOptions>? configureOptions = null)
@@ -128,17 +128,17 @@ public static class DurableHttpServiceCollectionExtensions
 }
 
 /// <summary>
-/// Keeps the callback client from following redirects and from connecting to addresses which
-/// <see cref="DurableCallbackOptions.AllowAddress"/> doesn't accept, whichever primary handler the application configures.
+/// 防止回调客户端跟踪重定向,并避免连接到地址
+/// <see cref="DurableCallbackOptions.AllowAddress"/> 不接受, 不论应用程序配置的主要处理者为何。
 /// </summary>
 /// <remarks>
-/// A redirect, or a host name which resolves to another address than when the application accepted the URL, would send a
-/// delivery to a receiver which <see cref="DurableHttpOptions.AllowCallback"/> didn't accept. The filter runs after every
-/// configuration of the client's handlers, and fails to build a client whose primary handler it can't constrain.
+/// 重定向, 或者主机名, 或主机名, 其解析到另一个地址时, 而不是应用程序接受 URL 时, 将会发送
+/// 发送到接收器,但 <see cref="DurableHttpOptions.AllowCallback"/> 不接受。过滤器在每一个
+/// 客户的处理器配置, 并且未能建立客户 其主处理器无法约束的客户。
 /// </remarks>
 internal sealed class DurableCallbackHandlerFilter(Microsoft.Extensions.Options.IOptions<DurableCallbackOptions> options) : IHttpMessageHandlerBuilderFilter
 {
-    /// <summary>The most connections which the default primary handler opens to one receiver.</summary>
+    /// <summary>默认主处理器打开给一个接收器的最大连接。</summary>
     internal const int MaxConnectionsPerServer = 16;
 
     public Action<HttpMessageHandlerBuilder> Configure(Action<HttpMessageHandlerBuilder> next) => builder =>

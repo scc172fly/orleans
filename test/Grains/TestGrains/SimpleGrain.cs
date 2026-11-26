@@ -5,7 +5,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains
 {
     /// <summary>
-    /// A simple grain that allows to set two arguments and then multiply them.
+    /// 简单 grain ,它允许设置两个参数然后乘以它们。
     /// </summary>
     public class SimpleGrain : Grain, ISimpleGrain
     {

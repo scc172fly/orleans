@@ -9,9 +9,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="Queue{T}"/>.
+    /// <see cref="Queue{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class QueueCodec<T> : IFieldCodec<Queue<T>>
     {
@@ -19,9 +19,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T> _fieldCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCodec{T}"/> class.
+        /// 初始化 <see cref="QueueCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">The field codec.</param>
+        /// <param name="fieldCodec">字段编码。</param>
         public QueueCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -110,9 +110,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Queue{T}"/>.
+    /// <see cref="Queue{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class QueueCopier<T> : IDeepCopier<Queue<T>>, IBaseCopier<Queue<T>>
     {
@@ -120,9 +120,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCopier{T}"/> class.
+        /// 初始化 <see cref="QueueCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public QueueCopier(IDeepCopier<T> valueCopier)
         {
             _copier = valueCopier;

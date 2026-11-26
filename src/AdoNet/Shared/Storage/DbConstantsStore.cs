@@ -13,7 +13,7 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     internal static class DbConstantsStore
@@ -46,7 +46,7 @@ namespace Orleans.Tests.SqlUtils
                                     unionAllSelectTemplate: " UNION ALL SELECT ",
                                     isSynchronousAdoNetImplementation: false,
                                     supportsStreamNatively: true,
-                                    supportsCommandCancellation: true, // See https://dev.mysql.com/doc/connector-net/en/connector-net-ref-mysqlclient-mysqlcommandmembers.html.
+                                    supportsCommandCancellation: true, // 见 https://dev.mysql.com/doc/connector-net/en/connector-net-ref-mysqlclient-mysqlcommandmembers.html。
                                     commandInterceptor: NoOpCommandInterceptor.Instance)
 
                 },
@@ -56,7 +56,7 @@ namespace Orleans.Tests.SqlUtils
                                     unionAllSelectTemplate: " FROM DUAL UNION ALL SELECT ",
                                     isSynchronousAdoNetImplementation: true,
                                     supportsStreamNatively: false,
-                                    supportsCommandCancellation: false, // Is supported but the remarks sound scary: https://docs.oracle.com/cd/E11882_01/win.112/e23174/OracleCommandClass.htm#DAFIEHHG.
+                                    supportsCommandCancellation: false, // 支持该词, 但这段话听起来很吓人: https://docs.oracle.com/cd/E11882_01/win.112/e23174/OracleCommandClass.htm#DAFIEHHG。
                                     commandInterceptor: OracleCommandInterceptor.Instance)
 
                 },
@@ -88,10 +88,10 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// If the underlying storage supports cancellation or not.
+        /// 如果相关存储支持取消或不支持注销 。
         /// </summary>
-        /// <param name="storage">The storage used.</param>
-        /// <returns><em>TRUE</em> if cancellation is supported. <em>FALSE</em> otherwise.</returns>
+        /// <param name="storage">使用的存储器。</param>
+        /// <returns><em>真实</em> 如果支持取消, 则支持取消 。 <em>平</em> 否则。</returns>
         public static bool SupportsCommandCancellation(this IRelationalStorage storage)
         {
             return SupportsCommandCancellation(storage.InvariantName);
@@ -99,10 +99,10 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// If the provider supports cancellation or not.
+        /// 如果提供商支持取消或不支持取消。
         /// </summary>
-        /// <param name="adoNetProvider">The ADO.NET provider invariant string.</param>
-        /// <returns><em>TRUE</em> if cancellation is supported. <em>FALSE</em> otherwise.</returns>
+        /// <param name="adoNetProvider"> ADO.NET 提供方变量字符串。</param>
+        /// <returns><em>真实</em> 如果支持取消, 则支持取消 。 <em>平</em> 否则。</returns>
         public static bool SupportsCommandCancellation(string adoNetProvider)
         {
             return GetDbConstants(adoNetProvider).SupportsCommandCancellation;
@@ -110,10 +110,10 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// If the underlying storage supports streaming natively.
+        /// 如果基底存储支持本地流。
         /// </summary>
-        /// <param name="storage">The storage used.</param>
-        /// <returns><em>TRUE</em> if streaming is supported natively. <em>FALSE</em> otherwise.</returns>
+        /// <param name="storage">使用的存储器。</param>
+        /// <returns><em>真实</em> 如果本地支持流 。 <em>平</em> 否则。</returns>
         public static bool SupportsStreamNatively(this IRelationalStorage storage)
         {
             return SupportsStreamNatively(storage.InvariantName);
@@ -121,10 +121,10 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// If the provider supports streaming natively.
+        /// 如果提供商支持本地流。
         /// </summary>
-        /// <param name="adoNetProvider">The ADO.NET provider invariant string.</param>
-        /// <returns><em>TRUE</em> if streaming is supported natively. <em>FALSE</em> otherwise.</returns>
+        /// <param name="adoNetProvider"> ADO.NET 提供方变量字符串。</param>
+        /// <returns><em>真实</em> 如果本地支持流 。 <em>平</em> 否则。</returns>
         public static bool SupportsStreamNatively(string adoNetProvider)
         {
             return GetDbConstants(adoNetProvider).SupportsStreamNatively;
@@ -132,21 +132,21 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// If the underlying ADO.NET implementation is known to be synchronous.
+        /// 如果基础 ADO.NET 执行已知同步。
         /// </summary>
-        /// <param name="storage">The storage used.</param>
+        /// <param name="storage">使用的存储器。</param>
         /// <returns></returns>
         public static bool IsSynchronousAdoNetImplementation(this IRelationalStorage storage)
         {
-            //Currently the assumption is all but MySQL are asynchronous.
+            //目前,假设只是零零零 MySQL 之外的所有假设。
             return IsSynchronousAdoNetImplementation(storage.InvariantName);
         }
 
 
         /// <summary>
-        /// If the provider supports cancellation or not.
+        /// 如果提供商支持取消或不支持取消。
         /// </summary>
-        /// <param name="adoNetProvider">The ADO.NET provider invariant string.</param>
+        /// <param name="adoNetProvider"> ADO.NET 提供方变量字符串。</param>
         /// <returns></returns>
         public static bool IsSynchronousAdoNetImplementation(string adoNetProvider)
         {
@@ -162,32 +162,32 @@ namespace Orleans.Tests.SqlUtils
     internal class DbConstants
     {
         /// <summary>
-        /// A query template for union all select
+        /// 全部选择的组合查询模板
         /// </summary>
         public readonly string UnionAllSelectTemplate;
 
         /// <summary>
-        /// Indicates whether the ADO.net provider does only support synchronous operations.
+        /// 指示 ADO.net 提供者是否只支持同步操作。
         /// </summary>
         public readonly bool IsSynchronousAdoNetImplementation;
 
         /// <summary>
-        /// Indicates whether the ADO.net provider does streaming operations natively.
+        /// 指示 ADO.net 提供者是否按本地进行流业务。
         /// </summary>
         public readonly bool SupportsStreamNatively;
 
         /// <summary>
-        /// Indicates whether the ADO.net provider supports cancellation of commands.
+        /// 指示 ADO.net 提供者是否支持取消命令。
         /// </summary>
         public readonly bool SupportsCommandCancellation;
 
         /// <summary>
-        /// The character that indicates a start escape key for columns and tables that are reserved words.
+        /// 字符,该字符表示保留单词的列和表格的起始跳出键。
         /// </summary>
         public readonly char StartEscapeIndicator;
 
         /// <summary>
-        /// The character that indicates an end escape key for columns and tables that are reserved words.
+        /// 字符,该字符表示保留单词的列和表格的结尾跳出键。
         /// </summary>
         public readonly char EndEscapeIndicator;
 

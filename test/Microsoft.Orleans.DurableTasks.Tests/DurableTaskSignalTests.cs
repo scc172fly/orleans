@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>Verifies signal delivery, latching, waits, and lifecycle in the durable task runtime.</summary>
+/// <summary>验证信号传递、拉链、等待和生命周期,以在持久任务运行期间。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -51,7 +51,7 @@ public sealed partial class DurableTaskSignalTests
         gate.SetResult();
         Assert.Equal("ada", await harness.GetResultAsync<string>(WorkflowId));
 
-        // The wait runs inline, so the tree holds only the workflow and the signal record.
+        // 等待运行线内, 所以树只持有工作流程和信号记录。
         Assert.Equal([WorkflowId, RecordId], harness.Storage.Ids);
         var diagnostics = await harness.GetDiagnosticsAsync();
         Assert.Equal(("Completed", "ada"), (diagnostics[RecordId].Status, diagnostics[RecordId].Response));
@@ -75,7 +75,7 @@ public sealed partial class DurableTaskSignalTests
             .SignalAsync(WorkflowId, Approved.Name, DurableTaskResponse.FromResult("ada"), TestCancellation).AsTask();
         await writeStarted.Task.WaitAsync(TimeSpan.FromSeconds(5), TestCancellation);
 
-        // The wait observes the signal once it commits.
+        // 等待在信号发出后观察它。
         Assert.False(signaling.IsCompleted);
         Assert.Equal(DurableTaskStatus.Pending, await harness.PollAsync(WorkflowId));
         harness.Manager.AfterWriteStarted = null;
@@ -108,7 +108,7 @@ public sealed partial class DurableTaskSignalTests
         gate.SetResult();
         Assert.Equal("ada", await harness.GetResultAsync<string>(WorkflowId));
 
-        // A repeated signal with the recorded value succeeds after the task completes.
+        // 任务完成后,重复发出一个带有记录值的信号并成功。
         await harness.Tasks.SignalAsync(WorkflowId, Approved, "ada", TestCancellation);
         var terminal = await Assert.ThrowsAsync<InvalidOperationException>(
             () => harness.Tasks.SignalAsync(WorkflowId, Approved.For("2"), "ada", TestCancellation).AsTask());
@@ -301,8 +301,8 @@ public sealed partial class DurableTaskSignalTests
         await harness.Manager.WriteStateAsync(TestCancellation);
         Assert.Equal("ada", await harness.GetResultAsync<string>(WorkflowId));
 
-        // A duplicate is accepted; the sink dead-letters a conflicting value and a signal for a task which isn't invoked
-        // with the rejection as the reason.
+        // 接受重复; 汇槽的废字母是一个相互矛盾的价值, 以及一个未引用的任务的信号
+        // 拒绝是原因
         Assert.True(handler.TryAccept(SignalMessage(sender, WorkflowId, "ada"), out var duplicate));
         Assert.IsType<DeliveryResult.Accepted>(duplicate.Value);
         Assert.True(handler.TryAccept(SignalMessage(sender, WorkflowId, "grace"), out var conflict));
@@ -323,7 +323,7 @@ public sealed partial class DurableTaskSignalTests
         var caller = GrainId.Create("caller", "one");
         var handler = new DurableTaskMessageHandler(harness.Runtime, MessagingTestHelpers.MessageTypes);
 
-        // The caller committed the invocation and the signal together, and the signal is delivered first.
+        // 呼叫者一起发出召唤和信号,首先发出信号。
         Assert.True(handler.TryAccept(CreateSignalMessage(harness, caller, WorkflowId, "ada"), out var accepted));
         Assert.IsType<DeliveryResult.Accepted>(accepted.Value);
         await harness.Manager.WriteStateAsync(TestCancellation);
@@ -335,7 +335,7 @@ public sealed partial class DurableTaskSignalTests
         Assert.Equal("ada", await harness.GetResultAsync<string>(WorkflowId));
         Assert.Equal([WorkflowId, RecordId], harness.Storage.Ids);
 
-        // The record belongs to the invoked task's tree once the invocation arrives, so it is deleted with that tree.
+        // 记录属于援引任务树的树 一旦召唤到达, 所以它会删除与那棵树。
         ((IOutboxMessageSource)harness.Runtime).OnRetired(Assert.Single(harness.Transport.Completions).MessageId, OutboxMessageRetirement.Delivered.Instance);
         Assert.Empty(harness.Storage.Ids);
     });
@@ -381,8 +381,8 @@ public sealed partial class DurableTaskSignalTests
         await harness.Runtime.SendSignalAsync(markerId, target, TaskId.CreateRoot("order"), Approved.Name, value, throwOnRejection: true, TestCancellation);
         await harness.Runtime.SendSignalAsync(markerId, target, TaskId.CreateRoot("order"), Approved.Name, value, throwOnRejection: true, TestCancellation);
 
-        // The marker's identifier names the send, so a replay whose value differs, such as one which serializes
-        // differently, reads the recorded send rather than sending again.
+        // 标记的标识符标识符指定发送的名称, 所以重放其值不同的位置, 比如序列化
+        // 以不同的方式阅读录音发送,而不是再次发送。
         Assert.Equal(
             DurableSignalResult.Accepted,
             await harness.Runtime.SendSignalAsync(markerId, target, TaskId.CreateRoot("order"), Approved.Name, DurableTaskResponse.FromResult("grace"), throwOnRejection: true, TestCancellation));
@@ -430,8 +430,8 @@ public sealed partial class DurableTaskSignalTests
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var sends = 0;
 
-        // The first send finds no task and the retry is accepted; each send reaches its own record, so the retry isn't
-        // answered with the first send's recorded TaskNotFound.
+        // 第一个发送发现没有任务, 重试被接受; 每个发送都达到自己的记录, 所以重试不是
+        // 回答第一个发送的已记录 TaskNotFound。
         await harness.ScheduleAsync(WorkflowId, async () =>
         {
             var first = await tasks.TrySignalAsync(orderId, Approved, "ada");
@@ -507,12 +507,12 @@ public sealed partial class DurableTaskSignalTests
         Assert.NotEqual(first, DurableTaskMessageTransport.CreateSignalMessageId(sender, target, WorkflowId, "approved", "$signal:BB", incarnation));
         Assert.NotEqual(first, DurableTaskMessageTransport.CreateSignalMessageId(sender, target, WorkflowId, "approved/2", "$signal:AA", incarnation));
 
-        // Each run of the sending execution's tree sends its own signal, which Messaging doesn't deduplicate against an
-        // earlier run's.
+        // 发送处决的树的每棵运行一次 都会发出自己的信号 信息传递不会对一个
+        // 早跑的赛车
         Assert.NotEqual(first, DurableTaskMessageTransport.CreateSignalMessageId(sender, target, WorkflowId, "approved", "$signal:AA", Guid.NewGuid()));
     }
 
-    /// <summary>A runtime over in-memory task state whose journal hook runs on each write.</summary>
+    /// <summary>模拟任务状态的运行时间,其日记勾勾将每篇写作都挂在其中。</summary>
     private sealed class Harness
     {
         private readonly TimeProvider _timeProvider;
@@ -568,7 +568,7 @@ public sealed partial class DurableTaskSignalTests
             }
         }
 
-        /// <summary>Creates the next activation's runtime over this activation's committed state.</summary>
+        /// <summary>创建此激活承诺状态下的下一次启动运行时间。</summary>
         public Harness CreateReplacement() => new(_timeProvider, Manager, Storage);
 
         public static RuntimeTestDurableTaskRequest CreateRequest<T>(Func<DurableTask<T>> workflow, GrainId caller = default) =>
@@ -582,7 +582,7 @@ public sealed partial class DurableTaskSignalTests
                 },
             };
 
-        /// <summary>Schedules a root task as a client does, which retains its result for polling.</summary>
+        /// <summary>与客户一样,安排根任务,保留其投票结果。</summary>
         public async Task ScheduleAsync<T>(TaskId taskId, Func<DurableTask<T>> workflow) =>
             await ((IDurableTaskServer)Runtime).ScheduleAsync(taskId, CreateRequest(workflow), TestCancellation);
 
@@ -604,7 +604,7 @@ public sealed partial class DurableTaskSignalTests
             return states;
         }
 
-        /// <summary>Waits until the runtime holds <paramref name="count"/> signal records with registered waits.</summary>
+        /// <summary>等待运行时间持有 <paramref name="count"/> 信号记录并登记等待。</summary>
         public Task WaitForSignalWaitsAsync(int count) =>
             StateChanges.WaitUntilAsync(() => SignalWaitCount == count, description: $"{count} signal waits");
 
@@ -748,7 +748,7 @@ public sealed partial class DurableTaskSignalTests
 
         public Guid Incarnation { get; set; }
 
-        // This storage doesn't order completions, so the runtime records each completion decision.
+        // 仓库没有订购完工单 所以运行时间记录了每个完成决定
         public long CompletionSequence => 0;
         IReadOnlySet<DurableTaskSubscriber> IDurableTaskState.CompletionDestinations => CompletionDestinations;
     }
@@ -756,7 +756,7 @@ public sealed partial class DurableTaskSignalTests
     private sealed class DurableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IDurableDictionary<TKey, TValue>
         where TKey : notnull;
 
-    /// <summary>Runs the journal write protocol: preparation, capture, an optional storage delay, and completion.</summary>
+    /// <summary>运行日记写协议:准备、抓获、可选储存延迟和完成。</summary>
     private sealed class StateManager : IJournaledStateManager
     {
         private readonly Dictionary<string, IStateMachine> _stateMachines = new(StringComparer.Ordinal);

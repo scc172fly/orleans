@@ -66,7 +66,7 @@ internal sealed class PhiAccrualFailureDetector
 
     internal static double CalculatePhi(double elapsedMilliseconds, double meanMilliseconds, double standardDeviationMilliseconds)
     {
-        // Logistic approximation of the normal CDF used by Akka's Phi Accrual implementation.
+        // Akka的Phi权责发生制实施所使用的正常民防部队后勤近似。
         var y = (elapsedMilliseconds - meanMilliseconds) / standardDeviationMilliseconds;
         var e = Math.Exp(-y * (1.5976 + (0.070566 * y * y)));
         return elapsedMilliseconds > meanMilliseconds

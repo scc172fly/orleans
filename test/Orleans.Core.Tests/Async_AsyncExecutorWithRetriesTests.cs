@@ -8,9 +8,9 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// Tests for the AsyncExecutorWithRetries utility class, which provides resilient asynchronous execution with retry logic.
-    /// This class tests Orleans' internal retry mechanism for handling transient failures in asynchronous operations.
-    /// The AsyncExecutorWithRetries is used throughout Orleans for reliable execution of operations that may fail temporarily.
+    /// 用于 AsyncExecutorWithRetries 通用类的测试,该类提供有再试逻辑的抗耐力非同步执行。
+    /// 这种类测试 Orleans内部再试验机制,用于处理非同步操作中的瞬态故障。
+    /// AsyncExecutorWithRetries 用于整个 Orleans 可靠地执行可能暂时失效的行动。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -93,8 +93,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that AsyncExecutorWithRetries retries a failing function until it succeeds, 
-        /// and verifies that it fails when max retries are exceeded.
+        /// 测试 AsyncExecutorWithRetries 重写一个失败函数,直到它成功为止。 
+        /// 并证实当重试超过极限时失败。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_1()
@@ -142,8 +142,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests the success filter functionality, where retries continue until a success condition is met.
-        /// Verifies that execution stops when the success filter returns true.
+        /// 测试成功过滤功能,在满足成功条件之前,再试继续。
+        /// 证明成功过滤器返回时执行停止。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_2()
@@ -172,8 +172,8 @@ namespace NonSilo.Tests
                 cancellationToken: TestContext.Current.CancellationToken);
             int value = await promise;
             this.output.WriteLine("Value={0} Counter={1} ExpectedRetries={2}", value, counter, expectedRetries);
-            Assert.Equal(expectedRetries, value); // "Returned value"
-            Assert.Equal(counter, value); // "Counter == Returned value"
+            Assert.Equal(expectedRetries, value); // “返回值”
+            Assert.Equal(counter, value); // "Counter == 回报价值"
 
             counter = 0;
             maxRetries = 3;
@@ -187,13 +187,13 @@ namespace NonSilo.Tests
                 cancellationToken: TestContext.Current.CancellationToken);
             value = await promise;
             this.output.WriteLine("Value={0} Counter={1} ExpectedRetries={2}", value, counter, expectedRetries);
-            Assert.Equal(expectedRetries, value); // "Returned value"
-            Assert.Equal(counter, value); // "Counter == Returned value"
+            Assert.Equal(expectedRetries, value); // “返回值”
+            Assert.Equal(counter, value); // "Counter == 回报价值"
         }
 
         /// <summary>
-        /// Tests successful execution without any errors, verifying that the error filter is not invoked
-        /// when the function succeeds on the first attempt.
+        /// 测试成功执行,无任何错误,核查是否未引用错误过滤器
+        /// 当函数在第一次尝试中成功时。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_4()
@@ -230,8 +230,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests error filter behavior when it returns true (retry), false (stop), or throws an exception.
-        /// Verifies that the executor respects the error filter's decision on whether to continue retrying.
+        /// 当返回真实( retrolly)、 虚假( stop) 或丢弃例外时, 测试错误过滤行为 。
+        /// 证明执行器尊重错误过滤器关于是否继续重试的决定。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_5()
@@ -280,7 +280,7 @@ namespace NonSilo.Tests
                 Exception baseExc = exc.GetBaseException();
                 Assert.Equal(typeof(ArgumentException), baseExc.GetType());
                 this.output.WriteLine("baseExc.GetType()={0} Counter={1}", baseExc.GetType(), counter);
-                Assert.Equal(3, counter); // "Counter == Returned value"
+                Assert.Equal(3, counter); // "Counter == 回报价值"
             }
         }
     }

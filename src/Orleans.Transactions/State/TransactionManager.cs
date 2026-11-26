@@ -29,12 +29,12 @@ namespace Orleans.Transactions.State
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // validate the lock
+            // 验证锁定
             var (status, record) = await this.queue.RWLock.ValidateLock(transactionId, accessCount).WaitAsync(cancellationToken);
             var valid = status == TransactionalStatus.Ok;
 
             record.Timestamp = timeStamp;
-            record.Role = CommitRole.LocalCommit; // we are the TM
+            record.Role = CommitRole.LocalCommit; // 我们就是TM
             record.WaitCount = totalResources - 1;
             record.WaitingSince = DateTime.UtcNow;
             record.WriteParticipants = writeResources;

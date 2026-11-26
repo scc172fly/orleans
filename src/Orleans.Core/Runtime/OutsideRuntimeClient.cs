@@ -129,7 +129,7 @@ namespace Orleans
 
                 this.GrainReferenceRuntime = this.ServiceProvider.GetRequiredService<IGrainReferenceRuntime>();
 
-                // Client init / sign-on message
+                // Init 客户端/ 签名信件
                 LogStartingClient(logger, RuntimeVersion.Current, _localClientDetails.ClientAddress, _localClientDetails.ClientId);
 
                 if (TestOnlyThrowExceptionDuringInit)
@@ -151,15 +151,15 @@ namespace Orleans
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            // Deliberately avoid capturing the current synchronization context during startup and execute on the default scheduler.
-            // This helps to avoid any issues (such as deadlocks) caused by executing with the client's synchronization context/scheduler.
+            // 故意避免在启动时捕捉当前同步环境, 并在默认的调度器上执行 。
+            // 这有助于避免因执行客户同步环境/时间表而造成的任何问题(如僵局)。
             try
             {
                 await Task.Run(() => this.StartInternal(cancellationToken), CancellationToken.None).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // The client lifecycle starts after this method, so cancellation here owns network cleanup.
+                // 客户生命周期从此方法后开始, 所以取消这里的网络清理 。
                 await StopObserverInvocationsAsync().ConfigureAwait(false);
                 await ServiceProvider.GetRequiredService<ConnectionManager>().Close(CancellationToken.None).ConfigureAwait(false);
                 if (MessageCenter is null)
@@ -180,8 +180,8 @@ namespace Orleans
             var drain = this.localObjects?.StopAsync() ?? Task.CompletedTask;
             this.callbackTimer.Dispose();
 
-            // Fault callbacks before any cancellation-sensitive waits. Completing them can resume code
-            // which issues follow-up calls, so request admission must already be closed.
+            // 在任何取消敏感待等前的错误回调。 完成它们可以恢复代码
+            // 发出后续电话,要求受理必须已经结案。
             BreakOutstandingMessages();
             return drain;
         }
@@ -208,7 +208,7 @@ namespace Orleans
             ConstructorReset();
         }
 
-        // used for testing to (carefully!) allow two clients in the same process
+        // 用于测试的( 有意的) 允许两个客户在相同程序下进行测试( 注意! )
         private async Task StartInternal(CancellationToken cancellationToken)
         {
             var retryFilter = ServiceProvider.GetService<IClientConnectionRetryFilter>();
@@ -317,13 +317,13 @@ namespace Orleans
 
             if (SystemTargetGrainId.TryParse(targetGrainId, out var systemTargetGrainId))
             {
-                // If the silo isn't be supplied, it will be filled in by the sender to be the gateway silo
+                // 如果未提供该 silo ,则发送者将填充该报出入口 silo。
                 message.TargetSilo = systemTargetGrainId.GetSiloAddress();
             }
 
             if (this.clientMessagingOptions.DropExpiredMessages && message.IsExpirableMessage())
             {
-                // don't set expiration for system target messages.
+                // 不要设置系统目标信息失效时间 。
                 var ttl = request.GetDefaultResponseTimeout() ?? this.clientMessagingOptions.ResponseTimeout;
                 message.TimeToLive = ttl;
             }
@@ -383,8 +383,8 @@ namespace Orleans
                 {
                     if (clientMessagingOptions.CancelUnknownRequestOnStatusUpdate)
                     {
-                        // Cancel the call since the caller has abandoned it.
-                        // Note that the target and sender arguments are swapped because this is a response to the original request.
+                        // 电话取消后,电话已经放弃
+                        // 请注意,目标和发送方的论据被转换,因为这是对原始请求的答复。
                         _cancellationManager?.SignalCancellation(
                             response.SendingSilo,
                             targetGrainId: response.SendingGrain,
@@ -405,8 +405,8 @@ namespace Orleans
             var found = callbacks.TryRemove(response.Id, out callbackData);
             if (found)
             {
-                // We need to import the RequestContext here as well.
-                // Unfortunately, it is not enough, since CallContext.LogicalGetData will not flow "up" from task completion source into the resolved task.
+                // 我们也需要在这里进口 RequestContext
+                // 不幸的是,这还不够,因为 CallContext.LogicalGetData 任务完成源不会“上传”到已解决的任务中。
                 // RequestContextExtensions.Import(response.RequestContextData);
                 callbackData!.DoCallback(response);
             }

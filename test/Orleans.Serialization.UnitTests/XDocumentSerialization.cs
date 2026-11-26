@@ -7,7 +7,7 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Serializes and deep-copies XML documents for tests.
+/// 用于测试的XML文件序列和深底复制。
 /// </summary>
 [RegisterSerializer]
 [RegisterCopier]

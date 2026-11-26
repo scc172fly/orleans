@@ -9,7 +9,7 @@ using Xunit;
 namespace UnitTests.PlacementFilterTests;
 
 /// <summary>
-/// Tests for preferred match silo metadata placement filter director behavior.
+/// 首选匹配 silo 元数据配置过滤器主任行为测试。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

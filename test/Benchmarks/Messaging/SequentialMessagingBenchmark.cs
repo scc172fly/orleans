@@ -11,7 +11,7 @@ using Orleans.TestingHost;
 namespace Benchmarks.Messaging;
 
 /// <summary>
-/// Measures one sequential chain of acknowledged durable messages through a small grain ring.
+/// 通过一个小 grain 环,衡量一个连续链的确认持久信息。
 /// </summary>
 [BenchmarkCategory("Messaging")]
 public class SequentialMessagingBenchmark
@@ -22,11 +22,11 @@ public class SequentialMessagingBenchmark
     private ISequentialMessagingGrain[] _grains = [];
     private int _completedRuns;
 
-    /// <summary>Gets or sets the number of interacting grains on one silo.</summary>
+    /// <summary>查找或设置交互次数 grains 在一个 silo.</summary>
     [Params(2, 4, 8)]
     public int GrainCount { get; set; }
 
-    /// <summary>Creates fresh bounded storage and warms the ring outside measurement.</summary>
+    /// <summary>创建新鲜的密封储存,让外部测量的环温暖。</summary>
     [IterationSetup]
     public void SetupIteration() => SetupIterationAsync().GetAwaiter().GetResult();
 
@@ -57,8 +57,8 @@ public class SequentialMessagingBenchmark
         await RunChainAsync();
     }
 
-    /// <summary>Completes 1,024 sequential deliveries, normalized to one acknowledged message.</summary>
-    /// <returns>The exact number of committed handler steps.</returns>
+    /// <summary>完成1 024次连续交付, 与一个确认的信息正常化。</summary>
+    /// <returns>执勤操作员步骤的确切数量。</returns>
     [Benchmark(OperationsPerInvoke = MessagesPerInvocation)]
     public Task<int> SequentialRing() => RunChainAsync();
 
@@ -86,7 +86,7 @@ public class SequentialMessagingBenchmark
         return count;
     }
 
-    /// <summary>Checks business-effect counts and drains and disposes the cluster outside measurement.</summary>
+    /// <summary>检查商业效应的计数和排水量,并处理外部计量组。</summary>
     [IterationCleanup]
     public void CleanupIteration() => CleanupIterationAsync().GetAwaiter().GetResult();
 
@@ -114,7 +114,7 @@ public class SequentialMessagingBenchmark
         }
     }
 
-    /// <summary>Disposes an owner left by a failed iteration setup.</summary>
+    /// <summary>丢弃一个所有者, 由失败的迭代设置所剩的所有人 。</summary>
     [GlobalCleanup]
     public async Task CleanupAsync()
     {
@@ -126,30 +126,30 @@ public class SequentialMessagingBenchmark
     }
 }
 
-/// <summary>Configures and seeds a sequential durable-message ring.</summary>
+/// <summary>配置和种子一个相继的耐久信息环。</summary>
 public interface ISequentialMessagingGrain : IGrainWithIntegerKey
 {
-    /// <summary>Persists the next destination before measurement.</summary>
+    /// <summary>测量前的下一个目标保持不变。</summary>
     Task ConfigureAsync(GrainId next);
 
-    /// <summary>Commits the initial outgoing intent.</summary>
+    /// <summary>表示初始离任意向。</summary>
     Task StartAsync(Guid runId, int messageCount);
 
-    /// <summary>Returns the accumulated number of applied handler effects.</summary>
+    /// <summary>返回应用处理器效果的累计数。</summary>
     Task<long> GetProcessedCountAsync();
 }
 
-/// <summary>One message in a sequential chain.</summary>
+/// <summary>相继链中有一个消息。</summary>
 [GenerateSerializer]
 public sealed record SequentialMessage(
     [property: Id(0)] Guid RunId,
     [property: Id(1)] int Hop,
     [property: Id(2)] int MessageCount);
 
-/// <summary>Runs each hop through the production inbox, outbox, journal, and durable-job pumps.</summary>
+/// <summary>每一个跳跃都通过生产箱、发箱、日记和耐用工作泵。</summary>
 public sealed class SequentialMessagingGrain : Grain, ISequentialMessagingGrain
 {
-    /// <summary>The exact protocol subject for a sequential hop.</summary>
+    /// <summary>相继跳动的确切协议主题 。</summary>
     public const string Subject = "benchmarks.sequential-hop.v1";
 
     private readonly IOutbox _outbox;
@@ -160,7 +160,7 @@ public sealed class SequentialMessagingGrain : Grain, ISequentialMessagingGrain
     private readonly CommittedHopProbe _probe;
     private readonly MessageType<SequentialMessage> _type;
 
-    /// <summary>Constructs the ring participant and its acknowledgement observer.</summary>
+    /// <summary>构造环形参与者及其确认观察员。</summary>
     public SequentialMessagingGrain(
         IInbox inbox,
         IOutbox outbox,
@@ -222,7 +222,7 @@ public sealed class SequentialMessagingGrain : Grain, ISequentialMessagingGrain
             "runs", message.RunId.ToString("N"), "hops", message.Hop.ToString(CultureInfo.InvariantCulture)),
             _next.Value, message);
 
-    // Captures progress with each journal write and reports it after storage acknowledges it.
+    // 捕捉每本日记的写作进展,并在存储后报告确认。
     private sealed class HopObserver(SequentialMessagingGrain owner) : IStateMachine
     {
         private SequentialMessage? _captured;
@@ -242,7 +242,7 @@ public sealed class SequentialMessagingGrain : Grain, ISequentialMessagingGrain
     }
 }
 
-/// <summary>Observes every hop after actual journal acknowledgement.</summary>
+/// <summary>观察每个在日记确认后的实际跳动。</summary>
 public sealed class CommittedHopProbe
 {
     private readonly object _lock = new();
@@ -251,7 +251,7 @@ public sealed class CommittedHopProbe
     private Guid _runId;
     private int _messageCount;
 
-    /// <summary>Gets the number of distinct journal acknowledgements for the active chain.</summary>
+    /// <summary>获取活动链中不同日记确认的份数。</summary>
     public int AcknowledgedCount
     {
         get
@@ -263,7 +263,7 @@ public sealed class CommittedHopProbe
         }
     }
 
-    /// <summary>Arms completion before the initial intent is sent.</summary>
+    /// <summary>在最初意图发出前完成武器。</summary>
     public Task<int> Begin(Guid runId, int messageCount)
     {
         lock (_lock)
@@ -276,7 +276,7 @@ public sealed class CommittedHopProbe
         }
     }
 
-    /// <summary>Signals a completed chain only after every distinct hop is acknowledged.</summary>
+    /// <summary>只有在每一个不同的跳跃都得到承认之后,才能发出完整的链条信号。</summary>
     public void OnCommitted(SequentialMessage message)
     {
         lock (_lock)

@@ -8,8 +8,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Tests that <c>DurableTask.RunInline</c> accepts synchronous effects and rejects asynchronous and durable effects at compile
-/// time, which it can't record.
+/// 测试 <c>DurableTask.RunInline</c> 是否接受同步效应,在汇编时拒绝非同步和耐久效果
+/// 时间,它无法记录。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -42,16 +42,16 @@ public class DurableTaskRunInlineOverloadTests
         "DurableTask.RunInline(Mark);",
         "DurableTask.RunInline(() => Mark());",
 
-        // A lambda whose expression has a value converts to Action and to Func<T>; the effect returns the value.
+        // 其表达式的值转换为 Action 和 Func<T>的羊排;效果返回值。
         "int counter = 0; int value = DurableTask.RunInline(() => counter++);",
         "int value = DurableTask.RunInline(() => Compute());",
         "_ = DurableTask.RunInline(() => 1);",
 
-        // A lambda which only throws also converts to Func<Task>, which the rejecting overload takes; a cast selects Action.
+        // 仅抛出一个只转换成 Func<Task>的羊羔,拒绝超载需要它; 投出选择动作。
         "DurableTask.RunInline((Action)(() => throw new InvalidOperationException()));",
         "DurableTask.RunInline(\"a\", (Action)(() => { throw new InvalidOperationException(); }));",
 
-        // Explicit type arguments select the synchronous overload, whose result-type check rejects the effect when it runs.
+        // 明确的类型参数选择同步超载,其结果类型检查在运行时拒绝效果。
         "_ = DurableTask.RunInline<Task<int>>(() => Task.FromResult(1));",
     };
 
@@ -81,10 +81,10 @@ public class DurableTaskRunInlineOverloadTests
         { "DurableTask.RunInline(() => ValueTask.CompletedTask);", UseRun },
         { "DurableTask.RunInline(\"a\", MarkValueAsync);", UseRun },
 
-        // An asynchronous lambda without a result also converts to Action, which would run as async void.
+        // 一种无结果的无序羊羔也转化为行动,将像灰烬一样无效。
         { "DurableTask.RunInline(\"a\", async () => { await Task.Yield(); });", UseRun },
 
-        // A lambda which only throws also converts to Func<Task>; casting it to Action records the exception.
+        // 仅丢弃的羊羔也转换成 Func<Task>;投到“行动”记录例外。
         { "DurableTask.RunInline(() => throw new InvalidOperationException());", UseRun },
         { "DurableTask.RunInline(\"a\", () => { throw new InvalidOperationException(); });", UseRun },
     };

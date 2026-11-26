@@ -13,9 +13,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="HashSet{T}"/>.
+    /// <see cref="HashSet{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class HashSetCodec<T> : IFieldCodec<HashSet<T>>, IBaseCodec<HashSet<T>>
     {
@@ -27,10 +27,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<IEqualityComparer<T>> _comparerCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HashSetCodec{T}"/> class.
+        /// 初始化 <see cref="HashSetCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">The field codec.</param>
-        /// <param name="comparerCodec">The comparer codec.</param>
+        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="comparerCodec">比较器编码器。</param>
         public HashSetCodec(IFieldCodec<T> fieldCodec, IFieldCodec<IEqualityComparer<T>> comparerCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -138,8 +138,8 @@ namespace Orleans.Serialization.Codecs
 
         void IBaseCodec<HashSet<T>>.Deserialize<TInput>(ref Reader<TInput> reader, HashSet<T> value)
         {
-            // If the value has some values added by the constructor, clear them.
-            // If those values are in the serialized payload, they will be added below.
+            // 如果该值有建筑商添加的某种值,请清除这些值。
+            // 如果这些数值在序列式有效载荷中,则将添加到下文。
             value.Clear();
 
             IEqualityComparer<T>? comparer = null;
@@ -162,7 +162,7 @@ namespace Orleans.Serialization.Codecs
                         var length = (int)UInt32Codec.ReadValue(ref reader, header);
                         reader.EnsureAvailable((uint)length);
 
-                        // Re-initialize the class by calling the constructor.
+                        // 重新开始上课,叫建筑师
                         if (comparer is not null)
                         {
                             _baseConstructor.Invoke(value, [length, comparer]);
@@ -186,13 +186,13 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="HashSet{T}"/>.
+    /// <see cref="HashSet{T}"/>的复印机。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="HashSetCopier{T}"/> class.
+    /// 初始化 <see cref="HashSetCopier{T}"/> 类的新实例。
     /// </remarks>
-    /// <param name="valueCopier">The value copier.</param>
+    /// <param name="valueCopier">价值复印机。</param>
     [RegisterCopier]
     public sealed class HashSetCopier<T>(IDeepCopier<T> valueCopier) : IDeepCopier<HashSet<T>>, IBaseCopier<HashSet<T>>
     {
@@ -234,8 +234,8 @@ namespace Orleans.Serialization.Codecs
             ArgumentNullExceptionPolyfill.ThrowIfNull(output);
             ArgumentNullExceptionPolyfill.ThrowIfNull(context);
 
-            // If the value has some values added by the constructor, clear them.
-            // If those values are in the serialized payload, they will be added below.
+            // 如果该值有建筑商添加的某种值,请清除这些值。
+            // 如果这些数值在序列式有效载荷中,则将添加到下文。
             output.Clear();
             if (input.Comparer != EqualityComparer<T>.Default)
             {

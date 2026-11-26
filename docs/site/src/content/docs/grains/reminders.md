@@ -1,86 +1,104 @@
 ---
-title: Reminders
-description: Schedule durable periodic grain work which survives activation and cluster lifecycle changes.
+title: "提醒提醒"
+description: "能够维持激活和集群生命周期变化的可持久定期 grain 工作。"
 ms.date: 08/21/2026
 ms.topic: concept-article
 ---
 
-# Reminders
+<a id="reminders"></a>
 
-A reminder stores a periodic schedule for one logical grain. The configured reminder provider preserves the definition, and Orleans delivers ticks through normal grain request scheduling. A tick activates the grain when it has no current activation.
+# 提醒提醒
 
-Use a reminder for work whose schedule must survive activation changes and cluster restarts. Reminders suit periods measured in minutes, hours, or days. A reminder can wake a grain which then creates a [grain timer](timers.md) for finer-grained activation-scoped work.
+提醒会为一个逻辑 grain保存定期时间表。配置的提醒提供者保留了定义,而 Orleans 则通过正常 grain 请求列表传送滴答。当没有当前激活时, 键会启动 grain 。
 
-## Receive reminder ticks
+提醒必须用于工作, 其时间表必须在激活变化和集束重新启动后有效。 提醒时用分钟、 小时或天计的时长。 提醒可以唤醒一个 grain , 然后为精细放大的激活范围的工作创建 [grain 计时器](timers.md) 。
 
-A grain receiving reminders implements <xref:Orleans.IRemindable>:
+<a id="receive-reminder-ticks"></a>
+
+## 接收提醒滴答
+
+A grain 收到催复通知 <xref:Orleans.IRemindable>:
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="remindable_report_grain":::
 
-Orleans invokes <xref:Orleans.IRemindable.ReceiveReminder*> with the reminder name and <xref:Orleans.Runtime.TickStatus>. The callback executes as a grain request and follows the grain's scheduling and reentrancy rules.
+Orleans 援引 <xref:Orleans.IRemindable.ReceiveReminder*> ,并注明提醒的名称和 <xref:Orleans.Runtime.TickStatus>。回调执行为 grain 请求,并遵循 grain的时间安排和重新使用规则。
 
-When reminder work can run longer than a grain call timeout, use the [long-running reminder recipe](../how-to/long-running-reminders.md) to start a restartable worker and return promptly.
+当提醒工作超过 grain 调用超时,请使用 [长期的催提醒食谱](../how-to/long-running-reminders.md) 启动可重新启用的工人并迅速返回。
 
-## Register or update a reminder
+<a id="register-or-update-a-reminder"></a>
 
-Register a named reminder from the grain:
+## 登记或更新催复通知
+
+a 记名的 grain催复通知:
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="register_reminder":::
 
-<xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> creates the durable definition. Registering the same name again replaces its due time and period.
+<xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> 创建了耐久定义。 注册同一名称将再次取代其到期时间和期限 。
 
-The returned <xref:Orleans.Runtime.IGrainReminder> is a handle to the current registration. Persist the reminder name in application state and retrieve a current handle after activation when needed.
+返回的 <xref:Orleans.Runtime.IGrainReminder> 是当前注册的一个控点。 在应用程序中保留提醒名称, 并在需要时在激活后获取当前控点 。
 
-## Retrieve or remove a reminder
+<a id="retrieve-or-remove-a-reminder"></a>
 
-Retrieve the current handle and unregister the reminder:
+## 获取或删除提醒
+
+获取当前控点并解除提醒登记 :
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="unregister_reminder":::
 
-Use <xref:Orleans.GrainReminderExtensions.GetReminder*> for one named reminder and <xref:Orleans.GrainReminderExtensions.GetReminders*> for all reminders registered by the grain.
+使用 <xref:Orleans.GrainReminderExtensions.GetReminder*> 来提醒一个被命名的提醒,使用 <xref:Orleans.GrainReminderExtensions.GetReminders*> 来提醒 grain登记的所有提醒。
 
-## Reminder behavior
+<a id="reminder-behavior"></a>
 
-The reminder provider durably stores each definition. The responsible silo loads the definition, calculates occurrences from its persisted start time and period, and sends tick requests to the grain.
+## 提醒行为
 
-Individual tick messages are transient. Cluster unavailability or ownership movement can leave a scheduled occurrence undelivered, while the durable definition continues producing later occurrences. Ownership convergence can also produce duplicate callback execution. Process each callback idempotently and reconcile work from durable business state.
+提醒提供者长期保存着每个定义。负责者 silo 装入定义,从持续启动时间和期间计算事件,并向 grain发出滴答请求。
+
+个人滴答信息是短暂的。 集群无法获取或所有权移动可能导致预定事件得不到落实,而持久定义则继续产生以后的事件。 所有权趋同还可能产生重复回溯执行。 每一次回调都会自动进行,并协调来自持久商业状态的工作。
 
 <xref:Orleans.Runtime.TickStatus.FirstTickTime> and <xref:Orleans.Runtime.TickStatus.Period> identify the theoretical schedule. <xref:Orleans.Runtime.TickStatus.CurrentTickTime> records when the runtime initiated the current delivery. Applications can compare those values with persisted progress to detect and reconcile missed occurrences.
 
-Orleans delivers reminders to one activation of the grain identity. Delivery activates the grain when needed, including after the previous activation was collected or its silo stopped.
+Orleans 向一个启动 grain 发送激活 grain 必要时,包括收集先前的启动活动或 silo 停止了。
 
-## Reminder timing constraints
+<a id="reminder-timing-constraints"></a>
 
-Reminder registration accepts schedules with these boundaries:
+## 提醒时间限制
 
-- `dueTime` is <xref:System.TimeSpan.Zero> or greater. Zero schedules the first tick immediately.
-- `dueTime` fits within the remaining <xref:System.DateTime> range from registration time.
-- `period` is positive and at least <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType>.
-- The default minimum period is one minute.
+提醒登记接受这些边界的时间表:
 
-The runtime rejects negative values and <xref:System.Threading.Timeout.InfiniteTimeSpan>. It also rejects a `dueTime` which places the first tick after <xref:System.DateTime.MaxValue>.
+- `dueTime` 是 <xref:System.TimeSpan.Zero> 或更大。 零计划立即排第一个选中 。
+- `dueTime` 符合登记时间所剩 <xref:System.DateTime> 的范围。
+- `period` 是正值,至少 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType>。
+- 默认最低期限为1分钟。
 
-For one scheduled execution, register a valid positive period and unregister the reminder in its first callback after the durable work succeeds.
+运行时间拒绝消极价值, <xref:System.Threading.Timeout.InfiniteTimeSpan>中也拒绝 `dueTime` 后,第一个选中 <xref:System.DateTime.MaxValue>.
 
-## Configure reminder storage
+对于预定执行的某一项,登记一个有效的积极时期,并在持久工作成功后第一次调回提醒通知时不进行登记。
 
-Every silo configures the same reminder provider so ownership can move across the cluster. Production deployments use a durable provider such as Azure Table, ADO.NET, Redis, Amazon DynamoDB, or [Cosmos DB](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.Cosmos). The in-memory provider stores definitions for the lifetime of the cluster and supports local development and tests.
+<a id="configure-reminder-storage"></a>
 
-Configure each provider through the API supplied by its package. See [Configure Amazon DynamoDB reminders](reminders/dynamodb.md) for a compiled example which configures DynamoDB clustering and reminder storage independently. When composing resources with Aspire, see [Orleans and Aspire integration](../host/aspire-integration.md).
+## 配置提醒存储
 
-The reminder table is part of silo startup. Provider availability and consistency determine whether the service can load, update, and reconcile registrations. See [Reminder implementation](../implementation/reminders.md) for ownership, refresh, and delivery internals.
+每个 silo 配置相同的提醒提供者,以便让所有权在整个集群之间移动。生产部署使用一个耐久的供应商,如 Azure 表、 ADO.NET、 Redis、亚马逊 DynamoDB或 [宇宙 DB](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.Cosmos)。该模拟供应商储存了该集群存在期间的定义并支持当地发展和测试。
 
-## POCO grains
+配置每个提供者, 通过其软件包提供的 API 来配置各个提供者。 编译的示例请参见 [配置亚马逊 DynamoDB 提醒](reminders/dynamodb.md) , 该示例独立配置 DynamoDB 组群和提醒存储。 当与 Aspire 组合资源时, 请见 [Orleans 和指定集成](../host/aspire-integration.md)。
 
-Grains implementing <xref:Orleans.IGrainBase> directly use the same <xref:Orleans.GrainReminderExtensions> APIs. Inject <xref:Orleans.Timers.IReminderRegistry> when infrastructure code needs lower-level access through the current grain context.
+提醒表是启动 silo 的一部分。提供者是否具备和是否一致决定服务能否装载、更新和调节登记。当家作主、更新和交付内部时,见 [提醒执行](../implementation/reminders.md) 。
 
-## Troubleshoot reminders
+<a id="poco-grains"></a>
 
-| Observed behavior | Runtime behavior and action |
+## 波哥 grains
+
+Grains 执行中 <xref:Orleans.IGrainBase> 直接使用相同 <xref:Orleans.GrainReminderExtensions> APPs. 注射 <xref:Orleans.Timers.IReminderRegistry> 当基础设施法规需要通过当前 grain 上下文。
+
+<a id="troubleshoot-reminders"></a>
+
+## 排除故障提醒
+
+| 观察行为 | 运行时行为和行动 |
 |---|---|
-| Registration reports that the reminder service is not configured. | Configure one reminder provider on every silo before registering reminders. |
-| Registration rejects the period. | Use a positive period at or above <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType>. |
-| A tick arrives after a long cluster interruption. | Reconcile the theoretical schedule in <xref:Orleans.Runtime.TickStatus> with durable progress and process the outstanding business work. |
-| The callback executes more than once for the same business interval. | Reminder ownership converges during membership changes. Use an idempotency key or durable completion marker for each interval. |
-| Definitions disappear after a full cluster restart. | The in-memory provider scopes definitions to the cluster lifetime. Configure a durable production provider. |
-| High-frequency work needs sub-minute intervals. | Use the reminder to activate the grain, then register a [grain timer](timers.md) for the active phase. |
+| 登记报告提醒服务未配置。 | 在登记提醒之前,对每个 silo 配置一个提醒提供者。 |
+| 登记拒绝这一期限。 | 在 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType>使用或超过正值期。 |
+| 长时间的集束中断后滴答声到达 | 使 <xref:Orleans.Runtime.TickStatus> 的理论时间表与持久进展相协调,并处理杰出的商业工作。 |
+| 在同一业务间隔内,回调执行一次以上。 | 在会籍变更期间提醒所有人。 使用每个间隔的应急关键值或耐久完成标记 。 |
+| 定义在完全集重开后消失。 | 内线供应商将定义范围扩大到集群寿命期,配置一个耐久生产供应商。 |
+| 高频工作需要分分钟间隔。 | 使用提醒来激活 grain, 然后登记活动阶段的 [grain 计时器](timers.md) 。 |

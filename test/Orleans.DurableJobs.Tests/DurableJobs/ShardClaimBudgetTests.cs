@@ -41,7 +41,7 @@ public class ShardClaimBudgetTests
             elapsed: midpoint,
             totalClaimedShards: 0);
 
-        // At midpoint: 2 + (int)(0.5 * (20 - 2)) = 2 + 9 = 11
+        // 中点:2+(int)(0.5*(20-2)=2+9=11)
         Assert.Equal(11, budget);
     }
 
@@ -57,7 +57,7 @@ public class ShardClaimBudgetTests
             elapsed: nearEnd,
             totalClaimedShards: 0);
 
-        // Should be very close to MaxBudget but computed via truncation
+        // 应该是非常接近 MaxBudget ,但通过短速计算
         Assert.True(budget >= MaxBudget - 1);
         Assert.True(budget <= MaxBudget);
     }

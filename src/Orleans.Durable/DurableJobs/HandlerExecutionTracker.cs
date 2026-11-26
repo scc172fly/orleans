@@ -4,11 +4,11 @@ using System.Diagnostics;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Tracks a single invocation of <see cref="IDurableJobHandler.ExecuteJobAsync"/>, recording the
-/// associated metrics via <see cref="DurableJobsInstruments"/> and the distributed-tracing activity
-/// via <see cref="DurableJobsDiagnostics"/>. Callers must record exactly one terminal telemetry outcome
-/// using <see cref="RecordResult"/>, <see cref="Completed"/>, <see cref="AttemptCanceled"/>, or <see cref="Failed"/>
-/// before disposal.
+/// 单曲调 <see cref="IDurableJobHandler.ExecuteJobAsync"/>,记录
+/// 通过 <see cref="DurableJobsInstruments"/> 和分布式跟踪活动
+/// 经由 <see cref="DurableJobsDiagnostics"/>。调用者必须准确记录一个终端遥测结果
+/// 使用 <see cref="RecordResult"/>、 <see cref="Completed"/>、 <see cref="AttemptCanceled"/>或 <see cref="Failed"/>
+/// 处理前。
 /// </summary>
 internal readonly struct HandlerExecutionTracker : IDisposable
 {
@@ -31,7 +31,7 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// Records failed telemetry for a failed result and completed telemetry for every non-failed disposition.
+    /// 记录失败结果的遥测失败,并且完成每个未失败处置的遥测。
     /// </summary>
     public void RecordResult(DurableJobRunResult result)
     {
@@ -48,7 +48,7 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// Records a successful handler execution and marks the activity as <see cref="ActivityStatusCode.Ok"/>.
+    /// 将成功执行的处理器记录下来,并将活动标为 <see cref="ActivityStatusCode.Ok"/>。
     /// </summary>
     public void Completed()
     {
@@ -57,8 +57,8 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// Records cooperative cancellation of the current handler execution attempt. The activity status is left unchanged so that
-    /// disposal preserves the default (unset) status, matching the behaviour of the original implementation.
+    /// 合作取消当前处理器执行尝试的记录。
+    /// 处置保留默认(未设置)状态,与原始执行的行为相符。
     /// </summary>
     public void AttemptCanceled()
     {
@@ -66,7 +66,7 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// Records a failed handler execution and attaches the supplied exception to the activity.
+    /// 记录处理器执行失败,并将提供的例外附加到活动上。
     /// </summary>
     public void Failed(Exception exception)
     {

@@ -96,7 +96,7 @@ public sealed class SystemTargetMembershipTableConformanceTests : MembershipTabl
                 + $"{_nativeProgress}; elapsed-ms={Stopwatch.GetElapsedTime(_nativePhaseStarted).TotalMilliseconds:F1}{Environment.NewLine}";
         }
 
-        // Sample the latest phase for watchdog artifacts without adding file I/O to each operation.
+        // 抽样检查监视器文物的最新阶段, 不在每次操作中添加文件 I/ O 。
         return File.WriteAllTextAsync(_progressFile, snapshot);
     }
 
@@ -201,7 +201,7 @@ public sealed class SystemTargetMembershipTableConformanceTests : MembershipTabl
                 Options.Create(new DevelopmentClusterMembershipOptions { PrimarySiloEndpoint = _silo.SiloAddress.Endpoint }));
             services.AddSingleton(_silo.ServiceProvider.GetRequiredService<ILocalSiloDetails>());
             services.AddSingleton(GetGrainFactory());
-            // The passive owner starts in this test table's empty history, independently of host membership.
+            // 被动所有人从这个测试表的空头历史开始, 不考虑主机成员身份。
             var owner = Substitute.For<IMembershipManager>();
             owner.CurrentSnapshot.Returns(new MembershipTableSnapshot(
                 new MembershipVersion(0), ImmutableDictionary<SiloAddress, MembershipEntry>.Empty));

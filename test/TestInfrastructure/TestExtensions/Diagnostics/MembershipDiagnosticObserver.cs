@@ -6,12 +6,12 @@ using Orleans.TestingHost;
 namespace TestExtensions;
 
 /// <summary>
-/// A test helper that subscribes to Orleans membership diagnostic events and provides
-/// methods to wait for specific membership events deterministically.
+/// 使用 Orleans 会籍诊断事件并提供
+/// 明确等待特定成员活动的方法。
 /// </summary>
 /// <remarks>
-/// This replaces Task.Delay/Thread.Sleep patterns in tests with event-driven waiting,
-/// making tests faster and more reliable.
+/// 以事件驱动的等待取代测试中的 Task.Delay/Thread.Sleep 模式,
+/// 使测试更快和更加可靠。
 /// </remarks>
 internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<MembershipEvents.MembershipEvent>
 {
@@ -23,59 +23,59 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     private IDisposable? _subscription;
 
     /// <summary>
-    /// Represents a status transition derived from a membership view change.
+    /// 代表因成员观点变化而产生地位过渡。
     /// </summary>
-    /// <param name="oldEntry">The previous membership entry for the silo, if one existed.</param>
-    /// <param name="newEntry">The new membership entry for the silo.</param>
-    /// <param name="observerSiloAddress">The address of the silo that observed this change.</param>
+    /// <param name="oldEntry">加入《公约》的国家 silo如果存在的话</param>
+    /// <param name="newEntry">加入《公约》的新成员 silo.</param>
+    /// <param name="observerSiloAddress">大会主席的地址 silo 也注意到这一变化。</param>
     public sealed class StatusTransition(
         MembershipEntry? oldEntry,
         MembershipEntry newEntry,
         SiloAddress? observerSiloAddress)
     {
         /// <summary>
-        /// The previous membership entry for the silo, if one existed.
+        /// silo的先前成员条目,如果有的话。
         /// </summary>
         public readonly MembershipEntry? OldEntry = oldEntry;
 
         /// <summary>
-        /// The new membership entry for the silo.
+        /// silo的新成员条目。
         /// </summary>
         public readonly MembershipEntry NewEntry = newEntry;
 
         /// <summary>
-        /// The address of the silo that observed this change.
+        /// 观察到这一变化的 silo 地址。
         /// </summary>
         public readonly SiloAddress? ObserverSiloAddress = observerSiloAddress;
     }
 
     /// <summary>
-    /// Gets all derived silo status transitions computed from captured membership view changes.
+    /// 获取根据所捕捉的会籍视图变化计算的所有从导 silo 状态转换。
     /// </summary>
     public IReadOnlyCollection<StatusTransition> StatusTransitions => _statusTransitions.ToArray();
 
     /// <summary>
-    /// Gets all captured membership view changed events.
+    /// 获得所有被俘的会员观点改变的事件。
     /// </summary>
     public IReadOnlyCollection<MembershipEvents.ViewChanged> ViewChangedEvents => _viewChangedEvents.ToArray();
 
     /// <summary>
-    /// Gets all captured status change events whose new status is <see cref="SiloStatus.Dead"/>.
+    /// 获取所有被捕获的状态改变事件, 新状态为 <see cref="SiloStatus.Dead"/>。
     /// </summary>
     public IReadOnlyCollection<StatusTransition> DeclaredDeadEvents => GetEventsByStatus(SiloStatus.Dead);
 
     /// <summary>
-    /// Gets all captured status change events whose new status is <see cref="SiloStatus.Active"/>.
+    /// 获取所有被捕获的状态改变事件, 新状态为 <see cref="SiloStatus.Active"/>。
     /// </summary>
     public IReadOnlyCollection<StatusTransition> BecameActiveEvents => GetEventsByStatus(SiloStatus.Active);
 
     /// <summary>
-    /// Gets all captured status change events whose new status is <see cref="SiloStatus.Joining"/>.
+    /// 获取所有被捕获的状态改变事件, 新状态为 <see cref="SiloStatus.Joining"/>。
     /// </summary>
     public IReadOnlyCollection<StatusTransition> JoiningEvents => GetEventsByStatus(SiloStatus.Joining);
 
     /// <summary>
-    /// Creates a new instance of the observer and starts listening for membership diagnostic events.
+    /// 创建了观察员的新实例,并开始聆听会员诊断活动。
     /// </summary>
     public static MembershipDiagnosticObserver Create(TestCluster cluster) => Create(DiagnosticObserverSiloScope.For(cluster));
 
@@ -97,11 +97,11 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Waits for a specific silo to be declared dead.
+    /// 等待具体 silo 被宣布死亡。
     /// </summary>
-    /// <param name="siloAddress">The silo address to wait for.</param>
-    /// <param name="timeout">Maximum time to wait. Defaults to 30 seconds.</param>
-    /// <returns>The derived status transition payload.</returns>
+    /// <param name="siloAddress">等待的 silo 地址。</param>
+    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
+    /// <returns>衍生的状态过渡有效载荷。</returns>
     public Task<StatusTransition> WaitForSiloDeclaredDeadAsync(SiloAddress siloAddress, TimeSpan? timeout = null)
     {
         return WaitForStatusChangeAsync(
@@ -111,10 +111,10 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Waits for any silo to be declared dead.
+    /// 等待任何 silo 被宣布死亡。
     /// </summary>
-    /// <param name="timeout">Maximum time to wait. Defaults to 30 seconds.</param>
-    /// <returns>The derived status transition payload.</returns>
+    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
+    /// <returns>衍生的状态过渡有效载荷。</returns>
     public Task<StatusTransition> WaitForAnySiloDeclaredDeadAsync(TimeSpan? timeout = null)
     {
         return WaitForStatusChangeAsync(
@@ -124,11 +124,11 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Waits for any status change event matching the predicate to be declared dead.
+    /// 等待任何与上游匹配的状态变化事件宣布死亡。
     /// </summary>
-    /// <param name="predicate">A predicate to match the event.</param>
-    /// <param name="timeout">Maximum time to wait. Defaults to 30 seconds.</param>
-    /// <returns>The derived status transition payload.</returns>
+    /// <param name="predicate">符合事件前提的上游。</param>
+    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
+    /// <returns>衍生的状态过渡有效载荷。</returns>
     public Task<StatusTransition> WaitForSiloDeclaredDeadAsync(Func<StatusTransition, bool> predicate, TimeSpan? timeout = null)
     {
         return WaitForStatusChangeAsync(
@@ -138,12 +138,12 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Waits for a specific silo's status to change to the specified status.
+    /// 等待特定 silo状态改为指定状态。
     /// </summary>
-    /// <param name="siloAddress">The silo address to monitor.</param>
-    /// <param name="expectedStatus">The expected new status (e.g., "Dead", "Active").</param>
-    /// <param name="timeout">Maximum time to wait. Defaults to 30 seconds.</param>
-    /// <returns>The derived status transition payload.</returns>
+    /// <param name="siloAddress">用于监测的 silo 地址。</param>
+    /// <param name="expectedStatus">预期的新地位(e.g死亡,感性")</param>
+    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
+    /// <returns>衍生的状态过渡有效载荷。</returns>
     public Task<StatusTransition> WaitForSiloStatusAsync(SiloAddress siloAddress, string expectedStatus, TimeSpan? timeout = null)
     {
         return WaitForStatusChangeAsync(
@@ -154,11 +154,11 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Waits for a specific silo to become active.
+    /// 等待某个指定 silo 开始活动。
     /// </summary>
-    /// <param name="siloAddress">The silo address to wait for.</param>
-    /// <param name="timeout">Maximum time to wait. Defaults to 30 seconds.</param>
-    /// <returns>The derived status transition payload.</returns>
+    /// <param name="siloAddress">等待的 silo 地址。</param>
+    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
+    /// <returns>衍生的状态过渡有效载荷。</returns>
     public Task<StatusTransition> WaitForSiloBecameActiveAsync(SiloAddress siloAddress, TimeSpan? timeout = null)
     {
         return WaitForStatusChangeAsync(
@@ -168,10 +168,10 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Waits for any silo to become active.
+    /// 等待任何 silo 活动开始。
     /// </summary>
-    /// <param name="timeout">Maximum time to wait. Defaults to 30 seconds.</param>
-    /// <returns>The derived status transition payload.</returns>
+    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
+    /// <returns>衍生的状态过渡有效载荷。</returns>
     public Task<StatusTransition> WaitForAnySiloBecameActiveAsync(TimeSpan? timeout = null)
     {
         return WaitForStatusChangeAsync(
@@ -181,11 +181,11 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Waits for a specific silo to start joining the cluster.
+    /// 等待某个特定 silo 开始加入该组。
     /// </summary>
-    /// <param name="siloAddress">The silo address to wait for.</param>
-    /// <param name="timeout">Maximum time to wait. Defaults to 30 seconds.</param>
-    /// <returns>The derived status transition payload.</returns>
+    /// <param name="siloAddress">等待的 silo 地址。</param>
+    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
+    /// <returns>衍生的状态过渡有效载荷。</returns>
     public Task<StatusTransition> WaitForSiloJoiningAsync(SiloAddress siloAddress, TimeSpan? timeout = null)
     {
         return WaitForStatusChangeAsync(
@@ -195,41 +195,41 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Checks if a specific silo has been declared dead.
+    /// 检查是否指定 silo 已声明死亡 。
     /// </summary>
-    /// <param name="siloAddress">The silo address to check.</param>
-    /// <returns>True if the silo has been declared dead.</returns>
+    /// <param name="siloAddress">检查的 silo 地址。</param>
+    /// <returns>如果真实 silo 已经宣布死亡</returns>
     public bool HasSiloDeclaredDead(SiloAddress siloAddress)
     {
         return _statusTransitions.Any(e => e.NewEntry.SiloAddress.Equals(siloAddress) && e.NewEntry.Status == SiloStatus.Dead);
     }
 
     /// <summary>
-    /// Checks if a specific silo has become active.
+    /// 检查是否某个指定 silo 已经激活。
     /// </summary>
-    /// <param name="siloAddress">The silo address to check.</param>
-    /// <returns>True if the silo has become active.</returns>
+    /// <param name="siloAddress">检查的 silo 地址。</param>
+    /// <returns>如果真实 silo 已经活跃起来。</returns>
     public bool HasSiloBecameActive(SiloAddress siloAddress)
     {
         return _statusTransitions.Any(e => e.NewEntry.SiloAddress.Equals(siloAddress) && e.NewEntry.Status == SiloStatus.Active);
     }
 
     /// <summary>
-    /// Gets the count of silos declared dead.
+    /// 得到数 silos 宣布死亡。
     /// </summary>
-    /// <returns>The count of dead-status events.</returns>
+    /// <returns>死亡事件统计</returns>
     public int GetDeclaredDeadCount()
     {
         return _statusTransitions.Count(e => e.NewEntry.Status == SiloStatus.Dead);
     }
 
     /// <summary>
-    /// Waits until the number of declared dead silos reaches or exceeds the expected count.
+    /// 等待宣布死亡的人数 silos 达到或超过预期的数。
     /// </summary>
-    /// <param name="expectedCount">The minimum number of silos declared dead to wait for.</param>
-    /// <param name="timeout">Maximum time to wait. Defaults to 60 seconds.</param>
-    /// <returns>A task that completes when the expected count is reached.</returns>
-    /// <exception cref="TimeoutException">Thrown if the expected count is not reached within the timeout.</exception>
+    /// <param name="expectedCount">宣布死亡等待的 silos 最低数量。</param>
+    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
+    /// <returns>任务在达到预期数时完成。</returns>
+    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
     public async Task WaitForDeclaredDeadCountAsync(int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -263,7 +263,7 @@ internal sealed class MembershipDiagnosticObserver : IDisposable, IObserver<Memb
     }
 
     /// <summary>
-    /// Clears all captured events.
+    /// 清除所有被俘事件
     /// </summary>
     public void Clear()
     {

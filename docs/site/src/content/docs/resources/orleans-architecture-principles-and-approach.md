@@ -1,48 +1,62 @@
 ---
-title: Orleans architecture design principles
-description: Understand the design principles behind Orleans.
+title: "Orleans 建筑设计原则"
+description: "了解 Orleans背后的设计原则。"
 ms.date: 08/08/2026
 ms.topic: conceptual
 ---
 
-# Orleans architecture design principles
+<a id="orleans-architecture-design-principles"></a>
 
-Orleans is designed to help .NET developers build stateful distributed applications without making every application implement identity, placement, lifecycle, messaging, and membership from first principles.
+# Orleans 建筑设计原则
 
-## Familiar programming model
+Orleans 旨在帮助 .NET 开发商建立有条不紊的分布式应用程序,而不必使每一项应用程序都根据最初的原则落实身份、安置、生命周期、信息传递和成员资格。
 
-Orleans represents distributed entities using .NET interfaces and classes. Calls are asynchronous to make the network boundary explicit, while dependency injection, hosting, configuration, logging, and testing use standard .NET patterns.
+<a id="familiar-programming-model"></a>
 
-Familiarity doesn't make a grain call equivalent to a local method call. Serialization, latency, partial failure, cancellation, and retries remain part of API design.
+## 熟悉的方案拟订模式
 
-## Identity independent of activation
+Orleans 代表使用 .NET 接口和分类的分布式实体。呼吁要求明确网络边界,而依赖注射、托管、配置、记录和测试使用标准 .NET 模式。
 
-A grain's logical identity is stable even when no activation is in memory. Orleans can activate it on demand, place it on a silo, route calls to it, and remove the activation when idle.
+熟悉性并不等于本地方法调用 grain 。 序列化、延缓、部分故障、取消和重试仍然是 API 设计的一部分。
 
-This indirection is the foundation for location transparency and resource management. It also means applications should avoid encoding process locations in domain contracts.
+<a id="identity-independent-of-activation"></a>
 
-## Isolation and partitioning
+## 独立身份(不因激活而独立)
 
-Grains encapsulate state and process turns one at a time by default. This favors designs made of many independently addressable entities and reduces shared-memory coordination.
+A grain的逻辑特性即使没有激活在内存中,也保持稳定。 Orleans 可以按要求启动、将其置于 silo上、向其拨打路线、并在闲置时取消激活。
 
-Orleans provides scalable building blocks, not automatic scalability for every model. Grain boundaries, key distribution, call patterns, external dependencies, and storage choices determine how an application scales.
+这种间接性是地点透明度和资源管理的基础,也意味着应用程序应避免域域合同中编码处理位置。
 
-## Recovery-oriented operation
+<a id="isolation-and-partitioning"></a>
 
-Detect and repair problems; don't assume they can be prevented completely. At cloud scale, bad things happen often, and seemingly impossible things happen, only less often. Prevention and fault-tolerance mechanisms remain valuable, but they cannot cover every failure in hardware, software, dependencies, or operations. Orleans therefore complements them with an approach often called *recovery-oriented computing*: expect failures to escape prevention, detect them, and restore service.
+## 隔离和分隔
 
-In practice, Orleans detects membership changes and can reactivate grains on healthy silos after failures. In-flight calls can still fail, and volatile state is lost with its process.
+Grains 封装状态和进程默认时一次旋转一个。 这有利于由许多独立可处理的实体组成的设计, 并减少共享的模拟协调 。
 
-Applications therefore need explicit durability, idempotency, bounded retries, observability, and operational procedures. The runtime handles common mechanics but doesn't invent application-level recovery semantics.
+Orleans 提供可缩放的构件,而不是每个模型的自动缩放。 Grain 边界、钥匙分布、呼叫模式、外部依赖性以及储存选择决定了应用尺度如何。
 
-## Extensible providers
+<a id="recovery-oriented-operation"></a>
 
-Clustering, persistence, reminders, streams, durable jobs, serialization, and related services expose provider models. Applications can select infrastructure which fits their environment or implement a custom provider.
+## 以恢复为主的行动
 
-The provider boundary keeps the programming model portable, but each backend retains its own limits, consistency, availability, authentication, and operational characteristics.
+检测和修复问题; 不要假设这些问题可以完全预防。 在云层规模下,坏事情经常发生,似乎不可能的事情也很少发生。 预防和过错容忍机制仍然很宝贵,但无法弥补硬件、软件、依赖性或操作方面的每一个失败。 Orleans 因此,它们补充了通常称为 " 以. *以回收为导向的计算*:预期未能避免发生预防、发现和恢复服务。
 
-## Make the safe path straightforward
+实际上, Orleans 侦测到会员身份变化,可以重新启动 grains 健康、健康和健康 silos 失败之后。 飞行中的通话仍然可能失败,并且随着其过程的发生而失去动荡状态。
 
-Orleans APIs aim to guide applications toward asynchronous execution, isolated state, stable serialization contracts, and managed lifecycle. Defaults target broadly useful behavior while leaving advanced placement, concurrency, and provider customization available when requirements justify them.
+因此应用需要明确的持久性、不短性、约束性、可防性和操作程序。运行时间处理普通机械,但不会发明应用水平恢复语义。
 
-The design priority is a coherent foundation for common stateful distributed applications, not a universal abstraction for every distributed workload.
+<a id="extensible-providers"></a>
+
+## 扩展提供者
+
+集中、坚持、提醒、流、持久工作、序列化和相关服务暴露了供应商模式。 应用可以选择适合环境的基础设施或实施定制提供者。
+
+提供方边界使编程模式具有便携式,但每个后端都保留自己的限制、一致性、可用性、认证和业务特点。
+
+<a id="make-the-safe-path-straightforward"></a>
+
+## 使安全路径直截了当
+
+Orleans API旨在引导应用,以转向无同步执行、孤立状态、稳定的序列化合同和管理寿命周期。 默认目标针对广泛有用的行为,同时在需要时留下提前放置、同值货币和供应商定制等功能。
+
+设计优先事项是通用的、有条不紊的分布式应用程序的统一基础,而不是对每个分配工作量的普遍抽象。

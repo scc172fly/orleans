@@ -10,8 +10,8 @@ public interface IBuyerGrain : IGrainWithStringKey
     DurableTask RecordOrderAsync(OrderSummary summary);
 }
 
-// A per-buyer projection of order status, which serves the buyer's order list.
-// Each order's workflow records its status changes with detached durable calls.
+// 买方订购单清单的每个买方订单预测状况。
+// 每个订单的工作流程记录其状况变化,有独立的耐用电话。
 public sealed class BuyerGrain : DurableGrain, IBuyerGrain
 {
     private readonly IDurableDictionary<Guid, OrderSummary> _orders;
@@ -24,10 +24,10 @@ public sealed class BuyerGrain : DurableGrain, IBuyerGrain
     public Task<OrderSummary[]> GetOrdersAsync() =>
         Task.FromResult(_orders.Values.OrderByDescending(order => order.OrderDate).ToArray());
 
-    // The change commits with the task's result.
+    // 变革承诺与任务结果一致。
     public async DurableTask RecordOrderAsync(OrderSummary summary)
     {
-        // An order's workflow detaches each change, so changes arrive in any order; the highest version is the latest.
+        // 顺序的工作流程每次更改都会脱钩, 因此更改会依任何顺序出现; 最高版本是最新版本 。
         if (!_orders.TryGetValue(summary.OrderId, out var current) || current.Version < summary.Version)
         {
             _orders[summary.OrderId] = summary;

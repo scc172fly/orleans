@@ -25,11 +25,11 @@ public sealed class PlayerWatcherHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        // the load generator will update player ids within a range that includes this player
+        // 包含此播放器的范围内, 装载生成器将更新播放器id
         var playerId = new Guid("{2349992C-860A-4EDA-9590-000000000006}");
         var player = _client.GetGrain<IPlayerGrain>(playerId);
 
-        // poll for this player to join a game
+        // 用于此玩家加入游戏的民意测验
         while (_game is null)
         {
             _logger.LogInformation("Getting current game for player {PlayerId}...",
@@ -61,7 +61,7 @@ public sealed class PlayerWatcherHostedService : IHostedService
 
         _logger.LogInformation("Observing updates for game {GameKey}", _game.GetPrimaryKey());
 
-        // subscribe for updates
+        // 订阅更新
         var reference = _client.CreateObjectReference<IGameObserver>(_observer);
         await _game.ObserveGameUpdatesAsync(reference);
 

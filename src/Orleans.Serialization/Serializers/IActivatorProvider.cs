@@ -3,15 +3,15 @@ using Orleans.Serialization.Activators;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Provides activators.
+    /// 提供活动者。
     /// </summary>
     public interface IActivatorProvider
     {
         /// <summary>
-        /// Gets an activator for the specified type.
+        /// 获取指定类型活动的动因。
         /// </summary>
-        /// <typeparam name="T">The type.</typeparam>
-        /// <returns>The activator.</returns>
+        /// <typeparam name="T">类型。</typeparam>
+        /// <returns>激活器。</returns>
         IActivator<T> GetActivator<T>();
     }
 }

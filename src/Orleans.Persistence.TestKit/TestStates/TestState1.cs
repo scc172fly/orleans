@@ -1,26 +1,26 @@
 namespace Orleans.Persistence.TestKit;
 
 /// <summary>
-/// A test state used to verify storage provider functionality.
+/// 用于验证存储提供者功能的测试状态。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
 public class TestState1 : IEquatable<TestState1>
 {
     /// <summary>
-    /// Gets or sets a string property.
+    /// 获取或设置字符串属性。
     /// </summary>
     [Id(0)]
     public string? A { get; set; }
 
     /// <summary>
-    /// Gets or sets an integer property.
+    /// 获取或设置一个整数属性。
     /// </summary>
     [Id(1)]
     public int B { get; set; }
 
     /// <summary>
-    /// Gets or sets a long property.
+    /// 获取或设置一个长的财产。
     /// </summary>
     [Id(2)]
     public long C { get; set; }

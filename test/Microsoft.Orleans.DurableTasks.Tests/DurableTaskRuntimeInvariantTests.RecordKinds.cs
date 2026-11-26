@@ -7,8 +7,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Record kinds: a replay which requests another kind of operation under a recorded identifier diverges, which stalls its
-/// attempt, rather than observing or changing the recorded operation.
+/// 记录类型:重复播放,要求根据记录的识别符号进行另一种操作,但有差异,从而拖延
+/// 而不是观察或改变记录的行动。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -23,7 +23,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.SetResponse(waitId, step, DurableTaskResponse.FromResult(1));
         using var stalls = new StallRecorder(taskId);
 
-        // The workflow changed: a replay requests a delay where the first execution recorded a step's outcome.
+        // 工作流程发生了变化:重播要求推迟执行第一个执行过程记录了一步结果。
         _ = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await DurableTask.Delay(TimeSpan.FromDays(1)).WithId("wait")),
@@ -48,7 +48,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var dueTime = storage.Get(waitId).DueTime;
         using var stalls = new StallRecorder(taskId);
 
-        // The workflow changed: a replay requests a step where the first execution recorded a pending delay.
+        // 工作流程发生了变化:重播要求迈出第一步,即第一次执行记录了延迟时间。
         _ = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await DurableTask.Run(static _ => 1).WithId("wait")),
@@ -73,12 +73,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.AddInvoked(TaskId.Parse("root"));
         storage.SetRemoteRequest(callId, storage.GetOrCreate(callId, DurableTaskRecordKind.RemoteCall), target, "method", "0123456789ABCDEF0123");
 
-        // A delay which an execution schedules under its child's identifier finds the call's record and changes nothing.
+        // 儿童身份识别资料下的处决时间表发现电话记录,但没有任何改变的延迟。
         var direct = await Assert.ThrowsAsync<DurableTaskDivergenceException>(
             () => runtime.ScheduleDelayAsync(callId, TimeSpan.FromDays(1), TestContext.Current.CancellationToken).AsTask());
         Assert.Contains($"It records a call to method 'method' on grain '{target}' (fingerprint 0123456789AB), and this attempt requested a delay due at", direct.Message, StringComparison.Ordinal);
 
-        // A replay which awaits a delay under the call's identifier stalls.
+        // 重播等待延迟 在电话的识别信号卡下
         using var stalls = new StallRecorder(taskId);
         _ = await runtime.ScheduleChildAsync(
             taskId,
@@ -105,12 +105,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var step = storage.GetOrCreate(stepId, DurableTaskRecordKind.LocalStep);
         storage.RequestCancellation(stepId, step);
 
-        // The step is an operation of its execution, which a replay reaches, and receives no signals as an invoked task.
+        // 该步骤是执行该步骤的一个操作,一个重播达到,没有收到作为援引任务的任何信号。
         Assert.Equal([stepId], runtime.GetRecordedOperations(rootId));
         Assert.IsType<DurableTaskNotFoundException>(runtime.StageSignalFromInbox(stepId, "approved", DurableTaskResponse.FromResult("ada")));
         Assert.False(storage.Contains(stepId.Child("$signal:approved")));
 
-        // A cancellation which arrives before its invocation is recorded as such, and its invocation's signal precedes it.
+        // 在援引之前就已作此记录,而且其援引信号先于该请求发出。
         var earlyId = TaskId.CreateRoot("early");
         runtime.SignalCancellationFromInbox(earlyId, GrainId.Create("caller", "one"), reason: null);
         Assert.Equal(DurableTaskRecordKind.EarlyCancellation, storage.Get(earlyId).Kind);

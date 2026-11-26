@@ -2,7 +2,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Orleans.Docs.Snippets.Aspire.Client;
 
-// This class contains example code for Orleans client configuration with Aspire
+// 此类包含 Orleans 客户端配置的示例代码, 使用 Aspire
 public static class ClientProgram
 {
     // <client_basic_config>
@@ -13,7 +13,7 @@ public static class ClientProgram
         builder.AddServiceDefaults();
         builder.AddKeyedRedisClient("orleans-redis");
 
-        // Configure Orleans client - Aspire injects clustering configuration automatically
+        // 配置 Orleans 客户端 - 自动插入集成配置
         builder.UseOrleansClient();
 
         builder.Build().Run();

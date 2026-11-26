@@ -40,7 +40,7 @@ namespace Orleans.Analyzers
 
             if (symbol.ContainingType.TypeKind != TypeKind.Interface) return;
 
-            // ignore static members
+            // 忽略静态成员
             if (symbol.IsStatic) return;
 
             var isIAddressableInterface = false;

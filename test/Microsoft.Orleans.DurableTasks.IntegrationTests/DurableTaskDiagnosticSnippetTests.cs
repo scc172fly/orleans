@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>Runs the ORLEANS0219 page's detached-start fix against a cluster.</summary>
+/// <summary>运行 ORLEANS0219 页面的独立启动固定装置,以对着一个集。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -36,8 +36,8 @@ public sealed class DurableTaskDiagnosticSnippetTests : IAsyncLifetime
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully,
             (await dispatch.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).Status);
 
-        // The survey is a root task on the customer's survey grain, whose root ID the dispatch derives from its grain, its
-        // ID, and the operation's name; it runs on after the dispatch completed.
+        // 调查是客户调查的一项根本任务。 grain,其根由 ID 发件人来自 grain, 其
+        // 和操作名称; 它在发送完成后继续运行 。
         var message = await _email.Started.Task.WaitAsync(Timeout, cancellationToken);
         Assert.Equal((customer, "How was your order?"), (message.Recipient, message.Subject));
         var surveyId = TaskId.CreateRoot($"{TaskId.CreateRoot(dispatcher.GetGrainId().ToString())}/{TaskId.CreateRoot("dispatch").Child("survey")}");

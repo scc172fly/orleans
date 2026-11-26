@@ -10,8 +10,8 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// Most methods of this class are synchronized since they might be called both
-    /// from LocalGrainDirectory on CacheValidator.SchedulingContext and from RemoteGrainDirectory.
+    /// 本类的大部分方法都是同步的, 因为两者都可能被称为
+    /// 调自 LocalGrainDirectory 日期 时 CacheValidator.SchedulingContext 和 RemoteGrainDirectory.
     /// </summary>
     internal sealed partial class GrainDirectoryHandoffManager
     {
@@ -45,9 +45,9 @@ namespace Orleans.Runtime.GrainDirectory
             {
                 LogDebugProcessingSiloAddEvent(logger, addedSilo);
 
-                // check if this is our immediate successor (i.e., if I should hold this silo's copy)
-                // (if yes, adjust local and/or copied directory partitions by splitting them between old successors and the new one)
-                // NOTE: We need to move part of our local directory to the new silo if it is an immediate successor.
+                // 选中此项是否是我们的直接继承者(i.e., 如果我应该持有此 silo副本)
+                // (如果有,调整本地和/或复制目录分割区,将其分成旧继承人和新继承人)
+                // 注:我们需要将我们本地目录的一部分移到新的 silo 如果它是直接的继承人。
                 var successor = localDirectory.FindSuccessor(localDirectory.MyAddress);
                 if (successor is null || !successor.Equals(addedSilo))
                 {
@@ -55,7 +55,7 @@ namespace Orleans.Runtime.GrainDirectory
                     return;
                 }
 
-                // split my local directory and send to my new immediate successor his share
+                // 分我本地的目录 寄给我的新继承人
                 LogDebugSplittingPartition(logger, addedSilo);
                 var splitPartListSingle = localDirectory.DirectoryPartition.Split(
                     grain =>
@@ -159,10 +159,10 @@ namespace Orleans.Runtime.GrainDirectory
                 Dictionary<SiloAddress, List<GrainAddress>>? duplicates = null;
                 for (var i = tasks.Length - 1; i >= 0; i--)
                 {
-                    // Retry failed tasks next time.
+                    // 下次重试失败的任务 。
                     if (!tasks[i].IsCompletedSuccessfully) continue;
 
-                    // Record the applications which lost the registration race (duplicate activations).
+                    // 记录丧失登记比赛(重复激活)的申请。
                     var winner = await tasks[i];
                     if (winner.Address is not { } winnerAddress || !winnerAddress.Equals(singleActivations[i]))
                     {
@@ -170,11 +170,11 @@ namespace Orleans.Runtime.GrainDirectory
                         (CollectionsMarshal.GetValueRefOrAddDefault(duplicates ??= new(), duplicate.SiloAddress!, out _) ??= new()).Add(duplicate);
                     }
 
-                    // Remove tasks which completed.
+                    // 删除已完成的任务 。
                     singleActivations.RemoveAt(i);
                 }
 
-                // Queue duplicate cleanup behind the current handoff operation.
+                // 在当前手转操作背后的重复清理队列中 。
                 QueueDuplicateActivationDestruction(duplicates);
             }
         }
@@ -235,7 +235,7 @@ namespace Orleans.Runtime.GrainDirectory
             {
                 while (true)
                 {
-                    // Get the next operation, or exit if there are none.
+                    // 进行下一次行动,如果没有的话就离开
                     (string Name, object State, Func<GrainDirectoryHandoffManager, object, Task> Action) op;
                     lock (_lock)
                     {
@@ -266,7 +266,7 @@ namespace Orleans.Runtime.GrainDirectory
                             return;
                         }
 
-                        // Keep retrying failed handoff work, but let later queued operations make progress.
+                        // 继续重试失败的结账工作, 但让后排的操作取得进步 。
                         lock (_lock)
                         {
                             this.pendingOperations.Dequeue();

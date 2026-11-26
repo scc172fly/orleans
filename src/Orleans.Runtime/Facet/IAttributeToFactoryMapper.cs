@@ -3,17 +3,17 @@ using System.Reflection;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Responsible for mapping a facet metadata to a cachable factory.
+    /// 负责绘制一个可回收工厂的元数据
     /// </summary>
     public interface IAttributeToFactoryMapper<in TMetadata>
         where TMetadata : IFacetMetadata
     {
         /// <summary>
-        /// Responsible for mapping a facet metadata to a cachable factory from the parameter and facet metadata.
+        /// 负责从参数和元数据向可分解工厂绘制一个元数据。
         /// </summary>
-        /// <param name="parameter">The parameter info.</param>
-        /// <param name="metadata">The metadata.</param>
-        /// <returns>The factory used to create facet instances for a grain.</returns>
+        /// <param name="parameter">参数信息。</param>
+        /// <param name="metadata">元数据。</param>
+        /// <returns>工厂用来为 grain创建表面实例。</returns>
         Factory<IGrainContext, object> GetFactory(ParameterInfo parameter, TMetadata metadata);
     }
 }

@@ -27,7 +27,7 @@ public class TaggedUnionGeneratedSourceTests
     [InlineData("CustomAccessUnion")]
     public Task GeneratedSourceMatchesSnapshot(string typeName)
     {
-        // Capture the SDK compiler's output: the test-host Roslyn version does not expose union case metadata.
+        // 获取 SDK 编译器的输出: 测试主机Roslyn 版本并不暴露工会案例元数据 。
         var directory = Path.Combine(AppContext.BaseDirectory, "TaggedUnionGeneratedSources");
         var sources = Directory.GetFiles(directory, $"*.TaggedUnions.{typeName}*.g.cs").Select(File.ReadAllText);
         var source = Assert.Single(sources, text =>

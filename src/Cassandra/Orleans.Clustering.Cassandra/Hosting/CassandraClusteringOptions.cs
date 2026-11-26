@@ -7,29 +7,29 @@ using Orleans.Configuration;
 namespace Orleans.Clustering.Cassandra.Hosting;
 
 /// <summary>
-/// Options for configuring Cassandra clustering.
+/// 配置 Cassandra 集群的选项 。
 /// </summary>
 public class CassandraClusteringOptions
 {
     /// <summary>
-    /// Gets or sets whether Cassandra expires Dead membership rows after
+    /// 确定卡珊德拉是否过期
     /// <see cref="ClusterMembershipOptions.DefunctSiloExpiration"/>.
     /// </summary>
     /// <remarks>
-    /// Live membership rows and the table version remain persistent. Full-row Dead writes assign the retention
-    /// period to all row fields together. Owner heartbeats persist only the heartbeat column. A late heartbeat
-    /// after a Dead write can leave a heartbeat-only fragment when the remaining fields expire; membership reads
-    /// retire that row when its start time expires. Explicit cleanup removes the whole row while preserving the
-    /// table version. This applies to writes in both new and existing tables.
+    /// 活成员行和表格版本仍保持持久性。 全行死亡写道指定保留
+    /// 全部行字段的时长。所有所有心跳只持续到心跳列中。
+    /// a 死书写完后,在剩余田场过期时,可留下只留下心跳片段;成员为
+    /// 当开始时间过期时该行将退出该行。 明确清除会删除整列, 同时保存
+    /// 表格版本。此选项适用于新表格和现有表格中的写法。
     /// </remarks>
     public bool UseCassandraTtl { get; set; }
 
     /// <summary>
-    /// Specifies the maximum amount of time to wait after encountering
-    /// contention during initialization before retrying.
+    /// 指定遇到后等待的最大时间
+    /// 重试前初始化时的争论。
     /// </summary>
-    /// <remarks>This is generally only encountered with large numbers of silos connecting
-    /// in a short time period and using multi-datacenter Cassandara clusters</remarks>
+    /// <remarks>通常只有在大量 silos 连接时才遇到这种情况
+    /// 使用多数据中心卡桑德拉拉群集</remarks>
     public TimeSpan InitializeRetryMaxDelay { get; set; } = TimeSpan.FromSeconds(20);
 
     internal int? GetCassandraTtlSeconds(ClusterMembershipOptions clusterMembershipOptions) =>
@@ -41,11 +41,11 @@ public class CassandraClusteringOptions
             : null;
 
     /// <summary>
-    /// Configures the Cassandra client.
+    /// 配置 Cassandra 客户端 。
     /// </summary>
-    /// <param name="connectionString">The connection string.</param>
-    /// <param name="keyspace">The keyspace.</param>
-    /// <remarks>The membership provider owns the created cluster and disposes it if initialization is canceled or the provider is disposed.</remarks>
+    /// <param name="connectionString">连接字符串。</param>
+    /// <param name="keyspace">密钥空间。</param>
+    /// <remarks>成员提供商拥有所创建的集群,如果启动取消或供应商被处置,则予以处理。</remarks>
     public void ConfigureClient(string connectionString, string keyspace = "orleans")
     {
         ArgumentException.ThrowIfNullOrEmpty(connectionString);
@@ -74,10 +74,10 @@ public class CassandraClusteringOptions
     }
 
     /// <summary>
-    /// Configures the Cassandra client.
+    /// 配置 Cassandra 客户端 。
     /// </summary>
-    /// <param name="configurationDelegate">The connection string.</param>
-    /// <remarks>Sessions returned by this delegate remain owned by the caller and are not disposed by the membership provider.</remarks>
+    /// <param name="configurationDelegate">连接字符串。</param>
+    /// <remarks>该代表的退席仍由打电话者所有,成员提供者不处理。</remarks>
     public void ConfigureClient(Func<IServiceProvider, Task<ISession>> configurationDelegate)
     {
         ArgumentNullException.ThrowIfNull(configurationDelegate);

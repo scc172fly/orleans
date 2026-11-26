@@ -5,36 +5,36 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans
 {
     /// <summary>
-    /// When applied to a type, specifies that the type is intended to be serialized and that serialization code should be generated for the type.
+    /// 当适用于某一类型时,规定该类型打算按序列顺序排列,并且应为该类型生成序列编码。
     /// </summary>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum)]
     public sealed class GenerateSerializerAttribute : Attribute
     {
         /// <summary>
-        /// Get or sets if primary constructor parameters should automatically be included as Serializable fields.
-        /// Defaults to <see langword="true"/> for <see langword="record"/> types, <see langword="false"/> otherwise.
+        /// 如果主建构参数应自动作为可序列字段列入,则获取或设置。
+        /// 默认默认为 <see langword="true"/> 用于 <see langword="record"/> 类型, <see langword="false"/> 否则。
         /// </summary>
         public bool IncludePrimaryConstructorParameters { get; init; }
 
         /// <summary>
-        /// Get or sets when Orleans should auto-assign field ids. The default behavior is to not auto-assign field ids.
+        /// 当 Orleans 自动指定字段代号时, 获取或设置。 默认行为是不自动指定字段代号 。
         /// </summary>
         public GenerateFieldIds GenerateFieldIds { get; init; } = GenerateFieldIds.None;
     }
 
     /// <summary>
-    /// When applied to an interface, specifies that support code should be generated to allow remoting of interface calls.
+    /// 当应用到接口时, 指定应生成支持代码, 以便重新移动界面调用 。
     /// </summary>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Interface, AllowMultiple = true)]
     public sealed class GenerateMethodSerializersAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenerateMethodSerializersAttribute"/> class.
+        /// 初始化 <see cref="GenerateMethodSerializersAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="proxyBase">The proxy base type.</param>
-        /// <param name="isExtension">if set to <see langword="true"/>, this is an extension interface.</param>
+        /// <param name="proxyBase">代理基类型。</param>
+        /// <param name="isExtension">设定为 <see langword="true"/>,这是一个扩展界面。</param>
         public GenerateMethodSerializersAttribute(Type proxyBase, bool isExtension = false)
         {
             ProxyBase = proxyBase;
@@ -42,51 +42,51 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the base type which the source generator will use for generated proxy classes.
+        /// 获取源生成器将用来生成代理类的基准类型。
         /// </summary>
-        /// <value>The proxy base type.</value>
+        /// <value>代理基类型。</value>
         public Type ProxyBase { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this interface is an extension interface.
+        /// 获得一个值, 显示该接口是否是一个扩展界面 。
         /// </summary>
-        /// <value>true if this instance is extension; otherwise, false.</value>
+        /// <value>如果此实例为扩展名, 则属真实; 否则, 假 。</value>
         public bool IsExtension { get; }
     }
 
     /// <summary>
-    /// Applied to method attributes on invokable interfaces to specify the name of the method on the base type to call when submitting a request.
+    /// 用于在可引用界面上应用方法属性,以指定提交请求时要调用的基准类型上的方法名称。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class InvokeMethodNameAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InvokeMethodNameAttribute"/> class.
+        /// 初始化 <see cref="InvokeMethodNameAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="invokeMethodName">Name of the invoke method.</param>
+        /// <param name="invokeMethodName">援引方法的名称。</param>
         public InvokeMethodNameAttribute(string invokeMethodName)
         {
             InvokeMethodName = invokeMethodName;
         }
 
         /// <summary>
-        /// Gets the name of the invoke method.
+        /// 获取引用方法的名称。
         /// </summary>
-        /// <value>The name of the invoke method.</value>
+        /// <value>援引方法的名称。</value>
         public string InvokeMethodName { get; }
     }
 
     /// <summary>
-    /// Applied to proxy base types and to attribute types used on invokable interface methods to specify the base type for the invokable object which represents a method call.
+    /// 适用于代理基类型和用于说明可置换界面方法所用类型,以指定代表方法调用的可置换对象的基准类型。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class DefaultInvokeMethodNameAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultInvokeMethodNameAttribute"/> class.
+        /// 初始化 <see cref="DefaultInvokeMethodNameAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="returnType">Type of the return.</param>
-        /// <param name="methodName">Name of the method.</param>
+        /// <param name="returnType">返回类型。</param>
+        /// <param name="methodName">方法名称。</param>
         public DefaultInvokeMethodNameAttribute(Type returnType, string methodName)
         {
             ReturnType = returnType;
@@ -94,27 +94,27 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the interface method return type which this attribute applies to.
+        /// 获取此属性应用的界面方法返回类型。
         /// </summary>
         public Type ReturnType { get; }
 
         /// <summary>
-        /// Gets the name of the method on the proxy base type to call when methods are invoked.
+        /// 获取在使用方法时使用的代理基类型上的方法名称。
         /// </summary>
         public string MethodName { get; }
     }
 
     /// <summary>
-    /// Applied to interface method attribute types to specify a method to be called on invokable objects which are created when invoking that interface method.
+    /// 用于应用界面方法属性类型来指定在引用该接口方法时创建的可援引对象需要调用的方法。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class InvokableCustomInitializerAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InvokableCustomInitializerAttribute"/> class.
+        /// 初始化 <see cref="InvokableCustomInitializerAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="methodName">Name of the method.</param>
-        /// <param name="methodArgumentValue">The method argument value.</param>
+        /// <param name="methodName">方法名称。</param>
+        /// <param name="methodArgumentValue">方法参数值。</param>
         public InvokableCustomInitializerAttribute(string methodName, object methodArgumentValue)
         {
             MethodName = methodName;
@@ -123,9 +123,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InvokableCustomInitializerAttribute"/> class.
+        /// 初始化 <see cref="InvokableCustomInitializerAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="methodName">Name of the method.</param>
+        /// <param name="methodName">方法名称。</param>
         public InvokableCustomInitializerAttribute(string methodName)
         {
             MethodName = methodName;
@@ -134,37 +134,37 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the name of the method.
+        /// 获取方法的名称 。
         /// </summary>
         public string MethodName { get; }
 
         /// <summary>
-        /// Gets or sets the index of the attribute argument to propagate to the custom initializer method.
+        /// 获取或设置要向自定义初始化器方法传播的属性参数参数索引。
         /// </summary>
         public int AttributeArgumentIndex { get; init; }
 
         /// <summary>
-        /// Gets or sets the name of the attribute argument to propagate to the custom initializer method.
+        /// 获取或设置要向自定义初始化方法传播的属性参数参数的名称。
         /// </summary>
         public int AttributeArgumentName { get; init; }
 
         /// <summary>
-        /// Gets or sets the value to pass to the custom initializer method.
+        /// 获取或设定要传递到自定义初始化方法的值。
         /// </summary>
         public object? MethodArgumentValue { get; }
     }
 
     /// <summary>
-    /// Applied to proxy base types and to attribute types used on invokable interface methods to specify the base type for the invokable object which represents a method call.
+    /// 适用于代理基类型和用于说明可置换界面方法所用类型,以指定代表方法调用的可置换对象的基准类型。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class DefaultInvokableBaseTypeAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultInvokableBaseTypeAttribute"/> class.
+        /// 初始化 <see cref="DefaultInvokableBaseTypeAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="returnType">The return type of methods which this attribute applies to.</param>
-        /// <param name="invokableBaseType">Type of the invokable base.</param>
+        /// <param name="returnType">此属性适用于的返回方法类型。</param>
+        /// <param name="invokableBaseType">易爆基数的类型。</param>
         public DefaultInvokableBaseTypeAttribute(Type returnType, Type invokableBaseType)
         {
             ReturnType = returnType;
@@ -172,35 +172,35 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the return type of methods which this attribute applies to.
+        /// 获取此属性应用的返回方法类型。
         /// </summary>
         public Type ReturnType { get; }
 
         /// <summary>
-        /// Gets the base type for the invokable object class which will be used to represent method calls to methods which this attribute applies to.
+        /// 获取可引用对象类的基类型,该基类型将用来代表此属性应用的方法的方法的调用。
         /// </summary>
         public Type InvokableBaseType { get; }
 
         /// <summary>
-        /// Gets or sets the name of the method on the proxy object which is used to invoke this method.
+        /// 获取或设置用于使用此方法的代理对象上的方法的名称。
         /// </summary>
         public string? ProxyInvokeMethodName { get; init; }
     }
 
     /// <summary>
-    /// Applied to return types, attribute types used on invokable interface methods, or assemblies to specify the base type for the
-    /// invokable object which represents a method call. Assembly-level registrations can be used when the return type and proxy base
-    /// type are owned by independent libraries.
+    /// 用于返回类型、可援引界面方法使用的属性类型或用于指定
+    /// 代表方法调用的可变不可变对象。 当返回类型和代理基础时,可以使用大会一级的登记
+    /// 类型由独立的图书馆所有。
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = true)]
     public sealed class InvokableBaseTypeAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InvokableBaseTypeAttribute"/> class.
+        /// 初始化 <see cref="InvokableBaseTypeAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="proxyBaseClass">The proxy base class.</param>
-        /// <param name="returnType">The return type of methods which this attribute applies to.</param>
-        /// <param name="invokableBaseType">Type of the invokable base.</param>
+        /// <param name="proxyBaseClass">代理基级。</param>
+        /// <param name="returnType">此属性适用于的返回方法类型。</param>
+        /// <param name="invokableBaseType">易爆基数的类型。</param>
         public InvokableBaseTypeAttribute(Type proxyBaseClass, Type returnType, Type invokableBaseType)
         {
             ProxyBaseClass = proxyBaseClass;
@@ -209,55 +209,55 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the proxy base class which this attribute applies to.
+        /// 获取此属性适用的代理服务器基类。
         /// </summary>
         public Type ProxyBaseClass { get; }
 
         /// <summary>
-        /// Gets the method return type which this attribute applies to.
+        /// 获取此属性应用的方法返回类型。
         /// </summary>
         public Type ReturnType { get; }
 
         /// <summary>
-        /// Gets the base type to use for the generated invokable object.
+        /// 获取生成可置换对象的基准类型。
         /// </summary>
         public Type InvokableBaseType { get; }
 
         /// <summary>
-        /// Gets or sets the name of the method on the proxy object to invoke when this method is called.
+        /// 获取或设置在代用对象上使用该方法的方法的名称,以在调用此方法时引用。
         /// </summary>
         public string? ProxyInvokeMethodName { get; init; }
     }
 
     /// <summary>
-    /// Applied to method attributes on invokable interfaces to specify the name of the method to call to get a completion source which is submitted to the submit method and eventually returned to the caller.
+    /// 用于在可引用界面上应用方法属性,指定调用的方法名称,以获得填充源,该源提交到提交方法,并最终返回到调用者。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class GetCompletionSourceMethodNameAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetCompletionSourceMethodNameAttribute"/> class.
+        /// 初始化 <see cref="GetCompletionSourceMethodNameAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="methodName">The name of the method used to get a completion source for requests submitted to the runtime.</param>
+        /// <param name="methodName">用于获取提交运行时的请求的完成源的方法名称。</param>
         public GetCompletionSourceMethodNameAttribute(string methodName)
         {
             MethodName = methodName;
         }
 
         /// <summary>
-        /// Gets the name of the method used to get a completion source for requests submitted to the runtime.
+        /// 获取用于获得提交运行时间的完成源的请求的填写源的方法名称。
         /// </summary>
         public string MethodName { get; }
     }
 
     /// <summary>
-    /// Specifies the unique identity of a member.
+    /// 指定成员的独特身份。
     /// </summary>
     /// <remarks>
-    /// Every serializable member in a type which has <see cref="GenerateSerializerAttribute"/> applied to it must have one <see cref="IdAttribute"/> attribute applied with a unique <see cref="IdAttribute.Id"/> value.
-    /// For positional records, this attribute can be applied directly to a primary constructor parameter instead of its generated property.
-    /// On RPC method parameters, an explicit identifier overrides the parameter's zero-based ordinal among serialized parameters.
-    /// Cancellation token parameters are excluded from serialized parameter ordinals, and all resulting identifiers must be unique.
+    /// 每一可连号成员在申请的 <see cref="GenerateSerializerAttribute"/> 类型下,必须有一个 <see cref="IdAttribute"/> 属性,该属性应具有独一 <see cref="IdAttribute.Id"/> 值。
+    /// 对于位置记录,此属性可直接应用于主建构参数,而不是生成的属性。
+    /// 在辐射常委会方法参数方面,明确的识别符号取代了按序列参数排列的参数零基正弦。
+    /// 取消代号参数参数从序列参数顺序中排除,所有产生的识别符号必须具有独特性。
     /// </remarks>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(
@@ -271,108 +271,108 @@ namespace Orleans
     public sealed class IdAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="IdAttribute"/> class.
+        /// 初始化 <see cref="IdAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="id">The identifier.</param>
+        /// <param name="id">识别符号。</param>
         public IdAttribute(uint id)
         {
             Id = id;
         }
 
         /// <summary>
-        /// Gets the identifier.
+        /// 获得识别资料。
         /// </summary>
-        /// <value>The identifier.</value>
+        /// <value>识别符号。</value>
         public uint Id { get; }
     }
 
     /// <summary>
-    /// Assigns a case identifier to a direct subtype of a <see langword="closed"/> type which has <see cref="GenerateSerializerAttribute"/> applied.
+    /// 将一个案件识别符号指定为直接的子类型 <see langword="closed"/> 类型类型 <see cref="GenerateSerializerAttribute"/> 适用。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// When the direct subtypes of a closed type have case identifiers, a field declared as the closed type is serialized as a tagged union:
-    /// the case identifier is encoded in the header of the field holding the case value, so the runtime type of a value is not encoded
-    /// when it is exactly the case type. Values whose runtime type derives from an unsealed case type are encoded as that case, followed by
-    /// their runtime type.
+    /// 当封闭型的直接子类型有案件识别特征时,被宣布为封闭型的字段将按贴标签的工会顺序排列:
+    /// 用于记录一个值的运行时间类型,因此没有编码
+    /// 运行时间类型来自未密封案件类型的数值,按该情况编码,随后是
+    /// 他们的运行时间类型。
     /// </para>
     /// <para>
-    /// Case identifiers are scoped to the closed type and must be unique within it. Every direct subtype of the closed type must have a case identifier.
-    /// Case identifiers are part of the serialized format, so they must remain stable once data has been serialized.
-    /// Identifiers 0 through 6 are encoded without additional bytes.
+    /// 大小写识别符的范围是针对封闭型号,必须是其中独有的。
+    /// 案件识别特征是序列格式的一部分,一旦数据被序列化,它们必须保持稳定。
+    /// 0至6的识别符编码没有额外的字节。
     /// </para>
     /// <para>
-    /// Adding case identifiers changes writers to the tagged-union format. Adopt them on an existing hierarchy using a coordinated deployment
-    /// of the updated hierarchy to all processes which exchange these values. Readers generated for the updated hierarchy accept both
-    /// the runtime-type format and the tagged-union format.
+    /// 添加案件识别符号,将作者改变为贴标签工会格式。使用协调部署方式在现有的等级中采用
+    /// 更新后等级结构的读者接受两种方法
+    /// 运行时间类型格式和贴标签的工会格式。
     /// </para>
     /// <para>
-    /// A closed type and a union type have the same serialized representation when the union's cases are the closed type's direct subtypes with the same
-    /// case identifiers (see <see cref="CaseIdsAttribute"/>). A <see langword="null"/> closed-type value is represented as an empty union value.
-    /// A closed type hierarchy can therefore be replaced by an equivalent union type without changing serialized data.
-    /// Each case's own representation includes its base type's members, so to remove the closed base from the cases when replacing it with a union,
-    /// declare the closed base without serialized members and apply <see cref="SerializerTransparentAttribute"/> to it.
+    /// 封闭型和工会型在工会案件为关闭型直接子类型时,具有相同的连续代表,而该类是与此相同的封闭型直接子类型。
+    /// 复选识别符号(见 <see cref="CaseIdsAttribute"/>)。一个 <see langword="null"/> 封闭型数值作为空的组合值表示。
+    /// 因此,封闭型等级可以由等同型工会取代,而不改变序列数据。
+    /// 每个案件自己的代表包括其基本类型成员,以便在用工会取代封闭基地时,将该基地从案件中删除;
+    /// 宣布关闭基地,但不连号成员,并对其适用 <see cref="SerializerTransparentAttribute"/> 。
     /// </para>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class CaseAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CaseAttribute"/> class.
+        /// 初始化 <see cref="CaseAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="id">The case identifier, which is unique among the direct subtypes of the closed base type.</param>
+        /// <param name="id">案件识别符号,这是封闭基底类型直接子型中独特的。</param>
         public CaseAttribute(uint id)
         {
             Id = id;
         }
 
         /// <summary>
-        /// Gets the case identifier.
+        /// 获得案件识别资料。
         /// </summary>
         public uint Id { get; }
     }
 
     /// <summary>
-    /// Assigns case identifiers to the cases of a union type which has <see cref="GenerateSerializerAttribute"/> applied.
+    /// 给适用 <see cref="GenerateSerializerAttribute"/> 的工会类型的情况指定案例识别符。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Union values are serialized as tagged unions: the case identifier is encoded in the header of the field holding the case value.
-    /// By default, each case is identified by its zero-based position in the union declaration.
-    /// This attribute specifies one identifier per case, in declaration order, so that cases can be reordered or removed without changing
-    /// the identifiers of the remaining cases.
+    /// 工会价值以贴有标签的工会编号:案件识别符号编码在持有案件价值的实地页头。
+    /// 默认情况下,每个案例都以其在工会宣言中的零基立场来识别。
+    /// 此属性指定每个案件一个识别特征, 以声明顺序排列, 这样可以重新排序或删除案件而无需更改
+    /// 其余案件的识别资料。
     /// </para>
     /// <para>
-    /// Identifiers must be unique. Identifiers 0 through 6 are encoded without additional bytes.
+    /// 标识必须独有。 0至6 的标识无需额外的字节就编码了。
     /// </para>
     /// <para>
-    /// A union type whose cases are the direct subtypes of a closed type, with the same case identifiers, has the same serialized representation
-    /// as that closed type (see <see cref="CaseAttribute"/>). An empty union value is represented as a <see langword="null"/> closed-type value.
+    /// 工会类型,其案件是封闭型直接子类型,具有相同案例识别特征的直属亚型,具有相同的案例识别特征,具有同样的序列式代表
+    /// 即封闭类型(见 <see cref="CaseAttribute"/>))空工会值作为 <see langword="null"/> 封闭型价值。
     /// </para>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Struct, Inherited = false)]
     public sealed class CaseIdsAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CaseIdsAttribute"/> class.
+        /// 初始化 <see cref="CaseIdsAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="ids">The case identifiers, one per case in declaration order.</param>
+        /// <param name="ids">案件识别资料,每个案件按申报顺序列出。</param>
         public CaseIdsAttribute(params uint[] ids)
         {
             Ids = ids;
         }
 
         /// <summary>
-        /// Gets the case identifiers, one per case in declaration order.
+        /// 获得案件识别资料,每个案件按申报顺序一份。
         /// </summary>
         public uint[] Ids { get; }
     }
 
     /// <summary>
-    /// Specifies the constructor the serializer should use when creating new instances from serialized data.
+    /// 指定从序列数据创建新实例时应使用的序列器的构建符。
     /// </summary>
     /// <remarks>
-    /// At most one constructor can be annotated with this attribute. If multiple constructors are annotated, the presence of this attribute is ignored.
+    /// 最多可以用此属性附加一个构建符。 如果多构建符附加说明, 则忽略该属性的存在 。
     /// </remarks>
     /// <seealso cref="ActivatorUtilitiesConstructorAttribute" />
     [AttributeUsage(AttributeTargets.Constructor)]
@@ -380,7 +380,7 @@ namespace Orleans
     public sealed class OrleansConstructorAttribute : ActivatorUtilitiesConstructorAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansConstructorAttribute"/> class.
+        /// 初始化 <see cref="OrleansConstructorAttribute"/> 类的新实例。
         /// </summary>
         public OrleansConstructorAttribute()
         {
@@ -388,10 +388,10 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a type or method, specifies a well-known name which can be used to identify that type or method.
+    /// 当适用于某类型或方法时,指定一个众所周知的名称,用以识别该类型或方法。
     /// </summary>
     /// <remarks>
-    /// In the case of a type, the alias must be globally unique. In the case of a method, the alias must be unique to the declaring type.
+    /// 在一种情况下,别名必须是全球独特的,在一种方法的情况下,别名必须是申报类型所独有的。
     /// </remarks>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(
@@ -404,16 +404,16 @@ namespace Orleans
     public sealed class AliasAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AliasAttribute"/> class.
+        /// 初始化 <see cref="AliasAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="alias">The alias.</param>
+        /// <param name="alias">别名。</param>
         /// <remarks>
-        /// In the case of a type, the alias must be globally unique. In the case of a method, the alias must be unique to the declaring type.
-        /// Aliases must be non-empty and contain no quotes, whitespace, control characters, or reserved type-name delimiters (<c>[](),*&amp;</c>).
-        /// Generic arity suffixes must be decimal integers at the end of each nested type name, totaling at most 64.
+        /// 在一种情况下,别名必须是全球独特的,在一种方法的情况下,别名必须是申报类型所独有的。
+        /// 异名必须是非空的,不包含引号、空白空间、控制字符或保留型号名称分隔符(<c>[](),*&amp;</c>)。
+        /// 通用数后缀必须是每个嵌套类型名称结尾的十进制整数,总计最多64。
         /// </remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="alias"/> is empty, contains a quote, whitespace, a control character, or a reserved type-name delimiter, or has an invalid generic arity suffix.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="alias"/> 是空的, 含有引号、 空白、 控制字符或保留类型名称分隔符, 或者无效的通用性等字尾。</exception>
         public AliasAttribute(string alias)
         {
             Serialization.IdentityNameValidator.Validate(alias, nameof(alias));
@@ -421,16 +421,16 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the alias.
+        /// 取化名来
         /// </summary>
         /// <remarks>
-        /// In the case of a type, the alias must be globally unique. In the case of a method, the alias must be unique to the declaring type.
+        /// 在一种情况下,别名必须是全球独特的,在一种方法的情况下,别名必须是申报类型所独有的。
         /// </remarks>
         public string Alias { get; }
     }
 
     /// <summary>
-    /// When applied to a type, indicates that the type should be encoded as a relation from a specified type.
+    /// 当适用于类型时,表示该类型应作为特定类型的关系编码。
     /// </summary>
     /// <seealso cref="Attribute" />
     [AttributeUsage(
@@ -442,27 +442,27 @@ namespace Orleans
     public sealed class CompoundTypeAliasAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CompoundTypeAliasAttribute"/> class.
+        /// 初始化 <see cref="CompoundTypeAliasAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="components">The alias components, each of which must be a <see cref="Components"/> or a <see cref="string"/>.</param>
+        /// <param name="components">假名组成部分,每个必须包括 <see cref="Components"/> 或 a/ <see cref="string"/>.</param>
         public CompoundTypeAliasAttribute(params object[] components)
         {
             Components = components;
         }
 
         /// <summary>
-        /// Gets the alias components.
+        /// 获取化名组件。
         /// </summary>
         public object[] Components { get; }
     }
 
     /// <summary>
-    /// When applied to a type, indicates that the type is a provider and that it should be automatically registered.
+    /// 在适用于某一类型时,应表明该类型是提供者,并应自动登记。
     /// </summary>
-    /// <param name="name">The provider name, for example, <c>"AzureTableStorage"</c>.</param>
-    /// <param name="kind">The kind of provider, for example, <c>"Clustering"</c>, <c>"Reminders"</c>.</param>
-    /// <param name="target">The intended target of the provider, for example, <c>"Server"</c>, <c>"Client"</c>.</param>
-    /// <param name="type">The type used to configure the provider.</param>
+    /// <param name="name">例如,提供商名称 <c>"AzureTableStorage"</c>.</param>
+    /// <param name="kind">例如,提供者的类型, <c>"Clustering"</c>, <c>"Reminders"</c>.</param>
+    /// <param name="target">例如,供应商的预期目标 <c>"Server"</c>, <c>"Client"</c>.</param>
+    /// <param name="type">用于配置提供者的类型。</param>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RegisterProviderAttribute(
@@ -475,28 +475,28 @@ namespace Orleans
         Type type) : Attribute
     {
         /// <summary>
-        /// Gets the provider name, for example, <c>"AzureTableStorage"</c>.
+        /// 获取服务提供人的名称,例如 <c>"AzureTableStorage"</c>。
         /// </summary>
         public string Name { get; } = name;
 
         /// <summary>
-        /// Gets the kind of the provider, for example, <c>"Clustering"</c>, <c>"Reminders"</c>.
+        /// 获取提供者的类型,例如 <c>"Clustering"</c>、 <c>"Reminders"</c>。
         /// </summary>
         public string Kind { get; } = kind;
 
         /// <summary>
-        /// Gets the type used to configure the provider, for example, <c>"Server"</c>, <c>"Client"</c>.
+        /// 获取配置提供者所使用的类型,例如 <c>"Server"</c>、 <c>"Client"</c>。
         /// </summary>
         public string Target { get; } = target;
 
         /// <summary>
-        /// Gets the type used to configure the provider.
+        /// 获取配置提供者所使用的类型。
         /// </summary>
         public Type Type { get; } = type;
     }
 
     /// <summary>
-    /// When applied to a type, indicates that the type is a serializer and that it should be automatically registered.
+    /// 当应用到类型时,请注明该类型是序列器,并应自动登记。
     /// </summary>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
@@ -505,7 +505,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a type, indicates that the type is an activator and that it should be automatically registered.
+    /// 当应用到类型时,请注明该类型是一个激活器,并且应当自动登记。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class RegisterActivatorAttribute : Attribute
@@ -513,7 +513,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a type, indicates that the type is an copier and that it should be automatically registered.
+    /// 适用于类型时,应表明该类型是复印机,并应自动登记。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class RegisterCopierAttribute : Attribute
@@ -521,7 +521,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a type, indicates that the type is a converter and that it should be automatically registered.
+    /// 当应用到类型时,请注明该类型是转换器,并应自动登记。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class RegisterConverterAttribute : Attribute
@@ -529,7 +529,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a type, indicates that the type should be activated using a registered activator rather than via its constructor or another mechanism.
+    /// 在适用于某类型时,应表明该类型应当使用已登记的活性器而不是通过其制造者或其他机制启动。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class UseActivatorAttribute : Attribute
@@ -537,10 +537,10 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a type, indicates that generated serializers for the type should not track references to the type.
+    /// 适用于类型时,请表明该类型的生成序列器不应跟踪该类型的引用。
     /// </summary>
     /// <remarks>
-    /// Reference tracking allows a serializable type to participate in a cyclic object graph.
+    /// 参考跟踪使可连号类型能够参与环形物体图。
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class SuppressReferenceTrackingAttribute : Attribute
@@ -548,7 +548,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a type, indicates that generated serializers for the type should avoid serializing members if the member value is equal to its default value.
+    /// 当应用于类型时,请指出该类型的生成序列器应避免成员序列化,如果成员值等于其默认值。
     /// </summary>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
@@ -557,8 +557,8 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Indicates that the type, type member, parameter, or return value which it is applied to should be treated as immutable and therefore that defensive copies are never required.
-    /// When applied to non-sealed classes, derived types are not guaranteed to be immutable.
+    /// 表示应用该数值的类型、类型成员、参数或返回值应作为不可更改的处理,因此从不需要防伪副本。
+    /// 适用于非密封类别时,不能保证衍生的种类是不可改变的。
     /// </summary>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.ReturnValue, Inherited = false)]
@@ -567,69 +567,69 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Indicates that the specific type is invisible for serialization purposes.
-    /// Usable only on abstract types with no serialized fields and effectively removes it from the inheritance hierarchy.
-    /// Adding/removing this attribute from a type will cause serialization protocol level incompatibility (like type hierarchy changes).
+    /// 表示为序列目的,具体类型是隐形的。
+    /// 只能用于没有连续田地的抽象类型,并有效地将其从继承等级体系中消除。
+    /// 从类型中添加/删除此属性将导致序列化协议级别不兼容(类似类型的等级变化)。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class SerializerTransparentAttribute : Attribute { }
 
     /// <summary>
-    /// Specifies an assembly to be added as an application part.
+    /// 指定要添加的组装作为应用程序部分。
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class ApplicationPartAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="ApplicationPartAttribute" />.
+        /// 初始化 <see cref="ApplicationPartAttribute" />新实例。
         /// </summary>
-        /// <param name="assemblyName">The assembly name.</param>
+        /// <param name="assemblyName">组装名称。</param>
         public ApplicationPartAttribute(string assemblyName)
         {
             AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
         }
 
         /// <summary>
-        /// Gets the assembly name.
+        /// 获得组装名称。
         /// </summary>
         public string AssemblyName { get; }
     }
 
     /// <summary>
-    /// Specifies a type to be instantiated and invoked when performing serialization operations on instances of the type which this attribute is attached to.
+    /// 指定一个类型,在进行序列操作时,该属性所附类型的连续作业时要即时引用和援引。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class SerializationCallbacksAttribute : Attribute
     {
         /// <summary>
-        /// Instantiates a new <see cref="SerializationCallbacksAttribute"/> instance.
+        /// 证明新的 <see cref="SerializationCallbacksAttribute"/> 实例。
         /// </summary>
-        /// <param name="hookType">The type of the object used to invoke serialization hooks.</param>
+        /// <param name="hookType">用于援引序列钩的物体类型。</param>
         public SerializationCallbacksAttribute(Type hookType)
         {
             HookType = hookType;
         }
 
         /// <summary>
-        /// The type of the hook class.
+        /// 钩类的类型。
         /// </summary>
         /// <remarks>
-        /// This value is used to get the hooks implementation from an <see cref="IServiceProvider"/>.
+        /// 此值用于从 <see cref="IServiceProvider"/>获取钩子执行 。
         /// </remarks>
         public Type HookType { get; }
     }
 
     /// <summary>
-    /// When applied to a constructor, indicates that generated activator implementations should use that constructor when activating instances.
+    /// 当应用到一个构造器时, 表示生成的活性装置在激活事件时应使用该构建器。
     /// </summary>
     /// <remarks>
-    /// This attribute can be used to call constructors which require injected dependencies.
+    /// 这一属性可用于呼叫需要注射依赖性的建筑工。
     /// </remarks>
     [AttributeUsage(AttributeTargets.Constructor)]
     public sealed class GeneratedActivatorConstructorAttribute : ActivatorUtilitiesConstructorAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GeneratedActivatorConstructorAttribute"/> class.
+        /// 初始化 <see cref="GeneratedActivatorConstructorAttribute"/> 类的新实例。
         /// </summary>
         public GeneratedActivatorConstructorAttribute()
         {
@@ -637,82 +637,82 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Indicates that the source generator should also inspect and generate code for the assembly containing the specified type.
+    /// 表示源生成器还应检查并生成装配编码,其中应包含指定类型的组件。
     /// </summary>
     /// <remarks>
-    /// Serializable types and their member types must be accessible to the generated code.
-    /// Internal types can grant access using <see cref="System.Runtime.CompilerServices.InternalsVisibleToAttribute"/>.
+    /// 生成代码必须能够进入可分层使用的类型及其成员类型。
+    /// 内部类型可以使用 <see cref="System.Runtime.CompilerServices.InternalsVisibleToAttribute"/>提供访问。
     /// </remarks>
     /// <seealso cref="System.Attribute" />
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class GenerateCodeForDeclaringAssemblyAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenerateCodeForDeclaringAssemblyAttribute"/> class.
+        /// 初始化 <see cref="GenerateCodeForDeclaringAssemblyAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="type">Any type in the assembly which the source generator should inspect and generate source for.</param>
+        /// <param name="type">源发电机应检查和产生源的组装中的任何类型的来源。</param>
         public GenerateCodeForDeclaringAssemblyAttribute(Type type)
         {
             Type = type;
         }
 
         /// <summary>
-        /// Gets a type in the assembly which the source generator should inspect and generate source for.
+        /// 获取组装中的一种类型,源生成器应检查该类型并产生源。
         /// </summary>
-        /// <value>The type.</value>
+        /// <value>类型。</value>
         public Type Type { get; }
     }
 
     /// <summary>
-    /// Specifies the response timeout for the interface method which it is specified on.
+    /// 指定用于指定的界面方法的响应超时。
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class ResponseTimeoutAttribute : Attribute
     {
         /// <summary>
-        /// Specifies the response timeout for the interface method which it is specified on.
+        /// 指定用于指定的界面方法的响应超时。
         /// </summary>
-        /// <param name="timeout">The response timeout, using <see cref="TimeSpan.Parse(string)"/> syntax.</param>
+        /// <param name="timeout">响应超时,使用 <see cref="TimeSpan.Parse(string)"/> 语法。</param>
         [SuppressMessage("Design", "CA1019:Define accessors for attribute arguments",
             Justification = "Attribute-compatible text is parsed and exposed through the typed TimeSpan Timeout property.")]
         public ResponseTimeoutAttribute(string timeout) => Timeout = TimeSpan.Parse(timeout);
 
         /// <summary>
-        /// Gets or sets the response timeout for this method.
+        /// 获取或设置此方法的反应超时 。
         /// </summary>
         public TimeSpan? Timeout { get; init; }
     }
 
     /// <summary>
-    /// Functionality for converting between two types.
+    /// 两种类型之间转换的功能。
     /// </summary>
     public interface IConverter<TValue, TSurrogate> where TSurrogate : struct
     {
         /// <summary>
-        /// Converts a surrogate value to the value type.
+        /// 将替代值转换为值类型。
         /// </summary>
-        /// <param name="surrogate">The surrogate.</param>
-        /// <returns>The value.</returns>
+        /// <param name="surrogate">代孕人。</param>
+        /// <returns>数值。</returns>
         TValue ConvertFromSurrogate(in TSurrogate surrogate);
 
         /// <summary>
-        /// Converts a value to the value type.
+        /// 将值转换为值类型。
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The surrogate.</returns>
+        /// <param name="value">数值。</param>
+        /// <returns>代孕人。</returns>
         TSurrogate ConvertToSurrogate(in TValue value);
     }
 
     /// <summary>
-    /// Functionality for populating one type from another.
+    /// 一种类型的活动从另一种类型中传播的功能。
     /// </summary>
     public interface IPopulator<TValue, TSurrogate> where TSurrogate : struct where TValue : class
     {
         /// <summary>
-        /// Populates <paramref name="value"/> with values from <paramref name="surrogate"/>.
+        /// 弹出 <paramref name="value"/> 含有数值的 <paramref name="surrogate"/>.
         /// </summary>
-        /// <param name="surrogate">The surrogate.</param>
-        /// <param name="value">The value.</param>
+        /// <param name="surrogate">代孕人。</param>
+        /// <param name="value">数值。</param>
         void Populate(in TSurrogate surrogate, TValue value);
     }
 }
@@ -720,23 +720,23 @@ namespace Orleans
 namespace Orleans.Invocation
 {
     /// <summary>
-    /// Applied to invokable base types (see TaskRequest) to indicate that instances of derived types should be returned directly from generated proxy methods rather than being passed to
-    /// the runtime for invocation. This is used to support calling patterns other than request-response, such as streaming.
+    /// 适用于可援引基类型(见 TaskRequest),以表明衍生类型的实例应当从产生的替代方法直接返回而不是传递给
+    /// 调用时间。 它用于支持请求回复以外的调用模式, 如流动 。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ReturnValueProxyAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReturnValueProxyAttribute"/> class.
+        /// 初始化 <see cref="ReturnValueProxyAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="initializerMethodName">The name of the method used to initialize the generated request and return its proxy value.</param>
+        /// <param name="initializerMethodName">初始化生成请求并返回其代理值所用方法的名称。</param>
         public ReturnValueProxyAttribute(string initializerMethodName)
         {
             InitializerMethodName = initializerMethodName;
         }
 
         /// <summary>
-        /// Gets the name of the method used to initialize the generated request and return its proxy value.
+        /// 获取初始化生成请求并返回其代理值的方法的名称。
         /// </summary>
         public string InitializerMethodName { get; }
     }

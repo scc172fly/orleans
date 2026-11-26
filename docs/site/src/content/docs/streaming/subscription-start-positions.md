@@ -1,66 +1,76 @@
 ---
-title: Choose a persistent-stream subscription start position
-description: Start an Orleans persistent-stream subscription with new messages or replay messages retained in the local queue cache.
+title: "选择一个持续流订阅启动位置"
+description: "启动 Orleans 持久性流订阅,使用新信件或重放本地队列缓存中保留的信件。"
 ms.date: 09/03/2026
 ms.topic: how-to
 ---
 
-# Choose a persistent-stream subscription start position
+<a id="choose-a-persistent-stream-subscription-start-position"></a>
 
-A rewindable persistent-stream subscription can start with newly published messages or replay messages already retained by its pulling agent. Choose the start position when application behavior creates the subscription, or configure a provider-wide default for subscriptions which omit a position. After delivery begins, sequence-token progress defines the subscription's position.
+# 选择一个持续流订阅启动位置
 
-For the broader subscription model, see [Orleans streaming APIs](streams-programming-apis.md). Provider durability and rewindability are described in [Orleans stream providers](stream-providers.md).
+可倒放的持续性流订阅可以从新发布的信件开始,或者重放已经由拖动代理保存的信件。选择应用程序行为创建订阅时的起始位置,或者配置一个全供应商范围的默认订阅,而该订阅会省略位置。交付开始后,序列到脚进度将决定订阅的位置。
 
-## Choose a position for one subscription
+更广泛的订阅模式见 [Orleans 流出的API](streams-programming-apis.md)。 [Orleans 流流提供者](stream-providers.md)中描述了供应商的持久性和可倒转性。
 
-Pass a <xref:Orleans.Streams.StreamSubscriptionStartPosition> to <xref:Orleans.Streams.AsyncObservableExtensions.SubscribeAsync*>:
+<a id="choose-a-position-for-one-subscription"></a>
+
+## 选择一个订阅位置
+
+将 <xref:Orleans.Streams.StreamSubscriptionStartPosition> 传给 <xref:Orleans.Streams.AsyncObservableExtensions.SubscribeAsync*>:
 
 :::code language="csharp" source="snippets/subscription-start-positions/SubscriptionStartPositions.cs" id="subscribe_earliest_available":::
 
-The batch-observer overload accepts the same position:
+批量观察器超载接受同样的位置:
 
 :::code language="csharp" source="snippets/subscription-start-positions/SubscriptionStartPositions.cs" id="subscribe_batch_earliest_available":::
 
-The values have these semantics:
+价值有这些语义学:
 
-| Position | Initial delivery |
+| 职位位置位置 | 初次交付 |
 |---|---|
-| <xref:Orleans.Streams.StreamSubscriptionStartPosition.Latest> | Messages published after the subscription is established. Messages already retained in the queue cache are skipped. This value preserves the default behavior of a tokenless `SubscribeAsync` call. |
-| <xref:Orleans.Streams.StreamSubscriptionStartPosition.EarliestAvailable> | The earliest matching message currently retained in the pulling agent's local queue cache, included in delivery. When the cache has no matching message, delivery begins with the stream's first future message. |
+| <xref:Orleans.Streams.StreamSubscriptionStartPosition.Latest> | 订阅后发布的信件。 已经保存在队列缓存中的信件会被跳过。 此值保留无线 `SubscribeAsync` 呼叫的默认行为 。 |
+| <xref:Orleans.Streams.StreamSubscriptionStartPosition.EarliestAvailable> | 拖拉机本地队列缓存中目前保存的最早匹配信件, 包括发送。 当缓存没有匹配的信件时, 传送从流中的第一个未来消息开始 。 |
 
-The position applies when the subscription is created. Resume an existing subscription handle to continue from its established progress; resume APIs use sequence tokens rather than a new start position.
+当创建订阅时, 位置将适用。 恢复现有的订阅程序以继续其既定进度; 恢复 API 使用序列符号而不是新的启动位置 。
 
-## Configure the provider default
+<a id="configure-the-provider-default"></a>
 
-Configure <xref:Orleans.Configuration.StreamPullingAgentOptions.InitialSubscriptionStartPosition> on the silo-side persistent-stream provider:
+## 配置提供方默认默认默认配置
+
+配置配置 <xref:Orleans.Configuration.StreamPullingAgentOptions.InitialSubscriptionStartPosition> 排在《公约》 silo- 持久性流提供者:
 
 :::code language="csharp" source="snippets/subscription-start-positions/SubscriptionStartPositions.cs" id="configure_default_start_position":::
 
-This setting controls initial subscriptions which omit both a concrete sequence token and an explicit start position. It applies to tokenless explicit subscriptions and initial implicit-subscription attachments which have no delivery progress. <xref:Orleans.Streams.StreamSubscriptionStartPosition.Latest> is the default.
+此设置控制初始订阅, 既省略具体序列符号, 也省略明确的起始位置。 它适用于无交付进度的无价明确订阅和初始隐含订阅附件。 <xref:Orleans.Streams.StreamSubscriptionStartPosition.Latest> 是默认的 。
 
-Orleans chooses an initial position in this order:
+依此顺序选择初始位置Orleans :
 
-1. A concrete <xref:Orleans.Streams.StreamSequenceToken> supplied by the caller.
-1. An explicit <xref:Orleans.Streams.StreamSubscriptionStartPosition> supplied to `SubscribeAsync`.
+1. 具体 <xref:Orleans.Streams.StreamSequenceToken> 电话人提供
+1. 明示 <xref:Orleans.Streams.StreamSubscriptionStartPosition> 供应的 `SubscribeAsync`.
 1. <xref:Orleans.Configuration.StreamPullingAgentOptions.InitialSubscriptionStartPosition>.
 1. <xref:Orleans.Streams.StreamSubscriptionStartPosition.Latest>.
 
-An explicit choice therefore overrides the provider default in either direction. Explicit `Latest` skips retained messages when the provider default is `EarliestAvailable`, and explicit `EarliestAvailable` replays the local cache when the provider default is `Latest`. Configure the option consistently on every silo eligible to host a pulling agent for the named provider.
+因此,明确选择可在任一方向上优先于提供者违约。 `Latest` 当提供方默认为默认时, 跳过保留的信件 `EarliestAvailable`明确 `EarliestAvailable` 当服务提供方默认为本地缓存时重播放 `Latest`。在每一个 silo 有资格为指定供应商主办一个拖拉机。
 
-## Understand the available replay window
+<a id="understand-the-available-replay-window"></a>
 
-`EarliestAvailable` searches one pulling agent's local queue cache for the target <xref:Orleans.Runtime.StreamId>. The cache's current contents define the available replay window. Cache eviction, memory pressure, queue assignment, silo restarts, and the time since the pulling agent began reading can all move its earliest available position forward.
+## 理解可用的重放窗口
 
-For Azure Event Hubs, `EarliestAvailable` keeps the partition receiver and its checkpoint at their current positions. It replays matching messages which the Orleans Event Hubs pulling agent has already read and still retains in its silo-side cache. The local cache window is therefore the replay window for this API, while Event Hubs retention remains the upstream recovery window.
+`EarliestAvailable` 搜索一个拉动代理器的本地队列缓存以查找目标 <xref:Orleans.Runtime.StreamId>。缓冲当前内容定义了可用的重放窗口。缓存驱离、内存压力、队列任务、 silo 重新启动,以及拖动代理器开始读取后的时间,都可以将其最早的位置向前移动。
+
+将 Azure 事件枢纽改为 `EarliestAvailable` ,使分区接收器及其检查站保持其当前位置。它重放与 Orleans 事件枢纽拉动代理已经读取并仍然保留在 silo- 侧缓存中的信件匹配的信息。因此,本地缓存窗口是此 API的复放窗口,而“事件枢纽”保留仍然是上游恢复窗口。
 
 <xref:Orleans.Configuration.StreamCacheEvictionOptions.DataMinTimeInCache> and <xref:Orleans.Configuration.StreamCacheEvictionOptions.DataMaxAgeInCache> control time-based eviction, while cache pressure can advance the earliest retained position. Size Event Hubs retention for upstream recovery and size the Orleans cache for the replay interval required by new subscriptions. See [Protect a slow Event Hubs consumer](streaming-operations.md#protect-a-slow-event-hubs-consumer) for cache eviction and pressure behavior.
 
-## Handle queue cache support
+<a id="handle-queue-cache-support"></a>
 
-The built-in pooled, simple, memory, generator, and Event Hubs queue caches support `EarliestAvailable`. A custom persistent-stream cache participates by implementing <xref:Orleans.Streams.IQueueCache.TryGetCacheCursorAtPosition*> and returning a successful cursor result positioned inclusively at the oldest retained message for the stream.
+## 处理队列缓存支持
 
-The default queue-cache interface behavior maps `Latest` to tokenless acquisition through <xref:Orleans.Streams.IQueueCache.TryGetCacheCursor*> and returns <xref:Orleans.Streams.QueueCacheCursorResultKind.NotSupported> for `EarliestAvailable`. The pulling agent translates an unsupported position into <xref:System.NotSupportedException> at the subscription boundary. An explicit subscription which requests the unsupported position receives the error and is faulted. When `EarliestAvailable` is the provider default for an implicit subscription, Orleans reports the error to the consumer and keeps the implicit subscription live at its current position.
+内置集、简单、内存、生成器和事件枢纽队列缓存支持 `EarliestAvailable`。自定义的持久性流缓存通过实施 <xref:Orleans.Streams.IQueueCache.TryGetCacheCursorAtPosition*> 参与,并返回光标成功的结果,该结果被包含在流中最古老保留的信息处。
 
-A custom <xref:Orleans.Streams.IAsyncObservable`1> implementation receives equivalent extension-overload compatibility: `Latest` uses its tokenless subscription path, and `EarliestAvailable` reports <xref:System.NotSupportedException> until the observable implements Orleans start-position subscriptions.
+默认的队列缓存界面行为映射 `Latest` 以 <xref:Orleans.Streams.IQueueCache.TryGetCacheCursor*> 返回和返回 <xref:Orleans.Streams.QueueCacheCursorResultKind.NotSupported> 用于 `EarliestAvailable`。拖动代理器将一个无支持的位置转换成 <xref:System.NotSupportedException> 订阅边界。要求不支持位置的明确的订阅收到错误,但被错误。 `EarliestAvailable` 是默认订阅的提供者, Orleans 将错误报告给消费者,并让暗含订阅按其目前的位置直播。
 
-For delivery guarantees and sequence-token recovery, continue to [Stream delivery, ordering, replay, and recovery](delivery-semantics.md).
+自定义 <xref:Orleans.Streams.IAsyncObservable`1> 实施程序具有同等的扩展加载兼容性: `Latest` 使用其无价订阅路径, `EarliestAvailable` 报告 <xref:System.NotSupportedException> ,直到可观测到执行 Orleans 启动点订阅。
+
+对于交货担保和序列回收,继续 [流流输送、订购、重播和回收](delivery-semantics.md)。

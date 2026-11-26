@@ -12,8 +12,8 @@ using UnitTests.GrainInterfaces;
 namespace Tester.DurableJobs;
 
 /// <summary>
-/// Contains the test logic for durable jobs that can be run against different providers.
-/// This class is provider-agnostic and can be reused by test classes for InMemory, Azure, and other providers.
+/// 包含可以针对不同提供者的持久工作的测试逻辑。
+/// 这一类为供应商-不可知性,可通过测试类别重新用于 InMemory、 Azure和其他供应商。
 /// </summary>
 public class DurableJobTestsRunner
 {
@@ -38,7 +38,7 @@ public class DurableJobTestsRunner
         var job5 = await grain.ScheduleJobAsync("TestJob5", dueTime.AddSeconds(1)).WaitAsync(cancellationToken);
         var cancellationRequestedJob = await grain.ScheduleJobAsync("CancellationRequestedJob", dueTime.AddSeconds(2)).WaitAsync(cancellationToken);
         Assert.True(await grain.CancelAsync(cancellationRequestedJob).WaitAsync(cancellationToken));
-        // Wait for the job to run
+        // 等待工作运行
         foreach (var job in new[] { job1, job2, job3, job4, job5 })
         {
             try
@@ -50,7 +50,7 @@ public class DurableJobTestsRunner
                 Assert.Fail($"The durable job {job.Name} did not run within the expected time.");
             }
         }
-        // Verify the job with a durable cancellation request did not run.
+        // 使用耐久取消请求来核查工作没有运行 。
         Assert.False(await grain.HasJobRan(cancellationRequestedJob.Id).WaitAsync(cancellationToken));
     }
 
@@ -218,7 +218,7 @@ public class DurableJobTestsRunner
         Assert.Equal(jobCount, jobs.Length);
         Assert.Equal(jobCount, jobs.Select(j => j.Id).Distinct().Count());
 
-        // Avoid holding grain calls open until the client response timeout while the provider is under load.
+        // 避免在客户端在供应商装载时暂停响应前打开 grain 调用。
         var pendingJobs = jobs.ToDictionary(job => job.Id);
         await TestingUtils.WaitUntilAsync(
             async (lastTry, token) =>
@@ -340,10 +340,10 @@ public class DurableJobTestsRunner
         Assert.NotNull(job.Metadata);
         Assert.Equal("3", job.Metadata["FailUntilAttempt"]);
 
-        // Wait for the job to eventually succeed (with retries)
-        // Default retry policy: retry up to 5 times with exponential backoff (1s, 2s, 4s, 8s, 16s)
-        // We expect 3 attempts: fail at DequeueCount=1, fail at DequeueCount=2, succeed at DequeueCount=3
-        // Total time: ~2s (initial) + 1s (first retry delay) + 2s (second retry delay) = ~5s
+        // 等待工作最终成功(再试)
+        // 默认重试策略: 以指数回落重试最多5次( 1、 2、 4、 8、 16)
+        // 我们预期有3次尝试: DequeueCount=1失败, DequeueCount=2失败, DequeueCount=3成功
+        // 总时间:~2s(初始)+1s(第一次重试延迟)+2s(第二次重试延迟)=~5s
         await grain.WaitForJobToSucceed(job.Id).WaitAsync(cancellationToken);
 
         Assert.True(await grain.HasJobSucceeded(job.Id).WaitAsync(cancellationToken));

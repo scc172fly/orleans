@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// Describes a proxy base type used for RPC proxy generation.
+/// 描述代理服务器代理生成所使用的代理基类型 。
 /// </summary>
 internal sealed record class ProxyBaseModel(
     TypeRef ProxyBaseType,
@@ -10,7 +10,7 @@ internal sealed record class ProxyBaseModel(
     TypeMetadataIdentity MetadataIdentity = default);
 
 /// <summary>
-/// Describes a <c>[GenerateMethodSerializers]</c>-annotated interface for incremental proxy/invokable generation.
+/// 描述a <c>[GenerateMethodSerializers]</c>- 递增代用/可宣传的一代附加说明的界面。
 /// </summary>
 internal sealed record class ProxyInterfaceModel(
     TypeRef InterfaceType,

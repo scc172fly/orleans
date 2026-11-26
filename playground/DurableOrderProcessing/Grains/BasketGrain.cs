@@ -9,11 +9,11 @@ public interface IBasketGrain : IGrainWithStringKey
 
     Task<BasketItem[]> SetQuantityAsync(int productId, int quantity);
 
-    // Hands the basket's items to the order orderId and clears the basket.
+    // 把篮子物品交给订单 orderId 并清除篮子。
     DurableTask<OrderLine[]> CheckoutAsync(Guid orderId);
 }
 
-// The buyer's basket. Quantities are set, not incremented, so a repeated or retried update is idempotent.
+// 买主的篮子。数量是固定的,而不是加量, 所以重复或重新研究更新是无用之物。
 public sealed class BasketGrain : DurableGrain, IBasketGrain
 {
     private readonly IDurableDictionary<int, BasketItem> _items;
@@ -42,8 +42,8 @@ public sealed class BasketGrain : DurableGrain, IBasketGrain
         return _items.Values.ToArray();
     }
 
-    // The order's workflow calls this as its first step. The cleared basket commits with the task's result, and the
-    // runtime runs the call once for the order's task, so a retried or replayed checkout returns the same lines.
+    // 命令的工作流程将此称为第一步。
+    // 运行时会为命令的任务一次运行调用, 所以重审或重放取出返回相同的行 。
     public async DurableTask<OrderLine[]> CheckoutAsync(Guid orderId)
     {
         OrderLine[] lines = [.. _items.Values.Select(item => new OrderLine(item.ProductId, item.ProductName, item.UnitPrice, item.Quantity))];

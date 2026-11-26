@@ -18,7 +18,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// Compares Orleans serialization performance against other popular serializers for class types.
+/// 将 Orleans 序列化性能与其他各类流行的连续制导器进行比较。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -122,7 +122,7 @@ public class ClassSerializeBenchmark
         return HyperionBuffer.Length;
     }
 
-    //[Benchmark]
+    //[基准]
     public int ZeroFormatter()
     {
         var bytes = ZeroFormatterSerializer.Serialize(ZeroFormatterInput);

@@ -7,7 +7,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Mapping between <see cref="GrainType"/> and implementing <see cref="Type"/>.
+    /// <see cref="GrainType"/> 与执行 <see cref="Type"/>之间的绘图。
     /// </summary>
     public class GrainClassMap
     {
@@ -15,12 +15,12 @@ namespace Orleans.Metadata
         private readonly ImmutableDictionary<GrainType, Type> _types;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainClassMap"/> class.
+        /// 初始化 <see cref="GrainClassMap"/> 类的新实例。
         /// </summary>
-        /// <param name="typeConverter">The type converter.</param>
+        /// <param name="typeConverter">类型转换器。</param>
         /// <param name="classes">
-        /// The grain classes with public constructors preserved, as registered by
-        /// <see cref="Configuration.GrainTypeOptions.AddClass(Type)"/> or
+        /// 保留公共建筑工材的 grain 类,登记为:
+        /// <see cref="Configuration.GrainTypeOptions.AddClass(Type)"/> 或
         /// <see cref="Serialization.Configuration.TypeManifestOptions.AddInterfaceImplementation(Type)"/>.
         /// </param>
         [RequiresUnreferencedCode("The dictionary's grain types must have public constructors preserved separately, for example by GrainTypeOptions.AddClass or TypeManifestOptions.AddInterfaceImplementation.")]
@@ -38,11 +38,11 @@ namespace Orleans.Metadata
             => new(typeConverter, classes);
 
         /// <summary>
-        /// Returns the grain class type corresponding to the provided grain type.
+        /// 返回 grain 与所提供 grain 类型。
         /// </summary>
-        /// <param name="grainType">Type of the grain.</param>
-        /// <param name="grainClass">The grain class with its public constructors preserved for activation.</param>
-        /// <returns><see langword="true"/> if a corresponding grain class was found, <see langword="false"/> otherwise.</returns>
+        /// <param name="grainType">类型 grain.</param>
+        /// <param name="grainClass">下 grain 其公共建筑机舱为用于激活而保留。</param>
+        /// <returns><see langword="true"/> 如果找到相应的 grain 类,则 <see langword="false"/> 。</returns>
         public bool TryGetGrainClass(
             GrainType grainType,
             [NotNullWhen(true), DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] out Type? grainClass)

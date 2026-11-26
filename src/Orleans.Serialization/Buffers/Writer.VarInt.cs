@@ -5,44 +5,44 @@ namespace Orleans.Serialization.Buffers
     public ref partial struct Writer<TBufferWriter>
     {
         /// <summary>
-        /// Writes a variable-width <see cref="sbyte"/>.
+        /// 写入变量宽 <see cref="sbyte"/>。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarInt8(sbyte value) => WriteVarUInt28(ZigZagEncode(value));
 
         /// <summary>
-        /// Writes a variable-width <see cref="short"/>.
+        /// 写入变量宽 <see cref="short"/>。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarInt16(short value) => WriteVarUInt28(ZigZagEncode(value));
 
         /// <summary>
-        /// Writes a variable-width <see cref="int"/>.
+        /// 写入变量宽 <see cref="int"/>。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarInt32(int value) => WriteVarUInt32(ZigZagEncode(value));
 
         /// <summary>
-        /// Writes a variable-width <see cref="long"/>.
+        /// 写入变量宽 <see cref="long"/>。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarInt64(long value) => WriteVarUInt64(ZigZagEncode(value));
 
         /// <summary>
-        /// Writes a variable-width <see cref="byte"/>.
+        /// 写入变量宽 <see cref="byte"/>。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarUInt8(byte value) => WriteVarUInt28(value);
 
         /// <summary>
-        /// Writes a variable-width <see cref="ushort"/>.
+        /// 写入变量宽 <see cref="ushort"/>。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarUInt16(ushort value) => WriteVarUInt28(value);
 

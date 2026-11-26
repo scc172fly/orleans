@@ -6,21 +6,21 @@ using Orleans.Durable.Journaling;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extensions for configuring Azure Storage durable jobs.
+/// 配置 Azure 储存耐久工作的扩展。
 /// </summary>
 public static class AzureStorageDurableJobsExtensions
 {
     /// <summary>
-    /// Adds durable jobs storage backed by Azure Blob Storage.
+    /// 添加由 Azure 布洛布存储支持的耐久工作存储。
     /// </summary>
     /// <param name="builder">
-    /// The builder.
+    /// 建筑工
     /// </param>
     /// <param name="configure">
-    /// The delegate used to configure the durable jobs storage.
+    /// 该代表过去负责配置耐用工作储存。
     /// </param>
     /// <returns>
-    /// The provided <see cref="ISiloBuilder"/>, for chaining.
+    /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
     /// </returns>
     public static ISiloBuilder UseAzureBlobDurableJobs(this ISiloBuilder builder, Action<AzureBlobJournalStorageOptions> configure)
     {
@@ -31,16 +31,16 @@ public static class AzureStorageDurableJobsExtensions
     }
 
     /// <summary>
-    /// Adds durable jobs storage backed by Azure Blob Storage.
+    /// 添加由 Azure 布洛布存储支持的耐久工作存储。
     /// </summary>
     /// <param name="services">
-    /// The service collection.
+    /// 服务收藏
     /// </param>
     /// <param name="configure">
-    /// The delegate used to configure the durable jobs storage.
+    /// 该代表过去负责配置耐用工作储存。
     /// </param>
     /// <returns>
-    /// The provided <see cref="IServiceCollection"/>, for chaining.
+    /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
     /// </returns>
     public static IServiceCollection UseAzureBlobDurableJobs(this IServiceCollection services, Action<AzureBlobJournalStorageOptions> configure)
     {
@@ -52,11 +52,11 @@ public static class AzureStorageDurableJobsExtensions
     }
 
     /// <summary>
-    /// Adds durable jobs backed by Azure Table journal storage.
+    /// 添加由 Azure 表日记存储支持的耐久性工作。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configure">The delegate used to configure journal storage.</param>
-    /// <returns>The silo builder, for chaining.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configure">代表用来配置日记存储。</param>
+    /// <returns>用于链条的 silo 构建器。</returns>
     public static ISiloBuilder UseAzureTableDurableJobs(this ISiloBuilder builder, Action<AzureTableJournalStorageOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -66,11 +66,11 @@ public static class AzureStorageDurableJobsExtensions
     }
 
     /// <summary>
-    /// Adds durable jobs backed by Azure Table journal storage.
+    /// 添加由 Azure 表日记存储支持的耐久性工作。
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">The delegate used to configure journal storage.</param>
-    /// <returns>The service collection, for chaining.</returns>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="configure">代表用来配置日记存储。</param>
+    /// <returns>服务收藏,用于链锁。</returns>
     public static IServiceCollection UseAzureTableDurableJobs(this IServiceCollection services, Action<AzureTableJournalStorageOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(services);

@@ -1,295 +1,295 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Serializes one durable dictionary command and applies one decoded command.
+/// 将一个耐久字典命令序列化,并应用一个解码命令。
 /// </summary>
 public interface IDurableDictionaryCommandCodec<TKey, TValue> where TKey : notnull
 {
-    /// <summary>Writes a set command.</summary>
+    /// <summary>写入一个设定命令。</summary>
     void WriteSet(TKey key, TValue value, JournalStreamWriter writer);
 
-    /// <summary>Writes a remove command.</summary>
+    /// <summary>写入删除命令。</summary>
     void WriteRemove(TKey key, JournalStreamWriter writer);
 
-    /// <summary>Writes a clear command.</summary>
+    /// <summary>写一个清晰的命令。</summary>
     void WriteClear(JournalStreamWriter writer);
 
-    /// <summary>Writes a snapshot command, deriving the item count from <paramref name="items"/>.</summary>
+    /// <summary>写一个快速命令,从 <paramref name="items"/>中引出项目计数。</summary>
     void WriteSnapshot(IReadOnlyCollection<KeyValuePair<TKey, TValue>> items, JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IDurableDictionaryCommandHandler<TKey, TValue> consumer);
 }
 
 /// <summary>
-/// Serializes one durable list command and applies one decoded command.
+/// 将一个耐久清单指令序列化,并使用一个解码指令。
 /// </summary>
 public interface IDurableListCommandCodec<T>
 {
-    /// <summary>Writes an add command.</summary>
+    /// <summary>写入添加命令。</summary>
     void WriteAdd(T item, JournalStreamWriter writer);
 
-    /// <summary>Writes a set command.</summary>
+    /// <summary>写入一个设定命令。</summary>
     void WriteSet(int index, T item, JournalStreamWriter writer);
 
-    /// <summary>Writes an insert command.</summary>
+    /// <summary>写入插入命令。</summary>
     void WriteInsert(int index, T item, JournalStreamWriter writer);
 
-    /// <summary>Writes a remove-at command.</summary>
+    /// <summary>写入删除命令。</summary>
     void WriteRemoveAt(int index, JournalStreamWriter writer);
 
-    /// <summary>Writes a clear command.</summary>
+    /// <summary>写一个清晰的命令。</summary>
     void WriteClear(JournalStreamWriter writer);
 
-    /// <summary>Writes a snapshot command, deriving the item count from <paramref name="items"/>.</summary>
+    /// <summary>写一个快速命令,从 <paramref name="items"/>中引出项目计数。</summary>
     void WriteSnapshot(IReadOnlyCollection<T> items, JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IDurableListCommandHandler<T> consumer);
 }
 
 /// <summary>
-/// Serializes one durable queue command and applies one decoded command.
+/// 将一个耐久的队列命令序列化,并应用一个解码命令。
 /// </summary>
 public interface IDurableQueueCommandCodec<T>
 {
-    /// <summary>Writes an enqueue command.</summary>
+    /// <summary>写入一个编码命令。</summary>
     void WriteEnqueue(T item, JournalStreamWriter writer);
 
-    /// <summary>Writes a dequeue command.</summary>
+    /// <summary>写入一个解排命令。</summary>
     void WriteDequeue(JournalStreamWriter writer);
 
-    /// <summary>Writes a clear command.</summary>
+    /// <summary>写一个清晰的命令。</summary>
     void WriteClear(JournalStreamWriter writer);
 
-    /// <summary>Writes a snapshot command, deriving the item count from <paramref name="items"/>.</summary>
+    /// <summary>写一个快速命令,从 <paramref name="items"/>中引出项目计数。</summary>
     void WriteSnapshot(IReadOnlyCollection<T> items, JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IDurableQueueCommandHandler<T> consumer);
 }
 
 /// <summary>
-/// Serializes one durable set command and applies one decoded command.
+/// 将一个耐久的集合命令序列化,并应用一个解码命令。
 /// </summary>
 public interface IDurableSetCommandCodec<T>
 {
-    /// <summary>Writes an add command.</summary>
+    /// <summary>写入添加命令。</summary>
     void WriteAdd(T item, JournalStreamWriter writer);
 
-    /// <summary>Writes a remove command.</summary>
+    /// <summary>写入删除命令。</summary>
     void WriteRemove(T item, JournalStreamWriter writer);
 
-    /// <summary>Writes a clear command.</summary>
+    /// <summary>写一个清晰的命令。</summary>
     void WriteClear(JournalStreamWriter writer);
 
-    /// <summary>Writes a snapshot command, deriving the item count from <paramref name="items"/>.</summary>
+    /// <summary>写一个快速命令,从 <paramref name="items"/>中引出项目计数。</summary>
     void WriteSnapshot(IReadOnlyCollection<T> items, JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IDurableSetCommandHandler<T> consumer);
 }
 
 /// <summary>
-/// Serializes one durable value command and applies one decoded command.
+/// 将一个耐久值命令序列化,并应用一个解码命令。
 /// </summary>
 public interface IDurableValueCommandCodec<T>
 {
-    /// <summary>Writes a set command.</summary>
+    /// <summary>写入一个设定命令。</summary>
     void WriteSet(T value, JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IDurableValueCommandHandler<T> consumer);
 }
 
 /// <summary>
-/// Serializes one durable persistent state command and applies one decoded command.
+/// 将一个持久的持久国家指挥系统进行序列化,并使用一个解码指令。
 /// </summary>
 public interface IPersistentStateCommandCodec<T>
 {
-    /// <summary>Writes a set command.</summary>
+    /// <summary>写入一个设定命令。</summary>
     void WriteSet(T state, ulong version, JournalStreamWriter writer);
 
-    /// <summary>Writes a clear command.</summary>
+    /// <summary>写一个清晰的命令。</summary>
     void WriteClear(JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IPersistentStateCommandHandler<T> consumer);
 }
 
 /// <summary>
-/// Serializes one durable task completion source command and applies one decoded command.
+/// 将一个持久任务完成源指令进行序列化,并使用一个解码指令。
 /// </summary>
 public interface IDurableTaskCompletionSourceCommandCodec<T>
 {
-    /// <summary>Writes a pending command.</summary>
+    /// <summary>写入一个待执行的命令。</summary>
     void WritePending(JournalStreamWriter writer);
 
-    /// <summary>Writes a completed command.</summary>
+    /// <summary>写入已完成的命令。</summary>
     void WriteCompleted(T value, JournalStreamWriter writer);
 
-    /// <summary>Writes a faulted command.</summary>
+    /// <summary>写入错误的命令。</summary>
     void WriteFaulted(Exception exception, JournalStreamWriter writer);
 
-    /// <summary>Writes a canceled command.</summary>
+    /// <summary>写入一个取消的命令。</summary>
     void WriteCanceled(JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IDurableTaskCompletionSourceCommandHandler<T> consumer);
 }
 
 /// <summary>
-/// Receives decoded durable dictionary commands from a codec implementation.
+/// 接收从执行编码器中解码的耐用字典命令。
 /// </summary>
 public interface IDurableDictionaryCommandHandler<TKey, TValue> where TKey : notnull
 {
-    /// <summary>Applies a set command.</summary>
+    /// <summary>应用一个设定命令。</summary>
     void ApplySet(TKey key, TValue value);
 
-    /// <summary>Applies a remove command.</summary>
+    /// <summary>应用删除命令。</summary>
     void ApplyRemove(TKey key);
 
-    /// <summary>Applies a clear command.</summary>
+    /// <summary>应用一个清晰的命令。</summary>
     void ApplyClear();
 
-    /// <summary>Resets the receiver before applying replacement entries.</summary>
+    /// <summary>在应用替换条目之前, 重置接收器。</summary>
     void Reset(int capacityHint);
 }
 
 /// <summary>
-/// Receives decoded durable list commands from a codec implementation.
+/// 接受从执行编码器中解码的持久列表命令。
 /// </summary>
 public interface IDurableListCommandHandler<T>
 {
-    /// <summary>Applies an add command.</summary>
+    /// <summary>应用添加命令。</summary>
     void ApplyAdd(T item);
 
-    /// <summary>Applies a set command.</summary>
+    /// <summary>应用一个设定命令。</summary>
     void ApplySet(int index, T item);
 
-    /// <summary>Applies an insert command.</summary>
+    /// <summary>应用插入命令。</summary>
     void ApplyInsert(int index, T item);
 
-    /// <summary>Applies a remove-at command.</summary>
+    /// <summary>应用删除命令。</summary>
     void ApplyRemoveAt(int index);
 
-    /// <summary>Applies a clear command.</summary>
+    /// <summary>应用一个清晰的命令。</summary>
     void ApplyClear();
 
-    /// <summary>Resets the receiver before applying replacement entries.</summary>
+    /// <summary>在应用替换条目之前, 重置接收器。</summary>
     void Reset(int capacityHint);
 }
 
 /// <summary>
-/// Receives decoded durable queue commands from a codec implementation.
+/// 接收从执行代码化中解码的持久队列命令。
 /// </summary>
 public interface IDurableQueueCommandHandler<T>
 {
-    /// <summary>Applies an enqueue command.</summary>
+    /// <summary>应用一个编码命令。</summary>
     void ApplyEnqueue(T item);
 
-    /// <summary>Applies a dequeue command.</summary>
+    /// <summary>应用解密命令。</summary>
     void ApplyDequeue();
 
-    /// <summary>Applies a clear command.</summary>
+    /// <summary>应用一个清晰的命令。</summary>
     void ApplyClear();
 
-    /// <summary>Resets the receiver before applying replacement entries.</summary>
+    /// <summary>在应用替换条目之前, 重置接收器。</summary>
     void Reset(int capacityHint);
 }
 
 /// <summary>
-/// Receives decoded durable set commands from a codec implementation.
+/// 接受从执行代码化中解码的耐久命令。
 /// </summary>
 public interface IDurableSetCommandHandler<T>
 {
-    /// <summary>Applies an add command.</summary>
+    /// <summary>应用添加命令。</summary>
     void ApplyAdd(T item);
 
-    /// <summary>Applies a remove command.</summary>
+    /// <summary>应用删除命令。</summary>
     void ApplyRemove(T item);
 
-    /// <summary>Applies a clear command.</summary>
+    /// <summary>应用一个清晰的命令。</summary>
     void ApplyClear();
 
-    /// <summary>Resets the receiver before applying replacement entries.</summary>
+    /// <summary>在应用替换条目之前, 重置接收器。</summary>
     void Reset(int capacityHint);
 }
 
 /// <summary>
-/// Receives decoded durable value commands from a codec implementation.
+/// 接受从执行编码器中解码的耐久值命令。
 /// </summary>
 public interface IDurableValueCommandHandler<T>
 {
-    /// <summary>Applies a set command.</summary>
+    /// <summary>应用一个设定命令。</summary>
     void ApplySet(T value);
 }
 
 /// <summary>
-/// Receives decoded durable persistent state commands from a codec implementation.
+/// 接受代码执行过程中的解码持久持续状态指令。
 /// </summary>
 public interface IPersistentStateCommandHandler<T>
 {
-    /// <summary>Applies a set command.</summary>
+    /// <summary>应用一个设定命令。</summary>
     void ApplySet(T state, ulong version);
 
-    /// <summary>Applies a clear command.</summary>
+    /// <summary>应用一个清晰的命令。</summary>
     void ApplyClear();
 }
 
 /// <summary>
-/// Receives decoded durable task completion source commands from a codec implementation.
+/// 接受从执行代码化中解码的持久任务完成源指令。
 /// </summary>
 public interface IDurableTaskCompletionSourceCommandHandler<T>
 {
-    /// <summary>Applies a pending command.</summary>
+    /// <summary>应用待执行的命令。</summary>
     void ApplyPending();
 
-    /// <summary>Applies a completed command.</summary>
+    /// <summary>应用已完成的命令。</summary>
     void ApplyCompleted(T value);
 
-    /// <summary>Applies a faulted command.</summary>
+    /// <summary>应用一个错误的命令。</summary>
     void ApplyFaulted(Exception exception);
 
-    /// <summary>Applies a canceled command.</summary>
+    /// <summary>应用一个取消的命令。</summary>
     void ApplyCanceled();
 }
 
 /// <summary>
-/// Serializes one durable log command and applies one decoded command.
+/// 将一个耐久日志命令序列化,并应用一个解码命令。
 /// </summary>
 public interface IDurableLogCommandCodec<T>
 {
-    /// <summary>Writes one command which appends <paramref name="items"/>, in order.</summary>
+    /// <summary>依序写入一个附加 <paramref name="items"/>的命令。</summary>
     /// <remarks>
-    /// The command is one journal entry, so replay applies all of the items or none of them. <paramref name="items"/> is not empty.
+    /// 命令是一份日记项, 因此重放应用所有项目或其中的无。 <paramref name="items"/> 不是空的 。
     /// </remarks>
     void WriteAppend(ReadOnlySpan<T> items, JournalStreamWriter writer);
 
-    /// <summary>Writes one command which commits a draft by appending <paramref name="items"/>, in order, from <paramref name="sequence"/>.</summary>
+    /// <summary>写入一个命令,通过附加执行草稿 <paramref name="items"/>,顺序,从 <paramref name="sequence"/>.</summary>
     /// <remarks>
-    /// The command is one journal entry, so replay applies all of the items and the draft's outcome, or none of them.
-    /// <paramref name="items"/> may be empty.
+    /// 命令是一日记项, 因此重播应用所有项目和草稿结果, 或者没有它们 。
+    /// <paramref name="items"/> 可以是空的。
     /// </remarks>
     void WriteDraftCommit(LogDraftId draftId, long sequence, ReadOnlySpan<T> items, JournalStreamWriter writer);
 
-    /// <summary>Writes a command which discards entries before <paramref name="sequence"/>.</summary>
+    /// <summary>写入命令, 命令在 <paramref name="sequence"/>之前丢弃条目。</summary>
     void WriteTrimBefore(long sequence, JournalStreamWriter writer);
 
-    /// <summary>Writes a command which discards every entry and consumes one sequence number.</summary>
+    /// <summary>写入命令, 命令丢弃每个条目并消耗一个序列号。</summary>
     void WriteClear(JournalStreamWriter writer);
 
-    /// <summary>Writes a command which ends the log.</summary>
+    /// <summary>写入一个结束日志的命令。</summary>
     void WriteSeal(JournalStreamWriter writer);
 
-    /// <summary>Writes a snapshot command containing the log's state and its retained entries, which begin at <paramref name="firstSequence"/>.</summary>
-    /// <param name="epoch">The identifier of the log's history, or zero when the log has no history.</param>
-    /// <param name="firstSequence">The sequence number of the first retained entry.</param>
-    /// <param name="resetSequence">The first sequence number after the most recent clear, or zero.</param>
-    /// <param name="isSealed">Whether the log is sealed.</param>
-    /// <param name="items">The retained entries.</param>
-    /// <param name="draftCommits">The drafts whose committed entries begin at or after <paramref name="firstSequence"/>, in sequence order.</param>
-    /// <param name="writer">The writer.</param>
+    /// <summary>写入一个包含日志状态及其保留条目的快照命令,该命令始于 <paramref name="firstSequence"/>。</summary>
+    /// <param name="epoch">日志历史识别符号,当日志没有历史时为零。</param>
+    /// <param name="firstSequence">第一个保留条目的序列号。</param>
+    /// <param name="resetSequence">以最近清晰或零后的第一个序列编号。</param>
+    /// <param name="isSealed">日志是否密封。</param>
+    /// <param name="items">保留条目。</param>
+    /// <param name="draftCommits">其承诺条目在 <paramref name="firstSequence"/>,按顺序排列。</param>
+    /// <param name="writer">作家。</param>
     void WriteSnapshot(
         long epoch,
         long firstSequence,
@@ -299,38 +299,38 @@ public interface IDurableLogCommandCodec<T>
         IReadOnlyCollection<LogDraftCommit> draftCommits,
         JournalStreamWriter writer);
 
-    /// <summary>Reads one encoded command and applies it to <paramref name="consumer"/>.</summary>
+    /// <summary>读取一个编码命令,并将其应用到 <paramref name="consumer"/>.</summary>
     void Apply(JournalBufferReader input, IDurableLogCommandHandler<T> consumer);
 }
 
 /// <summary>
-/// Receives decoded durable log commands from a codec implementation.
+/// 接受从执行编码器中解码的耐用日志命令。
 /// </summary>
 /// <remarks>
-/// A draft commit command applies its items with <see cref="ApplyAppend"/>, then its outcome with <see cref="ApplyDraftCommit"/>.
-/// A snapshot command applies <see cref="Reset"/>, its entries, its draft commits, and then <see cref="ApplySeal"/> if the log is sealed.
+/// 执行命令草案应用 <see cref="ApplyAppend"/>项目,结果应用 <see cref="ApplyDraftCommit"/>。
+/// 快速命令应用 <see cref="Reset"/>、其条目、其草稿承诺,然后如果日志密封,则应用 <see cref="ApplySeal"/> 。
 /// </remarks>
 public interface IDurableLogCommandHandler<T>
 {
-    /// <summary>Applies one appended item. An append command applies each of its items in order.</summary>
+    /// <summary>应用一个附加项目。附件命令依次适用每个项目。</summary>
     void ApplyAppend(T item);
 
-    /// <summary>Applies the outcome of a committed draft, whose entries have been applied.</summary>
+    /// <summary>适用已适用其条目的承付草案的结果。</summary>
     void ApplyDraftCommit(LogDraftCommit commit);
 
-    /// <summary>Applies a command which discards entries before <paramref name="sequence"/>.</summary>
+    /// <summary>应用一个命令,在 <paramref name="sequence"/>之前丢弃条目。</summary>
     void ApplyTrimBefore(long sequence);
 
-    /// <summary>Applies a command which discards every entry and consumes one sequence number.</summary>
+    /// <summary>应用一个命令,该命令抛弃每个条目并消耗一个序列号。</summary>
     void ApplyClear();
 
-    /// <summary>Applies a command which ends the log.</summary>
+    /// <summary>应用一个命令来结束日志。</summary>
     void ApplySeal();
 
-    /// <summary>Resets the receiver to a snapshot's state before applying its entries, which begin at <paramref name="firstSequence"/>.</summary>
-    /// <param name="epoch">The identifier of the log's history, or zero when the log has no history.</param>
-    /// <param name="firstSequence">The sequence number of the first retained entry.</param>
-    /// <param name="resetSequence">The first sequence number after the most recent clear, or zero.</param>
-    /// <param name="capacityHint">The number of entries which follow.</param>
+    /// <summary>将接收器在应用从 <paramref name="firstSequence"/>开始的条目之前的快照状态恢复到接收器的状态。</summary>
+    /// <param name="epoch">日志历史识别符号,当日志没有历史时为零。</param>
+    /// <param name="firstSequence">第一个保留条目的序列号。</param>
+    /// <param name="resetSequence">以最近清晰或零后的第一个序列编号。</param>
+    /// <param name="capacityHint">接下来的条目数 。</param>
     void Reset(long epoch, long firstSequence, long resetSequence, int capacityHint);
 }

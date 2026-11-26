@@ -21,76 +21,76 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// Executes durable tasks for one grain activation.
+/// 执行一个 grain 激活的耐久任务。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Task state, outgoing messages, and logical times share the grain's journal. Every operation validates and prepares
-/// its changes first, then stages only changes which are safe to commit. Staged changes are shared by all callers and
-/// commit with the next successful journal write; a failed storage write fences the journal and deactivates the grain.
+/// 任务状态、 发送信件和逻辑时间共享 grain日记( Q0Q] ) 。 每个操作都验证并准备
+/// 第一阶段,然后是阶段性,只有安全可以执行的改变。
+/// 承诺下一份成功日记写; 存储失败的刻录栅栏会给日记设置围栏, 并停止 grain。
 /// </para>
 /// <para>
-/// The runtime is also a journal state machine which writes no entries. Capture marks the effects which depend on
-/// the captured changes, and write completion runs them: starting committed requests, completing handles with
-/// committed responses, and propagating committed cancellation.
+/// 运行时间也是日记状态机器, 不写入条目。 抓取标记取决于效果
+/// 开始承诺请求,完成处理
+/// 承诺的响应,宣传承诺的取消。
 /// </para>
 /// <para>
-/// A delay stages a resume message to its own grain together with its delay state, scheduled with
-/// <see cref="Orleans.Durable.Messaging.Envelope.DeliverAt"/> for the delay's due time. The grain's own inbox accepts the message
-/// in the same journal write as the delay, so the resume is durable whenever the delay is, and the inbox processes it
-/// once it is due. The adapter schedules no Durable Jobs of its own: it registers its wake-up delay with the inbox, which
-/// reports its runnable executions, for which Messaging's wake-up reactivates the grain.
+/// 延迟阶段 向自 grain 发送回信的延迟状态及其与
+/// <see cref="Orleans.Durable.Messaging.Envelope.DeliverAt"/> 延迟的到期时间。 grain的收件箱接收此消息
+/// 在同一日记中与延迟一样写入,因此只要延误是可持久的,且信箱处理
+/// 适应器排期无法自订可持久的工作:它用收件箱登记了它的提醒延迟,而
+/// 情报部门报告说,它可执行的处决是可持久的,因此,通信的警醒使 grain重新启动。
 /// </para>
 /// <para>
-/// The runtime is the <see cref="IOutboxMessageSource"/> of its completion messages: the outbox journals a reference to
-/// each completion, and the runtime materializes the message from the task's stored result, so the result is journaled
-/// once while the completion is pending. A task's completion destinations are its subscribers: the invoker, under the
-/// task's own identifier, and the durable executions' children which subscribed to the existing task under their own
-/// identifiers. A subscriber on this grain receives the result in the write which stores it. A dead-lettered
-/// completion's dead letter holds a copy of the result, and the
-/// task keeps its own for the retention period, so polls and re-invocations still observe it. A stored result which no
-/// longer decodes fails only the operations which read it: the outbox dead-letters its completion, whose retirement
-/// doesn't decode the result, and activation never decodes stored results.
+/// 运行时间是其完成信件的 <see cref="IOutboxMessageSource"/> :发件箱日记
+/// 每次完成, 运行时间将任务存储结果中的讯息化为运行时间, 因此结果会被日记
+/// 任务完成目的地是其用户:
+/// 和持久处决儿童,他们根据自己的
+/// 识别符号。 此 grain 的订阅者收到存储该标记的写作结果。
+/// 完成的纸上写着一份结果副本
+/// 保留期的任务自有任务,因此民意调查和重新恢复活动仍能观察。
+/// 更长的解码仅能完成读取它的业务:发箱用破信后完成,其退休
+/// 启动从不解码存储结果
 /// </para>
 /// <para>
-/// An invoked task, which was scheduled as a request, owns an execution tree: the task and its descendants which are
-/// not invoked tasks themselves, such as local children, delays, completion decisions, records of detached tasks,
-/// effect records, subscriptions to other tasks, and remote-child stubs. Task identifiers are chosen by callers, so an
-/// invoked descendant keeps its own lifecycle.
-/// Once an invoked task is terminal and no completion is pending, the runtime deletes its execution tree: in the write
-/// which retires its last completion as delivered, because that destination durably holds the result, or otherwise once
-/// <see cref="Orleans.Configuration.DurableTaskOptions.ResultRetentionPeriod"/> has elapsed since completion or since a
-/// completion was dead-lettered. A task without a stored ancestor, such as a remote child scheduled outside a durable
-/// execution, is deleted on the same retention schedule. Deleting a tree cancels its non-terminal tasks: it stages a
-/// cancellation to each pending remote child and cancels each running attempt, whose result is then discarded.
-/// Completions and resumes which arrive for a deleted task, or for an earlier run of a task's tree, are ignored: each run
-/// of a root task ID has its own incarnation, which the identifiers of the messages which name its nodes cover, as
-/// <see cref="CallerScope"/> describes. A cancellation or a signal which arrives before its
-/// invocation is recorded, and the invocation finds it in its tree. The grain admits an invocation until
-/// <see cref="Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.DeduplicationWindow"/> has elapsed since its sender
-/// first staged it, and dead-letters a later one. A record whose invocation doesn't arrive is deleted after
-/// <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/>, which covers the skew between the sender's clock and
-/// the grain's.
-/// A subscription to a task which the grain doesn't retain as an invoked task completes as not found at once.
+/// 援引的任务,原计划作为请求提出,它拥有一棵处决树:任务及其后代,即
+/// 诸如当地儿童、拖延、完成决定、独立任务记录等任务本身,
+/// 任务识别器由调用员选择,所以
+/// 被援引的后代有自己的生命周期。
+/// 一旦援引的任务为终端任务,且没有完成未完成,运行时间将删除其执行树:在书中
+/// ,因为目的地长期保持其结果,或以其他方式
+/// [质 完成或自完成<see cref="Orleans.Configuration.DurableTaskOptions.ResultRetentionPeriod"/>
+/// 完成日期为死字母,没有储存的祖先的任务,例如,在耐久时间之外安排的远程儿童
+/// 取消树的不终止任务: 它在
+/// 取消每个待处理的远程儿童,并取消每次尝试,结果被丢弃。
+/// 完成和恢复的补全和复件,如果到达删除任务或任务树早期运行时,将被忽略:每运行
+/// 根任务 ID 本身有其自成的化名,即指定其节点覆盖位置的电文识别符号的标识符,作为
+/// <see cref="CallerScope"/> 描述。在它之前发出的取消或信号
+/// 祈祷记录下来,祈祷在树上找到 grain 允许一次祈祷,直到
+/// <see cref="Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.DeduplicationWindow"/> 自其发件人以来已过期
+/// 开始先进行,后再写一个死字母。在以下删除了那些无法调用的记录:
+/// <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/>,它覆盖发件人时钟和发件人时钟之间
+/// 排 grain's.
+/// 订阅一项 grain 无法保留的任务,因为所援引的任务完成后即刻找不到。
 /// </para>
 /// <para>
-/// Task cancellation is cooperative: a request is recorded in task state, cancels the
-/// <see cref="DurableTaskContext.CancellationToken"/> of running attempts, and terminalizes only leaves, such as delays
-/// and tasks whose bodies haven't started. A started body decides its task's outcome, and recovery replays it with the
-/// request applied. An abort commits a task's execution tree as failed in one write and cancels the tree's running
-/// attempts, whose results are discarded.
+/// 取消任务是合作性的:请求记录在任务状态,取消
+/// 尝试的<see cref="DurableTaskContext.CancellationToken"/> ,仅终止假期,如延误
+/// 任务,任务,任务,而其身体还没有开始。一个刚开始的机构决定其任务的结果,恢复则用它来重新显示
+/// 请求应用。 中止会执行任务执行树, 在一个写入中失败, 并取消树的运行
+/// 尝试,结果被抛弃。
 /// </para>
 /// <para>
-/// Attempt cancellation stops an attempt: deactivation, an abort, and the deletion of a tree cancel attempts. A canceled
-/// attempt's durable operations throw <see cref="DurableTaskAttemptCanceledException"/>, its journaled state changes,
-/// such as cleanup, commit with the grain's next journal write, and its tokens are canceled in a later work item. An
-/// aborted or deleted attempt drains: its parked waits resume with the cancellation. An attempt which deactivation or a
-/// stall discards is never resumed, and deactivation waits only for its running segment before the next activation
-/// replays its task.
+/// 尝试取消取消时停止尝试: 中止、 中止和删除树取消尝试。 A 已取消
+/// 连续作业 <see cref="DurableTaskAttemptCanceledException"/>,它日记的状态变化,
+/// 例如清理, 与 grain下一份日记写入承诺, 其标记将在以后的工作项目中取消。 a
+/// 中止或删除的尝试排水管:其停靠的等待随着取消而恢复。
+/// 停止丢弃的拖放从不恢复, 停止作用只等待其运行段在下一次激活前
+/// 重播它的任务。
 /// </para>
 /// <para>
-/// Each attempt runs in segments, local requests on the activation; see <see cref="GrainDurableTaskContext"/>. The
-/// runtime's state is confined to the activation's scheduler, as grain state is, so it uses no locks.
+/// 每次尝试都按段进行, 本地请求启动; 见 <see cref="GrainDurableTaskContext"/>。
+/// 运行时状态仅限于激活的调度器, 与 grain 状态相同, 所以它不使用锁。
 /// </para>
 /// </remarks>
 internal sealed partial class DurableTaskGrainRuntime(
@@ -105,10 +105,10 @@ internal sealed partial class DurableTaskGrainRuntime(
     IStateMachine,
     IOutboxMessageSource
 {
-    /// <summary>The journal state machine name of the runtime's commit hook.</summary>
+    /// <summary>运行时的运行时间的“ 挂勾” 日记状态机器名称。</summary>
     internal const string StateMachineName = "orleans.durable-tasks.runtime";
 
-    // The runtime's state is confined to the activation's scheduler, as grain state is.
+    // 运行时间状态仅限于启动调度器,如 grain 状态。
     private readonly Dictionary<TaskId, GrainDurableTaskContext> _executionContexts = [];
     private readonly Dictionary<TaskId, RunningRequest> _runningRequests = [];
     private readonly Dictionary<TaskId, TaskHandle> _taskHandles = [];
@@ -123,18 +123,18 @@ internal sealed partial class DurableTaskGrainRuntime(
     private readonly IDurableTaskMessageTransport? _messageTransport = messageTransports.SingleOrDefault();
     private readonly CancellationTokenSource _deactivationCts = new();
 
-    // The executions whose attempts stalled because the running code can't replay them, and which stay pending. The grain
-    // wakes every DurableTaskOptions.StalledExecutionRetryInterval while it holds one, so a later activation replays it.
+    // 处决的企图因运行代码无法重播而停止, 并且等待执行。 grain
+    // 它可以唤醒每个 DurableTaskOptions.StalledExecutionRetryInterval ,而它却能保持一个,所以以后的激活就会重弹。
     private readonly HashSet<TaskId> _stalledExecutions = [];
     private TaskId[] _committingStarts = [];
     private KeyValuePair<TaskId, DurableTaskResponse>[] _committingHandleResponses = [];
     private long[] _committingCancellationPropagations = [];
 
-    // The committed effects which wait for the task cancellation of attempts which an earlier or the same write committed,
-    // in commit order, or null when none waits; see RunCommittedEffects.
+    // 等待任务取消的强制效果, 以及先前或同一人所写的尝试;
+    // 执行命令时,无一等待,或无一等待时无效;见 RunCommittedEffects。
     private List<CommittedEffects>? _orderedCommittedEffects;
 
-    // The executions which recovery found and which start once the activation has completed.
+    // 被恢复的处决 发现并开始 一旦启动完成。
     private List<TaskId>? _recoveredStarts;
     private bool _recovered;
     private Task? _stopTask;
@@ -143,22 +143,22 @@ internal sealed partial class DurableTaskGrainRuntime(
     private IGrainContext? _grainContext;
     private bool _stopping;
 
-    // The completions pending in the outbox, by message ID. The outbox resolves recovered completions before the runtime
-    // observes recovery, so the index is built from task state on first use, then maintained as completions are sent and
-    // retire.
+    // 发件箱中待补全的完成,通过电文编号。发件箱解决了在运行前回收完结
+    // 查找恢复值,因此索引是从任务状态中建起的,首次使用时,然后随着完成发送而保持
+    // 退休。
     private Dictionary<MessageId, PendingCompletion>? _pendingCompletions;
 
-    // The earliest time at which a retained result or a cancellation record can expire. It is unknown after activation,
-    // so the first check scans every task; afterwards every change which starts a retention period or records a
-    // cancellation lowers it, and each scan recomputes it from the remaining tasks.
+    // 保留的结果或注销记录可能过期的最早时间。
+    // 所以第一个检查会扫描每个任务; 之后每次更改开始保留期或记录
+    // 取消后将其降低, 并且每次扫描都从剩余任务中重新计算它 。
     private DateTimeOffset _nextExpiry = DateTimeOffset.MinValue;
 
     public GrainId GrainId => GrainContext.GrainId;
 
-    /// <summary>Gets the activation which the runtime is bound to.</summary>
+    /// <summary>获得运行时间将注定要启动的激活。</summary>
     /// <remarks>
-    /// The binding is explicit, so code which runs off the activation's scheduler, where the ambient grain context is the
-    /// hosted client's, still reads this activation's identity.
+    /// 绑定是明确的, 所以从激活的调度器上跳出代码, 环境 grain 上下文是
+    /// 仍然读取激活程序的身份
     /// </remarks>
     internal IGrainContext GrainContext => _grainContext ?? throw CreateUnboundException();
 
@@ -167,11 +167,11 @@ internal sealed partial class DurableTaskGrainRuntime(
     private IDurableTaskMessageTransport MessageTransport => _messageTransport ?? throw new InvalidOperationException(
         "Durable messaging is not configured. Call AddDurableTasks on the silo builder.");
 
-    /// <summary>Binds the runtime to <paramref name="grainContext"/>, the activation whose executions it runs.</summary>
+    /// <summary>将运行时间绑绑到 <paramref name="grainContext"/>被它执行的死刑</summary>
     internal void InitializeForActivation(IGrainContext grainContext) => _grainContext = grainContext;
 
     /// <summary>
-    /// Recovers committed task state during the activation's lifecycle, deferring the recovered executions to
+    /// 恢复启动期间已承诺的任务状态,将被追回的死刑推迟到
     /// <see cref="StartRecoveredExecutions"/>.
     /// </summary>
     internal Task RecoverAsync(CancellationToken cancellationToken)
@@ -180,10 +180,10 @@ internal sealed partial class DurableTaskGrainRuntime(
         return ResumePendingTasksCoreAsync(cancellationToken);
     }
 
-    /// <summary>Starts the executions which <see cref="RecoverAsync"/> recovered, once.</summary>
+    /// <summary>开始处决 <see cref="RecoverAsync"/> 恢复一次</summary>
     /// <remarks>
-    /// Runs after the grain's <c>OnActivateAsync</c> has completed, so recovered grain code observes an initialized
-    /// grain, as grain calls do. A call which reaches a recovered task first starts it, and this skips it.
+    /// 之后运行 grain's <c>OnActivateAsync</c> 已完成, 因而已收回 grain 代码对初始化的值
+    /// grain,就像 grain 呼叫一样。一个到达回收任务的第一个呼叫开始,而它跳过它。
     /// </remarks>
     internal void StartRecoveredExecutions()
     {
@@ -201,22 +201,22 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Returns the candidate which completed first: the stored candidate with the lowest completion sequence, which needs
-    /// no record, or a winner recorded under <paramref name="decisionId"/>.
+    /// 返回先完成的候选者:已储存且完成程序最低的候选人,需要
+    /// 没有记录,或有赢家在 <paramref name="decisionId"/>下记录。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Storage stamps each result with a sequence when it stages the result, and a later result receives a higher
-    /// sequence. A candidate whose result is staged commits in the same write as, or an earlier write than, every result
-    /// with a higher sequence, so when a candidate's handle completes, every candidate with a lower sequence is stored.
-    /// The lowest stored sequence is therefore the same in a live attempt, which selects among the results staged so far,
-    /// and in every replay, in which more candidates can have completed.
+    /// 存储邮票每次产生时,其顺序在逐步形成结果后,其顺序顺序上,以后的结果得到更高
+    /// 序列。结果被评分的候选人以与每个结果相同的写法或比预写的早期写法承诺
+    /// 程序更高级,所以当候选人的处理程序完成后,每个低顺序的候选人都被储存起来。
+    /// 因此,在一次现场尝试中储存的最低序列相同。 现场尝试选择了迄今为止取得的结果,
+    /// 和每个重播, 其中更多的候选人可以完成。
     /// </para>
     /// <para>
-    /// A candidate can complete without a sequence: a child of a canceled ancestor which isn't stored, or a result stored
-    /// before sequences were stamped. When such a completion is observed first, or a
-    /// recorded decision already exists, the selection is recorded under <paramref name="decisionId"/> and replays from
-    /// that record.
+    /// 候选人可以完成没有序列的完整: 一个被取消的祖先的孩子, 但没有存储, 或者一个结果被储存
+    /// 在顺序标记之前先加盖标记。 当首先观测到完成时间, 或者
+    /// 已记录的决定已经存在, 选择记录在 <paramref name="decisionId"/> 下, 重放
+    /// 记录。
     /// </para>
     /// </remarks>
     public async ValueTask<TaskId> SelectCompletionAsync(
@@ -240,7 +240,7 @@ internal sealed partial class DurableTaskGrainRuntime(
                 return candidates[first];
             }
 
-            // A handle which completed without a stored, sequenced result has no durable order.
+            // 在一个没有储存的、顺序结果没有耐久命令的情况下完成的把手。
             if (unordered || observedCompletion)
             {
                 return await SelectRecordedCompletionAsync(attempt, decisionId, decision: null, candidates, cancellationToken);
@@ -253,10 +253,10 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Returns the index of the stored candidate with the lowest completion sequence, or -1, and whether a candidate's
-    /// stored result has no sequence.
+    /// 返回存储候选人的索引,该候选人的完成顺序最低,或 -1,以及是否是候选人
+    /// 存储结果没有序列 。
     /// </summary>
-    /// <remarks>Reads stored completion metadata only, without decoding results.</remarks>
+    /// <remarks>只读存储的完成元数据, 而不解码结果。</remarks>
     private (int Index, bool Unordered) FindFirstStoredCompletion(IReadOnlyList<TaskId> candidates)
     {
         var first = -1;
@@ -284,8 +284,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Returns the winner recorded under <paramref name="decisionId"/>, or records the first candidate in candidate order
-    /// whose handle has completed.
+    /// 返回根据 <paramref name="decisionId"/>记录的记录的赢家,或按候选人顺序记录第一个候选人
+    /// 其手柄已经完全完成。
     /// </summary>
     private async ValueTask<TaskId> SelectRecordedCompletionAsync(
         GrainDurableTaskContext attempt,
@@ -338,7 +338,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         while (true)
         {
-            // When several candidates have completed, the first in candidate order wins.
+            // 当几个候选人完成考试后,第一个候选人按顺序获胜。
             foreach (var candidate in candidates)
             {
                 var response = await GetCompletionCandidateHandle(candidate).PollAsync(
@@ -360,8 +360,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Waits until any candidate's handle completes, parking <paramref name="attempt"/> meanwhile, then cancels and drains
-    /// the other waits.
+    /// 等到候选人的处理程序完成, 停车 <paramref name="attempt"/> 同时, 然后取消和排水
+    /// 等待其他的。
     /// </summary>
     private async Task WaitForAnyAsync(GrainDurableTaskContext attempt, IReadOnlyList<TaskId> candidates, CancellationToken cancellationToken)
     {
@@ -374,7 +374,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         try
         {
-            // A failed wait propagates, as a failed poll does.
+            // 等待宣传失败, 如民调失败一样。
             await await attempt.ParkAsync(Task.WhenAny(waits), candidates);
         }
         finally
@@ -392,26 +392,26 @@ internal sealed partial class DurableTaskGrainRuntime(
             return handle;
         }
 
-        // Selection receives scheduled inputs. An ancestor's cancellation refuses their starts without storing them.
+        // 选择接收预定输入。 祖先的取消拒绝启动, 而不储存它们 。
         return IsAncestorCancellationRequested(taskId, state: null, shielded: false)
             ? new CompletedTaskHandle(taskId, DurableTaskResponse.Canceled)
             : GetScheduledTaskHandle(taskId);
     }
 
-    // A request fingerprint is a hexadecimal hash, so it never has this prefix.
+    // 请求指纹是十六进制杂草, 所以它从来没有这个前缀 。
     private const string CompletionDecisionFingerprintPrefix = "$completion-decision:";
 
     /// <summary>
-    /// Creates the error for scheduling an operation under an identifier which records another operation, which is how a
-    /// replay which diverges from its recorded execution surfaces. The attempt's context stalls the attempt with it.
+    /// 创建错误,用于在一个记录另一个操作的标识符下调度操作,即
+    /// 重放与记录的执行表面不同。 尝试的上下文会拖慢尝试 。
     /// </summary>
     private static DurableTaskDivergenceException CreateDivergenceException(string message, IDurableTaskState recorded, string requested) =>
         new(DescribeDivergence(message, recorded, requested));
 
     /// <summary>
-    /// Returns the outcome which an earlier attempt recorded under <paramref name="taskId"/>, decoding it on first access.
+    /// 返回先前在 <paramref name="taskId"/>下记录的尝试的结果,在第一次访问时解码。
     /// </summary>
-    /// <exception cref="DurableTaskDivergenceException">The recorded outcome no longer decodes.</exception>
+    /// <exception cref="DurableTaskDivergenceException">记录的结果不再编码。</exception>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Any decoding failure is a divergence from the record.")]
     private static DurableTaskResponse? ReadRecordedResult(TaskId taskId, IDurableTaskState state)
     {
@@ -427,7 +427,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
     }
 
-    /// <summary>Creates the error for scheduling a request under a task identifier which records another operation.</summary>
+    /// <summary>创建错误,用于在记录另一个操作的任务标识符下安排请求。</summary>
     private static DurableTaskConflictException CreateScheduleConflictException(
         TaskId taskId,
         string message,
@@ -457,11 +457,11 @@ internal sealed partial class DurableTaskGrainRuntime(
         _ => "a local child task",
     };
 
-    /// <summary>Describes a request for diagnostics: its method, and the fingerprint of its arguments.</summary>
+    /// <summary>描述诊断请求:其方法及其论据的指纹。</summary>
     private string DescribeRequest(IDurableTaskRequest request) =>
         $"a request for {DescribeMethod(IDurableTaskRequest.GetMethod(request))} ({AbbreviateFingerprint(IDurableTaskRequest.GetFingerprint(request, _shared.Serializer))})";
 
-    /// <summary>Describes a call to another grain for diagnostics: its target, its method, and the fingerprint of its arguments.</summary>
+    /// <summary>描述呼叫另一个 grain 诊断:其目标、方法及其论据的指纹。</summary>
     private string DescribeCall(GrainId target, IDurableTaskRequest request) =>
         DescribeCall(target, IDurableTaskRequest.GetMethod(request), IDurableTaskRequest.GetFingerprint(request, _shared.Serializer));
 
@@ -470,7 +470,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
     private static string DescribeMethod(string? method) => method is null ? "an unrecorded method" : $"method '{method}'";
 
-    // WhenAny, Race, timeouts, and signal deadlines record their selections alike, so the description names none of them.
+    // WhenAny,种族,超时和信号最后期限 记录他们的选择都一样, 所以描述没有 名字他们。
     private static string DescribeSelection(int candidateCount) =>
         $"a selection of the first task to complete among {candidateCount} {(candidateCount == 1 ? "candidate" : "candidates")}";
 
@@ -492,17 +492,17 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Creates a new execution context, registering it in the local collection of execution contexts.
+    /// 创建新的执行环境,在当地执行背景汇编中登记。
     /// </summary>
-    /// <param name="taskId">The task id.</param>
-    /// <returns>The new execution context.</returns>
+    /// <param name="taskId">任务id。</param>
+    /// <returns>新执行环境。</returns>
     /// <remarks>
-    /// An attempt which starts, or replays, after cancellation of its task was requested receives the request here, and
-    /// its body observes it at a cancellation point: the one which the execution recorded when an earlier attempt first
-    /// observed it, or otherwise the start of a first run, or the point at which a replay ends. From then on, its
-    /// <see cref="DurableTaskContext.CancellationToken"/> is canceled,
-    /// <see cref="DurableTaskContext.IsTaskCancellationRequested"/> is set, and
-    /// <see cref="DurableTaskContext.TaskCancellationReason"/> reports the recorded reason.
+    /// 请求取消任务后开始或重播的尝试在此收到请求,
+    /// 其身体在取消点观察过它:当先尝试时,处决记录到的
+    /// 或从第一个运行开始, 或者重放结束的点。 从那时起, 它
+    /// <see cref="DurableTaskContext.CancellationToken"/> 被取消了,
+    /// <see cref="DurableTaskContext.IsTaskCancellationRequested"/> 已经设置,并且
+    /// <see cref="DurableTaskContext.TaskCancellationReason"/> 报告记录的理由。
     /// </remarks>
     private GrainDurableTaskContext CreateExecutionContext(TaskId taskId)
     {
@@ -534,11 +534,11 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Gets the execution context corresponding to the provided task, if it exists, and returns it.
+    /// 如果存在,则获取与所提供的任务相应的执行环境,然后返回。
     /// </summary>
-    /// <param name="taskId">The task to get an execution context from.</param>
-    /// <param name="executionContext">The execution context.</param>
-    /// <returns><see langword="true"/> if the execution context was found, <see langword="false"/> otherwise.</returns>
+    /// <param name="taskId">从中获取执行上下文的任务。</param>
+    /// <param name="executionContext">执行上下文。</param>
+    /// <returns><see langword="true"/> 如果发现执行上下文, <see langword="false"/> 。</returns>
     private bool TryGetExecutionContext(TaskId taskId, [NotNullWhen(true)] out GrainDurableTaskContext? executionContext) => _executionContexts.TryGetValue(taskId, out executionContext);
 
     private TaskHandle GetOrCreateRunningTaskHandle(TaskId taskId, GrainId remoteTarget = default)
@@ -577,7 +577,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             return;
         }
 
-        // Storage records the caller of every invocation from another grain, so the check decodes no request.
+        // 存储记录从另一个 grain调用的每一次调用电话的调用者,因此检查解码无需请求。
         var existingCaller = state.CallerId;
         if (!existingCaller.IsDefault && existingCaller != callerId)
         {
@@ -595,11 +595,11 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
     }
 
-    /// <summary>Sends a terminal task's result to one of its subscribers.</summary>
+    /// <summary>将终端任务的结果发送给其一个用户。</summary>
     /// <remarks>
-    /// A subscriber on another grain receives a completion through the outbox, which the runtime provides from the stored
-    /// result, and the task retains the result until the completion retires. A subscriber on this grain receives the
-    /// result directly, in the same write, and retires at once.
+    /// 另一个 grain 的用户通过发件箱接收完成信息,运行时间从存储的
+    /// 输入此 grain 用户的人将接收
+    /// 直接产生,在同一写法中,同时退休。
     /// </remarks>
     private void SendCompletion(TaskId taskId, DurableTaskSubscriber destination)
     {
@@ -627,9 +627,9 @@ internal sealed partial class DurableTaskGrainRuntime(
                 return pending;
             }
 
-            // Every completed task's destination has a completion pending in the outbox: the completion is staged with
-            // the result, and the destination is removed when the outbox retires it. Destinations on this grain retire
-            // in the write which stores the result.
+            // 每一个完成的任务的目的地都有一个完成的目标,等待发件箱中的发件箱:完成阶段与
+            // 输出箱退出时,目标被删除。此 grain 的目的地
+            // 记录在存储结果的书写中。
             pending = [];
             var transport = MessageTransport;
             foreach (var (taskId, state) in _storage.Tasks)
@@ -649,11 +649,11 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <remarks>
-    /// The runtime provides the invocations which its table of pending invocations holds, and the completions of its
-    /// tasks' destinations. It never withdraws either: a pending invocation stays in the table, and a pending completion's
-    /// destination keeps its task and result, until <see cref="IOutboxMessageSource.OnRetired"/> removes them, and tasks
-    /// with destinations are never deleted. An exception from decoding the stored result propagates, so the outbox
-    /// dead-letters the completion.
+    /// 运行时间提供其待职待聘职位表所持的职前工作,以及完成
+    /// 工作地点的目的地。它也从未退出:在表格中保留待发的电话,以及尚未完成的
+    /// 目标保持任务和结果,直到 <see cref="IOutboxMessageSource.OnRetired"/> 消除任务和任务
+    /// 保存结果传播的解码例外,所以发件箱
+    /// 完成时用字条写
     /// </remarks>
     bool IOutboxMessageSource.TryGetMessage(MessageId messageId, out OutboxMessage message)
     {
@@ -681,13 +681,13 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Records the outcome of a retired invocation on the record which started it, or removes a retired completion's
-    /// destination, deleting the task with its execution tree once its result has been delivered to every destination.
+    /// 记录在开始或取消退休完成的已退休职业
+    /// 目标, 一旦结果交付给每个目的地, 删除任务, 并用其执行树 。
     /// </summary>
     /// <remarks>
-    /// The outbox stages the message's removal in the same journal write, so the changes commit with the retirement.
-    /// Retirement updates only the task's metadata, so it succeeds when the stored result no longer decodes; polling such a
-    /// result surfaces the decoding error to the poller.
+    /// 发件箱将信件的删除从同一日记写中进行, 因此更改会随着退休而发生 。
+    /// 退休仅更新任务元数据, 所以当存储的结果不再解码时它就会成功; 投票结果
+    /// 导致向授粉器解码错误的表面。
     /// </remarks>
     void IOutboxMessageSource.OnRetired(MessageId messageId, OutboxMessageRetirement retirement)
     {
@@ -714,14 +714,14 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Removes a destination which holds, or can no longer receive, a terminal task's result, deleting the task with its
-    /// execution tree once no destination remains.
+    /// 删除持有或无法再接收终端任务结果的目的地, 并用它
+    /// 一旦没有目的地,即行处决树。
     /// </summary>
     /// <remarks>
-    /// A delivered destination durably holds the result, so the task needs no retention for it. A task without a grain
-    /// caller, such as a task which a client scheduled or a durable execution detached, keeps its result for the retention period after
-    /// completion, so polls observe it. A dead-lettered completion restarts the result's retention period, so a poller,
-    /// or a caller which invokes the task again, can still observe it; the task is then deleted when that period ends.
+    /// 交付目的地长期持久地持有结果,因此任务不需要保留。 grain
+    /// 电话人,例如客户计划或持久执行分离的任务,在其后保留其留任期的结果。
+    /// 完成,所以民意测验观察它。一个字母的完成重新开始结果保留期, 所以投票员,
+    /// 或再次援引该任务的呼叫者仍然可以遵守;当任务结束时,任务将删除。
     /// </remarks>
     private void RetireDestination(TaskId taskId, IDurableTaskState state, DurableTaskSubscriber destination, bool deadLettered)
     {
@@ -729,8 +729,8 @@ internal sealed partial class DurableTaskGrainRuntime(
         _storage.RemoveCompletionDestination(taskId, state, destination);
         if (deadLettered)
         {
-            // Retention starts now: the dead letter can follow a long retry period, and the result must remain
-            // available to a poller or a re-invocation for the full retention period.
+            // 保留从现在开始: 死信可以经过很长的回溯期,结果必须保持
+            // 完全保留期内,授粉者或重新恢复活动可使用。
             _storage.RetainResult(taskId, state);
         }
 
@@ -739,7 +739,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             return;
         }
 
-        // A retention which restarted, because a completion was dead-lettered, outlasts delivery.
+        // 保留因完成日期为无字母、超过交货而重新开始。
         if (state.RetainedSince.HasValue || state.CallerId.IsDefault)
         {
             TrackExpiry(GetRetentionExpiry(state));
@@ -750,7 +750,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
     }
 
-    /// <summary>A completion pending in the outbox.</summary>
+    /// <summary>发信箱的完成未完成。</summary>
     private readonly record struct PendingCompletion(TaskId TaskId, DurableTaskSubscriber Destination);
 
     private void StageCancellation(TaskId taskId, GrainId target, string? reason) =>
@@ -758,7 +758,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
     private ValueTask WriteStateAsync(CancellationToken cancellationToken) => _storage.WriteAsync(cancellationToken);
 
-    /// <summary>Returns a task's state, staging the state of a task which doesn't exist.</summary>
+    /// <summary>返回任务状态, 运行不存在的任务状态。</summary>
     private IDurableTaskState GetOrCreateTask(TaskId taskId, DurableTaskRecordKind kind, IDurableTaskRequest? request)
     {
         var reportCreation = DurableTaskEvents.IsTaskCreatedEnabled && !_storage.TryGetTask(taskId, out _);
@@ -771,12 +771,12 @@ internal sealed partial class DurableTaskGrainRuntime(
         return state;
     }
 
-    /// <summary>Stages a task's terminal result, and returns the result which it staged.</summary>
+    /// <summary>阶段任务终端结果,并返回其所生成的结果。</summary>
     /// <remarks>
-    /// Storage serializes the result before it stages anything, and throws when the result doesn't serialize, such as a
-    /// value or an exception of a type which has no codec. The task then faults with a <see cref="SerializerException"/>
-    /// which names the type, which commits like any result, so the task ends rather than holding a result which no write
-    /// can commit.
+    /// 存储在结果发生任何阶段前, 将结果序列化, 当结果没有连续化时丢弃, 例如 a
+    /// 数值或没有编码器的类型的例外。任务然后与 <see cref="SerializerException"/>发生故障
+    /// 指定类型,如果该类型与任何结果一样,则该类型将产生类似结果,任务结束而不是持有不写入的结果
+    /// 能够承诺。
     /// </remarks>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "A result which can't be stored is stored as that failure.")]
     private DurableTaskResponse SetResponse(TaskId taskId, IDurableTaskState state, DurableTaskResponse response)
@@ -798,7 +798,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         return response;
     }
 
-    /// <summary>Stages a new terminal record of an execution, such as an effect's outcome or a version decision.</summary>
+    /// <summary>阶段性地对执行过程进行新的终端记录,例如效果结果或版本决定。</summary>
     private void AddRecord(TaskId taskId, DurableTaskRecordKind kind, string fingerprint, DurableTaskResponse response)
     {
         _storage.AddRecord(taskId, kind, fingerprint, response);
@@ -806,7 +806,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         DurableTaskEvents.EmitTaskCompleted(GrainContext, taskId, response);
     }
 
-    /// <summary>Stages a task's deletion.</summary>
+    /// <summary>任务删除阶段。</summary>
     private void RemoveTask(TaskId taskId)
     {
         if (_storage.RemoveTask(taskId))
@@ -817,8 +817,8 @@ internal sealed partial class DurableTaskGrainRuntime(
 
 
     /// <summary>
-    /// Stages the invocation of <paramref name="request"/> on another grain as the remote child <paramref name="taskId"/>,
-    /// without writing, and returns the child's recorded terminal response, or <see cref="DurableTaskResponse.Pending"/>.
+    /// 援引 <paramref name="request"/> 在一个 grain 儿童作为边远儿童 <paramref name="taskId"/>,
+    /// 返回儿童记录的绝症反应,或 <see cref="DurableTaskResponse.Pending"/>。
     /// </summary>
     private DurableTaskResponse StageRemote(TaskId taskId, IDurableTaskRequest request, bool shielded)
     {
@@ -862,7 +862,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         context.CallerId = GrainId;
         context.SupportsDurableCompletion = true;
 
-        // A recorded acceptance shows that the invocation retired, and the target holds the task.
+        // 记录接受情况表明,该职业退休,目标承担这项任务。
         if (state.Accepted is null)
         {
             var wireId = GetWireId(taskId);
@@ -872,21 +872,21 @@ internal sealed partial class DurableTaskGrainRuntime(
         return DurableTaskResponse.Pending;
     }
 
-    // Fingerprints of operations in an execution tree begin with '$', so they never equal a hexadecimal request fingerprint.
+    // 执行树上的操作指纹以$开头,所以从不等于十六进制的指纹。
     private const string EffectFingerprint = "$effect";
 
     private static bool IsEffectRecord(IDurableTaskState state) => state.Kind == DurableTaskRecordKind.Effect;
 
     /// <summary>
-    /// Returns the outcome which <paramref name="effectId"/> records, or runs <paramref name="effect"/> and stages a
-    /// record of its outcome, without writing.
+    /// 返回 <paramref name="effectId"/> 记录或运行 <paramref name="effect"/> 和阶段a的结果
+    /// 其结果记录,未书面写成。
     /// </summary>
     /// <remarks>
-    /// The caller runs on the activation, so the record and the state changes which the effect made are staged in the
-    /// same work item and commit in the next journal write, whichever operation requests it. The record is a terminal
-    /// entry of the execution's tree and is deleted with the tree. The outcome is serialized as task results are, and a
-    /// result which doesn't serialize is recorded and returned as that failure, so every run observes the same failure.
-    /// Another kind of record under the effect's identifier, or a named combinator's inputs beneath it, is a divergence.
+    /// 启动时的调用器运行着调用器, 因此在启动时, 记录和状态的变化 效果的改变会以
+    /// 工作项目相同,并按要求在下个日记写中进行,无论操作请求如何。记录是一个终端
+    /// 执行执行的树的条目,与树一起删除。结果按任务结果序列排列,然后
+    /// 并不序列化的结果被记录并返回作为失败, 所以每运行都观察到同样的失败。
+    /// 另一种记录 在效果识别符号下, 或者一个命名的组合器在它下面的投入, 是差异。
     /// </remarks>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "A result which can't be recorded is recorded as that failure.")]
     DurableTaskResponse IDurableTaskGrainRuntime.RunEffect<TState>(
@@ -908,7 +908,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             return outcome;
         }
 
-        // A named combinator records only its inputs, beneath its identifier.
+        // 命名的组合器记录着它输入的内容, 在其识别符号下。
         if (_storage.GetChildren(effectId).FirstOrDefault() is (var inputId, { } input))
         {
             throw CreateDivergenceException(
@@ -931,16 +931,16 @@ internal sealed partial class DurableTaskGrainRuntime(
         return response;
     }
 
-    // Version records are terminal records of their execution, as effect records are, whose result is the version.
+    // 版本记录是其执行的最后记录,如效果记录一样,其结果就是版本。
     private const string VersionFingerprint = "$version";
 
-    /// <summary>The segment prefix of the records of version decisions beneath an execution.</summary>
+    /// <summary>执行下版本决定记录段的前缀。</summary>
     internal const string VersionSegmentPrefix = "$version:";
 
     /// <remarks>
-    /// The search walks from the execution through its enclosing executions, such as a step's parent, and stops at the
-    /// invoked task which owns the tree, so a callee's or an invoked descendant's decisions stay its own. The record is
-    /// a terminal entry of the execution's tree, staged in the calling work item, and is deleted with the tree.
+    /// 搜查从行刑经过处决, 包括一步之母等,
+    /// 树的自有性, 被召人或被传传后代的决定 继续保留自己。
+    /// 执行树的终端条目,以调用工作项目为台阶,与树一起删除。
     /// </remarks>
     int IDurableTaskGrainRuntime.GetOrRecordVersion(TaskId executionId, string name, int version)
     {
@@ -971,12 +971,12 @@ internal sealed partial class DurableTaskGrainRuntime(
 
     private static bool IsVersionRecord(IDurableTaskState state) => state.Kind == DurableTaskRecordKind.Version;
 
-    /// <summary>The segment of the record which holds the cancellation point at which an execution observed its cancellation.</summary>
+    /// <summary>记录中保留了某一执行部分观察其取消的注销点的部分。</summary>
     internal const string CancellationPointSegment = "$cancellation-observed";
 
     private const string CancellationPointFingerprint = "$cancellation-observed";
 
-    /// <remarks>An earlier attempt's delivery records the point, and later attempts read it.</remarks>
+    /// <remarks>早先的运送尝试记录了这一点,后来的尝试读了这一点。</remarks>
     public int? GetCancellationPoint(TaskId executionId)
     {
         if (!_storage.TryGetTask(executionId.Child(CancellationPointSegment), out var record))
@@ -991,9 +991,9 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <remarks>
-    /// The record is a terminal entry of the execution's tree, staged in the calling work item, so it commits with the
-    /// grain's next journal write, and is deleted with the tree. A replay which starts before that write commits it
-    /// delivers the cancellation as an execution without a record does.
+    /// 记录是行刑树的终点入口 以调用工作项目为舞台
+    /// grain的下个日记写入, 并用树木删除。 在写前开始的重放即已执行
+    /// 将取消作为无记录执行。
     /// </remarks>
     public void RecordCancellationPoint(TaskId executionId, int point)
     {
@@ -1030,10 +1030,10 @@ internal sealed partial class DurableTaskGrainRuntime(
                 $"Durable task '{taskId}' is not associated with remote target '{target}'.");
         }
 
-        // The cancellation and its message commit together; the outbox delivers the message only after that commit, and
-        // retries it under the admission cutoff of that send. A recorded request, such as one which a replay repeats,
-        // therefore stages nothing: sending the identity again after the outbox retired it would be a new send, which a
-        // receiver that processed the first rejects for its different cutoff.
+        // 取消及其信息承诺在一起;发件箱只有在发出后才发送该信息,而且
+        // 发送者在登机截止时重新进行重试。 记录的请求, 如重播重复的请求,
+        // 因此,没有分阶段进行任何步骤:发件箱退出后再发送身份,这将是一个新的发送方式,该发送方式
+        // 处理第一个拒绝的接收器 因为它的不同截断点。
         if (!state.CancellationRequestedAt.HasValue)
         {
             _storage.RequestCancellation(taskId, state, reason);
@@ -1043,10 +1043,10 @@ internal sealed partial class DurableTaskGrainRuntime(
         await WriteStateAsync(cancellationToken);
     }
 
-    /// <summary>Requests cancellation of a local task through its handle.</summary>
+    /// <summary>要求通过处理取消本地任务。</summary>
     /// <remarks>
-    /// A cancellation leaf, such as a delay or a task whose body hasn't started, terminalizes as canceled in the write
-    /// which records the request. A started body observes the request through its durable token and decides its outcome.
+    /// 取消叶, 如延迟或任务, 其身体还没有开始, 结束如在写作中取消
+    /// 开始的机构通过持久标记来观察请求,并决定其结果。
     /// </remarks>
     internal async ValueTask CancelScheduledTaskAsync(TaskId taskId, string? reason, CancellationToken cancellationToken)
     {
@@ -1068,16 +1068,16 @@ internal sealed partial class DurableTaskGrainRuntime(
         await propagated.WaitAsync(cancellationToken);
     }
 
-    /// <summary>Returns whether a task's body has started, which records the execution's logical time.</summary>
+    /// <summary>返回任务正文是否已经开始, 并记录执行的逻辑时间。</summary>
     private bool HasStarted(TaskId taskId) => _logicalTimes.ContainsKey(taskId);
 
     /// <summary>
-    /// Returns whether a requested cancellation terminalizes a task as canceled without running a body which decides its
-    /// outcome.
+    /// 返回请求的取消是否在不运行一个决定它的机构的情况下将任务取消而结束
+    /// 结果。
     /// </summary>
     /// <remarks>
-    /// Delays and tasks whose body hasn't started are leaves. A remote child's callee decides that child's outcome, and a
-    /// started body runs, or replays, with its durable token canceled.
+    /// 儿童的身体还没有开始的拖延和任务都是休假。
+    /// 开始运行身体, 或者重放, 其耐久的标记已取消 。
     /// </remarks>
     private bool IsCancellationLeaf(TaskId taskId, IDurableTaskState state) =>
         state.RemoteTarget.IsDefault && (state.DueTime is not null || !HasStarted(taskId));
@@ -1091,8 +1091,8 @@ internal sealed partial class DurableTaskGrainRuntime(
         var transport = MessageTransport;
         if (_storage.TryGetTask(taskId, out var state))
         {
-            // A delay replays only from a delay's record, or from the record of the invoked task whose body is the delay:
-            // another operation's outcome or state is never the delay's.
+            // 延迟重现仅从延误记录或从被援引任务(其机构为迟延)的记录中重复:
+            // 其它操作的结果或状态绝不是延迟的结果。
             if (state.Kind != DurableTaskRecordKind.Delay
                 && !(state.Kind == DurableTaskRecordKind.Invocation && TryGetExecutionContext(taskId, out _)))
             {
@@ -1109,8 +1109,8 @@ internal sealed partial class DurableTaskGrainRuntime(
 
             if (state.DueTime is { } existingDueTime)
             {
-                // A durable delay is a commitment: replay keeps the recorded due time, even when the workflow now
-                // requests another one, for example after a configured duration changed.
+                // 持久拖延是一个承诺:重播保留记录的适当时间,即使现在工作流程
+                // 请求另一个, 例如在配置的长度更改后 。
                 if (existingDueTime != dueTime)
                 {
                     _shared.Logger.LogWarning(
@@ -1121,7 +1121,7 @@ internal sealed partial class DurableTaskGrainRuntime(
                         dueTime);
                 }
 
-                // A replay can observe a delay staged by an earlier attempt whose write did not complete.
+                // 重播可以观察到早期尝试的延迟,而其写作尚未完成。
                 await WriteStateAsync(cancellationToken);
                 return DurableTaskResponse.Pending;
             }
@@ -1131,8 +1131,8 @@ internal sealed partial class DurableTaskGrainRuntime(
         var generation = checked(state.ResumeGeneration + 1);
         _storage.SetDelay(taskId, state, dueTime, generation);
 
-        // The grain's own inbox accepts the resume in the same journal write as the delay, so every durable delay has a
-        // durable resume.
+        // grain自己的收件箱接受与延迟相同日记的复录,因此每次持久延误都有一个
+        // 持久恢复。
         transport.SendResume(GrainId, taskId, GetIncarnation(taskId), generation, dueTime);
         await WriteStateAsync(cancellationToken);
         return DurableTaskResponse.Pending;
@@ -1148,17 +1148,17 @@ internal sealed partial class DurableTaskGrainRuntime(
             cancellationToken);
 
     /// <summary>
-    /// Stages the outcome of a delay whose scheduled resume message became due, completing its handle after commit.
+    /// 将延误的结果分阶段进行,预定的回电到期后即完成处理。
     /// </summary>
-    /// <param name="taskId">The delay.</param>
-    /// <param name="incarnation">The incarnation of the delay's tree when the resume was scheduled.</param>
-    /// <param name="generation">The delay's generation when the resume was scheduled.</param>
-    /// <param name="sender">The grain which sent the resume, which is this grain.</param>
+    /// <param name="taskId">延迟。</param>
+    /// <param name="incarnation">延迟树的化形, 当恢复时间排定时。</param>
+    /// <param name="generation">恢复时间排定时延迟的生成。</param>
+    /// <param name="sender">下 grain 将恢复的发件人发送到 grain.</param>
     /// <remarks>
-    /// A delay whose cancellation was requested terminalizes as canceled. A pending delay of the same incarnation and
-    /// generation completes. Resumes for an earlier run of the delay's tree, which a later run's delay with the same
-    /// identifier can't tell apart by its generation, for an earlier generation, for a terminal delay, or for a missing
-    /// task change nothing.
+    /// 请求取消的延迟被终止为取消。
+    /// 完成各代的相组。 延时树的早期运行恢复, 后一个运行会推迟, 与
+    /// 身份识别特征无法按其代、 早期一代、 终端延迟或丢失的代、 早期一代、 终端延误、 或
+    /// 任务改变不了任何东西。
     /// </remarks>
     internal void ResumeDelayFromInbox(TaskId taskId, Guid incarnation, long generation, GrainId sender)
     {
@@ -1207,18 +1207,18 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Stages the terminal response of a task of <paramref name="sender"/> which this grain's node awaits: a remote
-    /// child's own result, or the result of the existing task <paramref name="sourceTaskId"/> to which a subscription
-    /// child subscribed. The completion names the node by its wire identifier, <paramref name="wireId"/>. The local handle
-    /// completes after commit.
+    /// 阶段: <paramref name="sender"/> 中 grain'等待的节点:一个远程
+    /// 儿童自己的结果或订阅现有任务的结果 <paramref name="sourceTaskId"/>
+    /// 儿童已签名。完成后, 以其线条识别符号 <paramref name="wireId"/>命名节点。
+    /// 承诺后完成。
     /// </summary>
     /// <remarks>
-    /// The inbox accepts the completion directly into task state, so this stored response is its only journaled copy.
-    /// The sender retains its result until the inbox reports this acceptance to the sender's outbox. A completion for a
-    /// node which no longer exists, or which belongs to another run of its tree than the run which the wire identifier
-    /// names, is accepted without changing state: the run which awaited it was deleted with its execution tree, which
-    /// canceled it, and nothing awaits its result. A subscription which already ended, for example because it was
-    /// canceled, also accepts the completion without changes.
+    /// 收件箱接受直接完成任务状态, 因此此存储回复是它唯一的日记副本 。
+    /// 发送者保留其结果,直到收件箱将接受情况报告给发件人发件人发件人发件人发件人发件人发件人发件人发件人发件人发件人发件人
+    /// 不再存在的结点,或属于其树上另一条线的结点,而不是线标识符所指定的线
+    /// 接受名称,但不变状态:等待其的跑步与行刑树一起删除,后者
+    /// 取消它,没有任何东西等待它的结局。一个订阅已经终止,例如因为
+    /// 已取消, 也接受不修改的完成 。
     /// </remarks>
     internal void AcceptResponseFromInbox(TaskId wireId, TaskId sourceTaskId, DurableTaskResponse response, GrainId sender)
     {
@@ -1230,8 +1230,8 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         ThrowIfNotStartedBy(taskId, wireId, sourceTaskId, state, sender);
 
-        // The task's result shows that its grain holds the task, so it records the acceptance which the invocation's
-        // retirement would otherwise record.
+        // 任务的结果表明,它 grain 保留任务, 记录被请求接受的
+        // 否则退休记录就会记录在案。
         if (state.Accepted is null && AwaitsAcceptance(state))
         {
             _storage.SetAccepted(taskId, state, accepted: true);
@@ -1247,18 +1247,18 @@ internal sealed partial class DurableTaskGrainRuntime(
         _pendingHandleResponses[taskId] = StageAcceptedResponse(taskId, state, response);
     }
 
-    /// <summary>Recovers committed task state and starts the recovered executions.</summary>
+    /// <summary>恢复执着的任务状态,并开始执行被追回的处决。</summary>
     internal async Task ResumePendingTasksAsync(CancellationToken cancellationToken)
     {
         await RecoverAsync(cancellationToken);
         StartRecoveredExecutions();
     }
 
-    /// <summary>Returns whether the task stores its terminal result, without decoding the result.</summary>
+    /// <summary>返回任务是否存储其终端结果,而不解码结果。</summary>
     /// <remarks>
-    /// Storage stamps <see cref="IDurableTaskState.CompletedAt"/> with every stored result, which is always terminal.
-    /// Activation checks completion this way, so a stored result which no longer decodes fails only the operations which
-    /// read it, such as materializing its completion or polling it.
+    /// 存储印章 <see cref="IDurableTaskState.CompletedAt"/> ,每个储存的结果都保存在封存处,总是最后。
+    /// 激活检查以这种方式完成,因此储存的结果不再编码,不再解码,只能使操作失败
+    /// 读过,例如完成或投票。
     /// </remarks>
     private static bool HasStoredResult(IDurableTaskState state) => state.CompletedAt.HasValue;
 
@@ -1285,15 +1285,15 @@ internal sealed partial class DurableTaskGrainRuntime(
                 continue;
             }
 
-            // A canceled leaf terminalizes. A remote child awaits its callee's outcome, and a started body replays below,
-            // or with its parent, with its durable token canceled.
+            // 被取消的叶子已经绝迹。一个遥远的孩子等待着被召唤者的结果, 开始身体重现,
+            // 或与其父子关系, 其耐久的标志取消 。
             if (state.CancellationRequestedAt.HasValue && IsCancellationLeaf(taskId, state))
             {
                 await SetResponseAsync(taskId, DurableTaskResponse.Canceled, cancellationToken);
                 continue;
             }
 
-            // A pending delay's resume message is durable with the delay, and the inbox processes it when due.
+            // 延迟的回信信息会随着延误而持久,收件箱也会在到期时处理。
             if (state.DueTime is not null)
             {
                 continue;
@@ -1320,23 +1320,23 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Durably schedules a request for invocation against this instance.
+    /// 确实可以安排对此案提出援引请求。
     /// </summary>
-    /// <param name="request">The request.</param>
-    /// <returns>A <see cref="DurableTaskResponse"/> indicating the status of the request. A response of type <see cref="PendingDurableTaskResponse"/> indicates that the caller can call this method again to poll for completion.</returns>
+    /// <param name="request">请求。</param>
+    /// <returns>A <see cref="DurableTaskResponse"/> 表示请求的状况。类型 <see cref="PendingDurableTaskResponse"/> 的答复表示,调用者可以再次将这种方法调用民意测验以完成。</returns>
     /// <exception cref="InvalidOperationException"></exception>
     async ValueTask<DurableTaskResponse> IDurableTaskServer.ScheduleAsync(
         TaskId taskId,
         IDurableTaskRequest request,
         CancellationToken cancellationToken)
     {
-        // Retention ends at a deadline, which can pass while the grain is otherwise idle, and this write commits the
-        // deletion with the request.
+        // 留存额在最后期限截止时终止,期限可在 grain 空闲期间通过,本写作承诺
+        // 删除请求。
         ThrowIfStopping();
         DeleteExpiredTasks();
         var scheduled = StageSchedule(taskId, request, fromInbox: false);
 
-        // Commit the request identity and caller subscription before execution begins.
+        // 在处决开始前提交请求身份和电话订阅。
         await WriteStateAsync(cancellationToken);
         if (scheduled is CanceledRequest { Response: var completed })
         {
@@ -1356,13 +1356,13 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Stages a request received through the inbox, starting it after the inbox batch commits.
+    /// 阶段 通过收件箱收到请求, 开始于收件箱批次完成后。
     /// </summary>
     internal DurableTaskResponse ScheduleFromInbox(TaskId taskId, IDurableTaskRequest request) =>
         StageScheduleWithCommitEffects(taskId, request, fromInbox: true);
 
     /// <summary>
-    /// Stages a request, starting it or completing its handle after the write which commits the staged changes.
+    /// 请求在进行分阶段修改的写作后,开始处理或完成处理阶段。
     /// </summary>
     private DurableTaskResponse StageScheduleWithCommitEffects(TaskId taskId, IDurableTaskRequest request, bool fromInbox)
     {
@@ -1384,7 +1384,7 @@ internal sealed partial class DurableTaskGrainRuntime(
     {
         ThrowIfStopping();
 
-        // Only invocations from other grains store tasks beneath the reserved caller scope root.
+        // 仅在保留调用范围根下存储任务的其他 grains 引用 。
         if (!fromInbox)
         {
             CallerScope.ThrowIfReserved(taskId);
@@ -1408,7 +1408,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
         else if (requestContext.CallerId == GrainId)
         {
-            // A completion is never addressed to its own grain: StageRemote rejects self-invocation.
+            // 完成的单项从不针对其本身 grain: StageRemote 拒绝自寻其口。
             throw new InvalidOperationException(
                 $"Durable task '{taskId}' cannot be invoked by its owning grain '{GrainId}' through durable messaging.");
         }
@@ -1447,9 +1447,9 @@ internal sealed partial class DurableTaskGrainRuntime(
                 DescribeRequest(request));
         }
 
-        // A request is the same operation as the stored task when it invokes the same method for the same caller, which
-        // ValidateCaller checked: a retry whose arguments serialize differently reaches the stored task. A record of an
-        // execution's own operation, such as an effect, has a fingerprint but invokes no method.
+        // 请求对同一调用人采用相同方法时,与存储的任务相同操作。
+        // 检查了ValidateCaller :重试其参数序列序列不同而要达到存储任务。
+        // 其执行本身的操作,例如效果,有指纹,但没有任何方法。
         if (state.Method is { } recordedMethod
                 ? !string.Equals(recordedMethod, method, StringComparison.Ordinal)
                 : state.RequestFingerprint is not null)
@@ -1467,8 +1467,8 @@ internal sealed partial class DurableTaskGrainRuntime(
             _storage.SetRequestFingerprint(taskId, state, IDurableTaskRequest.GetFingerprint(request, _shared.Serializer), method);
         }
 
-        // A run's incarnation is minted when its invocation is first stored, which a record of an earlier cancellation
-        // precedes. That record becomes the invocation's.
+        // 运行的内化在它的援引首次存储时被刻模,这是早期取消的记录
+        // 前面的一段,那段记录变成了引用
         if (state.Kind == DurableTaskRecordKind.EarlyCancellation)
         {
             _storage.SetInvocation(taskId, state);
@@ -1479,13 +1479,13 @@ internal sealed partial class DurableTaskGrainRuntime(
             _storage.SetIncarnation(taskId, state, Guid.NewGuid());
         }
 
-        // An invocation whose cancellation preceded its start terminalizes as canceled. A started body, which a duplicate
-        // invocation reaches, decides its own outcome.
+        // 在一个在开始取消之前就被取消的援引中, 其取消被取消作为取消的终止。 一个启动的机构, 重复
+        // 请求达到,决定自己的结果。
         if (state.CancellationRequestedAt.HasValue
             && state.Result is not { IsCompleted: true }
             && IsCancellationLeaf(taskId, state))
         {
-            // A cancellation which preceded the invocation recorded no request.
+            // 援引前的取消没有接到任何请求。
             if (!state.HasRequest)
             {
                 _storage.SetRequest(taskId, state, request);
@@ -1513,32 +1513,32 @@ internal sealed partial class DurableTaskGrainRuntime(
         var subscribed = requestContext.SupportsDurableCompletion
             && TryRegisterCompletionDestination(taskId, state, GetInvoker(requestContext.CallerId, taskId));
 
-        // A request staged by an attempt whose write did not complete has not started yet.
+        // 一项请求,如果试图提出但书写尚未完成,则尚未开始。
         return new StartedRequest(subscribed ? DurableTaskResponse.Subscribed : DurableTaskResponse.Pending);
     }
 
-    /// <summary>Staging stored the request, which starts once the write which commits it completes.</summary>
+    /// <summary>调控存储请求,请求在完成承诺的写作后开始。</summary>
     private sealed class StartedRequest(DurableTaskResponse response)
     {
         public DurableTaskResponse Response { get; } = response;
     }
 
-    /// <summary>The request reached a task which already completed.</summary>
+    /// <summary>请求完成了一项已经完成的任务。</summary>
     private sealed class CompletedRequest(DurableTaskResponse response)
     {
         public DurableTaskResponse Response { get; } = response;
     }
 
     /// <summary>
-    /// A cancellation preceded the request, so staging stored the task as canceled, and the request's handle completes once
-    /// the write which commits it completes.
+    /// 请求之前取消一次, 所以在请求前取消, 启动后将任务存储为被取消, 请求处理完成一次
+    /// 完成那部经典的经文。
     /// </summary>
     private sealed class CanceledRequest(DurableTaskResponse response)
     {
         public DurableTaskResponse Response { get; } = response;
     }
 
-    /// <summary>The outcome of staging a request.</summary>
+    /// <summary>启动请求的结果</summary>
     private readonly union ScheduledRequest(StartedRequest, CompletedRequest, CanceledRequest);
 
     private static DurableTaskResponse GetResponse(ScheduledRequest scheduled) => scheduled switch
@@ -1549,8 +1549,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     };
 
     /// <summary>
-    /// Returns the destination of the completion of <paramref name="taskId"/> to the grain which invoked it, which names the
-    /// invoker's own child.
+    /// 返回 <paramref name="taskId"/> 完成日期,返回引用该日期的 grain ,其中列出
+    /// 索尔的自生子
     /// </summary>
     private static DurableTaskSubscriber GetInvoker(GrainId callerId, TaskId taskId) =>
         new(callerId, CallerScope.GetCallerTaskId(callerId, taskId));
@@ -1569,7 +1569,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         if (state.CompletionDestinations.Contains(GetInvoker(requestContext.CallerId, taskId)))
         {
-            // The completion to this destination is still pending in the outbox.
+            // 目的地的完成情况尚未在发信箱中公布。
             return false;
         }
 
@@ -1589,7 +1589,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             return;
         }
 
-        // A request whose cancellation precedes its start has no body which observes it.
+        // 在请求开始之前提出取消的请求,没有机构予以遵守。
         if (state.CancellationRequestedAt.HasValue && IsCancellationLeaf(taskId, state))
         {
             TrackBackgroundTask(
@@ -1610,14 +1610,14 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Returns the request which <paramref name="taskId"/> stores, or quarantines the task when its request no longer
-    /// decodes.
+    /// 返回 <paramref name="taskId"/> 存储该任务的请求,或在请求不再存在时进行检疫
+    /// 解码
     /// </summary>
     /// <remarks>
-    /// A quarantined task stays pending with its stored request unchanged, and stalls: the runtime reports it once per
-    /// activation with <see cref="DurableTaskAttemptCancellationReason.Diverged"/> and keeps the grain's slow wake-up, so
-    /// a later activation, such as one whose code decodes the request, starts it. The grain's other tasks are unaffected,
-    /// and polls report the task as pending. Aborting the task ends it.
+    /// 隔离任务仍待处理,其储存的请求和摊位不变:运行时间报告一次
+    /// 以 <see cref="DurableTaskAttemptCancellationReason.Diverged"/> 激活并保持 grain的慢警醒,所以
+    /// 之后启动,例如其代码解码请求的激活,开始启动。 grain的其他任务不受影响,
+    /// 投票结果报告任务尚未完成。中止任务结束任务
     /// </remarks>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Any decoding failure quarantines only the task which stores the request.")]
     private bool TryReadRequest(TaskId taskId, IDurableTaskState state, [NotNullWhen(true)] out IDurableTaskRequest? request)
@@ -1645,40 +1645,40 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Reports work while the grain holds a runnable execution, so the inbox's durable wake-up reactivates the grain, and
-    /// recovery resumes the execution, after a deactivation or a crash.
+    /// 报告工作, grain 则执行可撤销的处决,因此收件箱持久地唤醒了 grain,并
+    /// 停止执行或坠机后恢复执行。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An attempt is runnable while one of its segments runs or is queued. A parked attempt waits for an event which a
-    /// message delivers: a child's result, a signal, a delay's resume, or the first of several completions. That message
-    /// reactivates the grain. A journal write also makes attempts runnable once it commits: it starts the requests it
-    /// accepts, completes the handles of the results and signals it stores, and propagates the cancellations it records.
-    /// The inbox consults this source while it prepares each write, before the runtime captures those effects, and ensures
-    /// the wake-up before the write can become durable. Committed cancellations propagate in background work, which counts
-    /// as work until it ends.
+    /// 尝试在其中一个部分运行或排队时是可运行的,而其一个片段运行或排队。
+    /// 信息传递:儿童的结果、信号、延迟的恢复或若干完成的第一个。
+    /// 重新启动 grain。日记笔迹也使一旦实施尝试即可运行:它开始请求
+    /// 接受、完成结果的处理和存储信号,并宣传其记录的注销。
+    /// 收件箱在每次写作时,在运行时间之前,在准备这些效果并进行确保
+    /// 承诺取消的取消在背景工作中传播,这算
+    /// 工作到结束
     /// </para>
     /// <para>
-    /// Messaging consults its work sources when the activation starts, before this runtime recovers its executions, so
-    /// until recovery has run, the pending executions which storage holds count as runnable. This re-arms the wake-up from
-    /// recovered state, so committed work is never stranded.
+    /// 当启动开始时,即在此运行时间恢复处决之前,通讯通信咨询其工作来源。
+    /// 直至恢复持续,等待处决的死刑 储存库中计为可运行的。
+    /// 恢复状态,所以投入的工作从不搁浅。
     /// </para>
     /// <para>
-    /// Messaging also consults them while the activation deactivates, until its pump stops. The runtime discards every
-    /// attempt as deactivation starts, so none of them is runnable any more, and a wake-up which ran then would end without
-    /// a successor, stranding an execution which was runnable when the activation stopped or whose awaited event committed
-    /// while it stopped. A stopping runtime therefore reports its pending executions as runnable too. A parked execution
-    /// which this keeps awake costs one more activation, whose recovery parks it again.
+    /// 启动的拆除装置在启动时,通信也咨询它们,直到泵停止。
+    /// 尝试启动退出时, 并开始尝试停止功能, 因此它们中没有一个不再可以运行, 而一个在随后运行的警醒将会结束, 没有
+    /// 将启动停止或实施其等待事件时可执行的处决捆绑起来
+    /// 停止运行时间因此报告其待执行的处决也可运作。
+    /// 保持清醒又需要一次激活, 恢复后又会重新公园。
     /// </para>
     /// <para>
-    /// The delay, <see cref="Orleans.Configuration.DurableTaskOptions.RunnableExecutionWakeupDelay"/>, bounds how late a
-    /// grain which crashed resumes a runnable attempt. The wake-up only matters after a crash or a deactivation: while the
-    /// grain is active, a wake-up only reschedules itself, so a long delay keeps that cheap rather than polling.
+    /// 延迟, <see cref="Orleans.Configuration.DurableTaskOptions.RunnableExecutionWakeupDelay"/>, 限制
+    /// 崩溃的grain 恢复了可运行的尝试。 提醒只在崩溃或停用后才重要: 而
+    /// grain 活动, 唤醒自己只重新安排时间, 所以长时间的拖延会维持低廉的投票而不是投票。
     /// </para>
     /// <para>
-    /// A stalled execution waits for code which can replay it, which only a later activation runs, so it keeps a slow
-    /// wake-up, <see cref="Orleans.Configuration.DurableTaskOptions.StalledExecutionRetryInterval"/>: once the activation ends, such as when a
-    /// rolling deployment stops its silo, the wake-up reactivates the grain and recovery replays the execution.
+    /// 死刑的暂停等待代码的重放, 它只是后一启动运行, 所以它保持缓慢
+    /// 提醒, <see cref="Orleans.Configuration.DurableTaskOptions.StalledExecutionRetryInterval"/>:一旦激活结束,例如当
+    /// 滚动部署停止了 silo,警醒重新启动了 grain ,恢复重播执行。
     /// </para>
     /// </remarks>
     internal TimeSpan? GetWakeupDelay() =>
@@ -1705,7 +1705,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         return false;
     }
 
-    /// <summary>Returns whether storage holds an execution which recovery would run.</summary>
+    /// <summary>返回存储是否具有回收运行的操作。</summary>
     private bool HasPendingExecutions()
     {
         foreach (var (_, state) in _storage.Tasks)
@@ -1719,7 +1719,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         return false;
     }
 
-    /// <summary>Returns whether a stalled execution is still pending, forgetting those which ended, such as by an abort.</summary>
+    /// <summary>返回中止执行是否仍然未执行,忘记了终止执行的处决,例如中止执行。</summary>
     private bool HasStalledExecutions()
     {
         _stalledExecutions.RemoveWhere(taskId => !_storage.TryGetTask(taskId, out var state) || HasStoredResult(state));
@@ -1727,13 +1727,13 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Cancels the attempt of an execution which the running code can't replay, keeps its task pending, and reports the
-    /// stall.
+    /// 取消执行的尝试,运行代码无法重放,任务未完成,报告
+    /// 缓存。
     /// </summary>
     /// <remarks>
-    /// The attempt is canceled as deactivation, an abort, or a deletion cancels it, so its later durable operations throw
-    /// and its result is discarded. The task keeps no outcome, and the grain's slow wake-up lets a later
-    /// activation replay it.
+    /// 尝试因停止、中止或删除而取消,所以其后来的持久操作被撤销
+    /// 其结果被抛弃,而他没有成果。 grain慢慢的唤醒,等一会儿
+    /// 激活重放它。
     /// </remarks>
     void IDurableTaskGrainRuntime.StallAttempt(GrainDurableTaskContext context, DurableTaskAttemptCancellationReason reason, Exception exception)
     {
@@ -1765,7 +1765,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         _pendingHandleResponses.Clear();
         foreach (var propagation in _pendingCancellationPropagations.Values)
         {
-            // The cancellation which the propagation follows didn't commit.
+            // 之后的传播活动取消后并没有承诺
             propagation.Completion?.TrySetCanceled();
         }
 
@@ -1787,8 +1787,8 @@ internal sealed partial class DurableTaskGrainRuntime(
 
     private void CaptureCommitEffects()
     {
-        // Effects stay pending until a write which captured them completes, so a capture which writes no bytes
-        // leaves them for the next write.
+        // 效果一直等待时间, 直到捕获它们的文件完成, 所以一个捕捉, 没有写字节
+        // 留待下次写作时再写
         _committingStarts = (_pendingStarts.Count == 0) ? [] : [.. _pendingStarts];
         _committingHandleResponses = (_pendingHandleResponses.Count == 0) ? [] : [.. _pendingHandleResponses];
         _committingCancellationPropagations = (_pendingCancellationPropagations.Count == 0) ? [] : [.. _pendingCancellationPropagations.Keys];
@@ -1813,7 +1813,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         foreach (var (taskId, response) in handleResponses)
         {
-            // A later stage of the same task's response, which a later write commits, stays pending.
+            // 同一任务的答复的后一阶段,即以后写作时承诺的答复,仍待落实。
             if (_pendingHandleResponses.TryGetValue(taskId, out var pending) && ReferenceEquals(pending, response))
             {
                 _pendingHandleResponses.Remove(taskId);
@@ -1838,9 +1838,9 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
         else
         {
-            // An attempt observes its task's cancellation before any outcome which this or a later write commits, such as a
-            // child which the cancellation ended. The attempts' task cancellation runs their tokens' registrations, so it
-            // runs after this write's acknowledgement, and the handles which this write completes wait for it.
+            // 试图在它或后来写的任何结果之前观察其任务的取消,例如
+            // 儿童在孩子的标记注册上运行了取消结束的日期。尝试任务取消时运行着他们的标记登记,所以它
+            // 运行于此写入确认后, 此写完成的控点将等待它 。
             if (_orderedCommittedEffects is null)
             {
                 _orderedCommittedEffects = [];
@@ -1852,7 +1852,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         if (!_stopping)
         {
-            // Checking for expired tasks is cheap until the earliest expiry passes.
+            // 检查过期任务在最早到期通行证之前是廉价的。
             if (!(_pendingHandleResponses.Count == 0) || DeleteExpiredTasks())
             {
                 QueueBackgroundWrite();
@@ -1860,16 +1860,16 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
     }
 
-    /// <summary>The cancellation propagations and handle completions which one write committed.</summary>
+    /// <summary>注销的传播和处理一个写作的完成。</summary>
     private readonly record struct CommittedEffects(
         List<CancellationPropagation> Propagations,
         KeyValuePair<TaskId, DurableTaskResponse>[] HandleResponses);
 
     /// <summary>
-    /// Runs the committed effects which wait for task cancellation, in commit order: each write's cancellation of
-    /// attempts, then its handle completions, then its cancellation of the leaves which it reaches, such as delays.
+    /// 运行等待任务取消的已承诺效果,按承诺顺序:每写入一次注销
+    /// 尝试,然后处理完后,它取消了它所剩的假期,例如拖延。
     /// </summary>
-    /// <remarks>Effects which writes commit while this runs join it, so their handles complete after the earlier cancellations.</remarks>
+    /// <remarks>效果, 它在运行时写入承诺, 而它会同时加入, 所以它们的控件会在先前的取消后完成 。</remarks>
     private async Task RunOrderedCommittedEffectsAsync()
     {
         await Task.Yield();
@@ -1901,7 +1901,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         _orderedCommittedEffects = null;
     }
 
-    /// <summary>Requests the task cancellation of a committed propagation's attempts, and returns their registrations' failures.</summary>
+    /// <summary>要求取消一项承诺的传播企图的任务,并归还其登记失败。</summary>
     private static List<Exception>? RequestTaskCancellation(CancellationPropagation propagation)
     {
         List<Exception>? failures = null;
@@ -1913,7 +1913,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             }
             catch (AggregateException exception)
             {
-                // A registration's failure leaves the other attempts' cancellation unaffected.
+                // 登记失败使其他取消尝试不受影响。
                 (failures ??= []).Add(exception);
             }
         }
@@ -1922,8 +1922,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Cancels the leaves of a committed propagation, such as delays and children whose bodies haven't started, then
-    /// completes the propagation with every failure.
+    /// 取消承诺传播的假期,例如延迟和尚未开始身体的儿童,然后
+    /// 每一个失败都完成传播。
     /// </summary>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Every failure is reported through the propagation's completion.")]
     private static async Task PropagateToLeavesAsync(CancellationPropagation propagation, List<Exception>? failures)
@@ -1953,25 +1953,25 @@ internal sealed partial class DurableTaskGrainRuntime(
         propagation.Completion?.TrySetResult();
     }
 
-    /// <summary>Starts a child which its ancestors' durable cancellation reaches.</summary>
+    /// <summary>开始一个孩子, 其祖先的持久取消 到达。</summary>
     public ValueTask<IScheduledTaskHandle> ScheduleChildAsync(
         TaskId taskId,
         DurableTask durableTask,
         CancellationToken cancellationToken) =>
         ScheduleChildAsync(taskId, durableTask, shielded: false, waitForAcceptance: false, cancellationToken);
 
-    /// <summary>Starts or reattaches to a child, and waits for the write which commits it.</summary>
-    /// <param name="taskId">The child's identifier.</param>
-    /// <param name="durableTask">The child's definition.</param>
+    /// <summary>开始或重新联系孩子,等待写作。</summary>
+    /// <param name="taskId">儿童的身份识别资料</param>
+    /// <param name="durableTask">儿童的定义。</param>
     /// <param name="shielded">
-    /// Whether the parent starts the child shielded. Such a child is created and runs even when an ancestor's cancellation
-    /// was requested, and records that its ancestors' cancellation doesn't reach it.
+    /// 是否由父母启动被保护的儿童保护。 这样的孩子即使祖先取消, 也会创建并运行。
+    /// 并且记录着 其祖先的取消没有达到
     /// </param>
     /// <param name="waitForAcceptance">
-    /// Whether the start completes once the child's host has accepted and durably stored it: a call to another grain
-    /// awaits its target's acceptance, and a rejected call fails the start.
+    /// 儿童主机接受并持久储存该启动是否完成:呼叫另一个 grain
+    /// 等待目标被接受, 拒绝的呼声失败了开始。
     /// </param>
-    /// <param name="cancellationToken">A token which abandons the start.</param>
+    /// <param name="cancellationToken">放弃启动的标记。</param>
     public async ValueTask<IScheduledTaskHandle> ScheduleChildAsync(
         TaskId taskId,
         DurableTask durableTask,
@@ -2006,11 +2006,11 @@ internal sealed partial class DurableTaskGrainRuntime(
         return staged.Handle;
     }
 
-    /// <summary>Stages the start of a child on the activation, without writing, and returns its handle.</summary>
+    /// <summary>儿童启动时,无需书面说明即可开始工作,并返回其控件。</summary>
     /// <remarks>
-    /// The start commits with the next journal write, together with the state changes which the calling work item made.
+    /// 开始承诺使用下一期日记写, 以及调用工作项目更改的状态 。
     /// </remarks>
-    /// <exception cref="NotSupportedException">A custom host schedules the definition.</exception>
+    /// <exception cref="NotSupportedException">自定义主机将定义排在时间表上。</exception>
     public IScheduledTaskHandle PostChild(TaskId taskId, DurableTask durableTask, bool shielded)
     {
         ThrowIfStopping();
@@ -2024,8 +2024,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Throws for a child definition which a host other than this runtime schedules: an execution's children are its
-    /// grain's local children, calls to other grains, and subscriptions, all of which this runtime records and replays.
+    /// 丢弃儿童定义, 儿童的定义是:
+    /// grain当地儿童,呼吁其他 grains和订阅,所有这些运行时间记录和重播。
     /// </summary>
     private static void ThrowIfCustomScheduled(DurableTask durableTask)
     {
@@ -2036,8 +2036,8 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
     }
 
-    /// <summary>Stages the start of a local child or of a call to another grain, without writing.</summary>
-    /// <returns>The child's handle, and whether its start staged changes which a write commits.</returns>
+    /// <summary>当地儿童或呼叫另一个孩子的开始阶段 grain,不写。</summary>
+    /// <returns>儿童处理,以及其开始阶段是否改变写作承诺。</returns>
     private StagedChild StageChild(TaskId taskId, DurableTask durableTask, bool shielded)
     {
         if (_shared.Logger.IsEnabled(LogLevel.Trace))
@@ -2048,7 +2048,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         var stateExisted = _storage.TryGetTask(taskId, out var state);
         if (stateExisted)
         {
-            // Decodes the recorded outcome once, so the handle which the replay receives holds it.
+            // 解码了记录的结果一次, 所以重播接收的手柄就持有它。
             ReadRecordedResult(taskId, state!);
         }
 
@@ -2103,8 +2103,8 @@ internal sealed partial class DurableTaskGrainRuntime(
                 GetLocalKind(durableTask) == DurableTaskRecordKind.Delay ? "a delay" : "a local child task");
         }
 
-        // A requested cancellation terminalizes a leaf, such as a delay or a child whose body hasn't started. A remote
-        // child's callee decides its outcome, and a started body replays below with its durable token canceled.
+        // 请求取消取消会终止叶子, 如延迟或身体尚未开始的小孩。 远程
+        // 儿童被召者决定结果, 开始的人体重播在下面,
         if (state is { CancellationRequestedAt: not null, Result: not { IsCompleted: true } }
             && IsCancellationLeaf(taskId, state))
         {
@@ -2125,8 +2125,8 @@ internal sealed partial class DurableTaskGrainRuntime(
             return new(handle, RequiresWrite: false);
         }
 
-        // A child of a canceled ancestor is not created, unless the parent started it shielded. A child which existed when
-        // the cancellation was requested records the request itself.
+        // 取消祖先的子子孙没有创建,除非父母亲启动保护。
+        // 请求取消后,请求本身就记录在案。
         if (state is not { CancellationRequestedAt: not null } && IsStartRefusedByAncestorCancellation(taskId, state, shielded))
         {
             return new(new CompletedTaskHandle(taskId, DurableTaskResponse.Canceled), RequiresWrite: false);
@@ -2142,10 +2142,10 @@ internal sealed partial class DurableTaskGrainRuntime(
             return StageRemoteChild(taskId, remoteRequest, shielded);
         }
 
-        // Otherwise, the task must be a local method invocation. Its state is staged and commits with the next write,
-        // such as the first durable operation of its body or its result, so a synchronous step costs one write. A step's
-        // identity and inputs follow from its parent's inputs and earlier results, so a replay which finds no record
-        // runs the step again. A delay is a local child whose body records the delay under the child's own identifier.
+        // 否则,任务必须是当地方法的援引。
+        // 例如,其身体的第一次耐久操作或结果,因此同步步骤需要写一个。
+        // 其父母的投入和早期结果,以及根据父母的意见和早期的结果得出的身份和投入,因此,重放时没有记录
+        // 延迟是指一个当地儿童,其身体根据儿童自己的识别资料记录延迟。
         state ??= GetOrCreateTask(taskId, GetLocalKind(durableTask), request: null);
         MarkShielded(taskId, state, shielded);
 
@@ -2155,15 +2155,15 @@ internal sealed partial class DurableTaskGrainRuntime(
         return new(handle, RequiresWrite: false);
     }
 
-    /// <summary>A staged start's handle, and whether the start staged changes which a write commits.</summary>
+    /// <summary>分阶段启动的控件,以及开始阶段是否改变写入承诺。</summary>
     private readonly record struct StagedChild(IScheduledTaskHandle Handle, bool RequiresWrite);
 
-    // The definitions which DurableTask.Delay and DurableTask.DelayUntil create, whose bodies record a delay under their
-    // child's own identifier.
+    // DurableTask.Delay 和 DurableTask.DelayUntil 所创建的定义,其机构记录在其
+    // 儿童自己的识别资料。
     private static readonly Type DelayType = DurableTask.Delay(TimeSpan.Zero).GetType();
     private static readonly Type DelayUntilType = DurableTask.DelayUntil(DateTimeOffset.MinValue).GetType();
 
-    /// <summary>Returns the kind of the record of a local child which runs <paramref name="durableTask"/>.</summary>
+    /// <summary>返回运行 <paramref name="durableTask"/>的本地儿童的记录类型。</summary>
     private static DurableTaskRecordKind GetLocalKind(DurableTask durableTask) =>
         durableTask.GetType() is var type && (type == DelayType || type == DelayUntilType)
             ? DurableTaskRecordKind.Delay
@@ -2180,13 +2180,13 @@ internal sealed partial class DurableTaskGrainRuntime(
         return new(GetOrCreateRunningTaskHandle(taskId, IDurableTaskRequest.GetContext(request).TargetId), RequiresWrite: true);
     }
 
-    /// <summary>Returns whether the durable cancellation of one of a task's ancestors reaches the task.</summary>
-    /// <param name="taskId">The task.</param>
-    /// <param name="state">The task's state, if it exists.</param>
-    /// <param name="shielded">Whether the task's parent starts it shielded.</param>
+    /// <summary>返回任务祖先之一的持久取消是否达到任务。</summary>
+    /// <param name="taskId">任务</param>
+    /// <param name="state">如果任务状态存在, 则该任务状态。</param>
+    /// <param name="shielded">任务父/母是否开始保护它。</param>
     /// <remarks>
-    /// Cancellation reaches a task through its ancestors up to the nearest one which is shielded: the cancellation of
-    /// that task's own ancestors doesn't reach it, so it doesn't reach its descendants either.
+    /// 取消通过祖先完成一项任务,直至最接近被保护的:
+    /// 这项任务的祖先没有到达它, 所以它也没有到达它的后代。
     /// </remarks>
     private bool IsAncestorCancellationRequested(TaskId taskId, IDurableTaskState? state, bool shielded)
     {
@@ -2215,18 +2215,18 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Returns whether the durable cancellation of one of a task's ancestors refuses the task's start, after each running
-    /// ancestor which the cancellation reaches observes it.
+    /// 返回是否每次运行后,任务祖先之一的持久取消是否拒绝任务的开始
+    /// 取消的祖先会观察到它
     /// </summary>
-    /// <param name="taskId">The task to start.</param>
-    /// <param name="state">The task's state, if it exists.</param>
-    /// <param name="shielded">Whether the task's parent starts it shielded.</param>
+    /// <param name="taskId">要启动的任务。</param>
+    /// <param name="state">如果任务状态存在, 则该任务状态。</param>
+    /// <param name="shielded">任务父/母是否开始保护它。</param>
     /// <remarks>
-    /// A cancellation is staged when it arrives and reaches the running executions once the write which commits it
-    /// completes. A body which starts work in between has that work refused, so it observes its own cancellation first:
-    /// the refused start throws while <see cref="DurableTaskContext.IsTaskCancellationRequested"/> reports the
-    /// cancellation, and the body runs its cancellation handling, such as shielded compensation. The propagation which
-    /// follows the write finds the cancellation already requested.
+    /// 取消在一旦写作后即行处决时,即予取消。
+    /// 完成。 一个在工作间隔内开始工作的机构拒绝该工作, 因此它首先观察了自己的取消 :
+    /// 拒绝启动丢弃,而 <see cref="DurableTaskContext.IsTaskCancellationRequested"/> 报告
+    /// 机构处理取消的处理,例如保护性补偿。
+    /// 写后找到已经请求取消的注销。
     /// </remarks>
     private bool IsStartRefusedByAncestorCancellation(TaskId taskId, IDurableTaskState? state, bool shielded)
     {
@@ -2263,7 +2263,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         return true;
     }
 
-    /// <summary>Records that a child which its parent started shielded is unreachable by its ancestors' cancellation.</summary>
+    /// <summary>记录说,一个父母开始保护的儿童,其祖先的取消是无法接触到的。</summary>
     private void MarkShielded(TaskId taskId, IDurableTaskState state, bool shielded)
     {
         if (shielded && !state.Shielded)
@@ -2280,7 +2280,7 @@ internal sealed partial class DurableTaskGrainRuntime(
     {
         Debug.Assert(!_runningRequests.ContainsKey(taskId), "Callers start a task's attempt only while none runs.");
 
-        // The body starts in the attempt's first segment, a request which the activation admits as it admits grain calls.
+        // 身体在尝试的第一部分开始,启动程序承认了该请求,因为它接受 grain 电话。
         var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var invocation = Invoke(createTask, state, context, start.Task);
         _runningRequests.Add(taskId, new RunningRequest(invocation, context));
@@ -2312,9 +2312,9 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         context.VerifyCancellationPointReached();
 
-        // A cancellation which arrives while this attempt still runs, for example while a delay's journal write is in
-        // flight, cancels only the attempt's token. The attempt then terminalizes the task, so a pending operation
-        // which it returns, such as a delay, does not outlive the cancellation.
+        // 取消时, 此尝试仍在运行中, 例如当延迟日记日记写在
+        // 飞行时, 只取消尝试的标记, 仅取消尝试的标记。 尝试然后结束任务, 所以一个未完成的操作
+        // 返回时,例如延迟,不会超过取消的时间。
         if (!response.IsCompleted
             && _storage.TryGetTask(context.Id, out var taskState)
             && taskState.CancellationRequestedAt.HasValue)
@@ -2324,7 +2324,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         try
         {
-            // A canceled attempt's response is discarded: its task continues in the next activation, or has its outcome.
+            // 取消尝试的反应被抛弃:它的任务在下一次启动时继续,或有结果。
             if (response.IsCompleted && !context.IsAttemptEnded)
             {
                 Debug.Assert(!_stopping && !IsUnregistered(context), "The runtime cancels every attempt which it stops or discards.");
@@ -2335,7 +2335,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         {
             _shared.Logger.LogWarning(exception, "{Id} error committing the response of durable task '{TaskId}'.", GrainId, context.Id);
 
-            // A preparation failure retains the staged response, so a later write commits it and completes the handle.
+            // 准备失败保留了分阶段反应,因此以后写作时即承诺完成处理。
             if (exception is JournaledStatePreCommitException && !_stopping)
             {
                 QueueBackgroundWrite();
@@ -2343,8 +2343,8 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
         finally
         {
-            // The abstractions end an attempt whose replay departs from its record, such as a recorded result of another
-            // type, without the runtime; the attempt then stalls like one whose operation diverged.
+            // 抽象概念结束了重播与记录不符的企图,例如另一个记录的结果。
+            // 类型,没有运行时间;尝试后会像操作有分歧的一样拖拉。
             if (context.AttemptEndReason is DurableTaskAttemptCancellationReason.Diverged or DurableTaskAttemptCancellationReason.UnsupportedVersion
                 && _stalledExecutions.Add(context.Id))
             {
@@ -2367,37 +2367,37 @@ internal sealed partial class DurableTaskGrainRuntime(
         GrainDurableTaskContext Context);
 
     /// <summary>
-    /// Returns whether an attempt's task was deleted with its execution tree, which unregisters the attempt's context,
-    /// so the attempt's result is discarded.
+    /// 返回是否删除了尝试的任务, 并使用其执行树来记录尝试的背景,
+    /// 尝试的结果被抛弃了
     /// </summary>
     private bool IsUnregistered(GrainDurableTaskContext context) =>
         !_executionContexts.TryGetValue(context.Id, out var registered) || !ReferenceEquals(registered, context);
 
     /// <remarks>
-    /// Journaling commits every staged change in the next write, whichever operation requests it, so a body's state
-    /// changes and its result commit together only when both are staged in one work item. The attempt commits the staged
-    /// response once the body's run returns it.
+    /// 日记承诺在下篇文章中, 任何业务要求的, 都进行每个阶段的变化, 所以一个机构状态
+    /// 只有在两个项目都在一个工作项目中进行,才能一起承诺修改及其结果。
+    /// 一旦身体运行返回后, 就会作出反应。
     /// </remarks>
     void IDurableTaskGrainRuntime.StageBodyResponse(GrainDurableTaskContext context, DurableTaskResponse response)
     {
         Debug.Assert(!context.IsAttemptEnded && !_stopping && !IsUnregistered(context), "Only a running attempt stages its response.");
         try
         {
-            // The handle completes when a write commits the response, as it does for a response which the attempt commits.
+            // 当写作时完成答复, 和对尝试回复一样。
             _pendingHandleResponses[context.Id] = StageResponse(context.Id, response);
         }
         catch (Exception exception)
         {
-            // This runs from the body's continuation, which has no caller to observe a failure. The attempt stages the
-            // response again once the body's run returns it.
+            // 其从身体的继续运行,没有打电话者可以观察失败。
+            // 一旦身体运行返回, 就会再次响应 。
             _shared.Logger.LogWarning(exception, "{Id} error staging the response of durable task '{TaskId}'.", GrainId, context.Id);
         }
     }
 
     /// <summary>
-    /// The cancellation which a committed write propagates: task cancellation, carrying <see cref="CancellationReason"/>,
-    /// of running attempts, and the cancellation of leaves such as delays. <see cref="Completion"/>, when supplied,
-    /// completes once the propagation has run.
+    /// 承诺书写所传播的注销:任务取消,含有 <see cref="CancellationReason"/>,
+    /// 运行尝试, 并取消诸如延迟等叶子。 <see cref="Completion"/>提供时,
+    /// 一旦传播活动开始, 就会完成 。
     /// </summary>
     private sealed record CancellationPropagation(
         List<GrainDurableTaskContext> Contexts,
@@ -2419,9 +2419,9 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Stages a terminal response with its completion notifications, commits them, and completes the local handle.
+    /// 阶段是终端反应,并附有完成通知、承诺和完成当地处理。
     /// </summary>
-    /// <returns>The first terminal response, which wins over a later one.</returns>
+    /// <returns>第一个终端响应, 胜过后一个响应。</returns>
     private async ValueTask<DurableTaskResponse> CommitResponseAsync(
         TaskId taskId,
         DurableTaskResponse response,
@@ -2431,15 +2431,15 @@ internal sealed partial class DurableTaskGrainRuntime(
         var winningResponse = StageResponse(taskId, response);
         if (!stored)
         {
-            // The handle completes when a write commits the response: this write, or a later one when this write fails
-            // before it commits, because a failed preparation retains staged changes.
+            // 写入后完成响应时, 此手控器将完成此答: 此写入, 或此写失败后完成
+            // 在承诺之前,因为准备失败后仍保留分阶段的改动。
             _pendingHandleResponses[taskId] = winningResponse;
         }
         else if (!_pendingHandleResponses.ContainsKey(taskId))
         {
-            // A stored result without a pending handle completion is committed: a write which carried it, such as one
-            // which committed the result that the body's final code staged, completed the handle already. A pending one
-            // completes with the write which captured it, so the entry stays as that write captured it.
+            // 将承诺在未完成处理处理完成之前就储存结果:如随手写作,例如
+            // 其结果,即该机关的最终代码已经编妥,处理程序已经完成。
+            // 与记录中的文字完成, 所以条目保持了记录。
             CompleteTaskHandle(taskId, winningResponse);
         }
 
@@ -2453,9 +2453,9 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Stages a terminal response and its completion notifications, unless a terminal response is already staged.
+    /// 除非已经进行终端回复,否则将分阶段进行终端回复及其完成通知。
     /// </summary>
-    /// <returns>The first terminal response, which wins over a later one.</returns>
+    /// <returns>第一个终端响应, 胜过后一个响应。</returns>
     private DurableTaskResponse StageResponse(TaskId taskId, DurableTaskResponse response)
     {
         if (!response.IsCompleted)
@@ -2473,14 +2473,14 @@ internal sealed partial class DurableTaskGrainRuntime(
             throw new InvalidOperationException($"Cannot complete unknown task '{taskId}'.");
         }
 
-        // Never overwrite a terminal result: a staged result commits, and changing it could change an observed result.
+        // 永远不要覆盖终端结果:分阶段的结果承诺,改变它可以改变观察到的结果。
         if (state.Result is { IsCompleted: true } terminal)
         {
             return terminal;
         }
 
-        // The outbox reads each completion from the stored result, so the result is staged first. A subscriber on this
-        // grain retires as it receives the result, so the destinations are copied first.
+        // 发件箱读取存储结果的每个完成完成, 因此结果先进行阶段化。 用户对此使用
+        // grain 收到结果后退休,因此先抄录目的地。
         response = StoreResult(taskId, state, response);
         foreach (var destination in state.CompletionDestinations.ToArray())
         {
@@ -2491,13 +2491,13 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Stores a task's terminal result. Without completion destinations, the result's retention period starts now.
+    /// 储存任务终端结果。 没有完成目的地, 则该结果的留存期现在开始 。
     /// </summary>
     /// <param name="subscribed">
-    /// Whether the result of a subscription child is the subscribed task's outcome. A subscription child which ends
-    /// otherwise, such as a canceled or aborted one, ends its subscription.
+    /// 订阅儿童的结果是否是订阅任务的结果。
+    /// 否则,例如取消或中止的,停止订阅。
     /// </param>
-    /// <returns>The stored result: <paramref name="response"/>, or the failure which replaced a result that doesn't serialize.</returns>
+    /// <returns>存储结果 : <paramref name="response"/>,或者取代一个结果的失败 而不序列化。</returns>
     private DurableTaskResponse StoreResult(TaskId taskId, IDurableTaskState state, DurableTaskResponse response, bool subscribed = false)
     {
         response = SetResponse(taskId, state, response);
@@ -2521,7 +2521,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             "persisting deferred durable task cleanup");
     }
 
-    /// <summary>Tracks background work on the activation, which deactivation drains, and logs its failure.</summary>
+    /// <summary>跟踪启动的背景工作,即解除排水管的启动和记录其故障。</summary>
     private void TrackBackgroundTask(Task task, string operation)
     {
         var id = ++_backgroundWriteId;
@@ -2559,7 +2559,7 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
 
-    /// <summary>Marks the attempts whose parked waits <paramref name="awaited"/> releases as runnable.</summary>
+    /// <summary>标记停泊的等待 <paramref name="awaited"/> 释放为可运行状态的尝试。</summary>
     private void NotifyParkedAttempts(TaskId awaited)
     {
         foreach (var context in _executionContexts.Values)
@@ -2580,13 +2580,13 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Deletes the execution trees whose retention has ended and the cancellation records which can no longer match an
-    /// invocation, once the earliest expiry has passed.
+    /// 删除保留终止的处决树和不再符合
+    /// 援引,一旦最早到期期满即告终止。
     /// </summary>
-    /// <returns><see langword="true"/> if a deletion was staged.</returns>
+    /// <returns><see langword="true"/> 如果删除已进行。</returns>
     /// <remarks>
-    /// The check costs nothing until the earliest expiry passes; the scan which follows recomputes it. A task with a
-    /// pending completion has no expiry: the completion's retirement deletes the task or starts its retention.
+    /// 支票在最早到期日通行证过期前不花费任何费用;随后的扫描将重新计算。
+    /// 完成期未到期:完成的退休将删除任务或开始保留。
     /// </remarks>
     private bool DeleteExpiredTasks()
     {
@@ -2609,21 +2609,21 @@ internal sealed partial class DurableTaskGrainRuntime(
             if ((!state.CompletedAt.HasValue && !isCancellationRecord)
                 || (!IsInvoked(state) && HasStoredAncestor(taskId)))
             {
-                // A pending task has no expiry, and a task in another task's execution tree is deleted with it.
+                // 一项待执行的任务没有过期, 另一项任务的树上的执行任务会随之删除 。
                 continue;
             }
 
             var expiry = state.CompletedAt.HasValue ? GetRetentionExpiry(state) : DateTimeOffset.MinValue;
             if (isCancellationRecord)
             {
-                // The invocation which the cancellation precedes is admitted within the record's retention, or never.
+                // 撤销前的援引在保留记录的范围内得到承认,或永远不予承认。
                 var recordExpiry = AddSaturating(state.CreatedAt, _shared.EarlyRecordRetention);
                 expiry = recordExpiry > expiry ? recordExpiry : expiry;
             }
             else if (IsSignalRecord(state))
             {
-                // A signal record without its task preceded the invocation, which is admitted within the record's retention,
-                // or never.
+                // 在援引前没有任务而发出信号的记录,在保留记录时予以承认,
+                // 或者永远不
                 expiry = GetEarlySignalExpiry(state);
             }
 
@@ -2651,7 +2651,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             return false;
         }
 
-        // An expired record can lie in another expired tree, whose deletion removed it already.
+        // 过期记录可以放在另一棵过期树上, 已经删除了 。
         foreach (var (taskId, state) in expired)
         {
             if (_storage.TryGetTask(taskId, out _))
@@ -2663,8 +2663,8 @@ internal sealed partial class DurableTaskGrainRuntime(
         return true;
     }
 
-    /// <summary>Returns when a terminal result's retention ends.</summary>
-    /// <remarks>Retention starts at completion, or later when a dead-lettered completion restarted it.</remarks>
+    /// <summary>当终端结果留存结束时返回。</summary>
+    /// <remarks>留存从完成时开始,或以后当一个字母已过期的完成重新开始时开始。</remarks>
     private DateTimeOffset GetRetentionExpiry(IDurableTaskState state)
     {
         var completedAt = state.CompletedAt!.Value;
@@ -2683,17 +2683,17 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
     }
 
-    /// <summary>Returns whether a task was scheduled as a request, so it owns its execution tree.</summary>
+    /// <summary>返回任务是否被排成请求,因此它拥有其执行树。</summary>
     /// <remarks>
-    /// Completion decisions, records of detached tasks, signal records, signal send markers, and effect records have
-    /// fingerprints which begin with <c>$</c>, but they are part of their parent's tree; request fingerprints are
-    /// hexadecimal.
+    /// 完成决定、独立任务记录、信号记录、信号发送标记和效果记录
+    /// 指纹,以 <c>$</c>开头,但属于父母树的一部分;要求的指纹
+    /// 十六进制
     /// </remarks>
     private static bool IsInvoked(IDurableTaskState state) =>
         state.RequestFingerprint is { } fingerprint
         && !fingerprint.StartsWith('$');
 
-    /// <summary>Returns whether a task records only a cancellation which arrived before its invocation.</summary>
+    /// <summary>返回任务是否只记录在被援引之前就已到达的取消。</summary>
     private static bool IsCancellationRecord(IDurableTaskState state) =>
         state.Kind == DurableTaskRecordKind.EarlyCancellation;
 
@@ -2711,12 +2711,12 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Deletes a task which owns its lifecycle, together with its execution tree: its descendants which are not invoked
-    /// tasks themselves.
+    /// 删除一项拥有其生命周期的任务及其执行树:未援引的后代。
+    /// 任务本身。
     /// </summary>
     /// <remarks>
-    /// Costs time proportional to the size of the tree. Each non-terminal task in the tree is canceled: a pending remote
-    /// child's cancellation is staged with the deletion, and a running attempt is canceled and its result discarded.
+    /// 与树面积成比例的成本成本时间。树中的每个非终点任务取消:待决远程
+    /// 取消孩子的注销与删除相配合,并取消一次尝试,并放弃其结果。
     /// </remarks>
     private void DeleteTree(TaskId taskId, IDurableTaskState state)
     {
@@ -2742,8 +2742,8 @@ internal sealed partial class DurableTaskGrainRuntime(
         var terminal = state.CompletedAt.HasValue;
         if (!terminal && !state.RemoteTarget.IsDefault)
         {
-            // A recorded cancellation request staged its message, which the outbox owns until it retires; sending the
-            // identity again would be a new send with a different admission cutoff.
+            // 发送通知的发件箱拥有该通知,直到退休;发出
+            // 身份再次将是一个新的发送, 与不同的入境禁闭。
             if (!state.CancellationRequestedAt.HasValue)
             {
                 StageCancellation(taskId, state.RemoteTarget, state.CancellationReason);
@@ -2761,7 +2761,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         if (_runningRequests.Remove(taskId, out var running))
         {
-            // Deactivation waits for the canceled attempt, which drains.
+            // 拆除等待取消的尝试, 排水管。
             TrackBackgroundTask(running.Context.Settled, "running a deleted durable task");
             DurableTaskEvents.EmitExecutionStopped(GrainContext, taskId);
         }
@@ -2791,7 +2791,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             _shared.Logger.LogTrace("{Id} received polling request for task {TaskId}", GrainId, taskId);
         }
 
-        // Retention ends at a deadline, which can pass while the grain is otherwise idle.
+        // 留存额在最后期限截止时终止,期限可在 grain 空闲期间通过。
         if (DeleteExpiredTasks())
         {
             await WriteStateAsync(cancellationToken);
@@ -2841,8 +2841,8 @@ internal sealed partial class DurableTaskGrainRuntime(
             };
         }
 
-        // Diagnostics decode stored payloads, so a payload which no longer decodes is reported instead of thrown. A
-        // canceling or canceled task reports its cancellation reason.
+        // 诊断性能解码存储的有效载荷,因此不再报告已解码的有效载荷而不是投掷。
+        // 取消或取消任务时报告其取消理由 。
         static (string Status, string? Response) DescribeResult(IDurableTaskState taskState)
         {
             if (!HasStoredResult(taskState))
@@ -2908,7 +2908,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         SignalCancellationAsync(taskId, callerId: default, reason: null, cancellationToken);
 
     /// <summary>
-    /// Stages a cancellation received through the inbox, propagating it after the inbox batch commits.
+    /// 阶段 通过收件箱收到的取消, 在收件箱批次承诺后传播。
     /// </summary>
     internal void SignalCancellationFromInbox(TaskId taskId, GrainId callerId, string? reason)
     {
@@ -2926,7 +2926,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         string? reason,
         CancellationToken cancellationToken)
     {
-        // Cancellation is persisted before it propagates.
+        // 取消在宣传前就一直存在。
         var propagation = StageCancellationTree(taskId, callerId, reason);
         if (!propagation.Changed)
         {
@@ -2939,8 +2939,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Stages the propagation of a cancellation to the attempts and leaves which it reaches, which the
-    /// write that commits the cancellation runs, and returns its completion.
+    /// 将取消的广告宣传到它所达到的尝试和叶叶上,
+    /// 写入已执行的注销运行并返回完成的状态。
     /// </summary>
     private Task StagePropagation(List<GrainDurableTaskContext> contexts, List<IScheduledTaskHandle> handles, string? reason)
     {
@@ -2956,8 +2956,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <remarks>
-    /// Each task which the request newly reaches records <paramref name="reason"/>, so every execution and handle which
-    /// the request collects is canceled carrying that reason.
+    /// 请求新到的每项任务都记录 <paramref name="reason"/>,因此每一项执行和处理
+    /// 申请的收款已取消,并以此为由。
     /// </remarks>
     private (bool Changed, List<GrainDurableTaskContext> Contexts, List<IScheduledTaskHandle> Handles) StageCancellationTree(
         TaskId taskId,
@@ -2972,9 +2972,9 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         if (!_storage.TryGetTask(taskId, out var taskState))
         {
-            // Only a caller's cancellation of its own child, which the inbox delivers, can overtake the child's
-            // invocation: the record cancels the invocation when it arrives. A direct request names a task which this
-            // grain retains, so a request for another task stages nothing.
+            // 只有打电话者取消自己的孩子,而收信箱提供的孩子才能超过孩子的
+            // 援引:记录到达时取消援引。直接请求指定一项任务,而该任务
+            // grain 保留,所以请求其他任务阶段时没有要求任何内容。
             if (callerId.IsDefault)
             {
                 throw new DurableTaskNotFoundException(taskId);
@@ -3012,11 +3012,11 @@ internal sealed partial class DurableTaskGrainRuntime(
 
             foreach (var (childTaskId, childTaskState) in _storage.GetChildren(currentTaskId).ToList())
             {
-                // A named combinator's inputs are this task's nearest stored descendants beneath the combinator's ID.
+                // 名为组合器的输入是这个任务最接近的 存储在组合器身份卡下的子孙
                 Debug.Assert(currentTaskId.IsAncestorOf(childTaskId));
 
-                // A shielded child isn't reached by its ancestors' cancellation;
-                // its own cancellation, an abort of the tree, and deletion of the tree still reach it.
+                // 被保护的孩子不能从祖先的取消中得到;
+                // 树的取消,树的中止, 和树的删除 仍然到达它。
                 if (!childTaskState.Shielded)
                 {
                     _ = RequestCancellationCore(childTaskId, childTaskState, contexts, handles);
@@ -3030,7 +3030,7 @@ internal sealed partial class DurableTaskGrainRuntime(
                     && request.Context is { } requestContext
                     && requestContext.TargetId != GrainId)
                 {
-                    // The recorded request covers the execution's own cancellation of its remote call; see CancelRemoteAsync.
+                    // 所记录的请求包括处决者自己取消其远程电话;见 CancelRemoteAsync。
                     StageCancellation(currentTaskId, requestContext.TargetId, reason);
                 }
 
@@ -3062,11 +3062,11 @@ internal sealed partial class DurableTaskGrainRuntime(
         AbortTaskAsync(taskId, reason, cancellationToken);
 
     /// <summary>
-    /// Aborts a task and its execution tree: the write which commits each unfinished task in the tree as failed with
-    /// <see cref="DurableTaskAbortedException"/> also stages an abort to each pending call to another grain, and each
-    /// running attempt in the tree is canceled and its result discarded.
+    /// 中止任务及其执行树的执行树: 将树上未完成的任务都写入失败
+    /// <see cref="DurableTaskAbortedException"/> 也对每个待通知的另外 grain和每个
+    /// 树上运行的尝试被取消, 结果被丢弃 。
     /// </summary>
-    /// <remarks>A terminal task, or a task which this grain doesn't retain, is unchanged.</remarks>
+    /// <remarks>终端任务,或此 grain 无法保留的任务,没有变化。</remarks>
     internal async ValueTask AbortTaskAsync(TaskId taskId, string reason, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
@@ -3076,10 +3076,10 @@ internal sealed partial class DurableTaskGrainRuntime(
         }
     }
 
-    /// <summary>Stages an abort received through the inbox, canceling the aborted attempts.</summary>
+    /// <summary>阶段 通过收件箱接收的中止, 取消中止尝试 。</summary>
     /// <remarks>
-    /// An abort can precede its invocation, like a cancellation; it is then recorded as a cancellation, so the invocation
-    /// terminalizes when it arrives. The caller has already terminalized its own record of the task.
+    /// 中止可以先于其援引,如取消;然后作为取消而记录,这样就可援引
+    /// 用户已将其自己的工作记录关闭。
     /// </remarks>
     internal void AbortFromInbox(TaskId taskId, string reason, GrainId callerId)
     {
@@ -3092,7 +3092,7 @@ internal sealed partial class DurableTaskGrainRuntime(
         StageAbort(taskId, reason, callerId);
     }
 
-    /// <returns><see langword="true"/> if the abort staged changes.</returns>
+    /// <returns><see langword="true"/> 如果中止阶段更改。</returns>
     private bool StageAbort(TaskId taskId, string reason, GrainId callerId)
     {
         ThrowIfStopping();
@@ -3107,7 +3107,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             return false;
         }
 
-        // Every task in the tree records the same failure, so one response serves them all.
+        // 树上的每一任务记录同样的失败 所以一个反应能为它们服务
         var response = DurableTaskResponse.FromException(new DurableTaskAbortedException(reason));
         AbortTreeCore(taskId, state, reason, response);
         return true;
@@ -3137,7 +3137,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             MessageTransport.SendAbort(GrainId, state.RemoteTarget, GetWireId(taskId), reason);
         }
 
-        // Unregistering the attempt discards its result; deactivation waits for it to drain.
+        // 取消对企图的登记,就抛弃其结果;解除职务等待它排水。
         if (_executionContexts.Remove(taskId, out var context))
         {
             CancelAttempt(context, DurableTaskAttemptCancellationReason.TaskAborted);
@@ -3153,10 +3153,10 @@ internal sealed partial class DurableTaskGrainRuntime(
         _pendingHandleResponses[taskId] = StageResponse(taskId, response);
     }
 
-    // The base constructor of ScheduledTask is internal to the abstractions, so an untyped handle uses an object result.
+    // ScheduledTask 的基建体是抽象内容的内部,所以一个未类型控点使用对象结果。
     ScheduledTask IDurableTaskManager.GetTask(TaskId taskId) => ((IDurableTaskManager)this).GetTask<object?>(taskId);
 
-    // The runtime serves the handle's polls and cancellation directly, as it serves them for a grain call.
+    // 运行时间直接为接线员的民意测验和取消服务,因为可以拨打 grain 电话。
     ScheduledTask<TResult> IDurableTaskManager.GetTask<TResult>(TaskId taskId)
     {
         ArgumentOutOfRangeException.ThrowIfEqual(taskId, default);
@@ -3180,7 +3180,7 @@ internal sealed partial class DurableTaskGrainRuntime(
             return false;
         }
 
-        // A committed result rehydrates as a completed handle; a staged one completes its handle once it commits.
+        // 使用完的处理器,即承诺后再水合物;一旦实施后,分阶段再完成处理。
         if (!_pendingHandleResponses.ContainsKey(taskId) && taskState.Result is { } response)
         {
             Debug.Assert(response.IsCompleted);
@@ -3204,10 +3204,10 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <remarks>
-    /// The record of a subscription or a detached start names the task which it observes and that task's grain, which
-    /// other parties address. A call to a grain reaches the task which the target stores under this grain's scope, by the
-    /// call's wire identifier, and retains until this grain accepts its completion. The identifier of any other operation,
-    /// or of one which recorded nothing, such as a start which an earlier cancellation prevented, is its own.
+    /// 订阅或独立起始记录 grain, 其中
+    /// 呼吁 grain 达到本 grain范围内的目标储存量的任务
+    /// 调用电线识别符号,并保留到此 grain 接受完成为止。任何其他操作的识别符号,
+    /// 或没有记录的任何情况,例如早先取消合同时阻止的开始,是它自己的。
     /// </remarks>
     public TaskId GetTargetTaskId(TaskId taskId, out GrainId addressedHost)
     {
@@ -3227,24 +3227,24 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Returns the wire identifier of <paramref name="nodeId"/>, a stored node of one of this grain's execution trees, or
-    /// one which its execution is about to record: the identifier which messages to and from other grains name it by.
+    /// 返回 <paramref name="nodeId"/>的线条识别符,此 grain执行树之一的存储节点,或
+    /// 执行时将记录的信息:从其他 grains 发出或发送的信息的识别符号,用它命名。
     /// </summary>
     /// <remarks>
-    /// The identifier covers the incarnation of the node's tree, so each run of a root identifier sends its own messages.
-    /// See <see cref="CallerScope"/>.
+    /// 识别符覆盖节点树的化形, 所以每个根标识符运行时都会发送自己的信息 。
+    /// 见 <see cref="CallerScope"/>。
     /// </remarks>
     internal TaskId GetWireId(TaskId nodeId) => CallerScope.GetWireId(GetIncarnation(nodeId), nodeId);
 
     /// <summary>
-    /// Returns the node which <paramref name="wireId"/> names, and its state when the node is stored and belongs to the run
-    /// of its tree which <paramref name="wireId"/> names.
+    /// 返回 <paramref name="wireId"/> 名称的节点,以及节点存储并属于运行时的状态
+    /// 其树的果实, <paramref name="wireId"/> 姓名。
     /// </summary>
     /// <returns>
-    /// <see langword="false"/> when the run which the wire identifier names was deleted: the node isn't stored, or a later
-    /// run of its tree stores it.
+    /// <see langword="false"/> 时,当线条识别名称被删除的运行时间:节点没有存储或稍后
+    /// 管理其树的库藏。
     /// </returns>
-    /// <exception cref="InvalidOperationException"><paramref name="wireId"/> isn't a wire identifier.</exception>
+    /// <exception cref="InvalidOperationException"><paramref name="wireId"/> 并不是一个线条识别器。</exception>
     private bool TryGetNode(TaskId wireId, out TaskId nodeId, [NotNullWhen(true)] out IDurableTaskState? state)
     {
         if (!CallerScope.TryParseWireId(wireId, out var incarnation, out nodeId))
@@ -3263,8 +3263,8 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <remarks>
-    /// Every execution belongs to the tree of an invoked task, which records its incarnation when its invocation is first
-    /// stored, so the walk always ends at a stored invoked task.
+    /// 每一次处决都属于援引任务树,当其首先被援引时记录其化身
+    /// 存储,所以行走总是以被存储的引用任务结束。
     /// </remarks>
     public Guid GetIncarnation(TaskId executionId)
     {
@@ -3286,13 +3286,13 @@ internal sealed partial class DurableTaskGrainRuntime(
     public void OnReplayEnded(TaskId executionId) => DurableTaskEvents.EmitReplayEnded(GrainContext, executionId);
 
     /// <remarks>
-    /// An execution's recorded operations are its nearest stored descendants: descendants which are themselves executions,
-    /// such as local steps, hold their own operations. Signal values belong to the invoked task, which senders deliver
-    /// independently of its attempts; invoked descendants keep their own lifecycle; a cancellation which arrived
-    /// before its request records no operation of this execution; version decisions record which code the execution
-    /// follows rather than an operation which it reaches, so a deployment which removes a version check leaves no
-    /// operation which its replays never reach; and a cancellation point records where the execution observed its
-    /// cancellation, which a replay reaches by counting its operations.
+    /// 处决记录的行动是其最接近的储存子孙:即自己是处决的子孙;
+    /// 信号值属于所援引的任务,发送者提供
+    /// 被援引的后代保留自己的生命周期;取消已生效的
+    /// 在提出请求之前,请求书记录未执行;执行; 裁决版本记录
+    /// 其达到的操作不是它所达到的操作,而是它的后继操作。 因此,删除版本检查的部署留下
+    /// 和注销点记录,其中执行的
+    /// 取消, 重放以计算其操作来达到此值 。
     /// </remarks>
     public HashSet<TaskId>? GetRecordedOperations(TaskId executionId)
     {
@@ -3316,7 +3316,7 @@ internal sealed partial class DurableTaskGrainRuntime(
 
     private async Task StopCoreAsync()
     {
-        // Every attempt is canceled as the runtime stops, so none records anything once the activation stops.
+        // 每一次尝试都因运行时间停止而被取消, 所以一旦启动停止后, 没有记录任何记录。
         _stopping = true;
         foreach (var context in _executionContexts.Values)
         {
@@ -3325,8 +3325,8 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         await _deactivationCts.CancelAsync();
 
-        // Pending tasks continue in the next activation, so a waiter on this activation's handle fails, as a call which
-        // arrives while the runtime stops does, instead of observing the stop as the task's outcome.
+        // 下一次启动中,任务将持续进行,因此,在下次激活中,该启动的操作把手上的服务员失败了,作为
+        // 到达时运行时间停止会到达, 而不是观察任务结果。
         var stopping = new DurableTaskAttemptCanceledException(DurableTaskAttemptCancellationReason.ActivationStopping, _deactivationCts.Token);
         foreach (var handle in _taskHandles.Values)
         {
@@ -3335,10 +3335,10 @@ internal sealed partial class DurableTaskGrainRuntime(
 
         while (true)
         {
-            // A parked attempt is discarded and never resumes, so it settles at once; an attempt whose segment runs settles
-            // when the segment ends. Abandoning the drain would allow a replacement activation to overlap this one.
-            // Adapter-controlled waits observe the lifecycle token. Arbitrary user code can ignore it, so deactivation
-            // deliberately waits for every running segment before replacement replay can begin.
+            // 停止停放的企图被抛弃,再也不能恢复,因此立即解决;其部分运行的企图就解决
+            // 当段段结束时。 放弃排水管会使重置激活与此重叠。
+            // 由适应器控制的等待等待观察生命周期标记。 任意用户代码可以忽略它, 所以禁用
+            // 刻意等待每个运行的段,然后替换重播才能开始。
             var running = _runningRequests.Values
                 .Select(static request => request.Context.Settled)
                 .Where(static settled => !settled.IsCompleted)
@@ -3372,15 +3372,15 @@ internal sealed partial class DurableTaskGrainRuntime(
     }
 
     /// <summary>
-    /// Cancels <paramref name="context"/>'s attempt for <paramref name="reason"/>, and signals the attempt's tokens in a
-    /// later work item, which deactivation drains.
+    /// 取消 <paramref name="context"/>尝试的 <paramref name="reason"/>,并在
+    /// 以后的工作项目,该工作项目将拆除排水管。
     /// </summary>
     /// <remarks>
-    /// Deactivation, an abort, and the deletion of a task's tree cancel attempts this way, on the activation's scheduler.
-    /// From the cancellation on, the attempt's durable operations throw <see cref="DurableTaskAttemptCanceledException"/>,
-    /// so the runtime records none of them, and the attempt's result is discarded. Journaled state changes which its code
-    /// makes, such as cleanup, commit with the grain's next journal write. Its code observes the cancellation through its
-    /// tokens once they are signaled, outside the runtime's current operation.
+    /// 激活、中止和删除任务树的取消 尝试取消,在激活的调度器上。
+    /// 取消后,尝试的持久操作 扔出 <see cref="DurableTaskAttemptCanceledException"/>
+    /// 运行时间记录它们中没有一个记录, 尝试的结果被丢弃。 日记状态变化是其代码
+    /// 诸如清理等 makes , 以 grain下个日记写入承诺。 它的代码通过它来观察取消
+    /// 标记一旦被信号显示, 在运行时间当前操作之外 。
     /// </remarks>
     private bool CancelAttempt(GrainDurableTaskContext context, DurableTaskAttemptCancellationReason reason)
     {

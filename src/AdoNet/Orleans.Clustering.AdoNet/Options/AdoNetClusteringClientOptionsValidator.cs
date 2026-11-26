@@ -5,16 +5,16 @@ using Orleans.Runtime.MembershipService;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Validates <see cref="AdoNetClusteringClientOptions"/> configuration.
+    /// 校验 <see cref="AdoNetClusteringClientOptions"/> 配置。
     /// </summary>
     public class AdoNetClusteringClientOptionsValidator : IConfigurationValidator
     {
         private readonly AdoNetClusteringClientOptions options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AdoNetClusteringClientOptionsValidator"/> class.
+        /// 初始化 <see cref="AdoNetClusteringClientOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options to validate.</param>
+        /// <param name="options">验证的选项。</param>
         public AdoNetClusteringClientOptionsValidator(IOptions<AdoNetClusteringClientOptions> options)
         {
             this.options = options.Value;

@@ -166,7 +166,7 @@ internal class FieldIdAssignmentHelper
     {
         name = PropertyUtility.GetCanonicalName(name);
 
-        // compute the hash from the type name (without namespace, to allow it to move around) and name
+        // 从类型名称( 没有命名空间, 允许它移动)和名称中计算 hash 。
         var typeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         var hashCode = ComputeHash($"{typeName}%{name}");
         return (name, (uint)hashCode);
@@ -195,7 +195,7 @@ internal class FieldIdAssignmentHelper
             _ => false
         };
 
-        // validate - we can only use generated field ids if there were no collisions
+        // - 验证 - 我们只能使用生成的字段代号, 如果没有碰撞的话
         if (success && _symbols.Values.Distinct().Count() != _symbols.Count)
         {
             FailureReason = "hash collision (consider using explicit [Id] annotations for this type)";
@@ -211,15 +211,15 @@ internal class FieldIdAssignmentHelper
                 var (canonicalName, fieldId) = GetCanonicalNameAndFieldId(property.Type, property.Name);
                 var isConstructorParameter = constructorFieldIds.TryGetValue(canonicalName, out var constructorFieldId);
 
-                // abort when inconsistencies are detected
+                // 当检测到不一致时中止
                 if (isConstructorParameter && fieldId != constructorFieldId)
                 {
                     FailureReason = $"type mismatch for property {property.Name} and its corresponding constructor parameter";
                     return false;
                 }
 
-                // for immutable types we must currently use the backing field of the public property, as the serialization
-                // engine does not call a custom constructor to recreate the instance
+                // 不可改变类型,我们目前必须使用公共财产的支撑领域作为序列化
+                // 引擎引擎不调用自定义构建器来重建实例
                 var mustUseField = property.SetMethod == null || property.IsReadOnly
                                                               || property.SetMethod.IsInitOnly
                                                               || property.IsStatic

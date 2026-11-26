@@ -72,7 +72,7 @@ if (-not $SkipPack) {
 
 try {
     [void] (New-Item -ItemType Directory -Path $temporaryRoot)
-    # Keep consumer builds outside the repository so its codegen imports cannot mask missing package assets.
+    # 将消费者建在存储库之外,这样其代码进口就无法掩盖缺失的一揽子资产。
     $source = @'
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
@@ -170,7 +170,7 @@ $references
 </Project>
 "@ | Set-Content -LiteralPath $project
         $source | Set-Content -LiteralPath (Join-Path $caseRoot 'Program.cs')
-        # A fresh cache ensures restore uses these local packages, even if a published version has the same number.
+        # 一个新的缓存确保恢复使用这些本地软件包,即使已公布的版本的号码相同。
         Invoke-DotNet restore $project --packages (Join-Path $temporaryRoot 'nuget') --verbosity quiet
         foreach ($framework in $Frameworks) {
             Write-Host "Running package consumer $($case.Name) ($framework)"

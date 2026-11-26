@@ -5,14 +5,14 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PublishRoot>bin\$(Configuration)\publish\</PublishRoot>
-    <!-- Build prepares the standalone silo deployment consumed by the upgrade tests. -->
+    <!-- 构建准备升级测试所消耗的独立 silo 部署。 -->
     <OutputPath>$(PublishRoot)</OutputPath>
     <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Declare that this is version 1 of our code. This is used for #ifdefs in the code -->
+  <!-- 声明这是代码的版本 1。 这是用于代码中的 #ifdeffs 。 -->
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);VERSION_1</DefineConstants>
   </PropertyGroup>

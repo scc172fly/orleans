@@ -12,8 +12,8 @@ using Orleans.Serialization;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Shared helper for creating Roslyn compilations with the necessary Orleans references.
-/// Used across all code generator test files.
+/// 共享帮助创建Roslyn 编集, 并配有 Orleans 参考文件。
+/// 在所有代码发电机测试文件都使用。
 /// </summary>
 internal static class TestCompilationHelper
 {
@@ -42,7 +42,7 @@ internal static class TestCompilationHelper
     }
 
     /// <summary>
-    /// Creates a <see cref="CSharpCompilation"/> with the .NET framework and Orleans assembly references.
+    /// 创建 <see cref="CSharpCompilation"/> ,并使用 .NET 框架和 Orleans 组装参考。
     /// </summary>
     public static Task<CSharpCompilation> CreateCompilation(
         string sourceCode,

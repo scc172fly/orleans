@@ -24,7 +24,7 @@ builder.UseOrleans(orleans =>
     });
 });
 
-// Add services to the container.
+// 增加集装箱服务。
 builder.Services.AddSingleton<ClusterDiagnosticsService>();
 
 var app = builder.Build();
@@ -40,11 +40,11 @@ app.MapPost("/add", async ([FromServices] IGrainFactory grainFactory) =>
     await grainFactory.GetGrain<ILoaderGrain>("root").AddForest();
 });
 
-// Configure the HTTP request pipeline.
+// 配置 HTTP 请求管道 。
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    // 默认 HSTS 值为 30 天。 您可能想要更改此选项用于生产方案, 见 https://aka.ms/aspnetcore-hsts。
     app.UseHsts();
 }
 
@@ -140,7 +140,7 @@ public class FanOutGrain : Grain, IFanOutGrain
             tasks.Add(child.Ping());
         }
 
-        // Wait for the tasks to complete.
+        // 等待任务完成
         foreach (var task in tasks)
         {
             await task;

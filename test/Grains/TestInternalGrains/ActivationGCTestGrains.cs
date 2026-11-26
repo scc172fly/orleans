@@ -144,7 +144,7 @@ namespace UnitTests.Grains
         }
     }
 
-    // Use this Test Class in Non.Silo test [SiloBuilder_GrainCollectionOptionsForZeroSecondsAgeLimitTest]
+    // 在 Non.Silo 测试 [SiloBuilder_GrainCollectionOptionsForZeroSecondsAgeLimitTest中使用此试验类
     public class CollectionSpecificAgeLimitForZeroSecondsActivationGcTestGrain : Grain, ICollectionSpecificAgeLimitForZeroSecondsActivationGcTestGrain
     {
         public Task Nop()

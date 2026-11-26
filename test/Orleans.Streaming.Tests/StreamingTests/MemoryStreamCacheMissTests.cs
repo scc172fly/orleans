@@ -6,7 +6,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// Tests memory stream cache miss scenarios with custom cache eviction settings and stream filters.
+    /// 测试自定义缓冲驱逐设置和流过滤器的内存流缓存误差情形。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

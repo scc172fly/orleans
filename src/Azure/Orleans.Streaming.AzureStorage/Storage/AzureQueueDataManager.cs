@@ -24,11 +24,11 @@ namespace Orleans.AzureUtils
     }
 
     /// <summary>
-    /// How to use the Queue Storage Service: http://www.windowsazure.com/en-us/develop/net/how-to-guides/queue-service/
-    /// Windows Azure Storage Abstractions and their Scalability Targets: http://blogs.msdn.com/b/windowsazurestorage/archive/2010/05/10/windows-azure-storage-abstractions-and-their-scalability-targets.aspx
-    /// Naming Queues and Metadata: http://msdn.microsoft.com/en-us/library/windowsazure/dd179349.aspx
-    /// Windows Azure Queues and Windows Azure Service Bus Queues - Compared and Contrasted: http://msdn.microsoft.com/en-us/library/hh767287(VS.103).aspx
-    /// Status and Error Codes: http://msdn.microsoft.com/en-us/library/dd179382.aspx
+    /// 如何使用队列存储服务: http://www.windowsazure.com/en-us/develop/net/how-to-guides/queue-service/
+    /// Window Azure 存储灰色闪烁及其可缩放目标: http://blogs.msdn.com/b/windowsazurestorage/archive/2010/05/10/windows-azure-storage-abstractions-and-their-scalability-targets.aspx
+    /// 命名队列和元数据: http://msdn.microsoft.com/en-us/library/windowsazure/dd179349.aspx
+    /// 窗口 Azure 队列和 Windows Azure 服务 Bus 队列 - 比较和对比: http://msdn.microsoft.com/en-us/library/hh767287(VS.103.aspx
+    /// 状态和错误代码: http://msdn.microsoft.com/en-us/library/dd179382.aspx
     ///
     /// http://blogs.msdn.com/b/windowsazurestorage/archive/tags/scalability/
     /// http://blogs.msdn.com/b/windowsazurestorage/archive/2010/12/30/windows-azure-storage-architecture-overview.aspx
@@ -45,19 +45,19 @@ namespace Orleans.AzureUtils
         {
             MaxQueueOperationRetries = 5;
             PauseBetweenQueueOperationRetries = TimeSpan.FromMilliseconds(100);
-            QueueOperationTimeout = PauseBetweenQueueOperationRetries.Multiply(MaxQueueOperationRetries).Multiply(6);    // 3 sec
+            QueueOperationTimeout = PauseBetweenQueueOperationRetries.Multiply(MaxQueueOperationRetries).Multiply(6);    // 3秒3秒
         }
     }
 
     /// <summary>
-    /// Utility class to encapsulate access to Azure queue storage.
+    /// 封装使用设备 Azure 队列存储 。
     /// </summary>
     /// <remarks>
-    /// Used by Azure queue streaming provider.
+    /// Azure 队列流提供者使用。
     /// </remarks>
     public partial class AzureQueueDataManager : IAzureQueueDataManager
     {
-        /// <summary> Name of the table queue instance is managing. </summary>
+        /// <summary> 表格队列实例的名称正在管理中。 </summary>
         public string QueueName { get; private set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
@@ -67,12 +67,12 @@ namespace Orleans.AzureUtils
         private QueueClient? _queueClient;
 
         /// <summary>
-        /// Constructor.
+        /// 构造器
         /// </summary>
-        /// <param name="loggerFactory">logger factory to use</param>
-        /// <param name="queueName">Name of the queue to be connected to.</param>
-        /// <param name="storageConnectionString">Connection string for the Azure storage account used to host this table.</param>
-        /// <param name="visibilityTimeout">A TimeSpan specifying the visibility timeout interval</param>
+        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <param name="queueName">要连接的队列名称。</param>
+        /// <param name="storageConnectionString">用于主持此表格的 Azure 存储账户的连接字符串。</param>
+        /// <param name="visibilityTimeout">A TimeSpan ,指定可见度超时间隔</param>
         public AzureQueueDataManager(ILoggerFactory loggerFactory, string queueName, string storageConnectionString, TimeSpan? visibilityTimeout = null)
             : this(loggerFactory, queueName, ConfigureOptions(storageConnectionString, visibilityTimeout))
         {
@@ -89,12 +89,12 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Constructor.
+        /// 构造器
         /// </summary>
-        /// <param name="loggerFactory">logger factory to use</param>
-        /// <param name="queueName">Name of the queue to be connected to.</param>
-        /// <param name="options">Queue connection options.</param>
-        /// <exception cref="ArgumentException">The sanitized <paramref name="queueName"/> violates Azure Queue naming rules.</exception>
+        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <param name="queueName">要连接的队列名称。</param>
+        /// <param name="options">队列连接选项。</param>
+        /// <exception cref="ArgumentException">被净化 <paramref name="queueName"/> 违反 Azure 排队命名规则。</exception>
         public AzureQueueDataManager(ILoggerFactory loggerFactory, string queueName, AzureQueueOptions options)
         {
             ArgumentNullException.ThrowIfNull(queueName);
@@ -121,7 +121,7 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Initializes the connection to the queue.
+        /// 初始化到队列的连接。
         /// </summary>
         public async Task InitQueueAsync()
         {
@@ -129,7 +129,7 @@ namespace Orleans.AzureUtils
 
             try
             {
-                // Create the queue if it doesn't already exist.
+                // 如果队列不存在, 则创建队列 。
                 var client = await GetQueueClient();
                 var response = await client.CreateIfNotExistsAsync();
                 LogInfoAzureQueueConnection(QueueName);
@@ -145,7 +145,7 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Deletes the queue.
+        /// 删除队列。
         /// </summary>
         public async Task DeleteQueue()
         {
@@ -153,7 +153,7 @@ namespace Orleans.AzureUtils
             LogTraceDeletingQueue(QueueName);
             try
             {
-                // that way we don't have first to create the queue to be able later to delete it.
+                // 这样我们不必先创建队列, 才能稍后删除它 。
                 var client = await GetQueueClient();
                 if (await client.DeleteIfExistsAsync())
                 {
@@ -171,7 +171,7 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Clears the queue.
+        /// 清除队列。
         /// </summary>
         public async Task ClearQueue()
         {
@@ -179,7 +179,7 @@ namespace Orleans.AzureUtils
             LogTraceClearingAQueue(QueueName);
             try
             {
-                // that way we don't have first to create the queue to be able later to delete it.
+                // 这样我们不必先创建队列, 才能稍后删除它 。
                 var client = await GetQueueClient();
                 await client.ClearMessagesAsync();
                 LogInfoAzureQueueClear(QueueName);
@@ -202,9 +202,9 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Adds a new message to the queue.
+        /// 向队列添加新消息。
         /// </summary>
-        /// <param name="message">Message to be added to the queue.</param>
+        /// <param name="message">信件要添加到队列中。</param>
         public async Task AddQueueMessage(string message)
         {
             var startTime = DateTime.UtcNow;
@@ -225,7 +225,7 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Peeks in the queue for latest message, without dequeuing it.
+        /// 最晚消息的排队中有毛线,没有解密。
         /// </summary>
         public async Task<PeekedMessage?> PeekQueueMessage()
         {
@@ -241,7 +241,7 @@ namespace Orleans.AzureUtils
             catch (Exception exc)
             {
                 ReportErrorAndRethrow(exc, "PeekQueueMessage", AzureQueueErrorCode.AzureQueue_08);
-                return null; // Dummy statement to keep compiler happy
+                return null; // 使编译者快乐的虚称语句
             }
             finally
             {
@@ -251,7 +251,7 @@ namespace Orleans.AzureUtils
 
 
         /// <summary>
-        /// Gets a new message from the queue.
+        /// 从队列中获取新消息 。
         /// </summary>
         public async Task<QueueMessage?> GetQueueMessage()
         {
@@ -259,9 +259,9 @@ namespace Orleans.AzureUtils
             LogTraceGettingMessage(QueueName);
             try
             {
-                //BeginGetMessage and EndGetMessage is not supported in netstandard, may be use GetMessageAsync
+                //BeginGetMessage 和 EndGetMessage 不以净标准支持,可使用 GetMessageAsync
                 // http://msdn.microsoft.com/en-us/library/ee758456.aspx
-                // If no messages are visible in the queue, GetMessage returns null.
+                // 如果队列中没有可见信件, GetMessage 返回无效。
                 var client = await GetQueueClient();
                 var messages = await client.ReceiveMessagesAsync(maxMessages: 1, messageVisibilityTimeout);
                 return messages.Value.FirstOrDefault();
@@ -269,7 +269,7 @@ namespace Orleans.AzureUtils
             catch (Exception exc)
             {
                 ReportErrorAndRethrow(exc, "GetQueueMessage", AzureQueueErrorCode.AzureQueue_09);
-                return null; // Dummy statement to keep compiler happy
+                return null; // 使编译者快乐的虚称语句
             }
             finally
             {
@@ -278,9 +278,9 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Gets a number of new messages from the queue.
+        /// 从队列中获取一些新消息 。
         /// </summary>
-        /// <param name="count">Number of messages to get from the queue.</param>
+        /// <param name="count">要从队列中接收的信件数。</param>
         public async Task<IEnumerable<QueueMessage>> GetQueueMessages(int? count = null)
         {
             var startTime = DateTime.UtcNow;
@@ -308,9 +308,9 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Deletes a messages from the queue.
+        /// 删除队列中的一条消息。
         /// </summary>
-        /// <param name="message">A message to be deleted from the queue.</param>
+        /// <param name="message">将从队列中删除一个要删除的消息。</param>
         public async Task DeleteQueueMessage(QueueMessage message)
         {
             ArgumentNullException.ThrowIfNull(message);
@@ -375,7 +375,7 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Returns an approximate number of messages in the queue.
+        /// 返回队列中大约数的信件。
         /// </summary>
         public async Task<int> GetApproximateMessageCount()
         {
@@ -391,7 +391,7 @@ namespace Orleans.AzureUtils
             catch (Exception exc)
             {
                 ReportErrorAndRethrow(exc, "FetchAttributes", AzureQueueErrorCode.AzureQueue_12);
-                return 0; // Dummy statement to keep compiler happy
+                return 0; // 使编译者快乐的虚称语句
             }
             finally
             {
@@ -413,7 +413,7 @@ namespace Orleans.AzureUtils
             var errMsg = string.Format(
                 "Error doing {0} for Azure storage queue {1} " + Environment.NewLine
                 + "Exception = {2}", operation, QueueName, exc);
-            logger.LogError((int)errorCode, exc, "{Message}", errMsg); // TODO: pending on https://github.com/dotnet/runtime/issues/110570
+            logger.LogError((int)errorCode, exc, "{Message}", errMsg); // 待决 https://github.com/dotnet/runtime/issues/110570
             throw new AggregateException(errMsg, exc);
         }
 
@@ -434,15 +434,15 @@ namespace Orleans.AzureUtils
         private static string SanitizeQueueName(string queueName)
         {
             var tmp = queueName;
-            //Azure queue naming rules : https://learn.microsoft.com/rest/api/storageservices/Naming-Queues-and-Metadata?redirectedfrom=MSDN
+            //Azure 队列命名规则 : https://learn.microsoft.com/rest/api/storageservices/Naming-Queues-and-Metadata?redirectedfrom=MSDN
 #pragma warning disable CA1308 // Azure Queue names use lowercase letters.
             tmp = tmp.ToLowerInvariant();
 #pragma warning restore CA1308
             tmp = tmp
-                .Replace('/', '-') // Forward slash
-                .Replace('\\', '-') // Backslash
-                .Replace('#', '-') // Pound sign
-                .Replace('?', '-') // Question mark
+                .Replace('/', '-') // 向前斜线
+                .Replace('\\', '-') // 反斜斜斜
+                .Replace('#', '-') // 英镑符号
+                .Replace('?', '-') // 问号
                 .Replace('&', '-')
                 .Replace('+', '-')
                 .Replace(':', '-')
@@ -453,34 +453,34 @@ namespace Orleans.AzureUtils
 
         private static void ValidateQueueName(string queueName)
         {
-            // Naming Queues and Metadata: http://msdn.microsoft.com/en-us/library/windowsazure/dd179349.aspx
+            // 命名队列和元数据: http://msdn.microsoft.com/en-us/library/windowsazure/dd179349.aspx
             if (!(queueName.Length >= 3 && queueName.Length <= 63))
             {
-                // A queue name must be from 3 through 63 characters long.
+                // 队列名称必须从3到63个字符长。
                 throw new ArgumentException(string.Format("A queue name must be from 3 through 63 characters long, while your queueName length is {0}, queueName is {1}.", queueName.Length, queueName), nameof(queueName));
             }
 
             if (!char.IsAsciiLetterOrDigit(queueName.First()))
             {
-                // A queue name must start with a letter or number
+                // 队列名称必须以字母或编号开头
                 throw new ArgumentException(string.Format("A queue name must start with a letter or number, while your queueName is {0}.", queueName), nameof(queueName));
             }
 
             if (!char.IsAsciiLetterOrDigit(queueName.Last()))
             {
-                // The first and last letters in the queue name must be alphanumeric. The dash (-) character cannot be the first or last character.
+                // 队列名称中的第一个字母和最后一个字母必须是字母数字。 划线字符(-) 不能是第一个或最后一个字符 。
                 throw new ArgumentException(string.Format("The last letter in the queue name must be alphanumeric, while your queueName is {0}.", queueName), nameof(queueName));
             }
 
             if (!queueName.All(c => char.IsAsciiLetterOrDigit(c) || c.Equals('-')))
             {
-                // A queue name can only contain letters, numbers, and the dash (-) character.
+                // 队列名称只能包含字母、数字和横线(-)字符。
                 throw new ArgumentException(string.Format("A queue name can only contain ASCII letters, numbers, and the dash (-) character, while your queueName is {0}.", queueName), nameof(queueName));
             }
 
             if (queueName.Contains("--", StringComparison.Ordinal))
             {
-                // Consecutive dash characters are not permitted in the queue name.
+                // 队列名称不允许连续的破折字符 。
                 throw new ArgumentException(string.Format("Consecutive dash characters are not permitted in the queue name, while your queueName is {0}.", queueName), nameof(queueName));
             }
         }

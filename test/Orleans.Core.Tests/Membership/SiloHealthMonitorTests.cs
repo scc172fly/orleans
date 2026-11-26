@@ -15,7 +15,7 @@ using static Orleans.Runtime.MembershipService.SiloHealthMonitor;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// Tests for silo health monitoring including direct/indirect probing, failure detection, and stale silo handling.
+    /// silo 健康监测测试,包括直接/间接检测、故障检测和废旧 silo 处理。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -280,11 +280,11 @@ namespace NonSilo.Tests.Membership
 
             _monitor.Start();
 
-            // Let a timer complete
+            // 让一个计时器完成
             var timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
 
-            // Check the resulting probe result.
+            // 检查结果检测结果
             var probeResult = await _probeResults.Reader.ReadAsync(cancellationToken);
             Assert.Equal(ProbeResultStatus.Succeeded, probeResult.Status);
             Assert.Equal(0, probeResult.FailedProbeCount);
@@ -361,7 +361,7 @@ namespace NonSilo.Tests.Membership
             _prober.ProbeIndirectly(default!, default!, default, default, cancellationToken).ThrowsAsyncForAnyArgs(new InvalidOperationException("No"));
             _monitor.Start();
 
-            // Let a timer complete
+            // 让一个计时器完成
             var timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
 
@@ -672,11 +672,11 @@ namespace NonSilo.Tests.Membership
             _prober.ProbeIndirectly(default!, default!, default, default, cancellationToken).ThrowsAsyncForAnyArgs(new InvalidOperationException("No"));
             _monitor.Start();
 
-            // Let a timer complete
+            // 让一个计时器完成
             var timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
 
-            // Throw directly, instead of timing out the probe
+            // 直接投出,而不是计时探测器
             _prober.WhenForAnyArgs(s => s.Probe(default!, default, cancellationToken)).Throw(new Exception("nope"));
             timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
@@ -709,7 +709,7 @@ namespace NonSilo.Tests.Membership
             });
             _monitor.Start();
 
-            // Let a timer complete
+            // 让一个计时器完成
             var timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
 
@@ -727,14 +727,14 @@ namespace NonSilo.Tests.Membership
             await _membershipTable.InsertRowAsync(Entry(otherSilo, SiloStatus.Joining), _membershipTable.Version.Next(), cancellationToken);
             await _membershipService.Refresh(cancellationToken: cancellationToken);
 
-            // There is only one other active silo (the target silo), so an indirect probe cannot be performed.
+            // 只有一个其他活动 silo (目标 silo),因此无法进行间接探测。
             probeResult = await _probeResults.Reader.ReadAsync(cancellationToken);
             Assert.Equal(ProbeResultStatus.Failed, probeResult.Status);
             Assert.Equal(2, probeResult.FailedProbeCount);
             Assert.True(probeResult.IsDirectProbe);
             Assert.Equal(0, probeResult.IntermediaryHealthDegradationScore);
 
-            // Make the other silo active so that there is an intermediary to use for an indirect probe.
+            // 让另一个 silo 激活,以便有一个中间体用于间接探测。
             var etag = (await _membershipTable.ReadAllAsync(cancellationToken)).Members.Where(kv => kv.Item1.SiloAddress.Equals(otherSilo)).Single().Item2;
             await _membershipTable.UpdateRowAsync(Entry(otherSilo, SiloStatus.Active, iAmAliveTime: DateTime.UtcNow), etag, _membershipTable.Version.Next(), cancellationToken);
             await _membershipService.Refresh(cancellationToken: cancellationToken);
@@ -743,21 +743,21 @@ namespace NonSilo.Tests.Membership
             timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
 
-            // Since there is another active silo, an indirect probe will be performed.
+            // 由于有另一个活动 silo,将进行间接探测。
             probeResult = await _probeResults.Reader.ReadAsync(cancellationToken);
             Assert.Equal(ProbeResultStatus.Failed, probeResult.Status);
             Assert.Equal(3, probeResult.FailedProbeCount);
             Assert.False(probeResult.IsDirectProbe);
             Assert.Equal(0, probeResult.IntermediaryHealthDegradationScore);
 
-            // Ensure that the correct intermediary was selected.
+            // 确保选择正确的中间人。
             var probeCall = _prober.ReceivedCalls().Single();
             var args = probeCall.GetArguments();
             var intermediary = Assert.IsType<SiloAddress>(args[0]);
             Assert.Equal(otherSilo, intermediary);
             Assert.Equal(TimeSpan.FromSeconds(2), Assert.IsType<TimeSpan>(args[2]));
 
-            // Ensure that negative results from unhealthy intermediaries are not considered.
+            // 确保不考虑不健康的中介的负面结果。
             _prober.ProbeIndirectly(default!, default!, default, default, cancellationToken).ReturnsForAnyArgs(new IndirectProbeResponse
             {
                 FailureMessage = "fail",
@@ -770,21 +770,21 @@ namespace NonSilo.Tests.Membership
             timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
 
-            // The number of failed probes should not be incremented, the status should be "unknown", and the health score should be 1.
+            // 失败探测器的数量不应增加,状态应“未知”,健康得分应为1。
             probeResult = await _probeResults.Reader.ReadAsync(cancellationToken);
             Assert.Equal(ProbeResultStatus.Unknown, probeResult.Status);
             Assert.Equal(3, probeResult.FailedProbeCount);
             Assert.False(probeResult.IsDirectProbe);
             Assert.Equal(1, probeResult.IntermediaryHealthDegradationScore);
 
-            // Ensure that the correct intermediary was selected.
+            // 确保选择正确的中间人。
             probeCall = _prober.ReceivedCalls().Single();
             args = probeCall.GetArguments();
             intermediary = Assert.IsType<SiloAddress>(args[0]);
             Assert.Equal(otherSilo, intermediary);
 
-            // After seeing that the chosen intermediary is unhealthy, a subsequent probe should be
-            // performed directly (since there are no other silos to use as an intermediary).
+            // 发现所选中介人不健康后,随后的探
+            // 直接执行(因为没有其他 silos 可用作中间人)。
             _prober.ClearReceivedCalls();
             timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
@@ -795,7 +795,7 @@ namespace NonSilo.Tests.Membership
             Assert.True(probeResult.IsDirectProbe);
             Assert.Equal(0, probeResult.IntermediaryHealthDegradationScore);
 
-            // Ensure that it was the target that was probed directly.
+            // 确保直接调查的目标就是它。
             probeCall = _prober.ReceivedCalls().Single();
             args = probeCall.GetArguments();
             var target = Assert.IsType<SiloAddress>(args[0]);
@@ -811,10 +811,10 @@ namespace NonSilo.Tests.Membership
             _clusterMembershipOptions.EnableIndirectProbes = true;
             _clusterMembershipOptions.ProbeTimeout = TimeSpan.FromSeconds(2);
 
-            // Make direct probes fail.
+            // 直接探测器失效
             _prober.Probe(default!, default, cancellationToken).ThrowsAsyncForAnyArgs(new Exception("Direct probe failing."));
 
-            // Start the monitor and trigger one timer cycle for a direct-probe attempt (which fails).
+            // 启动监视器并触发一个直接探测尝试(失败)的定时周期。
             _monitor.Start();
             var timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
@@ -822,8 +822,8 @@ namespace NonSilo.Tests.Membership
             Assert.True(firstProbeResult.IsDirectProbe);
             Assert.Equal(ProbeResultStatus.Failed, firstProbeResult.Status);
 
-            // Now add a 'stale' silo and a 'fresh' silo (both Active).
-            // This occurs after the first failed direct probe, matching the approach used in the test above.
+            // 现在添加“ 发牌” silo 和“ 更新” silo (都有效)。
+            // 发生于第一个失败的直接探测后,与上述试验中所使用的方法匹配。
             var staleSilo = Silo("127.0.0.1:3333@3333");
             await _membershipTable.InsertRowAsync(
                 Entry(staleSilo, SiloStatus.Active, DateTime.UtcNow - TimeSpan.FromMinutes(30)),
@@ -831,12 +831,12 @@ namespace NonSilo.Tests.Membership
                 cancellationToken);
             _prober.ClearReceivedCalls();
 
-            // Trigger another timer cycle which will now attempt an indirect probe.
+            // 触发另一个计时周期 现在尝试间接探测
             timerCall = await _timerCalls.Reader.ReadAsync(cancellationToken);
             timerCall.Completion.TrySetResult(true);
             var probeResult = await _probeResults.Reader.ReadAsync(cancellationToken);
 
-            // Verify that this time the probe is direct since it skipped the stale intermediary silos.
+            // 验证这次探测器跳过废旧中间体 silos后是否直接进行。
             Assert.True(probeResult.IsDirectProbe);
             var call = _prober.ReceivedCalls().LastOrDefault();
             var args = call?.GetArguments();

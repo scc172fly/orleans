@@ -23,7 +23,7 @@ namespace UnitTests.RemindersTest
 
         protected ConnectionStringFixture connectionStringFixture;
 
-        protected const string testDatabaseName = "OrleansReminderTest";//for relational storage
+        protected const string testDatabaseName = "OrleansReminderTest";//用于连接储存
 
         protected ReminderTableTestsBase(ConnectionStringFixture fixture, TestEnvironmentFixture clusterFixture, LoggerFilterOptions filters)
         {

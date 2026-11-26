@@ -34,7 +34,7 @@ public class GrainTypeResolverConventionTests
         Assert.Equal(GrainType.Create(expectedName), result);
     }
 
-    // Plain classes exercise naming without adding generated or serialized grain fixtures.
+    // 平级命名练习,不添加生成的或序列化 grain 固定装置。
     private sealed class MiXeDCaSe;
     private sealed class PendingGrAiN;
     private sealed class GrainLedger;

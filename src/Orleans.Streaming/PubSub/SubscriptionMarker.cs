@@ -3,10 +3,10 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Mark a subscriptionId as either an implicit subscription Id, or an explicit subscription Id.
-    /// high bit of last byte in guild is the subscription type flag.
-    /// 1: implicit subscription
-    /// 0: explicit subscription
+    /// a subscriptionId 标为默示订阅代号或明确订阅代号。
+    /// 用户类型旗是国际行会中最后一字节的高位。
+    /// 1: 默示订阅
+    /// 0:明确订阅
     /// </summary>
     internal static class SubscriptionMarker
     {
@@ -24,7 +24,7 @@ namespace Orleans.Streams
         {
             Span<byte> guidBytes = stackalloc byte[16];
             subscriptionGuid.TryWriteBytes(guidBytes);
-            // return true if high bit of last byte is set
+            // 如果设定了高位的上一个字节返回真实
             return (guidBytes[15] & 0x80) != 0;
         }
 
@@ -34,12 +34,12 @@ namespace Orleans.Streams
             subscriptionGuid.TryWriteBytes(guidBytes);
             if (isImplicitSubscription)
             {
-                // set high bit of last byte
+                // 设置高位的上一个字节
                 guidBytes[15] |= 0x80;
             }
             else
             {
-                // clear high bit of last byte
+                // 明显高位的上一个字节
                 guidBytes[15] &= 0x7f;
             }
 

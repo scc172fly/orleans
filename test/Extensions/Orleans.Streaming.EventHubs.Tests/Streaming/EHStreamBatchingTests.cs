@@ -9,7 +9,7 @@ using Xunit;
 namespace ServiceBus.Tests.Streaming
 {
     /// <summary>
-    /// Tests for EventHub stream batching functionality with implicit subscriptions.
+    /// 测试 EventHub 流分批功能,其中含有暗含订阅。
     /// </summary>
     [TestCategory("EventHub")]
     [TestSuite("Functional")]

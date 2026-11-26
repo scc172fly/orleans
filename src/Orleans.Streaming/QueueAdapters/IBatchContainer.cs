@@ -5,33 +5,33 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Each queue message is allowed to be a heterogeneous, ordered set of events.
-    /// <see cref="IBatchContainer"/> contains these events and allows users to query the batch for a specific type of event.
+    /// 允许每条队列信息有不同、有顺序的一组事件。
+    /// <see cref="IBatchContainer"/> 包含这些活动,用户可以查询特定类型事件的批次。
     /// </summary>
     public interface IBatchContainer
     {
         /// <summary>
-        /// Ges the stream identifier for the stream this batch is part of.
+        /// Ges 用于此批次所包含串流的溪流识别符 。
         /// </summary>
         StreamId StreamId { get; }
 
         /// <summary>
-        /// Gets events of a specific type from the batch.
+        /// 从批量中获取特定类型的事件 。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         IEnumerable<Tuple<T, StreamSequenceToken>> GetEvents<T>();
 
         /// <summary>
-        /// Ges the stream sequence token for the start of this batch.
+        /// 用于开始此批次的串流序列符号 。
         /// </summary>
         StreamSequenceToken SequenceToken { get; }
 
         /// <summary>
-        /// Gives an opportunity to <see cref="IBatchContainer"/> to set any data in the <see cref="RequestContext"/> before this <see cref="IBatchContainer"/> is sent to consumers.
-        /// It can be the data that was set at the time event was generated and enqueued into the persistent provider or any other data.
+        /// 给一个机会 <see cref="IBatchContainer"/> 中设置数据 <see cref="RequestContext"/> 此前 <see cref="IBatchContainer"/> 发送到消费者。
+        /// 可以是生成事件时设定的数据,并排入持续提供方或任何其他数据。
         /// </summary>
-        /// <returns><see langword="true"/> if the <see cref="RequestContext"/> was indeed modified, <see langword="false"/> otherwise.</returns>
+        /// <returns><see langword="true"/> 如果 <see cref="RequestContext"/> 确实被修改,则 <see langword="false"/> 。</returns>
         bool ImportRequestContext();
     }
 }

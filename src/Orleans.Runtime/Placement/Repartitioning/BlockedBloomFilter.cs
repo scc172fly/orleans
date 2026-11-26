@@ -6,17 +6,17 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime.Placement.Repartitioning;
 
 /// <summary>
-/// A tuned version of a blocked bloom filter implementation.
+/// 封杀的过滤器执行的调版。
 /// </summary>
 /// <remarks><i>
-/// <para>This is a tuned version of BBF in order to meet the required FP rate.
-/// Tuning takes a lot of time so this filter can accept FP rates in the rage of [0.1% - 1%]
-/// Any value with the range, at any precision is supported as the FP rate is regressed via polynomial regression</para>
-/// <para>More information can be read from Section 3: https://www.cs.amherst.edu/~ccmcgeoch/cs34/papers/cacheefficientbloomfilters-jea.pdf</para>
+/// <para>这是BBFF的调制版,以满足规定的按自由币兑换率。
+/// 调试需要很多时间,所以这个过滤器可以在[0.1% - 1%]的热潮中接受节能汇率。
+/// 使用范围的任何值,只要精确度为任何值,均支持该数值,因为通过多面回归法</para>,FP率会回退
+/// <para>更多信息可从第3节读取: https://www.cs.amherst.edu/~ccmcgeoch/cs34/papers/cacheefficientbloomfilters-jea.pdf</para>
 /// </i></remarks>
 internal sealed class BlockedBloomFilter
 {
-    private const int BlockSize = 32; // higher value yields better speed, but at a high cost of space
+    private const int BlockSize = 32; // 高值提高能产生更快的效益,但以高空间成本
     private const double Ln2Squared = 0.4804530139182014246671025263266649717305529515945455;
     private const double MinFpRate = 0.001; // 0.1%
     private const double MaxFpRate = 0.01;  // 1%
@@ -24,8 +24,8 @@ internal sealed class BlockedBloomFilter
     private readonly int _blocks;
     private readonly int[] _filter;
 
-    // Regression coefficients (derived via polynomial regression) to match 'fpRate' as the actual deviates significantly with lower and lower 'fpRate'
-    // Eg, see https://gist.github.com/ledjon-behluli/d339cbd54568ceb5464d3a947ac8f08e
+    // 递减系数(通过多元回归得出),与 "fpRate" 相匹配,因为实际偏差与 "fpRate" 的下低显著偏差相当。
+    // Eg,见 https://gist.github.com/ledjon-behluli/d339cbd54568ceb5464d3a947ac8f08e
     private static readonly double[] Coefficients =
     [
          4.0102253166524500e-003,
@@ -43,8 +43,8 @@ internal sealed class BlockedBloomFilter
         -9.8041203512310751e+025
     ];
 
-    /// <param name="capacity">The estimated population size.</param>
-    /// <param name="fpRate">Bounded within [<see cref="MinFpRate"/> - <see cref="MaxFpRate"/>]</param>
+    /// <param name="capacity">估计人口规模。</param>
+    /// <param name="fpRate">内[<see cref="MinFpRate"/> - <see cref="MaxFpRate"/></param>
     /// <exception cref="ArgumentOutOfRangeException"/>
     public BlockedBloomFilter(int capacity, double fpRate)
     {
@@ -78,15 +78,15 @@ internal sealed class BlockedBloomFilter
     public void Add(GrainId id)
     {
         var hash = XxHash3.HashToUInt64(id.Key.AsSpan(), id.GetUniformHashCode());
-        var index = GetBlockIndex(hash, _blocks); // important to get index before rotating the hash
+        var index = GetBlockIndex(hash, _blocks); // 旋转散列前获得索引的重要性
 
         hash ^= BitOperations.RotateLeft(hash, 32);
 
-        // We use 2 masks to distribute the bits of the hash value across multiple positions in the filter
+        // 我们用两个面罩将散列值的比特分布在过滤器中的多个位置
         var mask1 = ComputeMask1(hash);
         var mask2 = ComputeMask2(hash);
 
-        // We set the bits across 2 blocks so that the bits from a single hash value, are spread out more evenly across the filter.
+        // 我们把比特设置在两个街区之间,这样一个散列值的比特就会分布得更均匀。
         _filter[index] |= mask1;
         _filter[index + 1] |= mask2;
     }
@@ -94,7 +94,7 @@ internal sealed class BlockedBloomFilter
     public bool Contains(GrainId id)
     {
         var hash = XxHash3.HashToUInt64(id.Key.AsSpan(), id.GetUniformHashCode());
-        var index = GetBlockIndex(hash, _blocks); // important to get index before rotating the hash
+        var index = GetBlockIndex(hash, _blocks); // 旋转散列前获得索引的重要性
 
         hash ^= BitOperations.RotateLeft(hash, 32);
 
@@ -113,28 +113,28 @@ internal sealed class BlockedBloomFilter
     private static int GetBlockIndex(ulong hash, int buckets) => (int)(((int)hash & 0xffffffffL) * buckets >> 32);
 
     /// <summary>
-    /// Sets the bits of <paramref name="hash"/> corresponding to the lower-order bits, and the bits shifted by 6 positions to the right
+    /// 设置与下顺序位数相对的 <paramref name="hash"/> 位数,而比数向右移动了6个位置
     /// </summary>
-    /// <param name="hash">The rotated hash</param>
+    /// <param name="hash">旋转的散列</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int ComputeMask1(ulong hash) => (1 << (int)hash) | (1 << ((int)hash >> 6));
 
     /// <summary>
-    /// Sets the bits of <paramref name="hash"/>, and the bits shifted by 12 and 18 positions to the right
+    /// 设置 <paramref name="hash"/>的比特,而比特则向右移动12和18个位置
     /// </summary>
-    /// <param name="hash">The rotated hash</param>
+    /// <param name="hash">旋转的散列</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int ComputeMask2(ulong hash) => (1 << ((int)hash >> 12)) | (1 << ((int)hash >> 18));
 }
 
 /// <summary>
-/// Implemented as a set of <see cref="BlockedBloomFilter"/>(s) that rotate anchored grains.
-/// If a grain is "hot" it will likely survive multiple cycles, otherwise it gets dropped out.
+/// 一套已执行的 <see cref="BlockedBloomFilter"/>(s) 旋转固定 grains.
+/// 如果 grain 是“热”它可能会在多个周期内存活下来,否则就会被淘汰。
 /// </summary>
 internal sealed class AnchoredGrainsFilter
 {
-    // Index 0 is the "active" filter.
-    // Indexes 1 through N-1 are the "retiring" filters.
+    // 索引 0 是“ 激活” 过滤器 。
+    // 指数1到N-1是“退休”过滤器。
     private readonly BlockedBloomFilter[] _filters;
 
     public AnchoredGrainsFilter(int capacity, double fpRate, int generations)
@@ -171,25 +171,25 @@ internal sealed class AnchoredGrainsFilter
 
     public void Rotate()
     {
-        // Idea is to rotate the inner filters to implement a sort of sliding window.
-        // The previous active (index 0) shifts down, remaining "checkable" for n-1 more cycles, then fades unless re-added.
-        // This ensures "cold" grains eventually drop out, while "hot" ones stay anchored.
+        // 理想是旋转内部过滤器, 以实施某种滑动窗口 。
+        // 上一个活动周期( 指数 0) 向下移动, 剩下的 n-1 循环“ 可检查” , 除非重新添加, 否则会消失 。
+        // 这保证了"冷" grains 最终退学,而热"的 继续固定。
 
         var length = _filters.Length;
 
-        // We grab the oldest filter and reset it so it becomes the new active one.
+        // 我们抓住最老的过滤器 重置它,让它变成新的活动过滤器
         var nextActive = _filters[length - 1];
         nextActive.Reset();
 
-        // Need to shift all existing generations down by 1. We iterate backwards
-        // so we dont overwrite elements we havent shifted yet.
+        // 需要将所有今世后代都从1下移到1下,我们向后推
+        // 所以我们不覆盖元素,我们还没有改变。
 
         for (var i = length - 1; i > 0; i--)
         {
             _filters[i] = _filters[i - 1];
         }
 
-        // The newly reset filter goes at the front.
+        // 新的重置过滤器在前面
         _filters[0] = nextActive;
     }
 

@@ -13,7 +13,7 @@ using Orleans.Runtime.Internal;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Maintains a list of activations which are recently active.
+    /// 维持最近激活的启动列表 。
     /// </summary>
     internal sealed partial class ActivationWorkingSet : IActivationWorkingSet, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -219,84 +219,84 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Manages the set of recently active <see cref="IGrainContext"/> instances.
+    /// 管理最近活动的 <see cref="IGrainContext"/> 实例集。
     /// </summary>
     public interface IActivationWorkingSet
     {
         /// <summary>
-        /// Returns the number of grain activations which were recently active.
+        /// 返回最近激活的 grain 启动次数。
         /// </summary>
         public int Count { get; }
 
         /// <summary>
-        /// Adds a new member to the working set.
+        /// 将新成员添加到工作集中。
         /// </summary>
         void OnActivated(IActivationWorkingSetMember member);
 
         /// <summary>
-        /// Signals that a member is active and should be in the working set.
+        /// 表示成员积极活动,应参加工作。
         /// </summary>
         void OnActive(IActivationWorkingSetMember member);
 
         /// <summary>
-        /// Signals that a member has begun to deactivate.
+        /// 信号说,一个成员已开始停止工作。
         /// </summary>
         /// <param name="member"></param>
         void OnDeactivating(IActivationWorkingSetMember member);
 
         /// <summary>
-        /// Signals that a members has deactivated.
+        /// 信号显示成员已停止使用
         /// </summary>
         void OnDeactivated(IActivationWorkingSetMember member);
     }
 
     /// <summary>
-    /// Represents an activation from the perspective of <see cref="IActivationWorkingSet"/>.
+    /// 从 <see cref="IActivationWorkingSet"/>的角度看,激活是指启动。
     /// </summary>
     public interface IActivationWorkingSetMember
     {
         /// <summary>
-        /// Returns <see langword="true"/> if the member is eligible for removal, <see langword="false"/> otherwise.
+        /// 如果成员有资格被除名,则返回 <see langword="true"/> ,否则返回 <see langword="false"/> 。
         /// </summary>
-        /// <returns><see langword="true"/> if the member is eligible for removal, <see langword="false"/> otherwise.</returns>
+        /// <returns><see langword="true"/> 如果该成员有资格被除名, <see langword="false"/> 就另外予以删除。</returns>
         /// <remarks>
-        /// If this method returns <see langword="true"/> and <paramref name="wouldRemove"/> is <see langword="true"/>, the member must be removed from the working set and is eligible to be added again via a call to <see cref="IActivationWorkingSet.OnActivated(IActivationWorkingSetMember)"/>.
+        /// 如果该方法返回 <see langword="true"/> 和 <paramref name="wouldRemove"/> 是 <see langword="true"/>,则必须将该成员从工作组中除名,并有资格通过呼叫 <see cref="IActivationWorkingSet.OnActivated(IActivationWorkingSetMember)"/>再次添加。
         /// </remarks>
         bool IsCandidateForRemoval(bool wouldRemove);
     }
 
     /// <summary>
-    /// An <see cref="IActivationWorkingSet"/> observer.
+    /// A 音 A <see cref="IActivationWorkingSet"/> 观察员。
     /// </summary>
     public interface IActivationWorkingSetObserver
     {
         /// <summary>
-        /// Called when an activation is added to the working set.
+        /// 当激活被添加到工作组时呼叫 。
         /// </summary>
         void OnAdded(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// Called when an activation becomes active.
+        /// 当激活启动时呼叫 。
         /// </summary>
         void OnActive(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// Called when an activation becomes idle.
+        /// 当激活闲置时呼叫 。
         /// </summary>
         void OnIdle(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// Called when an activation is removed from the working set.
+        /// 工作组移除激活时呼叫 。
         /// </summary>
         void OnEvicted(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// Called when an activation starts deactivating.
+        /// 当激活开始停止活动时呼叫 。
         /// </summary>
         void OnDeactivating(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// Called when an activation is deactivated.
+        /// 激活解除后呼叫
         /// </summary>
         void OnDeactivated(IActivationWorkingSetMember member) { }
     }

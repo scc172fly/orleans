@@ -14,16 +14,16 @@ using UnitTests;
 namespace Tester.Cosmos.Clustering;
 
 /// <summary>
-/// Tests for operation of Orleans Membership Table using Azure Cosmos DB - Requires access to external Azure Cosmos DB account
+/// 试验试验的试验 Orleans 成员人数 Azure 宇宙 DB - 需要外部访问 Azure 宇宙 DB 账户
 /// 
-/// Azure Cosmos DB provides a globally distributed, multi-model database service that Orleans can use for cluster membership
-/// management.
+/// Azure 宇宙DB提供全球分布的多模式数据库服务, Orleans 可用于分组成员
+/// 管理。
 /// 
-/// These tests verify the Cosmos DB membership provider correctly implements
-/// all membership operations with Cosmos DB's unique features like:
-/// - Document-based storage with SQL querying
-/// - Optimistic concurrency using ETags
-/// - Partition key strategies for cluster isolation
+/// 这些测试验证宇宙DB成员供应商是否正确执行
+/// 具有宇宙DB独特特征的所有会员业务,例如:
+/// - 储存文件,并有 SQL 查询
+/// - 使用ETags的乐观同价货币
+/// - 隔离集群隔离的关键战略
 /// </summary>
 [TestCategory("Membership"), TestCategory("Cosmos")]
 [TestSuite("Functional")]
@@ -48,9 +48,9 @@ public class CosmosMembershipTableTests : MembershipTableTestsBase
     }
 
     /// <summary>
-    /// Creates a Cosmos DB-based membership table for testing.
-    /// Configures the Cosmos DB client with test-specific settings
-    /// including database/container names and consistency levels.
+    /// 创建基于宇宙DB的成员表供测试。
+    /// 配置带有测试特定设置的 Cosmos DB 客户端
+    /// 包括数据库/集装箱名称和一致性水平。
     /// </summary>
     protected override IMembershipTable CreateMembershipTable(ILogger logger)
         => CreateMembershipTable(logger, _clusterOptions);
@@ -70,7 +70,7 @@ public class CosmosMembershipTableTests : MembershipTableTestsBase
         return new MembershipTableTestHandle(table, () => DisposeClientsAsync(clients));
     }
 
-    // The SDK's default query page contains at most 100 items.
+    // SDK 默认查询页面最多包含100项。
     protected override int ConformanceConcurrencyRowCount => 101;
 
     protected override MembershipTableTestFixture CreateConformanceFixture()
@@ -114,8 +114,8 @@ public class CosmosMembershipTableTests : MembershipTableTestsBase
             async (clusterId, cancellationToken) =>
             {
                 var container = probe!.GetContainer(probeOptions.DatabaseName, probeOptions.ContainerName);
-                // Include ClusterVersion as well as all silo documents in the original partition.
-                // Reads inherit client/account consistency, matching the provider configuration.
+                // 在原始分区中包含 ClusterVersion 和所有 silo 文档。
+                // 阅读继承客户/账户的一致性,与提供者配置相符。
                 using var iterator = container.GetItemQueryIterator<string>(
                     "SELECT TOP 1 VALUE c.id FROM c",
                     requestOptions: new QueryRequestOptions
@@ -168,9 +168,9 @@ public class CosmosMembershipTableTests : MembershipTableTestsBase
     }
 
     /// <summary>
-    /// Creates a Cosmos DB-based gateway list provider.
-    /// Uses Cosmos DB's querying capabilities to efficiently
-    /// retrieve available gateway silos for client connections.
+    /// 创建 Cosmos DB 网关列表提供者。
+    /// 有效使用宇宙DB的查询能力
+    /// 获取客户端连接的可用网关 silos 。
     /// </summary>
     protected override IGatewayListProvider CreateGatewayListProvider(ILogger logger)
     {
@@ -246,9 +246,9 @@ public class CosmosMembershipTableTests : MembershipTableTestsBase
     }
 
     /// <summary>
-    /// Tests inserting a silo entry as a Cosmos DB document.
-    /// Verifies document creation with proper partition key assignment
-    /// and automatic indexing for efficient queries.
+    /// 测试插入 silo 条目作为宇宙 DB 文档。
+    /// 验证文档创建并配有适当的分区密钥指定
+    /// 和自动索引化的有效查询。
     /// </summary>
     [Fact, TestCategory("Functional")]
     public async Task MembershipTable_Cosmos_InsertRow()
@@ -275,9 +275,9 @@ public class CosmosMembershipTableTests : MembershipTableTestsBase
     }
 
     /// <summary>
-    /// Tests concurrent updates using Cosmos DB's ETag-based concurrency.
-    /// Verifies that optimistic concurrency control prevents
-    /// conflicting updates and ensures data consistency.
+    /// 使用宇宙DB的ETag计算法测试同时更新。
+    /// 证明乐观货币管制防止
+    /// 更新时相互矛盾,确保数据的一致性。
     /// </summary>
     [Fact, TestCategory("Functional")]
     public async Task MembershipTable_Cosmos_UpdateRowInParallel()
@@ -286,9 +286,9 @@ public class CosmosMembershipTableTests : MembershipTableTestsBase
     }
 
     /// <summary>
-    /// Tests heartbeat updates in Cosmos DB.
-    /// Verifies efficient partial document updates for liveness
-    /// information without rewriting entire membership entries.
+    /// 测试心跳更新 在宇宙DB。
+    /// 有效核证部分文件的活性更新
+    /// 信息,不重写全部会员条目。
     /// </summary>
     [Fact, TestCategory("Functional")]
     public async Task MembershipTable_Cosmos_UpdateIAmAlive()

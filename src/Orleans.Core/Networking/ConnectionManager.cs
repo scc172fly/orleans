@@ -59,11 +59,11 @@ namespace Orleans.Runtime.Messaging
                     this.GetConnectionAsync(endpoint).Ignore();
                 }
 
-                // Return the existing connection.
+                // 返回现有的连接 。
                 return new(connection);
             }
 
-            // Start a new connection attempt since there are no suitable connections.
+            // 启动新的连接尝试, 因为没有合适的连接 。
             return new(this.GetConnectionAsync(endpoint));
         }
         public bool TryGetConnection(SiloAddress endpoint, [NotNullWhen(true)] out Connection? connection)
@@ -79,11 +79,11 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Gets the minimum elapsed time since any connection to the specified silo last received a message,
-        /// or <see langword="null"/> if no connections exist or no messages have been received.
+        /// 获得最小时间, 因为与指定 silo 的连接最后一次收到消息后,
+        /// 或 <see langword="null"/> ,如果没有连接或没有收到任何消息。
         /// </summary>
-        /// <param name="endpoint">The silo address to check.</param>
-        /// <returns>The elapsed time since the most recently received message across all connections, or <see langword="null"/>.</returns>
+        /// <param name="endpoint">检查的 silo 地址。</param>
+        /// <returns>自最近收到所有连接的信息以来的一段时间,或 <see langword="null"/>.</returns>
         public TimeSpan? GetElapsedSinceLastMessageReceived(SiloAddress endpoint)
         {
             if (!this.connections.TryGetValue(endpoint, out var entry))
@@ -126,7 +126,7 @@ namespace Orleans.Runtime.Messaging
                     var entry = this.GetOrCreateEntry(endpoint);
                     entry.RemoveDefunct();
 
-                    // If there are sufficient connections available then return an existing connection.
+                    // 如果有足够的连接,则返回现有的连接。
                     if (entry.HasSufficientConnections(connectionOptions) && entry.NextConnection() is { } connection)
                     {
                         return connection;
@@ -138,7 +138,7 @@ namespace Orleans.Runtime.Messaging
                         throw new ConnectionFailedException($"Unable to connect to {endpoint}, will retry after {remainingDelay.TotalMilliseconds}ms");
                     }
 
-                    // If there is no pending attempt then start one, otherwise the pending attempt will be awaited before reevaluating.
+                    // 如果没有尚未进行尝试,那么先开始一次尝试,否则在重新评估之前将等待这一未进行尝试。
                     pendingAttempt = entry.PendingConnection ??= ConnectAsync(endpoint, entry);
                 }
 
@@ -159,7 +159,7 @@ namespace Orleans.Runtime.Messaging
 
         public void OnConnected(SiloAddress address, Connection connection)
         {
-            // Outbound preambles run under the acquisition's existing admission until initialization completes.
+            // 外向序言在初始化完成之前一直按照购置权现有接收程序进行。
             if (this.connectionTasks.ContainsKey(connection))
             {
                 OnConnected(address, connection, null);
@@ -184,7 +184,7 @@ namespace Orleans.Runtime.Messaging
                     throw new ConnectionAbortedException("Connection closed during initialization");
                 }
 
-                // The outbound attempt owns its pending task until initialization finishes.
+                // 外向尝试拥有待完成的任务,直到启动完成。
                 if (entry is not null)
                 {
                     entry.PendingConnection = null;
@@ -212,7 +212,7 @@ namespace Orleans.Runtime.Messaging
 
                     if (entry.Connections.Length == 0 && entry.PendingConnection is null)
                     {
-                        // Remove the entire entry.
+                        // 删除整个条目。
                         this.connections.TryRemove(address, out _);
                     }
                     else
@@ -246,7 +246,7 @@ namespace Orleans.Runtime.Messaging
                 ConnectionEvents.EmitConnecting(address);
                 LogInformationEstablishingConnection(this.logger, address);
 
-                // Cancel pending connection attempts either when the host terminates or after the configured time limit.
+                // 尝试取消待连接, 要么在主机终止时, 要么在配置的时间限制后 。
                 openConnectionCancellation = CancellationTokenSource.CreateLinkedTokenSource(this.shutdownCancellation.Token, default);
                 openConnectionCancellation.CancelAfter(this.connectionOptions.OpenConnectionTimeout);
 
@@ -370,7 +370,7 @@ namespace Orleans.Runtime.Messaging
                         }
                     }
 
-                    // Runners remain owned through middleware cleanup, even after routing entries are removed.
+                    // 运行者仍然拥有通过中件清理的系统,即使路径输入被删除后。
                     foreach (var (connection, task) in this.connectionTasks)
                     {
                         closeTasks.Add(connection.CloseAsync(exception: null));
@@ -379,8 +379,8 @@ namespace Orleans.Runtime.Messaging
 
                     if (closeTasks.Count > 0 || pendingEstablishment)
                     {
-                        // Signal existing connections before waiting for producers which may need those signals.
-                        // The next scan also closes connections published while this drain was in progress.
+                        // 信号连接,等待可能需要这些信号的生产商。
+                        // 下一张扫描图还关闭了在排水管正在排水过程中发表的连接。
                         closeTasks.Add(establishmentDrained);
                         await Task.WhenAll(closeTasks).WaitAsync(ct).SuppressThrowing();
                         if (ct.IsCancellationRequested)

@@ -7,19 +7,19 @@ using System.Buffers;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Serializer for value types.
+    /// 价值类型的序列转换器
     /// </summary>
-    /// <typeparam name="TField">The field type.</typeparam>
-    /// <typeparam name="TValueSerializer">The value-type serializer implementation type.</typeparam>
+    /// <typeparam name="TField">字段类型。</typeparam>
+    /// <typeparam name="TValueSerializer">价值类型序列执行类型。</typeparam>
     public sealed class ValueSerializer<TField, TValueSerializer> : IFieldCodec<TField> where TField : struct where TValueSerializer : IValueSerializer<TField>
     {
         private readonly Type CodecFieldType = typeof(TField);
         private readonly TValueSerializer _serializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValueSerializer{TField, TValueSerializer}"/> class.
+        /// 初始化 <see cref="ValueSerializer{TField, TValueSerializer}"/> 类的新实例。
         /// </summary>
-        /// <param name="serializer">The serializer.</param>
+        /// <param name="serializer">序列器。</param>
         public ValueSerializer(TValueSerializer serializer)
         {
             _serializer = serializer;

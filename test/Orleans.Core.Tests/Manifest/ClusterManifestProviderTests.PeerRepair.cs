@@ -89,7 +89,7 @@ public partial class ClusterManifestProviderTests
                         return Task.FromResult(summary);
                     }
 
-                    // This peer ignores RPC cancellation; its late completion is bounded by the test lifetime.
+                    // 这种同行忽略了取消RPC;其晚完成受测试寿命的约束。
                     return AwaitProbeAsync(hungProbeCompletions[peer].Task, () => Interlocked.Decrement(ref activeProbeCount), TestContext.Current.CancellationToken);
                 },
                 getUpdate: (version, _) =>
@@ -401,8 +401,8 @@ public partial class ClusterManifestProviderTests
                 new GrainProperties(CreatePropertyDictionary(
                     new KeyValuePair<string, string>(WellKnownGrainTypeProperties.TypeName, "LegacyFallbackTest")))),
             ImmutableDictionary<GrainInterfaceType, GrainInterfaceProperties>.Empty);
-        // Use a fabricated hash that no other silo's manifest will ever validate against, so the
-        // hash-cache reuse optimization cannot coincidentally "validate" peerB's mismatched claim.
+        // 使用一个没有其它的合成散列 silo将永远证明
+        // 散列积再利用优化不能与“validate” peerB的不匹配索赔同时发生。
         var mismatchedHashForB = new ManifestHash("intentionally-invalid-hash-for-peerB");
         Assert.NotEqual(mismatchedHashForB, ManifestHashCalculator.ComputeHash(remoteManifestA));
         Assert.NotEqual(mismatchedHashForB, ManifestHashCalculator.ComputeHash(remoteManifestB));
@@ -444,8 +444,8 @@ public partial class ClusterManifestProviderTests
         {
             var repaired = await repairedManifest.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
-            // The mismatched hash advertised for peerB must be rejected: its peer-supplied manifest never
-            // enters the published result, and the legacy direct fetch is what ultimately resolves it.
+            // 广告为 peerB 所发布的不匹配的散列必须拒绝:它的同侪供应从未显示
+            // 输入已公布的结果, 遗留的直接提取最终会解决它。
             Assert.Same(legacyManifestB, repaired.Silos[peerB]);
             Assert.NotEqual(ManifestHashCalculator.ComputeHash(remoteManifestB), ManifestHashCalculator.ComputeHash(repaired.Silos[peerB]));
             Assert.Equal(ManifestHashCalculator.ComputeHash(remoteManifestA), ManifestHashCalculator.ComputeHash(repaired.Silos[peerA]));
@@ -475,9 +475,9 @@ public partial class ClusterManifestProviderTests
         var directCompletions = peers.ToDictionary(
             static peer => peer,
             static _ => new TaskCompletionSource<GrainManifest>(TaskCreationOptions.RunContinuationsAsynchronously));
-        // Each peer's fallback manifest must be structurally distinct: ClusterManifest canonicalizes
-        // (deduplicates) structurally-equal GrainManifest instances within a single published manifest,
-        // which would otherwise make different peers' entries reference-equal regardless of provenance.
+        // 每个同行的后退表必须结构上不同: ClusterManifest 共振
+        // 单一公布清单中结构上平等的 GrainManifest 情况,
+        // 否则,不论来源如何,不同的同龄人条目的参考值平等。
         var legacyManifests = peers.ToDictionary(
             peer => peer,
             peer => new GrainManifest(
@@ -510,8 +510,8 @@ public partial class ClusterManifestProviderTests
         {
             await Task.WhenAll(requestLog.WaitForProbeCountAsync(3, TestContext.Current.CancellationToken), requestLog.WaitForLegacyFetchCountAsync(peers.Length, TestContext.Current.CancellationToken));
 
-            // Peer probing is bounded to at most three concurrent probes and selects the exact rotating,
-            // contiguous cyclic segment of candidates; the fourth peer is never probed.
+            // 同行勘测最多与三个同时进行的探针相连接,并选择精确的旋转,
+            // 候选人的相毗环绕部分; 从未调查过第四个对等点。
             Assert.Equal(expectedProbedPeers, requestLog.ProbeAddresses);
             Assert.Equal(3, requestLog.ProbeAddresses.Count);
             Assert.DoesNotContain(unprobedPeer, requestLog.ProbeAddresses);
@@ -528,8 +528,8 @@ public partial class ClusterManifestProviderTests
 
             var repaired = await repairedManifest.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
-            // Since every bounded probe timed out, the fallback direct fetch is what supplies every silo,
-            // including the peer that the bounded rotation never selected for probing.
+            // 所有的被绑的探测器都超时了, 直接接驳的后退是供给每 silo的东西,
+            // 包括从未被选中进行测试的接连旋转的对等点。
             Assert.All(peers, peer => Assert.Same(legacyManifests[peer], repaired.Silos[peer]));
         }
         finally

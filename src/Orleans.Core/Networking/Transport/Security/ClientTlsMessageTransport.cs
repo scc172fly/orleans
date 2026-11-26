@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// Message transport encrypts and decrypts all data using TLS, authenticating with the remote endpoint as a client.
+/// 使用 TLS 进行信件传输加密和解密所有数据, 并以客户端身份认证远程端点 。
 /// </summary>
 internal sealed class ClientTlsMessageTransport : TlsMessageTransport
 {
@@ -20,14 +20,14 @@ internal sealed class ClientTlsMessageTransport : TlsMessageTransport
 
     public ClientTlsMessageTransport(MessageTransport transport, TlsOptions options, ILogger logger) : base(transport, options, logger)
     {
-        // Capture the certificate now so it can't be switched after validation
+        // 获取证书后无法转换
         _certificate = options.LocalCertificate;
         _certificateSelector = options.LocalClientCertificateSelector;
 
-        // If a selector is provided then ignore the cert, it may be a default cert.
+        // 如果提供了选择器,则忽略证书,它可能是默认证书。
         if (_certificateSelector is not null)
         {
-            // SslStream doesn't allow both.
+            // SslStream 不允许两者兼有。
             _certificate = null;
         }
         else if (_certificate is not null)
@@ -74,7 +74,7 @@ internal sealed class ClientTlsMessageTransport : TlsMessageTransport
             case RemoteCertificateMode.NoCertificate:
                 return null;
             case RemoteCertificateMode.AllowCertificate:
-                // If certificate exists but can not be used for client authentication.
+                // 如果证书存在, 但无法用于客户端验证 。
                 if (certificate != null && CertificateLoader.IsCertificateAllowedForClientAuth(certificate))
                 {
                     return certificate;

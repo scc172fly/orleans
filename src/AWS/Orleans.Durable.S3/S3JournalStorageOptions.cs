@@ -6,7 +6,7 @@ using Amazon.S3;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Options for configuring the Amazon S3 journal storage provider.
+/// 亚马逊S3日记存储提供者配置选项。
 /// </summary>
 public sealed class S3JournalStorageOptions
 {
@@ -15,64 +15,64 @@ public sealed class S3JournalStorageOptions
     private IAmazonS3? _s3Client;
 
     /// <summary>
-    /// Bucket name where journals are stored.
+    /// 日记存放的桶名。
     /// </summary>
     public string? BucketName { get; set; }
 
     /// <summary>
-    /// Gets or sets the delegate used to generate the base object key for a journal.
+    /// 获取或设置用于生成日记基本对象密钥的代表。
     /// </summary>
     /// <remarks>
-    /// WAL objects use <c>wal/&lt;base-key&gt;</c> and checkpoint objects use
-    /// <c>checkpoints/&lt;base-key&gt;/&lt;snapshot-id&gt;</c>. The delegate must not add these namespaces.
+    /// 使用 <c>wal/&lt;base-key&gt;</c> 和检查站物体使用的
+    /// <c>checkpoints/&lt;base-key&gt;/&lt;snapshot-id&gt;</c>。代表不得添加这些命名空间。
     /// </remarks>
     public Func<JournalId, string> GetObjectKey { get; set; } = DefaultGetObjectKey;
 
     /// <summary>
-    /// Gets or sets the delegate mapping a non-default catalog prefix to a base object-key prefix.
+    /// 获取或设置代表对基础对象密钥前缀的无默认目录前缀进行映射。
     /// </summary>
     /// <remarks>
-    /// The result must be non-empty and include the base object key of every journal whose id
-    /// starts with the supplied raw ordinal prefix, including partial segments. Additional matches
-    /// are filtered by the catalog. When unset, the default identity <see cref="GetObjectKey"/>
-    /// mapping uses the raw journal prefix. Custom object-key mappings must configure this delegate
-    /// to use prefixed listings. Unprefixed listings do not require this delegate.
-    /// The provider prepends <c>wal/</c> to the result; the delegate must not add it.
-    /// When <see cref="UseOrderedListing"/> is false, the mapped prefix is widened to its nearest
-    /// slash-terminated directory boundary to support directory buckets, while retaining <c>wal/</c>.
+    /// 结果必须是非空的, 并包括每个日记的底目标键, 其编号
+    /// 以提供的原始正则前缀(包括部分段)开始。
+    /// 被目录过滤。如果未设置,默认身份 <see cref="GetObjectKey"/>
+    /// 映射使用原始日记前缀。 自定义对象密钥映射必须配置此代表
+    /// 使用前置标签。未预设的列表不需要该代表。
+    /// 提供者将 <c>wal/</c> 作为结果的预置;代表不得添加。
+    /// <see cref="UseOrderedListing"/> 假时, 绘制的前缀会宽到最近的
+    /// 支持目录桶的斜线终止目录边界,同时保留 <c>wal/</c>。
     /// </remarks>
     public Func<JournalId, string>? GetObjectKeyPrefix { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating that the bucket supports lexically ordered
-    /// <see cref="Amazon.S3.Model.ListObjectsV2Request"/> listings. Defaults to false.
+    /// 获取或设定值,表明桶的用法支持按顺序排列
+    /// <see cref="Amazon.S3.Model.ListObjectsV2Request"/> 列表。 默认为假 。
     /// </summary>
     /// <remarks>
-    /// Enable this only for general-purpose buckets or compatible services which guarantee ordered
-    /// listings and support <see cref="Amazon.S3.Model.ListObjectsV2Request.StartAfter"/>.
-    /// Directory buckets are unordered and must leave this disabled. With the default identity
-    /// object-key mapping, ordered listings can seek to an ASCII lower bound and stop beyond an
-    /// ASCII upper bound. Custom mappings do not use native key-range bounds.
-    /// This capability is independent of <see cref="UseS3ExpressAppend"/>.
+    /// 仅对保证订购的通用桶或兼容服务启用此功能
+    /// 列表和支持 <see cref="Amazon.S3.Model.ListObjectsV2Request.StartAfter"/>。
+    /// 目录桶没有顺序, 必须禁用此功能。 默认身份
+    /// 物体-钥匙绘图、定序列表可寻求ASCII低约束下方的
+    /// ASCII 上界。 自定义绘图不使用本地的密钥区域界限 。
+    /// 这一能力独立于 <see cref="UseS3ExpressAppend"/>。
     /// </remarks>
     public bool UseOrderedListing { get; set; }
 
     /// <summary>
-    /// Gets or sets the delegate used to parse journal ids from base object keys.
+    /// 从基对象密钥获取或设置用于分析日记代号的代表。
     /// </summary>
-    /// <remarks>The catalog removes the <c>wal/</c> namespace before invoking this delegate.</remarks>
+    /// <remarks>名表在援引该代表之前删除了 <c>wal/</c> 命名空间。</remarks>
     public Func<string, JournalId?> TryParseJournalId { get; set; } = DefaultTryParseJournalId;
 
     /// <summary>
-    /// Options to use when creating the S3 client, or <see langword="null"/> to use the AWS SDK defaults.
+    /// 创建 S3 客户端时使用选项, 或者 <see langword="null"/> 使用 AWS SDK 默认值时使用选项。
     /// </summary>
     public AmazonS3Config? ClientConfig { get; set; }
 
     /// <summary>
-    /// Gets or sets the client used to access S3.
+    /// 获取或设置用于访问 S3 的客户端。
     /// </summary>
     /// <remarks>
-    /// The caller retains ownership of this client and disposes it after the silo stops.
+    /// 调用者保留该客户的拥有权,并在 silo 停止后处置。
     /// </remarks>
     [DisallowNull]
     public IAmazonS3? S3Client
@@ -88,71 +88,71 @@ public sealed class S3JournalStorageOptions
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the configured bucket should be created if it does not exist.
+    /// 获取或设定一个值,显示如果配置的桶不存在是否应该创建。
     /// </summary>
     /// <remarks>
-    /// This is intended for local emulators. AWS S3 Express One Zone directory buckets should generally be provisioned ahead of time.
+    /// AWS S3 Express One区目录桶一般应提前提供。
     /// </remarks>
     public bool CreateBucketIfNotExists { get; set; }
 
     /// <summary>
-    /// Gets or sets the S3 storage class applied to newly-created WAL and checkpoint objects.
+    /// 获取或设置适用于新建WAL和检查站物体的S3储存类。
     /// </summary>
     public S3StorageClass? StorageClass { get; set; } = S3StorageClass.ExpressOnezone;
 
     /// <summary>
-    /// Gets or sets a value indicating whether appends use S3 Express <see cref="Amazon.S3.Model.PutObjectRequest.WriteOffsetBytes"/>.
+    /// 获取或设置一个值,以显示附件是否使用 S3 Express <see cref="Amazon.S3.Model.PutObjectRequest.WriteOffsetBytes"/>。
     /// </summary>
     /// <remarks>
-    /// Set this to <see langword="false"/> to use conditional-rewrite appends with S3-compatible services such as SeaweedFS.
+    /// 设置此为 <see langword="false"/> , 使用带有 S3 兼容服务( 如 SeaweedFS) 的有条件重写附件 。
     /// </remarks>
     public bool UseS3ExpressAppend { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether delete requests add S3 Express size and last-modified conditions
-    /// in addition to the WAL ETag condition.
+    /// 查找或设定值,以显示删除请求是否添加 S3 Express 大小和最后修改的条件
+    /// 除了WAL ETag条件之外。
     /// </summary>
-    /// <remarks>Set this to <see langword="false"/> for S3-compatible emulators which only support ETag conditions.</remarks>
+    /// <remarks>设置此为S3兼容模拟器的 <see langword="false"/> ,该模拟器仅支持ETag条件。</remarks>
     public bool UseConditionalDelete { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether obsolete checkpoint objects are deleted after a new checkpoint is published. Defaults to true.
+    /// 获取或设定一个值,显示是否在新检查站公布后删除过时的检查站对象。默认为真 。
     /// </summary>
     public bool DeleteOldCheckpoints { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the maximum number of times Append, Replace, or Delete will refresh its cached WAL ETag
-    /// and retry in place after observing a metadata-only conflict. Defaults to 5.
+    /// 获取或设定最大次数的次数 附加、替换或删除将刷新其缓存 WAL ETag
+    /// 并重试在观察仅使用元数据的冲突后。 默认为 5 。
     /// </summary>
     public int MaxMetadataOnlyConflictRetries { get; set; } = DEFAULT_MAX_METADATA_ONLY_CONFLICT_RETRIES;
 
     /// <summary>
-    /// The default maximum number of metadata-only conflict retries.
+    /// 仅使用元数据冲突重试的默认最大值。
     /// </summary>
     public const int DEFAULT_MAX_METADATA_ONLY_CONFLICT_RETRIES = 5;
 
     /// <summary>
-    /// Gets or sets the initial delay applied before retrying after a metadata-only conflict. Defaults to 10 ms.
+    /// 获取或设置在仅使用元数据的冲突发生后重试前应用的初始延迟。默认为 10 毫秒。
     /// </summary>
     public TimeSpan MetadataOnlyConflictInitialBackoff { get; set; } = DEFAULT_METADATA_ONLY_CONFLICT_INITIAL_BACKOFF;
 
     /// <summary>
-    /// The default initial delay applied before retrying a metadata-only conflict.
+    /// 重试仅使用元数据的冲突前, 默认初始延迟应用到它 。
     /// </summary>
     public static readonly TimeSpan DEFAULT_METADATA_ONLY_CONFLICT_INITIAL_BACKOFF = TimeSpan.FromMilliseconds(10);
 
     /// <summary>
-    /// Gets or sets the upper bound on metadata-only conflict retry backoff. Defaults to 200 ms.
+    /// 获取或设置仅使用元数据的冲突框的上限, 重试回溯。 默认值为 200 ms 。
     /// </summary>
     public TimeSpan MetadataOnlyConflictMaxBackoff { get; set; } = DEFAULT_METADATA_ONLY_CONFLICT_MAX_BACKOFF;
 
     /// <summary>
-    /// The default upper bound on metadata-only conflict retry backoff.
+    /// 仅用于元数据的冲突后再试时的默认上限。
     /// </summary>
     public static readonly TimeSpan DEFAULT_METADATA_ONLY_CONFLICT_MAX_BACKOFF = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
-    /// The optional delegate used to create an <see cref="IAmazonS3"/> instance.
+    /// 用于创建 <see cref="IAmazonS3"/> 实例的可选代表 。
     /// </summary>
     internal Func<CancellationToken, Task<IAmazonS3>>? CreateClient { get; private set; }
 
@@ -217,10 +217,10 @@ public sealed class S3JournalStorageOptions
         => CreateClient ?? (_ => Task.FromResult<IAmazonS3>(new AmazonS3Client(ClientConfig ?? new AmazonS3Config())));
 
     /// <summary>
-    /// Configures the S3 client using the provided callback.
+    /// 使用所提供的回调配置 S3 客户端 。
     /// </summary>
     /// <remarks>
-    /// The provider owns and disposes the client returned by the callback.
+    /// 供应商拥有并处置回调后返回的客户。
     /// </remarks>
     public void ConfigureS3Client(Func<CancellationToken, Task<IAmazonS3>> createClientCallback)
     {
@@ -230,7 +230,7 @@ public sealed class S3JournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the S3 client using the AWS SDK default credential chain and the provided client configuration.
+    /// 配置 S3 客户端, 使用 AWS SDK 默认的证书链和所提供的客户端配置 。
     /// </summary>
     public void ConfigureS3Client(AmazonS3Config config)
     {
@@ -242,7 +242,7 @@ public sealed class S3JournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the S3 client using the AWS SDK default credential chain and the provided region.
+    /// 使用 AWS SDK 默认证书链和提供区域配置 S3 客户端。
     /// </summary>
     public void ConfigureS3Client(RegionEndpoint regionEndpoint)
     {
@@ -251,7 +251,7 @@ public sealed class S3JournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the S3 client using explicit credentials and client configuration.
+    /// 使用明确的证书和客户配置配置配置配置 S3 客户端 。
     /// </summary>
     public void ConfigureS3Client(string accessKey, string secretKey, AmazonS3Config config)
     {

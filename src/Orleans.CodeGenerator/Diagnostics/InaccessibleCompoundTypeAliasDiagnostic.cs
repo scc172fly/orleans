@@ -3,32 +3,32 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when a compound type alias refers to a type which is inaccessible to generated code.
+/// 当复合型别名指生成代码无法进入的类型时,定义报告的诊断。
 /// </summary>
 public static class InaccessibleCompoundTypeAliasDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string RuleId = DiagnosticRuleId.InaccessibleCompoundTypeAlias;
 
     /// <summary>
-    /// The diagnostic title.
+    /// 诊断标题
     /// </summary>
     public const string Title = "Compound type alias must refer to accessible types";
 
     /// <summary>
-    /// The diagnostic message format.
+    /// 诊断信息格式
     /// </summary>
     public const string MessageFormat = "The compound type alias on {0} cannot be registered because the type {1} is inaccessible from generated code";
 
     /// <summary>
-    /// The diagnostic description.
+    /// 诊断描述
     /// </summary>
     public const string Description = "Compound type aliases are registered by generated code, which must be able to refer to the aliased type and to every type used in the alias. Either make those types public or make them internal and ensure that internals are visible to the generated code, or remove the alias.";
 
     /// <summary>
-    /// The diagnostic category.
+    /// 诊断类别。
     /// </summary>
     public const string Category = "Usage";
 
@@ -40,7 +40,7 @@ public static class InaccessibleCompoundTypeAliasDiagnostic
             ?? target.Locations.FirstOrDefault()
             ?? Location.None;
 
-        // Referenced compilations retain source trees which the consumer's diagnostic output cannot accept.
+        // 参考汇编保留了消费者诊断结果无法接受的源树。
         if (location.SourceTree is { } tree && !compilation.ContainsSyntaxTree(tree))
         {
             var lineSpan = location.GetLineSpan();

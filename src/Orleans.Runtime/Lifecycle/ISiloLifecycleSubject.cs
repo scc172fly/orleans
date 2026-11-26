@@ -2,7 +2,7 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Observable silo lifecycle and observer.
+    /// 观察 silo 生命周期和观察员。
     /// </summary>
     public interface ISiloLifecycleSubject : ISiloLifecycle, ILifecycleObserver
     {

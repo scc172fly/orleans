@@ -1,156 +1,232 @@
 ---
-title: Frequently asked questions
-description: Answers to common questions about developing and operating Orleans applications.
+title: "经常问到的问题"
+description: "对有关开发和运行 Orleans 应用程序的共同问题的答复。"
 ms.date: 08/12/2026
 ms.topic: faq
 ---
 
-# Frequently asked questions
+<a id="frequently-asked-questions"></a>
 
-For symptom-based diagnosis, start with the [troubleshooting symptom catalog](../host/monitoring/troubleshooting-symptom-catalog.md), then follow the [incident runbook](../host/monitoring/troubleshooting.md). For task-oriented setup and deployment recipes, see the [how-to guide index](../how-to/index.md).
+# 经常问到的问题
 
-## Availability and support
+对于基于症状的诊断,从 [解决症状目录中的麻烦](../host/monitoring/troubleshooting-symptom-catalog.md)开始,然后依 [事件运行手册](../host/monitoring/troubleshooting.md)。对于面向任务的设置和部署方法,见 [如何指导索引](../how-to/index.md)。
 
-### Can I use Orleans in my project?
+<a id="availability-and-support"></a>
 
-Yes. Orleans is open source under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE), and official packages are published on [NuGet.org](https://www.nuget.org/profiles/Orleans).
+## 可用性和支助
 
-### Is Orleans production ready?
+<a id="can-i-use-orleans-in-my-project"></a>
 
-Yes. Orleans began in Microsoft Research and has powered production services since 2011. The project is developed in the open at [dotnet/orleans](https://github.com/dotnet/orleans).
+### 借我用用用 Orleans 在我的项目?
 
-### Which .NET target frameworks does Orleans support?
+是。 Orleans 是 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下的开放源,正式的软件包在 [NuGet.org](https://www.nuget.org/profiles/Orleans)上公布。
 
-Orleans libraries target `net10.0` and `net11.0`.
+<a id="is-orleans-production-ready"></a>
 
-### Where do I get help?
+### 是 Orleans 准备生产了吗?
 
-Use [GitHub issues](https://github.com/dotnet/orleans/issues) for reproducible bugs and feature proposals. Use [GitHub Discussions](https://github.com/dotnet/orleans/discussions) or [Discord](https://aka.ms/orleans-discord) for questions and design conversations.
+是。 Orleans 始于 Microsoft 研究,自2011年起开始提供生产服务动力,该项目在 [dotnet/orleans](https://github.com/dotnet/orleans)开放时开发。
 
-## Hosting
+<a id="which-net-target-frameworks-does-orleans-support"></a>
 
-### Is Orleans a server product?
+### 哪些 .NET 目标框架支持 Orleans ?
 
-Orleans is a set of .NET libraries used to build an application. An application hosts one or more Orleans silos in processes which it deploys and operates.
+Orleans 图书馆目标 `net10.0` 和 `net11.0`。
 
-### Where can Orleans run?
+<a id="where-do-i-get-help"></a>
 
-Orleans runs wherever its supported .NET targets run, including Linux and Windows hosts, containers, Kubernetes, Azure services, AWS, other clouds, on-premises environments, and developer machines.
+### 我哪里有帮助?
 
-### How many grains or silos can a cluster contain?
+使用 [GitHub 问题](https://github.com/dotnet/orleans/issues) 来复制错误和功能建议。 使用 [GitHub 讨论](https://github.com/dotnet/orleans/discussions) 或 [不一致](https://aka.ms/orleans-discord) 来提问和设计对话。
 
-Grain identities form a virtual address space, and Orleans activates grains on demand across available silos. Practical active-grain and silo counts depend on the workload and deployment environment.
+<a id="hosting"></a>
 
-Use production-like capacity tests to determine the appropriate cluster size and headroom for the application's performance and recovery objectives. See [Capacity planning and scaling](../deployment/capacity-planning.md).
+## 东道主
 
-### Is Orleans tied to Azure?
+<a id="is-orleans-a-server-product"></a>
 
-Orleans runs across clouds and hosting environments. Its provider ecosystem includes Azure services, relational databases, DynamoDB, Redis, Cassandra, Consul, ZooKeeper, NATS, SQS, and custom providers.
+### Orleans 服务器产品吗?
 
-### Can browsers or mobile apps connect directly to silos?
+Orleans 是一套用于构建应用程序的 .NET 图书馆。一个应用程序在其部署和运行过程中,一个或多个程序主机是 Orleans silos 。
 
-Place an authenticated application protocol such as HTTPS, SignalR, or another API layer between public clients and Orleans silo or gateway endpoints.
+<a id="where-can-orleans-run"></a>
+
+### Orleans 跑到哪里去?
+
+Orleans 运行在其所支持的 .NET 目标运行的任何地点,包括Linux和Windows主机、集装箱、 Kubernetes服务、 Azure 服务、AWS、其他云层、房地环境和开发机。
+
+<a id="how-many-grains-or-silos-can-a-cluster-contain"></a>
+
+### 有多少 grains 或 silos 集群能包含吗?
+
+Grain 指定一个虚拟地址空间, Orleans 激活 grains 现有各种需求 silos实际积极grain 和 silo 视工作量和部署环境而定。
+
+使用类似生产能力测试来确定应用软件的性能和恢复目标的适当组群大小和顶部。 [能力规划和规模](../deployment/capacity-planning.md).
+
+<a id="is-orleans-tied-to-azure"></a>
+
+### 是 Orleans 绑结 Azure?
+
+Orleans 其提供方生态系统包括 Azure 关系数据库, DynamoDB, Redis卡珊德拉 领事 ZooKeeper、NATS、SQS和海关供应商。
+
+<a id="can-browsers-or-mobile-apps-connect-directly-to-silos"></a>
+
+### 浏览器或移动应用程序能否直接连接到 silos?
+
+放置一个经认证的申请协议, 如 HTTPS, SignalR,或者 API 公共客户和 Orleans silo 或网关端点。
 
 ## Grains
 
-### How large should a grain be?
+<a id="how-large-should-a-grain-be"></a>
 
-Model a grain around a domain entity or consistency boundary. A grain is probably too large if one key becomes a throughput bottleneck or owns excessive state. It might be too small if one operation requires many chatty calls between grains. Measure representative workloads rather than relying on a fixed state-size or calls-per-second rule.
+### grain 的大小应该有多大?
 
-### Does Orleans replicate grain state automatically?
+模型 a grain 围绕一个域实体或一致性边界周围。 grain 如果一个密钥成为吞吐瓶颈或拥有过度状态,那么它可能太大。 如果一个操作需要多次交谈, 则该键会变得太小。 grains衡量代表的工作量,而不是依赖固定的州规模或每秒呼叫规则。
 
-An ordinary stateful grain normally has one activation in the cluster. Volatile state follows that activation's lifetime and is discarded when the activation deactivates, migrates, or fails. A configured storage provider and successful grain writes provide durable recovery. Applications design and operate any replicas or caches required by their workload.
+<a id="does-orleans-replicate-grain-state-automatically"></a>
 
-### How do I avoid hot grains?
+### Orleans 自动复制 grain 状态吗?
 
-An ordinary grain activation processes one turn at a time by default, so a single key can become a bottleneck even when the rest of the cluster has capacity. Partition work across keys, use staged or hierarchical aggregation, batch calls, or use stateless workers for suitable stateless operations. Moving an activation to a less-loaded host or closer to the grains it calls can improve throughput by reducing contention, RPC overhead, and latency. Partitioning the key adds concurrency.
+普通状态 grain 通常在集束中有一个激活。 挥发性状态继而延续启动的寿命, 当激活停止、 迁移或失败时被丢弃。 一个配置好的存储提供者和成功的 grain 写道提供了耐久恢复。 应用程序设计和操作其工作量所需的复制品或缓存。
 
-For example, if many grains regularly report counters or statistics, hash each reporter's stable key across a controlled set of intermediate aggregator grains. Each intermediate grain combines updates and periodically sends partial results to a final aggregator. This distributes the reporting load and reduces the number of turns at the central grain; add another level if one stage still receives too much fan-in. Choose the shard count and reporting cadence from load tests, and design persistence, idempotency, or reconciliation when losing or repeating an update would matter.
+<a id="how-do-i-avoid-hot-grains"></a>
 
-### Can I choose where a grain activates?
+### 我该如何避免热 grains?
 
-Yes. Orleans includes placement strategies and supports custom placement. Prefer location transparency unless the application has a measured locality or resource requirement, since restrictive placement can reduce the runtime's options during failures and scaling.
+普通的 grain 激活程序默认时一次转,因此即使组群其余部分有能力,单个键也可能成为瓶颈。 隔开键盘、 使用分阶段或分级集聚、 批次呼叫或者利用无国籍工人进行合适的无国籍行动。 将启动转移到一个载量较少的主机或者更接近 grains 的地方可以减少争议、 RPC 间接费用和延缓度,从而改善吞吐量。 分割键会增加通货性 。
 
-### How do I deactivate a grain?
+例如,如果许多 grains 定期汇报反差或统计数据,则每个报告人就将稳定的钥匙放在一组受控制的中间聚合器 grains。每个中间 grain 合并更新并定期向最后汇总器发送部分结果。这分配了报告负荷,减少了中央 grain的转弯次数;如果某个阶段仍然收到太多的粉丝,又增加一个级别。选择从负载测试中进行硬计和报告音量,设计耐久性、不合格性,或者在丢失或重复更新时进行调节很重要。
 
-Usually, let Orleans deactivate idle activations. When a grain knows it should be removed after the current turn, it can call <xref:Orleans.Grain.DeactivateOnIdle*>.
+<a id="can-i-choose-where-a-grain-activates"></a>
 
-## Failures and calls
+### 我能选择一个 grain 激活器在哪里吗?
 
-### What happens when a silo fails during a call?
+是。 Orleans 包括安置策略和支持自定安置。除非申请有衡量地点或资源要求,否则最好具有地点透明度,因为限制性安置可以减少在失败和规模扩大时的运行时间选择。
 
-The call can fail or time out. After the cluster detects the failed silo, a later call can activate the grain on a healthy silo. The caller should use bounded retries only when the operation is safe to retry. Durable state is available only if it was written successfully to an available durable provider.
+<a id="how-do-i-deactivate-a-grain"></a>
 
-### Are grain calls exactly once?
+### 我该如何解除一个 grain?
 
-Orleans uses at-most-once message delivery by default. Network failures can leave a caller uncertain whether an operation ran, so retryable operations should be idempotent or carry an application-level deduplication identity.
+通常, 请让 Orleans 停止闲置激活。 当一个 grain 知道它应该在当前转弯后被删除时, 它可以调用 <xref:Orleans.Grain.DeactivateOnIdle*>。
 
-### What happens when grain code runs too long?
+<a id="failures-and-calls"></a>
 
-Orleans uses cooperative scheduling. A grain turn runs until it yields or completes, and long synchronous work delays other turns on that scheduler. Keep turns short, await I/O, and move substantial CPU-bound work to an appropriate execution model.
+## 失败和呼号
 
-### How do I upgrade an existing application?
+<a id="what-happens-when-a-silo-fails-during-a-call"></a>
 
-Follow the [migration guide](../migration-guide.md), which contains version-specific upgrade history. Conceptual and tutorial documentation describes the supported APIs without repeating upgrade history.
+### 当一个 silo 在通话中失败时会发生什么?
 
-### How should I retry failed grain calls?
+调用失败或超时。 在集检测到失败后 silo,稍后的呼叫可以激活 grain 健康日的月经 silo。只有在操作安全可重试时才应当使用约束性回调。只有向可用的耐用提供者成功写下,才能使用持久性状态。
 
-Retry transient failures when the operation is idempotent or carries an application-level deduplication identity. Send deterministic validation, serialization, and concurrency failures directly to their handling or reconciliation paths. Use a bounded retry budget with backoff and jitter at an appropriate boundary. A timeout or connection loss can leave the outcome unknown, so reconcile business state when duplicate execution would be unsafe.
+<a id="are-grain-calls-exactly-once"></a>
 
-### Can reentrancy fix a grain call deadlock?
+### 是否为 grain 确切的通话一次?
 
-A call cycle can stall when a non-reentrant grain awaits a call which eventually returns through that grain. Reentrancy can allow that callback to run and also permits interleaving, so the grain's state invariants must cover those transitions. Remove synchronous blocking, redesign avoidable cycles, and use <xref:Orleans.Concurrency.ReentrantAttribute> or <xref:Orleans.Concurrency.AlwaysInterleaveAttribute> for operations whose interleavings are understood and tested. See [Long-running or deadlocked grain turns](../host/monitoring/troubleshooting-symptom-catalog.md#long-running-or-deadlocked-grain-turns).
+Orleans 使用默认情况下最接近于一次发送信件的邮件。 网络故障可能会让呼叫者不确定操作是否运行, 所以可重新测试的操作应该是无能的或带有应用程序级重复身份 。
 
-## Operations
+<a id="what-happens-when-grain-code-runs-too-long"></a>
 
-### How many silos do I need?
+### 当 grain 代码运行过长时会怎样?
 
-Derive the silo count from peak CPU, memory, connection, and dependency budgets, planned failure-domain loss, rollout surge, and representative load tests. Measure with representative key distribution, payloads, fan-out, storage, streams, and failure recovery. See [Capacity planning](../deployment/capacity-planning.md).
+Orleans 使用合作排期。一个 grain 转弯,直到它产生或完成,而长期同步的工作会推迟该调度器的其他转弯。保持短跑,等待 I/O,并将大量的CPU定式工作移到适当的执行模式。
 
-### Why didn't adding silos improve throughput?
+<a id="how-do-i-upgrade-an-existing-application"></a>
 
-The bottleneck might be a hot grain, restrictive placement, a shared storage or stream provider, gateway admission, network bandwidth, or another dependency. Adding silos expands distributed capacity, while an ordinary stateful grain retains one activation for its key. Compare per-silo utilization, activation distribution, rejections, long-running turns, and dependency latency before scaling further.
+### 如何提升现有应用程序?
 
-### What determines Orleans cost?
+跟随包含版本特定升级历史的 [移徙指南](../migration-guide.md)。概念和教义文件描述支持的API, 而没有重复更新历史 。
 
-Orleans uses the MIT license. Deployment cost comes from compute, memory, network traffic, clustering and persistence providers, streams, telemetry, and redundancy. Grain boundaries affect cost: chatty cross-silo calls, large serialized payloads, frequent state writes, high activation counts, and high-cardinality telemetry can dominate. Measure a representative workload and include failure-domain spare capacity, rollout surge, backups, and observability retention.
+<a id="how-should-i-retry-failed-grain-calls"></a>
 
-### Which grain storage provider should I choose?
+### 我该如何重试失败 grain 打电话?
 
-Choose from durability, consistency/concurrency behavior, latency, throughput and partition limits, regional availability, backup/restore, security, operational familiarity, and cost. Clustering, grain storage, reminders, and streams can use separate backends selected for their access patterns. Validate the provider's failure and throttling behavior with your state size and key distribution.
+当操作为一无所有或带有应用程序级重复身份时, 重试瞬态故障。 将确定性验证、 序列化和同值货币错误直接发送到处理或对账路径上。 在适当的边界使用带回落和抖动的捆绑式重算预算。 超时或连接损失可能会让结果未知, 所以当重复执行不安全时会调和商业状态 。
 
-### Does storage throttling only affect persistence calls?
+<a id="can-reentrancy-fix-a-grain-call-deadlock"></a>
 
-Storage throttling propagates into activation, grain-turn, scheduler, backend, and request latency. A delayed state read delays activation; a delayed write holds a grain turn; retries consume scheduler and backend capacity; and resulting queues produce request timeouts. Correlate storage latency, throttling, retries, activation rate, and request latency. See [Storage throttling](../host/monitoring/troubleshooting-symptom-catalog.md#storage-throttling).
+### 修复 a grain 要求陷入僵局?
 
-### Can one Orleans cluster span multiple regions?
+当一个非复发 grain 等待最终返回该 grain的呼叫时,呼叫周期会暂停。再回调可以让回调运行并允许中断,因此 grain的状态变量必须覆盖这些过渡。删除同步阻塞、重新设计可避免循环,并在其内插功能被理解和测试的操作中使用 <xref:Orleans.Concurrency.ReentrantAttribute> 或 <xref:Orleans.Concurrency.AlwaysInterleaveAttribute> 。见 [长途或陷入僵局 grain](../host/monitoring/troubleshooting-symptom-catalog.md#long-running-or-deadlocked-grain-turns)。
 
-A single cluster requires reliable, sufficiently low-latency connectivity among silos and to its membership and directory dependencies. A wide-area network increases latency and the probability of partitions, and it expands the failure domain. Prefer independent regional clusters with explicit application-level routing, replication, ownership, and failover semantics unless testing proves that one stretched cluster meets the application's availability and consistency requirements.
+<a id="operations"></a>
 
-### How do I prevent split brain?
+## 业务业务业务
 
-Use one shared, durable membership provider per cluster, stable cluster identity, mutually reachable advertised endpoints, clock synchronization, and infrastructure that detects, isolates, and terminates stale silos within the planned convergence interval. During a suspected partition, isolate stale members before editing membership records. Applications which require cross-region survival should define ownership and reconciliation across clusters. See [Membership and directory churn](../host/monitoring/troubleshooting-symptom-catalog.md#membership-and-directory-churn).
+<a id="how-many-silos-do-i-need"></a>
 
-### Can membership churn create duplicate grain activations?
+### 我需要多少个 silos ?
 
-During failure detection and directory convergence, transient duplicate activations can occur. The runtime resolves directory conflicts, while applications provide safe semantics for external side effects and custom directory implementations. Grain storage concurrency tokens detect conflicting storage writes and surface provider conflicts; applications provide idempotency or deduplication for external side effects. Investigate repeated duplication as a membership, network, or directory health symptom.
+生成来自顶点CPU、内存、连接和依赖预算的 silo 计数,计划失败-域损失,推出式激增和具有代表性的负载测试。用有代表性的钥匙分布、有效载荷、扇扇出、存储、流和故障回收等计量。见 [能力规划](../deployment/capacity-planning.md)。
 
-### What's the difference between a grain timer and a reminder?
+<a id="why-didnt-adding-silos-improve-throughput"></a>
 
-A timer provides activation-scoped scheduling and ends with that activation. A reminder stores its schedule through the configured reminder provider and can reactivate a grain after a silo or activation restart. Both provide best-effort scheduled callbacks, and application work should tolerate delay and repetition. See [Reminder and timer timing](../host/monitoring/troubleshooting-symptom-catalog.md#reminder-and-timer-timing).
+### 为什么没有增加 silos 改进输送量?
 
-### Why did reminders or timers run late?
+瓶颈可能是热 grain、限制性安置、共享存储或流源提供者、网关进入、网络带宽或其他依赖性。添加 silos 扩大了分布容量,而普通状态的 grain 保留了一个键的激活功能。在进一步扩展之前,比较每个silo 的使用、启动分配、拒绝、长线旋转和依赖性延缓等。
 
-Scheduler pressure, CPU or GC pauses, a callback which takes longer than its period, silo restarts, membership changes, and reminder-provider latency can all delay callbacks. Determine which mechanism is in use, compare callback duration with its period, and correlate timing with runtime and provider health. Use durable application state to reconcile time-sensitive business work.
+<a id="what-determines-orleans-cost"></a>
 
-### How do I make rolling upgrades safe?
+### 由什么决定 Orleans 成本?
 
-Keep adjacent versions compatible in both directions for grain interfaces, serializers, stored state, queued/streamed payloads, provider schemas, and configuration. Preserve stable serializer member IDs and aliases, limit rollout concurrency, maintain surge capacity, and define rollback before deployment. Test old-to-new and new-to-old calls plus reads of existing data. See [Graceful shutdown and upgrades](../deployment/upgrades.md).
+Orleans 部署费用来自计算、记忆、网络交通、集群和持久性提供者、流、遥测和冗余。 Grain 影响成本的界限:silo 高心电感测可以控制着电话、大型连续有效载荷、频繁的州写作、高活化计数和高心智力遥测。 衡量具有代表性的工作量,包括故障余能、推出式激增、备份和可观察性保留。
 
-### Why did serialization start failing after deployment?
+<a id="which-grain-storage-provider-should-i-choose"></a>
 
-Mixed versions might disagree about a type contract, serializer registration, member ID, alias, or package version, or the new version might be unable to read persisted or queued old data. Preserve the failing type and payload source, stop the rollout, and use a compatible reader or rollback before migrating data. See [Serialization failures after a version change](../host/monitoring/troubleshooting-symptom-catalog.md#serialization-failures-after-a-version-change).
+### 我该选择哪个 grain 存储供应商?
 
-### What should I collect before restarting an unhealthy silo?
+从耐久性、一致性/通货行为、延时、吞吐量和分割限值、区域可用性、备份/存储、安全性、操作熟悉性和成本中选择。组合、 grain 存储、提醒和流可以使用根据其访问模式选择的单独的后端。验证提供者的失败以及以您状态大小和关键分布进行抽动的行为 。
 
-Capture UTC timestamps, deployment and configuration changes, logs from relevant clients and silos, traces, metrics, membership views, advertised endpoints, provider health, and platform events. For scheduler, CPU, or memory problems, capture a bounded process trace or dump when safe. Redact secrets and grain state. Start with the [Orleans symptom and signal catalog](../host/monitoring/troubleshooting-symptom-catalog.md).
+<a id="does-storage-throttling-only-affect-persistence-calls"></a>
+
+### 储存节流是否只影响持久性呼叫?
+
+存储节流器会扩散到激活、 grain- 转、 排程器、 后端和请求延时。 延迟状态读取延迟激活; 延迟写作会保持 grain 转转; 重新输入消耗调度器和后端输出能力; 并由此导致的队列会生成请求超时。 Correlate 封存拉长、 节流、 重排、 启动速度以及请求延时 。 见 [储存节压](../host/monitoring/troubleshooting-symptom-catalog.md#storage-throttling)。
+
+<a id="can-one-orleans-cluster-span-multiple-regions"></a>
+
+### 一个 Orleans 组群能否跨越多个区域?
+
+单一的集群要求 silos 之间及其成员和目录依赖者之间可靠、足够低的长距离连接。广域网增加了延迟和分割概率,并扩大了故障领域。 更可取的是具有明确应用级别路径、复制、所有权和语义不全的独立区域集群,除非测试证明一个扩展的集群符合应用程序的可用性和一致性要求。
+
+<a id="how-do-i-prevent-split-brain"></a>
+
+### 我如何防止脑分裂?
+
+使用每个分组的一个共享、持久成员提供方、稳定的集群身份、相互可达到的广告终端点、时钟同步以及能够在计划合并间隔内检测、隔离和终止破碎 silos 的基础设施。在可疑的分割期间,在编辑成员资格记录之前将老化成员孤立起来。需要跨区域生存的应用程序应界定所有制和跨组间对账。见 [成员和目录](../host/monitoring/troubleshooting-symptom-catalog.md#membership-and-directory-churn)。
+
+<a id="can-membership-churn-create-duplicate-grain-activations"></a>
+
+### 成员是否可创建重复的 grain 启动?
+
+在检测失败和目录趋同期间,可发生短暂的重复激活。运行时间解决目录冲突,而应用程序则为外部副作用和自定义目录实施提供安全的语义。 Grain 存储同货币符号可以探测相互矛盾的储存写作和表面提供者冲突;应用程序提供对外部副作用的不便或减损。调查作为成员、网络或目录健康症状的重复重复。
+
+<a id="whats-the-difference-between-a-grain-timer-and-a-reminder"></a>
+
+### 和两个 grain 以计时和记念,
+
+计时器提供激活范围范围的时间安排和结束启动该激活的结束。提醒通知通过配置的提醒提供者存储其时间表,并可以重新启动 grain a 之后 silo 或重新启动。 两者都提供最佳努力的预定回调, 应用程序工作应该容忍延迟和重复。 见 [提醒和计时时间](../host/monitoring/troubleshooting-symptom-catalog.md#reminder-and-timer-timing).
+
+<a id="why-did-reminders-or-timers-run-late"></a>
+
+### 为什么提醒或计时器迟到?
+
+调度器压力、 CPU 或 GC 暂停, 需要超过其时间的回调, 重新启动 silo 、会籍变更和提醒提供者的延时性等, 都可以全部延迟回溯。 决定使用哪种机制, 将回溯期与周期进行比较, 以及时间与运行时间和提供者健康相关。 使用耐久应用状态来协调对时间敏感的商务工作 。
+
+<a id="how-do-i-make-rolling-upgrades-safe"></a>
+
+### 我怎样才能安全地升级滚动升级?
+
+保持相邻版本在 grain 接口、 序列器、 存储状态、 排队/ 流载荷、 供应商系统图和配置的双向兼容性。 保存稳定的连续式成员身份和别名, 限制推出货币, 维持快速增速能力, 并在部署前定义回放 。 测试旧电话和新电话, 并读出现有数据 。 见 [优优优停机和升级](../deployment/upgrades.md)。
+
+<a id="why-did-serialization-start-failing-after-deployment"></a>
+
+### 为什么连号化在部署后开始失效?
+
+混合版本可能会对类型合同、序列器注册、成员识别、别名或包件版本产生分歧,或者新版本可能无法读取持续数据或排队的旧数据。 保存失效的类型和有效载荷源,停止推出,在迁移数据前使用兼容的阅读器或回放。 见 [版本更改后发生串级失败](../host/monitoring/troubleshooting-symptom-catalog.md#serialization-failures-after-a-version-change)。
+
+<a id="what-should-i-collect-before-restarting-an-unhealthy-silo"></a>
+
+### 重开不健康的 silo前,我该收集什么?
+
+抓取统一时戳、部署和配置变化、 来自相关客户的日志和 silos、 跟踪、 度量、 会员观点、 广告告示端点、 提供者健康和平台事件。 对于调度器、 CPU 或记忆问题, 请在安全的情况下捕获连接的进程追踪或丢弃。 重命名机密和 grain 状态。 从 [Orleans 症状和信号目录](../host/monitoring/troubleshooting-symptom-catalog.md)开始 。

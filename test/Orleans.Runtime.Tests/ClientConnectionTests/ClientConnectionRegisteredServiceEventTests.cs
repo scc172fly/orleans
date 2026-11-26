@@ -10,7 +10,7 @@ using Xunit;
 namespace Tester
 {
     /// <summary>
-    /// Tests for client connection events using registered service event notification patterns.
+    /// 使用注册的服务事件通知模式测试客户连接活动。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]
@@ -82,7 +82,7 @@ namespace Tester
 
             try
             {
-                // Burst lot of call, to be sure that we are connected to all silos
+                // 电话很多,要确定我们和所有 silos都连接了
                 for (int i = 0; i < 100; i++)
                 {
                     var grain = GrainFactory.GetGrain<ITestGrain>(i);
@@ -128,7 +128,7 @@ namespace Tester
 
                 await this.HostedCluster.RestartStoppedSecondarySiloAsync(silo.Name);
 
-                // Clients need prodding to reconnect.
+                // 客户需要提前联系才能重新连接
                 var remainingAttempts = 90;
                 bool reconnected;
                 do

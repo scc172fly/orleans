@@ -10,7 +10,7 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Validates <see cref="StreamPubSubOptions"/>.
+    /// 验证 <see cref="StreamPubSubOptions"/>。
     /// </summary>
     public class PersistentStreamStorageConfigurationValidator : IConfigurationValidator
     {
@@ -18,10 +18,10 @@ namespace Orleans.Hosting
         private readonly string streamProviderName;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PersistentStreamStorageConfigurationValidator"/> class.
+        /// 初始化 <see cref="PersistentStreamStorageConfigurationValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
+        /// <param name="services">服务。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
         private PersistentStreamStorageConfigurationValidator(IServiceProvider services, string streamProviderName)
         {
             this.services = services;
@@ -43,11 +43,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Creates a new <see cref="PersistentStreamStorageConfigurationValidator"/> instance.
+        /// 创建新的 <see cref="PersistentStreamStorageConfigurationValidator"/> 实例。
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="name">The name.</param>
-        /// <returns>The newly created instance.</returns>
+        /// <param name="services">服务。</param>
+        /// <param name="name">名称。</param>
+        /// <returns>新建实例。</returns>
         public static IConfigurationValidator Create(IServiceProvider services, string name)
         {
             return new PersistentStreamStorageConfigurationValidator(services, name);
@@ -55,22 +55,22 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Configures persistent streams.
+    /// 配置持久性流。
     /// </summary>
     public class SiloPersistentStreamConfigurator : NamedServiceConfigurator, ISiloPersistentStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SiloPersistentStreamConfigurator"/> class.
+        /// 初始化 <see cref="SiloPersistentStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configureDelegate">The configuration delegate.</param>
-        /// <param name="adapterFactory">The adapter factory.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configureDelegate">配置代表。</param>
+        /// <param name="adapterFactory">适配厂</param>
         public SiloPersistentStreamConfigurator(string name, Action<Action<IServiceCollection>> configureDelegate, Func<IServiceProvider, string, IQueueAdapterFactory> adapterFactory)
             : base(name, configureDelegate)
         {
             this.ConfigureDelegate(services => services.AddSiloStreaming());
             this.ConfigureComponent(PersistentStreamProvider.Create);
-            // PersistentStreamProvider implements IControllable.
+            // PersistentStreamProvider 执行不可控。
             this.ConfigureComponent((s, n) => (s.GetRequiredKeyedService<IStreamProvider>(n) as IControllable)!);
             this.ConfigureDelegate(services => services.AddSingleton(sp => PersistentStreamProvider.ParticipateIn<ISiloLifecycle>(sp, this.Name)));
             this.ConfigureComponent(adapterFactory);

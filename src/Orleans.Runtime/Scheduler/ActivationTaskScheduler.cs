@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime.Scheduler
 {
     /// <summary>
-    /// A single-concurrency, in-order task scheduler for per-activation work scheduling.
+    /// 单币、单顺序任务调度器,用于每项活动工作时间安排。
     /// </summary>
     [DebuggerDisplay("ActivationTaskScheduler RunQueue={workerGroup.ExternalWorkItemCount} GrainContext={workerGroup.GrainContext}")]
     internal sealed partial class ActivationTaskScheduler : TaskScheduler
@@ -40,8 +40,8 @@ namespace Orleans.Runtime.Scheduler
 #endif
         }
 
-        /// <summary>Gets an enumerable of the tasks currently scheduled on this scheduler.</summary>
-        /// <returns>An enumerable of the tasks currently scheduled.</returns>
+        /// <summary>获取一个包含当前排程器上所安排任务数量的清单。</summary>
+        /// <returns>目前计划的任务中可列成数。</returns>
         protected override IEnumerable<Task> GetScheduledTasks() => this.workerGroup.GetScheduledTasks();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -56,8 +56,8 @@ namespace Orleans.Runtime.Scheduler
             }
         }
 
-        /// <summary>Queues a task to the scheduler.</summary>
-        /// <param name="task">The task to be queued.</param>
+        /// <summary>将任务排队到调度器。</summary>
+        /// <param name="task">要排队的任务。</param>
         protected override void QueueTask(Task task)
         {
 #if DEBUG
@@ -67,13 +67,13 @@ namespace Orleans.Runtime.Scheduler
         }
 
         /// <summary>
-        /// Determines whether the provided <see cref="T:System.Threading.Tasks.Task"/> can be executed synchronously in this call, and if it can, executes it.
+        /// 确定是否在此调用中同步执行所提供的 <see cref="T:System.Threading.Tasks.Task"/> ,如果可以,则执行。
         /// </summary>
         /// <returns>
-        /// A Boolean value indicating whether the task was executed inline.
+        /// 显示任务是否内嵌执行的布尔值 。
         /// </returns>
-        /// <param name="task">The <see cref="T:System.Threading.Tasks.Task"/> to be executed.</param>
-        /// <param name="taskWasPreviouslyQueued">A Boolean denoting whether or not task has previously been queued. If this parameter is True, then the task may have been previously queued (scheduled); if False, then the task is known not to have been queued, and this call is being made in order to execute the task inline without queuing it.</param>
+        /// <param name="task">下 <see cref="T:System.Threading.Tasks.Task"/> 待执行。</param>
+        /// <param name="taskWasPreviouslyQueued">布尔表示任务是否先前被排队。 如果此参数是真实的, 那么任务可能已经预先排队( 计划) ; 如果假, 那么任务没有排队, 而这个调用是为了在不排队的情况下执行内线任务 。</param>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             var canExecuteInline = !taskWasPreviouslyQueued && Equals(RuntimeContext.Current, workerGroup.GrainContext);
@@ -101,7 +101,7 @@ namespace Orleans.Runtime.Scheduler
 #if DEBUG
             LogTraceTryExecuteTaskInlineYes(myId, task.Id, System.Environment.CurrentManagedThreadId);
 #endif
-            // Try to run the task.
+            // 尝试运行任务 。
             bool done = TryExecuteTask(task);
 #if DEBUG
             if (!done)

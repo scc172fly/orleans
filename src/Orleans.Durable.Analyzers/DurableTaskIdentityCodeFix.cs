@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.Durable.Analyzers;
 
 /// <summary>
-/// Names an unnamed durable operation with <c>WithId</c>, deriving the name from the method which defines the operation,
-/// such as <c>charge</c> for <c>ChargeAsync</c>, and keeping it distinct from the other names of its body.
+/// 命名一个名称不明的耐久操作,使用 <c>WithId</c>,其名称取自确定操作的方法,
+/// 诸如 <c>charge</c> 用于 <c>ChargeAsync</c>,并保持它与身体的其他名称的区别。
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DurableTaskIdentityCodeFix)), Shared]
 public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
@@ -50,10 +50,10 @@ public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
         return Task.CompletedTask;
     }
 
-    /// <summary>Names each marked definition, in source order, with a name which its body doesn't use yet.</summary>
+    /// <summary>名称: 每个标识定义,按源顺序排列,其体体尚未使用的名称。</summary>
     private static async Task<Document> NameAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
-        // C# documents always have syntax roots.
+        // C#文件总是有语法根。
         var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
         var usedNames = new Dictionary<SyntaxNode, HashSet<string>>();
         var names = new Dictionary<SyntaxNode, string>();
@@ -94,7 +94,7 @@ public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
                 .WithTriviaFrom(rewritten)));
     }
 
-    /// <summary>Returns the constant names which a body passes to <c>WithId</c> and <c>DurableTask.RunInline</c>.</summary>
+    /// <summary>返回身体通过到的常数名称 <c>WithId</c> 和 <c>DurableTask.RunInline</c>.</summary>
     private static HashSet<string> GetNames(SyntaxNode body)
     {
         var names = new HashSet<string>();
@@ -111,7 +111,7 @@ public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
         return names;
     }
 
-    /// <summary>Returns the kebab-case name of the method which a definition calls, without its <c>Async</c> suffix.</summary>
+    /// <summary>返回定义调用的方法的 kebab- case name, 不带其 <c>Async</c> 后缀。</summary>
     private static string GetBaseName(InvocationExpressionSyntax definition)
     {
         var method = definition.Expression switch

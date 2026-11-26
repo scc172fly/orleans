@@ -7,13 +7,13 @@ using System.Threading;
 
 namespace Orleans.Runtime;
 
-// Can not use MetricsEventSource because it only supports single listener.
+// 无法使用 MetricsEventSource , 因为它只支持单个听众 。
 /// <summary>
-/// Listens for Orleans runtime metrics used to produce silo runtime statistics.
+/// 听 Orleans 用于生产 silo 运行时统计。
 /// </summary>
 /// <remarks>
-/// Collect the <c>orleans-messaging-sent-messages-size</c> and <c>orleans-messaging-received-messages-size</c>
-/// histograms through OpenTelemetry to obtain message byte totals since collection began.
+/// 收集 <c>orleans-messaging-sent-messages-size</c> 和 <c>orleans-messaging-received-messages-size</c>
+/// 自收集开始以来,通过 OpenTelemetry 获得电文字节总计的直方图。
 /// </remarks>
 [Obsolete("Use the orleans-messaging-sent-messages-size and orleans-messaging-received-messages-size histograms through OpenTelemetry instead.")]
 public static class SiloRuntimeMetricsListener
@@ -23,21 +23,21 @@ public static class SiloRuntimeMetricsListener
     private static long _connectedClientCount;
 
     /// <summary>
-    /// Gets the number of clients currently connected to the silo.
+    /// 获取当前连接到 silo的客户数量。
     /// </summary>
     public static long ConnectedClientCount => _connectedClientCount;
 
     private static long _messageReceivedTotal;
 
     /// <summary>
-    /// Gets the cumulative size, in bytes, of messages received by the silo.
+    /// 获取 silo收到的信件的累积大小,以字节计。
     /// </summary>
     public static long MessageReceivedTotal => _messageReceivedTotal;
 
     private static long _messageSentTotal;
 
     /// <summary>
-    /// Gets the cumulative size, in bytes, of messages sent by the silo.
+    /// 获取 silo发送的信件的累积大小,以字节计。
     /// </summary>
     public static long MessageSentTotal => _messageSentTotal;
 

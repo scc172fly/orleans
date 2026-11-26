@@ -6,7 +6,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Populates type names on grain properties and grain interface properties.
+    /// 在 grain 属性和 grain 接口属性上弹出类型名称。
     /// </summary>
     internal sealed class TypeNameGrainPropertiesProvider : IGrainPropertiesProvider, IGrainInterfacePropertiesProvider
     {

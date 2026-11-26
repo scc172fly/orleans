@@ -1,51 +1,51 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// Stream queue storage adapter for ADO.NET providers.
+/// 用于 ADO.NET 提供者的流队队列存储适配器。
 /// </summary>
 internal partial class AdoNetQueueAdapter(string name, AdoNetStreamOptions streamOptions, ClusterOptions clusterOptions, SimpleQueueCacheOptions cacheOptions, AdoNetStreamQueueMapper mapper, RelationalOrleansQueries queries, AdoNetStreamPositions positions, Serializer<AdoNetBatchContainer> serializer, ILogger<AdoNetQueueAdapter> logger, IServiceProvider serviceProvider) : IQueueAdapter
 {
     private readonly ILogger<AdoNetQueueAdapter> _logger = logger;
 
     /// <summary>
-    /// Maps to the ProviderId in the database.
+    /// 数据库中的 ProviderId 地图。
     /// </summary>
     public string Name { get; } = name;
 
     /// <summary>
-    /// The ADO.NET provider is not yet rewindable.
+    /// ADO.NET 提供者尚未可倒转 。
     /// </summary>
     public bool IsRewindable => false;
 
     /// <summary>
-    /// The ADO.NET provider works both ways.
+    /// 提供商 ADO.NET 双管齐下。
     /// </summary>
     public StreamProviderDirection Direction => StreamProviderDirection.ReadWrite;
 
     public IQueueAdapterReceiver CreateReceiver(QueueId queueId)
     {
-        // map the queue id
+        // 队列 ID 地图
         var adoNetQueueId = mapper.GetAdoNetQueueId(queueId);
 
-        // create the receiver
+        // 创建接收器
         return ReceiverFactory(serviceProvider, [Name, adoNetQueueId, streamOptions, clusterOptions, cacheOptions, queries, positions]);
     }
 
     public async Task QueueMessageBatchAsync<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
     {
-        // the ADO.NET provider is not rewindable so we do not support user supplied tokens
+        // ADO.NET 提供者无法倒转,所以我们不支持用户提供的质点
         if (token is not null)
         {
             throw new ArgumentException($"{nameof(AdoNetQueueAdapter)} does not support a user supplied {nameof(StreamSequenceToken)}.");
         }
 
-        // map the Orleans stream id to the corresponding queue id
+        // 映射 Orleans 流 ID 到相应的队列id
         var queueId = mapper.GetAdoNetQueueId(streamId);
 
-        // create the payload from the events
+        // 创建事件产生的有效载荷
         var payload = AdoNetBatchContainer.ToMessagePayload(serializer, streamId, events.Cast<object>().ToList(), requestContext);
 
-        // we can enqueue the message now
+        // 我们现在可以把消息排成字母
         try
         {
             await queries.QueueStreamMessageAsync(clusterOptions.ServiceId, Name, queueId, payload, streamOptions.ExpiryTimeout.TotalSecondsCeiling());
@@ -58,7 +58,7 @@ internal partial class AdoNetQueueAdapter(string name, AdoNetStreamOptions strea
     }
 
     /// <summary>
-    /// The receiver factory.
+    /// 接收厂
     /// </summary>
     private static readonly ObjectFactory<AdoNetQueueAdapterReceiver> ReceiverFactory = ActivatorUtilities.CreateFactory<AdoNetQueueAdapterReceiver>([typeof(string), typeof(string), typeof(AdoNetStreamOptions), typeof(ClusterOptions), typeof(SimpleQueueCacheOptions), typeof(RelationalOrleansQueries), typeof(AdoNetStreamPositions)]);
 

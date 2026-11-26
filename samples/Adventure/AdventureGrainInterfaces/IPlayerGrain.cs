@@ -1,23 +1,23 @@
 namespace AdventureGrainInterfaces;
 
 /// <summary>
-/// A player is, well, there's really no other good name...
+/// 玩家是,嗯,真的没有其他好名字...
 /// </summary>
 public interface IPlayerGrain : IGrainWithGuidKey
 {
-    // Players have names
+    // 玩家有名字
     Task<string?> Name();
 
     Task SetName(string name);
 
-    // Each player is located in exactly one room
+    // 每个玩家都在一个房间
     Task SetRoomGrain(IRoomGrain room);
 
     Task<IRoomGrain> RoomGrain();
 
-    // Until Death comes knocking
+    // 直到死亡降临
     Task Die();
 
-    // A Player takes his turn by calling Play with a command
+    // 玩家通过调用游戏命令来轮到他
     Task<string?> Play(string command);
 }

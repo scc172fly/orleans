@@ -4,7 +4,7 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-ORLEANS0003  | Usage   | Error  | Inherit from Grain
+ORLEANS0003  | Usage   | Error  | 从 Grain继承继承 
 
 ## Release 7.0.0
 
@@ -12,21 +12,21 @@ ORLEANS0003  | Usage   | Error  | Inherit from Grain
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-ORLEANS0001  | Usage   | Error  | [AlwaysInterleave] must only be used on the grain interface method and not the grain class method
-ORLEANS0002  | Usage   | Error  | Reference parameter modifiers are not allowed
-ORLEANS0004  | Usage   | Error  | Add serialization [Id] and [NonSerialized] attributes
-ORLEANS0005  | Usage   | Info   | Add [GenerateSerializer] attribute to [Serializable] type
-ORLEANS0006  | Usage   | Error  | Abstract/serialized properties cannot be serialized
+ORLEANS0001  | Usage   | Error  | [AlwaysInterleave] 只能用于 grain 接口方法,而不能用于 grain 类方法
+ORLEANS0002  | Usage   | Error  | 不允许引用参数修改器
+ORLEANS0004  | Usage   | Error  | 添加序列化 [和NonSerialized]属性
+ORLEANS0005  | Usage   | Info   | 添加[GenerateSerializer属性为 [可排 类型
+ORLEANS0006  | Usage   | Error  | 无法对摘要/已登记财产进行序列排序
 ORLEANS0007  | Usage   | Error  | 
-ORLEANS0008  | Usage   | Error  | Grain interfaces cannot have properties
-ORLEANS0009  | Usage   | Error  | Grain interface methods must return a compatible type
-ORLEANS0010  | Usage   | Info   | Add missing [Alias] attribute
-ORLEANS0011  | Usage   | Error  | The [Alias] attribute must be unique to the declaring type
-ORLEANS0012  | Usage   | Error  | The [Id] attribute must be unique to each members of the declaring type
-ORLEANS0013  | Usage   | Error  | This attribute should not be used on grain implementations
+ORLEANS0008  | Usage   | Error  | Grain 接口不能具有属性
+ORLEANS0009  | Usage   | Error  | Grain 接口方法必须返回兼容型号
+ORLEANS0010  | Usage   | Info   | 添加缺失的 [lias] 属性
+ORLEANS0011  | Usage   | Error  | [ Alis] 属性必须是声明类型所独有的
+ORLEANS0012  | Usage   | Error  | [Id]属性必须是声明类型中每个成员独有的属性
+ORLEANS0013  | Usage   | Error  | 此属性不应用于 grain 执行
 
 ### Removed Rules
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-ORLEANS0003  | Usage   | Error  | Inherit from Grain
+ORLEANS0003  | Usage   | Error  | 从 Grain继承继承 

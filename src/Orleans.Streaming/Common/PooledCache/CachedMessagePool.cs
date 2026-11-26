@@ -2,7 +2,7 @@
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Pool of tightly packed cached messages that are kept in large blocks to reduce GC pressure.
+    /// 堆积着紧凑的缓存信息,这些封存在大块块中,以减少GC的压力。
     /// </summary>
     internal class CachedMessagePool
     {
@@ -10,9 +10,9 @@ namespace Orleans.Providers.Streams.Common
         private CachedMessageBlock? currentMessageBlock;
 
         /// <summary>
-        /// Allocates a pool of cached message blocks.
+        /// 分配一个隐藏的邮件区块库。
         /// </summary>
-        /// <param name="cacheDataAdapter">The cache data adapter.</param>
+        /// <param name="cacheDataAdapter">缓存数据适配器。</param>
         public CachedMessagePool(ICacheDataAdapter cacheDataAdapter)
         {
             messagePool = new ObjectPool<CachedMessageBlock>(
@@ -20,15 +20,15 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Allocates a message in a block and returns the block the message is in.
+        /// 在块中分配信件, 并返回消息所在的块。
         /// </summary>
-        /// <returns>The cached message block which the message was allocated in.</returns>
+        /// <returns>信件所分配的缓存信息块。</returns>
         public CachedMessageBlock AllocateMessage(CachedMessage message)
         {
             CachedMessageBlock returnBlock = currentMessageBlock ?? (currentMessageBlock = messagePool.Allocate());
             returnBlock.Add(message);
 
-            // blocks at capacity are eligable for purge, so we don't want to be holding on to them.
+            // 能力上 的街区是可用于清洗的 所以我们不想被它们控制
             if (!currentMessageBlock.HasCapacity)
             {
                 currentMessageBlock = messagePool.Allocate();

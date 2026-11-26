@@ -12,9 +12,9 @@ using Orleans.Transactions.DynamoDB.TransactionalState;
 namespace Orleans.Transactions.TestKit.Base.FaultInjection.ControlledInjection;
 
 /// <summary>
-/// Wraps DynamoDB transactional state storage with transaction fault injection.
+/// 圆环 DynamoDB 国家交易存储,并注入交易过失。
 /// </summary>
-/// <typeparam name="TState">The state type.</typeparam>
+/// <typeparam name="TState">状态类型。</typeparam>
 public class FaultInjectionDynamoDBTransactionStateStorage<TState> : ITransactionalStateStorage<TState>
     where TState : class, new()
 {
@@ -22,10 +22,10 @@ public class FaultInjectionDynamoDBTransactionStateStorage<TState> : ITransactio
     private readonly ITransactionFaultInjector faultInjector;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FaultInjectionDynamoDBTransactionStateStorage{TState}"/> class.
+    /// 初始化 <see cref="FaultInjectionDynamoDBTransactionStateStorage{TState}"/> 类的新实例。
     /// </summary>
-    /// <param name="faultInjector">The transaction fault injector.</param>
-    /// <param name="dynamodbStateStorage">The wrapped DynamoDB transactional state storage.</param>
+    /// <param name="faultInjector">交易错误注射器。</param>
+    /// <param name="dynamodbStateStorage">包裹 DynamoDB 国家交易储存。</param>
     public FaultInjectionDynamoDBTransactionStateStorage(
         ITransactionFaultInjector faultInjector,
         DynamoDBTransactionalStateStorage<TState> dynamodbStateStorage)
@@ -46,13 +46,13 @@ public class FaultInjectionDynamoDBTransactionStateStorage<TState> : ITransactio
         string? expectedETag,
         TransactionalStateMetaData metadata,
 
-        // a list of transactions to prepare.
+        // 一份待编制的交易清单。
         List<PendingTransactionState<TState>>? statesToPrepare,
 
-        // if non-null, commit all pending transaction up to and including this sequence number.
+        // 如果非Null, 则在包括该序列号之前并在此序号之内承诺所有待处理的交易。
         long? commitUpTo,
 
-        // if non-null, abort all pending transactions with sequence numbers strictly larger than this one.
+        // 如果非中键,则中止所有序列号严格大于此序列的待决交易。
         long? abortAfter
     )
     {
@@ -69,7 +69,7 @@ public class FaultInjectionDynamoDBTransactionStateStorage<TState> : ITransactio
 }
 
 /// <summary>
-/// Creates fault-injecting DynamoDB transactional state storage instances.
+/// 创建错误输入 DynamoDB 交易状态存储实例。
 /// </summary>
 public class FaultInjectionDynamoDBTransactionStateStorageFactory : ITransactionalStateStorageFactory,
     ILifecycleParticipant<ISiloLifecycle>
@@ -77,11 +77,11 @@ public class FaultInjectionDynamoDBTransactionStateStorageFactory : ITransaction
     private readonly DynamoDBTransactionalStateStorageFactory factory;
 
     /// <summary>
-    /// Creates a fault-injecting transactional state storage factory.
+    /// 创建了错误注射交易性国家储存工厂
     /// </summary>
-    /// <param name="services">The service provider.</param>
-    /// <param name="name">The provider name.</param>
-    /// <returns>The transactional state storage factory.</returns>
+    /// <param name="services">服务供应商。</param>
+    /// <param name="name">提供者名称。</param>
+    /// <returns>交易性国家储藏厂</returns>
     public static ITransactionalStateStorageFactory Create(IServiceProvider services, string name)
     {
         var optionsMonitor = services.GetRequiredService<IOptionsMonitor<DynamoDBTransactionalStorageOptions>>();
@@ -90,9 +90,9 @@ public class FaultInjectionDynamoDBTransactionStateStorageFactory : ITransaction
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FaultInjectionDynamoDBTransactionStateStorageFactory"/> class.
+    /// 初始化 <see cref="FaultInjectionDynamoDBTransactionStateStorageFactory"/> 类的新实例。
     /// </summary>
-    /// <param name="factory">The wrapped DynamoDB transactional state storage factory.</param>
+    /// <param name="factory">包裹 DynamoDB 国家交易储存厂</param>
     public FaultInjectionDynamoDBTransactionStateStorageFactory(
         DynamoDBTransactionalStateStorageFactory factory)
     {

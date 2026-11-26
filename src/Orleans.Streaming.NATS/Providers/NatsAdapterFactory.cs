@@ -25,7 +25,7 @@ internal class NatsAdapterFactory : IQueueAdapterFactory, IAsyncDisposable
     private Task? disposalTask;
 
     /// <summary>
-    /// Application level failure handler override.
+    /// 应用级别故障处理器控制
     /// </summary>
     protected Func<QueueId, Task<IStreamFailureHandler>> StreamFailureHandlerFactory { private get; set; } = default!;
 
@@ -46,7 +46,7 @@ internal class NatsAdapterFactory : IQueueAdapterFactory, IAsyncDisposable
         adapterCache = new SimpleQueueAdapterCache(cacheOptions, this.providerName, this.loggerFactory);
     }
 
-    /// <summary> Init the factory.</summary>
+    /// <summary> 工厂开工了</summary>
     public virtual void Init()
     {
         if (StreamFailureHandlerFactory == null)
@@ -56,7 +56,7 @@ internal class NatsAdapterFactory : IQueueAdapterFactory, IAsyncDisposable
         }
     }
 
-    /// <summary>Creates the NATS based adapter.</summary>
+    /// <summary>创建基于 NATS 的适配器。</summary>
     public virtual async Task<IQueueAdapter> CreateAdapter()
     {
         NatsConnectionManager connectionManager;
@@ -102,20 +102,20 @@ internal class NatsAdapterFactory : IQueueAdapterFactory, IAsyncDisposable
         }
     }
 
-    /// <summary>Creates the adapter cache.</summary>
+    /// <summary>创建适配器缓存。</summary>
     public virtual IQueueAdapterCache GetQueueAdapterCache()
     {
         return adapterCache;
     }
 
-    /// <summary>Creates the factory stream queue mapper.</summary>
+    /// <summary>创建工厂流队列映像仪。</summary>
     public IStreamQueueMapper GetStreamQueueMapper()
     {
         return streamQueueMapper;
     }
 
     /// <summary>
-    /// Creates a delivery failure handler for the specified queue.
+    /// 为指定的队列创建发送失败处理器 。
     /// </summary>
     /// <param name="queueId"></param>
     /// <returns></returns>

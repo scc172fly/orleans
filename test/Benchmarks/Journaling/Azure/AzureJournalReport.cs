@@ -41,7 +41,7 @@ internal sealed class BenchmarkValidationException(BenchmarkValidationError code
 
 internal sealed record BenchmarkFailure(string Phase, string ExceptionType, int? HttpStatus, int? Operation = null, BenchmarkValidationError? ValidationError = null)
 {
-    // Exception messages and URIs can contain credentials, SDK request bodies, or connection strings.
+    // 例外信息以及 URI 中可包含证书、 SDK 请求机构或连接字符串。
     public static BenchmarkFailure From(string phase, Exception exception, int? operation = null)
         => new(phase, exception.GetType().Name, (exception as RequestFailedException)?.Status, operation, (exception as BenchmarkValidationException)?.Code);
 }
@@ -100,7 +100,7 @@ internal sealed class AzureJournalReport(AzureJournalOptions configuration)
     public async Task ExportAsync(string prefix)
     {
         var json = JsonSerializer.Serialize(this, JsonOptions);
-        // JSON is the complete report; CSV carries the same nested configuration, failures and metrics as quoted JSON fields.
+        // JSON 是完整的报告;CSV与所引用的 JSON 字段具有相同的嵌套配置、故障和测量标准。
         string[] headers =
         [
             "schema_version", "backend", "workload", "phase", "success", "resource", "ownership", "cleanup",

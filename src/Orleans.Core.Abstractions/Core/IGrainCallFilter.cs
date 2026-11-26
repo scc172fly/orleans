@@ -3,28 +3,28 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// Interface for incoming grain call filters.
+    /// 进入 grain 调用过滤器的接口。
     /// </summary>
     public interface IIncomingGrainCallFilter
     {
         /// <summary>
-        /// Invokes this filter.
+        /// 启动此过滤器 。
         /// </summary>
-        /// <param name="context">The grain call context.</param>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <param name="context">下 grain 调用上下文。</param>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task Invoke(IIncomingGrainCallContext context);
     }
 
     /// <summary>
-    /// Interface for outgoing grain call filters.
+    /// 发送 grain 调用过滤器的接口。
     /// </summary>
     public interface IOutgoingGrainCallFilter
     {
         /// <summary>
-        /// Invokes this filter.
+        /// 启动此过滤器 。
         /// </summary>
-        /// <param name="context">The grain call context.</param>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <param name="context">下 grain 调用上下文。</param>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task Invoke(IOutgoingGrainCallContext context);
     }
 }

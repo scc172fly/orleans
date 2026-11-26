@@ -6,25 +6,25 @@ using System.Text;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// Represents a type.
+    /// 代表类型。
     /// </summary>
     public abstract class TypeSpec
     {
         /// <summary>
-        /// Formats this instance in a way that can be parsed by <see cref="RuntimeTypeNameParser"/>.
+        /// 以 <see cref="RuntimeTypeNameParser"/>能够解析的方式对本实例进行格式化。
         /// </summary>
         public abstract string Format();
     }
 
     /// <summary>
-    /// Represents a pointer (*) type.
+    /// 表示指针类型(*) 。
     /// </summary>
     public class PointerTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PointerTypeSpec"/> class.
+        /// 初始化 <see cref="PointerTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="elementType">The element type.</param>
+        /// <param name="elementType">元素类型。</param>
         public PointerTypeSpec(TypeSpec elementType)
         {
             if (elementType is null)
@@ -36,7 +36,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the element type.
+        /// 获取元素类型 。
         /// </summary>
         public TypeSpec ElementType { get; }
 
@@ -48,14 +48,14 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// Represents a reference (&amp;) type.
+    /// 表示引用类型(&amp;) 。
     /// </summary>
     public class ReferenceTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReferenceTypeSpec"/> class.
+        /// 初始化 <see cref="ReferenceTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="elementType">The element type.</param>
+        /// <param name="elementType">元素类型。</param>
         public ReferenceTypeSpec(TypeSpec elementType)
         {
             if (elementType is null)
@@ -67,7 +67,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the element type.
+        /// 获取元素类型 。
         /// </summary>
         public TypeSpec ElementType { get; }
 
@@ -79,15 +79,15 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// Represents an array type.
+    /// 代表数组类型。
     /// </summary>
     public class ArrayTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArrayTypeSpec"/> class.
+        /// 初始化 <see cref="ArrayTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="elementType">The array element type.</param>
-        /// <param name="dimensions">The number of dimensions for the array.</param>
+        /// <param name="elementType">数组元素类型。</param>
+        /// <param name="dimensions">数组的尺寸数量。</param>
         public ArrayTypeSpec(TypeSpec elementType, int dimensions)
         {
             if (elementType is null)
@@ -105,12 +105,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the number of array dimensions.
+        /// 获得数组维数。
         /// </summary>
         public int Dimensions { get; }
 
         /// <summary>
-        /// Gets the element type.
+        /// 获取元素类型 。
         /// </summary>
         public TypeSpec ElementType { get; }
 
@@ -122,16 +122,16 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// Represents an constructed generic type.
+    /// 表示已建通用型。
     /// </summary>
     public class ConstructedGenericTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConstructedGenericTypeSpec"/> class.
+        /// 初始化 <see cref="ConstructedGenericTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="unconstructedType">The unconstructed type.</param>
-        /// <param name="arity">The expected number of type arguments.</param>
-        /// <param name="arguments">The generic type arguments.</param>
+        /// <param name="unconstructedType">未构建的类型。</param>
+        /// <param name="arity">类型参数的预期数量。</param>
+        /// <param name="arguments">通用类型参数。</param>
         public ConstructedGenericTypeSpec(TypeSpec unconstructedType, int arity, TypeSpec[] arguments)
         {
             if (unconstructedType is AssemblyQualifiedTypeSpec)
@@ -167,12 +167,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the unconstructed type.
+        /// 获得非构造型号。
         /// </summary>
         public TypeSpec UnconstructedType { get; }
 
         /// <summary>
-        /// Gets the type arguments.
+        /// 获取类型参数。
         /// </summary>
         public TypeSpec[] Arguments { get; }
 
@@ -184,16 +184,16 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// Represents a named type, which may be an unconstructed generic type.
+    /// 指一个命名类型,该类型可能是未制造的通用类型。
     /// </summary>
     public class NamedTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NamedTypeSpec"/> class.
+        /// 初始化 <see cref="NamedTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="containingType">The containing type.</param>
-        /// <param name="name">The type name.</param>
-        /// <param name="arity">The generic arity of the type, which must be greater than or equal to the generic arity of the containing type.</param>
+        /// <param name="containingType">包含类型。</param>
+        /// <param name="name">类型名称。</param>
+        /// <param name="arity">类型的一般性,必须大于或等于含有型的一般性。</param>
         public NamedTypeSpec(NamedTypeSpec containingType, string name, int arity)
         {
             ContainingType = containingType;
@@ -212,24 +212,24 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the number of generic parameters which this type requires.
+        /// 获取该类型所需的通用参数数。
         /// </summary>
         public int Arity { get; }
 
         /// <summary>
-        /// Gets the type name, which includes the namespace if this is not a nested type.
+        /// 获取类型名称,如果不是嵌套类型,则包含命名空间。
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Gets the containing type.
+        /// 获得包含型号。
         /// </summary>
         public NamedTypeSpec? ContainingType { get; }
 
         /// <summary>
-        /// Gets the namespace-qualified type name, including containing types (for nested types).
+        /// 获取名称为空间合格型号的名称,包括包含类型(用于嵌套类型)。
         /// </summary>
-        /// <returns>The namespace-qualified type name.</returns>
+        /// <returns>命名空间合格类型名称。</returns>
         public string GetNamespaceQualifiedName()
         {
             var builder = new StringBuilder();
@@ -256,15 +256,15 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// Represents an assembly-qualified type.
+    /// 代表符合资格的组装类型。
     /// </summary>
     public class AssemblyQualifiedTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyQualifiedTypeSpec"/> class.
+        /// 初始化 <see cref="AssemblyQualifiedTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <param name="assembly">The assembly.</param>
+        /// <param name="type">类型。</param>
+        /// <param name="assembly">组装。</param>
         public AssemblyQualifiedTypeSpec(TypeSpec type, string? assembly)
         {
             if (type is null)
@@ -282,12 +282,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the assembly specification.
+        /// 获得组装规格
         /// </summary>
         public string? Assembly { get; }
 
         /// <summary>
-        /// Gets the qualified type.
+        /// 获得合格的类型。
         /// </summary>
         public TypeSpec Type { get; }
 
@@ -303,15 +303,15 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// Represents a type function.
+    /// 代表类型函数。
     /// </summary>
     public class TupleTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleTypeSpec"/> class.
+        /// 初始化 <see cref="TupleTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="elements">The tuple elements.</param>
-        /// <param name="arity">The number of generic type parameters which the type accepts.</param>
+        /// <param name="elements">等量元素。</param>
+        /// <param name="arity">类型所接受的通用类型参数数。</param>
         public TupleTypeSpec(TypeSpec[] elements, int arity)
         {
             if (elements is null)
@@ -335,12 +335,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the number of generic parameters which this type requires.
+        /// 获取该类型所需的通用参数数。
         /// </summary>
         public int Arity { get; }
 
         /// <summary>
-        /// Gets the tuple elements.
+        /// 得到图普元素。
         /// </summary>
         public TypeSpec[] Elements { get; }
 
@@ -365,14 +365,14 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// Represents a literal.
+    /// 代表字面意思。
     /// </summary>
     public class LiteralTypeSpec : TypeSpec
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LiteralTypeSpec"/> class.
+        /// 初始化 <see cref="LiteralTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         public LiteralTypeSpec(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -384,7 +384,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the value.
+        /// 得到价值。
         /// </summary>
         public string Value { get; }
 

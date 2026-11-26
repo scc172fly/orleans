@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// Exception used to indicate that a cluster membership entry which was expected to be present.
+    /// 例外之处用来表明,预计会出现分组成员进入的情况。
     /// </summary>
     /// <seealso cref="Orleans.Runtime.OrleansException" />
     [Serializable]
@@ -13,28 +13,28 @@ namespace Orleans.Runtime.MembershipService
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansMissingMembershipEntryException"/> class.
+        /// 初始化 <see cref="OrleansMissingMembershipEntryException"/> 类的新实例。
         /// </summary>
         public OrleansMissingMembershipEntryException() : base("Membership table does not contain information an entry for this silo.") { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansMissingMembershipEntryException"/> class.
+        /// 初始化 <see cref="OrleansMissingMembershipEntryException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public OrleansMissingMembershipEntryException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansMissingMembershipEntryException"/> class.
+        /// 初始化 <see cref="OrleansMissingMembershipEntryException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         public OrleansMissingMembershipEntryException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansMissingMembershipEntryException"/> class.
+        /// 初始化 <see cref="OrleansMissingMembershipEntryException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         private OrleansMissingMembershipEntryException(SerializationInfo info, StreamingContext context)
             : base(info, context)

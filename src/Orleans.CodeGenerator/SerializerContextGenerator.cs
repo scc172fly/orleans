@@ -86,7 +86,7 @@ internal static class SerializerContextGenerator
         {
             var diagnostic = Diagnostic.Create(UnsupportedType, location, symbol.Name,
                 failure.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), failure.Reason);
-            // A producer's implementation outputs can be absent from an otherwise valid editor compilation.
+            // 生产者的落实产出可在原有效的编辑汇编中不列出。
             return [failure.RequiresImplementation
                 ? new(SourceOutputResult.FromSource(declaration), SourceOutputResult.FromDiagnostic(diagnostic))
                 : new(new SourceOutputResult(declaration, diagnostic), default)];
@@ -155,7 +155,7 @@ internal static class SerializerContextGenerator
         var writer = CreateClassWriter(symbol);
         writer.WriteLine(GeneratedCodeUtilities.GeneratedMemberAttributeText);
         writer.WriteLine("protected override void ConfigureInner(global::Orleans.Serialization.Configuration.TypeManifestOptions options) => ConfigureGeneratedSerializerContext(options);");
-        // An optional partial hook preserves the concrete context's shape when a host omits implementation outputs.
+        // 任选的部分钩子保留了当主机忽略执行产出时的具体环境形状。
         writer.WriteLine("partial void ConfigureGeneratedSerializerContext(global::Orleans.Serialization.Configuration.TypeManifestOptions options);");
         writer.CloseBlock();
         return new GeneratedSourceEntry(
@@ -181,7 +181,7 @@ internal static class SerializerContextGenerator
             writer.ToString());
     }
 
-    // Opens the authored partial class. Its body is indented once; a file-scoped namespace adds no indentation.
+    // 打开已写成的片段类。 其体面曾缩进过一次; 文件范围的名称空间不会添加缩进 。
     private static SourceWriter CreateClassWriter(INamedTypeSymbol symbol)
     {
         var writer = new SourceWriter();

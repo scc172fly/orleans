@@ -6,15 +6,15 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Contracts;
 
 /// <summary>
-/// Checks the identity laws on which deduplication relies against an independent model: a key is the list of its
-/// literal segments.
+/// 对照独立模式检查据以重复的识别法:关键是其列表
+/// 字面部分。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("Messaging")]
 public sealed class HierarchicalKeyPropertyTests
 {
-    // Characters which exercise escaping, multi-byte UTF-8, and surrogate pairs.
+    // 外逃的字符,多字节 UTF-8和代孕配对。
     private static readonly Gen<string> Atom = Gen.OneOfConst("a", "b", "/", "\\", "\\/", "é", "😀", " ", "\0");
 
     private static readonly Gen<string> Segment = Atom.Array[1, 6].Select(static parts => string.Concat(parts));
@@ -116,7 +116,7 @@ public sealed class HierarchicalKeyPropertyTests
         }
     }
 
-    // An independent decoder of the canonical form: '\' escapes exactly '\' or '/', and '/' separates nonempty segments.
+    // 独立的金字塔形式的解码器 : “\” 脱险完全为“\” 或“/” , “/” 分离非空段 。
     private static bool TryModelParse(string text, out List<string> segments)
     {
         segments = [];

@@ -3,27 +3,27 @@ namespace Orleans.Runtime
     internal enum ActivationState
     {
         /// <summary>
-        /// Activation is being created
+        /// 正在创建激活
         /// </summary>
         Creating,
 
         /// <summary>
-        /// Activation is in the middle of activation process.
+        /// 启动进程正在进行之中。
         /// </summary>
         Activating,
 
         /// <summary>
-        /// Activation was successfully activated and ready to process requests.
+        /// 启动工作成功启动,并准备处理请求。
         /// </summary>
         Valid,
 
         /// <summary>
-        /// Activation is in the middle of deactivation process.
+        /// 启动处于停用过程的中间。
         /// </summary>
         Deactivating,
 
         /// <summary>
-        /// Tombstone for an activation which has terminated.
+        /// 引爆的墓碑已经终止
         /// </summary>
         Invalid
     }

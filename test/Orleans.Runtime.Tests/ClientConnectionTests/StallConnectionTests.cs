@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.ClientConnectionTests
 {
     /// <summary>
-    /// Tests for handling stalled connections to gateways and silos during client reconnection and cluster joins.
+    /// 客户重新连接和集群组合时处理与网关和 silos 连接中断的连接测试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -51,20 +51,20 @@ namespace Tester.ClientConnectionTests
             Socket stalledSocket;
             var gwEndpoint = this.HostedCluster.Primary!.GatewayAddress.Endpoint;
 
-            // Close current client connection
+            // 关闭当前客户端连接
             await this.Client.ServiceProvider.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
-            // Stall connection to GW
+            // GW 的滞滞连接
             using (stalledSocket = new Socket(gwEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
             {
                 await stalledSocket.ConnectAsync(gwEndpoint, TestContext.Current.CancellationToken);
 
-                // Try to reconnect to GW
+                // 尝试重新连接到 GW
                 var stopwatch = Stopwatch.StartNew();
                 await this.HostedCluster.InitializeClientAsync(TestContext.Current.CancellationToken);
                 stopwatch.Stop();
 
-                // Check that we were able to connect before the first connection timeout
+                // 检查在第一次连接超时前我们能够连接到
                 Assert.True(stopwatch.Elapsed < Timeout);
 
                 stalledSocket.Disconnect(true);
@@ -77,15 +77,15 @@ namespace Tester.ClientConnectionTests
             Socket stalledSocket;
             var siloEndpoint = this.HostedCluster.Primary!.SiloAddress.Endpoint;
 
-            // Stall connection to GW
+            // GW 的滞滞连接
             using (stalledSocket = new Socket(siloEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
             {
                 await stalledSocket.ConnectAsync(siloEndpoint, TestContext.Current.CancellationToken);
 
-                // Try to add a new silo in the cluster
+                // 尝试在组合中添加一个新的 silo
                 this.HostedCluster.StartAdditionalSilo();
 
-                // Wait for the silo to join the cluster
+                // 等待 silo 加入数据组
                 Assert.True(await WaitForClusterSize(2));
 
                 stalledSocket.Disconnect(true);

@@ -244,19 +244,19 @@ public sealed class NatsOptionsTests
             }
             catch (NatsJSApiException)
             {
-                // Ignore cleanup errors
+                // 忽略清理错误
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // Preserve the original test cancellation after bounded cleanup.
+                // 保留在受约束的清理后取消原试验。
             }
         }
     }
 
-    // NOTE: Testing NumReplicas > 1 (e.g. R3) requires a multi-node NATS JetStream
-    // cluster. A single NATS node only supports NumReplicas = 1. R3 integration
-    // testing should be done in a CI environment with a 3-node cluster configured
-    // via docker-compose or similar infrastructure.
+    // 注:测试 NumReplicas > 1 (e.g.R3)需要一个多节NATS JetStream
+    // 组。 光支持一个 NATS 节点只支持 NumReplicas = 1. R3 整合
+    // 测试应在配置了3节组群的光学环境内进行
+    // 经由多克合成或类似的基础设施。
 
     [Theory]
     [InlineData(StreamConfigStorage.File)]
@@ -306,11 +306,11 @@ public sealed class NatsOptionsTests
             }
             catch (NatsJSApiException)
             {
-                // Ignore cleanup errors
+                // 忽略清理错误
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // Preserve the original test cancellation after bounded cleanup.
+                // 保留在受约束的清理后取消原试验。
             }
         }
     }

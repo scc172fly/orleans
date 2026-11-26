@@ -14,8 +14,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.Analyzers;
 
 /// <summary>
-/// A code fix provider that converts ConfigureAwait(false) to ConfigureAwait(true) and
-/// adds ContinueOnCapturedContext to ConfigureAwait(ConfigureAwaitOptions) calls.
+/// 将 ConfigureAwait(假) 转换为 ConfigureAwait(ride) 和
+/// 将 ContinueOnCapturedContext 添加到 ConfigureAwait(ConfigureAwaitOptions)调用。
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ConfigureAwaitCodeFix)), Shared]
 public class ConfigureAwaitCodeFix : CodeFixProvider
@@ -29,7 +29,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
         var diagnostic = context.Diagnostics.First();
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        // Find the invocation expression identified by the diagnostic
+        // 查找诊断中发现的援引表达式
         var node = root.FindNode(diagnosticSpan);
         var invocation = node.FirstAncestorOrSelf<InvocationExpressionSyntax>();
 
@@ -38,7 +38,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
             return;
         }
 
-        // Get semantic model to determine which fix to apply
+        // 获取语义模型以确定要应用的固定
         var semanticModel = (await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false))!;
         var symbolInfo = semanticModel.GetSymbolInfo(invocation, context.CancellationToken);
 
@@ -47,14 +47,14 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
             return;
         }
 
-        // Check the parameter type to determine which fix to apply
+        // 检查参数类型以确定要应用的固定
         if (methodSymbol.Parameters.Length == 1)
         {
             var parameterType = methodSymbol.Parameters[0].Type;
 
             if (parameterType.SpecialType == SpecialType.System_Boolean)
             {
-                // Fix for ConfigureAwait(bool) - change false to true
+                // ConfigureAwait(bool) 的固定 - 假更改为真
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: Resources.ConfigureAwaitCodeFixTitle,
@@ -64,7 +64,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
             }
             else if (string.Equals(parameterType.ToDisplayString(), "System.Threading.Tasks.ConfigureAwaitOptions", StringComparison.Ordinal))
             {
-                // Fix for ConfigureAwait(ConfigureAwaitOptions) - add ContinueOnCapturedContext flag
+                // 固定 ConfigureAwait(ConfigureAwaitOptions- 加 - 加 ContinueOnCapturedContext 国旗
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: Resources.ConfigureAwaitCodeFixTitle,
@@ -82,11 +82,11 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
     {
         var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
 
-        // Create new argument with 'true' instead of 'false'
+        // 以“ true” 而不是“ false” 创建新参数
         var newArgument = Argument(LiteralExpression(SyntaxKind.TrueLiteralExpression));
         var newArgumentList = ArgumentList(SingletonSeparatedList(newArgument));
 
-        // Replace the argument list
+        // 替换引号列表
         var newInvocation = invocation.WithArgumentList(newArgumentList);
         var newRoot = root.ReplaceNode(invocation, newInvocation);
 
@@ -109,13 +109,13 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
 
         var existingArgument = arguments.Value[0].Expression;
 
-        // Check if the existing argument is ConfigureAwaitOptions.None
+        // 检查现有参数是否 ConfigureAwaitOptions.None
         var constantValue = semanticModel.GetConstantValue(existingArgument, cancellationToken);
         ExpressionSyntax newExpression;
 
         if (constantValue.HasValue && constantValue.Value is int intValue && intValue == 0)
         {
-            // If it's None (0), just replace with ContinueOnCapturedContext
+            // 如果为零(0),请替换为 ContinueOnCapturedContext
             newExpression = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 IdentifierName("ConfigureAwaitOptions"),
@@ -123,7 +123,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
         }
         else
         {
-            // Otherwise, add ContinueOnCapturedContext using bitwise OR
+            // 否则,加上 ContinueOnCapturedContext 使用比特 OR
             var continueOnCapturedContext = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 IdentifierName("ConfigureAwaitOptions"),

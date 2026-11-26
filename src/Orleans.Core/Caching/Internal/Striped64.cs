@@ -3,135 +3,135 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 /*
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
+ * 由Doug Lea在JCP成员协助下撰写
+ * 向公共领域开放的专家组,如以下解释
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 namespace Orleans.Caching.Internal;
 
 /*
- * This class maintains a lazily-initialized table of atomically
- * updated variables, plus an extra "base" field. The table size
- * is a power of two. Indexing uses masked per-thread hash codes.
- * Nearly all declarations in this class are package-private,
- * accessed directly by subclasses.
+ * 本类维持一个低迷初始原子表
+ * 更新的变量,加上一个额外的“基准”字段。
+ * 是一个两个的功率。索引使用隐形的全线散列码。
+ * 这一类的几乎所有申报都是一揽子私人申报,
+ * 子类直接访问。
  *
- * Table entries are of class Cell; a variant of AtomicLong padded
- * to reduce cache contention on most processors. Padding is
- * overkill for most Atomics because they are usually irregularly
- * scattered in memory and thus don't interfere much with each
- * other. But Atomic objects residing in arrays will tend to be
- * placed adjacent to each other, and so will most often share
- * cache lines (with a huge negative performance impact) without
- * this precaution.
+ * 表条目为类单元格; AtomicLong 加插的变量
+ * 以降低大多数处理器的缓存争议。
+ * 多数原子的超杀率高,因为它们通常不规则
+ * 散落在记忆中,所以不互相干扰。
+ * 原子物体的阵列中
+ * 彼此相邻而居,彼此之间常常分享
+ * 缓存行(具有巨大的负性性效影响)
+ * 预防这个
  *
- * In part because Cells are relatively large, we avoid creating
- * them until they are needed.  When there is no contention, all
- * updates are made to the base field.  Upon first contention (a
- * failed CAS on base update), the table is initialized to size 2.
- * The table size is doubled upon further contention until
- * reaching the nearest power of two greater than or equal to the
- * number of CPUS. Table slots remain empty (null) until they are
- * needed.
+ * 部分是因为细胞相对较大,我们避免了产生
+ * 直到他们被需要,直到他们获得他们所需要的。
+ * 向基字段更新。
+ * 基调更新时失败 CAS),表格初始化为大小 2。
+ * 进一步争论后,表格的面积翻一番,直到
+ * 功率,以大于或等于两千米的最接近功率计算。
+ * CPUS数目。 表空位一直为空( 无效) , 直到它们
+ * 需要。
  *
- * A single spinlock ("busy") is used for initializing and
- * resizing the table, as well as populating slots with new Cells.
- * There is no need for a blocking lock; when the lock is not
- * available, threads try other slots (or the base).  During these
- * retries, there is increased contention and reduced locality,
- * which is still better than alternatives.
+ * 用于初始化和
+ * 调整表格的大小,以及用新的单元格填充空格。
+ * 无需设置锁锁;当锁不锁时
+ * 可用, 线索尝试其他空格( 或基底) 。 在这些
+ * 重试,争议增加,地点减少
+ * 仍然比替代品好。
  *
- * Per-thread hash codes are initialized to random values.
- * Contention and/or table collisions are indicated by failed
- * CASes when performing an update operation (see method
- * retryUpdate). Upon a collision, if the table size is less than
- * the capacity, it is doubled in size unless some other thread
- * holds the lock. If a hashed slot is empty, and lock is
- * available, a new Cell is created. Otherwise, if the slot
- * exists, a CAS is tried.  Retries proceed by "double hashing",
- * using a secondary hash (Marsaglia XorShift) to try to find a
- * free slot.
+ * 纯散列代码初始化为随机值。
+ * 内相和/或表碰撞用失败表示
+ * CASs 进行更新操作时使用CAS(见方法)
+ * retryUpdate.)碰撞时,如果表尺寸小于
+ * 容量, 除非有其他线索, 否则其尺寸会加倍
+ * 锁定。如果一个散列空位是空的,而锁是
+ * 可用时, 新单元格会创建。 否则, 如果空格
+ * 存在,CAS正在测试。 重试以“ 双散列” 进行,
+ * 使用二类大麻( Marsaglia XorShift)来查找
+ * 空位。
  *
- * The table size is capped because, when there are more threads
- * than CPUs, supposing that each thread were bound to a CPU,
- * there would exist a perfect hash function mapping threads to
- * slots that eliminates collisions. When we reach capacity, we
- * search for this mapping by randomly varying the hash codes of
- * colliding threads.  Because search is random, and collisions
- * only become known via CAS failures, convergence can be slow,
- * and because threads are typically not bound to CPUS forever,
- * may not occur at all. However, despite these limitations,
- * observed contention rates are typically low in these cases.
+ * 表格大小被上盖, 因为当有更多线索时
+ * 假设每条线都系在CPU上,
+ * 会有完美的散列函数绘图线
+ * 消除碰撞的空格。当我们到达能力,
+ * 随机修改散列代码,以查找此映射
+ * 相撞线。 因为搜索是随机的, 碰撞
+ * 只能通过CAS失败才知道,趋同速度可能缓慢,
+ * 并且因为线条通常不会永远被连接到CPUS,
+ * 然而,尽管存在这些限制,
+ * 在这些情况下,观察到的争议率一般较低。
  *
- * It is possible for a Cell to become unused when threads that
- * once hashed to it terminate, as well as in the case where
- * doubling the table causes no thread to hash to it under
- * expanded mask.  We do not try to detect or remove such cells,
- * under the assumption that for long-running instances, observed
- * contention levels will recur, so the cells will eventually be
- * needed again; and for short-lived ones, it does not matter.
+ * 当一个单元格在
+ * 发生下列情况时终止:
+ * 将表格翻倍, 使桌子下没有线条
+ * 我们不试图检测或移除这些细胞
+ * 假设对长期存在的情况,观察到
+ * 参数水平将重复, 所以单元格最终会
+ * 需要再次;对于短期生命,这不重要。
  */
 
 /// <summary>
-/// Maintains a lazily-initialized table of atomically updated variables, plus an extra 
-/// "base" field. The table size is a power of two. Indexing uses masked thread IDs.
+/// 维持一个由原子更新变量加上额外变量组成的 
+/// 表格大小是两个的功率。索引使用遮蔽线条识别码。
 /// </summary>
-// Derived from BitFaster.Caching by Alex Peck
+// 由Alex Peck从 BitFaster.Caching 取出
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/Counters/Striped64.cs
 [ExcludeFromCodeCoverage]
 internal abstract class Striped64
 {
-    // Number of CPUS, to place bound on table size
+    // CPUS数目,按表格大小排列
     private static readonly int MaxBuckets = Environment.ProcessorCount * 4;
 
     /// <summary>
-    /// The base value used mainly when there is no contention, but also as a fallback 
-    /// during table initialization races. Updated via CAS.
+    /// 基值主要用于没有争议但作为后备使用的基值 
+    /// 在表格初始化赛事中更新。 通过 CAS 更新 。
     /// </summary>
     protected PaddedLong @base;
 
     /// <summary>
-    /// When non-null, size is a power of 2.
+    /// 当非核时,大小为 2 的功率。
     /// </summary>
     protected Cell[]? cells;
     private int _cellsBusy;
 
     /// <summary>
-    /// A wrapper for PaddedLong.
+    /// PaddedLong的包装纸。
     /// </summary>
-    /// <param name="value">The value.</param>
+    /// <param name="value">数值。</param>
     protected sealed class Cell(long value)
     {
         /// <summary>
-        /// The value of the cell.
+        /// 单元格的值 。
         /// </summary>
         public PaddedLong Value = new() { Value = value };
     }
 
     /**
-     * CASes the cellsBusy field from 0 to 1 to acquire lock.
+     * CAS 字段 cellsBusy 从 0 到 1 获取锁定 。
      */
     private bool CasCellsBusy() => Interlocked.CompareExchange(ref _cellsBusy, 1, 0) == 0;
 
     private void VolatileWriteNotBusy() => Volatile.Write(ref _cellsBusy, 0);
 
     /**
-     * Returns the probe value for the current thread.
-     * Duplicated from ThreadLocalRandom because of packaging restrictions.
+     * 返回当前线索的探测值。
+     * 由于包装限制,从 ThreadLocalRandom 中复制。
      */
     protected static int GetProbe() =>
-        // Note: this results in higher throughput than introducing a random.
+        // 注:这导致的产量高于随机引入。
         Environment.CurrentManagedThreadId;
 
     /**
-    * Pseudo-randomly advances and records the given probe value for the
-    * given thread.
-    * Duplicated from ThreadLocalRandom because of packaging restrictions.
+    * 优度随机推进并记录给定的探测值
+    * 给定线索。
+    * 由于包装限制,从 ThreadLocalRandom 中复制。
     */
     private static int AdvanceProbe(int probe)
     {
-        // xorshift
+        // xorfinight 转换器
         probe ^= probe << 13;
         probe ^= (int)((uint)probe >> 17);
         probe ^= probe << 5;
@@ -139,20 +139,20 @@ internal abstract class Striped64
     }
 
     /**
-     * Handles cases of updates involving initialization, resizing,
-     * creating new Cells, and/or contention. See above for
-     * explanation. This method suffers the usual non-modularity
-     * problems of optimistic retry code, relying on rechecked sets of
-     * reads.
+     * 处理涉及初始化、重新确定大小、
+     * 创建新单元格和/或争论。见上文
+     * 这种方法受到通常的非模式性的影响
+     * 依赖重新校对的一套
+     * 读起来。
      *
-     * @param x the value
-     * @param wasUncontended false if CAS failed before call
+     * @ 参数 x 值
+     * @ 参数 wasUncontended 如果 CAS 在呼叫前失败, 则无效
      */
     protected void LongAccumulate(long x, bool wasUncontended)
     {
         var h = GetProbe();
 
-        // True if last slot nonempty
+        // 如果最后一个空格为真实
         var collide = false;
         while (true)
         {
@@ -163,8 +163,8 @@ internal abstract class Striped64
                 {
                     if (_cellsBusy == 0)
                     {
-                        // Try to attach new Cell
-                        // Optimistically create
+                        // 尝试附加新单元格
+                        // 乐观地创建
                         var r = new Cell(x);
 #pragma warning disable CA1508 // Another thread can acquire the cell lock between the optimistic reads; CAS establishes ownership.
                         if (_cellsBusy == 0 && CasCellsBusy())
@@ -172,7 +172,7 @@ internal abstract class Striped64
                         {
                             try
                             {
-                                // Recheck under lock
+                                // 锁定中重新检查
                                 Cell[]? rs; int m, j;
                                 if ((rs = cells) != null &&
                                     (m = rs.Length) > 0 &&
@@ -187,7 +187,7 @@ internal abstract class Striped64
                                 VolatileWriteNotBusy();
                             }
 
-                            // Slot is now non-empty
+                            // 槽现在不是空的
                             continue;
                         }
                     }
@@ -195,8 +195,8 @@ internal abstract class Striped64
                 }
                 else if (!wasUncontended)
                 {
-                    // CAS already known to fail
-                    // Continue after rehash
+                    // CAS 已知已失败
+                    // 重新发牌后继续
                     wasUncontended = true;
                 }
                 else if (a.Value.CompareAndSwap(v = a.Value.VolatileRead(), v + x))
@@ -205,7 +205,7 @@ internal abstract class Striped64
                 }
                 else if (n >= MaxBuckets || cells != @as)
                 {
-                    // At max size or stale
+                    // 最大尺寸或淡度
                     collide = false;
                 }
                 else if (!collide)
@@ -218,7 +218,7 @@ internal abstract class Striped64
                     {
                         if (cells == @as)
                         {
-                            // Expand table unless stale
+                            // 除非变色, 除非平滑
                             var rs = new Cell[n << 1];
                             for (var i = 0; i < n; ++i)
                             {
@@ -235,18 +235,18 @@ internal abstract class Striped64
 
                     collide = false;
 
-                    // Retry with expanded table
+                    // 重试使用扩大表格
                     continue;
                 }
 
-                // Rehash
+                // 重写
                 h = AdvanceProbe(h);
             }
             else if (_cellsBusy == 0 && cells == @as && CasCellsBusy())
             {
                 try
                 {
-                    // Initialize table
+                    // 初始化表格
                     if (cells == @as)
                     {
                         var rs = new Cell[2];
@@ -261,7 +261,7 @@ internal abstract class Striped64
                 }
             }
 
-            // Fall back on using base
+            // 返回基地
             else if (@base.CompareAndSwap(v = @base.VolatileRead(), v + x))
             {
                 break;

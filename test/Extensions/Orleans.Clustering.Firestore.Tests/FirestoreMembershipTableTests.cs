@@ -42,7 +42,7 @@ public class FirestoreMembershipTableTests : MembershipTableTestsBase, IClassFix
         return new FirestoreMembershipTable(this.loggerFactory, Options.Create(CreateClusteringOptions()), clusterOptions);
     }
 
-    // RunQuery streams a document per response message.
+    // RunQuery 向每个回复信件的文档流转 。
     protected override int ConformanceConcurrencyRowCount => 17;
 
     protected override MembershipTableTestFixture CreateConformanceFixture()
@@ -66,8 +66,8 @@ public class FirestoreMembershipTableTests : MembershipTableTestsBase, IClassFix
             },
             async (clusterId, cancellationToken) =>
             {
-                // Any document, including the cluster version, proves that this scope remains populated.
-                // The parent "Cluster" document is a shared header, not cluster-owned membership metadata.
+                // 包括分组版本在内的任何文件都证明这一范围仍然有人在。
+                // 母“ Cluster” 文件是一个共享的头版, 不是集束所有的成员元数据 。
                 var snapshot = await probe.Collection(options.RootCollectionName)
                     .Document("Cluster")
                     .Collection(Utils.SanitizeId(clusterId))
@@ -152,7 +152,7 @@ public class FirestoreMembershipTableTests : MembershipTableTestsBase, IClassFix
             var entry = CreateMembershipEntry(address, version.Version);
             Assert.True(await table.InsertRowAsync(entry, version, TestContext.Current.CancellationToken));
 
-            // Make ReadAllAsync consume a multi-message RunQuery stream while the sentinel row changes.
+            // 使 ReadAllAsync 在监控行更改时消耗多条消息 RunQuery 流。
             var storage = new FirestoreDataManager(
                 "Cluster",
                 Utils.SanitizeId(clusterId),

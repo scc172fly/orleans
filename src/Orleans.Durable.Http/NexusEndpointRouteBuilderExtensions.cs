@@ -8,39 +8,39 @@ using Orleans.Durable.Http;
 
 namespace Microsoft.AspNetCore.Builder;
 
-/// <summary>Maps Nexus services, whose operations start durable work and cancel it, per the Nexus HTTP protocol.</summary>
+/// <summary>映射 Nexus 服务,其运行开始耐久的工作并取消它,根据 Nexus HTTP 协议。</summary>
 /// <remarks>
 /// <para>
-/// Nexus is the protocol of Temporal's cross-namespace operations: a caller starts an operation with
-/// <c>POST {endpoint}/{service}/{operation}</c> and cancels it with <c>POST {endpoint}/{service}/{operation}/cancel</c>,
-/// addressing it by the token which the start returned. See
-/// <see href="https://github.com/nexus-rpc/api/blob/main/SPEC.md">the Nexus HTTP specification</see>.
+/// Nexus 是时间时空跨名称空间操作的协议协议 :
+/// <c>POST {endpoint}/{service}/{operation}</c> ,用 <c>POST {endpoint}/{service}/{operation}/cancel</c>取消,
+/// 以启动返回的标记标出它。 见
+/// <see href="https://github.com/nexus-rpc/api/blob/main/SPEC.md">Nexus HTTP 规格</see>。
 /// </para>
 /// <para>
-/// Nexus operations are durable operations like those which
-/// <see cref="DurableHttpEndpointRouteBuilderExtensions.WithDurableOperations"/> configures: the caller's
-/// <c>Nexus-Request-Id</c> names the operation within the service's scope and the caller's, which
-/// <see cref="DurableHttpOptions.GetCallerScope"/> returns. A group of the same scope, without route parameters, addresses the same operations, so it can stream
-/// their status or deliver their signals. Authentication and authorization belong to the application, which configures
-/// them on the service's endpoints.
+/// Nexus业务是持久的业务,例如:
+/// <see cref="DurableHttpEndpointRouteBuilderExtensions.WithDurableOperations"/> 配置:调用器
+/// <c>Nexus-Request-Id</c> 在服务范围内和打电话者(即:
+/// <see cref="DurableHttpOptions.GetCallerScope"/> 返回。一个没有路线参数的相同范围组处理相同的操作,以便可以流
+/// 身份状态或发送信号。 验证和授权属于应用程序, 它配置
+/// 服务终点上的
 /// </para>
 /// </remarks>
 public static class NexusEndpointRouteBuilderExtensions
 {
-    // The handler binds its request like a Minimal API handler, which Minimal APIs analyze by reflection.
+    // 处理器像一个最小 API 处理器一样将请求捆绑在一起, 最小的API通过反射分析。
     private const string HandlerBindingUnreferencedCode =
         "This API may perform reflection on the supplied delegate and its parameters. These types may be trimmed if not directly referenced.";
     private const string HandlerBindingDynamicCode =
         "This API may perform reflection on the supplied delegate and its parameters. These types may require generated code and aren't compatible with native AOT applications.";
 
-    /// <summary>Maps the Nexus service <paramref name="service"/>, whose operations <see cref="MapNexusOperation"/> maps.</summary>
-    /// <param name="endpoints">The endpoint route builder, whose prefix is the Nexus endpoint, such as <c>/nexus</c>.</param>
-    /// <param name="service">The service name, such as <c>payments.v1</c>, of URL-unreserved characters.</param>
+    /// <summary>映射 Nexus 服务 <paramref name="service"/>经营,其业务 <see cref="MapNexusOperation"/> 地图。</summary>
+    /// <param name="endpoints">终点路由建设器,其前缀是 Nexus 端点,例如 <c>/nexus</c>。</param>
+    /// <param name="service">服务名, 例如 <c>payments.v1</c>中, URL -无保留字符的。</param>
     /// <param name="scope">
-    /// The scope of the service's operations, or <see langword="null"/> for <c>nexus/{service}</c>.
+    /// (a) 服务业务的范围,或 <see langword="null"/> 用于 <c>nexus/{service}</c>.
     /// </param>
-    /// <returns>A group builder which maps the service's operations and configures its endpoints.</returns>
-    /// <exception cref="ArgumentException"><paramref name="service"/> is empty or has characters other than URL-unreserved ones.</exception>
+    /// <returns>一组构建器,该组构建器将绘制服务运行图并配置其终点。</returns>
+    /// <exception cref="ArgumentException"><paramref name="service"/> 是空的, 或除 URL - 无保留的字符外有其它字符。</exception>
     public static RouteGroupBuilder MapNexusService(this IEndpointRouteBuilder endpoints, string service, string? scope = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -49,52 +49,52 @@ public static class NexusEndpointRouteBuilderExtensions
     }
 
     /// <summary>
-    /// Maps the Nexus operation <paramref name="operation"/>, whose handler returns durable work, such as
-    /// <c>grain.ChargeAsync(input)</c>, which a start request starts as an operation.
+    /// Nexus 操作地图 <paramref name="operation"/>,其处理器将耐久工作(例如)恢复到
+    /// <c>grain.ChargeAsync(input)</c>,启动请求的起始点开始为操作。
     /// </summary>
-    /// <param name="service">The group which <see cref="MapNexusService"/> returns.</param>
-    /// <param name="operation">The operation name, such as <c>charge</c>, of URL-unreserved characters.</param>
+    /// <param name="service">返回的组 <see cref="MapNexusService"/> 。</param>
+    /// <param name="operation">操作名称,例如 <c>charge</c>中, URL -无保留字符的。</param>
     /// <param name="handler">
-    /// A delegate which binds the operation's input, such as from the JSON request body, and other parameters like a Minimal
-    /// API handler, and returns a durable grain call or a reference to an existing task, which
-    /// <c>grain.GetDurableTask&lt;T&gt;(id)</c> returns, directly or through a <see cref="Task{TResult}"/> or
-    /// <see cref="ValueTask{TResult}"/>. It runs for each start request, including retries, and only creates the work.
+    /// 代表将操作的输入(例如从 JSON 请求机构等)和最小参数等其他参数连接到运行的输入
+    /// API 处理器,返回一个耐久 grain 调用或提及现有任务,
+    /// <c>grain.GetDurableTask&lt;T&gt;(id)</c> 直接或通过 <see cref="Task{TResult}"/> 或
+    /// <see cref="ValueTask{TResult}"/>. 它运行于每个启动请求, 包括重试, 并且只创建工作 。
     /// </param>
-    /// <returns>A group builder which configures the operation's start and cancel endpoints.</returns>
+    /// <returns>组合构建器,该构建器配置操作的启动并取消端点。</returns>
     /// <remarks>
     /// <para>
-    /// <c>POST {service}/{operation}</c> starts the work as the operation which the request's <c>Nexus-Request-Id</c> names,
-    /// or a new operation for a request without one, and responds:
+    /// <c>POST {service}/{operation}</c> 请求的操作 <c>Nexus-Request-Id</c> 姓名,
+    /// 或对一项没有请求要求的新操作,并答复:
     /// </para>
     /// <list type="bullet">
     /// <item><description>
-    /// <c>200 OK</c> with the result and <c>Nexus-Operation-State: succeeded</c> when the operation has succeeded, such as
-    /// for a retry after it completed.
+    /// <c>200 OK</c> ,结果为 <c>Nexus-Operation-State: succeeded</c> ,例如
+    /// 完成后再试一次。
     /// </description></item>
-    /// <item><description><c>201 Created</c> with an <c>OperationInfo</c>, whose token addresses the operation, while it runs.</description></item>
+    /// <item><description><c>201 Created</c> 和 A 相 <c>OperationInfo</c>,其代号是操作运行时的地址</description></item>
     /// <item><description>
-    /// <c>424 Failed Dependency</c> with an <c>OperationError</c> failure, whose message
-    /// <see cref="DurableHttpOptions.CreateError"/> describes, when the operation failed or was canceled. An operation whose
-    /// work's grain refused the work fails with the <see cref="DurableOperationError.NotStartedCode"/> code, and one whose
-    /// work's grain didn't confirm the work, which may have run, with the
-    /// <see cref="DurableOperationError.OutcomeUnknownCode"/> code.
+    /// <c>424 Failed Dependency</c> 和 A 相 <c>OperationError</c> 失败者,其信息
+    /// <see cref="DurableHttpOptions.CreateError"/> 描述操作失败或取消时的描述。
+    /// 工作 grain 拒绝使用 <see cref="DurableOperationError.NotStartedCode"/> 代码失败的工作,其中的编码
+    /// 工作 grain 没有确认工作, 可能已经运行了,
+    /// <see cref="DurableOperationError.OutcomeUnknownCode"/> 代码。
     /// </description></item>
     /// <item><description>
-    /// A handler error: <c>400</c> <c>BAD_REQUEST</c> for an invalid request identifier, <c>409</c> <c>CONFLICT</c> for a
-    /// request identifier which another request used to start other work, and <c>503</c> <c>UNAVAILABLE</c> when the
-    /// request didn't reach the operation, which it left unchanged, so the caller retries it.
+    /// 处理器错误 : <c>400</c> <c>BAD_REQUEST</c> 对于无效的请求标识符, <c>409</c> <c>CONFLICT</c> a 的a
+    /// 请求指定用于启动其他工作的另一项请求的标识符, <c>503</c> <c>UNAVAILABLE</c> 时
+    /// 请求没有达到操作, 没有改变, 所以打电话者重新检查它。
     /// </description></item>
     /// </list>
     /// <para>
-    /// <c>POST {service}/{operation}/cancel</c> durably requests cancellation of the operation which its
-    /// <c>Nexus-Operation-Token</c> header or <c>token</c> query value names and returns <c>202 Accepted</c>, including for
-    /// a terminal operation, which is unchanged. A token which names no operation receives a <c>404</c> <c>NOT_FOUND</c>
-    /// handler error. <see cref="INexusOperationTokenFormat"/> formats tokens.
+    /// <c>POST {service}/{operation}/cancel</c> 可持久地要求取消其业务
+    /// <c>Nexus-Operation-Token</c> 标题或 <c>token</c> 查询值名称和返回 <c>202 Accepted</c>,包括
+    /// 终端操作,它没有改变。一个表示不命名操作的符号接收 <c>404</c> <c>NOT_FOUND</c>
+    /// 处理器错误。 <see cref="INexusOperationTokenFormat"/> 格式示意符。
     /// </para>
     /// </remarks>
     /// <exception cref="ArgumentException">
-    /// <paramref name="operation"/> is empty or has characters other than URL-unreserved ones, or <paramref name="handler"/>
-    /// doesn't return durable work.
+    /// <paramref name="operation"/> 是空的, 或除 URL - 无保留的字符外有其它字符, 或 <paramref name="handler"/>
+    /// 无法恢复持久的工作
     /// </exception>
     [RequiresUnreferencedCode(HandlerBindingUnreferencedCode)]
     [RequiresDynamicCode(HandlerBindingDynamicCode)]

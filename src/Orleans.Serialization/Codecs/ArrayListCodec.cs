@@ -6,15 +6,15 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="ArrayList"/>.
+    /// <see cref="ArrayList"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class ArrayListCodec : GeneralizedReferenceTypeSurrogateCodec<ArrayList, ArrayListSurrogate>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArrayListCodec"/> class.
+        /// 初始化 <see cref="ArrayListCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public ArrayListCodec(IValueSerializer<ArrayListSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -28,21 +28,21 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="ArrayListCodec"/>.
+    /// <see cref="ArrayListCodec"/>所使用的代金矿类型。
     /// </summary>
     [GenerateSerializer]
     public struct ArrayListSurrogate
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public object?[]? Values;
     }
 
     /// <summary>
-    /// Copier for <see cref="ArrayList"/>.
+    /// <see cref="ArrayList"/>的复印机。
     /// </summary>
     [RegisterCopier]
     public sealed class ArrayListCopier : IDeepCopier<ArrayList>, IBaseCopier<ArrayList>

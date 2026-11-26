@@ -6,21 +6,21 @@ using System;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> extensions.
+    /// <see cref="IServiceCollection"/> 扩展。
     /// </summary>
     public static class DynamoDBServiceCollectionReminderExtensions
     {
         /// <summary>
-        /// Adds reminder storage backed by Amazon DynamoDB.
+        /// 添加由亚马逊 DynamoDB支持的提醒存储。
         /// </summary>
         /// <param name="services">
-        /// The service collection.
+        /// 服务收藏
         /// </param>
         /// <param name="configure">
-        /// The delegate used to configure the reminder store.
+        /// 代表用于配置提醒存储器 。
         /// </param>
         /// <returns>
-        /// The provided <see cref="IServiceCollection"/>, for chaining.
+        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
         /// </returns>
         public static IServiceCollection UseDynamoDBReminderService(this IServiceCollection services, Action<DynamoDBReminderStorageOptions> configure)
         {

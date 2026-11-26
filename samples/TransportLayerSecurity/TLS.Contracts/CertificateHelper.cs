@@ -4,7 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 namespace HelloWorld;
 
 /// <summary>
-/// Helper class for managing self-signed certificates for TLS communication.
+/// TLS 通信自签名证书管理辅助类 。
 /// </summary>
 public static class CertificateHelper
 {
@@ -13,10 +13,10 @@ public static class CertificateHelper
     public const StoreLocation StoreLocation = System.Security.Cryptography.X509Certificates.StoreLocation.CurrentUser;
 
     /// <summary>
-    /// Ensures a self-signed certificate exists in the certificate store.
-    /// If the certificate doesn't exist, it creates one.
+    /// 确保证书存储中存在自签名证书 。
+    /// 如果证书不存在, 它会创建一个 。
     /// </summary>
-    /// <returns>The certificate that was found or created.</returns>
+    /// <returns>找到或创建的证书。</returns>
     public static X509Certificate2 EnsureCertificateExists()
     {
         var existingCert = FindCertificate();
@@ -31,7 +31,7 @@ public static class CertificateHelper
     }
 
     /// <summary>
-    /// Finds an existing certificate in the store.
+    /// 在存储中查找已有证书 。
     /// </summary>
     public static X509Certificate2? FindCertificate()
     {
@@ -43,7 +43,7 @@ public static class CertificateHelper
             CertificateSubject,
             validOnly: false);
 
-        // Return a valid (not expired) certificate if available
+        // 如果有有效( 未过期) 证书, 请返回该证书
         foreach (var cert in certs)
         {
             if (cert.NotAfter > DateTime.Now && cert.NotBefore <= DateTime.Now)
@@ -56,21 +56,21 @@ public static class CertificateHelper
     }
 
     /// <summary>
-    /// Creates a self-signed certificate and stores it in the certificate store.
+    /// 创建自签名证书并将其存储在证书仓库中。
     /// </summary>
     private static X509Certificate2 CreateAndStoreCertificate()
     {
-        // Create RSA key
+        // 创建 RSA 键
         using var rsa = RSA.Create(2048);
 
-        // Create certificate request
+        // 创建证书请求
         var request = new CertificateRequest(
             $"CN={CertificateSubject}",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
 
-        // Add extensions
+        // 添加扩展名
         request.CertificateExtensions.Add(
             new X509BasicConstraintsExtension(false, false, 0, false));
 
@@ -82,23 +82,23 @@ public static class CertificateHelper
         request.CertificateExtensions.Add(
             new X509EnhancedKeyUsageExtension(
                 [
-                    new Oid("1.3.6.1.5.5.7.3.1"), // Server Authentication
-                    new Oid("1.3.6.1.5.5.7.3.2")  // Client Authentication
+                    new Oid("1.3.6.1.5.5.7.3.1"), // 服务器验证
+                    new Oid("1.3.6.1.5.5.7.3.2")  // 客户端验证
                 ],
                 false));
 
-        // Add Subject Alternative Name
+        // 添加主题替代名称
         var sanBuilder = new SubjectAlternativeNameBuilder();
         sanBuilder.AddDnsName(CertificateSubject);
         request.CertificateExtensions.Add(sanBuilder.Build());
 
-        // Create certificate (valid for 1 year)
+        // 创建证书( 1年有效)
         var notBefore = DateTimeOffset.UtcNow;
         var notAfter = notBefore.AddYears(1);
 
         var certificate = request.CreateSelfSigned(notBefore, notAfter);
 
-        // Export and re-import with exportable private key for storage
+        // 带有可出口的私人钥匙用于储存的出口和再进口
 #if NET9_0_OR_GREATER
         var certWithKey = X509CertificateLoader.LoadPkcs12(
             certificate.Export(X509ContentType.Pfx),
@@ -111,7 +111,7 @@ public static class CertificateHelper
             X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
 #endif
 
-        // Store in certificate store
+        // 存储于证书存储
         using var store = new X509Store(StoreName, StoreLocation);
         store.Open(OpenFlags.ReadWrite);
         store.Add(certWithKey);
@@ -125,7 +125,7 @@ public static class CertificateHelper
     }
 
     /// <summary>
-    /// Removes the self-signed certificate from the store (for cleanup).
+    /// 从存储中删除自签名证书( 用于清理) 。
     /// </summary>
     public static void RemoveCertificate()
     {

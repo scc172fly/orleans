@@ -4,26 +4,26 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Represents the result of a durable job execution.
+/// 系长期执行职务的结果。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Jobs.DurableJobRunResult")]
 public sealed class DurableJobRunResult
 {
     /// <summary>
-    /// Gets a value indicating whether the job execution failed.
+    /// 获得一个值, 显示任务执行失败 。
     /// </summary>
     [MemberNotNullWhen(true, nameof(Exception))]
     public bool IsFailed => Status == DurableJobRunStatus.Failed;
 
     /// <summary>
-    /// Gets a value indicating whether the job execution remains in progress and should be polled after a delay.
+    /// 获得一个价值,表明职务执行是否仍在进行中,在拖延后应进行民意调查。
     /// </summary>
     [MemberNotNullWhen(true, nameof(PollAfterDelay))]
     public bool IsInProgress => Status == DurableJobRunStatus.InProgress;
 
     /// <summary>
-    /// Gets a value indicating whether the successfully handled job requested durable rescheduling.
+    /// 获得一个价值,显示成功处理的工作是否要求持久重新安排。
     /// </summary>
     [MemberNotNullWhen(true, nameof(RescheduleTime))]
     public bool IsRescheduleRequested => Status == DurableJobRunStatus.RescheduleRequested && RescheduleTime is not null;
@@ -41,25 +41,25 @@ public sealed class DurableJobRunResult
     }
 
     /// <summary>
-    /// Gets the status of the job execution.
+    /// 获得工作执行状态。
     /// </summary>
     [Id(0)]
     public DurableJobRunStatus Status { get; }
 
     /// <summary>
-    /// Gets the delay before the executor polls the ongoing run when <see cref="Status"/> is <see cref="DurableJobRunStatus.InProgress"/>.
+    /// 在 <see cref="Status"/> 是 <see cref="DurableJobRunStatus.InProgress"/>时,在执行者对运行过程进行民意调查之前获得延迟 。
     /// </summary>
     [Id(1)]
     public TimeSpan? PollAfterDelay { get; }
 
     /// <summary>
-    /// Gets the exception associated with a failed job execution when <see cref="Status"/> is <see cref="DurableJobRunStatus.Failed"/>.
+    /// 获取 <see cref="Status"/> 是 <see cref="DurableJobRunStatus.Failed"/>时与执行失败相关的工作执行的例外。
     /// </summary>
     [Id(2)]
     public Exception? Exception { get; }
 
     /// <summary>
-    /// Gets the time at which the job should be durably rescheduled after the current execution completes successfully.
+    /// 在当前执行成功完成后, 工作应该被永久重新安排的时间 。
     /// </summary>
     [Id(3)]
     public DateTimeOffset? RescheduleTime { get; }
@@ -67,19 +67,19 @@ public sealed class DurableJobRunResult
     private static readonly DurableJobRunResult CompletedInstance = new(DurableJobRunStatus.Completed, null, null, null);
 
     /// <summary>
-    /// Gets a result indicating the job completed successfully.
+    /// 获得一个显示工作成功完成的结果。
     /// </summary>
     public static DurableJobRunResult Completed => CompletedInstance;
 
     /// <summary>
-    /// Creates a result indicating the job execution remains in progress and should be polled after the specified delay.
+    /// 创建显示工作执行仍在进行中的结果,应在规定延迟后进行投票。
     /// </summary>
-    /// <param name="delay">The time to wait before polling the run again.</param>
-    /// <returns>An in-progress job result.</returns>
+    /// <param name="delay">等待时间再投票</param>
+    /// <returns>工作成果在进行中。</returns>
     /// <remarks>
-    /// The executor keeps the current run and its concurrency slot active, then polls the receiver again after the delay.
-    /// TODO: Add validation for minimum/maximum poll delays to prevent abuse.
-    /// TODO: Consider concurrency slot management for long-running polls.
+    /// 执行人保持当前运行和其货币汇率空缺状态,然后在延迟后再次对接收者进行民意测验。
+    /// TODO: 增加最低/最高投票延迟的验证,以防止滥用。
+    /// 考虑长期投票的货币汇率管理。
     /// </remarks>
     public static DurableJobRunResult InProgress(TimeSpan delay)
     {
@@ -88,15 +88,15 @@ public sealed class DurableJobRunResult
     }
 
     /// <summary>
-    /// Creates a result indicating that the current execution completed successfully and requested durable rescheduling.
+    /// 得出的结果显示,目前执行成功完成并请求进行长期重新安排。
     /// </summary>
-    /// <param name="dueTime">The time at which the next execution should become due.</param>
-    /// <returns>A durable rescheduling result.</returns>
+    /// <param name="dueTime">下次执行的时间应到。</param>
+    /// <returns>一项持久的重新安排偿还期的结果。</returns>
     /// <remarks>
-    /// Rescheduling resets the failure-attempt count, so the next dequeue count is one.
-    /// During a mixed-version rolling upgrade, callers emit this result after every durable job executor
-    /// understands <see cref="DurableJobRunStatus.RescheduleRequested"/> (serialized value 3).
-    /// This rollout order preserves compatibility with executors that understand serialized values 0 through 2.
+    /// 重排顺序 重新计数失败尝试的倒数, 所以下一个取消计数就是一。
+    /// 在每个耐用工作执行人之后,
+    /// 理解 <see cref="DurableJobRunStatus.RescheduleRequested"/> (序列值3)。
+    /// 该推出令与理解序列值0至2的操作员保持一致,保持了与执行者的兼容性。
     /// </remarks>
     public static DurableJobRunResult RescheduleAt(DateTimeOffset dueTime)
     {
@@ -104,12 +104,12 @@ public sealed class DurableJobRunResult
     }
 
     /// <summary>
-    /// Creates a result indicating the job failed.
+    /// 创建结果, 显示任务失败 。
     /// </summary>
-    /// <param name="exception">The exception that caused the failure. This will be passed to the retry policy.</param>
-    /// <returns>A failed job result.</returns>
+    /// <param name="exception">导致失败的例外。 这将传递到再试政策 。</param>
+    /// <returns>工作结果失败。</returns>
     /// <remarks>
-    /// The exception will be passed to the retry callback to determine if the job should be retried.
+    /// 例外将转到回调,以确定是否应该重新调查该工作。
     /// </remarks>
     public static DurableJobRunResult Failed(Exception exception)
     {
@@ -119,31 +119,31 @@ public sealed class DurableJobRunResult
 }
 
 /// <summary>
-/// Represents the status of a durable job execution.
+/// 代表持久工作执行现状。
 /// </summary>
 public enum DurableJobRunStatus
 {
     /// <summary>
-    /// The job completed successfully and should be removed from the queue.
+    /// 工作成功完成, 应该从队列中删除 。
     /// </summary>
     Completed = 0,
 
     /// <summary>
-    /// The job execution remains in progress and should be polled again after the specified delay.
+    /// 工作执行仍在进行中,应在规定的延误之后再次调查。
     /// </summary>
     InProgress = 1,
 
     /// <summary>
-    /// The job failed and should be processed through the retry policy.
+    /// 工作失败,应通过再试政策处理。
     /// </summary>
     Failed = 2,
 
     /// <summary>
-    /// The current execution completed successfully and requested durable rescheduling with its failure-attempt count reset.
+    /// 目前的执行顺利完成,要求进行长期重新安排,重设未成功尝试的计数。
     /// </summary>
     /// <remarks>
-    /// This value is serialized as 3. During rolling upgrades, emit it after all durable job executors support it.
-    /// Newer executors treat unknown disposition values as failures and route them through the configured retry policy.
+    /// 这个数值被序列为 3。 在滚动升级期间, 所有持久工作执行人支持后, 退出它 。
+    /// 新执行程序将未知处置值视为故障,通过配置的重试政策引导它们。
     /// </remarks>
     RescheduleRequested = 3
 }

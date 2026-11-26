@@ -7,10 +7,10 @@ namespace Orleans
     internal static class SetExtensions
     {
         /// <summary>
-        /// Shortcut to create HashSet from IEnumerable that supports type inference
-        /// (which the standard constructor does not)
+        /// 从 IE 创建 HashSet 的快捷键
+        /// (标准建筑师没有)
         /// </summary>
-        /// <typeparam name="T">The element type</typeparam>
+        /// <typeparam name="T">元素类型</typeparam>
         public static HashSet<T>? ToSet<T>(this IEnumerable<T>? values)
         {
             if (values == null)
@@ -19,27 +19,27 @@ namespace Orleans
         }
 
         /// <summary>
-        /// ToString every element of an enumeration
+        /// ToString 查点的每个要素
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
-        /// <param name="toString">Can supply null to use Object.ToString()</param>
-        /// <param name="separator">Before each element, or space if unspecified</param>
+        /// <param name="toString">无法供应无效,无法使用 Object.ToString()</param>
+        /// <param name="separator">在每个元素之前,或空格(如果未指定)</param>
         /// <returns></returns>
         public static string ToStrings<T>(this IEnumerable<T>? list, Func<T, object?>? toString = null, string separator = " ")
         {
             if (list == null) return "";
             toString = toString ?? (x => x);
-            //Func<T, string> toStringPrinter = (x => 
+            //菲科<T, string> toStringPrinter = (x => 
             //    {
-            //        object obj = toString(x);
+            //        obj 对象 = toString(x);
             //        if(obj != null)
             //            return obj.ToString();
-            //        else
+            //        其它
             //            return "null";
             //    });
             //return Utils.IEnumerableToString(list, toStringPrinter, separator);
-            //Do NOT use Aggregate for string concatenation. It is very inefficient, will reallocate and copy lots of intermediate strings.
+            //不要使用总和来连接字符串。 它效率非常低, 将会重新分配并复制中间字符串的众多内容 。
             //toString = toString ?? (x => x);
             return list.Aggregate("", (s, x) => s + separator + toString(x));
         }

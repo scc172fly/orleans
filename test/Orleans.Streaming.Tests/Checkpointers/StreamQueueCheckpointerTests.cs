@@ -4,14 +4,14 @@ using Xunit;
 namespace UnitTests.StreamingTests;
 
 /// <summary>
-/// Contract tests for <see cref="IStreamQueueCheckpointer{TCheckpoint}"/> implementations
-/// which use string checkpoints.
+/// <see cref="IStreamQueueCheckpointer{TCheckpoint}"/> 履行合同测试
+/// 使用字符串检查点。
 /// </summary>
 /// <remarks>
-/// Implementations only need to connect their persistence dependency to
-/// <see cref="ControllableCheckpointStore"/> and declare their offset regression policy.
-/// The store provides deterministic write blocking and failure injection, so these tests
-/// do not depend on delays or external storage.
+/// 执行需要将其持续依赖性与
+/// <see cref="ControllableCheckpointStore"/> 并宣布其抵消回归政策。
+/// 商店提供决定性的写作阻断和失败注射,所以这些测试
+/// 并不取决于延误或外部储存。
 /// </remarks>
 public abstract class StreamQueueCheckpointerTests
 {

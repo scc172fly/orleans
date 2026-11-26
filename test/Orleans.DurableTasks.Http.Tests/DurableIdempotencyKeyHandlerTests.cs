@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Orleans.Durable.Http.Tests;
 
-/// <summary>Exercises the idempotency keys which durable tasks send with their HTTP requests.</summary>
+/// <summary>行使耐久任务随其HTTP请求而发送的应急关键。</summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -31,7 +31,7 @@ public sealed class DurableIdempotencyKeyHandlerTests(DurableHttpFixture fixture
             DurableIdempotencyKeyHandler.CreateKey(fixture.ServiceId, grain.GetGrainId(), TaskId.Parse(result[0]), incarnation),
             result[1]);
 
-        // A GET is idempotent by definition, so it carries no key.
+        // 获得权是一无所有,从定义上来说, 所以它没有钥匙。
         Assert.Equal(string.Empty, result[2]);
     }
 
@@ -49,8 +49,8 @@ public sealed class DurableIdempotencyKeyHandlerTests(DurableHttpFixture fixture
         Assert.NotEqual(key, DurableIdempotencyKeyHandler.CreateKey("service", GrainId.Create("durable-http-test", "b"), task, run));
         Assert.NotEqual(key, DurableIdempotencyKeyHandler.CreateKey("service", grain, TaskId.CreateRoot("root").Child("send$2"), run));
 
-        // A later run of the same task identifier, after its deletion, sends new keys, so a server which still holds
-        // the earlier run's keys doesn't answer it with the earlier run's responses.
+        // 后一个任务标识符的运行, 在删除后, 发送新的密钥, 所以仍然保留服务器
+        // 前面的钥匙没有用前面的钥匙回答
         Assert.NotEqual(key, DurableIdempotencyKeyHandler.CreateKey("service", grain, task, Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7")));
         Assert.Equal("_eSTqCNKOAQzDa_FdwbVJxUFr7n9QDTjB2QwCu-2cIU", key);
     }
@@ -135,7 +135,7 @@ public sealed class DurableIdempotencyKeyHandlerTests(DurableHttpFixture fixture
         Assert.NotNull(error);
     }
 
-    /// <summary>Represents code which runs outside every grain, which requests outside durable tasks never consult.</summary>
+    /// <summary>代表每个 grain要求进行长期任务之外的工作,但从不进行协商。</summary>
     private sealed class NoGrainContextAccessor : IGrainContextAccessor
     {
         public IGrainContext GrainContext => throw new InvalidOperationException("Requests outside durable tasks don't identify a grain.");

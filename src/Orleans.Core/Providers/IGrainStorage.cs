@@ -8,137 +8,137 @@ using System.Net;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Interface to be implemented for a storage able to read and write Orleans grain state data.
+    /// 用于存储能够读写 Orleans grain 状态数据的存储,将实施接口。
     /// </summary>
     public interface IGrainStorage
     {
-        /// <summary>Read data function for this storage instance.</summary>
-        /// <param name="stateName">Name of the state for this grain</param>
-        /// <param name="grainId">Grain ID</param>
-        /// <param name="grainState">State data object to be populated for this grain.</param>
-        /// <typeparam name="T">The grain state type.</typeparam>
-        /// <returns>Completion promise for the Read operation on the specified grain.</returns>
+        /// <summary>读取此存储实例的数据函数。</summary>
+        /// <param name="stateName">国家名称 grain</param>
+        /// <param name="grainId">Grain ID 身份</param>
+        /// <param name="grainState">为此要输入的州数据对象 grain.</param>
+        /// <typeparam name="T"> grain 状态类型。</typeparam>
+        /// <returns>特定 grain的读化操作的完成承诺。</returns>
         Task ReadStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState);
 
-        /// <summary>Read data function for this storage instance.</summary>
-        /// <param name="stateName">Name of the state for this grain.</param>
+        /// <summary>读取此存储实例的数据函数。</summary>
+        /// <param name="stateName">国家名称 grain.</param>
         /// <param name="grainId">Grain ID.</param>
-        /// <param name="grainState">State data object to be populated for this grain.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <typeparam name="T">The grain state type.</typeparam>
-        /// <returns>Completion promise for the Read operation on the specified grain.</returns>
-        /// <remarks>The default implementation delegates to the overload without a cancellation token.</remarks>
+        /// <param name="grainState">为此要输入的州数据对象 grain.</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <typeparam name="T"> grain 状态类型。</typeparam>
+        /// <returns>特定 grain的读化操作的完成承诺。</returns>
+        /// <remarks>默认执行代表将无取消符号的超载代表。</remarks>
         Task ReadStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState, CancellationToken cancellationToken)
             => ReadStateAsync(stateName, grainId, grainState);
 
-        /// <summary>Write data function for this storage instance.</summary>
-        /// <param name="stateName">Name of the state for this grain</param>
-        /// <param name="grainId">Grain ID</param>
-        /// <param name="grainState">State data object to be written for this grain.</param>
-        /// <typeparam name="T">The grain state type.</typeparam>
-        /// <returns>Completion promise for the Write operation on the specified grain.</returns>
+        /// <summary>为此存储实例写入数据函数 。</summary>
+        /// <param name="stateName">国家名称 grain</param>
+        /// <param name="grainId">Grain ID 身份</param>
+        /// <param name="grainState">为此要写入的状态数据对象 grain.</param>
+        /// <typeparam name="T"> grain 状态类型。</typeparam>
+        /// <returns>指定写入操作的完成承诺 grain.</returns>
         Task WriteStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState);
 
-        /// <summary>Write data function for this storage instance.</summary>
-        /// <param name="stateName">Name of the state for this grain.</param>
+        /// <summary>为此存储实例写入数据函数 。</summary>
+        /// <param name="stateName">国家名称 grain.</param>
         /// <param name="grainId">Grain ID.</param>
-        /// <param name="grainState">State data object to be written for this grain.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <typeparam name="T">The grain state type.</typeparam>
-        /// <returns>Completion promise for the Write operation on the specified grain.</returns>
-        /// <remarks>The default implementation delegates to the overload without a cancellation token.</remarks>
+        /// <param name="grainState">为此要写入的状态数据对象 grain.</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <typeparam name="T"> grain 状态类型。</typeparam>
+        /// <returns>指定写入操作的完成承诺 grain.</returns>
+        /// <remarks>默认执行代表将无取消符号的超载代表。</remarks>
         Task WriteStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState, CancellationToken cancellationToken)
             => WriteStateAsync(stateName, grainId, grainState);
 
-        /// <summary>Delete / Clear data function for this storage instance.</summary>
-        /// <param name="stateName">Name of the state for this grain</param>
-        /// <param name="grainId">Grain ID</param>
-        /// <param name="grainState">Copy of last-known state data object for this grain.</param>
-        /// <typeparam name="T">The grain state type.</typeparam>
-        /// <returns>Completion promise for the Delete operation on the specified grain.</returns>
+        /// <summary>删除/清除此存储实例的数据函数。</summary>
+        /// <param name="stateName">国家名称 grain</param>
+        /// <param name="grainId">Grain ID 身份</param>
+        /// <param name="grainState">本 grain的最后已知的状态数据对象副本。</param>
+        /// <typeparam name="T"> grain 状态类型。</typeparam>
+        /// <returns>特定 grain的删除操作的完成承诺。</returns>
         Task ClearStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState);
 
-        /// <summary>Delete / Clear data function for this storage instance.</summary>
-        /// <param name="stateName">Name of the state for this grain.</param>
+        /// <summary>删除/清除此存储实例的数据函数。</summary>
+        /// <param name="stateName">国家名称 grain.</param>
         /// <param name="grainId">Grain ID.</param>
-        /// <param name="grainState">Copy of last-known state data object for this grain.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <typeparam name="T">The grain state type.</typeparam>
-        /// <returns>Completion promise for the Delete operation on the specified grain.</returns>
-        /// <remarks>The default implementation delegates to the overload without a cancellation token.</remarks>
+        /// <param name="grainState">本 grain的最后已知的状态数据对象副本。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <typeparam name="T"> grain 状态类型。</typeparam>
+        /// <returns>特定 grain的删除操作的完成承诺。</returns>
+        /// <remarks>默认执行代表将无取消符号的超载代表。</remarks>
         Task ClearStateAsync<T>(string stateName, GrainId grainId, IGrainState<T> grainState, CancellationToken cancellationToken)
             => ClearStateAsync(stateName, grainId, grainState);
     }
 
     /// <summary>
-    /// Interface to be optionally implemented by storage to return richer exception details.
-    /// TODO: Remove this interface.  Move to decorator pattern for monitoring purposes. - jbragg
+    /// 可通过存储来选择接口, 以返回更丰富的例外细节 。
+    /// TODO: 删除此接口。 移动到装饰模式, 用于监测 。 - jbragg
     /// </summary>
     public interface IRestExceptionDecoder
     {
         /// <summary>
-        /// Decode details of the exception.
+        /// 破解例外的细节
         /// </summary>
-        /// <param name="exception">Exception to decode.</param>
-        /// <param name="httpStatusCode">HTTP status code for the error.</param>
-        /// <param name="restStatus">REST status for the error.</param>
-        /// <param name="getExtendedErrors">Whether or not to extract REST error code.</param>
-        /// <returns>A value indicating whether the exception was decoded.</returns>
+        /// <param name="exception">解码例外。</param>
+        /// <param name="httpStatusCode">HTTP 状态代码错误。</param>
+        /// <param name="restStatus">错误的 REST 状态。</param>
+        /// <param name="getExtendedErrors">是否要提取 REST 错误代码。</param>
+        /// <returns>表示该例外是否被解码的价值。</returns>
         bool DecodeException(Exception exception, out HttpStatusCode httpStatusCode, out string restStatus, bool getExtendedErrors = false);
     }
 
     /// <summary>
-    /// Exception thrown when a storage detects an Etag inconsistency when attempting to perform a WriteStateAsync operation.
+    /// 当储存在试图进行 WriteStateAsync 操作时发现气管不一致时,就投放例外。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class InconsistentStateException : OrleansException
     {
         /// <summary>
-        /// Gets or sets a value indicating whether this exception occurred on the current activation.
+        /// 获取或设定值,以显示当前激活时是否出现此例外。
         /// </summary>
         [Id(0)]
         internal bool IsSourceActivation { get; set; } = true;
 
-        /// <summary>Gets the Etag value currently held in persistent storage.</summary>
+        /// <summary>获取当前持续存储中的静态值 。</summary>
         [Id(1)]
         public string? StoredEtag { get; private set; }
 
-        /// <summary>Gets the Etag value currently help in memory, and attempting to be updated.</summary>
+        /// <summary>获取当前在记忆中帮助存储的静态值,并试图更新。</summary>
         [Id(2)]
         public string? CurrentEtag { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InconsistentStateException"/> class.
+        /// 初始化 <see cref="InconsistentStateException"/> 类的新实例。
         /// </summary>
         public InconsistentStateException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InconsistentStateException"/> class.
+        /// 初始化 <see cref="InconsistentStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public InconsistentStateException(string message)
             : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InconsistentStateException"/> class.
+        /// 初始化 <see cref="InconsistentStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         public InconsistentStateException(string message, Exception? innerException)
             : base(message, innerException!)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InconsistentStateException"/> class.
+        /// 初始化 <see cref="InconsistentStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         protected InconsistentStateException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -149,12 +149,12 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InconsistentStateException"/> class.
+        /// 初始化 <see cref="InconsistentStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="errorMsg">The error message.</param>
-        /// <param name="storedEtag">The stored ETag.</param>
-        /// <param name="currentEtag">The current ETag.</param>
-        /// <param name="storageException">The inner exception.</param>
+        /// <param name="errorMsg">错误消息。</param>
+        /// <param name="storedEtag">储存的ETag。</param>
+        /// <param name="currentEtag">当前的ETag。</param>
+        /// <param name="storageException">内在的例外</param>
         public InconsistentStateException(
           string errorMsg,
           string? storedEtag,
@@ -166,11 +166,11 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InconsistentStateException"/> class.
+        /// 初始化 <see cref="InconsistentStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="errorMsg">The error message.</param>
-        /// <param name="storedEtag">The stored ETag.</param>
-        /// <param name="currentEtag">The current ETag.</param>
+        /// <param name="errorMsg">错误消息。</param>
+        /// <param name="storedEtag">储存的ETag。</param>
+        /// <param name="currentEtag">当前的ETag。</param>
         public InconsistentStateException(
           string errorMsg,
           string? storedEtag,
@@ -180,11 +180,11 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InconsistentStateException"/> class.
+        /// 初始化 <see cref="InconsistentStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="storedEtag">The stored ETag.</param>
-        /// <param name="currentEtag">The current ETag.</param>
-        /// <param name="storageException">The storage exception.</param>
+        /// <param name="storedEtag">储存的ETag。</param>
+        /// <param name="currentEtag">当前的ETag。</param>
+        /// <param name="storageException">存储例外</param>
         public InconsistentStateException(string? storedEtag, string? currentEtag, Exception storageException)
             : this((storageException ?? throw new ArgumentNullException(nameof(storageException))).Message, storedEtag, currentEtag, storageException)
         {

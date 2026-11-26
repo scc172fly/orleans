@@ -17,9 +17,9 @@ public sealed class BookingGrain : DurableGrain
         }
         catch (OperationCanceledException)
         {
-            // Also runs when the host cancels the attempt, for example when the activation stops: the handler compensates
-            // for a booking which nobody canceled, and its status change commits while the next attempt confirms the
-            // booking.
+            // 当主机取消尝试时运行运行,例如当激活停止时: 处理人补偿
+            // 订票,没有人取消, 并且它的地位改变承诺 而下一次尝试确认
+            // 订票。
             _status.Value = OrderStatus.Cancelled;
             return new OrderResult(OrderStatus.Cancelled, DurableTask.Current.TaskCancellationReason);
         }
@@ -39,8 +39,8 @@ public sealed class BookingGrain : DurableGrain
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // Runs for task cancellation only. When the host cancels the attempt, the exception ends it, and the next
-            // attempt replays the task.
+            // 仅运行任务取消。当主机取消尝试时,例外将结束,而下一个
+            // 尝试重放任务。
             await Release(room).WithId("release").Shielded();
             _status.Value = OrderStatus.Cancelled;
             return new OrderResult(OrderStatus.Cancelled, DurableTask.Current.TaskCancellationReason);
@@ -60,7 +60,7 @@ public sealed class BookingGrain : DurableGrain
         }
         catch (OperationCanceledException)
         {
-            // Rethrows after compensating, so the task ends canceled, and a canceled attempt ends too.
+            // 补偿后重播,任务结束就取消,取消尝试也终止。
             await Release(room).WithId("release").Shielded();
             throw;
         }

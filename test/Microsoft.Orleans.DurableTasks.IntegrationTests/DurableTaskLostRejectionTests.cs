@@ -12,13 +12,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Verifies that a start which its target rejects stays rejected when the starter's outbox doesn't receive the
-/// rejection and delivers the invocation again.
+/// 证明一个启动点 目标拒绝的开始 仍然被拒绝 当启动器发件箱没有收到
+/// 故你应当再次拒绝祈祷。
 /// </summary>
 /// <remarks>
-/// A <see cref="LostRejectionFilter"/> on the starter's delivery calls lets the target reject the invocation, then fails the
-/// starter's call, as a call whose answer is lost does, so the starter's outbox retries the delivery on the Durable Jobs
-/// clock, which the test advances. The retry reaches the target's inbox, which already processed the invocation.
+/// 启动器发件电话上的一个 <see cref="LostRejectionFilter"/> ,让目标拒绝援引,然后失败
+/// 启动者会把“持久工作”的交付重新发送。
+/// 时间, 测试的推进。 重试到达目标的收件箱, 它已经处理过请求 。
 /// </remarks>
 public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
 {
@@ -52,8 +52,8 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
         var workflow = await starter.StartAsync(target.GetPrimaryKey(), TakenRootId).WithId("workflow").ScheduleAsync(cancellationToken);
         var outcome = workflow.GetResponseAsync(cancellationToken);
 
-        // The target rejects the conflicting start, but the starter doesn't receive the rejection, so its outbox
-        // reschedules the invocation.
+        // 目标拒绝冲突开始 但启动者不接受拒绝 所以它发件箱
+        // 重新安排援引时间。
         var lost = await _deliveries.Lost.WaitAsync(Timeout, cancellationToken);
         Assert.Equal(DurableTaskRejectionCodes.Conflict, lost.Code);
         var retry = (MessagingEvents.OutboxRetryScheduled)(await events.WaitForEventAsync(
@@ -64,7 +64,7 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
         Assert.Equal(target.GetGrainId(), retry.ReceiverId);
         Assert.False(outcome.IsCompleted);
 
-        // The target answers the redelivered invocation with its original rejection.
+        // 目标以其最初的拒绝来回答重新交付的援引。
         _fixture.JobClock.Advance(RetryDelay * 2);
         var retired = (MessagingEvents.OutboxMessageRetired)(await events.WaitForEventAsync(
             nameof(MessagingEvents.OutboxMessageRetired),
@@ -76,7 +76,7 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
         var rejected = Assert.IsType<OutboxMessageRetirement.Rejected>(retired.Retirement.Value);
         Assert.Equal(DurableTaskRejectionCodes.Conflict, rejected.Code);
         Assert.Equal(lost.Reason, rejected.Reason);
-        // Each answer is a copy of the target's rejection, and union cases compare by reference, so compare contents.
+        // 每个答案都是目标拒绝的复印件, 工会案例通过参考比较, 从而比较内容。
         Assert.Equal([(lost.Reason, lost.Code), (lost.Reason, lost.Code)], _deliveries.Answers.Select(answer => (answer.Reason, answer.Code)));
 
         var response = await outcome.WaitAsync(Timeout, cancellationToken);
@@ -85,18 +85,18 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Fails the starter's call after the target's first rejection, as a call whose answer is lost does, and records
-    /// every rejection which the target answers.
+    /// 目标第一次拒绝后启动器失灵, 以失败的响应为例, 记录失败
+    /// 每一个拒绝,目标回答。
     /// </summary>
     private sealed class LostRejectionFilter : IOutgoingGrainCallFilter
     {
         private readonly TaskCompletionSource<DeliveryResult.DeadLettered> _lost = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly List<DeliveryResult.DeadLettered> _answers = [];
 
-        /// <summary>Gets the rejection whose answer the filter hid from the starter.</summary>
+        /// <summary>获取拒绝, 其答案是过滤器从启动器中隐藏的 。</summary>
         public Task<DeliveryResult.DeadLettered> Lost => _lost.Task;
 
-        /// <summary>Gets the rejections which the target answered, whether or not the starter received them.</summary>
+        /// <summary>获得目标回答的拒绝,无论启动者是否收到。</summary>
         public IReadOnlyList<DeliveryResult.DeadLettered> Answers
         {
             get
@@ -121,14 +121,14 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
     }
 }
 
-/// <summary>Runs lost rejection coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行丢失的拒绝覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskLostRejectionTests() : DurableTaskLostRejectionTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs lost rejection coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行以 Orleans 二进制日记格式存储的任务状态的已丢失拒绝覆盖。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -144,7 +144,7 @@ public interface ILostRejectionTargetGrain : IGrainWithGuidKey
 {
     DurableTask<int> EchoAsync(int value);
 
-    /// <summary>Echoes through another method, so its task conflicts with an echo under the same root ID.</summary>
+    /// <summary>回声通过另一种方法,因此任务与同一根ID下的回声相冲突。</summary>
     DurableTask<int> EchoAgainAsync(int value);
 }
 

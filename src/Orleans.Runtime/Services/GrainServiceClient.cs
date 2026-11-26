@@ -7,7 +7,7 @@ using Orleans.Services;
 namespace Orleans.Runtime.Services
 {
     /// <summary>
-    /// Proxies requests to the appropriate GrainService based on the appropriate Ring partitioning strategy.
+    /// 代理人根据适当的环形分割战略向适当的 GrainService 提出要求。
     /// </summary>
     /// <typeparam name="TGrainService"></typeparam>
     public abstract class GrainServiceClient<TGrainService> : IGrainServiceClient<TGrainService> where TGrainService : IGrainService
@@ -17,27 +17,27 @@ namespace Orleans.Runtime.Services
         private readonly GrainType grainType;
 
         /// <summary>
-        /// Currently we only support a single GrainService per Silo, when multiple are supported we will request the number of GrainServices to partition per silo here.
+        /// 目前我们只支持一个 GrainService 百分比/ 百 Silo,当多个数得到支持时,我们将要求 GrainServices 分区对齐 silo 这里
         /// </summary>
-        /// <param name="serviceProvider">The service provider.</param>
+        /// <param name="serviceProvider">服务供应商。</param>
         protected GrainServiceClient(IServiceProvider serviceProvider)
         {
             grainFactory = serviceProvider.GetRequiredService<IInternalGrainFactory>();
             ringProvider = serviceProvider.GetRequiredService<IConsistentRingProvider>();
 
-            // GrainInterfaceMap only holds IGrain types, not ISystemTarget types, so resolved via Orleans.CodeGeneration.
-            // Resolve this before merge.
+            // GrainInterfaceMap 仅持有IGRAIN类型,而不是 ISystemTarget 类型,通过 Orleans.CodeGeneration解决。
+            // 合并前先解决此项 。
             var grainTypeCode = GrainInterfaceUtils.GetGrainClassTypeCode(typeof(TGrainService));
             grainType = SystemTargetGrainId.CreateGrainServiceGrainType(grainTypeCode, null);
         }
 
         /// <summary>
-        /// Gets a reference to the the currently executing grain.
+        /// 获取当前执行的引用 grain。
         /// </summary>
         protected GrainReference CurrentGrainReference => RuntimeContext.Current?.GrainReference!;
 
         /// <summary>
-        /// Get a reference to the <see cref="GrainService"/> responsible for actioning the request based on the <paramref name="callingGrainId"/>.
+        /// 获取引用 <see cref="GrainService"/> 负责根据请求采取行动的 <paramref name="callingGrainId"/>.
         /// </summary>
         protected TGrainService GetGrainService(GrainId callingGrainId)
         {
@@ -45,7 +45,7 @@ namespace Orleans.Runtime.Services
         }
 
         /// <summary>
-        /// Get a reference to the <see cref="GrainService"/> responsible for actioning the request based on the <paramref name="key"/>.
+        /// 获取引用 <see cref="GrainService"/> 负责根据请求采取行动的 <paramref name="key"/>.
         /// </summary>
         protected TGrainService GetGrainService(uint key)
         {
@@ -53,7 +53,7 @@ namespace Orleans.Runtime.Services
         }
 
         /// <summary>
-        /// Get a reference to the <see cref="GrainService"/> responsible for actioning the request based on the <paramref name="destination"/>.
+        /// 获取引用 <see cref="GrainService"/> 负责根据请求采取行动的 <paramref name="destination"/>.
         /// </summary>
         protected TGrainService GetGrainService(SiloAddress destination)
         {

@@ -19,7 +19,7 @@ namespace TestGrainInterfaces
     }
 
     /// <summary>
-    /// Orleans grain communication interface IPerson
+    /// Orleans grain 通信界面IPERson
     /// </summary>
     public interface IPersonGrain : Orleans.IGrainWithGuidKey
     {
@@ -28,7 +28,7 @@ namespace TestGrainInterfaces
 
         Task<PersonAttributes> GetTentativePersonalAttributes();
 
-        // Tests
+        // 测试
 
         Task RunTentativeConfirmedStateTest();
     }

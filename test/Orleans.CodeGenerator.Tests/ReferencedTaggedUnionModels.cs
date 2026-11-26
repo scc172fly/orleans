@@ -2,7 +2,7 @@ using Orleans;
 
 namespace Orleans.CodeGenerator.Tests.ReferencedTaggedUnions
 {
-    // The SDK compiles these producer models; generator tests consume their metadata using the Roslyn version referenced by each test target.
+    // SDK汇编了这些生产者模型;发电机测试消耗其元数据,使用每个试验目标引用的Roslyn版本。
     [GenerateSerializer]
     public union ReferencedShallowUnion(int, string);
 

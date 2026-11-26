@@ -1,80 +1,90 @@
 ---
-title: Orleans configuration guide
-description: Configure Orleans silos, clients, providers, and endpoints.
+title: "Orleans 配置指南"
+description: "配置 Orleans silos、客户端、提供者和终点。"
 ms.date: 08/18/2026
 ms.topic: overview
 ---
 
-# Orleans configuration guide
+<a id="orleans-configuration-guide"></a>
 
-Orleans uses the [.NET Generic Host](https://learn.microsoft.com/dotnet/core/extensions/generic-host), [dependency injection](https://learn.microsoft.com/dotnet/core/extensions/dependency-injection), and the [.NET options pattern](https://learn.microsoft.com/dotnet/core/extensions/options). Start with one of these hosting models:
+# Orleans 配置指南
 
-| Model | Use it when | Entry point |
+Orleans 使用 [.NET 通用主机](https://learn.microsoft.com/dotnet/core/extensions/generic-host)、 [补充性注射](https://learn.microsoft.com/dotnet/core/extensions/dependency-injection)和 [.NET 选项模式](https://learn.microsoft.com/dotnet/core/extensions/options)。
+
+| 型 型 | 使用它当 | 切入点 |
 |---|---|---|
-| Silo with co-hosted client | The process hosts grains and also calls grains. This is the default for most services. | `builder.UseOrleans(...)` |
-| External client | A separate process, such as a web frontend, calls a remote Orleans cluster but doesn't host grains. | `builder.UseOrleansClient(...)` |
-| Aspire-orchestrated application | Aspire creates backing resources and injects Orleans configuration and service references. | `builder.AddOrleans(...)` in the AppHost, then parameterless `UseOrleans()` or `UseOrleansClient()` |
+| Silo 与共同托管客户端的客户端 | 进程主机 grains , 并同时调用 grains。 对于大多数服务来说, 这是默认值 。 | `builder.UseOrleans(...)` |
+| 外部客户 | 单独的进程,如网络前端,呼叫远程 Orleans 集,但不主机 grains。 | `builder.UseOrleansClient(...)` |
+| 精密刻写应用程序 | 提醒创建支持资源, 输入 Orleans 配置和服务引用 。 | `builder.AddOrleans(...)` 中在 AppHost,然后无参数 `UseOrleans()` 或 `UseOrleansClient()` |
 
-For a first local process, see [Local development configuration](local-development-configuration.md). For production, configure silos and external clients with the same cluster identity and clustering provider:
+第一个本地流程见 [地方发展配置](local-development-configuration.md)。生产时,配置 silos 和具有相同集群特性和集群提供商的外部客户:
 
-- [Server configuration](server-configuration.md)
-- [Client configuration](client-configuration.md)
-- [Typical configurations](typical-configurations.md)
-- [Orleans and Aspire integration](../aspire-integration.md)
+- [服务器配置](server-configuration.md)
+- [客户配置](client-configuration.md)
+- [典型配置](typical-configurations.md)
+- [Orleans 和指定集成](../aspire-integration.md)
 
-## Programmatic configuration
+<a id="programmatic-configuration"></a>
 
-Create the [.NET Generic Host](https://learn.microsoft.com/dotnet/core/extensions/generic-host) with <xref:Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder*>, call <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*> to add a silo, then build and run the host:
+## 方案配置
+
+创建 [.NET 通用主机](https://learn.microsoft.com/dotnet/core/extensions/generic-host) , 并使用 <xref:Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder*>, 调用 <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*> 添加一个 silo, 然后构建和运行主机 :
 
 :::code language="csharp" source="../snippets/hosting/HostingExamples.cs" id="run_silo":::
 
-Starting the host starts the silo and its co-hosted <xref:Orleans.IClusterClient>. The client is available through dependency injection, and stopping the host coordinates a [graceful Orleans shutdown](shutting-down-orleans.md).
+启动主机开始 silo 并联合主持 <xref:Orleans.IClusterClient>。客户可以通过依赖注射方式获得,并停止主机坐标为 [优美 Orleans 关闭](shutting-down-orleans.md)。
 
-Configure the silo through the <xref:Orleans.Hosting.ISiloBuilder> passed to `UseOrleans`. External client processes use <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*> and configure the <xref:Orleans.Hosting.IClientBuilder> passed to it. Provider extension methods validate configuration when the host starts. Programmatic configuration supports credentials supplied as SDK objects such as <xref:Azure.Core.TokenCredential>, computed configuration, and compile-time API discovery.
+配置 silo 贯穿于 <xref:Orleans.Hosting.ISiloBuilder> 传递到 `UseOrleans`外部客户流程的使用 <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*> 和配置 <xref:Orleans.Hosting.IClientBuilder> 提供方扩展方法在主机启动时验证配置。程序设置支持以SDK 对象等提供的证书 <xref:Azure.Core.TokenCredential>、计算配置和编译时间 API 发现
 
-See [Server configuration](server-configuration.md) and [Client configuration](client-configuration.md) for compiled examples.
+汇编实例见 [服务器配置](server-configuration.md) 和 [客户配置](client-configuration.md) 。
 
-## Declarative configuration
+<a id="declarative-configuration"></a>
 
-Orleans automatically binds the `Orleans` configuration section when <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*> or <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*> is called. The following sections are recognized:
+## 声明配置
 
-| Path | Applies to | Purpose |
+Orleans 自动绑定 `Orleans` 当 <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*> 或 <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*> 即需说明。以下各节被确认:
+
+| 路径路径路径 | 应用 | 目的目的宗旨 |
 |---|---|---|
-| `Orleans` | Silo and client | <xref:Orleans.Configuration.ClusterOptions>, including <xref:Orleans.Configuration.ClusterOptions.ServiceId> and <xref:Orleans.Configuration.ClusterOptions.ClusterId> |
-| `Orleans:Name` | Silo | Silo name |
-| `Orleans:Messaging` | Silo and client | <xref:Orleans.Configuration.SiloMessagingOptions> or <xref:Orleans.Configuration.ClientMessagingOptions> |
-| `Orleans:Gateway` | Client | Gateway refresh and connection behavior |
-| `Orleans:Endpoints` | Silo | Advertised and listening endpoints |
-| `Orleans:Clustering` | Silo and client | One clustering provider |
-| `Orleans:Reminders` | Silo | One reminder provider |
-| `Orleans:Journaling:{name}` | Silo | Named journal storage providers; `Default` configures grain journaling |
-| `Orleans:BroadcastChannel:{name}` | Silo and client | Named broadcast-channel providers |
-| `Orleans:Streaming:{name}` | Silo and client | Named stream providers |
-| `Orleans:GrainStorage:{name}` | Silo | Named grain storage providers |
-| `Orleans:GrainDirectory:{name}` | Silo | Named grain directory providers |
+| `Orleans` | Silo 和客户 | <xref:Orleans.Configuration.ClusterOptions>,包括 <xref:Orleans.Configuration.ClusterOptions.ServiceId> 和 <xref:Orleans.Configuration.ClusterOptions.ClusterId> |
+| `Orleans:Name` | Silo | Silo 名称 |
+| `Orleans:Messaging` | Silo 和客户 | <xref:Orleans.Configuration.SiloMessagingOptions> 或 <xref:Orleans.Configuration.ClientMessagingOptions> |
+| `Orleans:Gateway` | 客户客户 | 端口刷新和连接行为 |
+| `Orleans:Endpoints` | Silo | 广告和收听端点 |
+| `Orleans:Clustering` | Silo 和客户 | 单一集群提供商 |
+| `Orleans:Reminders` | Silo | 一家提醒通知提供机构 |
+| `Orleans:Journaling:{name}` | Silo | 命名日记存储提供者; `Default` 配置 grain 日记 |
+| `Orleans:BroadcastChannel:{name}` | Silo 和客户 | 命名广播频道供应商 |
+| `Orleans:Streaming:{name}` | Silo 和客户 | 命名流源源代码提供者 |
+| `Orleans:GrainStorage:{name}` | Silo | 命名存储供应商 grain |
+| `Orleans:GrainDirectory:{name}` | Silo | 命名 grain 目录提供者 |
 
-A provider section selects a registered provider with `ProviderType`. Install the provider's NuGet package so its configuration builder is discoverable. See [Server configuration](server-configuration.md#clustering-provider) for the provider catalog and [Typical configurations](typical-configurations.md) for deployment-oriented examples.
+提供方区域选择 `ProviderType`注册的供应商。安装提供者的 NuGet 软件包,这样可以发现其配置构建器。请参见提供方目录中的 [服务器配置](server-configuration.md#clustering-provider) 和部署导向示例中的 [典型配置](typical-configurations.md) 。
 
-Environment variables use double underscores, for example `Orleans__ClusterId` and `Orleans__Endpoints__SiloPort`.
+环境变量使用双下划线,例如 `Orleans__ClusterId` 和 `Orleans__Endpoints__SiloPort`。
 
 > [!NOTE]
-> Declarative provider names come from the installed provider assemblies. If Orleans reports an unknown `ProviderType`, verify that the corresponding package is referenced and use the provider name documented by that package.
+> 声明提供方的名称来自安装的供应商组件。如果 Orleans 报告未知 `ProviderType`,应核实相应的软件包被引用,并使用该软件包所记录的供应商名称。
 
-## Configuration precedence
+<a id="configuration-precedence"></a>
 
-The Generic Host combines [.NET configuration providers](https://learn.microsoft.com/dotnet/core/extensions/configuration-providers) in its normal order. Programmatic options configuration also participates in the options pipeline, so avoid configuring the same value in multiple places unless the override is intentional. Keep service and cluster identity stable and inject environment-specific endpoints, credentials, and provider connection details at deployment time.
+## 组合位数
 
-## Production checklist
+通用主机按其正常顺序组合 [.NET 配置供应商](https://learn.microsoft.com/dotnet/core/extensions/configuration-providers) 。程序选项配置也参与选项管道,以避免在多个地方配置相同价值,除非超值是故意的。在部署时保持服务及集成特性稳定并输入特定环境端点、证书和供应商连接细节。
 
-- Use a durable, shared clustering provider; don't use development or static clustering for a production cluster.
-- Give every silo and client the same <xref:Orleans.Configuration.ClusterOptions.ServiceId>, <xref:Orleans.Configuration.ClusterOptions.ClusterId>, and clustering provider settings.
-- Advertise addresses reachable by other silos and clients, especially behind NAT, containers, or load balancers.
-- Use durable reminder and grain storage providers when the application depends on those features.
-- Review [Orleans security responsibilities and trust boundaries](../../security/index.md).
-- Configure [server garbage collection](configuring-garbage-collection.md).
-- Allow the Generic Host to perform [graceful shutdown](shutting-down-orleans.md).
-- Validate provider connectivity and credentials before rollout.
+<a id="production-checklist"></a>
 
-For option types and API entry points, see [Core configuration options](list-of-options-classes.md) and <xref:Orleans.Configuration>.
+## 生产清单
 
-For task-oriented configuration recipes, see the [Orleans how-to guide index](../../how-to/index.md). For the exact signatures and defaults of configuration APIs, use the [C# API reference](https://dotnet.github.io/orleans/docs/api/csharp/).
+- 使用耐久的、共享的集群提供商;不为生产集群使用开发或静态集群。
+- 给每个 silo 和客户以相同的 <xref:Orleans.Configuration.ClusterOptions.ServiceId>、 <xref:Orleans.Configuration.ClusterOptions.ClusterId>和组群提供者设置。
+- 广告地址可供其他 silos 和客户(特别是NAT、集装箱或负载平衡器后面的用户)获取。
+- 在应用取决于这些特性时,使用耐久提醒和 grain 存储提供者。
+- 审评 [Orleans 安全责任和信任边界](../../security/index.md)。
+- 配置 [服务器垃圾收集](configuring-garbage-collection.md)。
+- 允许通用主机执行 [宽限期关闭](shutting-down-orleans.md)。
+- 在推出之前验证供应商的连通性和证书。
+
+选项类型和 API 入境点见 [核心配置备选方案](list-of-options-classes.md) 和 <xref:Orleans.Configuration>。
+
+任务导向配置配方见 [Orleans 如何指导索引](../../how-to/index.md)。配置 API 的确切签名和默认值请使用 [C# API 参考](https://dotnet.github.io/orleans/docs/api/csharp/)。

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Class used by the IAsyncBatchObservable extension methods to allow observation via delegate.
+    /// IAsyncBatchObservable 扩展方法用于通过代表进行观察的类别。
     /// </summary>
-    /// <typeparam name="T">The type of object produced by the observable.</typeparam>
+    /// <typeparam name="T">可见观测到的物体类型。</typeparam>
     internal class GenericAsyncBatchObserver<T> : IAsyncBatchObserver<T>
     {
         private readonly Func<IList<SequentialItem<T>>, Task> onNextAsync;

@@ -5,8 +5,8 @@ using Orleans.CodeGenerator.Model;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Extracts <see cref="Model.SerializableTypeModel"/> and other incremental pipeline models
-/// from Roslyn symbols, producing value-type representations suitable for pipeline caching.
+/// 提取 <see cref="Model.SerializableTypeModel"/> 和其他增量管道模式
+/// 产生适合管道缓存的价值型代表
 /// </summary>
 internal static class ModelExtractor
 {

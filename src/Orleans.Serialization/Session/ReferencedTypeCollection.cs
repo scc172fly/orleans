@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace Orleans.Serialization.Session
 {
     /// <summary>
-    /// Collection of referenced <see cref="Type"/> instances.
+    /// 引用的 <see cref="Type"/> 实例集。
     /// </summary>
     public sealed class ReferencedTypeCollection
     {
@@ -16,10 +16,10 @@ namespace Orleans.Serialization.Session
         private uint _currentReferenceId;
 
         /// <summary>
-        /// Gets the type with the specified reference id.
+        /// 获取指定引用代号的类型。
         /// </summary>
-        /// <param name="reference">The reference id.</param>
-        /// <returns>The referenced type.</returns>
+        /// <param name="reference">参考代号。</param>
+        /// <returns>引用类型。</returns>
         public Type? GetReferencedType(uint reference)
         {
             if (!_referencedTypes.TryGetValue(reference, out var type))
@@ -30,28 +30,28 @@ namespace Orleans.Serialization.Session
         private static void ThrowUnknownReferencedType(uint id) => throw new UnknownReferencedTypeException(id);
 
         /// <summary>
-        /// Gets the type with the specified reference id.
+        /// 获取指定引用代号的类型。
         /// </summary>
-        /// <param name="reference">The reference id.</param>
-        /// <param name="type">The referenced type.</param>
-        /// <returns><see langword="true" /> if the referenced type was found, <see langword="false" /> otherwise.</returns>
+        /// <param name="reference">参考代号。</param>
+        /// <param name="type">引用类型。</param>
+        /// <returns><see langword="true" /> 如果找到参考类型,则以其他方式 <see langword="false" /> 。</returns>
         public bool TryGetReferencedType(uint reference, out Type? type) => _referencedTypes.TryGetValue(reference, out type);
 
         /// <summary>
-        /// Records a type with the specified identifier.
+        /// 记录带有指定标识符的类型。
         /// </summary>
         public void RecordReferencedType(Type? type) => _referencedTypes.Add(++_currentReferenceId, type);
 
         /// <summary>
-        /// Gets the identifier for the specified type.
+        /// 获取指定类型的身份识别符。
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <param name="reference">The reference.</param>
-        /// <returns><see langword="true" /> if the type has been previoulsy referenced, <see langword="false" /> otherwise.</returns>
+        /// <param name="type">类型。</param>
+        /// <param name="reference">参考。</param>
+        /// <returns><see langword="true" /> 如果该类型被指为先天性, <see langword="false" /> 否则。</returns>
         public bool TryGetTypeReference(Type type, out uint reference) => _referencedTypeToIdMap.TryGetValue(type, out reference);
 
         /// <summary>
-        /// Gets or adds the identifier for the specified type.
+        /// 获取或添加指定类型的标识符。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetOrAddTypeReference(Type type)
@@ -76,7 +76,7 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// Resets this instance.
+        /// 重设此实例 。
         /// </summary>
         public void Reset()
         {

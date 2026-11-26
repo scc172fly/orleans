@@ -15,8 +15,8 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
     {
         private static readonly TimeSpan RefreshInterval = TimeSpan.FromMilliseconds(200);
 
-        protected IClusterClient Client => this.cluster.Client!; // Upgrade test clusters deploy the client.
-        protected IManagementGrain ManagementGrain => this.cluster.Client!.GetGrain<IManagementGrain>(0); // Upgrade test clusters deploy the client.
+        protected IClusterClient Client => this.cluster.Client!; // 升级测试组群部署客户。
+        protected IManagementGrain ManagementGrain => this.cluster.Client!.GetGrain<IManagementGrain>(0); // 升级测试组群部署客户。
 #if DEBUG
         private const string BuildConfiguration = "Debug";
 #else
@@ -92,14 +92,14 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
 
             await StartSiloV1();
 
-            // Only V1 exist for now
+            // 目前只有V1存在
             for (var i = 0; i < numberOfGrains; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
                 Assert.Equal(1, await grain.GetVersion());
             }
 
-            // Start a new silo with V2
+            // 以 V2 开始新的 silo
             var siloV2 = await StartSiloV2();
 
             for (var i = 0; i < numberOfGrains; i++)
@@ -114,10 +114,10 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
                 Assert.Equal(step2Version, await grain.GetVersion());
             }
 
-            // Stop the V2 silo
+            // 停止 V2 silo
             await StopSilo(siloV2);
 
-            // Now all activation should be V1
+            // 现在所有激活应该是V1
             for (var i = 0; i < numberOfGrains * 3; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
@@ -129,13 +129,13 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
         {
             await StartSiloV1();
 
-            // Only V1 exist for now
+            // 目前只有V1存在
             var grain0 = Client.GetGrain<IVersionUpgradeTestGrain>(0);
             Assert.Equal(1, await grain0.GetVersion());
 
             await StartSiloV2();
 
-            // New activation should be V2
+            // 新的激活应该是V2
             var grain1 = Client.GetGrain<IVersionUpgradeTestGrain>(1);
             Assert.Equal(2, await grain1.GetVersion());
             Assert.Equal(1, await grain0.GetVersion());
@@ -148,20 +148,20 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
         {
             await StartSiloV1();
 
-            // Only V1 exist for now
+            // 目前只有V1存在
             var grain0 = Client.GetGrain<IVersionUpgradeTestGrain>(0);
             Assert.Equal(1, await grain0.GetVersion());
 
-            // Start a new silo with V2
+            // 以 V2 开始新的 silo
             await StartSiloV2();
 
-            // New activation should be V2
+            // 新的激活应该是V2
             var grain1 = Client.GetGrain<IVersionUpgradeTestGrain>(1);
             Assert.Equal(2, await grain1.GetVersion());
 
             var waitingTask = grain0.LongRunningTask(TimeSpan.FromSeconds(5));
             var callBeforeUpgrade = grain0.GetVersion();
-            await Task.Delay(100); // Make sure requests are not sent out of order
+            await Task.Delay(100); // 确保请求不会错乱发送
             var callProvokingUpgrade = grain1.ProxyGetVersion(grain0);
 
             await waitingTask;
@@ -188,7 +188,7 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
             SiloHandle silo;
             if (this.siloIdx == 0)
             {
-                // Setup configuration
+                // 设置配置配置
                 this.builder = new TestClusterBuilder(1);
                 builder.CreateSiloAsync = StandaloneSiloHandle.Create;
                 TestDefaultConfiguration.ConfigureTestCluster(this.builder);
@@ -212,7 +212,7 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
                 var testClusterOptions = new TestClusterOptions();
                 configBuilder.Build().Bind(testClusterOptions);
 
-                // Override the root directory.
+                // 覆盖根目录 。
                 var sources = new IConfigurationSource[]
                 {
                     new MemoryConfigurationSource
@@ -224,7 +224,7 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
                     }
                 };
 
-                // Allocate against the current listener set so the client cannot consume a future gateway port as an ephemeral endpoint.
+                // 在当前听众集上分配,使客户无法将未来网关端口作为短时端点。
                 silo = await TestCluster.StartSiloAsync(cluster, siloIdx, testClusterOptions, sources, startSiloOnNewPort: true);
             }
 

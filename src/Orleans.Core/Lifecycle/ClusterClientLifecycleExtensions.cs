@@ -2,16 +2,16 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Extensions for <see cref="ILifecycleParticipant{TLifecycleObservable}"/>.
+    /// <see cref="ILifecycleParticipant{TLifecycleObservable}"/>的扩展期。
     /// </summary>
     public static class LifecycleParticipantExtensions
     {
         /// <summary>
-        /// Conforms components written to participate with any <see cref="ILifecycleObservable"/> to take part in specific lifecycles.
+        /// 符合要求与任何 <see cref="ILifecycleObservable"/> 一起参与特定生命周期的成份。
         /// </summary>
-        /// <typeparam name="TLifecycle">The target lifecycle observer type.</typeparam>
-        /// <param name="participant">The lifecycle participant.</param>
-        /// <returns>An adapter wrapped around <paramref name="participant"/> which implements <see cref="ILifecycleParticipant{TLifecycle}"/>.</returns>
+        /// <typeparam name="TLifecycle">目标生命周期观察类型。</typeparam>
+        /// <param name="participant">生命周期参与者。</param>
+        /// <returns>环绕 <paramref name="participant"/> 的适配器,该适配器可以执行 <see cref="ILifecycleParticipant{TLifecycle}"/>。</returns>
         public static ILifecycleParticipant<TLifecycle> ParticipateIn<TLifecycle>(this ILifecycleParticipant<ILifecycleObservable> participant)
             where TLifecycle : ILifecycleObservable
         {
@@ -19,7 +19,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Adapts one lifecycle participant to a lifecycle participant of another observer type.
+        /// 使一个生命周期参与者适应另一个观察类型生命周期参与者。
         /// </summary>
         /// <typeparam name="TLifecycle"></typeparam>
         private class Bridge<TLifecycle> : ILifecycleParticipant<TLifecycle>

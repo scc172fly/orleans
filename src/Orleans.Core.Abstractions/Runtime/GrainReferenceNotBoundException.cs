@@ -4,35 +4,35 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Indicates that a <see cref="GrainReference"/> was not bound to the runtime before being used.
+    /// 表示 <see cref="GrainReference"/> 在使用前未受运行时间约束。
     /// </summary>
     [Serializable, GenerateSerializer]
     public sealed class GrainReferenceNotBoundException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainReferenceNotBoundException"/> class.
+        /// 初始化 <see cref="GrainReferenceNotBoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="grainReference">The unbound grain reference.</param>
+        /// <param name="grainReference">无约束的 grain 参考。</param>
         internal GrainReferenceNotBoundException(GrainReference grainReference) : base(CreateMessage(grainReference)) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainReferenceNotBoundException"/> class.
+        /// 初始化 <see cref="GrainReferenceNotBoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         internal GrainReferenceNotBoundException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainReferenceNotBoundException"/> class.
+        /// 初始化 <see cref="GrainReferenceNotBoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         internal GrainReferenceNotBoundException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainReferenceNotBoundException"/> class.
+        /// 初始化 <see cref="GrainReferenceNotBoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         private GrainReferenceNotBoundException(SerializationInfo info, StreamingContext context)
             : base(info, context)

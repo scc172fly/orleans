@@ -13,12 +13,12 @@ using ReminderEvents = Orleans.Reminders.Diagnostics.ReminderEvents;
 namespace Orleans.Testing.Reminders;
 
 /// <summary>
-/// A reminder-test helper which subscribes to Orleans reminder diagnostic events and provides
-/// deterministic wait helpers for reminder activity.
+/// 订阅 Orleans 提醒诊断事件并提供
+/// 催复活动的主要服务员。
 /// </summary>
 /// <remarks>
-/// Uses <c>System.Reactive</c> operators with <c>Replay()</c> so that <c>WaitFor*</c> methods
-/// match against both past and future events with zero-latency, event-driven waiting.
+/// 用途 <c>System.Reactive</c> 操作操作符 <c>Replay()</c> ,这样, <c>WaitFor*</c> 方法
+/// 与过去和今后的事件相匹配,且无拖延、事件驱动的等待。
 /// </remarks>
 public sealed class ReminderDiagnosticObserver : IDisposable
 {
@@ -41,7 +41,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     private readonly List<ScheduleChangeCountWaiter> _scheduleChangeCountWaiters = [];
 
     /// <summary>
-    /// Creates a new instance of the observer and starts listening for reminder diagnostic events.
+    /// 创建了观察员的新实例,并开始收听提醒诊断事件。
     /// </summary>
     public static ReminderDiagnosticObserver Create(TestCluster cluster) => new(DiagnosticObserverSiloScope.For(cluster));
 
@@ -56,7 +56,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     public static ReminderDiagnosticObserver CreateForAllSilos() => new(DiagnosticObserverSiloScope.All);
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderDiagnosticObserver"/> class.
+    /// 初始化 <see cref="ReminderDiagnosticObserver"/> 类的新实例。
     /// </summary>
     private ReminderDiagnosticObserver(DiagnosticObserverSiloScope scope)
     {
@@ -161,7 +161,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a reminder tick to complete on a specific grain.
+    /// 等待提醒选中完成特定 grain。
     /// </summary>
     public Task<ReminderEvents.TickCompleted> WaitForReminderTickAsync(GrainId grainId, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -172,7 +172,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a specific number of reminder ticks to complete on a grain.
+    /// 等待一个 grain上特定数量的提醒提示秒完成。
     /// </summary>
     public Task WaitForTickCountAsync(GrainId grainId, int expectedCount, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -181,7 +181,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for additional reminder ticks after the current observed count.
+    /// 等待在当前观察计数后再进行提醒 。
     /// </summary>
     public Task WaitForAdditionalTickCountAsync(GrainId grainId, int additionalCount, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -197,7 +197,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits until a condition associated with reminder ticks becomes true, re-evaluating after each matching tick.
+    /// 等待与提醒勾相关的条件成为真实, 在每个匹配勾后重新评价 。
     /// </summary>
     public async Task WaitForTickConditionAsync(GrainId grainId, Func<CancellationToken, Task<bool>> condition, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -218,7 +218,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a reminder to be registered.
+    /// 等待提醒登记。
     /// </summary>
     public Task<ReminderEvents.Registered> WaitForReminderRegisteredAsync(GrainId grainId, string reminderName, CancellationToken cancellationToken)
     {
@@ -229,7 +229,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a reminder service to complete startup.
+    /// 等待提醒服务完成启动 。
     /// </summary>
     public Task<ReminderEvents.ReminderServiceStarted> WaitForReminderServiceStartedAsync(CancellationToken cancellationToken, SiloAddress? siloAddress = null)
     {
@@ -240,7 +240,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a reminder to be unregistered.
+    /// 等待提醒通知被登记。
     /// </summary>
     public Task<ReminderEvents.Unregistered> WaitForReminderUnregisteredAsync(GrainId grainId, string reminderName, CancellationToken cancellationToken)
     {
@@ -251,7 +251,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Gets the count of completed reminder ticks for a specific grain.
+    /// 获得特定 grain的已完成提醒的计数 。
     /// </summary>
     public int GetTickCount(GrainId grainId, string? reminderName = null)
     {
@@ -261,7 +261,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
         }
     }
 
-    /// <summary>Gets the number of local reminder instances started for a reminder.</summary>
+    /// <summary>获取本地提醒事件数,以开始提醒。</summary>
     public int GetLocalStartCount(GrainId grainId, string reminderName)
     {
         lock (_lock)
@@ -270,7 +270,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
         }
     }
 
-    /// <summary>Gets the number of local reminder instances stopped for a reminder.</summary>
+    /// <summary>获取本地提醒事件数量停止以获取提醒 。</summary>
     public int GetLocalStopCount(GrainId grainId, string reminderName)
     {
         lock (_lock)
@@ -279,7 +279,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
         }
     }
 
-    /// <summary>Gets the number of local schedule changes for a reminder.</summary>
+    /// <summary>获取提醒的本地时间排更改次数。</summary>
     public int GetScheduleChangeCount(GrainId grainId, string reminderName)
     {
         lock (_lock)
@@ -288,7 +288,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
         }
     }
 
-    /// <summary>Waits for the requested number of local schedule changes for a reminder.</summary>
+    /// <summary>等待要求的本地时间排变化次数以提醒。</summary>
     public Task WaitForScheduleChangeCountAsync(
         GrainId grainId,
         string reminderName,
@@ -319,7 +319,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Gets the count of active local reminder owners for a specific reminder.
+    /// 获取活动本地提醒所有人对特定提醒的数 。
     /// </summary>
     public int GetActiveReminderCount(GrainId grainId, string reminderName)
     {
@@ -332,7 +332,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Gets the silos which currently host local owners for a reminder.
+    /// 获取当前主机为本地所有者的 silos 以提醒 。
     /// </summary>
     public SiloAddress[] GetActiveReminderSilos(GrainId grainId, string reminderName)
     {
@@ -347,7 +347,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Gets one silo address per active local reminder instance, preserving duplicate instances on the same silo.
+    /// 每个活动本地提醒实例获取一个 silo 地址, 在同一 silo上保留重复事件。
     /// </summary>
     public SiloAddress[] GetActiveReminderOwnerSilos(
         GrainId grainId,
@@ -370,7 +370,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a specific number of active local reminder owners for a reminder.
+    /// 等待特定数量的当地活动提醒所有人来提醒 。
     /// </summary>
     public Task WaitForActiveReminderCountAsync(GrainId grainId, int expectedCount, CancellationToken cancellationToken, string reminderName)
     {
@@ -380,7 +380,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a specific number of active local reminder instances on <paramref name="activeSilos"/>.
+    /// 等待 <paramref name="activeSilos"/>上特定数量的当地活动提醒事件。
     /// </summary>
     public Task WaitForActiveReminderCountAsync(
         GrainId grainId,
@@ -401,7 +401,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits until all active local owners have armed the next tick wait for a reminder.
+    /// 等待所有活动本地所有人武装下个选中, 等待提醒 。
     /// </summary>
     public Task WaitForLocalReminderScheduleAsync(GrainId grainId, string reminderName, CancellationToken cancellationToken)
     {
@@ -410,7 +410,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits until there are no active local reminder owners for a reminder.
+    /// 等待直到没有活动本地提醒所有人来提醒提醒为止 。
     /// </summary>
     public Task WaitForReminderQuiescenceAsync(GrainId grainId, string reminderName, CancellationToken cancellationToken)
     {
@@ -419,7 +419,7 @@ public sealed class ReminderDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits until there are no active local reminders on the specified silos.
+    /// 等待指定 silos上没有活动本地提醒 。
     /// </summary>
     public Task WaitForGlobalQuiescenceAsync(
         IReadOnlySet<SiloAddress> siloAddresses,
@@ -832,12 +832,12 @@ public sealed class ReminderDiagnosticObserver : IDisposable
 }
 
 /// <summary>
-/// Extension methods for working with grain references and reminder diagnostic observers.
+/// 与 grain 参考和提醒诊断观察员合作的推广方法。
 /// </summary>
 public static class ReminderDiagnosticExtensions
 {
     /// <summary>
-    /// Waits for a reminder tick on a grain.
+    /// 等待在 grain上提示的勾选。
     /// </summary>
     public static Task<ReminderEvents.TickCompleted> WaitForReminderTickAsync(this ReminderDiagnosticObserver observer, IAddressable grain, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -845,7 +845,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits for a specific number of reminder ticks on a grain.
+    /// 等待在 grain上特定数量的提醒 。
     /// </summary>
     public static Task WaitForTickCountAsync(this ReminderDiagnosticObserver observer, IAddressable grain, int expectedCount, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -853,7 +853,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits for additional reminder ticks on a grain after the current observed count.
+    /// 等待额外的提醒 grain 在当前观察数之后。
     /// </summary>
     public static Task WaitForAdditionalTickCountAsync(this ReminderDiagnosticObserver observer, IAddressable grain, int additionalCount, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -861,7 +861,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits for a specific number of active local reminder owners for a grain reminder.
+    /// 等待特定数量的本地活动提醒所有人发出 grain 提醒 。
     /// </summary>
     public static Task WaitForActiveReminderCountAsync(this ReminderDiagnosticObserver observer, IAddressable grain, int expectedCount, CancellationToken cancellationToken, string reminderName)
     {
@@ -869,7 +869,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits until all active local owners have armed the next tick wait for a grain reminder.
+    /// 等待所有活动本地所有人武装下个选中, 等待 grain 提醒 。
     /// </summary>
     public static Task WaitForLocalReminderScheduleAsync(this ReminderDiagnosticObserver observer, IAddressable grain, string reminderName, CancellationToken cancellationToken)
     {
@@ -877,7 +877,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits until a grain reminder has no active local reminder owners.
+    /// 等到 grain 提醒没有活动本地提醒所有人为止。
     /// </summary>
     public static Task WaitForReminderQuiescenceAsync(this ReminderDiagnosticObserver observer, IAddressable grain, string reminderName, CancellationToken cancellationToken)
     {
@@ -885,7 +885,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits until a condition associated with reminder ticks on a grain becomes true.
+    /// 等待与提醒有关的条件在 grain 上勾选成为真。
     /// </summary>
     public static Task WaitForTickConditionAsync(this ReminderDiagnosticObserver observer, IAddressable grain, Func<CancellationToken, Task<bool>> condition, CancellationToken cancellationToken, string? reminderName = null)
     {
@@ -893,7 +893,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits for a reminder to be registered on a grain.
+    /// 等待在 grain上登记提醒。
     /// </summary>
     public static Task<ReminderEvents.Registered> WaitForReminderRegisteredAsync(this ReminderDiagnosticObserver observer, IAddressable grain, string reminderName, CancellationToken cancellationToken)
     {
@@ -901,7 +901,7 @@ public static class ReminderDiagnosticExtensions
     }
 
     /// <summary>
-    /// Waits for a reminder to be unregistered on a grain.
+    /// 等待在 grain上登记提醒。
     /// </summary>
     public static Task<ReminderEvents.Unregistered> WaitForReminderUnregisteredAsync(this ReminderDiagnosticObserver observer, IAddressable grain, string reminderName, CancellationToken cancellationToken)
     {

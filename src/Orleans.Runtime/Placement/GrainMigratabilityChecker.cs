@@ -14,8 +14,8 @@ internal sealed class GrainMigratabilityChecker(
     IClusterManifestProvider clusterManifestProvider,
     [FromKeyedServices(TimeProviderNames.ActivationManagement)] TimeProvider timeProvider)
 {
-    // We override equality and hashcode as this type is used as the dictionary key,
-    // and record structs use default equality comparer, which for an enum is not that great for performance.
+    // 我们推翻平等和大麻法典,因为这种类型的文字典是用来作为字典的钥匙。
+    // 并使用默认等同比较器记录结构,对于一个极值来说,对性能而言,它并不那么好。
     private readonly record struct StatusKey(GrainType Type, ImmovableKind Kind) : IEquatable<StatusKey>
     {
         public bool Equals(StatusKey other) => Type == other.Type && Kind == other.Kind;
@@ -41,15 +41,15 @@ internal sealed class GrainMigratabilityChecker(
 
         bool IsMigratableRare(GrainType grainType, StatusKey statusKey)
         {
-            // _migratableStatuses holds statuses for each grain type if its migratable type or not, so we can make fast lookups.
-            // since we don't anticipate a huge number of grain *types*, i think its just fine to have this in place as fast-check.
+            // 偏差类型是否为偏移型号,则每个类型 grain 都持有身份,因此我们可以快速查看。
+            // 因为我们预计不会有大量的 grain *类型*,
             if (!_migratableStatuses.TryGetValue(statusKey, out var isMigratable))
             {
                 isMigratable = !(grainType.IsClient() || grainType.IsSystemTarget() || grainType.IsGrainService() || IsStatelessWorker(grainType) || IsImmovable(grainType));
                 _migratableStatuses.TryAdd(statusKey, isMigratable);
             }
 
-            // Regenerate the cache periodically.
+            // 定期重新恢复缓存。
             var currentTimestamp = _timeProvider.GetTimestamp();
             if (_timeProvider.GetElapsedTime(_lastRegeneratedCacheTimestamp, currentTimestamp) > TimeSpan.FromSeconds(5))
             {
@@ -67,27 +67,27 @@ internal sealed class GrainMigratabilityChecker(
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         bool IsImmovable(GrainType grainType)
         {
-            // The manifest describes a generic grain class by its unconstructed type, as GrainPropertiesResolver does.
+            // 清单按未构建类型描述通用 grain 类,如 GrainPropertiesResolver 一样。
             var lookupKey = GenericGrainType.TryParse(grainType, out var generic) ? generic.GetUnconstructedGrainType().GrainType : grainType;
             if (_localManifest.Grains.TryGetValue(lookupKey, out var props))
             {
-                // If there is no 'Immovable' property, it is not immovable.
+                // 如果没有“不动产”,它就不是不动产。
                 if (!props.Properties.TryGetValue(WellKnownGrainTypeProperties.Immovable, out var value))
                 {
                     return false;
                 }
 
-                // If the value fails to parse, assume it's immovable.
+                // 如果数值无法分析, 假设它是不动产。
                 if (!byte.TryParse(value, out var actualKindValue))
                 {
                     return true;
                 }
 
-                // It is immovable, but does the kind match with the parameter.
+                // 它是不动的, 但类型和参数匹配 。
                 return ((ImmovableKind)actualKindValue & expectedKind) == expectedKind;
             }
 
-            // Assume unknown grains are immovable.
+            // 未知 grains 为不动产。
             return true;
         }
     }

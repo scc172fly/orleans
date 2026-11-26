@@ -1,7 +1,7 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Interface for health check participants
+    /// 健康检查参与者的接口
     /// </summary>
     public interface IHealthCheckParticipant : IHealthCheckable
     {

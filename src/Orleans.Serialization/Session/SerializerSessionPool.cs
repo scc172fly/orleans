@@ -7,18 +7,18 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Serialization.Session
 {
     /// <summary>
-    /// Pool for <see cref="SerializerSession"/> objects.
+    /// <see cref="SerializerSession"/> 对象的集合。
     /// </summary>
     public sealed class SerializerSessionPool : IDisposable
     {
         private readonly ConcurrentObjectPool<SerializerSession, SerializerSessionPoolPolicy> _sessionPool;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerSessionPool"/> class.
+        /// 初始化 <see cref="SerializerSessionPool"/> 类的新实例。
         /// </summary>
-        /// <param name="typeCodec">The type codec.</param>
-        /// <param name="wellKnownTypes">The well known type collection.</param>
-        /// <param name="codecProvider">The codec provider.</param>
+        /// <param name="typeCodec">型号编码器。</param>
+        /// <param name="wellKnownTypes">众所周知的类型收藏。</param>
+        /// <param name="codecProvider">编码器提供者。</param>
         public SerializerSessionPool(TypeCodec typeCodec, WellKnownTypeCollection wellKnownTypes, CodecProvider codecProvider)
         {
             CodecProvider = codecProvider;
@@ -27,23 +27,23 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// Gets the codec provider.
+        /// 找到编码提供者
         /// </summary>
         public CodecProvider CodecProvider { get; }
 
         /// <summary>
-        /// Gets a serializer session from the pool.
+        /// 从池子里取出一个连环报道片
         /// </summary>
-        /// <returns>A serializer session.</returns>
+        /// <returns>序列器会话。</returns>
         public SerializerSession GetSession() => _sessionPool.Get();
 
         /// <inheritdoc/>
         public void Dispose() => _sessionPool.Dispose();
 
         /// <summary>
-        /// Returns a session to the pool.
+        /// 返回池内的一个会话。
         /// </summary>
-        /// <param name="session">The session.</param>
+        /// <param name="session">本届会议。</param>
         private void ReturnSession(SerializerSession session) => _sessionPool.Return(session);
 
         private readonly struct SerializerSessionPoolPolicy : IPooledObjectPolicy<SerializerSession>

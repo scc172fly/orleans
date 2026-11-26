@@ -3,11 +3,11 @@ using System.Buffers;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Represents the lexical write scope for one state journal entry.
+/// 代表一个国家日记条目的词汇写法范围。
 /// </summary>
 /// <remarks>
-/// Call <see cref="Commit"/> after successfully writing the entry payload. If the scope is
-/// disposed before it is committed, the pending entry is aborted.
+/// 成功写入条目有效载荷后呼叫 <see cref="Commit"/> 。如果范围是
+/// 执行前处理完,待处理的条目中止。
 /// </remarks>
 public ref struct JournalEntryScope : IDisposable
 {
@@ -23,15 +23,15 @@ public ref struct JournalEntryScope : IDisposable
     }
 
     /// <summary>
-    /// Gets the writer for this entry.
+    /// 将作者带入此条目 。
     /// </summary>
-    /// <remarks>The destination is borrowed from the owning <see cref="JournalBufferWriter"/>, which releases its buffers.</remarks>
+    /// <remarks>目的地是借自拥有的 <see cref="JournalBufferWriter"/>释放缓冲剂</remarks>
     public readonly IBufferWriter<byte> Writer => GetWriter();
 
     /// <summary>
-    /// Commits the pending entry, making it visible to storage.
+    /// 提交待处理条目,将其显示为存储。
     /// </summary>
-    /// <exception cref="InvalidOperationException">The entry has already completed.</exception>
+    /// <exception cref="InvalidOperationException">条目已完成。</exception>
     public void Commit()
     {
         if (_completed)
@@ -53,7 +53,7 @@ public ref struct JournalEntryScope : IDisposable
     }
 
     /// <summary>
-    /// Aborts the pending entry if it has not been committed.
+    /// 如果未执行,则中止待执行项。
     /// </summary>
     public void Dispose()
     {

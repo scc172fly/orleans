@@ -57,26 +57,26 @@ namespace UnitTests.Grains
         {
             logger.LogInformation("BecomeConsumer");
 
-            // new counter for this subscription
+            // 订阅此项的新柜台
             var count = new Counter();
             var error = new Counter();
 
-            // get stream
+            // 流到溪流
             IStreamProvider streamProvider = this.GetStreamProvider(providerToUse);
             var stream = streamProvider.GetStream<int>(streamNamespace, streamId);
 
             int countCapture = consumerCount;
             consumerCount++;
-            // subscribe
+            // 订阅
             StreamSubscriptionHandle<int> handle = await stream.SubscribeAsync(
                 (items) => OnNext(items, countCapture, count),
                 e => OnError(e, countCapture, error));
 
-            // track counter
+            // 轨道计数台
             consumedMessageCounts.Add(handle, Tuple.Create(count, error));
             NotifyObservers();
 
-            // return handle
+            // 返回处理
             return handle;
         }
 
@@ -86,7 +86,7 @@ namespace UnitTests.Grains
             if (handle == null)
                 throw new ArgumentNullException(nameof(handle));
 
-            // new counter for this subscription
+            // 订阅此项的新柜台
             Tuple<Counter, Counter>? counters;
             if (!consumedMessageCounts.TryGetValue(handle, out counters))
             {
@@ -95,16 +95,16 @@ namespace UnitTests.Grains
 
             int countCapture = consumerCount;
             consumerCount++;
-            // subscribe
+            // 订阅
             StreamSubscriptionHandle<int> newhandle = await handle.ResumeAsync(
                 (items) => OnNext(items, countCapture, counters.Item1),
                 e => OnError(e, countCapture, counters.Item2));
 
-            // track counter
+            // 轨道计数台
             consumedMessageCounts[newhandle] = counters;
             NotifyObservers();
 
-            // return handle
+            // 返回处理
             return newhandle;
 
         }
@@ -112,10 +112,10 @@ namespace UnitTests.Grains
         public async Task StopConsuming(StreamSubscriptionHandle<int> handle)
         {
             logger.LogInformation("StopConsuming");
-            // unsubscribe
+            // 取消订阅
             await handle.UnsubscribeAsync();
 
-            // stop tracking event count for stream
+            // 流的停止跟踪事件计数
             consumedMessageCounts.Remove(handle);
             countObservers.RemoveAll(observer => observer.HandleId == handle.HandleId);
         }
@@ -124,11 +124,11 @@ namespace UnitTests.Grains
         {
             logger.LogInformation("GetAllSubscriptionHandles");
 
-            // get stream
+            // 流到溪流
             IStreamProvider streamProvider = this.GetStreamProvider(providerToUse);
             var stream = streamProvider.GetStream<int>(streamNamespace, streamId);
 
-            // get all active subscription handles for this stream.
+            // 获取此流的所有活动订阅控点 。
             return stream.GetAllSubscriptionHandles();
         }
 

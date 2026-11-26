@@ -60,12 +60,12 @@ namespace Orleans.Runtime.MembershipService
             return result;
         }
 
-        // Only used with MembershipTableGrain to wait for primary to start.
+        // 仅在 MembershipTableGrain 中用于等待初级启动。
         private async Task WaitForTableGrainToInit(IMembershipTableSystemTarget membershipTableSystemTarget, CancellationToken cancellationToken)
         {
             var timespan = Debugger.IsAttached ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(5);
-            // This is a quick temporary solution to enable primary node to start fully before secondaries.
-            // Secondary silos waits untill GrainBasedMembershipTable is created.
+            // 这是一个快速的临时解决办法,使主节点能够在二元前完全启动。
+            // 二级 silos 等待到创建 GrainBasedMembershipTable 。
             for (int i = 0; i < 100; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -134,14 +134,14 @@ namespace Orleans.Runtime.MembershipService
 
         private MembershipVersion GetCurrentVersion()
         {
-            // Resolve after owner construction, and include versions learned through committed writes and gossip.
+            // 包括通过承诺书写和流言而学到的版本。
             var manager = this.membershipManager ??= this.serviceProvider.GetRequiredService<IMembershipManager>();
             return manager.CurrentSnapshot.Version;
         }
 
         private void ValidateVersion(MembershipVersion observedVersion, MembershipTableData table)
         {
-            // Compare with the version known before this read began so overlapping reads can finish out of order.
+            // 与本文开始之前的版本相比,
             if (table.Version.Version < observedVersion.Value)
             {
                 var reason = $"The development membership table version decreased from {observedVersion} to {table.Version.Version}. "
@@ -329,7 +329,7 @@ namespace Orleans.Runtime.MembershipService
 
         void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
         {
-            // Do nothing, just ensure that this instance is created so that it can register itself in the catalog.
+            // 什么都不做, 只要确保创建此实例, 这样它就可以在目录中注册 。
         }
 
         [LoggerMessage(

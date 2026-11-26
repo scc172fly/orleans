@@ -14,49 +14,49 @@ namespace Orleans.Durable.Journaling;
 
 internal sealed partial class AzureTableJournalStorage : IJournalStorage
 {
-    // Each journal is one table partition. The header row carries the recovery manifest and is the
-    // optimistic-concurrency fence: every mutation updates it under its ETag in the same entity
-    // group transaction as the data rows it publishes.
+    // 每个日记是一张表格分区。页眉行携带回收清单,即
+    // 乐观货币-经济货币围栏:每发生一次突变,都在同一实体内根据ETag进行更新
+    // 将交易按其所发布的数据行分组。
     internal const string HeaderRowKey = "$header";
 
-    // The header row uses this property to declare which journal format the data rows contain.
+    // 页眉行使用此属性来声明数据行中包含的日记格式。
     internal const string FormatPropertyName = "Format";
 
-    // The header row stores the canonical journal id so catalog listing is independent of partition-key mapping.
+    // 标题行存储的卡尼西亚日记id,所以目录列表与分区键映射无关。
     internal const string JournalIdPropertyName = "JournalId";
 
-    // The header row uses this property to point recovery at the current generation of data rows.
-    // Generations are random so rows orphaned by a failed replace can never collide with, or be
-    // mistaken for, rows of any later generation.
+    // 页眉行使用此属性来指向当前生成的数据行的恢复。
+    // 世代是随机的,所以被一个失败的替换者所遗孤的行 永远无法或不会相撞
+    // 错失的,各行各行。
     internal const string GenerationPropertyName = "Generation";
 
-    // The header row uses this property to record how many data rows the current generation contains.
+    // 页眉行使用此属性记录当前生成数据行的数。
     internal const string RowCountPropertyName = "RowCount";
 
-    // The header row uses this property to record how many journal bytes the current generation contains.
+    // 页眉行使用此属性记录当前版本包含多少日记字节 。
     internal const string LengthPropertyName = "Length";
 
-    // The header row tracks append activity separately from the current generation manifest so a large
-    // replacement snapshot does not immediately request another compaction.
+    // 标题行的音首轨附加活动,与当前一代分开显示
+    // 替换快照并不立即要求再次压缩。
     internal const string AppendRowCountPropertyName = "AppendRowCount";
     internal const string AppendLengthPropertyName = "AppendLength";
 
-    // The header row stores caller-owned metadata as a JSON object in this property so caller keys
-    // can never collide with provider-owned header properties.
+    // 头列行 存储器自调用器的元数据, 作为此属性中的 JSON 对象, 因而是调用器键
+    // 永远不能与供应商拥有的首页房产相撞。
     internal const string MetadataPropertyName = "Metadata";
 
-    // AppendAsync writes all data rows plus the header fence in a single entity group transaction,
-    // so the payload must stay well below Azure's 4 MiB transaction limit after Base64 encoding of
-    // binary properties.
+    // AppendAsync 写下所有数据行加上单一实体集团交易中页码围栏,
+    // 因此有效载荷必须远远低于 Azure4 MiB 交易限额,
+    // 二进制属性。
     internal const long MaxAppendBytes = 2L * 1024 * 1024;
 
-    // Azure Table binary properties hold at most 64 KiB each.
+    // Azure 表格二进制属性最多为64个 KiB 。
     private const int ChunkBytes = 64 * 1024;
 
-    // 15 chunks keep each data row below Azure's 1 MiB entity limit with headroom for keys and overhead.
+    // 15块将每个数据行保持在 Azure1 MiB 实体的限度以下,钥匙和间接费用为主机。
     private const int MaxChunksPerEntity = 15;
 
-    // Azure entity group transactions accept at most 100 entities.
+    // Azure 实体集团交易最多接受100个实体。
     private const int MaxEntitiesPerTransaction = 100;
 
     private static readonly string[] ChunkPropertyNames = CreateChunkPropertyNames();
@@ -66,7 +66,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
     private readonly JournalId _journalId;
     private readonly string _partitionKey;
     private TableClient? _tableClient;
-    // Null until read or creation, default(ETag) for an absent journal.
+    // 读取或创建前为 Null, 缺省日记账的默认值( ETag) 。
     private ETag? _headerETag;
     private HeaderProviderState _headerProviderState;
 
@@ -239,7 +239,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
     public async ValueTask AppendAsync(ReadOnlySequence<byte> value, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfZero(value.Length, nameof(value));
-        // Appends are written as one entity group transaction, so validate its limits before touching storage.
+        // 附录作为实体集团交易书写,因此在进入储存前确认其限制。
         ThrowIfBatchTooLarge(value.Length);
         var startTimestamp = Stopwatch.GetTimestamp();
         var succeeded = false;
@@ -263,8 +263,8 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
                     AppendLength = checked(expectedProviderState.AppendLength + value.Length),
                 };
 
-                // Guard the whole batch with the last observed header ETag so appends fail if the
-                // journal changed since this instance recovered it.
+                // 将整批的防守与最后观察到的头头ETag etag 保护好,所以如果附件
+                // 自此实例恢复以来日记已更改 。
                 var actions = new List<TableTransactionAction>(entities.Count + 1)
                 {
                     new(TableTransactionActionType.UpdateMerge, CreateHeaderCountsPatch(newProviderState), expectedETag),
@@ -280,7 +280,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
                     LogAppend(_shared.Logger, value.Length, entities.Count, Table.Name, _partitionKey);
 
-                    // Cache the post-append state so the next mutation is guarded by the new header ETag.
+                    // 缓存后附加状态, 下次突变由新的信头ETag 守护 。
                     SetHeaderFromResponse(result.Value[0], newProviderState);
                     succeeded = true;
                     return;
@@ -328,7 +328,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
             var expectedProviderState = _headerProviderState;
             if (!HeaderExists)
             {
-                // An instance which observed the journal absent deletes nothing, unless another writer has since created it.
+                // 观察日记时不删除任何内容, 除非其他作家创建了它。
                 if (await GetHeaderEntityAsync(cancellationToken).ConfigureAwait(false) is not null)
                 {
                     throw CreateInconsistentHeaderStateException(
@@ -340,7 +340,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
                 return;
             }
 
-            // Load the header so deletion is guarded by the manifest this instance holds.
+            // 装入页眉, 因此删除由本实例所持的表单加以保护 。
             var headerState = await TryLoadHeaderStateForMutationAsync(expectedETag, expectedProviderState, cancellationToken).ConfigureAwait(false);
             if (headerState is null)
             {
@@ -349,9 +349,9 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
                     expectedETag);
             }
 
-            // Capture the row keys before deleting the header so cleanup can never touch rows written
-            // by an instance which recreates the journal concurrently: recreated journals use fresh
-            // random generations, so their rows are never in this snapshot.
+            // 在删除页眉前抓取行键, 这样清理无法触动已写入的行
+            // 由同时重新创建日记的例子所产生:
+            // 他们的行从不出现在这张快照里
             var rowKeys = await TryCollectRowKeysAsync(CreateAllRowsFilter(), cancellationToken).ConfigureAwait(false);
 
             for (var attempt = 0; ; attempt++)
@@ -359,7 +359,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
                 var deleteState = headerState.Value;
                 try
                 {
-                    // Delete the header under its ETag before row cleanup so a racing journal update cannot lose data.
+                    // 在行清理前删除其 ETag 下页眉, 这样赛事日记更新不能丢失数据 。
                     await Table.DeleteEntityAsync(_partitionKey, HeaderRowKey, deleteState.ETag, cancellationToken).ConfigureAwait(false);
                     SetHeader(eTag: default, providerState: default);
                     break;
@@ -383,7 +383,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
                 }
             }
 
-            // Row cleanup happens after header deletion because without the header the rows are unreachable.
+            // 清除行后,删除页眉后会发生清理,因为没有页眉,行就无法到达。
             await TryDeleteRowsAsync(rowKeys, cancellationToken).ConfigureAwait(false);
             succeeded = true;
         }
@@ -406,7 +406,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
         try
         {
-            // Read the header first because it is the manifest for the generation that must be replayed.
+            // 首先读取页眉,因为这是必须重播的一代人的表单。
             var entity = await GetHeaderEntityAsync(cancellationToken).ConfigureAwait(false);
             if (entity is null)
             {
@@ -438,8 +438,8 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
             using var buffer = new ArcBufferWriter();
             if (headerState.ProviderState is { Generation: { Length: > 0 } generation, RowCount: > 0 and var expectedRowCount })
             {
-                // A single range query returns the current generation in sequence order. The upper bound
-                // comes from the header so rows appended concurrently by another instance are not read.
+                // 单个范围查询将当前生成的序列顺序返回。上界
+                // 由页眉中产生, 因此无法读取同时附在其它实例的行 。
                 var filter = TableClient.CreateQueryFilter(
                     $"PartitionKey eq {_partitionKey} and RowKey ge {FormatRowKey(generation, 0)} and RowKey le {FormatRowKey(generation, expectedRowCount - 1)}");
                 await foreach (var row in Table.QueryAsync<TableEntity>(filter, cancellationToken: cancellationToken).ConfigureAwait(false))
@@ -459,7 +459,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
             if (rowCount != headerState.ProviderState.RowCount || bytes != headerState.ProviderState.Length)
             {
-                // A concurrent replace can delete rows of the generation being read; the caller must recover.
+                // 同时替换可删除所读的一代行; 调用者必须恢复。
                 throw CreateInconsistentHeaderStateException(
                     "Azure Table journal changed while reading; recovery is required.",
                     headerState.ETag);
@@ -491,7 +491,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
         var succeeded = false;
         try
         {
-            // Compaction publishes through the header, so first recover or create the header whose ETag will be checked.
+            // 压缩通过信头发布, 所以首先恢复或创建信头, 其ETag将检查。
             await EnsureHeaderAsync(nameof(ReplaceAsync), cancellationToken).ConfigureAwait(false);
 
             var expectedETag = _headerETag!.Value;
@@ -506,8 +506,8 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
             var previousGeneration = _shared.Options.DeleteOldGenerations ? headerState.Value.ProviderState.Generation : null;
 
-            // The new generation is invisible to recovery until the header flip below publishes it, so its
-            // rows may span multiple transactions.
+            // 新一代的恢复是看不见的 直到头翻到下面,所以它
+            // 可能横跨多个交易的行。
             var newGeneration = Guid.NewGuid().ToString("N");
             var publicationAttempted = false;
             try
@@ -519,7 +519,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
                     var publishState = headerState.Value;
                     try
                     {
-                        // Flip the header under its ETag to publish the new generation only if the journal is unchanged.
+                        // 将头翻到其 Etag 下, 只有在日记未变时才能出版新一代。
                         publicationAttempted = true;
                         var response = await Table.UpdateEntityAsync(
                             CreateHeaderFlipPatch(newGeneration, rowCount, value.Length),
@@ -558,7 +558,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
             }
             catch
             {
-                // Once sent, a publication may still commit after the client fails. Keep its rows available.
+                // 一旦发送, 客户端失败后仍可发布出版物。 请保持行数可用 。
                 if (!publicationAttempted)
                 {
                     await TryDeleteUnpublishedGenerationAsync(newGeneration).ConfigureAwait(false);
@@ -569,7 +569,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
             if (previousGeneration is not null && !string.Equals(previousGeneration, newGeneration, StringComparison.Ordinal))
             {
-                // Keep the previous generation until the flip is published so recovery never points at missing rows.
+                // 保留上一代直到翻页公布, 所以恢复从不指向缺失的行。
                 var previousRowKeys = await TryCollectRowKeysAsync(CreateGenerationRangeFilter(previousGeneration), cancellationToken).ConfigureAwait(false);
                 await TryDeleteRowsAsync(previousRowKeys, cancellationToken).ConfigureAwait(false);
             }
@@ -589,7 +589,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
     private static void ThrowIfBatchTooLarge(long length)
     {
-        // Azure rejects oversize entity group transactions, so fail locally with the journal-specific guidance.
+        // Azure 拒绝实体集团超大交易,因此无法使用专有日记本的指导。
         if (length <= MaxAppendBytes)
         {
             return;
@@ -614,7 +614,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
         try
         {
-            // This instance observed the journal absent, so it creates the header only while the header is still absent.
+            // 此实例显示日记不存在, 所以它只在信头仍然不在时才创建信头 。
             var created = await CreateHeaderAsync(callerMetadata: null, cancellationToken).ConfigureAwait(false);
             SetHeader(created.ETag, created.ProviderState);
         }
@@ -658,7 +658,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
     private async ValueTask<HeaderState?> TryLoadHeaderStateAsync(CancellationToken cancellationToken)
     {
-        // Read only the header; no journal bytes are needed for the mutation state.
+        // 只读取页眉; 突变状态不需要日记字节 。
         var entity = await GetHeaderEntityAsync(cancellationToken).ConfigureAwait(false);
         return entity is null ? null : CreateHeaderState(entity);
     }
@@ -674,7 +674,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
             return null;
         }
 
-        // Accept a new ETag in place only when the change was metadata-only; content changes require recovery.
+        // 只有在仅使用元数据时才接受新的ETag;内容的改变需要恢复。
         if (headerState.Value.ETag != expectedETag && headerState.Value.ProviderState != expectedProviderState)
         {
             return null;
@@ -817,7 +817,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
     {
         try
         {
-            // Obsolete row cleanup is best-effort because the published header no longer references the rows.
+            // 过时的排清理工作是最佳努力,因为已公布的页眉不再引用行。
             var actions = new List<TableTransactionAction>(Math.Min(rowKeys.Count, MaxEntitiesPerTransaction));
             foreach (var rowKey in rowKeys)
             {
@@ -845,7 +845,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
     private string CreateGenerationRangeFilter(string generation)
     {
-        // Row keys are "{generation}-{sequence}", so the exclusive upper bound is the next character after '-'.
+        // 列键是“{serated}-{seques}”,所以排他性的上界是“ -”之后的下一个字符。
         var lowerBound = generation + "-";
         var upperBound = generation + ".";
         return TableClient.CreateQueryFilter($"PartitionKey eq {_partitionKey} and RowKey ge {lowerBound} and RowKey lt {upperBound}");
@@ -966,13 +966,13 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
 
     private void SetHeader(ETag eTag, HeaderProviderState providerState)
     {
-        // Keep the cached header mutation precondition and compaction counters in sync.
+        // 保持缓存头头突变前置和压缩计数器同步
         _headerETag = eTag;
         _headerProviderState = providerState;
     }
 
-    // Metadata operations never establish or move the content precondition: they refresh only the ETag of the header version
-    // this instance holds.
+    // 元数据操作从未建立或移动内容的先决条件:它们只更新页眉版本的ETag
+    // 本案属实。
     private void RefreshHeaderETag(ETag eTag, HeaderProviderState providerState)
     {
         if (HeaderExists && providerState == _headerProviderState)
@@ -984,7 +984,7 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
     private void SetHeaderFromResponse(Response response, HeaderProviderState providerState)
         => SetHeader(GetResponseETag(response), providerState);
 
-    // Azure Table returns the new ETag of every entity it writes.
+    // Azure 表格返回它所写的每个实体的新ETag。
     private static ETag GetResponseETag(Response response)
         => response.Headers.ETag ?? throw new InvalidOperationException("Azure Table did not return the ETag of the written journal header.");
 
@@ -1024,8 +1024,8 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
             throw new InvalidOperationException("Azure Table journal header count or length properties are invalid.");
         }
 
-        // Headers written by the original provider schema did not have separate compaction counters.
-        // Conservatively treat the current generation as uncompacted until the next replacement resets them.
+        // 原供应商Schema撰写的标头没有单独的压实计数柜台。
+        // 保守地对待当代人,将其视为未规范的,直到下一个替代者重新启用。
         var appendRowCount = entity.GetInt64(AppendRowCountPropertyName) ?? rowCount.Value;
         var appendLength = entity.GetInt64(AppendLengthPropertyName) ?? length.Value;
         if (appendRowCount < 0 || appendLength < 0)
@@ -1060,8 +1060,8 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
     private void ValidateHeaderJournalId(TableEntity entity)
     {
         var journalId = entity.GetString(JournalIdPropertyName);
-        // Legacy headers did not store the canonical journal id. They remain addressable through the
-        // configured partition mapping and are backfilled by the next append, replace, or metadata update.
+        // 遗留页头没有存储 Canonical日记id。 它们仍然可以通过
+        // 配置分区映射, 并被后一个附加件、 替换或元数据更新回填 。
         if (journalId is not null && !string.Equals(journalId, _journalId.Value, StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
@@ -1203,19 +1203,19 @@ internal sealed partial class AzureTableJournalStorage : IJournalStorage
                 || exception.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// Returns true when an Azure response indicates the journal header has been mutated since our
-    /// cached ETag was captured: HTTP 404 (header deleted), HTTP 412 (precondition failed / IfMatch
-    /// rejected), or HTTP 409 with <c>EntityAlreadyExists</c> (a competing writer already published
-    /// the data row this transaction tried to add). When this returns true, callers should attempt
-    /// <see cref="RetryAfterMetadataOnlyConflictAsync"/> to refresh the cached ETag in place when
-    /// the change was metadata-only, and otherwise propagate
-    /// <see cref="Orleans.Storage.InconsistentStateException"/> to trigger journaling-layer recovery.
-    /// Transient transport failures (HTTP 5xx, network errors, timeouts) are handled by the Azure
-    /// SDK's built-in retry policy and never reach this classifier.
+    /// 当 Azure 回复表示日记头自我们
+    /// 抓获缓存的 ETag : HTTP 404( 标题删除), HTTP 412( 先决条件失败 / IfMatch
+    /// ),或 HTTP 409 带有 <c>EntityAlreadyExists</c> (一个竞争性的写作器已经发布
+    /// 此交易试图添加的数据行。当返回为真时, 打电话者应该尝试
+    /// <see cref="RetryAfterMetadataOnlyConflictAsync"/> 以刷新当
+    /// 变化是只使用元数据,否则会传播
+    /// 触发日记层回收的<see cref="Orleans.Storage.InconsistentStateException"/>
+    /// 由 Azure处理中程运输故障(HTTP 5xxx、网络错误、超时)
+    /// SDK的内在再研究政策 永远不能到达这个分类器
     /// </summary>
     private static bool IsHeaderMutationConflict(RequestFailedException exception)
     {
-        // These failures mean our cached header view is stale or gone, so the caller must recover before retrying.
+        // 这些失败意味着我们缓存的头版视图已经过时或失效,所以呼叫者必须在重新尝试之前恢复。
         return exception.Status is 404 or 412
             || exception.Status == 409 && string.Equals(exception.ErrorCode, "EntityAlreadyExists", StringComparison.Ordinal);
     }

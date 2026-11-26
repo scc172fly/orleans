@@ -4,20 +4,20 @@ using System.Collections.Generic;
 namespace Orleans.Streams;
 
 /// <summary>
-/// Configures a <see cref="StreamQueueCheckpointer"/>.
+/// 配置 <see cref="StreamQueueCheckpointer"/>。
 /// </summary>
 public sealed class StreamQueueCheckpointerOptions
 {
     /// <summary>
-    /// Gets or sets the minimum interval between checkpoint writes.
+    /// 获取或设定检查站之间的最小间隔。
     /// </summary>
     public TimeSpan PersistInterval { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Gets or sets the comparer used to prevent a checkpoint from moving backwards.
+    /// 获取或设置用来防止检查站向后移动的比较器。
     /// </summary>
     /// <remarks>
-    /// When this property is <see langword="null"/>, checkpoints are assumed to arrive in increasing order.
+    /// 当该财产 <see langword="null"/>时,假定检查站会越来越频繁地抵达。
     /// </remarks>
     public IComparer<string>? CheckpointComparer { get; set; }
 }

@@ -139,7 +139,7 @@ internal static class InterfaceCollectionCodecHelpers
             || genericTypeDefinition == typeof(DictionaryInterfaceCodec<,>)
             || genericTypeDefinition == typeof(ReadOnlyDictionaryInterfaceCodec<,>))
         {
-            // Each recognized codec inherits a base whose first argument is its closed collection interface.
+            // 每个得到承认的编码器都继承一个基础,其第一个论点是它的封闭收集界面。
             interfaceType = type.BaseType!.GetGenericArguments()[0];
             return true;
         }

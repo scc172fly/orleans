@@ -4,32 +4,32 @@ using System.Collections.Generic;
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// Interface for diagnostics.
+    /// 诊断的接口。
     /// </summary>
     public interface ILogConsistencyDiagnostics
     {
-        /// <summary>Turns on the statistics collection for this log-consistent grain.</summary>
+        /// <summary>转而为这个对数一致的 grain收集统计数据。</summary>
         void EnableStatsCollection();
 
-        /// <summary>Turns off the statistics collection for this log-consistent grain.</summary>
+        /// <summary>关闭此对数一致的 grain的统计收集。</summary>
         void DisableStatsCollection();
 
-        /// <summary>Gets the collected statistics for this log-consistent grain.</summary>
+        /// <summary>获取为此日志一致 grain而收集的统计数据。</summary>
         LogConsistencyStatistics? GetStats();
 
     }
 
     /// <summary>
-    /// A collection of statistics for grains using log-consistency. See <see cref="LogConsistentGrain{T}"/>
+    /// 使用日志一致性的 grains 统计数据集。见 <see cref="LogConsistentGrain{T}"/>
     /// </summary>
     public class LogConsistencyStatistics
     {
         /// <summary>
-        /// A map from event names to event counts
+        /// 从事件名称到事件计数的地图
         /// </summary>
         public Dictionary<string, long> EventCounters = null!;
         /// <summary>
-        /// A list of all measured stabilization latencies
+        /// 一份所有已测量的稳定延缓时间列表
         /// </summary>
         public List<int> StabilizationLatenciesInMsecs = null!;
     }

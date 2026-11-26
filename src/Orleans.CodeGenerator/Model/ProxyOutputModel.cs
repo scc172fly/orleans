@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// Describes the proxy output for a single interface, including the invokable metadata names owned by that file.
+/// 描述单个界面的代理输出,包括该文档拥有的可引用元数据名称。
 /// </summary>
 internal sealed record class ProxyOutputModel(
     ProxyInterfaceModel ProxyInterface,

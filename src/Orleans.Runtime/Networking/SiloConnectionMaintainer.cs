@@ -54,7 +54,7 @@ namespace Orleans.Runtime.Messaging
         {
             try
             {
-                // Allow a short grace period to complete sending pending messages (eg, gossip responses)
+                // 允许短的宽限期完成发送待发信件(例如八卦回复)
                 await Task.Delay(TimeSpan.FromSeconds(10));
 
                 await this.connectionManager.CloseAsync(silo);

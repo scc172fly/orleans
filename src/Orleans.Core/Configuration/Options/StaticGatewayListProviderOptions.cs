@@ -5,15 +5,15 @@ using Orleans.Hosting;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for configuring a static list of gateways.
+    /// 配置网关静态列表的选项 。
     /// </summary>
     /// <remarks>>
-    /// See <see cref="ClientBuilderExtensions.UseStaticClustering(IClientBuilder, System.Net.IPEndPoint[])"/> for more information.
+    /// 更多信息见 <see cref="ClientBuilderExtensions.UseStaticClustering(IClientBuilder, System.Net.IPEndPoint[])"/> 。
     /// </remarks>
     public class StaticGatewayListProviderOptions
     {
         /// <summary>
-        /// Gets or sets the list of gateway addresses.
+        /// 获取或设置网关地址列表。
         /// </summary>
         public List<Uri> Gateways { get; set; } = new List<Uri>();
     }

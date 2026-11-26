@@ -471,9 +471,9 @@ public class InMemoryJobQueueTests
     [Fact]
     public async Task Enqueue_WithSameDueTimeAsDrainingBucket_DoesNotStrandJob()
     {
-        // Regression: Enqueueing a job with the same DueTime as a bucket currently being
-        // drained by the enumerator previously reused the dequeued bucket via _buckets,
-        // but that bucket was no longer in the priority queue, so the new job was stranded.
+        // 倒退:以与桶一样 DueTime 的工作进行工作
+        // 由先前通过 _bucket再利用已解结的桶子的量子排水器排水,
+        // 但那个桶已经不在排队的优先位置 所以新工作被搁置了
         var queue = new InMemoryJobQueue();
         var sharedDueTime = DateTimeOffset.UtcNow.AddMilliseconds(-100);
         var job1 = CreateJob("job1", sharedDueTime);
@@ -483,14 +483,14 @@ public class InMemoryJobQueueTests
 
         await using var enumerator = queue.GetAsyncEnumerator(CancellationToken.None);
 
-        // Drain the first job. After this returns, the enumerator is between yields with
-        // the bucket already dequeued from _queue.
+        // 排入第一个任务。 返回后, 数字器位于 和
+        // 该桶已从 _queue 出队。
         Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Equal("job1", enumerator.Current.Job.Name);
         queue.RemoveJob(enumerator.Current.Job.Id);
 
-        // Enqueue a second job at the same DueTime. With the bug, this would target the
-        // already-dequeued bucket and never become visible to the enumerator.
+        // 在同一 DueTime添加第二份工作。如果有错误,此目标将针对
+        // 已经脱下水桶,但从未为调查员所见。
         queue.Enqueue(job2, 0);
         queue.MarkAsComplete();
 
@@ -504,9 +504,9 @@ public class InMemoryJobQueueTests
     [Fact]
     public async Task Enqueue_AfterBucketProcessingCompletes_CreatesNewBucket()
     {
-        // After a bucket is fully drained and removed, a subsequent Enqueue at the same
-        // DueTime must create a fresh bucket and re-enter the priority queue so the new
-        // job is processed.
+        // 桶子全部排干和搬走后,再加一个同一种
+        // DueTime 必须创建一个新鲜桶子, 重新进入优先队列, 这样新的
+        // 工作处理完毕。
         var queue = new InMemoryJobQueue();
         var sharedDueTime = DateTimeOffset.UtcNow.AddMilliseconds(-100);
         var job1 = CreateJob("job1", sharedDueTime);
@@ -519,8 +519,8 @@ public class InMemoryJobQueueTests
         Assert.Equal("job1", enumerator.Current.Job.Name);
         queue.RemoveJob(enumerator.Current.Job.Id);
 
-        // job1 has been yielded and removed; a new job at the same DueTime must be visible
-        // to the next MoveNextAsync.
+        // 任务1 已被生成并删除; 在同一 DueTime 的新工作必须可见
+        // 向下 MoveNextAsync。
         var job2 = CreateJob("job2", sharedDueTime);
         queue.Enqueue(job2, 0);
         queue.MarkAsComplete();

@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Provides functionality for serializing and deserializing grain state, delegating to a prefered and fallback implementation of <see cref="IGrainStorageSerializer"/>.
+    /// 提供功能,用于序列化和取消 grain 状态,授权优先和后备地实施 <see cref="IGrainStorageSerializer"/>。
     /// </summary>
     public class GrainStorageSerializer : IGrainStorageSerializer
     {
@@ -11,10 +11,10 @@ namespace Orleans.Storage
         private readonly IGrainStorageSerializer _fallbackDeserializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainStorageSerializer"/> class.
+        /// 初始化 <see cref="GrainStorageSerializer"/> 类的新实例。
         /// </summary>
-        /// <param name="serializer">The grain storage serializer.</param>
-        /// <param name="fallbackDeserializer">The fallback grain storage serializer.</param>
+        /// <param name="serializer">下 grain 存储序列器。</param>
+        /// <param name="fallbackDeserializer">存储序列器的后退 grain 存储序列器。</param>
         public GrainStorageSerializer(IGrainStorageSerializer serializer, IGrainStorageSerializer fallbackDeserializer)
         {
             _serializer = serializer;

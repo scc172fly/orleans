@@ -1,7 +1,7 @@
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Interface for the test durable grain
+/// 测试耐久性 grain的接口
 /// </summary>
 public interface ITestDurableGrainInterface : IGrainWithGuidKey
 {

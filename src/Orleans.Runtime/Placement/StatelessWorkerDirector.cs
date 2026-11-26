@@ -9,13 +9,13 @@ namespace Orleans.Runtime.Placement
         {
             var compatibleSilos = context.GetCompatibleSilos(target);
 
-            // If a valid placement hint was specified, use it.
+            // 如果指定了有效的放置提示, 请使用它 。
             if (IPlacementDirector.GetPlacementHint(target.RequestContextData, compatibleSilos) is { } placementHint)
             {
                 return Task.FromResult(placementHint);
             }
 
-            // If the current silo is not shutting down, place locally if we are compatible
+            // 如果当前 silo 不关闭, 则如果我们兼容就本地放置
             if (!context.LocalSiloStatus.IsTerminating())
             {
                 foreach (var silo in compatibleSilos)
@@ -27,7 +27,7 @@ namespace Orleans.Runtime.Placement
                 }
             }
 
-            // otherwise, place somewhere else
+            // 以其他方式,地点在别处
             return Task.FromResult(compatibleSilos[Random.Shared.Next(compatibleSilos.Length)]);
         }
     }

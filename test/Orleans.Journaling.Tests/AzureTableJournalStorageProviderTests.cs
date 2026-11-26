@@ -1287,7 +1287,7 @@ public sealed class AzureTableJournalStorageProviderTests
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // OData filter text must survive transport encoding without surrogate replacement.
+            // OData过滤器文本必须保存在运输编码中,而不替换代用词。
             _ = StrictUtf8.GetByteCount(filter!);
             var clauses = Regex.Matches(filter!, @"(RowKey|PartitionKey|JournalId) (eq|ge|gt|le|lt) '((?:[^']|'')*)'");
             Assert.Equal(filter, string.Join(" and ", clauses.Select(clause => clause.Value)));

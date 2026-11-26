@@ -7,12 +7,12 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Verifies the <see cref="IJournalStorage"/> contract. Every journal storage
-/// provider in this repository runs this suite.
+/// 核证 <see cref="IJournalStorage"/> 每一日记账的储存
+/// 此仓库中的提供者运行此套件 。
 /// </summary>
 /// <remarks>
-/// Reads return a journal's content as one byte sequence, so these tests verify segment atomicity and ordering by comparing
-/// that sequence with the concatenation of the whole segments which the contract allows to be visible.
+/// 读取后将日记的内容作为一字节顺序返回,所以这些测试通过比较来验证分段原子性和订购
+/// 合同允许可见的整段的排列顺序。
 /// </remarks>
 public abstract class JournalStorageConformanceTests : IAsyncLifetime
 {
@@ -20,35 +20,35 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
     private IJournalStorageProvider? _faultingProvider;
 
     /// <summary>
-    /// Gets the faults injected into storage instances created by <see cref="CreateFaultingStorage"/>.
+    /// 将错误注入 <see cref="CreateFaultingStorage"/>创建的存储实例。
     /// </summary>
     protected JournalStorageFaultInjector Faults { get; } = new();
 
     /// <summary>
-    /// Gets the largest segment which one <see cref="IJournalStorage.AppendAsync"/> accepts, or <see langword="null"/> when the
-    /// provider enforces no per-append limit of its own.
+    /// 获得最大的段 <see cref="IJournalStorage.AppendAsync"/> 接受,或 <see langword="null"/> 时
+    /// 供应商不执行自己的每个附录的限制。
     /// </summary>
     protected virtual long? MaxAppendBytes => null;
 
     /// <summary>
-    /// Gets the faults which <see cref="CreateProviderAsync"/> injects when given a <see cref="JournalStorageFaultInjector"/>.
+    /// 得到的缺点 <see cref="CreateProviderAsync"/> 给定 <see cref="JournalStorageFaultInjector"/>.
     /// </summary>
     protected virtual IReadOnlySet<JournalStorageFaultKind> SupportedFaults { get; } = new HashSet<JournalStorageFaultKind>();
 
     private bool SupportsFaultInjection => SupportedFaults.Count > 0;
 
     /// <summary>
-    /// Gets the number of random operation sequences which the model-based test runs.
+    /// 获取模型测试运行的随机操作序列数。
     /// </summary>
     protected virtual int PropertyIterations => 25;
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
     /// <summary>
-    /// Creates a provider. Providers created by one test class instance share the same backing store.
+    /// 创建提供者。 由测试类实例创建的提供者共享同一个支持商店 。
     /// </summary>
-    /// <param name="faults">The faults to inject into the provider's write requests, or <see langword="null"/> for none.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="faults">将错误注入提供商的写作请求,或 <see langword="null"/> 毫无理由。</param>
+    /// <param name="cancellationToken">取消牌。</param>
     protected abstract ValueTask<IJournalStorageProvider> CreateProviderAsync(JournalStorageFaultInjector? faults, CancellationToken cancellationToken);
 
     public virtual async ValueTask InitializeAsync()
@@ -180,7 +180,7 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
         await ReadContentAsync(other);
         await other.DeleteAsync(CancellationToken);
 
-        // Each rejected write leaves the writer's precondition in place, so every later write is rejected too.
+        // 每一篇遭拒绝的书写都让作者的先决条件落空,
         await Assert.ThrowsAsync<InconsistentStateException>(() => writer.DeleteAsync(CancellationToken).AsTask());
         await Assert.ThrowsAsync<InconsistentStateException>(() => writer.ReplaceAsync(Sequence(5, 2), CancellationToken).AsTask());
         await Assert.ThrowsAsync<InconsistentStateException>(() => writer.AppendAsync(Sequence(6, 3), CancellationToken).AsTask());
@@ -396,7 +396,7 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
                 expected = Concat([expected, Bytes(6, 2)]);
                 break;
             case "replace":
-                // Equal bytes still represent a different publication.
+                // 平等字节仍然是一份不同的出版物。
                 await other.ReplaceAsync(new ReadOnlySequence<byte>(expected), CancellationToken);
                 break;
             case "delete":
@@ -561,8 +561,8 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
             print: static operations => string.Join(", ", operations.Select(static operation => $"{operation.Kind}({operation.Data.Length})")));
     }
 
-    // Runs one operation sequence against a fresh journal through one writer, checking every outcome and the content after
-    // every operation against a model of the journal and of the writer's precondition.
+    // 通过一位作家对新日记进行一个操作序列, 检查每个结果和内容
+    // 每一个行动都以杂志和作家的先决条件为模型
     private async Task RunModelAsync(ModelOperation[] operations)
     {
         var journalId = CreateJournalId();
@@ -649,7 +649,7 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
                             break;
                         }
 
-                        // The outcome is indeterminate: the segment was written whole or not at all.
+                        // 结果不确定:这部分内容是完整或完全没有文字。
                         var content = await ReadContentAsync(CreateStorage(journalId));
                         var withSegment = Concat([model.Content, operation.Data]);
                         var applied = !model.IsWriterStale && content.AsSpan().SequenceEqual(withSegment);
@@ -666,7 +666,7 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
                     }
 
                 default:
-                    // The provider has no per-append limit or fault injection, so the operation is an ordinary append.
+                    // 提供商没有每个附录的限制或过失注射,因此操作是普通的附加件。
                     await ExpectWriteAsync(() => writer.AppendAsync(new ReadOnlySequence<byte>(operation.Data), CancellationToken), () => model.Append(operation.Data));
                     break;
             }
@@ -689,8 +689,8 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
             }
         }
 
-        // The journaled state manager recovers from a failed write with a fresh read, so the model does the same. The read also
-        // shows whether a failed write left an empty journal behind.
+        // 日记国家经理从一个失败的写作中恢复过来,并用新读的版本,所以模型也这样做。
+        // 显示失败的写是否留下空白日记 。
         async Task RecoverAfterFailureAsync()
         {
             writer = CreateWriter();
@@ -708,7 +708,7 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
     protected IJournalStorage CreateFaultingStorage(JournalId journalId)
         => (_faultingProvider ?? throw new InvalidOperationException("The provider does not support fault injection.")).CreateStorage(journalId);
 
-    // Writers read the journal before writing, as the journaled state manager does when it recovers.
+    // 作家们在写前读过日记,
     protected async Task<IJournalStorage> CreateWriterAsync(JournalId journalId)
     {
         var storage = CreateStorage(journalId);
@@ -759,7 +759,7 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
 
     private static ReadOnlySequence<byte> Sequence(int length, byte seed) => new(Bytes(length, seed));
 
-    // Builds a sequence of the given length from one shared chunk, so limit-sized segments need no limit-sized buffer.
+    // 在一个共享块中构建给定长度的序列, 所以限制大小的段不需要有限制大小的缓冲 。
     private static ReadOnlySequence<byte> LargeSequence(long length, byte seed)
     {
         var chunk = Bytes(1024 * 1024, seed);
@@ -790,8 +790,8 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
 
     private sealed record ModelOperation(ModelOperationKind Kind, byte[] Data);
 
-    // Models the journal's content and version, and the version which the writer's precondition holds. Versions compare by
-    // value for an absent journal, as provider preconditions do.
+    // 模拟该期刊的内容和版本,以及作者的先决条件所持有的版本。
+    // 供应商的先决条件是,没有日记的价值。
     private sealed class JournalModel
     {
         private long _version;
@@ -895,23 +895,23 @@ public abstract class JournalStorageConformanceTests : IAsyncLifetime
 }
 
 /// <summary>
-/// The transport faults which <see cref="JournalStorageFaultInjector"/> injects into a provider's write requests.
+/// 将 <see cref="JournalStorageFaultInjector"/> 的运输故障输入供应商书面请求的运输故障。
 /// </summary>
 public enum JournalStorageFaultKind
 {
     /// <summary>
-    /// The request body fails partway through sending, so storage receives part of the request.
+    /// 请求机构通过发送无法部分完成,所以存储接收请求的一部分。
     /// </summary>
     AbortRequestBody,
 
     /// <summary>
-    /// Storage applies the request, and the client then loses the response.
+    /// 存储应用请求,客户随后失去回复。
     /// </summary>
     LoseResponse,
 }
 
 /// <summary>
-/// Injects transport faults into a provider's write requests.
+/// 将运输故障输入供应商的写作请求。
 /// </summary>
 public sealed class JournalStorageFaultInjector
 {
@@ -921,7 +921,7 @@ public sealed class JournalStorageFaultInjector
     private int _injectedCount;
 
     /// <summary>
-    /// Gets the number of faults injected since the injector was last armed.
+    /// 注射器上次携带武器后 注射出错数
     /// </summary>
     public int InjectedCount
     {
@@ -935,7 +935,7 @@ public sealed class JournalStorageFaultInjector
     }
 
     /// <summary>
-    /// Injects <paramref name="kind"/> into the next <paramref name="count"/> write requests which can carry it.
+    /// 将 <paramref name="kind"/> 输入下一个 <paramref name="count"/> 的可携带该请求书的写请求。
     /// </summary>
     public void Arm(JournalStorageFaultKind kind, int count)
     {
@@ -948,7 +948,7 @@ public sealed class JournalStorageFaultInjector
     }
 
     /// <summary>
-    /// Stops injecting faults.
+    /// 停止注射过错。
     /// </summary>
     public void Disarm()
     {
@@ -959,7 +959,7 @@ public sealed class JournalStorageFaultInjector
     }
 
     /// <summary>
-    /// Takes one armed fault of <paramref name="kind"/>, if any remain.
+    /// 如果有剩余 <paramref name="kind"/>,则持械过失。
     /// </summary>
     public bool TryTake(JournalStorageFaultKind kind)
     {

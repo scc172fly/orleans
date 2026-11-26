@@ -15,9 +15,9 @@ internal sealed class RepartitionerMessageFilter(GrainMigratabilityChecker check
         isSenderMigratable = false;
         isTargetMigratable = false;
 
-        // There are some edge cases when this can happen i.e. a grain invoking another one of its methods via AsReference<>, but we still exclude it
-        // as wherever this grain would be located in the cluster, it would always be a local call (since it targets itself), this would add negative transfer cost
-        // which would skew a potential relocation of this grain, while it shouldn't, because whenever this grain is located, it would still make local calls to itself.
+        // 有一些边缘情况可能发生这种情况 i.e。一个 grain 通过 AsReference援引另一种方法,但我们仍然排除了这种可能性。
+        // 如果这一 grain 位于该组中,则始终是当地电话(因为目标是本身目标本身),这将增加负转移成本
+        // 这样做可能会扭曲这个 grain的搬迁,尽管它不应该,因为每当找到这个 grain ,它仍然会自己发出当地电话。
         if (message.SendingGrain == message.TargetGrain)
         {
             return false;
@@ -26,7 +26,7 @@ internal sealed class RepartitionerMessageFilter(GrainMigratabilityChecker check
         isSenderMigratable = checker.IsMigratable(message.SendingGrain.Type, ImmovableKind.Repartitioner);
         isTargetMigratable = checker.IsMigratable(message.TargetGrain.Type, ImmovableKind.Repartitioner);
 
-        // If both are not migratable types we ignore this. But if one of them is not, then we allow passing, as we wish to move grains closer to them, as with any type of grain.
+        // 如果两者都不是偏偏偏偏偏偏差的类型,我们忽视了这一点。但如果其中之一不是,那么我们就允许通过,因为我们想移动 grains 与任何种类的动物一样,如近它们和 grain.
         return isSenderMigratable || isTargetMigratable;
     }
 }

@@ -602,7 +602,7 @@ public sealed class DynamoDBStreamQueueCheckpointerIntegrationTests
         }
         catch (OperationCanceledException) when (testCancellationToken.IsCancellationRequested)
         {
-            // Preserve the original test cancellation after bounded cleanup.
+            // 保留在受约束的清理后取消原试验。
         }
     }
 }

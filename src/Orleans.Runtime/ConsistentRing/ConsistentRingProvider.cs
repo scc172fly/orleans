@@ -6,20 +6,20 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime.ConsistentRing
 {
     /// <summary>
-    /// We use the 'backward/clockwise' definition to assign responsibilities on the ring. 
-    /// E.g. in a ring of nodes {5, 10, 15} the responsible for key 7 is 10 (the node is responsible for its preceding range). 
-    /// The backwards/clockwise approach is consistent with many overlays, e.g., Chord, Cassandra, etc.
-    /// Note: MembershipOracle uses 'forward/counter-clockwise' definition to assign responsibilities. 
-    /// E.g. in a ring of nodes {5, 10, 15}, the responsible of key 7 is node 5 (the node is responsible for its succeeding range).
+    /// 我们用“后向/时时针”的定义来分配环上的责任。 
+    /// E.g.在结点 {5,10,15} 的环中,关键7的责任是 10 (节点负责前一个范围)。 
+    /// 后向/时时制办法与许多重叠一致, e.g.,和弦,卡珊德拉等
+    /// 注: MembershipOracle 使用“前向/逆时针”定义来分配责任。 
+    /// E.g.在结点 {5,10,15}的环中,键7的责任是5(节点负责其随后的范围)。
     /// </summary>
     internal sealed partial class ConsistentRingProvider :
         IConsistentRingProvider, ISiloStatusListener, IDisposable
     {
-        // internal, so that unit tests can access them
+        // 内部,以便单位测试能够进入
         internal SiloAddress MyAddress { get; }
         private IRingRange myRange;
 
-        /// List of silo members sorted by unsigned address hash, matching the ring range boundaries and lookup keys.
+        /// silo 成员名单,由未签名地址散列排序,与环程边界和查找键匹配。
         private readonly List<SiloAddress> membershipRingList = new();
         private readonly ILogger log;
         private bool isRunning;
@@ -34,17 +34,17 @@ namespace Orleans.Runtime.ConsistentRing
             _siloStatusOracle = siloStatusOracle;
             myKey = unchecked((uint)MyAddress.GetConsistentHashCode());
 
-            myRange = RangeFactory.CreateFullRange(); // i am responsible for the whole range
+            myRange = RangeFactory.CreateFullRange(); // 由我负责整个范围
             rangeChangeListeners = new(myRange);
 
-            // add myself to the list of members
+            // 将我加入成员名单
             AddServer(MyAddress);
             Start();
             siloStatusOracle.SubscribeToSiloStatusEvents(this);
         }
 
         /// <summary>
-        /// Returns the silo that this silo thinks is the primary owner of the key
+        /// 返回 silo ,此 silo 认为是密钥的主要所有者
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -55,7 +55,7 @@ namespace Orleans.Runtime.ConsistentRing
 
         public IRingRange GetMyRange()
         {
-            return myRange; // its immutable, so no need to clone
+            return myRange; // 无法变换, 所以不需要克隆
         }
 
         private void Start()
@@ -73,25 +73,25 @@ namespace Orleans.Runtime.ConsistentRing
             RingRangeListenerManager.NotificationWorkItem? notification = null;
             lock (membershipRingList)
             {
-                if (membershipRingList.Contains(silo)) return; // we already have this silo
+                if (membershipRingList.Contains(silo)) return; // 我们已经拥有了 silo
 
                 int myOldIndex = membershipRingList.IndexOf(MyAddress);
 
                 if (!(membershipRingList.Count == 0 || myOldIndex != -1))
                     throw new OrleansException(string.Format("{0}: Couldn't find my position in the ring {1}.", MyAddress, Utils.EnumerableToString(membershipRingList)));
 
-                // insert new silo in the sorted order
+                // 在排序顺序中插入新的 silo
                 uint hash = unchecked((uint)silo.GetConsistentHashCode());
 
-                // Find the last silo with hash smaller than the new silo, and insert the latter after (this is why we have +1 here) the former.
-                // Notice that FindLastIndex might return -1 if this should be the first silo in the list, but then
-                // 'index' will get 0, as needed.
+                // 查找最后 silo 与新小于新小于散数的 silo,并在前一段之后插入后一段(这就是为什么我们这里有+1)。
+                // 通知 FindLastIndex 可能返回 -1,如果这是清单上的第一个 silo ,但随后
+                // 需要时,"索引"会得到0
                 int index = membershipRingList.FindLastIndex(siloAddr => unchecked((uint)siloAddr.GetConsistentHashCode()) < hash) + 1;
                 membershipRingList.Insert(index, silo);
 
-                // relating to triggering handler ... new node took over some of my responsibility
-                if (index == myOldIndex || // new node was inserted in my place
-                    (myOldIndex == 0 && index == membershipRingList.Count - 1)) // I am the first node, and the new server is the last node
+                // 与触发处理器有关的... 新节点接管了我的一些责任
+                if (index == myOldIndex || // 将新节点插入到我的位置
+                    (myOldIndex == 0 && index == membershipRingList.Count - 1)) // 我是第一个节点,新服务器是最后一个节点
                 {
                     IRingRange oldRange = myRange;
                     myRange = RangeFactory.CreateRange(hash, myKey);
@@ -133,23 +133,23 @@ namespace Orleans.Runtime.ConsistentRing
             lock (membershipRingList)
             {
                 int indexOfFailedSilo = membershipRingList.IndexOf(silo);
-                if (indexOfFailedSilo < 0) return; // we have already removed this silo
+                if (indexOfFailedSilo < 0) return; // 我们已经删除了此 silo
 
                 membershipRingList.RemoveAt(indexOfFailedSilo);
 
-                // related to triggering handler
+                // 与触发处理器相关
                 int myNewIndex = membershipRingList.IndexOf(MyAddress);
 
                 if (myNewIndex == -1)
                     throw new OrleansException($"{MyAddress}: Couldn't find my position in the ring {this}.");
 
-                bool wasMyPred = ((myNewIndex == indexOfFailedSilo) || (myNewIndex == 0 && indexOfFailedSilo == membershipRingList.Count)); // no need for '- 1'
-                if (wasMyPred) // failed node was our predecessor
+                bool wasMyPred = ((myNewIndex == indexOfFailedSilo) || (myNewIndex == 0 && indexOfFailedSilo == membershipRingList.Count)); // 不需要 ' - 1'
+                if (wasMyPred) // 失败节点是我们的前任
                 {
                     LogDebugFailedServerWasMyPredecessor(log, wasMyPred, this);
 
                     IRingRange oldRange = myRange;
-                    if (membershipRingList.Count == 1) // i'm the only one left
+                    if (membershipRingList.Count == 1) // 我是唯一一个 剩下的
                     {
                         myRange = RangeFactory.CreateFullRange();
                     }
@@ -195,7 +195,7 @@ namespace Orleans.Runtime.ConsistentRing
 
         public void SiloStatusChangeNotification(SiloAddress updatedSilo, SiloStatus status)
         {
-            // This silo's status has changed
+            // 此 silo状态已更改
             if (updatedSilo.Equals(MyAddress))
             {
                 if (status.IsTerminating())
@@ -203,13 +203,13 @@ namespace Orleans.Runtime.ConsistentRing
                     Stop();
                 }
             }
-            else // Status change for some other silo
+            else // 其他一些 silo的状况变化
             {
                 if (status.IsTerminating())
                 {
                     RemoveServer(updatedSilo);
                 }
-                else if (status == SiloStatus.Active)      // do not do anything with SiloStatus.Created or SiloStatus.Joining -- wait until it actually becomes active
+                else if (status == SiloStatus.Active)      // 与 SiloStatus.Created 或 SiloStatus.Joining 不做任何不做任何事 -- -- 等到它实际生效
                 {
                     AddServer(updatedSilo);
                 }
@@ -217,9 +217,9 @@ namespace Orleans.Runtime.ConsistentRing
         }
 
         /// <summary>
-        /// Finds the silo that owns the given hash value.
-        /// This routine will always return a non-null silo address unless the excludeThisSiloIfStopping parameter is true,
-        /// this is the only silo known, and this silo is stopping.
+        /// 查找拥有给定散列值的 silo 。
+        /// 此程序将总是返回一个非null silo 地址, 除非 excludeThisSiloIfStopping 参数是真实的,
+        /// 这是唯一的 silo 已知,和此 silo 停止了。 停止了。
         /// </summary>
         /// <param name="hash"></param>
         /// <param name="excludeThisSiloIfStopping"></param>
@@ -230,18 +230,18 @@ namespace Orleans.Runtime.ConsistentRing
 
             lock (membershipRingList)
             {
-                // excludeMySelf from being a TargetSilo if we're not running and the excludeThisSIloIfStopping flag is true. see the comment in the Stop method.
+                // excludeMySelf 开始为 TargetSilo 如果我们不运行, excludeThisSIloIfStopping 标记为是真实的。请在“停止”方法中看到注释。
                 bool excludeMySelf = excludeThisSiloIfStopping && !isRunning;
 
                 if (membershipRingList.Count == 0)
                 {
-                    // If the membership ring is empty, then we're the owner by default unless we're stopping.
+                    // 如果会员圈空了 我们就是默认的所有人 除非我们停止
                     return excludeMySelf ? null : MyAddress;
                 }
 
-                // use clockwise ... current code in membershipOracle.CalculateTargetSilo() does counter-clockwise ...
-                // if you want to stick to counter-clockwise, change the responsibility definition in 'In()' method & responsibility defs in OrleansReminderMemory
-                // need to implement a binary search, but for now simply traverse the list of silos sorted by their hashes
+                // 使用时钟... membershipOracle.CalculateTargetSilo() 中的当前代码会逆时针.
+                // 如果您想要坚持逆时针反时针, 请在 OrleansReminderMemory中更改“ in()” 方法中的责任定义和责任代数
+                // 需要执行二进搜索, 但目前只需跳过按其杂列排序的 silos 列表
 
                 for (int index = 0; index < membershipRingList.Count; ++index)
                 {
@@ -255,13 +255,13 @@ namespace Orleans.Runtime.ConsistentRing
 
                 if (siloAddress == null)
                 {
-                    // if not found in traversal, then first silo should be returned (we are on a ring)
-                    // if you go back to their counter-clockwise policy, then change the 'In()' method in OrleansReminderMemory
-                    siloAddress = membershipRingList[0]; // vs [membershipRingList.Count - 1]; for counter-clockwise policy
-                    // Make sure it's not us...
+                    // 如果在跨经中找不到,则首先应返回 silo (我们在一个环上)
+                    // 如果您回到反时针政策, 请在 OrleansReminderMemory中更改“ in()” 方法
+                    siloAddress = membershipRingList[0]; // v [membershipRingList.Count - 1];反时针政策
+                    // 确定不是我们...
                     if (siloAddress.Equals(MyAddress) && excludeMySelf)
                     {
-                        // vs [membershipRingList.Count - 2]; for counter-clockwise policy
+                        // vs [membershipRingList.Count - 2]; 反时针政策
                         siloAddress = membershipRingList.Count > 1 ? membershipRingList[1] : null;
                     }
                 }

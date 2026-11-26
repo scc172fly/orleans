@@ -24,7 +24,7 @@ var oxo = {
         getGames: function (cb) {
             $.get("/Game/Index/" + oxo.rand(), function (data) {
                 if (data) {
-                    // games playing
+                    // 游戏游戏
                     data[0].forEach(function (x) {
                         x.waiting = x.state == 0;
                     });
@@ -40,7 +40,7 @@ var oxo = {
         },
         joinGame: function (gameId, cb) {
             $.post("/Game/Join/" + gameId, function (data) {
-                // check we have joined
+                // 检查我们加入
                 oxo.model.currentGame = gameId;
                 cb(data);
             });

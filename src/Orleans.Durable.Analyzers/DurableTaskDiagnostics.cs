@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>Describes the replay-safety rules for durable task bodies.</summary>
+/// <summary>描述持久任务机构重播安全规则。</summary>
 internal static class DurableTaskDiagnostics
 {
     private const string Category = "Usage";
@@ -219,8 +219,8 @@ internal static class DurableTaskDiagnostics
             helpLinkUri: GetHelpLink(id));
 
     /// <summary>
-    /// Returns the help link of a diagnostic: the Orleans diagnostics index, whose anchor for the diagnostic links to
-    /// its page. The Orleans analyzers use the same form.
+    /// 返回诊断性帮助链接: Orleans 诊断指数,该索引的诊断链接与
+    /// Orleans 分析器使用同样的表格。
     /// </summary>
     internal static string GetHelpLink(string id) => $"https://aka.ms/orleans/diagnostics#{id.ToLowerInvariant()}";
 }

@@ -9,14 +9,14 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Tests error handling and exception propagation in Orleans.
-    /// These tests verify Orleans' robust error handling capabilities including:
-    /// - Exception serialization and propagation across process boundaries
-    /// - Handling of synchronous and asynchronous errors
-    /// - Timeout behavior and recovery
-    /// - Stress testing with multiple concurrent failing operations
-    /// - Various grain communication patterns under error conditions
-    /// Orleans ensures that errors in grains don't crash the system and are properly communicated to callers.
+    /// Orleans中的测试错误处理和例外传播。
+    /// 这些测试核查 Orleans的强力错误处理能力,包括:
+    /// - 例外系列化和跨过程边界传播
+    /// - 处理同步和非同步错误
+    /// - 超时行为和恢复
+    /// - 多次同时故障运行的应激反应测试
+    /// - 错误条件下的各种 grain 通信模式
+    /// Orleans 确保 grains 中的错误不会崩溃系统,并适当通知打电话者。
     /// </summary>
     [TestArea("Runtime")]
     public class ErrorGrainTest : HostedTestClusterEnsureDefaultStarted
@@ -30,9 +30,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests basic grain reference creation for error testing grains.
-        /// Verifies that error grain references can be obtained and basic methods can be called.
-        /// This establishes the baseline for error handling tests.
+        /// 测试错误测试的 grain 参考创建 grains。
+        /// 证明可以获取错误 grain 参考,并可使用基本方法。
+        /// 以此确定错误处理测试的基准。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -45,9 +45,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests error handling for locally thrown exceptions (not in Orleans grains).
-        /// Verifies that standard .NET exception handling works as expected for comparison
-        /// with distributed error handling in Orleans.
+        /// 本地抛出例外( 不在 Orleans grains中) 的测试错误处理 。
+        /// 证明标准 .NET 例外处理工作符合预期的比较要求
+        /// 在 Orleans中存在分布式错误处理。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -71,12 +71,12 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests that grain methods that throw exceptions properly fail their returned Tasks.
-        /// Verifies that:
-        /// - Exceptions in grain methods cause the Task to enter Faulted state
-        /// - The exception can be retrieved from the Task
-        /// - Multiple awaits on the same failed Task consistently throw the same exception
-        /// This ensures reliable error propagation in distributed calls.
+        /// 测试丢弃例外的 grain 方法是否正确不执行返回的任务。
+        /// 证明:
+        /// - grain 方法的例外导致任务输入错误状态
+        /// - 从任务中可以检索到例外
+        /// - 多个人等待同一失败的同一个失败任务 总是抛出相同的例外
+        /// 这样可以确保在分配电话中传播可靠的错误。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -112,11 +112,11 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests behavior of long-running grain methods without errors.
-        /// Verifies that:
-        /// - Tasks for long-running operations don't complete prematurely
-        /// - The Task eventually completes successfully
-        /// This establishes baseline behavior for comparison with timeout scenarios.
+        /// 测试长运行 grain 方法的行为,无错误。
+        /// 证明:
+        /// - 长期行动的任务不会过早完成
+        /// - 任务最终顺利完成
+        /// 这样做可以确定基准行为,与超时假设方案进行比较。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -145,12 +145,12 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests behavior of long-running grain methods that eventually throw exceptions.
-        /// Verifies that:
-        /// - Tasks don't complete until the actual error occurs
-        /// - The exception is properly propagated when the method completes
-        /// - Timing ensures the error happens after the expected delay
-        /// This tests Orleans' handling of delayed failures.
+        /// 测试长期 grain 方法的行为,最终会丢弃例外。
+        /// 证明:
+        /// - 任务在实际错误发生前不会完成
+        /// - 方法完善后,例外情形得到适当宣传
+        /// - 时间确保错误在预期延迟后发生
+        /// 测试 Orleans处理延迟故障。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -161,18 +161,18 @@ namespace DefaultCluster.Tests
             IErrorGrain grain = this.GrainFactory.GetGrain<IErrorGrain>(GetRandomGrainId(), grainFullName);
 
             Task task = grain.LongMethodWithError(2000);
-            // Removed flaky assertion about task completion due to potential race condition.
+            // 由于潜在的种族状况,排除了对任务完成的不实断言。
             await Assert.ThrowsAsync<Exception>(async () => await task);
             Assert.True(task.Status == TaskStatus.Faulted);
         }
 
         /// <summary>
-        /// Stress tests Orleans with many concurrent delayed grain calls.
-        /// Verifies that:
-        /// - The system can handle hundreds of concurrent grain calls
-        /// - All calls complete successfully without deadlocks
-        /// - Orleans properly manages resources under load
-        /// This tests the scalability of Orleans' message handling and scheduling.
+        /// 压力测试 Orleans 有许多同时延迟的 grain 电话
+        /// 证明:
+        /// - 该系统可处理数百个同时 grain 通话
+        /// - 所有呼吁都顺利地发出,没有僵局
+        /// - Orleans 适当管理负荷中的资源
+        /// 本文测试 Orleans信件处理和排程的可缩放性。
         /// </summary>
         [TestSuite("Functional")]
         [TestProvider("None")]
@@ -198,10 +198,10 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests passing collections of grain references as method arguments.
-        /// Verifies that Orleans correctly serializes and deserializes complex types
-        /// containing grain references. This is important for scenarios where grains
-        /// need to coordinate with multiple other grains.
+        /// 测试 grain 参考文献的过路采集,作为方法参数。
+        /// 证明 Orleans 正确序列和取消复杂类型
+        /// 包含 grain 引用。这对于 grains
+        /// 需要与多个其它 grains协调。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -218,10 +218,10 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests Orleans' delayed execution capabilities.
-        /// Verifies that grains can schedule delayed operations and that these
-        /// operations execute correctly after the specified delay.
-        /// This tests Orleans' internal timer and scheduling mechanisms.
+        /// 测试 Orleans' 延迟执行能力。
+        /// 证明 grains 可以安排延迟作业时间,而且这些
+        /// 指定延迟后正确执行操作。
+        /// 测试 Orleans的内部计时器和排期机制。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -236,9 +236,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests async method patterns in simple grains.
-        /// Verifies that grains correctly handle async methods for setting and getting state.
-        /// This demonstrates Orleans' support for modern async/await patterns in grain implementations.
+        /// 以简单 grains测试同步方法模式。
+        /// 证明 grains 正确处理用于设定和获取状态的同步方法。
+        /// 这证明 Orleans支持 grain 执行中的现代收割/等待模式。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -257,10 +257,10 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests promise forwarding where one grain forwards a call to another grain.
-        /// Verifies that Orleans correctly handles chained grain calls where the result
-        /// of one grain call is directly returned by another grain.
-        /// This pattern is common in grain orchestration scenarios.
+        /// 试验承诺转发给一个 grain 向另一个 grain发出呼叫的地址。
+        /// 证明 Orleans 正确处理链 grain 调用结果
+        /// 之一之一 grain 由另一个直接返回的呼叫 grain.
+        /// 在 grain 交响情景中,这种模式是常见的。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -274,9 +274,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests GUID-based grain ID distribution and hashing.
-        /// Verifies that different GUID patterns produce well-distributed hash codes
-        /// for grain placement. This is important for load balancing across silos.
+        /// 测试基于 GUID grain 的标识分布和散列。
+        /// 证明不同的图形界面数据格式产生分配良好的散列代码
+        /// 用于 grain 位置。这对于 silos之间的负载平衡很重要。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -302,8 +302,8 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Helper method to create grain references with specific GUID patterns.
-        /// Used to test hash code distribution for different GUID formats.
+        /// 使用特定 GUID 模式创建 grain 引用的帮助方法。
+        /// 用于测试不同 GUID 格式的散列代码分布 。
         /// </summary>
         private void CreateGR(int n, int type)
         {
@@ -322,9 +322,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests observer disconnection scenarios.
-        /// Verifies behavior when client observers are disconnected from grains.
-        /// This tests Orleans' observer pattern implementation for event notifications.
+        /// 测试观察者断开的假想。
+        /// 当客户观察家与 grains断开联系时,验证行为。
+        /// 测试 Orleans' 观察员模式对事件通知实施情况。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -335,9 +335,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests observer disconnection with multiple subscriptions.
-        /// Verifies behavior when the same observer is subscribed multiple times
-        /// and then disconnected. This tests edge cases in observer management.
+        /// 测试观察家与多用户断开连接。
+        /// 当同一个观察者多次被订阅时, 验证行为
+        /// 并断开。 这个测试边缘案例在观察家管理中 。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -348,36 +348,36 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Helper method for testing observer disconnection scenarios.
-        /// The observeTwice parameter controls whether to test single or double subscription.
-        /// Note: This test appears to be commented out for manual debugging scenarios.
+        /// 用于测试观察员断开设想情景的助推法。
+        /// observeTwice 参数控制是测试单订阅还是双订阅。
+        /// 注:这项测试似乎被评论为人工调试设想。
         /// </summary>
         private void ObserverTest_DisconnectRunner(bool observeTwice)
         {
-            // this is for manual repro & validation in the debugger
-            // wait to send event because it takes 60s to drop client grain
+            // 用于在调试器中手动 Rep和验证
+            // 等待发送事件, 因为要丢弃客户端需要 60 秒 grain
             //var simple1 = SimpleGrainTests.GetSimpleGrain();
-            //var simple2 = SimpleGrainFactory.Cast(Domain.Current.Create(typeof(ISimpleGrain).FullName,
-            //    new Dictionary<string, object> { { "EventDelay", 70000 } }));
+            //简式2= SimpleGrainFactory.Cast(Domain.Current.Create)(类型(ISimpleGrain)。FullName,
+            //    新字典<string, object> {{{ "EventDelay,70000}});
             //var result = new ResultHandle();
-            //var callback = new SimpleGrainObserver((a, b, r) =>
+            //var 回调=新 SimpleGrainObserver((a, b, r) =>
             //{
             //    r.Done = (a == 10);
             //    output.WriteLine("Received observer callback: A={0} B={1} Done={2}", a, b, r.Done);
-            //}, result);
+            //},结果);
             //var observer = SimpleGrainObserverFactory.CreateObjectReference(callback);
-            //if (observeTwice)
+            //(如果)observeTwice)
             //{
-            //    simple1.Subscribe(observer).Wait();
-            //    simple1.SetB(1).Wait(); // send a message to the observer to get it in the cache
+            //    simple1.Subscribe(观察者) 等等(; );
+            //    simple1.SetB(1). wait () ; // 发送信息给观察者, 以便将其保存在缓存中
             //}
-            //simple2.Subscribe(observer).Wait();
-            //simple2.SetA(10).Wait();
+            //simple2.Subscribe(观察者) 等等(; );
+            //simple2.SetA(10). 等等 ();
             //Thread.Sleep(2000);
             //Client.Uninitialize();
             //var timeout80sec = TimeSpan.FromSeconds(80);
-            //Assert.False(result.WaitForFinished(timeout80sec), "WaitforFinished Timeout=" + timeout80sec);
-            //// prevent silo from shutting down right away
+            //Assert.False(result.WaitForFinished(超时80sec), "WaitforFinished 超时="+超时80sec);
+            //// 预防 silo 立刻关闭
             //Thread.Sleep(Debugger.IsAttached ? TimeSpan.FromMinutes(2) : TimeSpan.FromSeconds(5));
         }
     }

@@ -9,38 +9,38 @@ using Orleans.TestingHost;
 namespace DefaultCluster.Tests;
 
 /// <summary>
-/// Helpers for tests which drive grain timers deterministically using a <see cref="FakeTimeProvider"/>
-/// installed as the silo's <see cref="TimeProvider"/>.
+/// 驱动器测试辅助工具 grain 确定使用 <see cref="FakeTimeProvider"/>
+/// 安装为 silo的 <see cref="TimeProvider"/>。
 /// </summary>
 internal static class FakeTimeSilo
 {
     /// <summary>
-    /// Installs <paramref name="timeProvider"/> as the silo's <see cref="TimeProvider"/> so that grain
-    /// timers and grain-side delays can be advanced deterministically, while keeping the silo's own
-    /// background infrastructure timers on real wall-clock time.
+    /// 安装 <paramref name="timeProvider"/> 作为 silo的 <see cref="TimeProvider"/> ,以便 grain
+    /// 时间计时器和 grain- 侧延迟可以确定地推进,同时保留 silo本身
+    /// 实际墙上时段的背景基础设施计时器。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This isolation is essential. <see cref="FakeTimeProvider.Advance"/> invokes every due timer
-    /// callback synchronously and inline on the thread which calls it. The silo's infrastructure
-    /// maintenance loops (cluster membership, gateway and grain-directory maintenance, activation
-    /// working-set monitoring, incoming-request monitoring, reminders and health checks) resolve their
-    /// <see cref="TimeProvider"/> from keyed DI using the per-area keys in
-    /// <see cref="TimeProviderNames"/>, and each of those keys defaults to the unkeyed default
+    /// 这种隔离是绝对必要的。 <see cref="FakeTimeProvider.Advance"/> 每一次适当时间都援引
+    /// 同步回调并连接到称之为它的线条上。 silo的基础设施
+    /// 维护环(集群成员、网关和 grain-- -- 指令维护、启动
+    /// 工作分组监测、收到请求的监测、催复和健康检查)
+    /// 使用每个区域键从按键 DD 中<see cref="TimeProvider"/>
+    /// <see cref="TimeProviderNames"/>,且其中每一个密钥默认值都默认为未加密的默认值
     /// <see cref="TimeProvider"/>.
     /// </para>
     /// <para>
-    /// If those loops were driven by the fake clock, a single <see cref="FakeTimeProvider.Advance"/>
-    /// call would resume them inline; each loop would observe that its deadline has passed, immediately
-    /// re-arm a fresh <c>Task.Delay</c> and run its body again, all synchronously on the advancing
-    /// thread. The result is a CPU-bound spin that never returns from <c>Advance</c>, hanging the test
-    /// until CI's blame-hang timeout (observed as <c>TimerOrleansTest_*</c> hanging for 10 minutes).
-    /// Calling <see cref="TimeProviderTestingExtensions.UseTimeProviderForBackgroundAreas"/> pins every
-    /// keyed area except <see cref="TimeProviderNames.Grains"/> to
-    /// <see cref="TimeProvider.System"/>, keeping those loops off the fake clock entirely, so advancing
-    /// the fake clock only ever fires the grain timers under test. Grain timers and grain-side delays
-    /// continue to use the unkeyed (fake) <see cref="TimeProvider"/>, so tests retain full control over
-    /// them.
+    /// 如果这些环由假时钟驱动,则只有一个 <see cref="FakeTimeProvider.Advance"/>
+    /// 将恢复这些连接;每个循环都观察到其最后期限已经过去,立即
+    /// 重新重新武装一个新鲜的 <c>Task.Delay</c> 并再次运行其身体,同时同步推进
+    /// 线条。结果是一个以CPU为限制的旋转,从 <c>Advance</c>中无法返回,挂起测试
+    /// 直到CI责备暂停(被看成是吊死10分钟 <c>TimerOrleansTest_*</c> )。
+    /// 电 <see cref="TimeProviderTestingExtensions.UseTimeProviderForBackgroundAreas"/> 针针针
+    /// 关键键区域除 <see cref="TimeProviderNames.Grains"/> 以外
+    /// <see cref="TimeProvider.System"/>完全不让那些环圈 关闭假时钟,所以前进
+    /// 模拟时钟只燃烧测试中的 grain 计时器。 Grain 计时器和 grain- 边延迟
+    /// 继续使用未加密(假) <see cref="TimeProvider"/>[,因此测试仍然完全控制
+    /// 他们的
     /// </para>
     /// </remarks>
     public static ISiloBuilder UseFakeTimeProviderForGrainTimers(this ISiloBuilder siloBuilder, FakeTimeProvider timeProvider)
@@ -48,14 +48,14 @@ internal static class FakeTimeSilo
         siloBuilder.Services.AddSingleton(timeProvider);
         siloBuilder.Services.Replace(ServiceDescriptor.Singleton<TimeProvider>(sp => sp.GetRequiredService<FakeTimeProvider>()));
 
-        // Keep the silo's own background timers on real time so they are never fired inline by Advance.
+        // 保持 silo自己的背景计时器实时运行, 以便不被先锋解雇 。
         siloBuilder.Services.UseTimeProviderForBackgroundAreas(TimeProvider.System);
 
         return siloBuilder;
     }
 
     /// <summary>
-    /// Advances the fake clock, failing the test if the call does not return promptly.
+    /// 假时钟提前,如果电话不及时回电,则无法通过测试。
     /// </summary>
     public static async Task AdvanceAsync(FakeTimeProvider timeProvider, TimeSpan duration)
     {

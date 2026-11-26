@@ -5,7 +5,7 @@ using TestExtensions;
 namespace Orleans.Transactions.Tests
 {
     /// <summary>
-    /// Tests for behavior when transactions are disabled.
+    /// 当交易被禁用时, 测试行为 。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Transactions")]
     [TestSuite("BVT")]

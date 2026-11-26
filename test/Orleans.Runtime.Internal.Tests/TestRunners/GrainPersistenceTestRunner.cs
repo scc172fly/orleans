@@ -74,13 +74,13 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         Assert.NotNull(state.State);
 
-        var val = await grain.GetValue(); // Should this throw instead?
-        Assert.Equal(0, val);  // "Value after Delete"
+        var val = await grain.GetValue(); // 不如这样扔?
+        Assert.Equal(0, val);  // "在删除后值"
 
         await grain.DoWrite(2);
 
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Delete + New Write"
+        Assert.Equal(2, val);  // “删除+新写字后值”
     }
 
     [Fact, TestCategory("Functional")]
@@ -91,7 +91,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         var val = await grain.GetValue();
 
-        Assert.Equal(0, val);  // "Initial value"
+        Assert.Equal(0, val);  // "原价值"
 
         var state = await grain.GetStateAsync();
         Assert.False(state.RecordExists);
@@ -106,19 +106,19 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         var val = await grain.GetValue();
 
-        Assert.Equal(0, val);  // "Initial value"
+        Assert.Equal(0, val);  // "原价值"
 
         await grain.DoWrite(1);
         val = await grain.GetValue();
-        Assert.Equal(1, val);  // "Value after Write-1"
+        Assert.Equal(1, val);  // “写后值”
 
         await grain.DoWrite(2);
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Write-2"
+        Assert.Equal(2, val);  // "写二后的价值"
 
         val = await grain.DoRead();
 
-        Assert.Equal(2, val);  // "Value after Re-Read"
+        Assert.Equal(2, val);  // 读完后的价值
     }
 
     [Fact, TestCategory("Functional")]
@@ -129,19 +129,19 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         var val = await grain.GetValue();
 
-        Assert.Equal(0, val);  // "Initial value"
+        Assert.Equal(0, val);  // "原价值"
 
         await grain.DoWrite(1);
         val = await grain.GetValue();
-        Assert.Equal(1, val);  // "Value after Write-1"
+        Assert.Equal(1, val);  // “写后值”
 
         await grain.DoWrite(2);
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Write-2"
+        Assert.Equal(2, val);  // "写二后的价值"
 
         val = await grain.DoRead();
 
-        Assert.Equal(2, val);  // "Value after Re-Read"
+        Assert.Equal(2, val);  // 读完后的价值
     }
 
     [Fact, TestCategory("Functional")]
@@ -155,24 +155,24 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         var val = await grain.GetValue();
 
-        Assert.Equal(0, val);  // "Initial value"
+        Assert.Equal(0, val);  // "原价值"
 
         await grain.DoWrite(1);
         val = await grain.GetValue();
-        Assert.Equal(1, val);  // "Value after Write-1"
+        Assert.Equal(1, val);  // “写后值”
 
         await grain.DoWrite(2);
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Write-2"
+        Assert.Equal(2, val);  // "写二后的价值"
 
         val = await grain.DoRead();
-        Assert.Equal(2, val);  // "Value after DoRead"
+        Assert.Equal(2, val);  // “ DoRead之后值”
 
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Re-Read"
+        Assert.Equal(2, val);  // 读完后的价值
 
         var extKeyValue = await grain.GetExtendedKeyValue();
-        Assert.Equal(extKey, extKeyValue);  // "Extended Key"
+        Assert.Equal(extKey, extKeyValue);  // "扩展密钥"
     }
 
     [Fact, TestCategory("Functional")]
@@ -186,24 +186,24 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         var val = await grain.GetValue();
 
-        Assert.Equal(0, val);  // "Initial value"
+        Assert.Equal(0, val);  // "原价值"
 
         await grain.DoWrite(1);
         val = await grain.GetValue();
-        Assert.Equal(1, val);  // "Value after Write-1"
+        Assert.Equal(1, val);  // “写后值”
 
         await grain.DoWrite(2);
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Write-2"
+        Assert.Equal(2, val);  // "写二后的价值"
 
         val = await grain.DoRead();
-        Assert.Equal(2, val);  // "Value after DoRead"
+        Assert.Equal(2, val);  // “ DoRead之后值”
 
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Re-Read"
+        Assert.Equal(2, val);  // 读完后的价值
 
         var extKeyValue = await grain.GetExtendedKeyValue();
-        Assert.Equal(extKey, extKeyValue);  // "Extended Key"
+        Assert.Equal(extKey, extKeyValue);  // "扩展密钥"
     }
 
     [Fact, TestCategory("Functional")]
@@ -215,19 +215,19 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         var val = await grain.GetValue();
 
-        Assert.Equal(0, val);  // "Initial value"
+        Assert.Equal(0, val);  // "原价值"
 
         await grain.DoWrite(1);
         val = await grain.GetValue();
-        Assert.Equal(1, val);  // "Value after Write-1"
+        Assert.Equal(1, val);  // “写后值”
 
         await grain.DoWrite(2);
         val = await grain.GetValue();
-        Assert.Equal(2, val);  // "Value after Write-2"
+        Assert.Equal(2, val);  // "写二后的价值"
 
         val = await grain.DoRead();
 
-        Assert.Equal(2, val);  // "Value after Re-Read"
+        Assert.Equal(2, val);  // 读完后的价值
     }
 
     [Fact, TestCategory("Functional")]
@@ -239,19 +239,19 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
 
         var val = await grain.GetValue();
 
-        Assert.Null(val);  // "Initial value"
+        Assert.Null(val);  // "原价值"
 
         await grain.DoWrite(new List<int> { 1 });
         val = await grain.GetValue();
-        Assert.Equal(new List<int> { 1 }, val);  // "Value after Write-1"
+        Assert.Equal(new List<int> { 1 }, val);  // “写后值”
 
         await grain.DoWrite(new List<int> { 1, 2 });
         val = await grain.GetValue();
-        Assert.Equal(new List<int> { 1, 2 }, val);  // "Value after Write-2"
+        Assert.Equal(new List<int> { 1, 2 }, val);  // "写二后的价值"
 
         val = await grain.DoRead();
 
-        Assert.Equal(new List<int> { 1, 2 }, val);  // "Value after Re-Read"
+        Assert.Equal(new List<int> { 1, 2 }, val);  // 读完后的价值
     }
 
     [Fact, TestCategory("Functional")]
@@ -273,55 +273,55 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         var grain3 = GrainFactory.GetGrain<IGrainStorageGenericGrain<double>>(id3, grainNamespace);
 
         var val1 = await grain1.GetValue();
-        Assert.Equal(0, val1);  // "Initial value - 1"
+        Assert.Equal(0, val1);  // "初始值 - 1"
 
         var val2 = await grain2.GetValue();
-        Assert.Null(val2);  // "Initial value - 2"
+        Assert.Null(val2);  // "初始值 - 2"
 
         var val3 = await grain3.GetValue();
-        Assert.Equal(0.0, val3);  // "Initial value - 3"
+        Assert.Equal(0.0, val3);  // "初始值 -3"
 
         var expected1 = 1;
         await grain1.DoWrite(expected1);
         val1 = await grain1.GetValue();
-        Assert.Equal(expected1, val1);  // "Value after Write#1 - 1"
+        Assert.Equal(expected1, val1);  // 写完1 -1之后的价值
 
         var expected2 = "Three";
         await grain2.DoWrite(expected2);
         val2 = await grain2.GetValue();
-        Assert.Equal(expected2, val2);  // "Value after Write#1 - 2"
+        Assert.Equal(expected2, val2);  // "写完1 -2之后的价值"
 
         var expected3 = 5.1;
         await grain3.DoWrite(expected3);
         val3 = await grain3.GetValue();
-        Assert.Equal(expected3, val3);  // "Value after Write#1 - 3"
+        Assert.Equal(expected3, val3);  // "写完1 -3后的价值"
 
         val1 = await grain1.GetValue();
-        Assert.Equal(expected1, val1);  // "Value before Write#2 - 1"
+        Assert.Equal(expected1, val1);  // "写2 -1前的价值"
         expected1 = 2;
         await grain1.DoWrite(expected1);
         val1 = await grain1.GetValue();
-        Assert.Equal(expected1, val1);  // "Value after Write#2 - 1"
+        Assert.Equal(expected1, val1);  // 写完2 -1后的价值
         val1 = await grain1.DoRead();
-        Assert.Equal(expected1, val1);  // "Value after Re-Read - 1"
+        Assert.Equal(expected1, val1);  // 读完后的价值 -1
 
         val2 = await grain2.GetValue();
-        Assert.Equal(expected2, val2);  // "Value before Write#2 - 2"
+        Assert.Equal(expected2, val2);  // "写2 -2前的价值"
         expected2 = "Four";
         await grain2.DoWrite(expected2);
         val2 = await grain2.GetValue();
-        Assert.Equal(expected2, val2);  // "Value after Write#2 - 2"
+        Assert.Equal(expected2, val2);  // "写完2 -2之后的价值"
         val2 = await grain2.DoRead();
-        Assert.Equal(expected2, val2);  // "Value after Re-Read - 2"
+        Assert.Equal(expected2, val2);  // 读完后的价值 -2
 
         val3 = await grain3.GetValue();
-        Assert.Equal(expected3, val3);  // "Value before Write#2 - 3"
+        Assert.Equal(expected3, val3);  // "写2 -3前的价值"
         expected3 = 6.2;
         await grain3.DoWrite(expected3);
         val3 = await grain3.GetValue();
-        Assert.Equal(expected3, val3);  // "Value after Write#2 - 3"
+        Assert.Equal(expected3, val3);  // "写完2 -3后的价值"
         val3 = await grain3.DoRead();
-        Assert.Equal(expected3, val3);  // "Value after Re-Read - 3"
+        Assert.Equal(expected3, val3);  // 读完3后的价值
     }
 
     [Fact, TestCategory("Functional")]
@@ -343,7 +343,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         var grain2 = GrainFactory.GetGrain<IGrainStorageTestGrain>(id2, grainNamespace);
 
         var val = await grain1.GetValue();
-        Assert.Equal(0, val);  // "Initial value"
+        Assert.Equal(0, val);  // "原价值"
 
         await grain1.DoWrite(1);
 
@@ -357,7 +357,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         await grain2.DoDelete();
 
         var serviceId = await GrainFactory.GetGrain<IServiceIdGrain>(Guid.Empty).GetServiceId();
-        Assert.Equal(initialServiceId, serviceId);  // "ServiceId same before restart."
+        Assert.Equal(initialServiceId, serviceId);  // "在重新开始之前,ServiceId 是一样的。"
 
         output.WriteLine("About to reset Silos");
         foreach (var silo in HostedCluster.GetActiveSilos().ToList())
@@ -373,21 +373,21 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         grain1 = GrainFactory.GetGrain<IGrainStorageTestGrain>(id1, grainNamespace);
         grain2 = GrainFactory.GetGrain<IGrainStorageTestGrain>(id2, grainNamespace);
         output.WriteLine("ClusterId={0} ServiceId={1}", HostedCluster.Options.ClusterId, serviceId);
-        Assert.Equal(initialServiceId, serviceId);  // "ServiceId same after restart."
+        Assert.Equal(initialServiceId, serviceId);  // "ServiceId 重新开始后同样如此。”
 
         val = await grain1.GetValue();
-        Assert.Equal(1, val);  // "Value after Write-1"
+        Assert.Equal(1, val);  // “写后值”
 
         val = await grain2.GetValue();
-        Assert.Equal(0, val);  // State should be cleared.
+        Assert.Equal(0, val);  // 国家应该得到清除。
 
         await grain1.DoWrite(2);
         val = await grain1.GetValue();
-        Assert.Equal(2, val);  // "Value after Write-2"
+        Assert.Equal(2, val);  // "写二后的价值"
 
         val = await grain1.DoRead();
 
-        Assert.Equal(2, val);  // "Value after Re-Read"
+        Assert.Equal(2, val);  // 读完后的价值
     }
 
     [Fact, TestCategory("CorePerf"), TestCategory("Performance"), TestCategory("Stress")]
@@ -397,7 +397,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         int n = LoopIterations_Grain;
         TimeSpan target = TimeSpan.FromMilliseconds(MaxReadTime * n);
 
-        // Timings for Activate
+        // 激活的时间
         await RunPerfTest(n, testName, target,
             grainNoState => grainNoState.PingAsync(),
             grainMemory => grainMemory.DoSomething(),
@@ -412,7 +412,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         int n = LoopIterations_Grain;
         TimeSpan target = TimeSpan.FromMilliseconds(MaxWriteTime * n);
 
-        // Timings for Write
+        // 写作时间选择
         await RunPerfTest(n, testName, target,
             grainNoState => grainNoState.EchoAsync(testName),
             grainMemory => grainMemory.DoWrite(n),
@@ -427,14 +427,14 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         int n = LoopIterations_Grain;
         TimeSpan target = TimeSpan.FromMilliseconds(MaxWriteTime * n);
 
-        // Timings for Write
+        // 写作时间选择
         await RunPerfTest(n, testName + "--Write", target,
             grainNoState => grainNoState.EchoAsync(testName),
             grainMemory => grainMemory.DoWrite(n),
             grainMemoryStore => grainMemoryStore.DoWrite(n),
             grainAzureStore => grainAzureStore.DoWrite(n));
 
-        // Timings for Activate
+        // 激活的时间
         await RunPerfTest(n, testName + "--ReRead", target,
             grainNoState => grainNoState.GetLastEchoAsync(),
             grainMemory => grainMemory.DoRead(),
@@ -452,7 +452,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
         }
     }
 
-    // ---------- Utility functions ----------
+    // - 效用功能...
 
     private async Task RunPerfTest(int n, string testName, TimeSpan target,
         Func<IEchoTaskGrain, Task> actionNoState,
@@ -507,7 +507,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
     {
         List<Task> promises = new List<Task>();
         Stopwatch sw = Stopwatch.StartNew();
-        // Fire off requests in batches
+        // 分批解雇请求
         for (int i = 0; i < n; i++)
         {
             var promise = action(i);
@@ -516,7 +516,7 @@ public abstract class GrainPersistenceTestsRunner : OrleansTestingBase
             {
                 await Task.WhenAll([.. promises]).WaitAsync(PerformanceTestTimeout);
                 promises.Clear();
-                //output.WriteLine("{0} has done {1} iterations  in {2} at {3} RPS",
+                //output.WriteLine("{{{0} 已经做了{1} 在{2} 在{3} RPS的 {3} 迭代,"
                 //                  testName, i, sw.Elapsed, i / sw.Elapsed.TotalSeconds);
             }
         }

@@ -10,7 +10,7 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit.Consistency
 {
     /// <summary>
-    /// Executes randomized transaction sequences and validates their observed histories for serial consistency.
+    /// 执行随机交易序列,并核实其观察到的序列一致性历史。
     /// </summary>
     public class ConsistencyTestHarness
     {
@@ -35,15 +35,15 @@ namespace Orleans.Transactions.TestKit.Consistency
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConsistencyTestHarness"/> class.
+        /// 初始化 <see cref="ConsistencyTestHarness"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to create consistency test grains.</param>
-        /// <param name="numGrains">The number of grains participating in the test.</param>
-        /// <param name="seed">The seed used to generate repeatable test operations.</param>
-        /// <param name="avoidDeadlocks">Whether nested grain calls are ordered to avoid deadlocks.</param>
-        /// <param name="avoidTimeouts">Whether nested call scheduling stops before the transaction timeout.</param>
-        /// <param name="readWrite">How read and write operations are selected.</param>
-        /// <param name="tolerateUnknownExceptions">Whether the test scenario expects unclassified transaction outcomes.</param>
+        /// <param name="grainFactory">下 grain 用于制造一致性测试的工厂 grains.</param>
+        /// <param name="numGrains">编号数 grains 参加考试。</param>
+        /// <param name="seed">用于产生可重复测试操作的种子。</param>
+        /// <param name="avoidDeadlocks">是否命令嵌套 grain 电话以避免僵局。</param>
+        /// <param name="avoidTimeouts">嵌套的呼叫调度表在交易超时前是否停止。</param>
+        /// <param name="readWrite">如何选择读写操作。</param>
+        /// <param name="tolerateUnknownExceptions">测试方案是否预期未分类交易结果。</param>
         public ConsistencyTestHarness(
             IGrainFactory grainFactory,
             int numGrains,
@@ -72,17 +72,17 @@ namespace Orleans.Transactions.TestKit.Consistency
             this.aborted = new HashSet<string>();
             this.indoubt = new Dictionary<string, string>();
 
-            // determine what to check for in the end
+            // 确定最后检查要检查的内容
             this.tolerateUnknownExceptions = tolerateUnknownExceptions;
         }
 
         /// <summary>
-        /// The synthetic transaction identifier assigned to each grain's initial state.
+        /// 分配给每个 grain初始状态的合成交易识别特征。
         /// </summary>
         public const string InitialTx = "initial";
 
         /// <summary>
-        /// Gets the number of transactions recorded as aborted.
+        /// 获取已中止的交易记录数量 。
         /// </summary>
         public int NumAborted => aborted.Count;
 
@@ -153,13 +153,13 @@ namespace Orleans.Transactions.TestKit.Consistency
         internal void RecordTimeout() => timeoutsOccurred = true;
 
         /// <summary>
-        /// Runs a deterministic sequence of randomized transactions for one test partition.
+        /// 运行一个测试分区随机交易的确定序列。
         /// </summary>
-        /// <param name="partition">The partition index used to derive the random sequence.</param>
-        /// <param name="count">The number of transactions to execute.</param>
-        /// <param name="grainFactory">The grain factory used to create consistency test grain references.</param>
-        /// <param name="output">The callback used to write test diagnostics.</param>
-        /// <returns>A task which represents the transaction sequence.</returns>
+        /// <param name="partition">用于得出随机序列的分区索引。</param>
+        /// <param name="count">要执行的交易数量。</param>
+        /// <param name="grainFactory">下 grain 用于制造一致性测试的工厂 grain 参考文献。</param>
+        /// <param name="output">用于写作测试诊断的回调。</param>
+        /// <returns>代表交易序列的任务。</returns>
         [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
             Justification = "A seeded PRNG selects test-grain targets for consistency workloads.")]
         public async Task RunRandomTransactionSequence(int partition, int count, IGrainFactory grainFactory, Action<string> output)
@@ -214,10 +214,10 @@ namespace Orleans.Transactions.TestKit.Consistency
         }
 
         /// <summary>
-        /// Verifies version ordering, transaction outcomes, and serializability of the recorded history.
+        /// 验证版本订单、交易结果和记录历史的可序列性。
         /// </summary>
-        /// <param name="tolerateGenericTimeouts">Whether recorded generic timeouts permit an incomplete history.</param>
-        /// <param name="tolerateUnknownExceptions">Whether in-doubt commit failures are accepted.</param>
+        /// <param name="tolerateGenericTimeouts">是否记录了通用超时, 允许有不完整的历史。</param>
+        /// <param name="tolerateUnknownExceptions">是否接受在内部进行检测失败。</param>
         public void CheckConsistency(bool tolerateGenericTimeouts = false, bool tolerateUnknownExceptions = false)
         {
             orderEdges.Clear();
@@ -228,16 +228,16 @@ namespace Orleans.Transactions.TestKit.Consistency
                 CheckGrainConsistency(grainKvp.Key, grainKvp.Value);
             }
 
-            // due a DFS to find cycles in the ordered-before graph (= violation of serializability)
+            // a 外勤部应在有定序前图表中找到周期(=违反连带性)
             DFS();
 
-            // report unknown exceptions
+            // 汇报未知例外
             if (!tolerateUnknownExceptions)
             {
                 ReportInDoubtCommitFailures();
             }
 
-            // report timeout exceptions
+            // 报表超时例外
             if (!tolerateGenericTimeouts && timeoutsOccurred)
             {
                 true.Should().BeFalse($"generic timeout exception caught");

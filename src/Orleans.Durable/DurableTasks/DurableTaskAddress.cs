@@ -5,23 +5,23 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// The address of a durable task which other parties reach: the grain which stores the task and the task's identifier on
-/// that grain.
+/// 其他各方所完成的一项持久任务: grain 将任务和任务识别符存放在
+/// 以 grain。
 /// </summary>
-/// <param name="Target">The grain which stores the task.</param>
-/// <param name="Id">The task's identifier on <paramref name="Target"/>.</param>
+/// <param name="Target">下 grain 保存此项任务。</param>
+/// <param name="Id">上 <paramref name="Target"/>.</param>上的任务识别符号。
 /// <remarks>
 /// <para>
-/// An address is a value which code stores and sends: Orleans serializes it in grain calls and journaled state, and
-/// System.Text.Json serializes it as <c>{"Target":"{grain type}/{grain key}","Id":"{task ID}"}</c>, so JSON journals and
-/// HTTP payloads carry it without registration.
-/// <see cref="DurableTaskAddressExtensions.GetDurableTask{TResult}(IGrainFactory, DurableTaskAddress)"/> turns it back into
-/// a reference, which awaits, polls, cancels, or aborts the task.
+/// 地址是一个编码存储和发送的值: Orleans 以 grain 电话和日记状态将其序列化,
+/// System.Text.Json 序列化为 <c>{"Target":"{grain type}/{grain key}","Id":"{task ID}"}</c>,所以 JSON 日记和
+/// HTTP有效载荷未经登记即携带。
+/// <see cref="DurableTaskAddressExtensions.GetDurableTask{TResult}(IGrainFactory, DurableTaskAddress)"/> 转回去,
+/// 正在等待、 民意调查、 取消或中止任务的引用 。
 /// </para>
 /// <para>
-/// An address names a task which its grain retains for other parties: a root task, which a client, a grain, or a durable
-/// execution started, including a detached task, or a task which a client or another grain invoked. A grain retains a
-/// terminal root task for <c>DurableTaskOptions.ResultRetentionPeriod</c>, after which a lookup throws
+/// 地址命名为 grain 留给其他各方的任务:根任务,即客户、 grain或耐用
+/// 开始执行执行, 包括一个独立任务, 或者客户端或其他 grain 援引的A grain 保留a
+/// <c>DurableTaskOptions.ResultRetentionPeriod</c>的终端根任务,之后进行搜索
 /// <see cref="DurableTaskNotFoundException"/>.
 /// </para>
 /// </remarks>
@@ -31,19 +31,19 @@ public readonly record struct DurableTaskAddress(
     [property: Id(0)] GrainId Target,
     [property: Id(1)] TaskId Id) : IDurableTaskReference;
 
-/// <summary>Creates and resolves the addresses of durable tasks.</summary>
+/// <summary>创建和解决持久任务的地址。</summary>
 public static class DurableTaskAddressExtensions
 {
-    /// <summary>Gets a reference to the durable task at <paramref name="address"/>, without scheduling it.</summary>
-    /// <typeparam name="TResult">The durable task result type.</typeparam>
-    /// <param name="grainFactory">The grain factory, such as a grain's <c>GrainFactory</c> or an <see cref="IClusterClient"/>.</param>
-    /// <param name="address">The task's address.</param>
+    /// <summary>查找长期任务 <paramref name="address"/>也没有安排好</summary>
+    /// <typeparam name="TResult">持久任务结果类型。</typeparam>
+    /// <param name="grainFactory"> grain 工厂,如 grain的 <c>GrainFactory</c> 或 <see cref="IClusterClient"/>。</param>
+    /// <param name="address">任务地址</param>
     /// <returns>
-    /// A reference which behaves as
-    /// <see cref="DurableTaskGrainExtensions.GetDurableTask{TResult}(IAddressable, TaskId)"/> describes.
+    /// 以
+    /// <see cref="DurableTaskGrainExtensions.GetDurableTask{TResult}(IAddressable, TaskId)"/> 描述。
     /// </returns>
-    /// <exception cref="ArgumentNullException"><paramref name="grainFactory"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="address"/> has no grain or no task identifier.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="grainFactory"/> 是 <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="address"/> 没有无 grain 或无任务标识符。</exception>
     public static DurableTaskReference<TResult> GetDurableTask<TResult>(this IGrainFactory grainFactory, DurableTaskAddress address)
     {
         ArgumentNullException.ThrowIfNull(grainFactory);
@@ -55,16 +55,16 @@ public static class DurableTaskAddressExtensions
         return grainFactory.GetGrain(address.Target).GetDurableTask<TResult>(address.Id);
     }
 
-    /// <summary>Gets the address of the task which <paramref name="task"/> observes, when other parties reach it.</summary>
-    /// <param name="task">The handle.</param>
-    /// <param name="address">The address of the task, when this method returns <see langword="true"/>.</param>
+    /// <summary>获取任务地址 <paramref name="task"/> 观察着它,当它到达其他当事方。</summary>
+    /// <param name="task">控点。</param>
+    /// <param name="address">任务地址,当该方法返回 <see langword="true"/>时。</param>
     /// <returns>
-    /// <see langword="true"/> when the handle's task is one which its grain retains for other parties: a root task which
-    /// a client or an ordinary grain method started, or, in a durable execution, a detached task or a task which
-    /// <c>GetDurableTask</c> observes. An attached child, which the execution's tree owns, has no address.
+    /// <see langword="true"/> 当手柄是被取而专取之的时候, grain 留留给其他缔约方:根任务
+    /// 客户端或普通 grain 方法开始,或者在持久执行中,一项独立任务或一项任务
+    /// <c>GetDurableTask</c> 被处决者树所拥有附着的孩子没有地址。
     /// </returns>
-    /// <remarks>The address's identifier is the handle's <see cref="ScheduledTask.TargetTaskId"/>.</remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="task"/> is <see langword="null"/>.</exception>
+    /// <remarks>地址的识别符号是控点的 <see cref="ScheduledTask.TargetTaskId"/>。</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="task"/> 是 <see langword="null"/>.</exception>
     public static bool TryGetAddress(this ScheduledTask task, out DurableTaskAddress address)
     {
         ArgumentNullException.ThrowIfNull(task);

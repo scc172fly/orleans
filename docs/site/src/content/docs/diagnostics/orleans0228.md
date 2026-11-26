@@ -1,42 +1,52 @@
 ---
-title: "ORLEANS0228: Detach durable grain calls"
-description: Understand ORLEANS0228, which reports Detached on a step, an async DurableTask method, or a combinator, which can't run as a root task, and fix it by detaching a durable grain call or starting the work attached.
+title: "ORLEANS0228:分离耐 grain 调用"
+description: "理解 ORLEANS0228, 其中报告在一步上脱钩、 一种同步 DurableTask 方法或组合器上出现断层, 无法作为根任务运行, 并通过解开耐用 grain 调用或启动附加的工作来修正它 。"
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
-# ORLEANS0228: Detach durable grain calls
+<a id="orleans0228-detach-durable-grain-calls"></a>
 
-| Property | Value |
+# ORLEANS0228:分离耐 grain 调用
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Error |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 错误错误 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-Durable task code calls `Detached()` or `Detached(rootId)` on a definition which runs as part of the execution which starts it: a `DurableTask.Run` step, an `async DurableTask` method, or a combinator such as `DurableTask.WhenAll`:
+## 原因原因原因
+
+耐久任务代码在作为开始执行的一部分而运行的定义上调用 `Detached()` 或 `Detached(rootId)` :一个 `DurableTask.Run` 步骤、一个 `async DurableTask` 方法,或一个组合器,如 `DurableTask.WhenAll`:
 
 :::code source="snippets/durable-tasks/Orleans0228.cs" id="orleans0228_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-A detached task is an independent root task. Its host stores the task and runs it on its own, after the starting execution completes and after the starting execution's tree is deleted, so its definition is one which a host starts as a root task, such as a durable grain call, which the grain's host stores as a request.
+## 规则说明
 
-A step, an `async DurableTask` method, and a combinator are code of the starting execution: a replay of that execution re-creates them, and nothing else can. Starting one detached throws `InvalidOperationException`, before the start takes an identifier of the execution.
+独立任务是一个独立的根任务。 其主机将任务存储并自行运行, 在开始执行完成后和开始执行后树树被删除后, 所以它的定义是, 主机开始作为根任务, 比如耐用 grain 调用 grain请求提供东道商店。
 
-For attached and detached starts, see [Starting and observing tasks](../grains/durable-tasks.md#starting-and-observing-tasks).
+一步、 `async DurableTask` 方法和组合器是开始执行的代码:执行的重播可以重新生成它们,其他东西也无从创建。在开始之前先启动一个分离投出 `InvalidOperationException`,然后才采集执行的识别符号。
 
-## How to fix violations
+附加启动和分离启动,见 [开始和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
 
-**Detach a durable grain call.** Move the work into a durable method of a grain, and detach the call. The grain runs it as a root task:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**调出一个耐久 grain 呼叫。** 将工作移入一个耐久的 grain方法,并拆开该呼叫。 grain 将它作为根任务运行:
 
 :::code source="snippets/durable-tasks/Orleans0228.cs" id="orleans0228_fix_grain" language="csharp":::
 
-**Start the work attached.** When the execution can wait for the work, await it, or schedule it and observe its handle:
+**开始附加的工作。** 当执行过程可以等待、等待或安排并观察其操作时:
 
 :::code source="snippets/durable-tasks/Orleans0228.cs" id="orleans0228_fix_attached" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Keep the diagnostic enabled: the start throws at run time.
+## 何时压缩
+
+保持诊断功能: 启动时抛出 。

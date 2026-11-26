@@ -8,15 +8,15 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Manages the lifecycle of job shards for a specific silo.
+/// 管理特定 silo的工件碎片生命周期。
 /// </summary>
 /// <remarks>
-/// Each silo instance has its own shard manager.
+/// 每个 silo 例都有自己的软体管理器。
 /// </remarks>
 public abstract class JobShardManager
 {
     /// <summary>
-    /// Gets the silo address this manager is associated with.
+    /// 获取该管理器关联的 silo 地址。
     /// </summary>
     protected SiloAddress SiloAddress { get; }
 
@@ -33,43 +33,43 @@ public abstract class JobShardManager
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="JobShardManager"/> class.
+    /// 初始化 <see cref="JobShardManager"/> 类的新实例。
     /// </summary>
-    /// <param name="siloAddress">The silo address this manager represents.</param>
+    /// <param name="siloAddress"> silo 地址是此管理器所代表的地址。</param>
     protected JobShardManager(SiloAddress siloAddress)
     {
         SiloAddress = siloAddress;
     }
 
     /// <summary>
-    /// Assigns orphaned job shards to this silo.
+    /// 给这个 silo分配无主的工作。
     /// </summary>
-    /// <param name="maxDueTime">Maximum due time for shards to consider.</param>
+    /// <param name="maxDueTime">碎片考虑的最大到期时间。</param>
     /// <param name="maxNewClaims">
-    /// The maximum number of orphaned shards to claim in this call.
-    /// Use <see cref="int.MaxValue"/> for unlimited.
-    /// Shards already owned by this silo are always returned regardless of this limit.
+    /// 本次呼吁中孤儿碎片的最大要求数量。
+    /// 无限制使用 <see cref="int.MaxValue"/> 。
+    /// 此 silo 已经拥有的碎片总是被退回, 不论此限制为何 。
     /// </param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of job shards assigned to this silo.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>分配给此 silo的工作碎片列表。</returns>
     public abstract Task<List<IJobShard>> AssignJobShardsAsync(DateTimeOffset maxDueTime, int maxNewClaims, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Creates a new job shard owned by this silo.
+    /// 创建属于此 silo的新工作碎片。
     /// </summary>
-    /// <param name="minDueTime">The minimum due time for jobs in this shard.</param>
-    /// <param name="maxDueTime">The maximum due time for jobs in this shard.</param>
-    /// <param name="metadata">Optional metadata for the shard.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The newly created job shard.</returns>
+    /// <param name="minDueTime">以此碎片中的工作为最小到期时间。</param>
+    /// <param name="maxDueTime">工作在此碎片中的最长到期时间 。</param>
+    /// <param name="metadata">碎片的可选元数据。</param>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>新建的求职碎片。</returns>
     public abstract Task<IJobShard> CreateShardAsync(DateTimeOffset minDueTime, DateTimeOffset maxDueTime, IDictionary<string, string> metadata, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Unregisters a shard owned by this silo.
+    /// 将本 silo拥有的碎片解冻。
     /// </summary>
-    /// <param name="shard">The shard to unregister.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <param name="shard">拆卸的碎片。</param>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>代表非同步操作的任务 。</returns>
     public abstract Task UnregisterShardAsync(IJobShard shard, CancellationToken cancellationToken);
 
     internal virtual ValueTask<SiloAddress?> GetShardOwnerAsync(string shardId, CancellationToken cancellationToken) => new((SiloAddress?)null);

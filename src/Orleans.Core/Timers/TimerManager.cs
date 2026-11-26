@@ -9,16 +9,16 @@ using Orleans.Threading;
 namespace Orleans.Timers.Internal
 {
     /// <summary>
-    /// Provides functionality for managing single-shot timers.
+    /// 提供管理单发计时器的功能。
     /// </summary>
     public interface ITimerManager
     {
         /// <summary>
-        /// Returns a task which will complete when the specified timespan elapses or the provided cancellation token is canceled.
+        /// 返回一个任务,该任务将在指定的时间跨度折叠或提供的取消符被取消时完成。
         /// </summary>
-        /// <param name="timeSpan">The time span.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><see langword="true"/> if the timer ran to completion; otherwise <see langword="false"/>.</returns>
+        /// <param name="timeSpan">时间间隔。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns><see langword="true"/> ,如果计时器运行到完成;否则 <see langword="false"/>。</returns>
         Task<bool> Delay(TimeSpan timeSpan, CancellationToken cancellationToken = default);
     }
 
@@ -64,23 +64,23 @@ namespace Orleans.Timers.Internal
     }
 
     /// <summary>
-    /// Manages timers of a specified type, firing them after they expire.
+    /// 管理指定类型的定时器,在过期后将其解雇。
     /// </summary>
-    /// <typeparam name="T">The timer type.</typeparam>
+    /// <typeparam name="T">定时器类型。</typeparam>
     internal static class TimerManager<T> where T : class, ITimerCallback, ILinkedListElement<T>
     {
         /// <summary>
-        /// The maximum number of times a queue can be denied servicing before servicing is mandatory.
+        /// 要求服务之前,排队最多可拒绝服务的次数。
         /// </summary>
         private const int MAX_STARVATION = 2;
 
         /// <summary>
-        /// The number of milliseconds between timer servicing ticks.
+        /// 定时器服务计数之间 的毫秒数 。
         /// </summary>
         private const int TIMER_TICK_MILLISECONDS = 50;
 
         /// <summary>
-        /// Lock protecting <see cref="allQueues"/>.
+        /// 锁定保护 <see cref="allQueues"/>。
         /// </summary>
         // ReSharper disable once StaticMemberInGenericType
         private static readonly object AllQueuesLock = new object();
@@ -90,12 +90,12 @@ namespace Orleans.Timers.Internal
 #pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
-        /// Collection of all thread-local timer queues.
+        /// 收集所有本地的线性定时器队列 。
         /// </summary>
         private static ThreadLocalQueue?[] allQueues = new ThreadLocalQueue[16];
 
         /// <summary>
-        /// The queue for the current thread.
+        /// 当前线索的队列 。
         /// </summary>
         [ThreadStatic]
         private static ThreadLocalQueue? threadLocalQueue;
@@ -107,7 +107,7 @@ namespace Orleans.Timers.Internal
         }
 
         /// <summary>
-        /// Registers a timer.
+        /// 登记计时器。
         /// </summary>
         public static void Register(T timer)
         {
@@ -121,7 +121,7 @@ namespace Orleans.Timers.Internal
 
                 if (queue.StarvationCount >= MAX_STARVATION)
                 {
-                    // If the queue is too starved, service it now.
+                    // 如果队列太饿,请马上接听
                     expired = new ExpiredTimers();
                     CheckQueueInLock(queue, DateTime.UtcNow, expired);
                     Interlocked.Exchange(ref queue.StarvationCount, 0);
@@ -131,7 +131,7 @@ namespace Orleans.Timers.Internal
             {
                 queue.Lock.TryRelease();
 
-                // Fire expired timers outside of lock.
+                // 消防车在门外的定时器失效了
                 expired?.FireTimers();
             }
         }
@@ -151,16 +151,16 @@ namespace Orleans.Timers.Internal
 
                     if (!queue.Lock.TryGet())
                     {
-                        // Check for starvation.
+                        // 检查是否饿死
                         if (Interlocked.Increment(ref queue.StarvationCount) > MAX_STARVATION)
                         {
-                            // If the queue starved, block until the lock can be acquired.
+                            // 如果队列饿死, 封锁直到锁可以获取。
                             queue.Lock.Get();
                             Interlocked.Exchange(ref queue.StarvationCount, 0);
                         }
                         else
                         {
-                            // Move on to the next queue.
+                            // 继续到下一个队列 。
                             continue;
                         }
                     }
@@ -177,7 +177,7 @@ namespace Orleans.Timers.Internal
             }
             finally
             {
-                // Expire timers outside of the loop and outside of any lock.
+                // 循环内外的超时计时器
                 expired.FireTimers();
             }
         }
@@ -190,22 +190,22 @@ namespace Orleans.Timers.Internal
             {
                 if (current.CancellationToken.IsCancellationRequested || current.DueTime < now)
                 {
-                    // Dequeue and add to expired list for later execution.
+                    // 取消排队, 添加到过期列表中, 以便稍后执行 。
                     queue.Remove(previous, current);
                     expired.AddTail(current);
                 }
                 else
                 {
-                    // If the current item wasn't removed, update previous.
+                    // 如果当前项目没有被删除, 请更新上一个 。
                     previous = current;
                 }
             }
         }
 
         /// <summary>
-        /// Returns the queue for the current thread, creating and registering one if it does not yet exist.
+        /// 返回当前线索的队列,如果还没有,则创建并注册一个。
         /// </summary>
-        /// <returns>The current thread's <see cref="ThreadLocalQueue"/>.</returns>
+        /// <returns>当前线串的 <see cref="ThreadLocalQueue"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ThreadLocalQueue EnsureCurrentThreadHasQueue()
         {
@@ -220,7 +220,7 @@ namespace Orleans.Timers.Internal
                     {
                         var queues = Volatile.Read(ref allQueues);
 
-                        // Find a spot in the existing array to register this thread.
+                        // 在现有的数组中找到一个位置来登记此线索 。
                         for (var i = 0; i < queues.Length; i++)
                         {
                             if (Volatile.Read(ref queues[i]) == null)
@@ -230,7 +230,7 @@ namespace Orleans.Timers.Internal
                             }
                         }
 
-                        // The existing array is full, so copy all values to a new, larger array and register this thread.
+                        // 现有数组是满的, 所以将所有值复制到一个新的更大的数组中, 然后注册此线索 。
                         var newQueues = new ThreadLocalQueue[queues.Length * 2];
                         Array.Copy(queues, newQueues, queues.Length);
                         newQueues[queues.Length] = threadLocal;
@@ -242,14 +242,14 @@ namespace Orleans.Timers.Internal
         }
 
         /// <summary>
-        /// Holds per-thread timer data.
+        /// 持有每分钟的计时器数据。
         /// </summary>
         private sealed class ThreadLocalQueue : ILinkedList<T>
         {
             public readonly RecursiveInterlockedExchangeLock Lock = new RecursiveInterlockedExchangeLock();
 
             /// <summary>
-            /// The number of times that this queue has been starved since it was last serviced.
+            /// 上次服务以来, 队列中饥饿的次数 。
             /// </summary>
             public int StarvationCount;
 
@@ -259,7 +259,7 @@ namespace Orleans.Timers.Internal
         }
 
         /// <summary>
-        /// Holds timers that have expired and should be fired.
+        /// 持有已过期且应被解雇的计时器。
         /// </summary>
         private sealed class ExpiredTimers : ILinkedList<T>
         {
@@ -285,7 +285,7 @@ namespace Orleans.Timers.Internal
                     }
                     catch
                     {
-                        // Ignore any exceptions during firing.
+                        // 忽略射击中的任何例外。
                     }
 
                     current = current.Next;
@@ -297,7 +297,7 @@ namespace Orleans.Timers.Internal
     internal interface ITimerCallback
     {
         /// <summary>
-        /// The UTC time when this timer is due.
+        /// 时钟到期时UTC时间 。
         /// </summary>
         DateTime DueTime { get; }
 
@@ -309,35 +309,35 @@ namespace Orleans.Timers.Internal
     }
 
     /// <summary>
-    /// Represents a linked list.
+    /// 代表链接列表。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     internal interface ILinkedList<T> where T : ILinkedListElement<T>
     {
         /// <summary>
-        /// Gets or sets the first element in the list.
-        /// This value must never be accessed or modified by user code.
+        /// 获取或设置列表的第一个元素 。
+        /// 此值绝不能被用户代码访问或修改 。
         /// </summary>
         [MaybeNull, AllowNull]
         T Head { get; set; }
 
         /// <summary>
-        /// Gets or sets the last element in the list.
-        /// This value must never be accessed or modified by user code.
+        /// 获取或设置列表中的最后元素。
+        /// 此值绝不能被用户代码访问或修改 。
         /// </summary>
         [MaybeNull, AllowNull]
         T Tail { get; set; }
     }
 
     /// <summary>
-    /// Represents an element in a linked list.
+    /// 表示链接列表中的一个元素。
     /// </summary>
-    /// <typeparam name="TSelf">Self-type. The type implementing this interface.</typeparam>
+    /// <typeparam name="TSelf">自定义类型。 执行此接口的类型 。</typeparam>
     internal interface ILinkedListElement<TSelf> where TSelf : ILinkedListElement<TSelf>
     {
         /// <summary>
-        /// The next element in the list.
-        /// This value must never be accessed or modified by user code.
+        /// 列表中的下一个元素。
+        /// 此值绝不能被用户代码访问或修改 。
         /// </summary>
         [MaybeNull, AllowNull]
         TSelf Next { get; set; }
@@ -346,45 +346,45 @@ namespace Orleans.Timers.Internal
     internal static class LinkedList
     {
         /// <summary>
-        /// Appends an item to the tail of a linked list.
+        /// 将项目附加到链接列表的尾端。
         /// </summary>
-        /// <param name="list">The linked list.</param>
-        /// <param name="element">The element to append.</param>
+        /// <param name="list">链接列表。</param>
+        /// <param name="element">附加的元素。</param>
         public static void AddTail<TList, TElement>(this TList list, TElement element)
             where TList : class, ILinkedList<TElement> where TElement : class, ILinkedListElement<TElement>
         {
-            // If this is the first element, update the head.
+            // 如果这是第一个元素, 请更新头部 。
             if (list.Head is null) list.Head = element;
 
-            // If this is not the first element, update the current tail.
+            // 如果这不是第一个元素, 请更新当前尾巴 。
             var prevTail = list.Tail;
             if (!(prevTail is null)) prevTail.Next = element;
 
-            // Update the tail.
+            // 更新尾巴
             list.Tail = element;
         }
 
         /// <summary>
-        /// Removes an item from a linked list.
+        /// 从链接列表中删除项目。
         /// </summary>
-        /// <param name="list">The linked list.</param>
-        /// <param name="previous">The element before <paramref name="current"/>.</param>
-        /// <param name="current">The element to remove.</param>
+        /// <param name="list">链接列表。</param>
+        /// <param name="previous">前面的元素 <paramref name="current"/>.</param>
+        /// <param name="current">要删除的元素。</param>
         public static void Remove<TList, TElement>(this TList list, TElement? previous, TElement current)
             where TList : class, ILinkedList<TElement> where TElement : class, ILinkedListElement<TElement>
         {
             var next = current.Next;
 
-            // If not removing the first element, point the previous element at the next element.
+            // 如果删除第一个元素,请在下一个元素中点上前一个元素。
             if (!(previous is null)) previous.Next = next;
 
-            // If removing the first element, point the tail at the next element.
+            // 如果删除第一个元素,请将尾巴指向下一个元素。
             if (ReferenceEquals(list.Head, current))
             {
                 list.Head = next ?? previous;
             }
 
-            // If removing the last element, point the tail at the previous element.
+            // 如果删除最后一个元素,请将尾巴指向上一个元素。
             if (ReferenceEquals(list.Tail, current))
             {
                 list.Tail = previous;

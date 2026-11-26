@@ -1,40 +1,50 @@
 ---
-title: Orleans for systems big and small
-description: Understand how Orleans applies from one process to distributed clusters.
+title: "Orleans 用于大型和小型系统"
+description: "了解 Orleans 如何从一个进程适用于分布式组。"
 ms.date: 08/02/2026
 ms.topic: conceptual
 ---
 
-# Orleans for systems big and small
+<a id="orleans-for-systems-big-and-small"></a>
 
-You don't need a very large deployment to benefit from Orleans. The virtual actor model addresses problems which appear as soon as state and work cross process boundaries: identity, placement, concurrency, messaging, membership, and recovery.
+# Orleans 用于大型和小型系统
 
-## Start in one process
+不需要部署规模很大的人来从 Orleans虚拟行为者模式处理国家和工作跨越进程边界即出现的问题:身份、职位安排、通货、信息传递、成员资格和恢复。
 
-An Orleans application can host a silo and its callers in one process. This is useful for development and can be appropriate for a small deployment. Grain identity and turn-based execution can still provide useful structure and isolation.
+<a id="start-in-one-process"></a>
 
-A single process isn't fault tolerant, and localhost or memory providers don't become production infrastructure merely because the application uses Orleans. Choose providers and deployment topology based on the required durability and availability.
+## 在一个进程中开始
 
-## Scale by partitioning
+Orleans 应用程序可以在一个程序中托管 silo 及其调用者,这对发展有用,适合小规模部署。 Grain 身份和基于转手的执行仍然能够提供有用的结构和孤立。
 
-Orleans applications usually partition domain entities across many grain keys. As the cluster grows, Orleans can place activations on available silos and route calls without changing grain references.
+单一程序不是容错,本地主机或记忆提供者不会仅仅因为应用软件使用 Orleans而成为生产基础设施。根据所需的耐久性和可用性选择供应商和部署地貌。
 
-Adding silos provides more cluster capacity only when the workload can use it. A single hot grain, shared external dependency, or global coordination point remains a bottleneck. Measure the key distribution and design explicit partitions where needed.
+<a id="scale-by-partitioning"></a>
 
-## The same distributed concerns remain
+## 通过分割比例缩放
 
-Whether a cluster has two silos or many, applications must account for:
+Orleans 应用程序通常在许多 grain 密钥上分布域实体。随着集群的增长, Orleans 可以在可用的 silos 和线路呼叫上安装启动程序,而不修改 grain 参考文献。
 
-- Calls which can fail, time out, or be retried.
-- Membership changes and in-flight work during process failure.
-- Durable state, provider availability, and recovery.
-- Serialization and contract compatibility.
-- Capacity, overload, observability, deployment, and rollback.
+添加 silos 只有在工作量能够使用时才能提供更多的集群能力。 单一热 grain、共享外部依赖性或全球协调点仍然是一个瓶颈。 测量关键分布并设计所需的明确分隔区。
 
-Orleans supplies a consistent model and runtime services for these concerns. It doesn't eliminate them or guarantee that an application scales by configuration alone.
+<a id="the-same-distributed-concerns-remain"></a>
 
-## Grow without encoding locations
+## 同样的分散的关切依然存在
 
-Grain contracts identify entities by key rather than server. This allows a single-process application and a multi-silo deployment to use the same domain interfaces. Moving to a cluster primarily changes hosting, provider, security, and operations configuration.
+不论一组有两个 silos 或多个,申请必须说明:
 
-That location-independent model is useful at modest scale and remains useful as demand grows. Start with the simplest topology which meets current requirements, retain representative load tests, and scale based on observed bottlenecks.
+- 电话会失败、暂停或重新审理。
+- 成员变更和在程序失效期间飞行中工作。
+- 国家、供应商供应和复苏。
+- 分级和合同兼容。
+- 能力、超载、可观察性、部署和回落。
+
+Orleans 提供一致的模式和运行时间服务,以解决这些问题。 它不会消除这些关切或保证仅按配置来设定应用尺度。
+
+<a id="grow-without-encoding-locations"></a>
+
+## 成长时没有编码位置
+
+Grain 合同通过键盘而非服务器识别实体。允许单程序应用程序和多silo 部署使用相同的域界面。 转到组群主要是更改主机、 提供者、 安保和操作配置 。
+
+这种独立地点模式在规模上是有用的,而且随着需求的增长仍然有用。 首先从满足当前要求、保留有代表性的负荷测试和基于观察到的瓶颈的规模的最简单的地形学开始。

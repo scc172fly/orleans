@@ -7,8 +7,8 @@ using static Orleans.CodeGenerator.SerializerGenerator;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Describes construction using the same ordered service fields as codec and copier emission.
-/// Array requests retain their definition's type parameters so closed contexts preserve concrete service selection.
+/// 描述建筑时使用的是代码和复印机排放的相同订购服务领域。
+/// 阵列请求保留其定义的类别参数,因此封闭的环境保留了具体服务选择。
 /// </summary>
 internal sealed class GeneratedTypeConstruction
 {

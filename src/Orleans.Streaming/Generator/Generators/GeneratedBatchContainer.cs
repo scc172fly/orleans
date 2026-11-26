@@ -8,7 +8,7 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Generator
 {
     /// <summary>
-    /// <see cref="IBatchContainer"/> implementation for generated event payloads.
+    /// 所产生事件有效载荷的<see cref="IBatchContainer"/> 实施。
     /// </summary>
     [GenerateSerializer]
     public sealed class GeneratedBatchContainer : IBatchContainer
@@ -21,32 +21,32 @@ namespace Orleans.Providers.Streams.Generator
         public StreamSequenceToken SequenceToken => RealToken;
 
         /// <summary>
-        /// Gets the real token.
+        /// 得到真正的标志。
         /// </summary>
-        /// <value>The real token.</value>
+        /// <value>真实的牌子。</value>
         [Id(1)]
         public EventSequenceTokenV2 RealToken { get; }
 
         /// <summary>
-        /// Gets the enqueue time (UTC).
+        /// 获取排程时间( UTC) 。
         /// </summary>
-        /// <value>The enqueue time (UTC).</value>
+        /// <value>编码时间( UTC)</value>
         [Id(2)]
         public DateTime EnqueueTimeUtc { get; }
 
         /// <summary>
-        /// Gets the payload.
+        /// 得到有效载荷。
         /// </summary>
-        /// <value>The payload.</value>
+        /// <value>有效载荷</value>
         [Id(3)]
         public object Payload { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GeneratedBatchContainer"/> class.
+        /// 初始化 <see cref="GeneratedBatchContainer"/> 类的新实例。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="payload">The payload.</param>
-        /// <param name="token">The token.</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="payload">有效载荷</param>
+        /// <param name="token">牌子。</param>
         public GeneratedBatchContainer(StreamId streamId, object payload, EventSequenceTokenV2 token)
         {
             StreamId = streamId;

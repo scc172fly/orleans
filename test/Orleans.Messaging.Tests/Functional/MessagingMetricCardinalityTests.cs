@@ -20,7 +20,7 @@ public sealed class MessagingMetricCardinalityTests : MessagingBehaviorTestBase
         var context = Fixture.GetGrainContext(receiver);
         var services = context.ActivationServices;
         IMessagingExtension extension = services.GetRequiredService<Inbox>();
-        // The pump runs alongside grain calls, so holding the handler keeps the accepted message pending.
+        // 泵在 grain 调用的同时运行,所以按住处理器会保持接收的信息等待状态。
         using var handler = Fixture.HandlerProbe.Arm(receiver.GetGrainId(), "messages/metric-pending");
         var envelope = CreateEnvelope(receiver, NewMessage(451, "duplicate-receipts"), "messages/metric-pending");
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await StartDelivery());

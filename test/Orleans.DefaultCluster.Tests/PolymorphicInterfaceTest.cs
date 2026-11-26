@@ -6,11 +6,11 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for polymorphic grain interfaces in Orleans.
-    /// Demonstrates how grains can implement multiple interfaces with inheritance
-    /// hierarchies, and how grain references can be cast between compatible interfaces.
-    /// This enables object-oriented patterns where grains expose different levels
-    /// of functionality through interface inheritance.
+    /// 多形态试验 grain 接口 Orleans.
+    /// 演示 grains 如何能实施多个与继承的接口
+    /// 等级,以及如何在兼容的界面之间绘制 grain 引用。
+    /// 允许在 grains 暴露不同级别时以对象为导向的模式
+    /// 通过互动继承发挥功能。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -22,9 +22,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests basic polymorphic interface method calls.
-        /// Verifies that a grain implementing interface IA can be accessed
-        /// through that interface and all methods are properly dispatched.
+        /// 测试基本多形态界面方法调用。
+        /// 证明可访问 grain 实施接口 IA
+        /// 通过该接口,所有方法均妥善发送。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task Polymorphic_SimpleTest()
@@ -37,22 +37,22 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests upcasting grain references through interface inheritance hierarchies.
-        /// Verifies that a grain reference can be cast to any interface in its
-        /// inheritance chain and that methods from all interfaces remain accessible
-        /// after casting. Demonstrates interface covariance in grain references.
+        /// 通过界面继承等级,测试对 grain 引用进行升级。
+        /// 证明a grain 中的任何界面可以投入
+        /// 继承链,所有界面的方法仍然可以使用
+        /// 铸件后。在 grain 引用中显示界面共变量。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task Polymorphic_UpCastTest()
         {
             var grainFullName = typeof(PolymorphicTestGrain).FullName;
             IC ICRef = this.GrainFactory.GetGrain<IC>(GetRandomGrainId(), grainFullName);
-            IA IARef = ICRef; // cast to polymorphic interface
+            IA IARef = ICRef; // 绑绑到多色界面
             Assert.Equal("A1", await IARef.A1Method());
             Assert.Equal("A2", await IARef.A2Method());
             Assert.Equal("A3", await IARef.A3Method());
 
-            IB IBRef = ICRef; // cast to polymorphic interface
+            IB IBRef = ICRef; // 绑绑到多色界面
             Assert.Equal("B1", await IBRef.B1Method());
             Assert.Equal("B2", await IBRef.B2Method());
             Assert.Equal("B3", await IBRef.B3Method());
@@ -63,7 +63,7 @@ namespace DefaultCluster.Tests.General
             Assert.Equal("F2", await IFRef.F2Method());
             Assert.Equal("F3", await IFRef.F3Method());
 
-            IE IERef = IFRef; // cast to polymorphic interface
+            IE IERef = IFRef; // 绑绑到多色界面
             Assert.Equal("E1", await IERef.E1Method());
             Assert.Equal("E2", await IERef.E2Method());
             Assert.Equal("E3", await IERef.E3Method());
@@ -71,26 +71,26 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests factory methods that return polymorphic grain references.
-        /// Verifies that grain factory can create grains using one interface type
-        /// but return them as a different compatible interface type,
-        /// enabling factory patterns with interface abstraction.
+        /// 测试工厂返回多形态 grain 参考的法。
+        /// 证明 grain 工厂能够使用一个接口类型创建 grains
+        /// 返回它们为不同的兼容界面类型,
+        /// 具有界面抽象化的有利工厂模式。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task Polymorphic_FactoryMethods()
         {
             var grainFullName = typeof(PolymorphicTestGrain).FullName;
-            IC ICRef = this.GrainFactory.GetGrain<IF>(GetRandomGrainId(), grainFullName); // FRef factory method returns a polymorphic reference to ICRef
+            IC ICRef = this.GrainFactory.GetGrain<IF>(GetRandomGrainId(), grainFullName); // Freef 工厂法返回 IPDrew 的多色引用
             Assert.Equal("B2", await ICRef.B2Method());
 
-            IA IARef = this.GrainFactory.GetGrain<ID>(GetRandomGrainId(), grainFullName); // DRef factory method returns a polymorphic reference to IARef
+            IA IARef = this.GrainFactory.GetGrain<ID>(GetRandomGrainId(), grainFullName); // Dref 工厂方法返回一个多色引用 IARef
             Assert.Equal("A1", await IARef.A1Method());
         }
 
         /// <summary>
-        /// Tests a service-style grain that implements multiple interfaces.
-        /// Verifies that a single grain can expose multiple sets of functionality
-        /// through different interfaces, similar to a service exposing multiple contracts.
+        /// 测试一个服务型 grain ,该型号可安装多个接口。
+        /// 证明单 grain 可暴露多套功能
+        /// 与暴露多个合同的服务类似。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task Polymorphic_ServiceType()
@@ -106,15 +106,15 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests resolution of ambiguous methods in diamond inheritance scenarios.
-        /// When multiple interfaces define the same method signature, verifies that
-        /// casting to specific interfaces correctly resolves which implementation
-        /// is called, following C# interface inheritance rules.
+        /// 测试如何解决钻石继承设想中的模糊方法。
+        /// 当多个界面定义同一方法的签名时,当多个接口定义了相同的方法签名时,验证
+        /// 选择特定界面正确解决执行哪个
+        /// 被称作,遵循C#界面继承规则。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task Polymorphic_InheritedMethodAmbiguity()
         {
-            // Tests interface inheritance hierarchies which involve duplicate method names, requiring casting to resolve the ambiguity.
+            // 测试继承等级的交错,涉及方法名称重复,需要作出选择才能解决模糊问题。
             var grainFullName = typeof(ServiceType).FullName;
             var serviceRef = this.GrainFactory.GetGrain<IServiceType>(GetRandomGrainId(), grainFullName);
             var ia = (IA)serviceRef;
@@ -126,13 +126,13 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Comprehensive test for complex polymorphic grain scenarios.
-        /// Tests a derived service type that implements multiple interface hierarchies,
-        /// verifying that:
-        /// - All interfaces in the inheritance chain are accessible
-        /// - Cross-casting between unrelated interfaces works when supported
-        /// - Derived interface methods are available alongside base methods
-        /// This consolidates all polymorphic grain reference use cases.
+        /// 复杂多形态 grain 情景的综合测试。
+        /// 测试一个衍生服务类型,该类型可实施多个接口等级,
+        /// 核实:
+        /// - 继承链中的所有接口都无障碍
+        /// - 支持时在不相关接口之间交叉播报
+        /// - 与基本方法同时可用衍生接口法
+        /// 这将合并所有多形态 grain 参考使用案例。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task Polymorphic__DerivedServiceType()
@@ -146,7 +146,7 @@ namespace DefaultCluster.Tests.General
             Assert.Equal("A3", await IARef.A3Method());
 
 
-            IB IBRef = (IB)IARef; // this could result in an invalid cast exception but it shoudn't because we have a priori knowledge that DerivedServiceType implements the interface
+            IB IBRef = (IB)IARef; // 这可能会导致无效的投放例外,但不会发生,因为我们事先知道 DerivedServiceType 执行接口
             Assert.Equal("B1", await IBRef.B1Method());
             Assert.Equal("B2", await IBRef.B2Method());
             Assert.Equal("B3", await IBRef.B3Method());
@@ -166,7 +166,7 @@ namespace DefaultCluster.Tests.General
             Assert.Equal("H2", await IHRef.H2Method());
             Assert.Equal("H3", await IHRef.H3Method());
 
-            IServiceType serviceTypeRef = derivedRef; // upcast the pointer reference
+            IServiceType serviceTypeRef = derivedRef; // 向上显示指针引用
             Assert.Equal("ServiceTypeMethod1", await serviceTypeRef.ServiceTypeMethod1());
             Assert.Equal("ServiceTypeMethod2", await serviceTypeRef.ServiceTypeMethod2());
             Assert.Equal("ServiceTypeMethod3", await serviceTypeRef.ServiceTypeMethod3());

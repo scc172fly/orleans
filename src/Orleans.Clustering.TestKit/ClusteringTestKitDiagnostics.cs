@@ -1,12 +1,12 @@
 namespace Orleans.Clustering.TestKit;
 
-/// <summary>An unconditional membership contract violation, independent of any test framework.</summary>
+/// <summary>无条件违反成员资格合同,不以任何测试框架为限。</summary>
 public sealed class ClusteringConformanceException : Exception
 {
-    /// <summary>Creates a conformance failure with actionable observation details.</summary>
+    /// <summary>产生符合性故障,并附有可操作的观察细节。</summary>
     public ClusteringConformanceException(string message) : base(message) { }
 
-    /// <summary>Creates a conformance failure retaining the underlying operation failure.</summary>
+    /// <summary>创建符合性故障,保留基本操作故障。</summary>
     public ClusteringConformanceException(string message, Exception innerException) : base(message, innerException) { }
 }
 

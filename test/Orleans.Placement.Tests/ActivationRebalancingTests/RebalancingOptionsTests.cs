@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.ActivationRebalancingTests;
 
 /// <summary>
-/// Tests for activation rebalancer configuration options validation.
+/// 启动再平衡配置选项验证测试。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

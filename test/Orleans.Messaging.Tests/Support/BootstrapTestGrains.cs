@@ -213,7 +213,7 @@ public abstract class BootstrapControlGrain : Grain, IBootstrapControlGrain, IDi
     public Task PingAsync() => Task.CompletedTask;
     public void Dispose() => Observation.GrainDisposals++;
 }
-/// <summary>A control grain which enables messaging by resolving its inbox and outbox.</summary>
+/// <summary>控制 grain ,它通过解决其信箱和发件箱而能够发送信息。</summary>
 public abstract class MessagingBootstrapControlGrain : BootstrapControlGrain
 {
     protected MessagingBootstrapControlGrain(BootstrapObservation observation, IInbox inbox, IOutbox outbox) : base(observation)

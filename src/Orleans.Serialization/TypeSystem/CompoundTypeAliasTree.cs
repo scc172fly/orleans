@@ -5,14 +5,14 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// Represents a compound type aliases as a prefix tree.
+/// 表示复合类别名为前缀树。
 /// </summary>
 public class CompoundTypeAliasTree
 {
     private Dictionary<object, CompoundTypeAliasTree>? _children;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CompoundTypeAliasTree"/> class.
+    /// 初始化 <see cref="CompoundTypeAliasTree"/> 类的新实例。
     /// </summary>
     private CompoundTypeAliasTree(object? key, Type? value)
     {
@@ -21,17 +21,17 @@ public class CompoundTypeAliasTree
     }
 
     /// <summary>
-    /// Gets the key for this node.
+    /// 获得此节点的钥匙 。
     /// </summary>
     public object? Key { get; }
 
     /// <summary>
-    /// Gets the value for this node.
+    /// 获取此节点的值 。
     /// </summary>
     public Type? Value { get; private set; }
 
     /// <summary>
-    /// Creates a new tree with a root node which has no key or value.
+    /// 创建没有密钥或值的根节点新树。
     /// </summary>
     public static CompoundTypeAliasTree Create() => new(default, default);
 
@@ -53,43 +53,43 @@ public class CompoundTypeAliasTree
     }
 
     /// <summary>
-    /// Adds a node to the tree.
+    /// 添加树上的节点。
     /// </summary>
-    /// <param name="key">The key for the new node.</param>
+    /// <param name="key">新节点的密钥。</param>
     public CompoundTypeAliasTree Add(Type key) => AddInternal(key);
 
     /// <summary>
-    /// Adds a node to the tree.
+    /// 添加树上的节点。
     /// </summary>
-    /// <param name="key">The key for the new node.</param>
+    /// <param name="key">新节点的密钥。</param>
     public CompoundTypeAliasTree Add(string key) => AddInternal(key);
 
     /// <summary>
-    /// Adds a node to the tree.
+    /// 添加树上的节点。
     /// </summary>
-    /// <param name="key">The key for the new node.</param>
-    /// <param name="value">The value for the new node.</param>
+    /// <param name="key">新节点的密钥。</param>
+    /// <param name="value">新节点的值。</param>
     public CompoundTypeAliasTree Add(string key, Type value) => AddInternal(key, value);
 
     /// <summary>
-    /// Gets or creates an intermediate node while preserving its registered type value.
+    /// 获取或创建中间节点,同时保留其注册类型值。
     /// </summary>
-    /// <param name="key">The component type.</param>
-    /// <returns>The existing or created node.</returns>
+    /// <param name="key">组件类型。</param>
+    /// <returns>现有或创建的节点。</returns>
     public CompoundTypeAliasTree GetOrAdd(Type key) => GetChildOrDefault(key) ?? AddInternal(key);
 
     /// <summary>
-    /// Gets or creates an intermediate node while preserving its registered type value.
+    /// 获取或创建中间节点,同时保留其注册类型值。
     /// </summary>
-    /// <param name="key">The component name.</param>
-    /// <returns>The existing or created node.</returns>
+    /// <param name="key">组件名称。</param>
+    /// <returns>现有或创建的节点。</returns>
     public CompoundTypeAliasTree GetOrAdd(string key) => GetChildOrDefault(key) ?? AddInternal(key);
 
     /// <summary>
-    /// Adds a node to the tree.
+    /// 添加树上的节点。
     /// </summary>
-    /// <param name="key">The key for the new node.</param>
-    /// <param name="value">The value for the new node.</param>
+    /// <param name="key">新节点的密钥。</param>
+    /// <param name="value">新节点的值。</param>
     public CompoundTypeAliasTree Add(Type key, Type value) => AddInternal(key, value);
 
     private CompoundTypeAliasTree AddInternal(object key) => AddInternal(key, default);
@@ -106,13 +106,13 @@ public class CompoundTypeAliasTree
         {
             if (value is not null && existing.Value is { } type && type != value)
             {
-                // When the same grain interface is used across multiple assemblies which don't have cross references,
-                // code-gen will generate code for both because it works in isolation, yet at startup they are combined.
+                // 当同一个 grain 接口在多个没有交叉引用的组件中被使用时,
+                // 代码- gen 将生成两个代码的代码, 因为它独立运作, 但是在启动时它们会合并。
 
-                // In this case, if the key is present, and the value is the same as the one being added,
-                // and due to them being logically the same, we can just return the existing CompoundTypeAliasTree.
+                // 在这种情况下,如果钥匙存在,其价值与所添加的价值相同,
+                // 并且由于逻辑上是一样的,我们可以只归还现有的 CompoundTypeAliasTree。
 
-                // The first one is allowed to win in this case.
+                // 本案中第一个可以获胜。
                 return existing;
             }
 

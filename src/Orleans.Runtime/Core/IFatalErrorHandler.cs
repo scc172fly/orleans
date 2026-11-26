@@ -3,23 +3,23 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Interface for controlling how fatal errors (such as a silo being declared defunct) are handled.
+    /// 控制处理致命错误(例如宣布失效的 silo )的接口。
     /// </summary>
     public interface IFatalErrorHandler
     {
         /// <summary>
-        /// Determines whether the specified exception is unexpected.
+        /// 确定指定例外是否出乎意料。
         /// </summary>
-        /// <param name="exception">The exception.</param>
-        /// <returns><see langword="true"/> if the specified exception is unexpected; otherwise, <see langword="false"/>.</returns>
+        /// <param name="exception">例外。</param>
+        /// <returns><see langword="true"/> ,如果特定例外情形出乎意料;否则, <see langword="false"/>。</returns>
         bool IsUnexpected(Exception exception);
 
         /// <summary>
-        /// Called when a fatal exception occurs.
+        /// 发生致命例外时被调用
         /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="context">The context.</param>
-        /// <param name="exception">The exception.</param>
+        /// <param name="sender">发件人</param>
+        /// <param name="context">上下文。</param>
+        /// <param name="exception">例外。</param>
         void OnFatalException(object? sender = null, string? context = null, Exception? exception = null);
     }
 }

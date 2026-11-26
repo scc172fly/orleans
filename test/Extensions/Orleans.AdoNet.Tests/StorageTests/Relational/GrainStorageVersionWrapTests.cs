@@ -9,14 +9,14 @@ using TestState1 = UnitTests.StorageTests.Relational.TestDataSets.TestState1;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Grain state version scenarios shared by the relational back-ends.
+    /// Grain 状态版本情景,由关联后端共享。
     /// </summary>
     internal static class GrainStorageVersionWrapTests
     {
         private static readonly string MaximumVersion = int.MaxValue.ToString(CultureInfo.InvariantCulture);
 
         /// <summary>
-        /// Writing and clearing a state at the maximum version wraps the version to 1 instead of overflowing.
+        /// 以最大版本封套为 1 而不是溢出, 写入并清除状态 。
         /// </summary>
         public static async Task VersionWrapsAfterMaximum(
             IGrainStorage storage, IRelationalStorage database, bool deleteStateOnClear, CancellationToken cancellationToken, IGrainStorage? compatibilityReader = null)

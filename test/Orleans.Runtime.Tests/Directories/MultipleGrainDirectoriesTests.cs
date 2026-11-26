@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.Directories
 {
     /// <summary>
-    /// Base class for testing multiple grain directory implementations across cluster silos.
+    /// 测试多重基准等级 grain 集集中执行目录 silos.
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("GrainDirectory")]
@@ -25,21 +25,21 @@ namespace Tester.Directories
             var grainOnPrimary = await GetGrainOnPrimary().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
             var grainOnSecondary = await GetGrainOnSecondary().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-            // Setup
+            // 设置设置设置设置
             var primaryCounter = await grainOnPrimary.Ping();
             var secondaryCounter = await grainOnSecondary.Ping();
 
-            // Each silo see the activation on the other silo
+            // 每个 silo 见另一个 silo上显示激活
             Assert.Equal(++primaryCounter, await grainOnSecondary.ProxyPing(grainOnPrimary));
             Assert.Equal(++secondaryCounter, await grainOnPrimary.ProxyPing(grainOnSecondary));
 
             await Task.Delay(5000, TestContext.Current.CancellationToken);
 
-            // Shutdown the secondary silo
+            // 关闭二级 silo
             await this.HostedCluster.StopSecondarySilosAsync(TestContext.Current.CancellationToken);
 
-            // Activation on the primary silo should still be there, another activation should be
-            // created for the other one
+            // 启动初级 silo 应仍然在现场,另外的激活应
+            // 为另一个创建的
             Assert.Equal(++primaryCounter, await grainOnPrimary.Ping());
             Assert.Equal(1, await grainOnSecondary.Ping());
         }

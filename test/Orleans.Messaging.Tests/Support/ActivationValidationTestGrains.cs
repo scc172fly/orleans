@@ -142,13 +142,13 @@ public interface IInboxlessGrain : IGrainWithGuidKey
     Task PingAsync();
 }
 
-/// <summary>A journaled grain which never resolves its inbox.</summary>
+/// <summary>日记 grain ,它永远无法解析其收件箱。</summary>
 public sealed class InboxlessDurableGrain : DurableGrain, IInboxlessGrain
 {
     public Task PingAsync() => Task.CompletedTask;
 }
 
-/// <summary>A grain which uses neither journaling nor its inbox.</summary>
+/// <summary>A grain ,既不使用日记也不使用其收件箱。</summary>
 public sealed class InboxlessPlainGrain : Grain, IInboxlessGrain
 {
     public Task PingAsync() => Task.CompletedTask;

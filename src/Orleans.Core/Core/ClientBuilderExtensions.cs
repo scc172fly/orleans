@@ -16,37 +16,37 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for <see cref="IClientBuilder"/>.
+    /// <see cref="IClientBuilder"/>的推广方法。
     /// </summary>
     public static class ClientBuilderExtensions
     {
         /// <summary>
-        /// Configures the provided delegate as a connection retry filter, used to determine whether initial connection to the Orleans cluster should be retried after a failure.
+        /// 配置所提供代表作为连接再试过滤器的配置,用于确定是否在失败后重新访问与 Orleans 组群的初始连接。
         /// </summary>
-        /// <param name="builder">The host builder.</param>
-        /// <param name="connectionRetryFilter">The connection retry filter.</param>
-        /// <returns>The same instance of the <see cref="IClientBuilder"/> for chaining.</returns>
+        /// <param name="builder">主机建造者。</param>
+        /// <param name="connectionRetryFilter">连接重试过滤器。</param>
+        /// <returns>同一案件 <see cref="IClientBuilder"/> 系链。</returns>
         public static IClientBuilder UseConnectionRetryFilter(this IClientBuilder builder, Func<Exception, CancellationToken, Task<bool>> connectionRetryFilter)
         {
             return builder.ConfigureServices(collection => collection.AddSingleton<IClientConnectionRetryFilter>(new DelegateConnectionRetryFilter(connectionRetryFilter)));
         }
 
         /// <summary>
-        /// Configures the provided delegate as a connection retry filter, used to determine whether initial connection to the Orleans cluster should be retried after a failure.
+        /// 配置所提供代表作为连接再试过滤器的配置,用于确定是否在失败后重新访问与 Orleans 组群的初始连接。
         /// </summary>
-        /// <param name="builder">The host builder.</param>
-        /// <param name="connectionRetryFilter">The connection retry filter.</param>
-        /// <returns>The same instance of the <see cref="IClientBuilder"/> for chaining.</returns>
+        /// <param name="builder">主机建造者。</param>
+        /// <param name="connectionRetryFilter">连接重试过滤器。</param>
+        /// <returns>同一案件 <see cref="IClientBuilder"/> 系链。</returns>
         public static IClientBuilder UseConnectionRetryFilter(this IClientBuilder builder, IClientConnectionRetryFilter connectionRetryFilter)
         {
             return builder.ConfigureServices(collection => collection.AddSingleton<IClientConnectionRetryFilter>(connectionRetryFilter));
         }
 
         /// <summary>
-        /// Configures the provided <typeparamref name="TConnectionRetryFilter"/> type as a connection retry filter, used to determine whether initial connection to the Orleans cluster should be retried after a failure.
+        /// 配置提供的 <typeparamref name="TConnectionRetryFilter"/> 类型,作为连接再试过滤器,用于确定是否在失败后重新尝试与 Orleans 组的初始连接。
         /// </summary>
-        /// <param name="builder">The host builder.</param>
-        /// <returns>The same instance of the <see cref="IClientBuilder"/> for chaining.</returns>
+        /// <param name="builder">主机建造者。</param>
+        /// <returns>同一案件 <see cref="IClientBuilder"/> 系链。</returns>
         public static IClientBuilder UseConnectionRetryFilter<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TConnectionRetryFilter>(
             this IClientBuilder builder)
@@ -63,11 +63,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds services to the container. This can be called multiple times and the results will be additive.
+        /// 添加容器服务。 这可以被多次调用, 结果将是添加 。
         /// </summary>
-        /// <param name="builder">The host builder.</param>
+        /// <param name="builder">主机建造者。</param>
         /// <param name="configureDelegate"></param>
-        /// <returns>The same instance of the <see cref="IClientBuilder"/> for chaining.</returns>
+        /// <returns>同一案件 <see cref="IClientBuilder"/> 系链。</returns>
         public static IClientBuilder ConfigureServices(this IClientBuilder builder, Action<IServiceCollection> configureDelegate)
         {
             ArgumentNullException.ThrowIfNull(builder);
@@ -77,31 +77,31 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Registers an action used to configure a particular type of options.
+        /// 注册用于配置特定选项类型的动作。
         /// </summary>
-        /// <typeparam name="TOptions">The options type to be configured.</typeparam>
-        /// <param name="builder">The host builder.</param>
-        /// <param name="configureOptions">The action used to configure the options.</param>
-        /// <returns>The client builder.</returns>
+        /// <typeparam name="TOptions">要配置的选项类型。</typeparam>
+        /// <param name="builder">主机建造者。</param>
+        /// <param name="configureOptions">用于配置选项的动作。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder Configure<TOptions>(this IClientBuilder builder, Action<TOptions> configureOptions) where TOptions : class
         {
             return builder.ConfigureServices(services => services.Configure(configureOptions));
         }
 
         /// <summary>
-        /// Registers a configuration instance which <typeparamref name="TOptions"/> will bind against.
+        /// 登记一个 <typeparamref name="TOptions"/> 将约束的配置实例。
         /// </summary>
-        /// <typeparam name="TOptions">The options type to be configured.</typeparam>
-        /// <param name="builder">The host builder.</param>
-        /// <param name="configuration">The configuration.</param>
-        /// <returns>The client builder.</returns>
+        /// <typeparam name="TOptions">要配置的选项类型。</typeparam>
+        /// <param name="builder">主机建造者。</param>
+        /// <param name="configuration">配置。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder Configure<TOptions>(this IClientBuilder builder, IConfiguration configuration) where TOptions : class
         {
             return builder.ConfigureServices(services => services.AddOptions<TOptions>().Bind(configuration));
         }
 
         /// <summary>
-        /// Registers a <see cref="GatewayCountChangedHandler"/> event handler.
+        /// 注册一个 <see cref="GatewayCountChangedHandler"/> 事件处理程序 。
         /// </summary>
         public static IClientBuilder AddGatewayCountChangedHandler(this IClientBuilder builder, GatewayCountChangedHandler handler)
         {
@@ -110,7 +110,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Registers a <see cref="GatewayCountChangedHandler"/> event handler.
+        /// 注册一个 <see cref="GatewayCountChangedHandler"/> 事件处理程序 。
         /// </summary>
         public static IClientBuilder AddGatewayCountChangedHandler(this IClientBuilder builder, Func<IServiceProvider, GatewayCountChangedHandler> handlerFactory)
         {
@@ -119,7 +119,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Registers a cluster connection status observer.
+        /// 登记一个与集群连接的观察员地位观察员。
         /// </summary>
         public static IClientBuilder AddClusterConnectionStatusObserver<TObserver>(this IClientBuilder builder, TObserver observer)
             where TObserver : IClusterConnectionStatusObserver
@@ -131,7 +131,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Registers a cluster connection status observer.
+        /// 登记一个与集群连接的观察员地位观察员。
         /// </summary>
         public static IClientBuilder AddClusterConnectionStatusObserver<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TObserver>(
@@ -144,11 +144,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Registers a <see cref="ConnectionToClusterLostHandler"/> event handler.
+        /// 注册一个 <see cref="ConnectionToClusterLostHandler"/> 事件处理程序 。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="handler">The handler.</param>
-        /// <returns>The builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="handler">处理器。</param>
+        /// <returns>建筑工。</returns>
         public static IClientBuilder AddClusterConnectionLostHandler(this IClientBuilder builder, ConnectionToClusterLostHandler handler)
         {
             builder.ConfigureServices(services => services.AddSingleton(handler));
@@ -156,11 +156,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Registers a <see cref="ConnectionToClusterLostHandler"/> event handler.
+        /// 注册一个 <see cref="ConnectionToClusterLostHandler"/> 事件处理程序 。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="handlerFactory">The handler factory.</param>
-        /// <returns>The builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="handlerFactory">处理厂</param>
+        /// <returns>建筑工。</returns>
         public static IClientBuilder AddClusterConnectionLostHandler(this IClientBuilder builder, Func<IServiceProvider, ConnectionToClusterLostHandler> handlerFactory)
         {
             builder.ConfigureServices(services => services.AddSingleton(handlerFactory));
@@ -168,11 +168,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Add <see cref="Activity.Current"/> propagation through grain calls.
-        /// Note: according to <see cref="ActivitySource.StartActivity(string, ActivityKind)"/> activity will be created only when any listener for activity exists <see cref="ActivitySource.HasListeners()"/> and <see cref="ActivityListener.Sample"/> returns <see cref="ActivitySamplingResult.PropagationData"/>.
+        /// 添加添加添加 <see cref="Activity.Current"/> 通过 grain 电话
+        /// 注:根据 <see cref="ActivitySource.StartActivity(string, ActivityKind)"/> 活动,只有在存在任何活动听众时才会创建 <see cref="ActivitySource.HasListeners()"/> 和 <see cref="ActivityListener.Sample"/> 返回 <see cref="ActivitySamplingResult.PropagationData"/>。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <returns>The builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <returns>建筑工。</returns>
         public static IClientBuilder AddActivityPropagation(this IClientBuilder builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
@@ -184,22 +184,22 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to connect to a silo on the localhost.
+        /// 配置客户端连接到本地主机上的 silo 。
         /// </summary>
         /// <param name="builder">
-        /// The client builder.
+        /// 客户的建设者
         /// </param>
         /// <param name="gatewayPort">
-        /// The local silo's gateway port.
+        /// 本地 silo的网关端口。
         /// </param>
         /// <param name="serviceId">
-        /// The service id.
+        /// 服务代号
         /// </param>
         /// <param name="clusterId">
-        /// The cluster id.
+        /// 组号 ID 。
         /// </param>
         /// <returns>
-        /// The <see cref="IClientBuilder"/>.
+        /// 下 <see cref="IClientBuilder"/>.
         /// </returns>
         public static IClientBuilder UseLocalhostClustering(
             this IClientBuilder builder,
@@ -211,22 +211,22 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to connect to a silo on the localhost.
+        /// 配置客户端连接到本地主机上的 silo 。
         /// </summary>
         /// <param name="builder">
-        /// The client builder.
+        /// 客户的建设者
         /// </param>
         /// <param name="gatewayPorts">
-        /// The local silo gateway ports.
+        /// 本地 silo 网关端口。
         /// </param>
         /// <param name="serviceId">
-        /// The service id.
+        /// 服务代号
         /// </param>
         /// <param name="clusterId">
-        /// The cluster id.
+        /// 组号 ID 。
         /// </param>
         /// <returns>
-        /// The <see cref="IClientBuilder"/>.
+        /// 下 <see cref="IClientBuilder"/>.
         /// </returns>
         public static IClientBuilder UseLocalhostClustering(this IClientBuilder builder,
             int[] gatewayPorts,
@@ -236,7 +236,7 @@ namespace Orleans.Hosting
             return builder.UseStaticClustering(gatewayPorts.Select(p => new IPEndPoint(IPAddress.Loopback, p)).ToArray())
                 .ConfigureServices(services =>
                 {
-                    // If the caller did not override service id or cluster id, configure default values as a fallback.
+                    // 如果调用者没有覆盖服务 ID 或群集 id, 请将默认值配置为后退 。
                     if (string.Equals(serviceId, ClusterOptions.DevelopmentServiceId, StringComparison.Ordinal) && string.Equals(clusterId, ClusterOptions.DevelopmentClusterId, StringComparison.Ordinal))
                     {
                         services.PostConfigure<ClusterOptions>(options =>
@@ -257,16 +257,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to use static clustering.
+        /// 配置客户端使用静态组合。
         /// </summary>
         /// <param name="builder">
-        /// The client builder.
+        /// 客户的建设者
         /// </param>
         /// <param name="endpoints">
-        /// The gateway endpoints.
+        /// 网关终点
         /// </param>
         /// <returns>
-        /// The <see cref="IClientBuilder"/>.
+        /// 下 <see cref="IClientBuilder"/>.
         /// </returns>
         public static IClientBuilder UseStaticClustering(this IClientBuilder builder, params IPEndPoint[] endpoints)
         {
@@ -274,16 +274,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to use static clustering.
+        /// 配置客户端使用静态组合。
         /// </summary>
         /// <param name="builder">
-        /// The client builder.
+        /// 客户的建设者
         /// </param>
         /// <param name="configureOptions">
-        /// The configure Options.
+        /// 配置选项 。
         /// </param>
         /// <returns>
-        /// The <see cref="IClientBuilder"/>.
+        /// 下 <see cref="IClientBuilder"/>.
         /// </returns>
         public static IClientBuilder UseStaticClustering(this IClientBuilder builder, Action<StaticGatewayListProviderOptions> configureOptions)
         {
@@ -301,16 +301,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to use static clustering.
+        /// 配置客户端使用静态组合。
         /// </summary>
         /// <param name="builder">
-        /// The client builder.
+        /// 客户的建设者
         /// </param>
         /// <param name="configureOptions">
-        /// The configure Options.
+        /// 配置选项 。
         /// </param>
         /// <returns>
-        /// The <see cref="IClientBuilder"/>.
+        /// 下 <see cref="IClientBuilder"/>.
         /// </returns>
         public static IClientBuilder UseStaticClustering(this IClientBuilder builder, Action<OptionsBuilder<StaticGatewayListProviderOptions>> configureOptions)
         {

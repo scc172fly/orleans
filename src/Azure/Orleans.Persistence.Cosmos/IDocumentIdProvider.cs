@@ -1,15 +1,15 @@
 namespace Orleans.Persistence.Cosmos;
 
 /// <summary>
-/// Gets document and partition identifiers for grain state documents.
+/// 获取 grain 状态文档的文档和分区标识符。
 /// </summary>
 public interface IDocumentIdProvider
 {
     /// <summary>
-    /// Gets the document identifier for the specified grain.
+    /// 获取指定 grain的文档标识符。
     /// </summary>
-    /// <param name="grainType">The grain type.</param>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <returns>The document id and partition key.</returns>
+    /// <param name="grainType"> grain 类型。</param>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <returns>文档代号和分区键。</returns>
     ValueTask<(string DocumentId, string PartitionKey)> GetDocumentIdentifiers(string grainType, GrainId grainId);
 }

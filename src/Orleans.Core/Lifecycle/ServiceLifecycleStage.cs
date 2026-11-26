@@ -2,75 +2,75 @@
 namespace Orleans
 {
     /// <summary>
-    /// Lifecycle stages of an Orleans client or silo.
+    /// Orleans 客户端或 silo的生命周期阶段。
     /// </summary>
     public static class ServiceLifecycleStage
     {
         /// <summary>
-        /// First valid stage in service's lifecycle
+        /// 服役使用寿命周期第一有效阶段
         /// </summary>
         public const int First = int.MinValue;
 
         /// <summary>
-        /// Initialize runtime
+        /// 初始启动运行时间
         /// </summary>
         public const int RuntimeInitialize = 2000;
 
         /// <summary>
-        /// Start runtime services
+        /// 启动运行服务
         /// </summary>
         public const int RuntimeServices = 4000;
 
         /// <summary>
-        /// Initialize runtime storage
+        /// 初始化运行时存储
         /// </summary>
         public const int RuntimeStorageServices = 6000;
 
         /// <summary>
-        /// Start runtime services
+        /// 启动运行服务
         /// </summary>
         public const int RuntimeGrainServices = 8000;
 
         /// <summary>
-        /// After runtime services have started.
+        /// 运行后服务已经开始。
         /// </summary>
         public const int AfterRuntimeGrainServices = 8100;
 
         /// <summary>
-        /// Start application layer services
+        /// 启动应用程序图层服务
         /// </summary>
         public const int ApplicationServices = 10000;
 
         /// <summary>
-        /// Service will be active after this step.
-        /// It should only be used by the membership oracle 
-        /// and the gateway, no other component should run
-        /// at this stage
+        /// 之后将积极提供服务。
+        /// 仅应由成员甲骨文使用 
+        /// 网关,其他部件都不应该运行
+        /// 现阶段
         /// </summary>
         public const int BecomeActive = Active - 1;
 
         /// <summary>
-        /// Deactivate grain activations during silo shutdown.
+        /// 取消活动 grain 启动期间的激活 silo 关闭。
         /// </summary>
         public const int GrainDeactivation = BecomeActive - 1;
 
         /// <summary>
-        /// Stop the grain directory after shutdown-triggered grain migrations have completed.
+        /// 停下来 grain 关闭触发后目录 grain 移民已经完成。
         /// </summary>
         public const int GrainDirectoryShutdown = GrainDeactivation - 1;
 
         /// <summary>
-        /// Validate connectivity to active cluster members before becoming active.
+        /// 在活跃之前,先验证与活跃的集群成员的连接。
         /// </summary>
         public const int ValidateInitialConnectivity = Active - 100;
 
         /// <summary>
-        /// Service is active.
+        /// 服务在进行中。
         /// </summary>
         public const int Active = 20000;
 
         /// <summary>
-        /// Last valid stage in service's lifecycle
+        /// 服役寿命周期的最后有效阶段
         /// </summary>
         public const int Last = int.MaxValue;
     }

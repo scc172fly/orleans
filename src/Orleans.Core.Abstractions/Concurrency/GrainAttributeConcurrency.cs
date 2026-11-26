@@ -10,16 +10,16 @@ using System.Globalization;
 namespace Orleans.Concurrency
 {
     /// <summary>
-    /// The ReadOnly attribute is used to mark methods that do not modify the state of a grain.
+    /// ReadOnly 属性用于标记不修改 grain状态的方法。
     /// <para>
-    /// Marking methods as ReadOnly allows the run-time system to perform a number of optimizations
-    /// that may significantly improve the performance of your application.
+    /// 标记方法 ReadOnly 使运行时系统能够进行若干优化
+    /// 申请后,您可大大改善申请的绩效。
     /// </para>
     /// </summary>
     /// <remarks>
-    /// Apply this attribute to a grain interface method declaration. Read-only requests can interleave with other
-    /// read-only requests. Writable requests wait until all active read-only requests complete unless another
-    /// interleaving policy permits them to overlap.
+    /// 将此属性应用到 grain 接口方法声明。只读请求可与其他
+    /// 仅读只读请求。可写的请求等待所有当前只读只读请求完成后再提出,除非其他
+    /// 相互交错的政策允许它们重叠。
     /// </remarks>
     [InvokableCustomInitializer(nameof(IRequest.AddInvokeMethodOptions), InvokeMethodOptions.ReadOnly)]
     [AttributeUsage(AttributeTargets.Method)]
@@ -28,11 +28,11 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// The Reentrant attribute is used to mark grain implementation classes that allow request interleaving within a task.
+    /// 重新输入属性用于标记 grain 执行类别,允许在任务内进行请求中断。
     /// <para>
-    /// This is an advanced feature and should not be used unless the implications are fully understood.
-    /// That said, allowing request interleaving allows the run-time system to perform a number of optimizations
-    /// that may significantly improve the performance of your application.
+    /// 这是一个先进的特征,除非充分了解其影响,否则不应使用。
+    /// 尽管如此,允许请求相互互换使运行时系统能够进行一些优化
+    /// 申请后,您可大大改善申请的绩效。
     /// </para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
@@ -48,11 +48,11 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// The Unordered attribute is used to mark grain interface in which the delivery order of
-    /// messages is not significant.
+    /// 无顺序的属性用于标记 grain 接口,其中交付顺序
+    /// 信件不重要 。
     /// </summary>
     /// <remarks>
-    /// This attribute has no effect and it may be removed in a future release.
+    /// 这一属性没有效力,将来可予以删除。
     /// </remarks>
     [AttributeUsage(AttributeTargets.Interface)]
     [Obsolete("Message ordering is not guaranteed regardless of whether this attribute is used. This attribute has no effect.")]
@@ -61,33 +61,33 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// The StatelessWorker attribute is used to mark grain class in which there is no expectation
-    /// of preservation of grain state between requests and where multiple activations of the same grain are allowed to be created by the runtime.
+    /// StatelessWorker 属性用于标记无预期的 grain 类
+    /// 保留 grain 状态的请求与允许在运行时多次启动同一 grain 的状态之间。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class StatelessWorkerAttribute : PlacementAttribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatelessWorkerAttribute"/> class.
+        /// 初始化 <see cref="StatelessWorkerAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="maxLocalWorkers">The maximum local workers.</param>
+        /// <param name="maxLocalWorkers">当地工人最多。</param>
         public StatelessWorkerAttribute(int maxLocalWorkers)
             : base(new StatelessWorkerPlacement(maxLocalWorkers))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatelessWorkerAttribute"/> class.
+        /// 初始化 <see cref="StatelessWorkerAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="maxLocalWorkers">The maximum local workers.</param>
-        /// <param name="removeIdleWorkers">A value indicating whether idle worker activations are removed.</param>
+        /// <param name="maxLocalWorkers">当地工人最多。</param>
+        /// <param name="removeIdleWorkers">表示是否删除闲置工人激活的值。</param>
         public StatelessWorkerAttribute(int maxLocalWorkers, bool removeIdleWorkers)
             : base(new StatelessWorkerPlacement(maxLocalWorkers, removeIdleWorkers))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatelessWorkerAttribute"/> class.
+        /// 初始化 <see cref="StatelessWorkerAttribute"/> 类的新实例。
         /// </summary>
         public StatelessWorkerAttribute()
             : base(new StatelessWorkerPlacement())
@@ -103,11 +103,11 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// The AlwaysInterleaveAttribute attribute is used to mark methods that can interleave with any method, including write (non ReadOnly) requests.
+    /// AlwaysInterleaveAttribute 属性用于标示可以与任何方法交叉使用的方法,包括写(非 ReadOnly)请求。
     /// </summary>
     /// <remarks>
-    /// Note that this attribute is applied to method declaration in the grain interface,
-    /// and not to the method in the implementation class itself.
+    /// 请注意,此属性适用于 grain 接口的方法声明,
+    /// 而不是执行舱本身的方法。
     /// </remarks>
     [InvokableCustomInitializer(nameof(IRequest.AddInvokeMethodOptions), InvokeMethodOptions.AlwaysInterleave)]
     [AttributeUsage(AttributeTargets.Method)]
@@ -116,22 +116,22 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// The MayInterleaveAttribute attribute is used to mark classes
-    /// that want to control request interleaving via supplied method callback.
+    /// MayInterleaveAttribute 属性用于标记类
+    /// 想要控制请求通过提供的方法回调中断的连接。
     /// </summary>
     /// <remarks>
-    /// The callback method name should point to a public static function declared on the same class
-    /// and having the following signature: <c>public static bool MayInterleave(IInvokable req)</c>
+    /// 回回调方法名称应指在同一类上宣布的公共静态函数
+    /// 具有以下签名: <c>public static bool MayInterleave(IInvokable req)</c>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class MayInterleaveAttribute : Attribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MayInterleaveAttribute"/> class.
+        /// 初始化 <see cref="MayInterleaveAttribute"/> 类的新实例。
         /// </summary>
         /// <param name="callbackMethodName">
-        /// The callback method name. This should resolve to a method with the 
-        /// following signature: <c>public static bool NameOfMethod(IInvokable req)</c>
+        /// 回调方法名称。 这应该用 
+        /// 以下签字: <c>public static bool NameOfMethod(IInvokable req)</c>
         /// </param>
         public MayInterleaveAttribute(string callbackMethodName)
         {
@@ -139,7 +139,7 @@ namespace Orleans.Concurrency
         }
 
         /// <summary>
-        /// Gets the name of the callback method
+        /// 获取回调方法的名称
         /// </summary>
         internal string CallbackMethodName { get; private set; }
 
@@ -154,7 +154,7 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// Indicates that a method on a grain interface is one-way and that no response message will be sent to the caller.
+    /// 表示 grain 接口上的一种方法是单向的,不会将任何回复信息发送到呼叫者。
     /// </summary>
     [InvokableCustomInitializer(nameof(IRequest.AddInvokeMethodOptions), InvokeMethodOptions.OneWay)]
     [AttributeUsage(AttributeTargets.Method)]

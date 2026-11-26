@@ -1,5 +1,5 @@
 <Project>
-  <!-- Only present inside the repository; a copied-out sample has no parent file to import. -->
+  <!-- 仅存在仓库内; 复制的样本没有父文件可导入 。 -->
   <PropertyGroup>
     <_ParentDirectoryBuildProps>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))</_ParentDirectoryBuildProps>
   </PropertyGroup>

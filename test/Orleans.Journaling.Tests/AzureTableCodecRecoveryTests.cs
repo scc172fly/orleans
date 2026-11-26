@@ -183,7 +183,7 @@ public sealed class AzureTableCodecRecoveryTests : JournalingTestBase, IAsyncLif
         var storage = await _storageProvider.CreateStorage(JournalId.FromGrainId(grainId)).ReadForWriteAsync();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        // Larger than one data row (15 x 64 KiB) so the append spans multiple rows in one transaction.
+        // 大于一个数据行(15x64 KiB),因此附件在一个交易中横跨多个行。
         var payload = new byte[1024 * 1024 + 3];
         Random.Shared.NextBytes(payload);
         await storage.AppendAsync(new ReadOnlySequence<byte>(payload), cts.Token);

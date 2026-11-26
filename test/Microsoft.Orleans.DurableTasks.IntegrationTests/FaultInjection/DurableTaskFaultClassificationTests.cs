@@ -5,13 +5,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// Classifies the outcome of each fault point: an application exception is final and surfaces unchanged, an infrastructure
-/// fault only delays completion, and a delivery which fails until Messaging's <c>OutboxRetryTimeout</c> surfaces to the
-/// sender as <see cref="DurableTaskDeliveryException"/>.
+/// 将每个断点的结果分类:申请的例外是最终的,表面不变,基础设施
+/// 交货到邮电公司 <c>OutboxRetryTimeout</c> 向
+/// 发送件为 <see cref="DurableTaskDeliveryException"/>。
 /// </summary>
 /// <remarks>
-/// Every run uses fresh grains. Only the client polls the workflow's grain; other grains resume through their messages and
-/// wake-ups.
+/// 每运行一次都使用新鲜 grains。只有客户才能对工作流程 grain进行民意调查;其他 grains 则通过信息恢复,
+/// 醒来。
 /// </remarks>
 public abstract class DurableTaskFaultClassificationTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -109,7 +109,7 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
         Assert.Equal(new Dictionary<string, int> { ["echo"] = 1 }, (await partner.GetStateAsync()).Effects);
     }
 
-    /// <summary>An application failure and an infrastructure fault in one run: the application failure wins, unchanged.</summary>
+    /// <summary>应用程序失败和基础设施故障一连串:应用程序失败赢,没有变化。</summary>
     [Theory]
     [InlineData(FaultPoint.DeliveryThrows, FaultRole.Partner, 0, Invoke)]
     [InlineData(FaultPoint.DeliveryResponseLost, FaultRole.Partner, 0, Invoke)]
@@ -136,7 +136,7 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
         await AssertGrainAsync("partner", partner, new() { ["fail"] = 1 });
     }
 
-    /// <summary>An infrastructure fault at each point of the pipeline only delays its completion.</summary>
+    /// <summary>管道每个点的基础设施故障只会延误完成。</summary>
     [Theory]
     [InlineData(FaultPoint.DeliveryThrows, FaultRole.Partner, 0, Invoke)]
     [InlineData(FaultPoint.DeliveryThrows, FaultRole.Workflow, 0, Complete)]
@@ -158,7 +158,7 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
         Assert.True(run.Violations.Count == 0, string.Join(Environment.NewLine, run.Violations));
     }
 
-    /// <summary>A sink which throws is an infrastructure fault: Messaging retries the message, which is accepted once.</summary>
+    /// <summary>投出一个汇的汇是基础设施故障:信件被发送回转,但一次接受。</summary>
     [Theory]
     [InlineData(FaultRole.Partner, Invoke)]
     [InlineData(FaultRole.Workflow, Complete)]
@@ -172,9 +172,9 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
     }
 
     /// <summary>
-    /// A delivery which the receiver admitted before a failed write fenced its journal reaches the inbox while the fenced
-    /// activation deactivates: the inbox's sink fails to stage it, the sender retries, and the next activation accepts the
-    /// message exactly once.
+    /// 接收者在未写失败之前承认的交货,在写失败之前将其日记贴上围栏,到达收箱时,该门栏被围住
+    /// 启动解除: 信箱的水槽无法启动, 发送者重试, 下次激活接受
+    /// 信息准确的说,一次。
     /// </summary>
     [Theory]
     [InlineData(Invoke)]
@@ -191,7 +191,7 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
         _harness.Injector.Reset();
         var hold = _harness.Injector.Arm(FaultPoint.DeliveryHeldAtReceiver, fencedId, 0, subject);
 
-        // The fenced grain admits a delivery and holds it before its inbox sees the message.
+        // 围着栅栏 grain 承认了送货,并在收件箱看到信息之前持有。
         Func<Task<int>> runToCompletion;
         Dictionary<string, int> expectedEffects;
         switch (subject)
@@ -216,9 +216,9 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
 
         await hold.Fired.WaitAsync(DurableTaskFaultHarness.RunTimeout, CancellationToken);
 
-        // The grain's other work, such as its outbox's retirement of a delivered message, finishes first, so the reentrant
-        // call's write is the one which fails. The failure fences the journal and requests deactivation, which waits for the
-        // held call.
+        // grain的其他工作,例如其发件箱已将发送的邮件过期等,先完成,然后重新输入
+        // 失败者是电话的写作失败者。 失败者给日记设置围栏, 并要求停止使用, 而后者等待
+        // 被搁置。
         await _harness.SettleAsync([fencedId], CancellationToken);
         var writeFault = _harness.Injector.Arm(FaultPoint.JournalWriteBeforeDurable, fencedId, 0);
         Assert.StartsWith(InjectedFaultException.MessagePrefix, await fenced.FenceAsync(), StringComparison.Ordinal);
@@ -232,8 +232,8 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
     }
 
     /// <summary>
-    /// A delivery which keeps failing is retried, not dead-lettered, within <c>OutboxRetryTimeout</c>; once it succeeds,
-    /// the call's own outcome, here an application failure, surfaces unchanged.
+    /// 一直不合格货物在 <c>OutboxRetryTimeout</c>内重新检验,而不是用死字编号;一旦成功,
+    /// 电话本身的结果,这里应用程序失败,表面没有变化。
     /// </summary>
     [Fact]
     public async Task FailingDeliveryIsRetriedWithinTheRetryTimeout()
@@ -246,7 +246,7 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
         await _harness.CallAsync(token => workflow.CatchPartnerFailureAsync(partnerKey).WithId("catch").ScheduleAsync(token), CancellationToken);
         await fault.WaitForMatchesAsync(1).WaitAsync(DurableTaskFaultHarness.RunTimeout, CancellationToken);
 
-        // An attempt after the clock passed most of the retry window fails again, and the message stays pending.
+        // 时间过后, 试图再次重试窗口失败, 信件仍待处理 。
         var attempts = fault.Matches;
         _harness.Fixture.JobClock.Advance(OutboxRetryTimeout - TimeSpan.FromHours(1));
         await fault.WaitForMatchesAsync(attempts + 1).WaitAsync(DurableTaskFaultHarness.RunTimeout, CancellationToken);
@@ -259,8 +259,8 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
     }
 
     /// <summary>
-    /// A delivery which fails until <c>OutboxRetryTimeout</c> expires surfaces to the sender as
-    /// <see cref="DurableTaskDeliveryException"/>, never as an application exception.
+    /// 交货未能交货,直至 <c>OutboxRetryTimeout</c> 发送者表面过期于
+    /// <see cref="DurableTaskDeliveryException"/>,从不作为申请例外。
     /// </summary>
     [Fact]
     public async Task DeliveryWhichFailsUntilTheRetryTimeoutFailsTheCallWithDeliveryException()
@@ -311,14 +311,14 @@ public abstract class DurableTaskFaultClassificationTests(string journalFormatKe
     }
 }
 
-/// <summary>Runs fault classification coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行错误分类覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskFaultClassificationTests() : DurableTaskFaultClassificationTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs fault classification coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行以 Orleans 二进制日记格式存储的任务状态的故障分类覆盖。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

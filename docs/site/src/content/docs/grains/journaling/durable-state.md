@@ -1,120 +1,138 @@
 ---
-title: Use durable state
-description: Build an experimental Orleans Journaling grain with durable values and collections.
+title: "使用耐久状态"
+description: "建立一个具有耐久值和收藏的实验 Orleans 日志 grain 。"
 ms.date: 08/21/2026
 ms.topic: how-to
 ---
 
-# Use durable state
+<a id="use-durable-state"></a>
 
-Install the pre-release `Microsoft.Orleans.Durable` package in the silo project. Install a [journal storage provider](configuration.md#choose-a-storage-provider) and configure it before activating grains which use durable state.
+# 使用耐久状态
 
-## Define a durable grain
+安装释放前的安装 `Microsoft.Orleans.Durable` 软件包中 silo 安装 [日记日日日日记存储供应商](configuration.md#choose-a-storage-provider) 激活前配置 grains 使用耐久状态。
 
-Inject <xref:Orleans.Durable.Journaling.IDurableStateManager> into an ordinary <xref:Orleans.Grain> and declare named state components during construction. The manager creates each component once and Orleans recovers the grain's state before application methods run:
+<a id="define-a-durable-grain"></a>
+
+## 定义耐久 grain
+
+将 <xref:Orleans.Durable.Journaling.IDurableStateManager> 注入普通 <xref:Orleans.Grain> ,并宣布在施工期间指定国家部件。经理一次性创建每个组件, Orleans 在应用方法运行前恢复 grain状态:
 
 :::code language="csharp" source="../../snippets/compiled-durable/Grains/JournalingSnippets.cs" id="composed_shopping_cart":::
 
-The standard manager enrolls itself in the grain lifecycle when constructed with the activation's <xref:Orleans.Runtime.IGrainContext>, before resolution returns. Declare durable state components during construction or synchronous activation setup. Recovery at <xref:Orleans.Runtime.GrainLifecycleStage.SetupState> finishes before <xref:Orleans.Grain.OnActivateAsync*> and request processing. The same composition works with an application-owned grain base class.
+标准管理者本身参加 grain 与激活装置一起建造的寿命周期 <xref:Orleans.Runtime.IGrainContext>宣布在施工或同步启动装置期间的持久性状态部件。 <xref:Orleans.Runtime.GrainLifecycleStage.SetupState> 之前的完成时间 <xref:Orleans.Grain.OnActivateAsync*> 同一构成与申请所属机构相同。 grain 基本类。
 
-The dictionary mutation is immediately visible to the current activation. Awaiting <xref:Orleans.Durable.Journaling.IDurableStateManager.WriteStateAsync*> establishes the durability point for pending mutations to the grain's state. Accept a <xref:System.Threading.CancellationToken> on grain operations and flow it through state-manager calls so cancellation follows the caller's operation lifetime.
+字典突变在当前激活时立即可见。 等待 <xref:Orleans.Durable.Journaling.IDurableStateManager.WriteStateAsync*> 确定待变异到 grain状态。 <xref:System.Threading.CancellationToken> 日期 时 grain 并透过国家经理电话进行操作和流动 所以取消在呼叫者行动寿命之后
 
-The composition example is compiled against repository source so it exercises constructor-owned lifecycle enrollment.
+组成示例是根据存储库来源汇编的,因此它采用建筑商拥有的生命周期注册。
 
-<xref:Orleans.Durable.Journaling.IDurableStateManager.GetOrAddState*> accepts an application contract, such as `IDurableDictionary<string, int>`. A registered factory supplies the implementation. The <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions> helpers provide the same access with discoverable names.
+<xref:Orleans.Durable.Journaling.IDurableStateManager.GetOrAddState*> 接受申请合同,例如 `IDurableDictionary<string, int>`.注册工厂提供执行。 <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions> 帮手也提供可发现姓名的相同准入。
 
-### Use keyed injection and the convenience base class
+<a id="use-keyed-injection-and-the-convenience-base-class"></a>
+
+### 使用键注射和方便基级
 
 <xref:Orleans.Durable.Journaling.DurableGrain> supplies a <xref:Orleans.Durable.Journaling.DurableGrain.StateManager> property typed as `IDurableStateManager` and a protected <xref:Orleans.Durable.Journaling.DurableGrain.WriteStateAsync*> forwarding helper. Inject a state component with <xref:Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute> when its name is fixed:
 
 :::code language="csharp" source="./snippets/journaling/JournalingBasics.cs" id="keyed_durable_counter":::
 
-Keyed injection of `IDurableValue<int>` with the key `"count"` and `stateManager.GetOrAddValue<int>("count")` return the same object within a manager, in either resolution order. Both construction paths use the manager's registry and configured format. Choose the convenience base when its helpers fit the application; constructor-injected composition gives existing grain hierarchies the same standard recovery behavior.
+注射用键式注射 `IDurableValue<int>` 键与密钥 `"count"` 和 `stateManager.GetOrAddValue<int>("count")` 在一个管理器内返回同一对象, 任意一个解析顺序。 两个构造路径都使用管理员的注册和配置格式。 当它的助手符合应用程序时选择方便基; 构建或输入的构成给出了现有 grain 同一标准的回收行为等级
 
-## Select a state type
+<a id="select-a-state-type"></a>
 
-| State type | Setup-time helper | In-memory API | Journaled operations |
+## 选择状态类型
+
+| 状态类型 | 设置时间帮助器 | In-memory API | 日刊业务 |
 | --- | --- | --- | --- |
-| <xref:Orleans.Durable.Journaling.IDurableValue`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddValue*> | One mutable value | Set |
-| <xref:Orleans.Durable.Journaling.IDurableDictionary`2> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddDictionary*> | <xref:System.Collections.Generic.IDictionary`2> | Set, remove, clear, snapshot |
-| <xref:Orleans.Durable.Journaling.IDurableList`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddList*> | <xref:System.Collections.Generic.IList`1> plus `AddRange` | Add, insert, set, remove, clear, snapshot |
-| <xref:Orleans.Durable.Journaling.IDurableQueue`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddQueue*> | Queue operations | Enqueue, dequeue, clear, snapshot |
-| <xref:Orleans.Durable.Journaling.IDurableSet`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddSet*> | <xref:System.Collections.Generic.ISet`1> | Add, remove, clear, snapshot |
-| <xref:Orleans.Durable.Journaling.IDurableLog`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddLog*> | Append-only entries addressed by epoch and sequence number, reads, and drafts | Append, draft commit, trim, clear, seal, snapshot |
-| <xref:Orleans.Durable.Journaling.IDurableTaskCompletionSource`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddTaskCompletionSource*> | Durable task completion | Complete, fault, or cancel |
-| <xref:Orleans.Runtime.IPersistentState`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddPersistentState*> | Record-style state | Set or clear a versioned state value |
+| <xref:Orleans.Durable.Journaling.IDurableValue`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddValue*> | 一个可变值 | 设定 |
+| <xref:Orleans.Durable.Journaling.IDurableDictionary`2> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddDictionary*> | <xref:System.Collections.Generic.IDictionary`2> | 设置、删除、清除、快照 |
+| <xref:Orleans.Durable.Journaling.IDurableList`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddList*> | <xref:System.Collections.Generic.IList`1> 加上 `AddRange` | 添加、插入、设置、删除、清除、快照 |
+| <xref:Orleans.Durable.Journaling.IDurableQueue`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddQueue*> | 列业务 | 内容、删除、清晰、快照 |
+| <xref:Orleans.Durable.Journaling.IDurableSet`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddSet*> | <xref:System.Collections.Generic.ISet`1> | 添加、删除、清晰、快照 |
+| <xref:Orleans.Durable.Journaling.IDurableLog`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddLog*> | 以时间和序列号处理的仅附加条目,读取和草稿 | 附录、承诺草案、修整、清晰、密封、快照 |
+| <xref:Orleans.Durable.Journaling.IDurableTaskCompletionSource`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddTaskCompletionSource*> | 持久任务完成 | 完成、过错或取消 |
+| <xref:Orleans.Runtime.IPersistentState`1> | <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddPersistentState*> | 记录式状态 | 设置或清除已版本的状态值 |
 
-All named state components registered with a manager share its pending journal and write acknowledgement boundary. A caller's write can include changes staged by interleaved callers. Prepare fallible work before staging mutations and await `WriteStateAsync` before returning success. Cancelling the caller's wait leaves an already queued write running to its storage outcome. A failed journal operation fences the manager; a fresh activation recovers the durable outcome. See [Runtime behavior and consistency](runtime-behavior.md) for failure handling and safe staging.
+注册到经理处的所有命名国家组成部分都共享其未完成的日记和写入确认边界。 打电话者可以写入由互连电话员进行的修改。 在变异发生之前准备可错的工作并等待 `WriteStateAsync` 成功返回前, 取消呼叫者的等待会留下一个已经排队的文字, 记录到存储结果。 失败的日记操作将经理围起来; 重新激活可以恢复持久结果 。 [运行时行为和一致性](runtime-behavior.md) 处理和安全中转失败。
 
-Coordination with another grain or an external service requires an application protocol such as idempotency, an inbox, or an outbox.
+与另一个 grain 或外部服务的协调要求有申请协议,如应急、收件箱或发件箱。
 
-An <xref:Orleans.Durable.Journaling.IDurableTaskCompletionSource`1> changes status in memory when `TrySetResult`, `TrySetException`, or `TrySetCanceled` succeeds. Its `Task` completes after a write acknowledges that status or recovery replays it, allowing waiters to observe a durable completion.
+<xref:Orleans.Durable.Journaling.IDurableTaskCompletionSource`1> 成功时的记忆状态发生变化, `TrySetResult`、 `TrySetException`或 `TrySetCanceled` 。在写完之后, `Task` 将确认状态或恢复重放,让服务员观察耐久完成情况。
 
-To stream changes to callers, or to stream volatile drafts from a durable log, see [Observe state and stream drafts](observe-state.md).
+向调用者流变化,或从耐用日志流出挥发性草案,见 [观察州和河汇草案](observe-state.md)。
 
-## Keep state names and schemas stable
+<a id="keep-state-names-and-schemas-stable"></a>
 
-The name supplied to the manager or keyed service identifies a durable state component across activations and deployments. Apply these rules:
+## 保持州名和政体稳定
 
-- Keep each name unique within the grain.
-- Preserve names when changing constructors or refactoring fields.
-- Keep JSON key, value, and record schemas backward readable during rolling upgrades.
-- Register every JSON payload type in the configured source-generated serializer context when trimming or using Native AOT.
-- Retain removed state component definitions through the [retirement grace period](runtime-behavior.md#retire-a-named-state) when a rollback can reintroduce them.
+提供给经理或按键服务的名称确定了在启动和部署过程中的持久性状态组成部分。
 
-Names use ordinal comparison. Repeated requests for a name and compatible application contract return the same instance. An incompatible contract or closed generic type for that name fails immediately. An unsupported application contract produces an explicit factory-registration error.
+- 在 grain内保持每个名称独一。
+- 修改构建器或重构字段时保存名称。
+- 保持 JSON 键、 值和记录在滚动升级期间可向后读取的公式。
+- 在配置的源生成序列器背景下,在剪裁或使用本地自动取款机时,将每个 JSON 有效载荷类型都登记在已配置的源产生序列器上。
+- 在回滚可以重新出现时,通过 [退休宽限期](runtime-behavior.md#retire-a-named-state) 保留删除的状态元件定义。
 
-Declare all state components during construction or synchronous activation setup, before initialization begins. Use recovered state after initialization succeeds. Later `GetOrAddState` calls resolve existing components; a missing name fails immediately without changing the registry. Use <xref:Orleans.Durable.Journaling.IDurableStateManager.TryGetState*> for lookup without creation. Put runtime-varying keys inside a declared durable dictionary rather than creating a new named component for each key.
+名称使用正统比较。重复要求命名和兼容的申请合同返回相同的情况。不相容的合同或该名称的封闭通用类型立即失效。无支持的申请合同产生明显的工厂登记错误。
 
-## Compose an activation-scoped feature
+在初始化开始之前, 宣布建设或同步激活设置期间的所有状态组件。 启动成功后使用回收状态 。 后来 `GetOrAddState` 调用解决了现有部件; 缺少的名称在不更改注册的情况下立即失效 。 请使用 <xref:Orleans.Durable.Journaling.IDurableStateManager.TryGetState*> 进行查找而不创建 。 在已宣布的耐用字典中输入运行时间比对键, 而不是为每个密钥创建一个新的命名元件 。
 
-A reusable feature can own durable state independently of the grain's constructor and base class. Select the grain implementation once per grain type using <xref:Orleans.Metadata.GrainClassMap> in an <xref:Orleans.Runtime.IConfigureGrainTypeComponents> implementation, then register a shared setup action. This example selects the existing shopping-cart interface and records an activation count:
+<a id="compose-an-activation-scoped-feature"></a>
+
+## 形成一个激活范围特性
+
+可再使用特性可以独立于 grain和基级。选择 grain 执行一次 grain 使用类型 <xref:Orleans.Metadata.GrainClassMap> 中 <xref:Orleans.Runtime.IConfigureGrainTypeComponents> 执行后, 然后登记一个共享设置动作。 此示例选择现有的购物卡接口并记录激活计数 :
 
 :::code language="csharp" source="../../snippets/compiled-durable/Grains/JournalingSnippets.cs" id="journaled_feature":::
 
-Register the feature as scoped and the configurator as singleton:
+将标定范围特征登记为单子,配置为单子:
 
 :::code language="csharp" source="../../snippets/compiled-durable/Grains/JournalingSnippets.cs" id="journaled_feature_registration":::
 
-The synchronous action resolves the feature from <xref:Orleans.Runtime.IGrainContext.ActivationServices> and enrolls its lifecycle participant. Resolving the feature's dependencies constructs the standard state manager if needed, and that manager enrolls itself before resolution returns. A setup action can be the first place an activation resolves its manager or state. The feature uses a stage after `SetupState` and before <xref:Orleans.Runtime.GrainLifecycleStage.Activate> so it increments recovered state before application activation begins.
+同步动作解决了该特性, 从 <xref:Orleans.Runtime.IGrainContext.ActivationServices> 中注册了其生命周期参与者。 必要时, 解决该特性的依附关系可以构建标准国家管理员, 且该管理员在解析返回之前自行注册。 设置行动可以是启动该特性的第一个地方, 可以解决其管理员或状态问题。 该特性使用 `SetupState` 之后和 <xref:Orleans.Runtime.GrainLifecycleStage.Activate> 之前的一个阶段, 从而在应用程序激活开始前递增恢复状态 。
 
-Keep one enrollment owner per participant. Setup actions are shared across concurrent activations; resolve activation-specific data from the supplied context and keep shared callbacks stateless. See [Shared activation setup](../grain-lifecycle.md#shared-activation-setup) and [Journaling activation and recovery](runtime-behavior.md#activation-and-recovery) for ordering and failure behavior.
+保持每个参与者的注册所有人一人。 设置行动通过同时激活共享; 解决从提供的背景中提供的启动特定数据,并保持共同回调无国籍者。 见 [共享激活集共享设置](../grain-lifecycle.md#shared-activation-setup) 和 [清点启动和恢复](runtime-behavior.md#activation-and-recovery) 关于订单和故障行为。
 
-## Use journal-backed persistent state
+<a id="use-journal-backed-persistent-state"></a>
 
-Obtain journal-backed <xref:Orleans.Runtime.IPersistentState`1> through keyed injection or `GetOrAddPersistentState<T>(name)` during setup. Its familiar `State`, `WriteStateAsync`, and `ClearStateAsync` members write through the same journal manager as the durable collections. `ReadStateAsync` completes from the already-recovered in-memory state because activation setup replayed the grain journal.
+## 使用日记支持的持久性状态
 
-Use a unique keyed service name exactly as you would for another durable state component. The `ETag` is the journal-backed state's recovered version and `RecordExists` indicates whether a stored value is present.
+获取日记支持 <xref:Orleans.Runtime.IPersistentState`1> 通过键入注射或通过键入注射或 `GetOrAddPersistentState<T>(name)` 设置期间, 它熟悉 `State`, `WriteStateAsync`,和 `ClearStateAsync` 成员通过与耐久收藏相同的日记管理器写作。 `ReadStateAsync` 已经恢复的记忆状态中的完整完整的完整, 因为激活设置重放 grain 日记。
 
-## Implement a custom journaled state
+使用一个与您对另一个耐久状态组件完全相同的独有的密钥服务名。 `ETag` 是日记支持状态回收版本, 并 `RecordExists` 表示是否有存储值。
 
-Define a grain-facing state contract and an implementation of that contract and <xref:Orleans.Durable.Journaling.IStateMachine>. Register the mapping on <xref:Microsoft.Extensions.DependencyInjection.IServiceCollection> with <xref:Orleans.Durable.Journaling.JournalingHostingExtensions.AddStateMachine*> using the application contract and implementation as its two type arguments. Both types are reference types. In silo configuration, call `siloBuilder.AddJournaling()` for core setup and `siloBuilder.Services.AddStateMachine<TState, TImplementation>()` for the grain state component mapping. A storage-provider registration already performs the core setup. Grain code obtains the component with `GetOrAddState<TState>(name)` during setup. The manager constructs and registers the implementation once using the existing activation scope, then binds its journal stream.
+<a id="implement-a-custom-journaled-state"></a>
 
-The parameterless registration overload resolves the implementation's constructor dependencies from dependency injection. When construction needs the state name, use the factory overload: its callback receives the owning service provider and the requested state name and returns the implementation.
+## 执行自定义日记状态
 
-The state-machine protocol owns operation encoding, snapshots, replay, and volatile bookkeeping:
+定义a grain- 履行国家合同和执行该合同, <xref:Orleans.Durable.Journaling.IStateMachine>登记 <xref:Microsoft.Extensions.DependencyInjection.IServiceCollection> 与 <xref:Orleans.Durable.Journaling.JournalingHostingExtensions.AddStateMachine*> 两种类型都是参考类型。 silo 配置,调用 `siloBuilder.AddJournaling()` 核心设置和 `siloBuilder.Services.AddStateMachine<TState, TImplementation>()` 排排 grain 储存提供者登记已经完成了核心设置。 Grain 代码以 `GetOrAddState<TState>(name)` 设置期间。 管理者一旦利用现有启动范围, 即构建并登记实施程序, 然后绑定日记流 。
 
-| Member | Responsibility |
+无参数注册超载解决了执行方的建筑师依赖性,使其免于依赖注射。 当建设需要国家名称时,请使用工厂超载:它的回召接收拥有服务供应商,而要求的国家名则返回实施。
+
+州-机械协议拥有操作编码、快照、重播和波动性簿记:
+
+| 成员成员 | 责任 |
 | --- | --- |
-| <xref:Orleans.Durable.Journaling.IStateMachine.Reset*> | Reset in-memory state and bind the supplied journal stream writer. |
-| <xref:Orleans.Durable.Journaling.IStateMachine.ReplayEntry*> | Apply a recorded operation during recovery. |
-| <xref:Orleans.Durable.Journaling.IStateMachine.WritePendingEntries*> | Emit pending operations into the supplied writer. |
-| <xref:Orleans.Durable.Journaling.IStateMachine.WriteSnapshot*> | Emit the state needed to reconstruct the current contents. |
-| <xref:Orleans.Durable.Journaling.IStateMachine.OnRecoveryCompleted*> | Finish reconstruction before application use. |
-| <xref:Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted*> | Publish effects which depend on storage acknowledgement. |
+| <xref:Orleans.Durable.Journaling.IStateMachine.Reset*> | 重置记忆状态并绑定所提供的日记流撰写器 。 |
+| <xref:Orleans.Durable.Journaling.IStateMachine.ReplayEntry*> | 在恢复期间应用记录操作。 |
+| <xref:Orleans.Durable.Journaling.IStateMachine.WritePendingEntries*> | 将待处理的操作发送到提供作者。 |
+| <xref:Orleans.Durable.Journaling.IStateMachine.WriteSnapshot*> | 国家必须重新建立当前内容。 |
+| <xref:Orleans.Durable.Journaling.IStateMachine.OnRecoveryCompleted*> | 在应用使用前完成重建 。 |
+| <xref:Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted*> | 发布效果取决于储存确认。 |
 
-An implementation runs on one logical grain thread. Recovery uses fresh instances and replay. After a journal operation fails, the manager remains fenced and its owner creates a new manager and state instances.
+执行时使用一个逻辑 grain 线索。 恢复使用新实例和重播。 在日记操作失败后, 管理员仍被围住, 其所有人创建了新的管理员和状态实例 。
 
-## Own a standalone journal
+<a id="own-a-standalone-journal"></a>
+
+## 拥有独立日记
 
 <xref:Orleans.Durable.Journaling.IJournaledStateManager> is the journal-owner contract, independent of the grain-facing `IDurableStateManager`. It provides <xref:Orleans.Durable.Journaling.IJournaledStateManager.RegisterStateMachine*>, <xref:Orleans.Durable.Journaling.IJournaledStateManager.TryGetStateMachine*>, <xref:Orleans.Durable.Journaling.IJournaledStateManager.InitializeAsync*>, <xref:Orleans.Durable.Journaling.IJournaledStateManager.WriteStateAsync*>, whole-journal <xref:Orleans.Durable.Journaling.IJournaledStateManager.DeleteStateAsync*>, asynchronous disposal, and <xref:Orleans.Durable.Journaling.IJournaledStateManager.PendingWriteByteCount> diagnostics.
 
-Use <xref:Orleans.Durable.Journaling.IJournaledStateManagerFactory.CreateStandalone*> when an integration owns a journal independently of a grain activation. It returns the owner contract. Construct state machine components with caller-supplied dependencies and register them before initialization. Await recovery before using their contents, and await writes before reporting durable changes:
+使用 <xref:Orleans.Durable.Journaling.IJournaledStateManagerFactory.CreateStandalone*> 当整合后拥有一份日记独立于 grain 激活。 它返回所有者合同。 构造有呼叫者提供依赖性的国家机器部件, 在启动前对其进行登记。 在使用内容之前等待恢复, 并在报告持久更改前等待写作 :
 
 :::code language="csharp" source="./snippets/journaling/JournalingBasics.cs" id="standalone_durable_state":::
 
-The example explicitly constructs a counter component implementing `IStateMachine` and <xref:Orleans.Durable.Journaling.IDurableValueCommandHandler`1>. Its supplied <xref:Orleans.Durable.Journaling.IDurableValueCommandCodec`1> must correspond to the journal's configured write format. The component applies replayed set commands and emits its current value for pending writes and snapshots.
+示例明确构建了一个执行 `IStateMachine` 和 <xref:Orleans.Durable.Journaling.IDurableValueCommandHandler`1>的反元件。 它提供的 <xref:Orleans.Durable.Journaling.IDurableValueCommandCodec`1> 必须符合日记配置的写格式。 该元件应用重放设置的命令,并发布其当前值用于待发写作和快照 。
 
-The caller owns the manually supplied state components and their dependencies, including any scopes used to construct them. Disposing the journal owner stops processing and releases journal resources; the caller arranges component and dependency disposal. The standalone owner never creates or disposes DI scopes. Use `TryGetStateMachine` to find a component registered with that owner.
+调用者拥有手动提供的状态组件及其依赖性, 包括用于构建这些部件的任何范围。 处置日记主停止处理和发布日记资源; 调用者安排组件和依赖性处置。 独立所有人从未创建或处置DI范围。 使用 `TryGetStateMachine` 来找到在该所有者注册的部件 。
 
-For grains, the default manager implements both independent interfaces on the same activation-scoped object. `IDurableStateManager` supplies `GetOrAdd`, typed lookup, and writes; `IJournaledStateManager` supplies journal ownership operations. The runtime-owned activation scope controls the lifetime of DI-created state components, their dependencies, and the manager.
+对于 grains,默认管理器在同一个激活范围对象上执行独立接口。 `IDurableStateManager` 用品 `GetOrAdd`、打字查询和写作; `IJournaledStateManager` 供应日记名所有权操作。运行时自控的启动范围控制了DI创建的国家组件的寿命、其依赖性以及管理员。

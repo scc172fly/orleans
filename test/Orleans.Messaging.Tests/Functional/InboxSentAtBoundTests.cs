@@ -8,9 +8,9 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// Pins how the inbox evaluates a delivery's send time: the future bound applies only to an untracked identity which
-/// it would admit, a recorded identity is answered from its record, and an untracked identity at or below the durable
-/// admission floor expires.
+/// 收件箱如何评价交货发送时间:未来约束只适用于未跟踪的身份,而该身份
+/// 登记后,记录身份从记录中得到答复,可兑换货币或以下的未追踪身份得到答复。
+/// 进入最低允许限额期满。
 /// </summary>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
@@ -20,7 +20,7 @@ public sealed class InboxSentAtBoundTests() : MessagingBehaviorTestBase(new Sent
 {
     private static readonly TimeSpan Window = TimeSpan.FromMinutes(10);
 
-    // The bound is exact only on a clock which stands still between reading it and delivering.
+    // 约束只精确地定在一个钟头上,它仍然处于读取和交付之间。
     private ManualJobClock JobClock => ((SentAtBoundFixture)Fixture).JobClock;
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class InboxSentAtBoundTests() : MessagingBehaviorTestBase(new Sent
         await receiver.RetryWriteStateAsync();
         writes = Fixture.Storage.GetSuccessfulWriteCount(journal);
 
-        // A recorded identity is answered from its record, whatever the delivery's send time.
+        // 记录的身份从记录中被回答 不管送货时间如何
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, message with { SentAt = bound.AddTicks(1) }));
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
         Assert.Equal(bound, await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetProcessedSentAt(inbox, message.Envelope.MessageId)));

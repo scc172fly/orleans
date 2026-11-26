@@ -3,60 +3,60 @@ using System;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Eviction strategy for the PooledQueueCache
+    /// PooledQueueCache驱逐战略
     /// </summary>
     public interface IEvictionStrategy
     {
         /// <summary>
-        /// Gets the <see cref="IPurgeObservable"/>, which is implemented by the cache to do purge related actions and invoked by the eviction strategy.
+        /// 获取 <see cref="IPurgeObservable"/>,由缓存执行,以采取与清除有关的行动,并被驱逐战略所援引。
         /// </summary>
         IPurgeObservable PurgeObservable { set; }
 
         /// <summary>
-        /// Gets or sets the method which will be called when purge is finished.
+        /// 获取或设置清洗完成后要使用的方法 。
         /// </summary>
         Action<CachedMessage?, CachedMessage?>? OnPurged { get; set; }
 
         /// <summary>
-        /// Method which should be called when pulling agent try to do a purge on the cache
+        /// 当拉动代理器试图对缓存进行清除时应该使用的方法
         /// </summary>
-        /// <param name="utcNow">The current time (UTC)</param>
+        /// <param name="utcNow">当前时间( UTC)</param>
         void PerformPurge(DateTime utcNow);
 
         /// <summary>
-        /// Method which should be called when data adapter allocated a new block
+        /// 当数据适配器分配新块时应该调用的方法
         /// </summary>
-        /// <param name="newBlock">The new block.</param>
+        /// <param name="newBlock">新块。</param>
         void OnBlockAllocated(FixedSizeBuffer newBlock);
     }
 
     /// <summary>
-    /// Functionality for purge-related actions.
+    /// 与清除行动有关的功能。
     /// </summary>
     public interface IPurgeObservable
     {
         /// <summary>
-        /// Removes oldest message in the cache.
+        /// 删除缓存中最老的信件 。
         /// </summary>
         void RemoveOldestMessage();
 
         /// <summary>
-        /// Gets the newest message in the cache.
+        /// 获取缓存中的最新消息 。
         /// </summary>
         CachedMessage? Newest { get; }
 
         /// <summary>
-        /// Gets the oldest message in the cache.
+        /// 获取缓存中最古老的信息 。
         /// </summary>
         CachedMessage? Oldest { get; }
 
         /// <summary>
-        /// Gets the message count.
+        /// 获得信息计数。
         /// </summary>
         int ItemCount { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this instance is empty.
+        /// 获得一个值,以显示此实例是否为空。
         /// </summary>
         bool IsEmpty { get; }
     }

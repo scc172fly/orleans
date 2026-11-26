@@ -3,18 +3,18 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Provides access to buffered journal data read from storage.
+/// 提供缓冲日记账数据从存储中读取的存取权限。
 /// </summary>
 /// <remarks>
-/// Instances are temporary cursors over pooled buffer pages and must not be retained beyond the synchronous call which supplied them.
+/// 事例是集合缓冲页上的临时光标,不得超出提供这些缓冲页的同步调用范围而予以保留。
 /// </remarks>
 public readonly struct JournalBufferReader
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="JournalBufferReader"/> struct.
+    /// 初始化 <see cref="JournalBufferReader"/> 结构的新实例。
     /// </summary>
-    /// <param name="reader">The underlying buffer reader.</param>
-    /// <param name="isCompleted">A value indicating whether no more data will be appended to this buffer.</param>
+    /// <param name="reader">基本缓冲读取器。</param>
+    /// <param name="isCompleted">表示是否不再将数据附加到此缓冲线上的数值。</param>
     public JournalBufferReader(ArcBufferReader reader, bool isCompleted)
     {
         Reader = reader;
@@ -24,21 +24,21 @@ public readonly struct JournalBufferReader
     internal readonly ArcBufferReader Reader { get; }
 
     /// <summary>
-    /// Gets a value indicating whether no more data will be appended to this buffer.
+    /// 获得一个值,以显示是否不再将数据附加到此缓冲中。
     /// </summary>
     public bool IsCompleted { get; }
 
     /// <summary>
-    /// Gets the number of unread bytes.
+    /// 获取未读字节数 。
     /// </summary>
     public readonly int Length => Reader.Length;
 
     /// <summary>
-    /// Gets a span containing the next <paramref name="count"/> bytes without reading them.
+    /// 获得包含下一个 <paramref name="count"/> 字节的宽度, 不读取它们 。
     /// </summary>
-    /// <param name="count">The number of bytes to read.</param>
-    /// <param name="destination">Temporary storage used if the requested bytes are not contiguous.</param>
-    /// <returns>A span containing the requested bytes. The returned span must not be retained after the consumer returns.</returns>
+    /// <param name="count">要读取的字节数。</param>
+    /// <param name="destination">如果请求的字节不毗连,则使用临时储存。</param>
+    /// <returns>包含请求字节的宽度。在消费者返回后,不得保留返回的宽度。</returns>
     public readonly ReadOnlySpan<byte> Peek(int count, Span<byte> destination)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(count);
@@ -58,10 +58,10 @@ public readonly struct JournalBufferReader
     }
 
     /// <summary>
-    /// Attempts to copy the next bytes into <paramref name="destination"/> without reading them.
+    /// 试图将下一字节复制到 <paramref name="destination"/> , 但没有读取它们 。
     /// </summary>
-    /// <param name="destination">The destination to copy to.</param>
-    /// <returns><see langword="true"/> if enough bytes were available; otherwise, <see langword="false"/>.</returns>
+    /// <param name="destination">复制对象。</param>
+    /// <returns><see langword="true"/> ,如果有足够的字节;否则, <see langword="false"/>。</returns>
     public readonly bool TryPeek(Span<byte> destination)
     {
         if (destination.Length > Length)
@@ -74,9 +74,9 @@ public readonly struct JournalBufferReader
     }
 
     /// <summary>
-    /// Copies the remaining bytes into a new array without reading them.
+    /// 将剩余字节复制为新数组,而不读取它们。
     /// </summary>
-    /// <returns>A byte array containing the remaining bytes.</returns>
+    /// <returns>包含剩余字节的字节数组。</returns>
     public readonly byte[] ToArray()
     {
         var result = new byte[Length];
@@ -85,45 +85,45 @@ public readonly struct JournalBufferReader
     }
 
     /// <summary>
-    /// Returns a pinned slice of the provided length without reading the data.
+    /// a 返回提供长度的切片,不读取数据。
     /// </summary>
-    /// <param name="count">The number of bytes to read.</param>
+    /// <param name="count">要读取的字节数。</param>
     /// <returns>
-    /// A pinned slice of unread data. The caller owns the returned buffer and must dispose it.
+    /// 一块未读数据, 电话人拥有返回的缓冲带, 必须将其处理 。
     /// </returns>
     public readonly ArcBuffer Peek(int count) => Reader.PeekSlice(count);
 
     /// <summary>
-    /// Reads bytes until <paramref name="delimiter"/> is found.
+    /// 读取字节, 直到找到 <paramref name="delimiter"/> 。
     /// </summary>
     /// <param name="slice">
-    /// The pinned bytes before the delimiter, if it was found. The caller owns the returned buffer and must dispose it.
+    /// 如果找到, 则在分隔符前的定点字节。 调用者拥有返回的缓冲, 必须将其处理 。
     /// </param>
-    /// <param name="delimiter">The delimiter to search for.</param>
-    /// <param name="advancePastDelimiter">Whether to advance past the delimiter when it is found.</param>
-    /// <returns><see langword="true"/> if the delimiter was found; otherwise, <see langword="false"/>.</returns>
+    /// <param name="delimiter">用于搜索的分隔符。</param>
+    /// <param name="advancePastDelimiter">是否在找到该分隔符时通过该分隔符前进。</param>
+    /// <returns><see langword="true"/> 如果找到划界器;否则, <see langword="false"/>。</returns>
     public readonly bool TryReadTo(out ArcBuffer slice, byte delimiter, bool advancePastDelimiter = true) =>
         Reader.TryReadTo(out slice, delimiter, advancePastDelimiter);
 
     /// <summary>
-    /// Checks whether the next bytes match <paramref name="next"/>.
+    /// 检查下个字节是否匹配 <paramref name="next"/>。
     /// </summary>
-    /// <param name="next">The bytes to compare to the next bytes.</param>
-    /// <param name="advancePast">Whether to advance past the bytes if they match.</param>
-    /// <returns><see langword="true"/> if the next bytes match; otherwise, <see langword="false"/>.</returns>
+    /// <param name="next">与下个字节比较的字节。</param>
+    /// <param name="advancePast">如果字节匹配, 是否要提前过 。</param>
+    /// <returns><see langword="true"/> 如果下一个字节匹配;否则, <see langword="false"/>。</returns>
     public readonly bool IsNext(ReadOnlySpan<byte> next, bool advancePast = false) => Reader.IsNext(next, advancePast);
 
     /// <summary>
-    /// Copies the next bytes into <paramref name="destination"/> and reads them.
+    /// 下一字节的复数将显示为 <paramref name="destination"/> ,并读取它们。
     /// </summary>
-    /// <param name="destination">The destination to copy to.</param>
+    /// <param name="destination">复制对象。</param>
     public readonly void Read(Span<byte> destination) => Reader.Consume(destination);
 
     /// <summary>
-    /// Attempts to copy the next bytes into <paramref name="destination"/> and read them.
+    /// 试图将下一字节复制到 <paramref name="destination"/> 并读取它们 。
     /// </summary>
-    /// <param name="destination">The destination to copy to.</param>
-    /// <returns><see langword="true"/> if enough bytes were available; otherwise, <see langword="false"/>.</returns>
+    /// <param name="destination">复制对象。</param>
+    /// <returns><see langword="true"/> ,如果有足够的字节;否则, <see langword="false"/>。</returns>
     public readonly bool TryRead(Span<byte> destination)
     {
         if (!TryPeek(destination))
@@ -136,16 +136,16 @@ public readonly struct JournalBufferReader
     }
 
     /// <summary>
-    /// Skips the next <paramref name="count"/> bytes.
+    /// 跳过下个 <paramref name="count"/> 字节。
     /// </summary>
-    /// <param name="count">The number of bytes to skip.</param>
+    /// <param name="count">要跳过的字节数。</param>
     public readonly void Skip(int count) => Reader.Skip(count);
 
     /// <summary>
-    /// Attempts to skip the next <paramref name="count"/> bytes.
+    /// 试图跳过下个 <paramref name="count"/> 字节 。
     /// </summary>
-    /// <param name="count">The number of bytes to skip.</param>
-    /// <returns><see langword="true"/> if enough bytes were available; otherwise, <see langword="false"/>.</returns>
+    /// <param name="count">要跳过的字节数。</param>
+    /// <returns><see langword="true"/> ,如果有足够的字节;否则, <see langword="false"/>。</returns>
     public readonly bool TrySkip(int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(count);

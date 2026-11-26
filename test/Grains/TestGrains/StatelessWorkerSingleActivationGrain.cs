@@ -5,8 +5,8 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains;
 
 /// <summary>
-/// Tracks live (not-yet-deactivated) activations of stateless worker grains so tests can assert
-/// the configured per-silo concurrent activation limit is never exceeded across deactivation races.
+/// 无国籍工人的(未停止)启动(尚未停止)运行轨道 grains 测试可以进行
+/// 在整个停用赛事中,每个silo 配置的同时激活限值从未超过。
 /// </summary>
 public sealed class StatelessWorkerSingleActivationTracker
 {

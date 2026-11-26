@@ -3,17 +3,17 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Identifies a client-side observer object.
+    /// 指定一个客户端观察员对象。
     /// </summary>
     internal readonly struct ObserverGrainId : IEquatable<ObserverGrainId>, IComparable<ObserverGrainId>, ISpanFormattable
     {
         /// <summary>
-        /// The separator between the client id portion of the observer id and the client-scoped observer id portion.
+        /// 观察员身份的客户代号部分与客户范围的观察员代号部分之间的分隔。
         /// </summary>
         internal const char SegmentSeparator = '+';
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ObserverGrainId"/> struct.
+        /// 初始化 <see cref="ObserverGrainId"/> 结构的新实例。
         /// </summary>
         private ObserverGrainId(GrainId grainId)
         {
@@ -21,57 +21,57 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the underlying <see cref="GrainId"/>.
+        /// 获取底部 <see cref="GrainId"/>。
         /// </summary>
         public readonly GrainId GrainId;
 
         /// <summary>
-        /// Returns a new, random <see cref="ObserverGrainId"/> instance for the provided client id.
+        /// 返回所提供客户名 ID 的新随机 <see cref="ObserverGrainId"/> 例。
         /// </summary>
         /// <param name="clientId">
-        /// The client id.
+        /// 客户身份
         /// </param>
         /// <returns>
-        /// A new, random <see cref="ObserverGrainId"/> instance for the provided client id.
+        /// 提供给客户端 ID 的一个新的随机 <see cref="ObserverGrainId"/> 例。
         /// </returns>
         public static ObserverGrainId Create(ClientGrainId clientId) => Create(clientId, GrainIdKeyExtensions.CreateGuidKey(Guid.NewGuid()));
 
         /// <summary>
-        /// Returns a new <see cref="ObserverGrainId"/> instance for the provided client id.
+        /// 返回所提供客户名 ID 的新 <see cref="ObserverGrainId"/> 例。
         /// </summary>
         /// <param name="clientId">
-        /// The client id.
+        /// 客户身份
         /// </param>
         /// <param name="scopedId">
-        /// The client-scoped observer id.
+        /// 客户范围观察员身份。
         /// </param>
         /// <returns>
-        /// A new <see cref="ObserverGrainId"/> instance for the provided client id.
+        /// 所提供客户名id的新 <see cref="ObserverGrainId"/> 例。
         /// </returns>
         public static ObserverGrainId Create(ClientGrainId clientId, IdSpan scopedId) => new ObserverGrainId(ConstructGrainId(clientId, scopedId));
 
         /// <summary>
-        /// Returns <see langword="true"/> if the provided instance represents an observer, <see langword="false"/> if otherwise.
+        /// 如果所提供的实例代表观察员,则返回 <see langword="true"/> ;如果不是的话,返回 <see langword="false"/> 。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> if the provided grain id is an observer id, otherwise <see langword="false"/>.
+        /// <see langword="true"/> 如果已提供 grain id是观察员id,否则 <see langword="false"/>.
         /// </returns>
         public static bool IsObserverGrainId(GrainId grainId) => grainId.IsClient() && grainId.Key.AsSpan().IndexOf((byte)SegmentSeparator) >= 0;
 
         /// <summary>
-        /// Converts the provided <see cref="GrainId"/> to a <see cref="ObserverGrainId"/>. A return value indicates whether the operation succeeded.
+        /// 将提供的 <see cref="GrainId"/> 转换为 <see cref="ObserverGrainId"/>。返回值表示操作是否成功。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <param name="observerId">
-        /// The corresponding observer id.
+        /// 相应的观察员id。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> if the provided grain id is an observer id, otherwise <see langword="false"/>.
+        /// <see langword="true"/> 如果已提供 grain id是观察员id,否则 <see langword="false"/>.
         /// </returns>
         public static bool TryParse(GrainId grainId, out ObserverGrainId observerId)
         {

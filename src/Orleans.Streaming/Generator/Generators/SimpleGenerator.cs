@@ -10,12 +10,12 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Generator
 {
     /// <summary>
-    /// Simple Generator
-    /// Generates a single stream of a configurable number of events.  One event per poll.
+    /// 简单发电机
+    /// 生成一个可配置事件数的单一流。 每个民意测验都产生一个事件 。
     /// </summary>
     internal class SimpleGenerator : IStreamGenerator
     {
-        private SimpleGeneratorOptions options = null!; // Set in Configure before reading.
+        private SimpleGeneratorOptions options = null!; // 阅读前设置在配置中 。
         private StreamId streamId;
         private int sequenceId;
 
@@ -33,7 +33,7 @@ namespace Orleans.Providers.Streams.Generator
         }
 
         /// <summary>
-        /// Until we've generated the configured number of events, return a single generated event
+        /// 产生一个单一事件
         /// </summary>
         public bool TryReadEvents(DateTime utcNow, int maxCount, out List<IBatchContainer> events)
         {
@@ -63,7 +63,7 @@ namespace Orleans.Providers.Streams.Generator
             sequenceId++;
             var evt = new GeneratedEvent
             {
-                // If this is the last event generated, mark it as such, so test grains know to report results.
+                // 如果这是最后生成的事件, 请标为它本身, 所以测试 grains 就会报告结果 。
                 EventType = (sequenceId != this.options.EventsInStream)
                         ? GeneratedEvent.GeneratedEventType.Fill
                         : GeneratedEvent.GeneratedEventType.Report

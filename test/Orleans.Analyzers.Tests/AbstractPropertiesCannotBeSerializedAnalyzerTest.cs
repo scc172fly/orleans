@@ -6,9 +6,9 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// Tests for the AbstractPropertiesCannotBeSerializedAnalyzer which ensures that abstract properties
-/// cannot be marked with serialization attributes since they have no concrete implementation to serialize.
-/// This analyzer prevents runtime errors by catching invalid serialization configurations at compile time.
+/// 确保抽象属性的 AbstractPropertiesCannotBeSerializedAnalyzer 测试
+/// 无法用序列属性标记,因为它们没有具体实施序列属性。
+/// 此分析器通过在编译时捕获无效的序列配置来防止运行时间错误 。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -29,7 +29,7 @@ public class AbstractPropertiesCannotBeSerializedAnalyzerTest : DiagnosticAnalyz
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects abstract properties with serialization attributes when using namespace aliases.
+    /// 证明分析器使用命名空间别名时检测到带有序列属性的抽象属性。
     /// </summary>
     [Fact]
     public Task AliasedAttribute()
@@ -40,7 +40,7 @@ public abstract class D { [alias::Id(0)] public abstract int F { get; set; } }
 """);
 
     /// <summary>
-    /// Verifies that the analyzer detects abstract properties with serialization attributes when using globally qualified namespaces.
+    /// 证明分析器在使用全球合格命名空间时检测到带有序列属性的抽象特性。
     /// </summary>
     [Fact]
     public Task GloballyQualifiedAttribute()
@@ -50,7 +50,7 @@ public abstract class D { [global::Orleans.Id(0)] public abstract int F { get; s
 """);
 
     /// <summary>
-    /// Verifies that the analyzer detects abstract properties with serialization attributes when using simple attribute names.
+    /// 证明分析器使用简单的属性名称时检测到带有序列特性的抽象属性。
     /// </summary>
     [Fact]
     public Task SimpleAttribute()
@@ -59,8 +59,8 @@ public abstract class D { [global::Orleans.Id(0)] public abstract int F { get; s
 """);
 
     /// <summary>
-    /// Verifies that the analyzer correctly identifies abstract properties with serialization attributes
-    /// even when other unrelated generic attributes are present.
+    /// 证明分析器正确识别带有序列属性的抽象属性
+    /// 即便存在其他无关的通用属性。
     /// </summary>
     [Fact]
     public Task UnrelatedGenericAttribute()

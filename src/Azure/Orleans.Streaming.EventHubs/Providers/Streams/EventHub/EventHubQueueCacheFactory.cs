@@ -9,7 +9,7 @@ using Orleans.Streaming.EventHubs.StatisticMonitors;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Factory class to configure and create IEventHubQueueCache
+    /// 要配置和创建 IEventHubQueueCache的工厂类
     /// </summary>
     public class EventHubQueueCacheFactory : IEventHubQueueCacheFactory
     {
@@ -24,19 +24,19 @@ namespace Orleans.Streaming.EventHubs
         private string bufferPoolId = null!;
 
         /// <summary>
-        /// Create a cache monitor to report performance metrics.
-        /// Factory function should return an ICacheMonitor.
+        /// 创建缓存监视器以报告性能指标。
+        /// 工厂函数应返回 ICacheMonitor。
         /// </summary>
         public Func<EventHubCacheMonitorDimensions, ILoggerFactory, ICacheMonitor> CacheMonitorFactory { set; get; }
 
         /// <summary>
-        /// Create a block pool monitor to report performance metrics.
-        /// Factory function should return an IObjectPoolMonitor.
+        /// 创建一个街区池监测器,报告业绩衡量标准。
+        /// 工厂函数应返回 IObjectPoolMonitor。
         /// </summary>
         public Func<EventHubBlockPoolMonitorDimensions, ILoggerFactory, IBlockPoolMonitor> BlockPoolMonitorFactory { set; get; }
 
         /// <summary>
-        /// Constructor for EventHubQueueCacheFactory
+        /// EventHubQueueCacheFactory的构造器
         /// </summary>
         public EventHubQueueCacheFactory(
             EventHubStreamCachePressureOptions cacheOptions,
@@ -60,8 +60,8 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Function which create an EventHubQueueCache, which by default will configure the EventHubQueueCache using configuration in CreateBufferPool function
-        /// and AddCachePressureMonitors function.
+        /// 函数创建 EventHubQueueCache,默认情况下将配置 EventHubQueueCache 使用配置 CreateBufferPool 函数函数
+        /// 和 AddCachePressureMonitors 函数。
         /// </summary>
         /// <returns></returns>
         public IEventHubQueueCache CreateCache(string partition, IStreamQueueCheckpointer<string> checkpointer, ILoggerFactory loggerFactory)
@@ -74,7 +74,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Function used to configure BufferPool for EventHubQueueCache. User can override this function to provide more customization on BufferPool creation
+        /// 配置时使用的函数 BufferPool 用于 EventHubQueueCache。用户可以覆盖此函数,以提供更多定制 BufferPool 创建创建
         /// </summary>
         protected virtual IObjectPool<FixedSizeBuffer> CreateBufferPool(StreamStatisticOptions statisticOptions, ILoggerFactory loggerFactory, EventHubMonitorAggregationDimensions sharedDimensions, out string blockPoolId)
         {
@@ -92,8 +92,8 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Function used to configure cache pressure monitors for EventHubQueueCache. 
-        /// User can override this function to provide more customization on cache pressure monitors
+        /// 用于配置 EventHubQueueCache的缓存压力监视器的功能。 
+        /// 用户可以覆盖此函数, 以在缓存压力显示器上提供更多定制化
         /// </summary>
         /// <param name="cache"></param>
         /// <param name="providerOptions"></param>
@@ -128,8 +128,8 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Default function to be called to create an EventhubQueueCache in IEventHubQueueCacheFactory.CreateCache method. User can 
-        /// override this method to add more customization.
+        /// 要调用创建 EventhubQueueCache 内 IEventHubQueueCacheFactory.CreateCache 方法。用户可以 
+        /// 取消此方法以添加更多定制 。
         /// </summary>
         protected virtual IEventHubQueueCache CreateCache(
             string partition,

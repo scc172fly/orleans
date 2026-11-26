@@ -9,16 +9,16 @@ using Orleans.Runtime.ReminderService;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Silo host builder extensions.
+    /// Silo 主机建筑商扩展
     /// </summary>
     public static class SiloBuilderReminderExtensions
     {
-        /// <summary>Adds reminder storage using ADO.NET. Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.</summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="configureOptions">Configuration delegate.</param>
-        /// <returns>The provided <see cref="ISiloBuilder"/>, for chaining.</returns>
+        /// <summary>添加提醒存储 ADO.NET。您数据库配置说明可在以下 <see href="http://aka.ms/orleans-sql-scripts"/>.</summary>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>提供的情况 <see cref="ISiloBuilder"/>用来绑链</returns>
         /// <remarks>
-        /// Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 关于配置数据库的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>查阅。
         /// </remarks>
         public static ISiloBuilder UseAdoNetReminderService(
             this ISiloBuilder builder,
@@ -27,12 +27,12 @@ namespace Orleans.Hosting
             return builder.UseAdoNetReminderService(ob => ob.Configure(configureOptions));
         }
 
-        /// <summary>Adds reminder storage using ADO.NET. Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.</summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="configureOptions">Configuration delegate.</param>
-        /// <returns>The provided <see cref="ISiloBuilder"/>, for chaining.</returns>
+        /// <summary>添加提醒存储 ADO.NET。您数据库配置说明可在以下 <see href="http://aka.ms/orleans-sql-scripts"/>.</summary>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>提供的情况 <see cref="ISiloBuilder"/>用来绑链</returns>
         /// <remarks>
-        /// Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 关于配置数据库的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>查阅。
         /// </remarks>
         public static ISiloBuilder UseAdoNetReminderService(
             this ISiloBuilder builder,
@@ -41,12 +41,12 @@ namespace Orleans.Hosting
             return builder.ConfigureServices(services => services.UseAdoNetReminderService(configureOptions));
         }
 
-        /// <summary>Adds reminder storage using ADO.NET. Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.</summary>
-        /// <param name="services">The service collection.</param>
-        /// <param name="configureOptions">Configuration delegate.</param>
-        /// <returns>The provided <see cref="IServiceCollection"/>, for chaining.</returns>
+        /// <summary>添加提醒存储 ADO.NET。您数据库配置说明可在以下 <see href="http://aka.ms/orleans-sql-scripts"/>.</summary>
+        /// <param name="services">服务收藏。</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>提供的情况 <see cref="IServiceCollection"/>用来绑链</returns>
         /// <remarks>
-        /// Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 关于配置数据库的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>查阅。
         /// </remarks>
         public static IServiceCollection UseAdoNetReminderService(this IServiceCollection services, Action<OptionsBuilder<AdoNetReminderTableOptions>> configureOptions)
         {

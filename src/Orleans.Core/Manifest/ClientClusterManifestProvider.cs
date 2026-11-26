@@ -17,7 +17,7 @@ using Orleans.Runtime.Utilities;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// <see cref="IClusterManifestProvider"/> implementation for external clients.
+    /// 外部客户实施<see cref="IClusterManifestProvider"/> 。
     /// </summary>
     internal partial class ClientClusterManifestProvider : IClusterManifestProvider, IAsyncDisposable, IDisposable
     {
@@ -47,7 +47,7 @@ namespace Orleans.Runtime
             _gatewayManager = gatewayManager;
             LocalGrainManifest = clientManifestProvider.ClientManifest;
 
-            // Create a fake manifest for the very first generation, which only includes the local client's manifest.
+            // 制作第一代假名单,只包括当地客户的名单。
             var builder = ImmutableDictionary.CreateBuilder<SiloAddress, GrainManifest>();
             builder.Add(_localClientDetails.ClientAddress, LocalGrainManifest);
             _current = new ClusterManifest(MajorMinorVersion.MinValue, builder.ToImmutable());
@@ -68,13 +68,13 @@ namespace Orleans.Runtime
         public GrainManifest LocalGrainManifest { get; }
 
         /// <summary>
-        /// Starts this service and waits for the initial cluster manifest.
+        /// 启动此项服务,等待初始集成图示。
         /// </summary>
         /// <remarks>
-        /// Callers serialize start attempts. After initialization succeeds, refreshes follow the service lifetime.
+        /// 调用者将尝试的开始时间序列化。 启动成功后, 更新会跟随服务寿命周期 。
         /// </remarks>
-        /// <param name="cancellationToken">The token used to cancel initialization and stop its background work.</param>
-        /// <returns>A <see cref="Task"/> which completes once the service has started.</returns>
+        /// <param name="cancellationToken">用于取消初始化和停止背景工作的标记。</param>
+        /// <returns>A <see cref="Task"/> 服务一旦启动,即完成。</returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -136,8 +136,8 @@ namespace Orleans.Runtime
                 var gatewayVersion = MajorMinorVersion.MinValue;
                 while (!_shutdownCts.IsCancellationRequested)
                 {
-                    // Select a new gateway if the current one is not available.
-                    // This could be caused by a temporary issue or a permanent gateway failure.
+                    // 如果当前网关不可用, 请选择新的网关 。
+                    // 这可能是暂时问题或永久网关故障造成的。
                     if (gateway is null || !_gatewayManager.IsGatewayAvailable(gateway))
                     {
                         gateway = _gatewayManager.GetLiveGateway();
@@ -149,11 +149,11 @@ namespace Orleans.Runtime
 
                         provider = grainFactory.GetGrain<IClusterManifestSystemTarget>(SystemTargetGrainId.Create(Constants.ManifestProviderType, gateway).GrainId);
 
-                        // Accept any cluster manifest version from the new gateway.
-                        // Since the minor version of the manifest is specific to each gateway, we reset it to the lowest possible value.
-                        // This means that it is possible to receive the an older or equivalent cluster manifest when the gateway changes.
-                        // That hiccup is addressed by resetting the expected manifest version and merging incomplete manifests until a complete
-                        // manifest is received.
+                        // 接受新网关上的任何集成表单版本 。
+                        // 由于单子的次要版本是每个网关所特有的,所以我们将其重置到尽可能最低的价值。
+                        // 这意味着,当网关改变时,有可能收到一个显示为旧的或相当的集群。
+                        // 解决这一难题的方法是重新确定预期的舱单版本,将不完整的舱单合并到完整完成
+                        // 收到 旅客名单。
                         gatewayVersion = MajorMinorVersion.MinValue;
                     }
 
@@ -164,19 +164,19 @@ namespace Orleans.Runtime
                         var updateResult = await GetClusterManifestUpdate(provider, gatewayVersion, _shutdownCts.Token);
                         if (updateResult is null)
                         {
-                            // There was no newer cluster manifest, so wait for the next refresh interval and try again.
+                            // 没有更新的集成显示, 所以等待下次更新间隔再试一次 。
                             await Task.Delay(_typeManagementOptions.TypeMapRefreshInterval, _shutdownCts.Token);
                             continue;
                         }
 
                         gatewayVersion = updateResult.Version;
 
-                        // If the manifest does not contain all active servers, merge with the existing manifest until it does.
-                        // This prevents reversed progress at the expense of including potentially defunct silos.
+                        // 如果 清单中未包含所有活动服务器,则在不在此列之前与现有 清单合并。
+                        // 这阻碍了逆转进展,而牺牲了可能已经失效的 silos。
                         ImmutableDictionary<SiloAddress, GrainManifest> siloManifests;
                         if (!updateResult.IncludesAllActiveServers)
                         {
-                            // Merge manifests until the manifest contains all active servers.
+                            // 合并清单,直到清单包含所有活动服务器。
                             var mergedSilos = _current.Silos.ToBuilder();
                             mergedSilos.Add(_localClientDetails.ClientAddress, LocalGrainManifest);
                             foreach (var kvp in updateResult.SiloManifests)
@@ -207,21 +207,21 @@ namespace Orleans.Runtime
                     }
                     catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested)
                     {
-                        // Ignore during shutdown.
+                        // 关闭时忽略 。
                     }
                     catch (Exception exception)
                     {
                         LogErrorTryingToGetClusterManifest(_logger, exception, gateway);
                         await Task.Delay(StandardExtensions.Min(_typeManagementOptions.TypeMapRefreshInterval, TimeSpan.FromSeconds(5)), _shutdownCts.Token).SuppressThrowing();
 
-                        // Reset the gateway so that another will be selected on the next iteration.
+                        // 重置网关, 以便在下次迭代时选择另一个 。
                         gateway = null;
                     }
                 }
             }
             catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested)
             {
-                // Shutdown also interrupts the delay while waiting for an available gateway.
+                // 关闭也中断了延迟时间,
             }
             finally
             {
@@ -238,9 +238,9 @@ namespace Orleans.Runtime
         {
             try
             {
-                // First, attempt to call the new API, which provides more information.
-                // This returns null if there is no newer cluster manifest.
-                // The runtime owns the RPC callback. Bound this provider's wait even when RPC policy requires a cancellation acknowledgement.
+                // 首先,试图调用新的 API,提供更多信息。
+                // 如果没有新显示的集 , 此返回无效 。
+                // 运行时拥有 RPC 回调。 即使当 RPC 政策需要取消确认时, 也仍然要等待这个提供商的回拨 。
                 var request = provider.GetClusterManifestUpdate(previousVersion, cancellationToken).AsTask();
                 request.Ignore();
                 return await request.WaitAsync(cancellationToken);
@@ -253,7 +253,7 @@ namespace Orleans.Runtime
             {
                 LogFailedToFetchClusterManifestUpdate(_logger, exception, provider);
 
-                // If the provider does not support the new API, fall back to the old one.
+                // 如果供应商不支持新的 API,请返回旧的。
                 var request = provider.GetClusterManifest(cancellationToken).AsTask();
                 request.Ignore();
                 var manifest = await request.WaitAsync(cancellationToken);

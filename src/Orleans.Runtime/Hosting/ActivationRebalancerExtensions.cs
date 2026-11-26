@@ -10,23 +10,23 @@ namespace Orleans.Hosting;
 
 
 /// <summary>
-/// Extensions for configuring activation rebalancing.
+/// 配置启动再平衡的扩展。
 /// </summary>
 public static class ActivationRebalancerExtensions
 {
     /// <summary>
-    /// Enables activation rebalancing for the entire cluster.
+    /// 使整个组群的再平衡激活
     /// </summary>
     /// <remarks>
-    /// Activation rebalancing attempts to distribute activations around the cluster in such a
-    /// way that it optimizes both activation count and memory usages across the silos of the cluster.
-    /// <para>You can read more on activation rebalancing <see href="https://www.ledjonbehluli.com/posts/orleans_adaptive_rebalancing/">here</see></para>
+    /// 重新平衡在这种集群内围绕该组分配启动活动的尝试
+    /// 使集的 silos 能够优化激活计数和内存使用。
+    /// <para>您可以在此读取关于激活再平衡的更多内容 <see href="https://www.ledjonbehluli.com/posts/orleans_adaptive_rebalancing/"></see></para>
     /// </remarks>
     public static ISiloBuilder AddActivationRebalancer(this ISiloBuilder builder) =>
         builder.AddActivationRebalancer<FailedSessionBackoffProvider>();
 
     /// <inheritdoc cref="AddActivationRebalancer(ISiloBuilder)"/>.
-    /// <typeparam name="TProvider">Custom backoff provider for determining next session after a failed attempt.</typeparam>
+    /// <typeparam name="TProvider">自定义后卸载提供者,以便在尝试失败后确定下一届届会。</typeparam>
     public static ISiloBuilder AddActivationRebalancer<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TProvider>(
         this ISiloBuilder builder)

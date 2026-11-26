@@ -4,10 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Security.Cryptography.X509Certificates;
 
-// Ensure the self-signed certificate exists (creates one if missing)
+// 确保存在自签名证书( 如果缺少的话, 创建一个)
 CertificateHelper.EnsureCertificateExists();
 
-// Configure a client and connect to the service.
+// 配置客户端并连接到服务 。
 using var host = new HostBuilder()
     .UseOrleansClient(builder =>
         builder.UseLocalhostClustering()
@@ -20,7 +20,7 @@ using var host = new HostBuilder()
                         (connection, sslOptions) =>
                             sslOptions.TargetHost = CertificateHelper.CertificateSubject;
 
-                    // NOTE: Do not do this in a production environment, since it is insecure.
+                    // 注:在生产环境中不要这样做,因为不安全。
                     options.AllowAnyRemoteCertificate();
                 }))
     .UseConsoleLifetime()
@@ -29,7 +29,7 @@ using var host = new HostBuilder()
 await host.StartAsync();
 Console.WriteLine("Client successfully connected to silo host");
 
-// Use the connected client to call a grain, writing the result to the terminal.
+// 使用连接的客户端调用 grain,将结果写入终端。
 var factory = host.Services.GetRequiredService<IGrainFactory>();
 var friend = factory.GetGrain<IHelloGrain>(0);
 var response = await friend.SayHello("Good morning, my friend!");

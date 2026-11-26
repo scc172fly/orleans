@@ -13,7 +13,7 @@ using static System.String;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// Tests for <see cref="AdoNetQueueAdapterFactory"/> against SQL Server.
+/// 试验 <see cref="AdoNetQueueAdapterFactory"/> 日 和 SQL 服务器
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -23,7 +23,7 @@ public class SqlServerAdoNetQueueAdapterFactoryTests(TestEnvironmentFixture fixt
 }
 
 /// <summary>
-/// Tests for <see cref="AdoNetQueueAdapterFactory"/> against MySQL.
+/// 试验 <see cref="AdoNetQueueAdapterFactory"/> 日 和 MySQL.
 /// </summary>
 [TestCategory("MySql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -37,7 +37,7 @@ public class MySqlAdoNetQueueAdapterFactoryTests : AdoNetQueueAdapterFactoryTest
 }
 
 /// <summary>
-/// Tests for <see cref="AdoNetQueueAdapterFactory"/> against PostgreSQL.
+/// 试验 <see cref="AdoNetQueueAdapterFactory"/> 日 和 PostgreSQL.
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -47,7 +47,7 @@ public class PostgreSqlAdoNetQueueAdapterFactoryTests(TestEnvironmentFixture fix
 }
 
 /// <summary>
-/// Tests for <see cref="AdoNetQueueAdapterFactory"/>.
+/// <see cref="AdoNetQueueAdapterFactory"/>测试。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("AdoNet"), TestCategory("Streaming")]
@@ -74,12 +74,12 @@ public abstract class AdoNetQueueAdapterFactoryTests(string invariant, TestEnvir
     }
 
     /// <summary>
-    /// Tests that the <see cref="AdoNetQueueAdapterFactory"/> creates an <see cref="AdoNetQueueAdapter"/> instance.
+    /// 测试 <see cref="AdoNetQueueAdapterFactory"/> 创建 <see cref="AdoNetQueueAdapter"/> 实例。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapterFactory_CreatesAdapter()
     {
-        // arrange
+        // 安排
         var name = "MyProviderName";
         var streamOptions = new AdoNetStreamOptions
         {
@@ -97,10 +97,10 @@ public abstract class AdoNetQueueAdapterFactoryTests(string invariant, TestEnvir
         var serviceProvider = _fixture.Services;
         var factory = new AdoNetQueueAdapterFactory(name, streamOptions, clusterOptions, cacheOptions, hashOptions, loggerFactory, lifetime, serviceProvider);
 
-        // act
+        // 行为
         var adapter = await factory.CreateAdapter();
 
-        // assert
+        // 平面
         Assert.NotNull(adapter);
         Assert.IsType<AdoNetQueueAdapter>(adapter);
         Assert.Equal(name, adapter.Name);
@@ -109,12 +109,12 @@ public abstract class AdoNetQueueAdapterFactoryTests(string invariant, TestEnvir
     }
 
     /// <summary>
-    /// Tests that the <see cref="AdoNetQueueAdapterFactory"/> gets a <see cref="AdoNetStreamFailureHandler"/> instance.
+    /// 测试 <see cref="AdoNetQueueAdapterFactory"/> 是否得到了一个 <see cref="AdoNetStreamFailureHandler"/> 实例。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapterFactory_GetsDeliveryFailureHandler()
     {
-        // arrange
+        // 安排
         var name = "MyProviderName";
         var streamOptions = new AdoNetStreamOptions
         {
@@ -133,22 +133,22 @@ public abstract class AdoNetQueueAdapterFactoryTests(string invariant, TestEnvir
         var factory = new AdoNetQueueAdapterFactory(name, streamOptions, clusterOptions, cacheOptions, hashOptions, loggerFactory, lifetime, serviceProvider);
         var queueId = QueueId.GetQueueId("MyQueueName", 1, 2);
 
-        // act
+        // 行为
         var handler = await factory.GetDeliveryFailureHandler(queueId);
 
-        // assert
+        // 平面
         Assert.NotNull(handler);
         Assert.IsType<AdoNetStreamFailureHandler>(handler);
         Assert.False(handler.ShouldFaultSubsriptionOnError);
     }
 
     /// <summary>
-    /// Tests that the <see cref="AdoNetQueueAdapterFactory"/> gets a <see cref="SimpleQueueCache"/> instance.
+    /// 测试 <see cref="AdoNetQueueAdapterFactory"/> 是否得到了一个 <see cref="SimpleQueueCache"/> 实例。
     /// </summary>
     [Fact]
     public void AdoNetQueueAdapterFactory_GetsQueueAdapterCache()
     {
-        // arrange
+        // 安排
         var name = "MyProviderName";
         var streamOptions = new AdoNetStreamOptions
         {
@@ -166,21 +166,21 @@ public abstract class AdoNetQueueAdapterFactoryTests(string invariant, TestEnvir
         var serviceProvider = _fixture.Services;
         var factory = new AdoNetQueueAdapterFactory(name, streamOptions, clusterOptions, cacheOptions, hashOptions, loggerFactory, lifetime, serviceProvider);
 
-        // act
+        // 行为
         var cache = factory.GetQueueAdapterCache();
 
-        // assert
+        // 平面
         Assert.NotNull(cache);
         Assert.IsType<SimpleQueueAdapterCache>(cache);
     }
 
     /// <summary>
-    /// Tests that the <see cref="AdoNetQueueAdapterFactory"/> gets a <see cref="HashRingBasedStreamQueueMapper"/> instance.
+    /// 测试 <see cref="AdoNetQueueAdapterFactory"/> 是否得到了一个 <see cref="HashRingBasedStreamQueueMapper"/> 实例。
     /// </summary>
     [Fact]
     public void AdoNetQueueAdapterFactory_GetsStreamQueueMapper()
     {
-        // arrange
+        // 安排
         var name = "MyProviderName";
         var streamOptions = new AdoNetStreamOptions
         {
@@ -198,27 +198,27 @@ public abstract class AdoNetQueueAdapterFactoryTests(string invariant, TestEnvir
         var serviceProvider = _fixture.Services;
         var factory = new AdoNetQueueAdapterFactory(name, streamOptions, clusterOptions, cacheOptions, hashOptions, loggerFactory, lifetime, serviceProvider);
 
-        // act
+        // 行为
         var mapper = factory.GetStreamQueueMapper();
 
-        // assert
+        // 平面
         Assert.NotNull(mapper);
         Assert.IsType<HashRingBasedStreamQueueMapper>(mapper);
     }
 
     /// <summary>
-    /// Tests that the <see cref="AdoNetQueueAdapterFactory"/> constructs via its static factory method.
+    /// 测试 <see cref="AdoNetQueueAdapterFactory"/> 通过其静态工厂方法构建。
     /// </summary>
     [Fact]
     public void AdoNetQueueAdapterFactory_ConstructsViaStaticFactory()
     {
-        // arrange
+        // 安排
         var name = "MyProviderName";
 
-        // act
+        // 行为
         var factory = AdoNetQueueAdapterFactory.Create(_fixture.Services, name);
 
-        // assert
+        // 平面
         Assert.NotNull(factory);
         Assert.IsType<AdoNetQueueAdapterFactory>(factory);
     }

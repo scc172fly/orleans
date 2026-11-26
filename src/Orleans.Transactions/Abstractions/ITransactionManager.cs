@@ -7,32 +7,32 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Coordinates the prepare and commit protocol for a transaction.
+    /// 协调交易协议的准备和履行。
     /// </summary>
     public interface ITransactionManager
     {
         /// <summary>
-        /// Request sent by TA to TM. The TM responds after committing or aborting the transaction.
+        /// TM在交易实施或中止后作出反应。
         /// </summary>
-        /// <param name="transactionId">The identifier of the transaction to prepare.</param>
-        /// <param name="accessCount">The number of reads and writes performed on this participant by the transaction.</param>
-        /// <param name="timeStamp">The transaction commit timestamp.</param>
-        /// <param name="writerResources">The participants which wrote during the transaction.</param>
-        /// <param name="totalParticipants">The total number of participants in the transaction.</param>
-        /// <returns>A task whose result is the final transaction status.</returns>
+        /// <param name="transactionId">要准备的交易标识符。</param>
+        /// <param name="accessCount">交易中对该参与者的读数和写数。</param>
+        /// <param name="timeStamp">交易承诺时间戳。</param>
+        /// <param name="writerResources">交易期间写作的参与者。</param>
+        /// <param name="totalParticipants">交易参与者总数。</param>
+        /// <returns>其结果是最终交易状况。</returns>
         Task<TransactionalStatus> PrepareAndCommit(Guid transactionId, AccessCounter accessCount, DateTime timeStamp,
             List<ParticipantId> writerResources, int totalParticipants);
 
         /// <summary>
-        /// Prepares and commits a transaction.
+        /// 准备并进行交易。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="accessCount">The number of resource accesses performed by the transaction.</param>
-        /// <param name="timeStamp">The commit timestamp.</param>
-        /// <param name="writerResources">The participants which wrote during the transaction.</param>
-        /// <param name="totalParticipants">The total number of participants.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The transaction status.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="accessCount">交易所获取的资源数量。</param>
+        /// <param name="timeStamp">承诺时间戳。</param>
+        /// <param name="writerResources">交易期间写作的参与者。</param>
+        /// <param name="totalParticipants">参加者总数。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>交易状况。</returns>
         Task<TransactionalStatus> PrepareAndCommit(
             Guid transactionId,
             AccessCounter accessCount,
@@ -43,64 +43,64 @@ namespace Orleans.Transactions.Abstractions
             => PrepareAndCommit(transactionId, accessCount, timeStamp, writerResources, totalParticipants);
 
         /// <summary>
-        /// One-way message sent by a participant to the TM after it (successfully or unsuccessfully) prepares.
+        /// 由参加方在TM会议(成功或失败)准备后向TM会议发送的单向信息。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timeStamp">The transaction commit timestamp.</param>
-        /// <param name="resource">The participant reporting its prepare result.</param>
-        /// <param name="status">The participant's prepare result.</param>
-        /// <returns>A task which represents the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timeStamp">交易承诺时间戳。</param>
+        /// <param name="resource">参与者报告其准备结果。</param>
+        /// <param name="status">参与者的准备结果</param>
+        /// <returns>代表操作的任务。</returns>
         Task Prepared(Guid transactionId, DateTime timeStamp, ParticipantId resource, TransactionalStatus status);
 
         /// <summary>
-        /// Reports that a participant has prepared.
+        /// 一位与会者编制的报告。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timeStamp">The commit timestamp.</param>
-        /// <param name="resource">The reporting participant.</param>
-        /// <param name="status">The prepare status.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timeStamp">承诺时间戳。</param>
+        /// <param name="resource">提交报告的参与者。</param>
+        /// <param name="status">准备状态</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Prepared(Guid transactionId, DateTime timeStamp, ParticipantId resource, TransactionalStatus status, CancellationToken cancellationToken)
             => Prepared(transactionId, timeStamp, resource, status);
 
         /// <summary>
-        /// One-way message sent by participants to TM, to let TM know they are still waiting to hear about
-        /// the fate of a transaction.
+        /// 向TMT发出单向信息,让TMT知道他们还在等待听到
+        /// 交易的命运。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timeStamp">The transaction commit timestamp.</param>
-        /// <param name="resource">The participant awaiting the transaction outcome.</param>
-        /// <returns>A task which represents the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timeStamp">交易承诺时间戳。</param>
+        /// <param name="resource">等待交易结果的参与人。</param>
+        /// <returns>代表操作的任务。</returns>
         Task Ping(Guid transactionId, DateTime timeStamp, ParticipantId resource);
 
         /// <summary>
-        /// Reports that a participant is awaiting the outcome of a transaction.
+        /// 据报,一名参与人正在等待交易结果。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timeStamp">The commit timestamp.</param>
-        /// <param name="resource">The reporting participant.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timeStamp">承诺时间戳。</param>
+        /// <param name="resource">提交报告的参与者。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Ping(Guid transactionId, DateTime timeStamp, ParticipantId resource, CancellationToken cancellationToken)
             => Ping(transactionId, timeStamp, resource);
     }
 
     /// <summary>
-    /// Counts read and write accesses on a transaction participant.
+    /// 计数交易参与者的读写权限。
     /// </summary>
     [GenerateSerializer]
     [Serializable]
     public struct AccessCounter : IEquatable<AccessCounter>
     {
         /// <summary>
-        /// The number of read accesses.
+        /// 读取访问次数。
         /// </summary>
         [Id(0)]
         public int Reads;
 
         /// <summary>
-        /// The number of write accesses.
+        /// 写入权限数 。
         /// </summary>
         [Id(1)]
         public int Writes;
@@ -115,21 +115,21 @@ namespace Orleans.Transactions.Abstractions
         public override readonly int GetHashCode() => HashCode.Combine(Reads, Writes);
 
         /// <summary>
-        /// Determines whether two access counters are equal.
+        /// 确定两个访问计数器是否相等。
         /// </summary>
         public static bool operator ==(AccessCounter left, AccessCounter right) => left.Equals(right);
 
         /// <summary>
-        /// Determines whether two access counters are unequal.
+        /// 确定两个接入柜台是否不平等。
         /// </summary>
         public static bool operator !=(AccessCounter left, AccessCounter right) => !left.Equals(right);
 
         /// <summary>
-        /// Adds the read and write counts from two values.
+        /// 从两个值中添加读写计数。
         /// </summary>
-        /// <param name="c1">The first access count.</param>
-        /// <param name="c2">The second access count.</param>
-        /// <returns>The combined access count.</returns>
+        /// <param name="c1">第一个访问计数。</param>
+        /// <param name="c2">第二个访问计数。</param>
+        /// <returns>合并访问计数。</returns>
         public static AccessCounter operator +(AccessCounter c1, AccessCounter c2)
         {
             return new AccessCounter { Reads = c1.Reads + c2.Reads, Writes = c1.Writes + c2.Writes };

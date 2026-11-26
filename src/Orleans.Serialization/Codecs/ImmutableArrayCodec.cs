@@ -8,16 +8,16 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="ImmutableArray{T}"/>.
+    /// <see cref="ImmutableArray{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ImmutableArrayCodec<T> : GeneralizedValueTypeSurrogateCodec<ImmutableArray<T>, ImmutableArraySurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImmutableArrayCodec{T}"/> class.
+        /// 初始化 <see cref="ImmutableArrayCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public ImmutableArrayCodec(IValueSerializer<ImmutableArraySurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -32,24 +32,24 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="ImmutableArrayCodec{T}"/>.
+    /// <see cref="ImmutableArrayCodec{T}"/>所使用的代金矿类型。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct ImmutableArraySurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public T[]? Values;
     }
 
     /// <summary>
-    /// Copier for <see cref="ImmutableArray{T}"/>.
+    /// <see cref="ImmutableArray{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class ImmutableArrayCopier<T> : IDeepCopier<ImmutableArray<T>>, IOptionalDeepCopier
     {
@@ -57,9 +57,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImmutableArrayCopier{T}"/> class.
+        /// 初始化 <see cref="ImmutableArrayCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">The element copier.</param>
+        /// <param name="copier">元素复印机。</param>
         public ImmutableArrayCopier(IDeepCopier<T> copier) => _copier = OrleansGeneratedCodeHelper.UnwrapService(this, copier);
 
         /// <inheritdoc />

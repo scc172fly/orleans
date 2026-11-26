@@ -3,13 +3,13 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// The silo role placement strategy specifies that a grain should be placed on a compatible silo which has the role specified by the strategy's placement attribute.
+    /// 下 silo 角色安置战略规定, grain 应在兼容器上安装 silo 其作用由战略的安置属性规定。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable, SuppressReferenceTracking]
     public class SiloRoleBasedPlacement : PlacementStrategy
     {
         /// <summary>
-        /// Gets the singleton instance of this class.
+        /// 获得单吨的例子 这个类。
         /// </summary>
         internal static SiloRoleBasedPlacement Singleton { get; } = new SiloRoleBasedPlacement();
     }

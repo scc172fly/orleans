@@ -1,91 +1,117 @@
 ---
-title: Orleans stream providers
-description: Compare built-in Orleans stream providers by durability, rewindability, status, and prerequisites.
+title: "Orleans 流流提供者"
+description: "按耐久性、可逆性、状态和先决条件比较内建 Orleans 流提供者。"
 ms.date: 08/18/2026
 ms.topic: concept-article
 ---
 
-# Orleans stream providers
+<a id="orleans-stream-providers"></a>
 
-A stream provider connects the Orleans streaming API to a transport and defines its runtime semantics. Select a provider from required durability, replay, throughput, hosting environment, and operational ownership. Provider behavior still depends on backing-service configuration such as retention, replication, and visibility timeouts.
+# Orleans 流流提供者
 
-## Provider matrix
+流体提供者将 Orleans 流 API 连接到运输,并定义其运行时间语义。从所需的耐久性、重播、吞吐量、主机环境和业务所有权中选择一个提供者。 提供者的行为仍然取决于保留、复制和可见度超时等支持服务配置。
 
-| Provider | Package | Status | External event durability | Rewindable | External prerequisites |
+<a id="provider-matrix"></a>
+
+## 提供方矩阵
+
+| 提供商 | 套包 | 状况状况现状状况现况 | 外部活动的耐久性 | 可逆 | 外部先决条件 |
 |---|---|---|---|---|---|
-| Memory | [`Microsoft.Orleans.Streaming`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming) | Stable | No; silo memory only | Yes, within the transient in-memory cache | None |
-| Azure Queue Storage | [`Microsoft.Orleans.Streaming.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage) | Stable | Yes, in Azure Storage queues | No | Azure Storage account or Azurite; credentials and a stable Orleans service ID |
-| Azure Event Hubs | [`Microsoft.Orleans.Streaming.EventHubs`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.EventHubs) | Stable | Yes, within Event Hubs retention | Yes | Event Hubs namespace, hub, consumer group, and checkpoint storage |
-| Amazon Kinesis | [`Microsoft.Orleans.Streaming.Kinesis`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.Kinesis) | Stable | Yes, within Kinesis retention | Yes | Kinesis data stream, AWS credentials, region, and durable checkpoint storage |
-| Amazon SQS | [`Microsoft.Orleans.Streaming.SQS`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.SQS) | Stable | Yes, within SQS retention | No | AWS account, queue permissions, region/endpoint configuration |
-| ADO.NET | [`Microsoft.Orleans.Streaming.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AdoNet) | **Alpha** | Yes, in relational tables until expiry/dead-letter eviction | No | Supported database, ADO.NET driver, and Orleans streaming SQL schema |
-| NATS JetStream | [`Microsoft.Orleans.Streaming.NATS`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.NATS) | **Alpha** | Configurable; file storage is the default | No | NATS server with JetStream and sufficient storage; subject/stream administration |
-| Redis Streams | [`Microsoft.Orleans.Streaming.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.Redis) | **Alpha** | Configurable through Redis persistence and stream retention | Yes, while entries remain | Redis deployment, persistence/HA policy, and retention sizing |
+| 内存 | [`Microsoft.Orleans.Streaming`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming) | 稳定 | 否; silo 内存仅 | 是的,在瞬间记忆缓存内 | 无无无无 |
+| Azure 队列存储 | [`Microsoft.Orleans.Streaming.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage) | 稳定 | 是, Azure 存储队列 | 无 | Azure 存储账户或Azurite; 证书和稳定 Orleans 服务ID |
+| Azure 活动枢纽 | [`Microsoft.Orleans.Streaming.EventHubs`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.EventHubs) | 稳定 | 是,在活动枢纽保留范围内 | 是 是 | 活动枢纽中心命名空间、枢枢纽中心、消费者群体和检查站储存 |
+| 亚马逊金银 | [`Microsoft.Orleans.Streaming.Kinesis`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.Kinesis) | 稳定 | 是,在Kinesis保留范围内 | 是 是 | Kinesis数据流、AWS证书、区域和持久检查站储存 |
+| 亚马逊 SQS | [`Microsoft.Orleans.Streaming.SQS`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.SQS) | 稳定 | 是,在保留SQS范围内 | 无 | AWS 账户、 队列权限、 区域/ 端点配置 |
+| ADO.NET | [`Microsoft.Orleans.Streaming.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AdoNet) | **阿尔法** | 是,在到期/死亡信到期前的相关表格中 | 无 | 支持的数据库、 ADO.NET 驱动程序以及 Orleans 流流 SQL schema |
+| 海军 JetStream | [`Microsoft.Orleans.Streaming.NATS`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.NATS) | **阿尔法** | 可配置; 文件存储为默认 | 无 | 具有 JetStream 和充分储存的NATS服务器;主题/流管理 |
+| Redis 流 | [`Microsoft.Orleans.Streaming.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.Redis) | **阿尔法** | 可通过 Redis 持久性和流流留存加以配置 | 是,但仍有条目 | Redis 部署、持久性/人道主义/人道主义政策以及保留量的定分 |
 
-Alpha packages have an `alpha.1` version suffix. Treat their APIs and operational behavior as prerelease, validate failure modes under load, and pin versions deliberately.
+Alpha 软件包有一个 `alpha.1` 版本后缀。 将它们的API 和操作行为作为预释放、 验证装入中的失败模式以及刻意输入版本 。
 
-Kafka and Azure Service Bus aren't built-in Orleans stream providers. Integrate them through application code or a custom persistent-stream queue adapter rather than configuring a nonexistent built-in provider.
+Kafka 和 Azure Service Bus 并非内置的 Orleans 流源提供商。 通过应用程序代码或定制的持久性流队列适配器将它们整合, 而不是配置一个不存在的内建提供商 。
 
-## Memory streams
+<a id="memory-streams"></a>
 
-Register memory streams with <xref:Orleans.Hosting.SiloBuilderMemoryStreamExtensions.AddMemoryStreams*>. They use silo memory for queues and cache, so events don't survive cluster loss. Rewind works only while the relevant event remains in the live in-memory cache. Use this provider for local development, tests, and workloads where loss is explicitly acceptable.
+## 内存流
 
-See [Tune memory stream dequeue batches](streaming-operations.md#tune-memory-stream-dequeue-batches) to configure per-provider batch counts and balance call overhead against response size.
+注册存储流 <xref:Orleans.Hosting.SiloBuilderMemoryStreamExtensions.AddMemoryStreams*>。 它们使用 silo 内存来排队和缓存, 因此事件不会幸存集损失。 只有在相关事件仍留在现场模拟缓存时, 才会倒转工作 。 在明确可以接受损失的情况下, 请使用此提供者进行本地开发、测试和工作量 。
 
-## Azure Queue Storage
+见 [Tunne 内存流解结队批量](streaming-operations.md#tune-memory-stream-dequeue-batches) ,以配置每个提供者的批次计算,并平衡收费间接费用与响应规模。
+
+<a id="azure-queue-storage"></a>
+
+## Azure 队列存储
 
 <a id="azure-queue-aq-stream-provider"></a>
 
-Register Azure Queue streams with <xref:Orleans.Hosting.SiloBuilderExtensions.AddAzureQueueStreams*>. The provider uses multiple [Azure Queue Storage](https://learn.microsoft.com/azure/storage/queues/storage-queues-introduction) queues and persistent-stream pulling agents. It isn't rewindable, and Azure Queue retries can produce duplicates or reorder delivery after failures.
+注册 Azure 以 <xref:Orleans.Hosting.SiloBuilderExtensions.AddAzureQueueStreams*>的队列排流。 供应商使用多个 [Azure 队列存储](https://learn.microsoft.com/azure/storage/queues/storage-queues-introduction) 队列和长流拉动剂。 它不可倒转, 而 Azure 队列可以在失败后产生重复或重新订购交付。
 
-Configure the current <xref:Azure.Storage.Queues.QueueServiceClient> directly on <xref:Orleans.Configuration.AzureQueueOptions>. When <xref:Orleans.Configuration.AzureQueueOptions.QueueNames> is unset, Orleans generates names from the Orleans service ID, provider name, and queue ID. Keep the service ID and provider name stable across restarts. Set queue names explicitly only when you need to manage an existing queue topology, and keep those names unique across clusters that share a storage account.
+配置当前方 <xref:Azure.Storage.Queues.QueueServiceClient> 直接在 <xref:Orleans.Configuration.AzureQueueOptions>. When <xref:Orleans.Configuration.AzureQueueOptions.QueueNames> 被解开 Orleans 从 Orleans 服务 ID 、 服务提供商名和 队列 ID 。 保持服务 ID 和 提供者名在重开时保持稳定 。 仅在您需要管理现有队列表层的时候, 明确设置队列名, 并且将这些名称保存账户的组别保持独有。
 
-### Managed identity
+<a id="managed-identity"></a>
+
+### 管理身份
 
 :::code language="csharp" source="snippets/streaming/Configuration.cs" id="azure_queue_managed_identity":::
 
-### Connection string
+<a id="connection-string"></a>
+
+### 连接字符串
 
 :::code language="csharp" source="snippets/streaming/Configuration.cs" id="azure_queue_connection_string":::
 
-The examples use durable Azure Table Storage for `PubSubStore`; queue durability alone doesn't preserve explicit subscription records.
+示例使用耐久 Azure 表存储用于 `PubSubStore`;单是队列耐久性并不保存明确的订阅记录。
 
-## Azure Event Hubs
+<a id="azure-event-hubs"></a>
+
+## Azure 活动枢纽
 
 <a id="azure-event-hub-stream-provider"></a>
 
-Register [Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) with <xref:Orleans.Hosting.SiloBuilderExtensions.AddEventHubStreams*>. Event Hubs retention and partition positions make this provider rewindable. Configure a consumer group dedicated to the Orleans application and durable checkpoint storage. Partition count bounds physical read parallelism, and retention bounds how far recovery can rewind.
+注册 [Azure 活动枢纽](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) , 并有 <xref:Orleans.Hosting.SiloBuilderExtensions.AddEventHubStreams*>。事件枢纽保留和分区位置使此提供者可倒转。 配置一个消费者群体专门用于 Orleans 应用程序和耐久检查站存储。 分隔点计的物理阅读平行界限, 以及保存线的恢复可以反延到多远的界限 。
 
-New subscriptions can [begin with messages retained in the pulling agent's local cache](subscription-start-positions.md). This cache-local replay keeps the Event Hubs partition receiver and checkpoint at their current positions.
+新订阅可以 [首先是在拉链代理器本地缓存中保留信件](subscription-start-positions.md)。 这个缓存本地重播让事件枢纽分区接收器和检查站保持现有位置 。
 
-The Event Hubs provider supports a custom data adapter for provider-specific wire formats. See [Integrate external stream producers and consumers](external-streams.md) when a non-Orleans application must publish to or consume from the same Event Hub.
+事件枢纽提供者支持一个自定义的数据调整器,用于提供商专用的电线格式。 见 [整合外部流的生产者和消费者](external-streams.md) 当非Orleans 应用程序必须发布或从同一个事件枢纽中消耗。
 
-## Amazon Kinesis
+<a id="amazon-kinesis"></a>
 
-Register [Amazon Kinesis Data Streams](https://docs.aws.amazon.com/streams/latest/dev/introduction.html) with <xref:Orleans.Hosting.SiloBuilderExtensions.AddKinesisStreams*>. Kinesis retains events independently of Orleans, and the provider persists each shard's last delivered sequence number so that delivery can resume after shutdown or queue reassignment. See [Stream with Amazon Kinesis](kinesis-streaming.md) for configuration, checkpoint choices, and operational constraints.
+## 亚马逊金银
 
-## Amazon SQS
+注册 [亚马孙 Kinesis 数据流](https://docs.aws.amazon.com/streams/latest/dev/introduction.html) , 并有 <xref:Orleans.Hosting.SiloBuilderExtensions.AddKinesisStreams*>。 Kinesis 将事件与 Orleans分开处理, 供应商维持每个碎片的最后交付序列号, 这样在关闭或排队调任后可以恢复交付。 关于配置、检查站选择和业务限制, 见 [亚马逊 Kinesis 流](kinesis-streaming.md) 。
 
-Register [Amazon SQS](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html) with <xref:Orleans.Hosting.SiloBuilderExtensions.AddSqsStreams*>. Standard queues provide at-least-once delivery, while FIFO queues preserve ordering within each Orleans stream. SQS redelivers after the [visibility timeout](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html) when processing isn't acknowledged. See [Stream with Amazon SQS](sqs-streaming.md) for standard and FIFO configuration, custom data adapters, permissions, and operational guidance.
+<a id="amazon-sqs"></a>
 
-## ADO.NET streaming (alpha)
+## 亚马逊 SQS
 
-Register [ADO.NET](https://learn.microsoft.com/dotnet/framework/data/adonet/ado-net-overview) streaming with `AddAdoNetStreams`. Install the matching database driver and apply the SQL Server, PostgreSQL, or MySQL streaming schema shipped in the package source. Messages are durable in relational tables but expire and can move to dead letters according to `AdoNetStreamOptions`. The provider isn't rewindable.
+登记册登记登记册 [亚马逊 SQS](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html) 与 <xref:Orleans.Hosting.SiloBuilderExtensions.AddSqsStreams*>。标准队列提供至少一次交付,而FIFO队列则在每种情况下保留顺序 Orleans 。SQS 后 [可见度超时](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html) 当处理不被确认时, 程序不被确认。 见 [亚马逊流](sqs-streaming.md) 用于标准和FIFO配置、自定义数据适配器、许可和业务指导。
 
-## NATS JetStream streaming (alpha)
+<a id="adonet-streaming-alpha"></a>
 
-Register [NATS JetStream](https://docs.nats.io/nats-concepts/jetstream) with `AddNatsStreams`. The provider creates or uses a JetStream stream and deterministic subject partitions. File-backed storage is the default; memory-backed JetStream storage is optional and not durable across server loss. Changes to `NatsOptions.PartitionCount` require corresponding server-side stream updates. The provider isn't rewindable.
+## ADO.NET 溪流(阿尔法)
 
-Stream namespaces and keys are byte identities. The provider encodes subject separators, wildcards, whitespace, control characters, and binary values into individual NATS tokens while preserving the original identity in the payload. Existing safe UTF-8 tokens retain their subjects and partition assignments; `~`-prefixed tokens and the literal namespace `null` use the encoded form. When upgrading from raw-subject routing, pause producers, drain deliverable messages, upgrade all provider silos and clients, and then resume publishing. Existing partitioned messages remain consumable, and previously retained unpartitioned messages require replay through the upgraded provider.
+登记册登记登记册 [ADO.NET](https://learn.microsoft.com/dotnet/framework/data/adonet/ado-net-overview) 流着 `AddAdoNetStreams`。安装匹配的数据库驱动程序并应用 SQL 服务器 PostgreSQL,或 MySQL 宏包源中发运的流流 smama 。 信件在相关表格中可耐久, 但过期并可以按照 `AdoNetStreamOptions`供应商是不会倒转的
 
-## Redis Streams streaming (alpha)
+<a id="nats-jetstream-streaming-alpha"></a>
 
-Register [Redis Streams](https://redis.io/docs/latest/develop/data-types/streams/) with `AddRedisStreams`. The provider stores events and checkpoints in Redis and is rewindable while entries remain. Redis durability depends on its [persistence](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/) and replication configuration. `RedisStreamingOptions.MaxStreamLength` can bound retention; without it, stream length is unbounded, so capacity planning is required.
+## NATS JetStream 流(阿尔法)
 
-## Custom adapters
+登记册登记登记册 [海军 JetStream](https://docs.nats.io/nats-concepts/jetstream) 与 `AddNatsStreams`.提供者创建或使用 JetStream 和确定性主题分区。 文件支持的存储是默认的; 内存支持 JetStream 服务器损失中,存储是可选的,不可持久。 `NatsOptions.PartitionCount` 需要相应的服务器端流更新。 服务商不可倒带 。
+
+串列命名空间和密钥是字节身份。 供应商将主题分隔器、通配卡、白空、 控制字符和二进制值编码为单个NATS 符号,同时保留有效载荷的原始特性。 现有的安全 UTF-8 类代号保留了它们的主体和分割任务; `~`-预设的标本和字面命名空间 `null` 使用编码格式。当升级原始主题路径时,暂停制作者、排水可发送信息、更新所有提供者 silos 和客户端,然后恢复出版。 现有的分割式信息仍然可以使用,而以前保留的未分割信件需要通过升级的供应商重播。
+
+<a id="redis-streams-streaming-alpha"></a>
+
+## Redis 流流(阿尔法)
+
+登记册登记登记册 [Redis 流](https://redis.io/docs/latest/develop/data-types/streams/) 与 `AddRedisStreams`供应商储存了在 Redis 并且可以重新显示,而条目则保留。 Redis 持久性取决于它 [持久性](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/) 和复制配置。 `RedisStreamingOptions.MaxStreamLength` 能够约束保留;没有它,流长是无限制的,因此需要能力规划。
+
+<a id="custom-adapters"></a>
+
+## 自定义适配器
 
 <a id="queue-adapters"></a>
 
-A [persistent-stream data adapter](data-adapters.md) customizes the wire format used by Azure Queue Storage, Azure Event Hubs, or Amazon SQS while retaining that provider's transport, partitioning, acknowledgement, cache, and recovery behavior.
+A [持久性流数据调整器](data-adapters.md) 定制 Azure Quue 存储、 Azure 事件枢纽或亚马逊 SQS 所使用的电线格式,同时保留该供应商的运输、分割、确认、缓存和回收行为。
 
 <xref:Orleans.Providers.Streams.Common.PersistentStreamProvider> hosts providers built on <xref:Orleans.Streams.IQueueAdapter>. A custom queue adapter supplies enqueue/dequeue behavior, queue mapping, rewindability, and failure handling while Orleans supplies pulling agents, subscription routing, and caches. See [Write a custom persistent-stream queue adapter](custom-queue-adapter.md) for an implementation guide and [stream implementation architecture](../implementation/streams-implementation/index.md) for the runtime design.

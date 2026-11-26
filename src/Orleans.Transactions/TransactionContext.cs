@@ -3,30 +3,30 @@ using System.Threading;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Provides access to the transaction associated with the current asynchronous execution context.
+    /// 提供与当前非同步执行环境有关的交易的准入。
     /// </summary>
     public static class TransactionContext
     {
         private static readonly AsyncLocal<TransactionInfo?> CurrentContext = new();
 
         /// <summary>
-        /// Gets the current transaction information.
+        /// 获取当前交易信息 。
         /// </summary>
-        /// <returns>The current transaction information, or <see langword="null"/> when no transaction is active.</returns>
+        /// <returns>当前交易信息,或无交易活动时的 <see langword="null"/> 。</returns>
         public static TransactionInfo? GetTransactionInfo() => CurrentContext.Value;
 
         /// <summary>
-        /// Gets the identifier of the current transaction.
+        /// 获取当前交易的识别符号。
         /// </summary>
-        /// <value>The current transaction identifier.</value>
-        /// <exception cref="OrleansTransactionException">There is no transaction in the current context.</exception>
+        /// <value>当前的交易识别符 。</value>
+        /// <exception cref="OrleansTransactionException">当前上下文中没有交易。</exception>
         public static string CurrentTransactionId => GetRequiredTransactionInfo().Id;
 
         /// <summary>
-        /// Gets the current transaction information.
+        /// 获取当前交易信息 。
         /// </summary>
-        /// <returns>The current transaction information.</returns>
-        /// <exception cref="OrleansTransactionException">There is no transaction in the current context.</exception>
+        /// <returns>当前的交易信息。</returns>
+        /// <exception cref="OrleansTransactionException">当前上下文中没有交易。</exception>
         public static TransactionInfo GetRequiredTransactionInfo() => GetTransactionInfo() ?? throw new OrleansTransactionException($"A transaction context is required for access. Did you forget a [Transaction] attribute?");
 
         internal static void SetTransactionInfo(TransactionInfo? info)

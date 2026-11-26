@@ -16,7 +16,7 @@ public class DurableTaskRequestContext
     [Id(1)]
     public GrainId TargetId { get; set; }
 
-    // TODO: Use a specialized collection type which allows for late materialization when deserialized.
+    // TODO:使用一种专门收藏类型,允许在消毒后延迟实现。
     [Id(2)]
     public Dictionary<string, byte[]>? Values { get; set; }
 

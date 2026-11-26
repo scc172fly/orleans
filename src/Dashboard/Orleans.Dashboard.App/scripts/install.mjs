@@ -52,9 +52,9 @@ try {
       console.error('npm did not return a complete JSON error report; preserving the failure.');
     }
 
-    // Fetch retries finish at response headers. npm's tarball extraction layer
-    // does not retry ECONNRESET while streaming the body, so restart the clean
-    // install. npm reports lifecycle failures with the script's numeric code.
+    // 获取响应信头上的回溯完成。 npm 的油布提取层
+    // 在流体中不重试 EONNRESET, 所以重新开始干净
+    // 。 npm 使用脚本的数值代码来报告生命周期故障。
     if (!result.signal && npmError?.code === 'ECONNRESET' && attempt < 3) {
       console.error('Retrying npm ci in 5 seconds after npm reported ECONNRESET.');
       await setTimeout(5000);

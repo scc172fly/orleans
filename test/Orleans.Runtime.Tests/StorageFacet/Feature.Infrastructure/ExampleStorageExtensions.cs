@@ -10,10 +10,10 @@ namespace Tester.StorageFacet.Infrastructure
         {
             builder.ConfigureServices(services =>
             {
-                // storage feature factory infrastructure
+                // 储存地物的工厂基础设施
                 services.AddTransient<INamedExampleStorageFactory, NamedExampleStorageFactory>();
 
-                // storage feature facet attribute mapper
+                // 存储特性 type att 属性映像仪
                 services.AddSingleton(typeof(IAttributeToFactoryMapper<ExampleStorageAttribute>), typeof(ExampleStorageAttributeMapper));
             });
         }

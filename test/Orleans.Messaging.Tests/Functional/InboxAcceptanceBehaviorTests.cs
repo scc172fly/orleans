@@ -65,7 +65,7 @@ public sealed class InboxAcceptanceBehaviorTests : MessagingBehaviorTestBase
         await barrier.WaitUntilEnteredAsync();
         var second = DeliverAsync(receiver, envelope);
 
-        // The pending acceptance is durable, so the duplicate is answered without waiting for the handler.
+        // 等待接受的可持久,因此复件在答复时不必等待处理者。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(first);
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await second);
         Assert.Equal(1, Fixture.GetSnapshot(receiver).InboxCount);
@@ -84,7 +84,7 @@ public sealed class InboxAcceptanceBehaviorTests : MessagingBehaviorTestBase
         var journal = JournalId.FromGrainId(receiver.GetGrainId());
         var inbox = Fixture.GetInbox(receiver);
 
-        // The request holds the grain while its journal write waits.
+        // 请求保留 grain , 而日记则在等待时保存 。
         await receiver.StageEffectAsync(new MessageEffect(MessageId.Create("request", "effect"), 1, 0, "request"));
         using var write = Fixture.Storage.BlockWrite(journal);
         var request = receiver.RetryWriteStateAsync();
@@ -108,12 +108,12 @@ public sealed class InboxAcceptanceBehaviorTests : MessagingBehaviorTestBase
         var journalId = JournalId.FromGrainId(receiver.GetGrainId());
         var envelope = CreateEnvelope(receiver, NewMessage(12, "completion-durability"));
 
-        // The first write accepts the message and the second records its completion.
+        // 首字母接受此信件,第二字记录其完成。
         var barrier = Fixture.Storage.BlockWrite(journalId, matchingWrite: 2);
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
         await barrier.WaitUntilEnteredAsync();
 
-        // Whenever the duplicate is answered, the completion it depends on must already be durable.
+        // 每当重复的回答得到答复,它所依赖的完成必须已经是持久的。
         var duplicate = DeliverAsync(receiver, envelope).ContinueWith(
             task => (task.Result, Writes: Fixture.Storage.GetSuccessfulWriteCount(journalId)),
             TaskScheduler.Default);
@@ -164,7 +164,7 @@ public sealed class InboxAcceptanceBehaviorTests : MessagingBehaviorTestBase
         var writes = Fixture.Storage.GetSuccessfulWriteCount(journal);
         Fixture.Clock.Advance(TimeSpan.FromMinutes(1));
 
-        // A re-send is the same message, so its record keeps the time the inbox accepted.
+        // 重新发送是同一个信息,所以其记录可以保留收件箱接受的时间。
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, message));
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, message with { SentAt = Fixture.JobNow }));
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, message with { SentAt = message.SentAt.AddTicks(-1) }));

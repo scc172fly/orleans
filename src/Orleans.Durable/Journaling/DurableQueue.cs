@@ -6,63 +6,63 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Represents a first-in, first-out collection whose mutations are recorded in a journal.
+/// 代表先入先出收藏,其变异记录在日记中。
 /// </summary>
-/// <typeparam name="T">The type of elements in the queue.</typeparam>
+/// <typeparam name="T">队列中的元素类型。</typeparam>
 /// <remarks>
-/// The queue takes ownership of the elements passed to it, and the journal records each mutation when it is made. To change an element, enqueue a new instance.
+/// 队列将获得传递给它的元素的所有权, 而日记记录每次突变时都会发生。 要更改元素, 请输入一个新实例 。
 /// </remarks>
 public interface IDurableQueue<T> : IEnumerable<T>, IReadOnlyCollection<T>
 {
     /// <summary>
-    /// Removes all elements from the queue.
+    /// 删除队列中的所有元素。
     /// </summary>
     void Clear();
 
     /// <summary>
-    /// Determines whether the queue contains the specified element.
+    /// 确定队列是否包含指定元素。
     /// </summary>
-    /// <param name="item">The element to locate in the queue.</param>
-    /// <returns><see langword="true"/> if the queue contains <paramref name="item"/>; otherwise, <see langword="false"/>.</returns>
+    /// <param name="item">队列中要定位的元素。</param>
+    /// <returns><see langword="true"/> 如果队列包含 <paramref name="item"/>;否则, <see langword="false"/>。</returns>
     bool Contains(T item);
 
     /// <summary>
-    /// Copies the queue elements to an array, starting at the specified array index.
+    /// 从指定的数组索引开始,将队列元素复制到一个阵列。
     /// </summary>
-    /// <param name="array">The destination array.</param>
-    /// <param name="arrayIndex">The zero-based index in <paramref name="array"/> at which copying begins.</param>
+    /// <param name="array">目标数组。</param>
+    /// <param name="arrayIndex">零基指数 <paramref name="array"/> 开始复制 。</param>
     void CopyTo(T[] array, int arrayIndex);
 
     /// <summary>
-    /// Removes and returns the element at the beginning of the queue.
+    /// 删除并返回队列起始处的元素。
     /// </summary>
-    /// <returns>The element removed from the beginning of the queue.</returns>
+    /// <returns>从队列开头删除的元素。</returns>
     T Dequeue();
 
     /// <summary>
-    /// Adds an element to the end of the queue.
+    /// 将元素添加到队列的结尾。
     /// </summary>
-    /// <param name="item">The element to add to the queue.</param>
+    /// <param name="item">队列中要添加的元素。</param>
     void Enqueue(T item);
 
     /// <summary>
-    /// Returns the element at the beginning of the queue without removing it.
+    /// 返回队列起始处的元素,不删除它。
     /// </summary>
-    /// <returns>The element at the beginning of the queue.</returns>
+    /// <returns>队列开头的元素。</returns>
     T Peek();
 
     /// <summary>
-    /// Attempts to remove and return the element at the beginning of the queue.
+    /// 试图删除元素, 然后返回队列起始处的元素 。
     /// </summary>
-    /// <param name="item">The removed element, or the default value of <typeparamref name="T"/> when the queue is empty.</param>
-    /// <returns><see langword="true"/> if an element was removed; otherwise, <see langword="false"/>.</returns>
+    /// <param name="item">删除的元素, 或队列为空时的 <typeparamref name="T"/> 默认值。</param>
+    /// <returns><see langword="true"/> 如果一个元素被删除;否则, <see langword="false"/>。</returns>
     bool TryDequeue([MaybeNullWhen(false)] out T item);
 
     /// <summary>
-    /// Attempts to return the element at the beginning of the queue without removing it.
+    /// 试图在队列开头返回元素,但不删除它。
     /// </summary>
-    /// <param name="item">The element at the beginning of the queue, or the default value of <typeparamref name="T"/> when the queue is empty.</param>
-    /// <returns><see langword="true"/> if an element was returned; otherwise, <see langword="false"/>.</returns>
+    /// <param name="item">队列开头的元素,或队列为空时的 <typeparamref name="T"/> 默认值。</param>
+    /// <returns><see langword="true"/> 如果返回一个元素;否则, <see langword="false"/>。</returns>
     bool TryPeek([MaybeNullWhen(false)] out T item);
 }
 
@@ -105,7 +105,7 @@ internal sealed class DurableQueue<T> : IDurableQueue<T>, IStateMachine, IDurabl
 
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer)
     {
-        // This state implementation appends journal entries as the data structure is modified, so there is no need to perform separate writing here.
+        // 此状态的实施随着数据结构的修改而附加日记条目, 因此在此无需单独写入 。
     }
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter snapshotWriter)

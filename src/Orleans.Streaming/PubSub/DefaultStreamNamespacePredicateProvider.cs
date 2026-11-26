@@ -5,7 +5,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Default implementation of <see cref="IStreamNamespacePredicateProvider"/> for internally supported stream predicates.
+    /// 默认实施内部支持的流流上游 <see cref="IStreamNamespacePredicateProvider"/> 。
     /// </summary>
     public class DefaultStreamNamespacePredicateProvider : IStreamNamespacePredicateProvider
     {
@@ -33,17 +33,17 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// Stream namespace predicate provider which supports objects which can be constructed and optionally accept a string as a constructor argument.
+    /// 支持可构造对象的流命名空间上游提供者,可选择接受字符串作为构建参数。
     /// </summary>
     public class ConstructorStreamNamespacePredicateProvider : IStreamNamespacePredicateProvider
     {
         /// <summary>
-        /// The prefix used to identify this predicate provider.
+        /// 用于识别该上游供应商的前缀。
         /// </summary>
         public const string Prefix = "ctor";
 
         /// <summary>
-        /// Formats a stream namespace predicate which indicates a concrete <see cref="IStreamNamespacePredicate"/> type to be constructed, along with an optional argument.
+        /// 格式化流命名空间前置,该前置表示要构造的混凝土 <see cref="IStreamNamespacePredicate"/> 类型,并加上一个可选参数。
         /// </summary>
         public static string FormatPattern(Type predicateType, string? constructorArgument)
         {
@@ -81,7 +81,7 @@ namespace Orleans.Streams
                 arg = predicatePattern[(index + 1)..];
             }
 
-            var type = Type.GetType(typeName, throwOnError: true)!; // throwOnError ensures that a Type is returned or an exception is thrown.
+            var type = Type.GetType(typeName, throwOnError: true)!; // throwOnError 确保返回类型或提出例外。
 
             if (!typeof(IStreamNamespacePredicate).IsAssignableFrom(type))
             {
@@ -90,11 +90,11 @@ namespace Orleans.Streams
 
             if (string.IsNullOrEmpty(arg))
             {
-                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type)!; // CreateInstance returns a predicate instance or throws.
+                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type)!; // CreateInstance 返回一个或几个的上游实例或投出。
             }
             else
             {
-                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type, arg)!; // CreateInstance returns a predicate instance or throws.
+                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type, arg)!; // CreateInstance 返回一个或几个的上游实例或投出。
             }
 
             return true;

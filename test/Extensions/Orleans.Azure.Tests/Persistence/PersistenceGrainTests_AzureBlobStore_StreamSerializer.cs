@@ -11,7 +11,7 @@ using static Tester.AzureUtils.Persistence.Base_PersistenceGrainTests_AzureStore
 namespace Tester.AzureUtils.Persistence;
 
 /// <summary>
-/// Validates that Azure blob storage uses the stream serializer for reads and writes when available.
+/// 校验 Azure blob 储存使用流序列器读写,如果有的话。
 /// </summary>
 [TestCategory("Persistence"), TestCategory("AzureStorage")]
 [TestSuite("Functional")]

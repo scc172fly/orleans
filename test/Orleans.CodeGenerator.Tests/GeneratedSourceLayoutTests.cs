@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Tests that directly written generated files keep the normalized layout which the generator has always produced,
-/// and that they compile, across serializer, proxy, invokable, metadata, and context outputs.
+/// 直接写入生成文件的测试保持了发电机一直产生的正常布局,
+/// 并编集序列、代理、可引用、元数据和上下文产出。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -126,7 +126,7 @@ public sealed class GeneratedSourceLayoutTests
     [InlineData(true)]
     public async Task GeneratedFilesKeepNormalizedLayoutAndCompile(bool hotReload)
     {
-        // The provider registration instantiates the metadata provider, whose options contract is declared by Microsoft.Extensions.Options.
+        // 供应商登记即刻通知元数据提供者,其选择合同由 Microsoft.Extensions.Options申报。
         var compilation = await TestCompilationHelper.CreateCompilation(Source, "TestProject",
             MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Options.IConfigureOptions<>).Assembly.Location));
         GeneratorDriver driver = CSharpGeneratorDriver.Create(
@@ -163,9 +163,9 @@ public sealed class GeneratedSourceLayoutTests
                 body = body[Disable.Length..^Restore.Length];
             }
 
-            // Generated files use Roslyn's normalized statement layout with idiomatic token spelling, where normalization differs:
-            // "T?)" and "T?[]" rather than "T? )" and "T? []", "G<,>" and "int[,]" rather than "G<, >" and "int[, ]",
-            // "null!" rather than "null !", and every constraint clause on its declaration line.
+            // 生成的文件使用Roslyn的普通语句布局, 带有异域符号拼写, 其常规化不同 :
+            // “T”和“T? []” ,而不是“T? ]”和“T? [ ]”,“G<,>”和“int[,] ”而不是“G<, >”和“int[, ] ”,
+            // 而不是"不",还有它声明的每个限制条款
             var normalized = Idiomatic(SyntaxFactory.ParseCompilationUnit(body).NormalizeWhitespace().ToFullString());
             if (!string.Equals(normalized, body, StringComparison.Ordinal))
             {

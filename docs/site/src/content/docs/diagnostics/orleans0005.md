@@ -1,33 +1,43 @@
 ---
-title: "ORLEANS0005: Add GenerateSerializer"
-description: Understand and resolve ORLEANS0005 when a Serializable type does not opt into Orleans source-generated serialization.
+title: "ORLEANS0005:添加 GenerateSerializer"
+description: "理解和决心 ORLEANS0005 当一个可串列类型不选择 Orleans 源生成序列化。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0005: Add GenerateSerializer
+<a id="orleans0005-add-generateserializer"></a>
 
-| Property | Value |
+# ORLEANS0005:添加 GenerateSerializer
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Info |
-| Code fix | Available |
+| 类别类 | 用法 |
+| 严重性 | 信息信息 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-A type has `[Serializable]` but does not have `[GenerateSerializer]`.
+## 原因原因原因
 
-## Impact
+类型有 `[Serializable]` ,但没有 `[GenerateSerializer]`。
 
-The type does not use Orleans source-generated serialization and can miss Orleans' version-tolerant schema and generated-code performance.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Apply the code fix to add `[GenerateSerializer]`, then address any `ORLEANS0004` diagnostics by assigning stable member IDs or excluding members.
+该类型不使用源生成的序列化 Orleans ,可错失 Orleans版本耐受性图和生成代码性能。
 
-## Suppress the diagnostic
+<a id="how-to-fix"></a>
 
-Suppress when the type is never serialized by Orleans or deliberately uses a custom or external serializer.
+## 如何修补
+
+应用代码修正添加 `[GenerateSerializer]`,然后通过指定稳定成员身份或排除成员处理任何 `ORLEANS0004` 诊断。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+当 Orleans 从未连续排序或故意使用自定义或外部序列器时,禁止该类型。
 
 ```ini
 [*.cs]

@@ -9,32 +9,32 @@ using Orleans.Placement.Repartitioning;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extensions for configuring activation repartitioning.
+/// 配置启动重新分配的扩展 。
 /// </summary>
 public static class ActivationRepartitioningExtensions
 {
     /// <summary>
-    /// Enables activation repartitioning for this silo.
+    /// 启用此 silo的激活重新分割。
     /// </summary>
     /// <remarks>
-    /// Activation repartitioning attempts to optimize grain call locality by collocating activations which communicate frequently,
-    /// while keeping the number of activations on each silo approximately equal.
+    /// 重新激活尝试优化 grain 呼叫地点,办法是对频繁交流的启动装置进行拼接,
+    /// 将每个 silo 的激活数量大致保持相等。
     /// </remarks>
-    /// <param name="builder">The silo builder.</param>
-    /// <returns>The provided silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <returns>提供的情况 silo 建筑商</returns>
     public static ISiloBuilder AddActivationRepartitioner(this ISiloBuilder builder)
         => builder.AddActivationRepartitioner<RebalancerCompatibleRule>();
 
     /// <summary>
-    /// Enables activation repartitioning for this silo.
+    /// 启用此 silo的激活重新分割。
     /// </summary>
     /// <remarks>
-    /// Activation repartitioning attempts to optimize grain call locality by collocating activations which communicate frequently,
-    /// while keeping the number of activations on each silo approximately equal.
+    /// 重新激活尝试优化 grain 呼叫地点,办法是对频繁交流的启动装置进行拼接,
+    /// 将每个 silo 的激活数量大致保持相等。
     /// </remarks>
-    /// <typeparam name="TRule">The type of the imbalance rule to use.</typeparam>
-    /// <param name="builder">The silo builder.</param>
-    /// <returns>The provided silo builder.</returns>
+    /// <typeparam name="TRule">要使用的不平衡规则类型 。</typeparam>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <returns>提供的情况 silo 建筑商</returns>
     public static ISiloBuilder AddActivationRepartitioner<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRule>(
         this ISiloBuilder builder)

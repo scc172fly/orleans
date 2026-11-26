@@ -1,7 +1,7 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// The model that represents a stored message in an ADONET streaming provider.
+/// 代表ADONET流源提供商存储信息的模式。
 /// </summary>
 internal record AdoNetStreamMessage(
     string ServiceId,

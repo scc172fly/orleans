@@ -65,7 +65,7 @@ namespace Orleans.Serialization.Invocation
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0)
             {
-                // Clear per-thread stacks so pooled objects do not keep their owning service provider alive.
+                // 清除每面书架,使集合物体无法维持自己的服务供应商的生命。
                 _objects.Dispose();
             }
         }

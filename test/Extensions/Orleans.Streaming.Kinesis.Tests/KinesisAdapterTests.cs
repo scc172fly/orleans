@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Streaming.Kinesis.Tests
 {
     /// <summary>
-    /// Tests Kinesis adapter functionality for sending and receiving messages through Orleans streaming.
+    /// 通过 Orleans 流来测试 Kinesis 发送和接收信件的 Kinesis 适配器功能。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]
@@ -92,13 +92,13 @@ namespace Orleans.Streaming.Kinesis.Tests
             IQueueAdapter adapter = await adapterFactory.CreateAdapter(cancellationToken);
             IQueueAdapterCache cache = adapterFactory.GetQueueAdapterCache();
 
-            // Create receiver per queue
+            // 每个队列创建接收器
             IStreamQueueMapper mapper = adapterFactory.GetStreamQueueMapper();
             Dictionary<QueueId, IQueueAdapterReceiver> receivers = mapper.GetAllQueues().ToDictionary(queueId => queueId, adapter.CreateReceiver);
             Dictionary<QueueId, IQueueCache> caches = mapper.GetAllQueues().ToDictionary(queueId => queueId, cache.CreateQueueCache);
             await Task.WhenAll(receivers.Values.Select(receiver => receiver.Initialize(TimeSpan.FromSeconds(5))));
 
-            // test using 2 streams
+            // 使用 2 流测试
             Guid streamId1 = Guid.NewGuid();
             Guid streamId2 = Guid.NewGuid();
 
@@ -106,7 +106,7 @@ namespace Orleans.Streaming.Kinesis.Tests
             var streamsPerQueue = new ConcurrentDictionary<QueueId, HashSet<StreamId>>();
             var firstTokens = new ConcurrentDictionary<(QueueId QueueId, StreamId StreamId), StreamSequenceToken>();
 
-            // send events
+            // 发送事件
             List<object> events = CreateEvents(NumMessagesPerBatch);
             await Task.WhenAll(Enumerable.Range(0, NumBatches)
                 .Select(i => i % 2 == 0 ? streamId1 : streamId2)
@@ -150,7 +150,7 @@ namespace Orleans.Streaming.Kinesis.Tests
 
             Assert.Equal(NumBatches, receivedBatches);
 
-            // check to see if all the events are in the cache and we can enumerate through them
+            // 检查是否所有事件都在缓存中, 我们可以通过它们来计算
             foreach (KeyValuePair<QueueId, HashSet<StreamId>> kvp in streamsPerQueue)
             {
                 var receiver = receivers[kvp.Key];
@@ -159,7 +159,7 @@ namespace Orleans.Streaming.Kinesis.Tests
                 foreach (StreamId streamGuid in kvp.Value)
                 {
                     var firstInCache = firstTokens[(kvp.Key, streamGuid)];
-                    // read all messages in cache for stream
+                    // 读取流的缓存中的所有信件
                     var cursorResult = qCache.TryGetCacheCursor(streamGuid, firstInCache);
                     Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                     var cursor = cursorResult.Cursor;
@@ -185,7 +185,7 @@ namespace Orleans.Streaming.Kinesis.Tests
                     Assert.Equal(NumBatches / 2, messageCount);
                     Assert.NotNull(tenthInCache);
 
-                    // read all messages from the 10th
+                    // 读取来自 第10次的所有消息
                     cursorResult = qCache.TryGetCacheCursor(streamGuid, tenthInCache);
                     Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                     cursor = cursorResult.Cursor;
@@ -196,7 +196,7 @@ namespace Orleans.Streaming.Kinesis.Tests
                         messageCount++;
                     }
                     output.WriteLine("On Queue {0} we received a total of {1} message on stream {2}", kvp.Key, messageCount, streamGuid);
-                    const int expected = NumBatches / 2 - 10 + 1; // all except the first 10, including the 10th (10 + 1)
+                    const int expected = NumBatches / 2 - 10 + 1; // 除前10名外,包括第10名(10+1)
                     Assert.Equal(expected, messageCount);
                 }
             }

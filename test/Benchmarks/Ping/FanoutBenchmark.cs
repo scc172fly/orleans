@@ -11,7 +11,7 @@ using Orleans.Configuration;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// Benchmarks grain communication with fanout patterns across multiple silos.
+/// 基准 grain 与多个 silos的粉丝型号通信。
 /// </summary>
 [MemoryDiagnoser]
 public class FanoutBenchmark : IDisposable

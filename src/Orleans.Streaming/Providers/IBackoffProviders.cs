@@ -4,11 +4,11 @@ using Orleans.Streams;
 namespace Orleans.Runtime.Providers;
 
 /// <summary>
-/// Functionality for determining how long the <see cref="IPersistentStreamPullingAgent"/> will wait between successive attempts to deliver a message.
+/// 确定连续几次发送信息之间 <see cref="IPersistentStreamPullingAgent"/> 将等待多久的职能。
 /// </summary>
 public interface IMessageDeliveryBackoffProvider : IBackoffProvider { }
 
 /// <summary>
-/// Functionality for determining how long the <see cref="IPersistentStreamPullingAgent"/> will wait between successive attempts to read a message from a queue.
+/// 确定在连续尝试从队列中读取消息之间 <see cref="IPersistentStreamPullingAgent"/> 要等待多久 的功能。
 /// </summary>
 public interface IQueueReaderBackoffProvider : IBackoffProvider { }

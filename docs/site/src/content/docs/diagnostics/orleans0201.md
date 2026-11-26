@@ -1,46 +1,56 @@
 ---
-title: "ORLEANS0201: Produce non-deterministic values in recorded effects"
-description: Understand ORLEANS0201, which reports durable task code which produces clock, random, or environment values where a replay runs it again, and fix it with DurableTask.RunInline, logical time, or task-derived keys.
+title: "ORLEANS0201:在记录效果中产生非确定值"
+description: "理解 ORLEANS0201, 其中报告长任务代码, 该代码生成时钟、 随机或环境值, 而重播则再次运行该代码, 并用 DurableTask.RunInline、 逻辑时间或基于任务的密钥来修正它 。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0201: Produce non-deterministic values in recorded effects
+<a id="orleans0201-produce-non-deterministic-values-in-recorded-effects"></a>
 
-| Property | Value |
+# ORLEANS0201:在记录效果中产生非确定值
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-A durable task body produces a value which differs between runs at a point from which it still reaches a durable operation. The rule reports wall-clock time (`DateTime.Now`, `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`, `DateTimeOffset.UtcNow`, `TimeProvider.GetUtcNow`, `TimeProvider.GetLocalNow`, `TimeProvider.GetTimestamp`, and `Stopwatch`), random values and identifiers (`Guid.NewGuid`, `Guid.CreateVersion7`, `Random`, and `RandomNumberGenerator`), and process values (`Environment.TickCount`, `Environment.MachineName`, `Environment.ProcessId`, `Environment.CurrentManagedThreadId`, `Environment.ProcessorCount`, and environment variables). Values which only reach a log call are exempt.
+## 原因原因原因
 
-The following payment draws an idempotency key and computes a deadline from the system clock:
+长期任务机构产生的价值在运行时间仍然可以持久运作时,其价值不同。`DateTime.Now`, `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`, `DateTimeOffset.UtcNow`, `TimeProvider.GetUtcNow`, `TimeProvider.GetLocalNow`, `TimeProvider.GetTimestamp`,和 `Stopwatch`),随机值和识别符号(`Guid.NewGuid`, `Guid.CreateVersion7`, `Random`,和 `RandomNumberGenerator`),和进程值(`Environment.TickCount`, `Environment.MachineName`, `Environment.ProcessId`, `Environment.CurrentManagedThreadId`, `Environment.ProcessorCount`,以及环境变量。仅达到日志调用值的值将被免责。
+
+下列付款提取了应急钥匙,并从系统时钟计算最后期限:
 
 :::code source="snippets/durable-tasks/Orleans0201.cs" id="orleans0201_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-A replay runs the body from the start, so it produces another value:
+## 规则说明
 
-- **Another deadline.** The replay computes a deadline from the current clock. The recorded wait keeps its recorded due time, so the value which the body computed disagrees with the wait which it scheduled.
-- **Another key.** A replay which reaches the `charge` step before it recorded a result runs the step with a new key, so the payment provider can't recognize the retry and charges again.
-- **Divergence.** A value which reaches a durable call's arguments, a `WithId` name, or a branch makes the replay schedule a different operation than the one which the first run recorded, and the execution diverges and stalls until code which matches the record replays it.
+重播从一开始就运行身体, 因此它产生另一个值 :
 
-For the rules and the replay model, see [Replay-safety rules](../grains/durable-tasks-replay-rules.md).
+- **另一条最后期限。** 重放从当前时钟计算一个截止时间。 记录的等待会保留其记录的适当时间, 所以机构计算的价值与计划的时间不符 。
+- **另一把钥匙** 重放到 `charge` 之后它记录的结果会用新的钥匙 来跳过这一步, 这样付款提供人就再也认不出 重新试和收费了。
+- **差异。** 一个达到耐久调用参数的值、一个 `WithId` 名称或分支使重播时间表与第一次记录时不同的操作,执行会分歧和拖拉,直到与记录相匹配的代码重放它为止。
 
-## How to fix violations
+规则和重放模型见 [重演安全规则](../grains/durable-tasks-replay-rules.md)。
 
-**Derive identifiers from the task's identity, and read logical time.** The grain, `DurableTask.Current.Id`, and `DurableTask.Current.Incarnation` name the run in every replay, so a key built from them is the same in every replay and attempt, including one which repeats a charge whose result didn't commit. The incarnation distinguishes a later run of the same task identifier, such as one which starts after the earlier run completed and its history was deleted, so that run charges under another key. `DurableTask.Current.UtcNow` is the execution's logical time, which the runtime records, so a replay computes the same deadline. See [Derive idempotency keys from the task](../grains/durable-tasks-idempotency.md#derive-idempotency-keys-from-the-task):
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**从任务身份中衍生的识别符号, 并读取逻辑时间。** grain、 `DurableTask.Current.Id`和 `DurableTask.Current.Incarnation` 在每个重放中命名运行, 因此在每次重播和尝试中, 以它们为基础的键都是相同的, 包括重复一项指控而结果没有发生的。 内化区分了同一任务标识的后期运行, 例如从早期运行完成之后开始的运行, 历史被删除, 所以在另一个密钥下运行收费。 `DurableTask.Current.UtcNow` 是执行的逻辑时间, 运行时间记录, 所以重编计算同样的截止时间 。 见 [任务产生的衍生的不合格关键](../grains/durable-tasks-idempotency.md#derive-idempotency-keys-from-the-task):
 
 :::code source="snippets/durable-tasks/Orleans0201.cs" id="orleans0201_fix" language="csharp":::
 
-**Record other values with `DurableTask.RunInline`.** The effect runs once, such as `DurableTask.RunInline("reference", () => Guid.NewGuid().ToString("N"))`, and every replay returns the recorded value. The record commits with the task's next journal write, together with the grain state which the body changes, so state and branches observe the same value in every run. A value which leaves the grain before that write, such as a key which a step passes to an external service, comes from the task's identity.
+**记录其他值,并使用 `DurableTask.RunInline`。** 效果运行一次,例如 `DurableTask.RunInline("reference", () => Guid.NewGuid().ToString("N"))`,每次重放都返回所记录的值。记录承诺在任务下写下一个日记时加上身体变化的 grain 状态,这样每个运行中,状态和分支都遵守同样的数值。一个留下该写入之前的 grain 值,如一步步通过外部服务的键,来自任务的身份。
 
-**Produce the value inside a step.** A `DurableTask.Run` delegate or a local step records its result, so values which it returns are recorded with it.
+**在一个步骤内生成值。** A `DurableTask.Run` 代表或本地步记录其结果,因此它返回的数值随此过程记录下来。
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic for a value which never reaches a durable operation, its arguments, its name, a branch, or grain state, such as a timestamp which only measures the duration of the current run for a metric.
+## 何时压缩
+
+抑制对从未达到持久操作值的诊断、其参数、名称、分支或 grain 状态,例如只测量当前运行时间的时戳,以测量某一度量。

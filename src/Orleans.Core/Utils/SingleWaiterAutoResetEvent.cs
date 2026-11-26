@@ -8,18 +8,18 @@ using System.Threading.Tasks.Sources;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents a synchronization event that, when signaled, resets automatically after releasing a single waiter.
-    /// This type supports concurrent signalers but only a single waiter.
+    /// 代表一个同步事件,该时,当信号被发出时,在释放单个服务员后自动重置。
+    /// 此类型支持同时的信号器, 但只有一个服务员 。
     /// </summary>
     internal sealed class SingleWaiterAutoResetEvent : IValueTaskSource
     {
-        // Signaled indicates that the event has been signaled and not yet reset.
+        // 信号显示事件已经发出信号,尚未重置。
         private const uint SignaledFlag = 1;
 
-        // Waiting indicates that a waiter is present and waiting for the event to be signaled.
+        // 等待表明服务员在场,等待信号。
         private const uint WaitingFlag = 1 << 1;
 
-        // ResetMask is used to clear both status flags.
+        // ResetMask 用于清除两个身份标志。
         private const uint ResetMask = ~SignaledFlag & ~WaitingFlag;
 
         private ManualResetValueTaskSourceCore<bool> _waitSource;
@@ -37,61 +37,61 @@ namespace Orleans.Runtime
 
         void IValueTaskSource.GetResult(short token)
         {
-            // Reset the wait source.
+            // 重置等待源。
             _waitSource.GetResult(token);
             _waitSource.Reset();
 
-            // Reset the status.
+            // 重置状态 。
             ResetStatus();
         }
 
         /// <summary>
-        /// Signal the waiter.
+        /// 信号服务员。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Signal()
         {
             if ((_status & SignaledFlag) == SignaledFlag)
             {
-                // The event is already signaled.
+                // 事件已被信号化 。
                 return;
             }
 
-            // Set the signaled flag.
+            // 设定信号旗
             var status = Interlocked.Or(ref _status, SignaledFlag);
 
-            // If there was a waiter and the signaled flag was unset, wake the waiter now.
+            // 如果有服务员,而信号旗没被设定 现在就叫醒服务员
             if ((status & SignaledFlag) != SignaledFlag && (status & WaitingFlag) == WaitingFlag)
             {
-                // Note that in this assert we are checking the volatile _status field.
-                // This is a sanity check to ensure that the signaling conditions are true:
-                // that "Signaled" and "Waiting" flags are both set.
+                // 请注意,在本说法中,我们正在检查不稳定的 _ status 字段。
+                // 保证信号条件属实:
+                // 标志和等待的旗帜都设置好了
                 Debug.Assert((_status & (SignaledFlag | WaitingFlag)) == (SignaledFlag | WaitingFlag));
                 _waitSource.SetResult(true);
             }
         }
 
         /// <summary>
-        /// Wait for the event to be signaled.
+        /// 等待事件信号。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ValueTask WaitAsync()
         {
-            // Indicate that there is a waiter.
+            // 说有服务生
             var status = Interlocked.Or(ref _status, WaitingFlag);
 
-            // If there was already a waiter, that is an error since this class is designed for use with a single waiter.
+            // 如果已经有服务员, 则错误在于此类设计是用来与单个服务员一起使用的 。
             if ((status & WaitingFlag) == WaitingFlag)
             {
                 ThrowConcurrentWaitersNotSupported();
             }
 
-            // If the event was already signaled, immediately wake the waiter.
+            // 如果事件已经发出信号,请立即叫醒服务员。
             if ((status & SignaledFlag) == SignaledFlag)
             {
-                // Reset just the status because the _waitSource has not been set.
-                // We know that _waitSource has not been set because _waitSource is only set when
-                // Signal() observes that the "Waiting" flag had been set but not the "Signaled" flag.
+                // 仅重置状态, 因为等待源未设置 。
+                // 我们知道,等待源未被设置,因为等待源仅在
+                // 信号 () 指出“ 等待” 旗已设, 但未设“ 信号” 旗 。
                 ResetStatus();
                 return default;
             }
@@ -100,16 +100,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Called when a waiter handles the event signal.
+        /// 当服务员处理事件信号时呼叫。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ResetStatus()
         {
-            // The event is being handled, so clear the "Signaled" flag now.
-            // The waiter is no longer waiting, so clear the "Waiting" flag, too.
+            // 正在处理此事件, 现在清除“ 信号” 旗帜 。
+            // 服务员已经不等了,所以也清除了“等待”旗。
             var status = Interlocked.And(ref _status, ResetMask);
 
-            // If both the "Waiting" and "Signaled" flags were not already set, something has gone catastrophically wrong.
+            // 如果“等待”和“信号”旗帜尚未设置,
             Debug.Assert((status & (WaitingFlag | SignaledFlag)) == (WaitingFlag | SignaledFlag));
         }
 

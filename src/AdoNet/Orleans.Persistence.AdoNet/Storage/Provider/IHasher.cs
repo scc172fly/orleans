@@ -1,22 +1,22 @@
 namespace Orleans.Storage
 {
     /// <summary>
-    /// An interface for all the hashing operations currently in Orleans Storage operations.
+    /// 当前所有散列操作的界面 Orleans 储存作业。
     /// </summary>
-    /// <remarks>Implement this to provide a hasher for database key with specific properties.
-    /// As for an example: collision resistance on out-of-control ID providers.</remarks>
+    /// <remarks>执行此功能,为数据库中带有具体属性的密钥提供支流。
+    /// 举例说:对失控身份证提供者的碰撞抗力。</remarks>
     public interface IHasher
     {
         /// <summary>
-        /// Description of the hashing functionality.
+        /// 描述散列功能。
         /// </summary>
         string Description { get; }
 
         /// <summary>
-        /// The hash.
+        /// 大麻烟
         /// </summary>
-        /// <param name="data">The data to hash.</param>
-        /// <returns>The given bytes hashed.</returns>
+        /// <param name="data">类组数据。</param>
+        /// <returns>给定的字节散列。</returns>
         int Hash(byte[] data);
     }
 }

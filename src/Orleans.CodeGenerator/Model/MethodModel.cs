@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// Describes a method parameter for invokable/proxy generation.
+/// 描述可解释/代用生成的方法参数。
 /// </summary>
 internal readonly record struct MethodParameterModel(
     string Name,
@@ -11,7 +11,7 @@ internal readonly record struct MethodParameterModel(
     uint? ExplicitFieldId);
 
 /// <summary>
-/// Describes a method on a proxy interface for invokable generation.
+/// 描述代用界面中可引用生成的代理界面的方法 。
 /// </summary>
 internal sealed record class MethodModel(
     string Name,
@@ -34,6 +34,6 @@ internal sealed record class MethodModel(
 }
 
 /// <summary>
-/// Describes a custom initializer method associated with an invokable method's attribute.
+/// 描述自定义初始化器方法, 与可引用方法属性相关联。
 /// </summary>
 internal readonly record struct CustomInitializerModel(string MethodName, string ArgumentValue);

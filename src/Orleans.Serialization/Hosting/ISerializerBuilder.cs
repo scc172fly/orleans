@@ -3,12 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Builder interface for configuring serialization.
+    /// 配置序列化的构建界面 。
     /// </summary>
     public interface ISerializerBuilder
     {
         /// <summary>
-        /// Gets the service collection.
+        /// 收集服务收藏
         /// </summary>
         IServiceCollection Services { get; }
     }

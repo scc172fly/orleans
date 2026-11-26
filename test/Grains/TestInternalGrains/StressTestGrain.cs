@@ -242,7 +242,7 @@ namespace UnitTests.Grains
 
             await Task.WhenAll(tagPromises);
 
-            // sort the fileMetadatas according to fileIds.
+            // 排序 fileMetadatas 依据 fileIds.
             List<string> results = new List<string>(fileMetadatas.Count);
             for (int i = 0; i < numItems; i++)
             {

@@ -7,43 +7,43 @@ using Orleans.Runtime;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Options for the reminder service.
+/// 提醒服务选项 。
 /// </summary>
 public sealed class ReminderOptions
 {
     /// <summary>
-    /// Gets or sets the minimum period for reminders.
+    /// 获取或设定提醒的最低期限。
     /// </summary>
     /// <remarks>
-    /// High-frequency reminders are dangerous for production systems.
+    /// 高频提醒对生产系统有危险。
     /// </remarks>
     public TimeSpan MinimumReminderPeriod { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.MinimumReminderPeriodMinutes);
 
     /// <summary>
-    /// Gets or sets the period between reminder table refreshes.
+    /// 获取或设置提醒表格刷新间隔时间。
     /// </summary>
-    /// <value>Refresh the reminder table every 5 minutes by default.</value>
+    /// <value>默认情况下每5分钟刷新提醒表。</value>
     public TimeSpan RefreshReminderListPeriod { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.RefreshReminderListPeriodMinutes);
 
     /// <summary>
-    /// Gets or sets the amount of time before their next tick that reminders are loaded into memory.
+    /// 获取或设定下次选中时的间隔时间, 提醒会被装入内存 。
     /// </summary>
     /// <remarks>
-    /// Reminders outside this window remain only in reminder storage. If reminder storage cannot be refreshed for longer than this window,
-    /// reminders can be delivered late. Increase this value to tolerate longer storage outages at the cost of higher memory usage.
+    /// 此窗口外的提醒仅保留在提醒存储中。 如果提醒存储无法更新比此窗口更长的时间, 则无法刷新, @ info: whatsthis
+    /// 提醒可以迟发。 增加这一值,以容忍储存时间更长的中断, 成本是存储使用率提高。
     /// </remarks>
-    /// <value>Load reminders 10 minutes before their next tick by default.</value>
+    /// <value>提醒在下次选中之前10分钟装入。</value>
     public TimeSpan ReminderLoadingWindow { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.ReminderLoadingWindowMinutes);
 
     /// <summary>
-    /// Gets or sets the maximum amount of time to attempt to initialize reminders before giving up.
+    /// 获取或设定最大时间, 以尝试在放弃前先启动提醒 。
     /// </summary>
-    /// <value>Attempt to initialize for 5 minutes before giving up by default.</value>
+    /// <value>试图在默认放弃前先初始化5分钟。</value>
     public TimeSpan InitializationTimeout { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.InitializationTimeoutMinutes);
 }
 
 /// <summary>
-/// Validator for <see cref="ReminderOptions"/>.
+/// <see cref="ReminderOptions"/>的校验符。
 /// </summary>
 internal sealed partial class ReminderOptionsValidator : IConfigurationValidator
 {
@@ -51,13 +51,13 @@ internal sealed partial class ReminderOptionsValidator : IConfigurationValidator
     private readonly IOptions<ReminderOptions> options;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderOptionsValidator"/> class.
+    /// 初始化 <see cref="ReminderOptionsValidator"/> 类的新实例。
     /// </summary>
     /// <param name="logger">
-    /// The logger.
+    /// 伐木工
     /// </param>
     /// <param name="reminderOptions">
-    /// The reminder options.
+    /// 提醒选项。
     /// </param>
     public ReminderOptionsValidator(ILogger<ReminderOptionsValidator> logger, IOptions<ReminderOptions> reminderOptions)
     {

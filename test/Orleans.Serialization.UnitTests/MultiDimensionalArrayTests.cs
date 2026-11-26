@@ -229,7 +229,7 @@ public sealed class MultiDimensionalArrayTests : IDisposable
         Assert.Equal(42, Assert.IsType<int>(result[2]));
     }
 
-    // Captured from the unmodified writer on main c7056b3ab620e5d3144ea72b12d572dc398c988d.
+    // 由未修改的作家从主 C7056b3ab620e5d3144ea72b12d572dc398c988d上捕获。
     [Theory]
     [InlineData(2, 0, "2020000501090001E0E0")]
     [InlineData(0, 2, "2020000501010009E0E0")]

@@ -8,14 +8,14 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests fundamental grain activation and lifecycle behaviors in Orleans.
-    /// These tests verify core functionality including:
-    /// - Grain activation and identity management
-    /// - State persistence across activations
-    /// - Error handling during activation
-    /// - Support for different key types (long, Guid, ulong)
-    /// - Request context propagation
-    /// Orleans uses an activation model where grains are activated on-demand and can be deactivated when idle.
+    /// 基本测试 grain 活动和生命周期行为 Orleans.
+    /// 这些测试核查核心功能,包括:
+    /// - Grain 启动和身份管理
+    /// - 整个活性引爆的持久性国家
+    /// - 激活时处理错误
+    /// - 支持不同关键类型(长、高、乌隆)
+    /// - 请求进行背景传播
+    /// Orleans 使用激活模型,即 grains 点火启动,闲置时可以停止使用。
     /// </summary>
     [TestArea("Runtime")]
     public class BasicActivationTests : HostedTestClusterEnsureDefaultStarted
@@ -28,12 +28,12 @@ namespace DefaultCluster.Tests.General
         private void SetResponseTimeout(TimeSpan value) => this.Client.ServiceProvider.GetRequiredService<OutsideRuntimeClient>().SetResponseTimeout(value);
 
         /// <summary>
-        /// Tests basic grain activation with long keys and state updates.
-        /// Verifies that:
-        /// - Grains are properly activated when accessed
-        /// - State changes persist within the same activation
-        /// - Multiple grain references to the same identity share the same activation
-        /// This demonstrates Orleans' virtual actor model where grains exist logically even when not activated.
+        /// 测试基本 grain 激活,有长键和状态更新。
+        /// 证明:
+        /// - Grains 被调用时适当激活
+        /// - 在同一激活中,国家的变化持续存在
+        /// - 同一身份的多个 grain 引用同一个身份共享相同的激活
+        /// 这显示了 Orleans的虚拟行为者模型,即即使未激活也存在逻辑上的 grains 。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -59,9 +59,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain activation using Guid keys instead of long keys.
-        /// Verifies that the grain system properly handles Guid-based grain identities.
-        /// GUIDs are commonly used for grain keys when natural numeric identifiers don't exist.
+        /// 使用“ 指南” 键而不是长键来激活 grain 测试。
+        /// 证明 grain 系统妥善处理基于《指导原则》的 grain 身份。
+        /// 当没有自然数字识别符号时, grain 键通常使用图形用户界面D。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -88,9 +88,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests error handling when grain activation fails due to invalid parameters.
-        /// Verifies that grains can enforce constraints during activation (e.g., rejecting certain key values).
-        /// This demonstrates Orleans' ability to fail fast when grain invariants are violated.
+        /// 启动 grain 时因无效参数而失败, 测试错误处理时会发生错误 。
+        /// 证明 grains 可在激活期间强制实施限制(e.g.,拒绝某些关键值)。
+        /// 这证明 Orleans在 grain 变异物被违反时能够快速失灵。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -101,7 +101,7 @@ namespace DefaultCluster.Tests.General
             long key = 0;
             try
             {
-                // Key values of -2 are not allowed in this case
+                // 不允许 - 2 的键值
                 ITestGrain fail = this.GrainFactory.GetGrain<ITestGrain>(-2);
                 key = await fail.GetKey();
                 failed = false;
@@ -115,9 +115,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests error handling when multiple concurrent requests fail during grain activation.
-        /// Verifies that Orleans properly handles burst failures without resource leaks or deadlocks.
-        /// All concurrent requests should receive the same activation failure.
+        /// 当多个同时请求在激活 grain 期间失败时测试错误处理 。
+        /// 证明 Orleans 在没有资源泄漏或僵局的情况下妥善处理突发故障。
+        /// 所有同时提出的请求都应收到相同的启动失败。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -129,7 +129,7 @@ namespace DefaultCluster.Tests.General
             var tasks = new List<Task>();
             try
             {
-                // Key values of -2 are not allowed in this case
+                // 不允许 - 2 的键值
                 var fail = this.GrainFactory.GetGrain<ITestGrainLongOnActivateAsync>(-2);
                 for (int i = 0; i < 10000; i++)
                 {
@@ -151,9 +151,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain activation with ulong.MaxValue cast to long (results in -1).
-        /// Verifies proper handling of edge cases in numeric grain keys.
-        /// This ensures the grain system correctly handles the full range of long values.
+        /// 测试 grain 激活,并投放 ulong.MaxValue 到长(结果在 - 1)
+        /// 以数字 grain 键对边缘案例进行适当处理。
+        /// 这样确保 grain 系统正确处理所有长值。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -179,16 +179,16 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain activation with ulong.MinValue (0) cast to long.
-        /// Verifies proper handling of zero as a grain key.
-        /// Zero is a valid grain key and should work like any other numeric identifier.
+        /// 试验 grain 激活,且 ulong.MinValue (0)投放长。
+        /// 验证对零的正确处理为 grain 键。
+        /// 零是一个有效的 grain 密钥,应该与其他数字标识符一样工作。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
         [Fact, TestCategory("ActivateDeactivate"), TestCategory("GetGrain")]
         public async Task BasicActivation_ULong_MinValue()
         {
-            ulong key1AsUlong = ulong.MinValue; // == zero
+            ulong key1AsUlong = ulong.MinValue; // =零 =
             long key1 = (long)key1AsUlong;
 
             ITestGrain g1 = this.GrainFactory.GetGrain<ITestGrain>(key1);
@@ -208,9 +208,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain activation with int.MaxValue as the grain key.
-        /// Verifies proper handling of large positive grain keys.
-        /// This ensures no overflow or precision issues with large numeric identifiers.
+        /// 测试 grain 激活, int.MaxValue 作为 grain 键。
+        /// 验证大正 grain 键的正确处理。
+        /// 这不会确保有大量数字识别特征的溢出或精确问题。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -236,9 +236,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain activation with long.MinValue as the grain key.
-        /// Verifies proper handling of the most negative possible grain key.
-        /// This ensures the grain system handles the full range of signed long values.
+        /// 测试 grain 激活, long.MinValue 作为 grain 键。
+        /// 验证对最负 grain 密钥的适当处理。
+        /// 这样确保 grain 系统处理所有签名长值。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -264,9 +264,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain activation when grains implement multiple interfaces.
-        /// Verifies that grains can return references to other grains through various collection types.
-        /// This demonstrates Orleans' support for complex grain interface hierarchies.
+        /// 测试 grain 当激活 grains 执行多个接口。
+        /// 证明 grains 可通过各种收集类型返回其他 grains 的参考文献。
+        /// 这显示了 Orleans对复杂 grain 接口等级的支持。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -284,12 +284,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests recovery after message timeout in reentrant grains.
-        /// Verifies that:
-        /// - Grains can recover from expired messages in their queues
-        /// - Subsequent valid requests succeed after timeouts
-        /// - The system properly cleans up expired messages
-        /// This tests Orleans' resilience to transient failures and timeout conditions.
+        /// 在重新输入时信件超时后进行恢复测试 grains。
+        /// 证明:
+        /// - Grains 可以从队列中的过期邮件中恢复
+        /// - 事后有效请求在超时后成功
+        /// - 系统适当清理过期信息
+        /// 测试 Orleans' 抗瞬时故障和超时条件的复原力。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -301,7 +301,7 @@ namespace DefaultCluster.Tests.General
             TimeSpan prevTimeout = this.GetResponseTimeout();
             try
             {
-                // set short response time and ask to do long operation, to trigger expired msgs in the silo queues.
+                // 设定短响应时间, 并要求做长操作, 在 silo 队列中触发过期 msg 。
                 TimeSpan shortTimeout = TimeSpan.FromMilliseconds(1000);
                 this.SetResponseTimeout(shortTimeout);
 
@@ -323,10 +323,10 @@ namespace DefaultCluster.Tests.General
                     this.Logger.LogInformation("Done with stress iteration.");
                 }
 
-                // wait a bit to make sure expired msgs in the silo is trigered.
+                // 稍候一小段,以确保 silo 中的过期 msgs 被三排处理。
                 Thread.Sleep(TimeSpan.FromSeconds(10));
 
-                // set the regular response time back, expect msgs ot succeed.
+                // 设定常规响应时间回到时, 希望 msgs ot 成功 。
                 this.SetResponseTimeout(prevTimeout);
 
                 this.Logger.LogInformation("About to send a next legit request that should succeed.");
@@ -335,16 +335,16 @@ namespace DefaultCluster.Tests.General
             }
             finally
             {
-                // set the regular response time back, expect msgs ot succeed.
+                // 设定常规响应时间回到时, 希望 msgs ot 成功 。
                 this.SetResponseTimeout(prevTimeout);
             }
         }
 
         /// <summary>
-        /// Tests request context propagation from client to grain.
-        /// Verifies that Orleans properly flows ambient context (like trace IDs or user context)
-        /// from the client through to grain method executions.
-        /// Request context is essential for distributed tracing and multi-tenancy scenarios.
+        /// 测试请求将上下文从客户端传播到 grain。
+        /// 证明 Orleans 正确流环境环境环境(如跟踪身份或用户环境)
+        /// 从客户到 grain 方法处决。
+        /// 请求的背景对于分布式追踪和多租期设想方案至关重要。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]

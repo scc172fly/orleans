@@ -3,9 +3,9 @@ using System.Text;
 namespace Presence.Grains.Models;
 
 /// <summary>
-/// Heartbeat data for a game session.
-/// This class is immutable.
-/// Operations on this class always return a new copy.
+/// 游戏会话的心跳数据 。
+/// 这门课是不可改变的
+/// 此类操作总是返回新副本 。
 /// </summary>
 [GenerateSerializer]
 public record class HeartbeatData(
@@ -13,7 +13,7 @@ public record class HeartbeatData(
     GameStatus Status)
 {
     /// <summary>
-    /// Creates an immutable copy of the current heartbeat with the given score.
+    /// 创建当前心跳的不可变副本, 并使用给定分 。
     /// </summary>
     public HeartbeatData WithNewScore(string newScore) =>
         this with { Status = Status.WithNewScore(newScore) };

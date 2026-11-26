@@ -5,82 +5,82 @@ namespace Orleans.Transactions
 {
 
     /// <summary>
-    /// Describes the outcome of a transaction protocol operation.
+    /// 描述交易协议运作的结果。
     /// </summary>
     public enum TransactionalStatus
     {
         /// <summary>
-        /// The operation completed successfully.
+        /// 操作成功完成 。
         /// </summary>
         Ok,
 
         /// <summary>
-        /// The transaction manager did not complete the prepare phase before its deadline.
+        /// 交易经理没有在最后期限之前完成准备阶段。
         /// </summary>
         PrepareTimeout,
 
         /// <summary>
-        /// The transaction aborted because a transaction on which it depended aborted.
+        /// 交易中止是因为它所依赖的交易中断。
         /// </summary>
         CascadingAbort,
 
         /// <summary>
-        /// The transaction lost a lock because of a timeout, concurrency arbitration, or a failure.
+        /// 由于超时、货币仲裁或失败,交易失去了锁。
         /// </summary>
         BrokenLock,
 
         /// <summary>
-        /// The accesses recorded during execution did not match the locks held during prepare.
+        /// 执行期间记录的出入证与准备期间锁的锁不匹配。
         /// </summary>
         LockValidationFailed,
 
         /// <summary>
-        /// The transaction agent timed out waiting for read-only transaction participants.
+        /// 交易代理商超时等待只读交易参与者。
         /// </summary>
         ParticipantResponseTimeout,
 
         /// <summary>
-        /// The transaction agent timed out waiting for the transaction manager.
+        /// 交易代理商超时等待交易经理
         /// </summary>
         TMResponseTimeout,
 
         /// <summary>
-        /// Transactional storage was modified by a competing grain activation.
+        /// 交易存储被一个竞争性的 grain 激活修改。
         /// </summary>
         StorageConflict,
 
         /// <summary>
-        /// The transaction manager had no record of the transaction, so it was presumed aborted.
+        /// 交易经理没有交易记录,因此推定该交易被中止。
         /// </summary>
         PresumedAbort,
 
         /// <summary>
-        /// An unclassified exception interrupted the transaction protocol.
+        /// 未分类的例外中断交易协议。
         /// </summary>
         UnknownException,
 
         /// <summary>
-        /// An internal transaction protocol assertion failed.
+        /// 内部交易协议的主张失败 。
         /// </summary>
         AssertionFailed,
 
         /// <summary>
-        /// The transaction could not be committed.
+        /// 无法进行交易。
         /// </summary>
         CommitFailure,
     }
 
     /// <summary>
-    /// Provides operations for interpreting transaction statuses.
+    /// 提供解释交易状况的业务。
     /// </summary>
     public static class TransactionalStatusExtensions
     {
         /// <summary>
-        /// Determines whether a status guarantees that the transaction aborted.
+        /// 确定状态是否保证交易中止。
         /// </summary>
-        /// <param name="status">The transaction status.</param>
+        /// <param name="status">交易状况。</param>
         /// <returns>
-        /// <see langword="true"/> if the transaction is known to have aborted; otherwise, <see langword="false"/>.
+        /// <see langword="true"/> ,如果已知交易已经中止;否则, <see langword="false"/>。
         /// </returns>
         public static bool DefinitelyAborted(this TransactionalStatus status)
         {
@@ -100,12 +100,12 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Creates the user-facing transaction exception represented by a failure status.
+        /// 创建以故障状态为代表的用户端交易例外。
         /// </summary>
-        /// <param name="status">The transaction failure status.</param>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="exception">The exception which contributed to the failure, if available.</param>
-        /// <returns>An exception describing the transaction outcome.</returns>
+        /// <param name="status">交易失败状态</param>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="exception">造成失败的例外,如果有的话。</param>
+        /// <returns>描述交易结果的例外。</returns>
         public static OrleansTransactionException ConvertToUserException(this TransactionalStatus status, string transactionId, Exception? exception)
         {
             switch (status)

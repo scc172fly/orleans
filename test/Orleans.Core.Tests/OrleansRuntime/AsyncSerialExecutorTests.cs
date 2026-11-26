@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime
 {
     /// <summary>
-    /// Tests for async serial executor functionality including sequential task execution and concurrency validation.
+    /// 测试序列执行器的同步功能,包括连续任务执行和货币兑换验证。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

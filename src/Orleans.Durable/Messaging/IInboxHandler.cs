@@ -3,22 +3,22 @@ using System.Threading.Tasks;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>Handles inbox messages which it accepts.</summary>
+/// <summary>处理它接受的收件箱信件。</summary>
 /// <remarks>
-/// The inbox dispatches each message to the first registered handler whose <see cref="CanHandle"/> returns
-/// <see langword="true"/>. Selection receives only the message, so a handler stages a terminal outcome only
-/// from <see cref="HandleAsync"/>, after the inbox selects it.
+/// 收件箱将每条消息发送到第一个已注册的处理器, 该处理器返回 <see cref="CanHandle"/>
+/// <see langword="true"/>。选择只接收电文,因此处理者只能将终端结果进行处理
+/// 从 <see cref="HandleAsync"/>中,在收件箱选择后。
 /// </remarks>
 public interface IInboxHandler
 {
-    /// <summary>Determines whether this handler handles the message.</summary>
-    /// <param name="message">The message to route.</param>
-    /// <returns><see langword="true"/> when this handler handles the message.</returns>
+    /// <summary>确定该处理器是否处理信件。</summary>
+    /// <param name="message">电文到路由。</param>
+    /// <returns><see langword="true"/> 当该处理器处理信件时。</returns>
     bool CanHandle(InboxMessage message);
 
-    /// <summary>Handles the message.</summary>
-    /// <param name="context">The message and its terminal operations.</param>
-    /// <param name="cancellationToken">The attempt token.</param>
-    /// <returns>A task which completes when handling returns.</returns>
+    /// <summary>处理信件。</summary>
+    /// <param name="context">信息及其终端操作</param>
+    /// <param name="cancellationToken">尝试符号。</param>
+    /// <returns>任务, 处理返回时完成该任务。</returns>
     ValueTask HandleAsync(IInboxHandlerContext context, CancellationToken cancellationToken);
 }

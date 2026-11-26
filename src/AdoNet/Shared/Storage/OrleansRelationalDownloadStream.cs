@@ -17,52 +17,52 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// Adapts <see cref="DbDataReader.GetBytes(int, long, byte[], int, int)"/>
-    /// into a chunked read-only stream.
+    /// 适应 <see cref="DbDataReader.GetBytes(int, long, byte[], int, int)"/>
+    /// 在一个块状的只读串流中。
     /// </summary>
     internal class OrleansRelationalDownloadStream : Stream
     {
         /// <summary>
-        /// A cached task as if there are multiple rounds of reads, it is likely
-        /// the bytes read is the same. This saves one allocation.
+        /// 缓存任务, 好像有多轮读数, 可能
+        /// 读取的字节相同。这可以省去一个分配。
         /// </summary>
         private Task<int>? _lastTask;
 
         /// <summary>
-        /// The reader to use to read from the database.
+        /// 从数据库阅读的读者。
         /// </summary>
         private DbDataReader _reader;
 
         /// <summary>
-        /// The position in the overall stream.
+        /// 整个流中的位置。
         /// </summary>
         private long _position;
 
         /// <summary>
-        /// The column ordinal to read from.
+        /// 栏列的顺序, 读取 。
         /// </summary>
         private readonly int _ordinal;
 
         /// <summary>
-        /// The total number of bytes in the column.
+        /// 列中的字节总数。
         /// </summary>
         private readonly long _totalBytes;
 
         /// <summary>
-        /// Initializes a new <see cref="OrleansRelationalDownloadStream"/> instance.
+        /// 初始化一个新的 <see cref="OrleansRelationalDownloadStream"/> 实例。
         /// </summary>
-        /// <param name="reader">The reader to use to read from the database.</param>
-        /// <param name="ordinal">The column ordinal to read from.</param>
+        /// <param name="reader">从数据库阅读的读者。</param>
+        /// <param name="ordinal">栏列的顺序, 读取 。</param>
         public OrleansRelationalDownloadStream(DbDataReader reader, int ordinal)
         {
             _reader = reader;
             _ordinal = ordinal;
 
-            //This return the total length of the column pointed by the ordinal.
+            //此返回正弦值指向的列的总长度。
             _totalBytes = reader.GetBytes(ordinal, 0, null, 0, 0);
         }
 
@@ -94,7 +94,7 @@ namespace Orleans.Tests.SqlUtils
         /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            //This will throw with the same parameter names if the parameters are not valid.
+            //如果参数无效, 则会用相同的参数名称丢弃此参数 。
             ValidateReadParameters(buffer, offset, count);
 
             try
@@ -111,7 +111,7 @@ namespace Orleans.Tests.SqlUtils
             }
             catch (DbException dex)
             {
-                //It's not OK to throw non-IOExceptions from a Stream.
+                //扔一条流的除生物外的物品是不行的
                 throw new IOException(dex.Message, dex);
             }
         }
@@ -119,7 +119,7 @@ namespace Orleans.Tests.SqlUtils
         /// <inheritdoc/>
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            //This will throw with the same parameter names if the parameters are not valid.
+            //如果参数无效, 则会用相同的参数名称丢弃此参数 。
             ValidateReadParameters(buffer, offset, count);
 
             if (cancellationToken.IsCancellationRequested)
@@ -129,8 +129,8 @@ namespace Orleans.Tests.SqlUtils
 
             try
             {
-                //The last used task is saved in order to avoid one allocation when the number of bytes read
-                //will likely be the same multiple times.
+                //保存最后一个使用的任务, 以避免当读取字节数时出现一个分配
+                //可能重复相同次数。
                 int bytesRead = Read(buffer, offset, count);
 #pragma warning disable CA1849 // _lastTask is created only by Task.FromResult and is already successfully completed.
                 var ret = _lastTask != null && bytesRead == _lastTask.Result ? _lastTask : (_lastTask = Task.FromResult(bytesRead));
@@ -165,7 +165,7 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Checks the parameters passed into a ReadAsync() or Read() are valid.
+        /// 检查通过到 ReadAsync() 或 Read() 的参数是否有效。
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>

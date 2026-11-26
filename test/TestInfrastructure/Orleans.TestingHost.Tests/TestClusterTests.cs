@@ -10,19 +10,19 @@ using Xunit;
 namespace Orleans.TestingHost.Tests
 {
     /// <summary>
-    /// Tests for Orleans TestCluster functionality.
+    /// Orleans TestCluster 功能测试。
     /// 
-    /// TestCluster is Orleans' primary testing infrastructure component that provides an in-memory
-    /// cluster environment for integration testing. It allows developers to:
-    /// - Spin up multiple silos in a single process
-    /// - Test grain interactions and cluster behavior
-    /// - Verify distributed system scenarios without external dependencies
-    /// - Configure and customize the test environment
+    /// TestCluster 是 Orleans' 初级测试基础设施组件,提供模拟
+    /// 集成测试的组群环境。 它允许开发者:
+    /// - 在单一个程序中组合多个 silos
+    /// - 测试 grain 相互作用和集群行为
+    /// - 核查分布式系统假设情况,不依赖外部
+    /// - 配置测试环境并定制
     /// 
-    /// These tests verify TestCluster initialization, configuration, and lifecycle management.
+    /// 这些测试核实了 TestCluster 初始化、配置和生命周期管理。
     /// 
-    /// Each T0-T9 class tests cluster initialization in isolation to ensure
-    /// no static state interference between tests.
+    /// 每项T0-T9级测试的分类集启动,单独进行,以确保
+    /// 试验之间没有静态状态干扰。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -223,9 +223,9 @@ namespace Orleans.TestingHost.Tests
     }
 
     /// <summary>
-    /// Tests for TestCluster configurator functionality.
-    /// Verifies that different types of configurators (Host, Client, ClientHost)
-    /// are properly invoked during cluster initialization.
+    /// TestCluster 配置功能测试。
+    /// 证明不同类型的配置人员(主机、客户、 ClientHost)
+    /// 在集束装置初始化过程中适当援引。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -263,8 +263,8 @@ namespace Orleans.TestingHost.Tests
         }
 
         /// <summary>
-        /// Test configurator that only configures the host.
-        /// Used to verify host-only configuration scenarios.
+        /// 只配置主机的测试配置器 。
+        /// 用于校验只为主机配置的设置方案 。
         /// </summary>
         private class HostConfigurator : IHostConfigurator
         {
@@ -272,9 +272,9 @@ namespace Orleans.TestingHost.Tests
         }
 
         /// <summary>
-        /// Test configurator that configures both host and client.
-        /// Demonstrates how a single configurator can handle both aspects
-        /// of the test cluster setup.
+        /// 测试配置主机和客户端的配置器。
+        /// 演示单个配置器如何处理这两个方面
+        /// 测试组群设置。
         /// </summary>
         private class ClientHostConfigurator : IHostConfigurator, IClientBuilderConfigurator
         {
@@ -284,8 +284,8 @@ namespace Orleans.TestingHost.Tests
         }
 
         /// <summary>
-        /// Test configurator that only configures the client.
-        /// Used to verify client-only configuration scenarios.
+        /// 仅配置客户端的测试配置器 。
+        /// 用于校验客户专用配置方案 。
         /// </summary>
         private class ClientConfigurator : IClientBuilderConfigurator
         {
@@ -294,9 +294,9 @@ namespace Orleans.TestingHost.Tests
     }
 
     /// <summary>
-    /// Main test class for TestCluster functionality.
-    /// Implements IAsyncLifetime to properly manage cluster lifecycle
-    /// and ensure cleanup after tests complete.
+    /// TestCluster 功能的主测试类。
+    /// 实施 IAsyncLifetime ,以妥善管理集群生命周期
+    /// 并确保在测试完成后进行清理。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -306,11 +306,11 @@ namespace Orleans.TestingHost.Tests
         private TestCluster? _testCluster;
 
         /// <summary>
-        /// Tests basic TestCluster initialization and grain communication.
-        /// Verifies that:
-        /// - A cluster with multiple silos can be created
-        /// - Grains can be activated and called
-        /// - State can be set and retrieved from grains
+        /// 测试基本 TestCluster 初始化和 grain 通信。
+        /// 证明:
+        /// - 能够创建多 silos 集集
+        /// - Grains 可以被激活和调用
+        /// - 国家可以设置,从 grains中检索
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task CanInitialize()
@@ -329,9 +329,9 @@ namespace Orleans.TestingHost.Tests
         }
 
         /// <summary>
-        /// Tests TestCluster initialization using legacy configuration approach.
-        /// Demonstrates how to use ISiloConfigurator for backwards compatibility
-        /// with older test configuration patterns.
+        /// 使用遗留配置方法测试 TestCluster 初始化。
+        /// 演示如何使用 ISiloConfigurator 来反向兼容
+        /// 具有旧的测试配置模式。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task CanInitializeWithLegacyConfiguration()
@@ -350,9 +350,9 @@ namespace Orleans.TestingHost.Tests
         }
 
         /// <summary>
-        /// Example silo configurator that adds memory grain storage.
-        /// Demonstrates how to customize silo configuration in tests
-        /// using the ISiloConfigurator interface.
+        /// 示例 silo 添加内存的配置器 grain 储存。
+        /// 演示如何在测试中自定义 silo 配置
+        /// 使用 ISiloConfigurator 接口。
         /// </summary>
         public class SiloConfigurator : ISiloConfigurator
         {

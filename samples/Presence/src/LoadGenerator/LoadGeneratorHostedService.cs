@@ -19,20 +19,20 @@ public sealed class LoadGeneratorHostedService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // number of games to simulate
+        // 要模拟的游戏数
         var nGames = 10;
 
-        // number of players in each game
+        // 每一游戏中玩家数
         var nPlayersPerGame = 4;
 
-        // interval for sending updates
+        // 发送更新的间隔
         var sendInterval = TimeSpan.FromSeconds(2);
 
-        // number of updates to send
+        // 要发送的更新数量
         var nIterations = 100;
 
-        // Precreate base heartbeat data objects for each of the games.
-        // We'll modify them before every time before sending.
+        // 为每个游戏预设基心跳数据对象 。
+        // 我们每次发送之前都要修改
         var heartbeats = new HeartbeatData[nGames];
         for (var i = 0; i < nGames; i++)
         {
@@ -45,7 +45,7 @@ public sealed class LoadGeneratorHostedService : BackgroundService
 
         var iteration = 0;
 
-        // PresenceGrain is a StatelessWorker, so we use a single grain ID for auto-scale
+        // PresenceGrain 是 StatelessWorker, 所以我们使用一个单 grain ID 来自动缩放
         var presence = _client.GetGrain<IPresenceGrain>(0);
         var promises = new Task[nGames];
 
@@ -57,17 +57,17 @@ public sealed class LoadGeneratorHostedService : BackgroundService
             {
                 for (var i = 0; i < nGames; i++)
                 {
-                    // Simultate a meaningful game score
+                    // 模拟有意义的游戏分数
                     heartbeats[i] = heartbeats[i].WithNewScore($"{iteration}:{(iteration > 5 ? iteration - 5 : 0)}");
 
-                    // We serialize the HeartbeatData object to a byte[] only to simulate the real life scenario where data comes in
-                    // as a binary blob and requires an initial processing before it can be routed to the proper destination.
-                    // We could have sent the HeartbeatData object directly to the game grain because we know the game ID.
-                    // For the sake of simulation we just pretend we don't.
+                    // 我们将 HeartbeatData 对象与字节相序号,仅用于模拟数据输入的真实生活情景
+                    // 是一个二进制的浮标,需要先进行初步处理后才能被送到适当的目的地。
+                    // 我们可以直接将 HeartbeatData 对象发送到游戏 grain ,因为我们知道游戏的代号。
+                    // 为了模拟我们假装没有
                     promises[i] = presence.HeartbeatAsync(HeartbeatDataDotNetSerializer.Serialize(heartbeats[i]));
                 }
 
-                // Wait for all calls to finish.
+                // 等待所有电话都打完
                 await Task.WhenAll(promises);
             }
             catch (Exception error)
@@ -87,11 +87,11 @@ public sealed class LoadGeneratorHostedService : BackgroundService
     }
 
     /// <summary>
-    /// Generates GUIDs for player IDs.
+    /// 生成玩家身份识别的图形界面D。
     /// </summary>
     private static Guid GetPlayerId(int playerIndex)
     {
-        // For convenience, we generate a set of predefined subsequent GUIDs for players using this one as a base.
+        // 为了方便起见,我们为使用此选项作为基础的玩家制作一套预先定义的后续图形界面数据。
         return Guid.ParseExact($"2349992C-860A-4EDA-9590-{playerIndex:D12}", "D");
     }
 }

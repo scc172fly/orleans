@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Identifies a proxy base, including whether the proxy is a grain reference or extension.
+/// 指定代理服务器基础,包括代理服务器是 grain 参考还是扩展。
 /// </summary>
 internal readonly struct InvokableMethodProxyBaseId : IEquatable<InvokableMethodProxyBaseId>
 {
@@ -31,22 +31,22 @@ internal readonly struct InvokableMethodProxyBaseId : IEquatable<InvokableMethod
     }
 
     /// <summary>
-    /// Gets the proxy base type, eg <c>GrainReference</c>.
+    /// 获取代理服务器基类型,例如 <c>GrainReference</c>。
     /// </summary>
     public INamedTypeSymbol ProxyBaseType { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this descriptor represents an extension.
+    /// 获得一个值,以显示该描述符是否代表扩展名。
     /// </summary>
     public bool IsExtension { get; }
 
     /// <summary>
-    /// Gets the components of the compound type alias used to refer to this proxy base.
+    /// 获取用于指此代理基点的化合物型别名的组件。
     /// </summary>
     public ImmutableArray<CompoundTypeAliasComponent> CompositeAliasComponents { get; }
 
     /// <summary>
-    /// Gets a string used to distinguish this proxy base from others in generated class names.
+    /// 获取用于在生成类名中区分此代理基数和其它基数的字符串。
     /// </summary>
     public string GeneratedClassNameComponent { get; }
 

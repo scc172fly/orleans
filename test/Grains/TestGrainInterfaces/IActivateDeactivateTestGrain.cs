@@ -1,6 +1,6 @@
 namespace UnitTests.GrainInterfaces
 {
-    // Note: Self-managed can only implement one grain interface, so have to use copy-paste rather than subclassing 
+    // 注:自管理只能安装一个 grain 接口,所以必须使用复制纸而不是子分类 
 
     public interface ISimpleActivateDeactivateTestGrain : IGrainWithIntegerKey
     {

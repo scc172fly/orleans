@@ -18,14 +18,14 @@ public sealed class DurableTaskRecoveryCollection
     public const string Name = "Durable task activation recovery";
 }
 
-/// <summary>Runs activation recovery coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行激活恢复覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskActivationRecoveryTests() : DurableTaskActivationRecoveryTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs activation recovery coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行激活恢复覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -106,7 +106,7 @@ public abstract class DurableTaskActivationRecoveryTests(string journalFormatKey
         var grain = _fixture.Client.GetGrain<IDurableTaskRecoveryTestGrain>(Guid.NewGuid());
         var grainId = grain.GetGrainId();
 
-        // Only the Durable Jobs clock advances. The task's logical time, and so its delay's due time, follow that clock.
+        // 只有“持久工作”才有进步。任务的合理时间,也就是延迟的到期时间,都跟着这个时钟。
         _fixture.JobClock.Advance(TimeSpan.FromHours(2));
         var before = _fixture.JobClock.GetUtcNow();
         var scheduled = await grain.DelayThenComputeAsync(argument).WithId(rootId).ScheduleAsync(cancellationToken);
@@ -134,15 +134,15 @@ public abstract class DurableTaskActivationRecoveryTests(string journalFormatKey
         var scheduled = await grain.DelayAcrossDeactivationAsync(argument).WithId(rootId).ScheduleAsync(cancellationToken);
         await _fixture.Probe.WaitForLogicalTimeCountAsync(grainId, 1, cancellationToken);
 
-        // The delay is an hour long, so it stays pending across the deactivation and the replay which follows it.
+        // 延迟时间为一小时,所以在整个失能和随后的重播之间都有待于完成。
         await DeactivateAsync(grain, cancellationToken);
         await _fixture.Probe.WaitForLogicalTimeCountAsync(grainId, 2, cancellationToken);
         var attached = grain.GetDurableTask<int>(rootId);
         Assert.False(await attached.IsCompletedAsync(new PollingOptions { PollTimeout = TimeSpan.Zero }, cancellationToken));
 
-        // Once the Durable Jobs clock passes the due time, the next activation processes the scheduled resume. The clock
-        // advances only after the activation holding the delay has fully deactivated, so that activation can't process
-        // the resume, and the next activation replays the task.
+        // 一旦“持久工作”时间过了适当时间,下一次启动程序将恢复计划。
+        // 只有在激活保持延迟状态完全停止后, 启动才提前推进, 这样激活无法处理
+        // 复选,而下一次激活则重播任务。
         Assert.True(_fixture.Cluster.TryGetGrainContext(grainId, out var activation));
         var activations = _fixture.Probe.GetActivationCount(grainId);
         await grain.RequestDeactivationAsync();
@@ -170,8 +170,8 @@ public abstract class DurableTaskActivationRecoveryTests(string journalFormatKey
         _ = await grain.ObserveActivationAsync().WithId(rootId).ScheduleAsync(cancellationToken);
         await _fixture.Probe.WaitForActivationObservationCountAsync(grainId, 1, cancellationToken);
 
-        // The next activation's OnActivateAsync yields to the work which the activation queued before it, so a recovered
-        // execution which started during the activation's lifecycle would observe the grain before its initialization.
+        // 下个启动 OnActivateAsync 返回到激活前排队的工作, 所以恢复
+        // 启动时开始的操作在激活寿命周期内将在其启动前观察 grain 。
         await DeactivateAsync(grain, cancellationToken);
         await _fixture.Probe.WaitForActivationObservationCountAsync(grainId, 2, cancellationToken);
 
@@ -189,8 +189,8 @@ public abstract class DurableTaskActivationRecoveryTests(string journalFormatKey
         _ = await grain.ObserveDeactivationAsync().WithId(rootId).ScheduleAsync(cancellationToken);
         await _fixture.Probe.WaitForActivationObservationCountAsync(grainId, 1, cancellationToken);
 
-        // The grain's OnDeactivateAsync waits for the running execution's abort, which the runtime would otherwise
-        // signal only after OnDeactivateAsync returns.
+        // grain的 OnDeactivateAsync 等待执行中止,否则运行时间将中止
+        // 只在 OnDeactivateAsync 返回后发出信号。
         await DeactivateAsync(grain, cancellationToken);
 
         Assert.Equal([true], _fixture.Probe.GetDeactivationObservations(grainId));
@@ -229,7 +229,7 @@ public sealed class DurableTaskRecoveryProbe
     private readonly ConcurrentDictionary<GrainId, List<bool>> _deactivationObservations = [];
     private TaskCompletionSource _changed = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    /// <summary>Records whether a running durable execution was signaled to abort during the grain's deactivation.</summary>
+    /// <summary>记录运行中的耐执行是否在 grain停止使用期间被信号中止。</summary>
     public void RecordDeactivationObservation(GrainId grainId, bool aborted)
     {
         var values = _deactivationObservations.GetOrAdd(grainId, static _ => []);
@@ -254,7 +254,7 @@ public sealed class DurableTaskRecoveryProbe
         }
     }
 
-    /// <summary>Records whether a durable execution observed a fully activated grain.</summary>
+    /// <summary>记录耐久执行是否观察到完全激活 grain.</summary>
     public void RecordActivationObservation(GrainId grainId, bool activated)
     {
         var values = _activationObservations.GetOrAdd(grainId, static _ => []);
@@ -417,7 +417,7 @@ public sealed class DurableTaskRecoveryTestGrain(DurableTaskRecoveryProbe probe)
     {
         probe.RecordActivation(this.GetGrainId());
 
-        // Work which the activation queued before this method, such as recovery's, runs before initialization completes.
+        // 启动前的激活队列工作, 如回收程序, 在初始化完成之前运行 。
         await Task.Yield();
         _activated = true;
         await base.OnActivateAsync(cancellationToken);
@@ -427,7 +427,7 @@ public sealed class DurableTaskRecoveryTestGrain(DurableTaskRecoveryProbe probe)
     {
         if (_executionToken is { } executionToken)
         {
-            // The deactivation's token ends the wait if the execution isn't signaled while this method runs.
+            // 如果执行在方法运行时没有信号, 停止操作的标记将结束等待 。
             var aborted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             using (executionToken.Register(() => aborted.TrySetResult()))
             using (cancellationToken.Register(() => aborted.TrySetResult()))
@@ -483,8 +483,8 @@ public sealed class DurableTaskRecoveryTestGrain(DurableTaskRecoveryProbe probe)
         return checked((value * 3) + 7);
     }
 
-    // The execution's logical time commits with its first durable write. A step completes once its write commits, so the
-    // probe observes only a time which a replay reads back.
+    // 执行过程的逻辑时间是用第一个耐久写作来承诺。一旦完成一个步骤,它就会在写作时完成,所以
+    // 探测器只观察重播读回的时间。
     private async Task<DateTimeOffset> ObserveCommittedLogicalTimeAsync()
     {
         var value = DurableTask.Current.UtcNow;
@@ -503,7 +503,7 @@ public sealed class DurableTaskRecoveryTestGrain(DurableTaskRecoveryProbe probe)
 }
 
 /// <summary>
-/// Hosts an in-process cluster whose grains journal task state, messaging, and durable jobs in one journal format.
+/// 主持一个进程内群组,该组的 grains 日记任务状态、信息传递和耐久工作以一个日记格式。
 /// </summary>
 internal sealed class DurableTaskRecoveryFixture : IAsyncLifetime
 {
@@ -540,7 +540,7 @@ internal sealed class DurableTaskRecoveryFixture : IAsyncLifetime
             siloBuilder.Services.Configure<JournaledStateManagerOptions>(options => options.JournalFormatKey = journalFormatKey);
             siloBuilder.UseInMemoryDurableJobs();
             siloBuilder.Services.AddKeyedSingleton<TimeProvider>(DurableJobTimeProviderNames.DurableJobs, JobClock);
-            // A crash or deactivation while an execution runs resumes it promptly, as recovery tests observe.
+            // 执行运行时发生故障或停用,当恢复试验观察到时,会迅速恢复。
             siloBuilder.AddDurableTasks(options => options.RunnableExecutionWakeupDelay = TimeSpan.FromSeconds(1));
             siloBuilder.Services.AddSingleton(Probe);
             siloBuilder.Services.AddSingleton(MessagingProbe);
@@ -561,7 +561,7 @@ internal sealed class DurableTaskRecoveryFixture : IAsyncLifetime
     public DurableTaskRecoveryProbe Probe { get; }
     public DurableTaskMessagingProbe MessagingProbe { get; }
 
-    /// <summary>Gets the Durable Jobs clock, which decides when scheduled messages such as delay resumes are due.</summary>
+    /// <summary>获得“持久工作时钟”,该时钟决定何时应发送诸如延迟恢复等排定信件。</summary>
     public AdvanceableTimeProvider JobClock { get; }
     public VolatileJournalStorageProvider Storage { get; }
 
@@ -570,12 +570,12 @@ internal sealed class DurableTaskRecoveryFixture : IAsyncLifetime
 }
 
 /// <summary>
-/// A clock which follows real time plus an offset that tests can advance.
+/// 时钟随实时后加一个补分 测试可以推进
 /// </summary>
 /// <remarks>
-/// Timers and timestamps follow real time, so Durable Jobs keeps running; advancing moves due times into the past, and a
-/// timer whose due time an advance passes fires at once. Durable Jobs waits for a shard's next due job with such a timer,
-/// so a job which was already waiting runs once the clock passes its due time.
+/// 时间和时间戳随实时进行,所以“持久工作”持续运行;将适当时段推向过去,并
+/// 长期的工作等待着一个碎片的下一个工作,
+/// 工作已经等待时间过了
 /// </remarks>
 public sealed class AdvanceableTimeProvider : TimeProvider
 {
@@ -619,11 +619,11 @@ public sealed class AdvanceableTimeProvider : TimeProvider
         }
     }
 
-    /// <summary>A timer whose due time is a time on its provider's clock, which an advance can pass.</summary>
+    /// <summary>定时器的到期时间是其供应商钟表上的时段,预付款可以通过。</summary>
     /// <remarks>
-    /// A real one-shot timer waits for the time remaining until the due time, and is re-armed whenever the clock advances
-    /// or a periodic timer fires. A firing whose due time the clock hasn't reached, which a re-arm can leave behind, waits
-    /// again instead.
+    /// 真正的一发计时器等待剩余时间直到适当时间,并随时在钟头推到前重新武装
+    /// 或定期定时火, 时间未到的射击, 时间尚未到, 重新武装可以留下,等待
+    /// 而不是再来一次。
     /// </remarks>
     private sealed class AdvanceableTimer : ITimer
     {

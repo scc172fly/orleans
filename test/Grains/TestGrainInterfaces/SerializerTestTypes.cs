@@ -3,7 +3,7 @@ using Orleans.Serialization;
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// A type with an <see cref="IOnDeserialized"/> hook, to test that it is correctly called by the internal serializers.
+    /// 带有 <see cref="IOnDeserialized"/> 钩子的类型,用于测试内部序列器正确调用该类型。
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]
@@ -31,8 +31,8 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Code generation test to ensure that an overridden autoprop with a type which differs from
-    /// the base autoprop is not used during serializer generation
+    /// 代码生成测试,以确保被覆盖的、类型不同于
+    /// 序列器生成过程中不使用基底自动prop
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]

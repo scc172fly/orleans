@@ -4,8 +4,8 @@ using Xunit;
 namespace AWSUtils.Tests.StorageTests.AWSUtils
 {
     /// <summary>
-    /// Tests for DynamoDB storage operations.
-    /// Verifies CRUD operations, conditional updates, and etag-based concurrency control.
+    /// 用于 DynamoDB 储存作业的测试。
+    /// 核证统一财务制度业务、有条件更新和基于货币的同价证券控制。
     /// </summary>
     [TestCategory("Storage"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]
@@ -31,8 +31,8 @@ namespace AWSUtils.Tests.StorageTests.AWSUtils
         }
 
         /// <summary>
-        /// Tests creating a new item with conditional check to prevent duplicates.
-        /// Verifies that the conditional expression prevents overwriting existing items.
+        /// 测试创建带有有条件检查的新项目以防止重复。
+        /// 证明有条件的表达方式防止现有物品被覆盖。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task DynamoDBDataManager_CreateItemAsync()
@@ -55,8 +55,8 @@ namespace AWSUtils.Tests.StorageTests.AWSUtils
         }
 
         /// <summary>
-        /// Tests upserting items (insert or update).
-        /// Verifies that items can be created and then updated in subsequent operations.
+        /// 测试上传项目(插入或更新)。
+        /// 证明可以创建物项,然后在以后的操作中更新。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task DynamoDBDataManager_UpsertItemAsync()
@@ -71,18 +71,18 @@ namespace AWSUtils.Tests.StorageTests.AWSUtils
             var persisted = await manager.ReadSingleEntryAsync(UnitTestDynamoDBStorage.INSTANCE_TABLE_NAME, GetKeys(toPersist), response => new UnitTestDynamoDBTableData(response));
             Assert.NotNull(persisted);
             Assert.Equal("Replaced", persisted.StringData);
-            Assert.True(persisted.ETag == 0); //Yes, ETag didn't changed cause we didn't 
+            Assert.True(persisted.ETag == 0); //是的,ETag没有改变 因为我们没有 
 
             persisted.StringData = "Updated";
             var persistedEtag = persisted.ETag;
             expression = $"ETag = :OldETag";
-            persisted.ETag++; //Increase ETag
+            persisted.ETag++; //增加数
             var expValues = new Dictionary<string, AttributeValue> { { ":OldETag", new AttributeValue { N = persistedEtag.ToString() } } };
             await manager.UpsertEntryAsync(UnitTestDynamoDBStorage.INSTANCE_TABLE_NAME, GetKeys(persisted), GetValues(persisted), expression, expValues);
             persisted = await manager.ReadSingleEntryAsync(UnitTestDynamoDBStorage.INSTANCE_TABLE_NAME, GetKeys(toPersist), response => new UnitTestDynamoDBTableData(response));
             Assert.NotNull(persisted);
             Assert.Equal("Updated", persisted.StringData);
-            Assert.NotEqual(persistedEtag, persisted.ETag); //Now ETag changed cause we did it
+            Assert.NotEqual(persistedEtag, persisted.ETag); //现在阿塔格改变了我们的原因
 
             await Assert.ThrowsAsync<ConditionalCheckFailedException>(async () =>
             {

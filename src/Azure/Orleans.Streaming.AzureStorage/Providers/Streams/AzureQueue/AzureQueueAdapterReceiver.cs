@@ -12,7 +12,7 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.AzureQueue
 {
     /// <summary>
-    /// Receives batches of messages from a single partition of a message queue.
+    /// 接收来自信件队列单个分区的批次信件 。
     /// </summary>
     internal partial class AzureQueueAdapterReceiver : IQueueAdapterReceiver
     {
@@ -50,7 +50,7 @@ namespace Orleans.Providers.Streams.AzureQueue
 
         public Task Initialize(TimeSpan timeout)
         {
-            if (queue != null) // check in case we already shut it down.
+            if (queue != null) // 以防我们已经关闭了
             {
                 return queue.InitQueueAsync();
             }

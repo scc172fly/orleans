@@ -6,7 +6,7 @@ public class MonsterGrain : Grain, IMonsterGrain, IDisposable
 {
     private MonsterInfo _monsterInfo = new();
     private IGrainTimer? _timer;
-    private IRoomGrain? _roomGrain; // Current room
+    private IRoomGrain? _roomGrain; // 现会议室
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {

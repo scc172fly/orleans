@@ -1,7 +1,7 @@
-// This file is used by Code Analysis to maintain SuppressMessage
-// attributes that are applied to this project.
-// Project-level suppressions either have no target or are given
-// a specific target and scoped to a namespace, type, member, etc.
+// 代码分析使用此文件来维持 SuppressMessage
+// 用于此工程的属性。
+// 项目一级抑制措施要么没有目标,要么被给予
+// 具体目标和范围,以命名空间、类型、成员等为对象。
 
 using System.Diagnostics.CodeAnalysis;
 

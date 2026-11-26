@@ -6,8 +6,8 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// These classes form a repro for https://github.com/dotnet/orleans/issues/5473, which resulted in a
-    /// StackOverflowException during code generation.
+    /// 这些类组构成 https://github.com/dotnet/orleans/issues/5473的复正方程式,结果产生
+    /// 代码生成时StackOverflowException
     /// </summary>
     [Serializable]
     [GenerateSerializer]

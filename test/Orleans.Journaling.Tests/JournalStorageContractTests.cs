@@ -6,7 +6,7 @@ namespace Orleans.Durable.Journaling.Tests;
 
 internal static class JournalStorageTestExtensions
 {
-    // Storage instances write only after reading the journal, as the journaled state manager does when it recovers.
+    // 保存事件仅会在阅读日记后写出,
     public static async Task<T> ReadForWriteAsync<T>(this T storage) where T : IJournalStorage
     {
         await storage.ReadAsync(new DiscardingConsumer(), TestContext.Current.CancellationToken);

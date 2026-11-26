@@ -7,7 +7,7 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Invokes a request on a grain reference.
+    /// 以 grain 参考方式提出请求。
     /// </summary>
     internal sealed class OutgoingCallInvoker<TResult> : IOutgoingGrainCallContext
     {
@@ -21,13 +21,13 @@ namespace Orleans.Runtime
         private int stage;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OutgoingCallInvoker{TResult}"/> class.
+        /// 初始化 <see cref="OutgoingCallInvoker{TResult}"/> 类的新实例。
         /// </summary>
-        /// <param name="grain">The grain reference.</param>
-        /// <param name="request">The request.</param>
+        /// <param name="grain">下 grain 参考。</param>
+        /// <param name="request">请求。</param>
         /// <param name="options"></param>
         /// <param name="sendRequest"></param>
-        /// <param name="filters">The invocation interceptors.</param>
+        /// <param name="filters">请求拦截器</param>
         public OutgoingCallInvoker(
             GrainReference grain,
             IInvokable request,
@@ -78,16 +78,16 @@ namespace Orleans.Runtime
         {
             try
             {
-                // Execute each stage in the pipeline. Each successive call to this method will invoke the next stage.
-                // Stages which are not implemented (eg, because the user has not specified an interceptor) are skipped.
+                // 执行输油管中的每个阶段,每次连续呼叫使用这种方法时,都将采用下一阶段。
+                // 未执行的阶段( 例如, 因为用户未指定拦截器) 被跳过 。
                 if (stage < this.filters.Length)
                 {
-                    // Call each of the specified interceptors.
+                    // 呼叫每个指定的拦截器
                     var systemWideFilter = this.filters[stage];
                     stage++;
                     await systemWideFilter.Invoke(this);
 
-                    // If Response is null some filter did not continue the call chain
+                    // 如果回复为无效, 某些过滤器没有继续呼叫链
                     if (this.Response is null)
                     {
                         ThrowBrokenCallFilterChain(systemWideFilter.GetType().Name);
@@ -100,7 +100,7 @@ namespace Orleans.Runtime
                     stage++;
                     await this.requestFilter!.Invoke(this);
 
-                    // If Response is null some filter did not continue the call chain
+                    // 如果回复为无效, 某些过滤器没有继续呼叫链
                     if (this.Response is null)
                     {
                         ThrowBrokenCallFilterChain(this.requestFilter.GetType().Name);
@@ -110,7 +110,7 @@ namespace Orleans.Runtime
                 }
                 else if (stage == this.stages)
                 {
-                    // Finally call the root-level invoker.
+                    // 最后打电话给根级的援引者。
                     stage++;
                     var responseCompletionSource = ResponseCompletionSourcePool.Get();
                     this.sendRequest(this.grainReference, responseCompletionSource, this.request, this.options);
@@ -124,7 +124,7 @@ namespace Orleans.Runtime
                 stage--;
             }
 
-            // If this method has been called more than the expected number of times, that is invalid.
+            // 如果该方法被调用的次数超过预期,则无效。
             ThrowInvalidCall();
         }
 

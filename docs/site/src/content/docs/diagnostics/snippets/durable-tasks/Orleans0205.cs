@@ -8,7 +8,7 @@ public sealed class FulfillmentGrain(IEmailSender email) : DurableGrain
     {
         await Pack().WithId("pack");
 
-        // Creates a definition and discards it: the receipt never sends.
+        // 创建定义并丢弃它:收件从不发送。
         SendReceipt(customer);
     }
     // </orleans0205_violation>
@@ -25,7 +25,7 @@ public sealed class FulfillmentGrain(IEmailSender email) : DurableGrain
     // <orleans0205_fix_schedule>
     public async DurableTask FulfillWhileSendingAsync(string customer)
     {
-        // Starts the receipt and continues; the execution owns it and observes its outcome before it returns.
+        // 开始接收并继续进行;执行者拥有该接收并在返回前观察其结果。
         var receipt = await SendReceipt(customer).WithId("receipt").ScheduleAsync();
         await Pack().WithId("pack");
         await receipt;
@@ -37,7 +37,7 @@ public sealed class FulfillmentGrain(IEmailSender email) : DurableGrain
     {
         await Pack().WithId("pack");
 
-        // Stages the receipt with the execution's next journal write, without waiting for it to start.
+        // 接收阶段与执行日记的下一份笔记一起进行,不等待它开始。
         var receipt = SendReceipt(customer).WithId("receipt").Post();
         await receipt;
     }

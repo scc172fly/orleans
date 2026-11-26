@@ -7,8 +7,8 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Serializable types in Orleans.Durable carry aliases, so the type names which the serializer writes to journals and job
-/// storage omit the declaring assembly.
+/// Orleans.Durable 中可序列式类型含有别名,因此,连环器在期刊和工作上写下的型号
+/// 存储中略去声明集会 。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

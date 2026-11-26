@@ -14,25 +14,25 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// Tests for Orleans' type encoding and type manifest system.
+    /// Orleans' 型号编码和类型列表系统的测试。
     /// 
-    /// Orleans uses an efficient type encoding system that:
-    /// - Maps types to compact identifiers for wire efficiency
-    /// - Supports type aliases for human-readable debugging
-    /// - Handles generic types with proper parameter encoding
-    /// - Manages compound types (generics with multiple parameters)
+    /// Orleans 使用高效型号编码系统,该系统:
+    /// - 用于节电的紧凑识别特征的地图类型
+    /// - 支持人类可读调试的别名类型
+    /// - 处理通用类型,并配有正确的参数编码
+    /// - 管理复合类型(具有多种参数的基因)
     /// 
-    /// Key features tested:
-    /// - Type alias resolution and encoding
-    /// - Generic type parameter serialization
-    /// - Interface proxy type generation and naming
-    /// - Type manifest configuration and well-known types
+    /// 测试的关键特征:
+    /// - 输入别名分辨率和编码
+    /// - 通用参数序列化
+    /// - 接口代理类型生成和命名
+    /// - 类型表和已知型号
     /// 
-    /// The type encoding system is fundamental to Orleans' ability to:
-    /// - Minimize bandwidth usage through compact type representations
-    /// - Support debugging through readable type aliases
-    /// - Enable cross-version compatibility through stable type identifiers
-    /// - Provide efficient polymorphic serialization
+    /// 类型编码系统对于 Orleans以下能力至关重要:
+    /// - 通过缩写式代表方式尽量减少带宽的使用
+    /// - 通过可读类型别名支持调试
+    /// - 通过稳定型号识别特征,使交叉反转兼容
+    /// - 提供高效率的多形态序列化
     /// </summary>
     [Trait("Suite", "BVT")]
     [Trait("Provider", "None")]

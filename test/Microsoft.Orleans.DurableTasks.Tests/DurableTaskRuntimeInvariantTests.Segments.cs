@@ -8,7 +8,7 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Attempts run in segments, each a local request on the activation: the code between two durable waits.
+/// 尝试在区段运行,每个区段都请求启动: 两个耐久等待之间的代码。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -32,7 +32,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await WaitUntilAsync(() => runtime.GetWakeupDelay() is null);
 
-        // The parked attempt's segment ended, so the activation admits another attempt, whose segment holds it.
+        // 停车的尝试部分结束, 所以启动承认了另一个尝试, 其部分持有它。
         await ((IDurableTaskServer)runtime).ScheduleAsync(blockingId, CreateRequest(4, () => DurableTask.Run(async _ =>
         {
             blockingStarted.TrySetResult();
@@ -41,7 +41,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await blockingStarted.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // The call's result commits while the other segment runs, so the parked attempt is runnable but doesn't resume.
+        // 电话结果在另一段运行时被确认 所以停靠的尝试是可调用的 但不会恢复
         runtime.AcceptResponseFromInbox(parkedId.Child("call"), DurableTaskResponse.FromResult(2), RemoteTarget);
         await manager.WriteStateAsync(cancellationToken);
         for (var yields = 0; yields < 20; yields++)
@@ -85,7 +85,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await WaitUntilAsync(() => parked && runtime.GetWakeupDelay() is null);
 
-        // The stop doesn't wait for the parked attempt, which runs no more code: the next activation replays it.
+        // 停止不等待停靠的尝试, 它没有更多的代码: 下一次激活重播它。
         await runtime.StopAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         for (var yields = 0; yields < 20; yields++)
         {
@@ -111,8 +111,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(cancellationToken);
         await WaitUntilAsync(() => runtime.GetWakeupDelay() is null);
 
-        // Messaging consults its work sources as the activation starts, before the runtime recovers, so a replacement
-        // activation reports the pending execution from storage and re-arms the wake-up.
+        // 通讯设备在启动时,在运行时间恢复之前,即开始使用时,会咨询工作来源。
+        // 启动报告从存储处执行前的操作,并重新武装警报。
         var (replacement, _, _, _) = CreateRuntime(storage, manager);
         Assert.Equal(new DurableTaskOptions().RunnableExecutionWakeupDelay, replacement.GetWakeupDelay());
 
@@ -138,8 +138,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await started.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // The stop discards the running attempt, and messaging keeps consulting its work sources until its pump stops: a
-        // wake-up which ran then must leave a successor, which reactivates the grain to resume the execution.
+        // 停止运动会抛弃运行中的尝试,
+        // 之后,必须留下继任者,让 grain 重新恢复处决。
         await runtime.StopAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
         Assert.Equal(new DurableTaskOptions().RunnableExecutionWakeupDelay, workSource.GetWakeupDelay());

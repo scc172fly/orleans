@@ -5,23 +5,23 @@ using System.IO;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// An implementation of <see cref="IBufferWriter{T}"/> which writes to a <see cref="MemoryStream"/>.
+    /// 执行《公约》执行 <see cref="IBufferWriter{T}"/> 写给 <see cref="MemoryStream"/>.
     /// </summary>
     public readonly struct MemoryStreamBufferWriter : IBufferWriter<byte>
     {
         private readonly MemoryStream _stream;
         private const int MinRequestSize = 256;
 #if NETSTANDARD2_1
-        // Array.MaxLength is not available in the netstandard2.1 contract.
+        // 净标准2.1合同中没有Array.MaxLength 。
         private const int MaxArrayLength = 0x7FFFFFC7;
 #else
         private static readonly int MaxArrayLength = Array.MaxLength;
 #endif
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryStreamBufferWriter"/> struct.
+        /// 初始化 <see cref="MemoryStreamBufferWriter"/> 结构的新实例。
         /// </summary>
-        /// <param name="stream">The stream.</param>
+        /// <param name="stream">流。</param>
         public MemoryStreamBufferWriter(MemoryStream stream)
         {
             _stream = stream;
@@ -49,8 +49,8 @@ namespace Orleans.Serialization.Buffers.Adaptors
                 return;
             }
 
-            // Commit through MemoryStream so that it updates Length without clearing bytes
-            // which were written directly to its exposed buffer.
+            // 通过 MemoryStream 提交,以便更新长度而不清除字节
+            // 直接写到其暴露的缓冲地带。
             if (_stream.Position > _stream.Length)
             {
                 _stream.SetLength(_stream.Position);

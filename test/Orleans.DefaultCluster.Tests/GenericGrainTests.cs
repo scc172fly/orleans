@@ -10,10 +10,10 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Comprehensive tests for Orleans' support of generic grains and interfaces.
-    /// Validates that Orleans can correctly handle grain classes and interfaces with type parameters,
-    /// including complex scenarios like multiple type parameters, inheritance hierarchies, type constraints,
-    /// and proper grain activation/routing based on generic type arguments.
+    /// 用于 Orleans支持通用 grains 和接口的全面测试。
+    /// 验证 Orleans 能够正确处理 grain 类和与类型参数的接口,
+    /// 包括复杂情景,如多类型参数、继承等级、类型限制、
+    /// 和适当的 grain 激活/路由,基于通用类型参数。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Generics")]
     [TestSuite("BVT")]
@@ -38,9 +38,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests that Orleans can instantiate multiple concrete grain types implementing different
-        /// specializations of the same generic interface. Validates that type-specific grain
-        /// implementations are correctly resolved and activated based on generic type arguments.
+        /// Orleans 能够即时反转多混凝解 grain 类型执行不同
+        /// 同一通用界面的相同通用界面的专业化。 grain
+        /// 执行程序根据通用类型参数得到正确解决和启动。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithGenericInterfaceGetGrain()
@@ -63,9 +63,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Validates grain identity preservation: multiple GetGrain calls with the same ID
-        /// return references to the same grain activation. This ensures Orleans' single-activation
-        /// guarantee holds for generic grains.
+        /// 验证 grain 身份保存:多个 GetGrain 调用同一ID
+        /// 返回同一 grain 激活的引用。这将确保 Orleans'单启动
+        /// 通用 grains担保持有。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithGenericInterfaceMultiplicity()
@@ -82,9 +82,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests Orleans' ability to instantiate generic grain specializations with various type arguments.
-        /// Uses theory-based testing to validate that generic grains work correctly with different
-        /// primitive types (float, string), demonstrating type parameter flexibility.
+        /// 测试 Orleans' 具有用各种类型参数对通用 grain 专业进行即时处理的能力。
+        /// 使用基于理论的测试来验证通用 grains 正确与不同
+        /// 原始类型(浮点、字符串),显示型号参数灵活性。
         /// </summary>
         [Theory]
         [InlineData(1.2f)]
@@ -97,7 +97,7 @@ namespace DefaultCluster.Tests.General
 
             await grain.Set(setValue);
 
-            // generic grain implementation does not change the set value:
+            // 通用 grain 执行不改变设定值:
             await grain.Transform();
 
             T result = await grain.Get();
@@ -106,8 +106,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests generic grains with array type parameters.
-        /// Validates that Orleans can handle complex type arguments like arrays in generic grain interfaces.
+        /// 测试具有数组类型参数的通用 grains 。
+        /// 验证 Orleans 可以处理复杂的类型参数, 如通用 grain 接口中的数组。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_SimpleGenericGrainGetGrain_ArrayTypeParameter()
@@ -117,7 +117,7 @@ namespace DefaultCluster.Tests.General
             var expected = new[] { 1, 2, 3 };
             await grain.Set(expected);
 
-            // generic grain implementation does not change the set value:
+            // 通用 grain 执行不改变设定值:
             await grain.Transform();
 
             var result = await grain.Get();
@@ -126,8 +126,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests generic grains that work with arrays through inheritance.
-        /// Validates Orleans' handling of generic grains that register and manage array-based state.
+        /// 测试通过继承方式与阵列一起工作的通用 grains 。
+        /// 验证 Orleans处理登记和管理基于阵列状态的通用 grains 。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_GenericGrainInheritingArray()
@@ -143,8 +143,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grains implementing generic interfaces with nested generic type parameters.
-        /// Validates Orleans' ability to handle complex generic scenarios like List<T> as a type argument.
+        /// 测试 grains 采用嵌套通用类型参数的通用界面。
+        /// 验证 Orleans处理复杂通用情景的能力,例如将清单<T> 作为类型参数。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_GenericInterfaceWithGenericParametersGetGrain()
@@ -163,8 +163,8 @@ namespace DefaultCluster.Tests.General
 
 
         /// <summary>
-        /// Validates that multiple GetGrain calls for the same generic grain type and ID
-        /// return the same activation. Ensures Orleans' single-activation semantics apply to generic grains.
+        /// 验证多个 GetGrain 要求的通用 grain 类型和ID
+        /// 返回相同的激活。确保 Orleans的单动词义适用于通用 grains。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_SimpleGenericGrainMultiplicity()
@@ -173,7 +173,7 @@ namespace DefaultCluster.Tests.General
 
             var grainRef1 = GetGrain<ISimpleGenericGrain<float>>(grainId);
             await grainRef1.Set(1.2f);
-            await grainRef1.Transform();  // NOP for generic grain class
+            await grainRef1.Transform();  // 通用 grain 类的NOP
 
             var grainRef2 = GetGrain<ISimpleGenericGrain<float>>(grainId);
             var floatResult = await grainRef2.Get();
@@ -182,9 +182,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests Orleans' type resolution preference rules: when both a concrete implementation
-        /// and a generic implementation exist for a generic interface, Orleans should prefer
-        /// the more specific concrete implementation. This validates proper type matching precedence.
+        /// 测试 Orleans' 型号分辨率偏重规则:当两者都具体实施时
+        /// 通用界面一般实施, Orleans 应更倾向于
+        /// 具体实施。 这验证了合适的类型匹配优先 。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_PreferConcreteGrainImplementationOfGenericInterface()
@@ -195,7 +195,7 @@ namespace DefaultCluster.Tests.General
             await grainOfDouble1.Set(1.0);
             await grainOfDouble2.Set(2.0);
 
-            // concrete implementation (SpecializedSimpleGenericGrain) doubles the set value:
+            // 具体执行(SpecializedSimpleGenericGrain)使设定值翻倍:
             await grainOfDouble1.Transform();
             await grainOfDouble2.Transform();
 
@@ -207,9 +207,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Validates activation identity when Orleans prefers concrete implementations.
-        /// Ensures that the preference for concrete implementations doesn't break
-        /// the single-activation guarantee.
+        /// 当 Orleans 选择具体实施时验证激活身份。
+        /// 确保对具体实施的重视不会打破
+        /// 单项活动保障。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_PreferConcreteGrainImplementationOfGenericInterfaceMultiplicity()
@@ -218,9 +218,9 @@ namespace DefaultCluster.Tests.General
 
             var grainRef1 = GetGrain<ISimpleGenericGrain<double>>(grainId);
             await grainRef1.Set(1.0);
-            await grainRef1.Transform();  // SpecializedSimpleGenericGrain doubles the value for generic grain class
+            await grainRef1.Transform();  // SpecializedSimpleGenericGrain 将通用 grain 类的值加倍
 
-            // a second reference with the same id points to the same grain:
+            // 以同一id点的第二处引用相同 grain:
             var grainRef2 = GetGrain<ISimpleGenericGrain<double>>(grainId);
             await grainRef2.Transform();
             var floatResult = await grainRef2.Get();
@@ -229,9 +229,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grains implementing multiple generic interfaces.
-        /// Validates that Orleans correctly handles grains with complex interface hierarchies
-        /// involving multiple generic interfaces.
+        /// 测试 grains ,安装多通用界面。
+        /// 验证 Orleans 正确处理 grains 且界面结构复杂
+        /// 涉及多个通用界面。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithMultipleGenericInterfacesGetGrain()
@@ -242,7 +242,7 @@ namespace DefaultCluster.Tests.General
             await grain1.Set(1);
             await grain2.Set(2);
 
-            // ConcreteGrainWith2GenericInterfaces multiplies the set value by 10:
+            // ConcreteGrainWith2GenericInterfaces 将设定值乘以 10:
             await grain1.Transform();
             await grain2.Transform();
 
@@ -254,9 +254,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Validates single-activation semantics for grains with multiple interfaces.
-        /// Tests that repeated GetGrain calls with the same interface return the same activation
-        /// even when the grain implements multiple interfaces.
+        /// 校验 grains 多个接口的单动静语义。
+        /// 重复使用相同界面的 GetGrain 调用返回相同的激活
+        /// 即使 grain 安装多个接口。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithMultipleGenericInterfacesMultiplicity1()
@@ -266,10 +266,10 @@ namespace DefaultCluster.Tests.General
             var grainRef1 = GetGrain<ISimpleGenericGrain<int>>(grainId);
             await grainRef1.Set(1);
 
-            // ConcreteGrainWith2GenericInterfaces multiplies the set value by 10:
+            // ConcreteGrainWith2GenericInterfaces 将设定值乘以 10:
             await grainRef1.Transform();
 
-            //A second reference to the interface will point to the same grain
+            //第二次引用界面将指同一 grain
             var grainRef2 = GetGrain<ISimpleGenericGrain<int>>(grainId);
             await grainRef2.Transform();
             var floatResult = await grainRef2.Get();
@@ -278,9 +278,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain identity across different interface references.
-        /// Validates that accessing the same grain through different interfaces it implements
-        /// still references the same underlying activation, maintaining state consistency.
+        /// 在不同界面引用中测试 grain 身份。
+        /// 校验它通过所执行的不同接口访问相同的 grain
+        /// 仍然引用相同的启动基础,保持州的一致性。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithMultipleGenericInterfacesMultiplicity2()
@@ -289,20 +289,20 @@ namespace DefaultCluster.Tests.General
 
             var grainRef1 = GetGrain<ISimpleGenericGrain<int>>(grainId);
             await grainRef1.Set(1);
-            await grainRef1.Transform();  // ConcreteGrainWith2GenericInterfaces multiplies the set value by 10:
+            await grainRef1.Transform();  // ConcreteGrainWith2GenericInterfaces 将设定值乘以 10:
 
-            // A second reference to a different interface implemented by ConcreteGrainWith2GenericInterfaces
-            // will reference the same grain:
+            // 第二处提及 ConcreteGrainWith2GenericInterfaces所执行的不同接口
+            // 将引用相同的 grain:
             var grainRef2 = GetGrain<IGenericGrain<int, string>>(grainId);
-            // ConcreteGrainWith2GenericInterfaces returns a string representation of the current value multiplied by 10:
+            // ConcreteGrainWith2GenericInterfaces 返回当前值乘以 10 的字符串表示法:
             var floatResult = await grainRef2.MapT2U();
 
             Assert.Equal("100", floatResult);
         }
 
         /// <summary>
-        /// Tests that grains can use the grain factory to create references to other generic grains.
-        /// Validates that grain factory operations work correctly within grain code for generic types.
+        /// 测试 grains 使用 grain 用于创建引用其它通用 grains.
+        /// 证实 grain 工厂作业在通用型号 grain 代码内正确工作。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_UseGenericFactoryInsideGrain()
@@ -349,7 +349,7 @@ namespace DefaultCluster.Tests.General
 
             var grain = this.GrainFactory.GetGrain<ISimpleGenericGrain1<int>>(grainId++);
 
-            // explicitly use .Wait() and .Result to make sure the client does not deadlock in these cases.
+            // 明确使用. Wait()和.Result,以确保客户在这些情况下不会陷入僵局。
 #pragma warning disable xUnit1031 // Do not use blocking task operations in test method
             grain.SetA(a).Wait(cancellationToken);
 
@@ -448,7 +448,7 @@ namespace DefaultCluster.Tests.General
             var r1 = await g1.GetItems();
 
             Assert.True(
-                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // Message ordering was not necessarily preserved.
+                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // 电文订购不一定保存。
                 string.Format("Result: r[0]={0}, r[1]={1}", r1[0], r1[1]));
         }
 
@@ -468,7 +468,7 @@ namespace DefaultCluster.Tests.General
             var r1 = await g1.GetItems();
 
             Assert.True(
-                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // Message ordering was not necessarily preserved.
+                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // 电文订购不一定保存。
                 string.Format("Result: r[0]={0}, r[1]={1}", r1[0], r1[1]));
         }
 
@@ -544,9 +544,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests generic grains with non-primitive type arguments like Guid and byte arrays.
-        /// Validates that Orleans correctly differentiates grain activations based on complex
-        /// generic type arguments, ensuring proper type-based routing.
+        /// 测试通用 grains ,使用非原始类型参数,如“吉德”和字节阵列。
+        /// 校验 Orleans 正确区分基于复杂特性的 grain 激活
+        /// 通用类型参数,确保适当的类型路径。
         /// </summary>
         [Fact]
         public async Task Generic_Non_Primitive_Type_Argument()
@@ -662,9 +662,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Validates that grains with different generic type arguments create independent activations.
-        /// This is crucial for ensuring that IDbGrain<int> and IDbGrain<string> are treated as
-        /// completely separate grain types with independent state.
+        /// 验证 grains 使用不同通用类型参数创建独立启动。
+        /// 这对于确保 IDbGrain<int> 和 IDbGrain<string> 作为
+        /// 完全独立的 grain 类型,具有独立状态。
         /// </summary>
         [Fact]
         public async Task DifferentTypeArgsProduceIndependentActivations()
@@ -678,8 +678,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests generic grains making calls to themselves.
-        /// Validates that self-referential calls work correctly in generic grain contexts.
+        /// 测试自呼自呼的通用 grains 。
+        /// 在通用 grain 背景下验证自特调用是否正确。
         /// </summary>
         [Fact, TestCategory("Echo")]
         public async Task Generic_PingSelf()
@@ -692,8 +692,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests generic grains making calls to other generic grains of the same type.
-        /// Validates grain-to-grain communication for generic grain types.
+        /// 测试通用 grains 调用同类的其他通用 grains 。
+        /// 验证值 grain- 来...grain 通用信息交换 grain 类型。
         /// </summary>
         [Fact, TestCategory("Echo")]
         public async Task Generic_PingOther()
@@ -708,8 +708,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests complex call chains where a generic grain calls itself through another grain.
-        /// Validates that grain references remain valid when passed between generic grains.
+        /// 测试通用 grain 通过另一个 grain调用链的复合调用链。
+        /// 验证 grain 通用 grains.
         /// </summary>
         [Fact, TestCategory("Echo")]
         public async Task Generic_PingSelfThroughOther()
@@ -724,9 +724,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests scheduled operations and deactivation for generic grains.
-        /// Validates that Orleans' activation lifecycle management works correctly with generic grains,
-        /// including delayed operations and explicit deactivation.
+        /// 测试通用 grains的预定操作和停用。
+        /// 证明 Orleans的活化生命周期管理与通用 grains的正确工作有效,
+        /// 包括延迟运行和明确解除功能。
         /// </summary>
         [Fact, TestCategory("ActivateDeactivate")]
         public async Task Generic_ScheduleDelayedPingAndDeactivate()
@@ -761,9 +761,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests serialization of generic grains with circular references in their state.
-        /// Validates that Orleans' serialization system can handle complex object graphs
-        /// in generic grain contexts without infinite loops.
+        /// 测试通用 grains 序列,并按其状态提供循环参考。
+        /// 验证 Orleans的序列化系统能够处理复杂的对象图
+        /// 在通用 grain 上下文中,没有无限环。
         /// </summary>
         [Fact, TestCategory("Serialization")]
         public async Task SerializationTests_Generic_CircularReferenceTest()
@@ -774,9 +774,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests generic grains with type constraints (where T : class, new(), etc.).
-        /// Validates that Orleans correctly enforces and works with C# generic type constraints,
-        /// including unmanaged constraints and reference type constraints.
+        /// 测试具有类型限制的通用 grains (T:类、新()等)。
+        /// 证明 Orleans 正确执行和处理C#通用类型限制,
+        /// 包括未加管理的制约和参考类型制约。
         /// </summary>
         [Fact]
         public async Task Generic_GrainWithTypeConstraints()
@@ -807,9 +807,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests generic grains with value type state persistence.
-        /// Validates that Orleans' persistence system correctly handles value types (structs)
-        /// as grain state in generic grain contexts.
+        /// 测试具有数值类型状态持久性的通用 grains 。
+        /// 验证 Orleans'持久性系统正确处理价值类型(结构)
+        /// 年为 grain 状态, 通用 grain 环境。
         /// </summary>
         [Fact, TestCategory("Persistence")]
         public async Task Generic_GrainWithValueTypeState()
@@ -828,14 +828,14 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests casting non-generic grain references to generic interfaces after activation.
-        /// Validates Orleans' support for late-bound interface discovery on already-activated grains.
+        /// 测试在激活后将非通用 grain 引文用于通用界面。
+        /// 验证 Orleans对已激活的 grains上延迟关闭接口发现的支持。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastToGenericInterfaceAfterActivation()
         {
             var grain = this.GrainFactory.GetGrain<INonGenericCastableGrain>(Guid.NewGuid());
-            await grain.DoSomething(); //activates original grain type here
+            await grain.DoSomething(); //在此激活原始 grain 类型
 
             var castRef = grain.AsReference<ISomeGenericGrain<string>>();
 
@@ -845,9 +845,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests casting to generic interfaces with different type arguments before activation.
-        /// Validates that Orleans can handle interface casts that involve different generic
-        /// type specializations before the grain is activated.
+        /// 激活前测试会选择与不同类型参数的通用界面。
+        /// 验证 Orleans 能够处理涉及不同通用的界面
+        /// 激活 grain 之前的特性类型。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastToDifferentlyConcretizedGenericInterfaceBeforeActivation()
@@ -862,9 +862,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests casting between independently concretized generic interfaces.
-        /// Validates Orleans' ability to handle complex interface hierarchies where interfaces
-        /// are specialized independently of the grain's generic parameters.
+        /// 独立具体化通用界面之间的测试。
+        /// 校验 Orleans在接口位置处理复杂界面等级的能力
+        /// 独立于 grain通用参数之外的专门化。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastToDifferentlyConcretizedInterfaceBeforeActivation()
@@ -879,8 +879,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests casting from generic to non-generic interfaces.
-        /// Validates that Orleans supports interface casts that cross the generic/non-generic boundary.
+        /// 从通用和非基因界面进行筛选试验。
+        /// 验证 Orleans 支持跨越通用/非遗传边界的界面。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastGenericInterfaceToNonGenericInterfaceBeforeActivation()
@@ -895,9 +895,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests that generic grains can have generic state with different type parameters.
-        /// Validates that the type parameters for Grain<TState> don't need to match the grain's
-        /// own type parameters, allowing flexible state modeling in generic grain implementations.
+        /// 通用 grains 具有不同类型参数的通用状态的测试。
+        /// 验证 Grain<TState> 的类型参数不需要与 grain的
+        /// 允许在通用 grain 执行中采用灵活状态模型。
         /// </summary>
         [Fact]
         public async Task GenericGrainStateParameterMismatchTest()
@@ -914,10 +914,10 @@ namespace DefaultCluster.Tests.General
         using UnitTests.Grains.Generic.EdgeCases;
 
         /// <summary>
-        /// Tests for edge cases in Orleans' generic grain type system.
-        /// Validates complex scenarios including partial type specialization, repeated type parameters,
-        /// rearranged generic arguments, type parameter constraints in inheritance hierarchies,
-        /// and advanced type inference scenarios that push the boundaries of the generic type resolver.
+        /// 在 Orleans通用 grain 类型系统中测试边缘情况。
+        /// 验证复杂假设情况,包括部分类型专业化、重复型号参数、
+        /// 重新排列的通用参数,继承等级制度中的类型参数限制,
+        /// 和推动通用类型解析器边界的高级类型的推断假设情景。
         /// </summary>
         [TestCategory("BVT"), TestCategory("Generics")]
         [TestSuite("BVT")]
@@ -936,10 +936,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests partial specialization of generic grain types.
-            /// Validates Orleans' ability to handle grains that partially specify generic parameters,
-            /// leaving some to be inferred from the interface implementation.
-            /// Note: Currently unsupported feature.
+            /// 测试通用 grain 类型的一部分专业化。
+            /// 验证 Orleans处理部分指定通用参数的 grains 能力,
+            /// 还有一些留待从接口实施中推断。
+            /// 注:目前未支持的特性 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_PartiallySpecifyingGenericGrainFulfilsInterface()
@@ -950,24 +950,24 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests grains that reuse the same generic parameter multiple times.
-            /// Validates handling of scenarios where a single type parameter appears
-            /// multiple times in the grain's interface hierarchy.
-            /// Note: Currently unsupported - fails with too many generic arguments.
+            /// 测试 grains 重复使用同一通用参数多次。
+            /// 验证单类型参数出现时的设想情景处理
+            /// 在 grain界面结构中多次。
+            /// 注:目前未支持 - 以太多的通用参数失败 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_GenericGrainCanReuseOwnGenArgRepeatedly()
             {
-                // Resolves correctly but can't be activated: too many gen args supplied for concrete class
+                // 正确解析正解, 但无法被激活: 混凝土类的 gen args 数量太多
                 var grain = this.GrainFactory.GetGrain<IGrainReceivingRepeatedGenArgs<int, int>>(Guid.NewGuid());
                 var concreteGenArgs = await GetConcreteGenArgs(grain);
                 Assert.True(concreteGenArgs.SequenceEqual(new[] { typeof(int) }));
             }
 
             /// <summary>
-            /// Tests casting with partially specified generic interfaces.
-            /// Validates that interfaces with partial generic specialization can be
-            /// cast to their fully specified counterparts.
+            /// 带有部分指定的通用界面的测试铸造。
+            /// 验证与部分通用专门化界面的
+            /// 将其抛到完全指定的对应方身上。
             /// </summary>
             [Fact]
             public async Task Generic_PartiallySpecifyingGenericInterfaceIsCastable()
@@ -980,9 +980,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests casting with partial generic specialization before activation.
-            /// Validates that the casting mechanism works correctly even when the grain
-            /// hasn't been activated yet.
+            /// 启动前进行部分通用专业的铸造试验。
+            /// 证明铸造机制即使在 grain时仍然正确运转
+            /// 还没启动
             /// </summary>
             [Fact]
             public async Task Generic_PartiallySpecifyingGenericInterfaceIsCastable_Activating()
@@ -995,25 +995,25 @@ namespace DefaultCluster.Tests.General
 
 
             /// <summary>
-            /// Tests resolution of generic arguments that are both repeated and rearranged.
-            /// Validates complex type parameter mapping where arguments appear multiple times
-            /// in different positions.
-            /// Note: Currently unsupported - type inference fails.
+            /// 反复重复和重新安排的通用论点的测试解析。
+            /// 验证参数出现多次的复杂类型参数映射
+            /// 职位不同。
+            /// 注:目前未支持 - 类型推理失败 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_RepeatedRearrangedGenArgsResolved()
             {
-                // Again resolves to the correct generic type definition, but fails on activation as too many args
-                // gen args aren't being properly inferred from matched concrete type
+                // 再次下定决心采用正确的通用类型定义,但未能像太多的参数那样启动
+                // gen ars 并没有被正确推断出匹配的混凝土类型
                 var grain = this.GrainFactory.GetGrain<IReceivingRepeatedGenArgsAmongstOthers<int, string, int>>(Guid.NewGuid());
                 var concreteGenArgs = await GetConcreteGenArgs(grain);
                 Assert.True(concreteGenArgs.SequenceEqual(new[] { typeof(string), typeof(int) }));
             }
 
             /// <summary>
-            /// Tests type resolution with repeated generic arguments across interfaces.
-            /// Validates that Orleans correctly handles scenarios where the same type parameter
-            /// is used multiple times across different interfaces in the hierarchy.
+            /// 测试类型分辨率,在界面之间反复使用通用参数。
+            /// 验证 Orleans 正确处理相同类型参数的情景
+            /// 用于等级体系中不同界面的多次。
             /// </summary>
             [Fact]
             public async Task Generic_RepeatedGenArgsWorkAmongstInterfacesInTypeResolution()
@@ -1024,9 +1024,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests casting between interfaces with repeated generic arguments.
-            /// Validates that grains can be cast between interfaces that use the same
-            /// type parameter multiple times in their definitions.
+            /// 测试在与重复的通用参数界面之间进行切换。
+            /// 校验 grains 能够被投放在使用相同
+            /// 定义中键入参数多次。
             /// </summary>
             [Fact]
             public async Task Generic_RepeatedGenArgsWorkAmongstInterfacesInCasting()
@@ -1039,9 +1039,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests casting with repeated generic arguments before activation.
-            /// Validates pre-activation casting behavior for complex generic hierarchies
-            /// with repeated type parameters.
+            /// 激活前用重复的通用参数进行试铸。
+            /// 校验复杂通用等级结构的激活前铸造行为
+            /// 带有重复类型参数。
             /// </summary>
             [Fact]
             public async Task Generic_RepeatedGenArgsWorkAmongstInterfacesInCasting_Activating()
@@ -1053,10 +1053,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests resolution of rearranged generic arguments.
-            /// Validates that Orleans can handle interfaces where generic parameters
-            /// appear in different orders than in the grain implementation.
-            /// Note: Currently unsupported feature.
+            /// 重新排列的通用参数的测试分辨率。
+            /// 验证 Orleans 能够处理通用参数的界面
+            /// 与 grain 执行中不同的顺序。
+            /// 注:目前未支持的特性 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_RearrangedGenArgsOfCorrectArityAreResolved()
@@ -1067,9 +1067,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests casting between interfaces with rearranged generic arguments.
-            /// Validates that casting works when generic parameters are in different
-            /// positions but the total count matches.
+            /// 测试在与重新排列的通用参数界面之间进行切换。
+            /// 校验通用参数不同时投铸起作用的
+            /// 位置,但总数匹配。
             /// </summary>
             [Fact]
             public async Task Generic_RearrangedGenArgsOfCorrectNumberAreCastable()
@@ -1082,9 +1082,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests pre-activation casting with rearranged generic arguments.
-            /// Validates that parameter rearrangement doesn't break casting before
-            /// the grain is activated.
+            /// 测试预先引爆弹铸,并重新排列通用参数。
+            /// 校验参数重新排列前不会中断抛出
+            /// 启动 grain 。
             /// </summary>
             [Fact]
             public async Task Generic_RearrangedGenArgsOfCorrectNumberAreCastable_Activating()
@@ -1105,9 +1105,9 @@ namespace DefaultCluster.Tests.General
             { }
 
             /// <summary>
-            /// Tests casting between multiple specializations of the same generic interface.
-            /// Validates that a grain implementing multiple concrete versions of a generic
-            /// interface can be cast between those specializations.
+            /// 在同一通用界面的多个专业之间进行测试。
+            /// 证明a grain 执行通用的多混凝土版本
+            /// 可以在这些专业之间进行定位。
             /// </summary>
             [Fact]
             public async Task CastingBetweenFullySpecifiedGenericInterfaces()
@@ -1121,9 +1121,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests casting to interfaces with unrelated generic parameters.
-            /// Validates that grains can be cast to interfaces whose generic parameters
-            /// have no relationship to the grain's concrete type arguments.
+            /// 测试与非相关通用参数接口的切换。
+            /// 验证 grains 可投入通用参数的界面
+            /// 与 grain的具体类型参数没有任何关系。
             /// </summary>
             [Fact]
             public async Task Generic_CanCastToFullySpecifiedInterfaceUnrelatedToConcreteGenArgs()
@@ -1137,9 +1137,9 @@ namespace DefaultCluster.Tests.General
 
 
             /// <summary>
-            /// Tests pre-activation casting to unrelated generic interfaces.
-            /// Validates that casting to interfaces with independent generic parameters
-            /// works before grain activation.
+            /// 测试预激活性铸造到不相关的通用界面。
+            /// 验证与独立通用参数接口的铸造
+            /// 激活 grain 之前的工作。
             /// </summary>
             [Fact]
             public async Task Generic_CanCastToFullySpecifiedInterfaceUnrelatedToConcreteGenArgs_Activating()
@@ -1151,10 +1151,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests further specialization of already-generic type arguments.
-            /// Validates handling of nested generics like List<T> where T itself is
-            /// a type parameter to be resolved.
-            /// Note: Currently unsupported feature.
+            /// 测试已经具有遗传性的论点的进一步专业化。
+            /// 验证对嵌套的通用名词的处理,如T本身所在的清单<T>
+            /// 类型参数待解。
+            /// 注:目前未支持的特性 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_GenArgsCanBeFurtherSpecialized()
@@ -1165,10 +1165,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests specialization of generic parameters into array types.
-            /// Validates that Orleans can handle scenarios where generic parameters
-            /// are specialized as array types (T[]).
-            /// Note: Currently unsupported feature.
+            /// 测试通用参数在阵列类型中的专业化。
+            /// 验证 Orleans 能够处理通用参数的情景
+            /// 专门作为数组类型(T[])。
+            /// 注:目前未支持的特性 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_GenArgsCanBeFurtherSpecializedIntoArrays()
@@ -1179,10 +1179,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests casting between interfaces with nested generic specializations.
-            /// Validates casting when interfaces use complex generic types like List<T>
-            /// with different but compatible specializations.
-            /// Note: Currently unsupported feature.
+            /// 测试嵌套通用专业界面之间的切换。
+            /// 当接口使用复杂的通用类型,如清单<T>时验证铸造
+            /// 具有不同但相容的专业。
+            /// 注:目前未支持的特性 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_CanCastBetweenInterfacesWithFurtherSpecializedGenArgs()
@@ -1195,9 +1195,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// Tests pre-activation casting with nested generic specializations.
-            /// Validates that complex generic casting scenarios work before grain activation.
-            /// Note: Currently unsupported feature.
+            /// 测试使用嵌套式通用专业的预活性铸造。
+            /// 在启动 grain 之前,验证复杂的通用投射设想方案的工作。
+            /// 注:目前未支持的特性 。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_CanCastBetweenInterfacesWithFurtherSpecializedGenArgs_Activating()

@@ -8,12 +8,12 @@ using Orleans.Runtime;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Interface for a stream message cache that stores EventHub EventData
+    /// 存储 EventHub EventData的流件信件缓存界面
     /// </summary>
     public interface IEventHubQueueCache : IQueueFlowController, IDisposable
     {
         /// <summary>
-        /// Add a list of EventHub EventData to the cache.
+        /// 向缓存添加 EventHub EventData 列表。
         /// </summary>
         /// <param name="message"></param>
         /// <param name="dequeueTimeUtc"></param>
@@ -21,25 +21,25 @@ namespace Orleans.Streaming.EventHubs
         List<StreamPosition> Add(List<EventData> message, DateTime dequeueTimeUtc);
 
         /// <summary>
-        /// Get a cursor into the cache to read events from a stream.
+        /// 将光标带入缓存,从流读事件。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="sequenceToken">The position from which to begin reading.</param>
-        /// <returns>The acquired cache cursor.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="sequenceToken">开始阅读的位置 。</param>
+        /// <returns>获得的缓存光标。</returns>
         /// <exception cref="QueueCacheMissException">
-        /// The requested token is older than the messages retained by the cache.
+        /// 请求的符名比缓存保存的信件要旧 。
         /// </exception>
         [Obsolete("Use TryGetCursor instead.")]
         object GetCursor(StreamId streamId, StreamSequenceToken? sequenceToken);
 
         /// <summary>
-        /// Attempts to get a cursor into the cache to read events from a stream.
+        /// 试图将光标获取到缓存以读取流中的事件 。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="sequenceToken">The position from which to begin reading.</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="sequenceToken">开始阅读的位置 。</param>
         /// <returns>
-        /// A successful result containing the acquired cursor, or a cache-miss result containing the
-        /// unavailable position and current cache bounds.
+        /// 包含获得的光标的成功结果,或含有
+        /// 无法获取位置和当前缓存边框 。
         /// </returns>
         QueueCacheCursorResult<object> TryGetCursor(StreamId streamId, StreamSequenceToken? sequenceToken)
         {
@@ -57,20 +57,20 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Attempts to get a cursor into the cache at the specified subscription start position.
+        /// 试图在指定订阅启动位置将光标获取到缓存 。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="startPosition">The initial subscription position.</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="startPosition">初始订阅位置。</param>
         /// <returns>
-        /// A successful result containing the acquired cursor, a cache-miss result containing the unavailable
-        /// position and current cache bounds, or <see cref="QueueCacheCursorResultKind.NotSupported"/>.
+        /// 包含获得光标的成功结果, 含有无法的缓存错误结果
+        /// 和当前缓存边框,或 <see cref="QueueCacheCursorResultKind.NotSupported"/>。
         /// </returns>
         /// <remarks>
-        /// The default implementation acquires the latest cursor using <see cref="TryGetCursor"/>
-        /// with a null token. Providers support earliest positioning by implementing this method
-        /// and returning a cursor positioned inclusively at the oldest retained message for the stream.
+        /// 默认执行使用 <see cref="TryGetCursor"/>获取最新的光标
+        /// 供应商通过采用这种方法支持尽早定位
+        /// 并返回一个光标,位置包含在流中最古老的预留信息处。
         /// </remarks>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="startPosition"/> is not defined.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="startPosition"/> 未定义。</exception>
         QueueCacheCursorResult<object> TryGetCursorAtPosition(
             StreamId streamId,
             StreamSubscriptionStartPosition startPosition)
@@ -89,32 +89,32 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Refreshes an inactive cursor at the provided sequence token.
+        /// 以所提供的序列符号刷新非活动光标。
         /// </summary>
-        /// <param name="cursor">The cursor to refresh.</param>
-        /// <param name="sequenceToken">The sequence token to position the cursor at.</param>
+        /// <param name="cursor">光标要刷新。</param>
+        /// <param name="sequenceToken">将光标定位在位置上的序列符号。</param>
         void Refresh(object cursor, StreamSequenceToken? sequenceToken) { }
 
         /// <summary>
-        /// Try to get the next message in the cache for the provided cursor.
+        /// 尝试在提供的光标的缓存中获取下一个消息 。
         /// </summary>
-        /// <param name="cursorObj">The cache cursor.</param>
-        /// <param name="message">The next message when one is available.</param>
-        /// <returns><see langword="true"/> when a message was returned; otherwise, <see langword="false"/>.</returns>
+        /// <param name="cursorObj">缓存光标。</param>
+        /// <param name="message">下一条消息可用时的下一个消息。</param>
+        /// <returns><see langword="true"/> 电文被退回时;否则, <see langword="false"/>。</returns>
         /// <exception cref="QueueCacheMissException">
-        /// The cursor position is older than the messages retained by the cache.
+        /// 光标位置比缓存保存的信件要老。
         /// </exception>
         [Obsolete("Use TryGetNextMessageWithResult instead.")]
         bool TryGetNextMessage(object cursorObj, [NotNullWhen(true)] out IBatchContainer? message);
 
         /// <summary>
-        /// Attempts to get the next message in the cache for the provided cursor.
+        /// 试图获取所提供光标缓存中的下一个消息 。
         /// </summary>
-        /// <param name="cursorObj">The cache cursor.</param>
-        /// <param name="message">The next message when one is available.</param>
+        /// <param name="cursorObj">缓存光标。</param>
+        /// <param name="message">下一条消息可用时的下一个消息。</param>
         /// <returns>
-        /// A successful result with a non-null <paramref name="message"/>, <see cref="QueueCacheCursorMoveResultKind.NoData"/>
-        /// with a null message, or a cache-miss result with a null message.
+        /// 无中点 <paramref name="message"/>、 <see cref="QueueCacheCursorMoveResultKind.NoData"/>的成功结果
+        /// 带有无效信息,或含有无效信息的缓存遗漏结果。
         /// </returns>
         QueueCacheCursorMoveResult TryGetNextMessageWithResult(object cursorObj, out IBatchContainer? message)
         {
@@ -139,13 +139,13 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Add cache pressure monitor to the cache's back pressure algorithm
+        /// 添加缓存压力监视器到缓存后压算法
         /// </summary>
         /// <param name="monitor"></param>
         void AddCachePressureMonitor(ICachePressureMonitor monitor);
 
         /// <summary>
-        /// Send purge signal to the cache, the cache will perform a time based purge on its cached messages
+        /// 向缓存发送清除信号, 缓存将对其缓存信件进行基于时间的清理
         /// </summary>
         void SignalPurge();
     }

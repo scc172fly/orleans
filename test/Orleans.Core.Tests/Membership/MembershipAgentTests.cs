@@ -15,7 +15,7 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// Tests for membership agent functionality including lifecycle stages, IAmAlive updates, and connectivity validation.
+    /// 成员代理功能测试,包括生命周期阶段、 IAmAlive 更新和连接验证。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -79,7 +79,7 @@ namespace NonSilo.Tests.Membership
             this.clusterMembershipOptions = Options.Create(new ClusterMembershipOptions() { MaxJoinAttemptTime = TimeSpan.FromSeconds(45) });
             this.manager = new MembershipTableManager(
                 localSiloDetails: this.localSiloDetails,
-                // These fixtures use fixed generations unrelated to the clock.
+                // 这些固定装置使用固定世代,与时钟无关。
                 clusterMembershipOptions: Options.Create(new ClusterMembershipOptions { SiloGenerationRetirementAge = null }),
                 membershipTable: membershipTable,
                 fatalErrorHandler: this.fatalErrorHandler,
@@ -143,14 +143,14 @@ namespace NonSilo.Tests.Membership
                 ServiceLifecycleStage.ValidateInitialConnectivity,
                 ServiceLifecycleStage.BecomeActive})
             {
-                // After start
+                // 启动后
                 this.lifecycle.Subscribe(
                 "x",
                 l + 1,
                 Callback(l + 1),
                 NoOp);
 
-                // After stop
+                // 停止后
                 this.lifecycle.Subscribe(
                 "x",
                 l - 1,
@@ -189,14 +189,14 @@ namespace NonSilo.Tests.Membership
                 ServiceLifecycleStage.ValidateInitialConnectivity,
                 ServiceLifecycleStage.BecomeActive})
             {
-                // After start
+                // 启动后
                 this.lifecycle.Subscribe(
                 "x",
                 l + 1,
                 Callback(l + 1),
                 NoOp);
 
-                // After stop
+                // 停止后
                 this.lifecycle.Subscribe(
                 "x",
                 l - 1,
@@ -399,7 +399,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => updateCounter == 3, cancellationToken);
             Assert.Equal(3, updateCounter);
 
-            // When something goes horribly awry (eg, the timer throws an exception), the silo should fault.
+            // 当某物变得可怕(例如,定时器抛出一个例外)时,其 silo 就应该有误。
             this.fatalErrorHandler.DidNotReceiveWithAnyArgs().OnFatalException(default, default, default);
             while (!this.timerCalls["UpdateIAmAlive"].TryDequeue(out timer)) await Task.Delay(1, cancellationToken);
             timer.Completion.TrySetException(new Exception("no"));
@@ -407,7 +407,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => this.fatalErrorHandler.ReceivedCalls().Any(), cancellationToken);
             this.fatalErrorHandler.ReceivedWithAnyArgs().OnFatalException(default, default, default);
 
-            // Stop & cancel all timers.
+            // 停止取消所有计时器( C) 。
             await StopLifecycle(cancellationToken);
         }
 
@@ -428,7 +428,7 @@ namespace NonSilo.Tests.Membership
                 Entry(Silo("127.0.0.200:900@100"), SiloStatus.Active)
             };
 
-            // Add the new silos
+            // 添加新的 silos
             foreach (var entry in otherSilos)
             {
                 var table = await this.membershipTable.ReadAllAsync(cancellationToken);
@@ -528,7 +528,7 @@ namespace NonSilo.Tests.Membership
                 Entry(Silo("127.0.0.200:900@100"), SiloStatus.Active)
             };
 
-            // Add the new silos
+            // 添加新的 silos
             foreach (var entry in otherSilos)
             {
                 var table = await this.membershipTable.ReadAllAsync(cancellationToken);
@@ -558,7 +558,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => this.remoteSiloProber.ReceivedCalls().Count() >= otherSilos.Length, cancellationToken);
             await Until(() => started.IsCompleted, cancellationToken);
 
-            // Startup should have faulted.
+            // 启动应该有错误的
             Assert.True(started.IsFaulted);
 
             await StopLifecycle(cancellationToken);

@@ -1,16 +1,24 @@
-# Microsoft Orleans Transactions for Azure Storage
+<a id="microsoft-orleans-transactions-for-azure-storage"></a>
 
-## Introduction
-Microsoft Orleans Transactions for Azure Storage provides the infrastructure to store Orleans transaction logs in Azure Storage. This package allows Orleans applications to use ACID transactions across multiple grain calls with Azure Storage as the backing transaction log store.
+# Microsoft Orleans 交易的往来 Azure 储存
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 交易的往来 Azure 储存库提供存储基础设施 Orleans 以 Azure 存储。 此软件包允许 Orleans 使用应用程序,使用ACID 交易的多个 grain 调用时 Azure 储存作为支持交易日志的仓库。
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Transactions.AzureStorage
 ```
 
-## Example - Configuring Azure Storage for Transactions
+<a id="example---configuring-azure-storage-for-transactions"></a>
+
+## 示例 - 交易存储配置 Azure
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Configuration;
@@ -36,7 +44,9 @@ var builder = Host.CreateApplicationBuilder(args)
 await builder.RunAsync();
 ```
 
-## Example - Using Transactions in Grains
+<a id="example---using-transactions-in-grains"></a>
+
+## 示例 - 在 Grains中使用交易
 ```csharp
 // A grain with transactional state
 public class MyTransactionalGrain : Grain, IMyTransactionalGrain
@@ -94,14 +104,18 @@ public class MyState
 }
 ```
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Transactions](https://dotnet.github.io/orleans/docs/grains/transactions/)
+<a id="documentation"></a>
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [交易交易](https://dotnet.github.io/orleans/docs/grains/transactions/)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

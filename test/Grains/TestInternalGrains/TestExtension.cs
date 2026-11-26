@@ -18,7 +18,7 @@ namespace UnitTests.Grains
             return Task.FromResult(grain.ExtensionProperty);
         }
 
-        // check that one can send messages from within extensions.
+        // 选中此项后, 一个可以从扩展名中发送信件 。
         public Task<string> CheckExtension_2()
         {
             ITestGrain g = grainFactory.GetGrain<ITestGrain>(23);
@@ -65,7 +65,7 @@ namespace UnitTests.Grains
             return Task.FromResult(grain.ExtensionProperty!);
         }
 
-        // check that one can send messages from within extensions.
+        // 选中此项后, 一个可以从扩展名中发送信件 。
         public Task<string> CheckExtension_2()
         {
             ITestGrain g = this.grainFactory.GetGrain<ITestGrain>(24);

@@ -29,7 +29,7 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Long named grain type, which can cause issues in AzureTableStorage
+    /// 长命名 grain 类型, 可能引起问题 AzureTableStorage
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ISimpleGenericGrainUsingAzureStorageAndLongGrainName<T> : IGrainWithGuidKey
@@ -40,7 +40,7 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Short named grain type, which shouldn't cause issues in AzureTableStorage
+    /// 简称 grain 类型,不应引起 AzureTableStorage中的问题
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ITinyNameGrain<T> : IGrainWithGuidKey

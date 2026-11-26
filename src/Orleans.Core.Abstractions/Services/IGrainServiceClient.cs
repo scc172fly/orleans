@@ -1,9 +1,9 @@
 namespace Orleans.Services
 {
     /// <summary>
-    /// Base interface for grain service clients.
+    /// grain 服务客户端的基础接口。
     /// </summary>
-    /// <typeparam name="TGrainService">The grain service interface type.</typeparam>
+    /// <typeparam name="TGrainService">下 grain 服务接口类型。</typeparam>
     public interface IGrainServiceClient<TGrainService>
         where TGrainService : IGrainService
     {

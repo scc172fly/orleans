@@ -1,12 +1,12 @@
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Option to configure ZooKeeperMembership
+    /// 配置 ZooKeeperMembership的选项
     /// </summary>
     public class ZooKeeperClusteringSiloOptions
     {
         /// <summary>
-        /// Connection string for ZooKeeper Storage
+        /// ZooKeeper 存储的连接字符串
         /// </summary>
         [Redact]
         public string ConnectionString { get; set; } = null!;

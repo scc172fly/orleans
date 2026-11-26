@@ -5,39 +5,39 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Represents a request to schedule a durable job.
+/// 系要求安排一个耐用工作。
 /// </summary>
 public readonly struct ScheduleJobRequest
 {
     /// <summary>
-    /// Gets the grain identifier of the target grain that will receive the durable job.
+    /// 得到 grain 目标标识符 grain 且得续聘的工作。
     /// </summary>
     public required GrainId Target { get; init; }
 
     /// <summary>
-    /// Gets the non-empty name of the job for identification and handler routing.
+    /// 获取非空白的工作名称,以便识别身份和处理者路线。
     /// </summary>
     public required string JobName { get; init; }
 
     /// <summary>
-    /// Gets the date and time when the job should be executed.
+    /// 获得执行该任务的日期和时间。
     /// </summary>
     public required DateTimeOffset DueTime { get; init; }
 
     /// <summary>
-    /// Gets optional metadata associated with the job.
+    /// 获取与该工作相关的可选元数据。
     /// </summary>
     public IReadOnlyDictionary<string, string>? Metadata { get; init; }
 
     /// <summary>
-    /// Gets the W3C <c>traceparent</c> value to associate with the scheduled job, used to continue the distributed trace when the job is later executed.
-    /// If <see langword="null"/>, the value of <see cref="System.Diagnostics.Activity.Current"/> at the time <see cref="ILocalDurableJobManager.ScheduleJobAsync"/> is invoked will be used.
+    /// 获得 W3C <c>traceparent</c> 以与计划的工作挂钩,用于在任务执行后继续分布跟踪。
+    /// 如果 <see langword="null"/>,值, <see cref="System.Diagnostics.Activity.Current"/> 时间时 <see cref="ILocalDurableJobManager.ScheduleJobAsync"/> 将使用援引。
     /// </summary>
     public string? TraceParent { get; init; }
 
     /// <summary>
-    /// Gets the W3C <c>tracestate</c> value to associate with the scheduled job, used to continue the distributed trace when the job is later executed.
-    /// If <see langword="null"/>, the value of <see cref="System.Diagnostics.Activity.Current"/> at the time <see cref="ILocalDurableJobManager.ScheduleJobAsync"/> is invoked will be used.
+    /// 获取 W3C <c>tracestate</c> 值与计划的工作挂钩,用于在工作执行后继续分配跟踪。
+    /// 如果 <see langword="null"/>,值, <see cref="System.Diagnostics.Activity.Current"/> 时间时 <see cref="ILocalDurableJobManager.ScheduleJobAsync"/> 将使用援引。
     /// </summary>
     public string? TraceState { get; init; }
 

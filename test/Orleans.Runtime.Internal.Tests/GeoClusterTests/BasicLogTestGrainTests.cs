@@ -12,7 +12,7 @@ using Azure.Identity;
 namespace Tests.GeoClusterTests
 {
     /// <summary>
-    /// Tests for log-based consistency providers with different storage configurations.
+    /// 测试基于日志的、具有不同储存配置的一致性提供者。
     /// </summary>
     [TestCategory("GeoCluster"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -109,18 +109,18 @@ namespace Tests.GeoClusterTests
 
         private async Task ThreeCheckers(string grainClass, int phases)
         {
-            // Global 
+            // 全球 
             async Task checker1()
             {
                 int x = GetRandom();
                 var grain = this.fixture.GrainFactory.GetGrain<ILogTestGrain>(x, grainClass);
                 await grain.SetAGlobal(x);
                 int a = await grain.GetAGlobal();
-                Assert.Equal(x, a); // value of A survive grain call
+                Assert.Equal(x, a); // 活值 grain 调用
                 Assert.Equal(1, await grain.GetConfirmedVersion());
             }
 
-            // Local
+            // 当地当地
             async Task checker2()
             {
                 int x = GetRandom();
@@ -128,13 +128,13 @@ namespace Tests.GeoClusterTests
                 Assert.Equal(0, await grain.GetConfirmedVersion());
                 await grain.SetALocal(x);
                 int a = await grain.GetALocal();
-                Assert.Equal(x, a); // value of A survive grain call
+                Assert.Equal(x, a); // 活值 grain 调用
             }
 
-            // Local then Global
+            // 当地(或全球)
             async Task checker3()
             {
-                // Local then Global
+                // 当地(或全球)
                 int x = GetRandom();
                 var grain = this.fixture.GrainFactory.GetGrain<ILogTestGrain>(x, grainClass);
                 await grain.SetALocal(x);
@@ -143,12 +143,12 @@ namespace Tests.GeoClusterTests
                 Assert.Equal(1, await grain.GetConfirmedVersion());
             }
 
-            // test them in sequence
+            // 以序列顺序测试它们
             await checker1();
             await checker2();
             await checker3();
 
-            // test (phases) instances of each checker, all in parallel
+            // 每个检查器的测试( 相) 实例, 全部平行
             var tasks = new List<Task>();
             for (int i = 0; i < phases; i++)
             {

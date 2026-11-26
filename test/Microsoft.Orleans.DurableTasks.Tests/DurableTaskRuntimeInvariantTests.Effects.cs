@@ -32,7 +32,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.True(effect.RemoteTarget.IsDefault);
         Assert.Equal(reference, storage.Get(taskId).Result!.GetResult<Guid>());
 
-        // Delivering the task's completion deletes its tree, which holds the effect's record.
+        // 完成任务时删除了树, 树记录着效果。
         ((IOutboxMessageSource)runtime).OnRetired(Assert.Single(transport.Completions).MessageId, OutboxMessageRetirement.Delivered.Instance);
 
         Assert.False(storage.Contains(taskId));
@@ -70,7 +70,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         ((IDurableTaskGrainStorage)storage).SetRemoteRequest(callId, recorded, target, IDurableTaskRequest.GetMethod(new RuntimeTestOtherMethodRequest()), "recorded-fingerprint");
         using var stalls = new StallRecorder(taskId);
 
-        // A deployment changed the call's method, so the replay requests another operation under the recorded identifier.
+        // 部署改变了呼叫方法,因此重播要求根据记录识别特征进行另一次操作。
         _ = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await CreateRemoteChild(2).WithId("charge")),
@@ -103,7 +103,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     });
 }
 
-/// <summary>Records the first <see cref="DurableTaskEvents.ExecutionStalled"/> event of a task.</summary>
+/// <summary>记录任务的第一个 <see cref="DurableTaskEvents.ExecutionStalled"/> 事件。</summary>
 internal sealed class StallRecorder : IDisposable
 {
     private readonly TaskCompletionSource<DurableTaskEvents.ExecutionStalled> _stalled = new(TaskCreationOptions.RunContinuationsAsynchronously);

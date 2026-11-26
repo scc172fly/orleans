@@ -8,7 +8,7 @@ public sealed class DatasetGrain : DurableGrain
     {
         var export = await Export(dataset).WithId("export").ScheduleAsync();
 
-        // The poll throws NotSupportedException in a durable task body.
+        // 民意测验将 NotSupportedException 投到一个持久的任务机构。
         while (!await export.IsCompletedAsync())
         {
             await DurableTask.Delay(TimeSpan.FromMinutes(1)).WithId("poll-interval");
@@ -22,7 +22,7 @@ public sealed class DatasetGrain : DurableGrain
     // <orleans0225_fix_await>
     public async DurableTask<string> PublishWhenExportedAsync(string dataset)
     {
-        // The body resumes when the export completes, and a replay returns its recorded result.
+        // 当导出完成后, 身体会恢复, 重放返回其记录的结果 。
         return await Export(dataset).WithId("export");
     }
     // </orleans0225_fix_await>
@@ -32,7 +32,7 @@ public sealed class DatasetGrain : DurableGrain
     {
         try
         {
-            // A durable delay races the export, and the execution records which completed first.
+            // 持久拖延是出口的竞赛,执行记录也是先完成。
             return await Export(dataset).WaitAsync(TimeSpan.FromHours(1)).WithId("export");
         }
         catch (TimeoutException)

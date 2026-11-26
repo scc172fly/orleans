@@ -9,7 +9,7 @@ using UnitTests.General;
 namespace UnitTests.RemindersTest
 {
     /// <summary>
-    /// Tests for Orleans reminders table operations using PostgreSQL as the storage backend.
+    /// 试验 Orleans 提醒表操作 PostgreSQL 以存储后端为缓存后端。
     /// </summary>
     [TestCategory("Functional"), TestCategory("Reminders"), TestCategory("AdoNet"), TestCategory("PostgreSql")]
     [TestSuite("Functional")]

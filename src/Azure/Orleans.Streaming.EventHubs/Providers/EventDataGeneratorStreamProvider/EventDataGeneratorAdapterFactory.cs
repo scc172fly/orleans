@@ -14,27 +14,27 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs.Testing
 {
     /// <summary>
-    /// This is a persistent stream provider adapter that generates it's own events rather than reading them from Eventhub.
-    /// This is primarily for test purposes.
+    /// 这是一个持续流源的供应商适配器 产生它自己的事件 而不是从Eventhubt读到它们
+    /// 这主要用于试验目的。
     ///  </summary>
     public partial class EventDataGeneratorAdapterFactory : EventHubAdapterFactory, IControllable
     {
         private readonly EventDataGeneratorStreamOptions ehGeneratorOptions;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventDataGeneratorAdapterFactory"/> class.
+        /// 初始化 <see cref="EventDataGeneratorAdapterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="options">The event data generator options.</param>
-        /// <param name="ehOptions">The Event Hub connection options.</param>
-        /// <param name="receiverOptions">The Event Hub receiver options.</param>
-        /// <param name="cacheOptions">The Event Hub cache pressure options.</param>
-        /// <param name="evictionOptions">The stream cache eviction options.</param>
-        /// <param name="statisticOptions">The stream statistics options.</param>
-        /// <param name="dataAdapter">The adapter used to convert between Event Hubs data and Orleans stream data.</param>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
-        /// <param name="environmentStatisticsProvider">The environment statistics provider.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="options">事件数据生成器选项。</param>
+        /// <param name="ehOptions">活动枢纽连接选项。</param>
+        /// <param name="receiverOptions">事件枢纽接收器选项。</param>
+        /// <param name="cacheOptions">事件枢纽缓存压力选项。</param>
+        /// <param name="evictionOptions">溪流缓冲驱逐选项。</param>
+        /// <param name="statisticOptions">流统计选项。</param>
+        /// <param name="dataAdapter">用于在事件枢纽数据与 Orleans 数据。</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="environmentStatisticsProvider">环境统计提供者。</param>
         public EventDataGeneratorAdapterFactory(
             string name,
             EventDataGeneratorStreamOptions options,
@@ -53,9 +53,9 @@ namespace Orleans.Streaming.EventHubs.Testing
         }
 
         /// <summary>
-        /// Configures the generated-event receiver factory and initializes common adapter state.
+        /// 配置生成活动接收器厂,并启动通用适配器状态。
         /// </summary>
-        /// <remarks>This provider generates events locally and does not create an Event Hubs client.</remarks>
+        /// <remarks>此提供者生成本地事件, 但不创建事件枢纽客户端 。</remarks>
         public override void Init()
         {
             this.EventHubReceiverFactory = this.EHGeneratorReceiverFactory;
@@ -63,17 +63,17 @@ namespace Orleans.Streaming.EventHubs.Testing
         }
 
         /// <summary>
-        /// Performs no initialization because generated-event streams do not connect to Event Hubs.
+        /// 执行不初始化, 因为生成的活动流无法连接到事件枢纽 。
         /// </summary>
         protected override void InitEventHubClient()
         {
-            //do nothing, EventDataGeneratorStreamProvider doesn't need connection with EventHubClient
+            //什么都不做 EventDataGeneratorStreamProvider 不需要连接 EventHubClient
         }
 
         /// <summary>
-        /// Generates the simulated Event Hub partition identifiers.
+        /// 生成模拟事件枢纽分区识别符。
         /// </summary>
-        /// <returns>A task which resolves to the simulated partition identifiers.</returns>
+        /// <returns>一项任务,它解决模拟分区标识符的问题。</returns>
         protected override Task<string[]> GetPartitionIdsAsync()
         {
             return Task.FromResult(GenerateEventHubPartitions(this.ehGeneratorOptions.EventHubPartitionCount));
@@ -96,7 +96,7 @@ namespace Orleans.Streaming.EventHubs.Testing
             if (allQueueInTheCluster != null)
             {
                 var allQueues = allQueueInTheCluster as QueueId[] ?? allQueueInTheCluster.ToArray();
-                //every agent receive the same random number, do a mod on queue count, get the same random queue to assign stream to.
+                //每个代理器都收到相同的随机数, 以队列计数时做一个模式, 获得同样的随机队列来分配流 。
                 var queueToAssign = allQueues[args.RandomNumber % allQueues.Length];
                 if (EventHubReceivers.TryGetValue(queueToAssign, out var receiverToAssign))
                 {
@@ -114,16 +114,16 @@ namespace Orleans.Streaming.EventHubs.Testing
         {
             foreach (var ehReceiver in this.EventHubReceivers)
             {
-                //if the stream is assigned to this receiver/queue, then it will ask the data generator to stop producing
+                //如果将流流指定给此接收器/ 队列, 那么它会要求数据生成器停止生产
                 ehReceiver.Value.StopProducingOnStream(streamId);
             }
         }
 
         /// <summary>
-        /// Generates partition identifiers for the simulated Event Hub.
+        /// 为模拟事件枢纽生成分区识别符。
         /// </summary>
-        /// <param name="partitionCount">The number of partition identifiers to generate.</param>
-        /// <returns>The generated partition identifiers.</returns>
+        /// <param name="partitionCount">要生成的分区识别符数量。</param>
+        /// <returns>生成的分区识别符号。</returns>
         public static string[] GenerateEventHubPartitions(int partitionCount)
         {
             var partitions = new string[partitionCount];
@@ -133,22 +133,22 @@ namespace Orleans.Streaming.EventHubs.Testing
         }
 
         /// <summary>
-        /// Commands for IControllable
+        /// 不可控的无法控制命令
         /// </summary>
         public enum Commands
         {
             /// <summary>
-            /// Command for Randomly_Place_Stream_To_Queue
+            /// Randomly_Place_Stream_To_Queue 命令
             /// </summary>
             Randomly_Place_Stream_To_Queue = (int)PersistentStreamProviderCommand.AdapterFactoryCommandStartRange + 4,
             /// <summary>
-            /// Command for Stop_Producing_On_Stream
+            /// 停止生产命令
             /// </summary>
             Stop_Producing_On_Stream = (int)PersistentStreamProviderCommand.AdapterFactoryCommandStartRange + 5
         }
 
         /// <summary>
-        /// Args for RandomlyPlaceStreamToQueue method
+        /// RandomlyPlaceStreamToQueue 方法的参数
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -161,13 +161,13 @@ namespace Orleans.Streaming.EventHubs.Testing
             public StreamId StreamId { get; set; }
 
             /// <summary>
-            /// A random number
+            /// 随机数
             /// </summary>
             [Id(1)]
             public int RandomNumber { get; set; }
 
             /// <summary>
-            /// Constructor
+            /// 构造建构器
             /// </summary>
             /// <param name="streamId"></param>
             /// <param name="randomNumber"></param>
@@ -179,7 +179,7 @@ namespace Orleans.Streaming.EventHubs.Testing
         }
 
         /// <summary>
-        /// Execute Command
+        /// 执行命令
         /// </summary>
         /// <param name="command"></param>
         /// <param name="arg"></param>
@@ -192,7 +192,7 @@ namespace Orleans.Streaming.EventHubs.Testing
                     this.RandomlyPlaceStreamToQueue((arg as StreamRandomPlacementArg)!);
                     break;
                 case (int)Commands.Stop_Producing_On_Stream:
-                    // This command is always issued with a StreamId argument.
+                    // 此命令总是使用 StreamId 参数来发布。
                     this.StopProducingOnStream((StreamId)arg!);
                     break;
                 default: break;
@@ -202,11 +202,11 @@ namespace Orleans.Streaming.EventHubs.Testing
         }
 
         /// <summary>
-        /// Creates and initializes an event data generator adapter factory.
+        /// 创建并启动事件数据生成器适配厂。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <returns>The initialized adapter factory.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <returns>初始化适配器厂。</returns>
         public new static EventDataGeneratorAdapterFactory Create(IServiceProvider services, string name)
         {
             var generatorOptions = services.GetOptionsByName<EventDataGeneratorStreamOptions>(name);

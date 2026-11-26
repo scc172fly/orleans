@@ -6,25 +6,25 @@ using Orleans.Serialization.Codecs;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Thrown when a type has no serialization constructor.
+    /// 当一种类型没有序列构建器时扔。
     /// </summary>
     [Serializable]
     public class SerializationConstructorNotFoundException : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializationConstructorNotFoundException"/> class.
+        /// 初始化 <see cref="SerializationConstructorNotFoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="type">The type.</param>
+        /// <param name="type">类型。</param>
         [SecurityCritical]
         public SerializationConstructorNotFoundException(Type type) : base(GetMessage(type))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializationConstructorNotFoundException" /> class.
+        /// 初始化 <see cref="SerializationConstructorNotFoundException" /> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization information.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列资料</param>
+        /// <param name="context">上下文。</param>
         [SecurityCritical]
 #if NET8_0_OR_GREATER
         [Obsolete]

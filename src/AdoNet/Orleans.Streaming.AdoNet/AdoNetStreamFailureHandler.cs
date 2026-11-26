@@ -1,33 +1,33 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// An <see cref="IStreamFailureHandler"/> that attempts to move the message to dead letters.
+/// 试图将信息移到死字的 <see cref="IStreamFailureHandler"/>
 /// </summary>
 internal partial class AdoNetStreamFailureHandler(bool faultOnFailure, AdoNetStreamOptions streamOptions, ClusterOptions clusterOptions, AdoNetStreamQueueMapper mapper, RelationalOrleansQueries queries, AdoNetStreamPositions positions, ILogger<AdoNetStreamFailureHandler> logger) : IStreamFailureHandler
 {
     private readonly ILogger<AdoNetStreamFailureHandler> _logger = logger;
 
     /// <summary>
-    /// Gets a value indicating whether the subscription should fault when there is an error.
+    /// 获得一个值,显示在错误发生时订阅是否应该失败。
     /// </summary>
     public bool ShouldFaultSubsriptionOnError { get; } = faultOnFailure;
 
     /// <summary>
-    /// Attempts to move the message to dead letters on delivery failure.
+    /// 试图在送货失败时将信息移到死信。
     /// </summary>
     public Task OnDeliveryFailure(GuidId subscriptionId, string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken) => OnFailureAsync(streamProviderName, streamIdentity, sequenceToken);
 
     /// <summary>
-    /// Attempts to move the message to dead letters on delivery failure.
+    /// 试图在送货失败时将信息移到死信。
     /// </summary>
     public Task OnSubscriptionFailure(GuidId subscriptionId, string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken) => OnFailureAsync(streamProviderName, streamIdentity, sequenceToken);
 
     /// <summary>
-    /// Attempts to move the message to dead letters on delivery failure.
+    /// 试图在送货失败时将信息移到死信。
     /// </summary>
     /// <remarks>
-    /// The sequence token holds a queue cache position assigned by a receiver of this provider.
-    /// Positions which no longer resolve belong to messages the receiver has released, redelivered, or expired, so they are skipped.
+    /// 此序列命令持有由此提供者接收器指定的队列缓存位置 。
+    /// 不再解决的位置属于接收器释放、重新交付或过期的信件,所以被跳过。
     /// </remarks>
     private async Task OnFailureAsync(string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken)
     {

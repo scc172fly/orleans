@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Identifies a stream within a named stream provider.
+    /// 指定了指定的流提供商中的一条流。
     /// </summary>
     [Immutable]
     [Serializable]
@@ -16,22 +16,22 @@ namespace Orleans.Runtime
     public readonly struct QualifiedStreamId : IEquatable<QualifiedStreamId>, IComparable<QualifiedStreamId>, ISerializable, ISpanFormattable
     {
         /// <summary>
-        /// The stream identifier.
+        /// 溪流识别符 。
         /// </summary>
         [Id(0)]
         public readonly StreamId StreamId;
 
         /// <summary>
-        /// The name of the stream provider.
+        /// 流源提供者的名称 。
         /// </summary>
         [Id(1)]
         public readonly string ProviderName;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QualifiedStreamId"/> struct.
+        /// 初始化 <see cref="QualifiedStreamId"/> 结构的新实例。
         /// </summary>
-        /// <param name="providerName">The name of the stream provider.</param>
-        /// <param name="streamId">The stream identifier.</param>
+        /// <param name="providerName">流体提供者的名称。</param>
+        /// <param name="streamId">流体识别符号。</param>
         public QualifiedStreamId(string providerName, StreamId streamId)
         {
             ProviderName = providerName;
@@ -45,10 +45,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns the stream identifier contained in a qualified stream identifier.
+        /// 返回合格流识别符中包含的流识别符。
         /// </summary>
-        /// <param name="internalStreamId">The qualified stream identifier.</param>
-        /// <returns>The stream identifier.</returns>
+        /// <param name="internalStreamId">合格的流识别符号。</param>
+        /// <returns>流体识别符号。</returns>
         public static implicit operator StreamId(QualifiedStreamId internalStreamId) => internalStreamId.StreamId;
 
         /// <inheritdoc/>
@@ -58,19 +58,19 @@ namespace Orleans.Runtime
         public override bool Equals(object? obj) => obj is QualifiedStreamId other ? this.Equals(other) : false;
 
         /// <summary>
-        /// Compares two qualified stream identifiers for equality.
+        /// 比较了两个合格的平等识别数据。
         /// </summary>
-        /// <param name="s1">The first qualified stream identifier.</param>
-        /// <param name="s2">The second qualified stream identifier.</param>
-        /// <returns><see langword="true"/> if both identifiers are equal; otherwise, <see langword="false"/>.</returns>
+        /// <param name="s1">第一个合格的流识别符号。</param>
+        /// <param name="s2">第二个合格的流识别符号。</param>
+        /// <returns><see langword="true"/> ,如果两个识别符号相等;否则, <see langword="false"/>。</returns>
         public static bool operator ==(QualifiedStreamId s1, QualifiedStreamId s2) => s1.Equals(s2);
 
         /// <summary>
-        /// Compares two qualified stream identifiers for inequality.
+        /// 与两个合格的不平等识别数据进行对比。
         /// </summary>
-        /// <param name="s1">The first qualified stream identifier.</param>
-        /// <param name="s2">The second qualified stream identifier.</param>
-        /// <returns><see langword="true"/> if the identifiers differ; otherwise, <see langword="false"/>.</returns>
+        /// <param name="s1">第一个合格的流识别符号。</param>
+        /// <param name="s2">第二个合格的流识别符号。</param>
+        /// <returns><see langword="true"/> ,如果识别符号不同;否则, <see langword="false"/>。</returns>
         public static bool operator !=(QualifiedStreamId s1, QualifiedStreamId s2) => !s2.Equals(s1);
 
         /// <inheritdoc/>
@@ -104,7 +104,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Functionality for converting <see cref="QualifiedStreamId"/> instances to and from their JSON representation.
+    /// 换算功能 <see cref="QualifiedStreamId"/> 与从这些天起 JSON 代表。
     /// </summary>
     public sealed class QualifiedStreamIdJsonConverter : JsonConverter<QualifiedStreamId>
     {

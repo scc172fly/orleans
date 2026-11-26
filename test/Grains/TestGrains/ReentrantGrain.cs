@@ -83,17 +83,17 @@ namespace UnitTests.Grains
 
         public static bool MayInterleave(IInvokable req)
         {
-            // not interested
+            // 无兴趣
             if (req.GetArgumentCount() == 0)
                 return false;
 
             string? arg = null;
 
-            // assume single argument message
+            // 假设单一条参数消息
             if (req.GetArgumentCount() == 1)
                 arg = (string?)UnwrapImmutable(req.GetArgument(0));
 
-            // assume stream message
+            // 正在显示流消息
             if (req.GetArgumentCount() == 2)
                 arg = (string?)UnwrapImmutable(req.GetArgument(1));
 
@@ -107,8 +107,8 @@ namespace UnitTests.Grains
 
         private IMayInterleaveStaticPredicateGrain Self { get; set; } = null!;
 
-        // this interleaves only when arg == "reentrant"
-        // and test predicate will throw when arg = "err"
+        // 只有当arg = "resentrant" 时, 此间断才切换
+        // 当 arg = “err” 时, 测试的上游会投下
         public Task<string> One(string arg)
         {
             return Task.FromResult("one");
@@ -167,17 +167,17 @@ namespace UnitTests.Grains
 
         public bool MayInterleave(IInvokable req)
         {
-            // not interested
+            // 无兴趣
             if (req.GetArgumentCount() == 0)
                 return false;
 
             string? arg = null;
 
-            // assume single argument message
+            // 假设单一条参数消息
             if (req.GetArgumentCount() == 1)
                 arg = (string?)UnwrapImmutable(req.GetArgument(0));
 
-            // assume stream message
+            // 正在显示流消息
             if (req.GetArgumentCount() == 2)
                 arg = (string?)UnwrapImmutable(req.GetArgument(1));
 
@@ -191,8 +191,8 @@ namespace UnitTests.Grains
 
         private IMayInterleaveInstancedPredicateGrain Self { get; set; } = null!;
 
-        // this interleaves only when arg == "reentrant"
-        // and test predicate will throw when arg = "err"
+        // 只有当arg = "resentrant" 时, 此间断才切换
+        // 当 arg = “err” 时, 测试的上游会投下
         public Task<string> One(string arg)
         {
             return Task.FromResult("one");
@@ -358,7 +358,7 @@ namespace UnitTests.Grains
             List<Task> promises = new List<Task>();
             for (int i = 0; i < num; i++)
             {
-                //Task promise = fanOutGrains[i].Ping(OneSecond);
+                //任务承诺 = fanOutGrains[i]. Ping(OneSecond);
                 Task promise = fanOutGrains[i].GetCounter();
                 promises.Add(promise);
             }
@@ -375,7 +375,7 @@ namespace UnitTests.Grains
             List<Task> promises = new List<Task>();
             for (int i = 0; i < num; i++)
             {
-                //Task promise = fanOutGrains[i].Ping(OneSecond);
+                //任务承诺 = fanOutGrains[i]. Ping(OneSecond);
                 Task promise = fanOutGrains[i].GetCounter();
                 promises.Add(promise);
             }
@@ -656,8 +656,8 @@ namespace UnitTests.Grains
 
         public static bool WillInterleave(IInvokable req)
         {
-            return req.GetMethodName() == nameof(MethodA)  // MethodA allows interleaving
-                || req.GetMethodName() == nameof(Unblock); // Unblock allows interleaving
+            return req.GetMethodName() == nameof(MethodA)  // MethodA 允许中断
+                || req.GetMethodName() == nameof(Unblock); // 解除块块允许中断
         }
 
         public async Task MethodA()

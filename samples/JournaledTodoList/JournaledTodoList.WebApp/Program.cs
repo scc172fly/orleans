@@ -20,11 +20,11 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
+// 配置 HTTP 请求管道 。
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    // 默认 HSTS 值为 30 天。 您可能想要更改此选项用于生产方案, 见 https://aka.ms/aspnetcore-hsts。
     app.UseHsts();
 }
 

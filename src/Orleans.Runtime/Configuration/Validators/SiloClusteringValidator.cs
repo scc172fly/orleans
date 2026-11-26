@@ -9,7 +9,7 @@ using Orleans.Runtime.MembershipService;
 namespace Orleans.Runtime.Configuration
 {
     /// <summary>
-    /// Validates basic cluster membership configuration.
+    /// 验证基本分组成员构成。
     /// </summary>
     internal class SiloClusteringValidator : IConfigurationValidator
     {
@@ -28,8 +28,8 @@ namespace Orleans.Runtime.Configuration
 
             if (clusteringTableProvider is null)
             {
-                // No IMembershipTable configured. A custom IMembershipManager must be present
-                // (MembershipTableManager requires IMembershipTable, so it cannot be used).
+                // 没有配置 IMembershipTable 。必须存在自定义 IMembershipManager
+                // (MembershipTableManager 需要 IMembershipTable,因此无法使用)。
                 IMembershipManager? membershipManager = null;
                 try
                 {
@@ -37,7 +37,7 @@ namespace Orleans.Runtime.Configuration
                 }
                 catch
                 {
-                    // Resolution failed — MembershipTableManager requires IMembershipTable.
+                    // 决议失败—— MembershipTableManager 要求 IMembershipTable。
                 }
 
                 if (membershipManager is null or MembershipTableManager)

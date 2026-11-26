@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(SourceRoot)src\Orleans.Durable.Analyzers\Orleans.Durable.Analyzers.csproj" />
-    <!-- Test sources compile against the shipped programming model, so the analyzers bind the real overloads. -->
+    <!-- 测试来源根据运出的程序模型进行编译,所以分析者将真正的超载装起来。 -->
     <ProjectReference Include="$(SourceRoot)src\Orleans.Durable.Abstractions\Orleans.Durable.Abstractions.csproj" />
     <ProjectReference Include="$(SourceRoot)src\Orleans.Durable\Orleans.Durable.csproj" />
     <ProjectReference Include="$(SourceRoot)test\TestInfrastructure\TestExtensions\TestExtensions.csproj" />

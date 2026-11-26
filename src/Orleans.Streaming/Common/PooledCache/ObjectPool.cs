@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Simple object pool that uses a stack to store available objects.
+    /// 使用堆叠存储可用对象的简单对象池。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class ObjectPool<T> : IObjectPool<T>
@@ -18,16 +18,16 @@ namespace Orleans.Providers.Streams.Common
         private long totalObjects;
 
         /// <summary>
-        /// monitor to report statistics for current object pool
+        /// 监测以报告当前对象集合的统计
         /// </summary>
         private readonly IObjectPoolMonitor? monitor;
         private readonly PeriodicAction? periodicMonitoring;
 
         /// <summary>
-        /// Simple object pool
+        /// 简单对象池
         /// </summary>
-        /// <param name="factoryFunc">Function used to create new resources of type T</param>
-        /// <param name="monitor">monitor to report statistics for object pool</param>
+        /// <param name="factoryFunc">函数用于创建 T型</param>类型的新资源
+        /// <param name="monitor">监测器,用于报告对象集合</param>的统计
         /// <param name="monitorWriteInterval"></param>
         public ObjectPool(Func<T> factoryFunc, IObjectPoolMonitor? monitor = null, TimeSpan? monitorWriteInterval = null)
         {
@@ -39,7 +39,7 @@ namespace Orleans.Providers.Streams.Common
             this.factoryFunc = factoryFunc;
             pool = new ConcurrentStack<T>();
 
-            // monitoring
+            // 监测监测
             this.monitor = monitor;
             if (this.monitor != null && monitorWriteInterval.HasValue)
             {
@@ -50,12 +50,12 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Allocates a pooled resource
+        /// 分配集合资源
         /// </summary>
         /// <returns></returns>
         public virtual T Allocate()
         {
-            //if couldn't pop a resource from the pool, create a new resource using factoryFunc from outside of the pool
+            //如果无法从池中弹出资源, 请使用[ 池外的 factoryFunc 创建一个新资源
             if (!pool.TryPop(out var resource))
             {
                 resource = factoryFunc();
@@ -68,7 +68,7 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Returns a resource to the pool
+        /// 返回集合资源
         /// </summary>
         /// <param name="resource"></param>
         public virtual void Free(T resource)
@@ -82,7 +82,7 @@ namespace Orleans.Providers.Streams.Common
         {
             var availableObjects = this.pool.Count;
             long claimedObjects = this.totalObjects - availableObjects;
-            this.monitor!.Report(this.totalObjects, availableObjects, claimedObjects); // Only invoked via periodicMonitoring, which is only set when monitor is non-null (see constructor).
+            this.monitor!.Report(this.totalObjects, availableObjects, claimedObjects); // 仅通过 periodicMonitoring,该值仅在显示器为非核时设定(见构建器)。
         }
     }
 }

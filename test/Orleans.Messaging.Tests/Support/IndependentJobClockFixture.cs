@@ -5,7 +5,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-/// <summary>Separates actor job clocks without advancing the background scheduler's clock or timers.</summary>
+/// <summary>将演员的工作钟分开,而不提前推进背景调度器的时钟或定时器。</summary>
 internal sealed class IndependentJobClockFixture : FaultInjectionClusterFixture
 {
     public IndependentJobClockFixture() => Clocks = new(JobClock);

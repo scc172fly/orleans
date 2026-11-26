@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.Tests
 {
     /// <summary>
-    /// Tests for transaction consistency with skewed clock scenarios using in-memory storage.
+    /// 使用模拟储存进行交易与扭曲时钟情景一致的测试。
     /// </summary>
     [TestCategory("Transactions-dev")]
     [TestSuite("Nightly")]

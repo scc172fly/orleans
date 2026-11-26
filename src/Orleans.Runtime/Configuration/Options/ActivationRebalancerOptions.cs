@@ -5,138 +5,138 @@ using Orleans.Runtime;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Options for configuring activation rebalancing.
+/// 配置激活再平衡的选项。
 /// </summary>
 public sealed class ActivationRebalancerOptions
 {
     /// <summary>
-    /// The due time for the rebalancer to start the very first session.
+    /// 重新平衡者开始首届会议的时机到了
     /// </summary>
     public TimeSpan RebalancerDueTime { get; set; } = DEFAULT_REBALANCER_DUE_TIME;
 
     /// <summary>
-    /// The default value of <see cref="RebalancerDueTime"/>.
+    /// 默认值 <see cref="RebalancerDueTime"/>。
     /// </summary>
     public static readonly TimeSpan DEFAULT_REBALANCER_DUE_TIME = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// The time between two consecutive rebalancing cycles within a session.
+    /// 届会连续两次重新平衡周期之间的时间。
     /// </summary>
-    /// <remarks>It must be greater than 2 x <see cref="DeploymentLoadPublisherOptions.DeploymentLoadPublisherRefreshTime"/>.</remarks>
+    /// <remarks>大于2 x <see cref="DeploymentLoadPublisherOptions.DeploymentLoadPublisherRefreshTime"/>。</remarks>
     public TimeSpan SessionCyclePeriod { get; set; } = DEFAULT_SESSION_CYCLE_PERIOD;
 
     /// <summary>
-    /// The default value of <see cref="SessionCyclePeriod"/>.
+    /// 默认值 <see cref="SessionCyclePeriod"/>。
     /// </summary>
     public static readonly TimeSpan DEFAULT_SESSION_CYCLE_PERIOD = TimeSpan.FromSeconds(15);
 
     /// <summary>
-    /// The maximum, consecutive number of cycles, yielding no significant improvement to the cluster's entropy.
+    /// 周期的最大、连续次数,对集群的环流没有显著改善。
     /// </summary>
-    /// <remarks>This value is inclusive, i.e. if this value is 'n', then the 'n+1' cycle will stop the current rebalancing session.</remarks>
+    /// <remarks>这个值是包容性的, i.e。如果这个值是“ n” ,那么“n+1” 周期将停止当前再平衡会话 。</remarks>
     public int MaxStagnantCycles { get; set; } = DEFAULT_MAX_STAGNANT_CYCLES;
 
     /// <summary>
-    /// The default value of <see cref="MaxStagnantCycles"/>.
+    /// 默认值 <see cref="MaxStagnantCycles"/>。
     /// </summary>
     public const int DEFAULT_MAX_STAGNANT_CYCLES = 3;
 
     /// <summary>
-    /// The minimum change in the entropy of the cluster that is considered an improvement.
-    /// When a total of n-consecutive stagnant cycles pass, during which the change in entropy is less than
-    /// the quantum, then the current rebalancing session will stop. The change is a normalized value
-    /// being relative to the maximum possible entropy.
+    /// 被认为改进的组群的变异最小值。
+    /// 当共N-连续停滞周期过后,在这段时间内, 的倍数变化小于
+    /// 量值, 然后当前再平衡会停止。 改变是一个正常值
+    /// 相对于最大可能的宇宙信通。
     /// </summary>
-    /// <remarks>Allowed range: (0-0.1]</remarks>
+    /// <remarks>允许范围: (0-0.1)</remarks>
     public double EntropyQuantum { get; set; } = DEFAULT_ENTROPY_QUANTUM;
 
     /// <summary>
-    /// The default value of <see cref="EntropyQuantum"/>.
+    /// 默认值 <see cref="EntropyQuantum"/>。
     /// </summary>
     public const double DEFAULT_ENTROPY_QUANTUM = 0.0001d;
 
     /// <summary>
-    /// Represents the allowed entropy deviation between the cluster's current entropy, against the theoretical maximum.
-    /// Values lower than this are practically considered as "maximum", and the current rebalancing session will stop.
-    /// This acts as a base rate if <see cref="ScaleAllowedEntropyDeviation"/> is set to <see langword="true"/>.
+    /// 代表该组当前星体的星体与理论最大值之间的允许星体偏差。
+    /// 低于这个数值的值实际上被视为“最大”,而目前的再平衡会议将停止。
+    /// 如果 <see cref="ScaleAllowedEntropyDeviation"/> 被设为 <see langword="true"/>,则此数值作为基准率。
     /// </summary>
-    /// <remarks>Allowed range is: (0-0.1]</remarks>
+    /// <remarks>允许的范围是: (0-0.1)</remarks>
     public double AllowedEntropyDeviation { get; set; } = DEFAULT_ALLOWED_ENTROPY_DEVIATION;
 
     /// <summary>
-    /// The default value of <see cref="AllowedEntropyDeviation"/>.
+    /// 默认值 <see cref="AllowedEntropyDeviation"/>。
     /// </summary>
     public const double DEFAULT_ALLOWED_ENTROPY_DEVIATION = 0.0001d;
 
     /// <summary>
-    /// Determines whether <see cref="AllowedEntropyDeviation"/> should be scaled dynamically
-    /// based on the total number of activations. When set to <see langword="true"/>, the allowed entropy
-    /// deviation will increase logarithmically after reaching <see cref="ScaledEntropyDeviationActivationThreshold"/>,
-    /// and will cap at <see cref="MAX_SCALED_ENTROPY_DEVIATION"/>.
+    /// 确定是否应该动态缩放 <see cref="AllowedEntropyDeviation"/>
+    /// 根据激活的总数确定。设定到 <see langword="true"/>时,允许的 entropy
+    /// 到达 <see cref="ScaledEntropyDeviationActivationThreshold"/>后, 偏差将对数增加,
+    /// 并在 <see cref="MAX_SCALED_ENTROPY_DEVIATION"/>时设定上限。
     /// </summary>
-    /// <remarks>This is in place because a deviation of say 10 activations has far lesser
-    /// impact on a total of 100,000 activations than it does for say 1,000 activations.</remarks>
+    /// <remarks>之所以存在,是因为10的引爆率偏离了10,
+    /// 共对100,000个启动发生影响,比1,000个启动发生作用时的影响要大。</remarks>
     public bool ScaleAllowedEntropyDeviation { get; set; } = DEFAULT_SCALE_ALLOWED_ENTROPY_DEVIATION;
 
     /// <summary>
-    /// The default value of <see cref="ScaleAllowedEntropyDeviation"/>.
+    /// 默认值 <see cref="ScaleAllowedEntropyDeviation"/>。
     /// </summary>
     public const bool DEFAULT_SCALE_ALLOWED_ENTROPY_DEVIATION = true;
 
     /// <summary>
-    /// The maximum value allowed when <see cref="ScaleAllowedEntropyDeviation"/> is <see langword="true"/>.
+    /// <see cref="ScaleAllowedEntropyDeviation"/> 是 <see langword="true"/>时允许的最大值。
     /// </summary>
     public const double MAX_SCALED_ENTROPY_DEVIATION = 0.1d;
 
     /// <summary>
-    /// Determines the number of activations that must be active during any rebalancing cycle, in order for <see cref="ScaleAllowedEntropyDeviation"/>
-    /// (if, and only if, its <see langword="true"/>) to begin scaling the <see cref="AllowedEntropyDeviation"/>.
+    /// 确定在任何再平衡周期内必须活跃的激活次数,以便 <see cref="ScaleAllowedEntropyDeviation"/>
+    /// (如果而且只有在 <see langword="true"/>开始缩放 <see cref="AllowedEntropyDeviation"/>时)
     /// </summary>
     /// <remarks>
     /// <para>Allowed range: [1000-∞)</para>
-    /// <para><strong>Values lower than the default are discouraged.</strong></para>
+    /// <para><strong>低于默认值的数值被劝阻。</strong></para>
     /// </remarks>
     public int ScaledEntropyDeviationActivationThreshold { get; set; } = DEFAULT_SCALED_ENTROPY_DEVIATION_ACTIVATION_THRESHOLD;
 
     /// <summary>
-    /// The default value of <see cref="ScaledEntropyDeviationActivationThreshold"/>.
+    /// 默认值 <see cref="ScaledEntropyDeviationActivationThreshold"/>。
     /// </summary>
     public const int DEFAULT_SCALED_ENTROPY_DEVIATION_ACTIVATION_THRESHOLD = 10_000;
 
     /// <summary>
-    /// <para>Represents the weight that is given to the number of rebalancing cycles that have passed during a rebalancing session.</para>
-    /// Changing this value has a far greater impact on the migration rate than <see cref="SiloNumberWeight"/>, and is suitable for controlling the session duration.
-    /// <para>Pick higher values if you want a faster migration rate.</para>
+    /// <para>表示对重新平衡会议期间所通过再平衡周期数目的权重。</para>
+    /// 改变这一数值对移徙率的影响远大于 <see cref="SiloNumberWeight"/>,适合控制会期。
+    /// <para>选择更高的值,如果你想加快迁移速度的话。</para>
     /// </summary>
-    /// <remarks>Allowed range: (0-1]</remarks>
+    /// <remarks>允许范围: (0-1)</remarks>
     public double CycleNumberWeight { get; set; } = DEFAULT_CYCLE_NUMBER_WEIGHT;
 
     /// <summary>
-    /// The default value of <see cref="CycleNumberWeight"/>.
+    /// 默认值 <see cref="CycleNumberWeight"/>。
     /// </summary>
     public const double DEFAULT_CYCLE_NUMBER_WEIGHT = 0.1d;
 
     /// <summary>
-    /// <para>Represents the weight that is given to the number of silos in the cluster during a rebalancing session.</para>
-    /// Changing this value has a far lesser impact on the migration rate than <see cref="CycleNumberWeight"/>, and is suitable for fine-tuning.
-    /// <para>Pick lower values if you want a faster migration rate.</para>
+    /// <para>表示对数字的加权数 silos 重新平衡会议期间的一组。</para>
+    /// 改变这一数值对移徙率的影响远远小于 <see cref="CycleNumberWeight"/>,适合微调。
+    /// <para>选择较低数值,如果你想加快迁移速度的话。</para>
     /// </summary>
-    /// <remarks>Allowed range: [0-1]</remarks>
+    /// <remarks>允许范围: [0-1]</remarks>
     public double SiloNumberWeight { get; set; } = DEFAULT_SILO_NUMBER_WEIGHT;
 
     /// <summary>
-    /// The default value of <see cref="SiloNumberWeight"/>.
+    /// 默认值 <see cref="SiloNumberWeight"/>。
     /// </summary>
     public const double DEFAULT_SILO_NUMBER_WEIGHT = 0.1d;
 
     /// <summary>
-    /// The maximum allowed number of activations that can be migrated at any given cycle.
+    /// 在任何特定周期中可迁移的最大允许启动次数。
     /// </summary>
     public int ActivationMigrationCountLimit { get; set; } = DEFAULT_ACTIVATION_MIGRATION_COUNT_LIMIT;
 
     /// <summary>
-    /// The default value for <see cref="ActivationMigrationCountLimit"/>.
-    /// The default is practically no limit.
+    /// <see cref="ActivationMigrationCountLimit"/>的默认值。
+    /// 默认实际上没有限制 。
     /// </summary>
     public const int DEFAULT_ACTIVATION_MIGRATION_COUNT_LIMIT = int.MaxValue;
 }

@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>Tests the rule which reports changes made in place to values which grain state holds.</summary>
+/// <summary>测试报告对 grain 状态所持有的数值所作的更改的规则。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskStateMutationRuleTests
 {

@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// Tests for transaction behavior under grain fault conditions with Azure Storage.
+    /// 交易行为测试 grain 条件有缺陷者 Azure 储存。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Orleans;
 
 /// <summary>
-/// An alternative to <see cref="TaskCompletionSource{TResult}"/> which completes only once a specified number of signals have been received.
+/// 替代 <see cref="TaskCompletionSource{TResult}"/> 的替代方法,即只在收到特定数量信号后完成。
 /// </summary>
 internal sealed class MultiTaskCompletionSource
 {
@@ -13,13 +13,13 @@ internal sealed class MultiTaskCompletionSource
     private int _count;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MultiTaskCompletionSource"/> class.
+    /// 初始化 <see cref="MultiTaskCompletionSource"/> 类的新实例。
     /// </summary>
     /// <param name="count">
-    /// The number of signals which must occur before this completion source completes.
+    /// 完成源完成之前必须出现的信号数量。
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// The count value is less than or equal to zero.
+    /// 计数值小于或等于零。
     /// </exception>
     public MultiTaskCompletionSource(int count)
     {
@@ -29,14 +29,14 @@ internal sealed class MultiTaskCompletionSource
     }
 
     /// <summary>
-    /// Gets the task which is completed when a sufficient number of signals are received.
+    /// 获得收到足够数量信号后完成的任务。
     /// </summary>
     public Task Task => _tcs.Task;
 
     /// <summary>
-    /// Signals this instance.
+    /// 发出这个信号
     /// </summary>
-    /// <exception cref="InvalidOperationException">This method was called more times than the initially specified count argument allows.</exception>
+    /// <exception cref="InvalidOperationException">此方法被调用的次数超过最初指定的计数参数允许的倍数 。</exception>
     public void SetOneResult()
     {
         var current = Interlocked.Decrement(ref _count);

@@ -4,23 +4,23 @@ using Orleans.Streams;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for <see cref="DeploymentBasedQueueBalancer"/>.
+    /// <see cref="DeploymentBasedQueueBalancer"/>选项。
     /// </summary>
     public class DeploymentBasedQueueBalancerOptions
     {
         /// <summary>
-        /// Gets or sets the silo maturity period, which is the period of time to allow a silo to remain active for before rebalancing queues.
+        /// 获取或设定 silo 到期日,即允许 silo 在重新平衡队列前保持活动的时间。
         /// </summary>
-        /// <value>The silo maturity period.</value>
+        /// <value>下 silo 到期日。</value>
         public TimeSpan SiloMaturityPeriod { get; set; } = DEFAULT_SILO_MATURITY_PERIOD;
 
         /// <summary>
-        /// The default silo maturity period.
+        /// 默认 silo 到期期。
         /// </summary>
         public static readonly TimeSpan DEFAULT_SILO_MATURITY_PERIOD = TimeSpan.FromMinutes(2);
 
         /// <summary>
-        /// Gets or sets a value indicating whether to presume a static (fixed) cluster.
+        /// 获取或设置一个值,以显示是否假设静态(固定)集。
         /// </summary>
         public bool IsFixed { get; set; }
     }

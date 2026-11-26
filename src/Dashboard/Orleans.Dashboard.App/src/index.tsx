@@ -1,10 +1,10 @@
-// Third-party styles are imported from JavaScript so the build's license notices include them.
+// 第三方风格是从 JavaScript 进口的,因此大楼的许可证通知包括这些。
 import 'bootstrap/dist/css/bootstrap.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 import 'admin-lte/dist/css/adminlte.css';
 import './styles.css';
 
-// Register Chart.js components
+// 登记册 Chart.js 组成部分
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -71,7 +71,7 @@ interface MenuItem {
 const target = document.getElementById('content');
 initializeSidebar();
 
-// Restore theme preference.
+// 重现主题偏好 。
 let defaultTheme = storage.get('theme') || 'dark';
 if (defaultTheme === 'dark') {
   document.getElementById('body')!.classList.add('dark-mode');
@@ -80,13 +80,13 @@ if (defaultTheme === 'dark') {
   light();
 }
 
-// Restore grain visibility preferences.
+// 恢复 grain 可见度偏好。
 let settings: Settings = {
   dashboardGrainsHidden: storage.get('dashboardGrains') === 'hidden',
   systemGrainsHidden: storage.get('systemGrains') === 'hidden'
 };
 
-// Global state.
+// 全球状况
 let dashboardCounters: any = {};
 let routeIndex = 0;
 
@@ -94,7 +94,7 @@ function scroll() {
   try {
     document.getElementsByClassName('wrapper')[0].scrollTo(0, 0);
   } catch {
-    // Older browsers may not support scrolling the wrapper element.
+    // 旧浏览器可能不支持滚动包装元素 。
   }
 }
 
@@ -122,7 +122,7 @@ function setIntervalDebounced(action: () => Promise<any>, interval: number) {
   });
 }
 
-// continually poll the dashboard counters
+// 持续调查仪表板计数器
 function loadDashboardCounters() {
     return http.get(`DashboardCounters${getFilter(settings)}`, function (err, data) {
     dashboardCounters = data;
@@ -160,7 +160,7 @@ function getVersion() {
   loadData();
 }
 
-// we always want to refresh the dashboard counters
+// 我们总是想刷新仪表板柜台
 setIntervalDebounced(loadDashboardCounters, 1000);
 loadDashboardCounters();
 let render: () => void = () => { };
@@ -172,7 +172,7 @@ function renderLoading() {
 const menuElement = document.getElementById('menu');
 const brandHeaderElement = document.getElementById('brand-header');
 
-// Render brand header once
+// 一次 Render 品牌头
 ReactDom.render(<BrandHeader />, brandHeaderElement);
 
 function renderPage(jsx: JSX.Element, path: string) {
@@ -655,22 +655,22 @@ function getFilter(settings: Settings): string {
 }
 
 function light() {
-  // Save preference to localStorage.
+  // 首选项保存到 localStorage。
   storage.put('theme', 'light');
   defaultTheme = 'light';
 
-  // Remove dark mode class from body and set Bootstrap theme to light.
+  // 从身体中删除暗模式类, 并将布斯布带主题设置为光。
   const body = document.getElementById('body')!;
   body.classList.remove('dark-mode');
   body.setAttribute('data-bs-theme', 'light');
 }
 
 function dark() {
-  // Save preference to localStorage.
+  // 首选项保存到 localStorage。
   storage.put('theme', 'dark');
   defaultTheme = 'dark';
 
-  // Add dark mode class to body and set Bootstrap theme to dark.
+  // 将暗模式类添加到身体,并将布斯布兹主题设置到黑暗。
   const body = document.getElementById('body')!;
   body.classList.add('dark-mode');
   body.setAttribute('data-bs-theme', 'dark');

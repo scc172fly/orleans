@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License.
+// 持麻省理工学院执照
 
 namespace Orleans.ShoppingCart.Grains;
 
@@ -19,7 +19,7 @@ internal sealed class InventoryGrain(
 
     public async IAsyncEnumerable<ProductDetails> GetAllProductsAsync()
     {
-        // We await this to make the compiler happy.
+        // 我们期待着这个让编译者高兴
         await Task.CompletedTask;
 
         var values = _productCache.Values.ToList();

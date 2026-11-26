@@ -4,14 +4,14 @@ using Orleans.Metadata;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Selects the named journal storage provider used by a grain type's activation-scoped durable state manager.
+/// 选择 grain 类型中用于激活范围宽度耐用状态管理器的名为日记存储提供者。
 /// </summary>
-/// <param name="providerName">The registered journal storage provider name.</param>
+/// <param name="providerName">注册的日记存储提供者姓名。</param>
 /// <remarks>
-/// All durable state in an activation shares the selected provider. Grain types without this attribute use
+/// 激活时所有耐用状态都共享选中的提供者。 Grain 类型不使用此属性
 /// <see cref="Providers.ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME"/>.
-/// Recovery reads the selected provider's physical namespace. Changing the selection for existing journals
-/// requires a data migration or cutover strategy.
+/// 回收读取选定提供者的物理命名空间。 更改现有日记的选择
+/// 数据迁移或切换战略。
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class JournalStorageProviderAttribute(string providerName) : Attribute, IGrainPropertiesProviderAttribute
@@ -19,12 +19,12 @@ public sealed class JournalStorageProviderAttribute(string providerName) : Attri
     internal const string PropertyKey = "journal-storage-provider";
 
     /// <summary>
-    /// Gets the registered journal storage provider name.
+    /// 获得注册日记存储供应商的名字。
     /// </summary>
     public string ProviderName { get; } = providerName;
 
     /// <inheritdoc />
-    /// <exception cref="OrleansConfigurationException">The provider name is null, empty, or whitespace.</exception>
+    /// <exception cref="OrleansConfigurationException">服务商名称为空、空或空白。</exception>
     [SuppressMessage("Design", "CA1062:Validate arguments of public methods",
         Justification = "AttributeGrainPropertiesProvider validates the grain class and properties collection before dispatching to attributes.")]
     public void Populate(IServiceProvider services, Type grainClass, GrainType grainType, Dictionary<string, string> properties)

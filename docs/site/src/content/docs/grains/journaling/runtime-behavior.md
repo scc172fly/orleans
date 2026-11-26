@@ -1,226 +1,252 @@
 ---
-title: Journaling runtime behavior and consistency
-description: Understand Orleans Journaling activation, write, recovery, compaction, concurrency, and failure semantics.
+title: "记录运行时行为和一致性"
+description: "理解 Orleans 日记激活、写、恢复、压缩、计算和故障语义。"
 ms.date: 10/19/2026
 ms.topic: conceptual
 ---
 
-# Journaling runtime behavior and consistency
+<a id="journaling-runtime-behavior-and-consistency"></a>
 
-Orleans Journaling assigns one <xref:Orleans.Durable.Journaling.JournalId> to each grain identity and one journal stream to each named durable state. The state manager serializes recovery and storage work for that journal.
+# 记录运行时行为和一致性
 
-## Activation and recovery
+Orleans 日刊分配 <xref:Orleans.Durable.Journaling.JournalId> 对应对 grain 国家经理将该日记的回收和储存工作连成系列。
 
-The standard grain-scoped <xref:Orleans.Durable.Journaling.IDurableStateManager> registered by <xref:Orleans.Durable.Journaling.JournalingHostingExtensions.AddJournaling*> enrolls itself in the grain lifecycle when constructed with the activation's <xref:Orleans.Runtime.IGrainContext>, before resolution returns. Resolving a keyed durable state also resolves this manager. Each activation shares one manager across its injected states and features. Its registry owns state creation and binding, so compatible requests through <xref:Orleans.Durable.Journaling.IDurableStateManager.GetOrAddState*>, its typed extension helpers, or keyed injection return the same instance.
+<a id="activation-and-recovery"></a>
 
-Constructor injection registers durable states before lifecycle startup. Orleans completes the grain constructor and assigns <xref:Orleans.Runtime.IGrainContext.GrainInstance>, then runs any shared activation setup actions before calling the grain object's `Participate` method and starting the lifecycle. A feature can first resolve the manager, declare additional activation-scoped states, and enroll its own participant in those synchronous actions. All subscriptions are established before lifecycle startup.
+## 激活和恢复
 
-The standard manager participates once, supporting ordinary <xref:Orleans.Grain> subclasses, application-owned bases, <xref:Orleans.IGrainBase> implementations, and the <xref:Orleans.Durable.Journaling.DurableGrain> convenience base. Its grain-bound constructor subscribes through the existing lifecycle participation mechanism. Resolve grain-owned managers and declare their states during construction or synchronous activation setup so subscriptions are established before lifecycle startup. If lifecycle subscription fails, the constructor disposes the failed manager and its writer, then propagates the failure.
+标准 grain- 范围 <xref:Orleans.Durable.Journaling.IDurableStateManager> 登记在册的 <xref:Orleans.Durable.Journaling.JournalingHostingExtensions.AddJournaling*> 注册入学 grain 与激活装置一起建造的寿命周期 <xref:Orleans.Runtime.IGrainContext>。解决一个关键永久状态也解决了这个经理人。每个启动的经理人在其注入的州和特性中共享一个经理人。它的注册处拥有国家创建和约束,因此通过 <xref:Orleans.Durable.Journaling.IDurableStateManager.GetOrAddState*>,它输入的扩展助手或键入注射也返回了同样的情景。
 
-During <xref:Orleans.Runtime.GrainLifecycleStage.SetupState>, the manager:
+构造体注入登记在生命周期启动前的耐久状态。 Orleans 完成 grain 构建器并指定 <xref:Orleans.Runtime.IGrainContext.GrainInstance>,然后运行任何共享的激活装置,然后调用 grain 对象的 `Participate` 方法并开始生命周期。一个功能可以首先解决管理者的问题,宣布额外的激活范围状态,并注册其参与同步动作的人。所有订阅都建立于生命周期启动之前。
 
-1. Reads the journal as an ordered byte stream.
-1. Selects the reader named by the stored format metadata.
-1. Rebuilds the state-name directory.
-1. Resets and replays each registered durable state.
-1. Completes activation setup after replay finishes.
+标准管理员一次性参加,支持普通 <xref:Orleans.Grain> 子类、应用程序所属基地、 <xref:Orleans.IGrainBase> 实施和 <xref:Orleans.Durable.Journaling.DurableGrain> 便利基础。其 grain-受约束的建造商通过现有的生命周期参与机制订阅。解决 grain-所有管理人在建设或同步启动装置期间宣布其状态,以便在生命周期启动之前确定订阅。如果使用寿命周期失败,则建筑师处置失败的管理商及其作家,然后宣传故障。
 
-<xref:Orleans.Grain.OnActivateAsync*> and requests observe recovered durable state after setup succeeds, whether the grain derives directly from <xref:Orleans.Grain>, from an application-owned base, or from <xref:Orleans.Durable.Journaling.DurableGrain>. A storage read, format, codec, or malformed-data failure fails activation and preserves the stored journal for diagnosis and recovery.
+在 <xref:Orleans.Runtime.GrainLifecycleStage.SetupState>期间,经理:
 
-Provider registration makes Journaling services available. Per-grain journal I/O begins only for activations which resolve the manager, directly or through durable-state dependencies. Grains which use other persistence models keep their existing activation behavior.
+1. 将日记作为定购字节流读取 。
+1. 选择存储格式元数据命名的读者。
+1. 重建国家名称目录。
+1. 每一个登记的耐久状态都重新恢复和重播。
+1. 重放完成后完成激活设置 。
 
-Lifecycle stages execute in order, with callbacks at the same stage eligible to run concurrently. A feature which reads recovered state subscribes after `SetupState`; a feature which must finish before `OnActivateAsync` subscribes before <xref:Orleans.Runtime.GrainLifecycleStage.Activate>. Shared setup actions execute after construction and are reused concurrently across activations, so they resolve scoped state through the supplied context. See [Shared activation setup](../grain-lifecycle.md#shared-activation-setup).
+<xref:Orleans.Grain.OnActivateAsync*> 和请求在设置成功后观察已恢复的耐久状态,无论 grain 直接来自 <xref:Orleans.Grain>、申请所属基地或 <xref:Orleans.Durable.Journaling.DurableGrain>。 存储读数、格式、编码或错误的数据故障无法激活并保存储存的日记账,以便诊断和恢复。
 
-State creation belongs to setup before initialization. After initialization begins, `GetOrAddState` can resolve existing registrations; adding a missing name fails immediately before changing the registry. <xref:Orleans.Durable.Journaling.IDurableStateManager.TryGetState*> provides lookup without creation. Application reads and mutations use the reconstructed state after initialization succeeds.
+提供方登记后,可以提供《日刊》服务。每 --grain 日记I/O只开始直接或通过耐久国家依赖关系解决经理问题的启动。 Grains 使用其他持久性模型的激活行为保持其现有的激活行为。
 
-Storage providers can split reads at arbitrary byte boundaries. The journal format buffers incomplete entries and only applies complete ordered records.
+生命周期阶段按顺序执行,在同一阶段的回调有资格同时运行。一个功能读取 `SetupState`后回收状态订阅;一个特性必须在 `OnActivateAsync` 在 <xref:Orleans.Runtime.GrainLifecycleStage.Activate>之前完成。共同设置行动在施工后进行,并在启动之后同时重新使用,因此它们通过提供的背景解决范围状态问题。见 [共享激活集共享设置](../grain-lifecycle.md#shared-activation-setup)。
 
-### Custom and caller-owned managers
+国家创建属于初始化前的设置。 启动后, `GetOrAddState` 可以解决现有的注册问题; 在更改注册之前立即添加一个缺失的名称失败。 <xref:Orleans.Durable.Journaling.IDurableStateManager.TryGetState*> 提供搜索而不创建。 应用程序读取并突变使用初始化成功后的重建状态。
 
-Grain-scoped managers are enrolled before resolution returns. The standard manager establishes this in its grain-bound constructor and implements both the grain-facing `IDurableStateManager` and the independent journal-owner <xref:Orleans.Durable.Journaling.IJournaledStateManager>. Custom grain manager replacements provide both contracts and their registrations as appropriate. They establish enrollment in their constructor or registration factory by enrolling their <xref:Orleans.ILifecycleParticipant`1> for <xref:Orleans.Runtime.IGrainLifecycle>, or subscribing initialization and shutdown callbacks directly. This gives ordinary grains, application-owned bases, and `DurableGrain` the same recovery and shutdown lifecycle for their injected managers.
+存储提供者可以任意以字节边界分割读取。 日记格式缓冲不完整的条目, 并且只应用完整定购的记录 。
 
-Managers created through <xref:Orleans.Durable.Journaling.IJournaledStateManagerFactory.CreateStandalone*> with an explicit <xref:Orleans.Durable.Journaling.JournalId>, and managers constructed directly from storage without a grain context, retain caller-owned initialization and disposal. This applies inside grain calls as well as outside the runtime. Construct state machine components with their dependencies, register them with <xref:Orleans.Durable.Journaling.IJournaledStateManager.RegisterStateMachine*>, and await <xref:Orleans.Durable.Journaling.IJournaledStateManager.InitializeAsync*> with the operation's cancellation token before using recovered state. Look up registered components with <xref:Orleans.Durable.Journaling.IJournaledStateManager.TryGetStateMachine*>. A caller can deliberately assign lifecycle ownership by enrolling the owner in a grain-scoped registration factory. Standalone creation keeps failure handling independent of the ambient activation, including after such enrollment.
+<a id="custom-and-caller-owned-managers"></a>
 
-Grain-owned managers use the existing activation scope for `GetOrAddState` and keyed component resolution. The runtime-owned scope controls disposal of the DI-created state components, their dependencies, and the manager. <xref:Orleans.Durable.Journaling.JournalingHostingExtensions.AddStateMachine*> registers application state components for this grain-facing path.
+### 客户和自调来者和电话用户主管
 
-Standalone journal owners orchestrate manually registered components and never create or dispose DI scopes. Their callers supply component dependencies and manage their lifetimes, including any caller-owned scopes. Replay uses the configured shared journal services when it needs a codec for a stored format. Disposing the owner stops journal processing and releases journal resources; component and dependency disposal remains the caller's responsibility. Durable Jobs shards use this ownership model for their explicitly supplied state.
+Grain- 范围主管在解决返回之前注册,标准主管在其 grain- 装有限制的构件器并安装 grain- 远足 `IDurableStateManager` 独立日记账所有人 <xref:Orleans.Durable.Journaling.IJournaledStateManager>自定义 grain 替换的管理人员主管酌情提供合同和登记,并视情况提供合同和登记。 <xref:Orleans.ILifecycleParticipant`1> 用于 <xref:Orleans.Runtime.IGrainLifecycle>,或者直接订阅初始化和关闭回调。这给普通用户 grains、应用程序所属基地,以及 `DurableGrain` 注射的管理人员的恢复和停机生命周期相同。
 
-## Mutation and write acknowledgement
+管理者通过 <xref:Orleans.Durable.Journaling.IJournaledStateManagerFactory.CreateStandalone*> 创建,有明确的 <xref:Orleans.Durable.Journaling.JournalId>,管理人员直接从储存处建立,没有 grain 背景,保留呼叫者的自备初始和处置。这适用于 grain 电话以及运行时间以外的地方。用其附属关系构造国家机器部件,用 <xref:Orleans.Durable.Journaling.IJournaledStateManager.RegisterStateMachine*>注册,在使用回收状态之前等待操作注销标记 <xref:Orleans.Durable.Journaling.IJournaledStateManager.InitializeAsync*> 。用 <xref:Orleans.Durable.Journaling.IJournaledStateManager.TryGetStateMachine*>查询已登记部件。调用者可以通过将所有人登记在 grain-范围化的登记工厂来故意分配生命周期所有权。独立创建使得处理失败独立于环境激活,包括在此输入之后。
 
-Durable collections encode their operation before applying it to the in-memory collection. A codec failure therefore leaves both the journal buffer and collection unchanged.
+Grain- 拥有的管理人员使用现有启动范围来 `GetOrAddState` 和关键部件分辨率。运行时自有的范围控制DI创建的国家组件、其依赖性和管理人的处置。 <xref:Orleans.Durable.Journaling.JournalingHostingExtensions.AddStateMachine*> 登记了该 grain-达标路径的应用国组件。
 
-<xref:Orleans.Durable.Journaling.IDurableStateManager.WriteStateAsync*> gathers pending entries from all named states and queues one storage operation. The protected `DurableGrain.WriteStateAsync` helper forwards to that same manager:
+独立日记所有者手动协调已注册的组件, 并且从不创建或处置DI范围。 他们的呼叫者提供依赖性, 并管理他们一生的生活, 包括任何自有的范围。 重播使用配置好的共享日记服务, 当需要存储格式的编码器时 。 处置所有者停止日记处理和发布日记资源; 部件和依赖性的处理仍然是呼叫者的责任。 持久任务碎片使用这种所有权模式来明确提供它们的身份 。
 
-- **Append** adds the encoded operation batch atomically.
-- **Snapshot replacement** writes the current state of every registered stream and atomically publishes it as the new journal generation.
+<a id="mutation-and-write-acknowledgement"></a>
 
-Concurrent calls made while a write is queued share that queued operation. A storage compaction
-request or a pending migration selects a snapshot; the requirement remains until a snapshot succeeds.
-Each caller observes its completion or failure. Calls made after a storage operation starts are
-processed by a later operation.
+## 变异和写确认
+
+永久收藏在将其编码到模拟收藏之前,先将其操作编码。 因此代码错误使日记缓冲和收藏都保持不变 。
+
+<xref:Orleans.Durable.Journaling.IDurableStateManager.WriteStateAsync*> 从所有指定州收集待处理的条目, 并排队一个存储操作。 受保护的 `DurableGrain.WriteStateAsync` 助手将转发给同一个管理者:
+
+- **附录** 添加编码作业批量原子法。
+- **抓图替换** 写下每个已登记流的当前状况,并以原子方式将其作为新日记的生成版本出版。
+
+排队操作的排队共享中, 在写时同时进行同时调用。 存储压缩
+请求或待处理的移民选择快照;在快照成功之前,仍需要满足要求。
+每个呼叫者都观察其完成或故障。
+后期操作处理。
 
 > [!IMPORTANT]
-> In-memory mutation is visible before storage acknowledgement. Return success to a caller only after the required `WriteStateAsync` completes. Recovery reconstructs durable state in a new activation.
+> 存储确认前, 即时突变明显可见。 只有在所需 `WriteStateAsync` 完成后才能将成功恢复到呼叫者手中。 恢复会在新的激活中重建持久性状态 。
 
-## Safe-to-commit staging
+<a id="safe-to-commit-staging"></a>
 
-All interleaved callers share the manager's pending journal. Prepare fallible work, external acknowledgements,
-and proposed output in operation-local data. After the final preparation await, check the relevant
-preconditions and apply the complete safe-to-commit update synchronously, then request an ordinary write.
-Orleans executes that synchronous block on a single activation thread. Another grain turn can run when
-the operation awaits, so keep shared state safe to commit at each await. Any caller's write can include
-staged mutations from other calls.
+## 安全到承诺的中转
 
-State implementations establish asynchronous persistence prerequisites through
-<xref:Orleans.Durable.Journaling.IStateMachine.PrepareWriteAsync*>. The manager invokes this
-callback before append or snapshot capture. Preparation is idempotent: prepared
-prerequisites complete synchronously and remain valid through capture. After an
-asynchronous completion, the manager rechecks all states to include mutations staged
-on interleaved turns. A complete synchronous ready pass flows directly into capture.
-The <xref:Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted> callback then publishes
-effects which depend on storage acknowledgement.
+所有互换电话都分享经理的未结日记。 准备可错的工作,外部确认
+以及业务-当地数据的拟议产出。
+并采用完整的安全到承诺更新的先决条件,同步进行,然后要求普通书写。
+Orleans 执行单一个激活线上同步的块。 grain 转转可运行时
+任何来电者可以写下
+与其他电话发生变异
 
-A failed preparation reports <xref:Orleans.Durable.Journaling.JournaledStatePreCommitException>
-with the original failure as its inner exception. Pending state is retained, the manager
-stays usable, and a later write retries preparation. Shutdown closes work admission and
-cancels queued operations while the current operation drains to its actual storage outcome.
+国家执行《公约》的国家通过
+<xref:Orleans.Durable.Journaling.IStateMachine.PrepareWriteAsync*>. 经理人援引
+备稿为无能力:已准备好
+以同步完成且通过抓取保持有效。
+自动完成时, 经理将重新检查所有各州, 以包括所演变异
+完全同步的即时通道直接流入捕捉
+下 <xref:Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted> 回调后发布
+其影响取决于储存确认。
 
-## Consistency and competing writers
+编写报告失败 <xref:Orleans.Durable.Journaling.JournaledStatePreCommitException>
+保留了未结状态,即经理
+停止工作注册和
+取消队列中的操作, 而当前操作会排出到实际存储结果 。
 
-Orleans grain placement normally supplies a single active writer for a grain identity. Journal storage providers also use optimistic concurrency to protect the journal when a stale or competing writer reaches storage.
+<a id="consistency-and-competing-writers"></a>
 
-Each storage instance establishes its write precondition with its first successful read or creation, then advances it through its own writes. That precondition includes an absent journal: a writer which recovered an empty journal can create it, and fails if another writer created it first.
+## 一致性和相互竞争的作家
 
-An append, replacement, or delete with stale storage metadata throws <xref:Orleans.Storage.InconsistentStateException>. The state manager permanently fences further operations, faults queued work, and requests grain deactivation. The failed operation reports its original exception. A new activation replays the stored journal to determine the durable outcome.
+Orleans grain 职位安排通常为 grain 身份提供单一的活跃作家。当一个老掉牙或竞争作家到达存储点时,《日刊》储存提供者还使用乐观的同质货币保护日记。
 
-Design commands to tolerate retries at the application boundary. Use operation identifiers when a caller can repeat a command after an uncertain network outcome.
+每个存储实例都以首次成功读取或创建来建立其写作的先决条件,然后通过自己的写作来推进。 这一先决条件包括一个不存在的日记:一个找到空日记的作家可以创建它,如果另一个作家先创建它,就会失败。
 
-## Journal storage contract
+附加、替换或删除的存储元数据会丢弃 <xref:Orleans.Storage.InconsistentStateException>。国家经理将永久地围住进一步操作,排队的故障工作并要求取消 grain 。失败的运行报告其最初的例外情形。新的激活重播存储的日记以确定持久结果。
 
-The journal is the source of truth for durable state, so every <xref:Orleans.Durable.Journaling.IJournalStorage> provider guarantees the following, and the provider conformance suite in the Orleans repository verifies each guarantee for every provider:
+设计命令可容忍在应用程序边界进行回溯。 当调用者在网络结果不确定后可以重复命令时使用操作识别符 。
 
-- **All-or-nothing writes.** An append makes its whole segment visible after every earlier segment, or none of it. A replacement makes its whole value the journal's only segment, or the journal keeps its earlier content. This holds across process and storage crashes, timeouts, conflicts, and retries inside the provider.
-- **Whole-call limit failures.** A segment which exceeds a provider limit fails the call with an exception, and nothing of it becomes visible.
-- **Failure outcomes.** A definitively rejected write leaves the earlier content in place. A write with an indeterminate outcome, such as a timeout after the request was sent, applied its whole segment or none of it. A retry can report a precondition conflict after the original request committed; recovery determines the outcome.
-- **Whole, ordered reads.** A successful read returns one version of the journal: every segment written up to that version, whole and in write order. Callers discard data from a failed read and recover from the beginning.
-- **Write preconditions.** A storage instance writes after it reads or creates the journal, and a write through an instance which has done neither throws <xref:System.InvalidOperationException>. Writes and subsequent reads succeed only if the journal still matches that precondition; after an observed absence, the journal must still be absent. Metadata operations preserve the content precondition.
+<a id="journal-storage-contract"></a>
 
-Direct storage callers await each operation before starting another through the same instance. Separate instances coordinate through storage preconditions.
+## 日记仓储合同
 
-Subsequent reads provide history for an active writer while validating its precondition. A content change by another writer produces <xref:Orleans.Storage.InconsistentStateException>. Recovery after a conflict uses a fresh storage instance.
+该期刊是可持久状态的真理来源,因此每个 <xref:Orleans.Durable.Journaling.IJournalStorage> 提供者保证以下内容, Orleans 存放处的供应商合规套件核查每一供应商的每项担保:
 
-Appends contain at least one byte. An empty append throws <xref:System.ArgumentOutOfRangeException> before touching storage. A replacement accepts an empty value to publish an empty journal.
+- **全部或无一内容都写下来。** 一个附件让整个部分在先前的每个段之后都能看到,或者没有看到。替换者将它的全部价值放在日记唯一的部分上,或者该日记保留其早先的内容。 它贯穿于过程和存储崩溃、超时、冲突以及供应商内部的重试。
+- **整调限制失败。** 一个超过供应商限额的段除例外不通过调用,任何内容都无法看得见。
+- **失败结果。** 明确拒绝的文字留下先前的内容。 含有不确定结果的文字, 如请求发出后暂停使用其整个段或其中任何一段。 重试可以报告原始请求提出后的先决条件冲突; 恢复决定结果。
+- **整个被订购的读数为 。** 成功读数返回日记的一个版本:每个部分,直到该版本为止,全部和按写法顺序写。调用者从一个失败的读数中丢弃数据并从一开始恢复。
+- **写先决条件。** 一个存储实例在读或创建日记之后写,并通过一个没有丢掉 <xref:System.InvalidOperationException>的例子写出。只有日记仍然符合前提条件时,该日记才能成功;在观察到不在场后,该日记必须仍不在。元数据操作保留内容的先决条件。
 
-Each provider documents its limits:
+直接储存电话员等待每次作业,然后通过同一程序开始另一起。
 
-| Provider | Largest append | Largest replacement |
+随后的读物为活跃作家提供历史,同时确认其先决条件。另一个作者对内容的修改产生了 <xref:Orleans.Storage.InconsistentStateException>。冲突后的恢复使用新的存储实例。
+
+附加件至少包含一个字节。 空附件在触摸存储前会丢弃 <xref:System.ArgumentOutOfRangeException> 。 替换后将接受空白值以发布空日记 。
+
+每个供应商都以文件证明其限度:
+
+| 提供商 | 最大的附件 | 最大型替换 |
 | --- | --- | --- |
-| Azure Blob Storage | 100 MiB (one append block) | Azure block blob limits |
-| Azure Table Storage | 2 MiB (one entity group transaction) | Partition capacity; rows publish through one header update |
-| Redis | The whole journal string, including the append, fits the server's string limit (512 MB by default) | The server's string limit |
-| Amazon S3 | 5 GB per request; conditional-rewrite appends keep the whole WAL within 5 GB | 5 GB |
-| Volatile (development) | Process memory | Process memory |
+| Azure 布线存储 | 100 MiB (一个附加块) | Azure 块布限制 |
+| Azure 表格储存 | 2 MiB (一个实体集团交易) | 分区能力; 行通过一个页眉更新发布 |
+| Redis | 整个日记字符串, 包括附件在内, 符合服务器的字符串限制( 默认情况下为512 MB) | 服务器的字符串限制 |
+| 亚马逊 S3 | 5GB/每份请求;有条件修改附件将整个世界采购联盟保持在5GB之内 | 5 GB |
+| 波动(发展) | 进程内存 | 进程内存 |
 
-## Storage failures
+<a id="storage-failures"></a>
 
-A failed append, snapshot replacement, or delete permanently fences that manager instance.
-Queued operations fault, and later write, delete, registration, and initialization requests fail explicitly.
-Existing in-memory state remains available to in-flight calls until deactivation completes. The grain runtime
-starts deactivation as part of handling the failure.
+## 存储故障
 
-A storage operation can commit before its acknowledgement is lost. Treat a failed write as an uncertain
-application outcome and reconcile in a new activation using an operation identifier or another idempotency
-mechanism.
+失败的附加件、 快速替换, 或者永久删除管理器实例中的围栏 。
+排队作业有过失,后来写、删除、登记和启动请求明显不合格。
+现有目前状态仍然可以进行飞行通话,直至解除功能完成。 grain 运行时间
+启动禁用作为处理失败的一部分。
 
-Owners of standalone managers created through <xref:Orleans.Durable.Journaling.IJournaledStateManagerFactory>
-dispose the failed manager and create a new one for the same <xref:Orleans.Durable.Journaling.JournalId>.
-Construct fresh state machine components with caller-supplied dependencies and register them using
-<xref:Orleans.Durable.Journaling.IJournaledStateManager.RegisterStateMachine*>, then initialize before resuming
-processing. The caller also retires the failed components and their dependencies according to their
-assigned lifetimes.
+存储操作在确认失败之前可以承诺。
+使用操作识别符或另一种应急功能在新激活中应用和调节结果
+机制。
 
-Cancelling a write's cancellation token stops the caller's wait. An already queued write continues to its
-storage outcome, so the caller reconciles that outcome before retrying the command.
+通过 <xref:Orleans.Durable.Journaling.IJournaledStateManagerFactory>创建的独立管理人员的所有者
+处置失败的管理器, 为同一管理器创建新的管理器 <xref:Orleans.Durable.Journaling.JournalId>。
+构造带有呼叫者提供依赖性的新国家机器组件,并使用这些部件注册
+<xref:Orleans.Durable.Journaling.IJournaledStateManager.RegisterStateMachine*>,在恢复之前先初始化
+处理程序。 呼叫者还根据失灵部件及其依附情况,将这些部件及其依赖性退休
+规定寿命。
 
-An initialization failure reports its error to that attempt's callers and leaves the manager uninitialized.
-The caller can retry <xref:Orleans.Durable.Journaling.IJournaledStateManager.InitializeAsync*> after a transient
-failure or after restoring the required format, codec, or backing data. Each attempt resets recovery
-bookkeeping and replays the journal from the beginning using the same registered state machines.
-Concurrent callers share the active attempt; writes and deletion become available after initialization
-succeeds. State registration stays closed once initialization has begun.
-One work-loop task owns recovery attempts and subsequent journal work for the manager's lifetime.
-After a failed attempt it waits for an explicit initialization request before retrying.
+正在取消写作的注销符号停止呼叫者等待。 已经排队的写入会继续到它
+存储结果, 所以呼叫者在重试命令前对结果进行调节 。
 
-Owner shutdown which cancels initial recovery cancels all initialization waiters and leaves the manager
-stopped. Disposal waits for the owned read to finish before releasing journal resources. Cancelling an
-individual initialization caller's token ends only its wait; owned recovery continues for other callers.
+初始化失败时向该尝试的电话员报告错误,使经理无法启动。
+调用器可在瞬时后重试 <xref:Orleans.Durable.Journaling.IJournaledStateManager.InitializeAsync*>
+恢复所需的格式、编码或支持数据后发生故障或出现故障。
+使用同样的注册国家机器,从头开始记账并重放日记。
+同时的调用者也参与积极尝试;在启动后可以提供写作和删除
+国家登记一旦启动即停止。
+一项工作循环任务负责管理人员一生的回收和随后的日记工作。
+在尝试失败后,它等待明确初始化请求再重新试。
 
-## Custom state lifecycle
+取消初始回收的自有关闭取消所有启动服务服务员并离开经理
+关闭。处置等待自控阅读完成后再发布日记资源。取消
+个人初始化呼叫器的标记只结束等待; 其他呼叫器继续自有恢复。
 
-Custom <xref:Orleans.Durable.Journaling.IStateMachine> implementations share the manager's single logical execution thread.
-Supply command codecs as constructor dependencies. The registration factory selects codecs keyed by the
-same write-format key used to configure the journal owner. Activation-owned state factories resolve those
-dependencies from the activation's services; standalone callers supply codecs with the appropriate lifetime.
-The codec is available when the state is constructed, including for an empty journal.
-During replay, <xref:Orleans.Durable.Journaling.JournalReplayContext.GetRequiredCommandCodec*> selects the codec
-for each entry's stored format.
+<a id="custom-state-lifecycle"></a>
 
-States synchronously encode their pending changes through <xref:Orleans.Durable.Journaling.IStateMachine.WritePendingEntries*>
-or their current contents through <xref:Orleans.Durable.Journaling.IStateMachine.WriteSnapshot*>.
-After storage acknowledges captured bytes, <xref:Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted*>
-performs durable-completion bookkeeping. A zero-byte write completes without this callback.
+## 定制状态生命周期
 
-The journal owner keeps feature operations quiescent through deletion's storage and reset outcome,
-including when a caller cancels its wait. Successful deletion calls <xref:Orleans.Durable.Journaling.IStateMachine.Reset*>
-before completing deletion waiters.
+自定义 <xref:Orleans.Durable.Journaling.IStateMachine> 执行共享管理器的单一逻辑执行线条 。
+注册工厂选择了由
+用于配置日记所有者的相同写格式密钥。
+与激活服务相依赖;独立调用器供应代码,使用期适当。
+当国家建设时,包括空日记本在内,代码码即可使用。
+在重放期间, <xref:Orleans.Durable.Journaling.JournalReplayContext.GetRequiredCommandCodec*> 选择代码器
+每个条目的存储格式。
 
-The manager records the first write or delete failure, fences further persistence, faults current
-and queued manager waiters, and requests grain deactivation. Features observe their write failures and
-complete their own operation waiters and resource cleanup through their operation and lifecycle ownership.
-Standalone callers own that cleanup explicitly. A previously captured write retains its actual storage
-outcome and acknowledgement bookkeeping. Owner-canceled initial recovery and idle shutdown complete
-through normal shutdown; admitted write/delete storage cancellation remains terminal.
+通过 <xref:Orleans.Durable.Journaling.IStateMachine.WritePendingEntries*>同步编码其待更改
+或当前内容通过 <xref:Orleans.Durable.Journaling.IStateMachine.WriteSnapshot*>。
+在存储确认已抓取 字节后, <xref:Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted*>
+执行耐久完成的簿记。 零字写全不进行回调 。
 
-### Durable Jobs shard retirement
+日记的所有人通过删除存储和重置结果,保持功能性操作的发源地
+包括当呼叫器取消等待时。 成功删除呼叫 <xref:Orleans.Durable.Journaling.IStateMachine.Reset*>
+在完成删除服务员之前。
 
-When a shard runner terminates, including after an unexpected executor failure, the local Durable Jobs
-manager withdraws its writable and cached references and retains responsibility for cleanup until
-disposal finishes. Journaled shard retirement closes mutation admission and waits for previously
-accepted operations at a queued completion barrier. Ownership cleanup then samples the drained job
-count, releases populated shards for discovery, and deletes empty shard journals.
+经理记录第一个写或删除失败,围栏进一步固存,断层
+并排队管理经理服务员, 要求 grain 取消。 特性观察他们的写作失败
+通过其经营和生命周期所有权,完成自己的运营服务员和资源清理。
+独立来电者明确拥有清理设备。 以前被捕获的写作保留了实际存储
+由所有人主导的初步恢复和闲置关闭完成
+通过正常关闭; 注册写入/ 删除存储取消仍然为终端。
 
-Scheduling calls which retained a retiring instance retry against a writable replacement. Queued jobs
-acknowledged before retirement remain in the journal and recover through a fresh canonical
-instance on discovery. Discovery retains distinct replacement instances while an old runner finishes
-cleanup. Canonical lookups skip retiring instances, and local publication and activation check the
-instance lifetime again when delayed creation or discovery results arrive. A later sweep opens a fresh
-instance after eviction. Cleanup removes tracking entries by instance identity.
+<a id="durable-jobs-shard-retirement"></a>
 
-Cleanup failures are logged, and an unexpected executor failure remains the runner's failure. A prior
-journal I/O failure fences deletion, preserving the persisted journal for recovery in a fresh instance.
-Failed closure or ownership cleanup also evicts and disposes the retired local instance. Investigate
-the logged storage or metadata failure and allow a fresh discovery sweep to recover persisted work.
+### 长期就业的艰苦退休
 
-## Compaction
+当一个碎片跑者终止时, 包括意外执行失败后, 本地的持久工作
+管理人员撤回其可写成和隐藏的推荐文件,并保留清理责任直至
+日记硬退休停止了突变进入和等待之前
+在一个排队完成屏障上接受操作。 所有权清理然后对干光的工作进行抽样
+数,释放人口散块以备发现,并删除空散点日记。
 
-Each provider reports when its journal crosses a configured storage threshold. The next `WriteStateAsync`:
+保留退休实例的固定电话排队,对可写文件替换者重新尝试。
+退休前确认的退休金在日记中保留,并通过新鲜金银
+发现保留了不同的替代情况,而老跑者则完成
+清理。 阴道检查, 跳过退休的事例, 本地出版和激活检查
+当延迟创建或发现结果到达时, 一次重复的寿命, 即再次出现。 稍后的扫描打开了一个新的
+清理工作取消了逐个案件身份的追踪记录。
 
-1. Builds a snapshot containing the state directory and every active durable state.
-1. Atomically replaces the published journal with the snapshot.
-1. Clears the compaction request after storage acknowledges the replacement.
+清理失败被记录下来, 意外执行失败仍然是运行失败。 之前的操作失败是运行失败 。
+将废旧的日记予以删除,保留已存在的日记,以在新的实例中恢复。
+关闭或清理所有者失败也驱逐和处置退休的当地机构。
+记录存储或元数据故障,并允许进行新的发现扫描以恢复持续的工作。
 
-Compaction bounds replay work and storage growth according to provider thresholds. Snapshot size still scales with the complete durable state owned by the grain, so capacity tests must include hot and large grain identities.
+<a id="compaction"></a>
 
-## Retire a named state
+## 压缩
 
-Recovery preserves streams whose names are no longer registered by the current grain type. The manager starts a retirement grace period for each such state. The default minimum is seven days, configured with <xref:Orleans.Durable.Journaling.JournaledStateManagerOptions.RetirementGracePeriod>.
+每个供应商在日记跨过配置的存储阈值时报告。 下一个 `WriteStateAsync`:
 
-Reintroducing the same state name during the grace period replays its preserved entries into the new state instance. After the grace period has elapsed, a later compaction removes the retired stream. Permanent removal can therefore occur later than the configured period.
+1. 构建包含州目录和每个活动耐久状态的快照。
+1. 原子用快照取代已出版的期刊。
+1. 存储确认替换后清除压缩请求。
 
-This behavior supports staged deployments and rollback. Keep the previous format codecs available while retired streams remain. A format migration pauses when an unregistered stream can't be decoded into a snapshot.
+光谱约束根据供应商门槛重现工作和储存增长。 快速显示的大小仍然与 grain拥有的完全耐久的国家相仿,因此能力测试必须包括热量和大容量 grain 身份。
 
-Declare every state to retain on each activation, even when that activation never accesses its contents. Setup declarations determine which streams remain active. Omitting a declaration starts retirement; register that same name during setup on a later activation to recover it within the grace period.
+<a id="retire-a-named-state"></a>
 
-## Deactivation and shutdown
+## 退休后的国家
 
-Grain deactivation stops the lifecycle-bound state manager's work loop, and activation-scope disposal releases its resources. Completed writes are the durability barrier. Await every required write during the grain call which made the mutation, and size host shutdown grace periods for writes already in progress. Owners of explicit-journal or standalone managers arrange their own shutdown and disposal.
+回收保留了不再以当前 grain 类型注册的名称的流。 管理员开始为每个这样的状态设定一个退休宽限期。 默认最少为7天, 配置为 <xref:Orleans.Durable.Journaling.JournaledStateManagerOptions.RetirementGracePeriod>。
+
+在宽限期期间重新使用相同的状态名称, 将其保存的条目重放到新的州例中。 宽限期过后, 稍后的压缩会清除退役流。 因此永久删除可能晚于配置的时期 。
+
+此行为支持了分阶段部署和回滚。 保留以前的格式编码器, 并同时保存已退休流。 当未注册流无法解码为快照时, 格式迁移会暂停 。
+
+宣布每个国家保留每次激活, 即使启动从未进入其内容。 设置声明决定了哪些流仍然在运行 。 声明开始退休 ; 在安装时登记同一名称, 以便在以后的启用中恢复 。
+
+<a id="deactivation-and-shutdown"></a>
+
+## 拆除和关闭
+
+Grain 停止运行将阻止受生命周期约束的国家管理人员的工作循环,启动式处置会释放出资源。 已完成的写作是耐久屏障。 在进行突变的 grain 呼叫中等待所需的每篇文字,在已经写好的大小主机关闭宽限期内等待。 明确日报或独立管理员的所有人可以自行安排关闭和处置。

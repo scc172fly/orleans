@@ -1,16 +1,20 @@
-# Orleans clustering TestKit
+<a id="orleans-clustering-testkit"></a>
 
-`Microsoft.Orleans.Clustering.TestKit` supplies reusable membership provider
-conformance tests for any test framework. It builds on Orleans Core and
-Microsoft.Accordant. Contract violations throw `ClusteringConformanceException`.
+# Orleans 组合 TestKit
 
-## Factories and ownership
+`Microsoft.Orleans.Clustering.TestKit` 供应可再使用的成员提供商
+任何测试框架的测试框架的符合性测试。 Orleans 核心和核心
+Microsoft.Accordant违反合同行为 `ClusteringConformanceException`.
 
-Use an isolated fixture **per direct scenario**. Each factory invocation must
-construct a new `IMembershipTable`, using the supplied cluster ID and the same
-backend/service configuration. Independent provider instances exercise
-cross-instance coordination. Allocate dedicated test membership partitions:
-the fixture owns and deletes their data during teardown.
+<a id="factories-and-ownership"></a>
+
+## 工厂和所有权
+
+每个工厂必须使用独立固定装置 **,以每个直接假设情景**。
+新建 `IMembershipTable`,使用所提供集束号编号和相同的
+后端/服务配置。
+指定专用的测试会籍分割:
+固定装置在撕毁时拥有并删除数据。
 
 ```csharp
 MembershipTableTestFixture CreateFixture() => new(
@@ -40,73 +44,75 @@ await new MembershipTableModelBasedTestRunner(
     }).RunGeneratedConformanceTests(cancellationToken);
 ```
 
-Implement `CreateProviderResources` using the provider's configuration and
-resource ownership rules. The optional handle disposer owns those resources
-explicitly. A simpler synchronous
+执行 `CreateProviderResources` 使用提供者的配置和
+资源所有权规则。
+更简单同步
 `new MembershipTableTestFixture("MyProvider", clusterId => CreateTable(clusterId), IsMembershipDataDeletedAsync)`
-works when no per-handle resource disposal is needed. An asynchronous
-`(clusterId, cancellationToken) => ValueTask<MembershipTableTestHandle>` overload
-is also available.
+当不需要逐手资源处置时, 工作即可。
+`(clusterId, cancellationToken) => ValueTask<MembershipTableTestHandle>` 超载
+也可用。
 
-Every constructor requires an `isDeletedAsync` delegate with signature
-`Func<string, CancellationToken, ValueTask<bool>>`. Implement it as a read-only
-probe of the supplied cluster ID's **original backing scope**. Return `false`
-while seeded membership data remains, and `true` when the data is deleted or
-the native owner has terminally invalidated its store. Persistent providers can
-query the same backend through independent access; a terminal provider can
-inspect its owner's native invalidation state. Keep that owner and scope alive
-until verification finishes. Propagate probe and backend failures.
+每个建筑商都需要有 `isDeletedAsync` 签名的代表
+`Func<string, CancellationToken, ValueTask<bool>>`. 执行它作为只读
+所提供集束 ID **原始支持范围**的探测。返回 `false`
+种子成员数据仍保留,当数据删除时 `true` 或
+本地所有者已将其商店彻底失效。
+通过独立访问查询相同的后端;终端供应商可以
+检查业主的本地无效状态。 保持所有人和范围的生命生命
+直到验证完成。 Propagate 探测器和后端故障 。
 
-The suite first requires `false` for populated data, invokes the provider's
-real deletion method, then requires `true` for own-scope deletion, all before
-disposing any handles or owners. Probe access preserves the original state:
-read existing storage or native invalidation directly, rather than initializing
-tables, replacing a backend, or resetting an owner. This ordering exposes no-op
-deletion even when owner disposal would destroy the backing data.
+套件首先需要 `false` 数据,并引用服务供应商的
+实际删除方法, 然后要求 `true` 自己范围删除, 全部之前
+处理任何控管或所有者。
+直接读取现有储存或本地原封存无效,而不是初始化
+表格,替换后端,或重置所有者。此顺序显示无操作
+即使当所有者处置会破坏支持数据时,也删除。
 
-`InitializeAsync` creates A1/A2 in `ClusterId` and B1 in `OtherClusterId`;
-`First`, `Second`, and `OtherCluster` expose those distinct providers.
-Concurrent initialization callers share the same three initialized handles;
-each queued caller can cancel its own wait.
-The second cluster ID extends the first with a suffix, exercising isolation of
-storage keys whose cluster names share a prefix.
-`CreateAdditionalHandleAsync` accepts only those two owned, live cluster scopes.
-Handle registration and teardown's ownership snapshot share one lifecycle lock.
-Admitted factory calls, provider initialization, terminal deletion, native probes,
-and late-owner disposal remain
-owned until their actual tasks finish. Caller cancellation ends that caller's
-wait; the factory and provider initialization keep their original
-owners alive. An acquisition which finishes after disposal or history retirement
-disposes its returned owner before reporting the lifetime error. Teardown waits
-for these admitted operations before deleting scopes or disposing shared owners.
-Initialization of an additional handle is explicit. `RunAsync` initializes,
-executes, and tears down while preserving the primary failure. Cleanup deletes
-only the fixture's cluster partitions and attempts every owner after the actual
-delete operations complete. Cleanup dispatch runs off the caller thread so
-synchronously blocking callbacks also respect the caller's 30-second wait bound. A timeout
-retains the owners and shared cleanup task until the operations finish; later
-`DisposeAsync` calls await that same task. The timeout's exception data contains
-`ClusteringTestKit.CleanupCompletion`, and a late cleanup failure is attached as
-`ClusteringTestKit.CleanupFailure`. An operation which never completes retains
-its owner; the bound applies to the caller's wait, while resource release waits
-for operation completion. Deleted
-scopes are retired; teardown disposes their owners directly. A deletion request
-which fails after invocation also retires its handles, since it may have
-committed. Subsequent histories use a new fixture with fresh owners.
-Ordinary membership operations receive their scenario cancellation token. The
-fixture tracks its lifecycle callbacks through completion. Handle disposers release
-their declared resources according to the real SDK close, abort, or drain
-contract; any resulting infrastructure failures remain observable.
-Use non-secret provider labels: diagnostics include labels, cluster IDs, opaque
-tokens, identities, and mismatched persisted fields.
+`InitializeAsync` 在 `ClusterId` 和 `OtherClusterId`中创建 A1/A2;
+`First`、 `Second`和 `OtherCluster` 暴露了这些不同的供应商。
+同时初始化呼叫器拥有相同的三个初始化控点;
+每个排队的呼叫员可以取消自己的等候时间 。
+第二组ID号第二组ID将第一个D组的后缀延伸至后缀,将其与
+组合名共享前缀的存储键。
+`CreateAdditionalHandleAsync` 仅接受这两个自有的、活集束范围。
+处理登记和拆卸所有权的快照 共享一个生命周期锁。
+接收的工厂电话,供应商初始化, 终端删除,本地探测器,
+和后业主处置
+取消呼叫结束
+等待; 工厂和供应商初始化保持原版
+处置或历史退休后完成的购置
+在报告寿命错误之前处置其返回的所有人。
+在删除范围或处置共有所有人之前,先对这些被承认的经营业务进行处理。
+明确初始化另一个控件。 `RunAsync` 初始化,
+执行执行, 并保存主失败时滴泪。 清理删除
+仅使用固定方的聚集分割区,并尝试将每个所有者都置于实际
+删除操作完成 。 清理调度从调用线索中脱落, 这样可以
+同步阻止回击也尊重呼叫者的30秒等待时间。
+保留业主并共同承担清理任务,直至作业完成;
+`DisposeAsync` 呼叫等待同一任务。超时的例外数据包含
+`ClusteringTestKit.CleanupCompletion`,并附上延迟清理故障作为
+`ClusteringTestKit.CleanupFailure`. 从未完成的操作保留
+其拥有者; 约束适用于打电话者的等待, 而资源释放等待
+操作完成后,删除
+工程范围已退役;拆卸后直接处置其所有人。
+其手柄可能已经
+。以后的历史使用与新业主的新固定方式。
+普通会员业务收到其假想取消的标志。
+处理器释放
+依据实际SDK的 关闭、中止或排水量
+合同; 由此造成的任何基础设施故障仍然可以观察到。
+使用非机密供应商标签:诊断包括标签、群集识别码、不透明
+标记、 身份和不匹配的字段都存在。
 
-## Independently discoverable direct guarantees
+<a id="independently-discoverable-direct-guarantees"></a>
 
-Expose each runner method below as a separate fact/test in your framework. All return
-`Task` and take `CancellationToken cancellationToken = default`. Every provider
-runs the same behavioral assertions.
+## 独立发现的直接担保
 
-| ID | Public method |
+将每条选选猎方法作为单独的事实/测试,在您的框架框架内进行。
+`Task` 并取 `CancellationToken cancellationToken = default`。
+行为主张相同。
+
+| ID 身份 | 公共方法 |
 |---|---|
 | G01 | `InsertRow_CurrentTableVersion_CommitsExactlyOneVersion` |
 | G02 | `UpdateRow_CurrentTokens_CommitsExactlyOneVersion` |
@@ -135,153 +141,155 @@ runs the same behavioral assertions.
 | G26 | `DeleteMembershipTableEntries_DeletesOwnClusterAndPreservesOtherCluster` |
 | G27 | `DeleteMembershipTableEntries_DifferentClusterId_NeverDeletesConfiguredCluster` |
 
-The suite exposes 26 direct cases plus generated conformance.
+套件揭露了26个直接案件 加上产生一致
 
-The generated fact is conventionally named
-`MembershipTable_ModelBased_GeneratedConformance`; it calls
+产生的事实通常被命名为
+`MembershipTable_ModelBased_GeneratedConformance`;它调用
 `MembershipTableModelBasedTestRunner.RunGeneratedConformanceTests`.
-Generated cases await fixture initialization and disposal through Accordant's
-asynchronous lifecycle hooks, with a fresh fixture and isolated scopes per case.
-The public runner executes the complete generated suite. Repository hosted
-system-target tests distribute the same seed-17 manifest across four xUnit cases
-(240, 240, 240, and 239 histories), preserving every history and operation count.
-The generated model includes 18 operation kinds. Present and absent entry
-observations select entries from `ReadAllAsync` snapshots using `TryGet`.
+产生的案件等待固定的启动和通过协议人处理
+单体生命周期钩,每个案件都有新的固定装置和孤立的外圈。
+公共选手执行完整生成套件。 主机仓库
+系统目标测试在四个 xUnit 病例中分发同样的种子-17清单
+保存每一段历史和作业记录。
+生成的模型包括18种操作类型。
+选择条目 `ReadAllAsync` 使用 `TryGet`.
 
-## Comparison and protocol rules
+<a id="comparison-and-protocol-rules"></a>
 
-Required histories begin with normal silo registration: a new membership
-entry has an empty suspicion history. These histories establish and change
-suspicion votes through canonical updates to existing rows.
-Forward updates change status and suspicion votes while retaining the activation's
-identity, endpoint, host/silo names, start time, and deployment metadata.
+## 比较和礼宾规则
 
-The immutable observation captures all public persisted entry fields, nested
-suspect identities/times, full endpoint/generation identity, row ETags, and
-integer/table ETag. Provider observations compare canonical fields and the
-table version/ETag independently of raw IAmAliveTime and provider-defined row
-ETags. Retained-object detachment also compares the captured object's liveness
-and row metadata. At equal versions the history requires every non-Dead
-row and every retained canonical field, while allowing previously Dead rows to
-be pruned. IAmAliveTime is independently and inconsistently updated; row ETags
-are opaque provider metadata and can change with a heartbeat or physical rewrite.
-Null/empty suspect lists and suspect/row enumeration order are
-canonicalized, as are null/empty representations of an absent optional role name.
-Optional Azure deployment metadata is explicitly initialized to
-empty role/zero zones, but all these fields remain in every comparison.
+所需历史从正常 silo 登记开始:新成员
+条目有空的怀疑历史。这些历史确认和更改
+现有行的卡通式更新,通过投票投票。
+保留启动程序的同时,先更新变更状态和怀疑投票票
+身份、端点、主机/silo 名称、启动时间和部署元数据。
 
-Every successful protocol write supplies the real current `TableVersion.Next()`
-and must advance exactly once. ETags are opaque. The membership protocol supplies
-valid next-version integers and forward status transitions.
-Canonical updates atomically validate the table ETag and replace an existing
-row. A provider can additionally validate a canonical row token, or ignore the
-supplied row ETag when table-version CAS protects the update. Any additional
-row guard remains satisfied across heartbeat-only activity. Stale-table tests
-use freshly read row metadata after a competing cross-row commit and original
-snapshot inputs after a same-row commit. Every unchanged canonical entry field
-is preserved. Full-row writes can overwrite a heartbeat with an earlier value.
-Different reads can skip committed versions. A newer full view can omit a
-previously live identity, establishing its terminal death even when the observer
-missed its explicit Dead transition. The history retains terminal identities
-across compaction.
+永久的观察捕捉了所有公共持续进入的入口区域,并筑巢
+身份/时间、全部终点/产生身份、排排ETags和
+提供方观测结果比较了金刚田和
+表格版本/ETag,独立于原始 IAmAliveTime 和供应商定义的行
+目标 。 残余物体分遣队也比较了被捕获物体的活性
+和行元数据。在相同版本中,历史要求每个非死
+和每一保留金银场,同时允许先前的死列
+被修剪。 IAmAliveTime 独立且不连贯更新; 行ETags
+提供商元数据不透明,可以随心跳或物理重写而变化。
+无效/无嫌疑名单和嫌疑人/行查点令
+象对一个没有选任角色名称的无效/空表示一样,是可选角色名称。
+可选 Azure 部署元数据明确初始化为
+空角色/零区,但所有这些字段都保留在每次比较中。
 
-Dead-only cleanup can preserve the version and table ETag or use atomic +1
-commits with fresh table ETags. With several eligible rows, the suite accepts
-batches and bounds the total version increase between zero and the number of
-removed rows. Every retained canonical field remains unchanged.
-Empty cleanup preserves the canonical observation and table version/ETag.
-The cleanup scenario retains a Dead row exactly at the cutoff, repeats that
-cutoff as a no-op, then advances it by one tick and requires that row's deletion.
-Setup publishes each heartbeat through its live owner before transitioning the
-target row to Dead, supplying the same timestamp with that transition.
-Eligibility uses those controlled publications and the canonical start/vote
-timestamps, accepting lagged raw heartbeat observations.
-Restarts use a strictly newer generation at the same endpoint. The generated
-model chooses legal forward lifecycle operations.
+每个成功的协议书都提供真实的当前 `TableVersion.Next()`
+并且必须一举一动。ETags是透明的。
+有效的下个版本整数和远端状态转换。
+以原子方式验证表ETag和替换现有
+。在行中,一个提供者可以另外验证或忽略
+当表格版本 CAS 保护更新时提供行 ETag , 则该行的 ETag 将保护更新。
+连续连续连续每行守卫对只心跳活动仍感到满意。
+在相互竞争的横行承诺和原始后使用新读取的行元数据
+同一行承诺后 papson 输入。 每个不变的金刚进入字段
+。全行写作可以用较早的值覆盖心跳。
+不同的阅读可以跳过已指定版本。
+确定自己最终死亡,即使观察员
+历史保留了最终身份
+横压。
 
-Own-cluster deletion removes that cluster's data and preserves other clusters.
-Deletion ends the stored history. G26 verifies native deletion and the other
-cluster's complete view. G27 uses a populated foreign cluster, verifying
-the configured cluster's complete view throughout.
-For a foreign cluster ID, a scoped provider can leave that scope unchanged or
-reject it with `ArgumentException` naming `clusterId`. The suite verifies complete
-canonical-state preservation after rejection; a backend-wide provider can instead delete
-the requested foreign scope. If the foreign scope is retained, G27 checks its
-canonical view and then exercises its own-scope deletion. Native probes establish
-which scopes remain readable; retired handles receive only owner disposal.
+只能死一死清理可以保存版本和表格ETag或使用原子+1
+套件可接受
+批量并约束总版本在零和
+删除行。每个保留金刚石场保持不变。
+空的清理保留了运河观测和表格版本/ETag。
+清理方案保留了死囚排 正好在截断点
+截断为不切除, 然后以一个勾前进它并要求删除那行 。
+设置在转换前通过所有者通过活体心跳发布
+目标行到死,提供与过渡相同的时间戳。
+资格使用受管制出版物和开票/投票的卡尼科斯语
+接受时标, 接受慢于原始心跳观察。
+在同一端点使用严格新一代的再生制。
+模型选择合法的远期生命周期操作。
 
-Each owning silo publishes its own liveness using a single blind column write.
-Heartbeat inputs carry the identity and timestamp. The kit publishes fixed
-whole-second UTC t1, t2, t2 in sequence through one owner while its row is live.
-Each call preserves canonical membership fields and the table version/ETag.
-Returned row metadata can vary. Reads can lag or expose older liveness values.
-Generated heartbeat operations
-use a fixed owner handle per identity and stay within that row's live lifetime.
+自行删除组别删除后,该组别的数据将被删除,并保留其他组别。
+删除结束存储的历史。 G26 校验本地删除和另一个
+G27集团使用一个有人居住的外国集群,核查
+整个集组的完整视图。
+对于外国集束号识别码,范围扩大的提供者可以使这一范围保持不变或
+拒绝它, 并用 `ArgumentException` 命名 `clusterId`。 套件校验完成
+拒绝后保存的卡尼古力状态;可以删除
+如果保留外国范围,G27将核查其
+土著探测器建立
+范围仍然可读; 退役的把手只接收所有者的处置。
 
-Provider-native tests verify the storage-operation budget for each periodic
-heartbeat: **zero prerequisite reads, zero compare-and-swap operations, and one
-blind liveness write**. The kit's observation reads bracket the provider call to
-check resulting fields; native SDK instrumentation establishes the operation
-count. Runtime snapshot merging retains maximum observed liveness.
-Provider-native tests also verify that an original-input canonical update after
-heartbeat-only activity takes one mutation attempt, with no heartbeat-driven
-reread or retry hidden behind the provider API. The generic scenarios establish
-the outcome at that API boundary; SDK instrumentation establishes the attempt count.
+每个拥有 silo 的单位使用单盲栏来公布自己的生存能力。
+心跳输入带有身份和时间戳。
+整个世界时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时
+每个呼叫保护区的州会会员区和表格版本/ETag。
+返回的行元数据可以不同。读取会滞后或暴露旧的生命价值。
+生成心跳操作
+使用固定所有人按身份处理的固定所有人,并留在该行的寿命范围内。
 
-G07 and G08 capture the row ETag and table version, perform an owner heartbeat,
-then commit a status or suspect-vote change using the original inputs. Each update
-succeeds once with an exact +1 version advance. These cases make heartbeat
-noninterference observable at the canonical write boundary. Full-row payloads
-may clobber a newer stored heartbeat; the model's owner-published timestamps
-describe generated inputs, independently of the raw liveness values returned.
+供应国-当地检验核实每期定期的储存业务预算
+心跳: **零前提条件读数,零比较和擦拭操作, 1
+盲光活性写**。工具包的观察读到供应商呼叫的括号
+检查结果字段; 本地 SDK 仪表设置确定操作
+。运行时快照合并保留了最大范围观察到的活性。
+供应商-本地测试还验证,在
+仅心跳活动需要一次突变尝试,没有心动驱动
+隐藏在提供者 API背后的重新读取或重试。通用设想方案设定
+边界 API 的结果;SDK仪器确定尝试数。
 
-Successful forward updates refresh an existing suspect's timestamp and clear
-a populated suspect list using either an empty list or null.
-Missing-row checks include delayed updates after Dead-row
-compaction, checking both stale tokens and fresh table candidates. Periodic
-heartbeats finish within the owner's live-row lifetime; native missing-row
-errors and infrastructure exceptions propagate.
+G07和G08捕捉到ETag行和表格版本, 执行所有者心跳,
+然后使用原始输入进行状态或可疑选票变更。
+一次成功, 精确的+1 版本预发。 这些案例会让心跳
+宽度写字边界上可见的不干涉。
+可能堵塞了新存储的心跳;模型自有公布的时印
+描述生成的投入,而不考虑返回的原始活性值。
 
-Concurrency uses materialized ready/start/completion gates, exact winner counts,
-and immediate per-observation checks against known before/after histories.
-The ReadAll scenario races readers against both forward updates and Dead-row
-cleanup, including the transition from a present row to absence in the snapshot.
-The cleanup scenario checks idempotent cleanup through both handles and accepts
-either an unchanged version or one atomic increment. Provider-native tests cover
-overlapping cleanup attempts and their contention/error behavior; the runtime
-cleanup agent logs failures and schedules later attempts.
-`concurrencyRowCount` (default 128,
-range 3–10000) bounds the multi-row workload without changing any assertion.
-An adapter must select a safe count which crosses its backend's actual paging
-or streaming boundary. Retain provider-specific pagination tests which force
-those boundaries explicitly.
-Setup uses one initial empty full snapshot, then one `InsertRowAsync` call and
-one `ReadAllAsync` verification per row. Each verification obtains the current
-table ETag for the next insert and checks the inserted row's canonical fields
-against the independently constructed input. Two final full views are compared
-against all independently expected canonical entries.
+成功前方更新更新, 刷新现有嫌疑人的时间戳并清晰
+使用空名单或空名单的人口嫌疑人名单。
+缺失行查包括死行后延迟更新
+压缩,检查旧牌和新鲜表格候选人。
+拥有者在行内行中完成心跳; 本地的失踪行
+错误和基础设施例外情形会传播。
 
-For N rows this is N bool-returning inserts, N+3 full reads, and
-N(N+1)/2 + 2N returned membership rows. At N=4096, setup returns 8,398,848 rows;
-at N=1001 it returns 503,503 rows. Provider-specific instrumentation measures
-native requests, paging, and retry costs.
+货币用途 即时/启动/完成门 准确的赢家计数
+并立即对历史前/后已知情况进行观察检查。
+ReadAll 假想让读者与前方更新和死组织竞争
+清理,包括从现有一行向快照中缺勤过渡。
+清理方案情景检查一等能力通过两个把手和接受的清理
+提供方的试验涵盖的是原生试验或一种原生增加。
+重叠的清理尝试及其争论/行为;运行时间
+清理剂日志失效,以后尝试时间。
+`concurrencyRowCount` (违约128,
+范围3至1000之间,将多行工作量限制在一定范围内,不改变任何说法。
+适配器必须选择一个安全计数, 以交叉其后端的实际调用
+保留特定供应商的弹进测试,以
+明确划定了这些边界。
+设置使用初始空全抓图, 然后用一个 `InsertRowAsync` 调用
+单 `ReadAllAsync` 每个行的核查结果
+下插入和检查插入的行的金字栏
+对照独立构建输入。
+与所有独立预期的卡门条目相对。
 
-Accordant generates and executes operation sequences using transition coverage.
-Required constrained prefixes reach stale table snapshots after cross-row and same-row commits,
-original-token updates after heartbeats, and single- and multi-row Dead compaction followed
-by successor creation. Every generated case acquires fresh scopes;
-the execution context retains real token history separately from the abstract
-model. `DeleteCluster` is terminal: its result carries verified deletion evidence
-and ends all operations for that history. The next case constructs a new fixture
-and its owners. Generated cleanup uses a cutoff later than every generated
-timestamp, making the expected Dead-row removals independent of heartbeat lag
-or overwrite. Cleanup outcomes are range-checked and their surviving canonical rows
-validated before the model records a version delta. Final execution checks
-require all eighteen operation kinds. Self-tests exercise both cleanup
-strategies with independent oracles for separate canonical row checks,
-table-version-derived row tokens, and physical row metadata with table-only CAS.
-They also cover alternating liveness lag, full-row heartbeat overwrite, cheap
-heartbeat preservation, and deliberate canonical/table-token violations.
-Any fixture teardown failure stops the generated run before another case or
-replay can acquire owners. The original case failure and teardown diagnostics
-remain available together.
+N行是N布尔返回插入,N+3全读,
+N(N+1)/2 + 2N 返回会籍行。 N= 4096, 设置返回 8 398 848 行;
+N=1001 返回 503 503行。
+本地请求、传呼和再录费用。
+
+相连接者使用过渡覆盖生成和执行操作序列。
+要求的限定前缀在横行和同行后到达简略表格快照,
+心跳后原始的更新, 和一流和多行的 死压紧紧紧紧紧随其后
+每个产生的案件都有新的范围;
+执行上下文将真实的象征历史与抽象
+模式 `DeleteCluster` 是终端:其结果含有经核实的删除证据
+并结束所有历史操作。 下一个案例将构建一个新的固定
+生成清理使用比每次生成的都晚一个截断点
+时间戳,使预期的死row清除与心跳滞后无关
+清理结果经过范围检查,并检查其尚存的金字塔行
+在模型记录版本 delta 之前验证。 最后执行检查
+需要全部十八种操作类型。 自测试两次都进行清理
+具有独立神器的战略,可进行独立的卡门式行检;
+表格转换衍生行令牌和带有仅用表格的CAS的物理行元数据。
+包括交替的活性落后,全流心跳覆盖,便宜
+心跳保持,蓄意的卡尼/可口的侵犯
+任何固定断裂失败都会阻止生成的运行, 而不是在另一个或其它情况下
+重播可以获取所有者。 原案例失败和撕裂诊断
+继续提供。

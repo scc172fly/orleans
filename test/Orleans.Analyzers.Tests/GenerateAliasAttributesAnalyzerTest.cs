@@ -10,9 +10,9 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// Tests for the GenerateAliasAttributesAnalyzer which suggests adding [Alias] attributes to types and methods
-/// that need them. Orleans uses aliases for stable type identification across versions and deployments.
-/// This analyzer helps developers remember to add aliases to grain interfaces, serializable types, and RPC methods.
+/// 向类型和方法添加 [lias] 属性的 GenerateAliasAttributesAnalyzer 测试
+/// Orleans 使用别名,用于在各种版本和部署中进行稳定型号识别。
+/// 此分析器帮助开发者记住在 grain 接口、 可连号类型和 RPC 方法中添加别名 。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -42,8 +42,8 @@ public class GenerateAliasAttributesAnalyzerTest : DiagnosticAnalyzerTestBase<Ge
     #region Interfaces & Methods
 
     /// <summary>
-    /// Verifies that the analyzer suggests adding [Alias] attributes to grain interfaces and their methods
-    /// when they don't have them. Each interface and non-static method should have an alias for proper RPC routing.
+    /// 证明分析器建议对 grain 接口及其方法添加[ Alis] 属性
+    /// 每个界面和非静态方法都应该有别名 来进行RPC的正确路径
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -59,11 +59,11 @@ public class GenerateAliasAttributesAnalyzerTest : DiagnosticAnalyzerTestBase<Ge
                     }
                     """;
 
-        return VerifyHasDiagnostic(code, 3);  // 3 diagnostics, because 1 for interface, and 2 for the non-static methods
+        return VerifyHasDiagnostic(code, 3);  // 3个诊断,因为1个接口,2个非静态方法
     }
 
     /// <summary>
-    /// Verifies that the analyzer does not trigger when grain interfaces and their methods already have [Alias] attributes.
+    /// 证明当 grain 接口及其方法已经具有[Alias]属性时,分析器不会触发。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -84,8 +84,8 @@ public class GenerateAliasAttributesAnalyzerTest : DiagnosticAnalyzerTestBase<Ge
     }
 
     /// <summary>
-    /// Verifies that the analyzer does not suggest aliases for non-grain interfaces,
-    /// as aliases are only needed for grain interfaces in the Orleans RPC system.
+    /// 证明分析器没有建议非grain 接口的别名,
+    /// 仅需要别名 grain 中 Orleans 区域采购方案系统。
     /// </summary>
     [Fact]
     public Task NonGrainInterfaceWithoutAliasAttribute_ShouldNotTriggerDiagnostic()
@@ -126,36 +126,36 @@ public class GenerateAliasAttributesAnalyzerTest : DiagnosticAnalyzerTestBase<Ge
     #region Classes, Structs, Records
 
     /// <summary>
-    /// Verifies that the analyzer suggests adding [Alias] to classes marked with [GenerateSerializer].
-    /// Serializable types need aliases for version-tolerant serialization.
+    /// 证明分析器建议将[阿利亚斯]添加到标有GenerateSerializer的类中。
+    /// 需要使用可耐版本序列化的代名词,以进行可级数式序列化。
     /// </summary>
     [Fact]
     public Task ClassWithoutAliasAttribute_AndWithGenerateSerializerAttribute_ShouldTriggerDiagnostic()
         => VerifyHasDiagnostic("[GenerateSerializer] public class C {}");
 
     /// <summary>
-    /// Verifies that the analyzer suggests adding [Alias] to structs marked with [GenerateSerializer].
+    /// 证明分析器建议对标有GenerateSerializer的支架添加[Alis]。
     /// </summary>
     [Fact]
     public Task StructWithoutAliasAttribute_AndWithGenerateSerializerAttribute_ShouldTriggerDiagnostic()
        => VerifyHasDiagnostic("[GenerateSerializer] public struct S {}");
 
     /// <summary>
-    /// Verifies that the analyzer suggests adding [Alias] to record classes marked with [GenerateSerializer].
+    /// 证明分析器建议添加[阿利亚斯],以记录标有GenerateSerializer的分类。
     /// </summary>
     [Fact]
     public Task RecordClassWithoutAliasAttribute_AndWithGenerateSerializerAttribute_ShouldTriggerDiagnostic()
        => VerifyHasDiagnostic("[GenerateSerializer] public record R {}");
 
     /// <summary>
-    /// Verifies that the analyzer suggests adding [Alias] to record structs marked with [GenerateSerializer].
+    /// 证明分析器建议添加[阿利亚斯],以记录标有GenerateSerializer的支架。
     /// </summary>
     [Fact]
     public Task RecordStructWithoutAliasAttribute_AndWithGenerateSerializerAttribute_ShouldTriggerDiagnostic()
        => VerifyHasDiagnostic("[GenerateSerializer] public record struct RS {}");
 
     /// <summary>
-    /// Verifies that the analyzer does not trigger when a class with [GenerateSerializer] already has an [Alias].
+    /// 证明分析器在某类人有[ 时不会触发GenerateSerializer已经有一个[阿利亚斯]。
     /// </summary>
     [Fact]
     public Task ClassWithAliasAttribute_AndWithGenerateSerializerAttribute_ShouldNotTriggerDiagnostic()
@@ -174,8 +174,8 @@ public class GenerateAliasAttributesAnalyzerTest : DiagnosticAnalyzerTestBase<Ge
        => VerifyHasNoDiagnostic("[GenerateSerializer, Alias(\"RS\")] public record struct RS {}");
 
     /// <summary>
-    /// Verifies that the analyzer does not suggest aliases for classes without [GenerateSerializer],
-    /// as only serializable types need aliases.
+    /// 证明分析器没有建议为不上课的班级使用别名[GenerateSerializer],
+    /// 仅作为可连号类型需要化名。
     /// </summary>
     [Fact]
     public Task ClassWithoutAliasAttribute_AndWithoutGenerateSerializerAttribute_ShouldNotTriggerDiagnostic()
@@ -284,7 +284,7 @@ public class GenerateAliasAttributesAnalyzerTest : DiagnosticAnalyzerTestBase<Ge
             .Select(x => MetadataReference.CreateFromFile(x.Location))
             .ToList();
 
-        // System.Private.CoreLib is loaded from a file-backed assembly.
+        // System.Private.CoreLib 从文件支持的组装装入 。
         var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
         metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")));
         metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")));

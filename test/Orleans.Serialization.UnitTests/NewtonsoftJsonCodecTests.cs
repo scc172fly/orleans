@@ -7,25 +7,25 @@ using Orleans.Serialization.Serializers;
 using Orleans.Serialization.TestKit;
 using Xunit;
 
-// TestKit's legacy TestValues contract cannot express intentionally nullable test values.
+// TestKit的遗留 TestValues 合同不能表示有意取消试验值。
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// Tests for Orleans' Newtonsoft.Json serialization support.
+    /// Orleans' Newtonsoft.Json 序列化支持测试。
     /// 
-    /// Orleans provides integration with Newtonsoft.Json (Json.NET) for scenarios requiring:
-    /// - Compatibility with existing Newtonsoft.Json configurations
-    /// - Advanced JSON features not available in System.Text.Json
-    /// - Integration with systems already using Newtonsoft.Json
+    /// Orleans 为下列情况提供与 Newtonsoft.Json (Json.NET)的结合:
+    /// - 与现有 Newtonsoft.Json 配置兼容
+    /// - 高级 JSON 功能中没有 System.Text.Json
+    /// - 与已经使用 Newtonsoft.Json系统的系统整合
     /// 
-    /// The Newtonsoft.Json codec in Orleans:
-    /// - Supports all Json.NET features including custom converters
-    /// - Can be selectively applied using type predicates
-    /// - Provides both serialization and deep copy functionality
-    /// - Handles Json.NET specific types like JObject, JArray, etc.
+    /// 下 Newtonsoft.Json 代码解码器 Orleans:
+    /// - 支持所有 Json.NET 特性,包括自定义转换器
+    /// - 可以利用类型上游有选择性地加以应用
+    /// - 提供序列和深复制功能
+    /// - 处理特定类型 Json.NET ,如Jobject、JAray等。
     /// 
-    /// This integration is particularly useful when migrating existing systems
-    /// to Orleans that already have complex Newtonsoft.Json configurations.
+    /// 在迁移现有系统时,这种整合特别有用
+    /// 至 Orleans 已经复杂的 Newtonsoft.Json 配置。
     /// </summary>
     [Trait("Category", "BVT")]
     [TestSuite("BVT")]

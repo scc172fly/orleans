@@ -13,42 +13,42 @@ using Orleans.Runtime.Internal;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Base class for StreamQueueBalancer
+    /// StreamQueueBalancer的基准类
     /// </summary>
     public abstract partial class QueueBalancerBase : IStreamQueueBalancer
     {
         private readonly IAsyncEnumerable<ClusterMembershipSnapshot> clusterMembershipUpdates;
         private readonly List<IStreamQueueBalanceListener> queueBalanceListeners;
         private readonly CancellationTokenSource cts;
-        private Task _listenForClusterChangesTask = null!; // Initialized in Initialize.
+        private Task _listenForClusterChangesTask = null!; // 初始化时开始。
 
         /// <summary>
-        /// Gets the cancellation token which is signaled when this balancer shuts down.
+        /// 获取当此平衡器关闭时所信号的取消符。
         /// </summary>
         protected CancellationToken Cancellation => this.cts.Token;
 
         /// <summary>
-        /// Gets the address of the local silo.
+        /// 获取本地 silo的地址。
         /// </summary>
         protected SiloAddress SiloAddress { get; }
 
         /// <summary>
-        /// Gets the logger.
+        /// 得到伐木者。
         /// </summary>
         protected ILogger Logger { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueBalancerBase"/> class.
+        /// 初始化 <see cref="QueueBalancerBase"/> 类的新实例。
         /// </summary>
-        /// <param name="sp">The service provider.</param>
-        /// <param name="logger">The logger.</param>
+        /// <param name="sp">服务供应商。</param>
+        /// <param name="logger">日志器。</param>
         protected QueueBalancerBase(IServiceProvider sp, ILogger logger)
             : this(sp.GetRequiredService<IClusterMembershipService>(), sp.GetRequiredService<ILocalSiloDetails>(), logger)
         {
         }
 
         /// <summary>
-        /// This should be primary constructor once IAsyncEnumerable is released
+        /// 应在 IAsyncEnumerable 一旦释放后成为主建建筑工
         /// </summary>
         private QueueBalancerBase(IClusterMembershipService clusterMembership, ILocalSiloDetails localSiloDetails, ILogger logger)
         {
@@ -112,16 +112,16 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Notifies subscribers that the queue distribution has changed.
+        /// 通知订户队列分布已改变。
         /// </summary>
-        /// <returns>A task which represents the notification operation.</returns>
+        /// <returns>一项任务,代表通知操作。</returns>
         protected Task NotifyListeners()
         {
             if (this.Cancellation.IsCancellationRequested) return Task.CompletedTask;
             List<IStreamQueueBalanceListener> queueBalanceListenersCopy;
             lock (queueBalanceListeners)
             {
-                queueBalanceListenersCopy = queueBalanceListeners.ToList(); // make copy
+                queueBalanceListenersCopy = queueBalanceListeners.ToList(); // 复制
             }
             return Task.WhenAll(queueBalanceListenersCopy.Select(listener => listener.QueueDistributionChangeNotification()));
         }
@@ -134,12 +134,12 @@ namespace Orleans.Streams
             {
                 try
                 {
-                    // Get active members.
+                    // 获取活跃成员。
                     var update = new HashSet<SiloAddress>(membershipSnapshot.Members.Values
                         .Where(member => member.Status == SiloStatus.Active)
                         .Select(member => member.SiloAddress));
 
-                    // If active list has changed, track new list and notify.
+                    // 如果活动列表已更改, 请跟踪新列表并通知 。
                     if (!current.SetEquals(update))
                     {
                         current = update;
@@ -154,9 +154,9 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Handles a change to the set of active silos.
+        /// 处理对活动 silos的一组修改。
         /// </summary>
-        /// <param name="activeSilos">The addresses of the active silos.</param>
+        /// <param name="activeSilos">活动 silos的地址。</param>
         protected abstract void OnClusterMembershipChange(HashSet<SiloAddress> activeSilos);
 
         [LoggerMessage(

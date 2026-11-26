@@ -4,22 +4,22 @@ using TestGrainInterfaces;
 namespace TestGrains
 {
     /// <summary>
-    /// An example of a journaled grain that counts statistics.
+    /// 以一个计算统计数据的日记 grain 实例。
     /// 
-    /// For configuration options, see derived classes in CountersGrainVariations.cs
+    /// 配置选项,请参见 CountersGrainVariations.cs中的衍生类别
     /// </summary>
     [GrainType("simple-counters-grain")]
     public class CountersGrain : JournaledGrain<CountersGrain.GrainState>, ICountersGrain
     {
         /// <summary>
-        /// The state of this grain is a dictionary that keeps a count for each key.
-        /// We define this as a nested class, just for scoping convenience.
+        /// 此 grain 状态是一本字典, 记录每个密钥的数。
+        /// 我们把它定义为一个嵌套型阶级, 只是为了方便范围。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
         public class GrainState
         {
-            /// <summary>  the current count </summary>
+            /// <summary> 当前计数 </summary>
             [Id(0)]
             public Dictionary<string, int> Counts { get; set; }
 
@@ -43,7 +43,7 @@ namespace TestGrains
         }
 
         /// <summary>
-        /// An event representing a counter update
+        /// 代表反更新的活动
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -56,7 +56,7 @@ namespace TestGrains
         }
 
         /// <summary>
-        /// An event representing a reset of all counters
+        /// 代表全部计数器重置的事件
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -66,7 +66,7 @@ namespace TestGrains
 
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            // on activation, we load lazily (do not wait until the current state is loaded).
+            // 激活时, 我们装入懒惰( 不要等待当前状态已装入) 。
             return Task.CompletedTask;
         }
 
@@ -74,7 +74,7 @@ namespace TestGrains
         {
             RaiseEvent(new UpdatedEvent() { Key = key, Amount = amount });
 
-            // optionally, wait until the event has been persisted to storage
+            // 可选, 等到事件持续存储后再继续
             if (wait_for_confirmation)
                 await ConfirmEvents();
         }
@@ -83,7 +83,7 @@ namespace TestGrains
         {
             RaiseEvent(new ResetAllEvent());
 
-            // optionally, wait until the event has been persisted to storage
+            // 可选, 等到事件持续存储后再继续
             if (wait_for_confirmation)
                 await ConfirmEvents();
         }
@@ -110,7 +110,7 @@ namespace TestGrains
         }
 
 
-        // some providers allow you to look at the log of events
+        // 有些提供者允许您查看事件日志
         public Task<IReadOnlyList<object>> GetAllEvents()
         {
             return RetrieveConfirmedEvents(0, Version);

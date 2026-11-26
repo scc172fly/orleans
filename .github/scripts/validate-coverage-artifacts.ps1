@@ -157,7 +157,7 @@ if ($missing.Count -gt 0 -or $unexpected.Count -gt 0) {
 }
 
 foreach ($path in $superseded) {
-    # Aggregation recursively discovers reports, so retain only the selected run attempt.
+    # 聚合会回溯发现报告, 所以只保留选中的运行尝试 。
     Remove-Item -LiteralPath $path -Recurse -Force
 }
 

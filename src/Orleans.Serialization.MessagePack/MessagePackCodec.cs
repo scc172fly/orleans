@@ -18,10 +18,10 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// A serialization codec which uses <see cref="MessagePackSerializer"/>.
+/// 使用 <see cref="MessagePackSerializer"/>的序列编码。
 /// </summary>
 /// <remarks>
-/// MessagePack codec performs slightly worse than default Orleans serializer, if performance is critical for your application, consider using default serialization.
+/// MessagePack 编码器的运行比默认 Orleans 序列仪差一点,如果性能对您的应用程序至关重要,则考虑使用默认序列化。
 /// </remarks>
 [Alias(WellKnownAlias)]
 public class MessagePackCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
@@ -35,16 +35,16 @@ public class MessagePackCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilt
     private readonly MessagePackCodecOptions _options;
 
     /// <summary>
-    /// The well-known type alias for this codec.
+    /// 这个代码码的已知型别名 。
     /// </summary>
     public const string WellKnownAlias = "msgpack";
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MessagePackCodec"/> class.
+    /// 初始化 <see cref="MessagePackCodec"/> 类的新实例。
     /// </summary>
-    /// <param name="serializableTypeSelectors">Filters used to indicate which types should be serialized by this codec.</param>
-    /// <param name="copyableTypeSelectors">Filters used to indicate which types should be copied by this codec.</param>
-    /// <param name="options">The MessagePack codec options.</param>
+    /// <param name="serializableTypeSelectors">过滤器用于表示哪些类型应该由此编码器序列。</param>
+    /// <param name="copyableTypeSelectors">过滤器用于表示该编码器应复制的类型。</param>
+    /// <param name="options"> MessagePack 代码化选项。</param>
     public MessagePackCodec(
         IEnumerable<ICodecSelector> serializableTypeSelectors,
         IEnumerable<ICopierSelector> copyableTypeSelectors,
@@ -67,10 +67,10 @@ public class MessagePackCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilt
             return;
         }
 
-        // The schema type when serializing the field is the type of the codec.
+        // 编序字段的序列式是代码的型号。
         writer.WriteFieldHeader(fieldIdDelta, expectedType, SelfType, WireType.TagDelimited);
 
-        // Write the type name
+        // 写入类型名称
         ReferenceCodec.MarkValueField(writer.Session);
         writer.WriteFieldHeaderExpected(0, WireType.LengthPrefixed);
         writer.Session.TypeCodec.WriteLengthPrefixed(ref writer, value.GetType());

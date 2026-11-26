@@ -65,13 +65,13 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
         var retirementTrackerCodec = JournalFormatServices.GetRequiredCommandCodec<IDurableDictionaryCommandCodec<string, DateTime>>(serviceProvider, WriteJournalFormatKey);
         _journalWriter = _shared.JournalFormat.CreateWriter();
 
-        // The list of known states is itself stored as a durable state with the implicit id 0.
-        // This allows us to recover the list of states ids without having to store it separately.
+        // 已知国家名单本身以耐久状态储存,含隐含代号0。
+        // 这样我们就能够收回国家ids清单,而不必单独储存。
         _journalStreamDirectory = new StateDirectory(this, journalStreamIdsCodec);
         _statesMap[StateDirectory.Id] = _journalStreamDirectory;
 
-        // The retirement tracker is a special internal state with a fixed id.
-        // It is not stored in _journalStreamDirectory and does not participate in the general name->id mapping.
+        // 退休跟踪器是一个特殊的内部状态,有固定的ID。
+        // 它不储存在_journalStream Timory,也不参加通用名称> ID 映射。
         _retirementTracker = new RetiredStateTracker(this, retirementTrackerCodec);
         _statesMap[RetiredStateTracker.Id] = _retirementTracker;
     }
@@ -211,7 +211,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                 }
             }
 
-            // Signals can remain from the failed attempt. Retry only for newly queued initialization work.
+            // 信号可以保留在失败尝试中。 只对新排队的初始化工作重试 。
             while (true)
             {
                 await _workSignal.WaitAsync().ConfigureAwait(true);
@@ -244,7 +244,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                     {
                         if (!_workQueue.TryDequeue(out var dequeuedWorkItem))
                         {
-                            // Wait for the queue to be signaled again.
+                            // 等待队列再次信号 。
                             break;
                         }
 
@@ -292,15 +292,15 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                             }
                         }
 
-                        // Note that the implementation of each command is inlined to avoid allocating unnecessary async states.
-                        // We are ok sacrificing some code organization for performance in the inner loop.
+                        // 请注意,每项指令的执行都包含在内部,以避免分配不必要的重复状态。
+                        // 我们为内部循环的绩效 牺牲了某个代码组织
                         switch (workItem)
                         {
                             case AppendJournalWorkItem:
                             case WriteSnapshotWorkItem:
                                 {
-                                    // TODO: decide whether it's best to snapshot or append. Eg, by summing the size of the most recent snapshots and the current journal length.
-                                    //       If the current journal length is greater than the snapshot size, then take a snapshot instead of appending more journal entries.
+                                    // TODO: 决定是快照还是附加最好。 例如, 通过对最新快照的大小和当前日记长度进行总结 。
+                                    //       如果当前日记的长度大于快照大小, 则用快照代替附加更多日记条目 。
                                     var isSnapshot = workItem is WriteSnapshotWorkItem
                                         || _migrationSnapshotRequired
                                         || _storage.IsCompactionRequested;
@@ -326,9 +326,9 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                                     var bufferToConsumeIsCommittedBuffer = false;
                                     var writeVersion = 0L;
 
-                                    // Each write captures every state, including a change which another thread is writing into an entry
-                                    // which it opened before the write. The write waits for that entry to close, whether it appends or
-                                    // replaces the journal, so that it captures the change.
+                                    // 每个写入捕捉每个状态, 包括更改, 另一个线索正在写入到条目中
+                                    // 写入等待该条目的关闭,无论它是附加还是
+                                    // 替换日记,以便它捕捉到变化。
                                     while (true)
                                     {
                                         Task? activeEntryClosed;
@@ -348,9 +348,9 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                                                     ThrowIfMigrationBlockedByRetiredStates();
                                                 }
 
-                                                // The map of state ids is itself stored as a durable state with the id 0.
-                                                // This must be stored first, since it includes the identities of all other states, which are needed when replaying the journal.
-                                                // If we removed retired states, this snapshot will persist that change.
+                                                // 国家身份图本身是作为耐久状态储存的,有ID 0。
+                                                // 因为它包括所有其他国家的身份, 而重播日记时需要这些身份。
+                                                // 如果我们撤走退休的州,这个画面将维持这一变化。
                                                 AppendUpdatesOrSnapshotState(snapshotWriter, isSnapshot: true, StateDirectory.Id, _journalStreamDirectory);
                                                 statesScanned++;
 
@@ -379,8 +379,8 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                                             }
                                             else if (activeEntryClosed is null)
                                             {
-                                                // The map of state ids is itself stored as a durable state with the id 0.
-                                                // This must be stored first, since it includes the identities of all other states, which are needed when replaying the journal.
+                                                // 国家身份图本身是作为耐久状态储存的,有ID 0。
+                                                // 因为它包括所有其他国家的身份, 而重播日记时需要这些身份。
                                                 AppendUpdatesOrSnapshotState(_journalWriter, isSnapshot: false, StateDirectory.Id, _journalStreamDirectory);
                                                 statesScanned++;
 
@@ -404,7 +404,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                                             {
                                                 if (committedBuffer.Length == 0)
                                                 {
-                                                    // Nothing was staged, so the write captured nothing which awaits acknowledgement.
+                                                    // 没有任何预谋,所以书写没有记录任何有待确认的内容。
                                                     committedBuffer.Dispose();
                                                     if (bufferToConsumeIsCommittedBuffer)
                                                     {
@@ -431,8 +431,8 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
 
                                         await activeEntryClosed.WaitAsync(_shutdownCancellation.Token).ConfigureAwait(true);
 
-                                        // Capture follows a complete preparation pass without yielding, so the entry's change and the
-                                        // changes which interleaved turns staged while the write waited are prepared first.
+                                        // 捕获跟踪在完整准备的通行证上,没有交出 所以条目的变化和
+                                        // 正在准备等待的写作时, 将先进行跨左转旋转的更改 。
                                         await PrepareStatesAsync().ConfigureAwait(true);
                                     }
 
@@ -451,12 +451,12 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                                         recordQueueDuration = true;
                                         var writeSequence = committedBuffer.AsReadOnlySequence();
 #if DEBUG
-                                        // Defensive: copy the sequence into a pooled buffer so we can poison it
-                                        // after the storage call returns. Any IJournalStorage implementation that
-                                        // retains the sequence past task completion (a violation of the documented
-                                        // contract on AppendAsync/ReplaceAsync) will read 0x67 bytes when it next
-                                        // touches the buffer, surfacing the bug loudly in tests instead of letting
-                                        // recycled pool data hide it.
+                                        // 防御:将序列复制成集合缓冲,以便毒死它
+                                        // 存储调回后返回。 IJournalStorage 执行中承诺的
+                                        // 保留过去任务完成的顺序(违反有记录的
+                                        // AppendAsync/ReplaceAsync合同下一个时, 将读为 0x67 字节
+                                        // 触摸缓冲,在测试时大声地显示错误,而不是让
+                                        // 回收的池数据隐藏在其中。
                                         var debugPoisonLength = checked((int)writeSequence.Length);
                                         var debugPoisonBuffer = ArrayPool<byte>.Shared.Rent(debugPoisonLength);
                                         writeSequence.CopyTo(debugPoisonBuffer);
@@ -498,7 +498,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
 
                                     if (writeVersion != 0)
                                     {
-                                        // Acknowledge only after every state's pending entries were captured.
+                                        // 只有在每个州 的待处理条目被捕获后才能确认
                                         lock (_lock)
                                         {
                                             foreach (var state in _states.Values)
@@ -519,19 +519,19 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
 
                             case DeleteStateWorkItem:
                                 {
-                                    // Clear storage.
+                                    // 安全储存
                                     await DeleteStorageAsync(_shutdownCancellation.Token).ConfigureAwait(true);
 
                                     lock (_lock)
                                     {
-                                        // Discard entries for the state being reset before writing the new directory.
+                                        // 丢弃正在重置的状态条目, 以便写入新目录 。
                                         _journalWriter.Reset();
 
-                                        // Reset the state id collection.
+                                        // 重置状态代码收藏 。
                                         _journalStreamDirectory.ResetVolatileState();
 
-                                        // Allocate new state ids for each state.
-                                        // Doing so will trigger a reset, since _journalStreamDirectory will bind the state in question.
+                                        // 为每个州分配新的州代号。
+                                        // 这样做将引发重置,因为_journalStream 董事局将对有关国家具有约束力。
                                         foreach (var (name, state) in _states)
                                         {
                                             var id = _journalStreamDirectory.GetNextJournalStreamId();
@@ -565,7 +565,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                                         var name = registerState.Name;
                                         if (!_journalStreamDirectory.ContainsKey(name))
                                         {
-                                            // Doing so will trigger a reset, since _journalStreamDirectory will bind the state in question.
+                                            // 这样做将引发重置,因为_journalStream 董事局将对有关国家具有约束力。
                                             _journalStreamDirectory.Set(name, _journalStreamDirectory.GetNextJournalStreamId());
                                         }
                                     }
@@ -589,8 +589,8 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                     }
                     catch (StatePreparationFailedException exception)
                     {
-                        // Only preparation throws this type, so nothing was captured: pending changes remain staged for an
-                        // explicit retry and the manager continues.
+                        // 仅准备投出这种类型的武器,所以没有记录任何情况:有待修改的改动仍为
+                        // 明示重试, 管理器继续 。
                         LogStatePreparationFailed(_shared.Logger, exception.InnerException!);
                         storageActivity?.SetStatus(ActivityStatusCode.Error, "Journal state preparation failed.");
                         workItem.SetException(new JournaledStatePreCommitException(exception.InnerException!));
@@ -644,12 +644,12 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
     }
 
     /// <summary>
-    /// Prepares every state until a complete synchronous pass succeeds, which capture then follows without yielding.
+    /// 每一个州都准备在完全同步通行成功之前完成,然后不产生结果。
     /// </summary>
     /// <remarks>
-    /// Preparation serves every caller coalesced into the write, so only shutdown cancels it.
+    /// 准备为每一个在写作中联合起来的来电者提供服务, 所以只有关闭才能取消它。
     /// </remarks>
-    /// <exception cref="StatePreparationFailedException">A state's preparation failed.</exception>
+    /// <exception cref="StatePreparationFailedException">州立的准备失败了</exception>
     private async ValueTask PrepareStatesAsync()
     {
         try
@@ -668,17 +668,17 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
     }
 
     /// <summary>
-    /// Identifies a preparation failure, which the work loop reports without fencing, among the failures of a write.
+    /// 工作循环报告,在写作失败中,没有栅栏,就指出了一个准备失败。
     /// </summary>
     private sealed class StatePreparationFailedException(Exception innerException) : Exception(message: null, innerException);
 
     /// <summary>
-    /// Prepares every state in one synchronous pass, or returns the first preparation which hasn't completed.
+    /// 以同步通行证准备每个州, 或者返回第一个还没有完成的准备工作。
     /// </summary>
     /// <remarks>
-    /// Capture follows a complete synchronous pass without yielding. Other turns can stage changes while an incomplete
-    /// preparation is awaited, so the caller then prepares every state again; a state whose prerequisites are in place
-    /// completes synchronously, so the passes converge.
+    /// 抓取跟随完全同步的通过而没有产生结果。 其他转弯可以使变化发生, 而不完全
+    /// 准备等待准备,所以呼叫者然后再次为每一个州做好准备;一个具备先决条件的国家
+    /// 同步完成,让通行证会合
     /// </remarks>
     private bool TryPrepareStates(CancellationToken cancellationToken, out ValueTask preparation)
     {
@@ -720,7 +720,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
         }
         finally
         {
-            // Watchers complete cleanly only when shutdown canceled the operation. Any other failure leaves staged changes uncertain.
+            // 只有在关闭取消操作时, 监视器才能完全完整。 任何其他故障都会留下变化的不确定性 。
             CompleteObservers(exception is OperationCanceledException && _shutdownCancellation.IsCancellationRequested ? null : exception);
             lock (_lock)
             {
@@ -752,18 +752,18 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
                 {
                     LogRemovingRetiredState(_shared.Logger, name);
 
-                    // Since we are permanently removing this state, we will clean it up by reseting it.
+                    // 既然我们永久取消这个状态, 我们将重新设置它来清理它。
                     state.Reset(CreateJournalStreamWriter(new(id)));
 
                     _statesMap.Remove(id);
-                    // We remove these from memory only, since the snapshot will persist these changes.
+                    // 我们只将这些记忆从记忆中去除,因为画面将维持这些变化。
                     _journalStreamDirectory.ApplyRemove(name);
                     _retirementTracker.ApplyRemove(name);
                 }
                 else
                 {
                     LogRetiredStateComebackDetected(_shared.Logger, name);
-                    // We remove the tracker from memory only, since the snapshot will persist the change.
+                    // 我们只从记忆中移除追踪器, 因为光景将维持变化。
                     _retirementTracker.ApplyRemove(name);
                 }
             }
@@ -869,7 +869,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
 
                 if (state is RetiredStateMachine)
                 {
-                    // We can use TryAdd since recovery has finished.
+                    // 恢复完成后,我们可以用 TryAdd 。
                     if (_retirementTracker.TryAdd(name, _shared.TimeProvider.GetUtcNow().UtcDateTime))
                     {
                         LogRetiredStateDetected(_shared.Logger, name);
@@ -1145,8 +1145,8 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
             {
                 var vessel = new RetiredStateMachine(new(id));
 
-                // We must not make the vessel self-register with the manager, since it will
-                // result in a late-registration after the manager is 'ready'. Instead we add it inline here.
+                // 我们绝不能让船在经理人面前自我登记,因为船会
+                // 导致经理“ 已经准备好” 后登记延迟。 我们在此添加此内容 。
 
                 _states.Add(name, vessel);
                 _statesMap[id] = vessel;
@@ -1232,8 +1232,8 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
         public IReadOnlyList<ActivityLink>? TraceLinks => _links;
 
         /// <summary>
-        /// Gets the number of callers that have folded into this work item, including the
-        /// caller that originally enqueued it. Mutated under the manager lock.
+        /// 获取加入此工作项目(包括
+        /// 最初排队的电话人 被控制锁下变异
         /// </summary>
         public int CallerCount { get; private set; } = 1;
 
@@ -1246,7 +1246,7 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
         }
 
         /// <summary>
-        /// Increments the coalesced caller count when a new caller folds into this pending work item.
+        /// 当新来电者与这个待处理的工作项目发生重叠时,会增加联名呼叫者的计数。
         /// </summary>
         public void AddCaller()
         {
@@ -1407,9 +1407,9 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
     }
 
     /// <summary>
-    /// Used to track states that are not registered via user-code anymore, until time-based purging has elapsed.
+    /// 用于跟踪那些不再通过用户代码登记的国家,直到基于时间的清理工作结束。
     /// </summary>
-    /// <remarks>Resurrecting of retired states is supported.</remarks>
+    /// <remarks>支持退休国家重新恢复。</remarks>
     private sealed class RetiredStateTracker(
         JournaledStateManager manager, IDurableDictionaryCommandCodec<string, DateTime> codec)
             : DurableDictionary<string, DateTime>(codec)
@@ -1424,8 +1424,8 @@ internal partial class JournaledStateManager : IJournaledStateManager, IJournalS
     }
 
     /// <summary>
-    /// Used to keep retired states into a purgatory state until time-based purging or if a comeback occurs.
-    /// This keeps buffering entries and dumps them back into the journal upon compaction.
+    /// 用来将退休国家保留在炼狱状态,直到根据时间进行的清洗或出现回潮。
+    /// 这会保持缓冲进入,然后把它们扔回压缩时的日记。
     /// </summary>
     [DebuggerDisplay("RetiredStateMachine Id = {StreamId.Value}")]
     private sealed class RetiredStateMachine(JournalStreamId streamId) : IStateMachine

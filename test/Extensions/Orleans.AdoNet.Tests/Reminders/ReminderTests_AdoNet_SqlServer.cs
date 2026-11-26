@@ -1,6 +1,6 @@
 #nullable enable
 
-//#define USE_SQL_SERVER
+//以美 日 称 :
 
 using Orleans.Testing.Reminders;
 using Orleans.TestingHost;
@@ -32,7 +32,7 @@ namespace Tester.AdoNet.Reminders
     }
 
     /// <summary>
-    /// Integration tests for Orleans reminders functionality using SQL Server as the reminder service backend.
+    /// 综合测试 Orleans 使用提醒提醒功能 SQL 服务器作为提醒服务后端 。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("SqlServer")]
@@ -116,7 +116,7 @@ namespace Tester.AdoNet.Reminders
                 .WaitAsync(TestConstants.InitTimeout, TestContext.Current.CancellationToken);
         }
 
-        // Basic tests
+        // 基本测试
 
         [Fact]
         public async Task Rem_Sql_Basic_StopByRef()
@@ -136,7 +136,7 @@ namespace Tester.AdoNet.Reminders
             await Test_Reminders_Basic_ListOps(TestContext.Current.CancellationToken);
         }
 
-        // Single join tests ... multi grain, multi reminders
+        // 单单合并测试... 多个 grain、多提醒
 
         [Fact]
         public async Task Rem_Sql_1J_MultiGrainMultiReminders()

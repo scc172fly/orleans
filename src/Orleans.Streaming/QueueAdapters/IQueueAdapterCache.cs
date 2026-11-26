@@ -1,15 +1,15 @@
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Functionality for creating an <see cref="IQueueCache"/> for a given queue.
+    /// 为指定队列创建 <see cref="IQueueCache"/> 功能。
     /// </summary>
     public interface IQueueAdapterCache
     {
         /// <summary>
-        /// Create a cache for a given queue id
+        /// 为指定的队列代号创建缓存
         /// </summary>
-        /// <param name="queueId">The queue id.</param>
-        /// <returns>The queue cache..</returns>
+        /// <param name="queueId">队列代号。</param>
+        /// <returns>队列缓存。</returns>
         IQueueCache CreateQueueCache(QueueId queueId);
     }
 }

@@ -8,24 +8,24 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Runs successful transaction commit service scenarios.
+    /// 运行成功的交易承诺服务情景。
     /// </summary>
     public abstract class TocGoldenPathTestRunner : TransactionTestRunnerBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TocGoldenPathTestRunner"/> class.
+        /// 初始化 <see cref="TocGoldenPathTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to access test grains.</param>
-        /// <param name="output">The callback used to write test output.</param>
+        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="output">用于写入测试输出的回调。</param>
         protected TocGoldenPathTestRunner(IGrainFactory grainFactory, Action<string> output)
         : base(grainFactory, output) { }
 
         /// <summary>
-        /// Verifies a successful multi-grain write coordinated with a transaction commit service.
+        /// 验证成功多grain 写作,并与交易承诺服务协调。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <param name="grainCount">The number of grains participating in the transaction.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <param name="grainCount">编号数 grains 参与交易。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task MultiGrainWriteTransaction(string grainStates, int grainCount)
         {
             const int expected = 5;
@@ -49,7 +49,7 @@ namespace Orleans.Transactions.TestKit
                 }
             }
 
-            // TODO : Add verification that commit service receive call with proper args.
+            // TODO:添加进行服务确认的核查,接收有适当参数的呼叫。
         }
     }
 }

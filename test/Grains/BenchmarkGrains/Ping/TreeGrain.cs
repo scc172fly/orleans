@@ -32,7 +32,7 @@ public class TreeGrain : Grain, ITreeGrain
             tasks.Add(child.Ping());
         }
 
-        // Wait for the tasks to complete.
+        // 等待任务完成
         foreach (var task in tasks)
         {
             await task;

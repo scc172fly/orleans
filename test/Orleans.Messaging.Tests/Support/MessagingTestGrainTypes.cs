@@ -5,7 +5,7 @@ namespace Orleans.Durable.Messaging.Tests.Support;
 
 internal static class MessagingTestGrainTypes
 {
-    // The source-linked playground and recipe payment grains share the same production grain type.
+    // 与源相关的操场和食谱付款 grains 同一种生产类型 grain 。
     public static void UseDocumentationPaymentGrain(this IServiceCollection services) =>
         services.PostConfigure<GrainTypeOptions>(options =>
             options.Classes.Remove(typeof(OrderProcessing.Grains.PaymentGrain)));

@@ -109,7 +109,7 @@ public partial class ClusterManifestProviderTests
         Assert.False(memoizedHashes.TryGetValue(provider.LocalGrainManifest, out _));
         Assert.Null(GetCachedManifests(provider));
 
-        // Runtime settings are captured at construction, even if the options object is later changed.
+        // 构建时记录运行时间设置, 即使选项对象后来更改 。
         options.EnableContentAddressedRetrieval = true;
         await InitializeProviderAsync(provider, TestContext.Current.CancellationToken);
         Assert.True(await UpdateManifestAsync(provider, snapshot, TestContext.Current.CancellationToken));

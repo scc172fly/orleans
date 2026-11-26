@@ -6,36 +6,36 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// A batch of batch containers, that if configured (see StreamPullingAgentOptions), will be the data pulled by the
-    /// PersistenStreamPullingAgent from it's underlying cache
+    /// 批批装集装箱,如果配置(见 StreamPullingAgentOptions),将是经
+    /// PersistenStreamPullingAgent 的隐藏缓存
     /// </summary>
     [GenerateSerializer]
     public sealed class BatchContainerBatch : IBatchContainerBatch
     {
         /// <summary>
-        /// Gets the stream identifier for the stream this batch is part of.
-        /// Derived from the first batch container in the batch.
+        /// 获取该批次所包含流的溪流识别符。
+        /// 取自批次第一批货箱。
         /// </summary>
         [Id(0)]
         public StreamId StreamId { get; }
 
         /// <summary>
-        /// Gets the stream Sequence Token for the start of this batch.
-        /// Derived from the first batch container in the batch.
+        /// 获取这批货物的起始序列串流
+        /// 取自批次第一批货箱。
         /// </summary>
         [Id(1)]
         public StreamSequenceToken SequenceToken { get; }
 
         /// <summary>
-        /// Gets the batch containers comprising this batch
+        /// 获得构成这批货物的批装集装箱
         /// </summary>
         [Id(2)]
         public List<IBatchContainer> BatchContainers { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BatchContainerBatch"/> class.
+        /// 初始化 <see cref="BatchContainerBatch"/> 类的新实例。
         /// </summary>
-        /// <param name="batchContainers">The batch containers comprising this batch.</param>
+        /// <param name="batchContainers">构成这批货物的批装集装箱。</param>
         public BatchContainerBatch(List<IBatchContainer> batchContainers)
         {
             if ((batchContainers == null) || !batchContainers.Any())

@@ -46,7 +46,7 @@ app.controller('VotingAppController', ['$rootScope', '$scope', '$http', '$timeou
     }
 }])
 
-/*This function puts HTTP result in the footer */
+/*此函数将 HTTP 结果置于页脚中 */
 function updateFooter(http, timeTaken) {
     if (http.status < 299) {
         statusText.innerHTML = 'Reponse:<br />HTTP status ' + http.status + ' ' + http.statusText + ' returned in ' + timeTaken.toString() + ' ms';

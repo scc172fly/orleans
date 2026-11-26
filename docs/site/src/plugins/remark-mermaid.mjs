@@ -16,7 +16,7 @@ function transformMermaidBlocks(node) {
     const source = escapeHtml(node.value);
     node.type = 'html';
     // The fallback is a bare <pre>: Expressive Code renders each <pre><code> as a code block and loads its
-    // stylesheet with the page's first block, which a <noscript> fallback would hide from scripted pages.
+    // 样式表,其中含有页面的第一个块, <noscript> 后退将从脚本页面中隐藏。
     node.value =
       `<div class="mermaid-diagram" data-mermaid-source="${source}" ` +
       'data-mermaid-status="loading" aria-label="Mermaid diagram">' +

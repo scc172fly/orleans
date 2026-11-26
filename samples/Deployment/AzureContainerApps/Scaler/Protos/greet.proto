@@ -4,18 +4,18 @@ option csharp_namespace = "Scaler";
 
 package greet;
 
-// The greeting service definition.
+// 问候服务的定义。
 service Greeter {
-  // Sends a greeting
+  // 发出问候
   rpc SayHello (HelloRequest) returns (HelloReply);
 }
 
-// The request message containing the user's name.
+// 包含用户名的请求信息 。
 message HelloRequest {
   string name = 1;
 }
 
-// The response message containing the greetings.
+// 载有问候的回信。
 message HelloReply {
   string message = 1;
 }

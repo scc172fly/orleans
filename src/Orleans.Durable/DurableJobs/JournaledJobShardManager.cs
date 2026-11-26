@@ -42,10 +42,10 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
     private readonly TimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, JournaledJobShard> _jobShardCache = new();
     private readonly ConcurrentDictionary<string, ShardOpen> _openingShards = new();
-    // Sticky positive cache for IsShardOwnedByLocalSiloAsync. Entries are added once a shard is
-    // confirmed to be owned by this silo, and removed only when ownership is released locally
-    // (via UnregisterShardAsync). Each recovered instance commits a journal-content fence before
-    // publication, so a takeover invalidates prior instances' conditional storage mutations.
+    // IsShardOwnedByLocalSiloAsync的粘固正缓存。一旦碎片被添加条目
+    // 以此确认为所有 silo,并且只有在所有权在当地释放时才能删除
+    // (通过 UnregisterShardAsync.每个被追回案例之前都使用日记内容围栏
+    // 所以接管撤销了先前的 有条件储存突变
     private readonly ConcurrentDictionary<string, bool> _ownedShards = new(StringComparer.Ordinal);
     public JournaledJobShardManager(
         ILocalSiloDetails localSiloDetails,
@@ -135,7 +135,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
         };
         foreach (var provider in _providers.Providers)
         {
-            // Publish a provider's candidates only after its enumeration completes successfully.
+            // 只有在供应商的查点成功完成后才公布其候选人。
             var entries = _providers.Providers.Length == 1
                 ? storageEntries
                 : new SortedDictionary<JournalId, (DurableJobsJournalProvider Provider, JournalCatalogEntry Entry)>(storageEntries.Comparer);
@@ -162,7 +162,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             }
         }
 
-        // Providers can return identities in any order. Names order the selected shards by UTC start time.
+        // 供应商可以按任何顺序返回身份。 姓名会通过 UTC 启动时间排序选中的碎片 。
         var newClaimCount = 0;
         HashSet<DurableJobsJournalProvider>? failedProviders = null;
         foreach (var (provider, entry) in storageEntries.Values)
@@ -208,7 +208,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             && !_jobShardCache.TryGetValue(descriptor.ShardId.Value, out cachedShard)
             && entry.Metadata is { ETag: not null })
         {
-            // A listed local owner can have released the shard since the snapshot was taken.
+            // 名单所列本地业主本可以释放照片拍摄后被撕裂的碎片。
             descriptor = await GetDescriptorAsync(provider, entry.Id, cancellationToken);
         }
 
@@ -263,7 +263,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             isAdopted = ownerStatus == SiloStatus.Dead;
         }
 
-        // Exhausting the claim budget still advances discovery to later locally owned shards.
+        // 索赔预算的耗尽仍然使后来发现的地方拥有的碎片进一步被发现。
         if (!canClaim)
         {
             return default;
@@ -317,7 +317,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
                 throw new InvalidOperationException($"Cannot unregister DurableJobs shard '{shard.Id}' because it is not the current local instance.");
             }
 
-            // The queue barrier drains accepted mutations; stale references reject new mutations.
+            // 排队排水沟接受突变;陈旧的参考文献拒绝新的突变。
             await journaledShard.RetireAsync(cancellationToken);
 
             var descriptor = await GetDescriptorAsync(journaledShard.Provider, journaledShard.StorageId, cancellationToken)
@@ -331,12 +331,12 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             var count = await shard.GetJobCountAsync();
             if (count == 0)
             {
-                // No jobs left, we can delete the shard.
+                // 没有工作了,我们可以删除碎片。
                 await journaledShard.DeleteStateAsync(cancellationToken);
             }
             else
             {
-                // There are still jobs in the shard, release ownership gracefully.
+                // 碎片里还有工作, 体面地释放所有权。
                 var updatedMetadata = await UpdateMetadataAsync(
                     descriptor,
                     new Dictionary<string, string>(StringComparer.Ordinal)
@@ -461,7 +461,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
 
     private async ValueTask<JournaledJobShard?> TryClaimShardAsync(ShardCatalogProperties descriptor, bool isAdopted, CancellationToken cancellationToken)
     {
-        // Unregister retains the canonical instance while releasing ownership.
+        // 登记人保留了官阶,同时释放所有权。
         if (_jobShardCache.ContainsKey(descriptor.ShardId.Value))
         {
             return null;
@@ -472,18 +472,18 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
         {
             [OwnerProperty] = SiloAddress.ToParsableString(),
             [MembershipVersionProperty] = GetMembershipVersionString(),
-            // We don't want to add new jobs to shards that we just took ownership of.
+            // 我们不想给刚刚拥有的碎片增加新的工作。
             [ClosedProperty] = bool.TrueString
         };
         List<string>? remove = null;
 
         if (isAdopted)
         {
-            // Increment adopted count for shards taken from dead owners.
+            // 死者的碎片被加分
             adoptedCount++;
             if (adoptedCount > _options.MaxAdoptedCount)
             {
-                // Persist poisoned marker so this shard is not repeatedly re-evaluated as newly poisoned.
+                // 固态毒药标记 所以这个碎片不会被反复重新评价为新中毒
                 await TryMarkShardPoisonedAsync(descriptor, adoptedCount, cancellationToken);
                 return null;
             }
@@ -493,7 +493,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
         }
         else
         {
-            // Reset adopted count since we're gracefully releasing.
+            // 重置被采纳的数数,因为我们是优雅地释放。
             set[AdoptedCountProperty] = "0";
             remove = [LastAdoptedTimeProperty];
         }
@@ -591,9 +591,9 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             manager.RegisterStateMachine(JournaledJobShardState.StateName, state);
             manager.RegisterStateMachine(JournaledJobShardOwnershipFence.StateName, fence);
 
-            // The manager processes its journal on the initializing scheduler. Initialize from the thread pool, without
-            // the caller's execution context, so the shard runs independently of its caller, which may be a grain
-            // activation scheduling a job.
+            // 管理器在初始化调度调度器上处理日记。 从线索库初始化, 不
+            // 电击人的处决环境,所以碎片独立于其呼喊者运行,而呼喊者可能是 grain
+            // 启动工作时间安排
             Task initializeTask;
             using (new ExecutionContextSuppressor())
             {
@@ -606,8 +606,8 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             {
                 descriptor = await RequireLocalOwnershipAsync(descriptor, cancellationToken).ConfigureAwait(false);
 
-                // A nonempty content commit fences earlier replay instances, including writes which
-                // passed their ownership check before takeover. Metadata-only updates can still retry.
+                // 包括写道
+                // 接收前先通过所有权检查。 只有元数据更新仍可以重试 。
                 fence.Write(SiloAddress.ToParsableString());
                 await manager.WriteStateAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -620,8 +620,8 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             throw;
         }
 
-        // Pre-populate the ownership cache when the descriptor confirms this silo owns the shard,
-        // so the first batch flush does not pay an Azure metadata round trip.
+        // 当描述符确认拥有碎片时, 预先配置所有权缓存 silo
+        // 因此第一批冲水量不会支付 Azure 元数据往返旅行费用。
         if (descriptor is { Poisoned: false, Owner: { } owner } && owner.Equals(SiloAddress))
         {
             _ownedShards[descriptor.ShardId.Value] = true;

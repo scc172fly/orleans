@@ -5,15 +5,15 @@ using System.Numerics;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Common comparers for stream checkpoint values.
+    /// 流检查站值的通用比较器。
     /// </summary>
     public static class StreamCheckpointComparers
     {
         /// <summary>
-        /// Gets a comparer for integer checkpoint values of arbitrary size.
+        /// 获得任意大小整数检查站值的比较器。
         /// </summary>
         /// <remarks>
-        /// If either value is not an integer, the values compare equal so that an invalid checkpoint cannot advance.
+        /// 如果任何一个值不是整数,则数值比较相同,以便无效的检查站无法前进。
         /// </remarks>
         public static IComparer<string> Numeric { get; } = Comparer<string>.Create(static (left, right) =>
         {

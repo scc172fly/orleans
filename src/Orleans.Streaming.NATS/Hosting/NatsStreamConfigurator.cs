@@ -7,15 +7,15 @@ using Orleans.Configuration;
 namespace Orleans.Streaming.NATS.Hosting;
 
 /// <summary>
-/// Configures a NATS JetStream provider on a silo.
+/// 配置 NATS 配置NATS JetStream 提供商在 silo.
 /// </summary>
 public class SiloNatsStreamConfigurator : SiloPersistentStreamConfigurator
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SiloNatsStreamConfigurator"/> class.
+    /// 初始化 <see cref="SiloNatsStreamConfigurator"/> 类的新实例。
     /// </summary>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="configureServicesDelegate">The delegate used to configure services.</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="configureServicesDelegate">代表用于配置服务。</param>
     public SiloNatsStreamConfigurator(string name, Action<Action<IServiceCollection>> configureServicesDelegate)
         : base(name, configureServicesDelegate, NatsAdapterFactory.Create)
     {
@@ -30,10 +30,10 @@ public class SiloNatsStreamConfigurator : SiloPersistentStreamConfigurator
     }
 
     /// <summary>
-    /// Configures the NATS JetStream provider options.
+    /// 配置 NATS JetStream 提供者选项。
     /// </summary>
-    /// <param name="configureOptions">The delegate used to configure the named provider options.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="configureOptions">代表用于配置指定供应商选项。</param>
+    /// <returns>此配置。</returns>
     public SiloNatsStreamConfigurator ConfigureNats(Action<OptionsBuilder<NatsOptions>> configureOptions)
     {
         this.Configure(configureOptions);
@@ -41,10 +41,10 @@ public class SiloNatsStreamConfigurator : SiloPersistentStreamConfigurator
     }
 
     /// <summary>
-    /// Configures the receiver cache size.
+    /// 配置接收器缓存大小 。
     /// </summary>
-    /// <param name="cacheSize">The cache size.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="cacheSize">缓存大小。</param>
+    /// <returns>此配置。</returns>
     public SiloNatsStreamConfigurator ConfigureCache(int cacheSize = SimpleQueueCacheOptions.DEFAULT_CACHE_SIZE)
     {
         this.Configure<SimpleQueueCacheOptions>(ob => ob.Configure(options => options.CacheSize = cacheSize));
@@ -52,10 +52,10 @@ public class SiloNatsStreamConfigurator : SiloPersistentStreamConfigurator
     }
 
     /// <summary>
-    /// Configures the number of Orleans queues used to partition streams.
+    /// 配置用于分区流的 Orleans 队列数量。
     /// </summary>
-    /// <param name="numOfparitions">The number of stream queues.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="numOfparitions">流队列数。</param>
+    /// <returns>此配置。</returns>
     public SiloNatsStreamConfigurator ConfigurePartitioning(
         int numOfparitions = HashRingStreamQueueMapperOptions.DEFAULT_NUM_QUEUES)
     {
@@ -66,15 +66,15 @@ public class SiloNatsStreamConfigurator : SiloPersistentStreamConfigurator
 }
 
 /// <summary>
-/// Configures a NATS JetStream provider on a client.
+/// 配置客户端上的 NATS JetStream 提供者 。
 /// </summary>
 public class ClusterClientNatsStreamConfigurator : ClusterClientPersistentStreamConfigurator
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ClusterClientNatsStreamConfigurator"/> class.
+    /// 初始化 <see cref="ClusterClientNatsStreamConfigurator"/> 类的新实例。
     /// </summary>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="builder">The client builder.</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="builder">客户端构建器。</param>
     public ClusterClientNatsStreamConfigurator(string name, IClientBuilder builder)
         : base(name, builder, NatsAdapterFactory.Create)
     {
@@ -89,10 +89,10 @@ public class ClusterClientNatsStreamConfigurator : ClusterClientPersistentStream
     }
 
     /// <summary>
-    /// Configures the NATS JetStream provider options.
+    /// 配置 NATS JetStream 提供者选项。
     /// </summary>
-    /// <param name="configureOptions">The delegate used to configure the named provider options.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="configureOptions">代表用于配置指定供应商选项。</param>
+    /// <returns>此配置。</returns>
     public ClusterClientNatsStreamConfigurator ConfigureNats(Action<OptionsBuilder<NatsOptions>> configureOptions)
     {
         this.Configure(configureOptions);
@@ -100,10 +100,10 @@ public class ClusterClientNatsStreamConfigurator : ClusterClientPersistentStream
     }
 
     /// <summary>
-    /// Configures the number of Orleans queues used to partition streams.
+    /// 配置用于分区流的 Orleans 队列数量。
     /// </summary>
-    /// <param name="numOfparitions">The number of stream queues.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="numOfparitions">流队列数。</param>
+    /// <returns>此配置。</returns>
     public ClusterClientNatsStreamConfigurator ConfigurePartitioning(
         int numOfparitions = HashRingStreamQueueMapperOptions.DEFAULT_NUM_QUEUES)
     {

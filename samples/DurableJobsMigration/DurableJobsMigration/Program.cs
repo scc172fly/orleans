@@ -60,8 +60,8 @@ builder.UseOrleans(silo =>
         options.MaxConcurrentJobsPerSilo = 4;
         options.ConcurrencySlowStartEnabled = false;
         options.JobStatusPollInterval = TimeSpan.FromMilliseconds(100);
-        // Load future shards in the drain phase so saved handles can cancel
-        // owned jobs while their executors await the scheduled start window.
+        // 在排水阶段装入未来碎片, 以便保存控点可以取消
+        // 操作者等待预定启动窗口时, 将自有任务 。
         options.ShardLoadLookaheadPeriod = phase == "prepare" ? TimeSpan.FromSeconds(5) : TimeSpan.FromMinutes(2);
         options.ShardActivationBufferPeriod = options.ShardLoadLookaheadPeriod;
         options.ShouldRetry = (context, _) => context.DequeueCount < 3 ? DateTimeOffset.UtcNow.AddSeconds(5) : null;
@@ -116,7 +116,7 @@ try
         Require(current.ShardId != manifest.Existing.ShardId && current.ShardId != manifest.Future.ShardId,
             "New work must have its own unchanged-format shard identity.");
 
-        // Wait for discovery/ownership, not for the job's due time.
+        // 等待发现/所有权,而不是工作的适当时间。
         var jobs = host.Services.GetRequiredService<ILocalDurableJobManager>();
         while (!await jobs.CancelAsync(manifest.Future, cancellationToken))
         {

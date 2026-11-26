@@ -9,7 +9,7 @@ internal static class EnvelopeValidation
     internal const int MaxSubjectBytes = 256;
     private static readonly UTF8Encoding Utf8 = new(false, true);
 
-    // Inbox admission validates each delivered envelope before staging any change.
+    // 收件箱在进行任何改动之前,对每个发信封都进行确认。
     public static void Validate(Envelope envelope)
     {
         ValidateMessageId(envelope.MessageId);

@@ -100,7 +100,7 @@ public class CatalogInstrumentsTests
             }
             else
             {
-                // Measurement<T> copies tags, but must reuse the cached canonical string.
+                // 测量<T> 复制标签,但必须重新使用缓存的金刚石字符串。
                 var tag = Assert.Single(measurement.Tags.ToArray());
                 Assert.Equal("grain_type", tag.Key);
                 Assert.Same(metrics.GrainTypeTagValue, Assert.IsType<string>(tag.Value));
@@ -249,7 +249,7 @@ public class CatalogInstrumentsTests
         var tasks = new Task<GrainTypeMetrics>[workers];
         for (var i = 0; i < workers; i++)
         {
-            // Dedicated workers prevent thread-pool starvation at the first-use barrier.
+            // 专职工人防止在第一用途屏障上出现线性饥荒。
             tasks[i] = Task.Factory.StartNew(() =>
             {
                 barrier.SignalAndWait(cancellationToken);
@@ -367,7 +367,7 @@ public class CatalogInstrumentsTests
         using var listener = fixture.Capture(observations);
         var tracker = WithDeactivationReason(CatalogInstruments.DeactivationMetricTracker.Start(fixture.Instruments, type), via);
         if (recordIfNeededFirst) tracker.RecordIfNeeded();
-        else tracker.Record(); // Intentionally ignore the returned struct: this local must still be marked recorded.
+        else tracker.Record(); // 有意忽略返回的建筑: 此本地必须仍然标记 。
         tracker.Record();
         tracker.RecordIfNeeded();
         tracker = tracker.Migration();
@@ -395,7 +395,7 @@ public class CatalogInstrumentsTests
         using var listener = fixture.Listen<double>((instrument, value, tags, _) =>
         {
             observations.Add(new(instrument, value, tags.ToArray()));
-            // Bound recursion so a regression fails by event count, not by stack overflow.
+            // 重回,回归失败 事件计数,而不是堆叠溢出。
             if (instrument.Name == InstrumentNames.CATALOG_ACTIVATION_LATENCY && observations.Count == 1)
             {
                 activation.Canceled();
@@ -471,7 +471,7 @@ public class CatalogInstrumentsTests
         using var fixture = new CatalogMetricFixture();
         var known = fixture.Instruments.GetGrainTypeMetrics(GrainType.Create("collection-orders"));
         var unknown = fixture.Instruments.GetGrainTypeMetrics(GrainType.Create("unknown"));
-        fixture.Instruments.ActivationShutdownViaCollection(); // Disabled events are not replayed.
+        fixture.Instruments.ActivationShutdownViaCollection(); // 残疾人事件不重播。
         var observations = new List<RecordedMeasurement<int>>();
         using var listener = fixture.Capture(observations);
         Assert.Empty(observations);
@@ -830,7 +830,7 @@ public class CatalogInstrumentsTests
         directory.RecordNewTarget(loser);
 
         var observations = new List<RecordedMeasurement<int>>();
-        using var listener = fixture.Capture(observations); // Deliberately attach after registration.
+        using var listener = fixture.Capture(observations); // 登记后故意附加。
         Assert.Same(first, directory.FindTarget(first.GrainId));
         Assert.Same(second, directory.FindTarget(second.GrainId));
         Assert.Same(other, directory.FindTarget(other.GrainId));
@@ -1015,7 +1015,7 @@ public class CatalogInstrumentsTests
         List<RecordedMeasurement<int>> observations,
         params (string Type, int Count)[] expected)
     {
-        observations.Clear(); // A scrape is a snapshot, never a cumulative event total.
+        observations.Clear(); // 刮痕是一瞬间,从来不是累积事件总数。
         listener.RecordObservableInstruments();
         Assert.Equal(expected.Length, observations.Count);
         foreach (var (type, count) in expected)

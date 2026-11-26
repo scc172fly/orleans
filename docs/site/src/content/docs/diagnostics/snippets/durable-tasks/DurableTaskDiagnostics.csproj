@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Examples for the durable task analyzer pages, ORLEANS0200 to ORLEANS0228. The analyzers run on this project, and the
-    build treats their diagnostics as errors, so each fix compiles cleanly. Each violating example disables the
-    diagnostic which it demonstrates around its region.
+    耐久任务分析器页面、 ORLEANS0200 到 ORLEANS0228的示例。
+    构建时将诊断结果作为错误处理, 所以每个修正都进行干净的编译。 每个违反例例都会禁用
+    并展示了它在该地区的诊断
   -->
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -11,11 +11,11 @@
     <OrleansDocumentationTargetFrameworkException>The durable packages target net11.0 only.</OrleansDocumentationTargetFrameworkException>
     <RepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\..\..\..\..\..\'))</RepositoryRoot>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- Durable grain state is experimental. -->
+    <!-- 耐久 grain 状态是实验。 -->
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Reports the informational rules as warnings, so the build checks the fixes for every rule. -->
+    <!-- 信息规则作为警告报告, 建筑检查每个规则的固定。 -->
     <GlobalAnalyzerConfigFiles Include="durable-task-rules.globalconfig" />
   </ItemGroup>
 

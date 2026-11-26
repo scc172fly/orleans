@@ -92,7 +92,7 @@ namespace UnitTests.StreamingTests
 
         internal static void Assert_AreEqual(ITestOutputHelper output, int expected, int actual, string msg, params object[] args)
         {
-            // expected == -1 means don't care / don't assert check value.
+            // i> evenue -1 意指不关心/不坚持检查值。
             string prefix = expected == -1 ? "Not-checked" : actual == expected ? "True" : "FALSE";
             string fmtMsg = string.Format("--> {0}: ", prefix) + string.Format(msg, args);
             output.WriteLine(fmtMsg);

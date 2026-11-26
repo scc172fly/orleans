@@ -11,15 +11,15 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.TestingHost.UnixSocketTransport;
 
 /// <summary>
-/// Extension methods for configuring the Orleans Unix domain socket transport.
+/// 配置 Orleans Unix 域套接字传输的扩展方法 。
 /// </summary>
 public static class UnixSocketConnectionExtensions
 {
     /// <summary>
-    /// Configures silo and gateway connections to use Unix domain sockets.
+    /// 配置 silo 和使用 Unix 域套接字的网关连接。
     /// </summary>
-    /// <param name="siloBuilder">The silo builder.</param>
-    /// <returns>The provided silo builder.</returns>
+    /// <param name="siloBuilder">下 silo 建筑商</param>
+    /// <returns>提供的情况 silo 建筑商</returns>
     public static ISiloBuilder UseUnixSocketConnection(this ISiloBuilder siloBuilder)
     {
         var services = siloBuilder.Services;
@@ -34,10 +34,10 @@ public static class UnixSocketConnectionExtensions
     }
 
     /// <summary>
-    /// Configures client connections to use Unix domain sockets.
+    /// 配置客户端连接,以使用 Unix 域套接字。
     /// </summary>
-    /// <param name="clientBuilder">The client builder.</param>
-    /// <returns>The provided client builder.</returns>
+    /// <param name="clientBuilder">客户端构建器。</param>
+    /// <returns>所提供的客户端构建器。</returns>
     public static IClientBuilder UseUnixSocketConnection(this IClientBuilder clientBuilder)
     {
         clientBuilder.Services.RemoveAll<MessageTransportConnector>();

@@ -25,16 +25,16 @@ namespace Orleans.Runtime
         {
             if (tokenSource.IsCancellationRequested)
             {
-                // This token has already been canceled.
+                // 此代号已被取消 。
                 return Task.CompletedTask;
             }
 
-            // propagate the exception from the _cancellationTokenSource.Cancel back to the caller
-            // but also cancel _targetGrainReferences.
+            // 向调用者传播从 _cancellationTokenSource.Cancel 回传到调用者的例外
+            // 也取消目标群引用。
             Task? localTask = null;
             try
             {
-                // Cancel the token now, preventing recursion.
+                // 现在就取消此牌, 防止重现 。
                 tokenSource.Cancel();
             }
             catch (Exception exception)

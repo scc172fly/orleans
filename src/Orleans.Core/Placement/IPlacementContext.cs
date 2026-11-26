@@ -3,35 +3,35 @@ using System.Collections.Generic;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// Provides context for a grain placement operation.
+    /// 提供了 grain 安置行动的背景。
     /// </summary>
     public interface IPlacementContext
     {
         /// <summary>
-        /// Gets the collection of silos which are compatible with the provided placement target.
+        /// 收集符合提供的职位安置目标的 silos 。
         /// </summary>
         /// <param name="target">
-        /// A description of the grain being placed as well as contextual information about the request which is triggering placement.
+        /// 说明所放置的 grain 以及触发安置的请求的背景信息。
         /// </param>
-        /// <returns>The collection of silos which are compatible with the provided placement target.</returns>
+        /// <returns>收藏集 silos 符合所提供的安置目标。</returns>
         SiloAddress[] GetCompatibleSilos(PlacementTarget target);
 
         /// <summary>
-        /// Gets the collection of silos which are compatible with the provided placement target, along with the versions of the grain interface which each server supports.
+        /// 获取与所提供的职位安置目标兼容的 silos 收藏,以及每个服务器支持的 grain 接口版本。
         /// </summary>
         /// <param name="target">
-        /// A description of the grain being placed as well as contextual information about the request which is triggering placement.
+        /// 说明所放置的 grain 以及触发安置的请求的背景信息。
         /// </param>
-        /// <returns>The collection of silos which are compatible with the provided placement target, along with the versions of the grain interface which each server supports.</returns>
+        /// <returns>收藏集 silos 符合规定的安置目标,以及 grain 每个服务器都支持的界面 。</returns>
         IReadOnlyDictionary<ushort, SiloAddress[]> GetCompatibleSilosWithVersions(PlacementTarget target);
 
         /// <summary>
-        /// Gets the local silo's identity.
+        /// 获取本地 silo的身份。
         /// </summary>
         SiloAddress LocalSilo { get; }
 
         /// <summary>
-        /// Gets the local silo's status.
+        /// 获取本地 silo状态。
         /// </summary>
         SiloStatus LocalSiloStatus { get; }
     }

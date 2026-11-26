@@ -6,21 +6,21 @@ using System.Diagnostics;
 namespace Orleans.Statistics;
 
 /// <summary>
-/// Provides statistics about the current process and its execution environment.
+/// 提供关于当前进程及其执行环境的统计数据。
 /// </summary>
 public interface IEnvironmentStatisticsProvider
 {
     /// <summary>
-    /// Gets the current environment statistics. May apply filtering or processing based on the runtime configuration.
+    /// 获取当前环境统计。 可能根据运行时间配置应用过滤或处理程序 。
     /// </summary>
     EnvironmentStatistics GetEnvironmentStatistics();
 }
 
-// This struct is intentionally 'packed' in order to avoid extra padding.
-// This will be created very frequently, so we reduce stack size and lower the serialization cost.
-// As more fields are added to this, they could be placed in such a manner that it may result in a lot of 'empty' space.
+// 为了避免额外加盖, 此支架是故意“ 包装” 的 。
+// 它将非常频繁地生成, 所以我们会减少堆叠大小,降低序列成本。
+// 随着更多的领域被添加到这一层,它们可以被置于这样的位置上,从而可能导致许多“空地”空间。
 /// <summary>
-/// Contains statistics about the current process and its execution environment.
+/// 载有关于当前过程及其执行环境的统计数据。
 /// </summary>
 [Immutable]
 [GenerateSerializer]
@@ -30,77 +30,77 @@ public interface IEnvironmentStatisticsProvider
 public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
 {
     /// <summary>
-    /// The system CPU usage.
+    /// CPU 系统使用率。
     /// <br/>
-    /// Applies Kalman filtering to smooth out short-term fluctuations.
-    /// See <see href="https://en.wikipedia.org/wiki/Kalman_filter"/>;
+    /// 应用 Kalman 过滤来平息短期波动 。
+    /// 见 <see href="https://en.wikipedia.org/wiki/Kalman_filter"/>;
     /// <see href="https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/"/>
     /// </summary>
-    /// <remarks>Ranges from 0.0-100.0.</remarks>
+    /// <remarks>范围为0.0-100.0。</remarks>
     [Id(0)]
     public readonly float FilteredCpuUsagePercentage;
 
     /// <summary>
-    /// The amount of managed memory currently consumed by the process.
+    /// 程序目前消耗的管理内存数量。
     /// <br/>
-    /// Applies Kalman filtering to smooth out short-term fluctuations.
-    /// See <see href="https://en.wikipedia.org/wiki/Kalman_filter"/>;
+    /// 应用 Kalman 过滤来平息短期波动 。
+    /// 见 <see href="https://en.wikipedia.org/wiki/Kalman_filter"/>;
     /// <see href="https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/"/>
     /// </summary>
     /// <remarks>
-    /// Includes fragmented memory, which is the unused memory between objects on the managed heaps.
+    /// 包括零碎的内存,即管理堆积上的物体之间未使用的内存。
     /// </remarks>
     [Id(1)]
     public readonly long FilteredMemoryUsageBytes;
 
     /// <summary>
-    /// The amount of memory currently available for allocations to the process.
+    /// 目前可用于分配给这一进程的内存数量。
     /// <br/>
-    /// Applies Kalman filtering to smooth out short-term fluctuations.
-    /// See <see href="https://en.wikipedia.org/wiki/Kalman_filter"/>;
+    /// 应用 Kalman 过滤来平息短期波动 。
+    /// 见 <see href="https://en.wikipedia.org/wiki/Kalman_filter"/>;
     /// <see href="https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/"/>
     /// </summary>
     /// <remarks>
-    /// Includes the currently available memory of the process and the system.
+    /// 包括目前可用的程序和系统的内存。
     /// </remarks>
     [Id(2)]
     public readonly long FilteredAvailableMemoryBytes;
 
     /// <summary>
-    /// The maximum amount of memory available to the process.
+    /// 进程可用的最大内存量。
     /// </summary>
     /// <remarks>
-    /// This value is computed as the lower of two amounts:
+    /// 此值以两笔数额的较低者计算:
     /// <list type="bullet">
-    ///   <item><description>The amount of memory after which the garbage collector will begin aggressively collecting memory, defined by <see cref="GCMemoryInfo.HighMemoryLoadThresholdBytes"/>.</description></item>
-    ///   <item><description>The process' configured memory limit, defined by <see cref="GCMemoryInfo.TotalAvailableMemoryBytes"/>.</description></item>
+    ///   <item><description>垃圾收集器开始积极收集 <see cref="GCMemoryInfo.HighMemoryLoadThresholdBytes"/>定义的内存量。</description></item>
+    ///   <item><description>进程配置的内存限制,由 <see cref="GCMemoryInfo.TotalAvailableMemoryBytes"/>定义。</description></item>
     /// </list>
-    /// Memory limits are common in containerized environments. For more information on configuring memory limits, see <see href="https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-limit"/>
+    /// 内存限值在集装箱化环境中很常见。关于配置内存限值的更多信息,请参见 <see href="https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-limit"/>
     /// </remarks>
     [Id(3)]
     public readonly long MaximumAvailableMemoryBytes;
 
     /// <summary>
-    /// The system CPU usage.
+    /// CPU 系统使用率。
     /// </summary>
-    /// <remarks>Ranges from 0.0-100.0.</remarks>
+    /// <remarks>范围为0.0-100.0。</remarks>
     [Id(4)]
     public readonly float RawCpuUsagePercentage;
 
     /// <summary>
-    /// The amount of managed memory currently consumed by the process.
+    /// 程序目前消耗的管理内存数量。
     /// </summary>
     [Id(5)]
     public readonly long RawMemoryUsageBytes;
 
     /// <summary>
-    /// The amount of memory currently available for allocations to the process.
+    /// 目前可用于分配给这一进程的内存数量。
     /// </summary>
     [Id(6)]
     public readonly long RawAvailableMemoryBytes;
 
     /// <summary>
-    /// Gets the percentage of memory used relative to currently available memory, clamped between 0 and 100.
+    /// 获得相对于现有可用内存的记忆使用的百分比,内存在0至100之间。
     /// </summary>
     public float MemoryUsagePercentage
     {
@@ -113,11 +113,11 @@ public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
     }
 
     /// <summary>
-    /// Gets the percentage of available memory relative to currently used memory, clamped between 0 and 100.
+    /// 获得可用内存相对于当前使用的内存的百分比,该内存在0到100之间。
     /// </summary>
     /// <remarks>
-    /// A value of <c>0</c> indicates that all available memory is currently in use.
-    /// A value of <c>100</c> indicates that all memory is currently available.
+    /// <c>0</c> 表示所有可用内存目前都在使用。
+    /// 值 <c>100</c> 表示所有内存目前都可用。
     /// </remarks>
     public float AvailableMemoryPercentage
     {
@@ -130,7 +130,7 @@ public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
     }
 
     /// <summary>
-    /// Gets the normalized memory usage (0.0 to 1.0).
+    /// 获得正常内存使用( 0.0 到 1. 0) 。
     /// </summary>
     public float NormalizedMemoryUsage
     {
@@ -143,7 +143,7 @@ public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
     }
 
     /// <summary>
-    /// Gets the normalized filtered memory usage (0.0 to 1.0).
+    /// 获取已标准化过滤的内存使用量( 0.0 到 1. 0) 。
     /// </summary>
     public float NormalizedFilteredMemoryUsage
     {
@@ -156,7 +156,7 @@ public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
     }
 
     /// <summary>
-    /// Gets the normalized available memory (0.0 to 1.0).
+    /// 获取可使用的常规内存( 0.0 到 1. 0) 。
     /// </summary>
     public float NormalizedAvailableMemory
     {
@@ -169,7 +169,7 @@ public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
     }
 
     /// <summary>
-    /// Gets the normalized filtered available memory (0.0 to 1.0).
+    /// 获取已归正的过滤可用内存( 0.0 到 1. 0) 。
     /// </summary>
     public float NormalizedFilteredAvailableMemory
     {
@@ -206,12 +206,12 @@ public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
             RawAvailableMemoryBytes);
 
     /// <summary>
-    /// Determines whether two environment statistics snapshots are equal.
+    /// 确定两个环境统计快照是否相等。
     /// </summary>
     public static bool operator ==(EnvironmentStatistics left, EnvironmentStatistics right) => left.Equals(right);
 
     /// <summary>
-    /// Determines whether two environment statistics snapshots are unequal.
+    /// 确定两个环境统计快照是否不平等。
     /// </summary>
     public static bool operator !=(EnvironmentStatistics left, EnvironmentStatistics right) => !left.Equals(right);
 
@@ -230,9 +230,9 @@ public readonly struct EnvironmentStatistics : IEquatable<EnvironmentStatistics>
     }
 
     /// <summary>
-    /// Returns a string containing the CPU and memory statistics.
+    /// 返回含有 CPU 和内存统计的字符串。
     /// </summary>
-    /// <returns>A string containing the CPU and memory statistics.</returns>
+    /// <returns>包含 CPU 和内存统计的字符串。</returns>
     public override string ToString()
         => $"CpuUsage: {FilteredCpuUsagePercentage:F2}% (raw: {RawCpuUsagePercentage:F2}%) | " +
            $"MemoryUsage: {FormatBytes(FilteredMemoryUsageBytes)} (raw: {FormatBytes(RawMemoryUsageBytes)}) [{MemoryUsagePercentage:F2}%] | " +

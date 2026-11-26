@@ -246,12 +246,12 @@ internal sealed class JournaledJobShardState : IStateMachine, IDurableValueComma
 internal enum DurableJobShardJournalRecordKind : byte
 {
     /// <summary>
-    /// Reserved sentinel. A record whose <see cref="DurableJobShardJournalRecord.Kind"/>
-    /// is <see cref="None"/> is invalid — it indicates a default-constructed instance or a
-    /// malformed journal payload (for example, a JSON record where <c>kind</c> was omitted
-    /// because the serializer drops default-valued properties). Apply paths must reject it.
-    /// Keep this at value 0 so that the default surfaces as an explicit failure rather than
-    /// silently aliasing to another kind.
+    /// 保存的哨点。记录,其中的 <see cref="DurableJobShardJournalRecord.Kind"/>
+    /// 是 <see cref="None"/> 无效,它表示默认构建实例或
+    /// 错误的日记日记有效载荷(例如 JSON 记录 <c>kind</c> 省略
+    /// 原因是序列器会降低默认价值属性。 应用路径必须拒绝它 。
+    /// 将此值保留在值 0 值, 这样默认表面将显示为明显故障而不是
+    /// 默默地用别种名
     /// </summary>
     None = 0,
     Schedule = 1,

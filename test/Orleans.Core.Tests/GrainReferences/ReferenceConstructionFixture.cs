@@ -29,7 +29,7 @@ internal sealed class ReferenceConstructionFixture : IDisposable
         Runtime = new RecordingReferenceRuntime();
         Services = new ServiceCollection()
             .AddSerializer()
-            // Construction uses these services for shared state; payload serialization is tested separately.
+            // 建筑工程将这些服务用于共享状态;有效载荷序列化单独测试。
             .AddSingleton(_ => new TypeConverter([], [], [], Options.Create(new TypeManifestOptions()), new CachedTypeResolver()))
             .AddSingleton(serviceProvider => new CodecProvider(serviceProvider, Options.Create(new TypeManifestOptions())))
             .AddSingleton<IGrainReferenceRuntime>(Runtime)

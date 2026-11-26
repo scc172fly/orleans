@@ -1,22 +1,22 @@
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// Object pool for <see cref="IInvokable"/> implementations.
+    /// <see cref="IInvokable"/> 执行对象集合。
     /// </summary>
     public static class InvokablePool
     {
         /// <summary>
-        /// Gets a value from the pool.
+        /// 从池子里取出一个价值。
         /// </summary>
-        /// <typeparam name="T">The type of the value.</typeparam>
-        /// <returns>A value from the pool.</returns>
+        /// <typeparam name="T">数值的类型。</typeparam>
+        /// <returns>集合中的数值。</returns>
         public static T Get<T>() where T : class, IInvokable, new() => TypedPool<T>.Pool.Get();
 
         /// <summary>
-        /// Returns a value to the pool.
+        /// 返回池内值。
         /// </summary>
-        /// <typeparam name="T">The type of the value.</typeparam>
-        /// <param name="obj">The value to return.</param>
+        /// <typeparam name="T">数值的类型。</typeparam>
+        /// <param name="obj">返回值 。</param>
         public static void Return<T>(T obj) where T : class, IInvokable, new() => TypedPool<T>.Pool.Return(obj);
 
         private static class TypedPool<T> where T : class, IInvokable, new()

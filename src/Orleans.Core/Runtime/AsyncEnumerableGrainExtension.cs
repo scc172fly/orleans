@@ -14,7 +14,7 @@ using Orleans.Timers;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Grain-side support for returning <see cref="IAsyncEnumerable{T}"/> from grain methods.
+/// Grain- 支持返回 <see cref="IAsyncEnumerable{T}"/> 调自 grain 方法。
 /// </summary>
 internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGrainExtension, IAsyncDisposable, IDisposable
 {
@@ -23,16 +23,16 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
     private readonly ILogger<AsyncEnumerableGrainExtension> _logger;
     private readonly MessagingOptions _messagingOptions;
 
-    // Internal for testing
+    // 内部测试
     internal IGrainTimer Timer { get; }
     internal IGrainContext GrainContext { get; }
 
     /// <summary>
-    /// Initializes a new <see cref="AsyncEnumerableGrainExtension"/> instance.
+    /// 初始化一个新的 <see cref="AsyncEnumerableGrainExtension"/> 实例。
     /// </summary>
-    /// <param name="grainContext">The grain which this extension is attached to.</param>
-    /// <param name="messagingOptions">The messaging options.</param>
-    /// <param name="logger">The logger.</param>
+    /// <param name="grainContext">下 grain 并附有这一延长。</param>
+    /// <param name="messagingOptions">发短信选项。</param>
+    /// <param name="logger">日志器。</param>
     public AsyncEnumerableGrainExtension(
         IGrainContext grainContext,
         IOptions<MessagingOptions> messagingOptions,
@@ -87,7 +87,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                     return false;
                 }
 
-                // Returns true if no flags were set.
+                // 如果未设置国旗, 返回为真 。
                 return state.ClearSeen();
             }
         }
@@ -171,14 +171,14 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                 object? result = null;
                 do
                 {
-                    // Check if the enumerator has a result ready synchronously.
+                    // 检查点显示结果是否同步准备 。
                     moveNextValueTask = typedEnumerator.MoveNextAsync();
                     if (moveNextValueTask.IsCompletedSuccessfully)
                     {
                         var hasValue = moveNextValueTask.Result;
                         if (hasValue)
                         {
-                            // Account for the just-emitted element.
+                            // 清点了被理赔的元素
                             ++currentBatchSize;
                             var value = typedEnumerator.Current;
                             if (currentBatchSize == 1)
@@ -187,7 +187,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                             }
                             else if (currentBatchSize == 2)
                             {
-                                // Grow from a single element to a list.
+                                // 从单元素增长到列表 。
                                 result = new List<T> { (T)result!, value };
                             }
                             else
@@ -197,7 +197,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                         }
                         else
                         {
-                            // Completed successfully, possibly with some final elements.
+                            // 已完成成功,可能有一些最后内容。
                             if (currentBatchSize == 0)
                             {
                                 return OnTerminateAsync(requestId, EnumerationResult.Completed, default);
@@ -212,13 +212,13 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                     }
                     else
                     {
-                        // The enumerator did not complete synchronously, so we need to await the result for subsequent elements.
+                        // 调查员没有同步完成,所以我们需要等待结果,以获得随后的内容。
                         entry.MoveNextTask = moveNextValueTask.AsTask();
                         break;
                     }
                 } while (currentBatchSize < entry.MaxBatchSize);
 
-                // If there are elements, return them now instead of waiting for the pending operation to complete.
+                // 如果有人员,现在就归还他们,而不是等待完成即将进行的行动。
                 if (currentBatchSize == 1)
                 {
                     return new((EnumerationResult.Element, result!));
@@ -228,10 +228,10 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                     return new((EnumerationResult.Batch, result!));
                 }
 
-                // There are no elements, so wait for the pending operation to complete.
+                // 没有元素,所以等待即将完成的操作。
             }
 
-            // Prevent the enumerator from being collected while we are enumerating it.
+            // 防止在我们进行统计时收集该分子。
             entry.SetBusy();
             return AwaitMoveNextAsync(requestId, typedEnumerator, entry.MoveNextTask!, cancellationToken);
         }
@@ -249,14 +249,14 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
     {
         try
         {
-            // Wait for either the MoveNextAsync task to complete or the polling timeout to elapse.
+            // 等待 MoveNextAsync 任务完成或投票超时过后。
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var longPollingTimeout = _messagingOptions.ConfiguredResponseTimeout / 2;
             cts.CancelAfter(longPollingTimeout);
             await moveNextTask.WaitAsync(cts.Token).SuppressThrowing();
 
-            // Update the enumerator state to indicate that we are not currently waiting for MoveNextAsync to complete.
-            // If the MoveNextAsync task completed then clear that now, too.
+            // 更新查点状态, 以表明我们目前没有等待 MoveNextAsync 完成 。
+            // 如果 MoveNextAsync 任务完成后,现在也明确这一点。
             UpdateEnumeratorState(requestId, clearMoveNextTask: moveNextTask.IsCompleted);
             void UpdateEnumeratorState(Guid requestId, bool clearMoveNextTask)
             {
@@ -294,7 +294,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
             }
             else if (moveNextTask.Exception is { } moveNextException)
             {
-                // Completed, but not successfully.
+                // 已完成, 但未成功 。
                 var exception = moveNextException.InnerExceptions.Count == 1 ? moveNextException.InnerException! : moveNextException;
                 await RemoveEnumeratorAsync(requestId);
                 return (EnumerationResult.Error, exception);
@@ -407,10 +407,10 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
         internal CancellationTokenSource? CancellationTokenSource;
         public void SetSeen() => _flags |= SeenFlag;
         public void SetBusy() => _flags |= BusyFlag | SeenFlag;
-        public void ClearBusy() => _flags = SeenFlag; // Clear the 'Busy' flag, but set the 'Seen' flag.
+        public void ClearBusy() => _flags = SeenFlag; // 清除“ Busy” 国旗, 但设置了“ seen” 旗帜 。
         public bool ClearSeen()
         {
-            // Clear the 'Seen' flag and check if any flags were set previously.
+            // 清除“ 可见” 的旗帜, 检查是否先前设置过任何国旗 。
             var isExpired = _flags == 0;
             _flags &= ~SeenFlag;
             return isExpired;

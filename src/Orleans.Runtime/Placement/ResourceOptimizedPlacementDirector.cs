@@ -9,7 +9,7 @@ using Orleans.Configuration;
 
 namespace Orleans.Runtime.Placement;
 
-// See: https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
+// 见: https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
 internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, ISiloStatisticsChangeListener
 {
     private const int FourKiloByte = 4096;
@@ -68,9 +68,9 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
             return Task.FromResult(compatibleSilos[Random.Shared.Next(compatibleSilos.Length)]);
         }
 
-        // It is good practice not to allocate more than 1[KB] on the stack
-        // but the size of ValueTuple<int, ResourceStatistics> = 24 bytes, by increasing
-        // the limit to 4[KB] we can stackalloc for up to 4096 / 24 ~= 170 silos in a cluster.
+        // 将不超过1[KB]的金额分配给堆叠
+        // 以增加 ValueTuple<int, ResourceStatistics> =24字字字节的大小
+        // 4[KB]的限值,我们可以堆叠4096/24+170 silos 一组。
         (int Index, float Score, float? LocalSiloScore) pick;
         int compatibleSilosCount = compatibleSilos.Length;
         if (compatibleSilosCount * Unsafe.SizeOf<(int, ResourceStatistics)>() <= FourKiloByte)
@@ -95,7 +95,7 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
 
         (int PickIndex, float PickScore, float? LocalSiloScore) MakePick(scoped Span<(int, ResourceStatistics)> relevantSilos)
         {
-            // Get all compatible silos which aren't overloaded
+            // 获取所有未超载的兼容 silos
             int relevantSilosCount = 0;
             float maxMaxAvailableMemory = 0;
             int maxActivationCount = 0;
@@ -127,12 +127,12 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
                 }
             }
 
-            // Limit to the number of candidates added.
+            // 增加候选人人数限制。
             relevantSilos = relevantSilos[0..relevantSilosCount];
             Debug.Assert(relevantSilos.Length == relevantSilosCount);
 
-            // Pick K silos from the list of compatible silos, where K is equal to the square root of the number of silos.
-            // Eg, from 10 silos, we choose from 4.
+            // 选取 K silos 相容列表中的 silos,其中 K等于数字的平方根。 silos.
+            // e,从10 silos中,我们从4中选择。
             int candidateCount = (int)Math.Ceiling(Math.Sqrt(relevantSilosCount));
             ShufflePrefix(relevantSilos, candidateCount);
             var candidates = relevantSilos[0..candidateCount];
@@ -143,8 +143,8 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
             {
                 float score = CalculateScore(in statistics, maxMaxAvailableMemory, maxActivationCount);
 
-                // It's very unlikely, but there could be more than 1 silo that has the same score,
-                // so we apply some jittering to avoid pick the first one in the short-list.
+                // 不太可能,但可能超过1个 silo 得分相同
+                // 所以我们用一些乱七八糟的来避免 选入第一排名单
                 float scoreJitter = Random.Shared.NextSingle() / 100_000f;
 
                 if (score + scoreJitter < pick.Score)
@@ -163,9 +163,9 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
             return (pick.Index, pick.Score, localSiloScore);
         }
 
-        // Variant of the Modern Fisher-Yates shuffle which stops after shuffling the first `prefixLength` elements,
-        // which are the only elements we are interested in.
-        // See: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+        // 现代渔业-Yates打牌的变式,在打乱第一个 `prefixLength` 要素后停止,
+        // 它们是我们唯一感兴趣的因素。
+        // 见: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
         static void ShufflePrefix(Span<(int SiloIndex, ResourceStatistics SiloStatistics)> values, int prefixLength)
         {
             Debug.Assert(prefixLength >= 0 && prefixLength <= values.Length);

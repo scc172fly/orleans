@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Functionality for serializing and deserializing <see cref="IdSpan"/> instances.
+/// 序列化和取消 <see cref="IdSpan"/> 实例的功能。
 /// </summary>
 [RegisterSerializer]
 public sealed class IdSpanCodec : IFieldCodec<IdSpan>
@@ -28,7 +28,7 @@ public sealed class IdSpanCodec : IFieldCodec<IdSpan>
         ReferenceCodec.MarkValueField(writer.Session);
         writer.WriteFieldHeader(fieldIdDelta, expectedType, _codecType, WireType.LengthPrefixed);
         var bytes = value.AsSpan();
-        if (bytes.IsEmpty) writer.WriteByte(1); // Equivalent to `writer.WriteVarUInt32(0);`
+        if (bytes.IsEmpty) writer.WriteByte(1); // 等值于 `writer.WriteVarUInt32(0);`
         else
         {
             writer.WriteVarUInt32((uint)(sizeof(int) + bytes.Length));
@@ -38,11 +38,11 @@ public sealed class IdSpanCodec : IFieldCodec<IdSpan>
     }
 
     /// <summary>
-    /// Writes an <see cref="IdSpan"/> value to the provided writer without field framing.
+    /// 将 <see cref="IdSpan"/> 值写入给提供作家,而不设置字段框。
     /// </summary>
-    /// <param name="writer">The writer.</param>
-    /// <param name="value">The value to write.</param>
-    /// <typeparam name="TBufferWriter">The underlying buffer writer type.</typeparam>
+    /// <param name="writer">作家。</param>
+    /// <param name="value">要写入的值。</param>
+    /// <typeparam name="TBufferWriter">后含缓冲写作类型。</typeparam>
     public static void WriteRaw<TBufferWriter>(
         ref Writer<TBufferWriter> writer,
         IdSpan value)
@@ -58,11 +58,11 @@ public sealed class IdSpanCodec : IFieldCodec<IdSpan>
     }
 
     /// <summary>
-    /// Reads an <see cref="IdSpan"/> value from a reader without any field framing.
+    /// 从读者那里读取 <see cref="IdSpan"/> 值,但不设置字段。
     /// </summary>
-    /// <typeparam name="TInput">The underlying reader input type.</typeparam>
-    /// <param name="reader">The reader.</param>
-    /// <returns>An <see cref="IdSpan"/>.</returns>
+    /// <typeparam name="TInput">基础读者输入类型。</typeparam>
+    /// <param name="reader">读者</param>
+    /// <returns>A 音 A <see cref="IdSpan"/>.</returns>
     public static unsafe IdSpan ReadRaw<TInput>(ref Reader<TInput> reader)
     {
         var length = reader.ReadVarUInt32();

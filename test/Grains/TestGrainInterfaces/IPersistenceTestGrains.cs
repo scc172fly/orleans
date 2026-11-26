@@ -20,13 +20,13 @@ namespace UnitTests.GrainInterfaces
 
     public interface IPersistenceTestGenericGrain<T> : IPersistenceTestGrain // IGrainWithGuidKey
     { }
-    //    Task<bool> CheckStateInit();
-    //    Task<string> CheckProviderType();
-    //    Task DoSomething();
-    //    Task DoWrite(int val);
-    //    Task<int> DoRead();
-    //    Task<int> GetValue();
-    //    Task DoDelete();
+    //    任务<bool> CheckStateInit();
+    //    任务<string> CheckProviderType();
+    //    任务 DoSomething();
+    //    任务 DoWrite(在val);
+    //    任务<int> DoRead();
+    //    任务<int> GetValue();
+    //    任务 DoDelete();
     //}
 
     public interface IMemoryStorageTestGrain : IGrainWithGuidKey

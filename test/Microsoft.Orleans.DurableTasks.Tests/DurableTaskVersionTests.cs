@@ -7,8 +7,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Verifies which version of a change <see cref="DurableTask.GetVersion(string, int, int)"/> returns to executions which
-/// started before, during, and after a deployment, and how executions on unsupported versions stall.
+/// 验证哪个版本的更改 <see cref="DurableTask.GetVersion(string, int, int)"/> 返回处决
+/// 以及如何处决无支持版本的版本。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -33,7 +33,7 @@ public sealed class DurableTaskVersionTests
             Assert.Equal(2, record.State.Result!.GetResult<int>());
         }
 
-        // A later deployment adds version 3. The execution keeps the version which it recorded.
+        // 后部署增加第3版。 处决保留了记录中的版本。
         harness.Workflow = grain => Workflow(grain, maxSupported: 3);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -66,8 +66,8 @@ public sealed class DurableTaskVersionTests
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
         replay.Grain.OpenGate();
 
-        // The earlier run recorded "second" after the point where the check now stands, so the execution follows the
-        // code before the change, and records that decision.
+        // 之前记录在“第二”的运行时间, 以当前支票所在点之后的检查结果为开始, 所以执行后
+        // 修改前的代码,记录该决定。
         Assert.Equal("0:second", (await replay.GetResponseAsync(workflowId, TestCancellation)).GetResult<string>());
         var record = Assert.Single(replay.Storage.Tasks, task => task.Id == workflowId.Child("$version:change"));
         Assert.Equal(0, record.State.Result!.GetResult<int>());
@@ -107,7 +107,7 @@ public sealed class DurableTaskVersionTests
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
         replay.Grain.OpenGate();
 
-        // The earlier run waited at the gate before the point where the check now stands.
+        // 早先的跑步在大门等候,
         Assert.Equal("1:replacement", (await replay.GetResponseAsync(workflowId, TestCancellation)).GetResult<string>());
 
         static async DurableTask<string> Before(ReplayGrain grain)
@@ -146,7 +146,7 @@ public sealed class DurableTaskVersionTests
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
         replay.Grain.OpenGate();
 
-        // The inserted step ended the replay, and "second" still shows that the earlier run went past the check.
+        // 插入的步结束了重播, “ 第二” 仍然显示早期运行经过了检查。
         Assert.Equal("0:second", (await replay.GetResponseAsync(workflowId, TestCancellation)).GetResult<string>());
         Assert.False(replayingAtCheck);
 
@@ -183,8 +183,8 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // The earlier run completed two iterations before the gate. Later iterations, which run after the replay, still
-        // follow the version which the first iteration decided.
+        // 早期运行在大门前完成两次迭代。 后继迭代, 在重放后运行, 仍然
+        // 遵循第一次迭代决定的版本。
         harness.Workflow = grain => Loop(grain, versions, check: true);
         await using (var replay = await harness.ActivateAsync(TestCancellation))
         {
@@ -193,7 +193,7 @@ public sealed class DurableTaskVersionTests
 
         Assert.Equal([0, 0, 0, 0], versions);
 
-        // A further replay reads the recorded decision.
+        // 进一步重播了该记录的决定。
         versions.Clear();
         await using var recovered = await harness.ActivateAsync(TestCancellation);
         await recovered.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -231,7 +231,7 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // A deployment removed the check of "retired", whose record stays in the execution's tree.
+        // 部署取消了对“退休”的检查,其记录保留在行刑树上。
         harness.Workflow = grain => After(grain, observations);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -267,7 +267,7 @@ public sealed class DurableTaskVersionTests
 
         Assert.Equal((1, 1, 2), (await activation.GetResponseAsync(workflowId, TestCancellation)).GetResult<(int, int, int)>());
 
-        // The step which inherited the parent's decision records none of its own; the step which found none records it.
+        // 继承父母决定的步骤没有记录任何自己的决定;没有记录的任何步骤。
         var records = activation.Storage.Tasks
             .Select(static task => task.Id.ToString())
             .Where(static id => id.Contains("/$version:", StringComparison.Ordinal))
@@ -303,14 +303,14 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // Code which supports only version 1, such as an earlier build during a rolling deployment, replays the task.
+        // 仅支持版本1的代码,如在滚动部署期间早期建造的代码,重播任务。
         harness.Workflow = grain => Workflow(grain, maxSupported: 1);
         await using (var older = await harness.ActivateAsync(TestCancellation))
         {
             var exception = await stalled.Task.WaitAsync(Timeout, TestCancellation);
             Assert.Equal(("change", 2, 0, 1), (exception.Name, exception.Version, exception.MinSupported, exception.MaxSupported));
 
-            // The task stays pending, its attempt ended, and the grain keeps a slow wake-up for a later activation.
+            // 任务未完成,其尝试结束, grain 为以后的启动而缓慢地警醒。
             Assert.True(older.Storage.TryGetTask(workflowId, out var state));
             Assert.False(state.Result is { IsCompleted: true });
             await WaitUntilAsync(() => older.Runtime.GetWakeupDelay() == TimeSpan.FromMinutes(1));
@@ -352,9 +352,9 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // Code which raised the minimum supported version replays an execution which recorded version 0. The check and the
-        // step which the body starts after catching the cancellation report the attempt's cancellation for the
-        // unsupported version, and the body's state change succeeds.
+        // 代码提高了最小支持的版本最小值, 并重新播放了记录 0 版的执行。 检查和
+        // 键,当该正文在抓取取消报告后开始的
+        // 不支持的版本, 身体的状态变化成功 。
         harness.Workflow = grain => Handling(grain, failures.Enqueue);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await stalled.Task.WaitAsync(Timeout, TestCancellation);
@@ -416,7 +416,7 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // The next deployment adds version 2; the pending execution keeps version 1.
+        // 下一次部署将增加第二版;待执行部分保留第一版。
         harness.Workflow = static grain => Workflow(grain, Extended);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -436,7 +436,7 @@ public sealed class DurableTaskVersionTests
 
     private static readonly DurableVersion Extended = new("descriptor", minSupported: 0, maxSupported: 2);
 
-    /// <summary>Waits until the workflow waits at the gate, then commits what it staged with an unrelated write.</summary>
+    /// <summary>等待工作流程在大门等候,然后执行它用不相关的写作所演的。</summary>
     private static async Task CommitAtGateAsync(ReplayActivation activation)
     {
         await activation.Grain.AtGate.WaitAsync(Timeout, TestCancellation);

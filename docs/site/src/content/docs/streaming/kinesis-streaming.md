@@ -1,61 +1,73 @@
 ---
-title: Stream with Amazon Kinesis
-description: Configure Amazon Kinesis Data Streams for Orleans, including durable DynamoDB checkpoints.
+title: "亚马逊 Kinesis 流"
+description: "配置 Orleans的亚马逊 Kinesis数据流,包括耐用 DynamoDB 检查站。"
 ms.date: 08/07/2026
 ms.topic: how-to
 ---
 
-# Stream with Amazon Kinesis
+<a id="stream-with-amazon-kinesis"></a>
 
-The [`Microsoft.Orleans.Streaming.Kinesis`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.Kinesis) package connects Orleans persistent streams to [Amazon Kinesis Data Streams](https://docs.aws.amazon.com/streams/latest/dev/introduction.html). Each Kinesis shard is an Orleans queue, so the number of open shards bounds physical read parallelism. Kinesis retention determines how far a consumer can replay.
+# 亚马逊 Kinesis 流
 
-Create the Kinesis data stream before starting Orleans. The provider discovers its shards but doesn't create, delete, split, or merge the stream.
+[`Microsoft.Orleans.Streaming.Kinesis`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.Kinesis) 套件将 Orleans 持久性流连接到 [亚马孙 Kinesis 数据流](https://docs.aws.amazon.com/streams/latest/dev/introduction.html)。每个 Kinesis 碎片是一个 Orleans 队列,因此打开的碎片数量会约束物理阅读平行。 Kinesis 保留决定消费者可以重放多远。
 
-## Configure the silo
+在启动 Orleans之前创建 Kinesis 数据流。 提供者发现它的碎片, 但不会创建、 删除、 拆分或合并流 。
 
-Install the package and register a named provider:
+<a id="configure-the-silo"></a>
+
+## 配置 silo
+
+安装软件包并注册一个名符其实的供应商:
 
 :::code language="csharp" source="../snippets/compiled/Streaming/KinesisSnippets.cs" id="kinesis_hosting_using":::
 :::code language="csharp" source="../snippets/compiled/Streaming/KinesisSnippets.cs" id="configure_kinesis_silo":::
 
-`PubSubStore` persists explicit Orleans stream subscriptions. The checkpoint table has a different purpose: it records the last delivered Kinesis sequence number for each shard.
+`PubSubStore` 坚持明确 Orleans 串行订阅。检查站表格有不同的目的:它记录每个碎片的最后交付的 Kinesis 序列号。
 
-Configure every Orleans client which publishes through the provider with the same provider name, stream name, and region:
+配置每个 Orleans 客户端, 以同一服务提供方名称、 流名和地区通过服务提供方发布 :
 
 :::code language="csharp" source="../snippets/compiled/Streaming/KinesisSnippets.cs" id="configure_kinesis_client":::
 
-When explicit credentials aren't configured, the provider uses the [AWS SDK for .NET credential resolution chain](https://docs.aws.amazon.com/sdk-for-net/v4/developer-guide/creds-assign.html). In production, prefer workload credentials such as an IAM role. Set <xref:Orleans.Streaming.Kinesis.KinesisStreamOptions.Service> when using a custom Kinesis-compatible endpoint.
+当没有配置明确的证书时, 提供者使用 [.NET 证书分辨率链的AWS SDK](https://docs.aws.amazon.com/sdk-for-net/v4/developer-guide/creds-assign.html)。 在生产中, 更喜欢工作量证书, 如 IAM 角色。 如果使用自定义 Kinesis 兼容的端点, 请设置 <xref:Orleans.Streaming.Kinesis.KinesisStreamOptions.Service> 。
 
-## Choose checkpoint storage
+<a id="choose-checkpoint-storage"></a>
 
-Kinesis shard iterators are temporary. Orleans therefore stores the last delivered sequence number outside Kinesis and uses it to resume after a restart or queue reassignment.
+## 选择检查站储存
 
-### DynamoDB table checkpoints
+Kinesis 碎片代号是暂时的。 Orleans 因此,将最后一个交付序列编号存放在 Kinesis 外, 并在重新启动或队列重新配置后使用它恢复运行 。
 
-Call <xref:Orleans.Hosting.SiloKinesisStreamConfigurator.UseDynamoDBCheckpointer*> to store checkpoints directly in DynamoDB. The checkpointer:
+<a id="dynamodb-table-checkpoints"></a>
 
-- Uses one versioned item per Orleans service, provider, and Kinesis shard.
-- Uses consistent reads and conditional writes to prevent a previous queue owner from overwriting a newer checkpoint.
-- Creates an on-demand table by default. Set <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.CreateIfNotExists> to `false` when infrastructure provisioning owns the table.
-- Limits writes using <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.PersistInterval>. A shorter interval reduces replay after failure but increases DynamoDB write traffic.
+### DynamoDB 表式检查站
 
-Set <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.UseProvisionedThroughput>, <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.ReadCapacityUnits>, and <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.WriteCapacityUnits> when the table uses provisioned capacity.
+呼叫 <xref:Orleans.Hosting.SiloKinesisStreamConfigurator.UseDynamoDBCheckpointer*> 直接将检查站存放在 DynamoDB。
 
-### Grain checkpoints
+- 每个 Orleans 服务、提供者和Kinesis 碎片使用一个版本的物品。
+- 使用一致的读数和有条件写数,以防止先前的队列所有人背信一个新检查站。
+- 默认创建点名表格。当基础设施提供方拥有该表时,将 <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.CreateIfNotExists> 设为 `false` 。
+- 限制使用 <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.PersistInterval>写。短间隔会减少失败后的重播,但会增加 DynamoDB 的写流量。
 
-If no checkpointer is selected, the provider uses Orleans grain-backed checkpoints. Checkpoint grains use `PubSubStore` by default, so that provider must be durable in production:
+当表格使用提供的能力时,设定 <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.UseProvisionedThroughput>、 <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.ReadCapacityUnits>和 <xref:Orleans.Configuration.DynamoDBStreamQueueCheckpointerOptions.WriteCapacityUnits> 。
+
+<a id="grain-checkpoints"></a>
+
+### Grain 检查站
+
+如果未选择检查站, 供应商使用 Orleans grain- 后盾检查站。 检查点 grains 默认使用 `PubSubStore` , 因此供应商的生产必须耐久:
 
 :::code language="csharp" source="../snippets/compiled/Streaming/KinesisSnippets.cs" id="kinesis_streams_using":::
 :::code language="csharp" source="../snippets/compiled/Streaming/KinesisSnippets.cs" id="configure_grain_checkpoints":::
 
-Both implementations preserve monotonic Kinesis sequence numbers and can replay a small number of already delivered records after an unclean shutdown. Consumers must tolerate duplicate delivery.
+这两种执行都保留单调 Kinesis 序列编号,并且可以在不干净的关闭后重放少量已经交付的记录。 消费者必须容忍重复交付。
 
-## Operations and permissions
+<a id="operations-and-permissions"></a>
 
-Grant the application only the Kinesis data-plane and DynamoDB table permissions required by its configuration. The Kinesis provider lists shards, obtains shard iterators, reads records, and writes records. A provider-managed checkpoint table also requires permissions to describe and create the table and to read and conditionally write checkpoint items.
+## 操作和许可
 
-Monitor Kinesis iterator age, read throttling, provisioned throughput, and retention together with the [Orleans streaming metrics](streaming-operations.md#observe-health). <xref:Orleans.Streaming.Kinesis.KinesisStreamOptions.GetRecordsInterval> defaults to the fastest interval allowed by Kinesis for each shard.
+允许应用程序只使用 Kinesis 数据平面和配置所需的 DynamoDB 表权限。 Kinesis 供应商列出碎片、获取碎片代用器、读取记录并写下记录。 由供应商管理的检查站表格还需要描述和创建表格以及阅读和有条件地写入检查站项目的权限。
 
-Live resharding isn't supported. If the shard topology changes while the provider is running, receivers stop rather than risk incorrect queue ownership. Restart the Orleans stream provider after splitting or merging shards.
+监视 Kinesis 代数年龄, 读取抽动、 提供输送量和与 [Orleans 流流量度](streaming-operations.md#observe-health)一起保留。 <xref:Orleans.Streaming.Kinesis.KinesisStreamOptions.GetRecordsInterval> 默认为每个碎片的 Kinesis 允许的最快速间隔 。
 
-For a complete configuration which uses DynamoDB for clustering, grain state, reminders, and Kinesis checkpoints, see the [AWS Kinesis and DynamoDB sample](https://github.com/dotnet/orleans/tree/main/samples/AWS/KinesisDynamoDB).
+不支持重新刻录。 如果在提供商运行期间, 硬结构会发生变化, 接收器停止而不是冒不正确的队列所有权风险 。 在拆分或合并碎片后重新启动 Orleans 流提供者 。
+
+使用 DynamoDB 组合、 grain 状态、提醒和Kinesis检查站的完整配置见 [AWS Kinesis 和 DynamoDB 样本](https://github.com/dotnet/orleans/tree/main/samples/AWS/KinesisDynamoDB)。

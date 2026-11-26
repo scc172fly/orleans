@@ -6,7 +6,7 @@ using Orleans.Runtime;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// Represents the event sent and received from an In-Memory queue grain. 
+    /// 代表从记忆中队列发送和接收的事件 grain。 
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -14,31 +14,31 @@ namespace Orleans.Providers
     public struct MemoryMessageData
     {
         /// <summary>
-        /// The stream identifier.
+        /// 溪流识别符 。
         /// </summary>
         [Id(0)]
         public StreamId StreamId;
 
         /// <summary>
-        /// The position of the event in the stream.
+        /// 流中事件的位置。
         /// </summary>
         [Id(1)]
         public long SequenceNumber;
 
         /// <summary>
-        /// The time this message was read from the message queue.
+        /// 此信件从消息队列中读取的时间 。
         /// </summary>
         [Id(2)]
         public DateTime DequeueTimeUtc;
 
         /// <summary>
-        /// The time message was written to the message queue.
+        /// 将时间信息写入信件队列。
         /// </summary>
         [Id(3)]
         public DateTime EnqueueTimeUtc;
 
         /// <summary>
-        /// The serialized event data.
+        /// 序列事件数据。
         /// </summary>
         [Id(4)]
         public ArraySegment<byte> Payload;

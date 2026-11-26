@@ -12,18 +12,18 @@ using Orleans.Runtime;
 namespace Orleans.Dashboard.Implementation;
 
 /// <summary>
-/// Uses reflection to extract the registered lifecycle observers from a
-/// <see cref="ISiloLifecycleSubject"/> so the dashboard can render them as a
-/// dependency graph.
+/// 利用反射法从
+/// <see cref="ISiloLifecycleSubject"/> ,以便仪表板能够将它们变成
+/// 依赖性图。
 /// </summary>
 /// <remarks>
-/// The dashboard does not have <c>InternalsVisibleTo</c> access to the
-/// runtime, so we walk the private state of <c>SiloLifecycleSubject</c> and
-/// <c>LifecycleSubject</c> via reflection. The shape of the data
-/// (<c>List&lt;MonitoredObserver&gt;</c> on the silo subject, with public
-/// <c>Name</c>/<c>Stage</c>/<c>StageName</c> properties and a private
-/// <c>observer</c> field) is stable and is the same data structure already
-/// emitted to logs by <c>SiloLifecycleSubject.OnStart</c>.
+/// 仪表板没有 <c>InternalsVisibleTo</c> 访问该天
+/// 运行时, 所以我们在 <c>SiloLifecycleSubject</c> 和私密状态行走
+/// <c>LifecycleSubject</c> 数据形状
+/// (<c>List&lt;MonitoredObserver&gt;</c> 排在《公约》 silo 主题,公开
+/// <c>Name</c>/<c>Stage</c>/<c>StageName</c> 属性和私人
+/// <c>observer</c> 字段)稳定,数据结构已经相同
+/// <c>SiloLifecycleSubject.OnStart</c>排放到日志上。
 /// </remarks>
 internal static class LifecycleStageInspector
 {
@@ -38,10 +38,10 @@ internal static class LifecycleStageInspector
             return [];
         }
 
-        // The silo's lifecycle subject keeps a separate `observers` field
-        // (List<MonitoredObserver>) that carries richer information than the
-        // base `subscribers` field. Prefer that, but fall back to the base list
-        // if reflection fails.
+        // silo的生命周期对象保留单独的 `observers` 字段
+        // 信息比《公约》更丰富的(清单<MonitoredObserver>)
+        // 基 `subscribers` 字段。最好这样做,但返回到基准列表
+        // 如果反射失败。
         var monitored = TryReadField<System.Collections.IEnumerable>(lifecycle, "observers");
         if (monitored is not null)
         {
@@ -112,25 +112,25 @@ internal static class LifecycleStageInspector
             return info;
         }
 
-        // The base LifecycleSubject wraps every registration in an internal
-        // OrderedObserver. The silo subject wraps that again in MonitoredObserver.
-        // Unwrap one extra layer of MonitoredObserver if reflection returned it.
+        // 基 LifecycleSubject 将每个注册的封以内部
+        // OrderedObserver. silo 主题包在 MonitoredObserver中再次。
+        // 如果反射返回, 解封一个额外的 MonitoredObserver 层。
         if (inner.GetType().Name == "MonitoredObserver")
         {
             inner = inner.GetType().GetField("observer", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(inner) ?? inner;
         }
 
-        // Try to extract delegate targets/methods. The delegate-based
-        // Subscribe overloads in LifecycleExtensions wrap the delegates in a
-        // private `Observer` (with onStart/onStop fields) or `StartupObserver`
-        // (with an `_onStart` field, OnStop is no-op).
+        // 尝试提取代表目标/方法。
+        // 将代表的包装在 LifecycleExtensions 中
+        // 私有 `Observer` (与 onStart/onStop 字段)或 `StartupObserver`
+        // (在 `_onStart` 字段中, OnStop 是无操作的)
         var innerType = inner.GetType();
         Delegate? onStart = TryReadDelegateField(inner, innerType, "onStart") ?? TryReadDelegateField(inner, innerType, "_onStart");
         Delegate? onStop = TryReadDelegateField(inner, innerType, "onStop") ?? TryReadDelegateField(inner, innerType, "_onStop");
 
         if (onStart is null && onStop is null && innerType.GetMethod("OnStart") is not null)
         {
-            // Concrete ILifecycleObserver implementation.
+            // 具体 ILifecycleObserver 执行。
             info.ObserverType = FormatType(innerType);
             info.HasOnStart = true;
             info.HasOnStop = true;
@@ -164,16 +164,16 @@ internal static class LifecycleStageInspector
 
     private static bool IsNoOp(Delegate? d)
     {
-        // We treat compiler-generated `_ => Task.CompletedTask` and the
-        // shared no-op delegates as "no-op" purely so the UI can dim the
-        // edge. Detecting compiler closures is best-effort.
+        // 我们处理编译器生成 `_ => Task.CompletedTask` 和
+        // 将无代表作为“不不”代表,让UI能够平暗
+        // 边缘。检测编译器关闭是最佳的尝试。
         if (d is null) return true;
         if (ReferenceEquals(d, NoOpStart) || ReferenceEquals(d, NoOpStop)) return true;
         var method = d.Method;
         if (method.DeclaringType is { } declaring && declaring.Name.Contains("<>c", StringComparison.Ordinal))
         {
-            // Lambda. Without analyzing the IL we can't be sure, but it's
-            // almost always a no-op when used in lifecycle wiring.
+            // 兰巴达,如果不分析IL 我们无法肯定
+            // 当使用生命周期电线时,几乎总是没有机会。
             return true;
         }
         return false;
@@ -186,7 +186,7 @@ internal static class LifecycleStageInspector
         var declaring = method.DeclaringType;
         if (declaring is null) return CleanMethodName(method.Name);
 
-        // For closures, walk up to the user-visible enclosing type.
+        // 关闭时,请步行到可看到的附件类型。
         if (declaring.Name.StartsWith("<>c", StringComparison.Ordinal) && declaring.DeclaringType is not null)
         {
             declaring = declaring.DeclaringType;
@@ -202,10 +202,10 @@ internal static class LifecycleStageInspector
     }
 
     /// <summary>
-    /// Strips compiler-generated prefixes from method names produced by lambdas
-    /// (<c>&lt;Outer&gt;b__N_N</c>) and local functions
-    /// (<c>&lt;Outer&gt;g__Name|N_N</c>). Local functions retain their original
-    /// name; anonymous lambdas are rendered as <c>&lt;lambda in Outer&gt;</c>.
+    /// 以羊羔制作的方法名称来绘制编译器生成的前缀
+    /// (<c>&lt;Outer&gt;b__N_N</c>)和局部功能
+    /// (<c>&lt;Outer&gt;g__Name|N_N</c>。本地功能保留其原始功能
+    /// 姓名; 匿名羊羔以 <c>&lt;lambda in Outer&gt;</c>.
     /// </summary>
     private static string CleanMethodName(string methodName)
     {
@@ -214,8 +214,8 @@ internal static class LifecycleStageInspector
             return methodName;
         }
 
-        // Find the matching '>' for the leading '<', accounting for nested
-        // angle brackets in explicit-interface implementations like
+        // 查找前导“ <” 的匹配 “% > , 计算嵌套
+        // 明确互动执行中诸如
         // `<Orleans.ILifecycleParticipant<Orleans.Runtime.ISiloLifecycle>.Participate>g__Name|N`.
         var depth = 0;
         var endOfOuter = -1;
@@ -240,9 +240,9 @@ internal static class LifecycleStageInspector
         }
 
         var outer = methodName.AsSpan(1, endOfOuter - 1).ToString();
-        // Reduce explicit-interface implementations like
-        // `Orleans.ILifecycleParticipant<...>.Participate` down to just
-        // the trailing method name (Participate).
+        // 减少明确接口执行,如
+        // `Orleans.ILifecycleParticipant<...>.Participate` 下到仅
+        // 后退方法名称( 参与) 。
         var lastDot = LastTopLevelDot(outer);
         if (lastDot >= 0)
         {
@@ -252,7 +252,7 @@ internal static class LifecycleStageInspector
         var suffix = methodName.AsSpan(endOfOuter + 1);
         if (suffix.Length >= 3 && suffix[0] == 'g' && suffix[1] == '_' && suffix[2] == '_')
         {
-            // <Outer>g__LocalName|N_N -> LocalName
+            // <Outer>g__ 本地Name _N_N - > LocalName
             var rest = suffix[3..];
             var pipe = rest.IndexOf('|');
             var localName = pipe >= 0 ? rest[..pipe] : rest;

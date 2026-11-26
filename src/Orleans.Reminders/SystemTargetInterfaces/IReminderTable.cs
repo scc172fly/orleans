@@ -8,135 +8,135 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// Interface for implementations of the underlying storage for reminder data:
-    /// Azure Table, SQL, development emulator grain, and a mock implementation.
-    /// Defined as a grain interface for the development emulator grain case.
+    /// 执行提醒数据基本储存的接口:
+    /// Azure 表 4 SQL发展模拟器 grain和模拟执行。
+    /// 定义为 grain 开发模拟器的界面 grain 案件。
     /// </summary>  
     public interface IReminderTable
     {
         /// <summary>
-        /// Initializes this instance.
+        /// 初始化了这个实例。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task StartAsync(CancellationToken cancellationToken = default)
 #pragma warning disable CS0618 // Type or member is obsolete
             => Init();
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
-        /// Initializes this instance.
+        /// 初始化了这个实例。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         [Obsolete("Implement and use StartAsync instead")]
         Task Init() => Task.CompletedTask;
 
         /// <summary>
-        /// Reads the reminder table entries associated with the specified grain.
+        /// 读取与指定 grain相关的提醒表格条目。
         /// </summary>
-        /// <param name="grainId">The grain ID.</param>
-        /// <returns>The reminder table entries associated with the specified grain.</returns>
+        /// <param name="grainId">下 grain ID.</param>
+        /// <returns>与指定 grain.</returns>
         Task<ReminderTableData> ReadRows(GrainId grainId);
 
         /// <summary>
-        /// Reads the reminder table entries associated with the specified grain.
+        /// 读取与指定 grain相关的提醒表格条目。
         /// </summary>
-        /// <param name="grainId">The grain ID.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The reminder table entries associated with the specified grain.</returns>
+        /// <param name="grainId">下 grain ID.</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>与指定 grain.</returns>
         Task<ReminderTableData> ReadRows(GrainId grainId, CancellationToken cancellationToken) => ReadRows(grainId);
 
         /// <summary>
-        /// Returns all rows that have their <see cref="GrainId.GetUniformHashCode"/> in the range (begin, end].
-        /// If begin is greater or equal to end, returns all entries with hash greater begin or hash less or equal to end.
+        /// 返回在范围( 开始、 结束) 中包含 <see cref="GrainId.GetUniformHashCode"/> 的所有行。
+        /// 如果起始数大于或等于结束,则返回所有以散列较大起始数或小于或等于结束数的条目。
         /// </summary>
-        /// <param name="begin">The exclusive lower bound.</param>
-        /// <param name="end">The inclusive upper bound.</param>
-        /// <returns>The reminder table entries which fall within the specified range.</returns>
+        /// <param name="begin">排他性下限约束</param>
+        /// <param name="end">包含式上约束。</param>
+        /// <returns>属于指定范围的提醒表条目。</returns>
         Task<ReminderTableData> ReadRows(uint begin, uint end);
 
         /// <summary>
-        /// Returns all rows whose grain hash is in the specified range.
+        /// 返回 grain hash位于指定范围内的所有行。
         /// </summary>
-        /// <param name="begin">The exclusive lower bound.</param>
-        /// <param name="end">The inclusive upper bound.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The reminder table entries which fall within the specified range.</returns>
+        /// <param name="begin">排他性下限约束</param>
+        /// <param name="end">包含式上约束。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>属于指定范围的提醒表条目。</returns>
         Task<ReminderTableData> ReadRows(uint begin, uint end, CancellationToken cancellationToken) => ReadRows(begin, end);
 
         /// <summary>
-        /// Reads the specified entry.
+        /// 读取指定条目。
         /// </summary>
-        /// <param name="grainId">The grain ID.</param>
-        /// <param name="reminderName">Name of the reminder.</param>
-        /// <returns>The reminder table entry.</returns>
+        /// <param name="grainId">下 grain ID.</param>
+        /// <param name="reminderName">提醒函的名称。</param>
+        /// <returns>提醒表格条目。</returns>
         Task<ReminderEntry?> ReadRow(GrainId grainId, string reminderName);
 
         /// <summary>
-        /// Reads the specified entry.
+        /// 读取指定条目。
         /// </summary>
-        /// <param name="grainId">The grain ID.</param>
-        /// <param name="reminderName">Name of the reminder.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The reminder table entry.</returns>
+        /// <param name="grainId">下 grain ID.</param>
+        /// <param name="reminderName">提醒函的名称。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>提醒表格条目。</returns>
         Task<ReminderEntry?> ReadRow(GrainId grainId, string reminderName, CancellationToken cancellationToken) => ReadRow(grainId, reminderName);
 
         /// <summary>
-        /// Upserts the specified entry.
+        /// 向指定条目上传。
         /// </summary>
-        /// <param name="entry">The entry.</param>
-        /// <returns>The row's new ETag.</returns>
+        /// <param name="entry">条目。</param>
+        /// <returns>新的 ETag 。</returns>
         Task<string?> UpsertRow(ReminderEntry entry);
 
         /// <summary>
-        /// Upserts the specified entry.
+        /// 向指定条目上传。
         /// </summary>
-        /// <param name="entry">The entry.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The row's new ETag.</returns>
+        /// <param name="entry">条目。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>新的 ETag 。</returns>
         Task<string?> UpsertRow(ReminderEntry entry, CancellationToken cancellationToken) => UpsertRow(entry);
 
         /// <summary>
-        /// Removes a row from the table.
+        /// 删除表格中的一行。
         /// </summary>
-        /// <param name="grainId">The grain ID.</param>
-        /// <param name="reminderName">The reminder name.</param>
-        /// /// <param name="eTag">The ETag.</param>
-        /// <returns>true if a row with <paramref name="grainId"/> and <paramref name="reminderName"/> existed and was removed successfully, false otherwise</returns>
+        /// <param name="grainId">下 grain ID.</param>
+        /// <param name="reminderName">提醒的名称。</param>
+        /// /// <param name="eTag">塔格号</param>
+        /// <returns>真实的行 <paramref name="grainId"/> 和 <paramref name="reminderName"/> 存在, 并成功被删除, 否则是假</returns>
         Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag);
 
         /// <summary>
-        /// Removes a row from the table.
+        /// 删除表格中的一行。
         /// </summary>
-        /// <param name="grainId">The grain ID.</param>
-        /// <param name="reminderName">The reminder name.</param>
-        /// <param name="eTag">The ETag.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><see langword="true"/> if the row was removed; otherwise, <see langword="false"/>.</returns>
+        /// <param name="grainId">下 grain ID.</param>
+        /// <param name="reminderName">提醒的名称。</param>
+        /// <param name="eTag">塔格号</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns><see langword="true"/> 如果删除了该行;否则, <see langword="false"/>。</returns>
         Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag, CancellationToken cancellationToken) => RemoveRow(grainId, reminderName, eTag);
 
         /// <summary>
-        /// Clears the table.
+        /// 清理桌子
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task TestOnlyClearTable();
 
         /// <summary>
-        /// Clears the table.
+        /// 清理桌子
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task TestOnlyClearTable(CancellationToken cancellationToken) => TestOnlyClearTable();
 
         /// <summary>
-        /// Stops the reminder table.
+        /// 停止提醒表。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     /// <summary>
-    /// Reminder table interface for grain based implementation.
+    /// 用于基于 grain 的履行提醒表接口。
     /// </summary>
     internal interface IReminderTableGrain : IGrainWithIntegerKey
     {
@@ -160,32 +160,32 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Represents a collection of reminder table entries.
+    /// 代表提醒表格条目集。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class ReminderTableData
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReminderTableData"/> class.
+        /// 初始化 <see cref="ReminderTableData"/> 类的新实例。
         /// </summary>
-        /// <param name="list">The entries.</param>
+        /// <param name="list">条目。</param>
         public ReminderTableData(IEnumerable<ReminderEntry> list)
         {
             Reminders = new List<ReminderEntry>(list);
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReminderTableData"/> class.
+        /// 初始化 <see cref="ReminderTableData"/> 类的新实例。
         /// </summary>
-        /// <param name="entry">The entry.</param>
+        /// <param name="entry">条目。</param>
         public ReminderTableData(ReminderEntry entry)
         {
             Reminders = new[] { entry };
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReminderTableData"/> class.
+        /// 初始化 <see cref="ReminderTableData"/> 类的新实例。
         /// </summary>
         public ReminderTableData()
         {
@@ -193,56 +193,56 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the reminders.
+        /// 得到提醒。
         /// </summary>
-        /// <value>The reminders.</value>
+        /// <value>提醒函。</value>
         [Id(0)]
         public IList<ReminderEntry> Reminders { get; private set; }
 
         /// <summary>
-        /// Returns a <see cref="string" /> that represents this instance.
+        /// 返回代表此实例的 <see cref="string" /> 。
         /// </summary>
-        /// <returns>A <see cref="string" /> that represents this instance.</returns>
+        /// <returns>A <see cref="string" /> 代表此实例。</returns>
         public override string ToString() => $"[{Reminders.Count} reminders: {Utils.EnumerableToString(Reminders)}.";
     }
 
     /// <summary>
-    /// Represents a reminder table entry.
+    /// 代表提醒表条目。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class ReminderEntry
     {
         /// <summary>
-        /// Gets or sets the grain ID of the grain that created the reminder. Forms the reminder
-        /// primary key together with <see cref="ReminderName"/>.
+        /// 设置 grain 编号 ID grain 以便他创造教诲,而你对它加以教诲
+        /// 主键与 <see cref="ReminderName"/>一起。
         /// </summary>
         [Id(0)]
         public GrainId GrainId { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the reminder. Forms the reminder primary key together with 
+        /// 查找或设置提醒的名称。将提醒主要密钥与 
         /// <see cref="GrainId"/>.
         /// </summary>
         [Id(1)]
         public string ReminderName { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the time when the reminder was supposed to tick in the first time
+        /// 获取或设定提醒第一次要滴答的时间
         /// </summary>
         [Id(2)]
         public DateTime StartAt { get; set; }
 
         /// <summary>
-        /// Gets or sets the time period for the reminder
+        /// 获取或设定提醒的时间段
         /// </summary>
         [Id(3)]
         public TimeSpan Period { get; set; }
 
         /// <summary>
-        /// Gets or sets the ETag.
+        /// 设置或设置ETag。
         /// </summary>
-        /// <value>The ETag.</value>
+        /// <value>塔格号</value>
         [Id(4)]
         public string? ETag { get; set; }
 
@@ -250,9 +250,9 @@ namespace Orleans
         public override string ToString() => $"<GrainId={GrainId} ReminderName={ReminderName} Period={Period}>";
 
         /// <summary>
-        /// Returns an <see cref="IGrainReminder"/> representing the data in this instance.
+        /// 返回在此情况下代表数据的 <see cref="IGrainReminder"/> 。
         /// </summary>
-        /// <returns>The <see cref="IGrainReminder"/>.</returns>
+        /// <returns>下 <see cref="IGrainReminder"/>.</returns>
         internal IGrainReminder ToIGrainReminder() => new ReminderData(GrainId, ReminderName, ETag!);
     }
 

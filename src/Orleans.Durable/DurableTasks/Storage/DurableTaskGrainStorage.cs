@@ -12,23 +12,23 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Tasks.Storage;
 
 /// <summary>
-/// Stores durable task state in the grain's journal.
+/// 储存 grain日记中的耐久任务状态。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Task state is rewritten on every update, so request and result payloads are journaled separately: each payload is
-/// written once when it is stored, and removed when the task is deleted. A recovered state's payloads are attached the
-/// first time the storage exposes it.
+/// 每次更新都重新写入任务状态, 因此请求和结果有效载荷将分别进行日记: 每一个有效载荷
+/// 回收状态的有效载荷附于
+/// 第一次储存暴露它。
 /// </para>
 /// <para>
-/// The task hierarchy is indexed in memory. The index is built from the recovered tasks on first use, then maintained
-/// as tasks are created and removed; the journal recovers once per activation, before the runtime uses the storage.
+/// 任务等级以内存为索引。该索引是根据第一次使用时回收的任务构建的,然后加以维护
+/// 当任务被创建和删除时; 日记每激活一次恢复一次, 在运行时间使用存储前 。
 /// </para>
 /// <para>
-/// Each stored result is stamped with the next completion sequence. The last sequence isn't journaled: it is derived
-/// from the recovered tasks on first use, as their highest sequence, so a stamp costs no journal entry of its own.
-/// Deleting a terminal execution tree can lower the derived value, but the combinators which compare sequences only
-/// compare tasks of a running execution, which remain stored.
+/// 每个存储的结果都标记为下一个完成序列。 最后的顺序没有日记: 它是导出
+/// 首期使用时回收的任务, 作为其最高顺序, 所以印章不花费自己日记的输入。
+/// 删除终端执行树可降低衍生值,但只比较序列的组合器
+/// 比较运行中执行的任务,这些任务仍然保存。
 /// </para>
 /// </remarks>
 internal sealed class DurableTaskGrainStorage : IDurableTaskGrainStorage
@@ -175,8 +175,8 @@ internal sealed class DurableTaskGrainStorage : IDurableTaskGrainStorage
     }
 
     /// <remarks>
-    /// The record's state is complete before it is added, so the journal holds one entry for the state and one for the
-    /// result's payload. A result which doesn't serialize throws before anything is staged.
+    /// 记录在添加前已经完整, 因此日记有一个国家条目和一个国家条目
+    /// 有效载荷。结果不会在任何事情发生之前, 将抛出物序列化 。
     /// </remarks>
     public IDurableTaskState AddRecord(TaskId taskId, DurableTaskRecordKind kind, string fingerprint, DurableTaskResponse response)
     {

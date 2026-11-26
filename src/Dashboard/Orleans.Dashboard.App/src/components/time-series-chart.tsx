@@ -10,7 +10,7 @@ interface TimeSeriesChartState {
   width: number;
 }
 
-// this control is a bit of a temporary hack, until I have a multi-series chart widget
+// 此控件有点临时黑入, 直到我有一个多系列图表部件
 export default class TimeSeriesChart extends React.Component<TimeSeriesChartProps, TimeSeriesChartState> {
   private containerRef: HTMLDivElement | null;
   private options: any;
@@ -103,7 +103,7 @@ export default class TimeSeriesChart extends React.Component<TimeSeriesChartProp
               return new Date(timepoint).toLocaleTimeString();
             }
           } catch {
-            // not a valid date string
+            // 无效的日期字符串
           }
         }
 

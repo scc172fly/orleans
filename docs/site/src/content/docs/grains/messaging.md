@@ -1,138 +1,146 @@
 ---
-title: Messaging
-description: Understand the inbox and outbox guarantees, execution model, and operating limits.
+title: "通信通信"
+description: "了解收件箱和发件箱的保障、执行模式和操作限制。"
 ms.date: 10/10/2026
 ms.topic: conceptual
 ---
 
-# Messaging
+<a id="messaging"></a>
 
-Messaging, in the `Microsoft.Orleans.Durable` package, gives each grain a durable inbox and
-outbox built on Orleans Journaling and Durable Jobs. A grain commits received
-messages, business changes, and outgoing messages in its own journal, so handler
-effects and pending sends survive activation loss.
+# 通信通信
 
-> `Microsoft.Orleans.Durable` is a pre-release alpha package which targets .NET 11
-> (`net11.0`). Evaluate it with
-> an explicit upgrade, rollback, backup, and recovery plan because its APIs and
-> journal formats can change before stabilization.
+`Microsoft.Orleans.Durable` 软件包中的信息通信给每个 grain 都有一个耐久的收件箱和
+外框基于 Orleans 《日刊和持久工作》。 grain 收到承诺
+其日记中的讯息、业务变化和发送信息,例如处理器
+和等待的效果 发送生存活性丧失。
 
-This page describes the message, commit, and execution model. Continue with:
+> `Microsoft.Orleans.Durable` 是一个针对 .NET 11的释放前阿尔法包件
+> `net11.0`. 与
+> 明确的升级、回退、备份和回收计划,因为其APP和
+> 单日记格式在稳定之前可以更改。
 
-- [Idempotency and hierarchical operation keys](messaging-idempotency.md)
-  for application command identities, retained completion facts, and external effects.
-- [Practical recipes](messaging-recipes.md) for inventory reservation,
-  payment-provider reconciliation, out-of-order projections, and notification fan-out.
-- [Operations and throughput](messaging-operations.md) for configuration,
-  diagnostics, dead-letter replay, upgrades, and sequential messaging benchmarks.
-- [Durable tasks](durable-tasks.md) for multi-step workflows written as sequential
-  code, which run over the same inbox and outbox.
+此页面描述信息、 承诺和执行模式。 继续使用 :
 
-## Message and routing model
+- [能力与等级操作键](messaging-idempotency.md)
+  应用指令身份、保留完成事实和外部效果。
+- 保留清单的[实用实用食谱](messaging-recipes.md) ,
+  付款提供者对账、订单外预测和通知溢出。
+- 配置[业务和投入](messaging-operations.md)
+  诊断、死字母重放、升级和连续发送信息基准。
+- 以相继方式书写多步工作流程[持久任务](durable-tasks.md)
+  代码,它运行过相同的信箱和发件箱。
 
-Each <xref:Orleans.Durable.Messaging.Envelope> carries an application-supplied
+<a id="message-and-routing-model"></a>
+
+## 消息和路由模式
+
+每个 <xref:Orleans.Durable.Messaging.Envelope> 都携带一个申请包
 <xref:Orleans.Durable.Messaging.MessageId>, which wraps a
 <xref:Orleans.Durable.Messaging.HierarchicalKey>, a required `byte[]` payload,
-an optional ordinal subject, optional named byte-array headers, and an optional
-`DeliverAt` time. Empty payloads are valid.
+任择性常规科目,可选名称为字数页头和可选
+`DeliverAt` 时间。空有效载荷是有效的 。
 
-An <xref:Orleans.Durable.Messaging.OutboxMessage> pairs the envelope with its destination
-(<xref:Orleans.Runtime.GrainId>). Delivery passes an
+A 音 A <xref:Orleans.Durable.Messaging.OutboxMessage> 将信封与其目的地对齐
+(<xref:Orleans.Runtime.GrainId>). 送文员
 <xref:Orleans.Durable.Messaging.InboxMessage> carrying the same envelope to that grain's inbox.
-The envelope's ID identifies the logical command. Reply destinations, domain
-versions, and other business data travel in the application payload.
+信封的识别码识别了逻辑命令。回复目的地,域
+应用有效载荷的版本和其他商业数据旅行。
 
-Sending and delivery validate each message before any durable change:
+发送和交付在任何持久变化之前验证每项信息:
 
-- The message ID is set and is at most 1,024 UTF-8 bytes in its canonical form.
-- The payload is non-null.
-- A supplied subject is nonempty and at most 256 UTF-8 bytes.
-- Header keys are nonempty, well-formed UTF-16 strings, and header values are non-null.
-- An outgoing message has a destination.
+- 信息代号已设置,最多为1 024 UTF-8字节,以其语气形式出现。
+- 有效载荷是无核的
+- 提供的标的为无空,最多256个UTF-8字节。
+- 页头键是非空的、结构完善的 UTF-16 字符串,页头值是非核值。
+- 发送的消息有目的地。
 
-Retries and reconstructed submissions reuse the same ID, subject, destination, body,
-and `DeliverAt` time.
+重新处理和重新提交的申请
+和 `DeliverAt` 时间。
 
-### Register handlers
+<a id="register-handlers"></a>
 
-Inject <xref:Orleans.Durable.Messaging.IInbox> into the grain and add handlers with
-<xref:Orleans.Durable.Messaging.IInbox.Register*>. An
+### 注册处理器
+
+将 <xref:Orleans.Durable.Messaging.IInbox> 注入 grain ,并添加处理器
+<xref:Orleans.Durable.Messaging.IInbox.Register*>。 A. 的
 <xref:Orleans.Durable.Messaging.IInboxHandler> has two members:
-<xref:Orleans.Durable.Messaging.IInboxHandler.CanHandle*> receives the
+<xref:Orleans.Durable.Messaging.IInboxHandler.CanHandle*> 接收
 <xref:Orleans.Durable.Messaging.InboxMessage> and selects the messages the handler
-accepts, and <xref:Orleans.Durable.Messaging.IInboxHandler.HandleAsync*> processes one message.
-The inbox dispatches each message to the first registered handler whose `CanHandle`
-returns `true`, in registration order. The selected handler stages the message's
-terminal outcome from `HandleAsync`.
+接受, <xref:Orleans.Durable.Messaging.IInboxHandler.HandleAsync*> 处理一个消息。
+收件箱将每条消息发送到第一个注册的处理器,该处理器 `CanHandle`
+返回 `true`,按登记顺序。选定的处理器将信件的
+`HandleAsync`的终端结果。
 
-Typed handlers register through the
-<xref:Orleans.Durable.Messaging.InboxExtensions.Register*> extension methods. Each overload
-takes a <xref:Orleans.Durable.Messaging.MessageType`1> binding and a delegate, matches the
-binding's subject ordinally, decodes the payload, and passes the decoded body and the
-handler context to the delegate:
+输入处理器的注册
+<xref:Orleans.Durable.Messaging.InboxExtensions.Register*> 扩展方法。
+需要一个 <xref:Orleans.Durable.Messaging.MessageType`1> 绑定和一个代表,与
+将有效载荷解码 并通过解码体和
+代表的上下文:
 
-| Delegate | Use |
+| 代表 代表 代表 | 使用 |
 | --- | --- |
-| `Action<T, IInboxHandlerContext>` | Synchronous handling. |
-| `Func<T, IInboxHandlerContext, CancellationToken, ValueTask>` | Asynchronous preparation before the final update. |
-| `Action<T, TArg, IInboxHandlerContext>` | Synchronous handling with an explicit argument, for `static` delegates. |
-| `Func<T, TArg, IInboxHandlerContext, CancellationToken, ValueTask>` | Asynchronous handling with an explicit argument, for `static` delegates. |
+| `Action<T, IInboxHandlerContext>` | 同步处理 。 |
+| `Func<T, IInboxHandlerContext, CancellationToken, ValueTask>` | 最终更新前的同步准备工作。 |
+| `Action<T, TArg, IInboxHandlerContext>` | 以明确的理由同步处理 `static` 代表。 |
+| `Func<T, TArg, IInboxHandlerContext, CancellationToken, ValueTask>` | 以明确的理由处理非同步问题 `static` 代表。 |
 
-The overloads that take a `TArg` argument let a `static` lambda receive the grain or
-other state without a closure allocation. Synchronous typed handlers observe the
-processing cancellation token immediately before the delegate runs. `Register`
-returns the inbox, so registrations chain.
+使用 `TArg` 参数的超载让一个 `static` 羊羔接收 grain 或
+同步打字处理器观察
+代表正在运行前的当前处理取消代 表符号。 `Register`
+返回收件箱,因此登记链。
 
-Handlers can be registered at any time. Register them during grain construction or
-in <xref:Orleans.Grain.OnActivateAsync*>, so they're available when the inbox
-starts processing recovered messages. Messages already in the inbox wait until a
-handler is registered.
+手持者可以随时登记。在建设 grain 期间登记,或
+,当收件箱在 <xref:Orleans.Grain.OnActivateAsync*>中时可以使用
+开始处理已恢复的信件。 已经放入收件箱的信件等待到
+处理器已注册。
 
-A receiver with no registered handlers answers delivery with
-`DeliveryResult.HandlerNotFound`, and the sender retries the
-message. When handlers are registered and none accepts the message, processing
-reports a handler failure for that message, which follows the retry and dead-letter
-policy.
+接收器,没有注册的操作员,
+`DeliveryResult.HandlerNotFound`,发送者重试
+。当处理者被注册且无人接受该信件时,会进行处理
+对该信件的处理器失败报告, 此信件在重试和废字母后
+政策。
 
-### Encode ordinary application values
+<a id="encode-ordinary-application-values"></a>
 
-Message bodies are ordinary Orleans-serializable types:
+### 编码普通应用值
+
+信件正文为普通 Orleans- 可排序类型 :
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_payload" language="csharp":::
 
-A <xref:Orleans.Durable.Messaging.MessageType`1> binds a subject to the
-<xref:Orleans.Serialization.Serializer`1> for its body type.
-<xref:Orleans.Durable.Messaging.MessageType`1.Decode*> verifies the envelope's subject
-before reading its payload. Define an application's bindings in one class which
-constructs them from the <xref:Orleans.Serialization.Serializer> service, register
-that class as a singleton, and inject it into grains:
+<xref:Orleans.Durable.Messaging.MessageType`1> 将一个受该[质 约束的主体约束于
+其体型<xref:Orleans.Serialization.Serializer`1> 。
+<xref:Orleans.Durable.Messaging.MessageType`1.Decode*> 核实信封的标
+定义申请的装订,在一种类别中
+使用 <xref:Orleans.Serialization.Serializer> 服务、注册和注册来构建
+将一个品级地投入单吨位,然后投入 grains:
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_messages" language="csharp":::
 
-<xref:Orleans.Hosting.MessageTypeExtensions.AddMessageType*> registers a single
-binding as a keyed singleton for `FromKeyedServices` injection.
+<xref:Orleans.Hosting.MessageTypeExtensions.AddMessageType*> 登记单
+键入单顿的 `FromKeyedServices` 注射。
 
-Subjects use exact ordinal spelling, for example `inventory.reserve.v1`. Separate
-subjects can bind the same CLR type. When a subject uses a base type, define the
-supported polymorphism in the serialization contract.
+对象使用精确的正交拼法,例如 `inventory.reserve.v1`。
+对象可以绑定相同的 CLR 类型。当一个对象使用基类型时,定义
+序列合同中支持的多形态。
 
-<xref:Orleans.Durable.Messaging.OutboxExtensions.Send*> takes a binding, a stable command
-ID, a destination, and a body. The destination is a <xref:Orleans.Runtime.GrainId>
-or an <xref:Orleans.Runtime.IAddressable> grain reference. The helper encodes the
-body and stages the outgoing message. Serialization completes before staging, so a
-serialization error leaves the outbox unchanged. A batch overload encodes every
-message before staging any, so an encoding failure stages nothing, then stages the
-messages in order.
+<xref:Orleans.Durable.Messaging.OutboxExtensions.Send*> 需要一个绑定、稳定的命令
+ID、目的地和身体。目标为 <xref:Orleans.Runtime.GrainId>
+或 <xref:Orleans.Runtime.IAddressable> grain 引用。帮助者编码
+连续序列化在中继前完成,所以
+序列序列错误使发件箱保持不变。
+在启动任何信息之前, 编码失败没有发生, 然后开始
+顺序排列的邮件。
 
-<xref:Orleans.Durable.Messaging.OutboxExtensions.SendReply*> takes a binding, the handler
-context, a destination, and a result body. It derives the reply ID by appending the
-literal `result` segment to the received command ID. The application supplies the
-reply destination, typically from a field of the request body such as
+<xref:Orleans.Durable.Messaging.OutboxExtensions.SendReply*> 需要一个绑定, 操作器将
+附加
+接收命令ID的字面 `result` 段。应用程序提供
+通常来自请求机构如
 `ResponseDestination`.
 
-<xref:Orleans.Durable.Messaging.MessageType`1.Create*> builds an outgoing message from a
-command ID, a destination, and a body. Use it to deliver a message explicitly
-through its <xref:Orleans.Durable.Messaging.OutboxMessage.ToInboxMessage*> view.
+构建<xref:Orleans.Durable.Messaging.MessageType`1.Create*> 从
+命令、 ID、 目的和正文。使用它明确发送信件
+以其 <xref:Orleans.Durable.Messaging.OutboxMessage.ToInboxMessage*> 视图。
 
 <a id="own-and-borrow-payload-slices"></a>
 
@@ -140,78 +148,86 @@ through its <xref:Orleans.Durable.Messaging.OutboxMessage.ToInboxMessage*> view.
 
 <a id="use-payload-and-header-slices"></a>
 
-### Use payload and header arrays
+<a id="use-payload-and-header-arrays"></a>
 
-An envelope is a readonly value holding its payload array, subject, and optional
-header dictionary. Struct assignment shares those objects; RPC copying and
-deserialization produce independent copies. Prepare the payload and headers before
-sending and keep their contents unchanged afterward: outbox state, delivery
-retries, handler contexts, and diagnostics read the same arrays.
+### 使用有效载荷和信头阵列
 
-For a raw protocol, assign the encoded payload and the headers the protocol uses.
-Receivers look up headers by ordinal key and decode them with the agreed encoding.
-This example encodes a shipment payload and two application headers with ordinary
-serializers:
+信封是一个只读值, 包含有效载荷阵列、 主题和可选
+标题词典。 Struct 任务分配共享这些对象; RPC 复制和
+脱序后制成独立副本。
+发送并保持其内容在此后保持不变:发件箱状态、交付
+重试、处理器背景和诊断读取相同的数组。
+
+对于原始协议,指定编码有效载荷和协议使用的页眉。
+接收者通过正则密钥查找信头,然后用商定的编码解码。
+这个例子编码了装运有效载荷和两个应用信头的普通编码
+序列器 :
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_byte_payload" language="csharp":::
 
-Headers travel with the payload through persistence, retries, recovery, and
-dead-letter inspection. A repeated submission of a pending or staged command keeps
-the first submission's headers. Place command-defining parameters in the payload
-and subject, and use headers for accompanying context such as trace identifiers.
+头头携带有效载荷通过耐久性、回溯性、回收和
+重复提交待执行或分阶段指挥的
+有效载荷中的位置命令定义参数
+以及主题,并使用标题作为随附背景,例如跟踪识别符号。
 
 <a id="carry-independently-encoded-items"></a>
 
-### Carry related values in one message
+<a id="carry-related-values-in-one-message"></a>
 
-Use a serializable record for a composite message. Fields can contain other
-application records, collections, and binary data. This shipment carries a
-reservation request and a `byte[]` manifest in one body:
+### 将相关值包含在一个信息中
+
+使用可连序记录来显示复合电文。字段中可以包含其他
+应用、记录、收集和二进制数据。
+和a) `byte[]` 在一个体中显示:
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_shipment" language="csharp":::
 
-The typed `Send` helper serializes the entire `Shipment`, and a typed handler
-receives the decoded record. For serialization outside messaging, use
-<xref:Orleans.Serialization.Serializer`1.SerializeToArray*> and
+键入 `Send` 助手将整个 `Shipment`和一个已打印的处理器序列成序
+接收解码记录。用于在信息发送外进行序列化,请使用
+<xref:Orleans.Serialization.Serializer`1.SerializeToArray*> 和
 <xref:Orleans.Serialization.Serializer`1.Deserialize*>.
 
-### Schedule processing
+<a id="schedule-processing"></a>
 
-Set <xref:Orleans.Durable.Messaging.Envelope.DeliverAt> to hold a message in the receiving
-inbox until a time on the Durable Jobs clock. The single-message typed
-<xref:Orleans.Durable.Messaging.OutboxExtensions.Send*> helpers and
-<xref:Orleans.Durable.Messaging.MessageType`1.Create*> accept an optional `deliverAt`
-argument. Compute `deliverAt` from the Durable Jobs clock, which a grain injects as
-the keyed <xref:System.TimeProvider> service named
-`DurableJobTimeProviderNames.DurableJobs`. The outbox delivers the message
-immediately; the receiver accepts, deduplicates, and journals it, and its handler
-runs once the message is due. A grain that schedules a message for itself commits
-its acceptance in the sending journal write. Scheduled messages stay in the
-receiver's journal and snapshots until they are processed, and count toward
-`MaxCapacity` from their acceptance until they complete.
+### 处理时间表
 
-### Keep payloads in application state
+设置 <xref:Orleans.Durable.Messaging.Envelope.DeliverAt> 以在接收者中持有信件
+框中,直到工作持续时间在“持久工作”时段。
+<xref:Orleans.Durable.Messaging.OutboxExtensions.Send*> 助者与助者,
+<xref:Orleans.Durable.Messaging.MessageType`1.Create*> 接受任选 `deliverAt`
+参数。从“持久工作钟”中计算 `deliverAt` , grain 输入时是
+指定的密钥 <xref:System.TimeProvider> 服务
+`DurableJobTimeProviderNames.DurableJobs`.发件箱发送信息
+接收者立即接受、复制、日记和处理者
+信件到期时立即运行。 A grain 自动为您指定一个消息
+发送日记时的文字中接受它。
+接收器日记和快照,直到处理完毕,并算入
+`MaxCapacity` 从他们被接受到他们完成
 
-By default, a sent payload is journaled by the outbox and a received payload by the
-inbox. When the application's own journaled state already holds a payload, an outbox
-source or an inbox sink keeps that state as the only journaled copy:
+<a id="keep-payloads-in-application-state"></a>
 
-- An <xref:Orleans.Durable.Messaging.IOutboxMessageSource>, registered with
-  <xref:Orleans.Durable.Messaging.IOutbox.Register*>, provides messages sent by ID with
-  <xref:Orleans.Durable.Messaging.IOutbox.Send*>. The outbox journals the message ID and
-  delivery state and applies every delivery guarantee of an ordinary message. It
-  materializes the message with
-  <xref:Orleans.Durable.Messaging.IOutboxMessageSource.TryGetMessage*> to validate the send and
-  before each delivery attempt; the source returns the same message while it provides
-  it, and returns `false` for a message that isn't its own. The first source that
-  returns the message owns it.
-  - **Withdraw.** <xref:Orleans.Durable.Messaging.IOutbox.Withdraw*> removes a pending message,
-    for example one the application timed out. Stage it in the same journal write in
+### 有效载荷保持在应用状态
+
+默认情况下,发送的有效载荷由发件箱进行日记,收到的有效载荷由发件箱进行日记,收到的有效载荷由
+当应用程序本身的日记状态已经拥有有效载荷时, 发件箱
+或收件箱汇将这一状态作为唯一日记副本:
+
+- <xref:Orleans.Durable.Messaging.IOutboxMessageSource>,登记在
+  <xref:Orleans.Durable.Messaging.IOutbox.Register*>,提供ID发送的邮件
+  <xref:Orleans.Durable.Messaging.IOutbox.Send*>.发件箱日记 电文编号和
+  发送状态和适用普通信息的所有发送保证。
+  将信件化为
+  <xref:Orleans.Durable.Messaging.IOutboxMessageSource.TryGetMessage*> 来验证发送和
+  每次发送尝试前; 发件人返回相同的信息, 而提供相同的信息
+  并且将非它自己的信息返回至 `false` 。第一个来源是
+  返回该信息为它所有。
+  - **撤回。** <xref:Orleans.Durable.Messaging.IOutbox.Withdraw*> 删除一个待发信件,
+    例如,一个应用程序超时。 以同一日记写方式进行
     which the source releases its payload. The outbox makes no further attempt and
     doesn't call `OnRetired`; an attempt already in flight can still deliver the
     message.
-  - **Retire.** When the message retires, the outbox calls
-    <xref:Orleans.Durable.Messaging.IOutboxMessageSource.OnRetired*> while it stages the
+  - **退休人员。** 当电文退休后,发件箱会拨打
+    其阶段性<xref:Orleans.Durable.Messaging.IOutboxMessageSource.OnRetired*>
     removal, so the source's release, application terminal outcome, and follow-up
     work commit in the same journal write. The
     <xref:Orleans.Durable.Messaging.OutboxMessageRetirement> is one of three cases:
@@ -233,337 +249,351 @@ source or an inbox sink keeps that state as the only journaled copy:
     the outcome and follow-up together. A callback exception fails the activation
     so its uncommitted changes are discarded. Perform external I/O in the
     follow-up handler's preparation phase.
-  - **Fail.** After the send, when the owning source throws, returns an invalid
-    message, or returns `false` for its message, the outbox dead-letters only that
+  - **失败。** 在发送后, 当自发源丢弃时, 当自发来源扔出时返回无效
+    消息,或返回 `false` 发信的发信箱 仅用
     entry and retires it as `DeadLettered` in the same journal write; the grain keeps
     processing its other messages. That dead letter carries only the message ID, with
     an empty payload and a default receiver, and its reason records the failure. A
     recovered entry which no registered source provides is dead-lettered the same
     way, without an owner to notify.
 
-  During `Send`, a source exception or an invalid message propagates to the caller
-  and nothing is staged. Sending a pending ID again coalesces; an ID pending as an
-  ordinary message throws <xref:System.InvalidOperationException>. A source-provided
-  message can't be addressed to the sending grain.
-- An <xref:Orleans.Durable.Messaging.IInboxMessageSink>, registered with
-  <xref:Orleans.Durable.Messaging.IInbox.Register*>, receives each deduplicated message before
-  the inbox accepts it, including scheduled messages and messages a grain sends to
-  itself. A sink that takes the message returns `true` from
-  <xref:Orleans.Durable.Messaging.IInboxMessageSink.TryAccept*> and sets its `out`
+  在 `Send`期间,源的例外或无效消息向调用者传播
+  并且没有被设置任何设备。发送待发身份证明
+  发送普通信件 <xref:System.InvalidOperationException>。源码源
+  无法发送消息到发件 grain。
+- <xref:Orleans.Durable.Messaging.IInboxMessageSink>,登记在
+  <xref:Orleans.Durable.Messaging.IInbox.Register*>,在接收每次发件人之前接收每条已解码的邮件
+  收件箱接收该内容,包括计划发送的信件和 grain 发送到
+  返回 `true`
+  <xref:Orleans.Durable.Messaging.IInboxMessageSink.TryAccept*> 和设置 `out`
   <xref:Orleans.Durable.Messaging.DeliveryResult> to one of these cases; a sink that declines
-  returns `false` and sets it to `default`:
-  - `DeliveryResult.Accepted.Instance`: the sink staged the message's effects. The
-    inbox journals only the processed record in the same write and returns the
+  返回 `false` ,并将其设置为 `default`:
+  - `DeliveryResult.Accepted.Instance`:汇层使电文的效果发生。
+    仅将同一文字中的处理记录输入到
     result once the write completes.
-  - `DeliveryResult.Duplicate.Instance`: the sink already holds the message.
-  - `DeliveryResult.Backpressured.Instance`: the sink is at capacity, so the sender
-    retries later.
-  - `DeadLettered`: created with `new DeliveryResult.DeadLettered(reason, code)`, the
-    only permanent rejection. The inbox records the message as processed with the
+  - `DeliveryResult.Duplicate.Instance`:水槽已经持有此信件。
+  - `DeliveryResult.Backpressured.Instance`:汇清除量在能力,因此发送者
+    稍后再试
+  - `DeadLettered`:创建于 `new DeliveryResult.DeadLettered(reason, code)`,
+    仅永久拒绝。 收件箱记录信件, 与邮件处理
     reason and the optional application-defined code, such as
     `orders/duplicate-order`, and returns them to the sender, whose source receives
     them in an `OutboxMessageRetirement.Rejected` retirement. A duplicate of the
     message receives the same rejection.
 
-  A sink exception, or any other result, leaves the outcome unknown: the inbox stages
-  nothing and fails the delivery, so the sender's outbox retries it until
-  `OutboxRetryTimeout`. A message a grain sends to itself fails its `Send` when a
-  sink throws or reports `Backpressured`. A sink-owned message occupies no inbox
-  capacity, and the sink honors its `DeliverAt` time. Messages that every sink
-  declines follow the ordinary inbox path.
-- A wake-up callback, registered with
-  <xref:Orleans.Durable.Messaging.IInbox.RegisterWakeup*>, reports durable work that a
-  component such as a sink holds in the grain's journal. The callback returns how
-  soon a deactivated grain must wake to resume the work, or `null` when none is
-  pending. The messaging wake-up then reactivates the grain until the work clears,
-  and the component resumes its work on activation.
+  汇的例外或其他结果使结果不明:收件箱阶段
+  发件人发信后再重新整理直到
+  `OutboxRetryTimeout`信息a grain 自己去失败 `Send` 时
+  投出或报告 `Backpressured`。一个汇自电文没有收件箱
+  水槽的功能, 和汇荣誉 `DeliverAt` 信息,每个水槽
+  下降时遵循普通的收件箱路径 。
+- 被登记为
+  <xref:Orleans.Durable.Messaging.IInbox.RegisterWakeup*>,报告长期工作
+  与源的汇等成分一样,在 grain日记。回调返回如何
+  很快被停用 grain 必须醒过来才能恢复工作,或者在没有工作的情况下 `null`
+  信息提醒后重新启动 grain ,直到工作结束为止;
+  启动部分恢复了激活工作。
 
-Register sources, sinks, and wake-up callbacks during construction or activation setup, before journal
-recovery. A recovered source-provided message fails the activation when no source is
-registered. The inbox deduplicates a tracked identity before offering it to a sink,
-and expires an untracked message sent at or before its durable admission floor
-before any sink effects.
+在建造或启动安装期间,在日报前登记源、汇和催醒回复
+回收。 被回收的源提供的信息在无源的情况下失效
+已经注册。 信箱在将身份提供给水槽之前复制了跟踪身份,
+并过期致在可持久的入场
+任何汇影响之前。
 
-## Commit and delivery guarantees
+<a id="commit-and-delivery-guarantees"></a>
 
-- <xref:Orleans.Durable.Messaging.IOutbox.Send*> stages an outgoing message in the grain's
-  journaled state. The next journal write persists it together with the grain's
-  other staged changes. The outbox delivers a message only after that write
-  completes.
-- A message addressed to the sending grain never enters the outbox. `Send` stages its
-  acceptance in the grain's own inbox, so the same journal write persists the
-  acceptance with the grain's other staged changes, and the inbox processes the
-  message only after that write completes. When the write fails before it captures
-  the staged changes, such as when scheduling its wake-up fails, the acceptance stays
-  staged with them and a retried write persists it. A failed storage write discards
-  it with the rest of the staged changes, and the next activation recovers the
-  committed state.
-- Repeating a send with the same ID and an equivalent message (same destination,
-  subject, payload, and `DeliverAt` time) keeps the original message. Reusing the
-  ID with different content throws <xref:System.InvalidOperationException>.
-- The receiving inbox journals an accepted message, or the processed record of a
-  message an inbox sink accepts, before returning
-  `DeliveryResult.Accepted`, and processes it only after that
-  acceptance is durable.
-- A handler's business changes, outgoing messages, and inbox completion are staged
-  together and persist in one journal write.
-- Transport is **at-least-once**. If the sender loses its activation after the
-  receiver accepts a message and before the outbox records the delivery, the outbox
-  sends the message again using its original `SentAt`. Effects apply once
-  per logical send through retained completion records and a durable admission floor;
-  a handler can execute more than once for the same message, so its preparation must
-  tolerate repetition.
-- The receiver deduplicates by exact `MessageId`. A repeat of a pending message
-  returns `DeliveryResult.Duplicate` when its subject,
-  payload, and `DeliverAt` time match, and fails when they differ. A repeat of a
-  completed message returns `Duplicate` while the completion record is retained,
-  or the original `DeadLettered` reason and code when an inbox sink rejected it.
-  Both records keep the `SentAt` the inbox accepted, whatever a repeat carries.
-  Once the record is compacted, an untracked message sent at or before the durable
-  floor receives `Expired`, whose earlier acceptance outcome is unknown.
-- A message with <xref:Orleans.Durable.Messaging.Envelope.DeliverAt> is delivered and
-  accepted immediately, then processed once its acceptance is durable and the
-  Durable Jobs clock reaches `DeliverAt`. A message the grain sends to itself is
-  accepted in the sending write, so a grain can schedule durable work for itself
-  together with its other journaled changes in one write.
-- Delivery is **unordered**. Applications that need ordering carry sequence numbers
-  and apply messages in application-defined order.
+## 承诺和交付担保
 
-## Execution model
+- <xref:Orleans.Durable.Messaging.IOutbox.Send*> 中将发出信件的 grain级
+  日记状态。 下一期日记写与 grain的
+  其它已进入阶段的更改。 发件箱仅在该写入后发送消息
+  完整。
+- 发送 grain 的电文从不进入发件箱。 `Send` 阶段
+  在 grain的自 [自己的收件箱中接受,因此同一日记写仍然
+  接受 grain的其它分阶段更改, 以及插件程序
+  仅在此写完之后才发出消息。当该信件在它捕捉到前失败时
+  分阶段的变更,例如当时间安排其觉醒失败时,接受即停止
+  与他们一起编织,再审的书写维持不变。一个失败的存储书写丢弃
+  与其他的分阶段变化一起, 下一次激活恢复
+  承诺状态。
+- 重复使用同一身份和相同信息发送的邮件(与目的地相同,
+  主题、有效载荷和 `DeliverAt` 时间) 保留原始电文。
+  带有不同内容的 ID 投弃 <xref:System.InvalidOperationException>。
+- 收件箱杂志接收人收到的信息或经处理的记录
+  信箱汇所在在返回前接受信息
+  `DeliveryResult.Accepted`,并仅在此后处理
+  接受为可持久。
+- 处理器的变更、发送信息、收件箱完成程序已进入阶段
+  并坚持著写一本日记。
+- 运输是 **at-least-once**。如果发送者在发件人发出通知后失去激活,则该发件人将失去激活
+  收件人接受一个消息, 在发件箱记录发送前, 发件箱
+  使用其原始 `SentAt`再次发送信件。效果一旦适用
+  每一逻辑发送方式是通过留存的完成记录和持久的入场底数;
+  处理器可以对同一信息执行不止一次的相同信息, 因此它必须准备
+  容忍重复。
+- 接收器复制精确 `MessageId`。重复未处理信件
+  当主题返回 `DeliveryResult.Duplicate` 时,当它的主题,
+  有效载荷,以及 `DeliverAt` 时间匹配,当它们存在差异时失效。
+  完整信件返回 `Duplicate` ,而完成记录则保留,
+  或原 `DeadLettered` 理由和代码,当信箱汇拒绝时。
+  两种记录都保留 `SentAt` 接受的收件箱,不管重复携带。
+  记录一旦压缩后,即用永久
+  接收 `Expired`楼层,其先前的接受结果不明。
+- 发送了 <xref:Orleans.Durable.Messaging.Envelope.DeliverAt> 的邮件,
+  被接受后立即立即被接受,并在被接受为可持久且
+  持久工作时钟到达 `DeliverAt`。 grain 给自己发来的信息是
+  所接受的文字中,一个 grain 可以为自己安排耐久的工作
+  连同其他日记的文字变化。
+- 交付是 **无顺序的**。需要排序的应用包含序列号
+  并按应用程序定义的顺序应用信件。
 
-Each activation runs one messaging pump, which starts when activation completes. The
-pump processes ready inbox messages, then delivers ready outbox messages, and
-repeats while work remains. All pump work, including handler code, runs on the
-activation's single-threaded scheduler. A live activation processes due work as soon
-as it is durable: journal write completions and finished deliveries signal the pump
-directly.
+<a id="execution-model"></a>
 
-The inbox processes up to
+## 执行模式
+
+每个启动程序都运行一个信息泵, 启动完成后即开始。
+泵处理已准备好的箱信息,然后发送已准备好的发件箱信息,以及
+工作剩余时重复。所有泵工程,包括处理器代码,都在
+启动单行调度器。 一个即时激活程序将尽快完成
+因为它是耐久的:日记写完成和完成交付时,即表示泵
+直接。 直接。
+
+收件箱进程到
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.InboxBatchSize> durable, due
-messages per pass, one at a time, then writes the journal once for the batch. The
-outbox keeps up to
+每条消息, 一次一个, 然后为批次写一次日记。 The the name
+输出框保持
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.OutboxBatchSize> delivery
-attempts in flight for the grain. Each attempt completes on its own and frees its slot
-for the next due message, so a slow or unresponsive receiver holds one slot and
-messages to other receivers continue. The outbox never holds messages addressed to
-the grain itself; a handler that sends one stages its acceptance with the batch's
-write, and a later pass processes it.
+飞行中试图 grain。每次尝试都自行完成并腾出空位
+下一个应发信件的接收器,因此一个缓慢或无反应的接收器有一个时档
+继续向其它收件人发送信件。发件箱从不持有寄往
+排 grain 本身; 将接受分批接受的状态与批次发送一个阶段的处理器
+写作,然后一个过后处理它。
 
-Deliveries to the grain, through
-<xref:Orleans.Durable.Messaging.IMessagingExtension.DeliverAsync*>, interleave with the
-grain's other requests. A delivery validates the envelope, recognizes recorded
-outcomes, and validates any newly stored send time before staging the message's
-acceptance synchronously, then waits for that journal write; concurrent deliveries
-share journal writes. Inbox message sinks run synchronously within the delivery, so a
-sink can run while a request is suspended at an `await`, as handlers can.
+向 grain交付的货物,通过
+<xref:Orleans.Durable.Messaging.IMessagingExtension.DeliverAsync*>,与
+grain的其他请求。交付货物验证信封,确认已记录
+并验证任何新存储的发送时间, 然后在信件上播放前
+同步接受, 然后等待日记写; 同时交付
+共享日记写。 收件箱信息汇在发送中同步运行, 所以
+处理器可以使用该程序,在请求在 `await`暂停时,可运行该程序。
 
-One durable job per grain, named `orleans.messaging.pump`, is crash insurance for
-work the live pump performs. It wakes the grain while either queue or a registered
-wake-up callback holds work which the activation can perform, at the earliest retry time,
-`DeliverAt` time, or callback delay. Work which is already due resumes within about
-a second of recovery. A journal write schedules a job only when no tracked job is due
-within that slack, so a busy grain performs no Durable Jobs operation per write. When
-activation fails, Durable Jobs retries the pump job indefinitely with capped backoff
-on its clock; `AddMessaging` configures this retry policy for the pump job only.
-Every activation re-arms the wake-up at the real due time from recovered state, so
-committed work always keeps a wake-up.
+每个一个长期工作 grain, 命名 `orleans.messaging.pump`,即崩溃保险
+工作时, 工作在现场泵执行中。 它会唤醒 grain , 一边排队, 一边登记
+启动后重新输入时, 将保留激活工作, 最早的重试时间,
+`DeliverAt` 时间或回调延迟。
+日记只写在未进行跟踪工作时才会安排工作
+空闲的空闲状态内, 所以忙碌的 grain 无法执行每个写作中的持久工作操作。 当
+激活失败, 持久工作将泵作业无限期地重新压缩, 并封盖后端
+时钟上; `AddMessaging` 配置此重试策略,仅用于泵工作。
+每次激活都重新武装 实时时间从恢复状态中唤醒 所以
+工作必须始终保持清醒。
 
-Grain state is authoritative. Each pass derives its work from the journaled
-messages, their retry times, and their `DeliverAt` times, so early, late, and
-duplicate wake-ups are harmless.
+Grain 州是权威国家。 每份通行证的作品来自日记
+信息、他们重试的时间和他们的 `DeliverAt` 时间,如此早、晚、以及
+重复的唤醒是无害的。
 
-The pump keeps the activation alive while a pass processes queued messages and while
-outbox deliveries are in flight. Messages that become due later, at their `DeliverAt`
-or retry time, leave the activation collectable; the durable job reactivates the grain
-when they are due.
+泵让启动程序保持活动,而过关处理排队列的信件,
+发箱交付在飞行中。信件到期后,在它们 `DeliverAt`时发出
+或重新试用时间, 离开可激活的收集文件; 持久工作重新启动 grain
+当他们被送到临终的目的地的时候。
 
-### Interleaving
+<a id="interleaving"></a>
 
-Handlers run as activation work outside grain requests, so handler code interleaves
-with grain calls at each `await`, on reentrant and non-reentrant grains alike.
-Deliveries and inbox message sinks interleave the same way. Design handlers, sinks,
-and grain methods to stay correct under that interleaving. Stateless worker grains
-are rejected at activation.
+### 间隔
 
-To apply a handler's commit phase exclusively on a non-reentrant grain, run it as a grain
-request with <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>. The request waits for
-the current grain call to finish and excludes other calls while it runs:
+处理器运行作为启动工作,但 grain 要求之外的工作除外,所以处理器代码间断
+与 grain 每次电话 `await`,在重新输入和非再输入 grains 两者皆是。
+发送和收件箱信息汇以同样的方式相互隔开。设计操作员, 汇,
+和 grain 无国籍工人 grains
+激活时被拒绝。
+
+要将处理器的操作程序承诺阶段完全应用在非再入状态 grain上, 将其作为 grain运行
+请求与 <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>一起。请求等待
+当前 grain 调用以完成并排除运行时的其他调用:
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_exclusive_commit" language="csharp":::
 
-## Handler outcomes
+<a id="handler-outcomes"></a>
 
-The handler context, <xref:Orleans.Durable.Messaging.IInboxHandlerContext>, exposes the
-received <xref:Orleans.Durable.Messaging.IInboxHandlerContext.Message> and two terminal
-operations:
+## 处理器结果
 
-- <xref:Orleans.Durable.Messaging.IInboxHandlerContext.Complete*> stages the message's
-  removal and its completion record.
-- <xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*> moves the message to the inbox
-  dead letters with a nonblank reason and records its ID as processed.
+处理器上下文 <xref:Orleans.Durable.Messaging.IInboxHandlerContext>,显示
+<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Message> 和两个终端
+业务:
 
-Each successful handler calls exactly one of them. Repeated `Complete()` calls, or
-repeated `Fail` calls with the same reason, coalesce. The context belongs to one
-processing attempt and rejects use after the handler returns.
+- <xref:Orleans.Durable.Messaging.IInboxHandlerContext.Complete*> 阶梯电文
+  及其完成记录。
+- <xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*> 将信件移到收件箱
+  记录身份证明
 
-The terminal operation stages its changes immediately, and any journal write on the
-activation can capture them. Structure each handler in two phases:
+每个成功的处理者都称其中之一为成功处理者。 `Complete()` 电话,或
+重复 `Fail` 调用相同原因,合并。上下文属于
+处理器返回后处理尝试和拒绝使用。
 
-1. **Prepare.** Perform asynchronous I/O, validation, decoding, and fallible
-   computation using local values. Observe cancellation before the final phase.
-2. **Commit.** In one synchronous block, with no `await` after the first change,
-   send typed outgoing messages, apply the business update, call `Complete()` or
-   `Fail(reason)`, and return.
+终端作业立即分阶段进行更改,任何日记都写在
+激活可以捕捉它们。 每个操作器结构分两个阶段:
 
-This ordering keeps business changes, outgoing messages, and completion in the same
-journal write. The inbox persists the batch after its handlers return.
+1. **准备。** 执行不同步 I/O、验证、解码和可错
+   使用本地值计算。 在最后阶段之前观察取消 。
+2. **提交。** 在一个同步的区块中,在第一次修改后没有 `await`
+   发送打印的离线信件,应用业务更新,调用 `Complete()` 或
+   `Fail(reason)`,然后返回。
 
-Route each failure by whether it can ever succeed:
+此订单保留业务变动、 发送信件和完成相同
+日记写。 收件箱在处理者返回后维持了批次 。
 
-- **Business rejection.** Send a typed rejection reply and call `Complete()`.
-- **Permanently invalid input**, such as a command which can never become valid.
-  Call `Fail(reason)`, or send a typed rejection reply and call `Complete()` when the
-  protocol has a reply. The message leaves the inbox at once and frees its capacity
-  slot.
-- **Transient fault**, such as an unavailable dependency. Throw. The grain deactivates,
-  and after recovery the message retries with backoff until `InboxRetryTimeout`,
-  keeping its capacity slot meanwhile.
+如何解决每一个失败, 取决于它能否成功:
 
-The following outcomes cover the remaining cases:
+- **拒绝营业。** 发送打印的拒绝回复并呼叫 `Complete()`。
+- **永久无效的输入**,例如一个永远无法生效的命令。
+  调调 `Fail(reason)`键,或发送打印的拒绝回复和呼叫 `Complete()` 时
+  协议有回复。 消息立即离开收件箱并释放其能力
+  时段。
+- **中转故障**,例如无法使用的依赖性。丢弃。 grain 停止使用,
+  恢复后,信件再重新发送到 `InboxRetryTimeout`,
+  同时保留其能力。
 
-| Handler outcome | Result |
+以下结果涉及其余案件:
+
+| 处理器结果 | 结果成果结果成果成果 |
 | --- | --- |
-| Exception, or return without a terminal operation | The outcome is unknown. The grain deactivates, recovery from the journal discards the attempt's staged changes and charges the attempt, and the message retries with backoff until `InboxRetryTimeout`, then moves to the dead letters. |
-| Exception after a terminal operation | The exception is logged and the staged outcome persists. |
-| Conflicting terminal operations | Contract error: messaging stops and the grain deactivates. |
+| 例外,或返回无需终端操作 | 结果未知。 grain 停止使用、 从日记中回收, 丢弃了尝试的改变并收取了尝试费用, 信件回溯到 `InboxRetryTimeout`, 然后转到已绝信 。 |
+| 终端业务后例外 | 例外记录在案,分阶段结果持续。 |
+| 冲突结束阶段业务 | 合同错误:短信停止和 grain 停用。 |
 
-An attempt's staged changes share the grain's pending journal write, so every unknown
-outcome fails the activation rather than committing a retry alongside them.
+尝试的阶段更改 将共享 grain待写入的日记账, 所以每个未知
+结果是启动失败,而不是重新尝试与之同时进行。
 
-## Backpressure, retries, and dead letters
+<a id="backpressure-retries-and-dead-letters"></a>
 
-For deliveries, a tracked message receives its recorded answer whatever its `SentAt`,
-including after a receiver clock rollback. An untracked message at or below the
-admission floor receives `Expired`. Above the floor, the inbox bounds an untracked
-message's `SentAt` by its Durable Jobs time plus `DeduplicationWindow`; equality is
-admitted, and a later time throws <xref:System.ArgumentOutOfRangeException>,
-with no staged change or sink offer. The outbox treats the
-exception as a failed attempt, preserving the original `SentAt` and retrying until
-`SentAt + OutboxRetryTimeout`; retry exhaustion retires the send as `DeadLettered`
-with an unknown earlier outcome. Messages staged directly in the sending grain's
-own inbox use the local staging time, or the first time above the admission floor
-after a backward clock jump, and follow the local-send path.
+## 后压、回压和死亡信
 
-When the inbox holds
+对于交付,跟踪电文收到其录音答复,无论 `SentAt`
+包括接收器时钟后回滚。
+允许进入的楼层接收 `Expired`。在楼层上方,信箱框中有一个未跟踪的
+信息信息 `SentAt` 工作时间加 `DeduplicationWindow`;平等是
+稍晚, <xref:System.ArgumentOutOfRangeException>,
+发件箱处理
+将“尝试失败”作为例外,保留原始 `SentAt` 并重试直到
+`SentAt + OutboxRetryTimeout`;将已用尽的发送重新尝试将发送者退休为 `DeadLettered`
+先前结果未知。 直接在发送 grain中播放的消息
+使用本地的中转时间, 或首次超过录取层
+后时钟跳过, 并遵循本地发送路径。
+
+当收件箱被搁置
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.MaxCapacity> pending
-messages, it answers new messages with `Backpressured`, and the sender retries them
-later. Every pending message, including a scheduled message waiting for its
-`DeliverAt` time, counts toward this limit from its acceptance until it completes.
-Messages a grain sends to itself are admitted regardless of the limit, because `Send`
-is synchronous, and count toward it until they complete. Likewise, the grain's inbox
-accepts them before a handler is registered and processes them once one is.
+信件, 它用 `Backpressured`回答新信件, 而发送者重试
+之后,所有待发信息,包括预定的等待其
+`DeliverAt` 时间, 从接受到完成为止, 计数到这个限制 。
+发送给自己的 grain 邮件无论受限大小都被接受,因为 `Send`
+彼此是同步的,你们应当期待到他们完成。 grain收件箱
+在注册处理器和一旦注册处理器之前接受它们。
 
-Once recovery charges a failed handler attempt, the inbox schedules a retry after
+一旦追回费用向失败的处理器提出追收失败的处理器尝试, 收件箱安排在
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.RetryInitialInterval> multiplied
-by an exponential factor that caps at 64. Retries continue until
+以64时为上限的指数系数表示。
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.InboxRetryTimeout> (6 hours by
-default) after the first failure, so they span transient faults such as outages and
-deployments that fix a bug. The last attempt runs when the timeout elapses; if it fails,
-the message moves to the inbox dead letters and its ID is recorded as processed. Call
-`Fail(reason)` to dead-letter a message at once.
+)在第一次失败后,它们横跨短暂的断层,例如断断和断
+用于修复错误的部署。上次尝试在超时过后进行;如果失败,
+信件移动到收件箱中已绝信的字母,其身份文件被记录为处理过。
+`Fail(reason)` 立刻给一个信息发个信
 
-The outbox removes a message when the receiver reports `Accepted`, `Duplicate`, or
-`DeadLettered`. Any other outcome, including a status the sender can't interpret, such
-as one from a newer receiver, leaves the outcome unknown and schedules a durable retry
-with the same backoff while other messages continue:
+当接收器报告 `Accepted`、 `Duplicate`或
+`DeadLettered`。任何其他结果,包括发送者无法解释的状况等
+成为新接收器中的一员,结果未知,并计划进行耐久的重试
+继续使用相同的回落, 而其他信件则继续 :
 
-- `Backpressured` retries within the original absolute delivery budget.
-- `HandlerNotFound` logs an error, and retries give a deployment time to register the handler.
-- Other failures, such as calls which fail without an answer during an infrastructure outage,
-  retry like `HandlerNotFound`.
+- `Backpressured` 在最初的绝对交付预算范围内重新进行核查。
+- `HandlerNotFound` 记录错误,重试给予一个部署时间来登记处理者。
+- 其他失败,例如,在基础设施停机期间没有答复的电话失灵,
+  重试如 `HandlerNotFound`。
 
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.OutboxRetryTimeout> starts
-at the staging time recorded in
+记录在
 <xref:Orleans.Durable.Messaging.InboxMessage.SentAt>. Each attempt and recovery preserves
-that time; retry expiration is `SentAt + OutboxRetryTimeout`.
-No attempt starts after the timeout elapses; the outbox then moves the message to its
-dead letters with a reason stating that the retry timeout elapsed. Each attempt
-carries the original `SentAt`.
-The receiver checks pending and completed identities first. For an untracked
-identity, a send time at or below its non-decreasing admission floor returns
-`DeliveryResult.Expired` before any sink or handler runs.
-The outbox retains that message as a dead letter and retires it as `DeadLettered`:
-earlier acceptance may have succeeded with a lost acknowledgement. Stage durable
-application reconciliation through the source callback before authorizing another
-send. The Durable Jobs clock governs retry scheduling and candidate floor
-advancement; the journaled send time and floor preserve admission decisions across
-clock changes. `OutboxRetryTimeout` must be shorter than `DeduplicationWindow`.
+时间; 重试到期是 `SentAt + OutboxRetryTimeout`。
+超时退出后没有尝试开始; 发件箱然后将信件移动到它
+注明重试超时已过的死字。
+带有原始 `SentAt`。
+接收器先检查尚未进行和已完成的身份,然后核对身份。
+身份,在非降为录取底数的回送时或低于此值
+在任何汇或处理器运行之前`DeliveryResult.Expired` 。
+发件箱保留了这个信息,作为一纸空文,并用 `DeadLettered`将它退掉:
+先前的接受可能因确认失败而成功。
+在批准另一个应用程序之前通过源回调来进行应用对账
+工作时钟对重新试制时间安排和候选人底数进行调节
+推进; 日记发送时间和地板以保存整个用户的入境决定
+时钟更改。 `OutboxRetryTimeout` 必须短于 `DeduplicationWindow`。
 
-Inspect dead letters through <xref:Orleans.Durable.Messaging.IMessagingDiagnostics> and remove
-handled records with <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveInboxDeadLetter*>
-or <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveOutboxDeadLetter*>. Removal
-becomes durable with the next journal write. Retention settings bound both
-collections; see [Capacity, retries, and retention](messaging-operations.md#capacity-retries-and-retention).
+通过 <xref:Orleans.Durable.Messaging.IMessagingDiagnostics> 检查和删除已写过的字母并删除
+处理 <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveInboxDeadLetter*>记录
+或 <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveOutboxDeadLetter*>。
+保留设置约束两个
+收藏; 见 [能力、重试和保留](messaging-operations.md#capacity-retries-and-retention)。
 
-Snapshots advance the admission floor to the later of its current value and
-observed Durable Jobs time minus `DeduplicationWindow`, and compact completed
-records whose accepted `SentAt` is at or below that floor. The floor and
-compacted history persist atomically, and in-memory records remain until
-acknowledgement.
+将入场底座的截图提前至其现值的后面
+所观察到的持久工作时间减 `DeduplicationWindow`,并完成契约
+被接受的记录 `SentAt` 位于或低于该楼层。
+紧紧历史的原子历史继续存在,而记忆中记录一直保存到
+收到。
 
-## State, recovery, and deletion
+<a id="state-recovery-and-deletion"></a>
 
-The inbox and the outbox are each one event-sourced journaling state machine,
-registered as `orleans.messaging.inbox` and `orleans.messaging.outbox`. They use the
-grain's configured journal format; both the JSON and the Orleans binary formats are
-supported.
+## 国家、追偿和删除
 
-A fresh activation replays the journal and resumes pending work from the recorded
-attempt counts and retry times. When messaging fails, for example because staging or
-persistence fails, it vetoes every later journal write of that activation and the
-grain deactivates; the next activation recovers the committed outcome from the
-journal.
+收件箱和发件箱 每一个都是事件源头的日记国家机器
+以 `orleans.messaging.inbox` 和 `orleans.messaging.outbox`登记。它们使用
+grain的配置日记日记格式; JSON 和 Orleans 二进制格式均为
+支持的。
 
-After the grain deletes its journal with `DeleteStateAsync`, the inbox and outbox
-start empty and continue to accept and send messages.
+重新激活新日记重播并恢复记录中的未完成的工作
+输入和重试时间。当信息失败时,例如由于中转或
+但它否决了每以后的日记 有关激活和
+grain 停止使用;下一次启动将收回
+日记。
 
-## Deployment requirements
+grain 之后用 `DeleteStateAsync`、收件箱和发件箱删除其日记
+开始为空, 并继续接受并发送信件 。
 
-Configure Durable Jobs storage and Journaling storage, then enable messaging with
-<xref:Orleans.Hosting.MessagingExtensions.AddMessaging*> on the silo builder or
-service collection. The optional callback configures
+<a id="deployment-requirements"></a>
+
+## 部署所需经费
+
+配置“持久工作”存储和《日刊》存储,然后将信息发送到
+<xref:Orleans.Hosting.MessagingExtensions.AddMessaging*> 排在《公约》 silo 建筑或
+服务收藏。可选的回调配置
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions>, which are validated at startup.
-Registration adds Durable Jobs and uses an application-supplied
+登记增加了可持久工作,并使用应用程序提供
 <xref:System.TimeProvider> when one is registered.
 
-For development, configure in-memory storage and enable messaging:
+开发、配置存储和启用信息:
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_registration" language="csharp":::
 
-A grain uses messaging by resolving <xref:Orleans.Durable.Messaging.IInbox> or
+A grain 通过解决 <xref:Orleans.Durable.Messaging.IInbox> 或
 <xref:Orleans.Durable.Messaging.IOutbox> during construction or activation setup, typically
-through constructor injection. Deliveries reach the grain's inbox through its
-messaging extension, and journal recovery restores messaging state with the grain's
-other journaled state.
+交付通过它的构造注射达到 grain的收件箱
+和日记恢复恢复 grain's
+其他日记状态。
 
-The following grain registers a typed handler during activation. The handler
-dead-letters a notification without text with `Fail(reason)`, because that input can
-never become valid. For a valid notification, it computes an optional reply, sends
-it, updates its count, and completes the message before returning:
+以下 grain 在激活期间登记了输入的处理器。
+以 `Fail(reason)`来字母不附带文字的通知书,因为输入可以
+无效的通知,它计算一个非选择性答复,发送
+并更新其计数,
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_grain" language="csharp":::
 
-An ordinary grain method stages a typed send with a stable command ID and persists it
-with one journal write. A client retry with the same command ID stages the same
-message: the outbox keeps one entry while the message is pending, and the receiver
-recognizes it as a duplicate after delivery:
+普通 grain 方法, 将输入并持续稳定命令ID的打印发送程序分阶段
+以一个日记写一个日记。客户用相同的命令ID级重新尝试相同
+消息:发件箱保留了一个条目,而该信件在等待中,接收者
+交付后确认为重复:
 
 :::code source="../snippets/compiled-durable/Grains/MessagingSnippets.cs" id="messaging_send" language="csharp":::
 
-Use shared, production-grade storage for multi-silo deployments. In-memory Durable
-Jobs and journal storage support development and tests.
+多silo 部署使用共用、生产级储存。
+工作以及日记存储支持开发和测试。
 
-Monitor inbox and outbox depth, retry and dead-letter outcomes, and the age of
-pending messages. Size admission-floor lag and retry budgets for the workload's
-availability and retained-history costs.
-For metric names and diagnostics, see [Operate messaging](messaging-operations.md).
+监测盒和发箱深度、重试和死字母结果以及
+工作量的入职时间差和重算预算
+可用性和留存历史费用。
+公吨名称和诊断见 [运行发送信息](messaging-operations.md)。

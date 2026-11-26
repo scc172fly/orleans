@@ -7,7 +7,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="TimeSpan"/>.
+    /// <see cref="TimeSpan"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class TimeSpanCodec : IFieldCodec<TimeSpan>
@@ -20,12 +20,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, TimeSpan value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -39,12 +39,12 @@ namespace Orleans.Serialization.Codecs
         TimeSpan IFieldCodec<TimeSpan>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static TimeSpan ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {

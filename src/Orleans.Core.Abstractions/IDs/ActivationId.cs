@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Uniquely identifies a grain activation.
+    /// 唯一能识别 grain 激活的标识 。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     [JsonConverter(typeof(ActivationIdConverter))]
@@ -21,27 +21,27 @@ namespace Orleans.Runtime
         internal readonly Guid Key;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActivationId"/> struct.
+        /// 初始化 <see cref="ActivationId"/> 结构的新实例。
         /// </summary>
-        /// <param name="key">The activation id.</param>
+        /// <param name="key">激活代号。</param>
         public ActivationId(Guid key) => Key = key;
 
         /// <summary>
-        /// Gets a value indicating whether the instance is the default instance.
+        /// 获得一个值,以显示此实例是否为默认实例。
         /// </summary>
         public bool IsDefault => Key == default;
 
         /// <summary>
-        /// Returns a new, random activation id.
+        /// 返回新的随机激活代号。
         /// </summary>
-        /// <returns>A new, random activation id.</returns>
+        /// <returns>一个新的随机激活代号。</returns>
         public static ActivationId NewId() => new(Guid.NewGuid());
 
         /// <summary>
-        /// Returns an activation id which has been computed deterministically and reproducibly from the provided grain id.
+        /// 返回从所提供的 grain id中确定和可复制的激活代号。
         /// </summary>
-        /// <param name="grain">The grain id.</param>
-        /// <returns>An activation id which has been computed deterministically and reproducibly from the provided grain id.</returns>
+        /// <param name="grain">下 grain id. 数据。</param>
+        /// <returns>启动代号,该代号是从提供 grain id中确定和可复制计算的。</returns>
         public static ActivationId GetDeterministic(GrainId grain)
         {
             Span<byte> temp = stackalloc byte[16];
@@ -69,16 +69,16 @@ namespace Orleans.Runtime
             => destination.TryWrite($"@{Key:N}", out charsWritten);
 
         /// <summary>
-        /// Returns a string representation of this activation id which can be parsed by <see cref="FromParsableString"/>.
+        /// 返回此激活代号的字符串表示,该代号可以由 <see cref="FromParsableString"/>解析。
         /// </summary>
-        /// <returns>A string representation of this activation id which can be parsed by <see cref="FromParsableString"/>.</returns>
+        /// <returns>此激活代号的字符串表示, 可由 <see cref="FromParsableString"/>解析 。</returns>
         public string ToParsableString() => ToString();
 
         /// <summary>
-        /// Parses a string representation of an activation id which was created using <see cref="ToParsableString"/>.
+        /// 分析使用 <see cref="ToParsableString"/>创建的激活代号的字符串表示。
         /// </summary>
-        /// <param name="activationId">The string representation of the activation id.</param>
-        /// <returns>The activation id.</returns>
+        /// <param name="activationId">激活id的字符串表示。</param>
+        /// <returns>激活代号。</returns>
         public static ActivationId FromParsableString(string activationId)
         {
             var span = activationId.AsSpan();
@@ -86,24 +86,24 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Compares the provided operands for equality.
+        /// 与所提供的平等目标相比较。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
         public static bool operator ==(ActivationId left, ActivationId right) => left.Equals(right);
 
         /// <summary>
-        /// Compares the provided operands for inequality.
+        /// 比较所提供的不平等域。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are not equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
         public static bool operator !=(ActivationId left, ActivationId right) => !(left == right);
     }
 
     /// <summary>
-    /// Functionality for converting <see cref="ActivationId"/> instances to and from their JSON representation.
+    /// 换算功能 <see cref="ActivationId"/> 与从这些天起 JSON 代表。
     /// </summary>
     public sealed class ActivationIdConverter : JsonConverter<ActivationId>
     {

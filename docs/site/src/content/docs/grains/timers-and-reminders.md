@@ -1,50 +1,60 @@
 ---
-title: Grain timers and reminders
-description: Choose between activation-scoped grain timers and durable reminders in Orleans.
+title: "Grain 计时器和提醒通知"
+description: "在激活范围之间选择 grain 和《可持久的催问和 催交的月时间和 月度的月 Orleans."
 ms.date: 08/21/2026
 ms.topic: concept-article
 navigation: hidden
 ---
 
-# Grain timers and reminders
+<a id="grain-timers-and-reminders"></a>
 
-Orleans schedules periodic grain work through two mechanisms with distinct ownership and durability guarantees:
+# Grain 计时器和提醒通知
 
-| Mechanism | Owner | Schedule storage | Activation behavior | Typical cadence |
+Orleans 时间表定期 grain 通过两个机制开展工作,这两个机制具有不同的所有权和持久性保证:
+
+| 机制机制机制 | 所有人 | 定期储存 | 激活行为 | 典型的连续 |
 |---|---|---|---|---|
-| [Grain timer](timers.md) | One grain activation | Activation memory | Executes on the current activation and ends with it | Frequent work while an activation is active |
-| [Reminder](reminders.md) | One logical grain | Configured reminder provider | Activates the grain when a tick is delivered and resumes after cluster recovery | Work measured in minutes, hours, or days |
+| [Grain 计时器](timers.md) | 1 grain 激活 | 激活内存 | 执行当前激活并结束此激活 | 激活活动时经常工作 |
+| [提醒提醒](reminders.md) | 一个逻辑 grain | 配置提醒服务提供方 | 执行时激活 grain ,当一个滴答交付并在集集恢复后恢复 | 以分钟、小时或天数计量的工作 |
 
-Choose a grain timer when the work belongs to the current activation. Choose a reminder when the schedule belongs to the grain identity and must survive activation and cluster lifecycle changes.
+当工作属于当前激活时选择 grain 计时器。 当时间表属于 grain 身份时选择提醒, 并且必须在激活和集束生命周期变化中生存下来 。
 
-## Grain timers
+<a id="grain-timers"></a>
 
-Grain timers execute callbacks as grain turns on one activation. The runtime schedules the next tick after the current callback completes, so a timer callback never overlaps itself.
+## Grain 计时器
 
-See [Grain timers](timers.md) for registration, callback scheduling, interleaving, activation lifetime, cancellation, and troubleshooting.
+Grain 计时器执行回调, 以一个激活时间打开 grain 。 运行时间安排在当前回调完成后下一个勾选, 因此计时器回调不会重叠 。
+
+登记、回召时间安排、中继、启动寿命、取消和排除故障见 [Grain 计时器](timers.md) 。
 
 <a id="timer-behavior"></a>
 
-The [timer behavior reference](timers.md#timer-behavior) describes the guarantees controlled by <xref:Orleans.Runtime.GrainTimerCreationOptions>.
+[时间器行为参考](timers.md#timer-behavior) 描述 <xref:Orleans.Runtime.GrainTimerCreationOptions>控制的担保。
 
-## Reminders
+<a id="reminders"></a>
 
-Reminders persist a schedule for a logical grain. Reminder delivery follows normal grain request scheduling and activates the grain when needed. The provider preserves the schedule while each tick is generated and delivered by the runtime.
+## 提醒提醒
 
-See [Reminders](reminders.md) for registration, durable scheduling, timing constraints, provider configuration, missed-tick reconciliation, and troubleshooting.
+提醒始终是逻辑 grain的时间表。提醒发送遵循正常的 grain 请求时间表,必要时启动 grain 。在每次滴子生成和交付时,提供者保存该时间表。
+
+登记、耐久时间安排、时间限制、供应商配置、误点调节和排除故障见 [提醒提醒](reminders.md) 。
 
 <a id="reminder-behavior"></a>
 
-The [reminder delivery reference](reminders.md#reminder-behavior) explains durable definitions, volatile tick delivery, reactivation, and recovery.
+[催发催发通知参考](reminders.md#reminder-behavior) 解释耐久定义、波动滴答交付、恢复和恢复。
 
 <a id="reminder-timing-constraints"></a>
 
-The [reminder timing constraints](reminders.md#reminder-timing-constraints) define valid due times and periods.
+[提醒提醒时间限制](reminders.md#reminder-timing-constraints) 定义有效到期时间和期限。
 
-## Configure reminder storage
+<a id="configure-reminder-storage"></a>
 
-Every silo configures one reminder provider. See [Configure reminder storage](reminders.md#configure-reminder-storage) for production providers, development configuration, and provider-specific guidance.
+## 配置提醒存储
 
-## POCO grains
+每个 silo 配置一个提醒提供者。关于生产提供者、开发配置和具体提供者指南,见 [配置提醒存储](reminders.md#configure-reminder-storage) 。
 
-Grains implementing <xref:Orleans.IGrainBase> directly use the same timer and reminder extension APIs. The dedicated [grain timer](timers.md#poco-grains) and [reminder](reminders.md#poco-grains) pages describe the lower-level registries available through dependency injection.
+<a id="poco-grains"></a>
+
+## 波哥 grains
+
+Grains 执行中 <xref:Orleans.IGrainBase> 直接使用同时间器和提醒扩展 APIs。 [grain 计时器](timers.md#poco-grains) 和 [提醒提醒](reminders.md#poco-grains) 说明通过依赖注射提供的较低级别的登记册。

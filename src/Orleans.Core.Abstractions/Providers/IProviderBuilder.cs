@@ -3,16 +3,16 @@ using Microsoft.Extensions.Configuration;
 namespace Orleans.Providers;
 
 /// <summary>
-/// Interface for providers which configure Orleans services.
+/// 配置 Orleans 服务的供应商的接口。
 /// </summary>
-/// <typeparam name="TBuilder">The type of the builder, such as <c>ISiloBuilder</c> or <c>IClientBuilder</c>.</typeparam>
+/// <typeparam name="TBuilder">建造者的类型,如 <c>ISiloBuilder</c> 或 <c>IClientBuilder</c>。</typeparam>
 public interface IProviderBuilder<TBuilder>
 {
     /// <summary>
-    /// Configures the provider.
+    /// 配置提供者。
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <param name="name">The provider name, or <see langword="null"/> if no name is specified.</param>
-    /// <param name="configurationSection">The configuration section containing provider configuration.</param>
+    /// <param name="builder">建筑工。</param>
+    /// <param name="name">提供商名称,或 <see langword="null"/> 如果未指定名称, 则该名称 。</param>
+    /// <param name="configurationSection">配置部分包含供应商配置。</param>
     void Configure(TBuilder builder, string? name, IConfigurationSection configurationSection);
 }

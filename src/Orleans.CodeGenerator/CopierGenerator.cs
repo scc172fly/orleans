@@ -25,8 +25,8 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
         => HotReloadSafe && !type.IsEnumType && type.SupportsHotReloadMemberAddition;
 
     /// <summary>
-    /// Returns the copier declaration for <paramref name="type"/>, written without enclosing indentation,
-    /// or <see langword="null"/> when a shared shallow copier is registered instead.
+    /// 返回 <paramref name="type"/>的复印声明,该声明在不附加缩进的情况下写成,
+    /// 或 <see langword="null"/> ,当注册的是一个共享浅印件副本代替了该副本时。
     /// </summary>
     public string? GenerateCopier(
         ISerializableTypeDescription type,
@@ -95,7 +95,7 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
         {
             fields = GetFieldDescriptions(type, members, isExceptionType, out onlyDeepFields);
             var copiers = type.IsUnsealedImmutable ? null : fields.OfType<ICopierDescription>().Concat(LibraryTypes.StaticCopiers).ToList();
-            // Value-type plans omit shallow members: copying the original struct already preserves those fields.
+            // 价值类型计划省略浅薄成员:复制原始结构已经保存了这些字段。
             memberPlans = members.Where(member => !onlyDeepFields || !member.IsShallowCopyable).Select(member =>
             {
                 var getter = member.GetGetter();
@@ -205,7 +205,7 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
                 fields.Add(new ActivatorFieldDescription(LibraryTypes.IActivator_1.ToTypeSyntax(serializableTypeDescription.TypeSyntax), ActivatorFieldName));
             }
 
-            // Add a copier field for any field in the target which does not have a static copier.
+            // 目标中没有任何静态复印机的字段, 添加一个复制场 。
             GetCopierFieldDescriptions(serializableTypeDescription.Members, fields, hotReloadShape);
         }
 
@@ -232,7 +232,7 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
             && (SymbolEqualityComparer.Default.Equals(baseType.ContainingAssembly, LibraryTypes.Compilation.Assembly) || baseType.ContainingAssembly.HasAttribute(LibraryTypes.TypeManifestProviderAttribute))
             && baseType is not INamedTypeSymbol { IsGenericType: true })
         {
-            // Use the concrete generated type and avoid expensive interface dispatch (except for generic types that will fall back to IBaseCopier<T>)
+            // 使用混凝土生成的类型,避免昂贵的接口发送(可返回 IBaseCopier<T>的通用类型除外)
             return new(QualifiedName(ParseName(GetGeneratedNamespaceName(baseType)), IdentifierName(GetSimpleClassName(baseType.Name))), true);
         }
 
@@ -281,7 +281,7 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
         if (LanguageFeatureSymbols.IsUnion(t)
             && !SymbolEqualityComparer.Default.Equals(t.ContainingAssembly, LibraryTypes.Compilation.Assembly))
         {
-            // A referenced shallow union can register ShallowCopier<T> without emitting a concrete generated copier.
+            // 参考浅质工会可注册 ShallowCopier<T> ,而不发混凝土生成的复印机。
             return LibraryTypes.DeepCopier_1.ToTypeSyntax(member.TypeSyntax);
         }
 
@@ -289,11 +289,11 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
             && (SymbolEqualityComparer.Default.Equals(t.ContainingAssembly, LibraryTypes.Compilation.Assembly) || t.ContainingAssembly.HasAttribute(LibraryTypes.TypeManifestProviderAttribute))
             && t is not INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 0 })
         {
-            // Use the concrete generated type and avoid expensive interface dispatch (except for complex nested cases that will fall back to IDeepCopier<T>)
+            // 使用混凝土生成的类型,避免昂贵的接口发送(复杂的嵌套案例除外,这些复杂案例将返回 IDeepCopier<T>)
             SimpleNameSyntax name;
             if (t is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
             {
-                // Construct the full generic type name
+                // 构造全通用类型名称
                 name = GenericName(Identifier(GetSimpleClassName(t.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => arg.ToTypeSyntax()))));
             }
             else
@@ -311,17 +311,17 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
 
         if (LibraryTypes.WellKnownCopiers.FindByUnderlyingType(t) is { } copier)
         {
-            // The copier is not a static copier and is also not a generic copiers.
+            // 复印机不是静态复印机,也不是通用复印机。
             return copier.CopierType.ToTypeSyntax();
         }
 
         if (t is INamedTypeSymbol { ConstructedFrom: ISymbol unboundFieldType } named && LibraryTypes.WellKnownCopiers.FindByUnderlyingType(unboundFieldType) is { } genericCopier)
         {
-            // Construct the generic copier type using the field's type arguments.
+            // 使用字段类型参数构造通用复印机类型。
             return genericCopier.CopierType.Construct([.. named.TypeArguments]).ToTypeSyntax();
         }
 
-        // Use the IDeepCopier<T> interface
+        // 使用 IDeepCopier<T> 接口
         return LibraryTypes.DeepCopier_1.ToTypeSyntax(member.TypeSyntax);
     }
 
@@ -332,7 +332,7 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
         List<MemberEmissionPlan> members,
         bool onlyDeepFields)
     {
-        // A value type whose members are all deep-copied copies the original in place, so its parameter is the result.
+        // 一种数值类型,其成员都是经过深层复印的原版副本,因此其参数就是结果。
         var originalParam = type.IsValueType && onlyDeepFields && !type.IsAbstractType && !type.IsUnsealedImmutable ? "result" : "original";
         writer.WriteLine(GeneratedCodeUtilities.MethodImplAttributeText);
         writer.WriteLine($"public {type.Type} DeepCopy({type.Type} {originalParam}, {type.Library.CopyContext} context)");
@@ -424,7 +424,7 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
         List<MemberEmissionPlan> members,
         bool isExceptionType)
     {
-        // An exception copier inherits its base copy unless the generated type adds members or callbacks.
+        // 例外复印机继承其基本副本,除非产生的类型增加成员或回调。
         if (isExceptionType && members.Count == 0
             && !type.SerializationHooks.Any(static callback => callback.Method is "OnCopying" or "OnCopied"))
         {
@@ -461,8 +461,8 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
     }
 
     /// <summary>
-    /// Plans the copy of a member value: shallow values are assigned, and other values are copied by a static, generated,
-    /// or context-resolved copier.
+    /// 计划成员值的复制件: 浅值被指定, 其他数值被静态生成、生成、复制或复制;
+    /// 或上下文已解析的复印机。
     /// </summary>
     public MemberCopyPlan GenerateMemberCopy(
         List<GeneratedFieldDescription> copierFields,
@@ -474,8 +474,8 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
 
         var description = member.Member;
 
-        // Copiers can either be static classes or injected into the constructor.
-        // Either way, the member signatures are the same.
+        // 复印机可以是静态分类,也可以是注入制造器。
+        // 无论哪种方式,成员签名是相同的。
         var memberType = description.Type;
         var copier = copiers.Find(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, memberType));
         if (copier is null)
@@ -495,7 +495,7 @@ internal class CopierGenerator(IGeneratorServices generatorServices)
             copierExpression = GetCodecExpression(instanceCopier);
         }
 
-        // If the member type differs from the copier type (eg because the member is an array), cast the result.
+        // 如果成员类型不同于复印机类型(例如,由于成员是一个阵列),请投下结果。
         var castType = SymbolEqualityComparer.Default.Equals(copier.UnderlyingType, member.Member.Type) ? null : CodeText.Type(description.TypeSyntax);
         return new(MemberCopyKind.Copier, copierExpression, castType);
     }

@@ -5,12 +5,12 @@ using System.IO;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// An implementation of <see cref="IBufferWriter{T}"/> which writes to a <see cref="Stream"/>, using an array as an intermediate buffer.
+    /// 执行《公约》执行 <see cref="IBufferWriter{T}"/> 写给 <see cref="Stream"/>,将一个阵列作为中间缓冲。
     /// </summary>
     public struct ArrayStreamBufferWriter : IBufferWriter<byte>
     {
         /// <summary>
-        /// The default initial size of the intermediate buffer, in bytes.
+        /// 中间缓冲的默认初始大小, 以字节计 。
         /// </summary>
         public const int DefaultInitialBufferSize = 256;
         private readonly Stream _stream;
@@ -18,10 +18,10 @@ namespace Orleans.Serialization.Buffers.Adaptors
         private int _index;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArrayStreamBufferWriter"/> struct.
+        /// 初始化 <see cref="ArrayStreamBufferWriter"/> 结构的新实例。
         /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <param name="sizeHint">The size hint.</param>
+        /// <param name="stream">流。</param>
+        /// <param name="sizeHint">大小提示。</param>
         public ArrayStreamBufferWriter(Stream stream, int sizeHint = 0)
         {
             if (sizeHint == 0)

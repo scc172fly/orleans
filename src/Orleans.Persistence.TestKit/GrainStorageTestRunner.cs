@@ -7,35 +7,35 @@ using Record = Orleans.Persistence.TestKit.StorageTestExecution;
 namespace Orleans.Persistence.TestKit;
 
 /// <summary>
-/// Base class for testing IGrainStorage implementations.
+/// 测试 IGrainStorage 实施的基础等级。
 /// </summary>
 /// <remarks>
-/// This class provides a comprehensive test suite for verifying that an IGrainStorage provider
-/// conforms to the expected behavior. Inherit from this class and implement the abstract
-/// methods to test your custom storage provider.
+/// 此类为核实 IGrainStorage 提供者提供了一个全面的测试套件
+/// 与预期的行为相符。 从这个班级继承遗产, 并应用抽象
+/// 测试自定义存储提供者的方法。
 /// </remarks>
 public abstract class GrainStorageTestRunner
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="GrainStorageTestRunner"/> class.
+    /// 初始化 <see cref="GrainStorageTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="storage">The storage provider to test.</param>
+    /// <param name="storage">用于测试的存储提供者。</param>
     protected GrainStorageTestRunner(IGrainStorage storage)
     {
         Storage = storage ?? throw new ArgumentNullException(nameof(storage));
     }
 
     /// <summary>
-    /// Gets the storage provider under test.
+    /// 测试储物供应商
     /// </summary>
     protected IGrainStorage Storage { get; }
 
     /// <summary>
-    /// Creates a new grain ID and grain state pair for testing.
+    /// 创建用于测试的新 grain ID和 grain 状态对。
     /// </summary>
-    /// <param name="grainId">The grain ID value.</param>
-    /// <param name="version">The initial version of the state.</param>
-    /// <returns>A grain ID and grain state pair.</returns>
+    /// <param name="grainId">下 grain 身份识别价值。</param>
+    /// <param name="version">最初的州立版本</param>
+    /// <returns>A grain 和身份证和身份证 grain 状态对夫妇。</returns>
     protected (GrainId GrainId, GrainState<TestState1> GrainState) GetTestReferenceAndState(long grainId, string? version)
     {
         var id = GrainId.Create(GrainType.Create("my-grain-type"), GrainIdKeyExtensions.CreateIntegerKey(grainId));
@@ -44,11 +44,11 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Creates a new grain ID and grain state pair for testing.
+    /// 创建用于测试的新 grain ID和 grain 状态对。
     /// </summary>
-    /// <param name="grainId">The grain ID value.</param>
-    /// <param name="version">The initial version of the state.</param>
-    /// <returns>A grain ID and grain state pair.</returns>
+    /// <param name="grainId">下 grain 身份识别价值。</param>
+    /// <param name="version">最初的州立版本</param>
+    /// <returns>A grain 和身份证和身份证 grain 状态对夫妇。</returns>
     protected (GrainId GrainId, GrainState<TestState1> GrainState) GetTestReferenceAndState(string grainId, string? version)
     {
         var id = GrainId.Create("my-grain-type", grainId);
@@ -57,18 +57,18 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Writes to storage and reads back, asserting both the version and the state.
+    /// 写到存储和读回, 既维护版本又维护国家。
     /// </summary>
-    /// <typeparam name="T">The grain state type.</typeparam>
-    /// <param name="grainTypeName">The type of the grain.</param>
-    /// <param name="grainId">The grain ID.</param>
-    /// <param name="grainState">The grain state to write.</param>
+    /// <typeparam name="T"> grain 状态类型。</typeparam>
+    /// <param name="grainTypeName">类型 grain.</param>
+    /// <param name="grainId">下 grain ID.</param>
+    /// <param name="grainState">写入的 grain 状态。</param>
     protected Task Store_WriteRead<T>(string grainTypeName, GrainId grainId, GrainState<T> grainState) where T : new() =>
         Store_WriteRead(grainTypeName, grainId, grainState, CancellationToken.None);
 
     /// <inheritdoc cref="Store_WriteRead{T}(string, GrainId, GrainState{T})"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is <see langword="null"/>.</exception>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 是 <see langword="null"/>.</exception>
     protected async Task Store_WriteRead<T>(
         string grainTypeName,
         GrainId grainId,
@@ -89,18 +89,18 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Writes to storage, clears and reads back, asserting both the version and the state.
+    /// 写到存储,清空和背面读, 既主张版本又主张州。
     /// </summary>
-    /// <typeparam name="T">The grain state type.</typeparam>
-    /// <param name="grainTypeName">The type of the grain.</param>
-    /// <param name="grainId">The grain ID.</param>
-    /// <param name="grainState">The grain state to write and clear.</param>
+    /// <typeparam name="T"> grain 状态类型。</typeparam>
+    /// <param name="grainTypeName">类型 grain.</param>
+    /// <param name="grainId">下 grain ID.</param>
+    /// <param name="grainState">下 grain 以状态写清楚。</param>
     protected Task Store_WriteClearRead<T>(string grainTypeName, GrainId grainId, GrainState<T> grainState) where T : new() =>
         Store_WriteClearRead(grainTypeName, grainId, grainState, CancellationToken.None);
 
     /// <inheritdoc cref="Store_WriteClearRead{T}(string, GrainId, GrainState{T})"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is <see langword="null"/>.</exception>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 是 <see langword="null"/>.</exception>
     protected async Task Store_WriteClearRead<T>(
         string grainTypeName,
         GrainId grainId,
@@ -111,8 +111,8 @@ public abstract class GrainStorageTestRunner
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(grainState);
 
-        // A legal situation for clearing has to be arranged by writing a state to the storage before clearing it.
-        // Writing and clearing both change the ETag, so they should differ.
+        // 清理的法律状况必须先向储存国书面说明,然后才能清理。
+        // 书写和清除两者都改变ETag,因此它们应该有所不同。
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken);
         var writtenStateVersion = grainState.ETag;
         var recordExitsAfterWriting = grainState.RecordExists;
@@ -132,13 +132,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests basic read and write operations.
+    /// 测试基本读写操作。
     /// </summary>
     public virtual Task PersistenceStorage_WriteReadIdCyrillic() =>
         PersistenceStorage_WriteReadIdCyrillicAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteReadIdCyrillic()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     public virtual async Task PersistenceStorage_WriteReadIdCyrillicAsync(CancellationToken cancellationToken)
     {
         const string CyrillicValue = "\u041f\u0440\u0438\u0432\u0435\u0442, \u043c\u0438\u0440";
@@ -158,20 +158,20 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Writes to storage and tries to re-write the same state with NULL as ETag, as if the grain was just created.
+    /// 写入存储文件并尝试用 NULL 重写同一状态, 仿佛 grain 是刚刚创建的 。
     /// </summary>
     public virtual Task PersistenceStorage_WriteDuplicateFailsWithInconsistentStateException() =>
         PersistenceStorage_WriteDuplicateFailsWithInconsistentStateExceptionAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteDuplicateFailsWithInconsistentStateException()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_WriteDuplicateFailsWithInconsistentStateExceptionAsync(
         CancellationToken cancellationToken)
     {
-        // A grain with a random ID will be arranged to the database. Then its state is set to null to simulate
-        // the fact it is like a second activation after one that has succeeded to write.
+        // A grain 数据库将设置随机身份标识。 然后其状态将被设为无效以模拟
+        // 和它就像一个成功写作的 之后的第二次激活。
         string grainTypeName = "TestGrain";
         var (grainId, grainState) = GetTestReferenceAndState(Random.Shared.NextInt64(), null);
 
@@ -185,13 +185,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Writes a known inconsistent state to the storage and asserts an exception will be thrown.
+    /// 将提出一个例外。
     /// </summary>
     public virtual Task PersistenceStorage_WriteInconsistentFailsWithInconsistentStateException() =>
         PersistenceStorage_WriteInconsistentFailsWithInconsistentStateExceptionAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteInconsistentFailsWithInconsistentStateException()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_WriteInconsistentFailsWithInconsistentStateExceptionAsync(
@@ -225,13 +225,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests parallel writes and reads to ensure the provider handles concurrency correctly.
+    /// 测试平行写作和阅读以确保提供者正确处理同值货币。
     /// </summary>
     public virtual Task PersistenceStorage_WriteReadWriteReadStatesInParallel() =>
         PersistenceStorage_WriteReadWriteReadStatesInParallelAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteReadWriteReadStatesInParallel()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     public virtual Task PersistenceStorage_WriteReadWriteReadStatesInParallelAsync(
         CancellationToken cancellationToken)
     {
@@ -239,37 +239,37 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests parallel writes and reads using the supplied grain ID prefix and grain count.
+    /// 测试平行写作和读取时使用提供的 grain ID 前缀和 grain 计数。
     /// </summary>
-    /// <param name="prefix">Prefix for grain IDs.</param>
-    /// <param name="countOfGrains">Number of grains to test with.</param>
+    /// <param name="prefix"> grain ID的前缀。</param>
+    /// <param name="countOfGrains">测试的 grains 号。</param>
     protected Task RunPersistenceStorage_WriteReadWriteReadStatesInParallel(string prefix, int countOfGrains) =>
         RunPersistenceStorage_WriteReadWriteReadStatesInParallel(prefix, countOfGrains, CancellationToken.None);
 
     /// <inheritdoc cref="RunPersistenceStorage_WriteReadWriteReadStatesInParallel(string, int)"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     protected async Task RunPersistenceStorage_WriteReadWriteReadStatesInParallel(
         string prefix,
         int countOfGrains,
         CancellationToken cancellationToken)
     {
-        // As data is written and read the Version numbers (ETags) are checked for correctness (they change).
-        // Additionally the Store_WriteRead tests do their validation.
+        // 数据是写成的,读取版本号(ETags)后会检查是否正确(它们会改变)。
+        // 此外,存储WriteRead测试也验证了这些测试。
         var grainTypeName = "TestGrain";
         int StartOfRange = 33900;
         int CountOfRange = countOfGrains;
 
-        // Since the version is NULL, storage provider tries to insert this data as new state.
-        // If there is already data with this class, the writing fails and the storage provider throws.
+        // 由于版本为 NULL, 存储供应商试图将数据插入新状态 。
+        // 如果已有此类数据, 则写入失败, 存储提供者丢弃 。
         var grainStates = Enumerable.Range(StartOfRange, CountOfRange)
             .Select(i => GetTestReferenceAndState($"{prefix}-{Guid.NewGuid():N}-{i}", null))
             .ToList();
 
-        // Avoid parallelization of the first write to not stress out the system with deadlocks on INSERT
+        // 避免第一篇文章的平行化,以免因科学、社会、环境和专家审评组陷入僵局而使系统失去压力
         foreach (var grainData in grainStates)
         {
-            // A sanity checker that the first version really has null as its state. Then it is stored
-            // to the database and a new version is acquired.
+            // 一种精神检查器, 其第一版本的状态是无效的。 然后它被存储
+            // 输入数据库并获得新版本。
             var firstVersion = grainData.GrainState.ETag;
             Assert.Null(firstVersion);
 
@@ -293,7 +293,7 @@ public abstract class GrainStorageTestRunner
             },
             async (grainData, ct) =>
         {
-            // This loop writes the state consecutive times to the database to make sure its version is updated appropriately.
+            // 此循环将连续的状态写入数据库, 以确保数据库版本能适当更新 。
             for (int k = 0; k < 10; ++k)
             {
                 var versionBefore = grainData.GrainState.ETag;
@@ -305,13 +305,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests that reading a non-existent state returns RecordExists=false.
+    /// 测试读取不存在状态返回 RecordExists=false。
     /// </summary>
     public virtual Task PersistenceStorage_ReadNonExistentState() =>
         PersistenceStorage_ReadNonExistentStateAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ReadNonExistentState()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ReadNonExistentStateAsync(CancellationToken cancellationToken)
@@ -329,13 +329,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests write, clear, and write cycle to ensure state can be re-written after clearing.
+    /// 测试写、清楚和写周期,以确保在清理后可以重新写出状态。
     /// </summary>
     public virtual Task PersistenceStorage_WriteClearWrite() =>
         PersistenceStorage_WriteClearWriteAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteClearWrite()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_WriteClearWriteAsync(CancellationToken cancellationToken)
@@ -370,14 +370,14 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests the full write-clear-read cycle including verification that state is properly initialized after clear.
-    /// This test verifies that after clearing, a new write creates a fresh state that can be read back.
+    /// 测试完整的写清读周期,包括核查清楚后是否正确初始化。
+    /// 测试证实清理后, 新写作会创造一个新的状态, 可以读回 。
     /// </summary>
     public virtual Task PersistenceStorage_WriteClearRead() =>
         PersistenceStorage_WriteClearReadAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteClearRead()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_WriteClearReadAsync(CancellationToken cancellationToken)
@@ -389,24 +389,24 @@ public abstract class GrainStorageTestRunner
         state.B = 42;
         state.C = 100;
 
-        // Write initial state
+        // 写初始状态
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken);
         var writtenStateVersion = grainState.ETag;
         Assert.True(grainState.RecordExists);
 
-        // Clear the state
+        // 清除状态
         await Storage.ClearStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var clearedStateVersion = grainState.ETag;
         Assert.NotEqual(writtenStateVersion, clearedStateVersion);
         Assert.False(grainState.RecordExists);
 
-        // Write new state after clear
+        // 清清楚后写入新状态
         var newState = new GrainState<TestState1> { State = new TestState1(), ETag = clearedStateVersion };
         await Storage.WriteStateAsync(grainTypeName, grainId, newState, cancellationToken).ConfigureAwait(false);
         Assert.Equal(newState.State, Activator.CreateInstance<TestState1>());
         Assert.True(newState.RecordExists);
 
-        // Read back and verify it's the default state
+        // 读回去确认它是否为默认状态
         var readBackState = new GrainState<TestState1> { State = new TestState1() };
         await Storage.ReadStateAsync(grainTypeName, grainId, readBackState, cancellationToken).ConfigureAwait(false);
         Assert.True(readBackState.RecordExists);
@@ -417,13 +417,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests storage operations with string-based grain keys.
+    /// 使用字符串 grain 键测试存储操作。
     /// </summary>
     public virtual Task PersistenceStorage_WriteRead_StringKey() =>
         PersistenceStorage_WriteRead_StringKeyAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteRead_StringKey()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     public virtual async Task PersistenceStorage_WriteRead_StringKeyAsync(CancellationToken cancellationToken)
     {
         var grainTypeName = "TestGrain";
@@ -435,7 +435,7 @@ public abstract class GrainStorageTestRunner
 
         await Store_WriteRead(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
 
-        // Verify we can read it back with the same key
+        // 校验后,我们用同一密钥可以读回
         var readState = new GrainState<TestState1> { State = new TestState1() };
         await Storage.ReadStateAsync(grainTypeName, grainId, readState, cancellationToken).ConfigureAwait(false);
         var readStateValue = Assert.IsType<TestState1>(readState.State);
@@ -445,13 +445,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests storage operations with integer-based grain keys.
+    /// 使用整数 grain 键测试存储操作。
     /// </summary>
     public virtual Task PersistenceStorage_WriteRead_IntegerKey() =>
         PersistenceStorage_WriteRead_IntegerKeyAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteRead_IntegerKey()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_WriteRead_IntegerKeyAsync(CancellationToken cancellationToken)
@@ -466,7 +466,7 @@ public abstract class GrainStorageTestRunner
 
         await Store_WriteRead(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
 
-        // Verify we can read it back with the same key
+        // 校验后,我们用同一密钥可以读回
         var readState = new GrainState<TestState1> { State = new TestState1() };
         await Storage.ReadStateAsync(grainTypeName, grainId, readState, cancellationToken).ConfigureAwait(false);
         var readStateValue = Assert.IsType<TestState1>(readState.State);
@@ -477,13 +477,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests that ETag updates properly on successive writes.
+    /// 测试ETag在连续写作时正确更新。
     /// </summary>
     public virtual Task PersistenceStorage_ETagChangesOnWrite() =>
         PersistenceStorage_ETagChangesOnWriteAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ETagChangesOnWrite()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ETagChangesOnWriteAsync(CancellationToken cancellationToken)
@@ -492,20 +492,20 @@ public abstract class GrainStorageTestRunner
         var (grainId, grainState) = GetTestReferenceAndState(Random.Shared.NextInt64(), null);
         var state = Assert.IsType<TestState1>(grainState.State);
 
-        // First write
+        // 首写
         state.A = "Version1";
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var etag1 = grainState.ETag;
         Assert.NotNull(etag1);
 
-        // Second write
+        // 第二书第二稿
         state.A = "Version2";
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var etag2 = grainState.ETag;
         Assert.NotNull(etag2);
         Assert.NotEqual(etag1, etag2);
 
-        // Third write
+        // 第三写第三书
         state.A = "Version3";
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var etag3 = grainState.ETag;
@@ -515,14 +515,14 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests that calling Clear before any write works correctly.
-    /// Verifies that RecordExists is false and State is not null after clearing non-existent state.
+    /// 测试在任何写入工作正确之前拨打清除 。
+    /// 证明 RecordExists 是假的,在清理不存在的国家之后国家并非无效。
     /// </summary>
     public virtual Task PersistenceStorage_ClearBeforeWrite() =>
         PersistenceStorage_ClearBeforeWriteAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ClearBeforeWrite()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ClearBeforeWriteAsync(CancellationToken cancellationToken)
@@ -539,14 +539,14 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests that State property is never null after Clear operation.
-    /// Verifies the State object remains initialized even after clearing.
+    /// 测试在清除后国家财产从不无效。
+    /// 即使在清理后,国家物体仍继续初始化。
     /// </summary>
     public virtual Task PersistenceStorage_ClearStateDoesNotNullifyState() =>
         PersistenceStorage_ClearStateDoesNotNullifyStateAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ClearStateDoesNotNullifyState()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ClearStateDoesNotNullifyStateAsync(
@@ -558,27 +558,27 @@ public abstract class GrainStorageTestRunner
         state.A = "TestData";
         state.B = 100;
 
-        // Write and then clear
+        // 写完,然后清清楚的
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         Assert.True(grainState.RecordExists);
         Assert.NotNull(grainState.State);
 
         await Storage.ClearStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
 
-        // State object should not be null even after clear
+        // 国家反对不应无效,即使明确
         Assert.NotNull(grainState.State);
         Assert.False(grainState.RecordExists);
     }
 
     /// <summary>
-    /// Tests that ETag changes after Clear operation.
-    /// Some providers may set ETag to null on clear, others may update it - both are acceptable.
+    /// 测试ETag在清除操作后更改。
+    /// 有些供应商可能将ETag定为无效,另一些供应商则可能更新-两者都可接受。
     /// </summary>
     public virtual Task PersistenceStorage_ClearUpdatesETag() =>
         PersistenceStorage_ClearUpdatesETagAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ClearUpdatesETag()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ClearUpdatesETagAsync(CancellationToken cancellationToken)
@@ -588,29 +588,29 @@ public abstract class GrainStorageTestRunner
         var state = Assert.IsType<TestState1>(grainState.State);
         state.A = "TestData";
 
-        // Write state
+        // 写状态
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var writeETag = grainState.ETag;
         Assert.NotNull(writeETag);
 
-        // Clear state
+        // 清状态
         await Storage.ClearStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var clearETag = grainState.ETag;
 
-        // ETag should have changed (either to null or a new value)
+        // ETag应该改变(要么变为无效,要么成为新值)
         Assert.NotEqual(writeETag, clearETag);
         Assert.False(grainState.RecordExists);
     }
 
     /// <summary>
-    /// Tests reading state after it has been cleared.
-    /// Verifies that reading a cleared state returns RecordExists=false and State is not null.
+    /// 测试经清理后读取状态。
+    /// 证明读取已清除状态的返回 RecordExists=假国并非无效。
     /// </summary>
     public virtual Task PersistenceStorage_ReadAfterClear() =>
         PersistenceStorage_ReadAfterClearAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ReadAfterClear()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ReadAfterClearAsync(CancellationToken cancellationToken)
@@ -621,28 +621,28 @@ public abstract class GrainStorageTestRunner
         state.A = "OriginalData";
         state.B = 42;
 
-        // Write, clear, then read
+        // 写,清楚,然后读
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         await Storage.ClearStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
 
-        // Read the cleared state
+        // 读取清除状态
         var readState = new GrainState<TestState1> { State = new TestState1() };
         await Storage.ReadStateAsync(grainTypeName, grainId, readState, cancellationToken).ConfigureAwait(false);
 
-        // After reading a cleared state
+        // 阅读了经清理的状态
         Assert.False(readState.RecordExists);
-        Assert.NotNull(readState.State); // State should still be initialized
+        Assert.NotNull(readState.State); // 国家仍应启动
     }
 
     /// <summary>
-    /// Tests multiple successive clear operations.
-    /// Verifies that clearing an already-cleared state is idempotent.
+    /// 测试多次连续清除操作。
+    /// 证明一个已经批准的国家是无能的
     /// </summary>
     public virtual Task PersistenceStorage_MultipleClearOperations() =>
         PersistenceStorage_MultipleClearOperationsAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_MultipleClearOperations()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_MultipleClearOperationsAsync(CancellationToken cancellationToken)
@@ -652,29 +652,29 @@ public abstract class GrainStorageTestRunner
         var state = Assert.IsType<TestState1>(grainState.State);
         state.A = "TestData";
 
-        // Write state
+        // 写状态
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         Assert.True(grainState.RecordExists);
 
-        // First clear
+        // 第一次清楚
         await Storage.ClearStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var firstClearETag = grainState.ETag;
         Assert.False(grainState.RecordExists);
 
-        // Second clear - should be idempotent
+        // 第二清楚,应该是无能者
         await Storage.ClearStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         Assert.False(grainState.RecordExists);
         Assert.NotNull(grainState.State);
     }
 
     /// <summary>
-    /// Tests that State property remains initialized (not null) after reading non-existent state.
+    /// 检验国家财产在读完之后是否仍然初始化(并非无效)。
     /// </summary>
     public virtual Task PersistenceStorage_ReadNonExistentStateHasNonNullState() =>
         PersistenceStorage_ReadNonExistentStateHasNonNullStateAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ReadNonExistentStateHasNonNullState()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ReadNonExistentStateHasNonNullStateAsync(
@@ -683,23 +683,23 @@ public abstract class GrainStorageTestRunner
         var grainTypeName = "TestGrain";
         var (grainId, grainState) = GetTestReferenceAndState(Random.Shared.NextInt64(), null);
 
-        // Read state that was never written
+        // 读状态从未写过
         await Storage.ReadStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
 
-        // State should be initialized even though nothing was written
+        // 即使没有书面文字,国家也应启动
         Assert.False(grainState.RecordExists);
         Assert.NotNull(grainState.State);
         Assert.Null(grainState.ETag);
     }
 
     /// <summary>
-    /// Tests that state names identify independent records even when the grain ID is the same.
+    /// 测试国名是否识别独立记录,即使 grain ID相同。
     /// </summary>
     public virtual Task PersistenceStorage_StateNamesUseIndependentRecords() =>
         PersistenceStorage_StateNamesUseIndependentRecordsAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_StateNamesUseIndependentRecords()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     public virtual async Task PersistenceStorage_StateNamesUseIndependentRecordsAsync(
         CancellationToken cancellationToken)
     {
@@ -721,14 +721,14 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests that clearing state with a stale ETag throws <see cref="InconsistentStateException"/>
-    /// and preserves the latest stored state.
+    /// 以平坦的ETag抛弃清除状态测试 <see cref="InconsistentStateException"/>
+    /// 保存最新储存状态。
     /// </summary>
     public virtual Task PersistenceStorage_ClearInconsistentFailsWithInconsistentStateException() =>
         PersistenceStorage_ClearInconsistentFailsWithInconsistentStateExceptionAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_ClearInconsistentFailsWithInconsistentStateException()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_ClearInconsistentFailsWithInconsistentStateExceptionAsync(
@@ -763,13 +763,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests write-read-clear-read cycle to verify state transitions.
+    /// 测试写读清除周期,以核实各州的过渡情况。
     /// </summary>
     public virtual Task PersistenceStorage_WriteReadClearReadCycle() =>
         PersistenceStorage_WriteReadClearReadCycleAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteReadClearReadCycle()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_WriteReadClearReadCycleAsync(CancellationToken cancellationToken)
@@ -780,12 +780,12 @@ public abstract class GrainStorageTestRunner
         state.A = "InitialValue";
         state.B = 99;
 
-        // Write
+        // 写写
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var writeETag = grainState.ETag;
         Assert.True(grainState.RecordExists);
 
-        // Read back
+        // 回读
         var readState1 = new GrainState<TestState1> { State = new TestState1() };
         await Storage.ReadStateAsync(grainTypeName, grainId, readState1, cancellationToken).ConfigureAwait(false);
         Assert.True(readState1.RecordExists);
@@ -794,11 +794,11 @@ public abstract class GrainStorageTestRunner
         Assert.Equal(99, readStateValue.B);
         Assert.Equal(writeETag, readState1.ETag);
 
-        // Clear
+        // 清除
         await Storage.ClearStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         Assert.False(grainState.RecordExists);
 
-        // Read after clear
+        // 读完后清楚
         var readState2 = new GrainState<TestState1> { State = new TestState1() };
         await Storage.ReadStateAsync(grainTypeName, grainId, readState2, cancellationToken).ConfigureAwait(false);
         Assert.False(readState2.RecordExists);
@@ -806,13 +806,13 @@ public abstract class GrainStorageTestRunner
     }
 
     /// <summary>
-    /// Tests that updating state with the same values still updates the ETag.
+    /// 测试以相同值更新状态的测试仍然在更新ETag。
     /// </summary>
     public virtual Task PersistenceStorage_WriteWithSameValuesUpdatesETag() =>
         PersistenceStorage_WriteWithSameValuesUpdatesETagAsync(CancellationToken.None);
 
     /// <inheritdoc cref="PersistenceStorage_WriteWithSameValuesUpdatesETag()"/>
-    /// <param name="cancellationToken">A token which cancels the storage operations.</param>
+    /// <param name="cancellationToken">取消存储操作的符号 。</param>
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
         Justification = "Randomness selects test-data grain identifiers for storage conformance scenarios.")]
     public virtual async Task PersistenceStorage_WriteWithSameValuesUpdatesETagAsync(
@@ -824,19 +824,19 @@ public abstract class GrainStorageTestRunner
         state.A = "SameValue";
         state.B = 123;
 
-        // First write
+        // 首写
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var etag1 = grainState.ETag;
         Assert.NotNull(etag1);
 
-        // Write again with same values
+        // 以相同的值再次写入
         state.A = "SameValue";
         state.B = 123;
         await Storage.WriteStateAsync(grainTypeName, grainId, grainState, cancellationToken).ConfigureAwait(false);
         var etag2 = grainState.ETag;
         Assert.NotNull(etag2);
 
-        // ETag should still change even though values are the same
+        // ETag仍应改变,即使数值相同
         Assert.NotEqual(etag1, etag2);
     }
 }

@@ -19,7 +19,7 @@ using static System.FormattableString;
 namespace Orleans.Persistence
 {
     /// <summary>
-    /// Redis-based grain storage provider
+    /// Redis- 以 grain 为基础的储存提供者
     /// </summary>
     public partial class RedisGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>, IDisposable, IAsyncDisposable
     {
@@ -37,7 +37,7 @@ namespace Orleans.Persistence
         private bool _connectionIsShared;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="RedisGrainStorage"/> type.
+        /// 创建 <see cref="RedisGrainStorage"/> 类型的新实例。
         /// </summary>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "RedisGrainStorageFactory supplies named options and ActivatorUtilities resolves cluster options from dependency injection.")]
         public RedisGrainStorage(
@@ -178,7 +178,7 @@ namespace Orleans.Persistence
         }
 
         /// <summary>
-        /// Default implementation of <see cref="RedisStorageOptions.GetStorageKey"/> which returns a key equivalent to <c>{ServiceId}/state/{grainId}/{grainType}</c>
+        /// <see cref="RedisStorageOptions.GetStorageKey"/> 的默认执行,该默认执行返回一个相当于 <c>{ServiceId}/state/{grainId}/{grainType}</c>的键
         /// </summary>
         private RedisKey DefaultGetStorageKey(string grainType, GrainId grainId)
         {

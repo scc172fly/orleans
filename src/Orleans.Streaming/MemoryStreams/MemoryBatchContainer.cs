@@ -26,7 +26,7 @@ namespace Orleans.Providers
         public MemoryMessageData MessageData { get; set; }
         public long SequenceNumber => realToken.SequenceNumber;
 
-        // Payload is local cache of deserialized payloadBytes.  Should never be serialized as part of batch container.  During batch container serialization raw payloadBytes will always be used.
+        // 有效载荷是已解除的 payloadBytes本地缓存。不应作为批量容器的一部分进行序列化,在批量集装箱序化过程中将始终使用原 payloadBytes 。
         [NonSerialized] private MemoryMessageBody? payload;
 
         private MemoryMessageBody Payload()

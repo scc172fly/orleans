@@ -10,7 +10,7 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Invokes a request on a grain.
+    /// 向 grain提出请求。
     /// </summary>
     internal sealed class GrainMethodInvoker : IIncomingGrainCallContext
     {
@@ -23,14 +23,14 @@ namespace Orleans.Runtime
         private int stage;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainMethodInvoker"/> class.
+        /// 初始化 <see cref="GrainMethodInvoker"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="grainContext">The grain.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="filters">The invocation interceptors.</param>
-        /// <param name="interfaceToImplementationMapping">The implementation map.</param>
-        /// <param name="responseCopier">The response copier.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="grainContext">下 grain.</param>
+        /// <param name="request">请求。</param>
+        /// <param name="filters">请求拦截器</param>
+        /// <param name="interfaceToImplementationMapping">执行地图。</param>
+        /// <param name="responseCopier">响应复印机。</param>
         public GrainMethodInvoker(
             Message message,
             IGrainContext grainContext,
@@ -83,17 +83,17 @@ namespace Orleans.Runtime
         {
             try
             {
-                // Execute each stage in the pipeline. Each successive call to this method will invoke the next stage.
-                // Stages which are not implemented (eg, because the user has not specified an interceptor) are skipped.
+                // 执行输油管中的每个阶段,每次连续呼叫使用这种方法时,都将采用下一阶段。
+                // 未执行的阶段( 例如, 因为用户未指定拦截器) 被跳过 。
                 var numFilters = filters.Count;
                 if (stage < numFilters)
                 {
-                    // Call each of the specified interceptors.
+                    // 呼叫每个指定的拦截器
                     var systemWideFilter = this.filters[stage];
                     stage++;
                     await systemWideFilter.Invoke(this);
 
-                    // If Response is null some filter did not continue the call chain
+                    // 如果回复为无效, 某些过滤器没有继续呼叫链
                     if (this.Response is null)
                     {
                         ThrowBrokenCallFilterChain(systemWideFilter.GetType().Name);
@@ -106,12 +106,12 @@ namespace Orleans.Runtime
                 {
                     stage++;
 
-                    // Grain-level invoker, if present.
+                    // Grain- 级援引者,如果存在的话。
                     if (this.Grain is IIncomingGrainCallFilter grainClassLevelFilter)
                     {
                         await grainClassLevelFilter.Invoke(this);
 
-                        // If Response is null some filter did not continue the call chain
+                        // 如果回复为无效, 某些过滤器没有继续呼叫链
                         if (this.Response is null)
                         {
                             ThrowBrokenCallFilterChain(this.Grain.GetType().Name);
@@ -122,17 +122,17 @@ namespace Orleans.Runtime
 
                 if (stage == numFilters + 1)
                 {
-                    // Finally call the root-level invoker.
+                    // 最后打电话给根级的援引者。
                     stage++;
                     this.Response = await request.Invoke();
 
-                    // Propagate exceptions to other filters.
+                    // 提出其他过滤器的例外。
                     if (this.Response.Exception is { } exception)
                     {
                         ExceptionDispatchInfo.Capture(exception).Throw();
                     }
 
-                    // A local request is passed by reference, and so is its response.
+                    // 当地请求以参考方式通过,其答复也以参考方式通过。
                     if (!message.IsLocalOnly)
                     {
                         this.Response = this.responseCopier.Copy(this.Response);
@@ -146,7 +146,7 @@ namespace Orleans.Runtime
                 stage--;
             }
 
-            // If this method has been called more than the expected number of times, that is invalid.
+            // 如果该方法被调用的次数超过预期,则无效。
             ThrowInvalidCall();
         }
 
@@ -167,12 +167,12 @@ namespace Orleans.Runtime
             var interfaceType = this.request.GetInterfaceType();
             var implementationType = this.request.GetTarget()!.GetType();
 
-            // Get or create the implementation map for this object.
+            // 获取或创建此对象的执行映射。
             var implementationMap = interfaceToImplementationMapping.GetOrCreate(
                 implementationType,
                 interfaceType);
 
-            // Get the method info for the method being invoked.
+            // 获取被引用的方法的方法信息 。
             var method = request.GetMethod();
             if (method.IsConstructedGenericMethod)
             {

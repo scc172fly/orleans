@@ -6,7 +6,7 @@ using Xunit;
 namespace UnitTests.ActivationRebalancingTests;
 
 /// <summary>
-/// Tests for controlling the activation rebalancer, including suspend/resume operations and report subscription.
+/// 控制激活再平衡器的测试,包括暂停/恢复操作和报告订阅。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -93,12 +93,12 @@ public class ControlRebalancerTests(RebalancerFixture fixture, ITestOutputHelper
 
         // Request-Reply
         var duration = TimeSpan.FromSeconds(2);
-        await rebalancer.SuspendRebalancing(duration); // Suspend for some time
+        await rebalancer.SuspendRebalancing(duration); // 暂停一段时间
         report = await rebalancer.GetRebalancingReport();
 
         Assert.Equal(RebalancerStatus.Suspended, report.Status);
         Assert.True(report.SuspensionDuration.HasValue);
-        // A coarse clock can report the full duration until its timestamp advances.
+        // 粗糙的时钟可以报告整个时间段,直到其时间戳预付款。
         Assert.InRange(report.SuspensionDuration.Value, TimeSpan.FromTicks(1), duration);
         Assert.Equal(host, report.Host);
 
@@ -107,7 +107,7 @@ public class ControlRebalancerTests(RebalancerFixture fixture, ITestOutputHelper
             WaitTimeout).WaitAsync(cancellationToken);
         await resumed;
 
-        await rebalancer.SuspendRebalancing(); // Suspend indefinitely
+        await rebalancer.SuspendRebalancing(); // 无限期中止
         report = await rebalancer.GetRebalancingReport();
         Assert.Equal(RebalancerStatus.Suspended, report.Status);
         Assert.True(report.SuspensionDuration.HasValue);

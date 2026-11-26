@@ -6,8 +6,8 @@ using Xunit;
 namespace Tester.AzureUtils.Persistence;
 
 /// <summary>
-/// Tests for AzureTableGrainStorage using the Orleans.Persistence.TestKit.
-/// These tests validate the storage provider behavior at the IGrainStorage interface level.
+/// 试验 AzureTableGrainStorage 使用 Orleans.Persistence.TestKit.
+/// 这些测试验证了 IGrainStorage 接口层面的存储提供者行为。
 /// </summary>
 [TestCategory("Persistence"), TestCategory("AzureStorage")]
 public class AzureTableGrainStorageTestKitTests : GrainStorageTestRunner, IClassFixture<AzureTableGrainStorageTestKitTests.Fixture>

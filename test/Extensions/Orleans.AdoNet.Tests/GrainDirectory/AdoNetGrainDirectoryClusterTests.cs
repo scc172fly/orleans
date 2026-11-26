@@ -10,7 +10,7 @@ using static System.String;
 namespace Tester.AdoNet.GrainDirectory;
 
 /// <summary>
-/// Cluster tests for ADO.NET Grain Directory against SQL Server.
+/// 集束试验 ADO.NET Grain 对照 SQL 服务器
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("SqlServer")]
@@ -20,7 +20,7 @@ public class SqlServerAdoNetGrainDirectoryClusterTests() : AdoNetGrainDirectoryC
 }
 
 /// <summary>
-/// Cluster tests for ADO.NET Grain Directory against PostgreSQL.
+/// ADO.NET Grain 目录对 PostgreSQL的集束测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("PostgreSql")]
@@ -34,7 +34,7 @@ public class PostgreSqlAdoNetGrainDirectoryClusterTests : AdoNetGrainDirectoryCl
 }
 
 /// <summary>
-/// Cluster tests for ADO.NET Grain Directory against MySQL.
+/// ADO.NET Grain 目录对 MySQL的集束测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("MySql")]
@@ -48,7 +48,7 @@ public class MySqlAdoNetGrainDirectoryClusterTests : AdoNetGrainDirectoryCluster
 }
 
 /// <summary>
-/// Cluster tests base class for ADO.NET Grain Directory.
+/// ADO.NET Grain 目录的集束测试基类。
 /// </summary>
 [TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestSuite("Functional")]
@@ -67,7 +67,7 @@ public abstract class AdoNetGrainDirectoryClusterTests : MultipleGrainDirectorie
 
     public override async ValueTask InitializeAsync()
     {
-        // set up the adonet environment before the base initializes
+        // 在基初始化前设置 adonet 环境
         _testing = await RelationalStorageForTesting.SetupInstance(
             _invariant,
             TestDatabaseName,
@@ -75,7 +75,7 @@ public abstract class AdoNetGrainDirectoryClusterTests : MultipleGrainDirectorie
 
         Assert.SkipWhen(IsNullOrEmpty(_testing.CurrentConnectionString), $"Database '{TestDatabaseName}' not initialized");
 
-        // base initialization must only happen after the above
+        // 初始化必须在上述时间之后才开始
         await base.InitializeAsync();
         if (!PreconditionsMet)
         {

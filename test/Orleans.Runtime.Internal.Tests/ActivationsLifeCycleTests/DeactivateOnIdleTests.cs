@@ -14,7 +14,7 @@ using Orleans.Runtime.Placement;
 namespace UnitTests.ActivationsLifeCycleTests
 {
     /// <summary>
-    /// Tests for grain deactivation on idle behavior and related stress scenarios.
+    /// 空闲行为和相关压力情景的 grain 停止状态测试。
     /// </summary>
     [TestCategory("ActivationCollector")]
     [TestArea("Runtime")]
@@ -64,7 +64,7 @@ namespace UnitTests.ActivationsLifeCycleTests
             var a = this.testCluster.GrainFactory!.GetGrain<ICollectionTestGrain>(1);
             var b = this.testCluster.GrainFactory!.GetGrain<ICollectionTestGrain>(2);
             await a.SetOther(b);
-            await a.GetOtherAge(); // prime a's routing cache
+            await a.GetOtherAge(); // 等素 a 路径缓存
             await b.DeactivateSelf();
             await Task.Delay(5000, cancellationToken);
             var age = await a.GetOtherAge().WaitAsync(TimeSpan.FromMilliseconds(2000), cancellationToken);
@@ -281,9 +281,9 @@ namespace UnitTests.ActivationsLifeCycleTests
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
-                // Create grain such that:
-                // Its directory owner is not the Gateway silo. This way Gateway will use its directory cache.
-                // Its activation is located on the non Gateway silo as well.
+                // 创建 grain , 以便:
+                // 其目录所有人不是网关 silo。 这样一来 Gateway 将使用它的目录缓存 。
+                // 其启动地点也位于非网关 silo 。
                 var grainId = GrainId.Create(grainType, GrainIdKeyExtensions.CreateIntegerKey(i));
                 if (!directoryView.TryGetOwner(grainId, out var primaryForGrain, out _) || !primaryForGrain.Equals(targetSilo))
                 {

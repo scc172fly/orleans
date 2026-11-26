@@ -80,9 +80,9 @@ public class LeaseBasedQueueBalancerTests
             options.LeaseCategory,
             Arg.Is<AcquiredLease[]>(leases => leases.Length == 1 && leases[0] == acquiredLease));
 
-        // The original bug allowed a queued membership update to touch the PeriodicTimer instances after
-        // they were disposed, which logged "Error updating lease responsibilities." with an inner
-        // ObjectDisposedException. Assert that shutdown completed cleanly, with no such error logged.
+        // 原始错误允许队列成员更新来触碰 PeriodicTimer 事后的
+        // 并用内部记录了"错误更新租赁责任"
+        // ObjectDisposedException. 要求关闭完全完成,没有记录出任何错误。
         Assert.DoesNotContain(recordingLoggerFactory.Entries, entry => entry.Exception is ObjectDisposedException);
         Assert.DoesNotContain(recordingLoggerFactory.Entries, entry => entry.Level >= LogLevel.Error);
     }
@@ -100,9 +100,9 @@ public class LeaseBasedQueueBalancerTests
     }
 
     /// <summary>
-    /// An <see cref="ILoggerFactory"/> that records every log entry so tests can assert on logged
-    /// errors, such as the <see cref="ObjectDisposedException"/> that was previously logged when a
-    /// queued membership update accessed a disposed <see cref="PeriodicTimer"/> during shutdown.
+    /// 记录每个日志条目以便测试可以在登录时坚持的 <see cref="ILoggerFactory"/>
+    /// 错误,例如 <see cref="ObjectDisposedException"/> 先前在
+    /// 被排队的会籍更新在关闭时访问到已处理过的 <see cref="PeriodicTimer"/> 。
     /// </summary>
     private sealed class RecordingLoggerFactory : ILoggerFactory
     {

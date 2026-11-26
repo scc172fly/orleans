@@ -10,8 +10,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Verifies that the remote children of two callers whose workflows share a root ID and a child name stay separate on
-/// their shared callee.
+/// 证明两个电话用户的边远子女,其工作流程共用根身份识别码和孩子姓名的偏远子女在
+/// 他们同族的同族,
 /// </summary>
 public abstract class DurableTaskCallerScopeTests : IAsyncLifetime
 {
@@ -38,7 +38,7 @@ public abstract class DurableTaskCallerScopeTests : IAsyncLifetime
         var childId = TaskId.CreateRoot("place-order").Child(SharedRootCallerGrain.CallId);
         using var events = DurableTaskEventBarriers.Collect();
 
-        // Each caller's workflow is the root task 'place-order' on its own grain, and calls the callee as 'reserve'.
+        // 每个呼叫者的工作流程都是自己 grain的根任务“位置顺序”,并将被调用者称为“保留区”。
         var firstOrder = await first.PlaceOrderAsync(callee.GetPrimaryKey(), 1).WithId("place-order").ScheduleAsync(cancellationToken);
         var secondOrder = await second.PlaceOrderAsync(callee.GetPrimaryKey(), 2).WithId("place-order").ScheduleAsync(cancellationToken);
         await Task.WhenAll(_probe.Started(1), _probe.Started(2)).WaitAsync(Timeout, cancellationToken);
@@ -56,39 +56,39 @@ public abstract class DurableTaskCallerScopeTests : IAsyncLifetime
         Assert.Contains(firstChildId, running);
         Assert.Contains(secondChildId, running);
 
-        // Canceling the first workflow cancels only its own child on the callee.
+        // 取消第一个工作流程只取消被调用时的自家孩子。
         await firstOrder.CancelAsync(cancellationToken);
         Assert.Equal(DurableTaskStatus.Canceled, (await firstOrder.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).Status);
         Assert.Equal(DurableTaskStatus.Canceled, (await events.WaitForCompletedAsync(calleeId, firstChildId)).Status);
         Assert.True(_probe.Canceled(1).IsCompleted);
         Assert.False(_probe.Canceled(2).IsCompleted);
 
-        // The second workflow's child completes with its own result.
+        // 第二个工作流程的孩子在完成时有自己的结果。
         _probe.Release(2);
         Assert.Equal(2, (await secondOrder.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<int>());
         Assert.Equal(2, (await events.WaitForCompletedAsync(calleeId, secondChildId)).GetResult<int>());
 
-        // The callee deletes each child once its own caller accepted its completion.
+        // 被调用者在自己的调用者接受完成后,将每个孩子删除。
         await events.WaitForDeletedAsync(calleeId, firstChildId);
         await events.WaitForDeletedAsync(calleeId, secondChildId);
     }
 }
 
-/// <summary>Runs caller scope coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行调用范围,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskCallerScopeTests() : DurableTaskCallerScopeTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs caller scope coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行以 Orleans 二进制日记格式存储的任务状态的调用员范围覆盖。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class OrleansBinaryDurableTaskCallerScopeTests() : DurableTaskCallerScopeTests(DurableTaskRecoveryFixture.OrleansBinary);
 
-/// <summary>Holds the callee's tasks, keyed by their values, until the test releases them or they're canceled.</summary>
+/// <summary>持有被调用人的任务, 以其值为键, 直到测试释放他们或取消它们。</summary>
 public sealed class CallerScopeProbe
 {
     private readonly ConcurrentDictionary<(string Kind, int Value), TaskCompletionSource> _signals = new();
@@ -125,7 +125,7 @@ public interface ISharedRootCallerGrain : IGrainWithGuidKey
     DurableTask<int> PlaceOrderAsync(Guid calleeKey, int value);
 }
 
-// Each caller's child waits for its release without a durable wait, so the callee runs both segments at once.
+// 每个打电话的孩子等待释放,没有持久的等待,所以被召唤者同时运行两个部分。
 [Reentrant]
 [GrainType("durable-task-shared-callee-test")]
 public sealed class SharedCalleeGrain(CallerScopeProbe probe) : DurableGrain, ISharedCalleeGrain

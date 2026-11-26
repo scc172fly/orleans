@@ -7,33 +7,33 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Configures a fault-injecting transactional state facet.
+    /// 配置错误输入交易状态的状态。
     /// </summary>
     public interface IFaultInjectionTransactionalStateConfiguration : ITransactionalStateConfiguration
     {
     }
 
     /// <summary>
-    /// Identifies a constructor parameter as fault-injecting transactional state.
+    /// 将构建参数确定为错误输入交易状态。
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
     public class FaultInjectionTransactionalStateAttribute : Attribute, IFacetMetadata, IFaultInjectionTransactionalStateConfiguration
     {
         /// <summary>
-        /// Gets the state name.
+        /// 获得州名。
         /// </summary>
         public string StateName { get; }
 
         /// <summary>
-        /// Gets the storage provider name.
+        /// 获得存储供应商的名字。
         /// </summary>
         public string? StorageName { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FaultInjectionTransactionalStateAttribute"/> class.
+        /// 初始化 <see cref="FaultInjectionTransactionalStateAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="stateName">The state name.</param>
-        /// <param name="storageName">The storage provider name, or <see langword="null"/> to use the default provider.</param>
+        /// <param name="stateName">国名。</param>
+        /// <param name="storageName">储存提供者的名称,或 <see langword="null"/> 使用默认提供者。</param>
         public FaultInjectionTransactionalStateAttribute(string stateName, string? storageName = null)
         {
             this.StateName = stateName;
@@ -42,30 +42,30 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Creates fault-injecting transactional state facets.
+    /// 创建错误输入交易状态的状态。
     /// </summary>
     public interface IFaultInjectionTransactionalStateFactory
     {
         /// <summary>
-        /// Creates a fault-injecting transactional state facet.
+        /// 创建错误输入交易状态的状态元。
         /// </summary>
-        /// <typeparam name="TState">The state type.</typeparam>
-        /// <param name="config">The transactional state configuration.</param>
-        /// <returns>The fault-injecting transactional state facet.</returns>
+        /// <typeparam name="TState">状态类型。</typeparam>
+        /// <param name="config">交易状态配置。</param>
+        /// <returns>错误输入交易状态表。</returns>
         IFaultInjectionTransactionalState<TState> Create<TState>(IFaultInjectionTransactionalStateConfiguration config) where TState : class, new();
     }
 
     /// <summary>
-    /// Creates fault-injecting transactional state facets.
+    /// 创建错误输入交易状态的状态。
     /// </summary>
     public class FaultInjectionTransactionalStateFactory : IFaultInjectionTransactionalStateFactory
     {
         private readonly IGrainContextAccessor contextAccessor;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FaultInjectionTransactionalStateFactory"/> class.
+        /// 初始化 <see cref="FaultInjectionTransactionalStateFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="contextAccessor">The accessor for the current grain context.</param>
+        /// <param name="contextAccessor">当前 grain 上下文的存取器。</param>
         public FaultInjectionTransactionalStateFactory(IGrainContextAccessor contextAccessor)
         {
             this.contextAccessor = contextAccessor;
@@ -83,7 +83,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Maps <see cref="FaultInjectionTransactionalStateAttribute"/> instances to transactional state facet factories.
+    /// 映射国家半国营工厂的 <see cref="FaultInjectionTransactionalStateAttribute"/> 实例。
     /// </summary>
     public class FaultInjectionTransactionalStateAttributeMapper : IAttributeToFactoryMapper<FaultInjectionTransactionalStateAttribute>
     {
@@ -94,7 +94,7 @@ namespace Orleans.Transactions.TestKit
         {
             ArgumentNullException.ThrowIfNull(parameter);
             IFaultInjectionTransactionalStateConfiguration config = attribute;
-            // use generic type args to define collection type.
+            // 使用通用类型参数定义收藏类型。
             MethodInfo genericCreate = create.MakeGenericMethod(parameter.ParameterType.GetGenericArguments());
             object[] args = new object[] { config };
             return context => Create(context, genericCreate, args);

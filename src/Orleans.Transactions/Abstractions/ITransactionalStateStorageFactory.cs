@@ -4,17 +4,17 @@ using Orleans.Runtime;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Creates transactional state storage instances for grain activations.
+    /// 创建用于启动 grain 的交易状态存储实例。
     /// </summary>
     public interface ITransactionalStateStorageFactory
     {
         /// <summary>
-        /// Creates storage for the specified transactional state.
+        /// 为指定的交易状态创建存储。
         /// </summary>
-        /// <typeparam name="TState">The transactional state type.</typeparam>
-        /// <param name="stateName">The transactional state name.</param>
-        /// <param name="context">The grain context which owns the state.</param>
-        /// <returns>The transactional state storage instance.</returns>
+        /// <typeparam name="TState">交易状态类型。</typeparam>
+        /// <param name="stateName">交易国名称。</param>
+        /// <param name="context">下 grain 状态所在的背景。</param>
+        /// <returns>交易性国家储存实例。</returns>
         ITransactionalStateStorage<TState> Create<TState>(string stateName, IGrainContext context) where TState : class, new();
     }
 }

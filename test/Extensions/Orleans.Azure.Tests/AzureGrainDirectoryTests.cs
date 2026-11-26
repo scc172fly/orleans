@@ -137,7 +137,7 @@ namespace Tester.AzureUtils
     }
 
     /// <summary>
-    /// Tests for Azure Table-based grain directory functionality, including registration, lookup, and unregistration operations.
+    /// 测试 Azure 表格 grain 目录功能,包括登记、查询和未登记操作。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Directory")]
     [TestSuite("Functional")]
@@ -168,7 +168,7 @@ namespace Tester.AzureUtils
         }
 
         /// <summary>
-        /// Tests batch unregistration of multiple grain addresses, including handling of concurrent modifications.
+        /// 测试批次没有登记多个 grain 地址,包括处理同时进行的修改。
         /// </summary>
         [Fact]
         public async Task UnregisterMany()
@@ -176,7 +176,7 @@ namespace Tester.AzureUtils
             const int N = 25;
             const int R = 4;
 
-            // Create and insert N entries
+            // 创建并插入 N 项
             var addresses = new List<GrainAddress>();
             for (var i = 0; i < N; i++)
             {
@@ -191,7 +191,7 @@ namespace Tester.AzureUtils
                 await GrainDirectory.Register(addr, previousAddress: null);
             }
 
-            // Modify the Rth entry locally, to simulate another activation tentative by another silo
+            // 修改本地 Rth 条目, 以模拟另一个启动临时 silo
             var ra = addresses[R];
             var oldActivation = ra.ActivationId;
             addresses[R] = new()
@@ -202,10 +202,10 @@ namespace Tester.AzureUtils
                 ActivationId = ActivationId.NewId()
             };
 
-            // Batch unregister
+            // 批次未登记
             await GrainDirectory.UnregisterMany(addresses);
 
-            // Now we should only find the old Rth entry
+            // 现在我们只该找到旧的Rth入口
             for (int i = 0; i < N; i++)
             {
                 if (i == R)

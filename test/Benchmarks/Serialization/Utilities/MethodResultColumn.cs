@@ -62,7 +62,7 @@ public class MethodResultColumn : IColumn
     public int PriorityInCategory => 0;
     public bool IsNumeric => true;
     public UnitType UnitType => UnitType.Size;
-    // BenchmarkDotNet's contract is non-nullable, but its optional legend is null when not supplied.
+    // BenchmarkDotNet的合同不可无效,但若未提供,其任择传说即无效。
 #pragma warning disable CS8766
     public string? Legend { get; }
 #pragma warning restore CS8766

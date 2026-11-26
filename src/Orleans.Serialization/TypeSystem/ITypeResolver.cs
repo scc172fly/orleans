@@ -3,23 +3,23 @@ using System;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// Provides methods for resolving a <see cref="Type"/> from a string.
+    /// 提供从字符串中解析 <see cref="Type"/> 的方法。
     /// </summary>
     public abstract class TypeResolver
     {
         /// <summary>
-        /// Returns the <see cref="Type"/> corresponding to the provided <paramref name="name"/>, throwing an exception if resolution fails.
+        /// 返回 <see cref="Type"/> 所提供相应数额的 <paramref name="name"/>,如果决议失败,则予以例外。
         /// </summary>
-        /// <param name="name">The type name.</param>
-        /// <returns>The <see cref="Type"/> corresponding to the provided <paramref name="name"/>.</returns>
+        /// <param name="name">类型名称。</param>
+        /// <returns>下 <see cref="Type"/> 所提供相应数额的 <paramref name="name"/>.</returns>
         public abstract Type ResolveType(string name);
 
         /// <summary>
-        /// Resolves the <see cref="Type"/> corresponding to the provided <paramref name="name" />, returning true if resolution succeeded and false otherwise.
+        /// 决定 <see cref="Type"/> 所提供相应数额的 <paramref name="name" />如果决议成功,否则将失败而复返原状。
         /// </summary>
-        /// <param name="name">The type name.</param>
-        /// <param name="type">The resolved type.</param>
-        /// <returns><see langword="true"/> if resolution succeeded; <see langword="false"/> otherwise.</returns>
+        /// <param name="name">类型名称。</param>
+        /// <param name="type">解决型号。</param>
+        /// <returns><see langword="true"/> 解决办法如获成功; <see langword="false"/> 否则。</returns>
         public abstract bool TryResolveType(string name, out Type type);
     }
 }

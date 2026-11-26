@@ -3,99 +3,99 @@ using System;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// Stages opaque durable messages alongside a grain's journaled business state.
+/// 与 grain日记商业状态相伴的不透明耐久信息阶段。
 /// </summary>
 /// <remarks>
-/// The outbox state machine's asynchronous write preparation establishes a durable self-wakeup before capture.
-/// Its write-completion callback makes captured messages eligible for dispatch.
-/// Each wakeup checks the grain's messages and their retry deadlines. Messages remain pending until the destination
-/// acknowledges durable acceptance, recognizes a duplicate, or reports a terminal delivery outcome.
-/// The outbox journals each send's <see cref="InboxMessage.SentAt"/>; every attempt, backpressure, and recovery reuse
-/// it, and retries end <c>OutboxRetryTimeout</c> after it. Applications use <see cref="Send(MessageId)"/> and
-/// <see cref="IOutboxMessageSource.OnRetired"/> to stage crash-recoverable responses to terminal outcomes in the
-/// same journal write as retirement.
-/// Applications namespace command identities and define ordering in their protocols.
+/// 发件箱国家机器的无同步写作准备 建立了持久的自我觉醒 在捕捉之前。
+/// 其写作完成回馈使所捕捉的信息有资格发送。
+/// 每次提醒后都检查 grain的信件及其重新输入截止时间。信件一直等待到目的地
+/// 承认接受的持久性,确认重复,或报告最终交付结果。
+/// 发件人发送的发件日记 <see cref="InboxMessage.SentAt"/>;每次尝试、后压和回收再利用
+/// 之后再重新输入 <c>OutboxRetryTimeout</c> 。应用使用 <see cref="Send(MessageId)"/> 和
+/// <see cref="IOutboxMessageSource.OnRetired"/> 以分阶段对
+/// 与退休时一样写。
+/// 应用程序命名空间命令身份,并在其协议中定义顺序。
 /// </remarks>
 public interface IOutbox
 {
     /// <summary>
-    /// Synchronously stages an outgoing command for the grain's next journal write.
+    /// 同步执行 grain下一份日记的离线命令 。
     /// </summary>
-    /// <param name="message">The fully built outgoing message and required receiver.</param>
+    /// <param name="message">完全构建的发送信件和所需接收器。</param>
     /// <remarks>
-    /// Direct sends share the payload array, header dictionary, and header value arrays. Keep these objects unchanged after publication.
-    /// Equivalent repeated identities retain the original message and headers; payload, optional subject,
-    /// optional <see cref="Envelope.DeliverAt"/>, and destination must match. Custom headers do not change pending intent equality. Conflicts fail explicitly.
-    /// Inbox handlers stage outgoing
-    /// messages in their synchronous final block before calling <see cref="IInboxHandlerContext.Complete"/>
-    /// or <see cref="IInboxHandlerContext.Fail"/>.
-    /// Ordinary callers persist staged messages using their journaled state manager.
-    /// An explicit write retry retains pending business changes and messages after a scheduling failure.
-    /// A message addressed to the sending grain bypasses the outbox: the grain's own inbox stages its acceptance
-    /// for the same journal write, applying the inbox identity rules, so a completed ID is a duplicate and a different
-    /// pending command with the ID conflicts. The inbox admits such a message regardless of its capacity and of handler
-    /// registration, and the send fails when an <see cref="IInboxMessageSink"/> reports
-    /// <see cref="DeliveryResult.Backpressured"/> for it.
+    /// 直接发送共享有效载荷数组、信头字典和信头值数组。 在发布后保持这些对象不变 。
+    /// 等同的重复身份保留了原始电文和信头;有效载荷,可选主题,
+    /// 选项 <see cref="Envelope.DeliverAt"/>和目的地必须匹配。 在目标平等之前, 自定义信头不会更改。 冲突明显失败 。
+    /// 收件箱处理器 正在将
+    /// 调用 <see cref="IInboxHandlerContext.Complete"/>
+    /// 或 <see cref="IInboxHandlerContext.Fail"/>。
+    /// 普通的来电者利用他们所日记的国家经理,坚持提供预告信息。
+    /// 明确写入重试保留了等待业务变动和时间安排失败后的信息。
+    /// 发送 grain 时发出的信息绕过发件箱: grain自己的收件箱阶段接受该信息
+    /// 使用 Inbox 身份规则, 完成的 ID 是重复和不同的
+    /// 正在等待的ID冲突命令。 信箱接受这样的信息, 不论它的能力和处理者如何
+    /// 注册时发送失败 <see cref="IInboxMessageSink"/> 提交报告的报告
+    /// 来做它<see cref="DeliveryResult.Backpressured"/>
     /// </remarks>
-    /// <exception cref="ArgumentException">The envelope has an unset identity, invalid subject or destination, or exceeds identity/subject limits.</exception>
+    /// <exception cref="ArgumentException">信封有未定身份、无效主体或目的地,或超过身份/对象限制。</exception>
     /// <exception cref="InvalidOperationException">
-    /// The identity conflicts, an inbox sink backpressured a message addressed to the sending grain, or the outbox is
-    /// unavailable.
+    /// 身份冲突、 收件箱槽后压发送 grain或发件箱
+    /// 没有。
     /// </exception>
     void Send(OutboxMessage message);
 
     /// <summary>
-    /// Synchronously stages, for the grain's next journal write, a message which a registered
-    /// <see cref="IOutboxMessageSource"/> provides.
+    /// 同步阶段, 对于 grain下一期日记的同步阶段, 即已注册的信件
+    /// <see cref="IOutboxMessageSource"/> 提供。
     /// </summary>
-    /// <param name="messageId">The message ID, which a registered source provides.</param>
+    /// <param name="messageId">注册源提供的电文 ID。</param>
     /// <remarks>
-    /// The outbox journals the message ID and delivery state, while the source holds the payload and receiver, and
-    /// delivers the message like one staged through <see cref="Send(OutboxMessage)"/>. Stage the message in the source's
-    /// state before this call: the outbox resolves the source now, reads and validates its message, and fails when none
-    /// provides it; an exception from the source propagates and nothing is staged. After the send, a source which fails
-    /// to provide a valid message dead-letters the entry instead; see <see cref="IOutboxMessageSource"/>. Sending a
-    /// pending ID again coalesces with the pending message. A message which a source addresses to
-    /// the sending grain is rejected; send it through <see cref="Send(OutboxMessage)"/>, which stages it in the grain's
-    /// own inbox.
-    /// A retry timeout or <see cref="DeliveryResult.Expired"/> reports
-    /// <see cref="OutboxMessageRetirement.DeadLettered"/> to the source; the receiver's earlier outcome is unknown,
-    /// so the application reconciles it before starting a new send.
+    /// 发件箱日记显示电文识别和发送状态,而源头持有有效载荷和接收器,以及
+    /// 发送像一个通过 <see cref="Send(OutboxMessage)"/>的阶梯一样的信息。 在源代码中进行
+    /// 发件箱在此呼叫前声明: 发件箱现在解决源代码, 读取并验证其信息, 当无消息时失败
+    /// 提供此服务; 源的例外, 源的传播和没有进行任何操作。 在发送后, 发送失败的源
+    /// 提供有效的信息,以给条目提供无效的邮件,而不是用倒信来替换条目;见 <see cref="IOutboxMessageSource"/>。发送
+    /// 正在等待的 ID 再次与待定信件连接。 源地址
+    /// 拒绝发送 grain ;通过 <see cref="Send(OutboxMessage)"/>发送,在 grain中进行阶段
+    /// 自己的收件箱。
+    /// 重新尝试超时或 <see cref="DeliveryResult.Expired"/> 报告
+    /// <see cref="OutboxMessageRetirement.DeadLettered"/> 至源;接收器的早期结果不详,
+    /// 应用程序在启动新发送前对齐。
     /// </remarks>
     /// <exception cref="ArgumentException">
-    /// The ID is unset or too long, or the source's message is invalid or addressed to the sending grain.
+    /// ID未设定或过长,或者源代码的邮件无效或发送地址 grain。
     /// </exception>
     /// <exception cref="InvalidOperationException">
-    /// The ID is pending as an ordinary message, no registered source provides it, the source returned a different ID,
-    /// or the outbox is unavailable.
+    /// 身份证明作为普通信息等待处理,没有注册来源提供,源返回了不同的身份证明
+    /// 或者发件箱无法使用 。
     /// </exception>
     void Send(MessageId messageId);
 
     /// <summary>
-    /// Synchronously stages, for the grain's next journal write, the removal of a pending message which a registered
-    /// <see cref="IOutboxMessageSource"/> provides.
+    /// 同步阶段,对于 grain下一期日记的同步阶段,删除已登记的未处理邮件
+    /// <see cref="IOutboxMessageSource"/> 提供。
     /// </summary>
-    /// <param name="messageId">The ID of a message sent through <see cref="Send(MessageId)"/>.</param>
+    /// <param name="messageId">发来的信息的 ID <see cref="Send(MessageId)"/>.</param>
     /// <returns>
-    /// <see langword="true"/> when the outbox staged the removal; <see langword="false"/> when no such message is pending.
+    /// <see langword="true"/> 当发件箱进行清除时; <see langword="false"/> 当没有这种电文待发时。
     /// </returns>
     /// <remarks>
-    /// Stage the source's release of the payload in the same journal write. The outbox makes no further delivery attempt
-    /// and doesn't call <see cref="IOutboxMessageSource.OnRetired"/>. An attempt already in flight can still deliver the
-    /// message and still reads the payload array, header dictionary, and header value arrays which
-    /// <see cref="IOutboxMessageSource.TryGetMessage"/> returned, so release them by dropping references rather than
-    /// reusing them.
+    /// 发件箱没有再试图发送
+    /// 而不呼唤 <see cref="IOutboxMessageSource.OnRetired"/>。已经飞行的尝试仍然可以提供
+    /// 仍然读取有效载荷数阵列、页头词典和页头值矩阵,
+    /// <see cref="IOutboxMessageSource.TryGetMessage"/> 返回,所以通过略去引用而不是
+    /// 重新使用它们。
     /// </remarks>
     /// <exception cref="InvalidOperationException">
-    /// The ID is pending as an ordinary message, or the outbox is unavailable.
+    /// 身份证明作为普通信息正在等待,或者发件箱无法使用。
     /// </exception>
     bool Withdraw(MessageId messageId);
 
-    /// <summary>Registers a source which provides messages sent through <see cref="Send(MessageId)"/>.</summary>
-    /// <param name="source">The source.</param>
-    /// <returns>This outbox.</returns>
+    /// <summary>注册一个源,提供通过 <see cref="Send(MessageId)"/>.</summary>
+    /// <param name="source">源。</param>
+    /// <returns>这个发件箱。</returns>
     /// <remarks>
-    /// Register sources during construction or activation setup, before journal recovery; see
+    /// 在建造或启动安装期间,在日记账恢复之前登记来源;见
     /// <see cref="IOutboxMessageSource"/>.
     /// </remarks>
     IOutbox Register(IOutboxMessageSource source);

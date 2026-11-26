@@ -9,7 +9,7 @@ using Orleans.Messaging;
 
 namespace AWSUtils.Tests.MembershipTests;
 
-// Fixtures initialize each handle serially through its interface and finish admitted initialization before disposal.
+// 定型设置通过每个处理器的接口,连续地初始化每种处理器,并在处置前完成已确认的初始化。
 internal sealed class TestOwnedDynamoDBMembershipTable(
     ILoggerFactory loggerFactory,
     IOptions<DynamoDBClusteringOptions> options,

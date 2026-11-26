@@ -6,16 +6,16 @@ using Orleans.Metadata;
 namespace Orleans.CodeGeneration
 {
     /// <summary>
-    /// The VersionAttribute allows to specify the version number of the interface
+    /// VersionAttribute 允许指定接口的版本号
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface)]
     public sealed class VersionAttribute : Attribute, IGrainInterfacePropertiesProviderAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="VersionAttribute"/> class.
+        /// 初始化 <see cref="VersionAttribute"/> 类的新实例。
         /// </summary>
         /// <param name="version">
-        /// The version.
+        /// 版本。
         /// </param>
         public VersionAttribute(ushort version)
         {
@@ -23,7 +23,7 @@ namespace Orleans.CodeGeneration
         }
 
         /// <summary>
-        /// Gets the version.
+        /// 获得版本。
         /// </summary>
         public ushort Version { get; private set; }
 

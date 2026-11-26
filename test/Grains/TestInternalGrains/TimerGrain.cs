@@ -109,7 +109,7 @@ namespace UnitTestGrains
                 counter,
                 RuntimeContext.Current);
 
-            // make sure we run in the right activation context.
+            // 确定我们运行在正确的激活环境。
             if (!Equals(context, RuntimeContext.Current))
                 logger.LogError((int)ErrorCode.Runtime_Error_100146, "Grain not running in the right activation context");
 
@@ -127,7 +127,7 @@ namespace UnitTestGrains
                 logger.LogError((int)ErrorCode.Runtime_Error_100146, "Timer is null");
             if (timer != null && counter > 10000)
             {
-                // do not let orphan timers ticking for long periods
+                // 不允许孤儿长时间计时
                 timer.Dispose();
             }
 
@@ -221,7 +221,7 @@ namespace UnitTestGrains
         {
             logger.LogInformation("StartTimer Name={Name} Delay={Delay}", name, delay);
             if (timer is not null) throw new InvalidOperationException("Expected timer to be null");
-            this.timer = this.RegisterGrainTimer(TimerTick, name, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // One shot timer
+            this.timer = this.RegisterGrainTimer(TimerTick, name, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // 一次射击计时器
             this.timerName = name;
 
             return Task.CompletedTask;
@@ -232,7 +232,7 @@ namespace UnitTestGrains
             logger.LogInformation("StartTimer Name={Name} Delay={Delay}", name, delay);
             if (timer is not null) throw new InvalidOperationException("Expected timer to be null");
             var state = Tuple.Create<string, object>(operationType, name);
-            this.timer = this.RegisterGrainTimer(TimerTickAdvanced, state, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // One shot timer
+            this.timer = this.RegisterGrainTimer(TimerTickAdvanced, state, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // 一次射击计时器
             this.timerName = name;
 
             return Task.CompletedTask;
@@ -373,7 +373,7 @@ namespace UnitTestGrains
         {
             string step = "TimerTick";
             LogStatus(step);
-            // make sure we run in the right activation context.
+            // 确定我们运行在正确的激活环境。
             CheckRuntimeContext(step);
 
             string name = (string)data;
@@ -424,7 +424,7 @@ namespace UnitTestGrains
             }
             if (TaskScheduler.Current.Equals(activationTaskScheduler) && TaskScheduler.Current is ActivationTaskScheduler)
             {
-                // Everything is as expected
+                // 一切如预期
             }
             else
             {
@@ -485,12 +485,12 @@ namespace UnitTestGrains
             _logger.LogInformation("StartTimer Name={Name} Delay={Delay}", name, delay);
             if (_timers.TryGetValue(name, out var timer))
             {
-                // Make the timer fire again after the specified delay.
+                // 指定延迟后, 定时器再次点火 。
                 timer.Change(delay, Timeout.InfiniteTimeSpan);
             }
             else
             {
-                _timers[name] = this.RegisterGrainTimer(TimerTick, name, new() { DueTime = delay, Period = Timeout.InfiniteTimeSpan, KeepAlive = keepAlive }); // One shot timer
+                _timers[name] = this.RegisterGrainTimer(TimerTick, name, new() { DueTime = delay, Period = Timeout.InfiniteTimeSpan, KeepAlive = keepAlive }); // 一次射击计时器
             }
 
             return Task.CompletedTask;
@@ -579,7 +579,7 @@ namespace UnitTestGrains
             }
             if (TaskScheduler.Current.Equals(_activationTaskScheduler) && TaskScheduler.Current is ActivationTaskScheduler)
             {
-                // Everything is as expected
+                // 一切如预期
             }
             else
             {
@@ -651,7 +651,7 @@ namespace UnitTestGrains
             var tasks = new List<TaskCompletionSource<(object, CancellationToken)>>();
             var timers = new List<IGrainTimer>();
 
-            // protected IGrainTimer RegisterGrainTimer(Func<Task> callback, GrainTimerCreationOptions options)
+            // 受保护 IGrainTimer RegisterGrainTimer(功能<Task> 回调, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(() =>
             {
@@ -659,7 +659,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer(Func<Task> callback, GrainTimerCreationOptions options)
+            // 受保护 IGrainTimer RegisterGrainTimer(功能<Task> 回调, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(() =>
             {
@@ -667,7 +667,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)));
 
-            // protected IGrainTimer RegisterGrainTimer<TState>(Func<TState, Task> callback, TState state, GrainTimerCreationOptions options)
+            // 受保护的 IGrainTimer RegisterGrainTimer<TState>(功能<TState, Task> 回调、T State state, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(state =>
             {
@@ -677,7 +677,7 @@ namespace UnitTestGrains
             "STATE",
             new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer<TState>(Func<TState, Task> callback, TState state, TimeSpan dueTime, TimeSpan period)
+            // 受保护 IGrainTimer RegisterGrainTimer<TState>(功能( Func)<TState, Task> 回召, 国家状态, TimeSpan dueTime, TimeSpan 期间)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(state =>
             {
@@ -687,8 +687,8 @@ namespace UnitTestGrains
             "STATE",
             TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)));
 
-            // With CancellationToken
-            // protected IGrainTimer RegisterGrainTimer(Func<CancellationToken, Task> callback, GrainTimerCreationOptions options)
+            // 与 CancellationToken
+            // 受保护 IGrainTimer RegisterGrainTimer(功能<CancellationToken, Task> 回调, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(ct =>
             {
@@ -696,7 +696,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer(Func<CancellationToken, Task> callback, TimeSpan dueTime, TimeSpan period)
+            // 受保护的 IGrainTimer RegisterGrainTimer(Func<CancellationToken, Task> 回调, TimeSpan dueTime, TimeSpan 期)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(ct =>
             {
@@ -704,7 +704,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)));
 
-            // protected internal IGrainTimer RegisterGrainTimer<TState>(Func<TState, CancellationToken, Task> callback, TState state, GrainTimerCreationOptions options)
+            // 内部受保护的内部 IGrainTimer RegisterGrainTimer<TState>(功能( Func)<TState, CancellationToken, Task> 回召, 国家状态, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer((state, ct) =>
             {
@@ -714,7 +714,7 @@ namespace UnitTestGrains
             "STATE",
             new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer<TState>(Func<TState, CancellationToken, Task> callback, TState state, TimeSpan dueTime, TimeSpan period)
+            // 受保护 IGrainTimer RegisterGrainTimer<TState>(功能( Func)<TState, CancellationToken, Task> 回召, 国家状态, TimeSpan dueTime, TimeSpan 期间)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer((state, ct) =>
             {
@@ -800,7 +800,7 @@ namespace UnitTestGrains
                 counter,
                 RuntimeContext.Current);
 
-            // make sure we run in the right activation context.
+            // 确定我们运行在正确的激活环境。
             if (!Equals(context, RuntimeContext.Current))
                 logger.LogError((int)ErrorCode.Runtime_Error_100146, "Grain not running in the right activation context");
 
@@ -818,7 +818,7 @@ namespace UnitTestGrains
                 logger.LogError((int)ErrorCode.Runtime_Error_100146, "Timer is null");
             if (timer != null && counter > 10000)
             {
-                // do not let orphan timers ticking for long periods
+                // 不允许孤儿长时间计时
                 timer.Dispose();
             }
 
@@ -917,7 +917,7 @@ namespace UnitTestGrains
         {
             logger.LogInformation("StartTimer Name={Name} Delay={Delay}", name, delay);
             if (timer is not null) throw new InvalidOperationException("Expected timer to be null");
-            this.timer = this.RegisterGrainTimer(TimerTick, name, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // One shot timer
+            this.timer = this.RegisterGrainTimer(TimerTick, name, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // 一次射击计时器
             this.timerName = name;
 
             return Task.CompletedTask;
@@ -928,7 +928,7 @@ namespace UnitTestGrains
             logger.LogInformation("StartTimer Name={Name} Delay={Delay}", name, delay);
             if (timer is not null) throw new InvalidOperationException("Expected timer to be null");
             var state = Tuple.Create<string, object>(operationType, name);
-            this.timer = this.RegisterGrainTimer(TimerTickAdvanced, state, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // One shot timer
+            this.timer = this.RegisterGrainTimer(TimerTickAdvanced, state, new(delay, Timeout.InfiniteTimeSpan) { Interleave = true }); // 一次射击计时器
             this.timerName = name;
 
             return Task.CompletedTask;
@@ -1069,7 +1069,7 @@ namespace UnitTestGrains
         {
             string step = "TimerTick";
             LogStatus(step);
-            // make sure we run in the right activation context.
+            // 确定我们运行在正确的激活环境。
             CheckRuntimeContext(step);
 
             string name = (string)data;
@@ -1120,7 +1120,7 @@ namespace UnitTestGrains
             }
             if (TaskScheduler.Current.Equals(activationTaskScheduler) && TaskScheduler.Current is ActivationTaskScheduler)
             {
-                // Everything is as expected
+                // 一切如预期
             }
             else
             {
@@ -1190,7 +1190,7 @@ namespace UnitTestGrains
             var tasks = new List<TaskCompletionSource<(object, CancellationToken)>>();
             var timers = new List<IGrainTimer>();
 
-            // protected IGrainTimer RegisterGrainTimer(Func<Task> callback, GrainTimerCreationOptions options)
+            // 受保护 IGrainTimer RegisterGrainTimer(功能<Task> 回调, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(() =>
             {
@@ -1198,7 +1198,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer(Func<Task> callback, GrainTimerCreationOptions options)
+            // 受保护 IGrainTimer RegisterGrainTimer(功能<Task> 回调, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(() =>
             {
@@ -1206,7 +1206,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)));
 
-            // protected IGrainTimer RegisterGrainTimer<TState>(Func<TState, Task> callback, TState state, GrainTimerCreationOptions options)
+            // 受保护的 IGrainTimer RegisterGrainTimer<TState>(功能<TState, Task> 回调、T State state, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(state =>
             {
@@ -1216,7 +1216,7 @@ namespace UnitTestGrains
             "STATE",
             new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer<TState>(Func<TState, Task> callback, TState state, TimeSpan dueTime, TimeSpan period)
+            // 受保护 IGrainTimer RegisterGrainTimer<TState>(功能( Func)<TState, Task> 回召, 国家状态, TimeSpan dueTime, TimeSpan 期间)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(state =>
             {
@@ -1226,8 +1226,8 @@ namespace UnitTestGrains
             "STATE",
             TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)));
 
-            // With CancellationToken
-            // protected IGrainTimer RegisterGrainTimer(Func<CancellationToken, Task> callback, GrainTimerCreationOptions options)
+            // 与 CancellationToken
+            // 受保护 IGrainTimer RegisterGrainTimer(功能<CancellationToken, Task> 回调, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(ct =>
             {
@@ -1235,7 +1235,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer(Func<CancellationToken, Task> callback, TimeSpan dueTime, TimeSpan period)
+            // 受保护的 IGrainTimer RegisterGrainTimer(Func<CancellationToken, Task> 回调, TimeSpan dueTime, TimeSpan 期)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer(ct =>
             {
@@ -1243,7 +1243,7 @@ namespace UnitTestGrains
                 return Task.CompletedTask;
             }, TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)));
 
-            // protected internal IGrainTimer RegisterGrainTimer<TState>(Func<TState, CancellationToken, Task> callback, TState state, GrainTimerCreationOptions options)
+            // 内部受保护的内部 IGrainTimer RegisterGrainTimer<TState>(功能( Func)<TState, CancellationToken, Task> 回召, 国家状态, GrainTimerCreationOptions 选项)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer((state, ct) =>
             {
@@ -1253,7 +1253,7 @@ namespace UnitTestGrains
             "STATE",
             new GrainTimerCreationOptions(TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(10)) { Interleave = true }));
 
-            // protected IGrainTimer RegisterGrainTimer<TState>(Func<TState, CancellationToken, Task> callback, TState state, TimeSpan dueTime, TimeSpan period)
+            // 受保护 IGrainTimer RegisterGrainTimer<TState>(功能( Func)<TState, CancellationToken, Task> 回召, 国家状态, TimeSpan dueTime, TimeSpan 期间)
             tasks.Add(new());
             timers.Add(this.RegisterGrainTimer((state, ct) =>
             {
@@ -1365,12 +1365,12 @@ namespace UnitTestGrains
             _logger.LogInformation("StartTimer Name={Name} Delay={Delay}", name, delay);
             if (_timers.TryGetValue(name, out var timer))
             {
-                // Make the timer fire again after the specified delay.
+                // 指定延迟后, 定时器再次点火 。
                 timer.Change(delay, Timeout.InfiniteTimeSpan);
             }
             else
             {
-                _timers[name] = this.RegisterGrainTimer(TimerTick, name, new() { DueTime = delay, Period = Timeout.InfiniteTimeSpan, KeepAlive = keepAlive }); // One shot timer
+                _timers[name] = this.RegisterGrainTimer(TimerTick, name, new() { DueTime = delay, Period = Timeout.InfiniteTimeSpan, KeepAlive = keepAlive }); // 一次射击计时器
             }
 
             return Task.CompletedTask;
@@ -1459,7 +1459,7 @@ namespace UnitTestGrains
             }
             if (TaskScheduler.Current.Equals(_activationTaskScheduler) && TaskScheduler.Current is ActivationTaskScheduler)
             {
-                // Everything is as expected
+                // 一切如预期
             }
             else
             {

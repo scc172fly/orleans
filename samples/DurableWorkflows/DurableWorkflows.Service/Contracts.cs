@@ -34,7 +34,7 @@ public interface IPaymentGrain : IGrainWithStringKey
 
 public static class WorkflowSignals
 {
-    // An approval workflow waits for this signal, which reviewers send to its root task.
+    // 审批工作流程等待这一信号,而审查员则将信号发送到其根本任务。
     public static readonly DurableSignal<ApprovalDecision> ApprovalDecided = new("approval-decided");
 }
 
@@ -44,7 +44,7 @@ public sealed record ActivityRequest(
     [property: Id(1)] string Input,
     [property: Id(2)] bool Fail = false);
 
-// TaskId identifies the durable task which recorded the effect. A task which a workflow invokes runs under an ID scoped to its caller, which ends with the workflow's stable child ID, such as "fanout-{id}/branches/0".
+// TaskId 确定记录效果的持久任务。工作流程援引的任务在其调用者所使用身份识别线下进行,以工作流程稳定的儿童身份结束,如“fanout-{id}/branches/0”。
 [GenerateSerializer, Immutable]
 public sealed record ActivityResult(
     [property: Id(0)] string OperationId,

@@ -3,8 +3,8 @@
 public sealed class AlphaVantageOptions
 {
     /// <summary>
-    /// Get your free API key here: <a href="https://www.alphavantage.co/support/#api-key"></a>.
-    /// Set as an environment variable named "AlphaVantageOptions__ApiKey".
+    /// 在此获取您的免费 API 密钥: <a href="https://www.alphavantage.co/support/#api-key"></a>。
+    /// 设为名为 "AlphaVantageOptions__ApiKey" 的环境变量。
     /// </summary>
     public required string ApiKey { get; set; } = "demo";
 }

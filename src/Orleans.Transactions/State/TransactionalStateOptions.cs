@@ -3,74 +3,74 @@ using System;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures transaction processing for transactional state.
+    /// 配置交易处理程序,以适应交易状态。
     /// </summary>
     public class TransactionalStateOptions
     {
         /// <summary>
-        /// Gets or sets the base duration that a transaction group retains the state lock. The effective duration is at least the transaction timeout.
+        /// 获取或设定交易组保留状态锁定的基准期限。 有效期限至少是交易超时 。
         /// </summary>
         public TimeSpan LockTimeout { get; set; } = DefaultLockTimeout;
 
         /// <summary>
-        /// The default value of <see cref="LockTimeout"/>.
+        /// 默认值 <see cref="LockTimeout"/>。
         /// </summary>
         public static TimeSpan DefaultLockTimeout = TimeSpan.FromSeconds(8);
 
         /// <summary>
-        /// Gets or sets the maximum duration that a transaction manager waits for the prepare phase to complete.
+        /// 设置交易经理等待准备阶段完成的最长期限。
         /// </summary>
         public TimeSpan PrepareTimeout { get; set; } = DefaultPrepareTimeout;
 
         /// <summary>
-        /// Gets the default value of <see cref="PrepareTimeout"/>.
+        /// 获取 <see cref="PrepareTimeout"/>的默认值。
         /// </summary>
         public static TimeSpan DefaultPrepareTimeout => TimeSpan.FromSeconds(20);
 
         /// <summary>
-        /// Gets or sets the maximum duration that a transaction waits to acquire the state lock.
+        /// 获取或设定交易等待获得国家锁的最长期限。
         /// </summary>
         public TimeSpan LockAcquireTimeout { get; set; } = DefaultLockAcquireTimeout;
 
         /// <summary>
-        /// Gets the default value of <see cref="LockAcquireTimeout"/>.
+        /// 获取 <see cref="LockAcquireTimeout"/>的默认值。
         /// </summary>
         public static TimeSpan DefaultLockAcquireTimeout => TimeSpan.FromSeconds(10);
 
         /// <summary>
-        /// Gets or sets the interval between liveness notifications sent for remote transactions.
+        /// 获取或设定发送到远程交易的活性通知之间的间隔。
         /// </summary>
         public TimeSpan RemoteTransactionPingFrequency { get; set; } = DefaultRemoteTransactionPingFrequency;
 
         /// <summary>
-        /// The default value of <see cref="RemoteTransactionPingFrequency"/>.
+        /// 默认值 <see cref="RemoteTransactionPingFrequency"/>。
         /// </summary>
         public static TimeSpan DefaultRemoteTransactionPingFrequency = TimeSpan.FromSeconds(60);
 
         /// <summary>
-        /// Gets or sets the delay between attempts to confirm a committed transaction.
+        /// 获取或设定在试图确认已实施交易之间的延迟。
         /// </summary>
         public TimeSpan ConfirmationRetryDelay { get; set; } = DefaultConfirmationRetryDelay;
         private static TimeSpan DefaultConfirmationRetryDelay => TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// Gets or sets the legacy confirmation retry limit retained for configuration compatibility.
+        /// 获取或设置为配置兼容而保留的遗留确认重试限制。
         /// </summary>
-        /// <remarks>The runtime retries confirmation until it succeeds or the activation is canceled.</remarks>
+        /// <remarks>运行时重试确认,直到它成功或激活被取消。</remarks>
         public static int ConfirmationRetryLimit { get; set; } = DefaultConfirmationRetryLimit;
 
         /// <summary>
-        /// The default value of <see cref="ConfirmationRetryLimit"/>.
+        /// 默认值 <see cref="ConfirmationRetryLimit"/>。
         /// </summary>
         public const int DefaultConfirmationRetryLimit = 3;
 
         /// <summary>
-        /// Gets or sets the maximum number of transactions which can share a lock group.
+        /// 获取或设定可以共享锁定组的最大交易数量。
         /// </summary>
         public int MaxLockGroupSize { get; set; } = DefaultMaxLockGroupSize;
 
         /// <summary>
-        /// The default value of <see cref="MaxLockGroupSize"/>.
+        /// 默认值 <see cref="MaxLockGroupSize"/>。
         /// </summary>
         public const int DefaultMaxLockGroupSize = 20;
 

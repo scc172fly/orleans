@@ -27,7 +27,7 @@ namespace Orleans.Streams
         private readonly SystemTargetShared _systemTargetShared;
 
         private readonly StreamPullingAgentOptions options;
-        private readonly AsyncSerialExecutor nonReentrancyGuarantor; // for non-reentrant execution of queue change notifications.
+        private readonly AsyncSerialExecutor nonReentrancyGuarantor; // 对于未重新执行队列更改通知 。
         private readonly ILogger logger;
         private int latestRingNotificationSequenceNumber;
         private int latestCommandNumber;
@@ -159,11 +159,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Actions to take when the queue distribution changes due to a failure or a join.
-        /// Since this pulling manager is system target and queue distribution change notifications
-        /// are delivered to it as grain method calls, notifications are not reentrant. To simplify
-        /// notification handling we execute them serially, in a non-reentrant way.  We also suppress
-        /// and don't execute an older notification if a newer one was already delivered.
+        /// 队列分布因失败或合并而更改时要采取的行动 。
+        /// 由于这个拉拉管理器是系统目标, 队列分配变更通知
+        /// 通知以 grain 方法调用方式送交,通知不再重新提交。
+        /// 我们用不批准的方式, 连续地执行这些命令。 我们还禁止
+        /// 并且如果已经交付了新发的, 不要执行旧发的通知。
         /// </summary>
         public Task QueueDistributionChangeNotification()
         {
@@ -177,12 +177,12 @@ namespace Orleans.Streams
             LogInfoGotQueueChangeNotification(notificationSeqNumber, managerState);
             if (managerState == RunState.AgentsStopped)
             {
-                return Task.CompletedTask; // if agents not running, no need to rebalance the queues among them.
+                return Task.CompletedTask; // 如果代理机构未运行, 则无需重新平衡其中的队列 。
             }
 
             return nonReentrancyGuarantor.AddNext(() =>
             {
-                // skip execution of an older/previous notification since already got a newer range update notification.
+                // 已经收到更新范围通知, 故跳过执行旧/ 前一次通知。
                 if (notificationSeqNumber < latestRingNotificationSequenceNumber)
                 {
                     LogInfoSkipQueueChangeNotification(notificationSeqNumber, latestRingNotificationSequenceNumber);
@@ -190,7 +190,7 @@ namespace Orleans.Streams
                 }
                 if (managerState == RunState.AgentsStopped)
                 {
-                    return Task.CompletedTask; // if agents not running, no need to rebalance the queues among them.
+                    return Task.CompletedTask; // 如果代理机构未运行, 则无需重新平衡其中的队列 。
                 }
                 return QueueDistributionChangeNotification(notificationSeqNumber);
             });
@@ -198,7 +198,7 @@ namespace Orleans.Streams
 
         private async Task QueueDistributionChangeNotification(int notificationSeqNumber)
         {
-            // GetMyQueues is non-null, so ToSet cannot return null.
+            // GetMyQueues 是非null, 所以 ToSet 不能返回无效 。
             HashSet<QueueId> currentQueues = queueBalancer.GetMyQueues().ToSet()!;
             IReadOnlyCollection<QueueId>? previousQueues = CaptureAgentQueuesIfDiagnosticsEnabled();
             LogInfoExecutingQueueChangeNotification(
@@ -262,21 +262,21 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Take responsibility for a set of new queues that were assigned to me via a new range.
-        /// We first create one pulling agent for every new queue and store them in our internal data structure, then try to initialize the agents.
-        /// ERROR HANDLING:
-        ///     The responsibility to handle initialization and shutdown failures is inside the Agents code.
-        ///     The manager will call Initialize once and log an error. It will not call initialize again and will assume initialization has succeeded.
-        ///     Same applies to shutdown.
+        /// 负责一组新队列,
+        /// 我们首先为每一个新队列创建一个拉动代理器, 然后把它们存储在内部数据结构中, 然后尝试初始化代理器。
+        /// 错误的手势:
+        ///     处理启动和关闭故障的责任在代理代码中。
+        ///     管理器将一次性调用初始化并登录错误。 它不会再次调用初始化, 并且假定初始化成功 。
+        ///     关闭同样适用。
         /// </summary>
         /// <param name="myQueues"></param>
         /// <param name="failOnInit"></param>
         /// <returns></returns>
         private async Task AddNewQueues(IEnumerable<QueueId> myQueues, bool failOnInit, CancellationToken cancellationToken = default)
         {
-            // Create agents for queues in range that we don't yet have.
-            // First create them and store in local queuesToAgentsMap.
-            // Only after that Initialize them all.
+            // 创建我们尚未拥有的队列范围的代理器 。
+            // 首先创建并存储于本地 queuesToAgentsMap。
+            // 在那之后,才把它们都初始化
             var agents = new List<PersistentStreamPullingAgent>();
             foreach (var queueId in myQueues)
             {
@@ -292,7 +292,7 @@ namespace Orleans.Streams
                 }
                 else
                 {
-                    // Create a new agent.
+                    // 创建一个新的代理商 。
                     try
                     {
                         var agentIdNumber = Interlocked.Increment(ref nextAgentId);
@@ -319,8 +319,8 @@ namespace Orleans.Streams
                     catch (Exception exc)
                     {
                         LogErrorCreatingAgent(exc);
-                        // What should we do? This error is not recoverable and considered a bug. But we don't want to bring the silo down.
-                        // If this is when silo is starting and agent is initializing, fail the silo startup. Otherwise, just swallow to limit impact on other receivers.
+                        // 我们该怎么办?这个错误无法恢复, 被认为是一个错误。 但我们不想把 silo 降下来 。
+                        // 如果这是 silo 启动时和代理正在初始化, 则无法启动 silo 启动。 否则, 只吞下去限制对其他接收器的影响 。
                         if (failOnInit) throw;
                     }
                 }
@@ -341,8 +341,8 @@ namespace Orleans.Streams
             }
             catch
             {
-                // Just ignore this exception and proceed as if Initialize has succeeded.
-                // We already logged individual exceptions for individual calls to Initialize. No need to log again.
+                // 忽略这一例外,继续,仿佛初始化成功一样。
+                // 我们已经记录了个人通话的个别例外, 不需要再次登录 。
             }
             if (agents.Count > 0)
             {
@@ -356,10 +356,10 @@ namespace Orleans.Streams
 
         private async Task InitAgent(PersistentStreamPullingAgent agent, CancellationToken cancellationToken)
         {
-            // Init the agent only after it was registered locally.
+            // 代理商只有在在当地注册后才入住。
             var agentGrainRef = agent.AsReference<IPersistentStreamPullingAgent>();
 
-            // Need to call it as a grain reference.
+            // 需要把它称为 grain 参考。
             try
             {
                 await agentGrainRef.Initialize(cancellationToken);
@@ -380,7 +380,7 @@ namespace Orleans.Streams
             {
                 return;
             }
-            // Stop the agents that for queues that are not in my range anymore.
+            // 停止那些不属于我范围的队列的代理商。
             LogInfoRemovingAgents(queuesToRemove.Count, new(queuesToRemove));
             var agents = new List<PersistentStreamPullingAgent>(queuesToRemove.Count);
             var removeTasks = new List<Task>();
@@ -409,8 +409,8 @@ namespace Orleans.Streams
             }
             catch
             {
-                // Just ignore this exception and proceed as if Initialize has succeeded.
-                // We already logged individual exceptions for individual calls to Shutdown. No need to log again.
+                // 忽略这一例外,继续,仿佛初始化成功一样。
+                // 我们已经记录了个别电话的例外, 不需要再次登录。
             }
 
             if (agents.Count > 0)
@@ -466,14 +466,14 @@ namespace Orleans.Streams
             }
         }
 
-        // Start and Stop commands are composite commands that take multiple turns.
-        // Ee don't wnat them to interleave with other concurrent Start/Stop commands, as well as not with QueueDistributionChangeNotification.
-        // Therefore, we serialize them all via the same nonReentrancyGuarantor.
+        // 启动和停止命令是需要多次旋转的复合命令。
+        // 而不是与 QueueDistributionChangeNotification。
+        // 因此,我们通过同样的 nonReentrancyGuarantor将所有这些方法相继编号。
         private Task QueueCommandForExecution(PersistentStreamProviderCommand command, int commandSeqNumber, CancellationToken cancellationToken)
         {
             return nonReentrancyGuarantor.AddNext(() =>
             {
-                // skip execution of an older/previous command since already got a newer command.
+                // 已经获得新命令, 故跳过执行旧/ 前一个命令 。
                 if (commandSeqNumber < latestCommandNumber)
                 {
                     LogInfoSkipCommandExecution(
@@ -495,7 +495,7 @@ namespace Orleans.Streams
 
         private static string PrintQueues(ICollection<QueueId> myQueues) => Utils.EnumerableToString(myQueues);
 
-        // Just print our queue assignment periodicaly, for easy monitoring.
+        // 只需印出我们的队列任务期刊,以便于监测。
         private Task AsyncTimerCallback(object? state)
         {
             LogInfoPeriodicPrint(NumberRunningAgents, streamProviderName, new(queuesToAgentsMap.Keys));
@@ -571,7 +571,7 @@ namespace Orleans.Streams
         )]
         private partial void LogInfoSkipQueueChangeNotification(int notificationSequenceNumber, int latestNotificationNumber);
 
-        //  "Executing QueueChangeNotification number {NotificationSequenceNumber}. Queue balancer says I should now own {QueueCount} queues: {Queues}"
+        //  “执行 QueueChangeNotification 编号{NotificationSequenceNumber}。 队列平衡器说, 我现在应该拥有 {QueueCount队列:\\ ues}
         [LoggerMessage(
             Level = LogLevel.Information,
             EventId = (int)ErrorCode.PersistentStreamPullingManager_06,

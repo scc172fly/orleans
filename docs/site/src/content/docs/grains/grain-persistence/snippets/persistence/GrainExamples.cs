@@ -4,7 +4,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Docs.Snippets.Persistence;
 
-// Grain interfaces for documentation examples
+// 文件示例的Grain 界面
 public interface IUserGrain : IGrainWithStringKey
 {
     Task<string> GetNameAsync();
@@ -35,7 +35,7 @@ public class UserGrain : Grain, IUserGrain
 }
 // </user_grain_multiple_states>
 
-// Separate example grains for simpler demonstrations
+// 用于简单演示的单独示例 grains
 
 // <user_grain_constructor_injection>
 public class UserGrainSimple : Grain, IUserGrain
@@ -99,7 +99,7 @@ public interface IMyGrain : IGrainWithStringKey
     Task DoSomethingAsync();
 }
 
-// Helper class for standalone method snippets
+// 独立方法片断辅助器类
 public class MethodExamples : Grain, IUserGrain
 {
     private readonly IPersistentState<ProfileState> _profile;

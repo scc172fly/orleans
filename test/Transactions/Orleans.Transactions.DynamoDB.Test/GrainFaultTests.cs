@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for transaction behavior under grain fault conditions with DynamoDB.
+    /// 在 grain 与 DynamoDB的过错条件下进行交易行为测试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

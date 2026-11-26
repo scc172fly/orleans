@@ -5,16 +5,16 @@ using System;
 namespace Orleans.Serialization.Session
 {
     /// <summary>
-    /// Contextual information for a serializer operation.
+    /// 序列器操作的背景信息。
     /// </summary>
     public sealed class SerializerSession : IDisposable
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerSession"/> class.
+        /// 初始化 <see cref="SerializerSession"/> 类的新实例。
         /// </summary>
-        /// <param name="typeCodec">The type codec.</param>
-        /// <param name="wellKnownTypes">The well known types.</param>
-        /// <param name="codecProvider">The codec provider.</param>
+        /// <param name="typeCodec">型号编码器。</param>
+        /// <param name="wellKnownTypes">众所周知的类型。</param>
+        /// <param name="codecProvider">编码器提供者。</param>
         public SerializerSession(TypeCodec typeCodec, WellKnownTypeCollection wellKnownTypes, CodecProvider codecProvider)
         {
             TypeCodec = typeCodec;
@@ -23,44 +23,44 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// Gets the type codec.
+        /// 获得型号代码。
         /// </summary>
-        /// <value>The type codec.</value>
+        /// <value>型号编码器。</value>
         public TypeCodec TypeCodec { get; }
 
         /// <summary>
-        /// Gets the well known types collection.
+        /// 获得众所周知的种类收藏。
         /// </summary>
-        /// <value>The well known types collection.</value>
+        /// <value>众所周知的类型收藏。</value>
         public WellKnownTypeCollection WellKnownTypes { get; }
 
         /// <summary>
-        /// Gets the referenced type collection.
+        /// 获取引用的类型收藏。
         /// </summary>
-        /// <value>The referenced type collection.</value>
+        /// <value>引用的类型收藏。</value>
         public ReferencedTypeCollection ReferencedTypes { get; } = new ReferencedTypeCollection();
 
         /// <summary>
-        /// Gets the referenced object collection.
+        /// 获取引用对象收藏。
         /// </summary>
-        /// <value>The referenced object collection.</value>
+        /// <value>引用的对象收藏。</value>
         public ReferencedObjectCollection ReferencedObjects { get; } = new ReferencedObjectCollection();
 
         /// <summary>
-        /// Gets the codec provider.
+        /// 找到编码提供者
         /// </summary>
-        /// <value>The codec provider.</value>
+        /// <value>编码器提供者。</value>
         public CodecProvider CodecProvider { get; }
 
         internal Action<SerializerSession>? OnDisposed { get; set; }
 
         /// <summary>
-        /// Resets the referenced objects collection.
+        /// 重置引用对象收藏。
         /// </summary>
         public void PartialReset() => ReferencedObjects.Reset();
 
         /// <summary>
-        /// Performs a full reset.
+        /// 执行全重置。
         /// </summary>
         public void Reset()
         {

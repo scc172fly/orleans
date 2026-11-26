@@ -5,9 +5,9 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Verifies covered regions, the one mechanism which keeps code that a record covers out of an execution's history:
-/// synchronous regions, such as effects and a host's operations on state, and asynchronous covered flows, such as a
-/// transaction's body, which hosts enter through internal members.
+/// 验证覆盖的区域, 即保存记录包含在处决历史之外的代码的机制:
+/// 同步区域,例如效应和东道国对州的业务以及非同步覆盖的流量,如:
+/// 交易机构,由主机通过内部成员进入。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -30,7 +30,7 @@ public class DurableTaskCoveredRegionTests
                 {
                     await Task.Yield();
 
-                    // Still covered after an await: an effect runs as part of the flow, and durable operations throw.
+                    // 等待之后仍被覆盖:影响是流动的一部分,持久行动也是持续进行。
                     var value = DurableTask.RunInline("inner", static () => 1) + DurableTask.RunInline(static () => 1);
                     failures.Add(Assert.Throws<InvalidOperationException>(static () => DurableTask.Run(static _ => 0).Post()));
                     failures.Add(Assert.Throws<InvalidOperationException>(static () => DurableTask.GetVersion("change", 0, 1)));
@@ -38,7 +38,7 @@ public class DurableTaskCoveredRegionTests
                     return value;
                 });
 
-                // The region ended, so the next operations record, and the flow took no identifiers.
+                // 该地区就此结束,因此下一个业务记录,流量没有识别资料。
                 return nested + DurableTask.RunInline(static () => 10) + DurableTask.RunInline("inner", static () => 100);
             }),
             context);
@@ -59,7 +59,7 @@ public class DurableTaskCoveredRegionTests
         var response = await DurableTaskRuntimeHelper.RunAsync(
             DurableTask.Run(async _ =>
             {
-                // A flow which the covered body doesn't start records its effects while the covered flow runs.
+                // 被覆盖的体不会开始记录其效果 而被覆盖的体流运行。
                 var other = RecordLaterAsync(release.Task);
                 var covered = await RunInCoveredFlowAsync(DurableTask.Current, async () =>
                 {
@@ -101,7 +101,7 @@ public class DurableTaskCoveredRegionTests
             }),
             context);
 
-        // The named occurrence which the rejected start would have taken stays free.
+        // 拒绝启动的点名事件会让它自由存在
         Assert.Equal(2, response.GetResult<int>());
         Assert.Equal(["root/covered"], context.Effects);
         Assert.Equal(["root/child"], context.Posts);
@@ -118,7 +118,7 @@ public class DurableTaskCoveredRegionTests
             .GetMethod("EnterCoveredRegion", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(context, null)!;
 
-    /// <summary>A host which records effects and posts, and completes every other operation at once.</summary>
+    /// <summary>存储效果和发布功能的东道主,同时完成所有其他业务。</summary>
     private sealed class RecordingContext() : DurableTaskContext(TaskId.CreateRoot("root"))
     {
         public List<string> Effects { get; } = [];

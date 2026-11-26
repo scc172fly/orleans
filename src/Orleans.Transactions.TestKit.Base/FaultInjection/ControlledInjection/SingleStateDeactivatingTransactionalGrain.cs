@@ -7,43 +7,43 @@ namespace Orleans.Transactions.TestKit
 {
 
     /// <summary>
-    /// Defines transactional operations used to test controlled fault injection.
+    /// 定义用于测试受控过失注入的往来业务。
     /// </summary>
     public interface IFaultInjectionTransactionTestGrain : IGrainWithGuidKey
     {
         /// <summary>
-        /// Sets the grain value within a transaction.
+        /// 设置交易中的 grain 值。
         /// </summary>
-        /// <param name="newValue">The new value.</param>
-        /// <returns>A task representing the operation.</returns>
+        /// <param name="newValue">新值。</param>
+        /// <returns>代表操作的任务。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task Set(int newValue);
 
         /// <summary>
-        /// Adds to the grain value within a transaction and configures fault injection.
+        /// 在交易中添加 grain 值,并配置错误注入。
         /// </summary>
-        /// <param name="numberToAdd">The value to add.</param>
-        /// <param name="faultInjectionControl">The fault to inject, or <see langword="null"/> to perform the operation without a controlled fault.</param>
-        /// <returns>A task representing the operation.</returns>
+        /// <param name="numberToAdd">增加值。</param>
+        /// <param name="faultInjectionControl">注射的过错,或 <see langword="null"/> 来进行操作,无受控过失。</param>
+        /// <returns>代表操作的任务。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task Add(int numberToAdd, FaultInjectionControl? faultInjectionControl = null);
 
         /// <summary>
-        /// Gets the grain value within a transaction.
+        /// 获取交易中的 grain 值。
         /// </summary>
-        /// <returns>The grain value.</returns>
+        /// <returns>数值 grain 。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<int> Get();
 
         /// <summary>
-        /// Schedules the grain for deactivation.
+        /// 将 grain 排在停用时间表上。
         /// </summary>
-        /// <returns>A completed task.</returns>
+        /// <returns>一项已完成的任务。</returns>
         Task Deactivate();
     }
 
     /// <summary>
-    /// Implements transactional state operations used to test controlled fault injection.
+    /// 实施用于测试受控过失注射的州交易业务。
     /// </summary>
     public partial class SingleStateFaultInjectionTransactionalGrain : Grain, IFaultInjectionTransactionTestGrain
     {
@@ -52,10 +52,10 @@ namespace Orleans.Transactions.TestKit
         private ILogger logger = null!;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleStateFaultInjectionTransactionalGrain"/> class.
+        /// 初始化 <see cref="SingleStateFaultInjectionTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data">The fault-injecting transactional state.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="data">错误输入交易状态。</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public SingleStateFaultInjectionTransactionalGrain(
             [FaultInjectionTransactionalState("data", TransactionTestConstants.TransactionStore)]
             IFaultInjectionTransactionalState<GrainData> data,
@@ -87,10 +87,10 @@ namespace Orleans.Transactions.TestKit
         /// <inheritdoc />
         public Task Add(int numberToAdd, FaultInjectionControl? faultInjectionControl = null)
         {
-            //reset in case control from last tx isn't cleared for some reason
+            //重置, 以防由于某种原因无法清除上一个 tx 的控制
             this.data.FaultInjectionControl.Reset();
-            //dont replace it with this.data.FaultInjectionControl = faultInjectionControl, 
-            //this.data.FaultInjectionControl must remain the same reference
+            //不以 this.data.FaultInjectionControl = faultInjectionControl替换, 
+            //this.data.FaultInjectionControl 必须保持相同的提及
             if (faultInjectionControl != null)
             {
                 this.data.FaultInjectionControl.FaultInjectionPhase = faultInjectionControl.FaultInjectionPhase;

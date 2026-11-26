@@ -1,7 +1,7 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Marker interface for addressable endpoints, such as grains, observers, and other system-internal addressable endpoints
+    /// 可标定端点的标记界面, 如 grains、观察者和其他系统内部可标定的端点
     /// </summary>
     [GenerateMethodSerializers(typeof(GrainReference))]
     public interface IAddressable

@@ -5,10 +5,10 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>Reports version checks whose change name or supported range isn't a constant.</summary>
+/// <summary>报告版本检查,如果更改名称或支持的范围不是常数。</summary>
 /// <remarks>
-/// <c>DurableTask.GetVersion</c> records an execution's version under the change's name, and a deployment's supported
-/// range belongs to the code which branches on it, so both are constants of the calling code.
+/// <c>DurableTask.GetVersion</c> 更改名称下记录了执行版本, 并且支持部署
+/// 区域属于该代码的分支,因此这两个是调用代码的常数。
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskVersionAnalyzer : DiagnosticAnalyzer

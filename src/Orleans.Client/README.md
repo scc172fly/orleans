@@ -1,16 +1,24 @@
-# Microsoft Orleans Client
+<a id="microsoft-orleans-client"></a>
 
-## Introduction
-Microsoft Orleans Client is a metapackage that includes all the necessary components to connect to an Orleans cluster from a client application. It provides a simplified way to set up an Orleans client by providing a single package reference rather than requiring you to reference multiple packages individually.
+# Microsoft Orleans 客户端
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 客户端是一个元包,包含从客户应用程序连接到 Orleans 群集的一切必要组件。它提供了一个简化的方法,通过提供单一的软件包参考来设置 Orleans 客户端,而不是要求您单独引用多个软件包。
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Client
 ```
 
-## Example - Creating an Orleans Client
+<a id="example---creating-an-orleans-client"></a>
+
+## 示例 - 创建 Orleans 客户端
 
 ```csharp
 using Microsoft.Extensions.Hosting;
@@ -50,16 +58,20 @@ Console.WriteLine($"Result: {result}");
 await host.WaitForShutdownAsync();
 ```
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Orleans client configuration](https://dotnet.github.io/orleans/docs/host/client/)
-- [Grain references](https://dotnet.github.io/orleans/docs/grains/grain-references/)
-- [Orleans request context](https://dotnet.github.io/orleans/docs/grains/request-context/)
+<a id="documentation"></a>
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [Orleans 客户端配置](https://dotnet.github.io/orleans/docs/host/client/)
+- [Grain 引用](https://dotnet.github.io/orleans/docs/grains/grain-references/)
+- [Orleans 请求上下文](https://dotnet.github.io/orleans/docs/grains/request-context/)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

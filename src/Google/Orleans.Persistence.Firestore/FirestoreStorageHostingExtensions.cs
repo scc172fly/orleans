@@ -12,12 +12,12 @@ using Orleans.Persistence.Firestore;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// <see cref="IServiceCollection"/> and <see cref="ISiloBuilder"/> extensions.
+/// <see cref="IServiceCollection"/> 和 <see cref="ISiloBuilder"/> 扩展。
 /// </summary>
 public static class FirestoreStorageHostingExtensions
 {
     /// <summary>
-    /// Configure silo to use Google Firestore storage as the default grain storage.
+    /// 配置 silo 将 Google 消防储存用作默认的 grain 存储 。
     /// </summary>
     public static IServiceCollection AddFirestoreGrainStorageAsDefault(this IServiceCollection services, Action<FirestoreStateStorageOptions> configureOptions)
     {
@@ -25,7 +25,7 @@ public static class FirestoreStorageHostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Google Firestore storage for grain storage.
+    /// 配置 silo 用于 Google 消防室存储 grain 存储 。
     /// </summary>
     public static IServiceCollection AddFirestoreGrainStorage(this IServiceCollection services, string name, Action<FirestoreStateStorageOptions> configureOptions)
     {
@@ -33,7 +33,7 @@ public static class FirestoreStorageHostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Google Firestore storage as the default grain storage.
+    /// 配置 silo 将 Google 消防储存用作默认的 grain 存储 。
     /// </summary>
     public static IServiceCollection AddFirestoreGrainStorageAsDefault(this IServiceCollection services, Action<OptionsBuilder<FirestoreStateStorageOptions>>? configureOptions = null)
     {
@@ -41,7 +41,7 @@ public static class FirestoreStorageHostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Google Firestore storage for grain storage.
+    /// 配置 silo 用于 Google 消防室存储 grain 存储 。
     /// </summary>
     public static IServiceCollection AddFirestoreGrainStorage(this IServiceCollection services, string name,
         Action<OptionsBuilder<FirestoreStateStorageOptions>>? configureOptions = null)
@@ -57,7 +57,7 @@ public static class FirestoreStorageHostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Google Firestore storage as the default grain storage.
+    /// 配置 silo 将 Google 消防储存用作默认的 grain 存储 。
     /// </summary>
     public static ISiloBuilder AddFirestoreGrainStorageAsDefault(this ISiloBuilder builder, Action<FirestoreStateStorageOptions> configureOptions)
     {
@@ -65,7 +65,7 @@ public static class FirestoreStorageHostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Google Firestore storage for grain storage.
+    /// 配置 silo 用于 Google 消防室存储 grain 存储 。
     /// </summary>
     public static ISiloBuilder AddFirestoreGrainStorage(this ISiloBuilder builder, string name, Action<FirestoreStateStorageOptions> configureOptions)
     {
@@ -73,7 +73,7 @@ public static class FirestoreStorageHostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Google Firestore storage as the default grain storage.
+    /// 配置 silo 将 Google 消防储存用作默认的 grain 存储 。
     /// </summary>
     public static ISiloBuilder AddFirestoreGrainStorageAsDefault(this ISiloBuilder builder, Action<OptionsBuilder<FirestoreStateStorageOptions>>? configureOptions = null)
     {
@@ -81,7 +81,7 @@ public static class FirestoreStorageHostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Google Firestore storage for grain storage.
+    /// 配置 silo 用于 Google 消防室存储 grain 存储 。
     /// </summary>
     public static ISiloBuilder AddFirestoreGrainStorage(this ISiloBuilder builder, string name, Action<OptionsBuilder<FirestoreStateStorageOptions>>? configureOptions = null)
     {

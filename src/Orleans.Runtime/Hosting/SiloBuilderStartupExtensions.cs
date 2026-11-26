@@ -10,24 +10,24 @@ using Orleans.Runtime;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// The silo builder startup extensions.
+    /// 下 silo 建设启动扩展 。
     /// </summary>
     public static class SiloBuilderStartupExtensions
     {
         /// <summary>
-        /// Adds a startup task to be executed when the silo has started.
+        /// 添加启动任务,在 silo 启动时执行。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="stage">
-        /// The stage to execute the startup task, see values in <see cref="ServiceLifecycleStage"/>.
+        /// 执行启动任务的阶段,请参见 <see cref="ServiceLifecycleStage"/>中的值。
         /// </param>
         /// <typeparam name="TStartup">
-        /// The startup task type, including the public constructors used for dependency injection.
+        /// 启动任务类型,包括用于依赖注射的公共建筑师。
         /// </typeparam>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>.
+        /// 提供 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder AddStartupTask<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TStartup>(
@@ -39,19 +39,19 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds a startup task to be executed when the silo has started.
+        /// 添加启动任务,在 silo 启动时执行。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="startupTask">
-        /// The startup task.
+        /// 启动任务
         /// </param>
         /// <param name="stage">
-        /// The stage to execute the startup task, see values in <see cref="ServiceLifecycleStage"/>.
+        /// 执行启动任务的阶段,请参见 <see cref="ServiceLifecycleStage"/>中的值。
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>.
+        /// 提供 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder AddStartupTask(
             this ISiloBuilder builder,
@@ -62,19 +62,19 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds a startup task to be executed when the silo has started.
+        /// 添加启动任务,在 silo 启动时执行。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="startupTask">
-        /// The startup task.
+        /// 启动任务
         /// </param>
         /// <param name="stage">
-        /// The stage to execute the startup task, see values in <see cref="ServiceLifecycleStage"/>.
+        /// 执行启动任务的阶段,请参见 <see cref="ServiceLifecycleStage"/>中的值。
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>.
+        /// 提供 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder AddStartupTask(
             this ISiloBuilder builder,

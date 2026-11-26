@@ -8,18 +8,18 @@ using System.Text;
 namespace Orleans
 {
     /// <summary>
-    /// Provides stable hash functions whose results are consistent across processes and cluster nodes.
+    /// 提供稳定的散列功能,其结果在各种进程和群集节点之间是一致的。
     /// </summary>
     public static class StableHash
     {
         /// <summary>
-        /// Computes a hash digest of the input.
+        /// 计算输入的散列摘要。
         /// </summary>
         /// <param name="data">
-        /// The input data.
+        /// 输入数据
         /// </param>
         /// <returns>
-        /// A hash digest of the input.
+        /// 输入的散列摘要 。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe uint ComputeHash(ReadOnlySpan<byte> data)
@@ -30,13 +30,13 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Computes a hash digest of the input.
+        /// 计算输入的散列摘要。
         /// </summary>
         /// <param name="data">
-        /// The input data.
+        /// 输入数据
         /// </param>
         /// <returns>
-        /// A hash digest of the input.
+        /// 输入的散列摘要 。
         /// </returns>
         public static uint ComputeHash(string data) => ComputeHash(BitConverter.IsLittleEndian ? MemoryMarshal.AsBytes(data.AsSpan()) : Encoding.Unicode.GetBytes(data));
     }

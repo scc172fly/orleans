@@ -5,59 +5,59 @@ using Orleans.Timers;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// The gateway of the <see cref="Grain"/> to the Orleans runtime. The <see cref="Grain"/> should only interact with the runtime through this interface.
+/// <see cref="Grain"/> 至 Orleans 运行时间的网关。 <see cref="Grain"/> 仅应在此界面中与运行时间进行互动。
 /// </summary>
 public interface IGrainRuntime
 {
     /// <summary>
-    /// Gets a unique identifier for the current silo.
-    /// There is no semantic content to this string, but it may be useful for logging.
+    /// 获取当前 silo的独特标识符。
+    /// 此字符串没有语义内容, 但可能对记录有用 。
     /// </summary>
     string SiloIdentity { get; }
 
     /// <summary>
-    /// Gets the silo address associated with this instance.
+    /// 获取与此实例相关的 silo 地址。
     /// </summary>
     SiloAddress SiloAddress { get; }
 
     /// <summary>
-    /// Gets the grain factory.
+    /// 得到 grain 工厂。
     /// </summary>
     IGrainFactory GrainFactory { get; }
 
     /// <summary>
-    /// Gets the timer registry.
+    /// 获得计时器登记簿。
     /// </summary>
     ITimerRegistry TimerRegistry { get; }
 
     /// <summary>
-    /// Gets the service provider.
+    /// 得到了服务供应商。
     /// </summary>
     IServiceProvider ServiceProvider { get; }
 
     /// <summary>
-    /// Gets the time provider.
+    /// 时间提供商。
     /// </summary>
     TimeProvider TimeProvider => TimeProvider.System;
 
     /// <summary>
-    /// Deactivates the provided grain when it becomes idle.
+    /// 取消提供 grain 当它闲着的时候,
     /// </summary>
-    /// <param name="grainContext">The grain context.</param>
+    /// <param name="grainContext"> grain 上下文。</param>
     void DeactivateOnIdle(IGrainContext grainContext);
 
     /// <summary>
-    /// Delays idle activation collection of the provided grain due to inactivity until at least the specified time has elapsed.
+    /// 延迟闲置启动所提供设备 grain 直至至少规定时间结束。
     /// </summary>
-    /// <param name="grainContext">The grain context.</param>
-    /// <param name="timeSpan">The time to delay idle activation collection for.</param>
+    /// <param name="grainContext"> grain 上下文。</param>
+    /// <param name="timeSpan">延迟闲置激活收藏的时间。</param>
     void DelayDeactivation(IGrainContext grainContext, TimeSpan timeSpan);
 
     /// <summary>
-    /// Gets grain storage for the provided grain.
+    /// 获取 grain 提供的储存 grain.
     /// </summary>
-    /// <typeparam name="TGrainState">The grain state type.</typeparam>
-    /// <param name="grainContext">The grain context.</param>
-    /// <returns>The grain storage for the provided grain.</returns>
+    /// <typeparam name="TGrainState"> grain 状态类型。</typeparam>
+    /// <param name="grainContext"> grain 上下文。</param>
+    /// <returns>下 grain 提供的储存 grain.</returns>
     IStorage<TGrainState> GetStorage<TGrainState>(IGrainContext grainContext);
 }

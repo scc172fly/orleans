@@ -9,7 +9,7 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.PersistentStreams
 {
     /// <summary>
-    /// Delivery failure handler that writes failures to azure table storage.
+    /// 发送失败处理器, 写出无法保存 zure表的处理器。
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     public class AzureTableStorageStreamFailureHandler<TEntity> : IStreamFailureHandler where TEntity : StreamDeliveryFailureEntity, new()
@@ -21,10 +21,10 @@ namespace Orleans.Providers.Streams.PersistentStreams
         private readonly Func<TEntity> createEntity;
 
         /// <summary>
-        /// Delivery failure handler that writes failures to azure table storage.
+        /// 发送失败处理器, 写出无法保存 zure表的处理器。
         /// </summary>
         /// <param name="serializer"></param>
-        /// <param name="loggerFactory">logger factory to use</param>
+        /// <param name="loggerFactory">用于使用</param>的对帐厂
         /// <param name="faultOnFailure"></param>
         /// <param name="clusterId"></param>
         /// <param name="azureStorageOptions"></param>
@@ -51,12 +51,12 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Indicates if the subscription should be put in a faulted state upon stream failures
+        /// 指示在流出故障时订阅是否发生错误状态
         /// </summary>
         public bool ShouldFaultSubsriptionOnError { get; private set; }
 
         /// <summary>
-        /// Initialization
+        /// 初始化
         /// </summary>
         /// <returns></returns>
         public Task InitAsync()
@@ -65,7 +65,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Should be called when an event could not be delivered to a consumer, after exhausting retry attempts.
+        /// 在用尽努力再试之后,当一项事件不能交付给消费者时,应叫停。
         /// </summary>
         /// <param name="subscriptionId"></param>
         /// <param name="streamProviderName"></param>
@@ -79,7 +79,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// Should be called when a subscription requested by a consumer could not be setup, after exhausting retry attempts.
+        /// 在消费者要求的订阅在用尽所有手段尝试之后无法安装时,应调用。
         /// </summary>
         /// <param name="subscriptionId"></param>
         /// <param name="streamProviderName"></param>

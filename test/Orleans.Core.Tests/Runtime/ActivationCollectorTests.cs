@@ -18,7 +18,7 @@ using Xunit;
 namespace UnitTests.Runtime
 {
     /// <summary>
-    /// Tests for activation collector functionality including ticket generation from timestamps.
+    /// 激活采集器功能测试,包括用时间戳生成票。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Runtime")]
     [TestSuite("BVT")]
@@ -77,15 +77,15 @@ namespace UnitTests.Runtime
         [Fact, TestCategory("Activation")]
         public void TryRescheduleCollection_DoesNotThrow_WhenCollectionTicketIsMaxValue()
         {
-            // Simulate an activation whose collector-owned registration sits in the DateTime.MaxValue bucket.
-            // That state arises when ScanStale reschedules an activation with
-            // KeepAliveUntil = DateTime.MaxValue (from DelayDeactivation(Timeout.InfiniteTimeSpan))
-            // and MakeTicketFromDateTime clamps the overflowed timestamp to DateTime.MaxValue
-            // (see MakeTicketFromDateTime_MaxValue).
+            // 模拟一个其收藏家拥有的登记在 DateTime.MaxValue 桶中的激活。
+            // 当 ScanStale 重新计划启动时,出现这种情况
+            // KeepAliveUntil = DateTime.MaxValue (来自 DelayDeactivation(Timeout.InfiniteTimeSpan)
+            // 和 MakeTicketFromDateTime 将溢出的时间戳绑紧到 DateTime.MaxValue
+            // (见 MakeTicketFromDateTime_MaxValue)。
             //
-            // Cancelling the keep-alive via DelayDeactivation(TimeSpan.Zero) drives
-            // ActivationData into TryRescheduleCollection, which must be able to move the
-            // activation out of the MaxValue bucket without throwing.
+            // 通过 DelayDeactivation(TimeSpan.Zero)驱动器取消保持状态
+            // ActivationData 与 TryRescheduleCollection,必须能够移动
+            // 启动 MaxValue 桶,不扔。
             var activation = Substitute.For<ICollectibleGrainContext, IActivationWorkingSetMember>();
             ConfigureCollectionRegistrationSlot(activation);
             activation.CollectionAgeLimit.Returns(TimeSpan.FromMinutes(5));
@@ -305,7 +305,7 @@ namespace UnitTests.Runtime
             var collection = memoryPressure
                 ? collector.DeactivateInDueTimeOrder(2, cancellationToken)
                 : collector.CollectStaleActivations(cancellationToken);
-            // NSubstitute's last-call cache must reference the blocked context, not the peer being checked for reclamation.
+            // Nsubstive最后呼叫的缓存必须参考被封住的背景, 而不是要检查对等点是否直接使用。
             _ = blocked.GrainId;
             return (collection, completedPeer, identities);
         }
@@ -682,12 +682,12 @@ namespace UnitTests.Runtime
         }
 
         [Theory, TestCategory("MemoryBasedDeactivations")]
-        [InlineData(80.0, 70.0, 1000, 150, 100, true, 82)] // Over threshold, need to deactivate
-        [InlineData(80.0, 70.0, 1000, 250, 100, false, 0)] // Below threshold, no deactivation
-        [InlineData(80.0, 70.0, 1000, 100, 200, true, 155)] // More activations, smaller per-activation size
-        [InlineData(80.0, 70.0, 1000, 800, 100, false, 0)] // Well below threshold
-        [InlineData(80.0, 70.0, 1000, 50, 10, true, 7)] // Few activations, large per-activation size
-        [InlineData(80.0, 70.0, 1000, 100, 0, false, 0)] // No activations
+        [InlineData(80.0, 70.0, 1000, 150, 100, true, 82)] // 超过门槛,需要停止使用
+        [InlineData(80.0, 70.0, 1000, 250, 100, false, 0)] // 低于门槛值,不解除
+        [InlineData(80.0, 70.0, 1000, 100, 200, true, 155)] // 更多激活,较小的每次引爆规模
+        [InlineData(80.0, 70.0, 1000, 800, 100, false, 0)] // 远低于门槛值
+        [InlineData(80.0, 70.0, 1000, 50, 10, true, 7)] // 很少启动,大型的每次激活规模
+        [InlineData(80.0, 70.0, 1000, 100, 0, false, 0)] // 无激活
         public void IsMemoryOverloaded_WorksAsExpected(
             double memoryLoadThreshold,
             double targetMemoryLoad,
@@ -703,7 +703,7 @@ namespace UnitTests.Runtime
                 MemoryUsageTargetPercentage = targetMemoryLoad
             });
 
-            // Calculate usedMemory and set rawAvailableMemoryBytes as per new logic
+            // 计算 usedMemory ,并按新逻辑设置 rawAvailableMemoryBytes
             long usedMemoryBytes = maxMemoryMb - availableMemoryMb;
             long rawAvailableMemoryBytes = availableMemoryMb;
             long maxMemoryBytes = maxMemoryMb;
@@ -831,17 +831,17 @@ namespace UnitTests.Runtime
                 workingSet.OnActivated(activationMember);
             }
 
-            // Now we have 500 buckets. Let's trigger the race condition.
+            // 现在有500桶了 启动赛车状况
             var exceptions = new ConcurrentBag<Exception>();
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
-            // Task 1: Aggressively ADD new activations (creates NEW buckets in the dictionary)
+            // 任务1:积极反排DD新启动(在字典中创建新的桶)
             var addTask = Task.Run(async () =>
             {
                 int addCount = 0;
                 while (!cts.Token.IsCancellationRequested && addCount < 200)
                 {
-                    // Add 10 activations at a time with random collection ages
+                    // 随机收集时间长时每次添加 10 个激活
                     for (int i = 0; i < 10; i++)
                     {
                         var activation = PrepareActivation(501 + Random.Shared.Next(200), collector);
@@ -855,19 +855,19 @@ namespace UnitTests.Runtime
                 }
             }, cts.Token);
 
-            // Task 2: Aggressively REMOVE activations (empties buckets, causing REMOVAL from dictionary)
+            // 任务2:积极转动启动(空桶,引起字典的REMOVAL)
             var removeTask = Task.Run(async () =>
             {
                 int removeCount = 0;
                 while (!cts.Token.IsCancellationRequested && removeCount < 200)
                 {
-                    // Remove 10 activations at a time
+                    // 一次删除10个激活
                     for (int i = 0; i < 10 && activations.Count > 100; i++)
                     {
                         var activation = activations[Random.Shared.Next(activations.Count)] as ICollectibleGrainContext;
 
-                        // TryCancelCollection removes the activation from its bucket
-                        // If the bucket becomes empty, it gets removed from the dictionary!
+                        // TryCancelCollection 从桶桶中去除激活
+                        // 如果桶空了,它就会从字典上被删除!
                         if (collector.TryCancelCollection(activation))
                         {
                             removeCount++;
@@ -878,16 +878,16 @@ namespace UnitTests.Runtime
                 }
             }, cts.Token);
 
-            // Task 3: Run DeactivateInDueTimeOrder MANY times concurrently
-            // This is where the collector snapshots and sorts buckets while they are being added and removed.
+            // 任务3:同时运行 DeactivateInDueTimeOrder 多次
+            // 收藏家在这里拍下照片和打包桶,同时添加并取走。
             var deactivateTasks = Enumerable.Range(0, 20).Select(_ => Task.Run(async () =>
             {
                 for (int i = 0; i < 100; i++)
                 {
                     try
                     {
-                        // Deactivation iterates through the buckets, and if code is not resilient for concurrent modification,
-                        // it will blow up with some form of collection modification exception.                        
+                        // 拆卸电动通过桶循环,如果代码无法适应同时修改,
+                        // 将爆炸 与某种形式的 收费修改例外。                        
                         await collector.DeactivateInDueTimeOrder(50, cts.Token);
                         await Task.Delay(1, cts.Token);
                     }
@@ -902,14 +902,14 @@ namespace UnitTests.Runtime
                 }
             }, cts.Token)).ToArray();
 
-            // Wait for all deactivation attempts
+            // 等待所有解除功能尝试
             await Task.WhenAll(deactivateTasks);
 
-            // Stop background modifications
+            // 停止背景修改
             cts.Cancel();
             await Task.WhenAll(addTask, removeTask);
 
-            // Verify no exceptions occurred during deactivation
+            // 无法在禁用期间核查没有例外
             Assert.Empty(exceptions);
         }
 
@@ -1056,7 +1056,7 @@ namespace UnitTests.Runtime
             observer.Received(1).OnAdded(first);
             observer.Received(2).OnActive(first);
 
-            metrics.StartListening(); // No recording was enabled while members were added.
+            metrics.StartListening(); // 成员增加后,没有启用录音。
             metrics.AssertWorkingSetSnapshot(workingSet, ("working-orders", 2), ("working-invoices", 1));
             metrics.AssertWorkingSetSnapshot(workingSet, ("working-orders", 2), ("working-invoices", 1));
             Assert.Equal(3, workingSet.Members.Count());
@@ -1067,7 +1067,7 @@ namespace UnitTests.Runtime
                 case "deactivated": workingSet.OnDeactivated(first); break;
                 default: throw new ArgumentOutOfRangeException(nameof(notification));
             }
-            // Check the selected removal before another notification can mask a missing eviction.
+            // 在另一项通知掩盖缺失的驱逐之前检查选中的删除 。
             observer.Received(1).OnEvicted(first);
             Assert.DoesNotContain(first, workingSet.Members);
             metrics.AssertWorkingSetSnapshot(workingSet, ("working-orders", 1), ("working-invoices", 1));
@@ -1081,7 +1081,7 @@ namespace UnitTests.Runtime
             Assert.Contains(other, workingSet.Members);
             metrics.AssertWorkingSetSnapshot(workingSet, ("working-orders", 1), ("working-invoices", 1));
 
-            // OnActive can also add a previously evicted member, without a second OnAdded notification.
+            // OnActive 还可以增加先前被逐出的成员,而无需第二次 OnAdded 通知。
             workingSet.OnActive(first);
             workingSet.OnActive(first);
             observer.Received(1).OnAdded(first);
@@ -1182,7 +1182,7 @@ namespace UnitTests.Runtime
             observer.DidNotReceive().OnEvicted(candidate);
             candidate.Received(1).IsCandidateForRemoval(false);
             candidate.DidNotReceive().IsCandidateForRemoval(true);
-            // Idle entries are invisible in Members but still included in Count and the gauge.
+            // 空闲条目在成员中是隐形的,但仍包括在伯爵和仪表上。
             metrics.AssertWorkingSetSnapshot(workingSet, ("scan-orders", 1), ("scan-invoices", 1));
             metrics.AssertWorkingSetSnapshot(workingSet, ("scan-orders", 1), ("scan-invoices", 1));
 
@@ -1297,7 +1297,7 @@ namespace UnitTests.Runtime
                     workingSet.OnDeactivated((IActivationWorkingSetMember)activation);
                 }
                 releases[0].SetResult();
-                Assert.False(collection.IsCompleted); // The other activation still owns an incomplete completion.
+                Assert.False(collection.IsCompleted); // 另一起启动仍然有未完全完成的完成。
                 releases[1].SetResult();
                 await collection.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
@@ -1307,7 +1307,7 @@ namespace UnitTests.Runtime
                 Assert.Same(unrelated, Assert.Single(workingSet.Members));
                 metrics.AssertWorkingSetSnapshot(workingSet, ("batch-orders", 0), ("batch-invoices", 0), ("batch-unrelated", 1));
                 metrics.AssertWorkingSetSnapshot(workingSet, ("batch-orders", 0), ("batch-invoices", 0), ("batch-unrelated", 1));
-                // Historical collector scope: one untyped shutdown for the batch, not one per fake context.
+                // 历史收藏范围:批量未输入的关闭, 不是每个假环境都关闭。
                 AssertCollectionEvents(metrics.Events, passes: 1, batches: 1);
                 await batchCollector.CollectStaleActivations(cancellationToken);
                 AssertCollectionEvents(metrics.Events, passes: 2, batches: 1);
@@ -1362,7 +1362,7 @@ namespace UnitTests.Runtime
 
         private static void AssertCollectionEvents(AccountingMeasurement[] events, int passes, int batches)
         {
-            Assert.Equal(passes + batches, events.Length); // No unrelated lifecycle counters may change.
+            Assert.Equal(passes + batches, events.Length); // 任何不相关的生命周期计数器都不会改变。
             var collections = events.Where(item => item.Instrument.Name == InstrumentNames.CATALOG_ACTIVATION_COLLECTION_NUMBER_OF_COLLECTIONS).ToArray();
             Assert.Equal(passes, collections.Length);
             Assert.All(collections, item =>
@@ -1400,7 +1400,7 @@ namespace UnitTests.Runtime
                 var instruments = new OrleansInstruments(_provider.GetRequiredService<IMeterFactory>());
                 _meter = instruments.Meter;
                 Instruments = new CatalogInstruments(instruments);
-                // The working set owns its gauge registration; this fixture must never register it.
+                // 工作组拥有其表压登记;该固定装置不得登记。
             }
 
             public void StartListening()
@@ -1503,7 +1503,7 @@ namespace UnitTests.Runtime
             public async Task ScanAsync(string phase, Task notification)
             {
                 Assert.False(notification.IsCompleted, $"Observer must be armed before {phase}.");
-                _clock.Advance(Period); // The sole clock driver, with a scheduled fake delay already observed.
+                _clock.Advance(Period); // 唯一的时钟司机,已经观察到了预定的假延迟。
                 try
                 {
                     await notification.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
@@ -1525,7 +1525,7 @@ namespace UnitTests.Runtime
             private async Task<bool> NextTick()
             {
                 var delay = Task.Delay(Period, _clock, _stop.Token);
-                _scheduled.Writer.TryWrite(++_scheduleNumber); // Delay is installed before publishing readiness.
+                _scheduled.Writer.TryWrite(++_scheduleNumber); // 出版准备前安装延迟。
                 try
                 {
                     await delay;

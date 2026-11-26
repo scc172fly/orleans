@@ -1,19 +1,21 @@
 ---
-title: Grain directory architecture
-description: Understand the default view-synchronous distributed directory and the legacy-directory DHT.
+title: "Grain 目录结构"
+description: "获取默认同步视图分布目录和遗产目录 DHT。"
 ms.date: 08/21/2026
 ms.topic: concept-article
 ---
 
-# Grain directory architecture
+<a id="grain-directory-architecture"></a>
 
-The grain directory maps a grain identity to an activation address. It is on the critical path when a caller has no usable cached address and when the runtime creates, moves, or removes an activation. Placement chooses a silo; the directory coordinates which activation address is authoritative.
+# Grain 目录结构
 
-Orleans uses `DistributedGrainDirectory` by default, with versioned range ownership and coordinated membership-view transitions. Select `LegacyGrainDirectory` with <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*>.
+下 grain 地图a grain 激活地址的身份。当调用器没有可用的缓存地址,运行时间创建、移动或删除激活时,它就会在关键路径上。 silo;激活地址所在的目录坐标是权威的。
+
+Orleans 默认使用 `DistributedGrainDirectory` ,使用版本版版版范围所有权和协调会籍视图过渡。选择 `LegacyGrainDirectory` 和 <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*>。
 
 ## `LegacyGrainDirectory` <a name="overview-and-architecture"></a>
 
-`LegacyGrainDirectory` partitions registrations over the membership ring. Hashing a grain identity selects the silo whose legacy directory partition is authoritative for that key. This follows the broad consistent-hashing distributed-hash-table model described by [Chord](https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf), adapted to Orleans membership and activation semantics. Each silo also keeps non-authoritative cache entries to avoid repeated remote lookups.
+`LegacyGrainDirectory` 分区登记在会籍圈上。 拼凑 grain 身份选择 silo 的遗留目录分割对这个密钥具有权威性。 这遵循了 [弦和弦](https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf)描述的广泛一致的分布式散列(hash- hash)模式,该模式适应 Orleans 成员构成并激活语义。 每个 silo 还保留非授权缓存条目以避免重复远程查看。
 
 ```mermaid
 flowchart LR
@@ -32,31 +34,35 @@ flowchart LR
     Caller --> Activation
 ```
 
-The legacy directory preserves these invariants:
+遗留目录保存这些变量:
 
-- a directory key is derived from the grain identity, not its current location;
-- the membership view determines the authoritative owner;
-- local cache entries are hints and can be invalidated;
-- registration detects competing single-activation addresses;
-- a failed or deactivated silo's addresses are removed or rejected; and
-- partition ownership transfers as the membership ring changes.
+- 目录密钥来自 grain 身份,而不是其当前位置;
+- 成员观点决定了权威所有人;
+- 本地缓存条目是提示, 可以失效;
+- 登记发现相互竞争的单一活动地址;
+- a 失败或停止使用的 silo地址被删除或拒绝;和
+- 随着成员环的变化,所有权分配转移。
 
-Message forwarding and invalidation repair stale caches. Forwarding is bounded and is not an application-level retry policy.
+信件转发和无效修复已失效的缓存。 转发是连接的, 而不是应用程序级别重试策略 。
 
-Source: [Legacy directory implementation](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/GrainDirectory/LocalGrainDirectory.cs) and [legacy partition implementation](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/GrainDirectory/LocalGrainDirectoryPartition.cs).
+来源: [遗留目录实施](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/GrainDirectory/LocalGrainDirectory.cs) 和 [执行遗留子子分区](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/GrainDirectory/LocalGrainDirectoryPartition.cs)。
 
-## Directory selection
+<a id="directory-selection"></a>
 
-The runtime resolves a directory per grain type. The unnamed default resolves to `DistributedGrainDirectory` unless the silo has explicitly replaced it. A named implementation of <xref:Orleans.GrainDirectory.IGrainDirectory> can be registered and selected using grain-type metadata.
+## 目录选择
 
-Custom directories own their consistency, availability, and cleanup behavior. They should define what concurrent registration means, how failed silos are removed, and whether stale reads are possible. The surrounding message router cannot turn an eventually consistent custom directory into a strongly consistent one.
+运行时解决了每个 grain 类型目录。 未命名的默认解析到 `DistributedGrainDirectory` , 除非 silo 已经明确替换它。 <xref:Orleans.GrainDirectory.IGrainDirectory> 的指定执行程序可以使用 grain- 类元数据注册和选择。
 
-## Default: `DistributedGrainDirectory` <a name="distributed-grain-directory"></a>
+自定义目录拥有一致性、可用性和清理行为。 它们应该确定同时注册的含义, 如何删除失败 silos , 以及是否可读缩写。 周围的信息路由器无法将最终一致的自定义目录转换为非常一致的目录 。
 
-The default directory is view-synchronous, with versioned range ownership and coordinated membership-view transitions. <xref:Orleans.Hosting.CoreHostingExtensions.AddDistributedGrainDirectory*?displayProperty=nameWithType> selects it explicitly or registers a named alias. Aliases share one directory instance and one lifecycle participant per silo.
+<a id="default-distributedgraindirectory-"></a>
+
+## 默认: `DistributedGrainDirectory` <a name="distributed-grain-directory"></a>
+
+默认目录为同步视图, 版本版版版域所有制和协调会籍视图过渡。 <xref:Orleans.Hosting.CoreHostingExtensions.AddDistributedGrainDirectory*?displayProperty=nameWithType> 明确选择它或登记一个别名。 Aliases 共享一个目录实例和一个生命周期参与者的 silo。
 
 <a name="partitioning-strategy"></a>
-The implementation divides the hash ring into configurable ranges, analogous to the virtual-node partitioning described by [Dynamo](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf). <xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo?displayProperty=nameWithType> defaults to **1**. A partition normally serves requests locally. During a membership view change, old and new owners coordinate range locks, snapshots, and ownership transfer. The design applies the [virtually synchronous methodology for dynamic service replication](https://www.microsoft.com/en-us/research/publication/virtually-synchronous-methodology-for-dynamic-service-replication/) and has similarities to [Vertical Paxos and primary-backup replication](https://www.microsoft.com/en-us/research/publication/vertical-paxos-and-primary-backup-replication/).
+执行时将散圈分割为可配置的幅度,类似于 [迪纳摩](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)描述的虚拟节点分隔。 <xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo?displayProperty=nameWithType> 默认值为 **1**。一个分割区通常在当地满足请求。在成员视图变更中,新旧所有人协调范围锁、快照和所有权转让。设计应用了 [动态服务复制几乎同步的方法](https://www.microsoft.com/en-us/research/publication/virtually-synchronous-methodology-for-dynamic-service-replication/) ,并与 [垂直和平和初级备份复制](https://www.microsoft.com/en-us/research/publication/vertical-paxos-and-primary-backup-replication/)相似。
 
 <a name="view-change-procedure"></a>
 ```mermaid
@@ -76,21 +82,23 @@ sequenceDiagram
 ```
 
 <a name="recovery-process"></a>
-Requests and responses carry view information. A range cannot serve a request under an incompatible ownership view. If an orderly transfer is impossible, the new owner recovers registrations by querying active silos rather than assuming the failed owner's state.
+请求和答复含有查看信息。 范围不能以不相容的所有权观点满足请求。 如果无法有序转让,新所有人通过询问主动 silos 而不是假设失败的所有人状态来恢复登记。
 
-API: <xref:Orleans.Hosting.CoreHostingExtensions.AddDistributedGrainDirectory*?displayProperty=nameWithType> and <xref:Orleans.Configuration.GrainDirectoryOptions>. Implementation: [hosting registration](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Hosting/CoreHostingExtensions.cs) and [`DistributedGrainDirectory`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/GrainDirectory/DistributedGrainDirectory.cs).
+API: <xref:Orleans.Hosting.CoreHostingExtensions.AddDistributedGrainDirectory*?displayProperty=nameWithType> 和 <xref:Orleans.Configuration.GrainDirectoryOptions>。履行: [托管登记](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Hosting/CoreHostingExtensions.cs) 和 [`DistributedGrainDirectory`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/GrainDirectory/DistributedGrainDirectory.cs)。
 
-## Tradeoffs
+<a id="tradeoffs"></a>
 
-| Property | `LegacyGrainDirectory` | Default `DistributedGrainDirectory` |
+## 权衡取舍
+
+| 财产 | `LegacyGrainDirectory` | 默认 `DistributedGrainDirectory` |
 | --- | --- | --- |
-| Selection | <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*?displayProperty=nameWithType> | Runtime default |
-| Ownership | Membership consistent-hash ring | Versioned ranges over membership views |
-| Normal lookup | Owner partition plus per-silo cache | Owner partition plus view coordination |
-| View change | Partition split/merge and cache repair | Sealed ranges and snapshot transfer |
-| Recovery emphasis | Duplicate detection and invalidation | Explicit range recovery |
-| Configuration | Explicit directory selection | <xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo?displayProperty=nameWithType>, default 1 |
+| 选择 | <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*?displayProperty=nameWithType> | 默认运行时缺省 |
+| 所有权所有权所有权 | 成员一贯任期 | 成员观点的变通幅度 |
+| 正常调查 | 所有者分区加上每个silo 缓存 | 所有者分区加视图协调 |
+| 视图变化视图 | 分割分割/合并和缓存修理 | 密封幅度和快光传输 |
+| 恢复强调恢复 | 重复检测和无效 | 明确范围的回收 |
+| 配置 | 明确选择目录 | <xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo?displayProperty=nameWithType>,缺省1 |
 
-More partitions can improve ownership granularity but increase transfer and coordination work. Production rollouts should include compatibility, failure, and load testing.
+更多的分割可以改善所有权颗粒性,但能增加转让和协调。 生产推出应该包括兼容性、故障和负荷测试。
 
-For directory changes during a version upgrade, follow [Grain directory migration](../migration/grain-directory.md#legacy-to-distributed-directory-upgrade).
+对于版本升级过程中的目录改动,请在 [Grain 目录迁移](../migration/grain-directory.md#legacy-to-distributed-directory-upgrade)之后。

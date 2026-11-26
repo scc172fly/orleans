@@ -11,10 +11,10 @@ namespace BenchmarkGrains.MapReduce
 
         private const bool ProcessOnThreadPool = true;
 
-        // it should be list
+        // 应将它列为清单
         private ITargetGrain<TOutput> _target = null!;
 
-        // BlockingCollection has shown worse perf results for this workload types
+        // BlockingCollection 此类工作量类型的结果更差
         private readonly ConcurrentQueue<TInput> _input = new ConcurrentQueue<TInput>();
 
         private readonly ConcurrentQueue<TOutput> _output = new ConcurrentQueue<TOutput>();

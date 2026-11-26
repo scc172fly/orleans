@@ -9,7 +9,7 @@ using Xunit;
 namespace Tester.Cosmos.Reminders;
 
 /// <summary>
-/// Tests for operation of the Orleans reminders table using Azure Cosmos DB.
+/// 试验试验的试验 Orleans 使用 Azure 宇宙DB号
 /// </summary>
 [TestProvider("Cosmos")]
 [TestArea("Reminders")]

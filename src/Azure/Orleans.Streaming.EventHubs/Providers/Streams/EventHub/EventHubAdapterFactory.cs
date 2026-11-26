@@ -17,7 +17,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Queue adapter factory which allows the PersistentStreamProvider to use EventHub as its backend persistent event queue.
+    /// 将允许 PersistentStreamProvider 将 EventHub 用作后端持久性事件队列的调制器工厂排队。
     /// </summary>
     public class EventHubAdapterFactory : IQueueAdapterFactory, IQueueAdapter, IQueueAdapterCache
     {
@@ -26,22 +26,22 @@ namespace Orleans.Streaming.EventHubs
         private readonly OrleansInstruments orleansInstruments;
 
         /// <summary>
-        /// Data adapter
+        /// 数据适配器
         /// </summary>
         protected readonly IEventHubDataAdapter dataAdapter;
 
         /// <summary>
-        /// Orleans logging
+        /// Orleans 记录
         /// </summary>
         protected ILogger logger = null!;
 
         /// <summary>
-        /// Framework service provider
+        /// 框架服务供应商
         /// </summary>
         protected readonly IServiceProvider serviceProvider;
 
         /// <summary>
-        /// Stream provider settings
+        /// 串流提供商设置
         /// </summary>
         private readonly EventHubOptions ehOptions;
         private readonly EventHubStreamCachePressureOptions cacheOptions;
@@ -54,69 +54,69 @@ namespace Orleans.Streaming.EventHubs
         private EventHubProducerClient client = null!;
 
         /// <summary>
-        /// Name of the adapter. Primarily for logging purposes
+        /// 适配器的名称。 主要用于记录
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Determines whether this is a rewindable stream adapter - supports subscribing from previous point in time.
+        /// 确定此是否是一个可回放流调整器 - 支持从上一个时间点签名 。
         /// </summary>
-        /// <returns>True if this is a rewindable stream adapter, false otherwise.</returns>
+        /// <returns>如果这是可倒放流适配器, 则正确。</returns>
         public bool IsRewindable => true;
 
         /// <summary>
-        /// Direction of this queue adapter: Read, Write or ReadWrite.
+        /// 此队列适配器的方向: 读、 写或 ReadWrite。
         /// </summary>
-        /// <returns>The direction in which this adapter provides data.</returns>
+        /// <returns>该适配器提供数据的方向。</returns>
         public StreamProviderDirection Direction { get; protected set; } = StreamProviderDirection.ReadWrite;
 
         /// <summary>
-        /// Creates a message cache for an eventhub partition.
+        /// 为平线分区创建信件缓存 。
         /// </summary>
         protected Func<string, IStreamQueueCheckpointer<string>, ILoggerFactory, IEventHubQueueCache> CacheFactory { get; set; } = null!;
 
         /// <summary>
-        /// Creates a partition checkpointer.
+        /// 创建分区检查器。
         /// </summary>
         private IStreamQueueCheckpointerFactory checkpointerFactory = null!;
 
         /// <summary>
-        /// Creates a failure handler for a partition.
+        /// 为分区创建失败处理程序 。
         /// </summary>
         protected Func<string, Task<IStreamFailureHandler>> StreamFailureHandlerFactory { get; set; } = null!;
 
         /// <summary>
-        /// Create a queue mapper to map EventHub partitions to queues
+        /// 创建队列映像仪,将 EventHub 分区映射到队列
         /// </summary>
         protected Func<string[], HashRingBasedPartitionedStreamQueueMapper> QueueMapperFactory { get; set; } = null!;
 
         /// <summary>
-        /// Create a receiver monitor to report performance metrics.
-        /// Factory function should return an IEventHubReceiverMonitor.
+        /// 创建接收器监测器,报告业绩衡量标准。
+        /// 工厂函数应返回 IEventHubReceiverMonitor。
         /// </summary>
         protected Func<EventHubReceiverMonitorDimensions, ILoggerFactory, IQueueAdapterReceiverMonitor> ReceiverMonitorFactory { get; set; } = null!;
 
-        //for testing purpose, used in EventHubGeneratorStreamProvider
+        //EventHubGeneratorStreamProvider中所用用于试验目的
         /// <summary>
-        /// Factory to create a IEventHubReceiver
+        /// 创建 IEventHubReceiver的工厂
         /// </summary>
         protected Func<EventHubPartitionSettings, string, ILogger, IEventHubReceiver> EventHubReceiverFactory = null!;
         internal ConcurrentDictionary<QueueId, EventHubAdapterReceiver> EventHubReceivers => receivers;
         internal HashRingBasedPartitionedStreamQueueMapper EventHubQueueMapper => streamQueueMapper;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventHubAdapterFactory"/> class.
+        /// 初始化 <see cref="EventHubAdapterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="ehOptions">The Event Hub connection options.</param>
-        /// <param name="receiverOptions">The Event Hub receiver options.</param>
-        /// <param name="cacheOptions">The Event Hub cache pressure options.</param>
-        /// <param name="cacheEvictionOptions">The stream cache eviction options.</param>
-        /// <param name="statisticOptions">The stream statistics options.</param>
-        /// <param name="dataAdapter">The adapter used to convert between Event Hubs data and Orleans stream data.</param>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
-        /// <param name="environmentStatisticsProvider">The environment statistics provider.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="ehOptions">活动枢纽连接选项。</param>
+        /// <param name="receiverOptions">事件枢纽接收器选项。</param>
+        /// <param name="cacheOptions">事件枢纽缓存压力选项。</param>
+        /// <param name="cacheEvictionOptions">溪流缓冲驱逐选项。</param>
+        /// <param name="statisticOptions">流统计选项。</param>
+        /// <param name="dataAdapter">用于在事件枢纽数据与 Orleans 数据。</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="environmentStatisticsProvider">环境统计提供者。</param>
         public EventHubAdapterFactory(
             string name,
             EventHubOptions ehOptions,
@@ -143,7 +143,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Initializes the adapter factory and its Event Hub client, cache, queue mapping, and monitoring components.
+        /// 初始化了适配器厂及其事件枢纽客户端、缓存、队列绘图和监测组件。
         /// </summary>
         public virtual void Init()
         {
@@ -158,7 +158,7 @@ namespace Orleans.Streaming.EventHubs
 
             if (this.StreamFailureHandlerFactory == null)
             {
-                //TODO: Add a queue specific default failure handler with reasonable error reporting.
+                //TODO: 添加一个有合理错误报告功能的队列特定默认故障处理程序 。
                 this.StreamFailureHandlerFactory = partition => Task.FromResult<IStreamFailureHandler>(new NoOpStreamDeliveryFailureHandler());
             }
 
@@ -175,16 +175,16 @@ namespace Orleans.Streaming.EventHubs
             this.logger = this.loggerFactory.CreateLogger($"{this.GetType().FullName}.{this.ehOptions.EventHubName}");
         }
 
-        //should only need checkpointer on silo side, so move its init logic when it is used
+        //只应在 silo 一侧需要检查站,所以在使用时要移动其内在逻辑
         [MemberNotNull(nameof(checkpointerFactory))]
         private void InitCheckpointerFactory()
         {
             this.checkpointerFactory = this.serviceProvider.GetRequiredKeyedService<IStreamQueueCheckpointerFactory>(this.Name);
         }
         /// <summary>
-        /// Creates the queue adapter and initializes its partition mapping.
+        /// 创建队列适配器并初始化分区映射。
         /// </summary>
-        /// <returns>The queue adapter.</returns>
+        /// <returns>队列适配器。</returns>
         public async Task<IQueueAdapter> CreateAdapter()
         {
             if (this.streamQueueMapper == null)
@@ -196,43 +196,43 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Gets the queue cache factory implemented by this instance.
+        /// 获得由此实例实施的队列缓存工厂。
         /// </summary>
-        /// <returns>The queue cache factory.</returns>
+        /// <returns>排队缓冲厂</returns>
         public IQueueAdapterCache GetQueueAdapterCache()
         {
             return this;
         }
 
         /// <summary>
-        /// Gets the mapper between Orleans stream queues and Event Hub partitions.
+        /// 获取 Orleans 串列队和事件枢纽分区之间的映射器。
         /// </summary>
-        /// <returns>The stream queue mapper.</returns>
+        /// <returns>流队列映像仪。</returns>
         public IStreamQueueMapper GetStreamQueueMapper()
         {
-            //TODO: CreateAdapter must be called first.  Figure out how to safely enforce this
+            //托尔: CreateAdapter 一定要先叫来, 想办法安全执行
             return this.streamQueueMapper;
         }
 
         /// <summary>
-        /// Gets the delivery failure handler for a queue.
+        /// 获得一个排队的送货失败处理器。
         /// </summary>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <returns>A task which resolves to the delivery failure handler.</returns>
+        /// <param name="queueId">队列标识符。</param>
+        /// <returns>一项任务,即解决交付失败处理人的任务。</returns>
         public Task<IStreamFailureHandler> GetDeliveryFailureHandler(QueueId queueId)
         {
             return this.StreamFailureHandlerFactory(this.streamQueueMapper.QueueToPartition(queueId));
         }
 
         /// <summary>
-        /// Writes a set of events to the queue as a single batch associated with the provided streamId.
+        /// 将一组事件作为与所提供 streamId相关的单批内容写入队列。
         /// </summary>
-        /// <typeparam name="T">The event type.</typeparam>
-        /// <param name="streamId">The destination stream.</param>
-        /// <param name="events">The events to enqueue.</param>
-        /// <param name="token">The stream sequence token, which must be <see langword="null"/> for Event Hubs streams.</param>
-        /// <param name="requestContext">The request context to propagate with the events.</param>
-        /// <returns>A task which represents the enqueue operation.</returns>
+        /// <typeparam name="T">事件类型。</typeparam>
+        /// <param name="streamId">目的地流。</param>
+        /// <param name="events">用于排队的事件。</param>
+        /// <param name="token">流序序列符号,必须是事件枢纽流的 <see langword="null"/> 。</param>
+        /// <param name="requestContext">请求与事件一起宣传。</param>
+        /// <returns>代表后方命令操作的任务。</returns>
         public virtual Task QueueMessageBatchAsync<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token,
             Dictionary<string, object>? requestContext)
         {
@@ -242,20 +242,20 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Creates a queue receiver for the specified queue.
+        /// 为指定的队列创建队列接收器 。
         /// </summary>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <returns>The queue receiver.</returns>
+        /// <param name="queueId">队列标识符。</param>
+        /// <returns>队列接收器。</returns>
         public IQueueAdapterReceiver CreateReceiver(QueueId queueId)
         {
             return GetOrCreateReceiver(queueId);
         }
 
         /// <summary>
-        /// Creates a cache for the specified queue.
+        /// 为指定的队列创建缓存 。
         /// </summary>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <returns>The queue cache.</returns>
+        /// <param name="queueId">队列标识符。</param>
+        /// <returns>队列缓存。</returns>
         public IQueueCache CreateQueueCache(QueueId queueId)
         {
             return GetOrCreateReceiver(queueId);
@@ -267,7 +267,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Initializes the Event Hub producer client.
+        /// 初始化事件枢纽制作客户端。
         /// </summary>
         protected virtual void InitEventHubClient()
         {
@@ -277,12 +277,12 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Create a IEventHubQueueCacheFactory. It will create a EventHubQueueCacheFactory by default.
-        /// User can override this function to return their own implementation of IEventHubQueueCacheFactory,
-        /// and other customization of IEventHubQueueCacheFactory if they may.
+        /// 创建 IEventHubQueueCacheFactory。它会默认地创建一个 EventHubQueueCacheFactory 。
+        /// 用户可以推翻此函数返回 IEventHubQueueCacheFactory的自有执行状态,
+        /// 或按 IEventHubQueueCacheFactory 的其他定制。
         /// </summary>
-        /// <param name="eventHubCacheOptions">The cache pressure options.</param>
-        /// <returns>The Event Hub queue cache factory.</returns>
+        /// <param name="eventHubCacheOptions">缓存压力选项。</param>
+        /// <returns>事件枢纽队列缓存工厂。</returns>
         protected virtual IEventHubQueueCacheFactory CreateCacheFactory(EventHubStreamCachePressureOptions eventHubCacheOptions)
         {
             var eventHubPath = this.ehOptions.EventHubName;
@@ -318,20 +318,20 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Gets the partition identifiers from Event Hubs.
+        /// 从事件枢纽获取分区标识符 。
         /// </summary>
-        /// <returns>A task which resolves to the partition identifiers.</returns>
+        /// <returns>解决分区标识符的任务。</returns>
         protected virtual async Task<string[]> GetPartitionIdsAsync()
         {
             return await client.GetPartitionIdsAsync();
         }
 
         /// <summary>
-        /// Creates and initializes an Event Hubs adapter factory.
+        /// 创建并启动事件枢纽调整工厂。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <returns>The initialized adapter factory.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <returns>初始化适配器厂。</returns>
         public static EventHubAdapterFactory Create(IServiceProvider services, string name)
         {
             var ehOptions = services.GetOptionsByName<EventHubOptions>(name);

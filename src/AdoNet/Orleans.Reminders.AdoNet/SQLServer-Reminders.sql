@@ -1,4 +1,4 @@
--- Orleans Reminders table - https://learn.microsoft.com/dotnet/orleans/grains/timers-and-reminders
+-- Orleans 提醒表格 - https://learn.microsoft.com/dotnet/orleans/grains/timers-and-reminders
 IF OBJECT_ID(N'[OrleansRemindersTable]', 'U') IS NULL
 CREATE TABLE OrleansRemindersTable
 (

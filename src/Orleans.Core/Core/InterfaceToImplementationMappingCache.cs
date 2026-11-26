@@ -10,12 +10,12 @@ using Orleans.CodeGeneration;
 namespace Orleans
 {
     /// <summary>
-    /// Maintains a map between grain classes and corresponding interface-implementation mappings.
+    /// 维护 grain 类和相应的界面-实施图绘制之间的地图。
     /// </summary>
     internal class InterfaceToImplementationMappingCache
     {
         /// <summary>
-        /// Maps a grain interface method's <see cref="MethodInfo"/> to an implementation's <see cref="MethodInfo"/>.
+        /// 将 grain 接口方法的 <see cref="MethodInfo"/> 映射为执行 <see cref="MethodInfo"/>。
         /// </summary>
         public readonly struct Entry
         {
@@ -28,12 +28,12 @@ namespace Orleans
             }
 
             /// <summary>
-            /// Gets the grain implementation <see cref="MethodInfo"/>.
+            /// 获取 grain 执行 <see cref="MethodInfo"/>。
             /// </summary>
             public MethodInfo ImplementationMethod { get; }
 
             /// <summary>
-            /// Gets the grain interface <see cref="MethodInfo"/>.
+            /// 获取 grain 接口 <see cref="MethodInfo"/>。
             /// </summary>
             public MethodInfo InterfaceMethod { get; }
 
@@ -50,7 +50,7 @@ namespace Orleans
             }
 
             /// <summary>
-            /// Gets the constructed generic instances of this method.
+            /// 获取该方法的构建通用实例。
             /// </summary>
             public ConcurrentDictionary<Type[], (MethodInfo ImplementationMethod, MethodInfo InterfaceMethod)> ConstructedGenericMethods { get; } = new(TypeArrayComparer.Instance);
 
@@ -76,18 +76,18 @@ namespace Orleans
         }
 
         /// <summary>
-        /// The map from implementation and interface types to method mappings.
+        /// 从实施和接口类型到方法绘图的地图。
         /// </summary>
         private readonly ConcurrentDictionary<(Type ImplementationType, Type InterfaceType), Dictionary<MethodInfo, Entry>> mappings = new();
 
         /// <summary>
-        /// Returns a mapping from each interface method to its interface and implementation method metadata
-        /// for the provided implementation and interface types.
+        /// 返回从每个接口方法到其界面和实施方法元数据的映射
+        /// 用于提供实施和接口类型的数据。
         /// </summary>
-        /// <param name="implementationType">The implementation type.</param>
-        /// <param name="interfaceType">The interface type.</param>
+        /// <param name="implementationType">执行类型。</param>
+        /// <param name="interfaceType">接口类型。</param>
         /// <returns>
-        /// A mapping from interface methods to interface and implementation method metadata.
+        /// 从接口方法到接口和实施方法元数据绘图。
         /// </returns>
         public Dictionary<MethodInfo, Entry> GetOrCreate(Type implementationType, Type interfaceType)
         {
@@ -107,17 +107,17 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Maps each method from <paramref name="interfaceType"/>, including inherited interface methods,
-        /// to its implementation on <paramref name="implementationType"/>.
+        /// 绘制 <paramref name="interfaceType"/>的每种方法图,包括遗留的接口方法,
+        /// <paramref name="implementationType"/>履行时的[问题]。
         /// </summary>
-        /// <param name="implementationType">The implementation type.</param>
-        /// <param name="interfaceType">The interface type.</param>
-        /// <returns>A mapping from interface methods to implementation methods.</returns>
+        /// <param name="implementationType">执行类型。</param>
+        /// <param name="interfaceType">接口类型。</param>
+        /// <returns>从接口方法到执行方法的绘图。</returns>
         private static Dictionary<MethodInfo, Entry> CreateInterfaceToImplementationMap(Type implementationType, Type interfaceType)
         {
             var methods = GrainInterfaceUtils.GetMethods(interfaceType);
 
-            // Map every method on this interface from the definition interface onto the implementation class.
+            // 绘制此界面上从定义接口到执行类的每一种方法。
             var result = new Dictionary<MethodInfo, Entry>(methods.Length);
 
             var mapping = default(InterfaceMapping);
@@ -125,14 +125,14 @@ namespace Orleans
             {
                 var method = methods[i];
 
-                // If this method is not from the expected interface (eg, because it's from a parent interface), then
-                // get the mapping for the interface which it does belong to.
+                // 如果此方法不是来自预期的界面( 例如, 因为是父界面) , 那么
+                // 获取它所属界面的映射。
                 if (mapping.InterfaceType != method.DeclaringType)
                 {
                     mapping = GrainInterfaceUtils.GetInterfaceMap(implementationType, method.DeclaringType!);
                 }
 
-                // Find the index of the interface method and then get the implementation method at that position.
+                // 查找接口方法的索引,然后将执行方法置于该位置。
                 for (var k = 0; k < mapping.InterfaceMethods!.Length; k++)
                 {
                     if (mapping.InterfaceMethods[k] != method) continue;

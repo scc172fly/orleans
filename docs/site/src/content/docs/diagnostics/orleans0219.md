@@ -1,48 +1,58 @@
 ---
-title: "ORLEANS0219: Await, combine, or return the handles of scheduled children"
-description: Understand ORLEANS0219, which reports the handle of a scheduled child which a durable task body never observes, and fix it by awaiting the handle, combining it, or detaching the work.
+title: "ORLEANS0219:等待、合并或归还在册儿童的手柄"
+description: "了解 ORLEANS0219,报告长期任务机构从未观察到的被安排在册儿童的处理情况,并通过等待处理、合并或拆卸工作来解决这个问题。"
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
-# ORLEANS0219: Await, combine, or return the handles of scheduled children
+<a id="orleans0219-await-combine-or-return-the-handles-of-scheduled-children"></a>
 
-| Property | Value |
+# ORLEANS0219:等待、合并或归还在册儿童的手柄
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Info |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 信息信息 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-A durable task body schedules an attached child with `ScheduleAsync` and discards the returned handle, or holds it in a local whose only uses read its properties, such as `Id`:
+## 原因原因原因
+
+长期任务机构将一名随附子女 `ScheduleAsync` 丢弃回的手柄,或将其持有在当地人手中,因为当地人的唯一用途是读取其特性,例如 `Id`:
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-In a durable task body, `ScheduleAsync` starts an attached child and returns its handle once the child's host has accepted and stored the child. The execution owns the child: the execution's cancellation reaches it, and deleting the execution's tree, once the execution is terminal, cancels a child which is still running. The child's result and failure reach only code which observes the handle.
+## 规则说明
 
-In the example, the body completes while the notice can still be running. A notice which fails leaves the order dispatched with no record of the failure in the workflow, and a notice which is still running when the execution's tree is deleted is canceled.
+在持久任务机构, `ScheduleAsync` 开始一个随身儿童,一旦儿童的宿主接受并储存了孩子,就返回其手柄。处决即为儿童所有:死刑取消到达时,并删除处决树,一旦处决结束,则取消仍在运行的儿童。儿童的结果和失败只达到手柄的代码。
 
-For attached and detached starts, see [Starting and observing tasks](../grains/durable-tasks.md#starting-and-observing-tasks).
+以此为例, 通知仍可运行时身体会完整。 通知若不成功, 发出命令时没有工作流量失败的记录, 而当执行树被删除时仍然在运行的通知则被取消 。
 
-## How to fix violations
+附加启动和分离启动,见 [开始和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
 
-**Await the handle.** The child runs while the body continues, and the body observes its outcome before it completes:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**等待把手。** 儿童在身体继续时运行,在身体完成前观察其结果:
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_fix_await" language="csharp":::
 
-**Pass the handle to a combinator.** `ScheduledTask.WhenAll` waits for every handle and throws the first failure in input order:
+**将控点传给组合器。** `ScheduledTask.WhenAll` 等待每个控点,然后按输入顺序丢弃第一个失败:
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_fix_combinator" language="csharp":::
 
-**Return the handle.** A body which returns the handle passes the observation to its caller.
+**把手还给我** 返回把手的物体将观察结果传给其呼叫者。
 
-**Detach work which outlives the execution.** `Detached()` starts an independent root task, which continues after the execution completes and after its tree is deleted:
+**完成的分解工作比执行期长** `Detached()` 开始独立根任务, 执行完成后和树被删除后继续 :
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_fix_detached" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic for a child whose outcome the workflow ignores, and which may stop when the execution's tree is deleted, such as a best-effort cache warm-up.
+## 何时压缩
+
+禁止工作流量忽视结果的儿童诊断,如果删除行刑树,这些结果可能会停止,例如最佳的缓冲温度。

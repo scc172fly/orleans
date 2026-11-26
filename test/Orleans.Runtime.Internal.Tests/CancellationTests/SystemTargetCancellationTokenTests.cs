@@ -11,7 +11,7 @@ using Xunit;
 namespace UnitTests.CancellationTests;
 
 /// <summary>
-/// Tests for SystemTarget CancellationToken functionality with acknowledgement waiting enabled.
+/// SystemTarget CancellationToken 功能测试,启用确认等待。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -26,7 +26,7 @@ public sealed class SystemTargetCancellationTokenTests_WaitForAcknowledgement(Sy
 }
 
 /// <summary>
-/// Tests for SystemTarget CancellationToken functionality with acknowledgement waiting disabled.
+/// 测试 SystemTarget CancellationToken 功能,确认等待状态禁用。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -41,14 +41,14 @@ public sealed class SystemTargetCancellationTokenTests_NoWaitForAcknowledgement(
 }
 
 /// <summary>
-/// Base class for testing CancellationToken propagation and handling for SystemTargets.
-/// Note: All SystemTarget calls are interleaving by default - they execute immediately
-/// without queueing, unlike regular grain calls.
+/// 测试 CancellationToken 传播和处理 SystemTargets的基础等级。
+/// 注:所有 SystemTarget 电话默认是连接的,它们立即执行
+/// 不排队, 不同于常规 grain 调用 。
 /// </summary>
 public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellationTokenTests.FixtureBase fixture)
 {
     /// <summary>
-    /// The grain type for the cancellation test system target.
+    /// 取消测试系统目标的 grain 类型。
     /// </summary>
     public static readonly GrainType CancellationTestSystemTargetType = SystemTargetGrainId.CreateGrainType("cancellation-test-target");
 
@@ -67,7 +67,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
                     opts.WaitForCancellationAcknowledgement = WaitForCancellationAcknowledgement;
                 });
 
-                // Register the CancellationTestSystemTarget as a lifecycle participant
+                // 登记 CancellationTestSystemTarget 作为生命周期参与方
                 siloBuilder.Services.AddSingleton<CancellationTestSystemTarget>();
                 siloBuilder.Services.AddSingleton<ILifecycleParticipant<ISiloLifecycle>>(sp => sp.GetRequiredService<CancellationTestSystemTarget>());
             });
@@ -82,7 +82,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
         }
 
         /// <summary>
-        /// Gets a reference to the CancellationTestSystemTarget on the specified silo.
+        /// 获取引用 CancellationTestSystemTarget 指定 silo.
         /// </summary>
         public ICancellationTestSystemTarget GetSystemTarget(SiloAddress siloAddress)
         {
@@ -143,8 +143,8 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
     }
 
     /// <summary>
-    /// Tests multiple concurrent cancellations on the same SystemTarget.
-    /// Since all SystemTarget calls are interleaving, they all run concurrently.
+    /// 测试同一 SystemTarget上多次同时取消。
+    /// 毕竟 SystemTarget 电话在连接,他们同时运行
     /// </summary>
     [Theory, TestCategory("BVT"), TestCategory("Cancellation")]
     [InlineData(0)]
@@ -161,7 +161,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
             .Select(async callId =>
             {
                 using var cts = new CancellationTokenSource();
-                // All these calls run concurrently since SystemTarget calls are interleaving
+                // 所有这些电话都是同时发生的,因为 SystemTarget 通话是相互交错的
                 var task = systemTarget.LongWait(TimeSpan.FromSeconds(10), callId, cts.Token);
                 cts.CancelAfter(delay);
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
@@ -204,7 +204,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        // Expect an OperationCanceledException to be thrown as the token is already cancelled
+        // 期待在牌标已被取消时被抛出 OperationCanceledException
         Assert.Throws<OperationCanceledException>(() =>
             systemTarget.LongWait(TimeSpan.FromSeconds(10), Guid.Empty, cts.Token).Ignore());
     }
@@ -268,7 +268,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
         using var cts = new CancellationTokenSource();
         var callId = Guid.NewGuid();
         systemTarget.CancellationTokenCallbackThrow(callId, cts.Token).Ignore();
-        // Cancellation is a cooperative mechanism, so we don't expect the exception to propagate
+        // 取消是一个合作机制 所以我们不期望例外会传播
         cts.CancelAfter(100);
         await WaitForCallCancellation(systemTarget, callId, cancellationToken);
     }
@@ -292,7 +292,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
         var silos = fixture.HostedCluster.Silos.ToArray();
         if (silos.Length < 2)
         {
-            // Skip test if there's only one silo
+            // 如果只有一个 silo,跳过测试
             return;
         }
 
@@ -308,7 +308,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
         var silos = fixture.HostedCluster.Silos.ToArray();
         if (silos.Length < 2)
         {
-            // Skip test if there's only one silo
+            // 如果只有一个 silo,跳过测试
             return;
         }
 
@@ -387,8 +387,8 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
     }
 
     /// <summary>
-    /// Tests that multiple concurrent requests can each be cancelled independently.
-    /// Since all SystemTarget calls are interleaving, they all execute concurrently.
+    /// 测试多个同时提出的请求可独立取消。
+    /// 毕竟 SystemTarget 电话在连接,他们同时执行
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task MultipleConcurrentSystemTargetRequestsCancellation()
@@ -397,7 +397,7 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
         var siloAddress = fixture.HostedCluster.Silos.First().SiloAddress;
         var systemTarget = fixture.GetSystemTarget(siloAddress);
 
-        // Start multiple concurrent requests (all SystemTarget calls are interleaving)
+        // 启动多个同时提出请求( 所有 SystemTarget 电话都在中断)
         using var cts1 = new CancellationTokenSource();
         using var cts2 = new CancellationTokenSource();
         using var cts3 = new CancellationTokenSource();
@@ -410,15 +410,15 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
         var task2 = systemTarget.LongWait(TimeSpan.FromSeconds(10), callId2, cts2.Token);
         var task3 = systemTarget.LongWait(TimeSpan.FromSeconds(10), callId3, cts3.Token);
 
-        // Wait for all to be running
+        // 等待所有运行
         await Task.Delay(100, cancellationToken);
 
-        // Cancel only the second request
+        // 只取消第二个请求
         await cts2.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task2);
         await WaitForCallCancellation(systemTarget, callId2, cancellationToken);
 
-        // First and third should still be running, cancel them
+        // 第一和第二个应该还在运行,取消
         await cts1.CancelAsync();
         await cts3.CancelAsync();
 
@@ -431,8 +431,8 @@ public abstract class SystemTargetCancellationTokenTests(SystemTargetCancellatio
 }
 
 /// <summary>
-/// A SystemTarget implementation for testing CancellationToken functionality.
-/// Note: All SystemTarget calls are interleaving - they execute immediately without queueing.
+/// A SystemTarget 测试应用 CancellationToken 功能。
+/// 注:所有 SystemTarget 电话都在相互交错中,它们不排队即刻执行。
 /// </summary>
 internal sealed class CancellationTestSystemTarget : SystemTarget, ICancellationTestSystemTarget, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -445,13 +445,13 @@ internal sealed class CancellationTestSystemTarget : SystemTarget, ICancellation
         : base(SystemTargetCancellationTokenTests.CancellationTestSystemTargetType, shared)
     {
         _localSiloDetails = localSiloDetails;
-        // Register with the activation directory so it can receive messages
+        // 使用激活目录注册,以便接收信件
         shared.ActivationDirectory.RecordNewTarget(this);
     }
 
     void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
     {
-        // No lifecycle registration needed - we register in the constructor
+        // 无需生命周期登记 -- -- 我们在建筑商注册
     }
 
     /// <inheritdoc />
@@ -565,7 +565,7 @@ internal sealed class CancellationTestSystemTarget : SystemTarget, ICancellation
         {
             lock (_cancelledCallsLock)
             {
-                // Re-check inside the lock to ensure atomicity
+                // 重新检查锁内以确保原子化
                 var currentEntry = _cancelledCalls.GetOrAdd(callId, _ => (entry.Tcs, error));
                 if (currentEntry.Error is null)
                 {

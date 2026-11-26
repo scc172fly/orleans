@@ -149,7 +149,7 @@ namespace Orleans.BroadcastChannel
                 {
                     return callback;
                 }
-                // Give a chance to the grain to attach a handler for this streamId
+                // 给 grain 一个机会, 并给它附加一个处理器 streamId
                 var subscription = new BroadcastChannelSubscription(this, streamId);
                 await _subscriptionObserver.OnSubscribed(subscription);
                 cancellationToken.ThrowIfCancellationRequested();

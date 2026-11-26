@@ -4,34 +4,34 @@ using System.Diagnostics;
 namespace Orleans.Caching.Internal;
 
 /// <summary>
-/// A capacity partitioning scheme that favors frequently accessed items by allocating 80%
-/// capacity to the warm queue.
+/// 能力分割方案,通过分配80%的配额,有利于经常存取的项目
+/// 以热队列显示容量。
 /// </summary>
-// Derived from BitFaster.Caching by Alex Peck
+// 由Alex Peck从 BitFaster.Caching 取出
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/Lru/FavorWarmPartition.cs
 [DebuggerDisplay("{Hot}/{Warm}/{Cold}")]
 internal readonly struct CapacityPartition
 {
     /// <summary>
-    /// Default to 80% capacity allocated to warm queue, 20% split equally for hot and cold.
-    /// This favors frequently accessed items.
+    /// 默认值为80% 容量分配到热队列,20% 以热和冷平均分。
+    /// 这有助于经常访问的物品。
     /// </summary>
     public const double DefaultWarmRatio = 0.8;
 
     /// <summary>
-    /// Initializes a new instance of the CapacityPartition class with the specified capacity and the default warm ratio.
+    /// 初始化 CapacityPartition 类的新实例,该例子具有指定容量和默认热率。
     /// </summary>
-    /// <param name="totalCapacity">The total capacity.</param>
+    /// <param name="totalCapacity">总能力。</param>
     public CapacityPartition(int totalCapacity)
         : this(totalCapacity, DefaultWarmRatio)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the CapacityPartition class with the specified capacity and warm ratio.
+    /// 初始化一个 CapacityPartition 类的新实例,该例子具有特定容量和热比。
     /// </summary>
-    /// <param name="totalCapacity">The total capacity.</param>
-    /// <param name="warmRatio">The ratio of warm items to hot and cold items.</param>
+    /// <param name="totalCapacity">总能力。</param>
+    /// <param name="warmRatio">热物与热物和冷物之比。</param>
     public CapacityPartition(int totalCapacity, double warmRatio)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(totalCapacity, 3);

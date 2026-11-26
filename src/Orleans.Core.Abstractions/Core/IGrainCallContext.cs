@@ -6,113 +6,113 @@ using Orleans.Serialization.Invocation;
 namespace Orleans
 {
     /// <summary>
-    /// A delegate used to intercept invocation of a request.
+    /// 代表曾拦截援引请求。
     /// </summary>
-    /// <param name="context">The invocation context.</param>
-    /// <returns>A <see cref="Task"/> which must be awaited before processing continues.</returns>
+    /// <param name="context">援引的背景。</param>
+    /// <returns>A <see cref="Task"/> 必须在等待之后再继续处理。</returns>
     public delegate Task GrainCallFilterDelegate(IGrainCallContext context);
 
     /// <summary>
-    /// A delegate used to intercept an incoming request.
+    /// 一位代表曾拦截一项收到的请求。
     /// </summary>
-    /// <param name="context">The invocation context.</param>
-    /// <returns>A <see cref="Task"/> which must be awaited before processing continues.</returns>
+    /// <param name="context">援引的背景。</param>
+    /// <returns>A <see cref="Task"/> 必须在等待之后再继续处理。</returns>
     public delegate Task OutgoingGrainCallFilterDelegate(IOutgoingGrainCallContext context);
 
     /// <summary>
-    /// A delegate used to intercept an outgoing request.
+    /// 一位代表曾拦截一项外向请求。
     /// </summary>
-    /// <param name="context">The invocation context.</param>
-    /// <returns>A <see cref="Task"/> which must be awaited before processing continues.</returns>
+    /// <param name="context">援引的背景。</param>
+    /// <returns>A <see cref="Task"/> 必须在等待之后再继续处理。</returns>
     public delegate Task IncomingGrainCallFilterDelegate(IIncomingGrainCallContext context);
 
     /// <summary>
-    /// Represents a method invocation as well as the result of invocation.
+    /// 指一种方法的援引以及援引的结果。
     /// </summary>
     public interface IGrainCallContext
     {
         /// <summary>
-        /// Gets the request.
+        /// 得到请求。
         /// </summary>
         IInvokable Request { get; }
 
         /// <summary>
-        /// Gets the grain being invoked.
+        /// 获取所引用的 grain 。
         /// </summary>
         object Grain { get; }
 
         /// <summary>
-        /// Gets the identity of the source, if available.
+        /// 如果有源代码,则获取源代码的身份。
         /// </summary>
         GrainId? SourceId { get; }
 
         /// <summary>
-        /// Gets the identity of the target.
+        /// 获得目标的身份
         /// </summary>
         GrainId TargetId { get; }
 
         /// <summary>
-        /// Gets the type of the interface being invoked.
+        /// 获取被引用的界面类型 。
         /// </summary>
         GrainInterfaceType InterfaceType { get; }
 
         /// <summary>
-        /// Gets the name of the interface being invoked.
+        /// 获取被引用的界面的名称 。
         /// </summary>
         string InterfaceName { get; }
 
         /// <summary>
-        /// Gets the name of the method being invoked.
+        /// 获取被引用的方法的名称 。
         /// </summary>
         string MethodName { get; }
 
         /// <summary>
-        /// Gets the <see cref="MethodInfo"/> for the interface method being invoked.
+        /// 获取所引用界面方法的 <see cref="MethodInfo"/> 。
         /// </summary>
         MethodInfo InterfaceMethod { get; }
 
         /// <summary>
-        /// Gets or sets the result.
+        /// 获取或设定结果。
         /// </summary>
         object? Result { get; set; }
 
         /// <summary>
-        /// Gets or sets the response.
+        /// 获取或设置响应。
         /// </summary>
         Response? Response { get; set; }
 
         /// <summary>
-        /// Invokes the request.
+        /// 提出请求。
         /// </summary>
         /// <returns>
-        /// A <see cref="Task"/> representing the invocation.
+        /// 以 <see cref="Task"/> 表示的祈祷。
         /// </returns>
         Task Invoke();
     }
 
     /// <summary>
-    /// Represents an incoming method invocation as well as the result of invocation.
+    /// 表示一种新到的方法的调试和调试结果。
     /// </summary>
     public interface IIncomingGrainCallContext : IGrainCallContext
     {
         /// <summary>
-        /// Gets the grain context of the target.
+        /// 获取目标的 grain 上下文。
         /// </summary>
         public IGrainContext TargetContext { get; }
 
         /// <summary>
-        /// Gets the <see cref="MethodInfo"/> for the implementation method being invoked.
+        /// 获取所援引的执行方法的 <see cref="MethodInfo"/> 。
         /// </summary>
         MethodInfo ImplementationMethod { get; }
     }
 
     /// <summary>
-    /// Represents an outgoing method invocation as well as the result of invocation.
+    /// 表示即将使用的方法的调试和调试的结果。
     /// </summary>
     public interface IOutgoingGrainCallContext : IGrainCallContext
     {
         /// <summary>
-        /// Gets the grain context of the sender.
+        /// 获取发件人的 grain 上下文。
         /// </summary>
         public IGrainContext? SourceContext { get; }
     }

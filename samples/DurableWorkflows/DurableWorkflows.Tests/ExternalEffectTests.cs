@@ -468,7 +468,7 @@ public sealed class ExternalEffectTests : IAsyncLifetime
         var authorization = Owner.AuthorizeFollowUpAsync(_identity, followUp, "support ticket 43");
         await authorizationWakeup.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
-        // A due job interleaves with the authorization and holds its attempt before recording a newer revision.
+        // 正当工作间假须经授权,在记录新的修订之前应尽力完成。
         var attemptWakeup = _jobGate.HoldNext();
         var attempt = Owner.AsReference<IEffectJobTestExtension>().RunDueJobAsync();
         await attemptWakeup.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
@@ -525,7 +525,7 @@ public sealed class EffectPolicyTestExtension(IDurableStateManager manager, IGra
     }
 }
 
-// Durable job delivery interleaves with the grain's other calls; this extension runs the handler the same way.
+// 长期提供工作与 grain的其他电话隔开;此扩展名以同样方式运行处理器。
 public interface IEffectJobTestExtension : IGrainExtension
 {
     [AlwaysInterleave]
@@ -548,7 +548,7 @@ public sealed class EffectJobTestExtension(IGrainContext context) : IEffectJobTe
     }
 }
 
-// Holds the next queued wake-up scheduling calls until a test releases them.
+// 将下一个排队的提醒时间计时电话拖到测试释放它们为止。
 internal sealed class EffectJobGate
 {
     private readonly ConcurrentQueue<EffectWriteGate> _holds = new();
@@ -582,7 +582,7 @@ internal sealed class GatedJobManager(ILocalDurableJobManager inner, EffectJobGa
 
 internal sealed class EffectClock : TimeProvider
 {
-    // Keep scheduled jobs in the real scheduler's future; tests advance the owner clock and invoke due work explicitly.
+    // 将预定的工作保留在实际调度员的未来;测试提前所有者时钟并明确援引适当工作。
     private long _ticks = DateTimeOffset.UtcNow.AddDays(1).Ticks;
     public override DateTimeOffset GetUtcNow() => new(Interlocked.Read(ref _ticks), TimeSpan.Zero);
     public void Advance(TimeSpan duration) => Interlocked.Add(ref _ticks, duration.Ticks);

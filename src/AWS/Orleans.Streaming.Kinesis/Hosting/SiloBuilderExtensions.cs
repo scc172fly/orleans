@@ -6,21 +6,21 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extension methods for configuring Amazon Kinesis Data Streams-backed persistent streams on Orleans silos.
+    /// 提供用于配置 Orleans silos上亚马逊 Kinesis数据流支持的持久性流的扩展方法。
     /// </summary>
     public static class SiloBuilderExtensions
     {
         /// <summary>
-        /// Configures the silo to use an Amazon Kinesis Data Streams-backed persistent stream provider.
+        /// 配置 silo 使用亚马逊 Kinesis 数据流支持的持久性流提供者。
         /// </summary>
         /// <remarks>
-        /// This overload uses the Orleans grain-based checkpointer. Checkpoints are persisted using the
-        /// <c>PubSubStore</c> grain storage provider and do not require DynamoDB or the Kinesis Client Library.
+        /// 此超过超载使用 Orleans grain- 基点检查器。
+        /// <c>PubSubStore</c> grain 储存提供方,不要求 DynamoDB 或 Kinesis 客户端库。
         /// </remarks>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="configureOptions">The delegate used to configure the Kinesis options.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="configureOptions">代表用于配置 Kinesis 选项。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddKinesisStreams(this ISiloBuilder builder, string name, Action<KinesisStreamOptions> configureOptions)
         {
             builder.AddKinesisStreams(name, b =>
@@ -34,12 +34,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the silo to use an Amazon Kinesis Data Streams-backed persistent stream provider.
+        /// 配置 silo 使用亚马逊 Kinesis 数据流支持的持久性流提供者。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="configure">The delegate used to configure the stream provider.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="configure">用于配置流提供方的代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddKinesisStreams(this ISiloBuilder builder, string name, Action<SiloKinesisStreamConfigurator> configure)
         {
             var configurator = new SiloKinesisStreamConfigurator(name,

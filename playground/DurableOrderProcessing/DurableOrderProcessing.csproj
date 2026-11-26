@@ -20,7 +20,7 @@
     <ProjectReference Include="..\..\src\Orleans.Durable.Http\Orleans.Durable.Http.csproj" />
     <ProjectReference Include="..\..\src\Dashboard\Orleans.Dashboard\Orleans.Dashboard.csproj" />
 
-    <!-- The abstractions package carries the replay-safety analyzers; this sample references the project directly. -->
+    <!-- 抽象包载有重播安全分析器;这个样本直接引用项目。 -->
     <ProjectReference Include="..\..\src\Orleans.Durable.Analyzers\Orleans.Durable.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

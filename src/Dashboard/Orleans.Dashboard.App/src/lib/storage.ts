@@ -1,4 +1,4 @@
-// polyfill localStorage with temp store
+// 使用临时存储的多填 localStorage
 interface StorageInterface {
   [key: string]: any;
   removeItem?: (key: string) => void;
@@ -11,7 +11,7 @@ try {
     store = localStorage;
   }
 } catch {
-  // noop
+  // 点数
 }
 
 const storageModule = {

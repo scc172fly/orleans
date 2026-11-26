@@ -6,7 +6,7 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Exercises cooperative cancellation with compensation through a detached task, and administrative abort, across grains.
+/// 通过单独的任务和整个 grains的行政中止,合作取消合同,并给予补偿。
 /// </summary>
 public abstract class DurableTaskCompensationTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -33,7 +33,7 @@ public abstract class DurableTaskCompensationTests(string journalFormatKey) : IA
         Assert.Equal("compensated", response.GetResult<string>());
         await holdCanceled.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
-        // The compensation is a detached root on the inventory grain, which runs to completion after the cancellation.
+        // 赔偿是清单 grain的一个分离根,在注销后将完成。
         var release = _fixture.Client.GetGrain<IDurableTaskInventoryTestGrain>(inventoryKey)
             .GetDurableTask<int>(DurableTaskCompensatingWorkflowGrain.GetCompensationRootId(workflowKey));
         var released = await release.GetResponseAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
@@ -63,7 +63,7 @@ public abstract class DurableTaskCompensationTests(string journalFormatKey) : IA
         Assert.Equal("Faulted", diagnostics.Status);
         Assert.Equal("DurableTaskAbortedException: operator", diagnostics.Response);
 
-        // Abort runs no workflow code, so no compensation started.
+        // 中止运行没有工作流程代码, 所以没有开始补偿 。
         var release = _fixture.Client.GetGrain<IDurableTaskInventoryTestGrain>(inventoryKey)
             .GetDurableTask<int>(DurableTaskCompensatingWorkflowGrain.GetCompensationRootId(workflowKey));
         await Assert.ThrowsAsync<DurableTaskNotFoundException>(
@@ -87,14 +87,14 @@ public abstract class DurableTaskCompensationTests(string journalFormatKey) : IA
     }
 }
 
-/// <summary>Runs compensation and abort coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行补偿和中止覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskCompensationTests() : DurableTaskCompensationTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs compensation and abort coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行补偿和中止覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -137,8 +137,8 @@ public sealed class DurableTaskCompensatingWorkflowGrain : DurableGrain, IDurabl
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // Scheduling returns once the inventory holds the release, so the workflow's result shows that a caller can
-            // look the release up by its root ID.
+            // 一旦清单持有发布版本, 将返回的排队时间安排后, 因此工作流程的结果显示, 调用者可以
+            // 看着它的根身份显示释放
             await inventory.ReleaseAsync(reserved).Detached(GetCompensationRootId(this.GetPrimaryKey())).ScheduleAsync();
             return "compensated";
         }

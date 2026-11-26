@@ -1,37 +1,37 @@
 //*********************************************************
 //    Copyright (c) Microsoft. All rights reserved.
 //    
-//    Apache 2.0 License
+//    Apache 2. 0 许可证
 //    
-//    You may obtain a copy of the License at
+//    持有许可的芬兰公民可前往移民局申请居留许可。
 //    http://www.apache.org/licenses/LICENSE-2.0
 //    
-//    Unless required by applicable law or agreed to in writing, software 
-//    distributed under the License is distributed on an "AS IS" BASIS, 
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or 
-//    implied. See the License for the specific language governing 
-//    permissions and limitations under the License.
+//    除非适用法要求或书面约定,软件 
+//    许可证下发放的,在“ASIS”BASISS上分发。 
+//    没有任何战争或任何种类的战争或条件,无论是明示的还是 
+//    意指的语种,请见有关 
+//    许可证规定的许可和限制。
 //
 //*********************************************************
 
 namespace Samples.StorageProviders
 {
     /// <summary>
-    /// Orleans storage provider implementation for file-backed stores.
+    /// 实施文件备份仓库的存储供应商Orleans 。
     /// </summary>
     /// <remarks>
-    /// The storage provider should be included in a deployment by adding this line to the Orleans server configuration file:
+    /// 将这一行添加到 Orleans 服务器配置文件,从而在部署中包括存储提供者:
     /// 
     ///     <Provider Type="Samples.StorageProviders.OrleansFileStorage" Name="FileStore" RooDirectory="SOME FILE PATH" />
     ///
-    /// and this line to any grain that uses it:
+    /// 线和此直线 grain 使用该词的:
     /// 
     ///     [Orleans.Providers.StorageProvider(ProviderName = "FileStore")]
     /// 
-    /// The name 'FileStore' is an arbitrary choice.
+    /// `FileStore' 的名称是任意选择的。
     /// 
-    /// Note that unless the root directory path is a network path available to all silos in a deployment, grain state
-    /// will not transport from one silo to another.
+    /// 请注意,除非根目录路径是部署中所有 silos 都可用的网络路径, grain 状态
+    /// 绝不能从一物的被降下, silo 对另一个。
     /// </remarks>
     public class OrleansFileStorage : BaseJSONStorageProvider
     {
@@ -43,21 +43,21 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// The directory path, relative to the host of the silo. Set from
-        /// configuration data during initialization.
+        /// 相对于 silo主主机的目录路径。 设置自
+        /// 初始化时配置数据。
         /// </summary>
         public string RootDirectory { get; set; }
     }
 
     /// <summary>
-    /// Interfaces with the file system.
+    /// 与文件系统的接口。
     /// </summary>
     internal class GrainStateFileDataManager : IJSONStateDataManager
     {
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
-        /// <param name="storageDirectory">A path relative to the silo host process' working directory.</param>
+        /// <param name="storageDirectory">相对于 silo 主机进程工作目录的路径。</param>
         public GrainStateFileDataManager(string storageDirectory)
         {
             directory = new DirectoryInfo(storageDirectory);
@@ -66,11 +66,11 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// Deletes a file representing a grain state object.
+        /// 删除代表 grain 状态对象的文件。
         /// </summary>
-        /// <param name="collectionName">The type of the grain state object.</param>
-        /// <param name="key">The grain id string.</param>
-        /// <returns>Completion promise for this operation.</returns>
+        /// <param name="collectionName">类型 grain 状态对象。</param>
+        /// <param name="key"> grain id字符串。</param>
+        /// <returns>这一行动的完成承诺。</returns>
         public Task Delete(string collectionName, string key)
         {
             FileInfo fileInfo = GetStorageFilePath(collectionName, key);
@@ -82,11 +82,11 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// Reads a file representing a grain state object.
+        /// 读取代表 grain 状态对象的文件。
         /// </summary>
-        /// <param name="collectionName">The type of the grain state object.</param>
-        /// <param name="key">The grain id string.</param>
-        /// <returns>Completion promise for this operation.</returns>
+        /// <param name="collectionName">类型 grain 状态对象。</param>
+        /// <param name="key"> grain id字符串。</param>
+        /// <returns>这一行动的完成承诺。</returns>
         public async Task<string?> Read(string collectionName, string key)
         {
             FileInfo fileInfo = GetStorageFilePath(collectionName, key);
@@ -101,12 +101,12 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// Writes a file representing a grain state object.
+        /// 写入一个代表 grain 状态对象的文件。
         /// </summary>
-        /// <param name="collectionName">The type of the grain state object.</param>
-        /// <param name="key">The grain id string.</param>
-        /// <param name="entityData">The grain state data to be stored./</param>
-        /// <returns>Completion promise for this operation.</returns>
+        /// <param name="collectionName">类型 grain 状态对象。</param>
+        /// <param name="key"> grain id字符串。</param>
+        /// <param name="entityData">下 grain 状态数据待存储。/</param>
+        /// <returns>这一行动的完成承诺。</returns>
         public async Task Write(string collectionName, string key, string entityData)
         {
             FileInfo fileInfo = GetStorageFilePath(collectionName, key);
@@ -122,11 +122,11 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// Returns the file path for storing that data with these keys.
+        /// 返回用这些密钥存储该数据的文件路径。
         /// </summary>
-        /// <param name="collectionName">The type of the grain state object.</param>
-        /// <param name="key">The grain id string.</param>
-        /// <returns>File info for this storage data file.</returns>
+        /// <param name="collectionName">类型 grain 状态对象。</param>
+        /// <param name="key"> grain id字符串。</param>
+        /// <returns>此存储数据文件的文件信息 。</returns>
         private FileInfo GetStorageFilePath(string collectionName, string key)
         {
             string fileName = (key + "." + collectionName).Replace('/', '_');

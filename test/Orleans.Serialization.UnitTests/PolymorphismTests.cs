@@ -27,25 +27,25 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// Tests for Orleans' polymorphic serialization capabilities.
+    /// Orleans' 多形态序列能力测试。
     /// 
-    /// Orleans fully supports polymorphic types, allowing:
-    /// - Serialization of base class references containing derived types
-    /// - Proper type preservation across serialization boundaries
-    /// - Interface and abstract class serialization
-    /// - Custom exception types with inheritance
+    /// Orleans 完全支持多形态类型,允许:
+    /// - 包含衍生类别的基本等级参考文献的逐步化
+    /// - 跨越序列边界的适当类型保护
+    /// - 接口和抽象分类序列化
+    /// - 继承的特例
     /// 
-    /// Key features tested:
-    /// - Type manifests for efficient type encoding
-    /// - Well-known type IDs for common types
-    /// - Inheritance hierarchy preservation
-    /// - Cross-version compatibility with type evolution
+    /// 测试的关键特征:
+    /// - 高效型号编码的型号表类型
+    /// - 常见类型众所周知的识别号
+    /// - 遗产等级保护
+    /// - 与类型演变的交叉转换兼容性
     /// 
-    /// This is essential for:
-    /// - Object-oriented designs with inheritance
-    /// - Plugin architectures with dynamic type loading
-    /// - Exception propagation across grain boundaries
-    /// - Flexible API designs with interface parameters
+    /// 这对于:
+    /// - 以目标为导向的继承设计
+    /// - 带有动态类型装入的插件结构
+    /// - 跨越 grain 边界的例外传播
+    /// - 具有界面参数的灵活 API 设计
     /// </summary>
     [Trait("Suite", "BVT")]
     [Trait("Provider", "None")]
@@ -116,7 +116,7 @@ namespace Orleans.Serialization.UnitTests
 
             var result = RoundTripToExpectedType<Exception, InvalidOperationException>(ioEx);
             Assert.Equal(ioEx.Message, result.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(ioEx.StackTrace!, result.StackTrace);
             Assert.Equal(ioEx.InnerException, result.InnerException);
             Assert.NotNull(result.Data);
@@ -126,7 +126,7 @@ namespace Orleans.Serialization.UnitTests
 
             var exCopy = DeepCopy(ioEx);
             Assert.Equal(ioEx.Message, exCopy.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(ioEx.StackTrace!, exCopy.StackTrace);
             Assert.Equal(ioEx.InnerException, exCopy.InnerException);
             Assert.NotNull(exCopy.Data);
@@ -136,7 +136,7 @@ namespace Orleans.Serialization.UnitTests
 
             var baseExResult = RoundTripToExpectedType<Exception, Exception>(baseEx);
             Assert.Equal(baseEx.Message, baseExResult.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(baseEx.StackTrace!, baseExResult.StackTrace);
             Assert.Equal(baseEx.InnerException, baseExResult.InnerException);
             Assert.NotNull(baseExResult.Data);
@@ -146,7 +146,7 @@ namespace Orleans.Serialization.UnitTests
 
             var baseExCopy = DeepCopy(baseEx);
             Assert.Equal(baseEx.Message, baseExCopy.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(baseEx.StackTrace!, baseExCopy.StackTrace);
             Assert.Equal(baseEx.InnerException, baseExCopy.InnerException);
             Assert.NotNull(baseExCopy.Data);
@@ -156,27 +156,27 @@ namespace Orleans.Serialization.UnitTests
 
             var agResult = RoundTripToExpectedType<Exception, AggregateException>(aggregateException);
             Assert.Equal(aggregateException.Message, agResult.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(aggregateException.StackTrace!, agResult.StackTrace);
             var inner = Assert.IsType<InvalidOperationException>(agResult.InnerException);
             Assert.Equal(ioEx.Message, inner.Message);
 
             var agCopy = DeepCopy(aggregateException);
             Assert.Equal(aggregateException.Message, agCopy.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(aggregateException.StackTrace!, agCopy.StackTrace);
             var agInner = Assert.IsType<InvalidOperationException>(agCopy.InnerException);
             Assert.Equal(ioEx.Message, agInner.Message);
 
             var ceResult = RoundTripToExpectedType<Exception, CustomException>(customException);
             Assert.Equal(customException.Message, ceResult.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(customException.StackTrace!, ceResult.StackTrace);
             Assert.Equal(customException.CustomInt, ceResult.CustomInt);
 
             var ceCopy = DeepCopy(customException);
             Assert.Equal(customException.Message, ceCopy.Message);
-            // Exceptions caught above have populated stack traces.
+            // 上面的例外有人口密集的堆叠痕迹
             Assert.Contains(customException.StackTrace!, ceCopy.StackTrace);
             Assert.Equal(customException.CustomInt, ceCopy.CustomInt);
         }
@@ -273,7 +273,7 @@ namespace Orleans.Serialization.UnitTests
         private TActual RoundTripToExpectedType<TBase, TActual>(TActual original)
             where TActual : TBase
         {
-            // AddSerializer guarantees that the closed serializer is registered.
+            // AddSerializer 保证已登记了闭合的序列器。
             var serializer = _serviceProvider.GetService<Serializer<TBase>>()!;
             var array = serializer.SerializeToArray(original);
 
@@ -283,13 +283,13 @@ namespace Orleans.Serialization.UnitTests
                 formatted = BitStreamFormatter.Format(array, session);
             }
 
-            // The non-null original is round-tripped through the matching closed serializer.
+            // 使用匹配的闭合序列器来圆截断非核原体。
             return (TActual)serializer.Deserialize(array)!;
         }
 
         private T DeepCopy<T>(T original)
         {
-            // AddSerializer guarantees that the closed copier is registered.
+            // AddSerializer 保证封闭式复印机得到登记。
             var deepCopier = _serviceProvider.GetService<DeepCopier<T>>()!;
             return deepCopier.Copy(original)!;
         }

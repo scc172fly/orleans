@@ -4,23 +4,23 @@ using Orleans.Metadata;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Provides access to the cluster manifest.
+    /// 提供进入集束货单的通道。
     /// </summary>
     /// <seealso cref="ClusterManifest"/>
     public interface IClusterManifestProvider
     {
         /// <summary>
-        /// Gets the current cluster manifest.
+        /// 获取当前集的显示器 。
         /// </summary>
         ClusterManifest Current { get; }
 
         /// <summary>
-        /// Gets the stream of cluster manifest updates.
+        /// 获取集束显示更新的流。
         /// </summary>
         IAsyncEnumerable<ClusterManifest> Updates { get; }
 
         /// <summary>
-        /// Gets the local grain manifest.
+        /// 获取本地 grain 清单。
         /// </summary>
         GrainManifest LocalGrainManifest { get; }
     }

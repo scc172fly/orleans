@@ -12,7 +12,7 @@ using Orleans.Reminders.AzureStorage;
 namespace Orleans.Runtime.ReminderService
 {
     /// <summary>
-    /// Stores and retrieves Orleans reminder entries using Azure Table Storage.
+    /// 仓库和回收 Orleans 使用提醒条目 Azure 桌子储存。
     /// </summary>
     public sealed partial class AzureBasedReminderTable : IReminderTable
     {
@@ -27,13 +27,13 @@ namespace Orleans.Runtime.ReminderService
         private TaskCompletionSource _initializationTask = CreateInitializationSource();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureBasedReminderTable"/> class.
+        /// 初始化 <see cref="AzureBasedReminderTable"/> 类的新实例。
         /// </summary>
-        /// <param name="loggerFactory">The logger factory.</param>
-        /// <param name="clusterOptions">The cluster identity options used to scope reminder entries.</param>
-        /// <param name="storageOptions">The Azure Table Storage reminder options.</param>
+        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="clusterOptions">用于范围提醒条目的群集识别选项。</param>
+        /// <param name="storageOptions">下 Azure 表格存储提醒选项。</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="clusterOptions"/> or <paramref name="storageOptions"/> is <see langword="null"/>.
+        /// <paramref name="clusterOptions"/> 或 <paramref name="storageOptions"/> 是 <see langword="null"/>。
         /// </exception>
         public AzureBasedReminderTable(
             ILoggerFactory loggerFactory,
@@ -54,10 +54,10 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// Connects to Azure Table Storage and creates the reminder table if it does not exist.
+        /// 连接到 Azure 表存储,如果不存在提醒表,则创建提醒表格。
         /// </summary>
-        /// <param name="cancellationToken">The token used to cancel lifecycle-lock acquisition and delays between initialization attempts.</param>
-        /// <returns>A task representing the initialization operation.</returns>
+        /// <param name="cancellationToken">用于取消生命周期锁定获取和启动尝试之间延迟的标记。</param>
+        /// <returns>一项代表初始化操作的任务。</returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await _lifecycleLock.WaitAsync(cancellationToken);
@@ -108,10 +108,10 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// Stops the reminder table until it is started again.
+        /// 停止提醒表格,直到它再次启动。
         /// </summary>
-        /// <param name="cancellationToken">The token used to cancel the stop operation.</param>
-        /// <returns>A task representing the stop operation.</returns>
+        /// <param name="cancellationToken">用于取消停止操作的标记。</param>
+        /// <returns>代表停止操作的任务。</returns>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _lifecycleLock.WaitAsync(cancellationToken);
@@ -143,7 +143,7 @@ namespace Orleans.Runtime.ReminderService
                 }
                 catch (Exception)
                 {
-                    // Ignoring...
+                    // 忽略...
                 }
 #pragma warning restore RCS1075 // Avoid empty catch clause that catches System.Exception.
             }
@@ -218,15 +218,15 @@ namespace Orleans.Runtime.ReminderService
                 Period = remEntry.Period.ToString(),
 
                 GrainRefConsistentHash = consistentHash.ToString("X8"),
-                // The Azure SDK accepts the default reminder ETag even though its string constructor is non-nullable.
+                // 下 Azure SDK 接受默认提醒 ETag, 即使其字符串构造器不可读。
                 ETag = new ETag(remEntry.ETag!),
             };
         }
 
         /// <summary>
-        /// Deletes all reminder entries for the current Orleans service and cluster.
+        /// 删除当前 Orleans 服务和组群的所有提醒项。
         /// </summary>
-        /// <returns>A task representing the delete operation.</returns>
+        /// <returns>代表删除操作的任务。</returns>
         public async Task TestOnlyClearTable()
         {
             await Volatile.Read(ref _initializationTask).Task;
@@ -235,10 +235,10 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// Reads all reminder entries associated with the specified grain.
+        /// 读取与指定 grain有关的所有提醒条目。
         /// </summary>
-        /// <param name="grainId">The grain identifier.</param>
-        /// <returns>The reminder entries associated with <paramref name="grainId"/>.</returns>
+        /// <param name="grainId"> grain 标识符。</param>
+        /// <returns>与 <paramref name="grainId"/>.</returns>
         public async Task<ReminderTableData> ReadRows(GrainId grainId)
         {
             try
@@ -258,11 +258,11 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// Reads reminder entries whose grain hash is in the range <c>(begin, end]</c>.
+        /// 读取提醒条目,其 grain 散列在范围 <c>(begin, end]</c>。
         /// </summary>
-        /// <param name="begin">The exclusive lower bound of the hash range.</param>
-        /// <param name="end">The inclusive upper bound of the hash range.</param>
-        /// <returns>The reminder entries in the specified hash range.</returns>
+        /// <param name="begin">散列范围排他性下限</param>
+        /// <param name="end">散列范围的包容性上层。</param>
+        /// <returns>指定散列范围内的提醒条目。</returns>
         public async Task<ReminderTableData> ReadRows(uint begin, uint end)
         {
             try
@@ -282,11 +282,11 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// Reads a reminder entry for the specified grain and reminder name.
+        /// 读取指定 grain 和提醒名称的提醒项。
         /// </summary>
-        /// <param name="grainId">The grain identifier.</param>
-        /// <param name="reminderName">The reminder name.</param>
-        /// <returns>The reminder entry when found; otherwise, <see langword="null"/>.</returns>
+        /// <param name="grainId"> grain 标识符。</param>
+        /// <param name="reminderName">提醒的名称。</param>
+        /// <returns>发现提醒项时;否则, <see langword="null"/>.</returns>
         public async Task<ReminderEntry?> ReadRow(GrainId grainId, string reminderName)
         {
             try
@@ -305,11 +305,11 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// Inserts or replaces a reminder entry.
+        /// 插入或替换提醒条目。
         /// </summary>
-        /// <param name="entry">The reminder entry to store.</param>
-        /// <returns>The new entity tag when the write succeeds; otherwise, <see langword="null"/>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="entry"/> is <see langword="null"/>.</exception>
+        /// <param name="entry">备存提醒项。</param>
+        /// <returns>写成功时的新实体标记;否则, <see langword="null"/>。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="entry"/> 是 <see langword="null"/>.</exception>
         public async Task<string?> UpsertRow(ReminderEntry entry)
         {
             ArgumentNullException.ThrowIfNull(entry);
@@ -336,13 +336,13 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// Removes a reminder entry when its entity tag matches the stored entry.
+        /// 当实体标签与存储条目匹配时, 将删除提醒项 。
         /// </summary>
-        /// <param name="grainId">The grain identifier.</param>
-        /// <param name="reminderName">The reminder name.</param>
-        /// <param name="eTag">The entity tag used for optimistic concurrency.</param>
+        /// <param name="grainId"> grain 标识符。</param>
+        /// <param name="reminderName">提醒的名称。</param>
+        /// <param name="eTag">用于乐观货币的实体标记。</param>
         /// <returns>
-        /// <see langword="true"/> when the entry was removed; otherwise, <see langword="false"/>.
+        /// 条目被删除时的<see langword="true"/> ;否则, <see langword="false"/>。
         /// </returns>
         public async Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag)
         {

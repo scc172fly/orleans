@@ -8,7 +8,7 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// Provides functionality for locating grain activations in a cluster and registering the location of grain activations.
+    /// 提供功能,将启动 grain 的位置定位在组群中并登记启动 grain 的地点。
     /// </summary>
     internal class GrainLocator
     {

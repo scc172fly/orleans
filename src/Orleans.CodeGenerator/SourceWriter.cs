@@ -4,13 +4,13 @@ using System.Text;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Writes generated C# directly from emission plans.
+/// 直接来自排放计划。
 /// </summary>
 /// <remarks>
-/// Generated files use four-space
-/// indentation, CRLF line separators, no terminator after the final line, and one blank line after a closing
-/// brace unless the next line closes the enclosing block or continues the same statement. Callers supply
-/// complete, already-spelled C# fragments; the writer owns only line structure and indentation.
+/// 生成文件使用四个空格
+/// 缩放、 CRLF 线条分隔器、 最后一行之后没有终止者, 以及关闭后一条空白线
+/// 除非下一行关闭附件块或继续相同的语句,否则该词将无法被调用。
+/// 完整、已经拼写好的 C# 碎片; 作者只拥有线条结构和缩进。
 /// </remarks>
 internal sealed class SourceWriter
 {
@@ -21,15 +21,15 @@ internal sealed class SourceWriter
     private bool _hasLine;
     private bool _blankLinePending;
 
-    /// <param name="capacity">The initial character capacity.</param>
-    /// <param name="initialIndentation">The indentation of the first line, for a fragment which a caller inserts at that depth.</param>
+    /// <param name="capacity">初始字符能力。</param>
+    /// <param name="initialIndentation">第一行的缩进,用于一个在深度插入呼叫者的碎片。</param>
     public SourceWriter(int capacity = 1024, int initialIndentation = 0)
     {
         _builder = new StringBuilder(capacity);
         _indentation = _initialIndentation = initialIndentation;
     }
 
-    /// <summary>Starts a new line at the current indentation. Text is appended with <see cref="Write(string)"/>.</summary>
+    /// <summary>在当前缩进时开始新行。文本附加于 <see cref="Write(string)"/>。</summary>
     public SourceWriter StartLine()
     {
         if (_hasLine)
@@ -76,17 +76,17 @@ internal sealed class SourceWriter
         _blankLinePending = true;
     }
 
-    /// <summary>Writes an empty block, <c>{</c> and <c>}</c> on separate lines.</summary>
+    /// <summary>写一个空的街区, <c>{</c> 和 <c>}</c> 单行。</summary>
     public void EmptyBlock()
     {
         OpenBlock();
         CloseBlock();
     }
 
-    /// <summary>Suppresses the blank line after a closing brace when the next line continues the statement, such as <c>else</c>.</summary>
+    /// <summary>当下一行继续该语句时, 将关闭支架之后的空白线封住, 如 <c>else</c>。</summary>
     public void ContinueStatement() => _blankLinePending = false;
 
-    /// <summary>Requests one blank line before the next line.</summary>
+    /// <summary>要求在下一行之前有一个空线。</summary>
     public void BlankLine() => _blankLinePending = true;
 
     public void Indent() => _indentation++;
@@ -98,7 +98,7 @@ internal sealed class SourceWriter
     }
 
     /// <summary>
-    /// Writes lines produced by another writer at the current indentation; the fragment must begin with its own indentation.
+    /// 写出由另一位作家在目前的缩进时生成的线条;碎片必须从自己的缩进开始。
     /// </summary>
     public void WriteFragment(string fragment)
     {

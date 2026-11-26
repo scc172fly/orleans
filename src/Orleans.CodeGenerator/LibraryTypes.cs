@@ -16,7 +16,7 @@ internal sealed class LibraryTypes
     public static LibraryTypes FromCompilation(Compilation compilation, CodeGeneratorOptions options)
         => Cache.GetValue(compilation, static compilation => new LibraryTypes(compilation));
 
-    /// <summary>Spellings of the serialization library types which every generated codec and copier uses.</summary>
+    /// <summary>生成代码和复印机的每套序列化库类型拼写。</summary>
     internal Model.EmissionLibraryTypes EmissionTypes => field ??= Model.EmissionLibraryTypes.Create(this);
 
     private LibraryTypes(Compilation compilation)
@@ -360,7 +360,7 @@ internal sealed class LibraryTypes
 
         if (type is INamedTypeSymbol unionType && LanguageFeatureSymbols.IsUnion(type))
         {
-            // Copy callbacks can replace even immutable union values, so callers must use their copier.
+            // 复制回调可以取代甚至不可改变的联盟值, 因此呼叫者必须使用他们的复印机。
             if (type.HasAttribute(SerializationCallbacksAttribute))
             {
                 return _shallowCopyableTypes[type] = false;
@@ -371,7 +371,7 @@ internal sealed class LibraryTypes
                 return _shallowCopyableTypes[type] = true;
             }
 
-            // Referenced unions provide their copy policy through registration, independently of this compiler's case metadata.
+            // 参照工会通过登记提供其复制政策,而不受该汇编者案例元数据的影响。
             if (!type.HasAttribute(GenerateSerializerAttribute)
                 || !SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, Compilation.Assembly))
             {
@@ -381,7 +381,7 @@ internal sealed class LibraryTypes
             visiting ??= new(SymbolEqualityComparer.Default);
             if (!visiting.Add(unionType.OriginalDefinition))
             {
-                // Recursive case graphs require deep copying rather than sharing their boxed values.
+                // 递归案例图表需要深度复制,而不是共享其框框中的数值。
                 return false;
             }
 

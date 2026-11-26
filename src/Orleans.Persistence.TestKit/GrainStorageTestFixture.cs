@@ -7,11 +7,11 @@ using Orleans.TestingHost;
 namespace Orleans.Persistence.TestKit;
 
 /// <summary>
-/// Base fixture class for testing IGrainStorage implementations using InProcessTestCluster.
+/// 用于测试的基底固定定型类 IGrainStorage 使用 InProcessTestCluster.
 /// </summary>
 /// <remarks>
-/// This fixture provides an in-process Orleans cluster for testing storage providers.
-/// Implement the abstract methods to configure your storage provider and retrieve it for testing.
+/// 这一固定装置为测试储存供应商提供了一个在工艺 Orleans 中集。
+/// 应用抽象方法配置存储提供者并检索以进行测试。
 /// </remarks>
 public abstract class GrainStorageTestFixture
 {
@@ -20,17 +20,17 @@ public abstract class GrainStorageTestFixture
     private IGrainStorage? _storage;
 
     /// <summary>
-    /// Gets the in-process test cluster.
+    /// 获得在过程测试组群。
     /// </summary>
     protected InProcessTestCluster Cluster => _cluster ?? throw new InvalidOperationException("The test cluster has not been initialized.");
 
     /// <summary>
-    /// Gets the grain factory for creating grain references.
+    /// 得到 grain 创建工厂 grain 参考文献。
     /// </summary>
     public IGrainFactory GrainFactory => Cluster.Client;
 
     /// <summary>
-    /// Gets the storage provider being tested.
+    /// 测试存储供应商
     /// </summary>
     public IGrainStorage Storage
     {
@@ -42,21 +42,21 @@ public abstract class GrainStorageTestFixture
     }
 
     /// <summary>
-    /// Gets the name of the storage provider being tested.
+    /// 获取正在测试的存储供应商的名称 。
     /// </summary>
     protected abstract string StorageProviderName { get; }
 
     /// <summary>
-    /// Checks preconditions before initializing the cluster.
-    /// Override this to check for external dependencies (e.g., Azure Storage emulator).
+    /// 在启动该组之前检查先决条件。
+    /// 覆盖此选项以检查外部依赖性(e.g., Azure 存储模拟器)。
     /// </summary>
-    /// <exception cref="Exception">Thrown if preconditions are not met.</exception>
+    /// <exception cref="Exception">如果不符合先决条件,就予以放弃。</exception>
     protected virtual void CheckPreconditionsOrThrow()
     {
     }
 
     /// <summary>
-    /// Ensures that preconditions are met. Call this from test constructors to skip tests if preconditions fail.
+    /// 试验制造者称这为在先决条件失效时跳过试验。
     /// </summary>
     public void EnsurePreconditionsMet()
     {
@@ -64,9 +64,9 @@ public abstract class GrainStorageTestFixture
     }
 
     /// <summary>
-    /// Configures the silo with the storage provider to test.
+    /// 配置 silo ,与存储提供者一起测试。
     /// </summary>
-    /// <param name="siloBuilder">The silo builder to configure.</param>
+    /// <param name="siloBuilder">要配置的 silo 构建器。</param>
     /// <example>
     /// <code>
     /// protected override void ConfigureSilo(ISiloBuilder siloBuilder)
@@ -78,17 +78,17 @@ public abstract class GrainStorageTestFixture
     protected abstract void ConfigureSilo(ISiloBuilder siloBuilder);
 
     /// <summary>
-    /// Configures additional test cluster options if needed.
+    /// 配置其他的测试组选项 。
     /// </summary>
-    /// <param name="builder">The test cluster builder.</param>
+    /// <param name="builder">测试组群构建器。</param>
     protected virtual void ConfigureTestCluster(InProcessTestClusterBuilder builder)
     {
     }
 
     /// <summary>
-    /// Initializes the test cluster and resolves the configured storage provider.
+    /// 初始化测试组群,解决配置的存储提供者。
     /// </summary>
-    /// <returns>A task which represents the asynchronous initialization operation.</returns>
+    /// <returns>代表非同步初始化操作的任务 。</returns>
     public virtual async ValueTask InitializeAsync()
     {
         try
@@ -114,9 +114,9 @@ public abstract class GrainStorageTestFixture
     }
 
     /// <summary>
-    /// Stops and disposes the test cluster.
+    /// 停止并处置测试组。
     /// </summary>
-    /// <returns>A task which represents the asynchronous disposal operation.</returns>
+    /// <returns>一项代表非同步处置作业的任务。</returns>
     public virtual async ValueTask DisposeAsync()
     {
         if (_cluster is not { } cluster)

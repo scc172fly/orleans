@@ -9,7 +9,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization;
 
 /// <summary>
-/// Benchmarks Orleans wire protocol field header encoding and writing performance.
+/// 基准 Orleans 有线协议外地页头编码和写作性能。
 /// </summary>
 [Config(typeof(BenchmarkConfig))]
 public class FieldHeaderBenchmarks
@@ -30,7 +30,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // Use an expected type and a field id with a value small enough to be embedded.
+        // 使用预期类型和字段代号,其值小到足以嵌入。
         writer.WriteFieldHeader(4, typeof(uint), typeof(uint), WireType.VarInt);
     }
 
@@ -39,7 +39,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // Use a field id delta which is too large to be embedded.
+        // 使用字段 id 三角洲,该字段太大,无法嵌入。
         writer.WriteFieldHeader(Tag.MaxEmbeddedFieldIdDelta + 20, typeof(uint), typeof(uint), WireType.VarInt);
     }
 
@@ -48,7 +48,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // Use an expected type and a field id with a value small enough to be embedded.
+        // 使用预期类型和字段代号,其值小到足以嵌入。
         writer.WriteFieldHeaderExpected(4, WireType.VarInt);
     }
 
@@ -57,7 +57,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // Use a field id delta which is too large to be embedded.
+        // 使用字段 id 三角洲,该字段太大,无法嵌入。
         writer.WriteFieldHeaderExpected(Tag.MaxEmbeddedFieldIdDelta + 20, WireType.VarInt);
     }
 

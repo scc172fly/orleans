@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// Tests memory stream resume functionality with configurable stream inactivity periods and cache eviction settings.
+    /// 测试内存流恢复功能,可配置流无活动期和缓冲驱逐设置。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]

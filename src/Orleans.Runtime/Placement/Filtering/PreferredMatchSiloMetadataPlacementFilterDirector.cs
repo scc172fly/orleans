@@ -30,9 +30,9 @@ internal class PreferredMatchSiloMetadataPlacementFilterDirector(
             return siloList;
         }
 
-        // return the list of silos that match the most metadata keys. The first key in the list is the least important.
-        // This means that the last key in the list is the most important.
-        // If no silos match any metadata keys, return the original list of silos.
+        // 返回符合大多数元数据密钥的 silos 列表。列表中的第一个密钥是最不重要的。
+        // 这意味着列表中最后一个关键字是最重要的。
+        // 如果未找到 silos 符合任何元数据密钥,请返回 silos的原始列表。
         var maxScore = 0;
         var siloScores = new int[siloList.Count];
         var scoreCounts = new int[orderedMetadataKeys.Length + 1];

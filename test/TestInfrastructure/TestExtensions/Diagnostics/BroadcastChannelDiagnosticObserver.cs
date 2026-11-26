@@ -9,12 +9,12 @@ using Orleans.TestingHost;
 namespace TestExtensions;
 
 /// <summary>
-/// A test helper that subscribes to Orleans broadcast channel diagnostic events and provides
-/// methods to wait for broadcast channel events deterministically.
+/// 订阅 Orleans 广播频道诊断事件并提供
+/// 选择了等待广播频道活动的方法
 /// </summary>
 /// <remarks>
-/// Uses <c>System.Reactive</c> operators with <c>Replay()</c> so that <c>WaitFor*</c> methods
-/// match against both past and future events with zero-latency, event-driven waiting.
+/// 用途 <c>System.Reactive</c> 操作操作符 <c>Replay()</c> ,这样, <c>WaitFor*</c> 方法
+/// 与过去和今后的事件相匹配,且无拖延、事件驱动的等待。
 /// </remarks>
 public sealed class BroadcastChannelDiagnosticObserver : IDisposable
 {
@@ -22,7 +22,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     private readonly IDisposable _connection;
 
     /// <summary>
-    /// Creates a new instance of the observer and starts listening for broadcast channel diagnostic events.
+    /// 创建了一个新的观察者实例,并开始收听广播频道诊断事件。
     /// </summary>
     public static BroadcastChannelDiagnosticObserver Create(TestCluster cluster) => new(DiagnosticObserverSiloScope.For(cluster));
 
@@ -35,7 +35,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for an item to be published to a specific channel.
+    /// 等待某个项目发布到特定频道。
     /// </summary>
     public async Task<BroadcastChannelEvents.ItemPublished> WaitForItemPublishedAsync(ChannelId channelId, string? providerName, CancellationToken cancellationToken)
     {
@@ -47,7 +47,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for an item to be delivered to a specific channel subscriber.
+    /// 等待某项物品交付给特定频道用户。
     /// </summary>
     public async Task<BroadcastChannelEvents.ItemDelivered> WaitForItemDeliveredAsync(ChannelId channelId, string? providerName, CancellationToken cancellationToken)
     {
@@ -59,7 +59,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a specific number of items to be delivered on a channel.
+    /// 等待在频道上交付的具体项目数量。
     /// </summary>
     public async Task WaitForDeliveryCountAsync(ChannelId channelId, int expectedCount, string? providerName, CancellationToken cancellationToken)
     {
@@ -73,7 +73,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// Waits for a specific number of items to be published to a channel.
+    /// 等待向频道发布特定数量的项目。
     /// </summary>
     public async Task WaitForPublishCountAsync(ChannelId channelId, int expectedCount, string? providerName, CancellationToken cancellationToken)
     {

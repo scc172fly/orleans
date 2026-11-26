@@ -1,31 +1,31 @@
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Interface for the test multi-collection grain
+/// 测试多抓集的接口 grain
 /// </summary>
 public interface ITestMultiCollectionGrain : IGrainWithGuidKey
 {
     Task<Guid> GetActivationId();
 
-    // Dictionary operations
+    // 词典操作
     Task AddToDictionary(string key, int value);
     Task RemoveFromDictionary(string key);
     Task<int> GetDictionaryValue(string key);
     Task<int> GetDictionaryCount();
 
-    // List operations
+    // 名单行动
     Task AddToList(string item);
     Task RemoveListItemAt(int index);
     Task<string> GetListItem(int index);
     Task<int> GetListCount();
 
-    // Queue operations
+    // 列业务
     Task AddToQueue(int item);
     Task<int> DequeueItem();
     Task<int> PeekQueueItem();
     Task<int> GetQueueCount();
 
-    // Set operations
+    // 设置操作
     Task AddToSet(string item);
     Task RemoveFromSet(string item);
     Task<bool> ContainsSetItem(string item);

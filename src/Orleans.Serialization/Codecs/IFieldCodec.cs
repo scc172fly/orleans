@@ -7,47 +7,47 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Marker type for field codecs.
+    /// 字段编码器的标记类型。
     /// </summary>
     public interface IFieldCodec
     {
         /// <summary>
-        /// Writes a field using the provided untyped value. The type must still match the codec instance!
+        /// 使用提供的未输入值写入字段。该类型必须仍然匹配编码实例!
         /// </summary>
         void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object? value) where TBufferWriter : IBufferWriter<byte>;
 
         /// <summary>
-        /// Reads a value and returns it untyped. The type must still match the codec instance!
+        /// 读取值并返回未输入的数值。 此类型必须仍然匹配编码实例!
         /// </summary>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         object? ReadValue<TInput>(ref Reader<TInput> reader, Field field);
     }
 
     /// <summary>
-    /// Provides functionality for reading and writing values of a specified type.
-    /// Implements the <see cref="Orleans.Serialization.Codecs.IFieldCodec" />
+    /// 提供特定类型读写值的功能。
+    /// 执行 <see cref="Orleans.Serialization.Codecs.IFieldCodec" />
     /// </summary>
-    /// <typeparam name="T">The type which this implementation can read and write.</typeparam>
+    /// <typeparam name="T">此执行可读写的类型 。</typeparam>
     /// <seealso cref="Orleans.Serialization.Codecs.IFieldCodec" />
     public interface IFieldCodec<T> : IFieldCodec
     {
         /// <summary>
-        /// Writes a field.
+        /// 写一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="expectedType">The expected type.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="expectedType">预想的类型。</param>
+        /// <param name="value">数值。</param>
         void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [AllowNull] Type expectedType, [AllowNull] T value) where TBufferWriter : IBufferWriter<byte>;
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: MaybeNull]
         new T ReadValue<TInput>(ref Reader<TInput> reader, Field field);
 
@@ -59,54 +59,54 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Marker interface for codecs which directly support serializing all derived types of their specified type.
+    /// 直接支持所有衍生类型(指定类型)序列的编码器标记界面。
     /// </summary>
     public interface IDerivedTypeCodec : IFieldCodec
     {
     }
 
     /// <summary>
-    /// Hooks for stages in serialization and copying.
+    /// 系列和复制阶段的钩子。
     /// </summary>
-    /// <typeparam name="T">The underlying value type.</typeparam>
+    /// <typeparam name="T">底值类型。</typeparam>
     public interface ISerializationCallbacks<T>
     {
         /// <summary>
-        /// Called when serializing.
+        /// 连环处理时被调用
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         void OnSerializing(T value);
 
         /// <summary>
-        /// Called when a value has been serialized.
+        /// 某个值被序列化后调用。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         void OnSerialized(T value);
 
         /// <summary>
-        /// Called when deserializing.
+        /// 被召回时, 正在消毒。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         void OnDeserializing(T value);
 
         /// <summary>
-        /// Called when a value has been deserialized.
+        /// 当一个值被淡化后调用 。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         void OnDeserialized(T value);
 
         /// <summary>
-        /// Called when copying.
+        /// 复制时呼叫 。
         /// </summary>
-        /// <param name="original">The original value.</param>
-        /// <param name="result">The copy.</param>
+        /// <param name="original">原始价值。</param>
+        /// <param name="result">拷贝</param>
         void OnCopying(T original, T result);
 
         /// <summary>
-        /// Called when a value has been copied.
+        /// 复制一个值时调用 。
         /// </summary>
-        /// <param name="original">The original value.</param>
-        /// <param name="result">The copy.</param>
+        /// <param name="original">原始价值。</param>
+        /// <param name="result">拷贝</param>
         void OnCopied(T original, T result);
     }
 

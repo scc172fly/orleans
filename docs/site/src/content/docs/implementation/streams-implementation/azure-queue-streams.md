@@ -1,33 +1,41 @@
 ---
-title: Azure Queue stream implementation
-description: Understand the Orleans Azure Queue adapter, receiver acknowledgement, queue mapping, and configuration surfaces.
+title: "Azure 队列流执行"
+description: "获取 Orleans Azure 队列适配器、接收器识别、队列映射和配置表面。"
 ms.date: 09/05/2026
 ms.topic: concept-article
 ---
 
-# Azure Queue stream implementation
+<a id="azure-queue-stream-implementation"></a>
 
-The [`Microsoft.Orleans.Streaming.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage/) package implements a persistent stream adapter over Azure Queue Storage. It uses the common [persistent stream pulling architecture](index.md) and supplies Azure-specific queue mapping, encoding, receive, delete, and configuration behavior.
+# Azure 队列流执行
 
-## Registration APIs <a name="configuration"></a>
+[`Microsoft.Orleans.Streaming.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage/) 套件在 Azure 队列存储处执行一个持久性流适配器。 它使用通用 [持久性流拉动结构](index.md) 和用品 Azure- 特定的队列映射、编码、接收、删除和配置行为。
 
-Silo and client builders expose <xref:Orleans.Hosting.SiloBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType> and <xref:Orleans.Hosting.ClientBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType>, respectively. The concise overload configures named <xref:Orleans.Configuration.AzureQueueOptions>. Both configurator types can replace the queue data adapter; only the silo configurator exposes the cache and pulling-agent components which run on silos.
+<a id="registration-apis-"></a>
 
-Applications can instead supply a keyed <xref:Azure.Storage.Queues.QueueServiceClient> through configuration-driven provider registration. Configuration supports a service key, connection name, connection string, or queue-service URI. The <xref:Orleans.Configuration.AzureQueueOptions.ConfigureQueueServiceClient*> overloads and <xref:Orleans.Configuration.AzureQueueOptions.ClientOptions?displayProperty=nameWithType> property are obsolete and should not be used in new code.
+## 登记证关证单 <a name="configuration"></a>
 
-API: <xref:Orleans.Hosting.SiloBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType>, <xref:Orleans.Hosting.ClientBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType>, <xref:Orleans.Hosting.AzureQueueStreamProviderBuilder>, and <xref:Orleans.Configuration.AzureQueueOptions>. Implementation: [silo registration](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Hosting/SiloBuilderExtensions.cs), [configuration-driven registration](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Hosting/AzureQueueStreamProviderBuilder.cs), and [queue options](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/AzureQueueStreamOptions.cs).
+Silo 和客户端构建器分别暴露 <xref:Orleans.Hosting.SiloBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType> 和 <xref:Orleans.Hosting.ClientBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType>。简洁的超载配置的名称是 <xref:Orleans.Configuration.AzureQueueOptions>。两种配置类型都可以替换队列数据适配器;只有 silo 配置器可以披露运行在 silos上的缓存和拉动剂组件。
 
-## Adapter behavior
+应用程序可以通过配置驱动的供应商注册来提供键 <xref:Azure.Storage.Queues.QueueServiceClient> 。配置支持服务键、连接名称、连接字符串或队列服务 URI。 <xref:Orleans.Configuration.AzureQueueOptions.ConfigureQueueServiceClient*> 超载和 <xref:Orleans.Configuration.AzureQueueOptions.ClientOptions?displayProperty=nameWithType> 属性已经过时,不应在新代码中使用。
 
-`AzureQueueAdapter` is read-write and not rewindable. A producer encodes the stream identity, payload, and request context using an <xref:Orleans.Streams.IQueueDataAdapter`2>, then sends an Azure Queue message to the mapped queue. The receiver assigns the local sequence token used for delivery and acknowledgement.
+API: <xref:Orleans.Hosting.SiloBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType>、 <xref:Orleans.Hosting.ClientBuilderExtensions.AddAzureQueueStreams*?displayProperty=nameWithType>、 <xref:Orleans.Hosting.AzureQueueStreamProviderBuilder>和 <xref:Orleans.Configuration.AzureQueueOptions>。 履行: [silo 登记](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Hosting/SiloBuilderExtensions.cs)、 [由配置驱动的登记](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Hosting/AzureQueueStreamProviderBuilder.cs)和 [队列选项](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/AzureQueueStreamOptions.cs)。
 
-Because Azure Queue Storage does not expose a durable arbitrary stream offset, a non-null rewind token is rejected. <xref:Orleans.Providers.Streams.AzureQueue.AzureQueueDataAdapterV2> is the default encoding. Version 1 remains for compatibility with existing messages, not as the preferred format for new providers.
+<a id="adapter-behavior"></a>
 
-Source: [`AzureQueueAdapter`](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/AzureQueueAdapter.cs) and [`IAzureQueueDataAdapter`](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/IAzureQueueDataAdapter.cs).
+## 适应者行为
 
-## Receive and acknowledgement
+`AzureQueueAdapter` 是读写而非可倒转的。 制作人使用 <xref:Orleans.Streams.IQueueDataAdapter`2>编码流特性、 有效载荷和请求上下文, 然后将 Azure 信件排队发送到已绘制的队列中。 接收人指定了用于交付和确认的本地序列符号 。
 
-`AzureQueueAdapterReceiver` asks Azure Queue Storage for up to 32 visible messages at a time. Azure Queue Storage's [Get Messages operation](https://learn.microsoft.com/rest/api/storageservices/get-messages) makes a received message temporarily invisible; it does not delete it. The pulling agent decodes and delivers the batch through its cache and cursors. Only messages reported as delivered are removed using the [Delete Message operation](https://learn.microsoft.com/rest/api/storageservices/delete-message2).
+由于 Azure 队列存储没有显示持久的任意流偏移,所以拒绝非中继回放符。 <xref:Orleans.Providers.Streams.AzureQueue.AzureQueueDataAdapterV2> 是默认编码。版本1仍然与现有信件兼容,而不是作为新提供者首选的格式。
+
+来源: [`AzureQueueAdapter`](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/AzureQueueAdapter.cs) 和 [`IAzureQueueDataAdapter`](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/IAzureQueueDataAdapter.cs)。
+
+<a id="receive-and-acknowledgement"></a>
+
+## 接收和确认
+
+`AzureQueueAdapterReceiver` 询问 Azure 存储一次最多32个可见信息。 Azure 配置存储 [获取信件操作](https://learn.microsoft.com/rest/api/storageservices/get-messages) 暂时隐蔽了接收的信件; 它不删除它。 拉动代理解码并通过其缓存和光标交付批次。 只有报告已发送的信件才使用 [删除信件操作](https://learn.microsoft.com/rest/api/storageservices/delete-message2)移除。
 
 ```mermaid
 sequenceDiagram
@@ -46,39 +54,45 @@ sequenceDiagram
     Receiver->>Queue: Delete with pop receipt
 ```
 
-During graceful queue ownership transfer, the previous receiver uses the [Update Message operation](https://learn.microsoft.com/rest/api/storageservices/update-message) to make every prefetched, unacknowledged message visible immediately. The replacement receiver can therefore resume delivery without waiting for the visibility timeout. Credentials must authorize that operation; a queue service SAS includes the `u` permission. When an update fails, Orleans logs the release failure and Azure makes the message available when its existing visibility lease expires.
+在宽度队列所有权转让期间,前一个接收者使用 [更新信件信件操作](https://learn.microsoft.com/rest/api/storageservices/update-message) 使所有预发、未经确认的信息立即可见。 因此替换接收者可以在不等待可见度超时的情况下恢复发送。 证书必须授权进行此操作; 队列服务SAS包括 `u` 许可。 如果更新失败, Orleans 将释放失败登录到记录上,而 Azure 在其现有的可见度租赁到期时提供该信息。
 
-If the receiver, agent, or silo fails before this handoff completes, the visibility timeout eventually expires and Azure can return the message again. Consumers must tolerate redelivery. If visibility expires while a message is still being processed, delete can fail because the pop receipt is no longer current.
+如果接收器、代理器或 silo 失败, 完成此交接前, 可见度超时最终会过期, Azure 可以再次回复信件。 消费者必须容忍重新发送。 如果在信息处理中, 显示度将到期, 则删除可能失效, 因为流行收件已不及时 。
 
-Source: [`AzureQueueAdapterReceiver`](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/AzureQueueAdapterReceiver.cs).
+资料来源: [`AzureQueueAdapterReceiver`](https://github.com/dotnet/orleans/blob/main/src/Azure/Orleans.Streaming.AzureStorage/Providers/Streams/AzureQueue/AzureQueueAdapterReceiver.cs)。
 
-## Queue mapping and defaults
+<a id="queue-mapping-and-defaults"></a>
 
-When <xref:Orleans.Configuration.AzureQueueOptions.QueueNames?displayProperty=nameWithType> is not supplied, provider configuration generates names from the Orleans service ID and provider name. The hash-ring queue mapper defaults to eight queues. Each owned queue has one pulling agent and one queue cache on its current silo.
+## 队列绘图和默认
 
-Common persistent-stream defaults used by this provider are:
+当 <xref:Orleans.Configuration.AzureQueueOptions.QueueNames?displayProperty=nameWithType> 不提供时, 供应商配置会从 Orleans 服务代号与提供者名中生成名称。 散列队列的绘图器默认为 8个队列。 每个所有队列在当前 silo上都有一个拖动代理和一个队列缓存 。
 
-| Setting | Default |
+该供应商使用的常见的持续性流缺省是:
+
+| 设置设置设置设置 | 默认默认 |
 | --- | ---: |
 | <xref:Orleans.Configuration.HashRingStreamQueueMapperOptions.TotalQueueCount?displayProperty=nameWithType> | 8 |
-| <xref:Orleans.Configuration.StreamPullingAgentOptions.GetQueueMsgsTimerPeriod?displayProperty=nameWithType> | 100 ms |
-| <xref:Orleans.Configuration.SimpleQueueCacheOptions.CacheSize?displayProperty=nameWithType> | 4,096 batch containers |
-| <xref:Orleans.Configuration.StreamPullingAgentOptions.MaxEventDeliveryTime?displayProperty=nameWithType> | 1 minute |
-| <xref:Orleans.Configuration.StreamPullingAgentOptions.StreamInactivityPeriod?displayProperty=nameWithType> | 30 minutes |
+| <xref:Orleans.Configuration.StreamPullingAgentOptions.GetQueueMsgsTimerPeriod?displayProperty=nameWithType> | 100毫秒 |
+| <xref:Orleans.Configuration.SimpleQueueCacheOptions.CacheSize?displayProperty=nameWithType> | 4 096个批货集装箱 |
+| <xref:Orleans.Configuration.StreamPullingAgentOptions.MaxEventDeliveryTime?displayProperty=nameWithType> | 1分钟1分 |
+| <xref:Orleans.Configuration.StreamPullingAgentOptions.StreamInactivityPeriod?displayProperty=nameWithType> | 30分钟30分钟 |
 
-The number of queues bounds pulling parallelism and ownership granularity. Changing queue names changes the physical partition set and must be treated as a data migration, not routine tuning.
+队列数量拉动平行和拥有式颗粒的边框。 更改队列名称会改变物理分隔设置, 必须作为数据迁移处理, 而不是例行调试 。
 
-## Visibility and cache progress <a name="tuning"></a>
+<a id="visibility-and-cache-progress-"></a>
 
-Azure visibility and Orleans cache retention are different clocks:
+## 可见度和缓存进度 <a name="tuning"></a>
 
-- visibility controls when an undeleted Azure message can be received again;
-- the queue cache controls how long the pulling agent retains a batch for active subscription cursors.
+Azure 可见度和 Orleans 缓存是不同的时钟:
 
-A <xref:Orleans.Configuration.AzureQueueOptions.MessageVisibilityTimeout?displayProperty=nameWithType> value which is shorter than worst-case delivery increases duplicate receive and stale pop-receipt risk. An excessively long timeout delays recovery after agent failure. Choose values from measured delivery latency and failure objectives; operational tuning belongs with the [stream provider guidance](../../streaming/stream-providers.md).
+- 能够再次收到未删除 Azure 信件时的可见度控制;
+- 中,队列缓存控制器将拖动代理保留一组用于主动订阅光标的时间长度。
 
-## Extension and compatibility points
+低于最坏交付情况的 <xref:Orleans.Configuration.AzureQueueOptions.MessageVisibilityTimeout?displayProperty=nameWithType> 值会增加重复接收和停止流行接收的风险。代理失败后超时延迟回收过长。选择从计量的交付延迟和故障目标中得出的数值;操作调试属于 [串流提供方指导](../../streaming/stream-providers.md)。
 
-A custom <xref:Orleans.Streams.IQueueDataAdapter`2> changes payload encoding while retaining the Azure transport. It preserves stream identity, the request-context values defined by the wire contract, and the sequence information used by consumers. Follow [Customize persistent-stream data formats](../../streaming/data-adapters.md) for a compiling implementation and versioned rollout guidance.
+<a id="extension-and-compatibility-points"></a>
 
-Configuration binding behavior is tested by [`AzureQueueStreamProviderBuilderTests`](https://github.com/dotnet/orleans/blob/main/test/Extensions/Orleans.Azure.Tests/Streaming/AzureQueueStreamProviderBuilderTests.cs). Adapter acknowledgement and cursor behavior are covered by [`AzureQueueAdapterTests`](https://github.com/dotnet/orleans/blob/main/test/Extensions/Orleans.Azure.Tests/Streaming/AzureQueueAdapterTests.cs).
+## 推广点和兼容点
+
+自定义 <xref:Orleans.Streams.IQueueDataAdapter`2> 更改有效载荷编码,同时保留 Azure 运输。它保存流特性、电线合同界定的请求-通量值以及消费者使用的序列信息。在汇编实施和版本推出指南时遵循 [自定义持久性流数据格式](../../streaming/data-adapters.md) 。
+
+配置约束行为由 [`AzureQueueStreamProviderBuilderTests`](https://github.com/dotnet/orleans/blob/main/test/Extensions/Orleans.Azure.Tests/Streaming/AzureQueueStreamProviderBuilderTests.cs)测试。适应器识别和光标行为由 [`AzureQueueAdapterTests`](https://github.com/dotnet/orleans/blob/main/test/Extensions/Orleans.Azure.Tests/Streaming/AzureQueueAdapterTests.cs)涵盖。

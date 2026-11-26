@@ -15,7 +15,7 @@ public interface IShoppingCartGrain : IGrainWithStringKey
 public sealed class ShoppingCartGrain(IDurableStateManager stateManager)
     : Grain, IShoppingCartGrain
 {
-    // Declare the cart component during construction, before Orleans recovers the grain's state.
+    // 在 Orleans 恢复 grain状态之前,申报工程组件在施工期间的状况。
     private readonly IDurableDictionary<string, int> _items =
         stateManager.GetOrAddDictionary<string, int>("cart-items");
 

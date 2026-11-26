@@ -106,7 +106,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
             const string counter = "orleans-messaging-inbox-messages-processed";
             var retried = Fixture.Metrics.WaitForCountAsync(counter, 1, "retry");
 
-            // The first attempt ends without an outcome, which fails its activation; recovery charges it.
+            // 第一次尝试没有结果,但未能启动;追偿费用。
             DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, input));
             await failed.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
             await receiver.GetSnapshotAsync();
@@ -134,7 +134,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
             Assert.Equal(2, handler.Attempts);
         }
 
-        // Handler overrides belong to one activation, so each recovered activation needs the handler installed again.
+        // 操作器的重复控制属于一个激活, 所以每个恢复的激活都需要安装处理器。
         private static async Task InstallAsync(IGrainContext context, IInboxHandler handler)
         {
             var grain = Assert.IsType<MessagingTestGrain>(context.GrainInstance);
@@ -378,7 +378,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
         await WaitAsync(finished);
         if (!completed)
         {
-            // Without an outcome, the attempt fails the activation, and recovery runs the message again.
+            // 毫无结果,这一尝试就失败了启动,而恢复再次传递信息。
             var failure = Assert.IsType<InvalidOperationException>(await WaitAsync(rig.Grain.DeactivationFailure.Task));
             Assert.Same(error, failure.InnerException);
             Assert.Empty(rig.Effects);
@@ -410,7 +410,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
         var thrown = new InvalidOperationException("A downstream call failed.");
         handler.Body = (self, _) =>
         {
-            // A message which the handler sends to itself is the attempt's change, like its other effects.
+            // 处理人给自己发送的信息是尝试的改变, 就像它的其他效果一样。
             if (change == "mutate") self.Mutate();
             else if (change == "self-send") rig.InboxState.StageLocal(selfSent);
             if (throws) throw thrown;
@@ -427,9 +427,9 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
         await WaitAsync(rig.Context.Deactivated);
         Assert.Equal(writes, Writes(rig));
 
-        // The retried wake-up recovers the grain from the journal without the first attempt's changes, charges the
-        // attempt, and runs the message again. This fixture's replay handler doesn't know the message's route, so the
-        // rerun fails too, and with the fixture's zero InboxRetryTimeout the next recovery dead-letters the message.
+        // 重新审判的警醒从日记上收回 grain ,没有第一次尝试修改,收取
+        // 发送消息,然后再次运行此信息。 此固定的重放处理器不知道该信息的路径, 所以
+        // 重新运行失败, 且使用固定点的零 InboxRetryTimeout , 下次恢复时会用废字母来发送消息 。
         var recovered = await Fixture.WaitForDeadLetterCountAsync(rig.Receiver, 1);
         Assert.NotEqual(rig.Grain.GetSnapshotForTest().ActivationId, recovered.ActivationId);
         Assert.Empty(recovered.Effects);
@@ -669,11 +669,11 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
     }
 
     /// <summary>
-    /// Completes after the pump finishes its current pass (including the batch write) and one more pass.
+    /// 泵完成当前传球(包括批量写字)和再过一个传球后, 便完整完成。
     /// </summary>
     private Task FinishedAsync(Rig rig)
     {
-        // Resolve the pump now: a failed write deactivates the grain and disposes its activation services.
+        // 现在就解决泵问题:一个失败的写法将 grain 关闭并处置其激活服务。
         var shutdown = rig.Context.ActivationServices.GetRequiredService<MessagingPump>().ShutdownToken;
         return RunAsync();
 
@@ -685,7 +685,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
             }
             catch (OperationCanceledException) when (shutdown.IsCancellationRequested)
             {
-                // A failed write stops the pump; callers assert the failure explicitly.
+                // 失败的写停止了泵; 电话人明确声明失败。
             }
         }
     }

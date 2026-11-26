@@ -7,7 +7,7 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents an entry in a <see cref="IGrainDirectory"/>
+    /// 表示 <see cref="IGrainDirectory"/>中的条目
     /// </summary>
     [GenerateSerializer, Immutable]
     public sealed class GrainAddress : IEquatable<GrainAddress>, ISpanFormattable
@@ -19,29 +19,29 @@ namespace Orleans.Runtime
         private readonly ActivationId _activationId;
 
         /// <summary>
-        /// Identifier of the Grain
+        /// Grain的标识符
         /// </summary>
         public GrainId GrainId { get => _grainId; init => _grainId = value; }
 
         /// <summary>
-        /// Id of the specific Grain activation
+        /// 特定 Grain 激活的 Id
         /// </summary>
         public ActivationId ActivationId { get => _activationId; init => _activationId = value; }
 
         /// <summary>
-        /// Address of the silo where the grain activation lives
+        /// 唱唱唱唱唱唱唱的要 silo 位于 grain 激活生命
         /// </summary>
         [Id(2)]
         public SiloAddress? SiloAddress { get; init; }
 
         /// <summary>
-        /// MembershipVersion at the time of registration
+        /// 登记时的MembershipVersion
         /// </summary>
         [Id(3)]
         public MembershipVersion MembershipVersion { get; init; } = MembershipVersion.MinValue;
 
         /// <summary>
-        /// Gets a value indicating whether the grain, activation, and silo identifiers are all specified.
+        /// 获得一个值,以显示是否指定了 grain、激活和 silo 识别符号。
         /// </summary>
         [JsonIgnore]
         public bool IsComplete => !_grainId.IsDefault && !_activationId.IsDefault && SiloAddress != null;
@@ -58,11 +58,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Two grain addresses match if they have equal <see cref="SiloAddress"/> and <see cref="GrainId"/> values
-        /// and either one has a default <see cref="ActivationId"/> value or both have equal <see cref="ActivationId"/> values.
+        /// 两个 grain 地址匹配,如果其数值等于 <see cref="SiloAddress"/> 和 <see cref="GrainId"/>
+        /// 并且一方有默认 <see cref="ActivationId"/> 值,或两者均具有等同的 <see cref="ActivationId"/> 值。
         /// </summary>
-        /// <param name="other"> The other <see cref="GrainAddress"/> to compare this one with.</param>
-        /// <returns> Returns <c>true</c> if the two <see cref="GrainAddress"/> are considered to match.</returns>
+        /// <param name="other"> 另一 <see cref="GrainAddress"/> 来比较这个和。</param>
+        /// <returns> 返回 <c>true</c> 如果两者 <see cref="GrainAddress"/> 认为匹配。</returns>
         public bool Matches([NotNullWhen(true)] GrainAddress? other)
         {
             if (ReferenceEquals(this, other)) return true;
@@ -92,16 +92,16 @@ namespace Orleans.Runtime
             => destination.TryWrite($"[{nameof(GrainAddress)} GrainId {_grainId}, ActivationId: {_activationId}, SiloAddress: {SiloAddress}]", out charsWritten);
 
         /// <summary>
-        /// Returns a string representation which includes the grain, activation, silo, and membership version.
+        /// 返回字符串表示式,包括 grain、激活、 silo和会籍版本。
         /// </summary>
-        /// <returns>A detailed string representation of this grain address.</returns>
+        /// <returns>此 grain 地址的详细字符串表示。</returns>
         public string ToFullString() => $"[{nameof(GrainAddress)} GrainId {_grainId}, ActivationId: {_activationId}, SiloAddress: {SiloAddress}, MembershipVersion: {MembershipVersion}]";
 
         internal static GrainAddress NewActivationAddress(SiloAddress silo, GrainId grain) => GetAddress(silo, grain, ActivationId.NewId());
 
         internal static GrainAddress GetAddress(SiloAddress? silo, GrainId grain, ActivationId activation)
         {
-            // Silo part is not mandatory
+            // Silo 部分非强制性
             if (grain.IsDefault) throw new ArgumentNullException(nameof(grain));
 
             return new GrainAddress

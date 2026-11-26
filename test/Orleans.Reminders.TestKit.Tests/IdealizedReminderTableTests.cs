@@ -7,13 +7,13 @@ using Xunit;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// Runs the full reminder table conformance suite against the idealized oracle, and verifies the oracle's own
-/// introspection and deterministic controls.
+/// 运行完整的提醒表符合与理想的神器对照的套装,并核查神器本身
+/// 反省和确定控制。
 /// </summary>
 /// <remarks>
-/// The oracle is the reference implementation of the documented contract, so it must satisfy every guarantee the
-/// test kit expresses. A new oracle is created for each test method because xUnit instantiates the test class once
-/// per test, which keeps every guarantee independent.
+/// 甲骨文是证明执行有文件证明的合同的参照,因此它必须满足所有保证
+/// 测试包表示。为每种测试方法创建了新的神器,因为 xUnit 一旦
+/// 保证每个保证都是独立的
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -35,7 +35,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     }
 
     // -------------------------------------------------------------------------------------------------------------
-    // The complete direct conformance suite.
+    // 完整的直接相配套房
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact]
@@ -118,7 +118,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     public override Task ReminderTable_TestOnlyClearTable_RemovesAllReminders() => base.RunReminderTable_TestOnlyClearTable_RemovesAllReminders(TestContext.Current.CancellationToken);
 
     // -------------------------------------------------------------------------------------------------------------
-    // Model-based conformance.
+    // 以模型为基础的一致性。
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact, TestCategory("ModelBased")]
@@ -167,7 +167,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     }
 
     // -------------------------------------------------------------------------------------------------------------
-    // Introspection.
+    // 内省
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact]
@@ -218,7 +218,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
             new[] { ReminderTableOperationKind.UpsertRow, ReminderTableOperationKind.ReadRow, ReminderTableOperationKind.RemoveRow },
             operations.Select(operation => operation.Kind));
 
-        // Sequence numbers are monotonic and dense, so a generated failure can name the exact failing step.
+        // 序列数是单声道和密度高的,因此产生的故障可以说明确切的失败步骤。
         Assert.Equal(operations.Select((_, index) => operations[0].Sequence + index), operations.Select(operation => operation.Sequence));
 
         var upsert = operations[0];
@@ -251,7 +251,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         Assert.Equal(etags.Count, etags.Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(new[] { "etag-000001", "etag-000002", "etag-000003", "etag-000004" }, etags);
 
-        // Removing and re-adding must not recycle an ETag.
+        // 清除和再添加不能回收ETag。
         Assert.True(await ReminderTable.RemoveRow(grainId, "etag-sequence-0", etags[0], TestContext.Current.CancellationToken));
         var reAdded = await UpsertAsync(
             NewEntry(grainId, "etag-sequence-0"),
@@ -262,7 +262,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     }
 
     // -------------------------------------------------------------------------------------------------------------
-    // Deterministic controls: outage, injected failure, blocking barrier, stale snapshot.
+    // 决定性的控制:停电、注射失败、屏障、僵硬的快照。
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact]
@@ -284,10 +284,10 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         await Assert.ThrowsAsync<ReminderTableUnavailableException>(
             () => ReminderTable.UpsertRow(NewEntry(grainId, "outage-2"), TestContext.Current.CancellationToken));
 
-        // The outage is recorded so a test can assert on what the reminder service attempted while storage was down.
+        // 记录出局情况,以便测试能确定在储存减少时提醒服务尝试了什么。
         Assert.Equal(3, _oracle.Operations.Count(operation => operation.Failure == nameof(ReminderTableUnavailableException)));
 
-        // Durable state survives the outage: it was an availability failure, not a deletion.
+        // 耐久状态在断电中幸存下来:这是供应失败,不是删除。
         _oracle.SetAvailable(true);
         var recovered = await ReminderTable.ReadRow(grainId, "outage", TestContext.Current.CancellationToken);
         Assert.NotNull(recovered);
@@ -307,14 +307,14 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => ReminderTable.UpsertRow(NewEntry(grainId, "injected-failure"), TestContext.Current.CancellationToken));
 
-        // The third attempt is not affected, and the failures did not create partial state.
+        // 第三次尝试没有受到影响,失败并没有造成局部状态。
         var etag = await ReminderTable.UpsertRow(NewEntry(grainId, "injected-failure"), TestContext.Current.CancellationToken);
         Assert.NotNull(etag);
         Assert.Equal("etag-000001", etag);
         Assert.Equal(2, _oracle.Operations.Count(operation => operation.Failure == nameof(InvalidOperationException)));
         Assert.Single(_oracle.Snapshot());
 
-        // Reads were never targeted, so they were never failed.
+        // 读者从未被锁定目标,所以他们从未失败。
         Assert.NotNull(await ReminderTable.ReadRow(grainId, "injected-failure", TestContext.Current.CancellationToken));
     }
 
@@ -353,7 +353,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         await gate.WaitUntilBlockedAsync(cancellation.Token);
         Assert.False(rangeRead.IsCompleted);
 
-        // While the range read is parked at the barrier, a concurrent write is applied and observed by the oracle.
+        // 阅读范围停在屏障上,同时写作由神谕使用和观察。
         var updated = await UpsertAsync(
             NewEntry(grainId, "barrier", BaseTime.AddMinutes(5), TimeSpan.FromMinutes(2)),
             nameof(Oracle_BlockNext_ProvidesADeterministicBarrierWithoutSleeping),
@@ -413,7 +413,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
             Assert.Equal(original, stale.ETag);
             Assert.Equal(BaseTime.Ticks, stale.StartAt.Ticks);
 
-            // The durable record is already the new one: only reads are frozen.
+            // 耐久记录已经是新纪录:只有读数被冻结。
             Assert.Equal(updated, _oracle.Find(grainId, "stale-snapshot")!.ETag);
         }
 
@@ -465,19 +465,19 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     [Fact]
     public static void Oracle_InRange_ImplementsExclusiveBeginInclusiveEndAndWrapAround()
     {
-        // Non-wrapping: (10, 20]
+        // 非包装: (10, 20)
         Assert.False(IdealizedReminderTable.InRange(10, 10, 20));
         Assert.True(IdealizedReminderTable.InRange(11, 10, 20));
         Assert.True(IdealizedReminderTable.InRange(20, 10, 20));
         Assert.False(IdealizedReminderTable.InRange(21, 10, 20));
 
-        // Wrapping: (20, 10]
+        // 包装: (20,10)
         Assert.True(IdealizedReminderTable.InRange(21, 20, 10));
         Assert.True(IdealizedReminderTable.InRange(10, 20, 10));
         Assert.False(IdealizedReminderTable.InRange(11, 20, 10));
         Assert.False(IdealizedReminderTable.InRange(20, 20, 10));
 
-        // Degenerate: begin == end covers the whole ring.
+        // 下层:开始 ==========================
         Assert.True(IdealizedReminderTable.InRange(0, 0, 0));
         Assert.True(IdealizedReminderTable.InRange(uint.MaxValue, 0, 0));
     }

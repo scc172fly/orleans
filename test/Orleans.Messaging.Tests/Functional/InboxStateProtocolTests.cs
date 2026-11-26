@@ -68,7 +68,7 @@ public sealed class InboxStateProtocolTests : MessagingBehaviorTestBase
             grain.NextApplyFailure = failure;
         });
 
-        // The attempt ends without an outcome, so it fails the activation without a write, although it staged nothing.
+        // 尝试毫无结果地结束,因此它没有写作就失败了启动,尽管它没有产生任何效果。
         handler.Release();
         var error = Assert.IsType<InvalidOperationException>(
             await grain.DeactivationFailure.Task.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
@@ -76,8 +76,8 @@ public sealed class InboxStateProtocolTests : MessagingBehaviorTestBase
         await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
 
-        // Recovery charges the attempt, which starts its retry window without dead-lettering the message, even with this
-        // fixture's zero InboxRetryTimeout, and the rerun succeeds.
+        // 恢复计划将引出尝试, 它开始重试窗口而不在信件上写死字, 即使用这个
+        // 固定装置为零 InboxRetryTimeout, 且重运行成功 。
         _ = await receiver.GetSnapshotAsync();
         var completed = await Fixture.WaitForEffectCountAsync(receiver, 1);
         Assert.NotEqual(before.ActivationId, completed.ActivationId);

@@ -1,47 +1,53 @@
 ---
-title: Redis journal storage
-description: Configure Redis as a storage provider for experimental Orleans Journaling durable state.
+title: "Redis 日记账存储"
+description: "配置 Redis 作为实验 Orleans 日报耐久状态的存储提供者 。"
 ms.date: 10/19/2026
 ms.topic: how-to
 ---
 
-# Redis journal storage
+<a id="redis-journal-storage"></a>
 
-Orleans Journaling persists durable state changes as ordered journal data which is replayed to recover in-memory durable values and collections managed by <xref:Orleans.Durable.Journaling.IDurableStateManager>. Ordinary grains can inject the manager, and <xref:Orleans.Durable.Journaling.DurableGrain> provides a convenience base class. See the [Journaling overview](index.md) for its programming model and the [Event Sourcing comparison](../event-sourcing/index.md#event-sourcing-and-experimental-journaling) for the boundary between the two features.
+# Redis 日记账存储
 
-The pre-release `Microsoft.Orleans.Durable.Redis` package stores journal data in [Redis](https://redis.io/docs/latest/develop/data-types/).
+Orleans 定有的期刊数据被重放,以恢复由 <xref:Orleans.Durable.Journaling.IDurableStateManager>普通 grains 能够给管理器注入,并且 <xref:Orleans.Durable.Journaling.DurableGrain> 提供方便基级。 [日刊概览](index.md) 方案编制模式和 [事件递增比较](../event-sourcing/index.md#event-sourcing-and-experimental-journaling) 用于两个特征之间的边界。
 
-## Configure Redis journal storage
+预发 `Microsoft.Orleans.Durable.Redis` 软件包中存储 [Redis](https://redis.io/docs/latest/develop/data-types/)中的日记数据。
 
-Configure the provider with <xref:Orleans.Durable.Journaling.RedisJournalStorageHostingExtensions.AddRedisJournalStorage*>:
+<a id="configure-redis-journal-storage"></a>
+
+## 配置 Redis 日记存储
+
+配置提供方的 <xref:Orleans.Durable.Journaling.RedisJournalStorageHostingExtensions.AddRedisJournalStorage*>:
 
 :::code language="csharp" source="./snippets/redis-journaling/RedisJournalingConfiguration.cs" id="configure_redis_journaling":::
 
-The [runnable Redis Journaling sample](samples.md#run-the-redis-sample) uses the same provider with a <xref:Orleans.Durable.Journaling.DurableGrain>, acknowledges a durable value update, deactivates the grain, and verifies recovery on a new activation.
+[可运行可运行 Redis 日报样本](samples.md#run-the-redis-sample) 使用具有 <xref:Orleans.Durable.Journaling.DurableGrain>的同一供应商,确认耐久价值更新、停止 grain和核实新启动后的恢复。
 
-The named overload accepts a provider name followed by the options delegate.
-Use distinct names with independent connections or key prefixes for separate
-journal namespaces. A named provider's options, catalog, storage, and
-state-manager factory resolve together; the unnamed overload continues to
-configure default grain journaling. Set `Orleans:Journaling:{name}:ProviderType` to
-`Redis` to configure each named storage binding, and use
-`Orleans:Journaling:{name}:ServiceKey` to select its client connection from dependency
-injection. Use `Default` as the name for grain journaling, for example
+名称超载可接受一个服务商名, 后由选项代表跟随 。
+使用独立连接或密钥前缀的单独名称进行单独
+命名提供者的选项、目录、存储和
+州管理工厂的解决方案是:
+配置默认默认 grain 日记日记日记。 设置 `Orleans:Journaling:{name}:ProviderType` 至
+`Redis` 配置每个命名的存储装订和使用
+从依赖关系中选择客户连接的`Orleans:Journaling:{name}:ServiceKey`
+。使用 `Default` 作为 grain 日记名,例如
 `Orleans:Journaling:Default:ProviderType`.
 
-Durable Jobs can select a Redis write provider and retain another provider for
-draining. Keep the old prefix, credentials, and mutation permissions until every
-old shard is resolved: claims, retries, cancellation, compaction, and deletion
-continue there. A Redis catalog scan has live-listing semantics, so successful
-inventory is an observation rather than a transactionally frozen cluster view.
-Follow [Migrate Durable Jobs storage](durable-jobs-migration.md), including
-repeated complete inventories after all scheduling silos have cut over.
+持久工作任务可选择 Redis 写作提供者,并保留另一个提供者
+将旧的前缀、证书和突变权限保留到每个
+解决旧碎片:索赔、重理、取消、压缩和删除
+正在继续。 Redis 目录扫描有现场列名语义,非常成功
+库存是一种观察,而不是交易冻结的集束观点。
+[移徙持久就业储存](durable-jobs-migration.md),包括
+在所有时间表 silos 被切换后,重复的完整库存清单。
 
-## Storage behavior
+<a id="storage-behavior"></a>
 
-The provider stores journal data in Redis strings and journal metadata in Redis hashes. Per-journal reads and mutations use atomic Lua scripts. Catalog operations discover journals by scanning metadata keys on each connected primary Redis server.
+## 存储行为
 
-Optimistic concurrency protects append, replace, and delete operations. A stale writer receives <xref:Orleans.Storage.InconsistentStateException>, and the Journaling state manager permanently fences operations and requests grain deactivation. A fresh activation recovers the stored journal. Concurrent reads observe either the journal before a replacement or the complete replacement.
+提供商在 Redis 字符串中存储期刊数据,并在 Redis hashes中存储日记元。每个杂志读和突变都使用原子卢阿脚本。目录操作通过扫描每个连接的主 Redis 服务器上的元数据键来发现日记。
+
+最佳的同价通货法保护附加、 替换和删除操作。 一个老化的写作员接收 <xref:Orleans.Storage.InconsistentStateException>, 并定期发布国家经理的围栏作业和请求解除 grain 。 重新激活可以回收存储的日记。 同时读取在替换或完全替换之前观察日记 。
 
 <xref:Orleans.Durable.Journaling.RedisJournalStorageOptions> supports:
 
@@ -52,18 +58,20 @@ Optimistic concurrency protects append, replace, and delete operations. A stale 
 - <xref:Orleans.Durable.Journaling.RedisJournalStorageOptions.CompactionThresholdBytes> to select when the provider requests compaction.
 - <xref:Orleans.Durable.Journaling.RedisJournalStorageOptions.ReadChunkSize> to limit the size of recovery segments supplied to the journal consumer.
 
-The key prefix and key-name function define the location of existing journals. Retain the previous mapping or migrate the stored data before deploying a new mapping.
+关键前缀和密钥名函数定义现有日记的位置。 在部署新映射之前, 保留以前的映射或迁移存储的数据 。
 
-The default compaction threshold is 128 MiB and the default recovery chunk size is 1 MiB. Each journal is one Redis string, so the whole journal, including an append, fits the server's string size limit (proto-max-bulk-len, 512 MB by default). A write which exceeds that limit fails before the script changes any key. Compaction replaces the append history with a snapshot of the grain's current durable states.
+默认压缩阈值为128 MiB ,默认回收块大小为 1 MiB。每个日记是一个 Redis 字符串,因此整个日记(包括一个附件)符合服务器字符串尺寸限制(默认情况下为512 MB) 。在脚本更改任何密钥之前超过此限制的写作失败了。压缩将附加历史替换为当前 grain耐久状态的快照。
 
-Redis returns the journal string as one value. <xref:Orleans.Durable.Journaling.RedisJournalStorageOptions.ReadChunkSize> divides that value into replay segments after retrieval; capacity planning should account for the full journal value in the Redis client and silo process.
+Redis 返回日记字符串为一值。 <xref:Orleans.Durable.Journaling.RedisJournalStorageOptions.ReadChunkSize> 在检索后将该值除以重放段; 能力规划应说明 Redis 客户端和 silo 程序中的完整日记值。
 
-## Durability
+<a id="durability"></a>
 
-Redis journal durability depends on the Redis [persistence](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/) and replication configuration. Configure persistence, such as append-only file (AOF) persistence with an appropriate `appendfsync` policy, according to the application's recovery-point requirements.
+## 易易用性
 
-Use a distinct <xref:Orleans.Durable.Journaling.RedisJournalStorageOptions.KeyPrefix> when multiple Orleans services share a Redis deployment.
+Redis 日记的耐久性取决于 Redis [持久性](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/) 和复制配置。根据应用程序的回收点要求,配置持久性,例如只附文件(AOF),并采用适当的 `appendfsync` 政策。
 
-Back up each journal's string data and hash metadata consistently. Restore both under the same prefix and key mapping before allowing silos to activate the grain.
+使用不同的 <xref:Orleans.Durable.Journaling.RedisJournalStorageOptions.KeyPrefix> 多个 Orleans 共享服务 Redis 部署。
 
-For capacity, upgrade, backup, and troubleshooting guidance, see [Operate and troubleshoot Orleans Journaling](operations.md).
+一致备份每个日记的字符串数据和散列元数据。 在允许 silos 激活 grain之前, 在同一前缀和密钥映射下恢复 。
+
+能力、升级、备份和排除故障指南见 [操作和拼出故障 Orleans](operations.md)。

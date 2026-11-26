@@ -1,33 +1,43 @@
 ---
-title: "ORLEANS0008: Grain interfaces cannot contain properties"
-description: Understand and resolve ORLEANS0008 when an Orleans remote interface declares an instance property.
+title: "ORLEANS0008: Grain 接口无法包含属性"
+description: "理解和决心 ORLEANS0008 时 Orleans 远程界面声明实例属性 。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0008: Grain interfaces cannot contain properties
+<a id="orleans0008-grain-interfaces-cannot-contain-properties"></a>
 
-| Property | Value |
+# ORLEANS0008: Grain 接口无法包含属性
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Error |
-| Code fix | Not available |
+| 类别类 | 用法 |
+| 严重性 | 错误错误 |
+| 代码修正 | 不详 |
 
-## Cause
+<a id="cause"></a>
 
-An interface used as an Orleans remote contract declares an instance property.
+## 原因原因原因
 
-## Impact
+用于 Orleans 远程合同的界面声明实例属性。
 
-Properties do not define supported explicit Orleans RPC operations and obscure the asynchronous remote-call boundary.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Replace the property with asynchronous get or set methods which use supported grain-call return types.
+属性不定义支持的直线 Orleans RPC 操作,并模糊非同步远程呼叫边界。
 
-## Suppress the diagnostic
+<a id="how-to-fix"></a>
 
-Suppress only when an interface inherits Orleans addressability but is proven never to be remoted.
+## 如何修补
+
+将属性替换为使用支持的 grain-调用返回类型时的获取或设定方法。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+只有当接口继承 Orleans 可地址时, 才能禁止使用该界面, 但事实证明它永远无法被远程覆盖 。
 
 ```ini
 [*.cs]

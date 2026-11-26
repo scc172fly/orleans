@@ -12,7 +12,7 @@ using Orleans.Configuration;
 namespace Orleans.Runtime.Membership
 {
     /// <summary>
-    /// Provides Orleans gateway addresses from Consul cluster membership.
+    /// 提供领事小组成员的 Orleans 网关地址。
     /// </summary>
     public class ConsulGatewayListProvider : IGatewayListProvider
     {
@@ -24,12 +24,12 @@ namespace Orleans.Runtime.Membership
         private readonly string? kvRootFolder;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConsulGatewayListProvider"/> class.
+        /// 初始化 <see cref="ConsulGatewayListProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="options">The Consul clustering options.</param>
-        /// <param name="gatewayOptions">The gateway discovery options.</param>
-        /// <param name="clusterOptions">The cluster identity options.</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="options">领事分组办法。</param>
+        /// <param name="gatewayOptions">网关发现选项。</param>
+        /// <param name="clusterOptions">集群识别选项。</param>
         public ConsulGatewayListProvider(
             ILogger<ConsulGatewayListProvider> logger,
             IOptions<ConsulClusteringOptions> options,

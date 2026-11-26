@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>Cancellation reasons, root-identifier manager overloads, and signal results.</summary>
+/// <summary>取消理由、根标识管理器超载和信号结果。</summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
     private static readonly DurableSignal<string> ShippedSignal = new("shipped");
@@ -293,7 +293,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitForResponseAsync(runtime, rootId);
         Assert.Equal(DurableSignalResult.TaskCompleted, await tasks.TrySignalAsync(rootId, ShippedSignal.For("again"), "parcel", TestContext.Current.CancellationToken));
 
-        // Each accepted or duplicate signal commits; a rejection changes nothing.
+        // 每一个被接受或重复的信号都承诺;拒绝不会改变任何东西。
         Assert.Equal(writes + 2, acceptedWrites);
         Assert.Equal("parcel", storage.Get(rootId.Child("$signal:shipped")).Result!.GetResult<string>());
         Assert.False(storage.Contains(rootId.Child("$signal:shipped/again")));
@@ -332,7 +332,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await firstAttemptBlocked.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // The target exists by the replay, which returns the recorded result instead of signaling it.
+        // 目标在重放时存在, 它返回了记录的结果而不是信号。
         var target = storage.GetOrCreateTask(targetId, DurableTaskRecordKind.Invocation, CreateRequest(2));
         storage.SetRequestFingerprint(targetId, target, "target-fingerprint");
         var (replacement, _, _, _) = CreateRuntime(storage, manager);

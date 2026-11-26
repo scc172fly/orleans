@@ -8,7 +8,7 @@ internal sealed class ZooKeeperSession
 {
     private readonly ZooKeeperBasedMembershipTable.NativeOperations _operations;
     private readonly Func<Task> _close;
-    // Bind synchronously; the owned task supplies the completion semantics.
+    // 同步捆绑;自有任务提供完成语义。
     private readonly TaskCompletionSource<Task> _completion = new();
 
     internal ZooKeeperSession(
@@ -66,7 +66,7 @@ internal sealed class ZooKeeperSession
             throw;
         }
 
-        // The callback joins native requests before this tokenless close.
+        // 呼唤会加入本地人的要求,
         await _close();
         return result;
     }

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>Exercises signal delivery from clients, durable executions on other grains, and a grain's own methods.</summary>
+/// <summary>客户发出信号,其他客户长期处决 grains,和 a grain自己的方法。</summary>
 public abstract class DurableTaskSignalTests(string journalFormatKey) : IAsyncLifetime
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
@@ -28,14 +28,14 @@ public abstract class DurableTaskSignalTests(string journalFormatKey) : IAsyncLi
         await waiter.SignalDurableTaskAsync(taskId, DurableTaskSignalWaiterGrain.Approved, "ada", cancellationToken);
 
         Assert.Equal("ada", await GetResultAsync(workflow, cancellationToken));
-        // Root ID overloads address TaskId.CreateRoot(rootId).
+        // 根身份超载地址 TaskId.CreateRoot(rootId) 。
         await waiter.SignalDurableTaskAsync("approval", DurableTaskSignalWaiterGrain.Approved, "ada", cancellationToken);
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => waiter.SignalDurableTaskAsync(taskId, DurableTaskSignalWaiterGrain.Approved, "grace", cancellationToken).AsTask());
         await Assert.ThrowsAsync<DurableTaskNotFoundException>(
             () => waiter.SignalDurableTaskAsync("missing", DurableTaskSignalWaiterGrain.Approved, "ada", cancellationToken).AsTask());
 
-        // The workflow's tree holds the signal's record with its value.
+        // 工作流树上记录着信号记录 并具有其价值
         var tasks = await GetTasksAsync(waiter, cancellationToken);
         Assert.Equal("ada", tasks[taskId.Child("$signal:approved")].Response);
     }
@@ -56,7 +56,7 @@ public abstract class DurableTaskSignalTests(string journalFormatKey) : IAsyncLi
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, (await sending.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).Status);
         Assert.Equal("grace", await GetResultAsync(workflow, cancellationToken));
 
-        // The sender records the send in its workflow's tree, so a replay doesn't send it again.
+        // 发送者记录发件人在其工作流程树上的发送,所以重播不会再发送。
         var senderTasks = await GetTasksAsync(sender, cancellationToken);
         Assert.Equal(
             [TaskId.CreateRoot("send"), TaskId.CreateRoot("send").Child($"$send:{waiter.GetGrainId()}:approval:approved")],
@@ -101,14 +101,14 @@ public abstract class DurableTaskSignalTests(string journalFormatKey) : IAsyncLi
     }
 }
 
-/// <summary>Runs signal coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行以默认 JSON 日记格式存储的任务状态的信号覆盖。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskSignalTests() : DurableTaskSignalTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs signal coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行以 Orleans 二进制日记格式存储的任务状态信号覆盖。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

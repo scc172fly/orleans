@@ -7,19 +7,19 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Information about types which are available in the cluster.
+    /// 关于分组中现有类型的信息。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class ClusterManifest
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterManifest"/> class.
+        /// 初始化 <see cref="ClusterManifest"/> 类的新实例。
         /// </summary>
         /// <param name="version">
-        /// The manifest version.
+        /// 清单版本。
         /// </param>
         /// <param name="silos">
-        /// The silo manifests.
+        /// 下 silo 数据。
         /// </param>
         public ClusterManifest(
             MajorMinorVersion version,
@@ -29,16 +29,16 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterManifest"/> class.
+        /// 初始化 <see cref="ClusterManifest"/> 类的新实例。
         /// </summary>
         /// <param name="version">
-        /// The manifest version.
+        /// 清单版本。
         /// </param>
         /// <param name="silos">
-        /// The silo manifests.
+        /// 下 silo 数据。
         /// </param>
         /// <param name="allGrainManifests">
-        /// All grain manifests, including manifests which are not associated with entries in <paramref name="silos"/>.
+        /// 所有 grain 清单,包括与 <paramref name="silos"/>条目无关的表。
         /// </param>
         public ClusterManifest(
             MajorMinorVersion version,
@@ -57,19 +57,19 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Gets the version of this instance.
+        /// 获取这个例子的版本 。
         /// </summary>
         [Id(0)]
         public MajorMinorVersion Version { get; }
 
         /// <summary>
-        /// Gets the manifests for each silo in the cluster.
+        /// 获取集中每个 silo 的货单。
         /// </summary>
         [Id(1)]
         public ImmutableDictionary<SiloAddress, GrainManifest> Silos { get; }
 
         /// <summary>
-        /// Gets all unique grain manifests.
+        /// 获取所有独有的 grain 清单。
         /// </summary>
         [Id(2)]
         public ImmutableArray<GrainManifest> AllGrainManifests { get; }
@@ -137,8 +137,8 @@ namespace Orleans.Metadata
                 {
                     if (canonicalProperties.TryGetValue(entry.Value, out var canonicalProperty))
                     {
-                        // The lookup above uses structural equality. Reference equality only tells us whether
-                        // canonical replacement is needed.
+                        // 上文的探讨利用了结构平等。
+                        // 需要更换大炮。
                         if (!ReferenceEquals(canonicalProperty, entry.Value))
                         {
                             builder ??= properties.ToBuilder();

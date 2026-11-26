@@ -9,14 +9,14 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Functionality for reading and writing object references.
+    /// 阅读和编写对象参考资料的功能。
     /// </summary>
     public static class ReferenceCodec
     {
         /// <summary>
-        /// Indicates that the field being serialized or deserialized is a value type.
+        /// 表示正在序列化或去序化的字段是一种数值类型。
         /// </summary>
-        /// <param name="session">The serializer session.</param>
+        /// <param name="session">序列器会话。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MarkValueField(SerializerSession session)
         {
@@ -25,8 +25,8 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Write an object reference if <paramref name="value"/> has already been written.
-        /// This overload is suitable only for static codecs where expected type is statically known.
+        /// 如果 <paramref name="value"/> 已经写入, 请写入对象引用 。
+        /// 这种超载只适用于固定编码,因为预期的类型是静态的。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool TryWriteReferenceFieldExpected<TBufferWriter>(
@@ -45,14 +45,14 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Write an object reference if <paramref name="value"/> has already been written and has been tracked via <see cref="RecordObject(SerializerSession, object)"/>.
+        /// 如果 <paramref name="value"/> 已经写成,并且通过 <see cref="RecordObject(SerializerSession, object)"/>跟踪了该目标的引用,则写入对象参考。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldId">The field identifier.</param>
-        /// <param name="expectedType">The expected type.</param>
-        /// <param name="value">The value.</param>
-        /// <returns><see langword="true" /> if a reference was written, <see langword="false" /> otherwise.</returns>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldId">字段标识符。</param>
+        /// <param name="expectedType">预想的类型。</param>
+        /// <param name="value">数值。</param>
+        /// <returns><see langword="true" /> 如果书面提及,则以其他方式 <see langword="false" /> 。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryWriteReferenceField<TBufferWriter>(
             ref Writer<TBufferWriter> writer,
@@ -71,16 +71,16 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Write an object reference if <paramref name="value"/> has already been written and has been tracked via <see cref="RecordObject(SerializerSession, object)"/>.        /// 
+        /// 写入对象引用 <paramref name="value"/> 已经撰写并跟踪了 <see cref="RecordObject(SerializerSession, object)"/>.        /// 
         /// </summary>
-        /// <remarks>This overload allows specifying a fixed reference type for codecs that implement <see cref="IDerivedTypeCodec"/>.</remarks>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldId">The field identifier.</param>
-        /// <param name="expectedType">The expected type.</param>
-        /// <param name="actualType">The actual type.</param>
-        /// <param name="value">The value.</param>
-        /// <returns><see langword="true" /> if a reference was written, <see langword="false" /> otherwise.</returns>
+        /// <remarks>此超载允许指定一个用于执行 <see cref="IDerivedTypeCodec"/>的编码器的固定参考类型。</remarks>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldId">字段标识符。</param>
+        /// <param name="expectedType">预想的类型。</param>
+        /// <param name="actualType">实际类型。</param>
+        /// <param name="value">数值。</param>
+        /// <returns><see langword="true" /> 如果书面提及,则以其他方式 <see langword="false" /> 。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryWriteReferenceField<TBufferWriter>(
             ref Writer<TBufferWriter> writer,
@@ -100,11 +100,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes the null reference.
+        /// 写入无效引用。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldId">The field identifier.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldId">字段标识符。</param>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void WriteNullReference<TBufferWriter>(
             ref Writer<TBufferWriter> writer,
@@ -116,24 +116,24 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads a referenced value.
+        /// 读取引用值。
         /// </summary>
-        /// <typeparam name="T">The type of the referenced object.</typeparam>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The referenced value.</returns>
+        /// <typeparam name="T">被引用对象的类型。</typeparam>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>引用值 。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: MaybeNull]
         public static T ReadReference<T, TInput>(ref Reader<TInput> reader, Field field) => (T)ReadReference(ref reader, field.FieldType ?? typeof(T))!;
 
         /// <summary>
-        /// Reads the reference.
+        /// 阅读参考文献。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="fieldType">The field type.</param>
-        /// <returns>The referenced value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="fieldType">字段类型。</param>
+        /// <returns>引用值 。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object? ReadReference<TInput>(ref Reader<TInput> reader, Type? fieldType)
         {
@@ -163,33 +163,33 @@ namespace Orleans.Serialization.Codecs
             UnknownFieldMarker marker,
             uint reference)
         {
-            // Capture state from the reader and session.
+            // 获取状态来自阅读器和会话 。
             var session = reader.Session;
             var originalPosition = reader.Position;
             var referencedObjects = session.ReferencedObjects;
             var originalCurrentReferenceId = referencedObjects.CurrentReferenceId;
             var originalReferenceToObjectCount = referencedObjects.ReferenceToObjectCount;
 
-            // Deserialize the object, replacing the marker in the session.
+            // 使对象降序, 替换会话中的标记 。
             try
             {
-                // Create a reader at the position specified by the marker.
+                // 在标记指定的位置创建阅读器。
                 reader.ForkFrom(marker.Position, out var referencedReader);
 
-                // Determine the correct type for the field.
+                // 确定字段的正确类型。
                 fieldType = marker.Field.FieldType ?? fieldType;
 
-                // Get a serializer for that type.
+                // 买一个序列器来做那种类型的
                 var specificSerializer = session.CodecProvider.GetCodec(fieldType!);
 
-                // Reset the session's reference id so that the deserialized objects overwrite the placeholder markers.
+                // 重置会话的参考代号, 使已消空的天体覆盖占位符标记。
                 referencedObjects.CurrentReferenceId = reference - 1;
                 referencedObjects.ReferenceToObjectCount = referencedObjects.GetReferenceIndex(marker);
                 return specificSerializer.ReadValue(ref referencedReader, marker.Field);
             }
             finally
             {
-                // Revert the reference id.
+                // 将引用代号还原。
                 referencedObjects.CurrentReferenceId = originalCurrentReferenceId;
                 referencedObjects.ReferenceToObjectCount = originalReferenceToObjectCount;
                 reader.ResumeFrom(originalPosition);
@@ -197,10 +197,10 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Records that an object was read or written.
+        /// 记录一项物体是读还是写。
         /// </summary>
-        /// <param name="session">The session.</param>
-        /// <param name="value">The value.</param>
+        /// <param name="session">本届会议。</param>
+        /// <param name="value">数值。</param>
         public static void RecordObject(SerializerSession session, object value)
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(session);
@@ -208,11 +208,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Records that an object was read or written.
+        /// 记录一项物体是读还是写。
         /// </summary>
-        /// <param name="session">The session.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="referenceId">The reference identifier.</param>
+        /// <param name="session">本届会议。</param>
+        /// <param name="value">数值。</param>
+        /// <param name="referenceId">参考标识符。</param>
         public static void RecordObject(SerializerSession session, object? value, uint referenceId)
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(session);
@@ -220,10 +220,10 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Records and returns a placeholder reference id for objects which cannot be immediately deserialized.
+        /// 记录并返回不能立即解除天体飞行的占位符参考代号。
         /// </summary>
-        /// <param name="session">The session.</param>
-        /// <returns>The placeholder reference id.</returns>
+        /// <param name="session">本届会议。</param>
+        /// <returns>占位符参考代号。</returns>
         public static uint CreateRecordPlaceholder(SerializerSession session)
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(session);

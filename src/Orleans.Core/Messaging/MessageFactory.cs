@@ -11,8 +11,8 @@ namespace Orleans.Runtime
     {
         private static ulong _nextId;
 
-        // The nonce reduces the chance of an id collision for a given grain to effectively zero. Id collisions are only relevant in scenarios
-        // where where the infinitesimally small chance of a collision is acceptable, such as call cancellation.
+        // none 降低给定的 grain 电离碰撞仅在假设情况下才相关。
+        // 发生碰撞的微小机会可以接受,例如取消电话。
         private readonly ulong _seed;
         private readonly DeepCopier _deepCopier;
         private readonly ILogger _logger;
@@ -22,8 +22,8 @@ namespace Orleans.Runtime
             _deepCopier = deepCopier;
             _logger = logger;
 
-            // Generate a 64-bit nonce for the host, to be combined with per-message correlation ids to get a unique, per-host value.
-            // This avoids id collisions across different hosts for a given grain.
+            // 为主机生成64位元的无值,与每个邮件相关号组合,以获得独特的、每个主机的价值。
+            // 这样可以避免特定主机在不同主机之间发生误撞 grain.
             _seed = unchecked((ulong)Random.Shared.NextInt64());
         }
 
@@ -52,15 +52,15 @@ namespace Orleans.Runtime
             return new CorrelationId(unchecked((long)id));
         }
 
-        // Incoming grain calls carry an interface type. Local requests share this one, and call filters observe each request's own interface name.
+        // 收到 grain 的呼叫带有接口类型。 本地请求共享此类型, 并调用过滤器来观察每个请求的自定义界面名称 。
         private static readonly GrainInterfaceType LocalRequestInterfaceType = GrainInterfaceType.Create("Orleans.Runtime.ILocalRequest");
 
         /// <summary>
-        /// Creates a one-way request which <paramref name="target"/> queues on itself.
+        /// 创建单向请求,在自己身上设置 <paramref name="target"/> 队列。
         /// </summary>
         /// <remarks>
-        /// The request starts a new call chain, never expires, and completes on <paramref name="target"/> or is rejected with it.
-        /// Local-only messages always carry an <see cref="ILocalRequest"/> body.
+        /// 请求启动一个新的呼叫链, 永远不过期, 并在 <paramref name="target"/> 上完成或被拒绝 。
+        /// 仅本地信息总是带有 <see cref="ILocalRequest"/> 体。
         /// </remarks>
         public Message CreateLocalRequest(IGrainContext target, ILocalRequest request, LocalRequestOptions options)
         {

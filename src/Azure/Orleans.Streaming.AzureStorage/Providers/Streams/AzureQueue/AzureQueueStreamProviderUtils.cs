@@ -9,12 +9,12 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.AzureQueue
 {
     /// <summary>
-    /// Utility functions for azure queue Persistent stream provider.
+    /// 静列队列的 PLUTY 功能。
     /// </summary>
     public class AzureQueueStreamProviderUtils
     {
         /// <summary>
-        /// Generate default azure queue names
+        /// 生成默认的“ zure ” 队列名称
         /// </summary>
         /// <param name="serviceId"></param>
         /// <param name="providerName"></param>
@@ -27,11 +27,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// Helper method for testing. Deletes all the queues used by the specified stream provider.
+        /// 测试助手方法。 删除指定流提供者使用的所有队列 。
         /// </summary>
-        /// <param name="loggerFactory">logger factory to use</param>
-        /// <param name="azureQueueNames">azure queue names to be deleted.</param>
-        /// <param name="storageConnectionString">The azure storage connection string.</param>
+        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <param name="azureQueueNames">将删除顺序队列名称。</param>
+        /// <param name="storageConnectionString">结结存连接字符串。</param>
         public static async Task DeleteAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, string storageConnectionString)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);
@@ -42,11 +42,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// Helper method for testing. Deletes all the queues used by the specified stream provider.
+        /// 测试助手方法。 删除指定流提供者使用的所有队列 。
         /// </summary>
-        /// <param name="loggerFactory">logger factory to use</param>
-        /// <param name="azureQueueNames">azure queue names to be deleted.</param>
-        /// <param name="queueOptions">The azure storage options.</param>
+        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <param name="azureQueueNames">将删除顺序队列名称。</param>
+        /// <param name="queueOptions">顺流储存选项。</param>
         public static async Task DeleteAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, AzureQueueOptions queueOptions)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);
@@ -62,11 +62,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// Helper method for testing. Clears all messages in all the queues used by the specified stream provider.
+        /// 辅助测试方法。 清除指定流提供者使用的所有队列中的全部信息 。
         /// </summary>
-        /// <param name="loggerFactory">logger factory to use</param>
-        /// <param name="azureQueueNames">The deployment ID hosting the stream provider.</param>
-        /// <param name="storageConnectionString">The azure storage connection string.</param>
+        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <param name="azureQueueNames">流提供者所在的部署代号。</param>
+        /// <param name="storageConnectionString">结结存连接字符串。</param>
         public static async Task ClearAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, string storageConnectionString)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);
@@ -77,11 +77,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// Helper method for testing. Clears all messages in all the queues used by the specified stream provider.
+        /// 辅助测试方法。 清除指定流提供者使用的所有队列中的全部信息 。
         /// </summary>
-        /// <param name="loggerFactory">logger factory to use</param>
-        /// <param name="azureQueueNames">The deployment ID hosting the stream provider.</param>
-        /// <param name="queueOptions">The azure storage options.</param>
+        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <param name="azureQueueNames">流提供者所在的部署代号。</param>
+        /// <param name="queueOptions">顺流储存选项。</param>
         public static async Task ClearAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, AzureQueueOptions queueOptions)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);

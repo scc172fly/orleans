@@ -11,7 +11,7 @@ using Orleans.Configuration;
 namespace Orleans.Streaming.Kinesis.Tests
 {
     /// <summary>
-    /// Tests Kinesis streaming functionality from Orleans client perspective including producer dropout scenarios.
+    /// 从 Orleans 客户角度测试Kinesis流功能,包括生产者辍学情景。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]

@@ -6,28 +6,28 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Orleans.Durable.Journaling.Json;
 
 /// <summary>
-/// Options for configuring JSON Lines-based journaling.
+/// 配置 JSON 行基日记的选项。
 /// </summary>
 public sealed class JsonJournalOptions
 {
     /// <summary>
-    /// Gets or sets the <see cref="JsonSerializerOptions"/> used for serialization.
+    /// 获取或设置序列化所用的 <see cref="JsonSerializerOptions"/> 。
     /// </summary>
     /// <remarks>
-    /// Durable entry codecs resolve <see cref="JsonTypeInfo{T}"/>
-    /// metadata for each journaled payload type from this options instance. Configure
-    /// <see cref="JsonSerializerOptions.TypeInfoResolver"/> or <see cref="JsonSerializerOptions.TypeInfoResolverChain"/>
-    /// with source-generated metadata for journaled value, key, and state types when trimming or using Native AOT.
+    /// 耐用输入编码解码器解析 <see cref="JsonTypeInfo{T}"/>
+    /// 在此选项实例中, 每个日记有效载荷类型的元数据。 配置
+    /// <see cref="JsonSerializerOptions.TypeInfoResolver"/> 或 <see cref="JsonSerializerOptions.TypeInfoResolverChain"/>
+    /// 带有源生成元数据, 用于计算或使用本地 AOT 时的日记值、 密钥和状态类型。
     /// </remarks>
     public JsonSerializerOptions SerializerOptions { get; set; } = new JsonSerializerOptions(JsonSerializerDefaults.General);
 
     /// <summary>
-    /// Adds source-generated JSON metadata to the serializer options used for journaled payload values.
+    /// 将源生成的元数据 JSON 添加到用于日记有效载荷值的序列器选项中。
     /// </summary>
-    /// <param name="typeInfoResolver">The resolver, typically a generated <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> instance.</param>
-    /// <returns>This options instance for chaining.</returns>
+    /// <param name="typeInfoResolver">解答器,通常是生成的 <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> 实例。</param>
+    /// <returns>此链条选项实例。</returns>
     /// <remarks>
-    /// Use this method to register metadata for every journaled key, value, and state type when trimming or using Native AOT.
+    /// 使用此方法来登记每个日记密钥、值和状态类型在剪切或使用本地自动输出时的元数据。
     /// </remarks>
     /// <example>
     /// <code>
@@ -47,16 +47,16 @@ public sealed class JsonJournalOptions
 }
 
 /// <summary>
-/// Extension methods for configuring the JSON Lines Orleans.Durable.Journaling format.
+/// 配置 JSON 行 Orleans.Durable.Journaling 格式的扩展方法。
 /// </summary>
 public static class JsonJournalHostingExtensions
 {
     /// <summary>
-    /// Configures this silo with the JSON Lines Orleans.Durable.Journaling format family.
+    /// 配置此配置 silo 和 JSON 行线 Orleans.Durable.Journaling 格式化家庭。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configure">Optional delegate to configure <see cref="JsonJournalOptions"/>.</param>
-    /// <returns>The silo builder for chaining.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configure">配置 <see cref="JsonJournalOptions"/>的可选代表。</param>
+    /// <returns>链条的 silo 构建器。</returns>
     /// <example>
     /// <code>
     /// builder.AddJournaling().UseJsonJournalFormat();
@@ -84,14 +84,14 @@ public static class JsonJournalHostingExtensions
     }
 
     /// <summary>
-    /// Configures this silo with the JSON Lines Orleans.Durable.Journaling format family and registers source-generated metadata for journaled payload values.
+    /// 配置 silo ,使用 JSON 行 Orleans.Durable.Journaling 格式的家族式,并登记源生成元数据,以显示日记有效载荷值。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="typeInfoResolver">The resolver, typically a generated <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> instance.</param>
-    /// <returns>The silo builder for chaining.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="typeInfoResolver">解答器,通常是生成的 <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> 实例。</param>
+    /// <returns>链条的 silo 构建器。</returns>
     /// <remarks>
-    /// This overload is the recommended low-friction entry point for trimming and Native AOT. The supplied resolver
-    /// must include every journaled key, value, and state type.
+    /// 超载是推荐的用于剪切和本地 AOT 的低阻力切入点。 提供解答器
+    /// 必须包含每个日记密钥、 值和状态类型 。
     /// </remarks>
     /// <example>
     /// <code>

@@ -73,7 +73,7 @@ public sealed class RedisMembershipTableCancellationTests
         }
         finally
         {
-            // Shared late connections must not be used or disposed by canceled initialization.
+            // 共享的晚存连接不得被取消初始化使用或处理 。
             creation.TrySetResult((backend.Multiplexer, true));
         }
     }

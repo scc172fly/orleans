@@ -5,13 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Streaming.EventHubs.Testing
 {
     /// <summary>
-    /// Data generator for test purpose
+    /// 用于测试目的的数据生成器
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IDataGenerator<T>
     {
         /// <summary>
-        /// Data generator mimic event reading
+        /// 数据生成器模拟事件读取
         /// </summary>
         /// <param name="maxCount"></param>
         /// <param name="events"></param>
@@ -20,34 +20,34 @@ namespace Orleans.Streaming.EventHubs.Testing
     }
 
     /// <summary>
-    /// StreamDataGeneratingController control stream data generating start and stop
+    /// StreamDataGeneratingController 控制流数据生成启动和停止
     /// </summary>
     public interface IStreamDataGeneratingController
     {
         /// <summary>
-        /// configure data generator for a stream
+        /// 溪流配置数据生成器
         /// </summary>
         /// <param name="streamId"></param>
         void AddDataGeneratorForStream(StreamId streamId);
         /// <summary>
-        /// Ask one stream to stop producing
+        /// 要求一条溪停止生产
         /// </summary>
         /// <param name="streamId"></param>
         void StopProducingOnStream(StreamId streamId);
     }
 
     /// <summary>
-    /// data generator for a specific stream
+    /// 特定流的数据生成器
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IStreamDataGenerator<T> : IDataGenerator<T>
     {
         /// <summary>
-        /// counter for sequence number
+        /// 序列号对数
         /// </summary>
         IIntCounter SequenceNumberCounter { set; }
         /// <summary>
-        /// Stream identity for this data generator
+        /// 此数据生成器的流流身份
         /// </summary>
         StreamId StreamId { get; }
         /// <summary>
@@ -57,16 +57,16 @@ namespace Orleans.Streaming.EventHubs.Testing
     }
 
     /// <summary>
-    /// counter for integer
+    /// 整数对数
     /// </summary>
     public interface IIntCounter
     {
         /// <summary>
-        /// counter value
+        /// 负值
         /// </summary>
         int Value { get; }
         /// <summary>
-        /// increment the counter
+        /// 计数加起来
         /// </summary>
         void Increment();
     }

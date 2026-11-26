@@ -1,6 +1,6 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// Describes a type parameter in a serializable or proxy type.
+/// 描述可序列或代理类型的类型参数。
 /// </summary>
 internal readonly record struct TypeParameterModel(string Name, string OriginalName, int Ordinal);

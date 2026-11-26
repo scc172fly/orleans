@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>Children which a durable execution starts shielded.</summary>
+/// <summary>儿童被长期处决,开始被保护。</summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
     [Fact]
@@ -91,7 +91,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await waiting.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // The cancellation commits while the execution waits, and the signal which arrives later completes the wait.
+        // 执行等待时取消, 稍后到达的信号完成等待。
         await tasks.CancelAsync(rootId, "buyer", TestContext.Current.CancellationToken);
         await tasks.SignalAsync(rootId, ShippedSignal, "parcel", TestContext.Current.CancellationToken);
 
@@ -126,7 +126,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await delaying.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
         await transport.ResumeSent.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // The cancellation reaches neither the delay nor the detached task's record, which completes with its result.
+        // 取消合同既没有延误,也没有完成独立任务的记录,结果也告终。
         await ((IDurableTaskManager)runtime).CancelAsync(rootId, "buyer", TestContext.Current.CancellationToken);
         Assert.Null(storage.Get(recordId).Result);
         Assert.Empty(transport.Cancellations);
@@ -160,7 +160,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             ready.TrySetResult();
             await resume.Task;
 
-            // A child which isn't shielded and starts after the cancellation is canceled without running.
+            // 儿童若没有被保护, 取消后开始,
             var outside = new TestStateManager.TestRemoteDurableTask(CreateRemoteRequest(3)).WithId("outside").Post();
             var after = new TestStateManager.TestRemoteDurableTask(CreateRemoteRequest(4)).WithId("after").Shielded().Post();
 

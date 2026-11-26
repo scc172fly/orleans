@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests for disabled call chain reentrancy behavior on non-reentrant grains.
+    /// 测试非返回状态下残疾呼叫链再反应行为 grains。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

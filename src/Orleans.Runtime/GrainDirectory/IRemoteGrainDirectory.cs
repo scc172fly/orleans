@@ -6,37 +6,37 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Per-silo system interface for managing the distributed, partitioned grain-silo-activation directory.
+    /// 人均 --silo 用于管理分布式、分割式 grain-silo- 激活目录
     /// </summary>
     internal interface IRemoteGrainDirectory : ISystemTarget, IDhtGrainDirectory
     {
         /// <summary>
-        /// Records a bunch of new grain activations.
-        /// This method should be called only remotely during handoff.
+        /// 记录一连串新的 grain 激活。
+        /// 这种方法只应在交接时远程调用。
         /// </summary>
-        /// <param name="addresses">The addresses of the grains to register</param>
+        /// <param name="addresses">发 言 的 国 址 grains 登记</param>
         /// <returns></returns>
         [Alias("CD06EAEE")]
         Task RegisterMany(List<GrainAddress> addresses, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Fetch the updated information on the given list of grains.
-        /// This method should be called only remotely to refresh directory caches.
+        /// 在给定的 grains列表上获取更新信息。
+        /// 此方法应仅远程调用以刷新目录缓存 。
         /// </summary>
-        /// <param name="grainAndETagList">list of grains and generation (version) numbers. The latter denote the versions of 
-        /// the lists of activations currently held by the invoker of this method.</param>
-        /// <returns>list of tuples holding a grain, generation number of the list of activations, and the list of activations. 
-        /// If the generation number of the invoker matches the number of the destination, the list is null. If the destination does not
-        /// hold the information on the grain, generation counter -1 is returned (and the list of activations is null)</returns>
+        /// <param name="grainAndETagList">列表中的 grains 和(转换)数字。 
+        /// 使用该方法的援引者目前持有的激活清单。</param>
+        /// <returns>持有 grain的图例清单,启动清单的生成数和激活清单。 
+        /// 如果援引者的相数与目的地编号相符,则该列表为无效。如果目标不
+        /// 保留 grain上的信息, 将返回生成计 -1 (启动列表无效)</returns>
         [Alias("7DF50601")]
         Task<List<AddressAndTag>> LookUpMany(
             List<(GrainId GrainId, int Version)> grainAndETagList,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Registers activations from a split partition with this directory.
+        /// 注册此目录的分割分区激活 。
         /// </summary>
-        /// <param name="singleActivations">The single-activation registrations from the split partition.</param>
+        /// <param name="singleActivations">分割分割区单激活登记。</param>
         /// <returns></returns>
         [Alias("9ABE3793")]
         Task AcceptSplitPartition(List<GrainAddress> singleActivations, CancellationToken cancellationToken = default);

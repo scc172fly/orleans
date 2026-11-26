@@ -3,12 +3,12 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when a configured RPC proxy base class does not satisfy the required contract.
+/// 定义在配置的 RPC 代理基级不能满足要求的合同时报告的诊断。
 /// </summary>
 public static class IncorrectProxyBaseClassSpecificationDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string RuleId = DiagnosticRuleId.IncorrectProxyBaseClassSpecification;
     private const string Category = "Usage";

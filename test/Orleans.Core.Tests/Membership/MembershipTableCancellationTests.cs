@@ -316,7 +316,7 @@ public class MembershipTableCancellationTests
                 var aliases = options.CompoundTypeAliases.Add("inv").Add(typeof(GrainReference)).Add(typeof(IMembershipTable));
                 foreach (var operation in operations)
                 {
-                    // Clear the current alias owner before installing the baseline owner.
+                    // 在安装基线所有人之前,先清除当前化名所有人。
                     aliases.Add(operation.Id);
                     aliases.Add(operation.Id, operation.Legacy);
                     aliases.Add(operation.Current.Name[(operation.Current.Name.LastIndexOf('_') + 1)..]);
@@ -382,7 +382,7 @@ public class MembershipTableCancellationTests
         }
     }
 
-    // Baseline metadata emitted aliases for these retained types. Parsing still uses the real Orleans resolver.
+    // 用于这些保留类型的基准元数据排放别名。 分析仍然使用真实的 Orleans 解析器。
     private sealed class LegacyInvokerTypeFormatter(IReadOnlyDictionary<Type, string> aliases) : ITypeConverter
     {
         public bool TryFormat(Type type, out string formatted)

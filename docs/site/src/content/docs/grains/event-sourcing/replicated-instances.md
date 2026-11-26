@@ -1,43 +1,51 @@
 ---
-title: JournaledGrain instances and conflicts
-description: Understand optimistic concurrency and synchronization for JournaledGrain instances.
+title: "JournaledGrain 情况与冲突"
+description: "理解 JournaledGrain 实例的乐观同值和同步。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# Journaled grain instances and conflicts
+<a id="journaled-grain-instances-and-conflicts"></a>
 
-Advanced Orleans deployments can encounter more than one instance representing the same logical journal. Log-consistency providers coordinate those instances around one confirmed event sequence.
+# 日报 grain 事件和冲突
 
-At a given confirmed version, instances derive the same state from the same event sequence. Local tentative views can differ while submissions are unconfirmed.
+高级 Orleans 部署可能遇到一个以上的例子, 代表同一逻辑日记。 日志一致性提供者围绕一个经确认的事件序列协调这些事件。
 
-## Racing updates
+在某一确认的版本中,同一事件序列产生相同状态的情况。 当地临时意见可能不同,而提交材料则未经证实。
 
-Unconditional events are eventually ordered by the provider. An event can be confirmed later in the sequence than the tentative view expected, so transition logic must remain valid for any accepted ordering.
+<a id="racing-updates"></a>
 
-When validity depends on the currently observed version, use <xref:Orleans.EventSourcing.JournaledGrain`2.RaiseConditionalEvent*>:
+## 正在计算更新的更新
+
+无条件事件最终由提供商下令。 事件可以在时间顺序上比预想的预想稍晚确认, 因此过渡逻辑对于任何被接受的命令都必须有效。
+
+当有效性取决于当前观察的版本时,请使用 <xref:Orleans.EventSourcing.JournaledGrain`2.RaiseConditionalEvent*>:
 
 :::code language="csharp" source="../../snippets/compiled/EventSourcing/EventSourcingSnippets.cs" id="conditional_update":::
 
-The provider compares the expected confirmed version with storage. If another update advanced the log, it doesn't append the event and returns `false`. The grain can then re-evaluate the command against the refreshed state.
+供应商比较了预期确认版本和存储。 如果再次更新提前了日志, 它不会附加事件并返回 `false`。 grain 然后可以根据更新状态重新评价命令 。
 
-## Explicit synchronization
+<a id="explicit-synchronization"></a>
 
-Call <xref:Orleans.EventSourcing.JournaledGrain`2.RefreshNow*> to confirm local submissions and refresh from the global log:
+## 明确的同步
+
+呼叫 <xref:Orleans.EventSourcing.JournaledGrain`2.RefreshNow*> 确认本地提交信息,并从全球日志中刷新:
 
 :::code language="csharp" source="../../snippets/compiled/EventSourcing/EventSourcingSnippets.cs" id="refresh_replicated_instance":::
 
-This is useful before a decision that requires the latest confirmed view. It incurs storage/protocol work and can wait while the backing service is unavailable.
+这对于做出需要最新确认视图的决定是有用的。 它需要进行存储/议定书工作, 可以在没有支持服务时等待 。
 
-## Deployment boundary
+<a id="deployment-boundary"></a>
 
-The protocol contains cluster-aware notification and concurrency mechanisms, but doesn't itself deliver a geographically replicated application. A multi-cluster deployment must provide:
+## 部署边界
 
-- Compatible Orleans multi-cluster configuration and connectivity.
-- Storage that every participating instance can reach with the required consistency.
-- A provider whose behavior fits the topology.
-- Application decisions for write regions, failover, latency, and conflict handling.
+议定书载有了解集群的通知和同值货币机制,但本身并不提供地理上复制的应用。
 
-The custom provider's `primaryCluster` registration argument doesn't restrict submissions. Don't rely on it as a write-region, replication, access-control, or failover mechanism.
+- 兼容 Orleans 多组配置和连通。
+- 储存每个参与机构都能够以必要的一致性达到的储存。
+- 其行为符合地形的提供者
+- 申请区域、故障、延迟和冲突处理。
 
-For the protocol model and its design background, see the Microsoft Research papers [Geo-Distribution of Actor-Based Services](https://www.microsoft.com/research/publication/geo-distribution-actor-based-services/) and [Global Sequence Protocol](https://www.microsoft.com/research/publication/global-sequence-protocol-a-robust-abstraction-for-replicated-shared-state-extended-version/).
+用户服务供应商的 `primaryCluster` 注册论证并不限制提交文件。 不要把它当作一个写作区域、复制、访问控制或失败机制来依赖它。
+
+议定书模型及其设计背景见 Microsoft 研究文件 [以行为体为基础的服务的地理分布](https://www.microsoft.com/research/publication/geo-distribution-actor-based-services/) 和 [全球序列议定书](https://www.microsoft.com/research/publication/global-sequence-protocol-a-robust-abstraction-for-replicated-shared-state-extended-version/)。

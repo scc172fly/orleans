@@ -11,7 +11,7 @@ using UnitTests.StreamingTests;
 namespace AWSUtils.Tests.Streaming
 {
     /// <summary>
-    /// Tests multiple subscription scenarios for SQS streams including parallel, linear, and resubscription patterns.
+    /// 测试 SQS 流的多种订阅方案,包括平行、线性以及重新订阅模式。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]

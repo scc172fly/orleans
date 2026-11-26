@@ -8,21 +8,21 @@ using Orleans.Reminders.Redis;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Silo host builder extensions.
+    /// Silo 主机建筑商扩展
     /// </summary>
     public static class SiloBuilderReminderExtensions
     {
         /// <summary>
-        /// Adds reminder storage backed by Redis.
+        /// 添加 Redis所支持的提醒存储。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configure">
-        /// The delegate used to configure the reminder store.
+        /// 代表用于配置提醒存储器 。
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>, for chaining.
+        /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
         /// </returns>
         public static ISiloBuilder UseRedisReminderService(this ISiloBuilder builder, Action<RedisReminderTableOptions> configure)
         {
@@ -31,16 +31,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds reminder storage backed by Redis.
+        /// 添加 Redis所支持的提醒存储。
         /// </summary>
         /// <param name="services">
-        /// The service collection.
+        /// 服务收藏
         /// </param>
         /// <param name="configure">
-        /// The delegate used to configure the reminder store.
+        /// 代表用于配置提醒存储器 。
         /// </param>
         /// <returns>
-        /// The provided <see cref="IServiceCollection"/>, for chaining.
+        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
         /// </returns>
         public static IServiceCollection UseRedisReminderService(this IServiceCollection services, Action<RedisReminderTableOptions> configure)
         {

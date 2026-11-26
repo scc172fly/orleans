@@ -15,7 +15,7 @@ internal static class ReceiverTestServices
 
     public static IGrainContext? CurrentGrainContext => ReadCurrentContext();
 
-    // Uses the production registration, replacing the application-facing outbox with a journaled capture.
+    // 使用生产登记,用日记捕获取代应用软件外观发箱。
     public static void Add(IServiceCollection services, Action<DurableMessagingOptions> configure)
     {
         services.AddMessaging(configure);

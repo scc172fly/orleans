@@ -10,96 +10,96 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// Supplies deterministic clock, diagnostics, and topology controls to
+/// 控制定时、诊断和地形学
 /// <see cref="ReminderServiceLifecycleTestRunner"/>.
 /// </summary>
 public interface IReminderServiceLifecycleHarness
 {
-    /// <summary>Gets the deployed cluster's grain factory.</summary>
+    /// <summary>获得部署的组群 grain 工厂。</summary>
     IGrainFactory GrainFactory { get; }
 
-    /// <summary>Gets the provider table used by the reminder service.</summary>
+    /// <summary>获取提醒服务所使用的提供者表格。</summary>
     IReminderTable ReminderTable { get; }
 
-    /// <summary>Gets the deterministic reminder clock time.</summary>
+    /// <summary>获得决定性的提醒时间</summary>
     DateTimeOffset UtcNow { get; }
 
-    /// <summary>Gets the configured reminder loading window.</summary>
+    /// <summary>获取配置的提醒装入窗口。</summary>
     TimeSpan ReminderLoadingWindow { get; }
 
-    /// <summary>Gets the configured reminder-table refresh period.</summary>
+    /// <summary>获取配置的提醒表刷新期。</summary>
     TimeSpan ReminderRefreshPeriod { get; }
 
-    /// <summary>Gets the currently active silos.</summary>
+    /// <summary>获取当前活动的 silos。</summary>
     IReadOnlyList<SiloAddress> ActiveSilos { get; }
 
-    /// <summary>Waits until every active reminder service is ready.</summary>
+    /// <summary>等待每次有效的提醒服务都准备好。</summary>
     Task WaitForStartupReadinessAsync(CancellationToken cancellationToken);
 
-    /// <summary>Advances the one reminder clock driver.</summary>
+    /// <summary>预付一个提醒时钟驱动程序。</summary>
     Task AdvanceAsync(TimeSpan amount, CancellationToken cancellationToken);
 
-    /// <summary>Refreshes every active reminder service without advancing time.</summary>
+    /// <summary>更新每次主动提醒服务,不提前。</summary>
     Task RefreshAsync(CancellationToken cancellationToken);
 
-    /// <summary>Waits for exactly <paramref name="count"/> local owners.</summary>
+    /// <summary>等待精确的 <paramref name="count"/> 本地所有者。</summary>
     Task WaitForOwnerCountAsync(
         GrainId grainId,
         string reminderName,
         int count,
         CancellationToken cancellationToken);
 
-    /// <summary>Gets the current local owners.</summary>
+    /// <summary>获取当前本地所有者。</summary>
     IReadOnlyList<SiloAddress> GetOwners(GrainId grainId, string reminderName);
 
-    /// <summary>Returns whether a silo's current ring range owns a grain identity.</summary>
+    /// <summary>返回 silo当前环区域是否拥有 grain 身份。</summary>
     bool IsOwner(SiloAddress siloAddress, GrainId grainId);
 
-    /// <summary>Waits until the current owner has armed its persisted schedule.</summary>
+    /// <summary>等待当前所有人武装其持续的时间表。</summary>
     Task WaitForScheduleAsync(GrainId grainId, string reminderName, CancellationToken cancellationToken);
 
-    /// <summary>Gets the number of local reminder instances started for a reminder.</summary>
+    /// <summary>获取本地提醒事件数,以开始提醒。</summary>
     int GetLocalStartCount(GrainId grainId, string reminderName);
 
-    /// <summary>Gets the number of local reminder instances stopped for a reminder.</summary>
+    /// <summary>获取本地提醒事件数量停止以获取提醒 。</summary>
     int GetLocalStopCount(GrainId grainId, string reminderName);
 
-    /// <summary>Gets the number of local schedule changes for a reminder.</summary>
+    /// <summary>获取提醒的本地时间排更改次数。</summary>
     int GetScheduleChangeCount(GrainId grainId, string reminderName);
 
-    /// <summary>Waits for the local schedule-change count.</summary>
+    /// <summary>等待本地计划更改计数。</summary>
     Task WaitForScheduleChangeCountAsync(
         GrainId grainId,
         string reminderName,
         int count,
         CancellationToken cancellationToken);
 
-    /// <summary>Waits for exactly the requested completed tick count.</summary>
+    /// <summary>等待请求的完全完成的滴记。</summary>
     Task WaitForTickCountAsync(
         GrainId grainId,
         string reminderName,
         int count,
         CancellationToken cancellationToken);
 
-    /// <summary>Gets the current completed tick count.</summary>
+    /// <summary>获取当前已完成的滴数。</summary>
     int GetTickCount(GrainId grainId, string reminderName);
 
-    /// <summary>Starts one silo and waits for its reminder service and ring ownership to reconcile.</summary>
+    /// <summary>开始一个 silo ,等待它的提醒服务和环所有权调节。</summary>
     Task<SiloAddress> JoinOneSiloAsync(CancellationToken cancellationToken);
 
-    /// <summary>Stops the specified silo.</summary>
+    /// <summary>停止指定 silo。</summary>
     Task LeaveSiloAsync(SiloAddress siloAddress, CancellationToken cancellationToken);
 
-    /// <summary>Waits for membership and reminder-range reconciliation on all active silos.</summary>
+    /// <summary>等待成员资格,并提醒所有活动 silos的对齐。</summary>
     Task WaitForTopologyReconciliationAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// Adds deterministic reminder registration through a specified silo to a lifecycle harness.
+/// 通过特定 silo 在生命周期使用上添加了确定性提醒登记。
 /// </summary>
 public interface IReminderServiceLifecycleRegistrationTarget
 {
-    /// <summary>Registers a reminder through the reminder service on the specified silo.</summary>
+    /// <summary>发送催复通知,通过催复通知处发送催复通知, silo.</summary>
     Task RegisterOnSiloAsync(
         SiloAddress siloAddress,
         GrainId grainId,
@@ -110,12 +110,12 @@ public interface IReminderServiceLifecycleRegistrationTarget
 }
 
 /// <summary>
-/// Shared deterministic conformance scenarios for reminder service lifecycle, ownership, and churn.
+/// 提醒服务生命周期、所有权和批发的共有确定性一致性情景。
 /// </summary>
 /// <remarks>
-/// Provider suites supply only an <see cref="IReminderServiceLifecycleHarness"/>. The runner owns identities,
-/// schedules, topology transitions, exact assertions, and cleanup. Each scenario cleans only the reminders which
-/// it created and verifies their absence, so unrelated rows and concurrently running provider suites are isolated.
+/// 提供套件只供应 <see cref="IReminderServiceLifecycleHarness"/>。
+/// 每种情况仅清除提醒
+/// 并证实它们不存在 所以不相关的行和同时运行的供应商套房 被隔离
 /// </remarks>
 public abstract class ReminderServiceLifecycleTestRunner
 {
@@ -125,7 +125,7 @@ public abstract class ReminderServiceLifecycleTestRunner
     private readonly int _seed;
     private int _grainCounter;
 
-    /// <summary>Initializes the runner.</summary>
+    /// <summary>初始化运行者。</summary>
     protected ReminderServiceLifecycleTestRunner(
         IReminderServiceLifecycleHarness harness,
         string providerName,
@@ -137,14 +137,14 @@ public abstract class ReminderServiceLifecycleTestRunner
         _seed = seed;
     }
 
-    /// <summary>Gets the provider name used in diagnostics.</summary>
+    /// <summary>获取诊断中使用的提供者名称。</summary>
     protected string ProviderName { get; }
 
-    /// <summary>Guarantee: every active silo reports reminder-service readiness before operations begin.</summary>
+    /// <summary>保证:每个活动 silo 在行动开始前报告提醒服务准备状态。</summary>
     public virtual Task ReminderService_StartupReadiness()
         => RunReminderService_StartupReadiness(CancellationToken.None);
 
-    /// <summary>Runs the startup-readiness scenario.</summary>
+    /// <summary>运行启动准备情景。</summary>
     public async Task RunReminderService_StartupReadiness(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_StartupReadiness);
@@ -165,11 +165,11 @@ public abstract class ReminderServiceLifecycleTestRunner
             _ => Task.CompletedTask);
     }
 
-    /// <summary>Guarantee: a registration has one owner and one exact delivery.</summary>
+    /// <summary>保证:登记只有一个所有人,一个准确交货。</summary>
     public virtual Task ReminderService_RegistrationHasSingleOwner()
         => RunReminderService_RegistrationHasSingleOwner(CancellationToken.None);
 
-    /// <summary>Runs the registration-ownership scenario.</summary>
+    /// <summary>运行注册所有权设想。</summary>
     public async Task RunReminderService_RegistrationHasSingleOwner(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_RegistrationHasSingleOwner);
@@ -199,11 +199,11 @@ public abstract class ReminderServiceLifecycleTestRunner
             cleanupToken => CleanupAsync(Guarantee, grain, Name, cleanupToken));
     }
 
-    /// <summary>Guarantee: updating a reminder changes its schedule without restarting its local owner.</summary>
+    /// <summary>担保:更新提醒更改其时间表,而不重新启动当地所有人。</summary>
     public virtual Task ReminderService_UpdateDoesNotRestartLocalOwner()
         => RunReminderService_UpdateDoesNotRestartLocalOwner(CancellationToken.None);
 
-    /// <summary>Runs the in-place update scenario.</summary>
+    /// <summary>运行在位更新假想。</summary>
     public async Task RunReminderService_UpdateDoesNotRestartLocalOwner(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_UpdateDoesNotRestartLocalOwner);
@@ -297,11 +297,11 @@ public abstract class ReminderServiceLifecycleTestRunner
             cleanupToken => CleanupAsync(Guarantee, grain, Name, cleanupToken));
     }
 
-    /// <summary>Guarantee: removal reaches quiescence and cannot deliver a later occurrence.</summary>
+    /// <summary>保证:清除达到不牢靠的程度,无法在以后发生。</summary>
     public virtual Task ReminderService_RemovalReachesQuiescence()
         => RunReminderService_RemovalReachesQuiescence(CancellationToken.None);
 
-    /// <summary>Runs the removal/quiescence scenario.</summary>
+    /// <summary>运行清除/不可靠情景。</summary>
     public async Task RunReminderService_RemovalReachesQuiescence(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_RemovalReachesQuiescence);
@@ -335,11 +335,11 @@ public abstract class ReminderServiceLifecycleTestRunner
             cleanupToken => CleanupAsync(Guarantee, grain, Name, cleanupToken));
     }
 
-    /// <summary>Guarantee: a persisted reminder entering the loading window fires at its exact due time.</summary>
+    /// <summary>保证:在规定时间进入装货窗口火灾时不断提醒。</summary>
     public virtual Task ReminderService_ExactDueRecovery()
         => RunReminderService_ExactDueRecovery(CancellationToken.None);
 
-    /// <summary>Runs the exact-due recovery scenario.</summary>
+    /// <summary>运行准确到期的回收设想。</summary>
     public async Task RunReminderService_ExactDueRecovery(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_ExactDueRecovery);
@@ -381,11 +381,11 @@ public abstract class ReminderServiceLifecycleTestRunner
             cleanupToken => CleanupAsync(Guarantee, grain, Name, cleanupToken));
     }
 
-    /// <summary>Guarantee: registration and ownership reconcile to one owner after a silo joins.</summary>
+    /// <summary>担保:登记和所有权与一个所有人在 silo 组合。</summary>
     public virtual Task ReminderService_StaleOwnerRegistrationReconciles()
         => RunReminderService_StaleOwnerRegistrationReconciles(CancellationToken.None);
 
-    /// <summary>Runs stale-owner registration reconciliation.</summary>
+    /// <summary>运行老旧业主登记对账。</summary>
     public async Task RunReminderService_StaleOwnerRegistrationReconciles(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_StaleOwnerRegistrationReconciles);
@@ -504,7 +504,7 @@ public abstract class ReminderServiceLifecycleTestRunner
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
-                        // The scheduler observed cancellation before dispatch, so no mutation needs cleanup.
+                        // 调度器在发送前观察到取消,所以不需要对突变进行清理。
                     }
                     catch (Exception exception)
                     {
@@ -573,11 +573,11 @@ public abstract class ReminderServiceLifecycleTestRunner
             .Throw(exception);
     }
 
-    /// <summary>Guarantee: one-silo join/leave transfers ownership without duplicates or missed delivery.</summary>
+    /// <summary>保证:1-silo 加入/离开转让所有权,不重复或未交货。</summary>
     public virtual Task ReminderService_OneSiloJoinLeaveTransfersOwnership()
         => RunReminderService_OneSiloJoinLeaveTransfersOwnership(CancellationToken.None);
 
-    /// <summary>Runs the one-silo join/leave ownership-transfer scenario.</summary>
+    /// <summary>运行一个silo 连成/离开所有权转让设想方案。</summary>
     public async Task RunReminderService_OneSiloJoinLeaveTransfersOwnership(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_OneSiloJoinLeaveTransfersOwnership);
@@ -648,11 +648,11 @@ public abstract class ReminderServiceLifecycleTestRunner
             });
     }
 
-    /// <summary>Guarantee: scenario cleanup removes only rows owned by that scenario.</summary>
+    /// <summary>保证:情景清理只清除该情景所属的行。</summary>
     public virtual Task ReminderService_CleanupIsIsolated()
         => RunReminderService_CleanupIsIsolated(CancellationToken.None);
 
-    /// <summary>Runs cleanup isolation.</summary>
+    /// <summary>运行清理隔离状态。</summary>
     public async Task RunReminderService_CleanupIsIsolated(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_CleanupIsIsolated);

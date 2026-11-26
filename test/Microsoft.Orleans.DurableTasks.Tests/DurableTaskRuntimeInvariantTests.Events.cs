@@ -19,10 +19,10 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var scheduler = TaskScheduler.Current;
         Task? interleavedWrite = null;
 
-        // The body's final code stages its result, and a write which another operation requests commits it before the
-        // attempt commits the result again. That write captured every change, so the attempt's write carries none.
-        // Events are process-wide, so other tests' tasks named 'root' complete concurrently; a foreign completion, emitted
-        // here deterministically, must not trigger this test's write.
+        // 该机构的最终代码将结果和要求另一机构在
+        // 尝试再次实施结果。 写作记录了每一个变化, 所以尝试的写作没有包含任何。
+        // 整个过程都发生了,所以其他测试任务“root”同时完成;外国完成,排放
+        // 绝对不能引发这个测试的写作
         using var subscription = DurableTaskEvents.AllEvents.Subscribe(new EventObserver(evt =>
         {
             if (evt is DurableTaskEvents.TaskCompleted { TaskId: var taskId } completed
@@ -74,7 +74,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilIdleAsync(runtime);
         ((IOutboxMessageSource)runtime).OnRetired(Assert.Single(transport.Completions).MessageId, OutboxMessageRetirement.Delivered.Instance);
 
-        // Each event carries the runtime's activation, and the delivered completion deletes the tree.
+        // 每场活动都携带运行时间的激活,交付完成后将树删除。
         Assert.Equal(
             [
                 "TaskCreated root",
@@ -107,13 +107,13 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         runtime.ScheduleFromInbox(rootId, request);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
-        // The delay's resume is staged with its due time, so the replacement replays a scheduled delay. A delay child whose
-        // body hasn't scheduled it yet is a pending execution, which recovery starts on its own.
+        // 延迟恢复的恢复时间已经到了, 所以替换的重弹了一个预定的推迟。
+        // 尸体还没有计划要执行, 恢复工作从自己开始。
         await transport.ResumeSent.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // The replacement replays the recorded step and delay; reaching the delay, the last recorded operation, ends the
-        // replay without staging anything. The delay's attempt resumes waiting for its due time and ends.
+        // 替换的重放所记录的步和延迟; 到达延迟, 最后一次记录的操作, 结束
+        // 拖延的尝试又恢复了等待时机和结束
         var (replacement, _, _, _) = CreateRuntime(storage, manager, initialize: false);
         replacement.InitializeForActivation(CreateTestActivation());
         using var events = new RuntimeEventRecorder(replacement);
@@ -124,7 +124,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await replacement.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
     });
 
-    /// <summary>Records one runtime's events, in the order which its activation raised them.</summary>
+    /// <summary>记录一次运行时的事件, 以它的启动引发的顺序。</summary>
     private sealed class RuntimeEventRecorder : IDisposable
     {
         private readonly ConcurrentQueue<string> _events = new();
@@ -148,7 +148,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     }
 }
 
-/// <summary>Runs an action for each durable task runtime event, synchronously at the transition which raises it.</summary>
+/// <summary>运行每次耐久任务运行时事件的一个动作, 同步进行引发该动作的过渡。</summary>
 internal sealed class EventObserver(Action<DurableTaskEvents.DurableTaskEvent> onNext) : IObserver<DurableTaskEvents.DurableTaskEvent>
 {
     public void OnNext(DurableTaskEvents.DurableTaskEvent value) => onNext(value);

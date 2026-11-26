@@ -4,13 +4,13 @@ using Orleans.Storage;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Returns a constant hash value to all input. This is used to induce hash collisions
-    /// one scenarios that involve more than one case.
+    /// 返回所有输入的恒定散列值。 这用于诱发散列碰撞
+    /// 一种情况涉及一个以上的情况。
     /// </summary>
     public class ConstantHasher : IHasher
     {
         /// <summary>
-        /// The hash value to which every input will be hashed to.
+        /// 每个输入都将被仓列到的散列值 。
         /// </summary>
         public const int ConstantHash = 1;
 

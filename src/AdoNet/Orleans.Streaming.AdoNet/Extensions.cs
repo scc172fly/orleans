@@ -1,7 +1,7 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// Internal syntax sugar.
+/// 内部语法糖
 /// </summary>
 internal static class Extensions
 {
@@ -9,12 +9,12 @@ internal static class Extensions
     public static int Int32Ceiling(this double value) => (int)Math.Ceiling(value);
 
     /// <summary>
-    /// Rounds up the specified time span to the nearest upper second and returns the total number of seconds as an integer.
+    /// 将指定的时间间隔舍入到最近的上秒, 并将秒总数以整数返回。
     /// </summary>
     public static int TotalSecondsCeiling(this TimeSpan value) => value.TotalSeconds.Int32Ceiling();
 
     /// <summary>
-    /// Rounds up the specified time span to the nearest upper second and returns the total number of seconds as an integer.
+    /// 将指定的时间间隔舍入到最近的上秒, 并将秒总数以整数返回。
     /// </summary>
     public static TimeSpan SecondsCeiling(this TimeSpan value) => TimeSpan.FromSeconds(value.TotalSecondsCeiling());
 }

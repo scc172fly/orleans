@@ -5,20 +5,20 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Stream identity contains the public stream information use to uniquely identify a stream.
-    /// Stream identities are only unique per stream provider.
+    /// 流体特性包含公共流信息,用于独特识别流。
+    /// 流体特性只是每个流体提供商独有的。
     /// </summary>
     /// <remarks>
-    /// Use <see cref="StreamId"/> where possible, instead.
+    /// 在可能的情况下使用 <see cref="StreamId"/> 。
     /// </remarks>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class StreamIdentity : IStreamIdentity
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamIdentity"/> class.
+        /// 初始化 <see cref="StreamIdentity"/> 类的新实例。
         /// </summary>
-        /// <param name="streamGuid">The stream unique identifier.</param>
-        /// <param name="streamNamespace">The stream namespace.</param>
+        /// <param name="streamGuid">流流独有标识符。</param>
+        /// <param name="streamNamespace">流命名空间。</param>
         public StreamIdentity(Guid streamGuid, string? streamNamespace)
         {
             Guid = streamGuid;
@@ -26,13 +26,13 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Gets the stream identifier.
+        /// 获取溪流识别码。
         /// </summary>
         [Id(0)]
         public Guid Guid { get; }
 
         /// <summary>
-        /// Gets the stream namespace.
+        /// 获取流命名空间 。
         /// </summary>
         [Id(1)]
         public string? Namespace { get; }

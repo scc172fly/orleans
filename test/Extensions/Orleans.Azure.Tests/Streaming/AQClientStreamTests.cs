@@ -13,7 +13,7 @@ using Xunit;
 namespace Tester.AzureUtils.Streaming
 {
     /// <summary>
-    /// Tests for Azure Queue streaming client functionality, including producer and consumer behavior with dropped clients.
+    /// Azure 排队流客户功能测试,包括生产者和消费者对被丢客户的行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("AzureStorage")]
@@ -87,14 +87,14 @@ namespace Tester.AzureUtils.Streaming
             try
             {
                 TestUtils.CheckForAzureStorage();
-                var serviceId = this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IOptions<ClusterOptions>>().Value.ServiceId; // The fixture deploys the client.
+                var serviceId = this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IOptions<ClusterOptions>>().Value.ServiceId; // 固定装置会部署客户
                 await AzureQueueStreamProviderUtils.DeleteAllUsedAzureQueues(NullLoggerFactory.Instance, AzureQueueStreamProviderUtils.GenerateDefaultAzureQueueNames(serviceId, AQStreamProviderName),
                     new AzureQueueOptions().ConfigureTestDefaults());
                 await TestAzureTableStorageStreamFailureHandler.DeleteAll();
             }
             catch (Xunit.Sdk.SkipException)
             {
-                // Ignore
+                // 忽略忽略
             }
         }
 

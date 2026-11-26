@@ -3,42 +3,42 @@ using Orleans.CodeGenerator.Model;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Configures serializer and RPC code generation.
+/// 配置序列器和 RPC 代码生成。
 /// </summary>
 public class CodeGeneratorOptions
 {
     /// <summary>
-    /// The metadata name of <c>Orleans.IdAttribute</c>.
+    /// <c>Orleans.IdAttribute</c>的元数据名称。
     /// </summary>
     public const string IdAttribute = "Orleans.IdAttribute";
 
     /// <summary>
-    /// The metadata name of <c>Orleans.AliasAttribute</c>.
+    /// <c>Orleans.AliasAttribute</c>的元数据名称。
     /// </summary>
     public const string AliasAttribute = "Orleans.AliasAttribute";
 
     /// <summary>
-    /// The metadata name of <c>Orleans.ImmutableAttribute</c>.
+    /// <c>Orleans.ImmutableAttribute</c>的元数据名称。
     /// </summary>
     public const string ImmutableAttribute = "Orleans.ImmutableAttribute";
 
     /// <summary>
-    /// The metadata names of attributes which identify the constructor used during deserialization.
+    /// 用于识别在解除飞行过程中使用的构造器的属性的元数据名称。
     /// </summary>
     public static readonly IReadOnlyList<string> ConstructorAttributes = ["Orleans.OrleansConstructorAttribute", "Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructorAttribute"];
 
     /// <summary>
-    /// Gets or sets the strategy used to generate field identifiers for serializable members.
+    /// 获取或设置用于为可连号成员生成实地识别资料的战略。
     /// </summary>
     public GenerateFieldIds GenerateFieldIds { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether compatibility invokers are generated for inherited RPC methods.
+    /// 获取或设定一个数值,以显示是否为遗留的RPC方法生成兼容性参数。
     /// </summary>
     public bool GenerateCompatibilityInvokers { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether generated serializers and copiers support adding members using .NET Hot Reload.
+    /// 获取或设定一个值,显示生成的序列器和复印机是否支持使用 .NET 热重装入添加成员。
     /// </summary>
     public bool HotReloadSafe { get; set; }
 

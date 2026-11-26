@@ -5,21 +5,21 @@ using Orleans.Reminders.AzureStorage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Silo host builder extensions.
+    /// Silo 主机建筑商扩展
     /// </summary>
     public static class AzureStorageReminderSiloBuilderExtensions
     {
         /// <summary>
-        /// Adds reminder storage backed by Azure Table Storage.
+        /// 添加由 Azure 表存储支持的提醒存储。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configure">
-        /// The delegate used to configure the reminder store.
+        /// 代表用于配置提醒存储器 。
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>, for chaining.
+        /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
         /// </returns>
         public static ISiloBuilder UseAzureTableReminderService(this ISiloBuilder builder, Action<AzureTableReminderStorageOptions> configure)
         {
@@ -28,16 +28,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds reminder storage backed by Azure Table Storage.
+        /// 添加由 Azure 表存储支持的提醒存储。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>, for chaining.
+        /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
         /// </returns>
         public static ISiloBuilder UseAzureTableReminderService(this ISiloBuilder builder, Action<OptionsBuilder<AzureTableReminderStorageOptions>> configureOptions)
         {
@@ -46,16 +46,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds reminder storage backed by Azure Table Storage.
+        /// 添加由 Azure 表存储支持的提醒存储。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="connectionString">
-        /// The storage connection string.
+        /// 存储连接字符串
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>, for chaining.
+        /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
         /// </returns>
         public static ISiloBuilder UseAzureTableReminderService(this ISiloBuilder builder, string connectionString)
         {

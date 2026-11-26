@@ -1,39 +1,39 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Reads and writes the physical byte format used to persist state journal entries.
+/// 读取并写下用于持续国家日记条目的物理字节格式。
 /// </summary>
 /// <remarks>
-/// A journal format owns physical framing for entries. Durable state codecs write only
-/// the payload for a single entry.
+/// 日记格式拥有条目的物理框架。 耐用的国家编码器仅写入
+/// 单项输入的有效载荷。
 /// </remarks>
 public interface IJournalFormat
 {
     /// <summary>
-    /// Gets the key which identifies this journal format in storage metadata and keyed service registration.
+    /// 获取在存储元数据和密钥服务注册中识别该日记格式的密钥。
     /// </summary>
     string FormatKey { get; }
 
     /// <summary>
-    /// Gets the MIME type for journal storage written with this format, or <see langword="null"/> to use the storage provider's default.
+    /// 获取以此格式写入的日记存储的 MIME 类型,或者 <see langword="null"/> 使用存储提供者的默认值。
     /// </summary>
     string? MimeType { get; }
 
     /// <summary>
-    /// Creates a writer for a new mutable journal batch.
+    /// 为新的可变日记批量创建作家 。
     /// </summary>
-    /// <returns>A new journal buffer writer.</returns>
+    /// <returns>新日记缓冲写器。</returns>
     JournalBufferWriter CreateWriter();
 
     /// <summary>
-    /// Reads as many complete journal entries as possible from <paramref name="input"/> and applies them to resolved states.
+    /// 尽可能多地从 <paramref name="input"/> 读取完整日记条目,并将其应用到已解决的状态。
     /// </summary>
-    /// <param name="input">The buffered persisted journal data, including its completion state.</param>
-    /// <param name="context">The replay context used to resolve states and journal services.</param>
+    /// <param name="input">缓冲的日记数据,包括其完成状态。</param>
+    /// <param name="context">用于解决状态和日记服务问题的重播上下文。</param>
     /// <remarks>
-    /// If <see cref="JournalBufferReader.IsCompleted"/> is <see langword="false"/>, this method returns when
-    /// there is insufficient data to read another complete journal entry. If <see cref="JournalBufferReader.IsCompleted"/>
-    /// is <see langword="true"/>, this method throws if the remaining data does not contain complete journal entries.
+    /// <see cref="JournalBufferReader.IsCompleted"/> 是 <see langword="false"/>的,此方法返回
+    /// 没有足够的数据读取另一个完整的日记项。 如果 <see cref="JournalBufferReader.IsCompleted"/>
+    /// is <see langword="true"/>,如果剩余数据不包含完整的日记条目,则采用此方法。
     /// </remarks>
     void Replay(JournalBufferReader input, JournalReplayContext context);
 }

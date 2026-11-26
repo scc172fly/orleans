@@ -35,7 +35,7 @@ public sealed class GrainDirectoryResilienceTests
     private static readonly TimeSpan DirectoryMigrationTimeout = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Cluster chaos test: tests directory functionality & integrity while starting/stopping/killing silos frequently.
+    /// 集束混乱测试:测试目录功能和完整性,同时经常启动/停止/提供 silos 。
     /// </summary>
     /// <returns></returns>
     [Fact]
@@ -54,7 +54,7 @@ public sealed class GrainDirectoryResilienceTests
         cts.CancelAfter(TimeSpan.FromMinutes(5));
         var reconfigurationTimer = CoarseStopwatch.StartNew();
         var upperLimit = 10;
-        var lowerLimit = 1; // Membership is kept on the primary, so we can't go below 1
+        var lowerLimit = 1; // 会员资格保留在初级, 所以我们不能低于1
         var target = upperLimit;
         var idBase = 0L;
         var client = ((InProcessSiloHandle)testCluster.Primary!).SiloHost.Services.GetRequiredService<IGrainFactory>();
@@ -114,7 +114,7 @@ public sealed class GrainDirectoryResilienceTests
 
                             if (currentCount > target)
                             {
-                                // Stop or kill a random silo, but not the primary (since that hosts cluster membership)
+                                // 停止或杀死随机 silo, 但并非主控( 因为主机组群集会)
                                 var victim = testCluster.SecondarySilos[Random.Shared.Next(testCluster.SecondarySilos.Count)];
                                 if (currentCount % 2 == 0)
                                 {

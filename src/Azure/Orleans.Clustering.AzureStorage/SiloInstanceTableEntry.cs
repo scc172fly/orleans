@@ -16,21 +16,21 @@ namespace Orleans.AzureUtils
         public string? Port { get; set; }            // RowKey
         public string? Generation { get; set; }      // RowKey
 
-        public string? HostName { get; set; }        // Mandatory
-        public string? Status { get; set; }          // Mandatory
-        public string? ProxyPort { get; set; }       // Optional
+        public string? HostName { get; set; }        // 强制性
+        public string? Status { get; set; }          // 强制性
+        public string? ProxyPort { get; set; }       // 任择
 
-        public string? RoleName { get; set; }        // Optional - only for Azure role
+        public string? RoleName { get; set; }        // 仅允许 - 只允许 Azure 角色
         public string? SiloName { get; set; }
-        public string? InstanceName { get; set; }    // For backward compatability we leave the old column, untill all clients update the code to new version.
-        public string? UpdateZone { get; set; }         // Optional - only for Azure role
-        public string? FaultZone { get; set; }          // Optional - only for Azure role
+        public string? InstanceName { get; set; }    // 后向兼容性我们留下旧栏目 直到所有客户都更新代码到新版本
+        public string? UpdateZone { get; set; }         // 仅允许 - 只允许 Azure 角色
+        public string? FaultZone { get; set; }          // 仅允许 - 只允许 Azure 角色
 
-        public string? SuspectingSilos { get; set; }          // For liveness
-        public string? SuspectingTimes { get; set; }          // For liveness
+        public string? SuspectingSilos { get; set; }          // 是为了生命
+        public string? SuspectingTimes { get; set; }          // 是为了生命
 
-        public string? StartTime { get; set; }          // Time this silo was started. For diagnostics.
-        public string? IAmAliveTime { get; set; }           // Time this silo updated it was alive. For diagnostics.
+        public string? StartTime { get; set; }          // 开始此时间 silo 。 对于诊断, 请使用它 。
+        public string? IAmAliveTime { get; set; }           // 此时此时间 silo 更新后它还活着,用于诊断
         public string? MembershipVersion { get; set; }
 
         public string PartitionKey { get; set; } = null!;
@@ -39,7 +39,7 @@ namespace Orleans.AzureUtils
         public ETag ETag { get; set; }
 
         internal const string TABLE_VERSION_ROW = "VersionRow";
-        // Azure Table queries sort by RowKey. These values sort around every IPv4 and IPv6 address string.
+        // Azure 表查询按 RowKey排序。这些数值围绕每个 IPv4 和 IPv6 地址字符串排序。
         internal const string TABLE_VERSION_ROW_MIN = "!Start";
         internal const string TABLE_VERSION_ROW_MAX = "~End";
         internal const char Seperator = '-';

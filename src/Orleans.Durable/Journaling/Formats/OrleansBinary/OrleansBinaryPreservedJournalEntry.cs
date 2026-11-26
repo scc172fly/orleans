@@ -10,7 +10,7 @@ internal sealed class OrleansBinaryPreservedJournalEntry : IPreservedJournalEntr
     public OrleansBinaryPreservedJournalEntry(ArcBuffer payload, SerializerSessionPool sessionPool)
     {
         ArgumentNullException.ThrowIfNull(sessionPool);
-        // Retired states retain preserved entries after the read buffer is released; copy the bytes.
+        // 退役各州在读缓冲释放后保留保存的条目;复制字节。
         _payload = payload.ToArray();
     }
 

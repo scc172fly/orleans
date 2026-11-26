@@ -6,9 +6,9 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Exercises task addresses as stored and sent values: a workflow takes them from the handles of its detached tasks and
-/// returns them, a grain receives them in a call and journals them, and after reactivation the grain, a workflow, and a
-/// client reach the tasks through them.
+/// 练习任务地址作为存储和发送的值:工作流程从它各自独立的任务和
+/// 返回后,一个 grain 接到他们时会打电话和日记,在重新启动 grain、工作流程和工作程序之后
+/// 客户端通过它们完成任务。
 /// </summary>
 public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -26,7 +26,7 @@ public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncL
         var keeper = _fixture.Client.GetGrain<IDurableTaskAddressGrain>(Guid.NewGuid());
         var worker = _fixture.Client.GetGrain<IDurableTaskAddressGrain>(Guid.NewGuid());
 
-        // The workflow's detached handles address the worker's root tasks, and its result carries the addresses.
+        // 工作流程的控点是处理工人的根本任务,其结果包含地址。
         var workflow = await starter.StartDetachedAsync(worker.GetPrimaryKey()).WithId("workflow").ScheduleAsync(cancellationToken);
         var addresses = await workflow.WaitAsync(Timeout, cancellationToken);
         Assert.Equal(
@@ -35,13 +35,13 @@ public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncL
                 new(worker.GetGrainId(), TaskId.CreateRoot("canceled"))),
             addresses);
 
-        // The keeper receives the addresses in a call and journals them, so its next activation recovers them.
+        // 保管人收到一个电话地址,并日记这些地址,因此下一次启动后收回了这些地址。
         await keeper.StoreAsync(addresses);
         await DeactivateAsync(keeper, cancellationToken);
         Assert.Equal(addresses, await keeper.GetStoredAsync());
         Assert.Equal((DurableTaskStatus.Pending, DurableTaskStatus.Pending), await keeper.PollStoredAsync());
 
-        // A workflow subscribes to a stored task, and the keeper signals one task and cancels the other.
+        // 工作流程订阅存储的任务,而保管人则发出一项任务信号并取消另一项任务。
         var awaiting = await keeper.AwaitStoredAsync().WithId("await").ScheduleAsync(cancellationToken);
         await keeper.SignalAndCancelStoredAsync("released");
 
@@ -76,14 +76,14 @@ public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncL
     }
 }
 
-/// <summary>Runs task address coverage with task and grain state stored in the default JSON journal format.</summary>
+/// <summary>运行任务地址,其覆盖包含任务和 grain 状态,存储在默认的 JSON 日记格式中。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskAddressTests() : DurableTaskAddressTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs task address coverage with task and grain state stored in the Orleans binary journal format.</summary>
+/// <summary>运行任务时包含任务和 grain 状态中存储于 Orleans 双进制日记格式。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

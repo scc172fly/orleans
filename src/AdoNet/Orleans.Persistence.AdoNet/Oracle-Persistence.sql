@@ -1,56 +1,56 @@
--- Apply this script for setup and repeatable upgrades after the shared Main script creates OrleansQuery.
--- Stop all silos using this database before applying it, then restart them to reload the queries.
+-- 在共享主脚本创建 OrleansQuery后应用此脚本设置和重复升级。
+-- 在应用前停止使用此数据库的所有 silos , 然后重新启动以重新装入查询 。
 --
--- The design criteria for this table are:
+-- 本表的设计标准是:
 --
--- 1. It can contain arbitrary content serialized as binary, XML or JSON. These formats
--- are supported to allow one to take advantage of in-storage processing capabilities for
--- these types if required. This should not incur extra cost on storage.
+-- 1. 含有任意内容,其序号为二进制、XML或 JSON。
+-- 支持,以便人们能够利用储存处理能力
+-- 必要时,这些类型不应产生额外的储存费用。
 --
--- 2. The table design should scale with the idea of tens or hundreds (or even more) types
--- of grains that may operate with even hundreds of thousands of grain IDs within each
--- type of a grain.
+-- 2. 表格设计的规模应达到几十或数百(甚至更多)类型的设想
+-- 联 年 月 日 月 日 月 月 日 grains 可能与甚至几十万个 grain 每一
+-- 类型 grain。
 --
--- 3. The table and its associated operations should remain stable. There should not be
--- structural reason for unexpected delays in operations. It should be possible to also
--- insert data reasonably fast without resource contention.
+-- 3. 表格及其相关业务应保持稳定。
+-- 造成业务意外延误的结构性结构原因,应有可能
+-- 以合理的快速度插入数据,不引起资源争议。
 --
--- 4. For reasons in 2. and 3., the index should be as narrow as possible so it fits well in
--- memory and should it require maintenance, isn't resource intensive. For this
--- reason the index is narrow by design (ideally non-clustered). Currently the entity
--- is recognized in the storage by the grain type and its ID, which are unique in Orleans silo.
--- The ID is the grain ID bytes (if string type UTF-8 bytes) and possible extension key as UTF-8
--- bytes concatenated with the ID and then hashed.
+-- 4. 由于2和3中的原因,指数应尽可能缩小范围,以便与
+-- 并且如果需要维护, 资源并不密集。 为此
+-- 指数因设计而缩小(估计非集群)。
+-- 以 grain 类型及其ID在储存中识别,这些 Orleans silo类型和ID是独有的。
+-- ID是 grain ID 字节(如果字符串类型UTF-8 字节)和可能的扩展密钥 UTF-8
+-- 与身份识别符号连接的字节,然后散列。
 --
--- Reason for hashing: Database engines usually limit the length of the column sizes, which
--- would artificially limit the length of IDs or types. Even when within limitations, the
--- index would be thick and consume more memory.
+-- 散列原因:数据库引擎通常限制列长度,
+-- 即使在限制范围内,也
+-- 指数会厚,消耗更多的内存。
 --
--- In the current setup the ID and the type are hashed into two INT type instances, which
--- are made a compound index. When there are no collisions, the index can quickly locate
--- the unique row. Along with the hashed index values, the NVARCHAR(nnn) values are also
--- stored and they are used to prune hash collisions down to only one result row.
+-- 在目前设置的设置中,ID和该类型被散成两个INT型式的情况,
+-- 设定复合索引。当没有碰撞时,该索引可以快速定位
+-- 与散列索引值一起, NVARCHAR(nnn) 值也
+-- 存储后,它们被用来将散列碰撞处理成仅一个结果行。
 --
--- 5. The design leads to duplication in the storage. It is reasonable to assume there will
--- a low number of services with a given service ID operational at any given time. Or that
--- compared to the number of grain IDs, there are a fairly low number of different types of
--- grain. The catch is that were these data separated to another table, it would make INSERT
--- and UPDATE operations complicated and would require joins, temporary variables and additional
--- indexes or some combinations of them to make it work. It looks like fitting strategy
--- could be to use table compression.
+-- 5. 设计设计导致储存重复,有理由认为会
+-- 具有特定服务标识的服务数量少,在任何特定时间都可运行。
+-- 与 grain ID的数量相比,不同类型身份证的数目相对较少
+-- grain. 捕获量是,如果这些数据被分离到另一个表格中,它就会使INSTERT
+-- 以及最新业务复杂,需要合并、临时变数和额外
+-- 或一些组合的指数来使其发挥作用。 它看起来像是合适的策略
+-- 可以是使用压缩表格。
 --
--- 6. For the aforementioned reasons, grain state DELETE will set NULL to the data fields
--- and updates the Version number normally. This should alleviate the need for index or
--- statistics maintenance with the loss of some bytes of storage space. The table can be scrubbed
--- in a separate maintenance operation.
+-- 6. 出于上述原因, grain 州DDELETE将设置数据字段的NULL
+-- 并通常更新版本号。这将减轻索引或索引的需要。
+-- 统计维持数据,损失一些储存空间。
+-- 单独维修操作。
 --
--- 7. In the storage operations queries the columns need to be in the exact same order
--- since the storage table operations support optionally streaming.
+-- 7. 在储存业务中,各栏的查询顺序必须完全相同
+-- 自存储表操作支持可选流以来。
 --
--- 8. The next Version wraps from 2147483647 back to 1 so a frequently written grain never overflows
--- the 32-bit Version. Orleans compares versions only for equality, so the version must change on
--- every write but does not need to increase forever. A stale version can only match again after
--- 2147483647 further writes to the same grain.
+-- 8. 下一份版本的封号从214748364747回折到1,因此经常写 grain ,从不溢出
+-- 32位数版本。 Orleans 比较版本时,只对等值进行比较,因此版本必须更改
+-- 每一个写入都不需要永久增加, 但不需要永远增加。 版本的旧文本只能在
+-- 2147483647 进一步写到同一份 grain。
 DECLARE
     objectCount NUMBER;
 BEGIN
@@ -109,25 +109,25 @@ CREATE OR REPLACE FUNCTION WriteToStorage(PARAM_GRAINIDHASH IN NUMBER, PARAM_GRA
   newGrainStateVersion NUMBER := PARAM_GRAINSTATEVERSION;
   PRAGMA AUTONOMOUS_TRANSACTION;
   BEGIN
-    -- When Orleans is running in normal, non-split state, there will
-    -- be only one grain with the given ID and type combination only. This
-    -- grain saves states mostly serially if Orleans guarantees are upheld. Even
-    -- if not, the updates should work correctly due to version number.
+    -- 当 Orleans 在正常状态下运行时,如果该状态不分裂,将
+    -- 只有一个 grain ,只有给定的ID和类型组合。此
+    -- grain 如果 Orleans 保证得到坚持,则主要以序列形式保存国家。
+    -- 如果不是,由于版本号,更新应正确工作。
     --
-    -- In split brain situations there can be a situation where there are two or more
-    -- grains with the given ID and type combination. When they try to INSERT
-    -- concurrently, the table needs to be locked pessimistically before one of
-    -- the grains gets @GrainStateVersion = 1 in return and the other grains will fail
-    -- to update storage. The following arrangement is made to reduce locking in normal operation.
+    -- 在分裂的大脑情况下,可能出现两种或两种以上的情况
+    -- 与给定的ID和类型组合grains 。当他们尝试 INSERT 时
+    -- 同时,表格需要以悲观的方式锁在
+    -- grains 得到 @GrainStateVersion = 1 回报,而另一个 grains 将失败
+    -- 以更新存储。以下安排是为了减少正常操作中的锁定。
     --
-    -- If the version number explicitly returned is still the same, Orleans interprets it so the update did not succeed
-    -- and throws an InconsistentStateException.
+    -- 如果明确返回的版本号仍然相同, Orleans 解释其内容,更新没有成功
+    -- 抛下一箭, InconsistentStateException.
     --
-    -- See further information at https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence.
+    -- 见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence中的进一步资料。
 
 
-    -- If the @GrainStateVersion is not zero, this branch assumes it exists in this database.
-    -- The NULL value is supplied by Orleans when the state is new.
+    -- 如果 @GrainStateVersion 不是零,则该分支假定它存在于数据库中。
+    -- 当状态是新时,NULL值由 Orleans 提供。
     IF newGrainStateVersion IS NOT NULL THEN
         UPDATE OrleansStorage
         SET
@@ -153,8 +153,8 @@ CREATE OR REPLACE FUNCTION WriteToStorage(PARAM_GRAINIDHASH IN NUMBER, PARAM_GRA
     END IF;
     END IF;
 
-    -- The grain state has not been read. The following locks rather pessimistically
-    -- to ensure only one INSERT succeeds.
+    -- grain 状态尚未读取。 以下锁的锁定相当悲观
+    -- 确保只有一次国家清单专家审评组成功。
     IF PARAM_GRAINSTATEVERSION IS NULL THEN
         INSERT INTO OrleansStorage
         (
@@ -182,7 +182,7 @@ CREATE OR REPLACE FUNCTION WriteToStorage(PARAM_GRAINIDHASH IN NUMBER, PARAM_GRA
             1 FROM DUAL
          WHERE NOT EXISTS
          (
-            -- There should not be any version of this grain state.
+            -- 不应有任何版本的 grain 状态。
             SELECT 1
             FROM OrleansStorage
             WHERE
@@ -298,7 +298,7 @@ WHEN MATCHED THEN UPDATE SET target.QueryText = source.QueryText
 WHEN NOT MATCHED THEN INSERT (QueryKey, QueryText) VALUES (source.QueryKey, source.QueryText);
 /
 
--- Normalize oversized versions while preserving their payloads.
+-- 将超大型版本正常化,同时保存其有效载荷。
 UPDATE ORLEANSSTORAGE
 SET VERSION = MOD(VERSION - 1, 2147483647) + 1
 WHERE VERSION > 2147483647;

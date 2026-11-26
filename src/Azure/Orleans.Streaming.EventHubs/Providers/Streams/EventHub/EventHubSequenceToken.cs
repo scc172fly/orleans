@@ -8,54 +8,54 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Location of a message within an EventHub partition
+    /// EventHub 分区内信件位置
     /// </summary>
     public interface IEventHubPartitionLocation
     {
         /// <summary>
-        /// Offset of the message within an EventHub partition
+        /// EventHub 分区内信件的偏移
         /// </summary>
         string EventHubOffset { get; }
 
         /// <summary>
-        /// EventHub sequence id of the message
+        /// 信件EventHub 序列序列代号
         /// </summary>
         long SequenceNumber { get; }
     }
 
     /// <summary>
-    /// Event Hub messages consist of a batch of application layer events, so EventHub tokens contain three pieces of information.
-    /// EventHubOffset - this is a unique value per partition that is used to start reading from this message in the partition.
-    /// SequenceNumber - EventHub sequence numbers are unique ordered message IDs for messages within a partition.  
-    ///   The SequenceNumber is required for uniqueness and ordering of EventHub messages within a partition.
-    /// event Index - Since each EventHub message may contain more than one application layer event, this value
-    ///   indicates which application layer event this token is for, within an EventHub message.  It is required for uniqueness
-    ///   and ordering of application layer events within an EventHub message.
+    /// 事件枢纽信息包含一系列应用层事件, 所以 EventHub 符号包含三条信息 。
+    /// EventHubOffset - - 这是用于从分区中读取此信件的每个分区的独特值 。
+    /// SequenceNumber - EventHub 序列号是分隔段内信件的唯一有顺序的信件代号。  
+    ///   下 SequenceNumber 独特性和顺序要求 EventHub 分区内的信件。
+    /// 索引 - 由于每条 EventHub 电文可能包含一个以上的应用程序层事件,因此此值
+    ///   指定此符号的应用程序层事件, 在 EventHub 信息的独特性要求
+    ///   并在 EventHub 电文中命令应用层事件。
     /// </summary>
     /// <remarks>
-    /// Event Hub token versions and subclasses which explicitly select the Event Hubs
-    /// compatibility domain compare using the Event Hubs sequence number and event index.
-    /// During recovery, Orleans interprets exact <see cref="EventSequenceToken"/> positions from
-    /// the earlier inherited event-token factory in this provider's sequence-number space.
-    /// Delivered event tokens preserve their concrete type and Event Hubs offset.
+    /// 事件 Hub 代号版本和子类,它们明确选择事件枢纽
+    /// 使用事件枢纽序列编号和事件索引比较兼容域。
+    /// 在恢复过程中, Orleans 解释的 <see cref="EventSequenceToken"/> 职位精确值
+    /// 先前继承的事故发生工厂 位于供应商序列编号空间
+    /// 交付的活动标志保留其具体类型和事件枢纽
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public class EventHubSequenceToken : EventSequenceToken, IEventHubPartitionLocation
     {
         /// <summary>
-        /// Offset of the message within an EventHub partition
+        /// EventHub 分区内信件的偏移
         /// </summary>
         [Id(0)]
         [JsonProperty]
         public string EventHubOffset { get; } = null!;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventHubSequenceToken" /> class.
+        /// 初始化 <see cref="EventHubSequenceToken" /> 类的新实例。
         /// </summary>
-        /// <param name="eventHubOffset">EventHub offset within the partition from which this message came.</param>
-        /// <param name="sequenceNumber">EventHub sequenceNumber for this message.</param>
-        /// <param name="eventIndex">Index into a batch of events, if multiple events were delivered within a single EventHub message.</param>
+        /// <param name="eventHubOffset">EventHub ,在信件所在的分区内进行抵消。</param>
+        /// <param name="sequenceNumber">EventHub sequenceNumber 用于此消息 。</param>
+        /// <param name="eventIndex">如果在一个单一的单位内交付了多个事件,则将指数转换成一系列活动, EventHub 信息。</param>
         public EventHubSequenceToken(string eventHubOffset, long sequenceNumber, int eventIndex)
             : base(sequenceNumber, eventIndex)
         {
@@ -63,10 +63,10 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventHubSequenceToken" /> class.
+        /// 初始化 <see cref="EventHubSequenceToken" /> 类的新实例。
         /// </summary>
         /// <remarks>
-        /// This constructor is exposed for serializer use only.
+        /// 此构建器仅暴露于序列器使用。
         /// </remarks>
         public EventHubSequenceToken() : base()
         {
@@ -84,8 +84,8 @@ namespace Orleans.Streaming.EventHubs
             if (token.GetType() == typeof(EventSequenceToken)
                 && SequenceTokenCompatibilityDomain == typeof(EventHubSequenceToken))
             {
-                // The former inherited factory persisted the position without the offset.
-                // Empty offsets also identify sequence-only tokens produced by EventHubDataAdapter.
+                // 前继承的工厂在未补缺的情况下维持原厂。
+                // 空偏移还指定 EventHubDataAdapter产生的单序标牌。
                 return new EventHubSequenceToken(string.Empty, token.SequenceNumber, token.EventIndex);
             }
 
@@ -121,8 +121,8 @@ namespace Orleans.Streaming.EventHubs
         /// <inheritdoc />
         public override int GetHashCode() => HashCode.Combine(SequenceNumber, EventIndex);
 
-        /// <summary>Returns a string that represents the current object.</summary>
-        /// <returns>A string that represents the current object.</returns>
+        /// <summary>返回一个代表当前对象的字符串。</summary>
+        /// <returns>一个代表当前对象的字符串。</returns>
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {

@@ -7,29 +7,29 @@ using Orleans.Runtime;
 namespace Orleans.Placement;
 
 /// <summary>
-/// Represents a strategy for filtering silos which a grain can be placed on.
+/// 表示过滤 silos 的战略,可以安装一个 grain 。
 /// </summary>
 public abstract class PlacementFilterStrategy
 {
     /// <summary>
-    /// Gets the order in which this filter is applied relative to other placement filters.
+    /// 获得这个过滤器相对于其他放置过滤器应用的顺序。
     /// </summary>
     public int Order { get; private set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PlacementFilterStrategy"/> class.
+    /// 初始化 <see cref="PlacementFilterStrategy"/> 类的新实例。
     /// </summary>
-    /// <param name="order">The order in which this filter is applied relative to other placement filters.</param>
+    /// <param name="order">相对于其他放置过滤器应用此过滤器的顺序。</param>
     protected PlacementFilterStrategy(int order)
     {
         Order = order;
     }
 
     /// <summary>
-    /// Initializes an instance of this type using the provided grain properties.
+    /// 使用所提供的 grain 属性初始化这种类型的实例。
     /// </summary>
     /// <param name="properties">
-    /// The grain properties.
+    /// grain 属性。
     /// </param>
     public void Initialize(GrainProperties properties)
     {
@@ -45,20 +45,20 @@ public abstract class PlacementFilterStrategy
     }
 
     /// <summary>
-    /// Initializes strategy-specific state using the provided grain properties.
+    /// 使用所提供的 grain 属性,初始化特定战略状态。
     /// </summary>
-    /// <param name="properties">The grain properties.</param>
+    /// <param name="properties"> grain 属性。</param>
     public virtual void AdditionalInitialize(GrainProperties properties)
     {
     }
 
     /// <summary>
-    /// Populates grain properties to specify the preferred placement strategy.
+    /// 弹出 grain 属性以指定首选安插策略。
     /// </summary>
-    /// <param name="services">The service provider.</param>
-    /// <param name="grainClass">The grain class.</param>
-    /// <param name="grainType">The grain type.</param>
-    /// <param name="properties">The grain properties which will be populated by this method call.</param>
+    /// <param name="services">服务供应商。</param>
+    /// <param name="grainClass"> grain 类。</param>
+    /// <param name="grainType"> grain 类型。</param>
+    /// <param name="properties">将使用此方法调用来填充的 grain 属性。</param>
     public void PopulateGrainProperties(IServiceProvider services, Type grainClass, GrainType grainType, Dictionary<string, string> properties)
     {
         var typeName = GetType().Name;
@@ -80,11 +80,11 @@ public abstract class PlacementFilterStrategy
     }
 
     /// <summary>
-    /// Gets a property for this placement filter strategy.
+    /// 获取用于此放置过滤策略的属性 。
     /// </summary>
-    /// <param name="key">The strategy-specific property key.</param>
-    /// <param name="properties">The grain properties.</param>
-    /// <returns>The property value, or <see langword="null"/> if the property is not present.</returns>
+    /// <param name="key">特定财产战略关键部分。</param>
+    /// <param name="properties"> grain 属性。</param>
+    /// <returns>财产价值,或 <see langword="null"/> 如果财产不存在。</returns>
     protected string? GetPlacementFilterGrainProperty(string key, GrainProperties properties)
     {
         var typeName = GetType().Name;
@@ -92,13 +92,13 @@ public abstract class PlacementFilterStrategy
     }
 
     /// <summary>
-    /// Gets the strategy-specific grain properties to populate.
+    /// 获取战略特定 grain 属性以弹出。
     /// </summary>
-    /// <param name="services">The service provider.</param>
-    /// <param name="grainClass">The grain class.</param>
-    /// <param name="grainType">The grain type.</param>
-    /// <param name="existingProperties">The grain properties populated so far.</param>
-    /// <returns>The strategy-specific grain properties.</returns>
+    /// <param name="services">服务供应商。</param>
+    /// <param name="grainClass"> grain 类。</param>
+    /// <param name="grainType"> grain 类型。</param>
+    /// <param name="existingProperties">下 grain 至今人口密集的地产。</param>
+    /// <returns>具体战略 grain 属性。</returns>
     protected virtual IEnumerable<KeyValuePair<string, string>> GetAdditionalGrainProperties(IServiceProvider services, Type grainClass, GrainType grainType, IReadOnlyDictionary<string, string> existingProperties)
         => Array.Empty<KeyValuePair<string, string>>();
 }

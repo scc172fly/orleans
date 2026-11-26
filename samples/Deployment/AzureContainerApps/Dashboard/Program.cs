@@ -38,7 +38,7 @@ builder.Host.UseOrleans(siloBuilder =>
                     : true);
 });
 
-// uncomment this if you dont mind hosting grains in the dashboard
+// 如果您不介意在仪表板中主机 grains , 请取消此附加
 builder.Services.DontHostGrainsHere();
 
 var app = builder.Build();

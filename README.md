@@ -1,5 +1,5 @@
 <p align="center">
-  <image src="assets/logo_full.png" alt="Orleans logo" width="600px">
+  <image src="assets/logo_full.png" alt="Orleans 标志" width="600px">
 </p>
 
 [![NuGet](https://img.shields.io/nuget/v/Microsoft.Orleans.Core.svg?style=flat)](http://www.nuget.org/profiles/Orleans)
@@ -7,35 +7,39 @@
 
 [![Discord](https://discordapp.com/api/guilds/333727978460676096/widget.png?style=banner2)](https://aka.ms/orleans-discord)
 
-### Orleans is a cross-platform framework for building robust, scalable distributed applications
+<a id="orleans-is-a-cross-platform-framework-for-building-robust-scalable-distributed-applications"></a>
 
-Orleans builds on the developer productivity of .NET and brings it to the world of distributed applications, such as cloud services. Orleans scales from a single on-premises server to globally distributed, highly-available applications in the cloud.
+### Orleans 是用于构建可靠、可伸缩的分布式应用的跨平台框架
 
-Orleans takes familiar concepts like objects, interfaces, async/await, and try/catch and extends them to multi-server environments. As such, it helps developers experienced with single-server applications transition to building resilient, scalable cloud services and other distributed applications. For this reason, Orleans has often been referred to as "Distributed .NET".
+Orleans 将 .NET 的开发效率带到云服务等分布式应用中。应用可以从单台本地服务器扩展到在全球云环境中运行的高可用系统。
 
-It was created by [Microsoft Research](http://research.microsoft.com/projects/orleans/) and introduced the [Virtual Actor Model](https://www.microsoft.com/en-us/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/) as a novel approach to building a new generation of distributed systems for the Cloud era. The core contribution of Orleans is its programming model which tames the complexity inherent to highly-parallel distributed systems without restricting capabilities or imposing onerous constraints on the developer.
+Orleans 将对象、接口、`async`/`await` 和 `try`/`catch` 等熟悉的概念扩展到多服务器环境。习惯开发单服务器应用的开发者可以借此构建具备弹性和可伸缩性的云服务及其他分布式应用。因此，Orleans 常被称为“分布式 .NET”。
+
+Orleans 由 [Microsoft Research](http://research.microsoft.com/projects/orleans/) 创建，引入了[虚拟 Actor 模型](https://www.microsoft.com/en-us/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/)，为云时代的新一代分布式系统提供了一种构建方法。它的核心贡献是这套编程模型。该模型降低了高并行分布式系统固有的复杂性，同时保留了开发者所需的能力和灵活性。
 
 ## Grains
 
-![A grain is composed of a stable identity, behavior, and state](assets/grain_formulation.svg)
+![Grain 由稳定的标识、行为和状态组成](assets/grain_formulation.svg)
 
-The fundamental building block in any Orleans application is a *grain*. Grains are entities comprising user-defined identity, behavior, and state. Grain identities are user-defined keys which make Grains always available for invocation. Grains can be invoked by other grains or by external clients such as Web frontends, via strongly-typed communication interfaces (contracts). Each grain is an instance of a class which implements one or more of these interfaces.
+任何 Orleans 应用的基本构建单元都是 *Grain*。每个 Grain 都有用户定义的标识、行为和状态。用户定义的键用作 Grain 的标识，使其始终可以通过该标识被调用。其他 Grain 或 Web 前端等外部客户端可通过强类型通信接口（契约）调用 Grain。每个 Grain 都是实现一个或多个此类接口的类的实例。
 
-Grains can have volatile and/or persistent state that can be stored in any storage system. As such, grains implicitly partition application state, enabling automatic scalability and simplifying recovery from failures. Grain state is kept in memory while the grain is active, leading to lower latency and less load on data stores.
+Grain 可以拥有易失状态、持久状态，或同时拥有两者。持久状态可以保存在任意存储系统中。Grain 以这种方式隐式地对应用状态分区，支持自动扩展，并简化故障恢复。Grain 激活期间，其状态保留在内存中，从而降低延迟以及存储系统的负载。
 
 <p align="center">
-  <image src="assets/managed_lifecycle.svg" alt="A diagram showing the managed lifecycle of a grain">
+  <image src="assets/managed_lifecycle.svg" alt="Grain 的托管生命周期示意图">
 </p>
 
-Instantiation of grains is automatically performed on demand by the Orleans runtime. Grains which are not used for a while are automatically removed from memory to free up resources. This is possible because of their stable identity, which allows invoking grains whether they are already loaded into memory or not. This also allows for transparent recovery from failure because the caller does not need to know on which server a grain is instantiated on at any point in time. Grains have a managed lifecycle, with the Orleans runtime responsible for activating/deactivating, and placing/locating grains as needed. This allows the developer to write code as if all grains were always in-memory.
+Orleans 运行时按需创建 Grain 实例，并自动将一段时间未使用的 Grain 从内存中移除以释放资源。由于 Grain 具有稳定的标识，无论实例当前是否在内存中，都可以通过该标识调用它。故障恢复也因此对调用方透明，调用方无需知道 Grain 实例位于哪台服务器。Orleans 运行时负责管理 Grain 的生命周期，按需激活、停用、放置和定位 Grain，让开发者可以像所有 Grain 都驻留在内存中一样编写代码。
 
-Taken together, the stable identity, statefulness, and managed lifecycle of Grains are core factors that make systems built on Orleans scalable, performant, &amp; reliable without forcing developers to write complex distributed systems code.
+稳定的标识、有状态性以及托管生命周期，使基于 Orleans 构建的系统具备可伸缩性、高性能和可靠性，也免去了开发者手写复杂分布式系统代码的负担。
 
-### Example: IoT cloud backend
+<a id="example-iot-cloud-backend"></a>
 
-Consider a cloud backend for an [Internet of Things](https://en.wikipedia.org/wiki/Internet_of_things) system. This application needs to process incoming device data, filter, aggregate, and process this information, and enable sending commands to devices. In Orleans, it is natural to model each device with a grain which becomes a *digital twin* of the physical device it corresponds to. These grains keep the latest device data in memory, so that they can be quickly queried and processed without the need to communicate with the physical device directly. By observing streams of time-series data from the device, the grain can detect changes in conditions, such as measurements exceeding a threshold, and trigger an action.
+### 示例：物联网云后端
 
-A simple thermostat could be modeled as follows:
+以[物联网](https://en.wikipedia.org/wiki/Internet_of_things)系统的云后端为例。该应用接收设备数据，对其进行筛选、聚合和处理，并向设备发送命令。在 Orleans 中，可以为每台设备建模一个 Grain，作为对应实体设备的*数字孪生*。这些 Grain 在内存中保存最新的设备数据，因此无需直接与实体设备通信即可快速查询和处理数据。Grain 可以观察设备发来的时序数据流，检测测量值超过阈值等变化，并触发相应操作。
+
+一个简单的恒温器可以建模如下：
 
 ```csharp
 public interface IThermostat : IGrainWithStringKey
@@ -44,14 +48,14 @@ public interface IThermostat : IGrainWithStringKey
 }
 ```
 
-Events arriving from the thermostat from a Web frontend can be sent to its grain by invoking the `OnUpdate` method which optionally returns a command back to the device.
+Web 前端收到恒温器事件后，可以调用对应 Grain 的 `OnUpdate` 方法。该方法可以返回需要发送给设备的命令。
 
 ```csharp
 var thermostat = client.GetGrain<IThermostat>(id);
 return await thermostat.OnUpdate(update);
 ```
 
-The same thermostat grain can implement a separate interface for control systems to interact with:
+同一个恒温器 Grain 可以实现独立的接口，供控制系统交互：
 
 ```csharp
 public interface IThermostatControl : IGrainWithStringKey
@@ -62,7 +66,7 @@ public interface IThermostatControl : IGrainWithStringKey
 }
 ```
 
-These two interfaces (`IThermostat` and `IThermostatControl`) are implemented by a single implementation class:
+同一个类实现这两个接口（`IThermostat` 和 `IThermostatControl`）：
 
 ```csharp
 public class ThermostatGrain : Grain, IThermostat, IThermostatControl
@@ -88,101 +92,137 @@ public class ThermostatGrain : Grain, IThermostat, IThermostatControl
 }
 ```
 
-The `Grain` class above does not persist its state. A more thorough example demonstrating state persistence is available in the docs, for more information see [Microsoft Orleans: Grain Persistence](https://dotnet.github.io/orleans/docs/grains/grain-persistence/).
+上面的 `Grain` 类未持久化状态。完整的状态持久化示例见 [Microsoft Orleans：Grain 持久化](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)。
 
-## Orleans runtime
+<a id="orleans-runtime"></a>
 
-The Orleans runtime is what implements the programming model for applications. The main component of the runtime is the *silo*, which is responsible for hosting grains. Typically, a group of silos run as a cluster for scalability and fault-tolerance. When run as a cluster, silos coordinate with each other to distribute work, detect and recover from failures. The runtime enables grains hosted in the cluster to communicate with each other as if they are within a single process.
+## Orleans 运行时
 
-In addition to the core programming model, the silo provides grains with a set of runtime services, such as timers, reminders (persistent timers), persistence, transactions, streams, and more. See the [features section](#features) below for more detail.
+Orleans 运行时实现了应用编程模型。运行时的主要组件是 *Silo*，负责托管 Grain。通常多个 Silo 组成集群，以支持扩展和容错。在集群中，Silo 相互协调以分配工作、检测故障并执行恢复。运行时让集群中的 Grain 能像位于同一个进程中一样通信。
 
-Web frontends and other external clients call grains in the cluster using the client library which automatically manages network communication. Clients can also be co-hosted in the same process with silos for simplicity.
+除核心编程模型外，Silo 还向 Grain 提供计时器、提醒（持久化计时器）、持久化、事务和流等运行时服务。详情见下方的[功能](#features)。
 
-Orleans is compatible with .NET Standard 2.0 and above, running on Windows, Linux, and macOS, in full .NET Framework or .NET Core.
+Web 前端及其他外部客户端通过客户端库调用集群中的 Grain，由客户端库自动管理网络通信。客户端也可以和 Silo 托管在同一进程中，以简化部署。
 
-## Features
+Orleans 兼容 .NET Standard 2.0 及以上版本，可在 Windows、Linux 和 macOS 上运行，并支持完整的 .NET Framework 或 .NET Core。
 
-Orleans is a feature-rich framework. It provides a set of services that enable the development of distributed systems. The following sections describe the features of Orleans.
+<a id="features"></a>
 
-### Persistence
+## 功能
 
-Orleans provides a simple persistence model which ensures that state is available to a grain before requests are processed and that consistency is maintained. Grains can have multiple named persistent data objects, for example, one called "profile" for a user's profile and one called "inventory" for their inventory. This state can be stored in any storage system. For example, profile data may be stored in one database and inventory in another. While a grain is running, this state is kept in memory so that read requests can be served without accessing storage. When the grain updates its state, a `state.WriteStateAsync()` call ensures that the backing store is updated for durability and consistency. For more information see [Microsoft Orleans: Grain Persistence](https://dotnet.github.io/orleans/docs/grains/grain-persistence/).
+Orleans 提供了一系列用于开发分布式系统的服务，下面逐一介绍。
 
-### Distributed ACID transactions
+<a id="persistence"></a>
 
-In addition to the simple persistence model described above, grains can have *transactional state*. Multiple grains can participate in [ACID](https://en.wikipedia.org/wiki/ACID) transactions together regardless of where their state is ultimately stored. Transactions in Orleans are distributed and decentralized (there is no central transaction manager or transaction coordinator) and have [serializable isolation](https://en.wikipedia.org/wiki/Isolation_(database_systems)#Isolation_levels). For more information, see the [Microsoft Orleans: Transactions](https://dotnet.github.io/orleans/docs/grains/transactions/).
+### 持久化
 
-### Streams
+Orleans 提供简单的持久化模型，确保 Grain 在处理请求前可以读取状态，并维持状态一致性。一个 Grain 可拥有多个具名的持久化数据对象，例如用 “profile” 保存用户资料、用 “inventory” 保存物品清单。这些状态可保存在任意存储系统中，也可分别放在不同的数据库中。Grain 运行期间，状态保存在内存中，读取请求无需访问存储系统。Grain 更新状态后，可以调用 `state.WriteStateAsync()` 来更新后端存储，保证持久性和一致性。详情见 [Microsoft Orleans：Grain 持久化](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)。
 
-Streams help developers to process series of data items in near-real time. Streams in Orleans are *managed*: streams do not need to be created or registered before a grain or client publishes to a stream or subscribes to a stream. This allows for greater decoupling of stream producers and consumers from each other and from the infrastructure. Stream processing is reliable: grains can store checkpoints (cursors) and reset to a stored checkpoint during activation or at any point afterwards.
+<a id="distributed-acid-transactions"></a>
 
-Streams supports batch delivery of messages to consumers to improve efficiency and recovery performance.
-Streams are backed by queueing services such as Azure Event Hubs, Amazon Kinesis, and others. An arbitrary number of streams can be multiplexed onto a smaller number of queues and the responsibility for processing these queues is balanced evenly across the cluster.
+### 分布式 ACID 事务
 
-### Timers &amp; reminders
+除了上述简单持久化模型，Grain 还可以拥有*事务状态*。无论状态最终存放在哪里，多个 Grain 均可参与同一个 [ACID](https://en.wikipedia.org/wiki/ACID) 事务。Orleans 事务采用分布式、去中心化设计（没有中央事务管理器或协调器），并提供[可串行化隔离](https://en.wikipedia.org/wiki/Isolation_(database_systems)#Isolation_levels)。详情见 [Microsoft Orleans：事务](https://dotnet.github.io/orleans/docs/grains/transactions/)。
 
-Reminders are a durable scheduling mechanism for grains. They can be used to ensure that some action is completed at a future point even if the grain is not currently activated at that time. Timers are the non-durable counterpart and can be used for high-frequency events which do not require reliability. For more information, see [Microsoft Orleans: Timers and reminders](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/).
+<a id="streams"></a>
 
-### Flexible grain placement
+### 流
 
-When a grain is activated in Orleans, the runtime decides which server (silo) to activate that grain on. This is called grain placement. The placement process in Orleans is fully configurable: developers can choose from a set of out-of-the-box placement policies such as random, prefer-local, and load-based, or custom logic can be configured. This allows for full flexibility in deciding where grains are created. For example, grains can be placed on a server close to resources which they need to operate on or other grains which they communicate with.
+流帮助开发者近实时地处理一系列数据项。Orleans 中的流由运行时*托管*，Grain 或客户端可直接向流发布数据或订阅流，无需预先创建或注册。这样可以进一步解耦生产者、消费者与基础设施。流处理支持可靠恢复，Grain 可以保存检查点（游标），并在激活时或此后的任意时间恢复到该检查点。
 
-### Grain versioning &amp; heterogeneous clusters
+流支持批量向消费者投递消息，以提高处理效率和恢复性能。
+流由 Azure Event Hubs、Amazon Kinesis 等队列服务提供支持。任意数量的流可以复用到较少的队列上，处理队列的职责均匀分配给集群中的节点。
 
-Application code evolves over time and upgrading live, production systems in a manner which safely accounts for these changes can be challenging, particularly in stateful systems. Grain interfaces in Orleans can be optionally versioned. The cluster maintains a mapping of which grain implementations are available on which silos in the cluster and the versions of those implementations. This version information is used by the runtime in conjunction with placement strategies to make placement decisions when routing calls to grains. In addition to safe update of versioned grains, this also enables heterogeneous clusters, where different silos have different sets of grain implementations available. For more information, see [Microsoft Orleans: Grain interface versioning](https://dotnet.github.io/orleans/docs/grains/grain-versioning/grain-versioning/).
+<a id="timers-amp-reminders"></a>
 
-### Elastic scalability &amp; fault tolerance
+### 计时器与提醒
 
-Orleans is designed to scale elastically. When a silo joins a cluster it is able to accept new activations and when a silo leaves the cluster (either because of scale down or a machine failure) the grains which were activated on that silo will be re-activated on remaining silos as needed. An Orleans cluster can be scaled down to a single silo. The same properties which enable elastic scalability also enable fault tolerance: the cluster automatically detects and quickly recovers from failures.
+提醒是 Grain 的持久化调度机制，可用于在将来的时间点执行操作，即使届时 Grain 尚未激活。计时器是相应的非持久化机制，适用于无需可靠性保证的高频事件。详情见 [Microsoft Orleans：计时器与提醒](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)。
 
-### Run anywhere
+<a id="flexible-grain-placement"></a>
 
-Orleans runs anywhere that .NET Core or .NET Framework are supported. This includes hosting on Linux, Windows, and macOS and deploying to Kubernetes, virtual or physical machines, on premises or in the cloud, and PaaS services such as Azure Container Apps, Azure App Service, and Azure Kubernetes Service.
+### 灵活的 Grain 放置策略
 
-### Stateless workers
+Orleans 激活 Grain 时，运行时会决定在哪台服务器（Silo）上激活它，这称为 Grain 放置。放置过程完全可配置。开发者可使用随机、优先本地、基于负载等内置策略，也可配置自定义逻辑。例如，可以将 Grain 放置在靠近它要访问的资源或要通信的其他 Grain 的服务器上。
 
-Stateless workers are specially marked grains which do not have any associated state and can be activated on multiple silos simultaneously. This enables increased parallelism for stateless functions. For more information, see [Microsoft Orleans: Stateless worker grains](https://dotnet.github.io/orleans/docs/grains/stateless-worker-grains/) documentation.
+<a id="grain-versioning-amp-heterogeneous-clusters"></a>
 
-### Grain call filters
+### Grain 版本控制与异构集群
 
-Logic which is common to many grains can be expressed as [an interceptor, or Grain call filter](https://dotnet.github.io/orleans/docs/grains/interceptors/). Orleans supports filters for both incoming and outgoing calls. Some common use-cases of filters are: authorization, logging and telemetry, and error handling.
+应用代码会不断演进，如何安全地在运行中的生产系统中部署变更是一个挑战，对有状态系统尤其如此。Orleans 支持按需为 Grain 接口设置版本。集群维护每个 Silo 所提供的 Grain 实现及其版本的映射。运行时在路由调用时结合版本信息和放置策略作出选择。这既支持安全升级带版本的 Grain，也允许异构集群中不同 Silo 提供不同的 Grain 实现。详情见 [Microsoft Orleans：Grain 接口版本控制](https://dotnet.github.io/orleans/docs/grains/grain-versioning/grain-versioning/)。
 
-### Request context
+<a id="elastic-scalability-amp-fault-tolerance"></a>
 
-Metadata and other information can be passed along a series of requests using [request context](https://dotnet.github.io/orleans/docs/grains/request-context/). Request context can be used for holding distributed tracing information or any other user-defined values.
+### 弹性伸缩与容错
 
-## Documentation
+Orleans 支持弹性伸缩。Silo 加入集群时即可承接新的激活。Silo 因缩容或机器故障退出集群时，原先在该 Silo 上激活的 Grain 会按需在其他 Silo 上重新激活。Orleans 集群可缩容至单个 Silo。实现弹性伸缩的机制也支持容错，集群能够自动检测故障并快速恢复。
 
-The official documentation for Microsoft Orleans is available at <https://dotnet.github.io/orleans/docs/>.
+<a id="run-anywhere"></a>
 
-## [Samples](./samples/#readme)
+### 运行环境
 
-A variety of samples are available in the official [.NET Samples Browser](https://docs.microsoft.com/samples/browse/?terms=orleans).
+Orleans 可以在支持 .NET Core 或 .NET Framework 的环境中运行。它可托管在 Linux、Windows 和 macOS 上，也可部署到 Kubernetes、虚拟机或物理机、本地或云环境，以及 Azure Container Apps、Azure App Service 和 Azure Kubernetes Service 等 PaaS 服务。
 
-## Get started
+<a id="stateless-workers"></a>
 
-Please see the [Orleans Hello World quickstart](https://dotnet.github.io/orleans/docs/tutorials-and-samples/hello-world/).
+### 无状态工作 Grain
 
-### Building
+无状态工作 Grain 带有专门的标记，无关联状态，可以同时在多个 Silo 上激活，从而提高无状态函数的并行度。详情见 [Microsoft Orleans：无状态工作 Grain](https://dotnet.github.io/orleans/docs/grains/stateless-worker-grains/)。
 
-For contributor prerequisites, building, testing, and using local source projects, see the [contributing guide](CONTRIBUTING.md).
+<a id="grain-call-filters"></a>
 
-To build the solution directly, run `dotnet build Orleans.slnx -bl`. On Windows, `Build.cmd` also packs the solution and places packages in `Artifacts/<Configuration>`.
+### Grain 调用筛选器
 
-## Official builds
+多个 Grain 共用的逻辑可写成[拦截器，也称 Grain 调用筛选器](https://dotnet.github.io/orleans/docs/grains/interceptors/)。Orleans 支持对传入和传出的调用使用筛选器，常见用途包括授权、日志与遥测以及错误处理。
 
-The latest stable, production-quality release is located [here](https://github.com/dotnet/orleans/releases/latest).
+<a id="request-context"></a>
 
-Nightly builds are published to [a NuGet feed](https://pkgs.dev.azure.com/dnceng/public/_packaging/orleans-nightly/nuget/v3/index.json). These builds pass all functional tests, but are not thoroughly tested as the stable builds or pre-release builds published to NuGet.
+### 请求上下文
+
+可以使用[请求上下文](https://dotnet.github.io/orleans/docs/grains/request-context/)在一系列请求中传递元数据和其他信息。请求上下文可携带分布式跟踪信息或其他用户定义的值。
+
+<a id="documentation"></a>
+
+## 文档
+
+请参阅 Microsoft Orleans 官方文档 <https://dotnet.github.io/orleans/docs/>。
+
+<a id="samplessamplesreadme"></a>
+
+## [示例](./samples/#readme)
+
+可在官方 [.NET 示例浏览器](https://docs.microsoft.com/samples/browse/?terms=orleans)中查找更多示例。
+
+<a id="get-started"></a>
+
+## 入门
+
+请参阅 [Orleans Hello World 快速入门](https://dotnet.github.io/orleans/docs/tutorials-and-samples/hello-world/)。
+
+<a id="building"></a>
+
+### 构建
+
+参与贡献所需环境、构建、测试以及使用本地源码项目的方法，请参阅[贡献指南](CONTRIBUTING.md)。
+
+要直接构建解决方案，请运行 `dotnet build Orleans.slnx -bl`。在 Windows 上，`Build.cmd` 还会对解决方案打包，并将包放到 `Artifacts/<Configuration>` 中。
+
+<a id="official-builds"></a>
+
+## 官方构建
+
+请在[发布页面](https://github.com/dotnet/orleans/releases/latest)下载可用于生产环境的最新稳定版本。
+
+每夜构建发布在 [NuGet 源](https://pkgs.dev.azure.com/dnceng/public/_packaging/orleans-nightly/nuget/v3/index.json)上。这些构建通过了全部功能测试，测试覆盖的场景少于发布到 NuGet 的稳定版本和预发行版本。
 
 <details>
 <summary>
-Using the nightly build packages in your project
+在项目中使用每夜构建包
 </summary>
 
-To use nightly builds in your project, add the MyGet feed using either of the following methods:
+要在项目中使用每夜构建，请通过以下任意一种方法添加包源：
 
-1. Changing the .csproj file to include this section:
+1. 修改 `.csproj` 文件，加入以下内容：
 
 ```xml
 <ItemGroup>
@@ -193,9 +233,9 @@ To use nightly builds in your project, add the MyGet feed using either of the fo
 </ItemGroup>
 ```
 
-or
+或者
 
-1. Creating a `NuGet.config` file in the solution directory with the following contents:
+1. 在解决方案目录下创建 `NuGet.config` 文件，内容如下：
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -210,24 +250,30 @@ or
 
 </details>
 
-## Community
+<a id="community"></a>
+
+## 社区
 
 [![Discord](https://discordapp.com/api/guilds/333727978460676096/widget.png?style=banner4)](https://aka.ms/orleans-discord)
     
-* Ask questions by [opening an issue on GitHub](https://github.com/dotnet/orleans/issues) or on [Stack Overflow](https://stackoverflow.com/questions/ask?tags=orleans)
-* [Chat on Discord](https://aka.ms/orleans-discord)
-* Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements.
-* [OrleansContrib - GitHub organization for community add-ons to Orleans](https://github.com/OrleansContrib/) Various community projects, including Monitoring, Design Patterns, Storage Providers, etc.
-* Guidelines for developers wanting to [contribute code changes to Orleans](CONTRIBUTING.md).
-* You are also encouraged to report bugs or start a technical discussion by starting a new [thread](https://github.com/dotnet/orleans/issues) on GitHub.
+* 可通过[在 GitHub 创建 Issue](https://github.com/dotnet/orleans/issues)或在 [Stack Overflow](https://stackoverflow.com/questions/ask?tags=orleans) 上提问。
+* [在 Discord 上交流](https://aka.ms/orleans-discord)。
+* 关注 Twitter 账号 [@msftorleans](https://twitter.com/msftorleans) 获取 Orleans 公告。
+* [OrleansContrib：Orleans 社区扩展的 GitHub 组织](https://github.com/OrleansContrib/)汇集了监控、设计模式、存储提供程序等社区项目。
+* 想参与开发，请参阅[向 Orleans 贡献代码的指南](CONTRIBUTING.md)。
+* 也欢迎在 GitHub 上开启新的[讨论](https://github.com/dotnet/orleans/issues)，报告缺陷或交流技术问题。
 
-## License
+<a id="license"></a>
 
-This project is licensed under the [MIT license](LICENSE).
+## 许可证
 
-## Quick links
+本项目采用 [MIT 许可证](LICENSE)。
 
-* [Microsoft Research project home](http://research.microsoft.com/projects/orleans/)
-* Technical Report: [Distributed Virtual Actors for Programmability and Scalability](http://research.microsoft.com/apps/pubs/default.aspx?id=210931)
-* [Microsoft Orleans: Documentation](https://dotnet.github.io/orleans/docs/)
-* [Contributing](CONTRIBUTING.md)
+<a id="quick-links"></a>
+
+## 常用链接
+
+* [Microsoft Research 项目主页](http://research.microsoft.com/projects/orleans/)
+* 技术报告：[用于可编程性和可伸缩性的分布式虚拟 Actor](http://research.microsoft.com/apps/pubs/default.aspx?id=210931)
+* [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+* [参与贡献](CONTRIBUTING.md)

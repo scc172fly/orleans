@@ -1,40 +1,48 @@
-# Distributed Tests
+<a id="distributed-tests"></a>
 
-The projects in this directory are Crank workloads, not `dotnet test` test
-projects. The repository-level [`distributed-tests.yml`](../../distributed-tests.yml)
-file defines the workloads and scenarios.
+# 分布式测试
 
-## Prerequisites
+本目录中的项目是 刻度工作量, 不是 `dotnet test` 测试
+存储库级别 [`distributed-tests.yml`](../../distributed-tests.yml)
+文件定义工作量和情景。
 
-- Windows. The current Crank configuration launches the Windows app hosts
-  (`DistributedTests.Server.exe` and `DistributedTests.Client.exe`).
-- The .NET SDK selected by the repository's `global.json`.
-- Docker Desktop or another Docker-compatible runtime for
-  [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite),
-  unless you use an Azure Storage account.
-- Ports `5010`, `11111`, and `30000` available locally, plus ports `10000`,
-  `10001`, and `10002` when using Azurite.
+<a id="prerequisites"></a>
 
-Install the [Crank](https://github.com/dotnet/crank) controller and agent using
-the same version:
+## 先决条件
+
+- Windows 。 当前 克朗配置启动 Windows 应用程序主机
+  (`DistributedTests.Server.exe` 和 `DistributedTests.Client.exe`)。
+- 下 .NET SDK 由存储库选择 `global.json`.
+- docker 桌面或另一个与 Dock 兼容的运行时间
+  [紫紫](https://learn.microsoft.com/azure/storage/common/storage-use-azurite),
+  除非使用 Azure 储存账户。
+- 当地可用的港口 `5010`、 `11111`和 `30000` 加上港口 `10000`,
+  `10001`,以及使用Azurite时的 `10002` 。
+
+使用 [响声](https://github.com/dotnet/crank) 控制器和代理安装
+同一版本:
 
 ```powershell
 dotnet tool install --global Microsoft.Crank.Controller --version "0.2.0-*"
 dotnet tool install --global Microsoft.Crank.Agent --version "0.2.0-*"
 ```
 
-If either tool is already installed, replace `install` with `update`.
+如果工具之一已经安装, 则将 `install` 替换为 `update`。
 
-## Run locally
+<a id="run-locally"></a>
 
-Run all commands from the repository root unless stated otherwise.
+## 本地运行本地
 
-### 1. Start Azurite
+除非另有说明, 否则从仓库根运行全部命令 。
 
-The distributed tests use Azure Tables for cluster membership and Azure Queues
-for the control channel required by every scenario. The reliability and rolling
-scenarios also use queues to coordinate their workloads. Start the same Azurite
-version and service endpoints used by CI:
+<a id="1-start-azurite"></a>
+
+### 1. 开始阿祖罗特
+
+分布式测试使用 Azure 表格显示组群成员和 Azure 队列
+每种情况所需的控制频道。
+也使用队列来协调工作量。
+CI使用版本和服务端点:
 
 ```powershell
 docker run --detach --rm --name orleans-distributed-tests-azurite `
@@ -49,58 +57,66 @@ docker run --detach --rm --name orleans-distributed-tests-azurite `
   --skipApiVersionCheck
 ```
 
-The `local` profile passes the loopback queue and table endpoints to each
-workload. Loopback endpoints select Azurite's
-`UseDevelopmentStorage=true` connection string, so no credentials or
-connection string configuration is required.
+`local` 配置文件通过每个回回回的队列和表格端点
+。 循环后端点选择 Azurite 的
+`UseDevelopmentStorage=true` 连接字符串,因此没有证书或
+需要连接字符串配置 。
 
-### 2. Build the workloads
+<a id="2-build-the-workloads"></a>
 
-The Crank configuration defaults to `net10.0` and reads the built applications
-from `Artifacts\DistributedTests`:
+### 2. 工作量的形成
+
+克朗配置默认值为 `net10.0` ,并读取已建应用程序
+`Artifacts\DistributedTests`发自:
 
 ```powershell
 dotnet build test\DistributedTests\DistributedTests.Server\DistributedTests.Server.csproj --configuration Release --framework net10.0
 dotnet build test\DistributedTests\DistributedTests.Client\DistributedTests.Client.csproj --configuration Release --framework net10.0
 ```
 
-Rebuild both projects after changing Orleans or the distributed-test workloads.
+在改变 Orleans 或分配测试工作量之后重建两个项目。
 
-### 3. Start the Crank agent
+<a id="3-start-the-crank-agent"></a>
 
-Start the agent in a separate terminal and leave it running:
+### 3. 启动克兰代理商
+
+启动代理器,在单独的终端中运行并保持运行:
 
 ```powershell
 crank-agent --url http://localhost:5010
 ```
 
-The local profile sends the server, client, and chaos-agent jobs to this
-endpoint. It also reduces the server workload to one local instance; the
-non-local scenario definitions default to ten server instances.
+本地配置将服务器、客户端和混乱代理任务发送到此
+端点:它还将服务器工作量减少到一个当地实例;
+非本地方案定义默认为 10 个服务器实例 。
 
-### 4. Run a scenario
+<a id="4-run-a-scenario"></a>
 
-In another terminal, run:
+### 4. 运行一种假想
+
+在另一个终端中运行 :
 
 ```powershell
 crank --config .\distributed-tests.yml --scenario ping --profile local
 ```
 
-Available scenarios are `ping`, `fanout`, `streaming`, `reliability`, and
-`rolling`. Their workload sizes and durations are defined in
-[`distributed-tests.yml`](../../distributed-tests.yml), and some run for
-several minutes.
+现有情景是 `ping`、 `fanout`、 `streaming`、 `reliability`,以及
+`rolling`. 其工作量大小和期限在
+[`distributed-tests.yml`](../../distributed-tests.yml),而且有些运行
+几分钟
 
-When the run finishes, stop the Crank agent and Azurite:
+当运行完成后,停止 克兰克代理和阿祖特:
 
 ```powershell
 docker stop orleans-distributed-tests-azurite
 ```
 
-## Use an Azure Storage account
+<a id="use-an-azure-storage-account"></a>
 
-To use Azure Storage instead of Azurite, keep the local profile for its Crank
-agent endpoint and override its storage variables:
+## 使用 Azure 存储账户
+
+要使用 Azure 存储而不是 Azurite, 保存其 crank 的本地配置文件
+代理代理端点并推翻其存储变量:
 
 ```powershell
 $account = "<storage-account-name>"
@@ -109,18 +125,20 @@ crank --config .\distributed-tests.yml --scenario ping --profile local `
   --variable "azureTableUri=https://$account.table.core.windows.net"
 ```
 
-When `TENANT_ID` and `CLIENT_ID` are set, the workload processes authenticate
-non-loopback endpoints using `ClientAssertionCredential`; otherwise they use
-`DefaultAzureCredential`. Configure the selected credential on the agent host
-and grant that identity permission to create and use queues and tables in the
-target account.
+`TENANT_ID` 和 `CLIENT_ID` 被确定时,工作量进程认证
+使用 `ClientAssertionCredential`的非循环后端点; 否则它们会使用
+`DefaultAzureCredential`. 配置代理服务器主机上选定的证书
+并允许该身份许可在
+目标账户。
 
-## Troubleshooting
+<a id="troubleshooting"></a>
 
-- **Crank reports that `http://localhost:5010` is unavailable**: start the
-  Crank agent and verify that no other process is using port `5010`.
-- **The source folder or executable is missing**: build both workloads in
-  `Release` for `net10.0` and confirm that the executable exists under
+## 故障排查
+
+- **克洛报告 `http://localhost:5010` 无法使用**:开始
+  关闭代理,并核实没有其他程序使用端口 `5010`。
+- **源文件夹或可执行文件丢失了**:在
+  `Release` 用于 `net10.0` 并确认该可执行文件存在于
   `Artifacts\DistributedTests\<workload>\net10.0`.
-- **The workload cannot connect to storage**: confirm that the Azurite container
-  is running and that ports `10001` and `10002` are reachable.
+- **工作量无法与储存连接**:确认Azurite容器
+  正在运行, 端口 `10001` 和 `10002` 是可达的 。

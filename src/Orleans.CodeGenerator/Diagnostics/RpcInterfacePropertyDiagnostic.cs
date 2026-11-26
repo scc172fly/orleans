@@ -3,27 +3,27 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when an RPC interface declares a property.
+/// 定义 RPC 接口声明属性时报告的诊断。
 /// </summary>
 public static class RpcInterfacePropertyDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string DiagnosticId = DiagnosticRuleId.RpcInterfaceProperty;
 
     /// <summary>
-    /// The diagnostic title.
+    /// 诊断标题
     /// </summary>
     public const string Title = "RPC interfaces must not contain properties";
 
     /// <summary>
-    /// The diagnostic message format.
+    /// 诊断信息格式
     /// </summary>
     public const string MessageFormat = "The interface {0} contains a property {1}. RPC interfaces must not contain properties.";
 
     /// <summary>
-    /// The diagnostic category.
+    /// 诊断类别。
     /// </summary>
     public const string Category = "Usage";
 

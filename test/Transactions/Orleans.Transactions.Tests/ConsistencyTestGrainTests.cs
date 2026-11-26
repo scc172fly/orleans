@@ -25,7 +25,7 @@ public class ConsistencyTestGrainTests(MemoryTransactionsFixture fixture) : ICla
         var key = Interlocked.Increment(ref _nextGrainKey) * ConsistencyTestOptions.MaxGrains;
         var options = new ConsistencyTestOptions
         {
-            // This seed selects recursion, then a write in the first nested call and six writes in all ten calls.
+            // 此种子选择循环, 然后在第一个嵌套呼叫中写一个字, 在所有十个呼叫中写六个字。
             RandomSeed = 213,
             NumGrains = 1,
             MaxDepth = 1,

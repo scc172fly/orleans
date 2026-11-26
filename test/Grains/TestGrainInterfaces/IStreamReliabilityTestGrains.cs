@@ -1,4 +1,4 @@
-//#define USE_GENERICS
+//# 设计USE-GENERICS
 
 using Orleans.Runtime;
 using Orleans.Streams;

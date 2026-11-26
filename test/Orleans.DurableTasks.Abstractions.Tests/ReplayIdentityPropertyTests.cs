@@ -5,8 +5,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Verifies over generated bodies that a replay, which returns recorded effects without running them, assigns every
-/// operation the identifier which the first run assigned.
+/// 由生成的物体对生成的物体进行验证, 重播放时不运行功能返回已记录的效果, 即指定每个
+/// 操作第一个运行指定的标识符。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -29,7 +29,7 @@ public sealed class ReplayIdentityPropertyTests
         Version,
     }
 
-    /// <summary>One operation of a generated body; an effect's flags add a nested effect and a rejected durable operation.</summary>
+    /// <summary>生成体的一个操作; 效果的旗帜添加嵌套效应和被拒绝的持久操作。</summary>
     private sealed record Operation(Kind Kind, int Name, int Width, bool NestedEffect, bool NestedOperation)
     {
         public override string ToString() => $"{Kind}({Names[Name]}, {Width}, {NestedEffect}, {NestedOperation})";
@@ -56,7 +56,7 @@ public sealed class ReplayIdentityPropertyTests
                 Assert.Equal(first.Identifiers, replay.Identifiers);
                 Assert.Equal(0, replay.EffectRuns);
 
-                // Each operation of a run has its own identifier; a supplied root identifier names one task globally.
+                // 运行的每个操作都有自己的识别码;一个提供根标识符,在全球范围命名一个任务。
                 var owned = first.Identifiers.Where(static entry => entry.Kind is not ("rooted" or "version")).Select(static entry => entry.Id).ToArray();
                 Assert.Equal(owned.Length, owned.Distinct().Count());
             },
@@ -111,7 +111,7 @@ public sealed class ReplayIdentityPropertyTests
         }
     }
 
-    /// <summary>An effect whose body a replay doesn't run, so nothing it does may take an identifier.</summary>
+    /// <summary>重放的物体不运行效果,所以它不会使用标识符。</summary>
     private static int Effect(Operation operation)
     {
         var result = 1;
@@ -129,7 +129,7 @@ public sealed class ReplayIdentityPropertyTests
         return result;
     }
 
-    /// <summary>A host which completes every operation at once, records effects, and lists the identifiers which a run uses.</summary>
+    /// <summary>即时完成每次操作、记录效果和列出运行用途的识别符号的主机。</summary>
     private sealed class RecordingContext(Dictionary<TaskId, DurableTaskResponse> records) : DurableTaskContext(TaskId.CreateRoot("root"))
     {
         public List<(string Kind, string Id)> Identifiers { get; } = [];
@@ -181,7 +181,7 @@ public sealed class ReplayIdentityPropertyTests
             => throw new NotSupportedException();
     }
 
-    /// <summary>A definition which a host starts as a root task, such as a durable grain call.</summary>
+    /// <summary>主机开始作为根任务的定义, 如耐用 grain 调用。</summary>
     private sealed class RootCall : DurableTask, ISchedulableTask
     {
         public ValueTask<DurableTaskResponse> ScheduleAsync(TaskId taskId, CancellationToken cancellationToken) => new(DurableTaskResponse.Completed);

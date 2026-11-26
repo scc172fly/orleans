@@ -33,9 +33,9 @@ namespace Orleans.Runtime.GrainDirectory
         private GrainDirectoryResolver? grainDirectoryResolver;
         private bool hasAppliedClusterMembershipSnapshot;
 
-        // Consider: move these constants into an appropriate place
-        internal const int HOP_LIMIT = 6; // forward a remote request no more than 5 times
-        public static readonly TimeSpan RETRY_DELAY = TimeSpan.FromMilliseconds(200); // Pause 200ms between forwards to let the membership directory settle down
+        // 考虑:将这些常数移到一个合适的地方
+        internal const int HOP_LIMIT = 6; // 远端请求, 其前向请求最多不超过5 次
+        public static readonly TimeSpan RETRY_DELAY = TimeSpan.FromMilliseconds(200); // 暂停二百米之间间隔,让会员名册稳定下来
         internal bool Running;
         private Task? membershipUpdatesTask;
 
@@ -87,7 +87,7 @@ namespace Orleans.Runtime.GrainDirectory
             DirectoryPartition = grainDirectoryPartitionFactory();
             HandoffManager = new GrainDirectoryHandoffManager(this, siloStatusOracle, clusterMembershipService, grainFactory, loggerFactory);
 
-            // Legacy remote endpoints serve the default directory. Named directories use their own endpoints.
+            // 遗留远程端点为默认目录服务。命名的目录使用自己的端点。
             var distributedDirectoryActive = serviceProvider.GetService<DistributedGrainDirectory>() is not null;
             var distributedDirectoryIsDefault = serviceProvider.GetKeyedService<IGrainDirectory>(GrainDirectoryAttribute.DEFAULT_GRAIN_DIRECTORY) is DistributedGrainDirectory;
             RemoteGrainDirectory = new RemoteGrainDirectory(this, Constants.DirectoryServiceType, systemTargetShared, registerAsSystemTarget: !distributedDirectoryIsDefault);
@@ -129,20 +129,20 @@ namespace Orleans.Runtime.GrainDirectory
             membershipUpdatesTask = Task.Run(() => ProcessMembershipUpdates(_membershipUpdatesCancellation.Token));
         }
 
-        // Note that this implementation stops processing directory change requests (Register, Unregister, etc.) when the Stop event is raised.
-        // This means that there may be a short period during which no silo believes that it is the owner of directory information for a set of
-        // grains (for update purposes), which could cause application requests that require a new activation to be created to time out.
-        // The alternative would be to allow the silo to process requests after it has handed off its partition, in which case those changes
-        // would receive successful responses but would not be reflected in the eventual state of the directory.
-        // It's easy to change this, if we think the trade-off is better the other way.
+        // 请注意,当提出停止事件时,执行程序将停止处理目录变更请求(登记、不登记等)。
+        // 这意味着,在一段短暂的时期内, silo 认为它拥有一套
+        // grains (供更新之用),可导致申请请求要求为暂停使用而需要重新启动。
+        // 另一种办法是允许 silo 在它交出分部分分配后处理请求,在这种情况下这些改动
+        // 将获得成功的答复,但不会反映在名录的最终状态中。
+        // 改变这一点很容易 如果我们觉得交换比较好
         public async Task StopAsync()
         {
-            // This will cause remote write requests to be forwarded to the silo that will become the new owner.
-            // Requests might bounce back and forth for a while as membership stabilizes, but they will either be served by the
-            // new owner of the grain, or will wind up failing. In either case, we avoid requests succeeding at this silo after we've
-            // begun stopping, which could cause them to not get handed off to the new owner.
+            // 这将导致远程书写请求被转发给 silo 将成为新的主人。
+            // 随着会员国稳定下来,请求可能会有一段时间反弹,但两个理事国将随时向这些请求提供服务。
+            // 新拥有者 grain或最终失败。 silo 等我们
+            // 开始停止,这可能导致他们不被交给新主人。
 
-            //mark Running as false will exclude myself from CalculateGrainDirectoryPartition(grainId)
+            //以假身份运行的标记将排除我自己 CalculateGrainDirectoryPartition(grainId)
             Running = false;
             _membershipUpdatesCancellation.Cancel();
             try
@@ -183,7 +183,7 @@ namespace Orleans.Runtime.GrainDirectory
 
                     await foreach (var _ in clusterMembershipService.MembershipUpdates.WithCancellation(cancellationToken))
                     {
-                        // Always apply the latest snapshot.
+                        // 总是应用最新快照 。
                         await ApplyMembershipSnapshot();
                     }
                 }
@@ -433,7 +433,7 @@ namespace Orleans.Runtime.GrainDirectory
             {
                 var activationAddress = tuple.ActivationAddress;
 
-                // Remove entries now owned by me. They should be retrieved from my directory partition.
+                // 移除属于我的条目。 它们应该从我目录分区中检索 。
                 if (MyAddress.Equals(CalculateGrainDirectoryPartition(activationAddress.GrainId, targetMembership)))
                 {
                     DirectoryCache.Remove(activationAddress.GrainId);
@@ -486,8 +486,8 @@ namespace Orleans.Runtime.GrainDirectory
         private bool IsValidSilo(SiloAddress? silo) => siloStatusOracle.IsFunctionalDirectory(silo!);
 
         /// <summary>
-        /// Finds the silo that owns the directory information for the given grain ID.
-        /// This method will only be null when I'm the only silo in the cluster and I'm shutting down
+        /// 查找 silo 的目录信息 grain ID.
+        /// 只有我是唯一的 silo 并关闭
         /// </summary>
         /// <param name="grainId"></param>
         /// <returns></returns>
@@ -496,7 +496,7 @@ namespace Orleans.Runtime.GrainDirectory
 
         private SiloAddress? CalculateGrainDirectoryPartition(GrainId grainId, DirectoryMembership membership)
         {
-            // give a special treatment for special grains
+            // 给予特殊 grains特别待遇
             if (grainId.IsSystemTarget())
             {
                 if (Constants.SystemMembershipTableType.Equals(grainId.Type))
@@ -514,26 +514,26 @@ namespace Orleans.Runtime.GrainDirectory
 
                 LogTraceSystemTargetLookup(MyAddress, grainId, MyAddress);
 
-                // every silo owns its system targets
+                // 每个 silo 都有其系统目标
                 return MyAddress;
             }
 
             SiloAddress? siloAddress = null;
             int hash = unchecked((int)grainId.GetUniformHashCode());
 
-            // excludeMySelf from being a TargetSilo if we're not running and the excludeThisSIloIfStopping flag is true. see the comment in the Stop method.
-            // excludeThisSIloIfStopping flag was removed because we believe that flag complicates things unnecessarily. We can add it back if it turns out that flag
-            // is doing something valuable.
+            // excludeMySelf 开始为 TargetSilo 如果我们不运行, excludeThisSIloIfStopping 标记为是真实的。请在“停止”方法中看到注释。
+            // excludeThisSIloIfStopping 国旗被删除是因为我们认为旗帜使事情变得不必要的复杂。 如果旗子被印出来,我们可以把它补回来
+            // 做一些有价值的事
             bool excludeMySelf = !Running;
 
             var existing = membership;
             if (existing.MembershipRingList.Count == 0)
             {
-                // If the membership ring is empty, then we're the owner by default unless we're stopping.
+                // 如果会员圈空了 我们就是默认的所有人 除非我们停止
                 return !Running ? null : MyAddress;
             }
 
-            // need to implement a binary search, but for now simply traverse the list of silos sorted by their hashes
+            // 需要执行二进搜索, 但目前只需跳过按其杂列排序的 silos 列表
             for (var index = existing.MembershipRingList.Count - 1; index >= 0; --index)
             {
                 var item = existing.MembershipRingList[index];
@@ -546,10 +546,10 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (siloAddress == null)
             {
-                // If not found in the traversal, last silo will do (we are on a ring).
-                // We checked above to make sure that the list isn't empty, so this should always be safe.
+                // 如果在十字路口没有发现,则最后的 silo 将完成(我们是在环形上)。
+                // 我们在上面检查了一下 以确保名单不是空的 所以这应该永远是安全的
                 siloAddress = existing.MembershipRingList[existing.MembershipRingList.Count - 1];
-                // Make sure it's not us...
+                // 确定不是我们...
                 if (siloAddress.Equals(MyAddress) && excludeMySelf)
                 {
                     siloAddress = existing.MembershipRingList.Count > 1 ? existing.MembershipRingList[existing.MembershipRingList.Count - 2] : null;
@@ -572,19 +572,19 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (owner is null || owner.Equals(MyAddress))
             {
-                // Either we don't know about any other silos and we're stopping, or we are the owner.
-                // Null indicates that the operation should be performed locally.
-                // In the case that this host is terminating, any grain registered to this host must terminate.
+                // 要么我们不知道其他的 silos ,我们停止了,要么我们是业主。
+                // Null表示,作业应在当地进行。
+                // 如果该主机正在终止,则向此主机登记的任何 grain 都必须终止。
                 return null;
             }
 
             if (hopCount >= HOP_LIMIT)
             {
-                // we are not forwarding because there were too many hops already
+                // 我们没有转发 因为已经有太多跳过
                 throw new OrleansException($"Silo {MyAddress} is not owner of {grainId}, cannot forward {operationDescription} to owner {owner} because hop limit is reached");
             }
 
-            // forward to the silo that we think is the owner
+            // 转入 silo 我们认为是主人
             return owner;
         }
 
@@ -603,11 +603,11 @@ namespace Orleans.Runtime.GrainDirectory
 
             await RefreshMembershipIfNewer(address.MembershipVersion);
 
-            // see if the owner is somewhere else (returns null if we are owner)
+            // 看看业主是否在别的地方(如果我们是业主,则返回无效)
             var forwardAddress = this.CheckIfShouldForward(address.GrainId, hopCount, "RegisterAsync");
 
-            // The first forwarded owner (hopCount == 1) forwards immediately if ownership changed again.
-            // Once the request has already been re-forwarded, pause and recheck before bouncing it again.
+            // 第一个转发的所有人(hopCount = 1)如果所有权再次变更,立即转发。
+            // 请求已经重新提出、暂停和重新核对后再予以撤回。
             if (hopCount > 1 && forwardAddress != null)
             {
                 await Task.Delay(RETRY_DELAY);
@@ -629,7 +629,7 @@ namespace Orleans.Runtime.GrainDirectory
 
                 var result = DirectoryPartition.AddSingleActivation(address, previousAddress);
 
-                // update the cache so next local lookup will find this ActivationAddress in the cache and we will save full lookup.
+                // 更新缓存, 这样下个本地查找会发现这个 ActivationAddress 在缓存中, 我们会保存全部的搜索 。
                 DirectoryCache.AddOrUpdate(result.Address!, result.VersionTag);
                 return result;
             }
@@ -637,17 +637,17 @@ namespace Orleans.Runtime.GrainDirectory
             {
                 _directoryInstruments.RegistrationsSingleActRemoteSent.Add(1);
 
-                // otherwise, notify the owner
+                // 通知所有人,否则,通知
                 AddressAndTag result = await GetDirectoryReference(forwardAddress).RegisterAsync(address, previousAddress, hopCount + 1);
 
-                // Caching optimization:
-                // cache the result of a successful RegisterSingleActivation call, only if it is not a duplicate activation.
-                // this way next local lookup will find this ActivationAddress in the cache and we will save a full lookup!
+                // 缓存优化 :
+                // 成功调用 RegisterSingleActivation 的缓存结果, 只有当它不是重复激活时才使用。
+                // 下一步本地搜索将会在缓存中找到这个 ActivationAddress , 我们会保存完整搜索!
                 if (result.Address == null) return result;
 
                 if (!address.Equals(result.Address) || IsDefunctActivation(address, clusterMembershipService.CurrentSnapshot)) return result;
 
-                // update the cache so next local lookup will find this ActivationAddress in the cache and we will save full lookup.
+                // 更新缓存, 这样下个本地查找会发现这个 ActivationAddress 在缓存中, 我们会保存全部的搜索 。
                 DirectoryCache.AddOrUpdate(result.Address, result.VersionTag);
 
                 return result;
@@ -662,12 +662,12 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (origin == null || this.directoryMembership.MembershipCache.Contains(origin))
             {
-                // the request originated in this cluster, call unregister here
+                // 请求来自本组中的请求,请在此拨打未登记
                 await UnregisterAsync(addr, UnregistrationCause.NonexistentActivation, 0);
             }
             else
             {
-                // the request originated in another cluster, call unregister there
+                // 请求来自另一组,请打电话到那里不登记
                 var remoteDirectory = GetDirectoryReference(origin);
                 await remoteDirectory.UnregisterAsync(addr, UnregistrationCause.NonexistentActivation);
             }
@@ -689,11 +689,11 @@ namespace Orleans.Runtime.GrainDirectory
 
             await RefreshMembershipIfNewer(address.MembershipVersion);
 
-            // see if the owner is somewhere else (returns null if we are owner)
+            // 看看业主是否在别的地方(如果我们是业主,则返回无效)
             var forwardAddress = this.CheckIfShouldForward(address.GrainId, hopCount, "UnregisterAsync");
 
-            // The first forwarded owner (hopCount == 1) forwards immediately if ownership changed again.
-            // Once the request has already been re-forwarded, pause and recheck before bouncing it again.
+            // 第一个转发的所有人(hopCount = 1)如果所有权再次变更,立即转发。
+            // 请求已经重新提出、暂停和重新核对后再予以撤回。
             if (hopCount > 1 && forwardAddress != null)
             {
                 await Task.Delay(RETRY_DELAY);
@@ -706,25 +706,25 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (forwardAddress == null)
             {
-                // we are the owner
+                // 我们是老板
                 _directoryInstruments.UnregistrationsLocal.Add(1);
                 DirectoryPartition.RemoveActivation(address.GrainId, address.ActivationId, cause);
             }
             else
             {
                 _directoryInstruments.UnregistrationsRemoteSent.Add(1);
-                // otherwise, notify the owner
+                // 通知所有人,否则,通知
                 await GetDirectoryReference(forwardAddress).UnregisterAsync(address, cause, hopCount + 1);
             }
         }
 
-        // helper method to avoid code duplication inside UnregisterManyAsync
+        // 避免 UnregisterManyAsync内代码重复的辅助工具方法
         private void UnregisterOrPutInForwardList(List<GrainAddress> addresses, UnregistrationCause cause, int hopCount,
             ref Dictionary<SiloAddress, List<GrainAddress>>? forward, string context)
         {
             foreach (var address in addresses)
             {
-                // see if the owner is somewhere else (returns null if we are owner)
+                // 看看业主是否在别的地方(如果我们是业主,则返回无效)
                 var forwardAddress = this.CheckIfShouldForward(address.GrainId, hopCount, context);
 
                 if (forwardAddress != null)
@@ -736,7 +736,7 @@ namespace Orleans.Runtime.GrainDirectory
                 }
                 else
                 {
-                    // we are the owner
+                    // 我们是老板
                     _directoryInstruments.UnregistrationsLocal.Add(1);
 
                     DirectoryPartition.RemoveActivation(address.GrainId, address.ActivationId, cause);
@@ -761,8 +761,8 @@ namespace Orleans.Runtime.GrainDirectory
 
             UnregisterOrPutInForwardList(addresses, cause, hopCount, ref forwardlist, "UnregisterManyAsync");
 
-            // The first forwarded owner (hopCount == 1) forwards immediately if ownership changed again.
-            // Once the request has already been re-forwarded, pause and recheck before bouncing it again.
+            // 第一个转发的所有人(hopCount = 1)如果所有权再次变更,立即转发。
+            // 请求已经重新提出、暂停和重新核对后再予以撤回。
             if (hopCount > 1 && forwardlist != null)
             {
                 await Task.Delay(RETRY_DELAY);
@@ -777,7 +777,7 @@ namespace Orleans.Runtime.GrainDirectory
                 }
             }
 
-            // forward the requests
+            // 转发请求
             if (forwardlist != null)
             {
                 var tasks = new List<Task>();
@@ -787,7 +787,7 @@ namespace Orleans.Runtime.GrainDirectory
                     tasks.Add(GetDirectoryReference(kvp.Key).UnregisterManyAsync(kvp.Value, cause, hopCount + 1));
                 }
 
-                // wait for all the requests to finish
+                // 等待所有请求完成
                 await Task.WhenAll(tasks);
             }
         }
@@ -846,11 +846,11 @@ namespace Orleans.Runtime.GrainDirectory
                 _directoryInstruments.LookupsFullIssued.Add(1);
             }
 
-            // see if the owner is somewhere else (returns null if we are owner)
+            // 看看业主是否在别的地方(如果我们是业主,则返回无效)
             var forwardAddress = this.CheckIfShouldForward(grainId, hopCount, "LookUpAsync");
 
-            // The first forwarded owner (hopCount == 1) forwards immediately if ownership changed again.
-            // Once the request has already been re-forwarded, pause and recheck before bouncing it again.
+            // 第一个转发的所有人(hopCount = 1)如果所有权再次变更,立即转发。
+            // 请求已经重新提出、暂停和重新核对后再予以撤回。
             if (hopCount > 1 && forwardAddress != null)
             {
                 await Task.Delay(RETRY_DELAY);
@@ -874,13 +874,13 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (forwardAddress == null)
             {
-                // we are the owner
+                // 我们是老板
                 _directoryInstruments.LookupsLocalDirectoryIssued.Add(1);
                 var localResult = DirectoryPartition.LookUpActivation(grainId);
                 if (localResult.Address == null)
                 {
-                    // it can happen that we cannot find the grain in our partition if there were
-                    // some recent changes in the membership
+                    // 发生这样的情况时,如果存在的话,我们无法在我们的分区中找到 grain
+                    // 成员数目最近的一些变化
                     LogTraceFullLookupMineNone(grainId);
                     return new(default, GrainInfo.NO_ETAG);
                 }
@@ -891,7 +891,7 @@ namespace Orleans.Runtime.GrainDirectory
             }
             else
             {
-                // Just a optimization. Why sending a message to someone we know is not valid.
+                // 优化而已 为什么给某个我们认识的人发信息是无效的
                 if (!IsValidSilo(forwardAddress))
                 {
                     throw new OrleansException($"Current directory at {MyAddress} is not stable to perform the lookup for grainId {grainId} (it maps to {forwardAddress}, which is not a valid silo). Retry later.");
@@ -900,7 +900,7 @@ namespace Orleans.Runtime.GrainDirectory
                 _directoryInstruments.LookupsRemoteSent.Add(1);
                 var result = await GetDirectoryReference(forwardAddress).LookupAsync(grainId, hopCount + 1);
 
-                // update the cache
+                // 更新缓存
                 if (result.Address is { } address && !IsDefunctActivation(address, clusterMembershipService.CurrentSnapshot))
                 {
                     DirectoryCache.AddOrUpdate(address, result.VersionTag);
@@ -914,11 +914,11 @@ namespace Orleans.Runtime.GrainDirectory
 
         public async Task DeleteGrainAsync(GrainId grainId, int hopCount)
         {
-            // see if the owner is somewhere else (returns null if we are owner)
+            // 看看业主是否在别的地方(如果我们是业主,则返回无效)
             var forwardAddress = this.CheckIfShouldForward(grainId, hopCount, "DeleteGrainAsync");
 
-            // The first forwarded owner (hopCount == 1) forwards immediately if ownership changed again.
-            // Once the request has already been re-forwarded, pause and recheck before bouncing it again.
+            // 第一个转发的所有人(hopCount = 1)如果所有权再次变更,立即转发。
+            // 请求已经重新提出、暂停和重新核对后再予以撤回。
             if (hopCount > 1 && forwardAddress != null)
             {
                 await Task.Delay(RETRY_DELAY);
@@ -931,12 +931,12 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (forwardAddress == null)
             {
-                // we are the owner
+                // 我们是老板
                 DirectoryPartition.RemoveGrain(grainId);
             }
             else
             {
-                // otherwise, notify the owner
+                // 通知所有人,否则,通知
                 DirectoryCache.Remove(grainId);
                 await GetDirectoryReference(forwardAddress).DeleteGrainAsync(grainId, hopCount + 1);
             }
@@ -953,9 +953,9 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// For testing purposes only.
-        /// Returns the silo that this silo thinks is the primary owner of directory information for
-        /// the provided grain ID.
+        /// 仅用于测试。
+        /// 返回 silo ,该 silo 认为它是目录信息的主要所有者
+        /// 提供 grain ID。
         /// </summary>
         /// <param name="grain"></param>
         /// <returns></returns>

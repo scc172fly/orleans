@@ -36,7 +36,7 @@ internal class Program
 
                     if (useEventHub)
                     {
-                        // Use Azure Event Hub streaming
+                        // 使用 Azure 事件枢纽流
                         client.AddEventHubStreams(
                             Constants.StreamProvider,
                             configurator => configurator.ConfigureEventHub(
@@ -51,8 +51,8 @@ internal class Program
                     }
                     else
                     {
-                        // Use in-memory streaming for local development
-                        // Memory streams are handled by the silo, client just needs the provider registered
+                        // 利用模拟流流促进地方发展
+                        // 内存流由 silo处理,客户只需要注册的供应商
                         client.AddMemoryStreams(Constants.StreamProvider);
                         Console.WriteLine("Using in-memory streaming (no Secrets.json found)");
                     }
@@ -65,21 +65,21 @@ internal class Program
 
             var clusterClient = host.Services.GetRequiredService<IClusterClient>();
 
-            // Use the connected client to ask a grain to start producing events
+            // 使用连接的客户端请求 grain 开始制作事件
             var key = Guid.NewGuid();
             var producer = clusterClient.GetGrain<IProducerGrain>("my-producer");
             await producer.StartProducing(Constants.StreamNamespace, key);
 
-            // Now you should see that a consumer grain was activated on the silo, and is logging when it is receiving event
+            // 现在,你应该看到消费者 grain 在 silo上被激活,当它接收事件时正在伐木
 
-            // Client can also subscribe to streams
+            // 客户端也可以订阅流
             var streamId = StreamId.Create(Constants.StreamNamespace, key);
             var stream = clusterClient
                 .GetStreamProvider(Constants.StreamProvider)
                 .GetStream<int>(streamId);
             await stream.SubscribeAsync(OnNextAsync);
 
-            // Now the client will also log received events
+            // 现在客户也会记录收到事件
 
             if (useEventHub && args.Contains("--pause-after-checkpoint", StringComparer.OrdinalIgnoreCase))
             {
@@ -97,17 +97,17 @@ internal class Program
                     "Stream pulling agents are paused. The producer remains active; record the next ten event numbers from the silo log, then terminate the silo.");
             }
 
-            // Wait until cancelled
+            // 等待取消
             try
             {
                 await Task.Delay(Timeout.Infinite, cts.Token);
             }
             catch (OperationCanceledException)
             {
-                // Expected when Ctrl+C is pressed
+                // 预预计按下 Ctrl+C 时
             }
 
-            // Stop producing
+            // 停止生产
             Console.WriteLine("Stopping producer...");
             await producer.StopProducing();
 

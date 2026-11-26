@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Settings for cluster membership.
+    /// 分组成员设置。
     /// </summary>
     public class ClusterMembershipOptions
     {
@@ -11,35 +11,35 @@ namespace Orleans.Configuration
         private TimeSpan? _maxProbeTimeout;
 
         /// <summary>
-        /// Gets or sets the number of missed "I am alive" updates in the table from a silo that causes warning to be logged.
+        /// 获取或设置表格中从一个 silo 中更新的“我还活着”的缺失数字, 从而导致警告被记录。
         /// </summary>
         /// <seealso cref="IAmAliveTablePublishTimeout"/>
         public int NumMissedTableIAmAliveLimit { get; set; } = 3;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the silo liveness protocol is enabled (should be disabled only for testing).
-        /// If a silo is suspected to be down, but this property is set to <see langword="false"/>, the suspicions will not be propagated to the system or enforced.
-        /// This property is intended for use only for testing and troubleshooting.
-        /// In production, liveness should always be enabled.
+        /// 获取或设置值,以显示是否启用了 silo 活性协议(应仅用于测试而禁用)。
+        /// 如果怀疑 silo 被击落,但该财产设于 <see langword="false"/>,则不会向该系统传播或强制实施这些怀疑。
+        /// 此属性仅用于测试和排除故障。
+        /// 在生产过程中,应始终使生命得以存活。
         /// </summary>
-        /// <value>Liveness is enabled by default.</value>
+        /// <value>生命默认启用。</value>
         public bool LivenessEnabled { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the initial timeout for liveness probes.
+        /// 获取或设置生命探测器的初始超时。
         /// </summary>
         /// <remarks>
-        /// The effective probe timeout and the period between probe starts are adjusted independently for each monitored silo
-        /// based on observed direct-probe response times and are bounded by <see cref="MinProbeTimeout"/> and
+        /// 有效探矿超时和探测开始间隔期间对每次监测都独立调整 silo
+        /// 依据观察到的直接-直接对等反应时间,并受 <see cref="MinProbeTimeout"/> 和
         /// <see cref="MaxProbeTimeout"/>.
         /// </remarks>
-        /// <value>The initial probe timeout is 5 seconds by default.</value>
+        /// <value>最初的探测超时默认为5秒。</value>
         public TimeSpan ProbeTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Gets or sets the minimum effective timeout for a liveness probe.
+        /// 获得或设定最低有效超时值,用于活性探测。
         /// </summary>
-        /// <value>Half of <see cref="ProbeTimeout"/> by default.</value>
+        /// <value>半数半 <see cref="ProbeTimeout"/> 默认。</value>
         public TimeSpan MinProbeTimeout
         {
             get => _minProbeTimeout ?? TimeSpan.FromTicks(ProbeTimeout.Ticks / 2);
@@ -47,9 +47,9 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the maximum effective timeout for a liveness probe.
+        /// 获取或设定最大有效超时 用于活性探测器
         /// </summary>
-        /// <value>Four times <see cref="ProbeTimeout"/> by default.</value>
+        /// <value>默认为4倍 <see cref="ProbeTimeout"/> 。</value>
         public TimeSpan MaxProbeTimeout
         {
             get => _maxProbeTimeout ?? (ProbeTimeout.Ticks <= TimeSpan.MaxValue.Ticks / 4
@@ -59,158 +59,158 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the period between fetching updates from the membership table.
+        /// 从会籍表获取更新信息之间,可以设置或设定间隔时间。
         /// </summary>
         /// <remarks>
-        /// Use a positive interval for periodic membership refreshes and peer-monitoring reevaluation.
+        /// 利用积极间隔定期更新成员资格和同行监测重新评价。
         /// </remarks>
-        /// <value>The membership table is refreshed every 60 seconds by default.</value>
+        /// <value>成员表默认每60秒更新一次。</value>
         public TimeSpan TableRefreshTimeout { get; set; } = TimeSpan.FromSeconds(60);
 
         /// <summary>
-        /// Gets or sets the expiration time for votes in the membership table.
+        /// 获得或确定在会籍表中的表决到期时间。
         /// </summary>
-        /// <value>Votes expire after 2 minutes by default.</value>
+        /// <value>拖欠2分钟后,票数失效。</value>
         public TimeSpan DeathVoteExpirationTimeout { get; set; } = TimeSpan.FromMinutes(2);
 
         /// <summary>
-        /// Gets or sets the period between updating this silo's heartbeat in the membership table.
+        /// 获取或设定在会籍表中更新此 silo心跳的时间间隔。
         /// </summary>
         /// <remarks>
-        /// These heartbeats are largely for diagnostic purposes, however they are also used to identify stale active
-        /// entries in the membership table. This value multiplied by <see cref="NumMissedTableIAmAliveLimit"/>
-        /// determines how long an active membership entry can go without a heartbeat update before it is treated as stale.
+        /// 这些心跳主要用于诊断目的,但也用来识别衰竭的活性
+        /// 成员表格条目中的条目。此值乘以 <see cref="NumMissedTableIAmAliveLimit"/>
+        /// 确定在被视作陈旧之前,从现役成员入会可持续多久而不更新心跳。
         /// </remarks>
-        /// <value>Publish an update every 30 seconds by default.</value>
+        /// <value>默认情况下每30秒发布更新。</value>
         public TimeSpan IAmAliveTablePublishTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// Gets or sets the maximum amount of time to attempt to join a cluster before giving up.
+        /// 获得或设定最大时间,以便在放弃前尝试加入一个组。
         /// </summary>
-        /// <value>Attempt to join for 5 minutes before giving up by default.</value>
+        /// <value>试图在默认放弃前加入5分钟。</value>
         public TimeSpan MaxJoinAttemptTime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
-        /// Gets or sets the age at which absent positive silo generations are classified as dead.
+        /// 获得或规定没有正数 silo 几代人被划为死亡的年龄。
         /// </summary>
         /// <remarks>
-        /// The cutoff is established when publishing membership views using the peer's local UTC clock.
-        /// Present members retain their recorded status. Set to <see langword="null"/> to disable generation retirement.
-        /// Observed death evidence is retained until covered by the cutoff, or for the observer's lifetime when retirement is disabled.
-        /// The value must be greater than or equal to <see cref="TimeSpan.Zero"/>.
+        /// 使用同侪的当地世界协调时钟公布会员观点时,就确定了截断点。
+        /// 现成员保留其记录状态。 设为 <see langword="null"/> ,以阻止代人退休。
+        /// 观察的死亡证据保留到截止期,或者在退休时丧失工作能力的观察员的一生。
+        /// 数值必须大于或等于 <see cref="TimeSpan.Zero"/>。
         /// </remarks>
-        /// <value>One hour by default.</value>
+        /// <value>默认一小时。</value>
         public TimeSpan? SiloGenerationRetirementAge { get; set; } = TimeSpan.FromHours(1);
 
         /// <summary>
-        /// Gets or sets a value indicating whether membership updates are disseminated between hosts using gossip.
+        /// 获取或设定一个值,显示是否使用八卦在主机之间传播会员更新信息。
         /// </summary>
-        /// <value>Membership updates are disseminated using gossip by default.</value>
+        /// <value>会员更新会以默认八卦方式发布。</value>
         public bool UseLivenessGossip { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the number of silos each silo probes for liveness.
+        /// 获取或设置每个 silos 探测器的活性 silo 号码。
         /// </summary>
         /// <remarks>
-        /// This determines how many hosts each host will monitor by default.
-        /// A low value, such as 3, is generally sufficient and allows for prompt removal of another silo in the event that it stops functioning.
-        /// Monitoring is not expensive, however, and a higher value improves recovery during sudden changes in cluster size.
-        /// When a silo becomes suspicious of another silo, additional silos may begin to probe that silo to speed up the detection of non-functioning silos.
+        /// 这将决定每个主机默认情况下将监测的东道主数量 。
+        /// 3等低值一般足够,如果另一个 silo 停止运行,可以迅速删除。
+        /// 然而,监测费用并不昂贵,如果价值提高,在集群规模突然变化时会改善复苏。
+        /// 当 silo 对另一个 silo产生怀疑时,额外的 silos 可能开始探寻该 silo ,以加快检测不起作用的 silos。
         /// </remarks>
-        /// <value>Each silo will actively monitor up to 10 other silos by default.</value>
+        /// <value>每一 silo 将积极监测多达10个其他 silos 默认。</value>
         public int NumProbedSilos { get; set; } = 10;
 
         /// <summary>
-        /// Gets or sets the number of missed probe requests from a silo that lead to suspecting this silo as down.
+        /// 获取或设定一个 silo 的未找到的探测请求数, 从而导致怀疑该 silo 在下方。
         /// </summary>
-        /// <value>A silo will be suspected as being down if three probes are missed, by default.</value>
+        /// <value>如果默认缺漏了三个探测器, A silo 将被怀疑为下方。</value>
         public int NumMissedProbesLimit { get; set; } = 3;
 
         /// <summary>
-        /// Gets or sets the number of non-expired votes that are needed to declare some silo as down (should be at most <see cref="NumProbedSilos"/>).
+        /// 获取或设定宣布某些 silo 为下调(最多应为 <see cref="NumProbedSilos"/>)所需的非过期选票数。
         /// </summary>
-        /// <value>Two votes are sufficient for a silo to be declared as down, by default.</value>
+        /// <value>以两票之二票足以 silo 默认情况下,将宣布为下方。</value>
         public int NumVotesForDeathDeclaration { get; set; } = 2;
 
         /// <summary>
-        /// Gets or sets the retention period after which dead silo entries are eligible for removal.
-        /// The cleanup agent identifies expired entries using the latest startup, liveness, or suspect-vote timestamp.
-        /// Valid only if <see cref="DefunctSiloCleanupPeriod"/> is not <see langword="null" />.
+        /// 获取或设定已死亡 silo 条目有资格被删除的留存期。
+        /// 清理剂使用最新的启动、活性或可疑投票时间戳来识别过期条目。
+        /// 只有在 <see cref="DefunctSiloCleanupPeriod"/> 不 <see langword="null" />时才有效。
         /// </summary>
-        /// <value>Defunct silos are eligible for removal from membership after one week by default.</value>
+        /// <value>缺陷 silos 违约一周后有资格被免职。</value>
         public TimeSpan DefunctSiloExpiration { get; set; } = TimeSpan.FromDays(7);
 
         /// <summary>
-        /// Gets or sets the cleanup period for dead silo entries older than <see cref="DefunctSiloExpiration" />.
-        /// Cleanup is attempted when membership changes are observed and the current membership snapshot contains expired
-        /// dead entries, or when this period has elapsed since the last cleanup call.
-        /// Set this value to <see langword="null"/> to disable expiration-based cleanup.
+        /// 获取或设置对已死 silo 中超过 <see cref="DefunctSiloExpiration" />的条目的清理期。
+        /// 当成员变动被观察到,而目前的成员快照中载有过期成员快照时,便试图清理。
+        /// 或上次清理通知后这一时期已过。
+        /// 将此值设为 <see langword="null"/> , 禁用过期清理 。
         /// </summary>
-        /// <value>Expiration-based cleanup is enabled by default.</value>
+        /// <value>过期的基于清理默认启用。</value>
         public TimeSpan? DefunctSiloCleanupPeriod { get; set; } = TimeSpan.FromHours(1);
 
         /// <summary>
-        /// Gets or sets the maximum number of dead silo entries to retain in the membership table.
-        /// When this limit is exceeded, the first active silo, selected by natural <see cref="Orleans.Runtime.SiloAddress"/>
-        /// sort order, asynchronously removes the oldest excess dead entries from the membership table.
-        /// Set this value to <see langword="null"/> to retain all defunct entries and disable threshold-based cleanup.
+        /// 获取或设定在会籍表中保留已死亡 silo 条目的最大数量。
+        /// 当超过此限制时, 第一个活动 silo中选择的 <see cref="Orleans.Runtime.SiloAddress"/>
+        /// 顺序排序,不同步地删除成员表中最老的多余死亡条目。
+        /// 设定此值为 <see langword="null"/> ,以保留全部已停用条目并禁用基于阈值的清理 。
         /// </summary>
-        /// <value>Membership retains up to 25 defunct silo entries by default.</value>
+        /// <value>保留最多25个已取消成员 silo 默认输入。</value>
         public int? MaxDefunctSiloEntries { get; set; } = 25;
 
         /// <summary>
-        /// Gets or sets the minimum period for which dead silo entries are retained in the membership table.
-        /// Cleanup removes only dead entries whose latest startup, liveness, or suspect-vote timestamp is older than this period,
-        /// regardless of <see cref="DefunctSiloExpiration"/> and <see cref="MaxDefunctSiloEntries"/>.
-        /// Retaining recent dead entries lets a silo whose membership operations are delayed or retried, such as a joining
-        /// silo within <see cref="MaxJoinAttemptTime"/>, observe that it was declared dead.
-        /// This period should comfortably exceed <see cref="MaxJoinAttemptTime"/> and expected clock skew between silos.
+        /// 获取或设定在会籍表中保留已死亡的 silo 条目的最短时间。
+        /// 清理只清除最近启动、活性或可疑投票时间戳比这一时期长的死条目,
+        /// 不论 <see cref="DefunctSiloExpiration"/> 和 <see cref="MaxDefunctSiloEntries"/>.
+        /// 保留最近死条目的 silo ,其成员业务被拖延或重新审理,如加入
+        /// silo 内 <see cref="MaxJoinAttemptTime"/>,观察它被宣布死亡。
+        /// 这段时间应可舒适地超过 <see cref="MaxJoinAttemptTime"/> ,预期时钟在 silos之间断裂。
         /// </summary>
-        /// <value>Dead silo entries are retained for at least one hour by default.</value>
+        /// <value>死 silo 条目默认保留至少一小时。</value>
         public TimeSpan DefunctSiloMinimumRetention { get; set; } = TimeSpan.FromHours(1);
 
         /// <summary>
-        /// Gets the period after which a silo's membership entry is considered stale if it has not updated its heartbeat in the membership table.
+        /// 如果 silo成员未更新其加入名单的心跳,则其进入名单的时间将被视为过时。
         /// </summary>
         internal TimeSpan AllowedIAmAliveMissPeriod => IAmAliveTablePublishTimeout.Multiply(NumMissedTableIAmAliveLimit);
 
         /// <summary>
-        /// Gets the amount of time to wait for the cluster membership system to terminate during shutdown.
+        /// 获得等待集群成员制在关闭期间终止的所需时间。
         /// </summary>
         internal static TimeSpan ClusteringShutdownGracePeriod => TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Gets or sets the minimum period between logs reporting local health degradation.
+        /// 获取或规定报告当地健康退化的伐木之间的最低间隔期。
         /// </summary>
         /// <value>
-        /// Local health is sampled every second and detected degradation is logged no more than once every ten seconds by default.
+        /// 当地健康每秒抽样一次,发现退化情况默认情况下每10秒钟记录一次。
         /// </value>
         public TimeSpan LocalHealthDegradationMonitoringPeriod { get; set; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
-        /// Gets or sets a value indicating whether to extend the effective probe timeout based upon current local health degradation.
+        /// 获取或设定一个数值,表明是否根据当前当地健康状况恶化情况延长有效探测超时。
         /// </summary>
         public bool ExtendProbeTimeoutDuringDegradation { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to enable probing silos indirectly, via other silos.
+        /// 获取或设定一个值,以显示是否启用验证 silos 间接,通过其他途径间接、 silos.
         /// </summary>
         public bool EnableIndirectProbes { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to consider connection-level message activity when evaluating silo liveness.
+        /// 获取或设定一个值,表明在评价 silo 是否考虑连接级信息活动。
         /// </summary>
         /// <remarks>
-        /// When enabled, if an active connection to a silo has recently received messages within the monitoring window
-        /// (<see cref="MaxProbeTimeout"/> × <see cref="NumMissedProbesLimit"/>), votes to suspect that silo will be suppressed
-        /// since the connection activity demonstrates the silo is alive. This helps prevent false death declarations
-        /// when probes fail due to local issues such as GC pauses or thread pool saturation.
+        /// 启用时, 如果与 silo 的主动连接在监测窗口中最近收到消息
+        /// <see cref="MaxProbeTimeout"/> x <see cref="NumMissedProbesLimit"/>,投票怀疑 silo 将予压制
+        /// 原因是连接活动证明 silo 还活着,这有助于防止虚假死亡申报
+        /// 当探测由于诸如GC暂停或线性池饱和等本地问题而失败时。
         /// </remarks>
-        /// <value>Connection liveness checks are enabled by default.</value>
+        /// <value>连接实时检查默认启用。</value>
         public bool EnableConnectionLivenessCheck { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to enable membership eviction of silos when they remain in the <c>Joining</c> or <c>Created</c> state for longer than <see cref="MaxJoinAttemptTime"/>.
+        /// 获取或设定一个数值,表明是否允许驱逐 silos 他们逗留在火狱里, <c>Joining</c> 或 <c>Created</c> 状态超过 <see cref="MaxJoinAttemptTime"/>.
         /// </summary>
         public bool EvictWhenMaxJoinAttemptTimeExceeded { get; set; } = true;
     }

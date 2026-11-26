@@ -14,7 +14,7 @@ using Xunit.Sdk;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests for the consistent ring provider's behavior during silo failures and joins.
+    /// 测试在 silo 失败和加入期间, 一致环提供商的行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -100,7 +100,7 @@ namespace UnitTests.General
             await this.HostedCluster.WaitForLivenessToStabilizeAsync();
 
             List<SiloHandle> failures = await getSilosToFail(failCode, numOfFailures, cancellationToken);
-            foreach (SiloHandle fail in failures) // verify before failure
+            foreach (SiloHandle fail in failures) // 在未核实前
             {
                 await VerificationScenario(PickKey(fail.SiloAddress), cancellationToken); // fail.SiloAddress.GetConsistentHashCode());
             }
@@ -111,7 +111,7 @@ namespace UnitTests.General
                 failCode,
                 Utils.EnumerableToString(failures, handle => handle.SiloAddress.ToString()));
             List<uint> keysToTest = new List<uint>();
-            foreach (SiloHandle fail in failures) // verify before failure
+            foreach (SiloHandle fail in failures) // 在未核实前
             {
                 keysToTest.Add(PickKey(fail.SiloAddress)); //fail.SiloAddress.GetConsistentHashCode());
                 await this.HostedCluster.StopSiloAsync(fail, cancellationToken);
@@ -120,7 +120,7 @@ namespace UnitTests.General
 
             await AssertEventually(async () =>
             {
-                foreach (var key in keysToTest) // verify after failure
+                foreach (var key in keysToTest) // 失败后核实
                 {
                     await VerificationScenario(key, cancellationToken);
                 }
@@ -160,9 +160,9 @@ namespace UnitTests.General
             await this.HostedCluster.StartAdditionalSilosAsync(numAdditionalSilos, false, cancellationToken);
             await this.HostedCluster.WaitForLivenessToStabilizeAsync();
             List<SiloHandle> failures = await getSilosToFail(Fail.Random, 1, cancellationToken);
-            uint keyToCheck = PickKey(failures[0].SiloAddress);// failures[0].SiloAddress.GetConsistentHashCode();
+            uint keyToCheck = PickKey(failures[0].SiloAddress);// 失败 [0]。SiloAddress.GetConsistentHashCode();
 
-            // kill a silo and join a new one in parallel
+            // 将一个 silo 切除并平行加入一个新的
             logger.LogInformation("Killing silo {SiloAddress} and joining a silo", failures[0].SiloAddress);
 
             var killTask = this.HostedCluster.StopSiloAsync(failures[0], cancellationToken);
@@ -174,23 +174,23 @@ namespace UnitTests.General
 
             await AssertEventually(async () =>
             {
-                await VerificationScenario(keyToCheck, cancellationToken); // verify failed silo's key
-                await VerificationScenario(PickKey(joinedSilos[0].SiloAddress), cancellationToken); // verify newly joined silo's key
+                await VerificationScenario(keyToCheck, cancellationToken); // 验证失败 silo的密钥
+                await VerificationScenario(PickKey(joinedSilos[0].SiloAddress), cancellationToken); // 刚刚加入的 silo密钥
             }, failureTimeout, cancellationToken);
         }
 
-        // failing the secondary in this scenario exposed the bug in DomainGrain ... so, we keep it as a separate test than Ring_1F1J
+        // 无法在二号机机失灵的情况下, 在 DomainGrain 中暴露了错误... 所以我们把它作为单独的测试 。
         [Fact, TestCategory("Functional"), TestCategory("Ring")]
         public async Task Ring_1Fsec1J()
         {
             var cancellationToken = TestContext.Current.CancellationToken;
             await this.HostedCluster.StartAdditionalSilosAsync(numAdditionalSilos, false, cancellationToken);
             await this.HostedCluster.WaitForLivenessToStabilizeAsync();
-            //List<SiloHandle> failures = getSilosToFail(Fail.Random, 1);
+            //列出<SiloHandle> 故障= getSilosToFail(Fail.Random, 1);
             SiloHandle fail = this.HostedCluster.SecondarySilos.First();
             uint keyToCheck = PickKey(fail.SiloAddress); //fail.SiloAddress.GetConsistentHashCode();
 
-            // kill a silo and join a new one in parallel
+            // 将一个 silo 切除并平行加入一个新的
             logger.LogInformation("Killing secondary silo {SiloAddress} and joining a silo", fail.SiloAddress);
             var killTask = this.HostedCluster.StopSiloAsync(fail, cancellationToken);
             var joinTask = this.HostedCluster.StartAdditionalSilosAsync(1, false, cancellationToken);
@@ -201,7 +201,7 @@ namespace UnitTests.General
 
             await AssertEventually(async () =>
             {
-                await VerificationScenario(keyToCheck, cancellationToken); // verify failed silo's key
+                await VerificationScenario(keyToCheck, cancellationToken); // 验证失败 silo的密钥
                 await VerificationScenario(PickKey(joinedSilo.SiloAddress), cancellationToken);
             }, failureTimeout, cancellationToken);
         }
@@ -224,7 +224,7 @@ namespace UnitTests.General
 
         private async Task VerificationScenario(uint testKey, CancellationToken cancellationToken)
         {
-            // setup
+            // 设置设置设置
             List<SiloAddress> silos = new List<SiloAddress>();
 
             foreach (var siloHandle in this.HostedCluster.GetActiveSilos())
@@ -234,18 +234,18 @@ namespace UnitTests.General
                 silos.Insert(index, siloHandle.SiloAddress);
             }
 
-            // verify parameter key
+            // 校验参数密钥
             await VerifyKey(testKey, silos, cancellationToken);
-            // verify some other keys as well, apart from the parameter key            
-            // some random keys
+            // 校验其它一些密钥,除参数密钥外            
+            // 一些随机密钥
             for (int i = 0; i < 3; i++)
             {
                 await VerifyKey((uint)Random.Shared.Next(), silos, cancellationToken);
             }
-            // lowest key
+            // 最低关键键
             uint lowest = (uint)(silos.First().GetConsistentHashCode() - 1);
             await VerifyKey(lowest, silos, cancellationToken);
-            // highest key
+            // 最高密钥
             uint highest = (uint)(silos.Last().GetConsistentHashCode() + 1);
             await VerifyKey(lowest, silos, cancellationToken);
         }
@@ -253,18 +253,18 @@ namespace UnitTests.General
         private async Task VerifyKey(uint key, List<SiloAddress> silos, CancellationToken cancellationToken)
         {
             var testHooks = this.Client.GetTestHooks(this.HostedCluster.Primary!);
-            SiloAddress truth = testHooks.GetConsistentRingPrimaryTargetSilo(key).Result; //expected;
-            //if (truth == null) // if the truth isn't passed, we compute it here
+            SiloAddress truth = testHooks.GetConsistentRingPrimaryTargetSilo(key).Result; //预期;
+            //如果真假真假不通过 我们在这里算
             //{
-            //    truth = silos.Find(siloAddr => (key <= siloAddr.GetConsistentHashCode()));
-            //    if (truth == null)
+            //    = silos.Find(siloAddr ] * * * * (关键) * siloAddr.GetConsistentHashCode());
+            //    (真象 =无)
             //    {
-            //        truth = silos.First();
+            //        真相 = silos.First();
             //    }
             //}
 
-            // lookup for 'key' should return 'truth' on all silos
-            foreach (var siloHandle in this.HostedCluster.GetActiveSilos()) // do this for each silo
+            // 查找“ key” 的“ 密钥” 应该返回全部 silos上的“ 真相”
+            foreach (var siloHandle in this.HostedCluster.GetActiveSilos()) // 每一个都这样做 silo
             {
                 testHooks = this.Client.GetTestHooks(siloHandle);
                 SiloAddress s = await testHooks.GetConsistentRingPrimaryTargetSilo((uint)key).WaitAsync(cancellationToken);
@@ -277,11 +277,11 @@ namespace UnitTests.General
             List<SiloHandle> failures = new List<SiloHandle>();
             int count = 0;
 
-            // Figure out the primary directory partition and the silo hosting the ReminderTableGrain.
+            // 解析主目录分区和 silo 主机主机 ReminderTableGrain.
             var tableGrain = this.GrainFactory.GetGrain<IReminderTableGrain>(InMemoryReminderTable.ReminderTableGrainId);
             var tableGrainId = ((GrainReference)tableGrain).GrainId;
 
-            // Ping the grain to make sure it is active.
+            // 拨号 grain 以确保它被激活。
             await tableGrain.ReadRows(tableGrainId, cancellationToken);
 
             (SiloAddress reminderTableGrainPrimaryDirectoryAddress, SiloAddress reminderGrainActivationSiloAddress) =
@@ -295,7 +295,7 @@ namespace UnitTests.General
                 {
                     continue;
                 }
-                // Don't fail primary directory partition and the silo hosting the ReminderTableGrain.
+                // 不可失败主目录分区 silo 主机主机 ReminderTableGrain.
                 if (siloAddress.Equals(reminderTableGrainPrimaryDirectoryAddress) || siloAddress.Equals(reminderGrainActivationSiloAddress))
                 {
                     continue;
@@ -304,8 +304,8 @@ namespace UnitTests.General
             }
 
             int index;
-            // we should not fail the primary!
-            // we can't guarantee semantics of 'Fail' if it evalutes to the primary's address
+            // 我们不应该失败!
+            // 我们不能保证“失败”的语义 如果它能以主地址为单位进行估价
             switch (fail)
             {
                 case Fail.First:

@@ -13,7 +13,7 @@ using Xunit;
 namespace ServiceBus.Tests.SlowConsumingTests
 {
     /// <summary>
-    /// Tests for EventHub slow consumer detection and back pressure algorithm behavior.
+    /// 试验 EventHub 消费者检测和后压算法行为缓慢
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming")]
     [TestSuite("Functional")]
@@ -82,10 +82,10 @@ namespace ServiceBus.Tests.SlowConsumingTests
             var slowConsumerStopped = false;
             try
             {
-                //set up one slow consumer grain
+                //设置一个慢速消费者 grain
                 await slowConsumer.BecomeConsumer(streamGuid, StreamNamespace, StreamProviderName);
 
-                //set up 30 healthy consumer grain to show how much we favor slow consumer
+                //设置30个健康消费者 grain ,以显示我们多么喜欢慢消费消费者
                 int healthyConsumerCount = 30;
                 healthyConsumers = await SetUpHealthyConsumerGrain(
                     this.fixture.GrainFactory,
@@ -95,7 +95,7 @@ namespace ServiceBus.Tests.SlowConsumingTests
                     healthyConsumerCount,
                     testCancellationToken);
 
-                //configure data generator for stream and start producing
+                //配置数据生成器,用于流并开始制作
                 var randomStreamPlacementArg = new EventDataGeneratorAdapterFactory.StreamRandomPlacementArg(streamId, this.seed.Next(100));
                 await mgmtGrain.SendControlCommandToProvider<PersistentStreamProvider>(StreamProviderName,
                     (int)EventDataGeneratorAdapterFactory.Commands.Randomly_Place_Stream_To_Queue,
@@ -103,17 +103,17 @@ namespace ServiceBus.Tests.SlowConsumingTests
                     testCancellationToken);
                 productionStarted = true;
 
-                //since there's an extreme slow consumer, so the back pressure algorithm should be triggered
+                //后压算法应该被触发
                 await TestingUtils.WaitUntilAsync(
                     (lastTry, cancellationToken) => AssertCacheBackPressureTriggered(true, lastTry, cancellationToken),
                     timeout,
                     cancellationToken: testCancellationToken);
 
-                //make slow consumer stop consuming
+                //消费者停止消费
                 await slowConsumer.StopConsuming();
                 slowConsumerStopped = true;
 
-                //slowConsumer stopped consuming, back pressure algorithm should be cleared in next check period.
+                //slowConsumer 停止消费,在下一个检查期应清除后压算法。
                 await Task.Delay(monitorPressureWindowSize, testCancellationToken);
                 await TestingUtils.WaitUntilAsync(
                     (lastTry, cancellationToken) => AssertCacheBackPressureTriggered(false, lastTry, cancellationToken),
@@ -151,7 +151,7 @@ namespace ServiceBus.Tests.SlowConsumingTests
             }
             catch (OperationCanceledException) when (testCancellationToken.IsCancellationRequested)
             {
-                // Preserve the original test cancellation after bounded cleanup.
+                // 保留在受约束的清理后取消原试验。
             }
         }
 
@@ -164,7 +164,7 @@ namespace ServiceBus.Tests.SlowConsumingTests
             }
             catch (OperationCanceledException) when (testCancellationToken.IsCancellationRequested)
             {
-                // Preserve the original test cancellation after bounded cleanup.
+                // 保留在受约束的清理后取消原试验。
             }
         }
 
@@ -217,12 +217,12 @@ namespace ServiceBus.Tests.SlowConsumingTests
 
         private async Task<bool> IsBackPressureTriggered(CancellationToken cancellationToken)
         {
-            IManagementGrain mgmtGrain = this.fixture.HostedCluster.GrainFactory!.GetGrain<IManagementGrain>(0); // The fixture deploys the client.
+            IManagementGrain mgmtGrain = this.fixture.HostedCluster.GrainFactory!.GetGrain<IManagementGrain>(0); // 固定装置会部署客户
             object?[] replies = await mgmtGrain.SendControlCommandToProvider<PersistentStreamProvider>(
                              StreamProviderName, EHStreamProviderWithCreatedCacheListAdapterFactory.IsCacheBackPressureTriggeredCommand, null, cancellationToken);
             foreach (var re in replies)
             {
-                if ((bool)re!) // The command returns a Boolean result from each silo.
+                if ((bool)re!) // 命令返回每个 silo的布尔结果。
                     return true;
             }
             return false;

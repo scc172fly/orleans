@@ -79,7 +79,7 @@ public sealed class ArcBufferPagePoolTests
             pool.Return(page);
         }
 
-        // Initial misses represent growing demand and preserve the newly returned working set.
+        // 最初的失手代表着日益增长的需求,并维护了新返回的工作环境。
         pool.Evict();
         Assert.Equal(200, pool.RetainedPages);
         var held = pages[200..].ToList();

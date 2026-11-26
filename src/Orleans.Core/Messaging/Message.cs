@@ -171,10 +171,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Indicates whether the message does not mutate application state and therefore whether it can be interleaved with other read-only messages.
+        /// 指示电文是否没有变换应用程序状态,因此是否可以与其他只读信件互连。
         /// </summary>
         /// <remarks>
-        /// Defaults to <see langword="false"/>.
+        /// 默认为 <see langword="false"/>。
         /// </remarks>
         public bool IsReadOnly
         {
@@ -195,10 +195,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Whether the message is allowed to be sent to another activation of the target grain.
+        /// 是否允许将信件发送到目标的另一次激活 grain。
         /// </summary>
         /// <remarks>
-        /// Defaults to <see langword="false"/>.
+        /// 默认为 <see langword="false"/>。
         /// </remarks>
         public bool IsLocalOnly
         {
@@ -207,10 +207,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Whether the message is allowed to activate a grain and/or extend its lifetime.
+        /// 是否允许信件激活 grain 和/或延长其寿命。
         /// </summary>
         /// <remarks>
-        /// Defaults to <see langword="true"/>.
+        /// 默认为 <see langword="true"/>。
         /// </remarks>
         public bool IsKeepAlive
         {
@@ -353,7 +353,7 @@ namespace Orleans.Runtime
             GrainId id = TargetGrain;
             if (id.IsDefault) return false;
 
-            // don't set expiration for one way, system target and system grain messages.
+            // 不要设置一个方式的过期, 系统目标 和系统 grain 消息 。
             return Direction != Directions.OneWay && !id.IsSystemTarget();
         }
 
@@ -366,7 +366,7 @@ namespace Orleans.Runtime
                 var newList = new List<GrainAddressCacheUpdate> { grainAddressCacheUpdate };
                 if (Interlocked.CompareExchange(ref _cacheInvalidationHeader, newList, null) is { } existingCacheInvalidationHeader)
                 {
-                    // Another thread initialized it, add to the existing list
+                    // 另一条线索首发于现有列表中
                     lock (existingCacheInvalidationHeader)
                     {
                         AddCacheInvalidationHeaderEntry(existingCacheInvalidationHeader, grainAddressCacheUpdate);
@@ -421,7 +421,7 @@ namespace Orleans.Runtime
             if (IsReadOnly && !Append(ref dst, "ReadOnly ")) goto grow;
             if (IsAlwaysInterleave && !Append(ref dst, "IsAlwaysInterleave ")) goto grow;
 
-            // Diagnostics can race transport serialization or completion. Only the body owner may decode or release its buffers.
+            // 诊断可进行运输序列或完成,只有尸体所有人才能解码或释放缓冲。
             var bodyObject = _bodyObject switch { MessageReadRequest => "<serialized>", var value => value };
             if (Direction == Directions.Response)
             {
@@ -493,13 +493,13 @@ grow:
             HasCacheInvalidationHeader = 1 << 7,
             HasTimeToLive = 1 << 8,
 
-            // Message cannot be forwarded to another activation.
+            // 无法将信件转发到其它激活 。
             IsLocalOnly = 1 << 9,
 
-            // Message must not trigger grain activation or extend an activation's lifetime.
+            // 信件不得触发 grain 激活或延长激活的寿命。
             SuppressKeepAlive = 1 << 10,
 
-            // The most significant bit is reserved, possibly for use to indicate more data follows.
+            // 保留了最重要的部分,可能用于显示更多数据。
             Reserved = 1 << 15,
         }
 
@@ -515,11 +515,11 @@ grow:
             public static implicit operator PackedHeaders(uint fields) => new() { _fields = fields };
             public static implicit operator uint(PackedHeaders value) => value._fields;
 
-            // 32 bits: HHHH_HHHH RRRR_DDDD FFFF_FFFF FFFF_FFFF
-            // F: 16 bits for MessageFlags
-            // D: 4 bits for Direction
-            // R: 4 bits for ResponseType
-            // H: 8 bits for ForwardCount (hop count)
+            // 32 位: HHH_HHH HH RRR_DDD FF_FFFFFFFFFFFFF
+            // F: MessageFlags16位数
+            // D: 方向的 4 位元
+            // R: ResponseType的 4位数
+            // H: ForwardCount (速数) 8 位元
             private uint _fields;
 
             public int ForwardCount

@@ -9,7 +9,7 @@ using Xunit;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// Tests for Azure Queue Storage data manager operations including queue message handling and visibility timeouts.
+    /// Azure 队列存储数据管理器操作测试,包括队列信件处理和可见度超时。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage"), TestCategory("AzureQueue")]
     [TestSuite("Functional")]
@@ -55,7 +55,7 @@ namespace Tester.AzureUtils
 
             var inMessage = "Hello, World";
             await manager.AddQueueMessage(inMessage);
-            //Nullable<int> count = manager.ApproximateMessageCount;
+            //可计量<int> 计数= manager.ApproximateMessageCount;
             Assert.Equal(1, await manager.GetApproximateMessageCount());
 
             var outMessage1 = await manager.PeekQueueMessage();
@@ -155,7 +155,7 @@ namespace Tester.AzureUtils
             Assert.Equal(1, outMessage.DequeueCount);
             Assert.NotNull(outMessage.NextVisibleOn);
 
-            // Azure owns the visibility transition, so observe it instead of racing the exact timeout boundary.
+            // 显示度转换是Azure 的自有功能,所以观察它而不是在精确超时边界上进行比赛。
             await TestingUtils.WaitUntilAsync(
                 async (lastTry, _) =>
                 {

@@ -4,7 +4,7 @@ using System;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Determines if data should be purged based off time.
+    /// 确定是否应该根据时间对数据进行清理。
     /// </summary>
     public class TimePurgePredicate
     {
@@ -12,10 +12,10 @@ namespace Orleans.Providers.Streams.Common
         private readonly TimeSpan maxRelativeMessageAge;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TimePurgePredicate"/> class.
+        /// 初始化 <see cref="TimePurgePredicate"/> 类的新实例。
         /// </summary>
-        /// <param name="minTimeInCache">The minimum time data should be kept in cache, unless purged due to data size.</param>
-        /// <param name="maxRelativeMessageAge">The maximum age of data to keep in the cache.</param>
+        /// <param name="minTimeInCache">数据应保留在缓存中,除非由于数据大小而清除。</param>
+        /// <param name="maxRelativeMessageAge">数据保存在缓存中的最大年龄。</param>
         public TimePurgePredicate(TimeSpan minTimeInCache, TimeSpan maxRelativeMessageAge)
         {
             this.minTimeInCache = minTimeInCache;
@@ -23,15 +23,15 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Checks to see if the message should be purged.
-        /// Message should be purged if its relative age is greater than <c>maxRelativeMessageAge</c> and has been in the cache longer than the minTimeInCache.
+        /// 检查是否应该清除信件 。
+        /// 如果信件的相对年龄大于 <c>maxRelativeMessageAge</c> ,并且其缓存时间超过 minTimeInCache,则应清除。
         /// </summary>
-        /// <param name="timeInCache">The amount of time message has been in this cache</param>
-        /// <param name="relativeAge">The age of message relative to the most recent events read</param>
-        /// <returns><see langword="true"/> if the message should be purged; otherwise <see langword="false"/>.</returns>
+        /// <param name="timeInCache">消息的量已在此缓存</param>
+        /// <param name="relativeAge">相对于最近事件的信息年龄读作</param>
+        /// <returns><see langword="true"/> 电文是否应予清除;否则; <see langword="false"/>.</returns>
         public virtual bool ShouldPurgeFromTime(TimeSpan timeInCache, TimeSpan relativeAge)
         {
-            // if time in cache exceeds the minimum and age of data is greater than max allowed, purge
+            // 如果缓存时间超过数据的最低限,且数据年龄大于允许的最大允许年龄,清洗
             return timeInCache > minTimeInCache && relativeAge > maxRelativeMessageAge;
         }
     }

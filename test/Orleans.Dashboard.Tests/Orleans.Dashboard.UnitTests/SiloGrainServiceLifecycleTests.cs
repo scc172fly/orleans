@@ -44,7 +44,7 @@ public class SiloGrainServiceLifecycleTests
         var service = silo.ServiceProvider.GetServices<IGrainService>().OfType<SiloGrainService>().Single();
         var timer = Assert.Single(observer.CreatedTimers);
 
-        // Exercise the real management grain while the provider is alive.
+        // 在供应商活着期间,实际管理 grain 。
         await CollectStatistics(service, TestContext.Current.CancellationToken);
         var statistics = (await service.GetRuntimeStatistics(TestContext.Current.CancellationToken)).Value;
         Assert.NotNull(statistics.Last());
@@ -57,7 +57,7 @@ public class SiloGrainServiceLifecycleTests
 
         await silo.StopSiloAsync(TestContext.Current.CancellationToken);
 
-        // Stop, rather than DI disposal, must own timer cancellation.
+        // 停止而不是DI处置必须拥有取消定时器的功能。
         Assert.Same(timer, Assert.Single(observer.DisposedTimers));
         await service.Stop();
         Assert.Single(observer.DisposedTimers);

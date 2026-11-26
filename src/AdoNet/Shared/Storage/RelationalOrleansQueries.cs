@@ -24,22 +24,22 @@ using Orleans.Streaming.AdoNet;
 using Orleans.GrainDirectory.AdoNet;
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// A class for all relational storages that support all systems stores : membership, reminders and statistics
+    /// 支持所有系统存储的所有关系储存的分类:成员、提醒和统计
     /// </summary>
     internal class RelationalOrleansQueries
     {
         /// <summary>
-        /// the underlying storage
+        /// 基础存储
         /// </summary>
         private readonly IRelationalStorage storage;
 
         /// <summary>
-        /// When inserting statistics and generating a batch insert clause, these are the columns in the statistics
-        /// table that will be updated with multiple values. The other ones are updated with one value only.
+        /// 当插入统计数据和生成批次插入条款时,这些是统计中的栏目
+        /// 表格中将用多个值更新。其他的则仅用一个值更新。
         /// </summary>
         private static readonly string[] InsertStatisticsMultiupdateColumns = {
             DbStoredQueries.Columns.IsValueDelta,
@@ -48,15 +48,15 @@ namespace Orleans.Tests.SqlUtils
         };
 
         /// <summary>
-        /// the orleans functional queries
+        /// 排 orleans 职能查询
         /// </summary>
         private readonly DbStoredQueries dbStoredQueries;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
-        /// <param name="storage">the underlying relational storage</param>
-        /// <param name="dbStoredQueries">Orleans functional queries</param>
+        /// <param name="storage">相关关联储存</param>
+        /// <param name="dbStoredQueries">Orleans 功能查询</param>
         private RelationalOrleansQueries(IRelationalStorage storage, DbStoredQueries dbStoredQueries)
         {
             this.storage = storage;
@@ -64,16 +64,16 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Creates an instance of a database of type <see cref="RelationalOrleansQueries"/> and Initializes Orleans queries from the database.
-        /// Orleans uses only these queries and the variables therein, nothing more.
+        /// 创建类型 <see cref="RelationalOrleansQueries"/> 的数据库实例,并初始化数据库中的查询 Orleans 。
+        /// Orleans 仅使用这些查询及其中的变量,仅此而已。
         /// </summary>
-        /// <param name="invariantName">The invariant name of the connector for this database.</param>
-        /// <param name="connectionString">The connection string this database should use for database operations.</param>
+        /// <param name="invariantName">此数据库连接器的变量名称。</param>
+        /// <param name="connectionString">此数据库的连接字符串应用于数据库操作 。</param>
         internal static Task<RelationalOrleansQueries> CreateInstance(string invariantName, string connectionString) =>
             CreateInstance(RelationalStorage.CreateInstance(invariantName, connectionString));
 
         /// <summary>
-        /// Creates an instance using exactly one configured connection source and initializes Orleans queries from the database.
+        /// 使用一个已配置的连接源创建实例,并初始化数据库中的 Orleans 查询。
         /// </summary>
         internal static Task<RelationalOrleansQueries> CreateInstance(string invariantName, string? connectionString, DbDataSource? dataSource, CancellationToken cancellationToken = default) =>
             CreateInstance(RelationalStorage.CreateInstance(invariantName, connectionString, dataSource), cancellationToken);
@@ -104,33 +104,33 @@ namespace Orleans.Tests.SqlUtils
 #if REMINDERS_ADONET || TESTER_SQLUTILS
 
         /// <summary>
-        /// Reads Orleans reminder data from the tables.
+        /// 读取表格中的 Orleans 提醒数据。
         /// </summary>
-        /// <param name="serviceId">The service ID.</param>
-        /// <param name="grainId">The grain reference (ID).</param>
-        /// <returns>Reminder table data.</returns>
+        /// <param name="serviceId">服务编号。</param>
+        /// <param name="grainId">下 grain 参考文献(ID)。</param>
+        /// <returns>提醒表格数据。</returns>
         internal Task<ReminderTableData> ReadReminderRowsAsync(string serviceId, GrainId grainId)
         {
-            // Collection queries only yield rows containing reminder data; the selector is nullable for single-row outer joins.
+            // 收集查询仅产生含有提醒数据的行;选择器对单行外部连接是无效的。
             return ReadAsync(dbStoredQueries.ReadReminderRowsKey, record => GetReminderEntry(record)!, command =>
                 new DbStoredQueries.Columns(command) { ServiceId = serviceId, GrainId = grainId.ToString() },
                 ret => new ReminderTableData(ret.ToList()));
         }
 
         /// <summary>
-        /// Reads Orleans reminder data from the tables.
+        /// 读取表格中的 Orleans 提醒数据。
         /// </summary>
-        /// <param name="serviceId">The service ID.</param>
-        /// <param name="beginHash">The begin hash.</param>
-        /// <param name="endHash">The end hash.</param>
-        /// <returns>Reminder table data.</returns>
+        /// <param name="serviceId">服务编号。</param>
+        /// <param name="beginHash">开始散列。</param>
+        /// <param name="endHash">末端散列。</param>
+        /// <returns>提醒表格数据。</returns>
         internal Task<ReminderTableData> ReadReminderRowsAsync(string serviceId, uint beginHash, uint endHash)
         {
             var query = IsReminderRangeNonWrappingInSignedOrder(beginHash, endHash)
                 ? dbStoredQueries.ReadRangeRows1Key
                 : dbStoredQueries.ReadRangeRows2Key;
 
-            // Collection queries only yield rows containing reminder data; the selector is nullable for single-row outer joins.
+            // 收集查询仅产生含有提醒数据的行;选择器对单行外部连接是无效的。
             return ReadAsync<ReminderEntry, ReminderTableData>(query, record => GetReminderEntry(record)!, command =>
                 new DbStoredQueries.Columns(command) { ServiceId = serviceId, BeginHash = beginHash, EndHash = endHash },
                 ret => new ReminderTableData(ret.ToList()));
@@ -147,7 +147,7 @@ namespace Orleans.Tests.SqlUtils
 
         internal static ReminderEntry? GetReminderEntry(IDataRecord record)
         {
-            //Having non-null field, GrainId, means with the query filter options, an entry was found.
+            //具有非核字段, GrainId, 是指带有查询过滤选项的“ 查询筛选” 选项, 找到了一个条目 。
             string? grainId = record.GetValueOrDefault<string>(nameof(DbStoredQueries.Columns.GrainId));
             if (grainId != null)
             {
@@ -157,8 +157,8 @@ namespace Orleans.Tests.SqlUtils
                     ReminderName = record.GetValue<string>(nameof(DbStoredQueries.Columns.ReminderName)),
                     StartAt = record.GetDateTimeValue(nameof(DbStoredQueries.Columns.StartTime)),
 
-                    //Use the GetInt64 method instead of the generic GetValue<TValue> version to retrieve the value from the data record
-                    //GetValue<int> causes an InvalidCastException with oracle data provider. See https://github.com/dotnet/orleans/issues/3561
+                    //使用 GetInt64 方法,而不是通用 GetValue<TValue> 版本,从数据记录中检索值
+                    //GetValue<int> 导致 InvalidCastException ,带有标准数据提供者。见 https://github.com/dotnet/orleans/issues/3561
                     Period = TimeSpan.FromMilliseconds(record.GetInt64(nameof(DbStoredQueries.Columns.Period))),
                     ETag = DbStoredQueries.Converters.GetVersion(record).ToString()
                 };
@@ -166,12 +166,12 @@ namespace Orleans.Tests.SqlUtils
             return null;
         }
         /// <summary>
-        /// Reads one row of reminder data.
+        /// 读取一行提醒数据。
         /// </summary>
-        /// <param name="serviceId">Service ID.</param>
-        /// <param name="grainId">The grain reference (ID).</param>
-        /// <param name="reminderName">The reminder name to retrieve.</param>
-        /// <returns>A remainder entry.</returns>
+        /// <param name="serviceId">身份证明处</param>
+        /// <param name="grainId">下 grain 参考文献(ID)。</param>
+        /// <param name="reminderName">要检索的提醒名称 。</param>
+        /// <returns>其余的输入</returns>
         internal Task<ReminderEntry?> ReadReminderRowAsync(string serviceId, GrainId grainId,
             string reminderName)
         {
@@ -185,14 +185,14 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Either inserts or updates a reminder row.
+        /// 插入或更新提醒行。
         /// </summary>
-        /// <param name="serviceId">The service ID.</param>
-        /// <param name="grainId">The grain reference (ID).</param>
-        /// <param name="reminderName">The reminder name to retrieve.</param>
-        /// <param name="startTime">Start time of the reminder.</param>
-        /// <param name="period">Period of the reminder.</param>
-        /// <returns>The new etag of the either or updated or inserted reminder row.</returns>
+        /// <param name="serviceId">服务编号。</param>
+        /// <param name="grainId">下 grain 参考文献(ID)。</param>
+        /// <param name="reminderName">要检索的提醒名称 。</param>
+        /// <param name="startTime">提醒的开始时间。</param>
+        /// <param name="period">定期的催促,</param>
+        /// <returns>或更新或插入提醒行的新标签。</returns>
         internal Task<string?> UpsertReminderRowAsync(string serviceId, GrainId grainId,
             string reminderName, DateTime startTime, TimeSpan period)
         {
@@ -209,9 +209,9 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Deletes a reminder
+        /// 删除提醒
         /// </summary>
-        /// <param name="serviceId">Service ID.</param>
+        /// <param name="serviceId">身份证明处</param>
         /// <param name="grainId"></param>
         /// <param name="reminderName"></param>
         /// <param name="etag"></param>
@@ -230,7 +230,7 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Deletes all reminders rows of a service id.
+        /// 删除服务 ID 中的所有提醒行。
         /// </summary>
         /// <param name="serviceId"></param>
         /// <returns></returns>
@@ -245,11 +245,11 @@ namespace Orleans.Tests.SqlUtils
 #if CLUSTERING_ADONET || TESTER_SQLUTILS
 
         /// <summary>
-        /// Lists active gateways. Used mainly by Orleans clients.
+        /// 列出活动网关。 主要为 Orleans 客户端使用。
         /// </summary>
-        /// <param name="deploymentId">The deployment for which to query the gateways.</param>
-        /// <param name="cancellationToken">The token used to cancel the query.</param>
-        /// <returns>The gateways for the silo.</returns>
+        /// <param name="deploymentId">用于查询网关的部署。</param>
+        /// <param name="cancellationToken">取消查询所用的标记。</param>
+        /// <returns> silo的网关。</returns>
         internal Task<List<Uri>> ActiveGatewaysAsync(string deploymentId, CancellationToken cancellationToken = default)
         {
             return ReadAsync(dbStoredQueries.GatewaysQueryKey, DbStoredQueries.Converters.GetGatewayUri, command =>
@@ -258,12 +258,12 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Queries Orleans membership data.
+        /// 查询 Orleans 成员数据。
         /// </summary>
-        /// <param name="deploymentId">The deployment for which to query data.</param>
-        /// <param name="siloAddress">Silo data used as parameters in the query.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Membership table data.</returns>
+        /// <param name="deploymentId">用于查询数据的部署。</param>
+        /// <param name="siloAddress">Silo 查询中用作参数的数据。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>成员表数据。</returns>
         internal Task<MembershipTableData> MembershipReadRowAsync(string deploymentId, SiloAddress siloAddress, CancellationToken cancellationToken = default)
         {
             return ReadAsync(dbStoredQueries.MembershipReadRowKey, DbStoredQueries.Converters.GetMembershipEntry, command =>
@@ -272,10 +272,10 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// returns all membership data for a deployment id
+        /// 返回部署代号时的全部会籍数据
         /// </summary>
         /// <param name="deploymentId"></param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="cancellationToken">取消牌。</param>
         /// <returns></returns>
         internal Task<MembershipTableData> MembershipReadAllAsync(string deploymentId, CancellationToken cancellationToken = default)
         {
@@ -284,10 +284,10 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// deletes all membership entries for a deployment id
+        /// 删除部署id 的所有成员条目
         /// </summary>
         /// <param name="deploymentId"></param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="cancellationToken">取消牌。</param>
         /// <returns></returns>
         internal Task DeleteMembershipTableEntriesAsync(string deploymentId, CancellationToken cancellationToken = default)
         {
@@ -296,11 +296,11 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Runs the installed cleanup query, using captured-row eligibility when the optional query is available.
+        /// 运行已安装的清理查询, 当可选查询时使用抓取- row 资格 。
         /// </summary>
         /// <param name="beforeDate"></param>
         /// <param name="deploymentId"></param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="cancellationToken">取消牌。</param>
         /// <returns></returns>
         internal async Task CleanupDefunctSiloEntriesAsync(DateTimeOffset beforeDate, string deploymentId, CancellationToken cancellationToken = default)
         {
@@ -321,7 +321,7 @@ namespace Orleans.Tests.SqlUtils
                     && entry.IAmAliveTime < cutoff
                     && entry.SuspectTimes?.Any(vote => vote.Item2 >= cutoff) != true)
                 {
-                    // Evaluate the cutoff in .NET and match the original storage values in SQL.
+                    // 评估 .NET 中的截止值,并与 SQL中的原始储存值匹配。
                     await ExecuteAsync(cleanupQuery, command =>
                     {
                         var columns = new DbStoredQueries.Columns(command)
@@ -330,7 +330,7 @@ namespace Orleans.Tests.SqlUtils
                             SiloAddress = entry.SiloAddress,
                             SuspectTimes = entry.SuspectTimes
                         };
-                        // SQL Server's DateTime binding rounds values read from the DateTime2 columns.
+                        // 服务器SQL 的 DateTime 装订圆轮值,取自 DateTime2 栏。
                         var timestampType = storage.InvariantName == AdoNetInvariants.InvariantNameSqlServer ? DbType.DateTime2 : DbType.DateTime;
                         command.AddParameter(nameof(DbStoredQueries.Columns.StartTime), entry.StartTime, dbType: timestampType);
                         command.AddParameter(nameof(DbStoredQueries.Columns.IAmAliveTime), entry.IAmAliveTime, dbType: timestampType);
@@ -341,12 +341,12 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Updates IAmAlive for a silo
+        /// 更新 IAmAlive a 的a silo
         /// </summary>
         /// <param name="deploymentId"></param>
         /// <param name="siloAddress"></param>
         /// <param name="iAmAliveTime"></param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="cancellationToken">取消牌。</param>
         /// <returns></returns>
         internal Task UpdateIAmAliveTimeAsync(string deploymentId, SiloAddress siloAddress, DateTime iAmAliveTime, CancellationToken cancellationToken = default)
         {
@@ -360,11 +360,11 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Inserts a version row if one does not already exist.
+        /// 如果版本行不存在,则插入该版本行。
         /// </summary>
-        /// <param name="deploymentId">The deployment for which to query data.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><em>TRUE</em> if a row was inserted. <em>FALSE</em> otherwise.</returns>
+        /// <param name="deploymentId">用于查询数据的部署。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns><em>真实</em> 如果插入了一行。 <em>平</em> 否则。</returns>
         internal Task<bool> InsertMembershipVersionRowAsync(string deploymentId, CancellationToken cancellationToken = default)
         {
             return ReadAsync(dbStoredQueries.InsertMembershipVersionKey, DbStoredQueries.Converters.GetSingleBooleanValue, command =>
@@ -372,13 +372,13 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Inserts a membership row if one does not already exist.
+        /// 如果还没有加入行,则插入该行。
         /// </summary>
-        /// <param name="deploymentId">The deployment with which to insert row.</param>
-        /// <param name="membershipEntry">The membership entry data to insert.</param>
-        /// <param name="etag">The table expected version etag.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><em>TRUE</em> if insert succeeds. <em>FALSE</em> otherwise.</returns>
+        /// <param name="deploymentId">插入行的部署。</param>
+        /// <param name="membershipEntry">插入成员入门数据。</param>
+        /// <param name="etag">表格预期版本etag。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns><em>真实</em> 如果插入成功。 <em>平</em> 否则。</returns>
         internal Task<bool> InsertMembershipRowAsync(string deploymentId, MembershipEntry membershipEntry,
             string etag, CancellationToken cancellationToken = default)
         {
@@ -404,13 +404,13 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Updates membership row data.
+        /// 更新成员行数据。
         /// </summary>
-        /// <param name="deploymentId">The deployment with which to insert row.</param>
-        /// <param name="membershipEntry">The membership data to used to update database.</param>
-        /// <param name="etag">The table expected version etag.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><em>TRUE</em> if update SUCCEEDS. <em>FALSE</em> ot</returns>
+        /// <param name="deploymentId">插入行的部署。</param>
+        /// <param name="membershipEntry">用于更新数据库的成员数据。</param>
+        /// <param name="etag">表格预期版本etag。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns><em>真实</em> 如果更新了SUCCEEDS,则会更新。 <em>平</em> ot</returns>
         internal Task<bool> UpdateMembershipRowAsync(string deploymentId, MembershipEntry membershipEntry,
             string etag, CancellationToken cancellationToken = default)
         {
@@ -454,14 +454,14 @@ namespace Orleans.Tests.SqlUtils
 #if STREAMING_ADONET || TESTER_SQLUTILS
 
         /// <summary>
-        /// Queues a stream message to the stream message table.
+        /// 将一条流信息排到流信息表格中。
         /// </summary>
-        /// <param name="serviceId">The service identifier.</param>
-        /// <param name="providerId">The provider identifier.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="payload">The serialized event payload.</param>
-        /// <param name="expiryTimeout">The expiry timeout for this event batch.</param>
-        /// <returns>An acknowledgement that the message was queued.</returns>
+        /// <param name="serviceId">服务标识符。</param>
+        /// <param name="providerId">提供者标识符。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="payload">序列式事件有效载荷。</param>
+        /// <param name="expiryTimeout">本事件批次的过期超时 。</param>
+        /// <returns>承认信件被排队。</returns>
         internal Task<AdoNetStreamMessageAck> QueueStreamMessageAsync(string serviceId, string providerId, string queueId, byte[] payload, int expiryTimeout)
         {
             ArgumentNullException.ThrowIfNull(serviceId);
@@ -487,18 +487,18 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Gets stream messages from the stream message table.
+        /// 从流信息表格中获取流信息。
         /// </summary>
-        /// <param name="serviceId">The service identifier.</param>
-        /// <param name="providerId">The provider identifier.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="maxCount">The maximum count of event batches to get.</param>
-        /// <param name="maxAttempts">The maximum attempts to lock an unprocessed event batch.</param>
-        /// <param name="visibilityTimeout">The visibility timeout for the retrieved event batches.</param>
-        /// <param name="removalTimeout">The timeout before the message is to be deleted from dead letters.</param>
-        /// <param name="evictionInterval">The interval between opportunistic data eviction.</param>
-        /// <param name="evictionBatchSize">The number of messages to evict in each batch.</param>
-        /// <returns>A list of dequeued payloads.</returns>
+        /// <param name="serviceId">服务标识符。</param>
+        /// <param name="providerId">提供者标识符。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="maxCount">要获取的事件批次的最大数 。</param>
+        /// <param name="maxAttempts">锁定未处理事件批次的最大尝试。</param>
+        /// <param name="visibilityTimeout">回收的事件批次的可见度超时。</param>
+        /// <param name="removalTimeout">删除信件前的超时。</param>
+        /// <param name="evictionInterval">机会性数据驱逐之间的间隔。</param>
+        /// <param name="evictionBatchSize">每批驱逐信息的数量 。</param>
+        /// <returns>一份已卸载的有效载荷清单。</returns>
         internal Task<IList<AdoNetStreamMessage>> GetStreamMessagesAsync(string serviceId, string providerId, string queueId, int maxCount, int maxAttempts, int visibilityTimeout, int removalTimeout, int evictionInterval, int evictionBatchSize)
         {
             ArgumentNullException.ThrowIfNull(serviceId);
@@ -539,15 +539,15 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Confirms delivery of messages from the stream message table.
+        /// 确认从流信息表发送的信息。
         /// </summary>
-        /// <param name="serviceId">The service identifier.</param>
-        /// <param name="providerId">The provider identifier.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="messages">The messages to confirm.</param>
-        /// <returns>A list of confirmations.</returns>
+        /// <param name="serviceId">服务标识符。</param>
+        /// <param name="providerId">提供者标识符。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="messages">信件要确认。</param>
+        /// <returns>确认书清单。</returns>
         /// <remarks>
-        /// If <paramref name="messages"/> is empty then an empty confirmation list is returned.
+        /// 如果 <paramref name="messages"/> 是空的, 那么返回一个空确认列表 。
         /// </remarks>
         internal Task<IList<AdoNetStreamConfirmationAck>> ConfirmStreamMessagesAsync(string serviceId, string providerId, string queueId, IList<AdoNetStreamConfirmation> messages)
         {
@@ -579,16 +579,16 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Makes unconfirmed stream messages immediately available for redelivery.
+        /// 使未经证实的流信息立即可供再传送。
         /// </summary>
-        /// <param name="serviceId">The service identifier.</param>
-        /// <param name="providerId">The provider identifier.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="messages">The messages to release.</param>
-        /// <returns>A list of released messages.</returns>
+        /// <param name="serviceId">服务标识符。</param>
+        /// <param name="providerId">提供者标识符。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="messages">要发布的信件。</param>
+        /// <returns>发布信息列表。</returns>
         /// <remarks>
-        /// The dequeue counter acts as a receipt so that a stale receiver cannot release a message
-        /// which has already been dequeued by a new receiver.
+        /// dequeue 反方作为收件,这样一个老化接收器不能发出电文
+        /// 已经被一个新的接收器解密了
         /// </remarks>
         internal Task<IList<AdoNetStreamConfirmationAck>> ReleaseStreamMessagesAsync(string serviceId, string providerId, string queueId, IList<AdoNetStreamConfirmation> messages)
         {
@@ -619,7 +619,7 @@ namespace Orleans.Tests.SqlUtils
                 result => result.ToList());
         }
 
-        // Builds a provider-neutral receipt list in the form "1:2|3:4|5:6".
+        // 以“1:2}3:4}5:6”的形式构建一个供应商中立的接收列表。
         private static string FormatStreamConfirmations(IList<AdoNetStreamConfirmation> messages, bool release) =>
             messages.Aggregate(
                 new StringBuilder(),
@@ -631,14 +631,14 @@ namespace Orleans.Tests.SqlUtils
                 static builder => builder.ToString());
 
         /// <summary>
-        /// Applies delivery failure logic to a stream message, such as making the message visible again or moving it to dead letters.
+        /// 将发送失败逻辑应用到流信息,例如使电文再次可见或移动成死字。
         /// </summary>
-        /// <param name="serviceId">The service identifier.</param>
-        /// <param name="providerId">The provider identifier.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="messageId">The message identifier.</param>
-        /// <param name="maxAttempts">The maximum number of delivery attempts before moving the message to dead letters.</param>
-        /// <param name="removalTimeout">The number of seconds to retain the message in dead letters.</param>
+        /// <param name="serviceId">服务标识符。</param>
+        /// <param name="providerId">提供者标识符。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="messageId">信件标识符。</param>
+        /// <param name="maxAttempts">在将信息移到死字之前,最大尝试发送次数。</param>
+        /// <param name="removalTimeout">将信件保留在死信中的秒数。</param>
         internal Task FailStreamMessageAsync(string serviceId, string providerId, string queueId, long messageId, int maxAttempts, int removalTimeout)
         {
             ArgumentNullException.ThrowIfNull(serviceId);
@@ -659,14 +659,14 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Moves eligible messages from the stream message table to the dead letter table.
+        /// 将符合条件的信息从流信息表格移至死信表格。
         /// </summary>
-        /// <param name="serviceId">The service identifier.</param>
-        /// <param name="providerId">The provider identifier.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="maxCount">The max number of messages to move in this batch.</param>
-        /// <param name="maxAttempts">The max number of times a message can be dequeued.</param>
-        /// <param name="removalTimeout">The timeout before the message is to be deleted from dead letters.</param>
+        /// <param name="serviceId">服务标识符。</param>
+        /// <param name="providerId">提供者标识符。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="maxCount">批量中要移动的最大信件数量。</param>
+        /// <param name="maxAttempts">信件可以解排的最大次数。</param>
+        /// <param name="removalTimeout">删除信件前的超时。</param>
         internal Task EvictStreamMessagesAsync(string serviceId, string providerId, string queueId, int maxCount, int maxAttempts, int removalTimeout)
         {
             ArgumentNullException.ThrowIfNull(serviceId);
@@ -687,12 +687,12 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Removes messages from the dead letter after their removal timeout expires.
+        /// 清除过期时间过期后从废信中删除信息 。
         /// </summary>
-        /// <param name="serviceId">The service identifier.</param>
-        /// <param name="providerId">The provider identifier.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="maxCount">The max number of messages to move in this batch.</param>
+        /// <param name="serviceId">服务标识符。</param>
+        /// <param name="providerId">提供者标识符。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="maxCount">批量中要移动的最大信件数量。</param>
         internal Task EvictStreamDeadLettersAsync(string serviceId, string providerId, string queueId, int maxCount)
         {
             ArgumentNullException.ThrowIfNull(serviceId);
@@ -715,14 +715,14 @@ namespace Orleans.Tests.SqlUtils
 #if GRAINDIRECTORY_ADONET || TESTER_SQLUTILS
 
         /// <summary>
-        /// Registers a new grain activation.
+        /// 注册新的 grain 激活。
         /// </summary>
-        /// <param name="clusterId">The cluster identifier.</param>
-        /// <param name="providerId">The grain directory provider identifier.</param>
-        /// <param name="grainId">The grain identifier.</param>
-        /// <param name="siloAddress">The silo address.</param>
-        /// <param name="activationId">The activation identifier.</param>
-        /// <returns>The grain activation registered in the directory.</returns>
+        /// <param name="clusterId">集束识别符号。</param>
+        /// <param name="providerId">下 grain 目录提供者识别符 。</param>
+        /// <param name="grainId"> grain 标识符。</param>
+        /// <param name="siloAddress"> silo 地址。</param>
+        /// <param name="activationId">激活标识符。</param>
+        /// <returns>注册在目录中的 grain 激活。</returns>
         internal Task<AdoNetGrainDirectoryEntry> RegisterGrainActivationAsync(string clusterId, string providerId, string grainId, string siloAddress, string activationId)
         {
             ArgumentNullException.ThrowIfNull(clusterId);
@@ -751,13 +751,13 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Unregisters a grain activation.
+        /// 解除登记启动 grain 。
         /// </summary>
-        /// <param name="clusterId">The cluster identifier.</param>
-        /// <param name="providerId">The grain directory provider identifier.</param>
-        /// <param name="grainId">The grain identifier.</param>
-        /// <param name="activationId">The activation identifier.</param>
-        /// <returns>The count of rows affected.</returns>
+        /// <param name="clusterId">集束识别符号。</param>
+        /// <param name="providerId">下 grain 目录提供者识别符 。</param>
+        /// <param name="grainId"> grain 标识符。</param>
+        /// <param name="activationId">激活标识符。</param>
+        /// <returns>受影响行的数。</returns>
         internal Task<int> UnregisterGrainActivationAsync(string clusterId, string providerId, string grainId, string activationId)
         {
             ArgumentNullException.ThrowIfNull(clusterId);
@@ -779,12 +779,12 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Looks up a grain activation.
+        /// 检查一个 grain 激活。
         /// </summary>
-        /// <param name="clusterId">The cluster identifier.</param>
-        /// <param name="providerId">The grain directory provider identifier.</param>
-        /// <param name="grainId">The grain identifier.</param>
-        /// <returns>The grain activation if found or null if not.</returns>
+        /// <param name="clusterId">集束识别符号。</param>
+        /// <param name="providerId">下 grain 目录提供者识别符 。</param>
+        /// <param name="grainId"> grain 标识符。</param>
+        /// <returns>如果发现 grain 激活,则启动。</returns>
         internal Task<AdoNetGrainDirectoryEntry?> LookupGrainActivationAsync(string clusterId, string providerId, string grainId)
         {
             ArgumentNullException.ThrowIfNull(clusterId);
@@ -809,12 +809,12 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// Unregisters all grain activations for a set of silos.
+        /// 全部不登记者 grain 一组 silos.
         /// </summary>
-        /// <param name="clusterId">The cluster identifier.</param>
-        /// <param name="providerId">The grain directory provider identifier.</param>
-        /// <param name="siloAddresses">The pipe separated set of silos.</param>
-        /// <returns>The count of rows affected.</returns>
+        /// <param name="clusterId">集束识别符号。</param>
+        /// <param name="providerId">下 grain 目录提供者识别符 。</param>
+        /// <param name="siloAddresses">管断裂的 silos集。</param>
+        /// <returns>受影响行的数。</returns>
         internal Task<int> UnregisterGrainActivationsAsync(string clusterId, string providerId, string siloAddresses)
         {
             ArgumentNullException.ThrowIfNull(clusterId);

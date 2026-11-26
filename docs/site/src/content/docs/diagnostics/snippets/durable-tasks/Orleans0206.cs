@@ -11,7 +11,7 @@ public sealed class ReminderScheduleGrain(IEmailSender email) : DurableGrain
         {
             await DurableTask.Delay(TimeSpan.FromDays(1)).WithId($"wait-{i}");
 
-            // The definition ran in the first iteration, so the second iteration throws.
+            // 定义在第一次迭代中运行, 所以第二次迭代投出。
             await remind.WithId($"remind-{i}");
         }
     }
@@ -25,7 +25,7 @@ public sealed class ReminderScheduleGrain(IEmailSender email) : DurableGrain
         {
             await DurableTask.Delay(TimeSpan.FromDays(1)).WithId($"wait-{i}");
 
-            // Each call creates a new definition for this iteration's run.
+            // 每通电话都为循环运行创造新的定义。
             await SendReminder(customer).WithId($"remind-{i}");
         }
     }
@@ -34,7 +34,7 @@ public sealed class ReminderScheduleGrain(IEmailSender email) : DurableGrain
     // <orleans0206_fix_factory>
     public async DurableTask RemindTwiceAsync(string customer)
     {
-        // A factory creates a definition for each run.
+        // 工厂为每场运行都给出定义。
         DurableTask Remind() => SendReminder(customer);
 
         await Remind().WithId("first-reminder");

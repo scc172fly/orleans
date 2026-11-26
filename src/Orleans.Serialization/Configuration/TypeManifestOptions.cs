@@ -13,7 +13,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Serialization.Configuration
 {
     /// <summary>
-    /// Configuration of all types which are known to the code generator.
+    /// 代码生成器已知的所有类型的配置 。
     /// </summary>
     public sealed class TypeManifestOptions
     {
@@ -37,7 +37,7 @@ namespace Orleans.Serialization.Configuration
         private readonly HashSet<Type> _interfaceImplementations = new();
         private readonly Dictionary<Type, InterfaceDiscoveryKinds> _interfaceDiscoveryRequests = new();
         private int _nextContractRegistrationOrder;
-        // Mutable collection access requests legacy discovery, including types added through retained collection references.
+        // 监听式收藏访问请求发现遗留问题,包括通过保留收集参考资料添加的类型。
         private InterfaceDiscoveryKinds _accessedCollections;
         internal Dictionary<Type, List<SerializationContract>> SerializerContracts { get; } = new();
         internal Dictionary<Type, List<SerializationContract>> CopierContracts { get; } = new();
@@ -50,16 +50,16 @@ namespace Orleans.Serialization.Configuration
         internal HashSet<Type> ContextTypes { get; } = new();
 
         /// <summary>
-        /// Registers statically constructed serialization and copying implementations for a closed type.
+        /// 登记固定结构的序列和复制执行封闭型号。
         /// </summary>
-        /// <typeparam name="T">The serialized type.</typeparam>
-        /// <param name="codecFactory">The factory for the field codec.</param>
-        /// <param name="copierFactory">The factory for the deep copier.</param>
+        /// <typeparam name="T">序列型号</typeparam>
+        /// <param name="codecFactory">实地编码工厂。</param>
+        /// <param name="copierFactory">深层复印机的工厂</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches the completed codec and copier instances for its lifetime
-        /// by their closed service types. Factory results and their dependencies therefore have provider lifetime,
-        /// including instances obtained from transient or scoped dependency-injection registrations.
-        /// Implementations must support reuse across concurrent serialization and copying operations.
+        /// 每个 <see cref="CodecProvider"/> 都在其整个生命周期内隐藏完成的编码器和复印机
+        /// 工厂结果及其依赖性因此具有供应商寿命,
+        /// 包括从临时或范围化的自有注射登记中获取的实例。
+        /// 执行工作必须支持在同时进行的序列和复制作业中重新使用。
         /// </remarks>
         public void AddSerializer<T>(
             Func<ICodecProvider, IFieldCodec<T>> codecFactory,
@@ -77,20 +77,20 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Registers a statically constructed service used by generated serializers and copiers.
+        /// 登记了由生成的序列器和复印机使用的静态结构服务。
         /// </summary>
-        /// <typeparam name="TService">The closed service type.</typeparam>
-        /// <param name="factory">The service factory.</param>
+        /// <typeparam name="TService">封闭式服务类型。</typeparam>
+        /// <param name="factory">服务工厂</param>
         /// <remarks>
-        /// The codec provider constructs and caches one instance per service type. Recursive generated
-        /// constructors retain references to in-progress dependencies through the generated-code helper.
-        /// The first registration for a service type is used.
-        /// Cached instances and their dependencies have the <see cref="CodecProvider"/> lifetime, including
-        /// instances obtained from transient or scoped dependency-injection registrations. Services must
-        /// support concurrent use by serialization implementations.
-        /// During graph construction, dependencies resolve through provider-owned services and these closed
-        /// factories. Supply external dependencies through explicit constructor arguments or factories which
-        /// return captured instances. Ordinary dependency injection resumes after the graph is published.
+        /// 代码化提供者构建并隐藏每个服务类型一例的缓存。
+        /// 建筑商通过生成编码助手保留提及在建工程依赖的文字。
+        /// 使用一种服务类型的首次登记。
+        /// 紧凑的事例及其依赖性具有 <see cref="CodecProvider"/> 寿命,包括
+        /// 临时或范围化的自有注射登记中获取的文献。
+        /// 通过执行序列化支持同时使用。
+        /// 在图示施工期间,依赖关系通过供应商拥有的服务解决,这些已关闭
+        /// 通过明确的建筑师论点或
+        /// 返回捕捉到的例。 在图表发布后, 恢复正常依赖注射。
         /// </remarks>
         public void AddSerializerService<TService>(Func<ICodecProvider, TService> factory) where TService : class
         {
@@ -99,16 +99,16 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether <see cref="SerializerConfigurationAnalyzer"/> should be enabled.
+        /// 获取或设置一个值,以显示是否应该启用 <see cref="SerializerConfigurationAnalyzer"/> 。
         /// </summary>
         /// <remarks>
-        /// This property does not cause <see cref="SerializerConfigurationAnalyzer"/> to be invoked.
-        /// That is the responsibility of the consuming framework.
+        /// 此财产不导致 <see cref="SerializerConfigurationAnalyzer"/> 被援引。
+        /// 这是消费框架的责任。
         /// </remarks>
         public bool? EnableConfigurationAnalysis { get; set; }
 
         /// <summary>
-        /// Gets the set of known activators, which are responsible for creating instances of a given type.
+        /// 获取一组已知的活性者,这些能负责创建特定类型的实例。
         /// </summary>
         public HashSet<Type> Activators
         {
@@ -125,7 +125,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the set of known field codecs, which are responsible for serializing and deserializing fields of a given type.
+        /// 获取一套已知的字段编码器,这些编码器负责对某一类型域进行序列和取消序列。
         /// </summary>
         public HashSet<Type> FieldCodecs
         {
@@ -142,7 +142,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the set of known serializers, which are responsible for serializing and deserializing a given type.
+        /// 获取一组已知的序列器,这些序列器负责对某一类型进行序列和取消其序列。
         /// </summary>
         public HashSet<Type> Serializers
         {
@@ -159,7 +159,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the set of copiers, which are responsible for creating deep copies of a given type.
+        /// 获得一组复印机,负责制作某种类型的深度拷贝。
         /// </summary>
         public HashSet<Type> Copiers
         {
@@ -176,7 +176,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the set of converters, which are responsible for converting from one type to another.
+        /// 获取一组转换器,这些转换器负责从一种类型转换成另一种类型。
         /// </summary>
         public HashSet<Type> Converters
         {
@@ -193,7 +193,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the set of known interfaces, which are interfaces that have corresponding proxies in the <see cref="InterfaceProxies"/> collection.
+        /// 获取一组已知的接口,即 <see cref="InterfaceProxies"/> 收藏中具有相应代理的界面。
         /// </summary>
         public HashSet<Type> Interfaces
         {
@@ -206,10 +206,10 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the set of known interface proxies, which capture method invocations which can be serialized, deserialized, and invoked against an implementation of this interface.
+        /// 获得一套已知界面代理,该代理可捕捉可以序列化、消毒和针对实施这一接口而援引的可捕捉方法职业。
         /// </summary>
         /// <remarks>
-        /// This allows decoupling the caller and target, so that remote procedure calls can be implemented by capturing an invocation, transmitting it, and later invoking it against a target object.
+        /// 这样可以将呼叫者和目标分离,从而通过捕获、传送和随后针对目标物体援引远程程序呼叫,实施远程程序呼叫。
         /// </remarks>
         public HashSet<Type> InterfaceProxies
         {
@@ -222,7 +222,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the set of interface implementations, which are implementations of the interfaces present in <see cref="Interfaces"/>.
+        /// 获取一组接口执行,即 <see cref="Interfaces"/>中存在的接口执行。
         /// </summary>
         public HashSet<Type> InterfaceImplementations
         {
@@ -235,39 +235,39 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Gets the mapping of well-known type identifiers to their corresponding type.
+        /// 将已知类型识别特征的映射图与相应的类型相匹配。
         /// </summary>
         public Dictionary<uint, Type> WellKnownTypeIds { get; } = new Dictionary<uint, Type>();
 
         /// <summary>
-        /// Gets the mapping of well-known type aliases to their corresponding type.
+        /// 将已知型号化名的映射图 变为相应的类型
         /// </summary>
         public Dictionary<string, Type> WellKnownTypeAliases { get; } = new Dictionary<string, Type>();
 
         /// <summary>
-        /// Gets the set of allowed Orleans-formatted runtime type names.
+        /// 获取允许的 Orleans-格式化运行时间类型名称组。
         /// </summary>
         /// <remarks>
         /// <para>
-        /// An Orleans-formatted runtime type name uses CLR type-name syntax, including namespace,
-        /// nesting, generic arguments, arrays, and optional assembly qualification. Use
-        /// <see cref="RuntimeTypeNameFormatter.Format(Type)"/> to produce this format.
+        /// Orleans- 格式化运行时间类型名称使用 CLR 类型名语法,包括命名空间
+        /// 嵌套、通用参数、阵列和可选组装资格。使用
+        /// 要制作此格式,<see cref="RuntimeTypeNameFormatter.Format(Type)"/> 。
         /// </para>
         /// <para>
-        /// Prefer <see cref="AddAllowedType(Type)"/> when the <see cref="Type"/> is available. It produces
-        /// the underlying CLR name without compound aliases so that later alias configuration does not
-        /// affect the allow-list entry. Unqualified names such as <see cref="Type.FullName"/> remain
-        /// supported for compatibility.
+        /// 优 <see cref="AddAllowedType(Type)"/> 时 <see cref="Type"/> 生产
+        /// 底部的 CLR 名称没有复合别名, 以便以后的别名配置不会
+        /// 允许列表条目影响允许列表项。未资格名称,例如 <see cref="Type.FullName"/>
+        /// 支持兼容性。
         /// </para>
         /// </remarks>
         /// <example>
         /// <code>
         /// services.AddSerializer(builder => builder.Configure(options =>
         /// {
-        ///     // Preferred: let Orleans construct the entry.
+        ///     // 首选方式是让 Orleans 构造条目。
         ///     options.AddAllowedType(typeof(MyMessage));
         ///
-        ///     // Supported when a string entry is required.
+        ///     // 需要字符串条目时可使用此方式。
         ///     options.AllowedTypes.Add(
         ///         RuntimeTypeNameFormatter.Format(typeof(MyOtherMessage)));
         /// }));
@@ -276,11 +276,11 @@ namespace Orleans.Serialization.Configuration
         public HashSet<string> AllowedTypes { get; } = new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets the set of assembly names whose types are allowed.
+        /// 获取允许类型组装的集合名称。
         /// </summary>
         /// <remarks>
-        /// Prefer <see cref="AddAllowedAssembly(Assembly)"/> when the assembly is available to avoid
-        /// constructing assembly names manually.
+        /// 预选 <see cref="AddAllowedAssembly(Assembly)"/> ,当装配组装可以避免
+        /// 手工构建组装名称 。
         /// </remarks>
         /// <example>
         /// <code>
@@ -291,23 +291,23 @@ namespace Orleans.Serialization.Configuration
         public HashSet<string> AllowedAssemblies { get; } = new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Gets the mapping from compound type aliases to types.
+        /// 将复合型别名的绘图转换成类型。
         /// </summary>
         public CompoundTypeAliasTree CompoundTypeAliases { get; } = CompoundTypeAliasTree.Create();
 
         /// <summary>
-        /// Gets or sets a value indicating whether to allow all types by default.
-        /// Default: <see langword="false"/>.
+        /// 获取或设置一个值,以显示是否默认允许所有类型。
+        /// 默认: <see langword="false"/>。
         /// </summary>
         /// <remarks>
-        /// Setting this property to <see langword="true"/> bypasses type-name validation and permits any
-        /// resolvable type. This is insecure when serialized input can be influenced by an untrusted party.
-        /// Prefer allowing individual types or trusted assemblies.
+        /// 设置此属性为 <see langword="true"/> ,绕过类型名称验证并允许
+        /// 不可解析的类型。 当序列输入可能受到不信任方的影响时, 这不安全 。
+        /// 更可取的做法是允许个别类型或信任的集会。
         /// </remarks>
         public bool AllowAllTypes { get; set; }
 
         /// <summary>
-        /// Gets the set of type manifest providers which have configured this instance.
+        /// 获取配置此实例的一组类型列表提供者。
         /// </summary>
         internal HashSet<object> TypeManifestProviders { get; } = new();
 
@@ -342,13 +342,13 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Adds a serializer implementation type and preserves the members used to inspect and activate it.
+        /// 添加序列执行类型,并保存成员用来检查和激活该类型。
         /// </summary>
-        /// <param name="type">The serializer implementation type.</param>
+        /// <param name="type">序列仪执行类型。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddSerializer(
 #if NET5_0_OR_GREATER
@@ -357,13 +357,13 @@ namespace Orleans.Serialization.Configuration
             Type type) => AddImplementation(_serializers, InterfaceDiscoveryKinds.Serializer, type);
 
         /// <summary>
-        /// Adds a field codec implementation type and preserves the members used to inspect and activate it.
+        /// 添加字段代码执行类型,并保存用于检查和激活该功能的成员。
         /// </summary>
-        /// <param name="type">The field codec implementation type.</param>
+        /// <param name="type">外地编码执行类型。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddFieldCodec(
 #if NET5_0_OR_GREATER
@@ -372,13 +372,13 @@ namespace Orleans.Serialization.Configuration
             Type type) => AddImplementation(_fieldCodecs, InterfaceDiscoveryKinds.Serializer, type);
 
         /// <summary>
-        /// Adds a copier implementation type and preserves the members used to inspect and activate it.
+        /// 增加复印机执行类型,并保存用于检查和激活该机的成员。
         /// </summary>
-        /// <param name="type">The copier implementation type.</param>
+        /// <param name="type">复印机执行类型。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddCopier(
 #if NET5_0_OR_GREATER
@@ -387,13 +387,13 @@ namespace Orleans.Serialization.Configuration
             Type type) => AddImplementation(_copiers, InterfaceDiscoveryKinds.Copier, type);
 
         /// <summary>
-        /// Adds a converter implementation type and preserves the members used to inspect and activate it.
+        /// 添加转换器执行类型,并保存用于检查和激活该转换器的成员。
         /// </summary>
-        /// <param name="type">The converter implementation type.</param>
+        /// <param name="type">转换器执行类型。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddConverter(
 #if NET5_0_OR_GREATER
@@ -402,13 +402,13 @@ namespace Orleans.Serialization.Configuration
             Type type) => AddImplementation(_converters, InterfaceDiscoveryKinds.Converter, type);
 
         /// <summary>
-        /// Adds an activator implementation type and preserves the members used to inspect and activate it.
+        /// 添加一个活动实施类型,并保存成员用来检查和激活该类型。
         /// </summary>
-        /// <param name="type">The activator implementation type.</param>
+        /// <param name="type">激活器执行类型。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddActivator(
 #if NET5_0_OR_GREATER
@@ -429,14 +429,14 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Registers a field codec for its target type and preserves its activation and target interface metadata.
+        /// 登记目标类型的字段编码,并保存其启动和目标接口元数据。
         /// </summary>
-        /// <param name="type">The codec implementation type.</param>
-        /// <param name="targetType">The serialized type, or its generic definition for an open generic codec.</param>
+        /// <param name="type">代码执行类型。</param>
+        /// <param name="targetType">序列型号,或其通用的开放式通用编码定义。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddSerializer(
 #if NET5_0_OR_GREATER
@@ -449,14 +449,14 @@ namespace Orleans.Serialization.Configuration
             Type targetType) => AddContract(_serializers, SerializerContracts, type, targetType, typeof(IFieldCodec<>));
 
         /// <summary>
-        /// Registers a field codec for its target type and preserves its activation and target interface metadata.
+        /// 登记目标类型的字段编码,并保存其启动和目标接口元数据。
         /// </summary>
-        /// <param name="type">The codec implementation type.</param>
-        /// <param name="targetType">The serialized type, or its generic definition for an open generic codec.</param>
+        /// <param name="type">代码执行类型。</param>
+        /// <param name="targetType">序列型号,或其通用的开放式通用编码定义。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddFieldCodec(
 #if NET5_0_OR_GREATER
@@ -469,14 +469,14 @@ namespace Orleans.Serialization.Configuration
             Type targetType) => AddContract(_fieldCodecs, SerializerContracts, type, targetType, typeof(IFieldCodec<>));
 
         /// <summary>
-        /// Registers a base codec for its target type and preserves its activation and target interface metadata.
+        /// 登记目标类型的基本编码,并保存其启动和目标接口元数据。
         /// </summary>
-        /// <param name="type">The base codec implementation type.</param>
-        /// <param name="targetType">The serialized type, or its generic definition for an open generic codec.</param>
+        /// <param name="type">基本编码执行类型。</param>
+        /// <param name="targetType">序列型号,或其通用的开放式通用编码定义。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddBaseCodec(
 #if NET5_0_OR_GREATER
@@ -489,14 +489,14 @@ namespace Orleans.Serialization.Configuration
             Type targetType) => AddContract(_serializers, SerializerContracts, type, targetType, typeof(IBaseCodec<>));
 
         /// <summary>
-        /// Registers a value serializer for its target type and preserves its activation and target interface metadata.
+        /// 登记其目标类型的价值序列器,并保存其启动和目标接口元数据。
         /// </summary>
-        /// <param name="type">The value serializer implementation type.</param>
-        /// <param name="targetType">The serialized type, or its generic definition for an open generic serializer.</param>
+        /// <param name="type">值序列器执行类型。</param>
+        /// <param name="targetType">序列型号,或其通用的开放式通用序列器定义。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddValueSerializer(
 #if NET5_0_OR_GREATER
@@ -509,14 +509,14 @@ namespace Orleans.Serialization.Configuration
             Type targetType) => AddContract(_serializers, SerializerContracts, type, targetType, typeof(IValueSerializer<>));
 
         /// <summary>
-        /// Registers a deep copier for its target type and preserves its activation and target interface metadata.
+        /// 登记其目标类型的深复印机,并保存其启动和目标接口元数据。
         /// </summary>
-        /// <param name="type">The copier implementation type.</param>
-        /// <param name="targetType">The copied type, or its generic definition for an open generic copier.</param>
+        /// <param name="type">复印机执行类型。</param>
+        /// <param name="targetType">复制型号,或其通用定义的开放通用复印机。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddCopier(
 #if NET5_0_OR_GREATER
@@ -529,14 +529,14 @@ namespace Orleans.Serialization.Configuration
             Type targetType) => AddContract(_copiers, CopierContracts, type, targetType, typeof(IDeepCopier<>));
 
         /// <summary>
-        /// Registers a base copier for its target type and preserves its activation and target interface metadata.
+        /// 登记目标类型的基本复印机,并保存其启动和目标接口元数据。
         /// </summary>
-        /// <param name="type">The base copier implementation type.</param>
-        /// <param name="targetType">The copied type, or its generic definition for an open generic copier.</param>
+        /// <param name="type">基础复印机执行类型。</param>
+        /// <param name="targetType">复制型号,或其通用定义的开放通用复印机。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddBaseCopier(
 #if NET5_0_OR_GREATER
@@ -549,14 +549,14 @@ namespace Orleans.Serialization.Configuration
             Type targetType) => AddContract(_copiers, CopierContracts, type, targetType, typeof(IBaseCopier<>));
 
         /// <summary>
-        /// Registers an activator for its target type and preserves its activation and target interface metadata.
+        /// 登记目标类型活动的启动者,并保存其激活和目标接口元数据。
         /// </summary>
-        /// <param name="type">The activator implementation type.</param>
-        /// <param name="targetType">The activated type, or its generic definition for an open generic activator.</param>
+        /// <param name="type">激活器执行类型。</param>
+        /// <param name="targetType">激活型号,或其通用定义的开放通用引爆器。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddActivator(
 #if NET5_0_OR_GREATER
@@ -569,15 +569,15 @@ namespace Orleans.Serialization.Configuration
             Type targetType) => AddContract(_activators, ActivatorContracts, type, targetType, typeof(IActivator<>));
 
         /// <summary>
-        /// Registers a converter for its value and surrogate types and preserves its activation and target interface metadata.
+        /// 注册转换器,以记录其价值和代用类型,并保存其激活和目标接口元数据。
         /// </summary>
-        /// <param name="type">The converter implementation type.</param>
-        /// <param name="targetType">The converted value type, or its generic definition for an open generic converter.</param>
-        /// <param name="surrogateType">The surrogate type, or a generic definition using the converter's arguments in the same order.</param>
+        /// <param name="type">转换器执行类型。</param>
+        /// <param name="targetType">转换值类型,或开放通用换算器的通用定义。</param>
+        /// <param name="surrogateType">代位类型,或使用转换器的同顺序参数的一般定义。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// </remarks>
         public void AddConverter(
 #if NET5_0_OR_GREATER
@@ -602,19 +602,19 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Registers a converter whose surrogate type is described using its generic parameters.
+        /// 注册一个转换器,其代用类型使用通用参数加以描述。
         /// </summary>
-        /// <param name="type">The converter implementation type.</param>
-        /// <param name="targetType">The converted type or its generic definition.</param>
-        /// <param name="surrogateType">The surrogate description, binding parameters to the converter implementation.</param>
+        /// <param name="type">转换器执行类型。</param>
+        /// <param name="targetType">转换型号或通用定义。</param>
+        /// <param name="surrogateType">代名词描述,对转换器执行的约束参数。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// <para>
-        /// Array nodes used in an executable surrogate description must be source-known closed types
-        /// supplied through <see cref="SerializationType.Create"/>. Use the concrete surrogate type
-        /// overload to register a closed converter and its surrogate directly.
+        /// 执行可执行代理描述中使用的矩形结点必须是源已知的封闭型
+        /// 通过 <see cref="SerializationType.Create"/>供应的。使用混凝土替代型号
+        /// 超载以注册关闭的转换器及其代理器。
         /// </para>
         /// </remarks>
         public void AddConverter(
@@ -637,21 +637,21 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Registers a serialization contract whose target is described using the implementation's generic parameters.
+        /// 登记了使用执行通用参数说明目标的序列化合同。
         /// </summary>
-        /// <param name="type">The implementation type.</param>
-        /// <param name="contractType">The generic definition of the field codec, base codec, value serializer, copier, activator, or converter interface.</param>
-        /// <param name="targetType">The target type description.</param>
-        /// <param name="surrogateType">The surrogate description for a converter contract.</param>
+        /// <param name="type">执行类型。</param>
+        /// <param name="contractType">外地编码、基本编码、价值序列器、复印机、活动器或转换器接口的通用定义。</param>
+        /// <param name="targetType">目标类型描述。</param>
+        /// <param name="surrogateType">转换器合同的代用说明。</param>
         /// <remarks>
-        /// Each <see cref="CodecProvider"/> caches completed instances by closed implementation type for its lifetime.
-        /// Implementations and their dependencies have provider lifetime, including instances resolved from
-        /// transient or scoped dependency-injection registrations, and must support concurrent use.
+        /// 每一 <see cref="CodecProvider"/> 在其整个寿命期内,通过封闭式实施类型完成了缓存。
+        /// 执行及其依赖性具有提供方的寿命,包括从实施到获得解决的情况
+        /// 瞬时或范围较广的自有注射登记,必须支持同时使用。
         /// <para>
-        /// Target descriptions support structural array matching. Executable surrogate descriptions
-        /// require source-known closed array types supplied through <see cref="SerializationType.Create"/>.
-        /// Registered converters handle matching array targets before the intrinsic array codec and
-        /// copier fallbacks. Directly registered codecs and copiers retain priority over converters.
+        /// 目标描述支持结构阵列匹配。 可执行代数描述
+        /// 需要通过 <see cref="SerializationType.Create"/>提供源已知的封闭式阵列类型。
+        /// 注册的转换器在内置数组编码和
+        /// 直接注册的编码器和复印机保留相对于转换器的优先权。
         /// </para>
         /// </remarks>
         public void AddSerializationContract(
@@ -720,9 +720,9 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Adds a generated interface type and preserves the methods and inherited interfaces used by generated invokables.
+        /// 添加生成的界面类型,并保存生成的可引用物所使用的方法和遗留界面。
         /// </summary>
-        /// <param name="type">The generated interface type.</param>
+        /// <param name="type">生成的接口类型。</param>
         public void AddInterface(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(InterfaceTypeMembers)]
@@ -730,9 +730,9 @@ namespace Orleans.Serialization.Configuration
             Type type) => _interfaces.Add(type ?? throw new ArgumentNullException(nameof(type)));
 
         /// <summary>
-        /// Adds a generated proxy type and preserves its implemented interfaces.
+        /// 添加生成的代理类型并保存其已安装的接口。
         /// </summary>
-        /// <param name="type">The generated proxy type.</param>
+        /// <param name="type">生成的代理类型。</param>
         public void AddInterfaceProxy(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(
@@ -741,9 +741,9 @@ namespace Orleans.Serialization.Configuration
             Type type) => _interfaceProxies.Add(type ?? throw new ArgumentNullException(nameof(type)));
 
         /// <summary>
-        /// Adds a generated interface implementation type and preserves its public constructors and implemented interfaces.
+        /// 添加生成的接口执行类型,并保存其公共构筑器和实施的接口。
         /// </summary>
-        /// <param name="type">The generated interface implementation type.</param>
+        /// <param name="type">生成的接口执行类型。</param>
         public void AddInterfaceImplementation(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(ImplementationTypeMembers)]
@@ -751,14 +751,14 @@ namespace Orleans.Serialization.Configuration
             Type type) => _interfaceImplementations.Add(type ?? throw new ArgumentNullException(nameof(type)));
 
         /// <summary>
-        /// Adds the Orleans-formatted runtime type name for <paramref name="type"/> to
+        /// 添加 Orleans- <paramref name="type"/> 格式化运行时间类型名称
         /// <see cref="AllowedTypes"/>.
         /// </summary>
         /// <remarks>
-        /// This is the preferred way to allow an available <see cref="Type"/>. It formats the underlying
-        /// CLR type name without compound aliases and includes all constructed generic components.
+        /// 这是允许可用 <see cref="Type"/>的首选方法。 它以基本
+        /// CLR型号没有复合别名,包括所有已建造的通用部件。
         /// </remarks>
-        /// <param name="type">The type to allow.</param>
+        /// <param name="type">允许的类型。</param>
         public void AddAllowedType(Type type)
         {
             if (type is null)
@@ -770,9 +770,9 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// Adds the assembly name for <paramref name="assembly"/> to <see cref="AllowedAssemblies"/>.
+        /// 将 <paramref name="assembly"/> 的组装名称添加到 <see cref="AllowedAssemblies"/>。
         /// </summary>
-        /// <param name="assembly">The assembly to allow.</param>
+        /// <param name="assembly">允许的组装。</param>
         public void AddAllowedAssembly(Assembly assembly)
         {
             if (assembly is null)

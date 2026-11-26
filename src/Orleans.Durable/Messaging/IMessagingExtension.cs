@@ -9,37 +9,37 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// The grain extension through which other grains exchange durable messages with this grain.
+/// 下 grain 其它 grains 以此交换耐用信息 grain.
 /// </summary>
 [Alias("Orleans.Durable.Messaging.IMessagingExtension")]
 public interface IMessagingExtension : IGrainExtension
 {
     /// <summary>
-    /// Delivers a message to this grain's inbox.
+    /// 向此 grain的收件箱发送消息 。
     /// </summary>
-    /// <param name="message">The received command with a required identity and payload; its receiver is this grain.</param>
-    /// <param name="cancellationToken">Cancels the caller's wait for delivery.</param>
+    /// <param name="message">收到的命令具有所要求的身份和有效载荷;其接收器是 grain。</param>
+    /// <param name="cancellationToken">取消呼叫者等待交货的时间。</param>
     /// <remarks>
-    /// Direct admission shares the payload array, header dictionary, and header value arrays under the immutable-publication contract.
-    /// RPC copying and deserialization isolate payload arrays, header dictionaries, and header value arrays using ordinary Orleans serialization.
-    /// A successful result means the inbox durably accepted the message, or already processed it.
-    /// Callers retrying a delivery reuse the message's <see cref="InboxMessage.SentAt"/>.
+    /// 直接接收共享有效载荷阵列、页眉字典和根据不可改变的出版合同的标头值阵列。
+    /// RPC 复制和取消序列化,使用普通 Orleans 序号分离有效载荷阵列、标题词典和页头值阵列。
+    /// 成功的结果意味着信箱可以持久地接受信息,或者已经处理过。
+    /// 调用器重新尝试发送, 重复使用信件的 <see cref="InboxMessage.SentAt"/>。
     /// <para>
-    /// Deliveries interleave with the grain's other requests. A delivery runs no handler: it validates, deduplicates,
-    /// and stages the message's acceptance synchronously, then waits for that journal write, and the messaging pump runs
-    /// handlers later. An inbox message sink runs synchronously within the delivery, so it can run while a request is
-    /// suspended at an await, as handlers can. Interleaving lets concurrent deliveries share journal writes, and lets a
-    /// message reach a grain whose running request waits for it.
+    /// 交付货物与 grain的其他请求发生间断。交付货物没有操作者:它能验证、能分解、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理
+    /// 同步控制信件的接收, 然后等待日记写作, 并且发送信息泵运行
+    /// 处理器稍后再处理。 信箱信息汇槽在发送时同步运行, 这样它就可以在请求被发送时运行
+    /// 处理人可以等待暂停等候。 插入让同时交付的分期日记写, 并让
+    /// 正在运行的请求会等待信件的 grain 。
     /// </para>
     /// </remarks>
-    /// <returns>Result indicating delivery/processing status.</returns>
+    /// <returns>显示交付/处理状况的结果。</returns>
     /// <exception cref="ArgumentException">
-    /// <paramref name="message"/> has an unset message ID, exceeds identity admission limits, or has invalid payload or headers.
-    /// Optional standard metadata is validated where its contract is consumed.
+    /// <paramref name="message"/> 具有未设置的电文代号,超过身份识别允许限,或有效载荷或信头无效。
+    /// 其合同消耗的任择标准元数据得到验证。
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// The message's <see cref="InboxMessage.SentAt"/> is later than the receiver's clock plus <c>DeduplicationWindow</c>,
-    /// and the message is untracked and above the admission floor. The inbox stages nothing for it.
+    /// 信件的 <see cref="InboxMessage.SentAt"/> 晚于接收器的时钟加上 <c>DeduplicationWindow</c>,
+    /// 信息没有被跟踪,位于录取层以上。信箱没有为此进行任何步骤。
     /// </exception>
     [Alias("DeliverAsync")]
     [AlwaysInterleave]

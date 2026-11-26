@@ -4,98 +4,98 @@ using Orleans.Runtime;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Settings which regulate the placement of grains across a cluster when using <see cref="ResourceOptimizedPlacement"/>.
+/// 管理设置设置的设置 grains 使用时横横集 <see cref="ResourceOptimizedPlacement"/>.
 /// </summary>
-/// <remarks><i>All 'weight' properties, are relative to each other.</i></remarks>
+/// <remarks><i>体重的所有属性, 彼此相相对。</i></remarks>
 public sealed class ResourceOptimizedPlacementOptions
 {
     /// <summary>
-    /// The importance of the CPU usage by the silo.
+    /// silo使用CPU的重要性。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>higher</u> value results in the placement favoring silos with <u>lower</u> cpu usage.</para>
-    /// <para>Valid range is [0-100]</para>
+    /// <para>A <u>高</u> 导致有利于职位定位的值 silos 与 <u>下</u> 使用 cpu 。</para>
+    /// <para>有效范围是[0-100]</para>
     /// </i></remarks>
     public int CpuUsageWeight { get; set; } = DEFAULT_CPU_USAGE_WEIGHT;
 
     /// <summary>
-    /// The default value of <see cref="CpuUsageWeight"/>.
+    /// 默认值 <see cref="CpuUsageWeight"/>。
     /// </summary>
     public const int DEFAULT_CPU_USAGE_WEIGHT = 40;
 
     /// <summary>
-    /// The importance of the memory usage by the silo.
+    /// silo记忆用法的重要性。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>higher</u> value results in the placement favoring silos with <u>lower</u> memory usage.</para>
-    /// <para>Valid range is [0-100]</para>
+    /// <para>A <u>高</u> 导致有利于职位定位的值 silos 与 <u>下</u> 内存使用量。</para>
+    /// <para>有效范围是[0-100]</para>
     /// </i></remarks>
     public int MemoryUsageWeight { get; set; } = DEFAULT_MEMORY_USAGE_WEIGHT;
 
     /// <summary>
-    /// The default value of <see cref="MemoryUsageWeight"/>.
+    /// 默认值 <see cref="MemoryUsageWeight"/>。
     /// </summary>
     public const int DEFAULT_MEMORY_USAGE_WEIGHT = 20;
 
     /// <summary>
-    /// The importance of the available memory to the silo.
+    /// 可用存储对 silo的重要性。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>higher</u> values results in the placement favoring silos with <u>higher</u> available memory.</para>
-    /// <para>Valid range is [0-100]</para>
+    /// <para>A <u>高</u> 导致有利于职位设置的值 silos 与 <u>高</u> 可使用的内存 。</para>
+    /// <para>有效范围是[0-100]</para>
     /// </i></remarks>
     public int AvailableMemoryWeight { get; set; } = DEFAULT_AVAILABLE_MEMORY_WEIGHT;
 
     /// <summary>
-    /// The default value of <see cref="AvailableMemoryWeight"/>.
+    /// 默认值 <see cref="AvailableMemoryWeight"/>。
     /// </summary>
     public const int DEFAULT_AVAILABLE_MEMORY_WEIGHT = 20;
 
     /// <summary>
-    /// The importance of the maximum available memory to the silo.
+    /// 最大可用内存对 silo的重要性。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>higher</u> values results in the placement favoring silos with <u>higher</u> maximum available memory.</para>
-    /// <para>This may have an impact in clusters with resources distributed unevenly across silos.</para>
-    /// <para>This relates strongly to the physical memory in the silo, and the configured memory limit (if it has been configured).</para>
-    /// <para>Valid range is [0-100]</para>
+    /// <para>A <u>高</u> 导致有利于职位设置的值 silos 与 <u>高</u> 最大可用内存。</para>
+    /// <para>这可能对资源分布不均的集群产生影响。 silos.</para>
+    /// <para>这与 silo中的物理内存和配置的内存限制(如果已经配置)有强烈关联。</para>
+    /// <para>有效范围是[0-100]</para>
     /// </i></remarks>
     public int MaxAvailableMemoryWeight { get; set; } = DEFAULT_MAX_AVAILABLE_MEMORY_WEIGHT;
 
     /// <summary>
-    /// The default value of <see cref="MaxAvailableMemoryWeight"/>.
+    /// 默认值 <see cref="MaxAvailableMemoryWeight"/>。
     /// </summary>
     public const int DEFAULT_MAX_AVAILABLE_MEMORY_WEIGHT = 5;
 
     /// <summary>
-    /// The importance of the current activation count to the silo.
+    /// 当前激活计数对 silo的重要性。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>higher</u> values results in the placement favoring silos with <u>lower</u> activation count.</para>
-    /// <para>Valid range is [0-100]</para>
+    /// <para>A <u>高</u> 导致有利于职位设置的值 silos 与 <u>下</u> 启动计数</para>
+    /// <para>有效范围是[0-100]</para>
     /// </i></remarks>
     public int ActivationCountWeight { get; set; } = DEFAULT_ACTIVATION_COUNT_WEIGHT;
 
     /// <summary>
-    /// The default value of <see cref="ActivationCountWeight"/>.
+    /// 默认值 <see cref="ActivationCountWeight"/>。
     /// </summary>
     public const int DEFAULT_ACTIVATION_COUNT_WEIGHT = 15;
 
     /// <summary>
-    /// The specified margin for which: if two silos (one of them being the local to the current pending activation), have a utilization score that should be considered "the same" within this margin.
+    /// 具体差幅:如果两个 silos (其中一个是当前待激活的当地值),其利用率得分在本幅度内应视为“相同”。
     /// <list type="bullet">
-    /// <item><description>When this value is 0, then the policy will always favor the silo with the lower resource utilization, even if that silo is remote to the current pending activation.</description></item>
-    /// <item><description>When this value is 100, then the policy will always favor the local silo, regardless of its relative utilization score. This policy essentially becomes equivalent to <see cref="PreferLocalPlacement"/>.</description></item>
+    /// <item><description>当该值为 0 时, 该政策将始终有利于资源利用率较低的 silo , 即使 silo 距离当前待激活的时间很远。</description></item>
+    /// <item><description>当该值为100时, 该政策将始终偏向于本地 silo, 不论其相对利用率分为何。 此政策基本上等同于 <see cref="PreferLocalPlacement"/>。</description></item>
     /// </list>
     /// </summary>
     /// <remarks><i>
-    /// <para>Do favor a lower value for this e.g: 5-10</para>
-    /// <para>Valid range is [0-100]</para>
+    /// <para>请将此 e.g的低值减为: 5- 10</para>
+    /// <para>有效范围是[0-100]</para>
     /// </i></remarks>
     public int LocalSiloPreferenceMargin { get; set; } = DEFAULT_LOCAL_SILO_PREFERENCE_MARGIN;
 
     /// <summary>
-    /// The default value of <see cref="LocalSiloPreferenceMargin"/>.
+    /// 默认值 <see cref="LocalSiloPreferenceMargin"/>。
     /// </summary>
     public const int DEFAULT_LOCAL_SILO_PREFERENCE_MARGIN = 5;
 }

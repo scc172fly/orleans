@@ -1,44 +1,54 @@
 ---
-title: "ORLEANS0204: Return the outputs of a DurableTask.RunInline effect"
-description: Understand ORLEANS0204, which reports a DurableTask.RunInline effect which assigns variables of the enclosing body, and fix it by returning the outputs.
+title: "ORLEANS0204:返回效果 DurableTask.RunInline 的输出"
+description: "理解 ORLEANS0204, 其中报告一个 DurableTask.RunInline 效果, 指定附加体变量, 并通过返回输出来修正它 。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0204: Return the outputs of a DurableTask.RunInline effect
+<a id="orleans0204-return-the-outputs-of-a-durabletaskruninline-effect"></a>
 
-| Property | Value |
+# ORLEANS0204:返回效果 DurableTask.RunInline 的输出
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-The delegate which `DurableTask.RunInline` receives assigns, increments, or decrements a variable which the enclosing body declares:
+## 原因原因原因
+
+代表的下列代表: `DurableTask.RunInline` 接收指定、加薪或减少一个变量,附后的机构声明:
 
 :::code source="snippets/durable-tasks/Orleans0204.cs" id="orleans0204_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-`DurableTask.RunInline` runs its effect once for the running task and records the effect's result. A replay returns the recorded result without running the effect, so the assignments in the delegate happen only in the run which runs it. In every replay, `number` stays `0` and `reference` stays `Guid.Empty`: the replay passes other arguments to the recorded `print` step and returns another ticket than the first run computed.
+## 规则说明
 
-The state changes which the effect makes, such as the increment of `_lastNumber`, are correct: they commit with the record, and the replay finds them in the grain's state.
+`DurableTask.RunInline` 运行任务时, 并记录效果结果 。 重放返回所录的结果而不运行效果, 所以代表的指派只在运行它的时候发生。 每次重播中, 都返回已录制的结果, 并且 `number` 居留 `0` 和 `reference` 居留 `Guid.Empty`:重放将其他参数传到所记录的 `print` 并返回比计算的第一个运行过程还多的一张票。
 
-For recorded effects, see [Recorded effects, local steps, and calls to other grains](../grains/durable-tasks.md#recorded-effects-local-steps-and-calls-to-other-grains).
+效果所作的状态变化,例如 `_lastNumber`的增量,是正确的:它们与记录一起进行,重放发现它们在 grain状态中。
 
-## How to fix violations
+记录效果见 [记录的效果、当地步骤和调用其他 grains](../grains/durable-tasks.md#recorded-effects-local-steps-and-calls-to-other-grains)。
 
-**Return every output.** Return a tuple from the effect, and deconstruct it in the body:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**返回每个输出。** 将效果的图波还原,并拆除身体内的结构:
 
 :::code source="snippets/durable-tasks/Orleans0204.cs" id="orleans0204_fix" language="csharp":::
 
-**Return a record.** A type with an Orleans serializer names the outputs, and the body can return it:
+**返回记录。** 类型中含有 Orleans 序列器,可以命名输出,而身体可以还原:
 
 :::code source="snippets/durable-tasks/Orleans0204.cs" id="orleans0204_fix_record" language="csharp":::
 
-Variables which the delegate declares, and grain state which it changes, need no change.
+代表声明的变量,以及其修改的 grain 说明,无需更改。
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic for an assignment which the body reads only inside the effect, or only for diagnostics in the run which ran the effect.
+## 何时压缩
+
+抑制对身体只在效果内读到的某一任务进行诊断,或仅对在运行过程中产生效果的诊断进行检查。

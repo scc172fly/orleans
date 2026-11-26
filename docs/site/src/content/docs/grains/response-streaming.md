@@ -1,68 +1,82 @@
 ---
-title: Response streaming with IAsyncEnumerable
-description: Stream a grain call's response incrementally using IAsyncEnumerable<T>.
+title: "与 IAsyncEnumerable相对应的流"
+description: "流流 a grain 使用 IAsyncEnumerable<T>."
 ms.date: 09/04/2026
 ms.topic: concept-article
 ---
 
-# Response streaming with IAsyncEnumerable
+<a id="response-streaming-with-iasyncenumerable"></a>
 
-**Response streaming** lets a grain method return <xref:System.Collections.Generic.IAsyncEnumerable`1> so one caller can consume a logically single grain call's response incrementally. The caller addresses a grain as for any other grain call, and then pulls results as they're produced.
+# 与 IAsyncEnumerable相对应的流
 
-Use response streaming for a query or command whose results are naturally incremental. A response stream doesn't create a durable subscription, retain results, or multicast them to other consumers. For those capabilities, consider [Orleans Streams](../streaming/index.md).
+**应对流** 允许 a grain 方法返回 <xref:System.Collections.Generic.IAsyncEnumerable`1> 来电者可以消费一个逻辑单 grain 呼叫的响应会逐渐递增。 grain 任何其他 grain 并提取结果 当它们产生。
 
-## Define and implement a response-streaming method
+使用响应流来进行结果自然递增的询问或命令。 响应流不会创建持久订阅、 保留结果或将结果多投给其他消费者。 对于这些能力, 请考虑 [Orleans 流](../streaming/index.md)。
 
-Declare <xref:System.Collections.Generic.IAsyncEnumerable`1> directly on the grain interface. A cancellation token is optional, as with other grain methods:
+<a id="define-and-implement-a-response-streaming-method"></a>
+
+## 界定和实施应急流出方法
+
+声明 <xref:System.Collections.Generic.IAsyncEnumerable`1> 直接在 grain 接口。取消的标号是可选的,与其他 grain 方法 :
 
 :::code language="csharp" source="snippets/async-enumerable-results/StreamingGrain.cs" id="streaming_contract":::
 
-An async iterator can produce each result with `yield return`. Apply <xref:System.Runtime.CompilerServices.EnumeratorCancellationAttribute> so the iterator observes cancellation requested while the caller enumerates it:
+同步循环器可以用 `yield return`生成每个结果。应用 <xref:System.Runtime.CompilerServices.EnumeratorCancellationAttribute> ,这样迭代器在调用者列举请求取消时会观察到请求的取消:
 
 :::code language="csharp" source="snippets/async-enumerable-results/StreamingGrain.cs" id="streaming_implementation":::
 
-## Consume a streamed response
+<a id="consume-a-streamed-response"></a>
 
-Use `await foreach` to process each result. The response stream starts when the caller requests the first element, not when the grain method returns the enumerable:
+## 包含流解响应
+
+使用 `await foreach` 处理每个结果。 响应流在调用者要求第一个元素时开始, 而不是当 grain 方法返回可量化的:
 
 :::code language="csharp" source="snippets/async-enumerable-results/StreamingConsumer.cs" id="consume_stream":::
 
-Leaving an `await foreach` loop disposes its enumerator, including when the loop exits with `break` or an exception.
+留有 `await foreach` 环会处理其分子,包括当循环退出时使用 `break` 或例外。
 
-## Control response batching
+<a id="control-response-batching"></a>
 
-Orleans batches synchronously available elements to reduce network round trips, up to 100 elements by default. Use <xref:Orleans.Runtime.AsyncEnumerableExtensions.WithBatchSize*> to change that limit:
+## 控制反应批量
+
+Orleans 批次同步提供元素,以减少网络回程,默认情况下最多100个元素。 请使用 <xref:Orleans.Runtime.AsyncEnumerableExtensions.WithBatchSize*> 修改这一限制:
 
 :::code language="csharp" source="snippets/async-enumerable-results/StreamingConsumer.cs" id="configure_batch_size":::
 
-Call `WithBatchSize` directly on the value returned by the grain method and before wrappers such as <xref:System.Threading.Tasks.TaskAsyncEnumerableExtensions.WithCancellation*>. After another operator wraps the enumerable, `WithBatchSize` has no Orleans request to configure and has no effect. A batch size of `1` sends one element per request.
+调调 `WithBatchSize` 直接对返回的数值 grain 包装之前的方法,例如 <xref:System.Threading.Tasks.TaskAsyncEnumerableExtensions.WithCancellation*>。在另一个操作员包扎了可数数字后, `WithBatchSize` 没有无 Orleans 配置请求,且无效。 `1` 要求时发送一个元素 。
 
-Batching doesn't cause Orleans to read an unbounded number of elements ahead. The caller's next `MoveNextAsync` request drives production, and a batch contains only elements that become synchronously available, up to the configured limit.
+条纹不会导致 Orleans 读取未限制的元素数量。调用者下次 `MoveNextAsync` 请求制作驱动器,而批次只包含同步可用、可达到配置限制的元素。
 
-## Cancel response streaming
+<a id="cancel-response-streaming"></a>
 
-Pass the caller's token to the grain method either as a method parameter or through `WithCancellation` (or both), so cancellation stops the async enumerator. Orleans links distinct tokens so cancellation of either stops the enumeration. Call `WithBatchSize` before `WithCancellation`:
+## 取消响应流流
+
+将拨打电话者的信条传给 grain 方法或作为方法参数,或通过 `WithCancellation` ,因此取消停止了自动同步计算器。 Orleans 链接不同的符号,这样可以取消其中任何一个停止点数。 `WithBatchSize` 之前 `WithCancellation`:
 
 :::code language="csharp" source="snippets/async-enumerable-results/StreamingConsumer.cs" id="cancel_stream":::
 
-Cancellation is cooperative and surfaces to the caller as <xref:System.OperationCanceledException>. The response-streaming method must observe its token and pass it to cancellation-aware operations. See [Cancel Orleans grain calls](cancellation-tokens.md) for delivery and failure semantics.
+取消是合作性的,对呼叫者来说是 <xref:System.OperationCanceledException>。反应流方法必须观察其符号并将其传递给取消-认知操作。交付和失败语义见 [取消 Orleans grain 调用](cancellation-tokens.md) 。
 
-## Handle an interrupted response stream
+<a id="handle-an-interrupted-response-stream"></a>
 
-An exception thrown while producing the response stream propagates to the caller with its original exception type. The caller instead receives <xref:Orleans.Runtime.EnumerationAbortedException> if the grain deactivates during enumeration or the silo removes an enumerator which the caller left idle:
+## 处理中断响应流
+
+制作响应流时被抛出例外,则以其原始例外类型向呼叫者传播。 <xref:Orleans.Runtime.EnumerationAbortedException> 如果 grain 查点期间或计分时停止使用 silo 删除调用者闲置留下的计数器:
 
 :::code language="csharp" source="snippets/async-enumerable-results/StreamingConsumer.cs" id="handle_interruption":::
 
-Idle-enumerator cleanup runs periodically using <xref:Orleans.Configuration.MessagingOptions.ResponseTimeout> as its interval. Don't hold an enumerator open while doing unrelated long-running work. If processing an element can take a long time, decouple that work from pulling the next element or use a messaging abstraction with a lifetime independent of one grain call.
+空数清除器定期使用 <xref:Orleans.Configuration.MessagingOptions.ResponseTimeout> 间隔运行。 不要在做无关的长期工作时将一个数字员打开。 如果处理元素需要很长时间, 则要与拉动下一个元素或使用信息抽象化发生脱钩, 且其寿命不依赖于一个 grain 调用 。
 
-## Choose between response streaming and Orleans Streams
+<a id="choose-between-response-streaming-and-orleans-streams"></a>
 
-| Concern | Response streaming with `IAsyncEnumerable<T>` | Orleans Streams |
+## 在响应流和 Orleans 串流之间选择
+
+| 关注问题 | 与 `IAsyncEnumerable<T>` 相对应的流  | Orleans 流 |
 |---|---|---|
-| Communication shape | Logically one grain call, one producer, and one caller | Multicast pub/sub with independent producers and subscribers |
-| Lifetime | One live enumeration, ending on completion, disposal, cancellation, deactivation, or idle cleanup | Independent of any one grain call; subscriptions can survive activation changes |
-| Flow control | Pull-based; `MoveNextAsync` drives production, with bounded batching | Provider-dependent delivery and buffering |
-| Persistence and replay | None | Optional and provider-dependent |
-| Best fit | Progressively return one command or query result | Publish events to multiple or long-lived subscriptions |
+| 通信形状 | 逻辑上说,一个 grain 呼叫,一个生产商和一个打电话者 | 由独立制片人和订户组成的多播公共/子 |
+| 寿命 | 一次现场点查,以完成、处置、取消、停止使用或闲置清理结束 | 独立于任何 grain 呼叫;订阅可以维持激活变化 |
+| 流动控制 | 以拉式制动; `MoveNextAsync` 驱动器生产,并配有捆绑的批量 | 依赖提供方的交付和缓冲 |
+| 持久性和重放 | 无无无无 | 可选和依赖提供方 |
+| 最合适 | 递递返回一个命令或查询结果 | 发布多期或长年订阅的出版活动 |
 
-See [Choose an Orleans messaging abstraction](../streaming/streams-why.md) for observers, broadcast channels, and other alternatives.
+观察员、广播频道和其他替代节目见 [选择 Orleans 短信抽象](../streaming/streams-why.md) 。

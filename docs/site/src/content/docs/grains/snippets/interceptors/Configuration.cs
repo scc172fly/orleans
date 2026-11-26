@@ -10,8 +10,8 @@ public static class IncomingFilterConfiguration
         // <silo_delegate_filter>
         siloHostBuilder.AddIncomingGrainCallFilter(async context =>
         {
-            // If the method being called is 'MyInterceptedMethod', then set a value
-            // on the RequestContext which can then be read by other filters or the grain.
+            // 如果调用的方法为`MyInterceptedMethod,则设定一个数值
+            // 上 RequestContext ,然后其他过滤器或 grain能够读取。
             if (string.Equals(
                 context.InterfaceMethod.Name,
                 nameof(IMyGrain.MyInterceptedMethod),
@@ -23,7 +23,7 @@ public static class IncomingFilterConfiguration
 
             await context.Invoke();
 
-            // If the grain method returned an int, set the result to double that value.
+            // 如果 grain 方法返回了一整英特,则将结果设定为该值的两倍。
             if (context.Result is int resultValue)
             {
                 context.Result = resultValue * 2;

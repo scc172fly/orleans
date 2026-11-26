@@ -10,23 +10,23 @@ using System.Threading.Tasks;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Analyzes serializer configuration to find likely configuration issues.
+    /// 分析序列器配置以查找可能的配置问题 。
     /// </summary>
     public static class SerializerConfigurationAnalyzer
     {
         /// <summary>
-        /// Analyzes grain interface methods to find parameter types and return types which are not serializable.
+        /// 分析 grain 接口方法,以找到不可序列的参数类型和返回类型。
         /// </summary>
         /// <param name="codecProvider">
-        /// The codec provider.
+        /// 代码提供者
         /// </param>
         /// <param name="options">
-        /// The type manifest options.
+        /// 类型列表选项。
         /// </param>
         /// <returns>
-        /// A collection of types which have serializability issues.
+        /// 一系列具有连带性问题的类型。
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="codecProvider"/> or <paramref name="options"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="codecProvider"/> 或 <paramref name="options"/> 是 <see langword="null"/>。</exception>
         public static Dictionary<Type, SerializerConfigurationComplaint> AnalyzeSerializerAvailability(ICodecProvider codecProvider, TypeManifestOptions options)
         {
             if (codecProvider is null) throw new ArgumentNullException(nameof(codecProvider));
@@ -108,22 +108,22 @@ namespace Orleans.Serialization
             => interfaceType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
 
         /// <summary>
-        /// Represents a configuration issue regarding the serializability of a type used in interface methods.
+        /// 代表接口方法所用类型序列性的配置问题。
         /// </summary>
         public class SerializerConfigurationComplaint
         {
             /// <summary>
-            /// Gets a collection of interface types which reference the type this complaint represents.
+            /// 获取一系列界面类型, 其中引用了该投诉所代表的类型 。
             /// </summary>
             public Dictionary<Type, HashSet<MethodInfo>> Methods { get; } = new();
 
             /// <summary>
-            /// Gets or sets a value indicating whether a serializer is available for this type.
+            /// 获取或设置值,以显示是否可使用此类型的序列器。
             /// </summary>
             public bool HasSerializer { get; set; }
 
             /// <summary>
-            /// Gets or sets a value indicating whether a copier is available for this type.
+            /// 获取或设置值,以显示是否为该类型提供复印机。
             /// </summary>
             public bool HasCopier { get; set; }
         }

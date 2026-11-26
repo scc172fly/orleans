@@ -5,7 +5,7 @@ using System.Threading;
 namespace Orleans.Threading
 {
     /// <summary>
-    /// Lightweight recursive lock.
+    /// 轻量级循环锁
     /// </summary>
     internal sealed class RecursiveInterlockedExchangeLock
     {
@@ -31,7 +31,7 @@ namespace Orleans.Threading
         }
 
         /// <summary>
-        /// Acquire the lock, blocking the thread if necessary.
+        /// 锁上锁,必要时堵住线
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Get()

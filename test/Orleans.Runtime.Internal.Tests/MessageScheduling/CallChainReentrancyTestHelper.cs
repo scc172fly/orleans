@@ -11,17 +11,17 @@ namespace UnitTests.General
         public BaseTestClusterFixture Fixture { get; set; } = null!;
         public int NumIterations { get; set; }
 
-        // 2 silos, loop across all cases (to force all grains to be local and remote):
-        //      Non Reentrant A, B, C
-        //      Reentrant X
-        // 1) No Deadlock A, A
-        // 2) No Deadlock A, B, A
-        // 3) No Deadlock X, A, X, A
-        // 4) No Deadlock X, X
-        // 5) No Deadlock X, A, X
-        // 6) No Deadlock A, B, C, A
+        // 2 silos,环绕所有案件(迫使所有 grains 都本地和远程):
+        //      非 Reentrant A、B、C
+        //      重新entrant X
+        // 1) 无死锁A, A
+        // (2) 无死锁A、B、A
+        // (3) 无死锁X、A、X、A
+        // (4) 无死锁X, X
+        // (5) 无死锁X、A、X
+        // 6) 无死锁A、B、C、A
 
-        // 1) Allowed reentrancy A, A
+        // (1) 允许保留A、A
         public async Task CallChainReentrancy_1()
         {
             long baseGrainId = Random.Shared.Next();
@@ -38,7 +38,7 @@ namespace UnitTests.General
             }
         }
 
-        // 2) Allowed reentrancy on non-reentrant grains A, B, A
+        // (2) 允许非再生 grains A、B、A
         public async Task CallChainReentrancy_2()
         {
             long baseGrainId = Random.Shared.Next();
@@ -56,7 +56,7 @@ namespace UnitTests.General
             }
         }
 
-        // 3) Allowed reentrancy X, A, X, A
+        // (3) 允许再充电 X、A、X、A
         public async Task CallChainReentrancy_3()
         {
             long baseGrainId = Random.Shared.Next();
@@ -76,7 +76,7 @@ namespace UnitTests.General
             }
         }
 
-        // 4) No Deadlock X, X
+        // (4) 无死锁X, X
         public async Task CallChainReentrancy_4()
         {
             long baseGrainId = Random.Shared.Next();
@@ -94,7 +94,7 @@ namespace UnitTests.General
             }
         }
 
-        // 5) No Deadlock X, A, X
+        // (5) 无死锁X、A、X
         public async Task CallChainReentrancy_5()
         {
             long baseGrainId = Random.Shared.Next();
@@ -113,7 +113,7 @@ namespace UnitTests.General
             }
         }
 
-        // 6) Allowed reentrancy on non-reentrant grains only when using full chain reentrancy A, B, C, A
+        // 6) 只有在使用全链回存 A、B、C、A时,才允许非再生 grains 重新注入
         public async Task CallChainReentrancy_6()
         {
             long baseGrainId = Random.Shared.Next();
@@ -133,7 +133,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Suppresses call chain reentrancy within a reentrant call chain, to ensure that the subsequent call chain is not reentrant.
+        /// 抑制呼唤链在静脉呼叫链中的再回流,以确保随后的呼唤链不再回流。
         /// </summary>
         public async Task CallChainReentrancy_WithSuppression()
         {
@@ -145,16 +145,16 @@ namespace UnitTests.General
 
             var chain = new List<(string, ReentrancyCallType)>
             {
-                // 1. a->a: Start a new call chain, allowing reentrancy back into 'a'
+                // 1. a->a: 启动一个新的呼叫链,允许再回录到“ a”
                 (aId, ReentrancyCallType.AllowCallChainReentrancy),
 
-                // 2. a->b: Wont allow reentrancy into 'b', since 'b' has not excxplicitly requested it.
+                // 2. a- >b: 不允许重新输入“ b” , 因为“ b” 没有提出明确要求。
                 (bId, ReentrancyCallType.Regular),
 
-                // 3. b->a: Ensure that reentrancy into 'a' is allowed.
+                // 3.b->a:确保允许重新输入“a”。
                 (aId, ReentrancyCallType.Regular),
 
-                // 4. a->b: Suppress call chain reentrancy from 'a' to 'b'. The call to 'b' should block (until we explicitly unblock it later), since 'b' is waiting already.
+                // 4. a- >b: 禁止调用链从“ a” 到“ b”的重复。 “ b” 调用应屏蔽(直到稍后明确解开),因为“ b” 已经等待了 。
                 (bId, ReentrancyCallType.SuppressCallChainReentrancy),
             };
 
@@ -163,15 +163,15 @@ namespace UnitTests.General
 
             var aTask = a.CallChain(observerRef, chain, 0, cts.Token);
 
-            // Wait for 'a' to receive the call from 'b'
+            // 等待"a"接到b的电话
             await observer.WaitForOperationAsync(CallChainOperation.Enter, aId, 3, cts.Token);
 
-            // Tell 'a' to stop waiting for 'b to return, allowing the final call (step 4) to enter 'b' and complete the call chain.
+            // 告诉'a' 停止等待 'b' 返回, 让最后的呼叫( 第4步)进入`b' 并完成呼叫链 。
             await a.UnblockWaiters(cts.Token);
 
             await aTask;
 
-            // Wait for 'b' to complete its final call
+            // 等待“ b” 完成最后呼叫
             await observer.WaitForOperationAsync(CallChainOperation.Exit, bId, 4, cts.Token);
         }
 
@@ -198,7 +198,7 @@ namespace UnitTests.General
 
             public async Task WaitForOperationAsync(CallChainOperation operationType, string grain, int callIndex, CancellationToken cancellationToken = default)
             {
-                // First check if we've already seen this operation
+                // 第一次检查,如果我们已经看过这个手术
                 if (_allOperations.Any(op => op.Operation == operationType && op.Grain.Equals(grain, StringComparison.Ordinal) && op.CallIndex == callIndex))
                 {
                     return;
@@ -215,7 +215,7 @@ namespace UnitTests.General
                         return;
                     }
 
-                    // Check if we've passed the expected call index
+                    // 检查我们是否通过了预期的通话索引
                     if (operation.CallIndex > callIndex)
                     {
                         break;

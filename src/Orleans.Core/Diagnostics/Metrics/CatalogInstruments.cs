@@ -201,7 +201,7 @@ internal sealed class CatalogInstruments(OrleansInstruments instruments)
             return result;
         }
 
-        // Serialize registration so even concurrent first activations share one string.
+        // 分层登记,即使同时的第一次启动 也共享一个字符串
         lock (_grainTypes)
         {
             if (!_grainTypes.TryGetValue(grainType, out result))

@@ -6,7 +6,7 @@ public sealed class AuditCallFilter(IGrainFactory grainFactory)
 {
     public async Task Invoke(IIncomingGrainCallContext context)
     {
-        // Exclude the audit interface so its call doesn't reenter this filter recursively.
+        // 排除审计界面, 这样它不会重新输入此过滤器 。
         if (context.InterfaceMethod.DeclaringType != typeof(ICallAuditGrain))
         {
             var auditGrain = grainFactory.GetGrain<ICallAuditGrain>(

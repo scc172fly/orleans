@@ -12,7 +12,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="BitArray"/> arrays.
+    /// <see cref="BitArray"/> 数组的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed partial class BitArrayCodec : IFieldCodec<BitArray>
@@ -25,12 +25,12 @@ namespace Orleans.Serialization.Codecs
         BitArray IFieldCodec<BitArray>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static BitArray ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -94,7 +94,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="byte"/> arrays.
+    /// <see cref="byte"/> 阵列的复印机。
     /// </summary>
     [RegisterCopier]
     public sealed class BitArrayCopier : IDeepCopier<BitArray>
@@ -103,11 +103,11 @@ namespace Orleans.Serialization.Codecs
         BitArray? IDeepCopier<BitArray>.DeepCopy(BitArray? input, CopyContext context) => DeepCopy(input, context);
 
         /// <summary>
-        /// Creates a deep copy of the provided input.
+        /// 创建所提供输入的深度副本。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="context">The context.</param>
-        /// <returns>A copy of <paramref name="input" />.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="context">上下文。</param>
+        /// <returns>一份 <paramref name="input" />.</returns>
         [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(input))]
         public static BitArray? DeepCopy(BitArray? input, CopyContext context)
         {
@@ -125,7 +125,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="byte"/> arrays.
+    /// <see cref="byte"/> 数组的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class ByteArrayCodec : IFieldCodec<byte[]>
@@ -134,12 +134,12 @@ namespace Orleans.Serialization.Codecs
         byte[] IFieldCodec<byte[]>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static byte[] ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -168,12 +168,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, byte[] value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -190,7 +190,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="byte"/> arrays.
+    /// <see cref="byte"/> 阵列的复印机。
     /// </summary>
     [RegisterCopier]
     public sealed class ByteArrayCopier : IDeepCopier<byte[]>
@@ -199,11 +199,11 @@ namespace Orleans.Serialization.Codecs
         byte[]? IDeepCopier<byte[]>.DeepCopy(byte[]? input, CopyContext context) => DeepCopy(input, context);
 
         /// <summary>
-        /// Creates a deep copy of the provided input.
+        /// 创建所提供输入的深度副本。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="context">The context.</param>
-        /// <returns>A copy of <paramref name="input" />.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="context">上下文。</param>
+        /// <returns>一份 <paramref name="input" />.</returns>
         [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(input))]
         public static byte[]? DeepCopy(byte[]? input, CopyContext context)
         {
@@ -223,7 +223,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="ReadOnlyMemory{Byte}"/>.
+    /// <see cref="ReadOnlyMemory{Byte}"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class ReadOnlyMemoryOfByteCodec : IFieldCodec<ReadOnlyMemory<byte>>
@@ -233,12 +233,12 @@ namespace Orleans.Serialization.Codecs
         ReadOnlyMemory<byte> IFieldCodec<ReadOnlyMemory<byte>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static byte[] ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -258,12 +258,12 @@ namespace Orleans.Serialization.Codecs
         void IFieldCodec<ReadOnlyMemory<byte>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] ReadOnlyMemory<byte> value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, ReadOnlyMemory<byte> value) where TBufferWriter : IBufferWriter<byte>
             => WriteField(ref writer, fieldIdDelta, typeof(ReadOnlyMemory<byte>), value);
@@ -282,7 +282,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="ReadOnlyMemory{Byte}"/>.
+    /// <see cref="ReadOnlyMemory{Byte}"/>的复印机。
     /// </summary>
     [RegisterCopier]
     public sealed class ReadOnlyMemoryOfByteCopier : IDeepCopier<ReadOnlyMemory<byte>>
@@ -291,11 +291,11 @@ namespace Orleans.Serialization.Codecs
         ReadOnlyMemory<byte> IDeepCopier<ReadOnlyMemory<byte>>.DeepCopy(ReadOnlyMemory<byte> input, CopyContext _) => DeepCopy(input, _);
 
         /// <summary>
-        /// Copies the input.
+        /// 复制输入。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="copyContext">The copy context.</param>
-        /// <returns>A copy of the input.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="copyContext">复制上下文。</param>
+        /// <returns>输入副本。</returns>
         public static ReadOnlyMemory<byte> DeepCopy(ReadOnlyMemory<byte> input, CopyContext copyContext)
         {
             if (input.IsEmpty)
@@ -308,7 +308,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="ArraySegment{Byte}"/>.
+    /// <see cref="ArraySegment{Byte}"/>的复印机。
     /// </summary>
     [RegisterCopier]
     public sealed class ArraySegmentOfByteCopier : IDeepCopier<ArraySegment<byte>>
@@ -317,11 +317,11 @@ namespace Orleans.Serialization.Codecs
         ArraySegment<byte> IDeepCopier<ArraySegment<byte>>.DeepCopy(ArraySegment<byte> input, CopyContext _) => DeepCopy(input, _);
 
         /// <summary>
-        /// Copies the input.
+        /// 复制输入。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="copyContext">The copy context.</param>
-        /// <returns>A copy of the input.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="copyContext">复制上下文。</param>
+        /// <returns>输入副本。</returns>
         public static ArraySegment<byte> DeepCopy(ArraySegment<byte> input, CopyContext copyContext)
         {
             if (input.Array is null)
@@ -334,7 +334,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Memory{Byte}"/>.
+    /// <see cref="Memory{Byte}"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class MemoryOfByteCodec : IFieldCodec<Memory<byte>>
@@ -344,12 +344,12 @@ namespace Orleans.Serialization.Codecs
         Memory<byte> IFieldCodec<Memory<byte>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static Memory<byte> ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -369,12 +369,12 @@ namespace Orleans.Serialization.Codecs
         void IFieldCodec<Memory<byte>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] Memory<byte> value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Memory<byte> value) where TBufferWriter : IBufferWriter<byte>
             => WriteField(ref writer, fieldIdDelta, typeof(Memory<byte>), value);
@@ -393,7 +393,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Memory{T}"/> of <see cref="byte"/>.
+    /// 复印机 <see cref="Memory{T}"/> 联 年 月 日 月 日 月 月 日 <see cref="byte"/>.
     /// </summary>
     [RegisterCopier]
     public sealed class MemoryOfByteCopier : IDeepCopier<Memory<byte>>
@@ -402,11 +402,11 @@ namespace Orleans.Serialization.Codecs
         Memory<byte> IDeepCopier<Memory<byte>>.DeepCopy(Memory<byte> input, CopyContext _) => DeepCopy(input, _);
 
         /// <summary>
-        /// Copies the input.
+        /// 复制输入。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="copyContext">The copy context.</param>
-        /// <returns>A copy of the input.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="copyContext">复制上下文。</param>
+        /// <returns>输入副本。</returns>
         public static Memory<byte> DeepCopy(Memory<byte> input, CopyContext copyContext)
         {
             if (input.IsEmpty)
@@ -419,11 +419,11 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="PooledBuffer"/> instances.
+    /// <see cref="PooledBuffer"/> 实例的序列器。
     /// </summary>
     /// <remarks>
-    /// Writing consumes the supplied buffer and releases its storage, including when serialization fails.
-    /// Deserialized buffers are owned by the receiver, which disposes them after use.
+    /// 书面材料消耗了提供的缓冲,并释放其储存,包括序列处理失败时。
+    /// 消毒缓冲器由接收者拥有,在使用后予以处置。
     /// </remarks>
     [RegisterSerializer]
     public sealed class PooledBufferCodec : IFieldCodec<PooledBuffer>
@@ -440,7 +440,7 @@ namespace Orleans.Serialization.Codecs
             }
             finally
             {
-                // Serialization consumes this value, including when the writer fails partway through it.
+                // 序列化消耗了这一价值,包括当作家在其中的一段过程中失败时。
                 value.Reset();
             }
         }
@@ -481,7 +481,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="PooledBuffer"/> instances, which are assumed to be immutable.
+    /// <see cref="PooledBuffer"/> 实例的复印机,这些案例被认为不可更改。
     /// </summary>
     [RegisterCopier]
     public sealed class PooledBufferCopier : IDeepCopier<PooledBuffer>, IOptionalDeepCopier

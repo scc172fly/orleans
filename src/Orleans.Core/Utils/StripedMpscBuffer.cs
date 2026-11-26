@@ -9,13 +9,13 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime.Utilities;
 
 /// <summary>
-/// Provides a striped bounded buffer. Add operations use thread ID to index into
-/// the underlying array of buffers, and if TryAdd is contended the thread ID is
-/// rehashed to select a different buffer to retry up to 3 times. Using this approach
-/// writes scale linearly with number of concurrent threads.
+/// 提供条带带的边框缓冲。添加操作使用线索 ID 来索引
+/// 底部缓冲线阵列,如果对 TryAdd 进行对调,则线索编号为
+/// 被重新击出以选择一个不同的缓冲来重试最多三次。使用此方法
+/// 以线性方式写出同时串线数 。
 /// </summary>
 /// <remarks>
-/// Derived from BitFaster.Caching by Alex Peck: https://github.com/bitfaster/BitFaster.Caching/blob/275b9b072c0218e20f549b769cd183df1374e2ee/BitFaster.Caching/Buffers/StripedMpscBuffer.cs
+/// 由Alex Peck从 BitFaster.Caching 中提取: https://github.com/bitfaster/BitFaster.Caching/blob/275b9b072c0218e20f549b769cd183df1374e2ee/BitFaster.Caching/Buffers/StripedMpscBuffer.cs
 /// </remarks>
 [DebuggerDisplay("Count = {Count}/{Capacity}")]
 internal sealed class StripedMpscBuffer<T> where T : class
@@ -25,10 +25,10 @@ internal sealed class StripedMpscBuffer<T> where T : class
     private readonly MpscBoundedBuffer<T>[] _buffers;
 
     /// <summary>
-    /// Initializes a new instance of the StripedMpscBuffer class with the specified stripe count and buffer size.
+    /// 初始化 StripedMpscBuffer 类的新实例,使用指定的条纹计数和缓冲大小。
     /// </summary>
-    /// <param name="stripeCount">The stripe count.</param>
-    /// <param name="bufferSize">The buffer size.</param>
+    /// <param name="stripeCount">条纹计数。</param>
+    /// <param name="bufferSize">缓冲大小。</param>
     public StripedMpscBuffer(int stripeCount, int bufferSize)
     {
         _buffers = new MpscBoundedBuffer<T>[stripeCount];
@@ -40,32 +40,32 @@ internal sealed class StripedMpscBuffer<T> where T : class
     }
 
     /// <summary>
-    /// Gets the number of items contained in the buffer.
+    /// 获取缓冲带中包含的项目数量。
     /// </summary>
     public int Count => _buffers.Sum(b => b.Count);
 
     /// <summary>
-    /// The bounded capacity.
+    /// 约束能力。
     /// </summary>
     public int Capacity => _buffers.Length * _buffers[0].Capacity;
 
     /// <summary>
-    /// Drains the buffer into the specified array.
+    /// 将缓冲排入指定的阵列。
     /// </summary>
-    /// <param name="outputBuffer">The output buffer</param>
-    /// <returns>The number of items written to the output buffer.</returns>
+    /// <param name="outputBuffer">输出缓冲</param>
+    /// <returns>写到输出缓冲的项数。</returns>
     /// <remarks>
-    /// Thread safe for single try take/drain + multiple try add.
+    /// 单试取/排入+多次尝试添加的线索安全。
     /// </remarks>
     public int DrainTo(T[] outputBuffer) => DrainTo(outputBuffer.AsSpan());
 
     /// <summary>
-    /// Drains the buffer into the specified span.
+    /// 将缓冲排入指定的范围。
     /// </summary>
-    /// <param name="outputBuffer">The output buffer</param>
-    /// <returns>The number of items written to the output buffer.</returns>
+    /// <param name="outputBuffer">输出缓冲</param>
+    /// <returns>写到输出缓冲的项数。</returns>
     /// <remarks>
-    /// Thread safe for single try take/drain + multiple try add.
+    /// 单试取/排入+多次尝试添加的线索安全。
     /// </remarks>
     public int DrainTo(Span<T> outputBuffer)
     {
@@ -87,12 +87,12 @@ internal sealed class StripedMpscBuffer<T> where T : class
     }
 
     /// <summary>
-    /// Tries to add the specified item.
+    /// 尝试添加指定项目。
     /// </summary>
-    /// <param name="item">The item to be added.</param>
-    /// <returns>A BufferStatus value indicating whether the operation succeeded.</returns>
+    /// <param name="item">增列的项目 。</param>
+    /// <returns>一个 BufferStatus 值,表示操作是否成功。</returns>
     /// <remarks>
-    /// Thread safe.
+    /// 线索保险箱
     /// </remarks>
     public BufferStatus TryAdd(T item)
     {
@@ -120,10 +120,10 @@ internal sealed class StripedMpscBuffer<T> where T : class
     }
 
     /// <summary>
-    /// Removes all values from the buffer.
+    /// 从缓冲框中删除所有值。
     /// </summary>
     /// <remarks>
-    /// Not thread safe.
+    /// 线线不安全
     /// </remarks>
     public void Clear()
     {
@@ -135,27 +135,27 @@ internal sealed class StripedMpscBuffer<T> where T : class
 }
 
 /// <summary>
-/// Provides a multi-producer, single-consumer thread-safe ring buffer. When the buffer is full,
-/// TryAdd fails and returns false. When the buffer is empty, TryTake fails and returns false.
+/// 提供多生产器、单一消费者的线性安全环带缓冲。当缓冲器满载时,
+/// TryAdd 失败并返回假。 当缓冲区为空时, TryTake 失败并返回虚假 。
 /// </summary>
-/// Based on the BoundedBuffer class in the Caffeine library by ben.manes@gmail.com (Ben Manes).
+/// 以咖啡因图书馆 BoundedBuffer 类为基础,使用 ben.manes@gmail.com (Ben Manes)
 [DebuggerDisplay("Count = {Count}/{Capacity}")]
 internal sealed class MpscBoundedBuffer<T> where T : class
 {
     private T?[] _buffer;
     private readonly int _mask;
-    private PaddedHeadAndTail _headAndTail; // mutable struct, don't mark readonly
+    private PaddedHeadAndTail _headAndTail; // 可变元结构, 不标记只读
 
     /// <summary>
-    /// Initializes a new instance of the MpscBoundedBuffer class with the specified bounded capacity.
+    /// 初始化一个具有特定约束容量的 MpscBoundedBuffer 类新实例。
     /// </summary>
-    /// <param name="boundedLength">The bounded length.</param>
+    /// <param name="boundedLength">接合长度。</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public MpscBoundedBuffer(int boundedLength)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(boundedLength, 0);
 
-        // must be power of 2 to use & slotsMask instead of %
+        // 必须是 2 的功率, 才能使用( M) slotsMask 取代%
         boundedLength = BitOps.CeilingPowerOfTwo(boundedLength);
 
         _buffer = new T?[boundedLength];
@@ -163,12 +163,12 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     }
 
     /// <summary>
-    /// The bounded capacity.
+    /// 约束能力。
     /// </summary>
     public int Capacity => _buffer.Length;
 
     /// <summary>
-    /// Gets the number of items contained in the buffer.
+    /// 获取缓冲带中包含的项目数量。
     /// </summary>
     public int Count
     {
@@ -204,12 +204,12 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     }
 
     /// <summary>
-    /// Tries to add the specified item.
+    /// 尝试添加指定项目。
     /// </summary>
-    /// <param name="item">The item to be added.</param>
-    /// <returns>A BufferStatus value indicating whether the operation succeeded.</returns>
+    /// <param name="item">增列的项目 。</param>
+    /// <returns>一个 BufferStatus 值,表示操作是否成功。</returns>
     /// <remarks>
-    /// Thread safe.
+    /// 线索保险箱
     /// </remarks>
     public BufferStatus TryAdd(T item)
     {
@@ -235,12 +235,12 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 
 
     /// <summary>
-    /// Tries to remove an item.
+    /// 尝试删除项目。
     /// </summary>
-    /// <param name="item">The item to be removed.</param>
-    /// <returns>A BufferStatus value indicating whether the operation succeeded.</returns>
+    /// <param name="item">要删除的项目。</param>
+    /// <returns>一个 BufferStatus 值,表示操作是否成功。</returns>
     /// <remarks>
-    /// Thread safe for single try take/drain + multiple try add.
+    /// 单试取/排入+多次尝试添加的线索安全。
     /// </remarks>
     public BufferStatus TryTake(out T? item)
     {
@@ -260,7 +260,7 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 
         if (item == null)
         {
-            // not published yet
+            // 尚未出版
             return BufferStatus.Contended;
         }
 
@@ -270,26 +270,26 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     }
 
     /// <summary>
-    /// Drains the buffer into the specified array segment.
+    /// 将缓冲排入指定的数组段。
     /// </summary>
-    /// <param name="output">The output buffer</param>
-    /// <returns>The number of items written to the output buffer.</returns>
+    /// <param name="output">输出缓冲</param>
+    /// <returns>写到输出缓冲的项数。</returns>
     /// <remarks>
-    /// Thread safe for single try take/drain + multiple try add.
+    /// 单试取/排入+多次尝试添加的线索安全。
     /// </remarks>
     public int DrainTo(ArraySegment<T> output) => DrainTo(output.AsSpan());
 
     /// <summary>
-    /// Drains the buffer into the specified span.
+    /// 将缓冲排入指定的范围。
     /// </summary>
-    /// <param name="output">The output buffer</param>
-    /// <returns>The number of items written to the output buffer.</returns>
+    /// <param name="output">输出缓冲</param>
+    /// <returns>写到输出缓冲的项数。</returns>
     /// <remarks>
-    /// Thread safe for single try take/drain + multiple try add.
+    /// 单试取/排入+多次尝试添加的线索安全。
     /// </remarks>
     public int DrainTo(Span<T> output) => DrainToImpl(output);
 
-    // use an outer wrapper method to force the JIT to inline the inner adaptor methods
+    // 使用外包装器方法强制 JIT 插入内部适配器方法
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int DrainToImpl(Span<T> output)
     {
@@ -314,7 +314,7 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 
             if (item == null)
             {
-                // not published yet
+                // 尚未出版
                 break;
             }
 
@@ -336,10 +336,10 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     private static int Length(ReadOnlySpan<T> output) => output.Length;
 
     /// <summary>
-    /// Removes all values from the buffer.
+    /// 从缓冲框中删除所有值。
     /// </summary>
     /// <remarks>
-    /// Not thread safe.
+    /// 线线不安全
     /// </remarks>
     public void Clear()
     {
@@ -349,57 +349,57 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 }
 
 /// <summary>
-/// Specifies the status of buffer operations.
+/// 指定缓冲操作状态。
 /// </summary>
 internal enum BufferStatus
 {
     /// <summary>
-    /// The buffer is full.
+    /// 缓冲带满了
     /// </summary>
     Full,
 
     /// <summary>
-    /// The buffer is empty.
+    /// 缓冲是空的 。
     /// </summary>
     Empty,
 
     /// <summary>
-    /// The buffer operation succeeded.
+    /// 缓冲行动成功。
     /// </summary>
     Success,
 
     /// <summary>
-    /// The buffer operation was contended.
+    /// 缓冲行动被提出主张。
     /// </summary>
     Contended,
 }
 
 /// <summary>
-/// Provides utility methods for bit-twiddling operations.
+/// 提供比特交织操作的实用方法。
 /// </summary>
 internal static class BitOps
 {
     /// <summary>
-    /// Calculate the smallest power of 2 greater than the input parameter.
+    /// 计算比输入参数大2的最小功率。
     /// </summary>
-    /// <param name="x">The input parameter.</param>
-    /// <returns>Smallest power of two greater than or equal to x.</returns>
+    /// <param name="x">输入参数。</param>
+    /// <returns>最小功率大于x或等于x的两倍。</returns>
     public static int CeilingPowerOfTwo(int x) => (int)CeilingPowerOfTwo((uint)x);
 
     /// <summary>
-    /// Calculate the smallest power of 2 greater than the input parameter.
+    /// 计算比输入参数大2的最小功率。
     /// </summary>
-    /// <param name="x">The input parameter.</param>
-    /// <returns>Smallest power of two greater than or equal to x.</returns>
+    /// <param name="x">输入参数。</param>
+    /// <returns>最小功率大于x或等于x的两倍。</returns>
     public static uint CeilingPowerOfTwo(uint x) => 1u << -BitOperations.LeadingZeroCount(x - 1);
 
     /// <summary>
-    /// Computes Stafford variant 13 of 64-bit mix function.
+    /// 计算64位混合函数的 Stafford 变式13。
     /// </summary>
-    /// <param name="z">The input parameter.</param>
-    /// <returns>A bit mix of the input parameter.</returns>
+    /// <param name="z">输入参数。</param>
+    /// <returns>输入参数的位组合。</returns>
     /// <remarks>
-    /// See http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
+    /// 见 http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
     /// </remarks>
     public static ulong Mix64(ulong z)
     {
@@ -410,7 +410,7 @@ internal static class BitOps
 }
 
 [DebuggerDisplay("Head = {Head}, Tail = {Tail}")]
-[StructLayout(LayoutKind.Explicit, Size = 3 * Padding.CACHE_LINE_SIZE)] // padding before/between/after fields
+[StructLayout(LayoutKind.Explicit, Size = 3 * Padding.CACHE_LINE_SIZE)] // 字段前后/之间/之后的
 internal struct PaddedHeadAndTail
 {
     [FieldOffset(1 * Padding.CACHE_LINE_SIZE)] public int Head;

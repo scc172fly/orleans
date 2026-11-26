@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents the composite key used by the legacy Orleans grain identifier encoding.
+    /// 表示遗留 Orleans grain 标识编码所用的复合密钥。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     [SuppressReferenceTracking]
@@ -18,67 +18,67 @@ namespace Orleans.Runtime
     public sealed class UniqueKey : IComparable<UniqueKey>, IEquatable<UniqueKey>
     {
         /// <summary>
-        /// Type id values encoded into UniqueKeys
+        /// 编码成 UniqueKeys的型号 id值
         /// </summary>
         public enum Category : byte
         {
             /// <summary>
-            /// No category is specified.
+            /// 未指定类别 。
             /// </summary>
             None = 0,
 
             /// <summary>
-            /// A system target identifier.
+            /// 系统目标识别码
             /// </summary>
             SystemTarget = 1,
 
             /// <summary>
-            /// A system grain identifier.
+            /// 一个系统 grain 标识符。
             /// </summary>
             SystemGrain = 2,
 
             /// <summary>
-            /// A grain identifier.
+            /// 一个 grain 标识符。
             /// </summary>
             Grain = 3,
 
             /// <summary>
-            /// A client identifier.
+            /// 客户识别符。
             /// </summary>
             Client = 4,
 
             /// <summary>
-            /// A grain identifier with a key extension.
+            /// 带有密钥扩展名的 grain 标识符。
             /// </summary>
             KeyExtGrain = 6,
-            // 7 was GeoClient
+            // 7是 GeoClient
 
             /// <summary>
-            /// A system target identifier with a key extension.
+            /// 带有密钥扩展名的系统目标识别符 。
             /// </summary>
             KeyExtSystemTarget = 8,
         }
 
         /// <summary>
-        /// Gets the first 64 bits of the primary key.
+        /// 获得主键的前64位
         /// </summary>
         [Id(0)]
         public ulong N0 { get; private set; }
 
         /// <summary>
-        /// Gets the second 64 bits of the primary key.
+        /// 获得主键的第二64位
         /// </summary>
         [Id(1)]
         public ulong N1 { get; private set; }
 
         /// <summary>
-        /// Gets the packed category and type code data.
+        /// 获得包装类别和类型代码数据。
         /// </summary>
         [Id(2)]
         public ulong TypeCodeData { get; private set; }
 
         /// <summary>
-        /// Gets the optional primary key extension.
+        /// 获得可选主密钥扩展名 。
         /// </summary>
         [Id(3)]
         public string? KeyExt { get; private set; }
@@ -87,22 +87,22 @@ namespace Orleans.Runtime
         private uint uniformHashCache;
 
         /// <summary>
-        /// Gets the 32-bit legacy type code.
+        /// 获得32位元的遗留型号代码。
         /// </summary>
         public int BaseTypeCode => (int)TypeCodeData;
 
         /// <summary>
-        /// Gets the identifier category encoded in <see cref="TypeCodeData"/>.
+        /// 获取 <see cref="TypeCodeData"/>编码的识别符号类别。
         /// </summary>
         public Category IdCategory => GetCategory(TypeCodeData);
 
         /// <summary>
-        /// Gets a value indicating whether the primary key is encoded as a <see cref="long"/>.
+        /// 获得一个值,显示主密钥是否编码为 <see cref="long"/>。
         /// </summary>
         public bool IsLongKey => N0 == 0;
 
         /// <summary>
-        /// Gets a value indicating whether this key represents a system target.
+        /// 获得一个值, 显示此密钥是否代表系统目标 。
         /// </summary>
         public bool IsSystemTargetKey
             => IsSystemTarget(IdCategory);
@@ -111,7 +111,7 @@ namespace Orleans.Runtime
             => category == Category.SystemTarget || category == Category.KeyExtSystemTarget;
 
         /// <summary>
-        /// Gets a value indicating whether this key has a primary key extension.
+        /// 获得一个值,显示此密钥是否有主密钥扩展名。
         /// </summary>
         public bool HasKeyExt => IsKeyExt(IdCategory);
 
@@ -147,8 +147,8 @@ namespace Orleans.Runtime
                 return NewKey(n0, n1, typeCodeData, keyExt);
             }
 
-            // last, for convenience we attempt to parse the string using GUID syntax. this is needed by unit
-            // tests but i don't know if it's needed for production.
+            // 最后,为了方便起见, 我们试图使用 UID 语法来分析字符串。 这是按单位需要的
+            // 但我不知道是否生产需要
             return NewKey(Guid.Parse(input.ToString()));
         }
 
@@ -165,9 +165,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a key with a randomly generated GUID primary key.
+        /// 创建带有随机生成的 GUID 主密钥的密钥。
         /// </summary>
-        /// <returns>A new unique key.</returns>
+        /// <returns>一个新的独有密钥。</returns>
         public static UniqueKey NewKey() => new UniqueKey { Guid = Guid.NewGuid() };
 
         internal static UniqueKey NewKey(Guid guid) => new UniqueKey { Guid = guid };
@@ -185,37 +185,37 @@ namespace Orleans.Runtime
             => new UniqueKey { TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         /// <summary>
-        /// Creates a system target key with a GUID primary key.
+        /// 创建系统目标键,使用图形用户界面数据主键。
         /// </summary>
-        /// <param name="guid">The primary key.</param>
-        /// <param name="typeData">The system target type data.</param>
-        /// <returns>A new system target key.</returns>
+        /// <param name="guid">主键。</param>
+        /// <param name="typeData">系统目标类型数据。</param>
+        /// <returns>新系统目标键。</returns>
         public static UniqueKey NewSystemTargetKey(Guid guid, long typeData)
             => new UniqueKey { Guid = guid, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         /// <summary>
-        /// Creates a system target key from a system identifier.
+        /// 从系统标识符创建系统目标键。
         /// </summary>
-        /// <param name="systemId">The system identifier.</param>
-        /// <returns>A new system target key.</returns>
+        /// <param name="systemId">系统标识符。</param>
+        /// <returns>新系统目标键。</returns>
         public static UniqueKey NewSystemTargetKey(short systemId)
             => new UniqueKey { N1 = (ulong)systemId, TypeCodeData = GetTypeCodeData(Category.SystemTarget) };
 
         /// <summary>
-        /// Creates a grain service key with an integer primary key.
+        /// 创建有整数主键的 grain 服务密钥。
         /// </summary>
-        /// <param name="key">The primary key.</param>
-        /// <param name="typeData">The grain service type data.</param>
-        /// <returns>A new grain service key.</returns>
+        /// <param name="key">主键。</param>
+        /// <param name="typeData">下 grain 服务型数据。</param>
+        /// <returns>一个新的 grain 服务关键字。</returns>
         public static UniqueKey NewGrainServiceKey(short key, long typeData)
             => new UniqueKey { N1 = (ulong)key, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         /// <summary>
-        /// Creates a grain service key with a string primary key extension.
+        /// 创建带有字符串主键扩展的 grain 服务密钥。
         /// </summary>
-        /// <param name="key">The primary key extension.</param>
-        /// <param name="typeData">The grain service type data.</param>
-        /// <returns>A new grain service key.</returns>
+        /// <param name="key">主键扩展。</param>
+        /// <param name="typeData">下 grain 服务型数据。</param>
+        /// <returns>一个新的 grain 服务关键字。</returns>
         public static UniqueKey NewGrainServiceKey(string key, long typeData)
             => NewKey(GetTypeCodeData(Category.KeyExtSystemTarget, typeData), key);
 
@@ -261,10 +261,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the integer primary key and its optional key extension.
+        /// 获取整数主键及其可选的密钥扩展。
         /// </summary>
-        /// <param name="extendedKey">When this method returns, contains the key extension, or <see langword="null"/> if none is present.</param>
-        /// <returns>The integer primary key.</returns>
+        /// <param name="extendedKey">当此方法返回时, 此方法包含密钥扩展名, 或没有关键扩展名的 <see langword="null"/> 。</param>
+        /// <returns>主键整数。</returns>
         public long PrimaryKeyToLong(out string? extendedKey)
         {
             ThrowIfIsNotLong();
@@ -274,9 +274,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the integer primary key of a key without an extension.
+        /// 获取一个密钥的整数主键,不附加。
         /// </summary>
-        /// <returns>The integer primary key.</returns>
+        /// <returns>主键整数。</returns>
         public long PrimaryKeyToLong()
         {
             ThrowIfIsNotLong();
@@ -285,10 +285,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the GUID primary key and its optional key extension.
+        /// 获取 GUID 主密钥及其可选密钥扩展名。
         /// </summary>
-        /// <param name="extendedKey">When this method returns, contains the key extension, or <see langword="null"/> if none is present.</param>
-        /// <returns>The GUID primary key.</returns>
+        /// <param name="extendedKey">当此方法返回时, 此方法包含密钥扩展名, 或没有关键扩展名的 <see langword="null"/> 。</param>
+        /// <returns>图形用户界面数据主键。</returns>
         public Guid PrimaryKeyToGuid(out string? extendedKey)
         {
             extendedKey = this.KeyExt;
@@ -296,9 +296,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the GUID primary key of a key without an extension.
+        /// 获取一个密钥的图形界面数据主键,不附加。
         /// </summary>
-        /// <returns>The GUID primary key.</returns>
+        /// <returns>图形用户界面数据主键。</returns>
         public Guid PrimaryKeyToGuid()
         {
             ThrowIfHasKeyExt("UniqueKey.PrimaryKeyToGuid");
@@ -308,8 +308,8 @@ namespace Orleans.Runtime
         /// <inheritdoc />
         public override bool Equals(object? o) => o is UniqueKey key && Equals(key);
 
-        // We really want Equals to be as fast as possible, as a minimum cost, as close to native as possible.
-        // No function calls, no boxing, inline.
+        // 我们真的希望平等 尽可能快, 最低成本, 尽可能接近本地。
+        // 没有函数呼叫,没有拳击,内嵌。
         /// <inheritdoc />
         public bool Equals(UniqueKey? other)
         {
@@ -320,8 +320,8 @@ namespace Orleans.Runtime
                    && (KeyExt is null || KeyExt == other.KeyExt);
         }
 
-        // We really want CompareTo to be as fast as possible, as a minimum cost, as close to native as possible.
-        // No function calls, no boxing, inline.
+        // 我们真的希望 CompareTo 尽快,尽可能地以最低成本接近本地人。
+        // 没有函数呼叫,没有拳击,内嵌。
         /// <inheritdoc />
         public int CompareTo(UniqueKey? other)
         {
@@ -345,7 +345,7 @@ namespace Orleans.Runtime
 
         internal uint GetUniformHashCode()
         {
-            // Disabling this ReSharper warning; hashCache is a logically read-only variable, so accessing them in GetHashCode is safe.
+            // 禁用此 ReSharper 警告; hashCache 是逻辑上只读的变量, 因此在 GetHashCode 中访问它们是安全的 。
             // ReSharper disable NonReadonlyFieldInGetHashCode
             if (uniformHashCache == 0)
             {
@@ -367,9 +367,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// If KeyExt not exists, returns following structure
-        /// |8 bytes|8 bytes|8 bytes|4 bytes| - total 28 bytes.
-        /// If KeyExt exists, adds additional KeyExt bytes length
+        /// 如果 KeyExt 不存在,返回结构
+        /// |8 字节|8 字节|8 字节|4 字节|，共 28 字节。
+        /// 如果存在 KeyExt ,则添加额外的 KeyExt 字节长度
         /// </summary>
         /// <returns></returns>
         internal ReadOnlySpan<byte> ToByteArray()
@@ -385,7 +385,7 @@ namespace Orleans.Runtime
             BinaryPrimitives.WriteUInt64LittleEndian(spanBytes.Slice(16, 8), TypeCodeData);
 
             const int offset = sizeof(ulong) * 3;
-            // Copy KeyExt
+            // 复制 KeyExt
             if (extBytes != null)
             {
                 BinaryPrimitives.WriteInt32LittleEndian(spanBytes.Slice(offset, sizeof(int)), extBytesLength);
@@ -466,7 +466,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Functionality for converting <see cref="UniqueKey"/> instances to and from their JSON representation.
+    /// 换算功能 <see cref="UniqueKey"/> 与从这些天起 JSON 代表。
     /// </summary>
     public sealed class UniqueKeyJsonConverter : JsonConverter<UniqueKey>
     {
@@ -509,7 +509,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> or <paramref name="value"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
         public override void Write(Utf8JsonWriter writer, UniqueKey value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);
@@ -525,7 +525,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> or <paramref name="value"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
         public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] UniqueKey value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);

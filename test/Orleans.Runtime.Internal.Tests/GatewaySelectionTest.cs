@@ -1,4 +1,4 @@
-//#define USE_SQL_SERVER
+//以美 日 称 :
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -12,21 +12,21 @@ using Xunit;
 namespace UnitTests.MessageCenterTests
 {
     /// <summary>
-    /// Tests for Orleans gateway selection and load balancing mechanisms.
+    /// 测试 Orleans 网关选择和负载平衡机制。
     /// 
-    /// Gateways are the entry points for client connections to an Orleans cluster.
-    /// Each silo can act as a gateway, and clients need to:
-    /// - Discover available gateways (via IGatewayListProvider)
-    /// - Select which gateway to connect to
-    /// - Handle gateway failures by switching to another gateway
+    /// 网关是客户连接到 Orleans 组群的切入点。
+    /// 每个 silo 可以作为网关,客户需要:
+    /// - 发现可用的网关(通过 IGatewayListProvider)
+    /// - 选择连接到哪个网关
+    /// - 通过转换到另一个网关处理网关失败
     /// 
-    /// The GatewayManager implements a round-robin selection strategy to distribute
-    /// client connections evenly across available gateways. This is critical for:
-    /// - Load balancing client connections
-    /// - Avoiding gateway overload
-    /// - Providing high availability for client access
+    /// GatewayManager 实施圆环选择战略,以分发
+    /// 在所有可用网关上均匀连接客户端。 这对以下各点至关重要:
+    /// - 装入平衡客户端连接
+    /// - 避免网关超负荷
+    /// - 向客户提供大量方便的便利
     /// 
-    /// These tests verify that gateway selection distributes load evenly.
+    /// 这些测试证实网关选择分布平均。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -49,9 +49,9 @@ namespace UnitTests.MessageCenterTests
         }
 
         /// <summary>
-        /// Tests that the gateway manager properly distributes connections
-        /// across available gateways using round-robin selection.
-        /// Verifies even distribution across 4 test gateways.
+        /// 测试网关管理器正确分配连接的测试
+        /// 使用圆环选择的跨可用网关。
+        /// 验证四个测试网关的均衡分布。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Gateway")]
         public async Task GatewaySelection()
@@ -78,8 +78,8 @@ namespace UnitTests.MessageCenterTests
         }
 
         /// <summary>
-        /// Core test logic for gateway selection distribution.
-        /// Simulates 2300 gateway selections and verifies they are evenly distributed.
+        /// 网关选择分布的核心测试逻辑。
+        /// 模拟2300项网关选择,并核实其分布均匀。
         /// </summary>
         protected async Task Test_GatewaySelection(IGatewayListProvider listProvider)
         {
@@ -91,29 +91,29 @@ namespace UnitTests.MessageCenterTests
                 return new IPEndPoint(IPAddress.Parse(uri.Host), uri.Port);
             }).ToList();
 
-            // Create and start the gateway manager with our test gateway list
+            // 以测试网关列表创建并启动网关管理器
             var gatewayManager = new GatewayManager(Options.Create(new GatewayOptions()), listProvider, NullLoggerFactory.Instance, null!, TimeProvider.System);
             await gatewayManager.StartAsync(CancellationToken.None);
 
-            var counts = new int[4];  // Track selections per gateway
+            var counts = new int[4];  // 每个网关的音轨选择
 
-            // Simulate 2300 gateway selections to test distribution
+            // 模拟 2300 网关选择, 测试分布
             for (int i = 0; i < 2300; i++)
             {
                 var ip = gatewayManager.GetLiveGateway();
                 Assert.NotNull(ip);
                 var addr = ip.Endpoint.Address;
-                Assert.Equal(IPAddress.Loopback, addr);  // "Incorrect IP address returned for gateway"
+                Assert.Equal(IPAddress.Loopback, addr);  // “ 返回网关时错误的 IP 地址”
                 Assert.True((0 < ip.Endpoint.Port) && (ip.Endpoint.Port < 5), "Incorrect IP port returned for gateway");
-                counts[ip.Endpoint.Port - 1]++;  // Count selections per gateway
+                counts[ip.Endpoint.Port - 1]++;  // 每个网关的计数选择
             }
 
-            // Historical note: The gateway manager used to select randomly based on load,
-            // but now uses round-robin for more predictable distribution.
-            // The commented assertions show the old expected distribution patterns.
+            // 历史注释: 用于随机选择按负荷计算的网关管理器,
+            // 但现在使用圆柱体来进行更可预测的分配。
+            // 评论中的说法表明了旧的预期分配模式。
 
-            // With round-robin selection, we expect exactly even distribution
-            // 2300 selections / 4 gateways = 575 per gateway
+            // 有了圆环选择,我们预计分配的准确性会达到均衡
+            // 2300个甄选/4个网关=每个网关575
             int low = 2300 / 4;
             int up = 2300 / 4;
             Assert.True((low <= counts[0]) && (counts[0] <= up), "Gateway selection is incorrectly skewed. " + counts[0]);
@@ -148,9 +148,9 @@ namespace UnitTests.MessageCenterTests
         }
 
         /// <summary>
-        /// Test implementation of IGatewayListProvider that returns a fixed list of gateways.
-        /// In production, this interface is implemented by membership providers
-        /// (Azure Table, SQL, ZooKeeper, etc.) to dynamically discover available gateways.
+        /// 测试 IGatewayListProvider 是否运行, 返回固定网关列表 。
+        /// 生产过程中,由成员供应商实施这一接口
+        /// (Azure 表格, SQL、 ZooKeeper等)动态发现可用网关。
         /// </summary>
         private class TestListProvider : IGatewayListProvider
         {

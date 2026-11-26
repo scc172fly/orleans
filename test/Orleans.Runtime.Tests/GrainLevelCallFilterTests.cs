@@ -27,7 +27,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests filters on just the grain level when there are no global grain call filters
+        /// 仅测试 grain 不存在全球 grain 呼叫过滤器
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_GrainLevel_Without_Global_Filter_Test()
@@ -37,7 +37,7 @@ namespace UnitTests.General
             Assert.Equal("intercepted one with no args", result);
 
             result = await grain.Echo("stao erom tae");
-            Assert.Equal("eat more oats", result);// Grain interceptors should receive the MethodInfo of the implementation, not the interface.
+            Assert.Equal("eat more oats", result);// Grain 拦截器应接收执行的 MethodInfo ,而不是接口。
 
             result = await grain.NotIntercepted();
             Assert.Equal("not intercepted", result);

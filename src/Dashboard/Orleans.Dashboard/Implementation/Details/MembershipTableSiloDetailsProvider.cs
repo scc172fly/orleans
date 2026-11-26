@@ -19,7 +19,7 @@ internal sealed class MembershipTableSiloDetailsProvider : ISiloDetailsProvider
 
     public async Task<SiloDetails[]> GetSiloDetails()
     {
-        //default implementation uses managementgrain details
+        //使用管理( grain) 详细信息
         var grain = grainFactory.GetGrain<IManagementGrain>(0);
 
         var hosts = await grain.GetDetailedHosts(true, CancellationToken.None);

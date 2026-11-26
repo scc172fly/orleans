@@ -7,8 +7,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Verifies that <c>WhenEach</c> and <c>WhenAny</c> select completions by their durable completion sequence, so a replay in
-/// a replacement activation observes the live attempt's order without recorded decisions.
+/// 证明: <c>WhenEach</c> 和 <c>WhenAny</c> 选择通过耐久完成序列完成的完成, 因此重放
+/// 替换启动程序观察现场尝试的命令,没有记录决定。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -39,7 +39,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             attempts.Enqueue([.. order]);
             if (attempts.Count == 1)
             {
-                // The first attempt stops here and is aborted, so the next activation replays it.
+                // 第一次尝试停在这里,中止了 所以下一次激活会重播
                 firstAttemptYieldedAll.TrySetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
@@ -49,12 +49,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, request, TestContext.Current.CancellationToken);
 
-        // Input 2 completes in a write of its own.
+        // 输入 2 以自己的文字完成。
         releases[2].SetResult(12);
         await yields[0].Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // The other inputs' results are staged while a write holds the journal, so the next write commits both and their
-        // handles complete together. The order in which they were staged decides their order.
+        // 其它投入的结果在日记上时,由作者撰写,因此下一篇作品既承诺也承诺
+        // 控件齐全,按其排列顺序决定。
         await CommitTogetherAsync(manager, storage, releases, [operationId.Child($"{stagedFirst}"), operationId.Child($"{stagedSecond}")], [stagedFirst, stagedSecond]);
         await yields[2].Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await firstAttemptYieldedAll.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
@@ -63,7 +63,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 < storage.Get(operationId.Child($"{stagedSecond}")).CompletionSequence);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // Every input is complete when the replacement activation replays the enumeration.
+        // 当替换激活重放点数时, 每一个输入都是完整的 。
         var (replacement, _, _, _) = CreateRuntime(storage, manager, reentrant: true);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
         var response = await replacement.GetScheduledTaskHandle(rootId)
@@ -130,7 +130,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var decisionId = TaskId.Parse("root/op/$winner");
         _ = storage.GetOrCreate(first);
 
-        // A result without a completion sequence, such as one stored before sequences were stamped, is recorded.
+        // 记录没有完成序列的结果,例如在排序盖章之前储存的顺序。
         storage.GetOrCreate(second).Result = DurableTaskResponse.FromResult(2);
         Assert.Equal(second, await runtime.SelectCompletionAsync(decisionId, [first, second], TestContext.Current.CancellationToken));
         Assert.True(storage.Contains(decisionId));
@@ -139,18 +139,18 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.SetResponse(second, storage.Get(second), DurableTaskResponse.FromResult(2));
         Assert.True(storage.Get(first).CompletionSequence < storage.Get(second).CompletionSequence);
 
-        // The recorded decision keeps its winner.
+        // 被记录的决定保留了胜者
         Assert.Equal(second, await runtime.SelectCompletionAsync(decisionId, [first, second], TestContext.Current.CancellationToken));
 
-        // Without a record, the lowest completion sequence wins, in any candidate order, and no decision is stored.
+        // 没有记录,最低完成顺序 赢得任何候选人的顺序, 并且没有决定存储。
         var nextId = TaskId.Parse("root/op/$next-0");
         Assert.Equal(first, await runtime.SelectCompletionAsync(nextId, [second, first], TestContext.Current.CancellationToken));
         Assert.False(storage.Contains(nextId));
     });
 
     /// <summary>
-    /// Holds the journal with a write, completes the inputs at <paramref name="indexes"/> in order while it waits, so their
-    /// results are staged in that order, then releases the journal so that one write commits both results.
+    /// 以写作维持日记,在 <paramref name="indexes"/> 等待著,而他们依其排列而排列,
+    /// 以此顺序来计算结果,然后发布日记,这样一书写的结果都包含两个结果。
     /// </summary>
     private static async Task CommitTogetherAsync(
         TestStateManager manager,

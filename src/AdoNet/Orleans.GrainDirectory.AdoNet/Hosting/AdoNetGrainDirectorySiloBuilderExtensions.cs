@@ -1,39 +1,39 @@
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extension methods for configuring an ADO.NET grain directory.
+/// 配置 ADO.NET grain 目录的扩展方法。
 /// </summary>
 public static class AdoNetGrainDirectorySiloBuilderExtensions
 {
     /// <summary>
-    /// Configures ADO.NET as the default grain directory.
+    /// 将配置 ADO.NET 设为默认的 grain 目录。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder UseAdoNetGrainDirectoryAsDefault(
         this ISiloBuilder builder,
         Action<AdoNetGrainDirectoryOptions> configureOptions) =>
         builder.UseAdoNetGrainDirectoryAsDefault(ob => ob.Configure(configureOptions));
 
     /// <summary>
-    /// Configures ADO.NET as the default grain directory.
+    /// 将配置 ADO.NET 设为默认的 grain 目录。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider options builder.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置提供者选项构建器的代表。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder UseAdoNetGrainDirectoryAsDefault(
         this ISiloBuilder builder,
         Action<OptionsBuilder<AdoNetGrainDirectoryOptions>> configureOptions) =>
         builder.ConfigureServices(services => services.AddAdoNetGrainDirectory(GrainDirectoryAttribute.DEFAULT_GRAIN_DIRECTORY, configureOptions));
 
     /// <summary>
-    /// Adds a named ADO.NET grain directory.
+    /// 添加名为 ADO.NET grain 目录。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The name of the grain directory.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name"> grain 目录的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder AddAdoNetGrainDirectory(
         this ISiloBuilder builder,
         string name,
@@ -41,12 +41,12 @@ public static class AdoNetGrainDirectorySiloBuilderExtensions
         builder.AddAdoNetGrainDirectory(name, ob => ob.Configure(configureOptions));
 
     /// <summary>
-    /// Adds a named ADO.NET grain directory.
+    /// 添加名为 ADO.NET grain 目录。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The name of the grain directory.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider options builder.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name"> grain 目录的名称。</param>
+    /// <param name="configureOptions">用于配置提供者选项构建器的代表。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder AddAdoNetGrainDirectory(
         this ISiloBuilder builder,
         string name,

@@ -6,36 +6,36 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Stream sequence token that tracks sequence number and event index
+    /// 跟踪序列编号和事件索引的串流序列符号
     /// </summary>
     /// <remarks>
-    /// <see cref="EventSequenceTokenV2"/> and <see cref="EventSequenceToken"/> share a numeric
-    /// position contract. Derived tokens are isolated by default and can explicitly join that
-    /// contract through <see cref="SequenceTokenCompatibilityDomain"/>. This includes exact base
-    /// tokens persisted by earlier event-token factories.
+    /// <see cref="EventSequenceTokenV2"/> 和 <see cref="EventSequenceToken"/> 共享一个数字
+    /// 。 衍生的标牌默认是孤立的, 并且可以明确加入
+    /// 合同合同合同合同 <see cref="SequenceTokenCompatibilityDomain"/>包括精确基数
+    /// 先前的事件当量工厂坚持的等像。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public class EventSequenceTokenV2 : StreamSequenceToken
     {
         /// <summary>
-        /// Gets the number of event batches in stream prior to this event batch
+        /// 获取事件批次数, 并在此事件批次之前在流中获得事件批次数量
         /// </summary>
         [Id(0)]
         [JsonProperty]
         public override long SequenceNumber { get; protected set; }
 
         /// <summary>
-        /// Gets the number of events in batch prior to this event
+        /// 获取此事件之前的批次事件数量
         /// </summary>
         [Id(1)]
         [JsonProperty]
         public override int EventIndex { get; protected set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventSequenceTokenV2"/> class.
+        /// 初始化 <see cref="EventSequenceTokenV2"/> 类的新实例。
         /// </summary>
-        /// <param name="seqNumber">The sequence number.</param>
+        /// <param name="seqNumber">序列号。</param>
         public EventSequenceTokenV2(long seqNumber)
         {
             SequenceNumber = seqNumber;
@@ -43,10 +43,10 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventSequenceTokenV2"/> class.
+        /// 初始化 <see cref="EventSequenceTokenV2"/> 类的新实例。
         /// </summary>
-        /// <param name="seqNumber">The sequence number.</param>
-        /// <param name="eventInd">The event index, for events which are part of a batch of events.</param>
+        /// <param name="seqNumber">序列号。</param>
+        /// <param name="eventInd">事件索引,用于一系列活动的一部分。</param>
         public EventSequenceTokenV2(long seqNumber, int eventInd)
         {
             SequenceNumber = seqNumber;
@@ -54,20 +54,20 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventSequenceTokenV2"/> class.
+        /// 初始化 <see cref="EventSequenceTokenV2"/> 类的新实例。
         /// </summary>
         /// <remarks>
-        /// This constructor is for serializer use only.
+        /// 此构建器仅用于序列器 。
         /// </remarks>
         public EventSequenceTokenV2()
         {
         }
 
         /// <summary>
-        /// Creates a sequence token for a specific event in the current batch
+        /// 为当前批量中特定事件创建序列符号
         /// </summary>
-        /// <param name="eventInd">The event index.</param>
-        /// <returns>A token with the same concrete runtime type and position metadata, targeting the specified event.</returns>
+        /// <param name="eventInd">事件索引。</param>
+        /// <returns>带有相同具体运行时间类型和位置的标牌元数据,针对指定事件。</returns>
         public virtual EventSequenceTokenV2 CreateSequenceTokenForEvent(int eventInd)
         {
             var result = (EventSequenceTokenV2)MemberwiseClone();
@@ -76,13 +76,13 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Gets the compatibility domain used to determine which event sequence tokens share
-        /// this token's numeric equality and ordering contract.
+        /// 获取用于确定哪个事件序列的相容域域, 用来决定共享的事件序列符号
+        /// 以命令合同为条件
         /// </summary>
         /// <remarks>
-        /// Derived tokens are isolated by default. A derived token which uses this complete numeric
-        /// contract overrides this property and returns <see cref="EventSequenceToken"/>. Tokens in
-        /// the same domain compare by <see cref="SequenceNumber"/> and <see cref="EventIndex"/>.
+        /// 默认会将衍生的符号分离出来。使用此完整数字的衍生的符号
+        /// 合同将重置此属性并返回 <see cref="EventSequenceToken"/>。
+        /// 将同一域与 <see cref="SequenceNumber"/> 和 <see cref="EventIndex"/>比较。
         /// </remarks>
         protected virtual Type SequenceTokenCompatibilityDomain
             => GetType() == typeof(EventSequenceTokenV2) ? typeof(EventSequenceToken) : GetType();

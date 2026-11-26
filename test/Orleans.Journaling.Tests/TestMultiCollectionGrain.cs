@@ -10,7 +10,7 @@ public class TestMultiCollectionGrain(
 {
     private readonly Guid _activationId = Guid.NewGuid();
 
-    // Dictionary operations
+    // 词典操作
     public async Task AddToDictionary(string key, int value)
     {
         dictionary[key] = value;
@@ -33,7 +33,7 @@ public class TestMultiCollectionGrain(
         return await Task.FromResult(dictionary.Count);
     }
 
-    // List operations
+    // 名单行动
     public async Task AddToList(string item)
     {
         list.Add(item);
@@ -56,7 +56,7 @@ public class TestMultiCollectionGrain(
         return await Task.FromResult(list.Count);
     }
 
-    // Queue operations
+    // 列业务
     public async Task AddToQueue(int item)
     {
         queue.Enqueue(item);
@@ -79,7 +79,7 @@ public class TestMultiCollectionGrain(
         return await Task.FromResult(queue.Count);
     }
 
-    // Set operations
+    // 设置操作
     public async Task AddToSet(string item)
     {
         set.Add(item);

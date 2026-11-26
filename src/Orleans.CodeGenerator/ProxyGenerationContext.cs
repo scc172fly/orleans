@@ -57,7 +57,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
 
     internal void VisitInterface(INamedTypeSymbol interfaceType, INamedTypeSymbol proxyBaseType, bool isExtension)
     {
-        // Get or generate an invokable for the original method definition.
+        // 获取或生成原始方法定义的可引用值。
         if (!SymbolEqualityComparer.Default.Equals(interfaceType, interfaceType.OriginalDefinition))
         {
             interfaceType = interfaceType.OriginalDefinition;
@@ -116,7 +116,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
 
         Dictionary<INamedTypeSymbol, INamedTypeSymbol> GetInvokableBaseTypes(INamedTypeSymbol baseClass)
         {
-            // Set the base invokable types which are used if attributes on individual methods do not override them.
+            // 设置在单个方法的属性不覆盖其特性时使用的可引用基本类型。
             if (!MetadataModel.ProxyBaseTypeInvokableBaseTypes.TryGetValue(baseClass, out var invokableBaseTypes))
             {
                 invokableBaseTypes = new Dictionary<INamedTypeSymbol, INamedTypeSymbol>(SymbolEqualityComparer.Default);
@@ -153,7 +153,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
         description = new ProxyInterfaceDescription(this, proxyBaseType, originalInterface);
         MetadataModel.InvokableInterfaces.Add(originalInterface, description);
 
-        // Planning the proxy discovers its invokables; emission writes this plan.
+        // 代理计划发现其可引用的物;
         _proxyPlans.Add(originalInterface, ProxyGenerator.CreatePlan(description));
 
         return description;
@@ -175,16 +175,16 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
                 InvokableBaseTypeMappingDiagnostic.CreateDiagnostic(resolverDiagnostic));
         }
 
-        // For extensions, we want to ensure that the containing type is always the extension.
-        // This ensures that we will always know which 'component' to get in our SetTarget method.
-        // If the type is not an extension, use the original method definition's containing type.
-        // This is the interface where the type was originally defined.
+        // 对于扩展名,我们希望确保包含型号始终是扩展名。
+        // 这确保我们永远知道,在我们的 SetTarget 方法中,哪些“组件”是用来获取的。
+        // 如果该类型不是扩展名,请使用原方法定义中包含类型的定义。
+        // 这是最初定义类型时的界面 。
         var containingType = proxyBaseInfo.IsExtension ? interfaceType : originalMethod.ContainingType;
 
         var invokableId = new InvokableMethodId(proxyBaseInfo, containingType, originalMethod);
         var interfaceDescription = GetInvokableInterfaceDescription(invokableId.ProxyBase.ProxyBaseType, interfaceType);
 
-        // Get or generate an invokable for the original method definition.
+        // 获取或生成原始方法定义的可引用值。
         if (!MetadataModel.GeneratedInvokables.TryGetValue(invokableId, out var generatedInvokable))
         {
             if (!_invokableMethodDescriptions.TryGetValue(invokableId, out var methodDescription))
@@ -197,7 +197,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
 
         var proxyMethodDescription = ProxyMethodDescription.Create(interfaceDescription, generatedInvokable, method);
 
-        // For backwards compatibility, generate invokers for the specific implementation types as well, where they differ.
+        // 对于逆向兼容性,在具体执行类型不同时,也产生不同的援引者。
         if (Options.GenerateCompatibilityInvokers && !SymbolEqualityComparer.Default.Equals(method.OriginalDefinition.ContainingType, interfaceType))
         {
             var compatInvokableId = new InvokableMethodId(proxyBaseInfo, interfaceType, method);
@@ -209,7 +209,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
                 declarations = _compatibilityDeclarations[interfaceType.OriginalDefinition] = new(StringComparer.Ordinal);
             }
 
-            // Each owner retains its declarations even when another owner claims the same alias.
+            // 即使在另一个所有人要求使用相同的别名时,每个所有人仍保留其声明。
             if (!declarations.ContainsKey(compatInvokable.MetadataName))
             {
                 declarations.Add(compatInvokable.MetadataName, (compatInvokable.GeneratedNamespace, compatInvokable.EmissionPlan));

@@ -12,40 +12,40 @@ using Orleans.Streaming.AzureStorage.Providers.Streams.AzureQueue.Json;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Configures an Azure Queue stream provider.
+    /// 配置 Azure 队列流提供者。
     /// </summary>
     public interface IAzureQueueStreamConfigurator : INamedServiceConfigurator { }
 
     /// <summary>
-    /// Extension methods for configuring Azure Queue stream providers.
+    /// 配置 Azure 队列流提供者的扩展方法 。
     /// </summary>
     public static class AzureQueueStreamConfiguratorExtensions
     {
         /// <summary>
-        /// Configures the Azure Queue storage options for the stream provider.
+        /// 配置流提供者的 Azure 队列存储选项。
         /// </summary>
-        /// <param name="configurator">The stream provider configurator.</param>
-        /// <param name="configureOptions">The delegate used to configure the Azure Queue options.</param>
+        /// <param name="configurator">流体提供者配置器。</param>
+        /// <param name="configureOptions">用于配置 Azure 队列选项的代表。</param>
         public static void ConfigureAzureQueue(this IAzureQueueStreamConfigurator configurator, Action<OptionsBuilder<AzureQueueOptions>> configureOptions)
         {
             configurator.Configure(configureOptions);
         }
 
         /// <summary>
-        /// Configures the adapter used to convert between stream batches and Azure Queue messages.
+        /// 配置用于在流批次和 Azure 队列信件之间转换的适配器。
         /// </summary>
-        /// <param name="configurator">The stream provider configurator.</param>
-        /// <param name="factory">The factory which creates the adapter for the named stream provider.</param>
+        /// <param name="configurator">流体提供者配置器。</param>
+        /// <param name="factory">创建指定流提供者适配器的工厂。</param>
         public static void ConfigureQueueDataAdapter(this IAzureQueueStreamConfigurator configurator, Func<IServiceProvider, string, IQueueDataAdapter<string, IBatchContainer>> factory)
         {
             configurator.ConfigureComponent(factory);
         }
 
         /// <summary>
-        /// Configures the adapter used to convert between stream batches and Azure Queue messages.
+        /// 配置用于在流批次和 Azure 队列信件之间转换的适配器。
         /// </summary>
-        /// <typeparam name="TQueueDataAdapter">The data adapter type.</typeparam>
-        /// <param name="configurator">The stream provider configurator.</param>
+        /// <typeparam name="TQueueDataAdapter">数据适配器类型。</typeparam>
+        /// <param name="configurator">流体提供者配置器。</param>
         public static void ConfigureQueueDataAdapter<TQueueDataAdapter>(this IAzureQueueStreamConfigurator configurator)
             where TQueueDataAdapter : IQueueDataAdapter<string, IBatchContainer>
         {
@@ -54,20 +54,20 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Configures an Azure Queue stream provider on a silo.
+    /// 配置 Azure 排队流提供方 silo.
     /// </summary>
     public interface ISiloAzureQueueStreamConfigurator : IAzureQueueStreamConfigurator, ISiloPersistentStreamConfigurator { }
 
     /// <summary>
-    /// Extension methods for configuring Azure Queue stream providers on a silo.
+    /// 配置 Azure Quue流源供应商在 silo上的扩展方法。
     /// </summary>
     public static class SiloAzureQueueStreamConfiguratorExtensions
     {
         /// <summary>
-        /// Configures the maximum number of stream batches held in the receiver cache.
+        /// 配置接收器缓存中保存的溪流批量的最大数量 。
         /// </summary>
-        /// <param name="configurator">The silo stream provider configurator.</param>
-        /// <param name="cacheSize">The maximum number of batches held in the cache.</param>
+        /// <param name="configurator">下 silo 提供源数据串流配置器。</param>
+        /// <param name="cacheSize">封存缓存的批量的最大数量。</param>
         public static void ConfigureCacheSize(this ISiloAzureQueueStreamConfigurator configurator, int cacheSize = SimpleQueueCacheOptions.DEFAULT_CACHE_SIZE)
         {
             configurator.Configure<SimpleQueueCacheOptions>(ob => ob.Configure(options => options.CacheSize = cacheSize));
@@ -75,22 +75,22 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Configures an Azure Queue stream provider on a silo.
+    /// 配置 Azure 排队流提供方 silo.
     /// </summary>
     public class SiloAzureQueueStreamConfigurator : SiloPersistentStreamConfigurator, ISiloAzureQueueStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SiloAzureQueueStreamConfigurator"/> class.
+        /// 初始化 <see cref="SiloAzureQueueStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configureServicesDelegate">The delegate used to configure silo services.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configureServicesDelegate">代表用于配置 silo 服务。</param>
         public SiloAzureQueueStreamConfigurator(string name, Action<Action<IServiceCollection>> configureServicesDelegate)
             : base(name, configureServicesDelegate, AzureQueueAdapterFactory.Create)
         {
             this.ConfigureComponent(AzureQueueOptionsValidator.Create);
             this.ConfigureComponent(SimpleQueueCacheOptionsValidator.Create);
 
-            //configure default queue names
+            //配置默认队列名
             this.ConfigureAzureQueue(ob => ob.PostConfigure<IOptions<ClusterOptions>>((op, clusterOp) =>
             {
                 if (op.QueueNames == null || op.QueueNames?.Count == 0)
@@ -105,26 +105,26 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Configures an Azure Queue stream provider on a cluster client.
+    /// 配置组客户端上的 Azure 队列流提供者 。
     /// </summary>
     public interface IClusterClientAzureQueueStreamConfigurator : IAzureQueueStreamConfigurator, IClusterClientPersistentStreamConfigurator { }
 
     /// <summary>
-    /// Configures an Azure Queue stream provider on a cluster client.
+    /// 配置组客户端上的 Azure 队列流提供者 。
     /// </summary>
     public class ClusterClientAzureQueueStreamConfigurator : ClusterClientPersistentStreamConfigurator, IClusterClientAzureQueueStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterClientAzureQueueStreamConfigurator"/> class.
+        /// 初始化 <see cref="ClusterClientAzureQueueStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="builder">The client builder.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="builder">客户端构建器。</param>
         public ClusterClientAzureQueueStreamConfigurator(string name, IClientBuilder builder)
             : base(name, builder, AzureQueueAdapterFactory.Create)
         {
             this.ConfigureComponent(AzureQueueOptionsValidator.Create);
 
-            //configure default queue names
+            //配置默认队列名
             this.ConfigureAzureQueue(ob => ob.PostConfigure<IOptions<ClusterOptions>>((op, clusterOp) =>
             {
                 if (op.QueueNames == null || op.QueueNames?.Count == 0)
@@ -138,22 +138,22 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Silo configurator interface for Azure Queue streams with JSON serialization.
-    /// This feature is experimental and subject to change in future updates.
+    /// Silo 用于 Azure 以 JSON 序列。
+    /// 这是试验性的,今后更新时会改变。
     /// </summary>
     [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
     public interface ISiloAzureQueueJsonStreamConfigurator : IAzureQueueStreamConfigurator, ISiloPersistentStreamConfigurator { }
 
     /// <summary>
-    /// Extension methods for JSON-enabled silo Azure Queue stream configurator.
+    /// JSON- 启用的 silo Azure 队列流配置器的扩展方法。
     /// </summary>
     public static class SiloAzureQueueJsonStreamConfiguratorExtensions
     {
         /// <summary>
-        /// Configures the cache size for the JSON-enabled Azure Queue stream provider.
+        /// 配置 JSON- 启用的 Azure 队列流提供者的缓存大小。
         /// </summary>
-        /// <param name="configurator">The configurator.</param>
-        /// <param name="cacheSize">The cache size.</param>
+        /// <param name="configurator">配置器。</param>
+        /// <param name="cacheSize">缓存大小。</param>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static void ConfigureCacheSize(this ISiloAzureQueueJsonStreamConfigurator configurator, int cacheSize = SimpleQueueCacheOptions.DEFAULT_CACHE_SIZE)
         {
@@ -161,10 +161,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures JSON serializer options for the Azure Queue stream provider.
+        /// 配置配置 JSON 用于 Azure 队列流提供者 。
         /// </summary>
-        /// <param name="configurator">The configurator.</param>
-        /// <param name="configureJsonOptions">Action to configure JSON serializer options.</param>
+        /// <param name="configurator">配置器。</param>
+        /// <param name="configureJsonOptions">配置 JSON 序列器选项的动作。</param>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static void ConfigureJsonSerialization(this ISiloAzureQueueJsonStreamConfigurator configurator, Action<OrleansJsonSerializerOptions> configureJsonOptions)
         {
@@ -172,10 +172,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the JSON data adapter behavior options.
+        /// 配置 JSON 数据适配器行为选项。
         /// </summary>
-        /// <param name="configurator">The configurator.</param>
-        /// <param name="configureAdapterOptions">Action to configure JSON data adapter options.</param>
+        /// <param name="configurator">配置器。</param>
+        /// <param name="configureAdapterOptions">配置 JSON 数据适配器选项的动作。</param>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static void ConfigureJsonAdapter(this ISiloAzureQueueJsonStreamConfigurator configurator, Action<AzureQueueJsonDataAdapterOptions> configureAdapterOptions)
         {
@@ -184,24 +184,24 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Silo configurator for Azure Queue streams with JSON serialization support.
-    /// This configurator automatically sets up the JSON data adapter and required dependencies.
+    /// Silo 配置器 Azure 以 JSON 序列化支持。
+    /// 此配置自动设置 JSON 数据适配器和所需的依赖关系。
     /// </summary>
     [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
     public class SiloAzureQueueJsonStreamConfigurator : SiloPersistentStreamConfigurator, ISiloAzureQueueJsonStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SiloAzureQueueJsonStreamConfigurator"/> class.
+        /// 初始化 <see cref="SiloAzureQueueJsonStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configureServicesDelegate">The delegate used to configure services.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configureServicesDelegate">代表用于配置服务。</param>
         public SiloAzureQueueJsonStreamConfigurator(string name, Action<Action<IServiceCollection>> configureServicesDelegate)
             : base(name, configureServicesDelegate, AzureQueueAdapterFactory.Create)
         {
             this.ConfigureComponent(AzureQueueOptionsValidator.Create);
             this.ConfigureComponent(SimpleQueueCacheOptionsValidator.Create);
 
-            // Configure default queue names
+            // 配置默认队列名
             this.ConfigureAzureQueue(ob => ob.PostConfigure<IOptions<ClusterOptions>>((op, clusterOp) =>
             {
                 if (op.QueueNames == null || op.QueueNames?.Count == 0)
@@ -219,22 +219,22 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Cluster client configurator interface for Azure Queue streams with JSON serialization.
-    /// This feature is experimental and subject to change in future updates.
+    /// Azure 组流的群集客户端配置界面,其序列化为 JSON 队列流。
+    /// 这是试验性的,今后更新时会改变。
     /// </summary>
     [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
     public interface IClusterClientAzureQueueJsonStreamConfigurator : IAzureQueueStreamConfigurator, IClusterClientPersistentStreamConfigurator { }
 
     /// <summary>
-    /// Extension methods for JSON-enabled cluster client Azure Queue stream configurator.
+    /// JSON- 启用的集客户端客户端 Azure 队列流配置器的扩展方法。
     /// </summary>
     public static class ClusterClientAzureQueueJsonStreamConfiguratorExtensions
     {
         /// <summary>
-        /// Configures JSON serializer options for the Azure Queue stream provider.
+        /// 配置配置 JSON 用于 Azure 队列流提供者 。
         /// </summary>
-        /// <param name="configurator">The configurator.</param>
-        /// <param name="configureJsonOptions">Action to configure JSON serializer options.</param>
+        /// <param name="configurator">配置器。</param>
+        /// <param name="configureJsonOptions">配置 JSON 序列器选项的动作。</param>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static void ConfigureJsonSerialization(this IClusterClientAzureQueueJsonStreamConfigurator configurator, Action<OrleansJsonSerializerOptions> configureJsonOptions)
         {
@@ -242,10 +242,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the JSON data adapter behavior options.
+        /// 配置 JSON 数据适配器行为选项。
         /// </summary>
-        /// <param name="configurator">The configurator.</param>
-        /// <param name="configureAdapterOptions">Action to configure JSON data adapter options.</param>
+        /// <param name="configurator">配置器。</param>
+        /// <param name="configureAdapterOptions">配置 JSON 数据适配器选项的动作。</param>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static void ConfigureJsonAdapter(this IClusterClientAzureQueueJsonStreamConfigurator configurator, Action<AzureQueueJsonDataAdapterOptions> configureAdapterOptions)
         {
@@ -254,23 +254,23 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Cluster client configurator for Azure Queue streams with JSON serialization support.
-    /// This configurator automatically sets up the JSON data adapter and required dependencies.
+    /// Azure 队列流的群集客户端配置器,并配有 JSON 序列化支持。
+    /// 此配置自动设置 JSON 数据适配器和所需的依赖关系。
     /// </summary>
     [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
     public class ClusterClientAzureQueueJsonStreamConfigurator : ClusterClientPersistentStreamConfigurator, IClusterClientAzureQueueJsonStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterClientAzureQueueJsonStreamConfigurator"/> class.
+        /// 初始化 <see cref="ClusterClientAzureQueueJsonStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="builder">The client builder.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="builder">客户端构建器。</param>
         public ClusterClientAzureQueueJsonStreamConfigurator(string name, IClientBuilder builder)
             : base(name, builder, AzureQueueAdapterFactory.Create)
         {
             this.ConfigureComponent(AzureQueueOptionsValidator.Create);
 
-            // Configure default queue names
+            // 配置默认队列名
             this.ConfigureAzureQueue(ob => ob.PostConfigure<IOptions<ClusterOptions>>((op, clusterOp) =>
             {
                 if (op.QueueNames == null || op.QueueNames?.Count == 0)

@@ -2,11 +2,11 @@ using System.Net;
 
 namespace Orleans.Configuration
 {
-    /// <summary>Configures development clustering options</summary>
+    /// <summary>配置开发组合组合选项</summary>
     public class DevelopmentClusterMembershipOptions
     {
         /// <summary>
-        /// Gets or sets the seed node to find the membership system grain.
+        /// 获取或设置种子节点以找到成员资格制度 grain。
         /// </summary>
         public IPEndPoint? PrimarySiloEndpoint { get; set; }
     }

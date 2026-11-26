@@ -45,7 +45,7 @@ public partial class DurableSignalTests
         Assert.Equal((TaskId.CreateRoot("workflow"), "approved"), (wait.ExecutionId, wait.Name));
         Assert.Equal(context.CancellationToken, wait.CancellationToken);
 
-        // The wait runs inline, so it schedules no child.
+        // 等待运行线内, 所以它没有安排孩子。
         Assert.Empty(host.Children);
     }
 
@@ -82,8 +82,8 @@ public partial class DurableSignalTests
         Assert.Equal("ada", (await running).GetResult<string>());
         Assert.Equal(Deadline, host.LastDueTime);
 
-        // The race schedules the wait in an indexed slot, whose execution waits for the signal; the read after the race
-        // runs inline in the workflow.
+        // 种族将等待时间排在一个指数化的槽中,其执行等待信号;比赛后读
+        // 工作流程中运行内线。
         Assert.Equal(
             [(TaskId.Parse("workflow/$when-any-1/0"), "approved"), (TaskId.CreateRoot("workflow"), "approved")],
             host.Waits.Select(static wait => (wait.ExecutionId, wait.Name)));
@@ -152,7 +152,7 @@ public partial class DurableSignalTests
             DurableTask.Run(async _ => await Approved.WaitAsync()),
             new SignalContext(host, TaskId.CreateRoot("workflow")));
 
-        // A recorded value of another type means the code no longer matches the record, so the replay diverges.
+        // 另一种类型的记录值意味着代码不再与记录相符,重放则不同。
         var canceled = Assert.IsType<DurableTaskAttemptCanceledException>(response.Exception);
         Assert.Equal(DurableTaskAttemptCancellationReason.Diverged, canceled.Reason);
         Assert.IsType<InvalidCastException>(canceled.InnerException);
@@ -176,7 +176,7 @@ public partial class DurableSignalTests
 
     private sealed record Approval(string Approver);
 
-    /// <summary>A host which latches signal values by name and runs scheduled children in child contexts.</summary>
+    /// <summary>将信号按名称标记值,并在儿童背景下运行被排入日历的儿童的东道主。</summary>
     private sealed class SignalHost
     {
         private readonly ConcurrentDictionary<string, TaskCompletionSource<DurableTaskResponse>> _signals = new(StringComparer.Ordinal);
@@ -220,24 +220,24 @@ public partial class DurableSignalTests
 
         public IScheduledTaskHandle GetHandle(TaskId taskId) => _children[taskId];
 
-        /// <summary>Gets the child which the host scheduled under <paramref name="taskId"/>.</summary>
+        /// <summary>接收主机预定在 <paramref name="taskId"/>.</summary>
         public Child GetChild(TaskId taskId) => _children[taskId];
 
         private TaskCompletionSource<DurableTaskResponse> GetSignal(string name) =>
             _signals.GetOrAdd(name, static _ => new(TaskCreationOptions.RunContinuationsAsynchronously));
 
-        /// <summary>A child execution, whose cancellation requests reach its context as a host's do.</summary>
+        /// <summary>处决儿童,其取消申请已作为东道主的处理方式进入了背景。</summary>
         public sealed class Child(TaskId taskId, DurableTask definition, SignalContext context) : IScheduledTaskHandle
         {
             public TaskId TaskId => taskId;
 
-            /// <summary>Gets the child's terminal response, once it ends.</summary>
+            /// <summary>一旦结束 儿童就会得到终端反应</summary>
             private Task<DurableTaskResponse> Response { get; } = DurableTaskRuntimeHelper.RunAsync(definition, context).AsTask();
 
-            /// <summary>Gets the child's terminal status, or <see langword="null"/> while it runs.</summary>
+            /// <summary>获得儿童终端状态,或 <see langword="null"/> 运行时。</summary>
             public DurableTaskStatus? Status => Response.IsCompletedSuccessfully ? Response.Result.Status : null;
 
-            /// <summary>Gets the reason of the first cancellation request.</summary>
+            /// <summary>获取第一次取消请求的理由。</summary>
             public string? CancellationReason { get; private set; }
 
             public ValueTask<DurableTaskResponse> WaitAsync(CancellationToken cancellationToken) =>

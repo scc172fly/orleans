@@ -15,7 +15,7 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Handles the execution of job shards and individual durable jobs.
+/// 负责执行工作碎片和个人持久工作。
 /// </summary>
 internal sealed partial class ShardExecutor
 {
@@ -30,14 +30,14 @@ internal sealed partial class ShardExecutor
     private int _slowStartRampUpStarted;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ShardExecutor"/> class.
+    /// 初始化 <see cref="ShardExecutor"/> 类的新实例。
     /// </summary>
-    /// <param name="grainFactory">The grain factory for creating grain references.</param>
-    /// <param name="options">The durable jobs configuration options.</param>
-    /// <param name="overloadDetector">The overload detector for throttling job execution.</param>
-    /// <param name="logger">The logger instance.</param>
-    /// <param name="timeProvider">The time provider used to schedule job execution.</param>
-    /// <param name="durableJobsInstruments">The durable jobs metrics instruments.</param>
+    /// <param name="grainFactory">下 grain 创建工厂 grain 参考文献。</param>
+    /// <param name="options">持久工作配置选项。</param>
+    /// <param name="overloadDetector">超载探测器用来进行抽打任务执行</param>
+    /// <param name="logger">日志处理器实例。</param>
+    /// <param name="timeProvider">用于安排任务执行的时间提供者。</param>
+    /// <param name="durableJobsInstruments">持久就业衡量工具。</param>
     public ShardExecutor(
         IInternalGrainFactory grainFactory,
         IOptions<DurableJobsOptions> options,
@@ -61,14 +61,14 @@ internal sealed partial class ShardExecutor
     }
 
     /// <summary>
-    /// Runs a shard, processing all jobs within it until completion or attempt cancellation.
+    /// 运行一个碎片,处理其中的所有工作,直到完成或尝试取消。
     /// </summary>
-    /// <param name="shard">The shard to execute.</param>
+    /// <param name="shard">要执行的碎片。</param>
     /// <param name="attemptCancellationToken">
-    /// A token which cooperatively requests cancellation of the current shard and job execution attempts.
-    /// Durable jobs remain eligible for processing by another owner.
+    /// 合作要求取消目前碎片和工作执行尝试的象征。
+    /// 长期工作仍有资格由另一所有人处理。
     /// </param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务 。</returns>
     public async Task RunShardAsync(IJobShard shard, CancellationToken attemptCancellationToken)
     {
         await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding | ConfigureAwaitOptions.ContinueOnCapturedContext);
@@ -97,7 +97,7 @@ internal sealed partial class ShardExecutor
             var now = _timeProvider.GetUtcNow();
             if (shard.StartTime > now)
             {
-                // Wait until the shard's start time
+                // 等到碎片开始的时候
                 var delay = shard.StartTime - now;
                 LogWaitingForShardStartTime(_logger, shard.Id, delay, shard.StartTime);
                 await Task.Delay(delay, _timeProvider, shardAttemptCancellationToken);
@@ -107,12 +107,12 @@ internal sealed partial class ShardExecutor
             processingStarted = true;
             processingStartTimestamp = _timeProvider.GetTimestamp();
 
-            // Process all jobs in the shard
+            // 处理碎片中的所有任务
             await foreach (var jobContext in shard.ConsumeDurableJobsAsync().WithCancellation(shardAttemptCancellationToken))
             {
                 await WaitForOverloadToClearAsync(shard.Id, shardAttemptCancellationToken);
 
-                // Wait for concurrency slot
+                // 等待货币汇率
                 await _jobConcurrencyLimiter.WaitAsync(shardAttemptCancellationToken);
 
                 var attemptStarted = false;
@@ -135,7 +135,7 @@ internal sealed partial class ShardExecutor
                         throw new InvalidOperationException($"Unsupported durable job mutation result: {startResult}.");
                     }
 
-                    // ExecuteJobAsync owns the concurrency slot after this point.
+                    // 在此点之后,ExecuteJobAsync 拥有同值货币的汇率。
                     tasks[jobContext.RunId] = ExecuteJobAsync(
                         jobContext,
                         shard,
@@ -176,7 +176,7 @@ internal sealed partial class ShardExecutor
         }
         finally
         {
-            // Wait for all jobs to complete
+            // 等待所有工作完成
             try
             {
                 await Task.WhenAll(tasks.Values);
@@ -240,7 +240,7 @@ internal sealed partial class ShardExecutor
 
     private async Task WaitForOverloadToClearAsync(string shardId, CancellationToken cancellationToken)
     {
-        // Check for overload and pause batch processing if needed
+        // 检查超负荷,必要时暂停批量处理
         if (_overloadDetector.IsOverloaded)
         {
             LogOverloadDetected(_logger, shardId);
@@ -290,7 +290,7 @@ internal sealed partial class ShardExecutor
         }
         catch (Exception ex)
         {
-            // If the ramp-up fails for any reason, release all remaining capacity to avoid being stuck at low concurrency.
+            // 如果停机坪因任何原因失灵,释放所有剩余能力以避免被困在低货币汇率。
             var currentCapacity = Volatile.Read(ref _currentCapacity);
             var remaining = targetCapacity - currentCapacity;
             if (remaining > 0)
@@ -332,10 +332,10 @@ internal sealed partial class ShardExecutor
 
                 var result = await target.HandleDurableJobAsync(jobContext, attemptCancellationToken);
 
-                // Handle the result based on status
+                // 根据状况处理结果
                 while (result.IsInProgress)
                 {
-                    // Enter polling loop
+                    // 输入投票回路
                     LogPollingJob(_logger, jobContext.Job.Id, jobContext.Job.Name, result.PollAfterDelay.Value);
 
                     await Task.Delay(result.PollAfterDelay.Value, _timeProvider, attemptCancellationToken);
@@ -435,7 +435,7 @@ internal sealed partial class ShardExecutor
                 failureException = ex;
             }
 
-            // Cancellation is handled by shard takeover, so only non-cancellation failures are retried here.
+            // 取消是通过硬性接管处理的,因此只有非取消失败才能在这里重新尝试。
             if (failureException is not null)
             {
                 var retryTime = _options.ShouldRetry(jobContext, failureException);
@@ -490,7 +490,7 @@ internal sealed partial class ShardExecutor
         }
         finally
         {
-            // Cleanup must happen even when retry persistence throws, otherwise slots leak and shard processing can stall.
+            // 即使当重新尝试持久性时,也必须进行清理,否则空档漏水和碎处理就会拖延。
             _jobConcurrencyLimiter.Release();
             runningTasks?.TryRemove(jobContext.RunId, out _);
         }

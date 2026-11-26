@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serialzier for <see cref="Type"/>.
+    /// <see cref="Type"/>的序列带。
     /// </summary>
     [RegisterSerializer]
     public sealed class TypeSerializerCodec : IFieldCodec<Type>, IDerivedTypeCodec
@@ -25,12 +25,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -49,19 +49,19 @@ namespace Orleans.Serialization.Codecs
                 : writer.Session.ReferencedTypes.TryGetTypeReference(value, out id) ? SchemaType.Referenced
                 : SchemaType.Encoded;
 
-            // Write the encoding type.
+            // 写入编码类型 。
             ByteCodec.WriteField(ref writer, 0, (byte)schemaType);
 
             if (schemaType == SchemaType.Encoded)
             {
-                // If the type is encoded, write the length-prefixed bytes.
+                // 如果该类型编码为编码,请写入长度前置字节。
                 ReferenceCodec.MarkValueField(writer.Session);
                 writer.WriteFieldHeaderExpected(1, WireType.LengthPrefixed);
                 writer.Session.TypeCodec.WriteLengthPrefixed(ref writer, value);
             }
             else
             {
-                // If the type is referenced or well-known, write it as a varint.
+                // 如果该类型被引用或广为人知,请以 varint 形式写入。
                 UInt32Codec.WriteField(ref writer, 2, id);
             }
 
@@ -73,12 +73,12 @@ namespace Orleans.Serialization.Codecs
         Type IFieldCodec<Type>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static Type ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -133,7 +133,7 @@ namespace Orleans.Serialization.Codecs
                     break;
 
                 case SchemaType.Encoded:
-                    // Type codec should not update the type reference map, otherwise unknown-field deserialization could be broken
+                    // 类型代码器不应更新类型参考地图, 否则未知字段的脱机会损坏
                     break;
 
                 default:

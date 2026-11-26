@@ -278,7 +278,7 @@ public class CallbackDataTests
         var failed = callback.Message.TargetSilo!;
         var destination = SiloAddress.New(IPAddress.Loopback, 30002, 1);
 
-        // A failure sweep which observed the original target before the call was retargeted completes after the retarget.
+        // 一次故障扫描在呼叫被重新瞄准之前观察到了最初的目标,再瞄准之后完成。
         Assert.True(callback.TryRetarget(destination, forwardCount: 1, NotDead));
         callback.OnTargetSiloFail(failed);
 
@@ -298,7 +298,7 @@ public class CallbackDataTests
         var dead = SiloAddress.New(IPAddress.Loopback, 30002, 1);
         var live = SiloAddress.New(IPAddress.Loopback, 30003, 1);
 
-        // A newer retarget to a live silo lands between the first retarget and its dead-silo check.
+        // 更新目标, 以在第一个目标与死之间进行实 silo 土地的silo 检查。
         Assert.True(callback.TryRetarget(dead, forwardCount: 1, silo =>
         {
             Assert.True(callback.TryRetarget(live, forwardCount: 2, NotDead));
@@ -320,7 +320,7 @@ public class CallbackDataTests
         var callback = CreateRequestCallback(completion, CreateInstruments(serviceProvider), out _);
         var destination = SiloAddress.New(IPAddress.Loopback, 30002, 1);
 
-        // The destination's failure sweep ran before the retarget was published, so the retarget fails the call.
+        // 目标的故障扫描在目标重现前就已经启动 所以目标重现失败了
         Assert.True(callback.TryRetarget(destination, forwardCount: 1, silo => silo.Equals(destination)));
 
         Assert.True(callback.IsCompleted);
@@ -342,7 +342,7 @@ public class CallbackDataTests
         var original = callback.Message.TargetSilo;
         var destination = SiloAddress.New(IPAddress.Loopback, 30002, 1);
 
-        // The timeout signals the original silo. A retarget which raced with it signals the silo which now owns the request.
+        // 超时信号表示原始 silo。与其竞争的重新目标信号表示现在拥有请求的 silo 。
         callback.OnTimeout();
         Assert.Equal([original], cancellationManager.Targets);
         Assert.True(callback.TryRetarget(destination, forwardCount: 1, NotDead));
@@ -402,16 +402,16 @@ public class CallbackDataTests
             timeProvider: timeProvider);
         callback.SubscribeForCancellation(cancellation.Token);
 
-        // A message which a connection retries holds its serialized body, which is released once the retry is sent.
+        // 连接重试时保留其序列体的信息,一旦重试发送后即予以发布。
         callback.Message.BodyObject = null;
 
-        // The call's own response timeout, which is longer than the default, still applies.
+        // 电话本身的响应超时,比默认时间长,仍然适用。
         timeProvider.Advance(TimeSpan.FromMinutes(2));
         Assert.False(callback.IsExpired(timeProvider.GetTimestamp()));
         timeProvider.Advance(CancellableInvokable.ResponseTimeout);
         Assert.True(callback.IsExpired(timeProvider.GetTimestamp()));
 
-        // The call is still cancellable, so its cancellation is signaled to its target.
+        // 电话仍然可以取消,因此取消电话的信号是其目标。
         cancellation.Cancel();
         Assert.Equal([callback.Message.TargetSilo], cancellationManager.Targets);
     }

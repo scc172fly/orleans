@@ -9,26 +9,26 @@ using Orleans.EventSourcing.StateStorage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extensions for configuring state-storage log consistency providers.
+    /// 为配置国家储存日志一致性提供源的配置提供了扩展。
     /// </summary>
     public static class StateStorageSiloBuilderExtensions
     {
         /// <summary>
-        /// Adds a state-storage log consistency provider as the default log consistency provider.
+        /// 添加州存储日志一致性提供商作为默认日志一致性提供商。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddStateStorageBasedLogConsistencyProviderAsDefault(this ISiloBuilder builder)
         {
             return builder.AddStateStorageBasedLogConsistencyProvider(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
         }
 
         /// <summary>
-        /// Adds a named state-storage log consistency provider.
+        /// 添加一个名为州存储日志一致性的供应商。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The provider name.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name">提供者名称。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddStateStorageBasedLogConsistencyProvider(this ISiloBuilder builder, string name = "StateStorage")
         {
             return builder.ConfigureServices(services => services.AddStateStorageBasedLogConsistencyProvider(name));

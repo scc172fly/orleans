@@ -10,16 +10,16 @@ using Orleans.Runtime.Hosting;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extensions for configuring Redis as a grain directory provider.
+    /// 配置 Redis 作为 grain 目录提供者的扩展名。
     /// </summary>
     public static class RedisGrainDirectoryExtensions
     {
         /// <summary>
-        /// Adds a default grain directory which persists entries in Redis.
+        /// 添加一个默认 grain 目录,该目录在 Redis中存在持续条目。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="configureOptions">The delegate used to configure the provider.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="configureOptions">用于配置提供者的代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder UseRedisGrainDirectoryAsDefault(
             this ISiloBuilder builder,
             Action<RedisGrainDirectoryOptions> configureOptions)
@@ -28,11 +28,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds a default grain directory which persists entries in Redis.
+        /// 添加一个默认 grain 目录,该目录在 Redis中存在持续条目。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="configureOptions">The delegate used to configure the provider options builder.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="configureOptions">用于配置提供者选项构建器的代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder UseRedisGrainDirectoryAsDefault(
             this ISiloBuilder builder,
             Action<OptionsBuilder<RedisGrainDirectoryOptions>> configureOptions)
@@ -41,12 +41,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds a named grain directory which persists entries in Redis.
+        /// 添加命名 grain 持续在 Redis.
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The name of the grain directory.</param>
-        /// <param name="configureOptions">The delegate used to configure the provider.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name"> grain 目录的名称。</param>
+        /// <param name="configureOptions">用于配置提供者的代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddRedisGrainDirectory(
             this ISiloBuilder builder,
             string name,
@@ -56,12 +56,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds a named grain directory which persists entries in Redis.
+        /// 添加命名 grain 持续在 Redis.
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The name of the grain directory.</param>
-        /// <param name="configureOptions">The delegate used to configure the provider options builder.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name"> grain 目录的名称。</param>
+        /// <param name="configureOptions">用于配置提供者选项构建器的代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddRedisGrainDirectory(
             this ISiloBuilder builder,
             string name,

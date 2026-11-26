@@ -171,7 +171,7 @@ DECLARE
     _NextEvictOn TIMESTAMP(6) WITHOUT TIME ZONE := _Now + INTERVAL '1 SECOND' * _EvictionInterval;
 BEGIN
 
-/* get the next eviction schedule */
+/* 获得下一个驱逐时间表 */
 SELECT EvictOn
 INTO _EvictOn
 FROM OrleansStreamControl
@@ -180,10 +180,10 @@ WHERE
 	AND ProviderId = _ProviderId
 	AND QueueId = _QueueId;
 
-/* initialize the control row if necessary */
+/* 必要时初始化控制行 */
 IF _EvictOn IS NULL THEN
 
-    /* initialize with a past date so eviction runs immediately */
+    /* 与过去日期初始化后启动, 立即驱逐 */
     INSERT INTO OrleansStreamControl
     (
         ServiceId,
@@ -201,7 +201,7 @@ IF _EvictOn IS NULL THEN
     ON CONFLICT (ServiceId, ProviderId, QueueId)
     DO NOTHING;
 
-    /* get the next eviction schedule again */
+    /* 下次再得到驱逐计划 */
     SELECT EvictOn
     INTO _EvictOn
     FROM OrleansStreamControl
@@ -212,10 +212,10 @@ IF _EvictOn IS NULL THEN
 
 END IF;
 
-/* evict messages if necessary */
+/* 必要时发出驱逐信息 */
 IF _EvictOn <= _Now THEN
 
-    /* race to set the next schedule */
+    /* 用于设置下一个时间表的种族 */
 	UPDATE OrleansStreamControl
 	SET EvictOn = _NextEvictOn
     WHERE
@@ -224,7 +224,7 @@ IF _EvictOn <= _Now THEN
 		AND QueueId = _QueueId
 		AND EvictOn <= _Now;
 
-    /* if we won the race then we also run the due eviction */
+    /* 如果我们赢了比赛 也得进行驱逐 */
 	IF (FOUND) THEN
 		CALL EvictStreamMessages(_ServiceId, _ProviderId, _QueueId, _EvictionBatchSize, _MaxAttempts, _RemovalTimeout);
 		CALL EvictStreamDeadLetters(_ServiceId, _ProviderId, _QueueId, _EvictionBatchSize);
@@ -235,7 +235,7 @@ END IF;
 RETURN QUERY
 WITH Batch AS
 (
-    /* elect the next batch of visible messages */
+    /* 选择下一批可见消息 */
 	SELECT
 		ServiceId,
 		ProviderId,
@@ -251,7 +251,7 @@ WITH Batch AS
 		AND VisibleOn <= _Now
 		AND ExpiresOn > _Now
 
-    /* the criteria below helps prevent deadlocks while improving queue-like throughput */
+    /* 下述标准有助于防止僵局,同时改善排队式的吞支量 */
 	ORDER BY
 		ServiceId,
 		ProviderId,
@@ -336,7 +336,7 @@ SELECT
 FROM
 	UNNEST(string_to_array(_Items, '|')) AS Value;
 
-/* negative dequeue receipts release messages for immediate redelivery */
+/* 立即再交付的收据发布信息 */
 IF EXISTS (SELECT 1 FROM _ItemsTable WHERE Dequeued < 0) THEN
     RETURN QUERY
     WITH Batch AS
@@ -393,7 +393,7 @@ WITH Batch AS
 	    AND ProviderId = _ProviderId
 		AND QueueId = _QueueId
 
-    /* the criteria below helps prevent deadlocks */
+    /* 以下标准有助于防止僵局 */
 	ORDER BY
 	    ServiceId,
 	    ProviderId,
@@ -444,7 +444,7 @@ DECLARE
     _RemoveOn TIMESTAMP(6) WITHOUT TIME ZONE := _Now + INTERVAL '1 SECOND' * _RemovalTimeout;
 BEGIN
 
-/* if the message can still be dequeued then attempt to mark it visible again */
+/* 如果该信息仍然可以解排, 那么试图再次显示它标记 */
 UPDATE OrleansStreamMessage
 SET
     VisibleOn = _Now,
@@ -460,7 +460,7 @@ IF FOUND THEN
     RETURN;
 END IF;
 
-/* otherwise attempt to move the message to dead letters */
+/* 试图将电文移到死字 */
 WITH Deleted AS
 (
     DELETE FROM OrleansStreamMessage
@@ -542,7 +542,7 @@ DECLARE
     _RemoveOn TIMESTAMP(6) WITHOUT TIME ZONE := _Now + INTERVAL '1 second' * _RemovalTimeout;
 BEGIN
 
-/* elect the next batch of messages to evict */
+/* 选择下一批要将信件逐出的电文 */
 WITH Batch AS
 (
     SELECT
@@ -557,18 +557,18 @@ WITH Batch AS
         AND ProviderId = _ProviderId
         AND QueueId = _QueueId
 
-        -- the message was given the opportunity to complete
+        -- 给电文提供完成
         AND VisibleOn <= _Now
 		AND
 		(
-			-- the message was dequeued too many times
+			-- 信息被解密过多次
 			Dequeued >= _MaxAttempts
 			OR
-			-- the message expired
+			-- 信件过期
 			ExpiresOn <= _Now
 		)
 
-    /* the criteria below helps prevent deadlocks while improving queue-like throughput */
+    /* 下述标准有助于防止僵局,同时改善排队式的吞支量 */
     ORDER BY
         ServiceId,
         ProviderId,
@@ -578,7 +578,7 @@ WITH Batch AS
     LIMIT _BatchSize
 ),
 
-/* delete the messages locked in the batch */
+/* 删除批中锁定的信件 */
 Deleted AS
 (
     DELETE FROM OrleansStreamMessage AS M
@@ -601,7 +601,7 @@ Deleted AS
         M.Payload
 )
 
-/* copy the deleted messages to the dead-letter table */
+/* 将删除的信件复制到死字母表格 */
 INSERT INTO OrleansStreamDeadLetter
 (
     ServiceId,
@@ -660,7 +660,7 @@ DECLARE
     _Now TIMESTAMP(6) WITHOUT TIME ZONE := CURRENT_TIMESTAMP AT TIME ZONE 'UTC';
 BEGIN
 
-/* elect the next batch of dead letters to evict */
+/* 选择下一批要驱逐的死信 */
 WITH Batch AS
 (
     SELECT
@@ -676,7 +676,7 @@ WITH Batch AS
         AND QueueId = _QueueId
         AND RemoveOn <= _Now
 
-    /* the criteria below helps prevent deadlocks while improving queue-like throughput */
+    /* 下述标准有助于防止僵局,同时改善排队式的吞支量 */
     ORDER BY
         ServiceId,
         ProviderId,

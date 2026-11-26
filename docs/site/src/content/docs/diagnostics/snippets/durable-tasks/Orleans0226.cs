@@ -17,8 +17,8 @@ public sealed class ConversionGrain : DurableGrain
     {
         await Approve(amount).WithId("approve");
 
-        // The continuation runs on the thread pool: the state change races with the grain's other turns, and commits
-        // apart from the result.
+        // 继续运行于线性球库:国家变化与 grain其他旋转的顺序相竞,并承诺
+        // 与结果分开。
         var rate = await _rates.GetRateAsync(currency, DurableTask.Current.CancellationToken).ConfigureAwait(false);
         _lastRate.Value = rate;
         return amount * rate;
@@ -31,7 +31,7 @@ public sealed class ConversionGrain : DurableGrain
     {
         await Approve(amount).WithId("approve");
 
-        // The continuation returns to the activation's scheduler, and the state change commits with the result.
+        // 继续返回激活的调度器, 国家变化也随之而来。
         var rate = await _rates.GetRateAsync(currency, DurableTask.Current.CancellationToken);
         _lastRate.Value = rate;
         return amount * rate;

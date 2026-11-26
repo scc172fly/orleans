@@ -5,7 +5,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// This exception indicates that a stream event was not successfully delivered to the consumer.
+    /// 这一例外表明,流事件没有成功地向消费者提供。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -15,35 +15,35 @@ namespace Orleans.Streams
             "Stream provider failed to deliver an event.  StreamProvider:{0}  Stream:{1}";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamEventDeliveryFailureException"/> class.
+        /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
         public StreamEventDeliveryFailureException() { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamEventDeliveryFailureException"/> class.
+        /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public StreamEventDeliveryFailureException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamEventDeliveryFailureException"/> class.
+        /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
+        /// <param name="streamId">流体识别符号。</param>
         internal StreamEventDeliveryFailureException(QualifiedStreamId streamId)
             : base(string.Format(ErrorStringFormat, streamId.GetNamespace(), streamId.StreamId)) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamEventDeliveryFailureException"/> class.
+        /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         public StreamEventDeliveryFailureException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamEventDeliveryFailureException"/> class.
+        /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         public StreamEventDeliveryFailureException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }

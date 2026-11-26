@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Interface members added for read-committed reads (ReadIsolation.ReadCommitted); the baseline predates them. -->
+<!-- 将接口成员添加为读作(ReadIsolation.ReadCommitted);基准日期在它们之前。 -->
 <Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Suppression>
     <DiagnosticId>CP0006</DiagnosticId>

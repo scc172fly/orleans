@@ -47,8 +47,8 @@ public sealed class AzureBlobJournalStorageConformanceTests : JournalStorageConf
 
     protected override long? MaxAppendBytes => AzureBlobJournalStorage.MaxAppendBlockBytes;
 
-    // Azurite stops serving append-block requests after a client aborts an append-block request body, so Blob conformance
-    // injects lost responses only.
+    // Azurite 停止满足附加区块请求, 在客户中断附加区块请求机构后终止此附加区块请求, 所以Blob 符合
+    // 只注射失灵反应
     protected override IReadOnlySet<JournalStorageFaultKind> SupportedFaults { get; } = new HashSet<JournalStorageFaultKind> { JournalStorageFaultKind.LoseResponse };
 
     protected override async ValueTask<IJournalStorageProvider> CreateProviderAsync(JournalStorageFaultInjector? faults, CancellationToken cancellationToken)
@@ -189,7 +189,7 @@ public sealed class S3JournalStorageConformanceTests : JournalStorageConformance
     }
 }
 
-// Hosts journal storage providers the way a silo does: with a journal format registered and the silo lifecycle started.
+// 主机日记存储提供者采用 silo 的方式:注册了日记格式,并开始了 silo 生命周期。
 internal sealed class ConformanceProviderHost : IAsyncDisposable
 {
     private readonly List<SiloLifecycleSubject> _lifecycles = [];
@@ -232,7 +232,7 @@ internal sealed class ConformanceProviderHost : IAsyncDisposable
     }
 }
 
-// Injects journal storage faults into an Azure SDK client's write requests at the transport, inside the client's retry loop.
+// 在运输过程中,在客户的再试循环中将日记存储缺陷输入SDK客户的 Azure 书面请求。
 internal sealed class AzureFaultInjectionHandler(JournalStorageFaultInjector faults) : DelegatingHandler(new SocketsHttpHandler())
 {
     public static TOptions ConfigureClientOptions<TOptions>(TOptions options, JournalStorageFaultInjector? faults)
@@ -272,7 +272,7 @@ internal sealed class AzureFaultInjectionHandler(JournalStorageFaultInjector fau
         return response;
     }
 
-    // Sends the request headers and the first half of its body on a dedicated connection, then resets the connection.
+    // 将请求信头及其身体上前半部发送专用连接,然后重置连接。
     private static async Task SendPartialRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var body = await request.Content!.ReadAsByteArrayAsync(cancellationToken);

@@ -66,7 +66,7 @@ public class ClientClusterManifestProviderCancellationTests
             Assert.Equal(2, fixture.FactoryResolutions);
             var lifetimeToken = await Await(refreshEntered.Task);
             Assert.False(lifetimeToken.IsCancellationRequested);
-            Assert.Equal(1, fixture.Logger.StoppedCount); // Only the failed first run stopped.
+            Assert.Equal(1, fixture.Logger.StoppedCount); // 只有失败的第一次运行停止 。
             await Await(fixture.Provider.StopAsync(TestContext.Current.CancellationToken));
             Assert.True(lifetimeToken.IsCancellationRequested);
             Assert.Equal(2, fixture.Logger.StoppedCount);
@@ -207,8 +207,8 @@ public class ClientClusterManifestProviderCancellationTests
         using var stoppedRelease = new ManualResetEventSlim();
         var rpc = new TaskCompletionSource<ClusterManifestUpdate?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var testToken = TestContext.Current.CancellationToken;
-        // Logging is the final synchronous boundary of RunAsync's finally block.
-        // Hold that owned work, not the RPC callback or remote execution.
+        // 登录是 RunAsync最后块的最后同步边界。
+        // 持有的自有作品, 不是RPC回击或远程执行。
         fixture.Logger.OnStopped = () =>
         {
             stoppedEntered.SetResult();
@@ -317,7 +317,7 @@ public class ClientClusterManifestProviderCancellationTests
             Assert.Equal(legacyRpc ? 1 : 0, fixture.Remote.ReceivedCalls()
                 .Count(call => call.GetMethodInfo().Name == nameof(IClusterManifestSystemTarget.GetClusterManifest)));
 
-            // Only NOW acknowledge cancellation. The callback remains runtime-owned after Start exits.
+            // 只有 NW 承认取消。 回调在启动退出后仍然为自动运行 。
             using var response = Response.FromException(new OperationCanceledException(requestToken));
             callback.DoCallback(new Message { Direction = Message.Directions.Response, BodyObject = response });
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Await(rpc));
@@ -326,7 +326,7 @@ public class ClientClusterManifestProviderCancellationTests
         }
         finally
         {
-            // Rescue only after assertions have passed/failed, never to make startup cancellation pass.
+            // 只有在声称过/失败后才进行救援,从不发放启动取消通行证。
             callback.OnHostShutdown();
             await ((Task)rpc).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
         }
@@ -352,7 +352,7 @@ public class ClientClusterManifestProviderCancellationTests
     public async Task StartAsync_CanceledWithoutGateways_StopsWithoutFetchingManifest()
     {
         await using var fixture = new Fixture(emptyGateways: true);
-        // An unstarted manager has no gateways. The run loop must cancel its no-gateway delay.
+        // 未启动的管理器没有网关。 运行循环必须取消其无通道延迟 。
         using var cancellation = new CancellationTokenSource();
         var start = fixture.Provider.StartAsync(cancellation.Token);
         await Await(fixture.EmptyGatewaysRequested.Task);

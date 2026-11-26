@@ -7,47 +7,47 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Converts between Azure Event Hubs messages and Orleans stream cache messages.
+    /// 在 Azure 事件枢纽消息和 Orleans 流缓存信件之间转换。
     /// </summary>
     public interface IEventHubDataAdapter : IQueueDataAdapter<EventData>, ICacheDataAdapter
     {
         /// <summary>
-        /// Converts an Event Hub message into a cached message.
+        /// 将事件枢纽消息转换为缓存信件。
         /// </summary>
-        /// <param name="position">The stream position of the message.</param>
-        /// <param name="queueMessage">The Event Hub message.</param>
-        /// <param name="dequeueTime">The UTC time when the message was dequeued.</param>
-        /// <param name="getSegment">The delegate used to allocate a cache segment of the required size.</param>
-        /// <returns>The cached message.</returns>
+        /// <param name="position">信件的流位置。</param>
+        /// <param name="queueMessage">事件枢纽信息。</param>
+        /// <param name="dequeueTime">电文解密时UTC时间。</param>
+        /// <param name="getSegment">代表过去分配所需大小的缓存段。</param>
+        /// <returns>缓存信件。</returns>
         CachedMessage FromQueueMessage(StreamPosition position, EventData queueMessage, DateTime dequeueTime, Func<int, ArraySegment<byte>> getSegment);
 
         /// <summary>
-        /// Gets the stream position represented by an Event Hub message.
+        /// 获取由事件枢纽信息代表的流位置。
         /// </summary>
-        /// <param name="partition">The Event Hub partition identifier.</param>
-        /// <param name="queueMessage">The Event Hub message.</param>
-        /// <returns>The stream position.</returns>
+        /// <param name="partition">事件枢纽分区标识符。</param>
+        /// <param name="queueMessage">事件枢纽信息。</param>
+        /// <returns>流位置。</returns>
         StreamPosition GetStreamPosition(string partition, EventData queueMessage);
 
         /// <summary>
-        /// Gets the Event Hub offset stored in a cached message.
+        /// 获取存储在缓存信件中的事件枢纽偏移 。
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <returns>The Event Hub offset.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <returns>活动枢纽(HUB)</returns>
         string GetOffset(CachedMessage cachedMessage);
 
         /// <summary>
-        /// Gets the Event Hub partition key for a stream.
+        /// 获取流的“事件枢纽”分区密钥。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <returns>The partition key.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <returns>分区键。</returns>
         string GetPartitionKey(StreamId streamId);
 
         /// <summary>
-        /// Gets the Orleans stream identifier represented by an Event Hub message.
+        /// 获取由事件枢纽信息所代表 Orleans 流标识符。
         /// </summary>
-        /// <param name="queueMessage">The Event Hub message.</param>
-        /// <returns>The stream identifier.</returns>
+        /// <param name="queueMessage">事件枢纽信息。</param>
+        /// <returns>流体识别符号。</returns>
         StreamId GetStreamIdentity(EventData queueMessage);
     }
 }

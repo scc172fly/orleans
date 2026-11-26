@@ -4,30 +4,30 @@ using System.Buffers;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Functionality for serializing a value type.
+    /// 确定价值类型序列的功能性。
     /// </summary>
-    /// <typeparam name="T">The value type.</typeparam>
+    /// <typeparam name="T">值类型。</typeparam>
     public interface IValueSerializer<T> : IValueSerializer where T : struct
     {
         /// <summary>
-        /// Serializes the provided value.
+        /// 将提供的值分级。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="value">数值。</param>
         void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, scoped ref T value) where TBufferWriter : IBufferWriter<byte>;
 
         /// <summary>
-        /// Deserializes the specified type.
+        /// 使指定类型降序。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="value">数值。</param>
         void Deserialize<TInput>(ref Reader<TInput> reader, scoped ref T value);
     }
 
     /// <summary>
-    /// Marker interface for value type serializers.
+    /// 值类型序列器的标记界面。
     /// </summary>
     public interface IValueSerializer
     {

@@ -15,7 +15,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Serializer for <see cref="Unit"/>
+    /// <see cref="Unit"/>的串行器
     /// </summary>
     [RegisterSerializer]
     public sealed class FSharpUnitCodec : IFieldCodec<Unit>
@@ -37,15 +37,15 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Copier for <see cref="Unit"/>
+    /// <see cref="Unit"/>的复印机
     /// </summary>
     [RegisterCopier]
     public sealed class FSharpUnitCopier : ShallowCopier<Unit>;
 
     /// <summary>
-    /// Serializer for <see cref="FSharpOption{T}"/>.
+    /// <see cref="FSharpOption{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The underlying type.</typeparam>
+    /// <typeparam name="T">基本类型。</typeparam>
     [RegisterSerializer]
     public sealed class FSharpOptionCodec<T> : IFieldCodec<FSharpOption<T>>
     {
@@ -54,7 +54,7 @@ namespace Orleans.Serialization
         private readonly IFieldCodec<T> _fieldCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpOptionCodec{T}"/> class.
+        /// 初始化 <see cref="FSharpOptionCodec{T}"/> 类的新实例。
         /// </summary>
         public FSharpOptionCodec(IFieldCodec<T> fieldCodec)
         {
@@ -114,12 +114,12 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Copier implementation for <see cref="FSharpOption{T}"/>.
+    /// <see cref="FSharpOption{T}"/>的复印机安装。
     /// </summary>
-    /// <typeparam name="T">The underlying value type of the option type.</typeparam>
+    /// <typeparam name="T">选项类型的基本值类型。</typeparam>
     /// <remarks>
-    /// F# represents <c>None</c> as <see langword="null"/>. This copier preserves that value and
-    /// preserves <c>Some(null)</c> as a non-null option containing a null value.
+    /// F# 代表 <c>None</c> 作为 <see langword="null"/>。此复印机保存了该值和
+    /// 保留 <c>Some(null)</c> 作为含有无效值的非null选项。
     /// </remarks>
     [RegisterCopier]
     public sealed class FSharpOptionCopier<T> : IDeepCopier<FSharpOption<T>>
@@ -127,9 +127,9 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<T> _valueCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpOptionCopier{T}"/> class.
+        /// 初始化 <see cref="FSharpOptionCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public FSharpOptionCopier(IDeepCopier<T> valueCopier)
         {
             _valueCopier = OrleansGeneratedCodeHelper.UnwrapService(this, valueCopier);
@@ -151,7 +151,7 @@ namespace Orleans.Serialization
                 return result!;
             }
 
-            // The implicit conversion creates Some(value), including the distinct Some(null) case.
+            // 隐含转换创建了某些(价值),包括不同的 Some(null) 案例。
             result = _valueCopier.DeepCopy(input.Value, context)!;
             context.RecordCopy(input, result);
             return result!;
@@ -159,18 +159,18 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpValueOption{T}"/>.
+    /// <see cref="FSharpValueOption{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The underlying value type.</typeparam>
+    /// <typeparam name="T">底值类型。</typeparam>
     [RegisterSerializer]
     public class FSharpValueOptionCodec<T> : IFieldCodec<FSharpValueOption<T>>
     {
         private readonly IFieldCodec<T> _valueCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpValueOptionCodec{T}"/> class.
+        /// 初始化 <see cref="FSharpValueOptionCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The item codec.</param>
+        /// <param name="item1Codec">项码。</param>
         public FSharpValueOptionCodec(IFieldCodec<T> item1Codec)
         {
             _valueCodec = OrleansGeneratedCodeHelper.UnwrapService(this, item1Codec);
@@ -222,18 +222,18 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Copier for <see cref="FSharpValueOption{T}"/>.
+    /// <see cref="FSharpValueOption{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The underlying value type.</typeparam>
+    /// <typeparam name="T">底值类型。</typeparam>
     [RegisterCopier]
     public sealed class FSharpValueOptionCopier<T> : IDeepCopier<FSharpValueOption<T>>
     {
         private readonly IDeepCopier<T> _valueCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpValueOptionCopier{T}"/> class.
+        /// 初始化 <see cref="FSharpValueOptionCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public FSharpValueOptionCopier(IDeepCopier<T> valueCopier)
         {
             _valueCopier = OrleansGeneratedCodeHelper.UnwrapService(this, valueCopier);
@@ -254,10 +254,10 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpChoice{T1, T2}"/>.
+    /// <see cref="FSharpChoice{T1, T2}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
     [RegisterSerializer]
     public class FSharpChoiceCodec<T1, T2> : IFieldCodec<FSharpChoice<T1, T2>>, IDerivedTypeCodec
     {
@@ -268,10 +268,10 @@ namespace Orleans.Serialization
         private readonly IFieldCodec<T2> _item2Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCodec{T1, T2}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCodec{T1, T2}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The codec for <typeparamref name="T1"/>.</param>
-        /// <param name="item2Codec">The codec for <typeparamref name="T2"/>.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/>编码器。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/>编码器。</param>
         public FSharpChoiceCodec(IFieldCodec<T1> item1Codec, IFieldCodec<T2> item2Codec)
         {
             _item1Codec = OrleansGeneratedCodeHelper.UnwrapService(this, item1Codec);
@@ -335,10 +335,10 @@ namespace Orleans.Serialization
         }
     }
     /// <summary>
-    /// Copier for <see cref="FSharpChoice{T1, T2}"/>.
+    /// <see cref="FSharpChoice{T1, T2}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
     [RegisterCopier]
     public class FSharpChoiceCopier<T1, T2> : IDeepCopier<FSharpChoice<T1, T2>>, IDerivedTypeCopier
     {
@@ -346,10 +346,10 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<T2> _copier2;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCopier{T1, T2}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCopier{T1, T2}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The copier for <typeparamref name="T1"/>.</param>
-        /// <param name="copier2">The copier for <typeparamref name="T2"/>.</param>
+        /// <param name="copier1"> <typeparamref name="T1"/>的复印机。</param>
+        /// <param name="copier2"> <typeparamref name="T2"/>的复印机。</param>
         public FSharpChoiceCopier(IDeepCopier<T1> copier1, IDeepCopier<T2> copier2)
         {
             _copier1 = copier1;
@@ -380,11 +380,11 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpChoice{T1, T2, T3}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
     [RegisterSerializer]
     public class FSharpChoiceCodec<T1, T2, T3> : IFieldCodec<FSharpChoice<T1, T2, T3>>, IDerivedTypeCodec
     {
@@ -397,11 +397,11 @@ namespace Orleans.Serialization
         private readonly IFieldCodec<T3> _item3Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCodec{T1, T2, T3}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCodec{T1, T2, T3}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The codec for <typeparamref name="T1"/>.</param>
-        /// <param name="item2Codec">The codec for <typeparamref name="T2"/>.</param>
-        /// <param name="item3Codec">The codec for <typeparamref name="T3"/>.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/>编码器。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/>编码器。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/>编码器。</param>
         public FSharpChoiceCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -471,11 +471,11 @@ namespace Orleans.Serialization
         }
     }
     /// <summary>
-    /// Copier for <see cref="FSharpChoice{T1, T2, T3}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
     [RegisterCopier]
     public class FSharpChoiceCopier<T1, T2, T3> : IDeepCopier<FSharpChoice<T1, T2, T3>>, IDerivedTypeCopier
     {
@@ -484,11 +484,11 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<T3> _copier3;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCopier{T1, T2, T3}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCopier{T1, T2, T3}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The copier for <typeparamref name="T1"/>.</param>
-        /// <param name="copier2">The copier for <typeparamref name="T2"/>.</param>
-        /// <param name="copier3">The copier for <typeparamref name="T3"/>.</param>
+        /// <param name="copier1"> <typeparamref name="T1"/>的复印机。</param>
+        /// <param name="copier2"> <typeparamref name="T2"/>的复印机。</param>
+        /// <param name="copier3"> <typeparamref name="T3"/>的复印机。</param>
         public FSharpChoiceCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -524,12 +524,12 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpChoice{T1, T2, T3, T4}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3, T4}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
-    /// <typeparam name="T4">The fourth choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
+    /// <typeparam name="T4">第四种选择类型。</typeparam>
     [RegisterSerializer]
     public class FSharpChoiceCodec<T1, T2, T3, T4> : IFieldCodec<FSharpChoice<T1, T2, T3, T4>>, IDerivedTypeCodec
     {
@@ -544,12 +544,12 @@ namespace Orleans.Serialization
         private readonly IFieldCodec<T4> _item4Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCodec{T1, T2, T3, T4}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCodec{T1, T2, T3, T4}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The codec for <typeparamref name="T1"/>.</param>
-        /// <param name="item2Codec">The codec for <typeparamref name="T2"/>.</param>
-        /// <param name="item3Codec">The codec for <typeparamref name="T3"/>.</param>
-        /// <param name="item4Codec">The codec for <typeparamref name="T4"/>.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/>编码器。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/>编码器。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/>编码器。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/>编码器。</param>
         public FSharpChoiceCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -623,12 +623,12 @@ namespace Orleans.Serialization
         }
     }
     /// <summary>
-    /// Copier for <see cref="FSharpChoice{T1, T2, T3, T4}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3, T4}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
-    /// <typeparam name="T4">The fourth choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
+    /// <typeparam name="T4">第四种选择类型。</typeparam>
     [RegisterCopier]
     public class FSharpChoiceCopier<T1, T2, T3, T4> : IDeepCopier<FSharpChoice<T1, T2, T3, T4>>, IDerivedTypeCopier
     {
@@ -638,12 +638,12 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<T4> _copier4;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCopier{T1, T2, T3, T4}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCopier{T1, T2, T3, T4}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The copier for <typeparamref name="T1"/>.</param>
-        /// <param name="copier2">The copier for <typeparamref name="T2"/>.</param>
-        /// <param name="copier3">The copier for <typeparamref name="T3"/>.</param>
-        /// <param name="copier4">The copier for <typeparamref name="T4"/>.</param>
+        /// <param name="copier1"> <typeparamref name="T1"/>的复印机。</param>
+        /// <param name="copier2"> <typeparamref name="T2"/>的复印机。</param>
+        /// <param name="copier3"> <typeparamref name="T3"/>的复印机。</param>
+        /// <param name="copier4"> <typeparamref name="T4"/>的复印机。</param>
         public FSharpChoiceCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -682,13 +682,13 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpChoice{T1, T2, T3, T4, T5}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3, T4, T5}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
-    /// <typeparam name="T4">The fourth choice type.</typeparam>
-    /// <typeparam name="T5">The fifth choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
+    /// <typeparam name="T4">第四种选择类型。</typeparam>
+    /// <typeparam name="T5">第五个选择类型。</typeparam>
     [RegisterSerializer]
     public class FSharpChoiceCodec<T1, T2, T3, T4, T5> : IFieldCodec<FSharpChoice<T1, T2, T3, T4, T5>>, IDerivedTypeCodec
     {
@@ -705,13 +705,13 @@ namespace Orleans.Serialization
         private readonly IFieldCodec<T5> _item5Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCodec{T1, T2, T3, T4, T5}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCodec{T1, T2, T3, T4, T5}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The codec for <typeparamref name="T1"/>.</param>
-        /// <param name="item2Codec">The codec for <typeparamref name="T2"/>.</param>
-        /// <param name="item3Codec">The codec for <typeparamref name="T3"/>.</param>
-        /// <param name="item4Codec">The codec for <typeparamref name="T4"/>.</param>
-        /// <param name="item5Codec">The codec for <typeparamref name="T5"/>.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/>编码器。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/>编码器。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/>编码器。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/>编码器。</param>
+        /// <param name="item5Codec"> <typeparamref name="T5"/>编码器。</param>
         public FSharpChoiceCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -789,13 +789,13 @@ namespace Orleans.Serialization
         }
     }
     /// <summary>
-    /// Copier for <see cref="FSharpChoice{T1, T2, T3, T4, T5}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3, T4, T5}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
-    /// <typeparam name="T4">The fourth choice type.</typeparam>
-    /// <typeparam name="T5">The fifth choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
+    /// <typeparam name="T4">第四种选择类型。</typeparam>
+    /// <typeparam name="T5">第五个选择类型。</typeparam>
     [RegisterCopier]
     public class FSharpChoiceCopier<T1, T2, T3, T4, T5> : IDeepCopier<FSharpChoice<T1, T2, T3, T4, T5>>, IDerivedTypeCopier
     {
@@ -806,13 +806,13 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<T5> _copier5;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCopier{T1, T2, T3, T4, T5}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCopier{T1, T2, T3, T4, T5}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The copier for <typeparamref name="T1"/>.</param>
-        /// <param name="copier2">The copier for <typeparamref name="T2"/>.</param>
-        /// <param name="copier3">The copier for <typeparamref name="T3"/>.</param>
-        /// <param name="copier4">The copier for <typeparamref name="T4"/>.</param>
-        /// <param name="copier5">The copier for <typeparamref name="T5"/>.</param>
+        /// <param name="copier1"> <typeparamref name="T1"/>的复印机。</param>
+        /// <param name="copier2"> <typeparamref name="T2"/>的复印机。</param>
+        /// <param name="copier3"> <typeparamref name="T3"/>的复印机。</param>
+        /// <param name="copier4"> <typeparamref name="T4"/>的复印机。</param>
+        /// <param name="copier5"> <typeparamref name="T5"/>的复印机。</param>
         public FSharpChoiceCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -854,14 +854,14 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpChoice{T1, T2, T3, T4, T5, T6}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3, T4, T5, T6}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
-    /// <typeparam name="T4">The fourth choice type.</typeparam>
-    /// <typeparam name="T5">The fifth choice type.</typeparam>
-    /// <typeparam name="T6">The sixth choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
+    /// <typeparam name="T4">第四种选择类型。</typeparam>
+    /// <typeparam name="T5">第五个选择类型。</typeparam>
+    /// <typeparam name="T6">第六个选择类型。</typeparam>
     [RegisterSerializer]
     public class FSharpChoiceCodec<T1, T2, T3, T4, T5, T6> : IFieldCodec<FSharpChoice<T1, T2, T3, T4, T5, T6>>, IDerivedTypeCodec
     {
@@ -880,14 +880,14 @@ namespace Orleans.Serialization
         private readonly IFieldCodec<T6> _item6Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCodec{T1, T2, T3, T4, T5, T6}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCodec{T1, T2, T3, T4, T5, T6}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The codec for <typeparamref name="T1"/>.</param>
-        /// <param name="item2Codec">The codec for <typeparamref name="T2"/>.</param>
-        /// <param name="item3Codec">The codec for <typeparamref name="T3"/>.</param>
-        /// <param name="item4Codec">The codec for <typeparamref name="T4"/>.</param>
-        /// <param name="item5Codec">The codec for <typeparamref name="T5"/>.</param>
-        /// <param name="item6Codec">The codec for <typeparamref name="T6"/>.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/>编码器。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/>编码器。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/>编码器。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/>编码器。</param>
+        /// <param name="item5Codec"> <typeparamref name="T5"/>编码器。</param>
+        /// <param name="item6Codec"> <typeparamref name="T6"/>编码器。</param>
         public FSharpChoiceCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -969,14 +969,14 @@ namespace Orleans.Serialization
         }
     }
     /// <summary>
-    /// Copier for <see cref="FSharpChoice{T1, T2, T3, T4, T5, T6}"/>.
+    /// <see cref="FSharpChoice{T1, T2, T3, T4, T5, T6}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The first choice type.</typeparam>
-    /// <typeparam name="T2">The second choice type.</typeparam>
-    /// <typeparam name="T3">The third choice type.</typeparam>
-    /// <typeparam name="T4">The fourth choice type.</typeparam>
-    /// <typeparam name="T5">The fifth choice type.</typeparam>
-    /// <typeparam name="T6">The sixth choice type.</typeparam>
+    /// <typeparam name="T1">第一种选择类型。</typeparam>
+    /// <typeparam name="T2">第二种选择类型。</typeparam>
+    /// <typeparam name="T3">第三种选择类型。</typeparam>
+    /// <typeparam name="T4">第四种选择类型。</typeparam>
+    /// <typeparam name="T5">第五个选择类型。</typeparam>
+    /// <typeparam name="T6">第六个选择类型。</typeparam>
     [RegisterCopier]
     public class FSharpChoiceCopier<T1, T2, T3, T4, T5, T6> : IDeepCopier<FSharpChoice<T1, T2, T3, T4, T5, T6>>, IDerivedTypeCopier
     {
@@ -988,14 +988,14 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<T6> _copier6;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpChoiceCopier{T1, T2, T3, T4, T5, T6}"/> class.
+        /// 初始化 <see cref="FSharpChoiceCopier{T1, T2, T3, T4, T5, T6}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The copier for <typeparamref name="T1"/>.</param>
-        /// <param name="copier2">The copier for <typeparamref name="T2"/>.</param>
-        /// <param name="copier3">The copier for <typeparamref name="T3"/>.</param>
-        /// <param name="copier4">The copier for <typeparamref name="T4"/>.</param>
-        /// <param name="copier5">The copier for <typeparamref name="T5"/>.</param>
-        /// <param name="copier6">The copier for <typeparamref name="T6"/>.</param>
+        /// <param name="copier1"> <typeparamref name="T1"/>的复印机。</param>
+        /// <param name="copier2"> <typeparamref name="T2"/>的复印机。</param>
+        /// <param name="copier3"> <typeparamref name="T3"/>的复印机。</param>
+        /// <param name="copier4"> <typeparamref name="T4"/>的复印机。</param>
+        /// <param name="copier5"> <typeparamref name="T5"/>的复印机。</param>
+        /// <param name="copier6"> <typeparamref name="T6"/>的复印机。</param>
         public FSharpChoiceCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -1040,16 +1040,16 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpRef{T}"/>.
+    /// <see cref="FSharpRef{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The referenced value type.</typeparam>
+    /// <typeparam name="T">引用值类型。</typeparam>
     [RegisterSerializer]
     public class FSharpRefCodec<T> : GeneralizedReferenceTypeSurrogateCodec<FSharpRef<T>, FSharpRefSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpRefCodec{T}"/> class.
+        /// 初始化 <see cref="FSharpRefCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The serializer for the surrogate representation.</param>
+        /// <param name="surrogateSerializer">代理代表的序列号</param>
         public FSharpRefCodec(IValueSerializer<FSharpRefSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -1069,33 +1069,33 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Surrogate representation of an <see cref="FSharpRef{T}"/>.
+    /// 代理 <see cref="FSharpRef{T}"/>的代 表。
     /// </summary>
-    /// <typeparam name="T">The referenced value type.</typeparam>
+    /// <typeparam name="T">引用值类型。</typeparam>
     [GenerateSerializer]
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This mutable surrogate is a transient serialization carrier rather than a domain value.")]
     public struct FSharpRefSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the referenced value.
+        /// 获取或设置引用值。
         /// </summary>
         [Id(0)]
         public T Value { get; set; }
     }
 
     /// <summary>
-    /// Copier for <see cref="FSharpRef{T}"/>.
+    /// <see cref="FSharpRef{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The referenced value type.</typeparam>
+    /// <typeparam name="T">引用值类型。</typeparam>
     [RegisterCopier]
     public class FSharpRefCopier<T> : IDeepCopier<FSharpRef<T>>
     {
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpRefCopier{T}"/> class.
+        /// 初始化 <see cref="FSharpRefCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">The copier for <typeparamref name="T"/>.</param>
+        /// <param name="copier"> <typeparamref name="T"/>的复印机。</param>
         public FSharpRefCopier(IDeepCopier<T> copier) => _copier = copier;
 
         /// <inheritdoc/>
@@ -1117,16 +1117,16 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpList{T}"/>.
+    /// <see cref="FSharpList{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The list element type.</typeparam>
+    /// <typeparam name="T">列表元素类型。</typeparam>
     [RegisterSerializer]
     public class FSharpListCodec<T> : GeneralizedReferenceTypeSurrogateCodec<FSharpList<T>, FSharpListSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpListCodec{T}"/> class.
+        /// 初始化 <see cref="FSharpListCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The serializer for the surrogate representation.</param>
+        /// <param name="surrogateSerializer">代理代表的序列号</param>
         public FSharpListCodec(IValueSerializer<FSharpListSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -1150,33 +1150,33 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Surrogate representation of an <see cref="FSharpList{T}"/>.
+    /// 代理 <see cref="FSharpList{T}"/>的代 表。
     /// </summary>
-    /// <typeparam name="T">The list element type.</typeparam>
+    /// <typeparam name="T">列表元素类型。</typeparam>
     [GenerateSerializer]
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This mutable surrogate carries a reference-backed collection during serialization and has no independent value contract.")]
     public struct FSharpListSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the list elements.
+        /// 获取或设置列表元素。
         /// </summary>
         [Id(0)]
         public List<T>? Value { get; set; }
     }
 
     /// <summary>
-    /// Copier for <see cref="FSharpList{T}"/>.
+    /// <see cref="FSharpList{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The list element type.</typeparam>
+    /// <typeparam name="T">列表元素类型。</typeparam>
     [RegisterCopier]
     public class FSharpListCopier<T> : IDeepCopier<FSharpList<T>>
     {
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpListCopier{T}"/> class.
+        /// 初始化 <see cref="FSharpListCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">The copier for <typeparamref name="T"/>.</param>
+        /// <param name="copier"> <typeparamref name="T"/>的复印机。</param>
         public FSharpListCopier(IDeepCopier<T> copier) => _copier = copier;
 
         /// <inheritdoc/>
@@ -1206,16 +1206,16 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpSet{T}"/>.
+    /// <see cref="FSharpSet{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The set element type.</typeparam>
+    /// <typeparam name="T">设置元素类型。</typeparam>
     [RegisterSerializer]
     public class FSharpSetCodec<T> : GeneralizedReferenceTypeSurrogateCodec<FSharpSet<T>, FSharpSetSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpSetCodec{T}"/> class.
+        /// 初始化 <see cref="FSharpSetCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The serializer for the surrogate representation.</param>
+        /// <param name="surrogateSerializer">代理代表的序列号</param>
         public FSharpSetCodec(IValueSerializer<FSharpSetSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -1237,33 +1237,33 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Surrogate representation of an <see cref="FSharpSet{T}"/>.
+    /// 代理 <see cref="FSharpSet{T}"/>的代 表。
     /// </summary>
-    /// <typeparam name="T">The set element type.</typeparam>
+    /// <typeparam name="T">设置元素类型。</typeparam>
     [GenerateSerializer]
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This mutable surrogate carries a reference-backed collection during serialization and has no independent value contract.")]
     public struct FSharpSetSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the set elements.
+        /// 获取或设置集合元素。
         /// </summary>
         [Id(0)]
         public List<T>? Value { get; set; }
     }
 
     /// <summary>
-    /// Copier for <see cref="FSharpSet{T}"/>.
+    /// <see cref="FSharpSet{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The set element type.</typeparam>
+    /// <typeparam name="T">设置元素类型。</typeparam>
     [RegisterCopier]
     public class FSharpSetCopier<T> : IDeepCopier<FSharpSet<T>>
     {
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpSetCopier{T}"/> class.
+        /// 初始化 <see cref="FSharpSetCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">The copier for <typeparamref name="T"/>.</param>
+        /// <param name="copier"> <typeparamref name="T"/>的复印机。</param>
         public FSharpSetCopier(IDeepCopier<T> copier) => _copier = copier;
 
         /// <inheritdoc/>
@@ -1293,17 +1293,17 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpMap{TKey, TValue}"/>.
+    /// <see cref="FSharpMap{TKey, TValue}"/>的序列器。
     /// </summary>
-    /// <typeparam name="TKey">The map key type.</typeparam>
-    /// <typeparam name="TValue">The map value type.</typeparam>
+    /// <typeparam name="TKey">地图密钥类型。</typeparam>
+    /// <typeparam name="TValue">地图值类型。</typeparam>
     [RegisterSerializer]
     public class FSharpMapCodec<TKey, TValue> : GeneralizedReferenceTypeSurrogateCodec<FSharpMap<TKey, TValue>, FSharpMapSurrogate<TKey, TValue>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpMapCodec{TKey, TValue}"/> class.
+        /// 初始化 <see cref="FSharpMapCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The serializer for the surrogate representation.</param>
+        /// <param name="surrogateSerializer">代理代表的序列号</param>
         public FSharpMapCodec(IValueSerializer<FSharpMapSurrogate<TKey, TValue>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -1328,26 +1328,26 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Surrogate representation of an <see cref="FSharpMap{TKey, TValue}"/>.
+    /// 代理 <see cref="FSharpMap{TKey, TValue}"/>的代 表。
     /// </summary>
-    /// <typeparam name="TKey">The map key type.</typeparam>
-    /// <typeparam name="TValue">The map value type.</typeparam>
+    /// <typeparam name="TKey">地图密钥类型。</typeparam>
+    /// <typeparam name="TValue">地图值类型。</typeparam>
     [GenerateSerializer]
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This mutable surrogate carries a reference-backed collection during serialization and has no independent value contract.")]
     public struct FSharpMapSurrogate<TKey, TValue>
     {
         /// <summary>
-        /// Gets or sets the map entries.
+        /// 获取或设置地图条目。
         /// </summary>
         [Id(0)]
         public List<Tuple<TKey, TValue>>? Value { get; set; }
     }
 
     /// <summary>
-    /// Copier for <see cref="FSharpMap{TKey, TValue}"/>.
+    /// <see cref="FSharpMap{TKey, TValue}"/>的复印机。
     /// </summary>
-    /// <typeparam name="TKey">The map key type.</typeparam>
-    /// <typeparam name="TValue">The map value type.</typeparam>
+    /// <typeparam name="TKey">地图密钥类型。</typeparam>
+    /// <typeparam name="TValue">地图值类型。</typeparam>
     [RegisterCopier]
     public class FSharpMapCopier<TKey, TValue> : IDeepCopier<FSharpMap<TKey, TValue>>
     {
@@ -1355,10 +1355,10 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<TValue> _valueCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpMapCopier{TKey, TValue}"/> class.
+        /// 初始化 <see cref="FSharpMapCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">The copier for <typeparamref name="TKey"/>.</param>
-        /// <param name="valueCopier">The copier for <typeparamref name="TValue"/>.</param>
+        /// <param name="keyCopier"> <typeparamref name="TKey"/>的复印机。</param>
+        /// <param name="valueCopier"> <typeparamref name="TValue"/>的复印机。</param>
         public FSharpMapCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = keyCopier;
@@ -1392,10 +1392,10 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for <see cref="FSharpResult{T, TError}"/>.
+    /// <see cref="FSharpResult{T, TError}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The result value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">结果值类型。</typeparam>
+    /// <typeparam name="TError">错误值类型。</typeparam>
     [RegisterSerializer]
     public class FSharpResultCodec<T, TError> : IFieldCodec<FSharpResult<T, TError>>, IDerivedTypeCodec
     {
@@ -1406,10 +1406,10 @@ namespace Orleans.Serialization
         private readonly IFieldCodec<TError> _item2Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpResultCodec{T, TError}"/> class.
+        /// 初始化 <see cref="FSharpResultCodec{T, TError}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The codec for <typeparamref name="T"/>.</param>
-        /// <param name="item2Codec">The codec for <typeparamref name="TError"/>.</param>
+        /// <param name="item1Codec"> <typeparamref name="T"/>编码器。</param>
+        /// <param name="item2Codec"> <typeparamref name="TError"/>编码器。</param>
         public FSharpResultCodec(IFieldCodec<T> item1Codec, IFieldCodec<TError> item2Codec)
         {
             _item1Codec = OrleansGeneratedCodeHelper.UnwrapService(this, item1Codec);
@@ -1464,10 +1464,10 @@ namespace Orleans.Serialization
         }
     }
     /// <summary>
-    /// Copier for <see cref="FSharpResult{T, TError}"/>.
+    /// <see cref="FSharpResult{T, TError}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The result value type.</typeparam>
-    /// <typeparam name="TError">The error value type.</typeparam>
+    /// <typeparam name="T">结果值类型。</typeparam>
+    /// <typeparam name="TError">错误值类型。</typeparam>
     [RegisterCopier]
     public class FSharpResultCopier<T, TError> : IDeepCopier<FSharpResult<T, TError>>, IDerivedTypeCopier
     {
@@ -1475,10 +1475,10 @@ namespace Orleans.Serialization
         private readonly IDeepCopier<TError> _copier2;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FSharpResultCopier{T, TError}"/> class.
+        /// 初始化 <see cref="FSharpResultCopier{T, TError}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The copier for <typeparamref name="T"/>.</param>
-        /// <param name="copier2">The copier for <typeparamref name="TError"/>.</param>
+        /// <param name="copier1"> <typeparamref name="T"/>的复印机。</param>
+        /// <param name="copier2"> <typeparamref name="TError"/>的复印机。</param>
         public FSharpResultCopier(IDeepCopier<T> copier1, IDeepCopier<TError> copier2)
         {
             _copier1 = copier1;

@@ -4,19 +4,19 @@ using System.Collections.Immutable;
 namespace Orleans.Runtime.MembershipService.SiloMetadata;
 
 /// <summary>
-/// Describes the metadata associated with a silo.
+/// 描述与 silo相关的元数据。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Runtime.MembershipService.SiloMetadata.SiloMetadata")]
 public record SiloMetadata
 {
     /// <summary>
-    /// Gets an instance which contains no metadata.
+    /// 获得一个没有元数据的例子 。
     /// </summary>
     public static SiloMetadata Empty { get; } = new SiloMetadata();
 
     /// <summary>
-    /// Gets the metadata key-value pairs associated with the silo.
+    /// 获取与 silo相关的元数据关键值对。
     /// </summary>
     [Id(0)]
     public ImmutableDictionary<string, string> Metadata { get; private set; } = ImmutableDictionary<string, string>.Empty;

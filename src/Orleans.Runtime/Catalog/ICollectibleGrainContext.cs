@@ -1,41 +1,41 @@
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Defines functionality required for grain contexts which are subject to activation collection.
+/// 定义需要启动收藏的 grain 背景所需的功能。
 /// </summary>
 internal interface ICollectibleGrainContext : IGrainContext
 {
     /// <summary>
-    /// Gets a value indicating whether the instance is exempt from collection.
+    /// 获得一个值, 显示此实例是否豁免收藏 。
     /// </summary>
     bool IsExemptFromCollection { get; }
 
     /// <summary>
-    /// Gets the collection age limit, which defines how long an instance must be inactive before it is eligible for collection.
+    /// 获得收集年龄限制,该限制规定一个案例在有资格被收集之前必须停止活动多久。
     /// </summary>
     TimeSpan CollectionAgeLimit { get; }
 
     /// <summary>
-    /// Gets the opaque collection registration associated with this context, if one has been assigned.
+    /// 如果已经指定了,则获得与此相关的不透明的收款登记。
     /// </summary>
     IActivationCollectionRegistration? CollectionRegistration { get; }
 
     /// <summary>
-    /// Atomically assigns the collection registration if one has not already been assigned.
+    /// 如果尚未指定收件登记,则原子分配收件登记。
     /// </summary>
-    /// <param name="registration">The registration to assign.</param>
-    /// <returns>The assigned registration.</returns>
+    /// <param name="registration">转让的登记。</param>
+    /// <returns>指定的登记。</returns>
     IActivationCollectionRegistration GetOrSetCollectionRegistration(IActivationCollectionRegistration registration);
 
     /// <summary>
-    /// Atomically evaluates collection eligibility and begins deactivation when the instance is eligible.
+    /// 原子评估收缴资格,并在符合条件时开始停止使用。
     /// </summary>
-    /// <param name="reason">The reason for deactivation.</param>
-    /// <param name="now">The current time.</param>
-    /// <param name="ageLimit">The minimum idle duration.</param>
-    /// <param name="respectKeepAlive">Whether a keep-alive request delays collection.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The collection action which the collector should perform.</returns>
+    /// <param name="reason">停止使用的理由。</param>
+    /// <param name="now">当前时间。</param>
+    /// <param name="ageLimit">最小闲置时间。</param>
+    /// <param name="respectKeepAlive">是否要保留请求延迟收取。</param>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>收藏家应执行的收集动作。</returns>
     ActivationCollectionResult TryDeactivateForCollection(
         DeactivationReason reason,
         DateTime now,
@@ -44,14 +44,14 @@ internal interface ICollectibleGrainContext : IGrainContext
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Delays activation collection until the specified duration has elapsed.
+    /// 延迟激活收藏,直到指定期限结束。
     /// </summary>
-    /// <param name="timeSpan">The period to delay activation collection for.</param>
+    /// <param name="timeSpan">延迟启动收集的时期。</param>
     void DelayDeactivation(TimeSpan timeSpan);
 }
 
 /// <summary>
-/// Represents opaque activation-collector state whose lifetime is anchored by a grain context.
+/// 代表不透明活性采集状态,其寿命以 grain 上下文为依托。
 /// </summary>
 internal interface IActivationCollectionRegistration
 {

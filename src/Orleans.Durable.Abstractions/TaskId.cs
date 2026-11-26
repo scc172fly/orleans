@@ -5,10 +5,10 @@ using System.Text.Json.Serialization;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>Identifies a durable task within a hierarchy.</summary>
+/// <summary>确定一个等级制度内的一项持久任务。</summary>
 /// <remarks>
-/// Each segment is non-empty, well-formed UTF-16 text, so every encoding of the identifier, such as UTF-8 and JSON,
-/// round-trips it unchanged. System.Text.Json serializes the identifier as its escaped hierarchical path, through
+/// 每个部分都是非空的、完善的 UTF-16 文本, 所以每个标识编码, 如 UTF-8 和 JSON,
+/// System.Text.Json 将识别符号序列成其逃脱的等级路径,通过
 /// <see cref="TaskIdJsonConverter"/>.
 /// </remarks>
 [JsonConverter(typeof(TaskIdJsonConverter))]
@@ -19,21 +19,21 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
 
     private TaskId(HierarchicalKey key) => _key = key;
 
-    /// <summary>Gets the empty identifier.</summary>
+    /// <summary>获取空标识符。</summary>
     public static TaskId None => default;
 
-    /// <summary>Gets a value indicating whether this identifier is empty.</summary>
+    /// <summary>获得一个值, 显示该标识符是否为空。</summary>
     public bool IsDefault => _key is null;
 
-    /// <summary>Creates a root identifier from one logical segment.</summary>
+    /// <summary>从一个逻辑段创建根标识符。</summary>
     /// <exception cref="ArgumentException">
-    /// <paramref name="rootSegment"/> is <see langword="null"/>, empty, or contains an unpaired UTF-16 surrogate.
+    /// <paramref name="rootSegment"/> 是 <see langword="null"/>, 空的, 或含有未受影响的 UTF-16 替代方 。
     /// </exception>
     public static TaskId CreateRoot(string rootSegment) => new(HierarchicalKey.FromSegment(rootSegment));
 
-    /// <summary>Creates a child identifier by appending one logical segment.</summary>
+    /// <summary>通过附加一个逻辑段创建子标识符。</summary>
     /// <exception cref="ArgumentException">
-    /// <paramref name="segment"/> is <see langword="null"/>, empty, or contains an unpaired UTF-16 surrogate.
+    /// <paramref name="segment"/> 是 <see langword="null"/>, 空的, 或含有未受影响的 UTF-16 替代方 。
     /// </exception>
     public TaskId Child(string segment)
     {
@@ -45,47 +45,47 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
         return new(_key.AppendSegment(segment));
     }
 
-    /// <summary>Gets the parent identifier, or <see cref="None"/> for a root.</summary>
+    /// <summary>获得树根的父标识符或 <see cref="None"/> 。</summary>
     public TaskId Parent() => _key?.Parent is { } parent ? new(parent) : None;
 
-    /// <summary>Gets the unescaped last segment of this identifier.</summary>
+    /// <summary>获取此标识符的未覆盖末段。</summary>
     internal string LastSegment => _key?.LastSegment ?? throw new InvalidOperationException("An empty task identifier has no segments.");
 
     /// <summary>
-    /// Returns whether this non-empty identifier is an ancestor of or equal to
-    /// <paramref name="other"/>. <see cref="None"/> is outside the hierarchy and returns
+    /// 返回是否返回该非空身份识别特征符是
+    /// <paramref name="other"/>. <see cref="None"/> 不属于等级和返回的层次
     /// <see langword="false"/>.
     /// </summary>
     public bool IsAncestorOf(TaskId other) => _key?.IsAncestorOf(other._key) is true;
 
     /// <summary>
-    /// Returns whether this non-empty identifier is a descendant of or equal to
-    /// <paramref name="other"/>. <see cref="None"/> is outside the hierarchy and returns
+    /// 返回是否返回,不论该非空白标识符是
+    /// <paramref name="other"/>. <see cref="None"/> 不属于等级和返回的层次
     /// <see langword="false"/>.
     /// </summary>
     public bool IsDescendantOf(TaskId other) => other.IsAncestorOf(this);
 
-    /// <summary>Returns whether this identifier is the parent of <paramref name="other"/>.</summary>
+    /// <summary>返回是否该标识符是 <paramref name="other"/>的母。</summary>
     public bool IsParentOf(TaskId other) => _key?.IsParentOf(other._key) is true;
 
-    /// <summary>Returns whether this identifier is a child of <paramref name="other"/>.</summary>
+    /// <summary>返回是否该标识符是 <paramref name="other"/>的子。</summary>
     public bool IsChildOf(TaskId other) => other.IsParentOf(this);
 
-    /// <summary>Parses an escaped hierarchical path.</summary>
+    /// <summary>解析一条逃逸的等级路径。</summary>
     public static TaskId Parse(string s) => Parse(s, provider: null);
 
-    /// <summary>Parses an escaped hierarchical path.</summary>
+    /// <summary>解析一条逃逸的等级路径。</summary>
     public static TaskId Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         return s.Length == 0 ? None : new(HierarchicalKey.Parse(s));
     }
 
-    /// <summary>Attempts to parse an escaped hierarchical path.</summary>
+    /// <summary>试图分析一条逃脱的等级道路</summary>
     public static bool TryParse([NotNullWhen(true)] string? s, out TaskId result)
         => TryParse(s, provider: null, out result);
 
-    /// <summary>Attempts to parse an escaped hierarchical path.</summary>
+    /// <summary>试图分析一条逃脱的等级道路</summary>
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out TaskId result)
     {
         if (s is null)
@@ -110,18 +110,18 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
         return false;
     }
 
-    /// <summary>Parses an escaped hierarchical path.</summary>
+    /// <summary>解析一条逃逸的等级路径。</summary>
     public static TaskId Parse(ReadOnlySpan<char> s) => Parse(s, provider: null);
 
-    /// <summary>Parses an escaped hierarchical path.</summary>
+    /// <summary>解析一条逃逸的等级路径。</summary>
     public static TaskId Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
         => s.IsEmpty ? None : new(HierarchicalKey.Parse(s));
 
-    /// <summary>Attempts to parse an escaped hierarchical path.</summary>
+    /// <summary>试图分析一条逃脱的等级道路</summary>
     public static bool TryParse(ReadOnlySpan<char> s, out TaskId result)
         => TryParse(s, provider: null, out result);
 
-    /// <summary>Attempts to parse an escaped hierarchical path.</summary>
+    /// <summary>试图分析一条逃脱的等级道路</summary>
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out TaskId result)
     {
         if (s.IsEmpty)
@@ -140,13 +140,13 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
         return false;
     }
 
-    /// <summary>Formats this identifier as an escaped hierarchical path.</summary>
+    /// <summary>将此标识符格式为逃避的等级路径。</summary>
     public override string ToString() => _key?.ToString() ?? string.Empty;
 
-    /// <summary>Formats this identifier as an escaped hierarchical path.</summary>
+    /// <summary>将此标识符格式为逃避的等级路径。</summary>
     public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
 
-    /// <summary>Attempts to format this identifier into <paramref name="destination"/>.</summary>
+    /// <summary>试图将此标识符格式化为 <paramref name="destination"/>。</summary>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         if (_key is null)
@@ -167,16 +167,16 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
     /// <inheritdoc />
     public override int GetHashCode() => _key?.GetHashCode() ?? 0;
 
-    /// <summary>Returns whether two identifiers are equal.</summary>
+    /// <summary>返回两个识别符是否相等。</summary>
     public static bool operator ==(TaskId left, TaskId right) => left.Equals(right);
 
-    /// <summary>Returns whether two identifiers differ.</summary>
+    /// <summary>返回两个识别符是否不同。</summary>
     public static bool operator !=(TaskId left, TaskId right) => !left.Equals(right);
 
-    /// <summary>Formats an identifier as an escaped hierarchical path.</summary>
+    /// <summary>将识别符格式化为逃避的等级路径。</summary>
     public static explicit operator string(TaskId value) => value.ToString();
 
-    /// <summary>Parses an escaped hierarchical path.</summary>
+    /// <summary>解析一条逃逸的等级路径。</summary>
     [SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "TaskId implements IParsable and exposes Parse and TryParse as the named alternatives.")]
     public static explicit operator TaskId(string value) => Parse(value);
 }
@@ -206,8 +206,8 @@ internal sealed class HierarchicalKey : IEquatable<HierarchicalKey>
     }
 
     /// <summary>
-    /// Validates a segment: it is non-empty, well-formed UTF-16 text, so every UTF-8 or JSON encoding of the identifier
-    /// round-trips it unchanged, instead of replacing an unpaired surrogate with U+FFFD and merging distinct identifiers.
+    /// 校验一个段段: 它不是空的、完善格式好的 UTF-16 文本, 所以每个 UTF-8 或 JSON 标识符编码
+    /// 而不是用U+FFFD替代未受控制代孕,并合并不同的识别资料。
     /// </summary>
     private static void ValidateSegment(string segment, [CallerArgumentExpression(nameof(segment))] string? paramName = null)
     {
@@ -218,7 +218,7 @@ internal sealed class HierarchicalKey : IEquatable<HierarchicalKey>
         }
     }
 
-    /// <summary>Returns whether every surrogate in <paramref name="value"/> is part of a high-low pair.</summary>
+    /// <summary>返回 <paramref name="value"/> 中每个替代方是否都是高低对数的一部分。</summary>
     private static bool IsWellFormedUtf16(ReadOnlySpan<char> value)
     {
         for (var index = 0; index < value.Length; index++)
@@ -266,7 +266,7 @@ internal sealed class HierarchicalKey : IEquatable<HierarchicalKey>
     {
         result = null;
 
-        // Escapes are ASCII, so the path is well-formed UTF-16 exactly when each of its segments is.
+        // 逃跑者是ASCII,所以路径是完善的UTF-16, 正好是每个部分都一样。
         if (value.IsEmpty || !IsWellFormedUtf16(value))
         {
             return false;

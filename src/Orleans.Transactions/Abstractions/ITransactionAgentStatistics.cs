@@ -2,47 +2,47 @@
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Tracks transaction agent activity.
+    /// 跟踪交易代理活动。
     /// </summary>
     public interface ITransactionAgentStatistics
     {
         /// <summary>
-        /// Records that a transaction has started.
+        /// 记录交易已经开始。
         /// </summary>
         void TrackTransactionStarted();
 
         /// <summary>
-        /// Gets the number of transactions which have started.
+        /// 获取已经开始的交易数量。
         /// </summary>
         long TransactionsStarted { get; }
 
         /// <summary>
-        /// Records that a transaction has completed successfully.
+        /// 交易成功完成的记录。
         /// </summary>
         void TrackTransactionSucceeded();
 
         /// <summary>
-        /// Gets the number of transactions which have completed successfully.
+        /// 获取成功完成的交易数量。
         /// </summary>
         long TransactionsSucceeded { get; }
 
         /// <summary>
-        /// Records that a transaction has failed.
+        /// 记录交易失败的记录。
         /// </summary>
         void TrackTransactionFailed();
 
         /// <summary>
-        /// Gets the number of transactions which have failed.
+        /// 获取失败的交易数量。
         /// </summary>
         long TransactionsFailed { get; }
 
         /// <summary>
-        /// Records that a transaction was rejected because of transaction agent throttling.
+        /// 交易因交易代理中断而被拒绝的记录。
         /// </summary>
         void TrackTransactionThrottled();
 
         /// <summary>
-        /// Gets the number of transactions which were rejected because of transaction agent throttling.
+        /// 获得因交易代理中断而被拒绝的交易数量。
         /// </summary>
         long TransactionsThrottled { get; }
     }

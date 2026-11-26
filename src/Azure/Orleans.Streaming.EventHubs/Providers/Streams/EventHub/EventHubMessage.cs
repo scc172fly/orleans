@@ -6,23 +6,23 @@ using Orleans.Runtime;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Replication of EventHub EventData class, reconstructed from cached data CachedEventHubMessage
+    /// 重复 EventHub EventData 类, 从缓存数据重建 CachedEventHubMessage
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class EventHubMessage
     {
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
-        /// <param name="streamId">Stream Identity</param>
-        /// <param name="partitionKey">EventHub partition key for message</param>
-        /// <param name="offset">Offset into the EventHub partition where this message was from</param>
-        /// <param name="sequenceNumber">Offset into the EventHub partition where this message was from</param>
-        /// <param name="enqueueTimeUtc">Time in UTC when this message was injected by EventHub</param>
-        /// <param name="dequeueTimeUtc">Time in UTC when this message was read from EventHub into the current service</param>
-        /// <param name="properties">User properties from EventData object</param>
-        /// <param name="payload">Binary data from EventData object</param>
+        /// <param name="streamId">流动身份</param>
+        /// <param name="partitionKey">EventHub 信件密钥</param>
+        /// <param name="offset">折抵到 EventHub 分区,其中此信件来自</param>
+        /// <param name="sequenceNumber">折抵到 EventHub 分区,其中此信件来自</param>
+        /// <param name="enqueueTimeUtc">电文被 EventHub</param>注入时UTC 时间
+        /// <param name="dequeueTimeUtc">当将电文从 EventHub 读到当前服务时, 时值在 UTC 中的时间</param>
+        /// <param name="properties">对象 EventData 对象</param>用户属性
+        /// <param name="payload">对象 EventData 的二进制数据</param>
         public EventHubMessage(StreamId streamId, string partitionKey, string offset, long sequenceNumber,
             DateTime enqueueTimeUtc, DateTime dequeueTimeUtc, IDictionary<string, object> properties, byte[] payload)
         {
@@ -37,7 +37,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Duplicate of EventHub's EventData class.
+        /// 复制 EventHub类 EventData 。
         /// </summary>
         public EventHubMessage(CachedMessage cachedMessage, Serialization.Serializer serializer)
         {
@@ -53,49 +53,49 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Stream identifier
+        /// 串流标识符
         /// </summary>
         [Id(0)]
         public StreamId StreamId { get; }
 
         /// <summary>
-        /// EventHub partition key
+        /// EventHub 分区密钥
         /// </summary>
         [Id(1)]
         public string PartitionKey { get; }
 
         /// <summary>
-        /// Offset into EventHub partition
+        /// 偏移到 EventHub 分区
         /// </summary>
         [Id(2)]
         public string Offset { get; }
 
         /// <summary>
-        /// Sequence number in EventHub partition
+        /// EventHub 分区中的序列号
         /// </summary>
         [Id(3)]
         public long SequenceNumber { get; }
 
         /// <summary>
-        /// Time event was written to EventHub
+        /// 时间事件已写入 EventHub
         /// </summary>
         [Id(4)]
         public DateTime EnqueueTimeUtc { get; }
 
         /// <summary>
-        /// Time event was read from EventHub and added to cache
+        /// 时间事件从 EventHub 读取并添加到缓存
         /// </summary>
         [Id(5)]
         public DateTime DequeueTimeUtc { get; }
 
         /// <summary>
-        /// User EventData properties
+        /// 用户 EventData 属性
         /// </summary>
         [Id(6)]
         public IDictionary<string, object> Properties { get; }
 
         /// <summary>
-        /// Binary event data
+        /// 二进事件数据
         /// </summary>
         [Id(7)]
         public byte[] Payload { get; }

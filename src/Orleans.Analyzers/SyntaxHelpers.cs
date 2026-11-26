@@ -204,8 +204,8 @@ namespace Orleans.Analyzers
 
             if (implementsGrainBase)
             {
-                // Must implement an RPC interface (an interface extending IAddressable other than IAddressable itself)
-                // or have an explicit GrainType attribute
+                // 必须安装 RPC 接口( 扩展I可处理的界面, 而不是 I 可自己处理的界面)
+                // 或具有明确的 GrainType 属性
                 foreach (var interfaceSymbol in typeSymbol.AllInterfaces)
                 {
                     var interfaceName = interfaceSymbol.ToDisplayString(NullableFlowState.None);

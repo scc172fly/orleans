@@ -4,7 +4,7 @@ namespace Orleans.Durable.Tasks;
 
 internal abstract class DeferredMethodInvocation : DurableTask
 {
-    // Created when the body first suspends, so a body which completes synchronously allocates no completion source.
+    // 当身体首次暂停时创建, 所以一个同步完成的机构不分配完整源 。
     private TaskCompletionSource<DurableTaskResponse>? _completion;
     private DurableTaskContext? _context;
     private ExecutionContext? _executionContext;
@@ -14,7 +14,7 @@ internal abstract class DeferredMethodInvocation : DurableTask
 
     public Action MoveNextAction => _moveNextAction ??= MoveNext;
 
-    /// <summary>Prepares the body to resume after an incomplete await: captures its execution context and its completion.</summary>
+    /// <summary>准备在等待不完全之后恢复尸体的安检:记录其执行背景和完成情况。</summary>
     public void PrepareToSuspend()
     {
         _executionContext = ExecutionContext.Capture();
@@ -52,7 +52,7 @@ internal abstract class DeferredMethodInvocation : DurableTask
                 _executionContext = null;
                 ReleaseStateMachine();
 
-                // The step which completed the state machine ran the body's final code.
+                // 完成国家机器的一步 运行了尸体的最终代码
                 context.OnBodyCompleted(terminalResponse);
             }
         }
@@ -112,7 +112,7 @@ internal sealed class VoidDurableTaskMethodInvocation<TStateMachine> : VoidDurab
 
 internal abstract class DurableTaskMethodInvocation<TResult> : DurableTask<TResult>
 {
-    // Created when the body first suspends, so a body which completes synchronously allocates no completion source.
+    // 当身体首次暂停时创建, 所以一个同步完成的机构不分配完整源 。
     private TaskCompletionSource<DurableTaskResponse>? _completion;
     private DurableTaskContext? _context;
     private ExecutionContext? _executionContext;
@@ -122,7 +122,7 @@ internal abstract class DurableTaskMethodInvocation<TResult> : DurableTask<TResu
 
     public Action MoveNextAction => _moveNextAction ??= MoveNext;
 
-    /// <summary>Prepares the body to resume after an incomplete await: captures its execution context and its completion.</summary>
+    /// <summary>准备在等待不完全之后恢复尸体的安检:记录其执行背景和完成情况。</summary>
     public void PrepareToSuspend()
     {
         _executionContext = ExecutionContext.Capture();
@@ -160,7 +160,7 @@ internal abstract class DurableTaskMethodInvocation<TResult> : DurableTask<TResu
                 _executionContext = null;
                 ReleaseStateMachine();
 
-                // The step which completed the state machine ran the body's final code.
+                // 完成国家机器的一步 运行了尸体的最终代码
                 context.OnBodyCompleted(terminalResponse);
             }
         }

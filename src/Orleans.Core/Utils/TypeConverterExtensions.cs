@@ -8,7 +8,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Utilities
 {
     /// <summary>
-    /// Extensions for working with <see cref="TypeConverter"/>.
+    /// 与 <see cref="TypeConverter"/>合作的延长期。
     /// </summary>
     internal static class TypeConverterExtensions
     {
@@ -16,12 +16,12 @@ namespace Orleans.Utilities
         private const char StartArgument = '[';
 
         /// <summary>
-        /// Returns true if the provided type string is a generic type.
+        /// 如果所提供的类型字符串是一个通用类型,则返回为真 。
         /// </summary>
         public static bool IsGenericType(IdSpan type) => type.AsSpan().IndexOf((byte)GenericTypeIndicator) >= 0;
 
         /// <summary>
-        /// Returns the generic arity of the specified grain type.
+        /// 返回指定 grain 类型通用数。
         /// </summary>
         public static int GetGenericTypeArity(IdSpan type)
         {
@@ -51,12 +51,12 @@ namespace Orleans.Utilities
         }
 
         /// <summary>
-        /// Returns true if the provided type string is a constructed generic type.
+        /// 如果所提供的类型字符串是构建的通用类型,则返回为真 。
         /// </summary>
         public static bool IsConstructed(IdSpan type) => type.AsSpan().IndexOf((byte)StartArgument) > 0;
 
         /// <summary>
-        /// Returns the deconstructed form of the provided generic type.
+        /// 返回所提供通用类型中拆解的形式。
         /// </summary>
         public static IdSpan GetDeconstructed(IdSpan type)
         {
@@ -66,7 +66,7 @@ namespace Orleans.Utilities
         }
 
         /// <summary>
-        /// Returns the constructed form of the provided generic type.
+        /// 返回所提供通用类型构建的形式。
         /// </summary>
         public static IdSpan GetConstructed(this TypeConverter formatter, IdSpan unconstructed, params Type[] typeArguments)
         {
@@ -94,7 +94,7 @@ namespace Orleans.Utilities
         }
 
         /// <summary>
-        /// Returns the constructed form of the provided generic grain type using the type arguments from the provided constructed interface type.
+        /// 返回所提供通用 grain 类型,使用从所提供构建接口类型的类型参数。
         /// </summary>
         public static GrainType GetConstructed(this GenericGrainType genericGrainType, GenericGrainInterfaceType genericGrainInterfaceType)
         {
@@ -107,7 +107,7 @@ namespace Orleans.Utilities
             var typeArguments = genericGrainInterfaceType.Value;
             var args = typeArguments.Value.AsSpan();
             var index = args.IndexOf((byte)StartArgument);
-            if (index <= 0) return grainType; // if no type arguments are provided, then the current logic expects the unconstructed form (but the grain call is going to fail later anyway...)
+            if (index <= 0) return grainType; // 如果没有提供类型参数, 则当前逻辑预计未构建的形式( 但[ 调用 grain 以后会失败...)
             args = args[index..];
 
             var type = grainType.Value.AsSpan();
@@ -118,7 +118,7 @@ namespace Orleans.Utilities
         }
 
         /// <summary>
-        /// Returns the type arguments for the provided constructed generic type string.
+        /// 返回为提供构建的通用类型字符串提供的类型参数。
         /// </summary>
         public static Type[] GetArguments(this TypeConverter formatter, IdSpan constructed)
         {

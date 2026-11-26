@@ -27,7 +27,7 @@ public sealed class StatelessWorkerActivationCancellationTests
         var id = reference.GetGrainId();
         registry.Track(id);
         using var external = new CancellationTokenSource(TimeSpan.FromHours(1));
-        // Exercise the caller-token boundary which the stateless wrapper delegates to.
+        // 行使无国籍者包装代表的呼唤和声带边界。
         await using var activation = Assert.IsType<ActivationData>(services.GetRequiredService<GrainContextActivator>().CreateInstance(
             new GrainAddress { GrainId = id, ActivationId = ActivationId.NewId(), SiloAddress = fixture.HostedCluster.Silos[0].SiloAddress }));
         activation.Activate(null, external.Token);

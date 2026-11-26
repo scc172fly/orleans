@@ -116,7 +116,7 @@ public sealed class AsyncEnumerableTests
         var failures = new ConcurrentQueue<Exception>();
         void Observe(object? sender, UnobservedTaskExceptionEventArgs args)
         {
-            // Observe only this test's distinct value type, not faults from unrelated tasks.
+            // 只观察本次测试的独特值类型, 而不是无关任务的错误 。
             if (sender is Task task && ContainsType(task.GetType(), typeof(UnobservedValue)))
             {
                 foreach (var failure in args.Exception.Flatten().InnerExceptions)

@@ -11,7 +11,7 @@ using Orleans.Configuration.Overrides;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Creates Event Hub partition checkpointers backed by Azure Table Storage.
+    /// 创建由 Azure 表存储支持的事件枢纽分区检查站。
     /// </summary>
     public class EventHubCheckpointerFactory : IStreamQueueCheckpointerFactory
     {
@@ -21,12 +21,12 @@ namespace Orleans.Streaming.EventHubs
         private readonly ClusterOptions clusterOptions;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventHubCheckpointerFactory"/> class.
+        /// 初始化 <see cref="EventHubCheckpointerFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="providerName">The stream provider name.</param>
-        /// <param name="options">The Azure Table Storage checkpointer options.</param>
-        /// <param name="clusterOptions">The cluster options.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="providerName">流体提供者名称。</param>
+        /// <param name="options">下 Azure 表格存储检查站选项。</param>
+        /// <param name="clusterOptions">组合组合选项。</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public EventHubCheckpointerFactory(string providerName, AzureTableStreamCheckpointerOptions options, IOptions<ClusterOptions> clusterOptions, ILoggerFactory loggerFactory)
         {
             this.options = options;
@@ -42,11 +42,11 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Creates an Event Hub partition checkpointer factory.
+        /// 创建事件枢纽分区检查站工厂。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="providerName">The stream provider name.</param>
-        /// <returns>The checkpointer factory.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="providerName">流体提供者名称。</param>
+        /// <returns>检查站工厂</returns>
         public static IStreamQueueCheckpointerFactory CreateFactory(IServiceProvider services, string providerName)
         {
             var options = services.GetOptionsByName<AzureTableStreamCheckpointerOptions>(providerName);
@@ -56,7 +56,7 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// This class stores EventHub partition checkpoint information in Azure Table Storage.
+    /// 这个班级商店 EventHub 分隔区间分隔区检查点信息 Azure 桌子储存。
     /// </summary>
     public class EventHubCheckpointer : IStreamQueueCheckpointer<string>
     {
@@ -66,14 +66,14 @@ namespace Orleans.Streaming.EventHubs
         public bool CheckpointExists => _inner.CheckpointExists;
 
         /// <summary>
-        /// Creates and initializes an Event Hub partition checkpointer.
+        /// 创建并初始化事件枢纽分区检查器。
         /// </summary>
-        /// <param name="options">The Azure Table Storage checkpointer options.</param>
-        /// <param name="streamProviderName">The stream provider name.</param>
-        /// <param name="partition">The Event Hub partition identifier.</param>
-        /// <param name="serviceId">The Orleans service identifier.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
-        /// <returns>A task which resolves to the initialized checkpointer.</returns>
+        /// <param name="options">下 Azure 表格存储检查站选项。</param>
+        /// <param name="streamProviderName">流体提供者名称。</param>
+        /// <param name="partition">事件枢纽分区标识符。</param>
+        /// <param name="serviceId">下 Orleans 服务标识符。</param>
+        /// <param name="loggerFactory">伐木厂</param>
+        /// <returns>一项任务,即解决初始化检查站的任务。</returns>
         public static async Task<IStreamQueueCheckpointer<string>> Create(AzureTableStreamCheckpointerOptions options, string streamProviderName, string partition, string serviceId, ILoggerFactory loggerFactory)
         {
             var inner = await AzureTableStreamQueueCheckpointer.Create(
@@ -93,17 +93,17 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Loads the checkpoint.
+        /// 装满了检查站
         /// </summary>
-        /// <returns>A task which resolves to the checkpoint offset.</returns>
+        /// <returns>任务由检查站承担</returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         public Task<string> Load() => Load(CancellationToken.None);
 
         /// <summary>
-        /// Loads a checkpoint.
+        /// 装满了一个检查站
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The checkpoint.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>检查站。</returns>
         public async Task<string> Load(CancellationToken cancellationToken)
         {
             var checkpoint = await _inner.Load(cancellationToken);
@@ -111,30 +111,30 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Updates the checkpoint.  This is a best effort.  It does not always update the checkpoint.
-        /// The latest offset is always tracked in memory so that <see cref="FlushAsync(CancellationToken)"/> can persist it on shutdown.
+        /// 更新检查站,这是最好的努力,并不总是更新检查站。
+        /// 最新的抵消总是在记忆中跟踪,以便 <see cref="FlushAsync(CancellationToken)"/> 能够持续关闭。
         /// </summary>
-        /// <param name="offset">The checkpoint offset.</param>
-        /// <param name="utcNow">The current UTC time.</param>
+        /// <param name="offset">检查站</param>
+        /// <param name="utcNow">当前UTC 时间。</param>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         public void Update(string offset, DateTime utcNow)
             => Update(offset, utcNow, CancellationToken.None);
 
         /// <summary>
-        /// Updates the checkpoint.
+        /// 更新检查站
         /// </summary>
-        /// <param name="offset">The checkpoint offset.</param>
-        /// <param name="utcNow">The current UTC time.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="offset">检查站</param>
+        /// <param name="utcNow">当前UTC 时间。</param>
+        /// <param name="cancellationToken">取消牌。</param>
         public void Update(string offset, DateTime utcNow, CancellationToken cancellationToken)
             => _inner.Update(offset, utcNow, cancellationToken);
 
         /// <summary>
-        /// Flushes any pending checkpoint to persistent storage.
-        /// Awaits any in-progress save, then persists the latest offset if it has advanced beyond the last saved value.
+        /// 任何待设的持久性储存检查站都可穿透。
+        /// 等待任何在建的储蓄,如果超过上次节省的价值,则维持最新的抵消。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task which represents the flush operation.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>代表冲洗操作的任务。</returns>
         public Task FlushAsync(CancellationToken cancellationToken) => _inner.FlushAsync(cancellationToken);
     }
 }

@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// Tests for client directory partition reconstruction after silo failures.
+    /// 客户目录分区重建在 silo 失败后测试。
     /// </summary>
     public class ClientIdPartitionDataRebuildTests : IDisposable
     {
@@ -45,45 +45,45 @@ namespace UnitTests.MembershipTests
         }
 
         [Fact(Skip = "Not reliable in PR build, skipping for now")]
-        //[Fact(typeof(SiloUnavailableException)), TestCategory("Functional")]
+        //[形式(SiloUnavailableException), TestCategory(“功能”)
         public async Task ReconstructClientIdPartitionTest_Observer()
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            // Ensure the client entry is on Silo2 partition and get a grain that live on Silo3
+            // 确保客户端在 SIL2 分区上的用户条目并获得 grain 生活在西里岛3号
             var grain = await SetupTestAndPickGrain<ISimpleObserverableGrain>(g => g.GetRuntimeInstanceId(), cancellationToken);
             var observer = new Observer();
             var reference = this.hostedCluster.GrainFactory!.CreateObjectReference<ISimpleGrainObserver>(observer);
 
             await grain.Subscribe(reference);
 
-            // Test first notification
+            // 试验第一次通知
             await grain.SetA(10);
             await observer.WaitForNotification(10, 0, TimeSpan.FromSeconds(10), cancellationToken);
 
-            // Kill the silo that hold directory client entry
+            // 杀死持有目录客户端条目的 silo
             await this.hostedCluster.SecondarySilos[0].StopSiloAsync(stopGracefully: false, cancellationToken);
             await Task.Delay(5000, cancellationToken);
 
-            // Second notification should work since the directory was "rebuilt" when
-            // silos in cluster detected the dead one
+            // 第二次通知应有效,因为目录在下列时间“重建”了:
+            // silos 组群中检测到已死亡的
             await grain.SetB(20);
             await observer.WaitForNotification(10, 20, TimeSpan.FromSeconds(10), cancellationToken);
         }
 
         [Fact(Skip = "Not reliable in PR build, skipping for now")]
-        //[Fact(typeof(SiloUnavailableException)), TestCategory("Functional")]
+        //[形式(SiloUnavailableException), TestCategory(“功能”)
         public async Task ReconstructClientIdPartitionTest_Request()
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            // Ensure the client entry is on Silo2 partition and get a grain that live on Silo2
+            // 确保客户端在 SIL2 分区上的用户条目并获得 grain 生活在西里瓦2号上
             var grain = await SetupTestAndPickGrain<ITestGrain>(g => g.GetRuntimeInstanceId(), cancellationToken);
 
-            // Launch a long task and kill the silo that hold directory client entry
+            // 启动长任务并杀死持有目录客户端条目的 silo
             var promise = grain.DoLongAction(TimeSpan.FromSeconds(10), "LongAction");
             await this.hostedCluster.SecondarySilos[0].StopSiloAsync(stopGracefully: false, cancellationToken);
 
-            // It should work since the directory was "rebuilt" when
-            // silos in cluster detected the dead one
+            // 因为它应该工作,因为目录是"重建"
+            // silos 组群中检测到已死亡的
             await promise.WaitAsync(cancellationToken);
         }
 
@@ -91,7 +91,7 @@ namespace UnitTests.MembershipTests
             Func<T, Task<string>> getRuntimeInstanceId,
             CancellationToken cancellationToken) where T : class, IGrainWithIntegerKey
         {
-            // Ensure the client entry is on Silo2 partition
+            // 确保客户端在 SILO2 分区上的条目
             GrainId clientId = default;
             CreateAndDeployTestCluster();
             for (var i = 0; i < 100; i++)
@@ -114,7 +114,7 @@ namespace UnitTests.MembershipTests
             }
             Assert.False(clientId.IsDefault);
 
-            // Ensure grain is activated on Silo3
+            // 确保在硅3上启动 grain
             T? grain = null;
             for (var i = 0; i < 100; i++)
             {

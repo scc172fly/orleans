@@ -56,13 +56,13 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// Send a ping to a remote silo. This is intended to be called from a <see cref="SiloHealthMonitor"/>
-        /// in order to initiate the call from the <see cref="MembershipSystemTarget"/>'s context
+        /// 发送一条按号到远程 silo。 这是从一个 <see cref="SiloHealthMonitor"/>调用的
+        /// 以便从 <see cref="MembershipSystemTarget"/>的背景出发启动呼吁
         /// </summary>
-        /// <param name="remoteSilo">The remote silo to ping.</param>
-        /// <param name="probeNumber">The probe number, for diagnostic purposes.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The result of pinging the remote silo.</returns>
+        /// <param name="remoteSilo">远程 silo 至按线。</param>
+        /// <param name="probeNumber">用于诊断目的的探测号</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>远程 silo的按线结果。</returns>
         public async Task ProbeRemoteSilo(SiloAddress remoteSilo, int probeNumber, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -70,15 +70,15 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// Send a ping to a remote silo via an intermediary silo. This is intended to be called from a <see cref="SiloHealthMonitor"/>
-        /// in order to initiate the call from the <see cref="MembershipSystemTarget"/>'s context
+        /// 发送一个 ping 到远程 silo 通过中间人 silo. This is intended to be called from a <see cref="SiloHealthMonitor"/>
+        /// 以便从 <see cref="MembershipSystemTarget"/>的背景出发启动呼吁
         /// </summary>
-        /// <param name="intermediary">The intermediary which will directly probe the target.</param>
-        /// <param name="target">The target which will be probed.</param>
-        /// <param name="probeTimeout">The timeout for the eventual direct probe request.</param>
-        /// <param name="probeNumber">The probe number, for diagnostic purposes.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The result of pinging the remote silo.</returns>
+        /// <param name="intermediary">直接调查目标的中间人</param>
+        /// <param name="target">将要探测的目标。</param>
+        /// <param name="probeTimeout">最终直接探测请求的暂停时间</param>
+        /// <param name="probeNumber">用于诊断目的的探测号</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>远程 silo的按线结果。</returns>
         public Task<IndirectProbeResponse> ProbeRemoteSiloIndirectly(SiloAddress intermediary, SiloAddress target, TimeSpan probeTimeout, int probeNumber, CancellationToken cancellationToken)
         {
             Task<IndirectProbeResponse> ProbeIndirectly(CancellationToken token)
@@ -214,7 +214,7 @@ namespace Orleans.Runtime.MembershipService
                 var remoteOracle = this.grainFactory.GetSystemTarget<IMembershipService>(Constants.MembershipServiceType, remoteSilo);
                 task = remoteOracle.Ping(probeNumber, cancellationToken);
 
-                // Update stats counter. Only count Pings that were successfully sent, but not necessarily replied to.
+                // 更新统计台。 只计算成功发送的 Ping , 但不一定回复 。
                 _messagingInstruments.OnPingSend(remoteSilo);
             }
             finally
@@ -227,7 +227,7 @@ namespace Orleans.Runtime.MembershipService
 
         void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle observer)
         {
-            // No-op, just ensure this instance is created at start-up.
+            // 停止行动,确保这个例子在启动时出现
         }
 
         [LoggerMessage(

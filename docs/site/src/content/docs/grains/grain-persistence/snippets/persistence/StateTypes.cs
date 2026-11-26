@@ -27,7 +27,7 @@ public class CartItem
 }
 // </cart_state>
 
-// Placeholder for Date type used in docs
+// 用于 docs 中日期类型
 public struct Date
 {
     public int Year { get; set; }

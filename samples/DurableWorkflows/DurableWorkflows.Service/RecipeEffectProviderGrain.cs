@@ -2,8 +2,8 @@ using Orleans.Durable.Journaling;
 
 namespace DurableWorkflows;
 
-// This independent, journaled provider makes the payment/email protocol executable with no credentials. Production
-// gateways classify only documented no-effect failures as ProvenNoEffect and use the provider's authoritative lookup.
+// 这个独立、有日记的供应商在没有全权证书的情况下,使付款/电子邮件协议可以执行。
+// 网关仅将记录到的无效果故障归类为 ProvenNoEffect ,并使用供应商的权威查询。
 public sealed class RecipeEffectProviderGrain : DurableGrain, IRecipeEffectProviderGrain
 {
     private readonly IDurableDictionary<string, EffectRequest> _applied;
@@ -88,7 +88,7 @@ public sealed class RecipeEffectProviderGrain : DurableGrain, IRecipeEffectProvi
             throw new IOException("Provider lookup is unavailable.");
         }
 
-        // This demo's unkeyed email service has no authoritative request lookup. Absence of a receipt is unknown.
+        // 此演示无密钥的电子邮件服务没有权威请求查询, 无法确认是否收到 。
         return Task.FromResult(request.Kind is EffectKind.Email
             ? new ProviderResult(ProviderOutcome.Unknown, "Unkeyed email needs provider support or an operator decision.")
             : _results.TryGetValue(key, out var result) ? result : new ProviderResult(ProviderOutcome.Unknown, "No authoritative outcome is available."));

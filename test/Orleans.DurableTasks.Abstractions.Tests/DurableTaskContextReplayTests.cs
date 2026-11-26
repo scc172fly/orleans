@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>Tests <see cref="DurableTaskContext.IsReplaying"/>.</summary>
+/// <summary>测试 <see cref="DurableTaskContext.IsReplaying"/>。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]

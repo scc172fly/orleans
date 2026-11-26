@@ -11,12 +11,12 @@ using Orleans.Storage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extension methods for configuring Azure Table grain storage on an Orleans silo.
+    /// 提供配置 Azure 表 grain 储存在 Orleans silo上的扩展方法。
     /// </summary>
     public static class AzureTableSiloBuilderExtensions
     {
         /// <summary>
-        /// Configure silo to use azure table storage as the default grain storage.
+        /// 配置 silo 将“ zure” 表格存储作为默认 grain 存储。
         /// </summary>
         public static ISiloBuilder AddAzureTableGrainStorageAsDefault(this ISiloBuilder builder, Action<AzureTableStorageOptions> configureOptions)
         {
@@ -24,7 +24,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure table storage for grain storage.
+        /// 配置 silo 用于 grain 存储的“ zure 表” 储存。
         /// </summary>
         public static ISiloBuilder AddAzureTableGrainStorage(this ISiloBuilder builder, string name, Action<AzureTableStorageOptions> configureOptions)
         {
@@ -32,7 +32,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure table storage as the default grain storage.
+        /// 配置 silo 将“ zure” 表格存储作为默认 grain 存储。
         /// </summary>
         public static ISiloBuilder AddAzureTableGrainStorageAsDefault(this ISiloBuilder builder, Action<OptionsBuilder<AzureTableStorageOptions>>? configureOptions = null)
         {
@@ -40,7 +40,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure table storage for grain storage.
+        /// 配置 silo 用于 grain 存储的“ zure 表” 储存。
         /// </summary>
         public static ISiloBuilder AddAzureTableGrainStorage(this ISiloBuilder builder, string name, Action<OptionsBuilder<AzureTableStorageOptions>>? configureOptions = null)
         {

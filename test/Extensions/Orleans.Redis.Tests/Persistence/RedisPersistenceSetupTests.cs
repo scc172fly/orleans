@@ -9,7 +9,7 @@ using TestExtensions;
 namespace Tester.Redis.Persistence
 {
     /// <summary>
-    /// Tests for Redis grain storage configuration validation and setup scenarios.
+    /// Redis grain 储存配置确认和设置假想的测试。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Persistence"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

@@ -11,7 +11,7 @@ namespace UnitTests.Grains
         {
             if (currCallIndex >= callChain.Count) return Task.CompletedTask;
             (long GrainId, bool Blocking) next = callChain[currCallIndex];
-            bool call_1 = (currCallIndex % 2) == 1; // odd (1) call 1, even (zero) - call 2.
+            bool call_1 = (currCallIndex % 2) == 1; // 单 (1) 调用 1, 偶数 (零) - 调用 2。
             if (next.Blocking)
             {
                 IDeadlockNonReentrantGrain nextGrain = grainFactory.GetGrain<IDeadlockNonReentrantGrain>(next.GrainId);

@@ -13,25 +13,25 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Tests for Orleans' Protocol Buffers (protobuf) serialization support.
+/// Orleans' 协议缓冲(原装布)序列化支持测试。
 /// 
-/// Protocol Buffers is Google's language-neutral, platform-neutral serialization format that provides:
-/// - Compact binary encoding
-/// - Strong schema definition through .proto files
-/// - Excellent cross-language support
-/// - Forward and backward compatibility
+/// 协议缓冲是谷歌的语文中立、平台中立的序列化格式,提供:
+/// - 契约二进制编码
+/// - 通过.proto文件,对计划进行强有力的定义
+/// - 出色的跨语文支助
+/// - 前后兼容
 /// 
-/// Orleans' protobuf integration:
-/// - Supports Google.Protobuf generated classes
-/// - Handles protobuf collections and nested messages
-/// - Provides both serialization and deep copy functionality
-/// - Integrates with Orleans' type system for polymorphism
+/// Orleans' 原试管整合:
+/// - 支持 Google.Protobuf 生成的类
+/// - 处理原样信箱收藏和嵌套信息
+/// - 提供序列和深复制功能
+/// - 与 Orleans' 型多形态系统结合
 /// 
-/// This integration is valuable when:
-/// - Interfacing with gRPC services
-/// - Sharing data with non-.NET systems
-/// - Requiring schema-first development
-/// - Needing highly optimized wire format
+/// 在下列情况下,这种一体化是有价值的:
+/// - 与 gRPC 服务接口
+/// - 与非.NET 系统共享数据
+/// - 要求先计划发展
+/// - 需要高度优化的电线格式
 /// </summary>
 [Trait("Category", "BVT")]
 [TestSuite("BVT")]

@@ -9,7 +9,7 @@ using Orleans.Internal;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// Manages <see cref="ISiloStatusListener"/> instances.
+/// 管理 <see cref="ISiloStatusListener"/> 实例。
 /// </summary>
 internal sealed partial class SiloStatusListenerManager : ILifecycleParticipant<ISiloLifecycle>
 {
@@ -92,7 +92,7 @@ internal sealed partial class SiloStatusListenerManager : ILifecycleParticipant<
         }
         catch (OperationCanceledException) when (_cancellation.IsCancellationRequested)
         {
-            // Ignore and continue shutting down.
+            // 忽略并继续关闭
         }
         catch (Exception exception) when (_fatalErrorHandler.IsUnexpected(exception))
         {

@@ -5,161 +5,161 @@ using Orleans.Streams;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for managing stream system lifecycle.
+    /// 管理流系统生命周期的备选方案。
     /// </summary>
     public class StreamLifecycleOptions
     {
         /// <summary>
-        /// Identifies well-known points in the lifecycle of the streaming system.
+        /// 确定流流系统生命周期中众所周知的要点。
         /// </summary>
         [Serializable]
         public enum RunState
         {
             /// <summary>
-            /// Not running.
+            /// 没有运行 。
             /// </summary>
             None,
 
             /// <summary>
-            /// Streaming has initialized.
+            /// 流动已经开始启动。
             /// </summary>
             Initialized,
 
             /// <summary>
-            /// The agents have started.
+            /// 特工已经开始行动了
             /// </summary>
             AgentsStarted,
 
             /// <summary>
-            /// The agents have stopped.
+            /// 特工已经停止了
             /// </summary>
             AgentsStopped,
         }
 
         /// <summary>
-        /// If set to <see cref="RunState.AgentsStarted"/>, stream pulling agents will be started during initialization.
+        /// 如果设置为 <see cref="RunState.AgentsStarted"/>,则在初始化过程中将启动流拉动剂。
         /// </summary>
         public RunState StartupState { get; set; } = DEFAULT_STARTUP_STATE;
 
         /// <summary>
-        /// The default stream runtime startup state.
+        /// 默认流运行时间启动状态 。
         /// </summary>
         public const RunState DEFAULT_STARTUP_STATE = RunState.AgentsStarted;
 
         /// <summary>
-        /// Gets or sets the lifecycle stage at which to initialize the stream runtime.
+        /// 获取或设定启动流运行时间的生命周期阶段。
         /// </summary>
-        /// <value>The initialization stage.</value>
+        /// <value>初始化阶段。</value>
         public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
         /// <summary>
-        /// The default lifecycle stage at which the stream runtime is initialized.
+        /// 流流运行时间初始化的默认生命周期阶段。
         /// </summary>
         public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
 
         /// <summary>
-        /// Gets or sets the lifecycle stage at which to start the stream runtime.
+        /// 获取或设置启动溪流运行时间的生命周期阶段。
         /// </summary>
-        /// <value>The startup stage.</value>
+        /// <value>启动阶段。</value>
         public int StartStage { get; set; } = DEFAULT_START_STAGE;
 
         /// <summary>
-        /// The default lifecycle stage at which the stream runtime is started.
+        /// 流运行时间开始的默认生命周期阶段 。
         /// </summary>
         public const int DEFAULT_START_STAGE = ServiceLifecycleStage.Active;
     }
 
     /// <summary>
-    /// Options for configuring stream pub/sub.
+    /// 配置流旁/子的选项 。
     /// </summary>
     public class StreamPubSubOptions
     {
         /// <summary>
-        /// Gets or sets the pub sub type.
+        /// 获取或设置酒吧的子类型。
         /// </summary>
-        /// <value>The type of the pub sub.</value>
+        /// <value>酒吧子栏的类型。</value>
         public StreamPubSubType PubSubType { get; set; } = DEFAULT_STREAM_PUBSUB_TYPE;
 
         /// <summary>
-        /// The default stream pub/sub implementation.
+        /// 默认流旁/子执行 。
         /// </summary>
         public const StreamPubSubType DEFAULT_STREAM_PUBSUB_TYPE = StreamPubSubType.ExplicitGrainBasedAndImplicit;
     }
 
     /// <summary>
-    /// Options for stream pulling agents.
+    /// 流动吸附剂的选择。
     /// </summary>
     public class StreamPullingAgentOptions
     {
         /// <summary>
-        /// Gets or sets the position used for initial subscriptions which do not specify a sequence token or explicit start position.
+        /// 获取或设置初始订阅时所使用的位置,这些位置不指定序列符号或明确的起始位置。
         /// </summary>
         /// <remarks>
-        /// <see cref="StreamSubscriptionStartPosition.EarliestAvailable"/> starts at the earliest message for the
-        /// subscribed stream which is currently retained in the pulling agent's local queue cache.
-        /// Receiver checkpoints and provider queue positions remain unchanged.
-        /// A concrete sequence token or explicit per-subscription start position takes precedence over this setting.
-        /// During a rolling deployment, configure this setting after the silos hosting persistent-stream pulling
-        /// agents have been upgraded to a version which supports it.
+        /// <see cref="StreamSubscriptionStartPosition.EarliestAvailable"/> 开始于最早的 Q0Q]
+        /// 用户订阅流目前保留在拖拉器本地队列缓存中 。
+        /// 接收检查点和供应商排队职位保持不变。
+        /// 具体序列符号或明确的每次订阅起始位置优先于此设置。
+        /// 在滚动部署期间,在 silos 主机持续流拉动后配置此设置
+        /// 代理代理已升级为支持它的一个版本。
         /// </remarks>
         public StreamSubscriptionStartPosition InitialSubscriptionStartPosition { get; set; } = DEFAULT_INITIAL_SUBSCRIPTION_START_POSITION;
 
         /// <summary>
-        /// The default initial subscription start position.
+        /// 默认初始订阅启动位置。
         /// </summary>
         public static readonly StreamSubscriptionStartPosition DEFAULT_INITIAL_SUBSCRIPTION_START_POSITION = StreamSubscriptionStartPosition.Latest;
 
         /// <summary>
-        /// Gets or sets the size of each batch container batch.
+        /// 获取或设定每批货集装箱的大小。
         /// </summary>
-        /// <value>The size of each batch container batch.</value>
+        /// <value>每一批集装箱的大小。</value>
         public int BatchContainerBatchSize { get; set; } = DEFAULT_BATCH_CONTAINER_BATCH_SIZE;
 
         /// <summary>
-        /// The default batch container batch size.
+        /// 默认批量集装箱批量大小。
         /// </summary>
         public static readonly int DEFAULT_BATCH_CONTAINER_BATCH_SIZE = 1;
 
         /// <summary>
-        /// Gets or sets the period between polling for queue messages.
+        /// 获取或设置队列信息在投票间隔内的时间长度 。
         /// </summary>
         public TimeSpan GetQueueMsgsTimerPeriod { get; set; } = DEFAULT_GET_QUEUE_MESSAGES_TIMER_PERIOD;
 
         /// <summary>
-        /// The default period between polling for queue messages.
+        /// 排队信件的投票间隔默认时间 。
         /// </summary>
         public static readonly TimeSpan DEFAULT_GET_QUEUE_MESSAGES_TIMER_PERIOD = TimeSpan.FromMilliseconds(100);
 
         /// <summary>
-        /// Gets or sets the queue initialization timeout.
+        /// 获取或设置队列初始化超时 。
         /// </summary>
-        /// <value>The queue initialization timeout.</value>
+        /// <value>队列初始化超时。</value>
         public TimeSpan InitQueueTimeout { get; set; } = DEFAULT_INIT_QUEUE_TIMEOUT;
 
         /// <summary>
-        /// The default queue initialization timeout
+        /// 默认的队列初始化超时
         /// </summary>
         public static readonly TimeSpan DEFAULT_INIT_QUEUE_TIMEOUT = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Gets or sets the maximum event delivery time.
+        /// 获取或设定事件交付时间的最大值 。
         /// </summary>
-        /// <value>The maximum event delivery time.</value>
+        /// <value>最大事件交付时间。</value>
         public TimeSpan MaxEventDeliveryTime { get; set; } = DEFAULT_MAX_EVENT_DELIVERY_TIME;
 
         /// <summary>
-        /// The default maximum event delivery time.
+        /// 默认事件交付时间上限 。
         /// </summary>
         public static readonly TimeSpan DEFAULT_MAX_EVENT_DELIVERY_TIME = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// Gets or sets the stream inactivity period.
+        /// 获取或设置流无活动期。
         /// </summary>
-        /// <value>The stream inactivity period.</value>
+        /// <value>流无活动期。</value>
         public TimeSpan StreamInactivityPeriod { get; set; } = DEFAULT_STREAM_INACTIVITY_PERIOD;
 
         /// <summary>
-        /// The default stream inactivity period.
+        /// 默认流无活动期。
         /// </summary>
         public static readonly TimeSpan DEFAULT_STREAM_INACTIVITY_PERIOD = TimeSpan.FromMinutes(30);
     }

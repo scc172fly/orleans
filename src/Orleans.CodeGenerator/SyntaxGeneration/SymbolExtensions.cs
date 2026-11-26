@@ -326,7 +326,7 @@ internal static class SymbolExtensions
     }
 
     /// <summary>
-    /// Gets all attributes which are assignable to the specified attribute type.
+    /// 获取指定属性类型所可分配的所有属性。
     /// </summary>
     public static bool GetAttributes(this ISymbol symbol, INamedTypeSymbol attributeType, [NotNullWhen(true)] out AttributeData[]? attributes)
     {
@@ -351,7 +351,7 @@ internal static class SymbolExtensions
     }
 
     /// <summary>
-    /// Gets all attributes which are assignable to the specified attribute type.
+    /// 获取指定属性类型所可分配的所有属性。
     /// </summary>
     public static bool GetAttributes(this INamedTypeSymbol symbol, INamedTypeSymbol attributeType, [NotNullWhen(true)] out AttributeData[]? attributes, bool inherited = false)
     {
@@ -494,8 +494,8 @@ internal static class SymbolExtensions
 
     public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol symbol)
     {
-        // Note that this will not work if multiple points in the inheritance hierarchy are containing within a single generic type.
-        // To solve that, we could retain some context throughout the recursive calls.
+        // 请注意,如果继承等级制度中的多个点包含在单一通用类型内,这不会起作用。
+        // 为了解决这个问题,我们可以在整个循环电话中保留某种背景。
         if (symbol.ContainingType is { } containingType && containingType.IsGenericType)
         {
             foreach (var containingTypeParameter in containingType.GetAllTypeParameters())

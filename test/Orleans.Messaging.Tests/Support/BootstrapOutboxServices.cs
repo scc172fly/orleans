@@ -13,14 +13,14 @@ public sealed class BootstrapDeliveryProbe : IOutgoingGrainCallFilter, IObserver
 
     private readonly ConcurrentDictionary<GrainId, TaskCompletionSource> _drains = new();
 
-    // The event stream is process-wide, so the fixture disposes the subscription with its cluster.
+    // 事件流是整个过程的, 所以固定程序会将订阅内容与集成处理 。
     private readonly IDisposable _subscription;
 
     public BootstrapDeliveryProbe() => _subscription = MessagingEvents.AllEvents.Subscribe(this);
 
     public void Dispose() => _subscription.Dispose();
 
-    /// <summary>Waits until the sender's outbox retires a delivered message.</summary>
+    /// <summary>等到发件人发信箱的发件人发送信息后退信</summary>
     public Task WaitForDrainAsync(GrainId sender) =>
         _drains.GetOrAdd(sender, static _ => new(TaskCreationOptions.RunContinuationsAsynchronously)).Task.WaitAsync(TimeSpan.FromSeconds(30));
 

@@ -7,7 +7,7 @@ using Xunit;
 namespace Tester;
 
 /// <summary>
-/// Tests for client connection events including cluster disconnection and gateway count changes.
+/// 客户连接事件的测试,包括集群断开和网关计数变化。
 /// </summary>
 [TestSuite("SlowBVT")]
 [TestProvider("None")]
@@ -27,10 +27,10 @@ public class ClientConnectionEventTests
         await using var cluster = builder.Build();
         await cluster.DeployAsync(TestContext.Current.CancellationToken);
 
-        // Burst lot of call, to be sure that we are connected to all silos
+        // 电话很多,要确定我们和所有 silos都连接了
         for (int i = 0; i < 100; i++)
         {
-            var grain = cluster.Client!.GetGrain<ITestGrain>(i); // DeployAsync initializes the client.
+            var grain = cluster.Client!.GetGrain<ITestGrain>(i); // DeployAsync 初始化客户端。
             await grain.SetLabel(i.ToString());
         }
 
@@ -69,12 +69,12 @@ public class ClientConnectionEventTests
 
         await cluster.RestartStoppedSecondarySiloAsync(silo.Name);
 
-        // Clients need prodding to reconnect.
+        // 客户需要提前联系才能重新连接
         var remainingAttempts = 90;
         bool reconnected;
         do
         {
-            cluster.Client!.GetGrain<ITestGrain>(Guid.NewGuid().GetHashCode()).SetLabel("test").Ignore(); // DeployAsync initializes the client.
+            cluster.Client!.GetGrain<ITestGrain>(Guid.NewGuid().GetHashCode()).SetLabel("test").Ignore(); // DeployAsync 初始化客户端。
             await regainedGatewayTcs.Task.WaitAsync(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken).ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.SuppressThrowing);
             reconnected = regainedGatewayTcs.Task.IsCompleted;
         } while (!reconnected && --remainingAttempts > 0);

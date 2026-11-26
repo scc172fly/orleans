@@ -169,7 +169,7 @@ namespace UnitTests.Grains
 
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            //if (this.GetPrimaryKeyLong() == -2)
+            //(如果)this.GetPrimaryKeyLong() == -2)
             //    throw new ArgumentException("Primary key cannot be -2 for this test case");
 
             label = this.GetPrimaryKey().ToString();

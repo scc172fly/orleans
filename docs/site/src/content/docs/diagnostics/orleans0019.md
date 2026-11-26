@@ -1,35 +1,45 @@
 ---
-title: "ORLEANS0019: Removed grain interface is not retired"
-description: Understand and resolve ORLEANS0019 when OrleansContracts.txt contains an active interface that source no longer defines.
+title: "ORLEANS0019:已删除的 grain 接口未退出"
+description: "理解和决心 ORLEANS0019 何时 OrleansContracts.txt 包含一个源不再定义的活跃界面。"
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
-# ORLEANS0019: Removed grain interface is not retired
+<a id="orleans0019-removed-grain-interface-is-not-retired"></a>
 
-| Property | Value |
+# ORLEANS0019:已删除的 grain 接口未退出
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Warning |
-| Code fix | Available |
+| 类别类 | 版本 |
+| 严重性 | 警告 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-An active interface declaration in `OrleansContracts.txt` does not match any compiled grain interface.
+## 原因原因原因
 
-## Impact
+`OrleansContracts.txt` 中的有效接口声明与任何已编译的 grain 界面不匹配。
 
-The deletion or identity-changing rename is not recorded as intentional, and the old interface identity can later be reused accidentally.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Restore the interface if its removal was accidental. Otherwise apply **Mark as *RETIRED* in OrleansContracts.txt**. Preserve retired declarations as contract history.
+删除或身份改变改名不作为故意而记录,旧的接口身份以后可以意外地重新使用。
 
-Apply **Regenerate OrleansContracts.txt** to rebuild the complete project manifest and retire every declaration absent from source. Run regeneration separately for each contract project and review the generated diff using the [contract compatibility guidance](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest).
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Suppression is appropriate only when the manifest intentionally contains contracts owned by another compilation. Prefer one manifest per project so ownership remains explicit.
+如果删除接口是意外取消, 则恢复该界面。 否则应用 **标记为 *重新* 内 OrleansContracts.txt**保留退休声明作为合同历史。
+
+应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单,并留存所有没有来源的申报单。为每个合同项目分别运行再生程序,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+只有当清单中有意含有另一编集拥有的合同时,才适宜禁止。
 
 ```ini
 [*.cs]

@@ -5,20 +5,20 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// Binds an exact message subject to an Orleans payload serializer.
+/// 将精确的信息装入 Orleans 有效载荷序列器。
 /// </summary>
-/// <typeparam name="T">The subject's payload contract.</typeparam>
+/// <typeparam name="T">目标的载荷合同</typeparam>
 /// <remarks>
-/// Bindings are immutable and can be shared across activations. Decode during handler preparation;
-/// decoded resource-bearing values retain their ordinary application-managed ownership.
+/// 装订是不可变的,可在启动过程中相互共享。
+/// 解码资源吸收价值保留其普通的应用程序管理所有权。
 /// </remarks>
 public sealed class MessageType<T>
 {
     private readonly Serializer<T> _serializer;
 
-    /// <summary>Creates a subject and payload-type binding.</summary>
-    /// <param name="subject">The ordinal protocol subject.</param>
-    /// <param name="serializer">The payload serializer.</param>
+    /// <summary>创建一个主题和有效载荷型装订。</summary>
+    /// <param name="subject">常规协议主题。</param>
+    /// <param name="serializer">有效载荷序列器。</param>
     public MessageType(string subject, Serializer<T> serializer)
     {
         EnvelopeValidation.ValidateSubject(subject);
@@ -27,25 +27,25 @@ public sealed class MessageType<T>
         _serializer = serializer;
     }
 
-    /// <summary>Creates a subject and payload-type binding using the payload serializer from <paramref name="serializer"/>.</summary>
-    /// <param name="subject">The ordinal protocol subject.</param>
-    /// <param name="serializer">The serializer which provides the payload serializer.</param>
+    /// <summary>使用来自 <paramref name="serializer"/>.</summary>
+    /// <param name="subject">常规协议主题。</param>
+    /// <param name="serializer">提供有效载荷序列器的序列器。</param>
     /// <remarks>
-    /// Use this overload to define a protocol's bindings together in one application class, constructed from the
-    /// <see cref="Serializer"/> service.
+    /// 使用此超负荷来定义协议的绑定, 在一个应用类别中一起设置, 由
+    /// <see cref="Serializer"/> 服务。
     /// </remarks>
     public MessageType(string subject, Serializer serializer)
         : this(subject, (serializer ?? throw new ArgumentNullException(nameof(serializer))).GetSerializer<T>())
     {
     }
 
-    /// <summary>Gets the exact protocol subject.</summary>
+    /// <summary>获得精确的协议主题。</summary>
     public string Subject { get; }
 
-    /// <summary>Decodes an envelope using this subject's payload contract.</summary>
-    /// <param name="envelope">The envelope containing the serialized payload.</param>
-    /// <returns>The nonnull decoded payload.</returns>
-    /// <exception cref="ArgumentException">The subject is absent or different, or the payload is a serialized null value.</exception>
+    /// <summary>使用当事人的有效载荷合同解码一个信封。</summary>
+    /// <param name="envelope">装有序列式有效载荷的信封。</param>
+    /// <returns>内核解码有效载荷</returns>
+    /// <exception cref="ArgumentException">主体不存在或不同,或者有效载荷是序列无效值。</exception>
     public T Decode(Envelope envelope)
     {
         if (envelope.Subject is null)
@@ -64,17 +64,17 @@ public sealed class MessageType<T>
             ?? throw new ArgumentException($"Message subject '{Subject}' requires a nonnull payload.", nameof(envelope));
     }
 
-    /// <summary>Encodes a typed body into an outgoing message.</summary>
-    /// <param name="messageId">The stable application command identity.</param>
-    /// <param name="receiverId">The destination inbox.</param>
-    /// <param name="body">The nonnull body to serialize.</param>
+    /// <summary>将输入文件正文编码为发出信件。</summary>
+    /// <param name="messageId">稳定的应用程序指令身份。</param>
+    /// <param name="receiverId">目标收件箱。</param>
+    /// <param name="body">序列的无核体</param>
     /// <param name="deliverAt">
-    /// The optional earliest time, on the Durable Jobs clock, at which the receiving inbox processes the message.
-    /// See <see cref="Envelope.DeliverAt"/>.
+    /// 接收箱处理信息时,
+    /// 见 <see cref="Envelope.DeliverAt"/>。
     /// </param>
-    /// <returns>An outgoing message with the encoded payload.</returns>
+    /// <returns>带有编码有效载荷的发出信息。</returns>
     /// <remarks>
-    /// Serialization completes before publication. Keep the published payload bytes unchanged.
+    /// 发布前完成序列化, 保持已公布的有效载荷字节不变 。
     /// </remarks>
     public OutboxMessage Create(MessageId messageId, GrainId receiverId, T body, DateTimeOffset? deliverAt = null)
     {

@@ -12,12 +12,12 @@ using Xunit;
 namespace Orleans.TestingHost.Tests
 {
     /// <summary>
-    /// Regression tests for https://github.com/dotnet/orleans/issues/10258.
+    /// https://github.com/dotnet/orleans/issues/10258的回归测试。
     ///
-    /// Stopping an in-process silo (e.g. via <see cref="InProcessTestCluster.StopAllSilosAsync"/>)
-    /// before disposing the cluster must still dispose the underlying <c>SiloHost</c>. If it does not,
-    /// the host's <see cref="IServiceProvider"/> and its background threads (such as the Watchdog) are
-    /// never released, leaking the entire silo for the lifetime of the process.
+    /// 正在停止一个进程 silo (e.g. 通过 <see cref="InProcessTestCluster.StopAllSilosAsync"/>)
+    /// 在处置集束之前,必须仍然处理基本 <c>SiloHost</c>。
+    /// 主机的 <see cref="IServiceProvider"/> 及其背景线(如“监视者”)是
+    /// 从未释放,在整个过程的寿命期间泄漏整个 silo 。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -34,16 +34,16 @@ namespace Orleans.TestingHost.Tests
 
             var serviceProvider = cluster.Silos[0].ServiceProvider;
 
-            // Sanity check: the service provider is usable while the silo is running.
+            // 检查是否合乎情理:在 silo 运行期间,服务供应商可用。
             Assert.NotNull(serviceProvider.GetService<ILocalSiloDetails>());
 
-            // The pattern from the issue: stop the silos first, then dispose the cluster.
+            // 问题的模式:先停止 silos ,然后处理组群。
             await cluster.StopAllSilosAsync(TestContext.Current.CancellationToken);
             await cluster.DisposeAsync();
 
-            // If the host was disposed, its service provider is disposed too and resolving throws.
-            // Prior to the fix the host was never disposed when the silo had already been stopped, so
-            // this resolution would succeed and the silo (including its Watchdog threads) would be retained.
+            // 如果处置了东道主,其服务提供商也将处置并解决抛掷问题。
+            // 在修复之前,当 silo 已经停止处理时,主机从未处置过,因此
+            // 该决议将取得成功, silo (包括其 " 观察线 " )将保留。
             Assert.Throws<ObjectDisposedException>(() => serviceProvider.GetService<ILocalSiloDetails>());
         }
 
@@ -58,8 +58,8 @@ namespace Orleans.TestingHost.Tests
             var handle = cluster.Silos[0];
             var serviceProvider = handle.ServiceProvider;
 
-            // Stop the silo, then dispose the handle directly. Disposal must dispose the host even
-            // though the handle is no longer active.
+            // 停止 silo,然后直接处置处理。即使处置也必须将主机也处理
+            // 虽然把手不再活动
             await handle.StopSiloAsync(
                 stopGracefully: true,
                 TestContext.Current.CancellationToken);
@@ -73,10 +73,10 @@ namespace Orleans.TestingHost.Tests
         [Fact]
         public void StoppedSilo_AfterClusterDispose_ServiceProviderIsCollected()
         {
-            // Deploy, stop, and dispose entirely within a non-inlined synchronous helper that returns
-            // only a WeakReference. This keeps the cluster and every intermediate local out of this
-            // frame so that, once the helper returns, nothing roots the silo's service provider except
-            // (before the fix) the still-running host and its background threads.
+            // 部署、停止和处置完全在一个非内嵌同步助手中进行,该助手返回
+            // 仅 a WeakReference。这使集集和每个中间局域人无法参与其中
+            // 框架,以便一旦助手返回,没有任何根 silo服务供应商的服务供应商,除非
+            // 运行中的主机及其背景线索( 在修正前) 。
             var weakRef = DeployStopAndDispose();
 
             AssertCollected(weakRef);
@@ -95,11 +95,11 @@ namespace Orleans.TestingHost.Tests
         {
             const int PendingCallCount = 8;
 
-            // Regression test for the deadlock that surfaced in CI: killing a silo whose stateless
-            // workers are awaiting outbound calls (whose responses can never arrive once the silo stops)
-            // must not hang while disposing the silo host. A stateless worker's grain context disposal
-            // awaits each worker's deactivation. Faulting those calls resumes the workers, which retry
-            // and would register new callbacks after the shutdown sweep unless registration is closed.
+            // CI中出现的僵局的倒退试验:杀死其无国籍者 silo
+            // 工人正在等待外出电话(他们的答复一旦收到,就永远无法到达)。 silo 停止)
+            // 处置时不能挂挂 silo 无国籍人的移徙工人 grain 内下处置
+            // 工人的电话被打坏,工人恢复了工作,他们重新尝试
+            // 并在关闭后登记新的回调,除非登记工作结束。
             var builder = new InProcessTestClusterBuilder(2);
             builder.ConfigureHost(hostBuilder => TestDefaultConfiguration.ConfigureHostConfiguration(hostBuilder.Configuration));
             await using var cluster = builder.Build();
@@ -109,8 +109,8 @@ namespace Orleans.TestingHost.Tests
             var launcherHandle = cluster.Silos[0];
             var remoteHandle = cluster.Silos[1];
 
-            // Place the launcher on the silo which will be killed. The stateless workers it invokes are
-            // placed on that same silo.
+            // 将发射装置放在将要被杀死的 silo 上。
+            // 放在该 silo上。
             RequestContext.Set(IPlacementDirector.PlacementHintKey, launcherHandle.SiloAddress);
             var launcher = client.GetGrain<ILauncherGrain>(Guid.NewGuid());
             try
@@ -125,8 +125,8 @@ namespace Orleans.TestingHost.Tests
             var remoteKeys = new List<Guid>(PendingCallCount);
             for (var call = 0; call < PendingCallCount; call++)
             {
-                // Place each blocker on the surviving silo so the worker's call is a genuine outbound
-                // request whose response is severed when the launcher's silo is killed.
+                // 将每个阻塞器都放在幸存的上 silo 工作者的召唤,确是外出的真正喊叫,
+                // 当发射装置 silo 被杀死时,其答复被切断。
                 var remoteKey = Guid.NewGuid();
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, remoteHandle.SiloAddress);
                 var remote = client.GetGrain<IRemoteBlockerGrain>(remoteKey);
@@ -141,7 +141,7 @@ namespace Orleans.TestingHost.Tests
 
                 remoteKeys.Add(remoteKey);
 
-                // Trigger the outbound call from a stateless worker co-located on the launcher's silo.
+                // 触发来自一个无国籍工人的外出电话 与发射器同地办公 silo.
                 var worker = client.GetGrain<ILocalWorkerGrain>(Guid.NewGuid());
                 await launcher.StartBlockingCall(worker, remote);
                 Assert.True(
@@ -152,8 +152,8 @@ namespace Orleans.TestingHost.Tests
                     "The blocking call was never entered.");
             }
 
-            // Kill the launcher's silo (ungraceful) and dispose its host. Prior to the fix this can hang
-            // if cancellation interrupts callback timer shutdown before the callbacks are faulted.
+            // 杀死发射装置的 silo (可读) 并处置其主机。 在修好前, 此程序可以挂起
+            // 如果取消会中断回调时针关闭, 则在回调发生错误之前终止。
             var killAndDispose = cluster.KillSiloAsync(
                 launcherHandle,
                 TestContext.Current.CancellationToken);
@@ -161,7 +161,7 @@ namespace Orleans.TestingHost.Tests
             Assert.True(completed == killAndDispose, "Killing a silo with an in-flight outbound call should not hang host disposal.");
             await killAndDispose;
 
-            // Allow the surviving silo to shut down cleanly.
+            // 允许生存 silo 彻底关闭
             foreach (var remoteKey in remoteKeys)
             {
                 RemoteBlockerGrain.Release(remoteKey);
@@ -170,8 +170,8 @@ namespace Orleans.TestingHost.Tests
 
         private static void AssertCollected(WeakReference weakRef)
         {
-            // Background threads (e.g. the Watchdog) can briefly keep the provider rooted on their stack
-            // while they wind down, so retry with a bounded timeout rather than asserting after a single GC.
+            // 背景线(e.g. 监控狗)可以简短地让提供者根植于他们的堆叠
+            // 并且他们逐渐下降,所以他们要以一个固定的暂停期重试,不要只坚持一个GC。
             for (var attempt = 0; attempt < 20 && weakRef.IsAlive; attempt++)
             {
                 GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);

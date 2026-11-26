@@ -1,37 +1,43 @@
 ---
-title: Stateless worker grains
-description: Scale location-transparent worker pools with Orleans.
+title: "无国籍工人 grains"
+description: "规模化地点-具有 Orleans的透明工人人才库。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# Stateless worker grains
+<a id="stateless-worker-grains"></a>
 
-A normal grain identity has at most one activation in the cluster. A stateless worker identity can have multiple activations, allowing Orleans to scale independent work across compatible silos.
+# 无国籍工人 grains
 
-Apply <xref:Orleans.Concurrency.StatelessWorkerAttribute> to the implementation:
+正常的 grain 身份最多有一个在组群中的激活。无国籍工人的身份可以有多个启动,允许 Orleans 将独立工作的规模扩大到兼容的 silos。
+
+将 <xref:Orleans.Concurrency.StatelessWorkerAttribute> 应用到执行:
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="image_worker":::
-Call it like any other grain:
+和别人一样叫它 grain:
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="call_image_worker":::
-The key identifies a worker pool, not an individual activation. Consecutive calls to the same reference can run on different activations.
+关键点指工人集合,而不是个体激活。 同一引用的连续呼叫可以使用不同的激活方式。
 
-## Scaling behavior
+<a id="scaling-behavior"></a>
 
-Orleans prefers a local compatible activation. If all local activations are busy and the per-silo limit hasn't been reached, Orleans can create another. The default maximum is `Environment.ProcessorCount` activations per silo.
+## 缩动行为
 
-Set a limit explicitly:
+Orleans 选择本地兼容激活。 如果所有本地激活都忙碌且每-silo 极限还没达到 Orleans 默认最大值为 `Environment.ProcessorCount` 启动次数 silo.
+
+明确设定限制:
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="limited_image_worker":::
-Idle workers are removed by default. The two-argument attribute constructor can disable idle-worker removal for specialized workloads.
+空闲工人默认会被清除。 双引力属性构造器可以禁用因特殊工作量而拆迁闲置工人。
 
-## State and concurrency
+<a id="state-and-concurrency"></a>
 
-"Stateless" means activations aren't individually addressable and no single activation owns authoritative state for the key. A worker can keep caches or other local state, but that state isn't coordinated with other activations and can disappear at any time.
+## 国家货币和货币
 
-Stateless workers are non-reentrant by default. Add <xref:Orleans.Concurrency.ReentrantAttribute> only if their implementation is safe for request interleaving.
+“无国家”是指激活不是单独可处理的,也没有一个启动拥有钥匙的权威状态。 工人可以保留缓存或其他地方状态,但与其他激活没有协调,随时可以消失。
 
-Good uses include CPU-bound transformations, local pre-aggregation, protocol adaptation, and replicated read caches. Don't use stateless workers for entity state that requires single-writer consistency.
+无国籍工人默认是无法重新加入的。 只有在申请中断时,执行这些工人是安全的,才添加 <xref:Orleans.Concurrency.ReentrantAttribute> 。
 
-Stateless worker activations don't participate in grain migration.
+良好的用途包括CPU约束式转换、本地预汇总、协议适应和复制读取缓存。 不要在需要单体作者一致性的实体国使用无国籍工人。
+
+无国籍工人的活化活动不参与 grain 移徙。

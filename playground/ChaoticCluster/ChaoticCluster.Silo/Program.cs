@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Orleans.TestingHost;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.AddServiceDefaults(); // Configure OTel
+builder.AddServiceDefaults(); // 配置 OTel
 using var app = builder.Build();
 await app.StartAsync();
 
@@ -30,14 +30,14 @@ testClusterBuilder.ConfigureClientHost(hostBuilder =>
 
 var testCluster = testClusterBuilder.Build();
 await testCluster.DeployAsync();
-var log = testCluster.Client!.ServiceProvider.GetRequiredService<ILogger<Program>>(); // DeployAsync initializes the client.
+var log = testCluster.Client!.ServiceProvider.GetRequiredService<ILogger<Program>>(); // DeployAsync 初始化客户端。
 log.LogInformation($"ServiceId: {testCluster.Options.ServiceId}");
 log.LogInformation($"ClusterId: {testCluster.Options.ClusterId}");
 
 var cts = new CancellationTokenSource(TimeSpan.FromMinutes(15));
 var reconfigurationTimer = Stopwatch.StartNew();
 var upperLimit = 10;
-var lowerLimit = 1; // Membership is kept on the primary, so we can't go below 1
+var lowerLimit = 1; // 会员资格保留在初级, 所以我们不能低于1
 var target = upperLimit;
 var idBase = 0L;
 var client = testCluster.Silos[0].ServiceProvider.GetRequiredService<IGrainFactory>();
@@ -98,7 +98,7 @@ var chaosTask = Task.Run(async () =>
 
                     if (currentCount > target)
                     {
-                        // Stop or kill a random silo, but not the primary (since that hosts cluster membership)
+                        // 停止或杀死随机 silo, 但并非主控( 因为主机组群集会)
                         var victim = testCluster.Silos[Random.Shared.Next(1, testCluster.Silos.Count - 1)];
                         if (currentCount % 2 == 0)
                         {

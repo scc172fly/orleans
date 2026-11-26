@@ -297,7 +297,7 @@ internal partial class CosmosReminderTable : IReminderTable
     {
         if (_client.Endpoint.IsLoopback)
         {
-            // The Linux emulator can return a duplicate-key 500 when concurrent silos race through container creation.
+            // Linux 模拟器可以通过集装箱的创建, 在同时 silos 赛事中返回重复键500。
             await EmulatorResourceCreationLock.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -334,7 +334,7 @@ internal partial class CosmosReminderTable : IReminderTable
 
             if (retry == maxRetries || dbResponse.StatusCode != HttpStatusCode.Created || collResponse.StatusCode == HttpStatusCode.Created)
             {
-                break;  // Apparently some throttling logic returns HttpStatusCode.OK (not 429) when the collection wasn't created in a new DB.
+                break;  // 显然,有些令人振奋的逻辑返回 HttpStatusCode.OK (而不是429) ,因为收藏不是在新的 DB 中创建的。
             }
 
             await Task.Delay(1000);

@@ -7,7 +7,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Persists a stream queue checkpoint using Orleans grain storage.
+    /// 使用 Orleans grain 存储的流队列检查站。
     /// </summary>
     [PreferLocalPlacement]
     [GrainType("stream.checkpoint")]
@@ -17,9 +17,9 @@ namespace Orleans.Streams
         private readonly IPersistentState<StreamCheckpointerGrainState> _state;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamCheckpointGrain"/> class.
+        /// 初始化 <see cref="StreamCheckpointGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="state">The persistent checkpoint state.</param>
+        /// <param name="state">长期的检查站状态。</param>
         public StreamCheckpointGrain(
             [PersistentState(StateName, ProviderConstants.DEFAULT_PUBSUB_PROVIDER_NAME)]
             IPersistentState<StreamCheckpointerGrainState> state)

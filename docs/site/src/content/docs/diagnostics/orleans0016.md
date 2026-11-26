@@ -1,40 +1,50 @@
 ---
-title: "ORLEANS0016: Grain interface is not active in OrleansContracts.txt"
-description: Understand and resolve ORLEANS0016 when a grain interface is missing or retired in the contract manifest.
+title: "ORLEANS0016: Grain 接口在 OrleansContracts.txt中不活跃"
+description: "理解和决心 ORLEANS0016 时 grain 合同清单中缺少或退出接口。"
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
-# ORLEANS0016: Grain interface is not active in OrleansContracts.txt
+<a id="orleans0016-grain-interface-is-not-active-in-orleanscontractstxt"></a>
 
-| Property | Value |
+# ORLEANS0016: Grain 接口在 OrleansContracts.txt中不活跃
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Warning |
-| Code fix | Available |
+| 类别类 | 版本 |
+| 严重性 | 警告 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-The contract analyzer found a grain interface with no active declaration matching its `GrainInterfaceType` in `OrleansContracts.txt`. The matching declaration can also be present but marked `*RETIRED*`.
+## 原因原因原因
 
-## Impact
+合同分析师发现 grain 没有主动声明匹配其界面的 `GrainInterfaceType` 内 `OrleansContracts.txt`。匹配声明也可以存在,但可以标记 `*RETIRED*`.
 
-The interface identity, version, and methods are absent from contract review. A rename or identity change can become a new RPC contract without an explicit manifest diff.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Verify the interface identity and version, then apply **Add to OrleansContracts.txt**. The code fix adds or reactivates the interface and records its ordinary instance methods.
+界面身份、版本和方法在合同审查中不存在。 重命名或身份变更可以成为新的RPC合同,而没有明确的明确数据。
 
-If the interface was restored accidentally, remove it from source or introduce a separately named replacement instead of reusing a retired identity.
+<a id="how-to-fix"></a>
 
-Apply **Regenerate OrleansContracts.txt** to rebuild the complete project manifest. Run regeneration separately for each contract project and review the generated diff using the [contract compatibility guidance](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest).
+## 如何修补
 
-## Suppress the diagnostic
+校验接口身份和版本, 然后应用 **添加到 OrleansContracts.txt**。代码修正会增加或重新启动界面并记录其普通程序方法 。
 
-Deployable RPC contracts should remain in the manifest. If the project intentionally does not maintain a contract manifest, disable the contract analyzer for the project instead of suppressing individual interfaces.
+如果接口被意外恢复, 则从源代码中删除它或引入一个单独命名的替换, 而不是重复使用已取消的身份 。
+
+应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单。为每个合同项目分别运行再生,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+如果项目故意不保持合同清单,则停止为项目进行合同分析,而不是压制个人接口。
 
 ```xml
 <EnableOrleansContractsAnalyzer>false</EnableOrleansContractsAnalyzer>
 ```
 
-See [Orleans contract compatibility analyzer](../grains/grain-versioning/contract-compatibility-analyzer.md).
+见 [Orleans 合同兼容性分析器](../grains/grain-versioning/contract-compatibility-analyzer.md)。

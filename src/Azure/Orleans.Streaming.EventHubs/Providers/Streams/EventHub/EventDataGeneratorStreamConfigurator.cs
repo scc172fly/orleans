@@ -9,30 +9,30 @@ using Orleans.Streaming.EventHubs.Testing;
 namespace Orleans.Hosting.Developer
 {
     /// <summary>
-    /// Configures a named stream provider which generates Event Hubs data for development and testing.
+    /// 配置一个名为流提供商的流提供商,生成事件枢纽数据,用于开发和测试。
     /// </summary>
     public interface IEventDataGeneratorStreamConfigurator : ISiloRecoverableStreamConfigurator { }
 
     /// <summary>
-    /// Extension methods for configuring generated Event Hubs streams.
+    /// 配置生成事件枢纽流的扩展方法 。
     /// </summary>
     public static class EventDataGeneratorConfiguratorExtensions
     {
         /// <summary>
-        /// Configures the adapter used to convert Event Hubs data into Orleans stream data.
+        /// 配置用于将事件枢纽数据转换成 Orleans 流数据的适配器。
         /// </summary>
-        /// <param name="configurator">The stream configurator.</param>
-        /// <param name="factory">The data adapter factory.</param>
+        /// <param name="configurator">流形配置器。</param>
+        /// <param name="factory">数据适配器厂</param>
         public static void UseDataAdapter(this IEventDataGeneratorStreamConfigurator configurator, Func<IServiceProvider, string, IEventHubDataAdapter> factory)
         {
             configurator.ConfigureComponent(factory);
         }
 
         /// <summary>
-        /// Configures cache pressure monitoring for the stream provider.
+        /// 配置流提供方的缓存压力监测 。
         /// </summary>
-        /// <param name="configurator">The stream configurator.</param>
-        /// <param name="configureOptions">The delegate used to configure cache pressure options.</param>
+        /// <param name="configurator">流形配置器。</param>
+        /// <param name="configureOptions">该代表用于配置缓存压力选项。</param>
         public static void ConfigureCachePressuring(this IEventDataGeneratorStreamConfigurator configurator, Action<OptionsBuilder<EventHubStreamCachePressureOptions>> configureOptions)
         {
             configurator.Configure(configureOptions);
@@ -40,15 +40,15 @@ namespace Orleans.Hosting.Developer
     }
 
     /// <summary>
-    /// Configures a named stream provider which generates Event Hubs data for development and testing.
+    /// 配置一个名为流提供商的流提供商,生成事件枢纽数据,用于开发和测试。
     /// </summary>
     public class EventDataGeneratorStreamConfigurator : SiloRecoverableStreamConfigurator, IEventDataGeneratorStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventDataGeneratorStreamConfigurator"/> class.
+        /// 初始化 <see cref="EventDataGeneratorStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configureServicesDelegate">The delegate used to configure dependency injection services.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configureServicesDelegate">该代表过去负责配置依赖注射服务。</param>
         public EventDataGeneratorStreamConfigurator(string name,
             Action<Action<IServiceCollection>> configureServicesDelegate)
             : base(name, configureServicesDelegate, EventDataGeneratorAdapterFactory.Create)

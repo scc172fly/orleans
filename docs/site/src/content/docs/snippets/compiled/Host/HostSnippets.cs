@@ -163,7 +163,7 @@ public class MyImmutableType
     // <immutable_parameter>
 public interface ISummerGrain : IGrain
 {
-  // `values` will not be copied.
+  // 将不复制`values` 。
   ValueTask<int> Sum([Immutable] List<int> values);
 }
     // </immutable_parameter>

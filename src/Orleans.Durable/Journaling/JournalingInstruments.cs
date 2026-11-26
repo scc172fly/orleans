@@ -7,7 +7,7 @@ namespace Orleans.Durable.Journaling;
 
 internal sealed class JournalingInstruments(OrleansInstruments instruments)
 {
-    // Direct construction shares process-lifetime telemetry, as JournalStorageTelemetry does.
+    // 直接建筑股份流程-寿命遥测,如 JournalStorageTelemetry 所做的。
     private static readonly Lazy<JournalingInstruments> Direct = new(
         static () => new(new OrleansInstruments(new DirectMeterFactory())));
 

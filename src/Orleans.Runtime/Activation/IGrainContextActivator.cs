@@ -20,7 +20,7 @@ using Orleans.Serialization.Session;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// The central point for creating grain contexts.
+    /// 创建 grain 语境的中心点。
     /// </summary>
     public sealed class GrainContextActivator
     {
@@ -32,11 +32,11 @@ namespace Orleans.Runtime
             = ImmutableDictionary<GrainType, (IGrainContextActivator, IConfigureGrainContext[])>.Empty;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainContextActivator"/> class.
+        /// 初始化 <see cref="GrainContextActivator"/> 类的新实例。
         /// </summary>
-        /// <param name="providers">The grain context activator providers.</param>
-        /// <param name="configureContextActions">The <see cref="IConfigureGrainContext"/> providers.</param>
-        /// <param name="grainPropertiesResolver">The grain properties resolver.</param>
+        /// <param name="providers">下 grain 环境活性器提供者。</param>
+        /// <param name="configureContextActions">下 <see cref="IConfigureGrainContext"/> 提供商。</param>
+        /// <param name="grainPropertiesResolver"> grain 属性解析器。</param>
         public GrainContextActivator(
             IEnumerable<IGrainContextActivatorProvider> providers,
             IEnumerable<IConfigureGrainContextProvider> configureContextActions,
@@ -48,10 +48,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a new grain context for the provided grain address.
+        /// 创建新 grain 提供的语背景 grain 地址。
         /// </summary>
-        /// <param name="address">The grain address.</param>
-        /// <returns>The grain context.</returns>
+        /// <param name="address"> grain 地址。</param>
+        /// <returns> grain 上下文。</returns>
         public IGrainContext CreateInstance(GrainAddress address)
         {
             var grainId = address.GrainId;
@@ -103,62 +103,62 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Provides a <see cref="IGrainContextActivator"/> for a specified grain type.
+    /// 提供a <see cref="IGrainContextActivator"/> 指定 grain 类型。
     /// </summary>
     public interface IGrainContextActivatorProvider
     {
         /// <summary>
-        /// Returns a grain context activator for the given grain type.
+        /// 回返a grain 给定的 grain 类型。
         /// </summary>
-        /// <param name="grainType">Type of the grain.</param>
-        /// <param name="activator">The grain context activator.</param>
-        /// <returns><see langword="true"/> if an appropriate activator was found, otherwise <see langword="false"/>.</returns>
+        /// <param name="grainType">类型 grain.</param>
+        /// <param name="activator"> grain 上下文激活器。</param>
+        /// <returns><see langword="true"/> 如果找到适当的活动方,否则 <see langword="false"/>。</returns>
         bool TryGet(GrainType grainType, [NotNullWhen(true)] out IGrainContextActivator? activator);
     }
 
     /// <summary>
-    /// Creates a grain context for the given grain address.
+    /// 创建 grain 给给 grain 地址。
     /// </summary>
     public interface IGrainContextActivator
     {
         /// <summary>
-        /// Creates a grain context for the given grain address.
+        /// 创建 grain 给给 grain 地址。
         /// </summary>
-        /// <param name="address">The grain address.</param>
-        /// <param name="configureActions">The actions which must be used to configure the context before grain construction begins.</param>
-        /// <returns>The newly created grain context.</returns>
+        /// <param name="address"> grain 地址。</param>
+        /// <param name="configureActions">配置前上下文的动作 grain 建筑工程开始</param>
+        /// <returns>新建的 grain 上下文。</returns>
         public IGrainContext CreateContext(GrainAddress address, IConfigureGrainContext[] configureActions);
     }
 
     /// <summary>
-    /// Provides a <see cref="IConfigureGrainContext"/> instance for the provided grain type.
+    /// 提供a <see cref="IConfigureGrainContext"/> 提供的情况 grain 类型。
     /// </summary>
     public interface IConfigureGrainContextProvider
     {
         /// <summary>
-        /// Provides a <see cref="IConfigureGrainContext" /> instance for the provided grain type.
+        /// 提供a <see cref="IConfigureGrainContext" /> 提供的情况 grain 类型。
         /// </summary>
-        /// <param name="grainType">Type of the grain.</param>
-        /// <param name="properties">The grain properties.</param>
-        /// <param name="configurator">The configuration provider.</param>
-        /// <returns><see langword="true"/> if a configuration provider was found, <see langword="false"/> otherwise.</returns>
+        /// <param name="grainType">类型 grain.</param>
+        /// <param name="properties"> grain 属性。</param>
+        /// <param name="configurator">配置提供者。</param>
+        /// <returns><see langword="true"/> 如果找到配置供应商,则 <see langword="false"/> 。</returns>
         bool TryGetConfigurator(GrainType grainType, GrainProperties properties, [NotNullWhen(true)] out IConfigureGrainContext? configurator);
     }
 
     /// <summary>
-    /// Configures the provided grain context.
+    /// 配置所提供的 grain 上下文。
     /// </summary>
     public interface IConfigureGrainContext
     {
         /// <summary>
-        /// Configures the provided grain context.
+        /// 配置所提供的 grain 上下文。
         /// </summary>
-        /// <param name="context">The grain context.</param>
+        /// <param name="context"> grain 上下文。</param>
         void Configure(IGrainContext context);
     }
 
     /// <summary>
-    /// Resolves components which are common to all instances of a given grain type.
+    /// 确定特定类型 grain 的所有情况中通用的组件。
     /// </summary>
     public class GrainTypeSharedContextResolver
     {
@@ -169,11 +169,11 @@ namespace Orleans.Runtime
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainTypeSharedContextResolver"/> class.
+        /// 初始化 <see cref="GrainTypeSharedContextResolver"/> 类的新实例。
         /// </summary>
-        /// <param name="configurators">The grain type component configuration providers.</param>
-        /// <param name="grainPropertiesResolver">The grain properties resolver.</param>
-        /// <param name="serviceProvider">The service provider.</param>
+        /// <param name="configurators">下 grain 类型 构件配置提供者。</param>
+        /// <param name="grainPropertiesResolver"> grain 属性解析器。</param>
+        /// <param name="serviceProvider">服务供应商。</param>
         public GrainTypeSharedContextResolver(
             IEnumerable<IConfigureGrainTypeComponents> configurators,
             GrainPropertiesResolver grainPropertiesResolver,
@@ -186,10 +186,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns shared grain components for the provided grain type.
+        /// 共享的回返 grain 提供的组件 grain 类型。
         /// </summary>
-        /// <param name="grainType">The grain type.</param>
-        /// <returns>The shared context for all grains of the provided type.</returns>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <returns>人人共享的共同环境 grains 提供的类型。</returns>
         public GrainTypeSharedContext GetComponents(GrainType grainType) => _components.GetOrAdd(grainType, _createFunc);
 
         private GrainTypeSharedContext Create(GrainType grainType)
@@ -207,16 +207,16 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Configures shared components which are common for all instances of a given grain type.
+    /// 配置共享组件,这些组件在给定 grain 类型的所有情况下都是常见的。
     /// </summary>
     public interface IConfigureGrainTypeComponents
     {
         /// <summary>
-        /// Configures shared components which are common for all instances of a given grain type.
+        /// 配置共享组件,这些组件在给定 grain 类型的所有情况下都是常见的。
         /// </summary>
-        /// <param name="grainType">The grain type.</param>
-        /// <param name="properties">The grain properties.</param>
-        /// <param name="shared">The shared context for all grains of the specified type.</param>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <param name="properties"> grain 属性。</param>
+        /// <param name="shared">人人共享的共同环境 grains 指定类型。</param>
         void Configure(GrainType grainType, GrainProperties properties, GrainTypeSharedContext shared);
     }
 
@@ -262,9 +262,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns interleave predicate depending on whether class is marked with <see cref="MayInterleaveAttribute"/> or not.
+        /// 返回跨叶前端,取决于类是否标有 <see cref="MayInterleaveAttribute"/> 。
         /// </summary>
-        /// <param name="grainType">Grain class.</param>
+        /// <param name="grainType">Grain 类.</param>
         private static IMayInterleavePredicate? GetMayInterleavePredicate(Type grainType)
         {
             var attribute = grainType.GetCustomAttribute<MayInterleaveAttribute>();
@@ -273,7 +273,7 @@ namespace Orleans.Runtime
                 return null;
             }
 
-            // here
+            // 此处
             var callbackMethodName = attribute.CallbackMethodName;
             var method = grainType.GetMethod(callbackMethodName, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
             if (method == null)

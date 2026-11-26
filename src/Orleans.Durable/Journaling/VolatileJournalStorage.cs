@@ -9,7 +9,7 @@ using Orleans.Storage;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Provides shared in-memory journal storage instances identified by journal id.
+/// 提供由日记id所查明的共享的模拟日记存储实例。
 /// </summary>
 public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJournalStorageCatalog
 {
@@ -22,7 +22,7 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     private readonly VolatileJournalStorageOptions _storageOptions = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="VolatileJournalStorageProvider"/> class using the default journal format.
+    /// 使用默认日记格式初始化 <see cref="VolatileJournalStorageProvider"/> 类的新实例。
     /// </summary>
     public VolatileJournalStorageProvider()
     {
@@ -30,9 +30,9 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="VolatileJournalStorageProvider"/> class.
+    /// 初始化 <see cref="VolatileJournalStorageProvider"/> 类的新实例。
     /// </summary>
-    /// <param name="options">The journaled state manager options.</param>
+    /// <param name="options">被记录的国家管理选项。</param>
     public VolatileJournalStorageProvider(IOptions<JournaledStateManagerOptions> options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -41,10 +41,10 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     }
 
     /// <summary>
-    /// Initializes an in-memory provider using the configured Orleans metrics meter.
+    /// 使用配置的 Orleans 公尺计量表初始化一个模拟供应商。
     /// </summary>
-    /// <param name="options">The journaled state manager options.</param>
-    /// <param name="instruments">The Orleans runtime metrics meter.</param>
+    /// <param name="options">被记录的国家管理选项。</param>
+    /// <param name="instruments">运行时 Orleans 公 计。</param>
     public VolatileJournalStorageProvider(IOptions<JournaledStateManagerOptions> options, OrleansInstruments instruments)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -54,11 +54,11 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     }
 
     /// <summary>
-    /// Initializes an in-memory provider with configurable snapshot thresholds.
+    /// 初始化了一个具有可配置快照阈值的模拟供应商。
     /// </summary>
-    /// <param name="options">The journaled state manager options.</param>
-    /// <param name="storageOptions">The provider's snapshot thresholds.</param>
-    /// <param name="instruments">The optional Orleans runtime metrics meter.</param>
+    /// <param name="options">被记录的国家管理选项。</param>
+    /// <param name="storageOptions">供应商的快照门槛</param>
+    /// <param name="instruments">任选 Orleans 运行时公尺计。</param>
     public VolatileJournalStorageProvider(
         IOptions<JournaledStateManagerOptions> options,
         IOptions<VolatileJournalStorageOptions> storageOptions,
@@ -169,37 +169,37 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
 }
 
 /// <summary>
-/// An in-memory, volatile implementation of <see cref="IJournalStorage"/> for non-durable use cases, such as development and testing.
+/// 用于非耐用用途的 <see cref="IJournalStorage"/> 在开发和测试等情况下的模拟、不稳定实施。
 /// </summary>
 public sealed class VolatileJournalStorage : IJournalStorage
 {
     private readonly Store _store;
-    // Null until read or creation, zero for an absent journal.
+    // 读取或创建前不为空日记本, 零 。
     private long? _writeVersion;
     private readonly int _maxAppendsBeforeSnapshot;
     private readonly long _maxBytesBeforeSnapshot;
     private string? _configuredJournalFormatKey;
 
     /// <summary>
-    /// Initializes a new isolated in-memory journal storage instance using the default journal format.
+    /// 使用默认日记格式初始化一个新的孤立的日记存储实例。
     /// </summary>
     public VolatileJournalStorage() : this(new Store(CreateVolatileStorageId()), journalFormatKey: null)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="VolatileJournalStorage"/> class.
+    /// 初始化 <see cref="VolatileJournalStorage"/> 类的新实例。
     /// </summary>
-    /// <param name="journalFormatKey">The journal format key to stamp on writes.</param>
+    /// <param name="journalFormatKey">日记写时要加盖的密钥 。</param>
     public VolatileJournalStorage(string? journalFormatKey) : this(new Store(CreateVolatileStorageId()), journalFormatKey)
     {
     }
 
     /// <summary>
-    /// Initializes an isolated in-memory journal with configurable snapshot thresholds.
+    /// 初始化一个带有可配置快照阈值的孤立的模拟日记。
     /// </summary>
-    /// <param name="journalFormatKey">The journal format key to stamp on writes.</param>
-    /// <param name="options">The snapshot thresholds.</param>
+    /// <param name="journalFormatKey">日记写时要加盖的密钥 。</param>
+    /// <param name="options">快速阈值。</param>
     public VolatileJournalStorage(string? journalFormatKey, VolatileJournalStorageOptions options)
         : this(new Store(CreateVolatileStorageId()), journalFormatKey, options ?? throw new ArgumentNullException(nameof(options)))
     {
@@ -397,7 +397,7 @@ public sealed class VolatileJournalStorage : IJournalStorage
         return default;
     }
 
-    // Callers hold the store lock.
+    // 打电话的人守着商店锁
     private void ThrowIfVersionChanged(string operation)
     {
         if (_writeVersion is null)
@@ -425,7 +425,7 @@ public sealed class VolatileJournalStorage : IJournalStorage
 
         public long AppendCount { get; set; }
 
-        // List count and each stored array length fit in int, so their total fits in long.
+        // 列表数和每个存储的阵列长度都与内装相容,所以总合长。
         public long AppendedBytes { get; set; }
 
         public Dictionary<string, string> Properties { get; } = new(StringComparer.Ordinal);
@@ -436,7 +436,7 @@ public sealed class VolatileJournalStorage : IJournalStorage
 
         public long Version { get; private set; }
 
-        // Counts content changes (creation, writes, and deletion) so content versions are never reused; metadata updates leave it unchanged.
+        // 计及内容变化(创建、写作和删除),这样内容版本就永远不会被再利用;元数据更新保持不变。
         private long _contentChangeCount;
 
         public long ContentVersion => Exists ? _contentChangeCount : 0;

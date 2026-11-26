@@ -22,7 +22,7 @@ using Xunit;
 namespace Tester.AzureUtils.Persistence
 {
     /// <summary>
-    /// Tests for Azure Table Storage persistence provider, including serialization formats and storage conversions.
+    /// Azure 表格存储持久性提供者测试,包括序列格式和储存转换。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestCategory("Persistence")]
@@ -228,8 +228,8 @@ namespace Tester.AzureUtils.Persistence
         [InlineData(15 * 32 * 1024 - 256, false, true)]
         public async Task PersistenceProvider_Azure_ChangeStorageDataFormat_WhenJsonSerializerIsUsed(int? stringLength, bool useStringFormatForFirstWrite, bool useStringFormatForSecondWrite)
         {
-            // always use JsonSerializer over OrleansSerializer since specifying 'useStringFormat = true'
-            // writes to 'StringData', the OrleansSerializer can not read from the 'StringData' column as its not a format which it expects.
+            // 总是使用 JsonSerializer 超过 OrleansSerializer 后具体说明useStringFormat 真实
+            // 写入到 ' to'StringData', the OrleansSerializer 无法从 '' 读取StringData'列不是它期望的格式。
             const bool useJson = true;
 
             var testName = string.Format("{0}({1}={2},{3}={4},{5}={6})",
@@ -329,7 +329,7 @@ namespace Tester.AzureUtils.Persistence
                 NullLoggerFactory.Instance,
                 providerRuntime.ServiceProvider.GetRequiredService<IGrainFactory>(),
                 providerRuntime.ServiceProvider.GetRequiredService<IActivatorProvider>(),
-                // No storage serializer is registered here, and MockCallsOnly prevents it from being used.
+                // 这里没有存储序列器登记, MockCallsOnly 阻止它被使用。
                 providerRuntime.ServiceProvider.GetService<IGrainStorageSerializer>()!);
 
             var reference = (GrainId)LegacyGrainId.NewId();
@@ -357,7 +357,7 @@ namespace Tester.AzureUtils.Persistence
         {
             string className = typeof(MockStorageProvider).FullName!;
             Type classType = new CachedTypeResolver().ResolveType(className);
-            Assert.NotNull(classType); // Type
+            Assert.NotNull(classType); // 类型类型
             Assert.True(typeof(IGrainStorage).IsAssignableFrom(classType), $"Is an IStorageProvider : {classType.FullName}");
         }
 
@@ -379,7 +379,7 @@ namespace Tester.AzureUtils.Persistence
             options.UseStringFormat = useStringFormat;
             options.DeleteStateOnClear = deleteStateOnClear;
 
-            // TODO change test to include more serializer?
+            // TODO 更改测试是否包含更多序列器?
             var binarySerializer = new OrleansGrainStorageSerializer(this.providerRuntime.ServiceProvider.GetRequiredService<Serializer>());
             var jsonSerializer = new JsonGrainStorageSerializer(new OrleansJsonSerializer(jsonOptions));
             if (useFallback)

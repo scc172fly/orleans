@@ -3,13 +3,13 @@ using Chirper.Grains.Models;
 namespace Chirper.Grains;
 
 /// <summary>
-/// Orleans observer interface IChirperSubscriber.
+/// Orleans 观察员接口 IChirperSubscriber。
 /// </summary>
 public interface IChirperSubscriber : IGrainWithStringKey
 {
     /// <summary>
-    /// Notification that a new Chirp has been received.
+    /// 收到新的通知。
     /// </summary>
-    /// <param name="chirp">Chirp message entry.</param>
+    /// <param name="chirp">尖锐的邮件条目。</param>
     Task NewChirpAsync(ChirperMessage chirp);
 }

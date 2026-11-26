@@ -1,35 +1,41 @@
-# Orleans shopping cart on Azure App Service
+<a id="orleans-shopping-cart-on-azure-app-service"></a>
 
-This sample deploys a multi-instance Orleans shopping cart to either Windows or Linux [Azure App Service](https://learn.microsoft.com/azure/app-service/overview). It demonstrates:
+# Orleans 购物车 Azure 服务处处长
 
-- Three App Service workers running a cohosted ASP.NET Core app and Orleans silo.
-- Per-instance Orleans endpoints discovered from `WEBSITE_PRIVATE_IP` and `WEBSITE_PRIVATE_PORTS`.
-- Separate production and staging virtual network integration subnets.
-- Azure Table Storage clustering and grain state using a user-assigned managed identity.
-- App Service Health check, startup warm-up, graceful shutdown, and slot-based rollout.
-- Microsoft Entra authentication and app-role authorization for product administration.
-- Application Insights logging and request/dependency telemetry.
-- GitHub Actions deployment using OpenID Connect (OIDC) instead of a deployment client secret.
+此样本会部署多个程序 Orleans 以 Windows 或 Linux 格式购买购物车 [Azure 服务处](https://learn.microsoft.com/azure/app-service/overview)这表明:
+
+- 三名应用程序服务工人共同主持一个 ASP.NET 核心应用和 Orleans silo。
+- Per-instance Orleans 从 `WEBSITE_PRIVATE_IP` 和 `WEBSITE_PRIVATE_PORTS`.
+- 单独生产和运行虚拟网络整合子网。
+- Azure 表格存储组合和 grain 状态使用用户指定的管理身份。
+- 健康检查、启动热身、优雅的关闭和基于空档的推出。
+- Microsoft 产品管理方面的认证和兼并授权。
+- 应用透视记录和请求/依赖遥测。
+- GitHub 使用 OpenID 连接(OIDC)而不是部署客户端秘密来部署行动。
 
 > [!IMPORTANT]
-> App Service HTTP scale-out isn't sufficient for Orleans by itself. The sample allocates one private silo port per instance and uses regional virtual network integration so silos can connect directly over TCP.
+> 应用 HTTP 服务扩大规模本身并不足以满足 Orleans 。 样本为每个实例分配一个私人 silo 端口,并使用区域虚拟网络整合,以便 silos 能够直接通过 TCP 连接。
 
-## Choose a platform
+<a id="choose-a-platform"></a>
 
-Both entry points call the shared modules under `infra/flex` and deploy the same application:
+## 选择平台
 
-| Platform | Template | Platform-specific configuration |
+两个入境点在 `infra/flex` 下调用共享模块,并部署同样的应用程序:
+
+| 平台平台平台平台 | 模板模板模板模板 | 平台组合 |
 | --- | --- | --- |
-| Windows | `infra/windows/main.bicep` | Windows App Service plan and `netFrameworkVersion` |
-| Linux | `infra/linux/main.bicep` | Linux plan with `reserved: true` and `linuxFxVersion` |
+| 视窗 | `infra/windows/main.bicep` | WindowsApp服务计划和 `netFrameworkVersion` |
+| 林勒 | `infra/linux/main.bicep` | Linux计划,与 `reserved: true` 和 `linuxFxVersion` |
 
-Both platforms advertise the dynamically allocated private address and ports while listening on all local interfaces. Each worker uses the read-only `WEBSITE_INSTANCE_ID` as its Orleans silo name for diagnostics. Before using either topology in production, scale it out and verify direct TCP reachability between every advertised silo endpoint.
+两个平台都刊登动态分配的私人地址和港口广告,同时倾听所有本地界面。每个工人使用只读 `WEBSITE_INSTANCE_ID` 的名称作为诊断的 Orleans silo 名称。在使用生产中的两种地貌之前,先扩大范围,核实每个广告的 silo 终点之间的直接TCP可达性。
 
-ZIP deployment places the published files in `D:\home\site\wwwroot` on Windows and `/home/site/wwwroot` on Linux. The application doesn't depend on either path or persist grain state there; durable state is stored in Azure Table Storage.
+ZIP 部署后, 将已公布文件存放在 Windows `D:\home\site\wwwroot` 和 Linux `/home/site/wwwroot` 上。 应用程序并不取决于路径或持续状态 grain ; 耐久状态存储于 Azure 表存储中 。
 
-## Run locally
+<a id="run-locally"></a>
 
-The repository's `global.json` selects the required .NET SDK.
+## 本地运行本地
+
+存储库的 `global.json` 选择所需的 .NET SDK。
 
 ```powershell
 dotnet run `
@@ -37,26 +43,30 @@ dotnet run `
   --environment ASPNETCORE_ENVIRONMENT=Development
 ```
 
-Development mode intentionally uses localhost clustering and in-memory state. Every other environment requires App Service's private endpoint variables and Azure Storage configuration; it never falls back to a single-host production cluster.
+开发模式有意使用本地主机群集和模拟状态。 其他环境都需要应用程序服务处的私人端点变量和 Azure 存储配置;它永远不会回到单一主机生产集群。
 
-The storefront remains available locally, but product management is unavailable because local execution doesn't have the trusted `X-MS-CLIENT-PRINCIPAL` header injected by App Service Authentication.
+商店前台仍然可以在当地使用,但产品管理无法进行,因为当地执行没有应用服务认证所注入的可信赖 `X-MS-CLIENT-PRINCIPAL` 头。
 
-## Configure Microsoft Entra authentication
+<a id="configure-microsoft-entra-authentication"></a>
 
-Create a Microsoft Entra app registration for [App Service Authentication](https://learn.microsoft.com/azure/app-service/overview-authentication-authorization):
+## 配置 Microsoft Entra 认证
 
-1. Add an app role with value `ProductAdministrator` and allow users or groups.
-1. Create a client secret and record its value.
-1. Assign the app role to product administrators through the enterprise application.
-1. Add production and staging Web redirect URIs ending in `/.auth/login/aad/callback`.
+创建 Microsoft Entra App 注册 [App 服务验证](https://learn.microsoft.com/azure/app-service/overview-authentication-authorization):
 
-The exact production and staging hostnames are deployment outputs. You can deploy the infrastructure first, add those redirect URIs, and then deploy the application.
+1. 添加一个带有值 `ProductAdministrator` 并允许用户或组的应用程序角色。
+1. 创建客户名秘密并记录其价值。
+1. 通过企业应用程序指定产品管理员发挥应用功能。
+1. 添加生产和中继网络重定向的URIs, 结尾处为 `/.auth/login/aad/callback`。
 
-App Service Authentication allows anonymous storefront traffic. The application trusts only the platform-injected principal header, protects the `/products` route, hides its navigation item from unauthorized users, and repeats authorization in `ProductService` before mutating grain state. The silo disables its Orleans client gateway, so catalog mutations can't bypass those checks through a direct Orleans client connection.
+生产和中继主机名是部署输出。 您可以首先部署基础设施, 添加那些重置的磁共振和再安装应用程序 。
 
-## Deploy manually
+App Servication 验证允许匿名的商店前端交通。 应用程序只信任平台输入的主信头, 保护 `/products` 中,隐藏导航物项,使其不被未经授权的用户使用,并重复授权 `ProductService` 突变前 grain 状态。 silo 禁用其 Orleans 客户端门户, 所以目录突变无法通过直接 Orleans 客户端连接。
 
-Install the [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli), sign in, and choose an operating system:
+<a id="deploy-manually"></a>
+
+## 手动部署
+
+安装 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli),签名并选择操作系统:
 
 ```powershell
 $location = "westus3"
@@ -71,14 +81,14 @@ az login
 az group create --name $resourceGroup --location $location
 ```
 
-For Linux, confirm that the target region offers the configured built-in .NET runtime:
+对于Linux, 确认目标区域提供配置的内置 .NET 运行时间 :
 
 ```powershell
 az webapp list-runtimes --os linux |
   Select-String "DOTNETCORE"
 ```
 
-Deploy the selected template:
+部署选中模板 :
 
 ```powershell
 az deployment group create `
@@ -92,11 +102,11 @@ az deployment group create `
     authenticationClientSecret=$authenticationClientSecret
 ```
 
-The secret parameter is marked `@secure()` so Azure doesn't retain its value in deployment history. For production, rotate it before expiration and prefer a Key Vault reference or separate app registrations for production and staging.
+密参数被标记 `@secure()` ,所以 Azure 在部署历史中不会保留其价值。对于生产,在到期前旋转它,并选择键跳跳板参考或单独注册生产和中转的应用程序。
 
-The initial deployment is a bootstrap operation. Its identity needs permission to create resources and role assignments. The template grants the application's user-assigned managed identity **Storage Table Data Contributor** on the sample storage account.
+初始部署是一种诱导操作,其身份需要许可才能创建资源和角色分配。模板提供应用程序用户指定的管理身份 **存储表格数据贡献器** 样本存储账户。
 
-Publish and deploy to staging:
+发布并部署到中转站:
 
 ```powershell
 $publish = Join-Path $env:TEMP "orleans-shopping-cart-publish"
@@ -121,7 +131,7 @@ az webapp deploy `
   --restart true
 ```
 
-Read the exact staging hostname and verify readiness:
+读取确切的中位主机名并验证准备状态:
 
 ```powershell
 $stagingHost = az webapp show `
@@ -134,7 +144,7 @@ $stagingHost = az webapp show `
 Invoke-WebRequest "https://$stagingHost/health/ready"
 ```
 
-Add both callback URLs to the app registration, then swap staging into production:
+将回调的 URL 添加到应用程序注册中, 然后交换进入生产阶段:
 
 ```powershell
 az webapp deployment slot swap `
@@ -144,67 +154,77 @@ az webapp deployment slot swap `
   --target-slot production
 ```
 
-Managed identity role assignments can take several minutes to propagate after the first infrastructure deployment.
+管理下的身份角色分配在第一批基础设施部署后可能需要几分钟才能推广。
 
-## Configure GitHub Actions
+<a id="configure-github-actions"></a>
 
-Complete the [manual infrastructure deployment](#deploy-manually) once with its default `assignStorageRoles=true` before using the routine workflow. The checked-in workflow deliberately passes `assignStorageRoles=false` so its OIDC identity doesn't need permission to create role assignments; it isn't a bootstrap workflow.
+## 配置 GitHub 动作
 
-Copy [`infra/deploy.yml`](infra/deploy.yml) to `.github/workflows/deploy-app-service.yml`.
+完成 [人工手工基础设施安装](#deploy-manually) 一次违约 `assignStorageRoles=true` 在使用常规工作流程之前,入帐工作流程会故意通过 `assignStorageRoles=false` 所以它的身份不需要获得许可 来创造角色分配; 它不是一个陷阱工作流程。
 
-Configure [GitHub OIDC federation for Azure](https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect) for the `production` environment and add these environment variables:
+复制 [`infra/deploy.yml`](infra/deploy.yml) 到 `.github/workflows/deploy-app-service.yml`。
 
-| Variable | Value |
+配置 [GitHub COIDC 联邦 Azure](https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect) 环境 `production` ,并添加这些环境变量:
+
+| 变量 | 价值值值 |
 | --- | --- |
-| `AUTHENTICATION_CLIENT_ID` | App Service Authentication app-registration client ID |
-| `AUTHENTICATION_TENANT_ID` | Microsoft Entra tenant ID for user authentication |
-| `AZURE_APP_NAME` | Globally unique App Service name |
-| `AZURE_APP_SERVICE_OS` | `windows` or `linux` |
-| `AZURE_CLIENT_ID` | Client ID of the federated deployment identity |
-| `AZURE_RESOURCE_GROUP_LOCATION` | Azure region |
-| `AZURE_RESOURCE_GROUP_NAME` | Existing target resource group |
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
-| `AZURE_TENANT_ID` | Microsoft Entra tenant ID for Azure deployment |
+| `AUTHENTICATION_CLIENT_ID` | App Service App Servication 验证应用程序登记客户身份 |
+| `AUTHENTICATION_TENANT_ID` | Microsoft 用于用户认证的 Entra 租户身份识别 |
+| `AZURE_APP_NAME` | 全球唯一全球通用的应用程序服务名称 |
+| `AZURE_APP_SERVICE_OS` | `windows` 或 `linux` |
+| `AZURE_CLIENT_ID` | 联邦部署身份的客户身份 |
+| `AZURE_RESOURCE_GROUP_LOCATION` | Azure 区域 |
+| `AZURE_RESOURCE_GROUP_NAME` | 现有目标资源组 |
+| `AZURE_SUBSCRIPTION_ID` | Azure 订阅编号 |
+| `AZURE_TENANT_ID` | Microsoft 部署 Azure 的承租人身份证 |
 
-Add `AUTHENTICATION_CLIENT_SECRET` as a GitHub environment secret. This secret is for App Service user authentication; GitHub's Azure deployment uses OIDC and doesn't use a client secret.
+添加添加添加 `AUTHENTICATION_CLIENT_SECRET` 以 a 作为 GitHub 环境机密。 这个秘密用于 App Service 用户验证; GitHub's Azure 使用 OIDC , 不使用客户端秘密 。
 
-The workflow requests only `contents: read` and `id-token: write`. It deploys with `assignStorageRoles=false`, so its Azure identity doesn't need permission to create role assignments after bootstrap. Grant it **Contributor** on the target resource group, or preferably a custom role limited to the resources in the Bicep template.
+工作流程只要求 `contents: read` 和 `id-token: write`。它与 `assignStorageRoles=false`一起部署,因此其 Azure 身份不需要获得许可即可在靴子圈后设立角色分配。请给目标资源组 **贡献者** ,或最好仅对Bicep模板中的资源有定制作用。
 
-## Upgrade an existing Windows deployment
+<a id="upgrade-an-existing-windows-deployment"></a>
 
-The Windows template preserves the existing App Service plan and storage account names, the `ShoppingCartService` service ID, the `Default` and `Staging` cluster IDs, and existing membership and persistence table names.
+## 更新现有 Windows 部署
 
-If an existing deployment still uses a storage account key, don't run the full template first. Migrate in this order:
+视窗模板保留了现有的应用程序服务计划和存储账户名称、 `ShoppingCartService` 服务编号、 `Default` 和 `Staging` 群集标识,以及现有成员和持久性表格名称。
 
-1. Create `${appName}-identity`, assign it to the app and `${appName}stg` slot, and grant it **Storage Table Data Contributor** on `${appName}storage`.
-1. Merge `AZURE_CLIENT_ID`, `ORLEANS_AZURE_STORAGE_URI`, `ORLEANS_SERVICE_ID=ShoppingCartService`, and the existing slot-specific cluster IDs into both slots.
-1. Deploy the managed-identity build to staging, wait for readiness, and swap it into production.
-1. Keep shared-key access enabled for the rollback window because the former production build now runs in staging.
-1. After both slots run the managed-identity build, deploy `infra/windows/main.bicep` with `allowSharedKeyAccess=false assignStorageRoles=false`.
+如果现有的部署仍然使用存储账户密钥, 不要先运行完整模板。 按此顺序移动 :
 
-Don't change an existing App Service plan between Windows and Linux. Deploy a separate app and migrate traffic instead.
+1. 创建 `${appName}-identity`,将其指定到应用程序和 `${appName}stg` 槽中,并准予它 **存储表数据贡献器** 在 `${appName}storage`上。
+1. 将 `AZURE_CLIENT_ID`、 `ORLEANS_AZURE_STORAGE_URI`、 `ORLEANS_SERVICE_ID=ShoppingCartService`和现有具体空档组号编号合并为两个空档。
+1. 部署管理下的身份结构 进行集结,等待准备状态, 并转换成生产。
+1. 保持为回缩窗口启用的共享密钥访问, 因为前生产结构正在运行中。
+1. 部署两个空档后, `infra/windows/main.bicep` 与 `allowSharedKeyAccess=false assignStorageRoles=false`.
 
-## Operational behavior
+不要改变Windows和Linux之间的现有应用程序服务计划。 使用单独的应用程序和迁移交通 。
 
-- Production and staging use separate delegated subnets and slot-sticky cluster IDs.
-- Both slots retain the stable `ShoppingCartService` service ID across deployments.
-- Each cluster uses separate Azure Table membership and grain-state tables.
-- The app returns readiness only after the host and silo start, and removes readiness before shutdown.
-- The host allows up to 30 seconds for Orleans shutdown. App Service can terminate a worker sooner, so correctness must tolerate silo loss and unknown call outcomes.
-- HTTPS and TLS settings protect HTTP ingress. Orleans private silo TCP traffic isn't encrypted by this sample; add Orleans TLS if the threat model requires transport encryption inside the virtual network.
-- Application Insights receives ASP.NET Core, dependency, exception, application, and Orleans logs.
-- Linux App Service runs Easy Auth in a sidecar container; Windows uses the in-process App Service module. Both inject the same principal header contract.
-- `DOTNETCORE|10.0`, `v10.0`, and `net10.0` are deployment literals, not Orleans product-version branding.
+<a id="operational-behavior"></a>
 
-For complete platform guidance, see:
+## 操作行为
 
-- [Deploy Orleans to Azure App Service on Windows](https://dotnet.github.io/orleans/docs/deployment/deploy-to-azure-app-service/)
-- [Deploy Orleans to Azure App Service on Linux](https://dotnet.github.io/orleans/docs/deployment/deploy-to-azure-app-service-linux/)
+- 生产和中转使用不同的分权子网和固定档的集群识别码。
+- 两个空缺职位在部署期间保留稳定的 `ShoppingCartService` 服务代号。
+- 每个组群使用单独的 Azure 表格成员和 grain- 国家表格。
+- 应用程序只在主机和 silo 启动后返回准备状态,并在关闭前取消准备状态。
+- 最多30秒 Orleans 关闭。 App Service 可以提前解雇工人, 所以正确性必须容忍 silo 和未知的通话结果。
+- HTTPS 和 TLS 设置保护 HTTP 入侵。 Orleans 私有 silo TCP 流量不在此样本加密; 如果威胁模式要求在虚拟网络内进行运输加密, 请添加 Orleans TLS 。
+- 应用程序 Insight 接收 ASP.NET 核心、扶养、例外、申请和 Orleans 日志。
+- Linux App Service在侧车集装箱内操作易读文件; Windows 使用程序内应用程序服务模块。两个软件都输入相同的主信头合同 。
+- `DOTNETCORE|10.0`, `v10.0`,和 `net10.0` 是部署字面, 不是 Orleans 产品转换品牌。
 
-## Application model
+完整的平台指导,见:
 
-The product ID passed to `GetGrain<IProductGrain>(product.Id)` is the product grain's identity. The `[Id(n)]` attributes on `ProductDetails` identify serialized fields for Orleans's version-tolerant serializer; they don't define grain identity.
+- [在 Windows 上部署 Orleans 到 Azure 应用程序服务](https://dotnet.github.io/orleans/docs/deployment/deploy-to-azure-app-service/)
+- [部署 Orleans 到 Linux 上的 Azure 应用服务](https://dotnet.github.io/orleans/docs/deployment/deploy-to-azure-app-service-linux/)
 
-## Acknowledgements
+<a id="application-model"></a>
 
-This sample derives from [IEvangelist/orleans-shopping-cart](https://github.com/IEvangelist/orleans-shopping-cart) and was imported from [Azure-Samples/Orleans-Cluster-on-Azure-App-Service](https://github.com/Azure-Samples/Orleans-Cluster-on-Azure-App-Service). Product-administration authorization incorporates the defense-in-depth design from [Azure-Samples PR #13](https://github.com/Azure-Samples/Orleans-Cluster-on-Azure-App-Service/pull/13). The original MIT license is preserved in this directory.
+## 应用模型
+
+产品编号传递给 `GetGrain<IProductGrain>(product.Id)` 是产品 grain身份的身份。 `[Id(n)]` 属性的属性 `ProductDetails` 指定用于 Orleans耐版本的连续播放器; 它们没有定义 grain 身份。
+
+<a id="acknowledgements"></a>
+
+## 致谢
+
+本样本来自 [IEvangelist/orleans-shopping-cart](https://github.com/IEvangelist/orleans-shopping-cart) ,从 [Azure-Samples/Orleans-Cluster-on-Azure-App-Service](https://github.com/Azure-Samples/Orleans-Cluster-on-Azure-App-Service)进口。产品管理授权包括了 [Azure- 样片 PPR #13](https://github.com/Azure-Samples/Orleans-Cluster-on-Azure-App-Service/pull/13)的深入国防设计。本目录保留了麻省理工学院最初许可证。

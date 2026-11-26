@@ -35,8 +35,8 @@ public sealed class FulfillmentGrain : DurableGrain, IFulfillmentGrain
     {
         await Reserve(orderId).WithId("reserve");
 
-        // Version 0 is the code which shipped through the warehouse. Version 1 books a carrier, and version 2 also
-        // notifies the customer. Pending executions keep the version which they recorded.
+        // 版本0是经由仓库发运的代码。版本1载有承运人,版本2也包含承运人
+        // 通知客户,等待处决时保留其记录版本。
         var shipping = DurableTask.GetVersion("carrier-booking", minSupported: 0, maxSupported: 2);
         if (shipping >= 1)
         {
@@ -63,7 +63,7 @@ public sealed class DescribedFulfillmentGrain : DurableGrain, IFulfillmentGrain
     private IWarehouseGrain Warehouse => GrainFactory.GetGrain<IWarehouseGrain>("main");
 
     // <durable_tasks_versioning_descriptor>
-    // One declaration states the change's name and the versions which this code supports.
+    // 一份声明声明更改名称和该代码支持的版本。
     private static readonly DurableVersion CarrierBooking = new("carrier-booking", minSupported: 0, maxSupported: 2);
 
     public async DurableTask<string> FulfillAsync(string orderId)
@@ -93,8 +93,8 @@ public sealed class RetiredFulfillmentGrain : DurableGrain, IFulfillmentGrain
     {
         await Reserve(orderId).WithId("reserve");
 
-        // No pending execution follows version 0, so the warehouse branch is gone. An execution which recorded version
-        // 0 stalls here until code which supports it replays it, or until an operator aborts it.
+        // 零版后没有待执行的执行,所以仓库分支已不复存在。
+        // 0个在这里拖放,直到支持它代码的代码重播,或者直到操作员中止。
         var shipping = DurableTask.GetVersion("carrier-booking", minSupported: 1, maxSupported: 2);
         var trackingId = await Carrier.BookAsync(orderId).WithId("book");
         if (shipping >= 2)
@@ -122,7 +122,7 @@ public sealed class VersionMonitor : IObserver<DurableTaskEvents.DurableTaskEven
         switch (value)
         {
             case DurableTaskEvents.VersionRecorded recorded:
-                // Executions which record an old version show that it is still in use.
+                // 记录旧版本的处决显示它仍在使用中。
                 lock (_recorded)
                 {
                     _recorded[(recorded.Name, recorded.Version)] = _recorded.GetValueOrDefault((recorded.Name, recorded.Version)) + 1;
@@ -130,7 +130,7 @@ public sealed class VersionMonitor : IObserver<DurableTaskEvents.DurableTaskEven
 
                 break;
             case DurableTaskEvents.ExecutionStalled stalled:
-                // Reason is UnsupportedVersion or Diverged; the task stays pending until code which can replay it runs.
+                // 原因 UnsupportedVersion 或分歧;任务一直等待到代码重放为止。
                 Console.WriteLine($"{stalled.GrainContext.GrainId} {stalled.TaskId} stalled ({stalled.Reason}): {stalled.Exception.Message}");
                 break;
         }

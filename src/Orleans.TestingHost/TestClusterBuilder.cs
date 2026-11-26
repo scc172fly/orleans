@@ -12,7 +12,7 @@ using Orleans.Runtime;
 
 namespace Orleans.TestingHost
 {
-    /// <summary>Configuration builder for starting a <see cref="TestCluster"/>.</summary>
+    /// <summary>启动 <see cref="TestCluster"/>的配置构建器。</summary>
     public class TestClusterBuilder
     {
         private readonly List<Action<IConfigurationBuilder>> configureHostConfigActions = new List<Action<IConfigurationBuilder>>();
@@ -22,7 +22,7 @@ namespace Orleans.TestingHost
         private TestCluster? _cluster;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="TestClusterBuilder"/> using the default options.
+        /// 使用默认选项初始化一个 <see cref="TestClusterBuilder"/> 新实例。
         /// </summary>
         public TestClusterBuilder()
             : this(2)
@@ -30,9 +30,9 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="TestClusterBuilder"/> overriding the initial silos count.
+        /// 初始化一个 <see cref="TestClusterBuilder"/> 新实例,该例子将超越初始 silos 计数。
         /// </summary>
-        /// <param name="initialSilosCount">The number of initial silos to deploy.</param>
+        /// <param name="initialSilosCount">初始数 silos 部署。</param>
         public TestClusterBuilder(short initialSilosCount)
         {
             this.Options = new TestClusterOptions
@@ -52,23 +52,23 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Gets or sets the port allocator used to allocate consecutive silo ports.
+        /// 获取或设置用于分配连续 silo 端口的端口分隔符。
         /// </summary>
         public ITestClusterPortAllocator PortAllocator { get; set; } = new TestClusterPortAllocator();
 
         /// <summary>
-        /// Configuration values which will be provided to the silos and clients created by this builder.
+        /// 将提供给 silos 和由此构建器创建的客户端的配置值。
         /// </summary>
         public Dictionary<string, string?> Properties { get; } = new Dictionary<string, string?>();
 
         /// <summary>
-        /// Gets the options.
+        /// 获得选项。
         /// </summary>
-        /// <value>The options.</value>
+        /// <value>选项。</value>
         public TestClusterOptions Options { get; }
 
         /// <summary>
-        /// Gets or sets the delegate used to create and start an individual silo.
+        /// 获取或设置用于创建和启动个人 silo的代表。
         /// </summary>
         public Func<string, IConfiguration, Task<SiloHandle>> CreateSiloAsync
         {
@@ -77,13 +77,13 @@ namespace Orleans.TestingHost
             {
                 _createSiloAsync = value;
 
-                // The custom builder does not have access to the in-memory transport.
+                // 自定义建造者无法使用内装运输工具。
                 Options.ConnectionTransport = ConnectionTransportType.TcpSocket;
             }
         }
 
         /// <summary>
-        /// Gets or sets the cancellation-aware delegate used to create and start an individual silo.
+        /// 获取或设置用于创建和启动单个 silo的取消通知代表。
         /// </summary>
         public Func<string, IConfiguration, CancellationToken, Task<SiloHandle>> CreateSiloAsyncWithCancellation
         {
@@ -92,15 +92,15 @@ namespace Orleans.TestingHost
             {
                 _createSiloAsyncWithCancellation = value;
 
-                // The custom builder does not have access to the in-memory transport.
+                // 自定义建造者无法使用内装运输工具。
                 Options.ConnectionTransport = ConnectionTransportType.TcpSocket;
             }
         }
 
         /// <summary>
-        /// Adds a configuration delegate to the builder
+        /// 向构建器添加配置代表到配置
         /// </summary>        
-        /// <param name="configureDelegate">The configuration delegate.</param>
+        /// <param name="configureDelegate">配置代表。</param>
         public TestClusterBuilder ConfigureBuilder(Action configureDelegate)
         {
             this.configureBuilderActions.Add(configureDelegate ?? throw new ArgumentNullException(nameof(configureDelegate)));
@@ -108,12 +108,12 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Set up the configuration for the builder itself. This will be used as a base to initialize each silo host
-        /// for use later in the build process. This can be called multiple times and the results will be additive.
+        /// 为构建器本身设置配置。 这将用作初始化每个 silo 主机的基础
+        /// 用于构建过程中的后期使用。 这可以称为多次, 结果将是添加 。
         /// </summary>
-        /// <param name="configureDelegate">The delegate for configuring the <see cref="IConfigurationBuilder"/> that will be used
-        /// to construct the <see cref="IConfiguration"/> for the host.</param>
-        /// <returns>The same instance of the host builder for chaining.</returns>
+        /// <param name="configureDelegate">用于配置将使用的 <see cref="IConfigurationBuilder"/>
+        /// 要为主机构建 <see cref="IConfiguration"/> 。</param>
+        /// <returns>主机构建器的链条设置的相同实例。</returns>
         public TestClusterBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
         {
             this.configureHostConfigActions.Add(configureDelegate ?? throw new ArgumentNullException(nameof(configureDelegate)));
@@ -121,10 +121,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Adds an implementation of <see cref="ISiloConfigurator"/> or <see cref="IHostConfigurator"/> to configure silos created by the test cluster.
+        /// 添加 <see cref="ISiloConfigurator"/> 或 <see cref="IHostConfigurator"/> 的履行,以配置由测试组创建的 silos 。
         /// </summary>
-        /// <typeparam name="T">The configurator type.</typeparam>
-        /// <returns>The builder.</returns>
+        /// <typeparam name="T">配置类型。</typeparam>
+        /// <returns>建筑工。</returns>
         public TestClusterBuilder AddSiloBuilderConfigurator<T>() where T : new()
         {
             if (!typeof(ISiloConfigurator).IsAssignableFrom(typeof(T)) && !typeof(IHostConfigurator).IsAssignableFrom(typeof(T)))
@@ -137,10 +137,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Adds an implementation of <see cref="IClientBuilderConfigurator"/> or <see cref="IHostConfigurator"/> to configure the client created for the test cluster
+        /// 添加 <see cref="IClientBuilderConfigurator"/> 或 <see cref="IHostConfigurator"/> 的执行,以配置为测试组群创建的客户端
         /// </summary>
-        /// <typeparam name="T">The client builder type</typeparam>
-        /// <returns>The builder.</returns>
+        /// <typeparam name="T">客户端构建器类型</typeparam>
+        /// <returns>建筑工。</returns>
         public TestClusterBuilder AddClientBuilderConfigurator<T>() where T : new()
         {
             if (!typeof(IClientBuilderConfigurator).IsAssignableFrom(typeof(T)) && !typeof(IHostConfigurator).IsAssignableFrom(typeof(T)))
@@ -153,7 +153,7 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Builds this instance.
+        /// 构建此实例。
         /// </summary>
         /// <returns>TestCluster.</returns>
         public TestCluster Build()
@@ -177,8 +177,8 @@ namespace Orleans.TestingHost
             var finalOptions = new TestClusterOptions();
             configuration.Bind(finalOptions);
 
-            // Since the ClusterId & ServiceId properties are nested under the 'Orleans' section in the config,
-            // we bind the 'Orleans' section here to bind them to the options.
+            // 由于 ClusterId 和 ServiceId 属性被嵌入配置中的`Orleans' 部分,
+            // 我们把 ' 绑在一起Orleans将它们与选项捆绑在一起
             configuration.GetSection("Orleans").Bind(finalOptions);
 
             var configSources = new ReadOnlyCollection<IConfigurationSource>(configBuilder.Sources);
@@ -196,10 +196,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Returns whether the address belongs to the cluster built by this builder.
+        /// 返回该地址是否属于由此构建器建立的集。
         /// </summary>
-        /// <param name="siloAddress">The silo address.</param>
-        /// <returns><see langword="true"/> when the address belongs to this cluster.</returns>
+        /// <param name="siloAddress"> silo 地址。</param>
+        /// 当地址属于本组时,<returns><see langword="true"/> 。</returns>
         public bool ContainsSilo(SiloAddress siloAddress)
         {
             ArgumentNullException.ThrowIfNull(siloAddress);
@@ -207,9 +207,9 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Creates a cluster identifier.
+        /// 创建集束标识符。
         /// </summary>
-        /// <returns>A new cluster identifier.</returns>
+        /// <returns>一个新的集束识别码。</returns>
         public static string CreateClusterId()
         {
             string prefix = "testcluster-";
@@ -221,7 +221,7 @@ namespace Orleans.TestingHost
 
         private void ConfigureDefaultPorts()
         {
-            // Set base ports if none are currently set.
+            // 如果目前没有设置基准端口, 则设定基端端口 。
             (int baseSiloPort, int baseGatewayPort) = this.PortAllocator.AllocateConsecutivePortPairs(this.Options.InitialSilosCount + 3);
             if (this.Options.BaseSiloPort == 0) this.Options.BaseSiloPort = baseSiloPort;
             if (this.Options.BaseGatewayPort == 0) this.Options.BaseGatewayPort = baseGatewayPort;

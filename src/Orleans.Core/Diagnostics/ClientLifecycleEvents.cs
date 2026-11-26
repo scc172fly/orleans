@@ -7,28 +7,28 @@ using Orleans.Runtime;
 namespace Orleans.Core.Diagnostics;
 
 /// <summary>
-/// Provides the diagnostic listener and event payload types for Orleans client lifecycle events.
+/// 提供诊断听者以及事件有效载荷类型,用于 Orleans 客户生命周期活动。
 /// </summary>
 /// <remarks>
-/// These types are public but may change between minor versions. They are intended for
-/// advanced scenarios such as simulation testing and diagnostics.
+/// 这些类型是公开的,但可能在不同版本之间发生变化。
+/// 模拟测试和诊断等先进假设情景。
 /// </remarks>
 public static class ClientLifecycleEvents
 {
     /// <summary>
-    /// The name of the diagnostic listener for client lifecycle events.
+    /// 客户生命周期事件诊断听众的姓名。
     /// </summary>
     public const string ListenerName = "Orleans.ClientLifecycle";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// Gets an observable sequence of all lifecycle events.
+    /// 获得所有生命周期事件的可观测序列。
     /// </summary>
     public static IObservable<LifecycleEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// The base class used for lifecycle diagnostic events.
+    /// 用于生命周期诊断事件的基本等级。
     /// </summary>
     public abstract class LifecycleEvent(
         int stage,
@@ -36,28 +36,28 @@ public static class ClientLifecycleEvents
         SiloAddress clientAddress)
     {
         /// <summary>
-        /// The numeric stage identifier.
+        /// 数字阶段识别符 。
         /// </summary>
         public readonly int Stage = stage;
 
         /// <summary>
-        /// The human-readable stage name.
+        /// 人类可读的舞台名称。
         /// </summary>
         public readonly string StageName = stageName;
 
         /// <summary>
-        /// The client address associated with the event, if any.
+        /// 与事件有关的客户地址(如果有的话)。
         /// </summary>
         public readonly SiloAddress ClientAddress = clientAddress;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle stage is about to start.
+    /// 当生命周期阶段即将开始时, 事件有效载荷。
     /// </summary>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="lifecycle">The lifecycle instance.</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="lifecycle">生命周期实例。</param>
     public sealed class StageStarting(
         int stage,
         string stageName,
@@ -65,19 +65,19 @@ public static class ClientLifecycleEvents
         ILifecycleObservable lifecycle) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The lifecycle instance.
+        /// 生命周期实例。
         /// </summary>
         public readonly ILifecycleObservable Lifecycle = lifecycle;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle stage has completed successfully.
+    /// 当生命周期阶段成功完成时的事件有效载荷。
     /// </summary>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="elapsed">The time taken to complete the stage.</param>
-    /// <param name="lifecycle">The lifecycle instance.</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="elapsed">完成阶段所需的时间。</param>
+    /// <param name="lifecycle">生命周期实例。</param>
     public sealed class StageCompleted(
         int stage,
         string stageName,
@@ -86,25 +86,25 @@ public static class ClientLifecycleEvents
         ILifecycleObservable lifecycle) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The time taken to complete the stage.
+        /// 完成阶段所需的时间。
         /// </summary>
         public readonly TimeSpan Elapsed = elapsed;
 
         /// <summary>
-        /// The lifecycle instance.
+        /// 生命周期实例。
         /// </summary>
         public readonly ILifecycleObservable Lifecycle = lifecycle;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle stage has failed.
+    /// 当生命周期阶段失败时的事件有效载荷。
     /// </summary>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="exception">The exception which caused the failure.</param>
-    /// <param name="elapsed">The time elapsed before the failure.</param>
-    /// <param name="lifecycle">The lifecycle instance.</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="exception">导致故障的例外。</param>
+    /// <param name="elapsed">失败前的时段。</param>
+    /// <param name="lifecycle">生命周期实例。</param>
     public sealed class StageFailed(
         int stage,
         string stageName,
@@ -114,29 +114,29 @@ public static class ClientLifecycleEvents
         ILifecycleObservable lifecycle) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The exception which caused the failure.
+        /// 导致失败的例外
         /// </summary>
         public readonly Exception Exception = exception;
 
         /// <summary>
-        /// The time elapsed before the failure.
+        /// 失败之前的时光。
         /// </summary>
         public readonly TimeSpan Elapsed = elapsed;
 
         /// <summary>
-        /// The lifecycle instance.
+        /// 生命周期实例。
         /// </summary>
         public readonly ILifecycleObservable Lifecycle = lifecycle;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle observer is about to start.
+    /// 当一个生命周期观察者即将开始运行时, 事件有效载荷的有效载荷 。
     /// </summary>
-    /// <param name="observerName">The observer name.</param>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="observer">The lifecycle observer.</param>
+    /// <param name="observerName">观察员名。</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="observer">生命周期观察者。</param>
     public sealed class ObserverStarting(
         string observerName,
         int stage,
@@ -145,25 +145,25 @@ public static class ClientLifecycleEvents
         ILifecycleObserver observer) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The observer name.
+        /// 观察员名。
         /// </summary>
         public readonly string ObserverName = observerName;
 
         /// <summary>
-        /// The lifecycle observer.
+        /// 生命周期观察者。
         /// </summary>
         public readonly ILifecycleObserver Observer = observer;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle observer has completed successfully.
+    /// 当一个生命周期观察员成功完成时,该事件的有效载荷。
     /// </summary>
-    /// <param name="observerName">The observer name.</param>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="elapsed">The time taken to complete.</param>
-    /// <param name="observer">The lifecycle observer.</param>
+    /// <param name="observerName">观察员名。</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="elapsed">完成工作所需时间。</param>
+    /// <param name="observer">生命周期观察者。</param>
     public sealed class ObserverCompleted(
         string observerName,
         int stage,
@@ -173,31 +173,31 @@ public static class ClientLifecycleEvents
         ILifecycleObserver observer) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The observer name.
+        /// 观察员名。
         /// </summary>
         public readonly string ObserverName = observerName;
 
         /// <summary>
-        /// The time taken to complete.
+        /// 完成工作所需时间。
         /// </summary>
         public readonly TimeSpan Elapsed = elapsed;
 
         /// <summary>
-        /// The lifecycle observer.
+        /// 生命周期观察者。
         /// </summary>
         public readonly ILifecycleObserver Observer = observer;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle observer has failed.
+    /// 当一个生命周期观察者失败时的事件有效载荷。
     /// </summary>
-    /// <param name="observerName">The observer name.</param>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="exception">The exception which caused the failure.</param>
-    /// <param name="elapsed">The time elapsed before the failure.</param>
-    /// <param name="observer">The lifecycle observer.</param>
+    /// <param name="observerName">观察员名。</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="exception">导致故障的例外。</param>
+    /// <param name="elapsed">失败前的时段。</param>
+    /// <param name="observer">生命周期观察者。</param>
     public sealed class ObserverFailed(
         string observerName,
         int stage,
@@ -208,33 +208,33 @@ public static class ClientLifecycleEvents
         ILifecycleObserver observer) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The observer name.
+        /// 观察员名。
         /// </summary>
         public readonly string ObserverName = observerName;
 
         /// <summary>
-        /// The exception which caused the failure.
+        /// 导致失败的例外
         /// </summary>
         public readonly Exception Exception = exception;
 
         /// <summary>
-        /// The time elapsed before the failure.
+        /// 失败之前的时光。
         /// </summary>
         public readonly TimeSpan Elapsed = elapsed;
 
         /// <summary>
-        /// The lifecycle observer.
+        /// 生命周期观察者。
         /// </summary>
         public readonly ILifecycleObserver Observer = observer;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle stage is about to stop.
+    /// 当生命周期阶段即将停止时, 事件有效载荷。
     /// </summary>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="lifecycle">The lifecycle instance.</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="lifecycle">生命周期实例。</param>
     public sealed class StageStopping(
         int stage,
         string stageName,
@@ -242,19 +242,19 @@ public static class ClientLifecycleEvents
         ILifecycleObservable lifecycle) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The lifecycle instance.
+        /// 生命周期实例。
         /// </summary>
         public readonly ILifecycleObservable Lifecycle = lifecycle;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle stage has stopped.
+    /// 当生命周期阶段停止时,事件有效载荷。
     /// </summary>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="elapsed">The time taken to stop the stage.</param>
-    /// <param name="lifecycle">The lifecycle instance.</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="elapsed">需要时间来阻止舞台</param>
+    /// <param name="lifecycle">生命周期实例。</param>
     public sealed class StageStopped(
         int stage,
         string stageName,
@@ -263,24 +263,24 @@ public static class ClientLifecycleEvents
         ILifecycleObservable lifecycle) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The time taken to stop the stage.
+        /// 需要时间来阻止舞台
         /// </summary>
         public readonly TimeSpan Elapsed = elapsed;
 
         /// <summary>
-        /// The lifecycle instance.
+        /// 生命周期实例。
         /// </summary>
         public readonly ILifecycleObservable Lifecycle = lifecycle;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle observer is about to stop.
+    /// 当一个生命周期观察者即将停止时, 事件的有效载荷。
     /// </summary>
-    /// <param name="observerName">The observer name.</param>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="observer">The lifecycle observer.</param>
+    /// <param name="observerName">观察员名。</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="observer">生命周期观察者。</param>
     public sealed class ObserverStopping(
         string observerName,
         int stage,
@@ -289,25 +289,25 @@ public static class ClientLifecycleEvents
         ILifecycleObserver observer) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The observer name.
+        /// 观察员名。
         /// </summary>
         public readonly string ObserverName = observerName;
 
         /// <summary>
-        /// The lifecycle observer.
+        /// 生命周期观察者。
         /// </summary>
         public readonly ILifecycleObserver Observer = observer;
     }
 
     /// <summary>
-    /// Event payload for when a lifecycle observer has stopped.
+    /// 当一个生命周期观察者停止活动时,该事件的有效载荷。
     /// </summary>
-    /// <param name="observerName">The observer name.</param>
-    /// <param name="stage">The numeric stage identifier.</param>
-    /// <param name="stageName">The human-readable stage name.</param>
-    /// <param name="clientAddress">The client address associated with the event, if any.</param>
-    /// <param name="elapsed">The time taken to stop.</param>
-    /// <param name="observer">The lifecycle observer.</param>
+    /// <param name="observerName">观察员名。</param>
+    /// <param name="stage">数字级标识符。</param>
+    /// <param name="stageName">人可读的舞台名称。</param>
+    /// <param name="clientAddress">与事件有关的客户地址(如果有的话)。</param>
+    /// <param name="elapsed">需要时间来停止。</param>
+    /// <param name="observer">生命周期观察者。</param>
     public sealed class ObserverStopped(
         string observerName,
         int stage,
@@ -317,17 +317,17 @@ public static class ClientLifecycleEvents
         ILifecycleObserver observer) : LifecycleEvent(stage, stageName, clientAddress)
     {
         /// <summary>
-        /// The observer name.
+        /// 观察员名。
         /// </summary>
         public readonly string ObserverName = observerName;
 
         /// <summary>
-        /// The time taken to stop.
+        /// 需要时间来停止。
         /// </summary>
         public readonly TimeSpan Elapsed = elapsed;
 
         /// <summary>
-        /// The lifecycle observer.
+        /// 生命周期观察者。
         /// </summary>
         public readonly ILifecycleObserver Observer = observer;
     }

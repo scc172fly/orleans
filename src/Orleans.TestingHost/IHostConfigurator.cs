@@ -3,14 +3,14 @@ using Microsoft.Extensions.Hosting;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// Allows implementations to configure the host builder when starting up each silo in the test cluster.
+    /// 允许在测试组中启动每个 silo 时执行配置主机构建器。
     /// </summary>
     public interface IHostConfigurator
     {
         /// <summary>
-        /// Configures the host builder.
+        /// 配置主机构建器。
         /// </summary>
-        /// <param name="hostBuilder">The host builder.</param>
+        /// <param name="hostBuilder">主机建造者。</param>
         void Configure(IHostBuilder hostBuilder);
     }
 }

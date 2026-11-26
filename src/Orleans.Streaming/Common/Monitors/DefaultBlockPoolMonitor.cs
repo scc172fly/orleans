@@ -7,12 +7,12 @@ using Orleans.Runtime;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Block pool monitor used as a default option in GeneratorStreamProvider and MemoryStreamProvider.
+    /// GeneratorStreamProvider 和 MemoryStreamProvider中作为默认选项使用的块群监视器。
     /// </summary>
     public class DefaultBlockPoolMonitor : IBlockPoolMonitor
     {
         /// <summary>
-        /// The dimensions attached to metrics reported by this monitor.
+        /// 该监测仪报告的计量尺度的尺寸。
         /// </summary>
         protected KeyValuePair<string, object>[] _dimensions;
         private readonly ObservableCounter<long> _totalMemoryCounter;
@@ -27,20 +27,20 @@ namespace Orleans.Providers.Streams.Common
         private long _allocatedMemory;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultBlockPoolMonitor"/> class.
+        /// 初始化 <see cref="DefaultBlockPoolMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">The block pool metric dimensions.</param>
-        /// <param name="instruments">The Orleans runtime instruments.</param>
+        /// <param name="dimensions">块状池公积维度。</param>
+        /// <param name="instruments">下 Orleans 运行工具。</param>
         public DefaultBlockPoolMonitor(BlockPoolMonitorDimensions dimensions, OrleansInstruments instruments)
             : this(CreateDimensions(dimensions), GetMeter(instruments))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultBlockPoolMonitor"/> class.
+        /// 初始化 <see cref="DefaultBlockPoolMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">The dimensions attached to metrics reported by this monitor.</param>
-        /// <param name="instruments">The Orleans runtime instruments.</param>
+        /// <param name="dimensions">该监测仪报告的计量尺度的尺寸。</param>
+        /// <param name="instruments">下 Orleans 运行工具。</param>
         protected DefaultBlockPoolMonitor(KeyValuePair<string, object>[] dimensions, OrleansInstruments instruments)
             : this(dimensions, GetMeter(instruments))
         {
@@ -68,9 +68,9 @@ namespace Orleans.Providers.Streams.Common
             _allocatedMemoryCounter = meter.CreateObservableCounter<long>(InstrumentNames.STREAMS_BLOCK_POOL_ALLOCATED_MEMORY, GetAllocatedMemory, unit: "bytes");
         }
 
-        // The tag values in _dimensions are never actually null; the cast only widens the nullability annotation of the array
-        // element type to satisfy the (nullable-annotated) System.Diagnostics.Metrics.Measurement<T> constructor below, which is
-        // safe since the underlying CLR array type is identical regardless of the element's nullable annotation.
+        // _dimension 中的标记值从不实际无效; 投影只会扩大数组的无效性注释
+        // 满足以下(可附加说明的) System.Diagnostics.Metrics.Measurement<T> 构建器
+        // 因为后方的 CLR 数组类型是相同的, 不论元素的无效注释值如何 。
         private Measurement<long> GetTotalMemory() => new(_totalMemory, (KeyValuePair<string, object?>[])(object)_dimensions);
         private Measurement<long> GetAvailableMemory() => new(_availableMemory, (KeyValuePair<string, object?>[])(object)_dimensions);
         private Measurement<long> GetClaimedMemory() => new(_claimedMemory, (KeyValuePair<string, object?>[])(object)_dimensions);

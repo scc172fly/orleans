@@ -10,8 +10,8 @@ using static Orleans.CodeGenerator.SerializerGenerator;
 
 namespace Orleans.CodeGenerator.Model;
 
-// Emission plans hold the complete, spelled C# fragments which their writers emit: types, names, and expressions.
-// They hold no symbols or syntax, and records give them value equality.
+// 排放计划含有完整的拼写C#碎片,由作者散发:类型、名称和表达方式。
+// 他们没有符号或语法,记录也赋予他们价值平等。
 
 internal sealed record EmissionLibraryTypes(
     string SystemType,
@@ -49,7 +49,7 @@ internal sealed record GenericParameterEmissionPlan(string Name, EquatableArray<
             .Select(static parameter => new GenericParameterEmissionPlan(parameter.Name, parameter.Constraints.ToImmutableArray()))
             .ToImmutableArray();
 
-    /// <summary>Appends <c>&lt;T1, T2&gt;</c>, or nothing for a non-generic declaration.</summary>
+    /// <summary>附录 <c>&lt;T1, T2&gt;</c>,或者没有用于非基因声明。</summary>
     public static void AppendParameterList(StringBuilder builder, EquatableArray<GenericParameterEmissionPlan> parameters)
     {
         if (parameters.Count == 0)
@@ -71,7 +71,7 @@ internal sealed record GenericParameterEmissionPlan(string Name, EquatableArray<
         builder.Append('>');
     }
 
-    /// <summary>Writes a declaration line followed by its constraint clauses on the same line.</summary>
+    /// <summary>在同一条线上写下声明行,并附以限制条款。</summary>
     public static void WriteDeclarationLine(SourceWriter writer, StringBuilder declaration, EquatableArray<GenericParameterEmissionPlan> parameters)
     {
         foreach (var parameter in parameters)
@@ -146,7 +146,7 @@ internal sealed record SerializableTypeEmissionPlan(
             GenericParameterEmissionPlan.Create(type.TypeParameters), callbacks.ToImmutable(), library.EmissionTypes);
     }
 
-    // Each description creates one of three construction forms; spell the selected form with the plan's type text.
+    // 每个描述创建三个构建表格中的一个; 将选定的表格拼写在计划类型文字中。
     private static string GetObjectCreation(ISerializableTypeDescription type, string typeText) => type.GetObjectCreationExpression() switch
     {
         DefaultExpressionSyntax => $"default({typeText})",
@@ -156,7 +156,7 @@ internal sealed record SerializableTypeEmissionPlan(
         var expression => throw new InvalidOperationException($"Unsupported object creation expression '{expression}'."),
     };
 
-    /// <summary>Appends the type parameter list for a generated declaration of this type.</summary>
+    /// <summary>附加该类型声明的类型参数列表。</summary>
     public void AppendTypeParameterList(StringBuilder builder) => GenericParameterEmissionPlan.AppendParameterList(builder, TypeParameters);
 }
 
@@ -196,18 +196,18 @@ internal sealed record FieldEmissionPlan(
 
 internal enum MemberAccessKind
 {
-    /// <summary><c>instance.Target</c>, assigned directly.</summary>
+    /// <summary><c>instance.Target</c>直接指定。</summary>
     Member,
 
-    /// <summary><c>Target(instance)</c> reads; <c>Target(instance, value)</c> writes.</summary>
+    /// <summary><c>Target(instance)</c> 读作; <c>Target(instance, value)</c> 写。</summary>
     Invoke,
 
-    /// <summary><c>Target(instance)</c> returns a field reference which reads or is assigned.</summary>
+    /// <summary><c>Target(instance)</c> 返回一个已读取或指定字段引用。</summary>
     FieldReference,
 }
 
 /// <summary>
-/// Accesses a member of an instance expression. <see cref="Target"/> is a spelled member name or accessor expression.
+/// 访问实例表达式的成员。 <see cref="Target"/> 是拼写成成员名称或存取表达式的表示式。
 /// </summary>
 internal sealed record MemberAccessPlan(MemberAccessKind Kind, string Target, bool RefInstance = false)
 {
@@ -227,13 +227,13 @@ internal sealed record MemberAccessPlan(MemberAccessKind Kind, string Target, bo
 
 internal enum MemberCopyKind
 {
-    /// <summary>The value is shallow-copyable and is assigned as read.</summary>
+    /// <summary>该值为浅可读,以读方式指定。</summary>
     Value,
 
     /// <summary><c>context.DeepCopy(value)</c>.</summary>
     Context,
 
-    /// <summary><c>Copier.DeepCopy(value, context)</c>, optionally cast to the member type.</summary>
+    /// <summary><c>Copier.DeepCopy(value, context)</c>,可选投成员类型。</summary>
     Copier,
 }
 
@@ -296,7 +296,7 @@ internal sealed record CopierEmissionPlan(
     EquatableArray<MemberEmissionPlan> Members,
     EquatableArray<UnionCaseCopierPlan>? UnionCases = null);
 
-// Project shared construction data without retaining the symbol-bearing service fields.
+// 项目共享建筑数据,但不保留符号带服务区。
 internal sealed record ConstructionEmissionPlan(
     bool HasBaseContract,
     EquatableArray<ConstructorParameterEmissionPlan> Parameters)
@@ -305,7 +305,7 @@ internal sealed record ConstructionEmissionPlan(
         => new(construction.HasBaseContract, construction.Parameters.Select(static parameter =>
             new ConstructorParameterEmissionPlan(CodeText.Type(parameter.Type), CodeText.Identifier(parameter.Name))).ToImmutableArray());
 
-    /// <summary>Appends <c>Type name, ...</c> for the constructor's parameter list.</summary>
+    /// <summary>附加 <c>Type name, ...</c> 用于构建器参数列表。</summary>
     public void AppendParameters(StringBuilder builder)
     {
         for (var i = 0; i < Parameters.Count; i++)

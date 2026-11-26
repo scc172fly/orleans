@@ -113,7 +113,7 @@ public abstract class JobShardManagerTestsRunner(IJobShardManagerTestFixture fix
                 }
                 catch (OperationCanceledException) when (consumptionCancellation.IsCancellationRequested)
                 {
-                    // Stop the pending consumer when an earlier assertion fails.
+                    // 先前的主张失败时, 停止等待消费者 。
                 }
             }
 

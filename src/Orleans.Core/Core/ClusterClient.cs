@@ -13,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 namespace Orleans
 {
     /// <summary>
-    /// Client for communicating with clusters of Orleans silos.
+    /// 与 Orleans silos组群通信的客户端。
     /// </summary>
     internal partial class ClusterClient : IInternalClusterClient, IHostedService
     {
@@ -22,13 +22,13 @@ namespace Orleans
         private readonly ClusterClientLifecycle _clusterClientLifecycle;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterClient"/> class.
+        /// 初始化 <see cref="ClusterClient"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="runtimeClient">The runtime client.</param>
-        /// <param name="loggerFactory">Logger factory used to create loggers</param>
-        /// <param name="clientMessagingOptions">Messaging parameters</param>
-        /// <param name="localClientDetails">The local client details.</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="runtimeClient">运行时客户端。</param>
+        /// <param name="loggerFactory">用于创建日志的 Logger 工厂</param>
+        /// <param name="clientMessagingOptions">通信参数</param>
+        /// <param name="localClientDetails">本地客户端详情。</param>
         public ClusterClient(IServiceProvider serviceProvider, OutsideRuntimeClient runtimeClient, ILoggerFactory loggerFactory, IOptions<ClientMessagingOptions> clientMessagingOptions, LocalClientDetails localClientDetails)
         {
             ValidateSystemConfiguration(serviceProvider);
@@ -38,7 +38,7 @@ namespace Orleans
             _logger = loggerFactory.CreateLogger<ClusterClient>();
             _clusterClientLifecycle = new ClusterClientLifecycle(_logger, localClientDetails);
 
-            // register all lifecycle participants
+            // 登记所有生命周期参与者
             IEnumerable<ILifecycleParticipant<IClusterClientLifecycle>> lifecycleParticipants = ServiceProvider.GetServices<ILifecycleParticipant<IClusterClientLifecycle>>();
             foreach (var participant in lifecycleParticipants)
             {

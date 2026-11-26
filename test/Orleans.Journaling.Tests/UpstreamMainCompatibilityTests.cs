@@ -12,19 +12,19 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Cross-version recovery test: feeds a pre-canned journal blob captured from <c>upstream/main</c>
-/// (using the legacy <c>StateMachineManager</c> + inlined <c>Durable*</c> writers) through the PR's
-/// <see cref="JournaledStateManager"/> wired with the OrleansBinary codecs, and asserts the recovered
-/// in-memory state matches what main wrote.
+/// 跨转复原测试:输入从 <c>upstream/main</c>
+/// (通过PR的作者使用所留 <c>StateMachineManager</c> +内嵌的 <c>Durable*</c> 作家)
+/// <see cref="JournaledStateManager"/> 与 OrleansBinary 并声称回收的物
+/// 模拟状态符合主写内容 。
 /// </summary>
 /// <remarks>
-/// The binary fixture under <c>fixtures</c> was produced by the
-/// <c>CaptureCrossVersionRecoveryFixture.EmitMainJournalHex</c> test running against
-/// upstream/main (<c>5989958561</c>). The capture exercises every <c>Durable*</c> type and pins the
-/// stream-registration order so the journal stream IDs (8..14) line up with the registrations below.
-/// To regenerate after an intentional wire-format change to the OrleansBinary codecs, re-run that
-/// fixture in a worktree pinned to upstream/main, replace the fixture bytes, and accept the updated
-/// Verify snapshot under <c>snapshots</c>.
+/// <c>fixtures</c> 下的二进制固定质是由
+/// <c>CaptureCrossVersionRecoveryFixture.EmitMainJournalHex</c> 测试正在对
+/// 上/上层(<c>5989958561</c>。捕获练习的每一 <c>Durable*</c> 类型,并按
+/// 流序登记令,因此日记流号(8.14)与以下的登记一致。
+/// 故意将电线格式改变为 OrleansBinary cocs, 重运行
+/// 固定在固定在上游/主要地带的工作树上,替换固定字节并接受更新的
+/// 以 <c>snapshots</c>下进行核实。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -78,8 +78,8 @@ public sealed class UpstreamMainCompatibilityTests : JournalingTestBase
     private DurableStates CreateStates(IJournalStorage storage)
     {
         var manager = CreateManager(storage);
-        // Registration order MUST match the capture fixture so that journal stream IDs (8..14)
-        // line up with what upstream/main wrote.
+        // 登记令登记令必须与捕获固定线匹配,以便日记流识别号(8.14)
+        // 与上游/主要内容一致。
         return new DurableStates(
             manager,
             new DurableDictionary<string, int>("dict", manager,

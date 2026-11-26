@@ -9,7 +9,7 @@ using Xunit;
 namespace UnitTests.CancellationTests;
 
 /// <summary>
-/// Tests for CancellationToken functionality with acknowledgement waiting enabled.
+/// 启用了确认等待的 CancellationToken 功能测试。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -18,13 +18,13 @@ public sealed class CancellationTokenTests_WaitForAcknowledgement(CancellationTo
 {
     public sealed class Fixture : FixtureBase
     {
-        // Wait for callees to acknowledge cancellation.
+        // 等待被调用者确认取消 。
         public override bool WaitForCancellationAcknowledgement => true;
     }
 }
 
 /// <summary>
-/// Tests for CancellationToken functionality with acknowledgement waiting disabled.
+/// 测试 CancellationToken 功能,确认等待状态禁用。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -33,13 +33,13 @@ public sealed class CancellationTokenTests_NoWaitForAcknowledgement(Cancellation
 {
     public sealed class Fixture : FixtureBase
     {
-        // Do not wait for callees to acknowledge cancellation.
+        // 不要等待被调用者确认取消 。
         public override bool WaitForCancellationAcknowledgement => false;
     }
 }
 
 /// <summary>
-/// Base class for testing CancellationToken propagation and handling across grain calls.
+/// 测试 CancellationToken 的基级,通过 grain 电话进行传播和处理。
 /// </summary>
 public abstract class CancellationTokenTests(CancellationTokenTests.FixtureBase fixture)
 {
@@ -83,7 +83,7 @@ public abstract class CancellationTokenTests(CancellationTokenTests.FixtureBase 
             var grainTask = grain.LongWaitWithStartNotification(TimeSpan.FromSeconds(10), callId, observerReference, cts.Token);
             if (delay > 0)
             {
-                // A timer does not guarantee that a new activation has begun executing the request.
+                // 计时器不能保证新的启动程序已开始执行请求。
                 await observer.WaitForCallToStart(callId);
             }
 
@@ -223,7 +223,7 @@ public abstract class CancellationTokenTests(CancellationTokenTests.FixtureBase 
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        // Except a OperationCanceledException to be thrown as the token is already cancelled
+        // 除a OperationCanceledException 标记已取消时被丢弃
         Assert.Throws<OperationCanceledException>(() => grain.LongWait(TimeSpan.FromSeconds(10), Guid.Empty, cts.Token).Ignore());
     }
 
@@ -275,7 +275,7 @@ public abstract class CancellationTokenTests(CancellationTokenTests.FixtureBase 
         using var cts = new CancellationTokenSource();
         var callId = Guid.NewGuid();
         grain.CancellationTokenCallbackThrow(callId, cts.Token).Ignore();
-        // Cancellation is a cooperative mechanism, so we don't expect the exception to propagate
+        // 取消是一个合作机制 所以我们不期望例外会传播
         cts.CancelAfter(100);
         await WaitForCallCancellation(grain, callId);
     }
@@ -463,8 +463,8 @@ public abstract class CancellationTokenTests(CancellationTokenTests.FixtureBase 
     }
 
     /// <summary>
-    /// Tests that a running interleaving grain operation can be cancelled via CancellationToken.
-    /// Interleaving requests run concurrently without queueing and should also be cancellable.
+    /// 测试运行中的中断 grain 操作可以通过 CancellationToken取消。
+    /// 互接请求同时进行,不排队,也应可以撤销。
     /// </summary>
     [Theory, TestCategory("BVT"), TestCategory("Cancellation")]
     [InlineData(0)]
@@ -506,48 +506,48 @@ public abstract class CancellationTokenTests(CancellationTokenTests.FixtureBase 
     }
 
     /// <summary>
-    /// Tests that an interleaving request can be cancelled while a regular request is also running.
+    /// 测试在正常请求同时运行时, 中断请求可以取消 。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task CancelInterleavingWhileRegularGrainRequestRunning()
     {
         var grain = fixture.GrainFactory.GetGrain<ILongRunningTaskGrain<bool>>(Guid.NewGuid());
 
-        // Start a regular (non-interleaving) long-running request
+        // 启动常规( 非inter-) 长期请求
         using var regularCts = new CancellationTokenSource();
         var regularCallId = Guid.NewGuid();
         var regularTask = grain.LongWait(TimeSpan.FromSeconds(30), regularCallId, regularCts.Token);
 
-        // Wait for the regular request to start
+        // 等待正常请求开始
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
-        // Start an interleaving request (this should run concurrently)
+        // 启动一个连接请求( 此请求应同时运行)
         using var interleavingCts = new CancellationTokenSource();
         var interleavingCallId = Guid.NewGuid();
         var interleavingTask = grain.LongWaitInterleaving(TimeSpan.FromSeconds(10), interleavingCallId, interleavingCts.Token);
 
-        // Wait a bit for the interleaving request to start
+        // 等待一下连接请求启动
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
-        // Cancel the interleaving request
+        // 取消间断请求
         await interleavingCts.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => interleavingTask);
         await WaitForCallCancellation(grain, interleavingCallId);
 
-        // Clean up - cancel the regular request
+        // 清理清理 - 取消常规请求
         await regularCts.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => regularTask);
     }
 
     /// <summary>
-    /// Tests that multiple concurrent interleaving requests can each be cancelled independently.
+    /// 测试多个同时连接的请求可以独立取消。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task MultipleInterleavingGrainRequestsCancellation()
     {
         var grain = fixture.GrainFactory.GetGrain<ILongRunningTaskGrain<bool>>(Guid.NewGuid());
 
-        // Start multiple interleaving requests concurrently
+        // 同时启动多个互连请求
         using var cts1 = new CancellationTokenSource();
         using var cts2 = new CancellationTokenSource();
         using var cts3 = new CancellationTokenSource();
@@ -560,15 +560,15 @@ public abstract class CancellationTokenTests(CancellationTokenTests.FixtureBase 
         var task2 = grain.LongWaitInterleaving(TimeSpan.FromSeconds(10), callId2, cts2.Token);
         var task3 = grain.LongWaitInterleaving(TimeSpan.FromSeconds(10), callId3, cts3.Token);
 
-        // Wait for all to be running
+        // 等待所有运行
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
-        // Cancel only the second request
+        // 只取消第二个请求
         await cts2.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task2);
         await WaitForCallCancellation(grain, callId2);
 
-        // First and third should still be running, cancel them
+        // 第一和第二个应该还在运行,取消
         await cts1.CancelAsync();
         await cts3.CancelAsync();
 

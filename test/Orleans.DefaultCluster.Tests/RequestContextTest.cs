@@ -6,11 +6,11 @@ using Xunit;
 namespace UnitTDefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for Orleans Request Context functionality.
-    /// Request Context allows flowing ambient data (like correlation IDs, user context,
-    /// or request metadata) along with grain calls without explicitly passing it as
-    /// parameters. This is Orleans' equivalent of thread-local storage or async-local
-    /// storage, but designed for distributed calls across grains and silos.
+    /// 请求上下文功能的 Orleans 测试。
+    /// 请求环境允许流动的环境数据(如相关身份、用户背景、用户背景、
+    /// 请求或请求提供元数据)以及 grain 调用电话,但没有明确通过
+    /// 。这是 Orleans' 等量的线-本地存储或同步-本地
+    /// 存储,但设计用于在 grains 和 silos之间分配调用。
     /// </summary>
     [TestArea("Runtime")]
     public class RequestContextTests : HostedTestClusterEnsureDefaultStarted
@@ -20,11 +20,11 @@ namespace UnitTDefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests request context flowing from caller to callee.
-        /// Verifies that data set in RequestContext before a grain call
-        /// is available within the grain method execution, demonstrating
-        /// the automatic propagation of ambient context across grain boundaries.
-        /// This is useful for correlation IDs, authentication tokens, etc.
+        /// 测试请求由调用者到被调用者之间产生的背景。
+        /// 证明该数据集 RequestContext 在 a 之前 grain 调
+        /// grain 方法执行范围内可用,证明
+        /// 环境环境环境的自动传播跨越 grain 边界。
+        /// 这对相关身份识别、认证符号等有用。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -32,9 +32,9 @@ namespace UnitTDefaultCluster.Tests.General
         public async Task RequestContextCallerToCalleeFlow()
         {
             var grain = this.GrainFactory.GetGrain<ISimplePersistentGrain>(Random.Shared.Next());
-            // Set context to send to the grain
+            // 设置要发送到 grain的上下文
             RequestContext.Set("GrainInfo", 10);
-            // This grain method reads the context and returns it
+            // 此 grain 方法读取上下文并返回它
             var infoFromGrain = await grain.GetRequestContext();
             Assert.NotNull(infoFromGrain);
             Assert.True((int)infoFromGrain == 10);
@@ -43,11 +43,11 @@ namespace UnitTDefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests request context flowing from callee back to caller.
-        /// Would verify that data set in RequestContext within a grain method
-        /// is available to the caller after the call completes.
-        /// NOTE: This test is currently skipped as the feature may not be fully supported.
-        /// Request context typically flows one-way (caller to callee) for isolation.
+        /// 测试请求由被调用者返回到调用者处的上下文。
+        /// 将核实该数据集 RequestContext a 内 grain 方法
+        /// 电话在通话结束后可供打电话者使用。
+        /// 注:由于特性可能不完全支持,因此目前跳过这一测试。
+        /// 请求通常单向流动(呼叫被传唤者),以孤立。
         /// </summary>
         [TestSuite("Functional")]
         [TestProvider("None")]
@@ -55,9 +55,9 @@ namespace UnitTDefaultCluster.Tests.General
         public async Task RequestContextCalleeToCallerFlow()
         {
             var grain = this.GrainFactory.GetGrain<ISimplePersistentGrain>(Random.Shared.Next());
-            // This method in the grain does RequestContext.Set
+            // grain 中的这一方法确实 RequestContext.Set
             await grain.SetRequestContext(15);
-            // Read the info set in the grain
+            // 读取 grain中的信息集
             var infoFromGrain = RequestContext.Get("GrainInfo");
             Assert.NotNull(infoFromGrain);
             Assert.True((int)infoFromGrain == 15);

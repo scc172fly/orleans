@@ -12,17 +12,17 @@ using Orleans.Connections.Transport.Sockets;
 namespace Orleans.TestingHost.UnixSocketTransport;
 
 /// <summary>
-/// Configures a Unix domain socket message transport listener.
+/// 配置 Unix 域套接字信件传输听众。
 /// </summary>
 public class UnixDomainSocketMessageTransportListenerOptions
 {
     /// <summary>
-    /// Gets or sets the socket path. The default is a unique path in the system temporary directory.
+    /// 获取或设置套接字路径。默认是系统临时目录中唯一的路径。
     /// </summary>
     public string Path { get; set; } = CreateDefaultPath();
 
     /// <summary>
-    /// Gets or sets a value indicating whether the listener is enabled. The default is <see langword="true"/>.
+    /// 获取或设置一个值,以显示是否启用了听众。默认为 <see langword="true"/>。
     /// </summary>
     public bool Enabled { get; set; } = true;
     private static string CreateDefaultPath() => System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"silo_{Guid.NewGuid():N}");
@@ -127,22 +127,22 @@ internal class UnixDomainSocketMessageTransportListener : MessageTransportListen
             }
             catch (OperationCanceledException)
             {
-                // Graceful termination.
+                // 优雅的终止
                 return null;
             }
             catch (ObjectDisposedException)
             {
-                // A call was made to UnbindAsync/DisposeAsync just return null which signals we're done
+                // 电话是叫 UnbindAsync/DisposeAsync 退回就完
                 return null;
             }
             catch (SocketException e) when (e.SocketErrorCode == SocketError.OperationAborted)
             {
-                // A call was made to UnbindAsync/DisposeAsync just return null which signals we're done
+                // 电话是叫 UnbindAsync/DisposeAsync 退回就完
                 return null;
             }
             catch (SocketException)
             {
-                // The connection got reset while it was in the backlog, so we try again.
+                // 连接在积压时被重置, 所以我们再试一次。
                 SocketsLog.ConnectionReset(Logger, connection: "(null)");
             }
         }

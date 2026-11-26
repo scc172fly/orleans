@@ -6,7 +6,7 @@ using Xunit;
 namespace Tester.HeterogeneousSilosTests.UpgradeTests
 {
     /// <summary>
-    /// Tests for minimum version selector strategy ensuring v1 grains are always activated.
+    /// 最小版本选择器战略的测试,确保 v1 grains 总是被激活。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]
@@ -20,13 +20,13 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
         [Fact]
         public Task AlwaysCreateActivationWithMinimumVersion()
         {
-            // Even after v2 silo is deployed, we should only activate v1 grains
+            // 即使在部署 v2 silo 之后, 我们仍应该只激活 v1 grains
             return Step1_StartV1Silo_Step2_StartV2Silo_Step3_StopV2Silo(step2Version: 1);
         }
     }
 
     /// <summary>
-    /// Tests for latest version selector strategy with backward compatibility and grain upgrades.
+    /// 测试最新版本选择器战略,使其与后向兼容和 grain 升级。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]
@@ -40,29 +40,29 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
         [Fact]
         public Task AlwaysCreateActivationWithLatestVersion()
         {
-            // After v2 is deployed, we should always activate v2 grains
+            // v2 部署后, 我们总是应该激活 v2 grains
             return Step1_StartV1Silo_Step2_StartV2Silo_Step3_StopV2Silo(step2Version: 2);
         }
 
         [Fact]
         public Task UpgradeProxyCallNoPendingRequest()
         {
-            // v2 -> v1 call should provoke grain activation upgrade.
-            // The grain is inactive when receiving the message
+            // v2 - > v1 呼叫应引发启动升级 grain 。
+            // 接收信件时 grain 不活动
             return ProxyCallNoPendingRequest(expectedVersion: 2);
         }
 
         [Fact]
         public Task UpgradeProxyCallWithPendingRequest()
         {
-            // v2 -> v1 call should provoke grain activation upgrade
-            // The grain is already processing a request when receiving the message
+            // v2 - > v1 调用应引发 grain 激活升级
+            // grain 收到电文时已经处理请求
             return ProxyCallWithPendingRequest(expectedVersion: 2);
         }
     }
 
     /// <summary>
-    /// Tests for all versions compatible strategy preventing automatic grain upgrades.
+    /// 测试所有版本兼容战略的测试,以防止自动 grain 升级。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]
@@ -76,22 +76,22 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
         [Fact]
         public Task DoNotUpgradeProxyCallNoPendingRequest()
         {
-            // v2 -> v1 call should provoke grain activation upgrade because they are compatible
-            // The grain is inactive when receiving the message
+            // v2 - > v1 调用应引发 grain 激活升级,因为它们兼容
+            // 接收信件时 grain 不活动
             return ProxyCallNoPendingRequest(expectedVersion: 1);
         }
 
         [Fact]
         public Task DoNotUpgradeProxyCallWithPendingRequest()
         {
-            // v2 -> v1 call should provoke grain activation upgrade because they are compatible
-            // The grain is already processing a request when receiving the message
+            // v2 - > v1 调用应引发 grain 激活升级,因为它们兼容
+            // grain 收到电文时已经处理请求
             return ProxyCallWithPendingRequest(expectedVersion: 1);
         }
     }
 
     /// <summary>
-    /// Tests for random compatible version selection strategy distributing activations across versions.
+    /// 随机兼容版本选择策略的测试, 将激活在各种版本中进行分配 。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]
@@ -112,7 +112,7 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
 
             var versionCounter = new int[2];
 
-            // We should create v1 and v2 activations
+            // 我们应该创造 v1 和 v2 激活
 
             for (var i = 0; i < numberOfGrains; i++)
             {
@@ -120,7 +120,7 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
                 versionCounter[v - 1]++;
             }
 
-            // 99.95% chance of success
+            // 99.95%成功机会
             Assert.InRange(versionCounter[0] / numberOfGrains, 0.35, 0.65);
             Assert.InRange(versionCounter[1] / numberOfGrains, 0.35, 0.65);
         }

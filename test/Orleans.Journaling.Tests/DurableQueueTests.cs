@@ -4,12 +4,12 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Tests for DurableQueue, a persistent FIFO queue implementation that uses Orleans' journaling
-/// infrastructure to maintain state across grain activations and system restarts.
+/// DurableQueue测试,这是使用 Orleans日记的FIFO 长期性队列执行测试
+/// 基础设施,以维持 grain 启动和系统重新启动的状态。
 /// 
-/// DurableQueue provides standard queue operations (Enqueue, Dequeue, Peek) while ensuring
-/// all operations are journaled for durability. This is particularly useful for implementing
-/// reliable message processing patterns in Orleans grains.
+/// DurableQueue 提供标准队列操作(Enqueue、dequeue、peek),同时确保
+/// 所有操作都为耐久性日记。这对于执行特别有用
+/// Orleans grains中的可靠信件处理模式。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -17,114 +17,114 @@ namespace Orleans.Durable.Journaling.Tests;
 public class DurableQueueTests : JournalingTestBase
 {
     /// <summary>
-    /// Tests basic queue operations: Enqueue, Dequeue, Peek, and Count.
-    /// Verifies FIFO ordering and that operations are correctly persisted.
+    /// 测试基本队列操作: Enqueue、 dequeue、 Peek 和 Count。
+    /// 核证FIFO订购,操作正确持续。
     /// </summary>
     [Fact]
     public async Task DurableQueue_BasicOperations_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<string>();
         var queue = new DurableQueue<string>("testQueue", manager, new OrleansBinaryDurableQueueCommandCodec<string>(codec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act - Enqueue items
+        // 动作 - 内容
         queue.Enqueue("one");
         queue.Enqueue("two");
         queue.Enqueue("three");
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(3, queue.Count);
 
-        // Act - Peek at the front of the queue
+        // · 排队前的《花花一角》
         var peeked = queue.Peek();
 
-        // Assert - Peek returns the first item without removing it
+        // Assert - Peek 返回第一个项目,但没有删除它
         Assert.Equal("one", peeked);
         Assert.Equal(3, queue.Count);
 
-        // Act - Dequeue
+        // 法案 - 删除
         var dequeued1 = queue.Dequeue();
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal("one", dequeued1);
         Assert.Equal(2, queue.Count);
 
-        // Act - Dequeue again
+        // 法案 - 再次取消
         var dequeued2 = queue.Dequeue();
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal("two", dequeued2);
         Assert.Single(queue);
 
-        // Act - Dequeue last item
+        // 动作 - 删除最后一个项目
         var dequeued3 = queue.Dequeue();
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal("three", dequeued3);
         Assert.Empty(queue);
     }
 
     /// <summary>
-    /// Tests that queue state is correctly persisted and recovered.
-    /// Creates a queue, adds items, then recreates the queue from the same
-    /// storage to verify state recovery.
+    /// 队列状态正确持续并恢复的测试。
+    /// 创建队列、添加项目,然后从相同内容重建队列
+    /// 储存以核查国家恢复情况。
     /// </summary>
     [Fact]
     public async Task DurableQueue_Persistence_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var codec = CodecProvider.GetCodec<string>();
         var queue1 = new DurableQueue<string>("testQueue", sut.Manager, new OrleansBinaryDurableQueueCommandCodec<string>(codec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act - Enqueue items and persist
+        // - 持续实施和保留的项目
         queue1.Enqueue("one");
         queue1.Enqueue("two");
         queue1.Enqueue("three");
         await sut.Manager.WriteStateAsync(CancellationToken.None);
 
-        // Create a new manager with the same storage
+        // 创建具有相同存储器的新管理器
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var queue2 = new DurableQueue<string>("testQueue", sut2.Manager, new OrleansBinaryDurableQueueCommandCodec<string>(codec, SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Assert - Queue should be recovered
+        // 摊储 - 应回收队列
         Assert.Equal(3, queue2.Count);
         Assert.Equal("one", queue2.Peek());
 
-        // Act - Dequeue from recovered queue
+        // - 法案 - 从已恢复的队列中解排
         var dequeued = queue2.Dequeue();
         await sut2.Manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal("one", dequeued);
         Assert.Equal(2, queue2.Count);
     }
 
     /// <summary>
-    /// Tests that the queue correctly handles complex value types.
-    /// Verifies that custom objects are properly serialized and deserialized
-    /// when enqueued and dequeued.
+    /// 测试队列正确处理复杂值类型。
+    /// 证明自定制物体已适当序列化和消散
+    /// 并且记念它,
     /// </summary>
     [Fact]
     public async Task DurableQueue_ComplexValues_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<TestPerson>();
         var queue = new DurableQueue<TestPerson>("personQueue", manager, new OrleansBinaryDurableQueueCommandCodec<TestPerson>(codec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act
+        // 法案法
         var person1 = new TestPerson { Id = 1, Name = "John", Age = 30 };
         var person2 = new TestPerson { Id = 2, Name = "Jane", Age = 25 };
 
@@ -132,59 +132,59 @@ public class DurableQueueTests : JournalingTestBase
         queue.Enqueue(person2);
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(2, queue.Count);
         var peeked = queue.Peek();
         Assert.Equal("John", peeked.Name);
 
-        // Act - Dequeue
+        // 法案 - 删除
         var dequeued = queue.Dequeue();
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Single(queue);
         Assert.Equal("John", dequeued.Name);
         Assert.Equal(30, dequeued.Age);
     }
 
     /// <summary>
-    /// Tests the Clear operation which removes all items from the queue.
-    /// Verifies that the clear operation is properly journaled.
+    /// 测试清除操作,该操作从队列中删除所有项目。
+    /// 证明清楚操作已正确日记。
     /// </summary>
     [Fact]
     public async Task DurableQueue_Clear_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<string>();
         var queue = new DurableQueue<string>("clearQueue", manager, new OrleansBinaryDurableQueueCommandCodec<string>(codec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Add items
+        // 添加项目
         queue.Enqueue("one");
         queue.Enqueue("two");
         queue.Enqueue("three");
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Act - Clear
+        // 动作 - 清除
         queue.Clear();
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Empty(queue);
         Assert.Empty(queue);
     }
 
     /// <summary>
-    /// Tests edge cases for operations on an empty queue.
-    /// Verifies that Peek and Dequeue throw appropriate exceptions
-    /// when the queue is empty.
+    /// 测试在空队列上操作的边缘大小写 。
+    /// 证明Peek和Dequeue提出适当的例外
+    /// 当队列为空时。
     /// </summary>
     [Fact]
     public async Task DurableQueue_EmptyQueueOperations_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<string>();
@@ -192,30 +192,30 @@ public class DurableQueueTests : JournalingTestBase
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Empty(queue);
 
-        // Act & Assert - Peek and Dequeue on empty queue should throw
+        // 动作和 Assert - 空队列上的比克和脱克应丢弃
         Assert.Throws<InvalidOperationException>(() => queue.Peek());
         Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
     }
 
     /// <summary>
-    /// Tests queue enumeration capabilities.
-    /// Verifies that the queue supports standard enumeration patterns
-    /// and returns items in FIFO order.
+    /// 测试队列查查能力。
+    /// 验证队列支持标准查点模式
+    /// 返回 FIFO 顺序中的条目。
     /// </summary>
     [Fact]
     public async Task DurableQueue_Enumeration_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<string>();
         var queue = new DurableQueue<string>("enumQueue", manager, new OrleansBinaryDurableQueueCommandCodec<string>(codec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Add items
+        // 添加项目
         var expectedItems = new List<string> { "one", "two", "three" };
 
         foreach (var item in expectedItems)
@@ -225,29 +225,29 @@ public class DurableQueueTests : JournalingTestBase
 
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Act
+        // 法案法
         var actualItems = queue.ToList();
 
-        // Assert - Items should be in same order as enqueued
+        // 发还 - 项目的顺序应与排在前的顺序相同
         Assert.Equal(expectedItems, actualItems);
     }
 
     /// <summary>
-    /// Stress test for queue performance with large numbers of items.
-    /// Tests that the journaling system can handle thousands of queue operations
-    /// and correctly recover the entire queue state.
+    /// 大量物品排队后应激反应测试。
+    /// 测试日记系统能够处理数千个队列操作
+    /// 并正确恢复整个队列状态。
     /// </summary>
     [Fact]
     public async Task DurableQueue_LargeNumberOfOperations_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<int>();
         var queue = new DurableQueue<int>("largeQueue", manager, new OrleansBinaryDurableQueueCommandCodec<int>(codec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act - Enqueue many items
+        // 动作 - 附加许多项目
         const int itemCount = 1000;
         for (int i = 0; i < itemCount; i++)
         {
@@ -256,19 +256,19 @@ public class DurableQueueTests : JournalingTestBase
 
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(itemCount, queue.Count);
         Assert.Equal(0, queue.Peek());
 
-        // Create a new manager with the same storage to test recovery
+        // 创建一个具有相同存储器的新管理器, 用于测试回收
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var queue2 = new DurableQueue<int>("largeQueue", sut2.Manager, new OrleansBinaryDurableQueueCommandCodec<int>(codec, SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Assert - Large queue is correctly recovered
+        // 发还 - 正确恢复大队列
         Assert.Equal(itemCount, queue2.Count);
 
-        // Act - Dequeue all items and verify order
+        // - 取消所有物品的清关并核实命令
         for (int i = 0; i < itemCount; i++)
         {
             var item = queue2.Dequeue();
@@ -280,63 +280,63 @@ public class DurableQueueTests : JournalingTestBase
     }
 
     /// <summary>
-    /// Tests complex queue operation patterns with interleaved enqueue/dequeue operations.
-    /// Simulates real-world usage where items are added and removed in batches,
-    /// verifying that the queue maintains correct ordering and state.
+    /// 测试复杂的队列操作模式,使用间断式排队/脱队操作。
+    /// 模拟在项目分批添加和删除时的真实世界使用情况,
+    /// 校验队列是否维持正确的顺序和状态 。
     /// </summary>
     [Fact]
     public async Task DurableQueue_Concurrent_EnqueueDequeue_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<int>();
         var queue = new DurableQueue<int>("concurrentQueue", manager, new OrleansBinaryDurableQueueCommandCodec<int>(codec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act - Simulate a queue with concurrent operations
+        // 动作 - 模拟同时操作的队列
         const int batchSize = 100;
 
-        // First batch: add 100 items
+        // 第一批:增加100件
         for (int i = 0; i < batchSize; i++)
         {
             queue.Enqueue(i);
         }
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Remove 50 items
+        // 删除 50 项
         for (int i = 0; i < batchSize / 2; i++)
         {
             queue.Dequeue();
         }
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Add another 100 items
+        // 添加其他100项
         for (int i = batchSize; i < batchSize * 2; i++)
         {
             queue.Enqueue(i);
         }
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
-        Assert.Equal(batchSize + batchSize / 2, queue.Count); // Should have 150 items
+        // 发货
+        Assert.Equal(batchSize + batchSize / 2, queue.Count); // 应有150件物品
 
-        // Create a new manager with the same storage to test recovery
+        // 创建一个具有相同存储器的新管理器, 用于测试回收
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var queue2 = new DurableQueue<int>("concurrentQueue", sut2.Manager, new OrleansBinaryDurableQueueCommandCodec<int>(codec, SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Assert - Queue should be recovered with correct state and ordering
+        // 摊销 - 应当以正确的状态和订购来恢复队列
         Assert.Equal(batchSize + batchSize / 2, queue2.Count);
 
-        // First values should be the second half of first batch
+        // 第一批的最初值应为第一批的后半批
         for (int i = batchSize / 2; i < batchSize; i++)
         {
             var item = queue2.Dequeue();
             Assert.Equal(i, item);
         }
 
-        // Then we should get the second batch
+        // 那第二批就拿第二批
         for (int i = batchSize; i < batchSize * 2; i++)
         {
             var item = queue2.Dequeue();

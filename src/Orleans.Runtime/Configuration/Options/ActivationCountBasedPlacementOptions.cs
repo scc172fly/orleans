@@ -4,24 +4,24 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Settings which regulate the placement of grains across a cluster when using <see cref="ActivationCountBasedPlacement"/>.
+    /// 管理设置设置的设置 grains 使用时横横集 <see cref="ActivationCountBasedPlacement"/>.
     /// </summary>
     public class ActivationCountBasedPlacementOptions
     {
         /// <summary>
-        /// Gets or sets the number of silos randomly selected for consideration when using activation count placement policy.
-        /// Only used with Activation Count placement policy.
+        /// 使用激活计数定位策略时, 获取或设置随机选择的 silos 数字。
+        /// 仅用于激活计数安置政策。
         /// </summary>
         public int ChooseOutOf { get; set; } = DEFAULT_ACTIVATION_COUNT_PLACEMENT_CHOOSE_OUT_OF;
 
         /// <summary>
-        /// The default number of silos to choose from when making placement decisions.
+        /// 在做出安置决定时选择的默认 silos 数。
         /// </summary>
         public const int DEFAULT_ACTIVATION_COUNT_PLACEMENT_CHOOSE_OUT_OF = 2;
     }
 
     /// <summary>
-    /// Validates <see cref="ActivationCountBasedPlacementOptions"/> properties.
+    /// 校验 <see cref="ActivationCountBasedPlacementOptions"/> 属性。
     /// </summary>
     internal class ActivationCountBasedPlacementOptionsValidator : IConfigurationValidator
     {

@@ -5,14 +5,14 @@ namespace UnitTests.TestHelper
 {
     public static class TestUtils
     {
-        /// <summary>Gets a detailed grain report from a specified silo</summary>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="grainId">The grain id we are requesting information from</param>
-        /// <param name="siloHandle">The target silo that should provide this information from it's cache</param>
+        /// <summary>详细分析 grain 指定报告来自 silo</summary>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="grainId">我们要求 grain 提供信息的</param>
+        /// <param name="siloHandle">目标 silo 应该提供其缓存中的信息</param>
         internal static Task<DetailedGrainReport> GetDetailedGrainReport(IInternalGrainFactory grainFactory, GrainId grainId, SiloHandle siloHandle)
         {
-            // Use the siloAddress here, not the gateway address, since we may be targeting a silo on which we are not 
-            // connected to the gateway
+            // 使用此处的 siloAddress ,而不是网关地址,因为我们可能针对的是我们没有选择的 silo 
+            // 连接到网关
             var siloControl = grainFactory.GetSystemTarget<ISiloControl>(Constants.SiloControlType, siloHandle.SiloAddress);
             return siloControl.GetDetailedGrainReport(grainId);
         }

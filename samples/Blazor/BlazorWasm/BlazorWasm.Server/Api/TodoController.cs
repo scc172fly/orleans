@@ -24,13 +24,13 @@ public class TodoController : ControllerBase
     [HttpGet("list/{ownerKey}", Name = "list")]
     public async Task<IEnumerable<TodoItem>> ListAsync([Required] Guid ownerKey)
     {
-        // get all the todo item keys for this owner
+        // 获取此所有者的全部待办项目密钥
         var itemKeys = await _factory
             .GetGrain<ITodoManagerGrain>(ownerKey)
             .GetAllAsync();
 
-        // fan out to get the individual items from the cluster in parallel
-        // issue all individual requests at the same time
+        // 扇扇扇出以平行获得分组中的单个项目
+        // 同时提出所有个别请求
         var tasks = itemKeys
             .Select(async itemId =>
             {
@@ -38,8 +38,8 @@ public class TodoController : ControllerBase
                     .GetGrain<ITodoGrain>(itemId)
                     .GetAsync();
 
-                // we can get a null result if the individual grain failed to unregister
-                // in this case we can finish the job here
+                // 如果个人 grain 未能解登记,我们就可以取得无效结果
+                // 这件事,我们在这里可以完成
                 if (item is null)
                 {
                     await _factory

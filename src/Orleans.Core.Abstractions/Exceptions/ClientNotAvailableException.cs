@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Indicates that a client is not longer reachable.
+    /// 显示客户无法更长久地接触。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -13,10 +13,10 @@ namespace Orleans.Runtime
 #pragma warning restore RCS1194 // Implement exception constructors.
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientNotAvailableException"/> class.
+        /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="clientId">
-        /// The client id.
+        /// 客户身份
         /// </param>
         internal ClientNotAvailableException(GrainId clientId)
             : base($"No activation for client {clientId}")
@@ -24,10 +24,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientNotAvailableException"/> class.
+        /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The exception message.
+        /// 例外信息。
         /// </param>
         internal ClientNotAvailableException(string message)
             : base(message)
@@ -35,13 +35,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientNotAvailableException"/> class.
+        /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         /// <param name="innerException">
-        /// The inner exception.
+        /// 内在的例外
         /// </param>
         internal ClientNotAvailableException(string message, Exception innerException)
             : base(message, innerException)
@@ -49,13 +49,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientNotAvailableException"/> class.
+        /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// The info.
+        /// 资料
         /// </param>
         /// <param name="context">
-        /// The context.
+        /// 背景。
         /// </param>
         [Obsolete]
         private ClientNotAvailableException(SerializationInfo info, StreamingContext context)

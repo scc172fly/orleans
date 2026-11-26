@@ -6,16 +6,16 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Creates transaction committers for the current grain activation.
+    /// 创建当前 grain 激活的交易承诺方。
     /// </summary>
     public class TransactionCommitterFactory : ITransactionCommitterFactory
     {
         private readonly IGrainContextAccessor contextAccessor;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionCommitterFactory"/> class.
+        /// 初始化 <see cref="TransactionCommitterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="contextAccessor">The accessor for the current grain activation context.</param>
+        /// <param name="contextAccessor">当前 grain 激活环境的存取器。</param>
         public TransactionCommitterFactory(IGrainContextAccessor contextAccessor)
         {
             this.contextAccessor = contextAccessor;

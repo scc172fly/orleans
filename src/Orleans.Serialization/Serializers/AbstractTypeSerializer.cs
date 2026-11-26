@@ -8,13 +8,13 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Serializer for types which are abstract and therefore cannot be instantiated themselves, such as abstract classes and interface types.
+    /// 用于抽象类型,因此无法即时自我转换的序列器,如抽象类别和界面类型。
     /// </summary>
-    /// <typeparam name="TField">The field type.</typeparam>
+    /// <typeparam name="TField">字段类型。</typeparam>
     public class AbstractTypeSerializer<TField> : AbstractTypeSerializer, IFieldCodec<TField>, IBaseCodec<TField> where TField : class
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AbstractTypeSerializer{TField}"/> class.
+        /// 初始化 <see cref="AbstractTypeSerializer{TField}"/> 类的新实例。
         /// </summary>
         protected AbstractTypeSerializer() : base(typeof(TField)) { }
 
@@ -33,7 +33,7 @@ namespace Orleans.Serialization.Serializers
         public virtual void Deserialize<TReaderInput>(ref Reader<TReaderInput> reader, TField instance) => reader.ConsumeEndBaseOrEndObject();
     }
 
-    // without the class type constraint
+    // 类别类型限制
     internal sealed class AbstractTypeSerializerWrapper<TField> : AbstractTypeSerializer, IFieldCodec<TField>
     {
         public AbstractTypeSerializerWrapper() : base(typeof(TField)) { }
@@ -46,16 +46,16 @@ namespace Orleans.Serialization.Serializers
     }
 
     /// <summary>
-    /// Serializes values whose declared type cannot be instantiated directly, such as abstract classes and interfaces.
+    /// 将申报类型无法直接即时的数值,如抽象类别和界面等分层排列为序列。
     /// </summary>
     public class AbstractTypeSerializer : IFieldCodec
     {
         private readonly Type _fieldType;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AbstractTypeSerializer"/> class.
+        /// 初始化 <see cref="AbstractTypeSerializer"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldType">The declared field type.</param>
+        /// <param name="fieldType">申报字段类型。</param>
         protected internal AbstractTypeSerializer(Type fieldType) => _fieldType = fieldType;
 
         /// <inheritdoc/>

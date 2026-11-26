@@ -1,33 +1,43 @@
 ---
-title: "ORLEANS0002: Reference parameter modifiers are not allowed"
-description: Understand and resolve ORLEANS0002 when a grain interface method uses ref, out, or in parameters.
+title: "ORLEANS0002:不允许引用参数修改器"
+description: "理解和决心 ORLEANS0002 时 grain 方法界面使用参考、输出或参数。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0002: Reference parameter modifiers are not allowed
+<a id="orleans0002-reference-parameter-modifiers-are-not-allowed"></a>
 
-| Property | Value |
+# ORLEANS0002:不允许引用参数修改器
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Error |
-| Code fix | Not available |
+| 类别类 | 用法 |
+| 严重性 | 错误错误 |
+| 代码修正 | 不详 |
 
-## Cause
+<a id="cause"></a>
 
-An instance method on an Orleans grain, observer, extension, or system-target interface uses a `ref`, `out`, or `in` parameter.
+## 原因原因原因
 
-## Impact
+一种 Orleans grain、观察者、扩展或系统目标接口使用 `ref`、 `out`或 `in` 参数的示例方法。
 
-Orleans RPC serializes parameter values across process boundaries. It cannot provide local reference or write-back semantics for remote calls.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Pass ordinary values and return outputs through the asynchronous result. Use a result DTO or tuple when the method returns multiple values.
+Orleans RPC 将参数值序列化为跨进程边界。 它无法为远程调用提供本地引用或回写语义。
 
-## Suppress the diagnostic
+<a id="how-to-fix"></a>
 
-Suppress only for a verified false positive where the interface is never used as an Orleans remote contract.
+## 如何修补
+
+通过非同步结果传递普通值和返回输出。 当方法返回多个值时, 使用结果 DTO 或 tuple 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+仅对未经校验的假正值进行禁止, 如果接口从未用作 Orleans 远程合同。
 
 ```ini
 [*.cs]

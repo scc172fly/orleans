@@ -7,7 +7,7 @@ using Xunit;
 namespace ServiceBus.Tests.Streaming
 {
     /// <summary>
-    /// Tests for EventHub programmatic subscription functionality with multiple stream providers.
+    /// 与多个流供应商测试 EventHub 程序订阅功能。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]

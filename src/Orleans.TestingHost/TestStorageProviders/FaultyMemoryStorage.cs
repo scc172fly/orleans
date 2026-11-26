@@ -7,18 +7,18 @@ using Orleans.Hosting;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// Extension methods for <see cref="ISiloBuilder"/>.
+    /// <see cref="ISiloBuilder"/>的推广方法。
     /// </summary>
     public static class SiloBuilderExtensions
     {
         /// <summary>
-        /// Configures a silo to use <see cref="FaultInjectionGrainStorage" />.
+        /// 配置 silo 使用 <see cref="FaultInjectionGrainStorage" />.
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <param name="configureOptions">The memory storage configuration delegate.</param>
-        /// <param name="configureFaultInjectionOptions">The fault injection provider configuration delegate.</param>
-        /// <returns>The silo builder</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <param name="configureOptions">内存存储配置代表。</param>
+        /// <param name="configureFaultInjectionOptions">注射故障供应商配置代表。</param>
+        /// <returns> silo 建筑工</returns>
         public static ISiloBuilder AddFaultInjectionMemoryStorage(
             this ISiloBuilder builder,
             string name,
@@ -30,13 +30,13 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Configures a silo to use <see cref="FaultInjectionGrainStorage" />.
+        /// 配置 silo 使用 <see cref="FaultInjectionGrainStorage" />.
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <param name="configureOptions">The memory storage configuration delegate.</param>
-        /// <param name="configureFaultInjectionOptions">The fault injection provider configuration delegate.</param>
-        /// <returns>The silo builder</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <param name="configureOptions">内存存储配置代表。</param>
+        /// <param name="configureFaultInjectionOptions">注射故障供应商配置代表。</param>
+        /// <returns> silo 建筑工</returns>
         public static ISiloBuilder AddFaultInjectionMemoryStorage(
             this ISiloBuilder builder,
             string name,

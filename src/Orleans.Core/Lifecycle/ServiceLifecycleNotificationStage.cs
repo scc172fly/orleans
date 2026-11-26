@@ -7,50 +7,50 @@ using Microsoft.Extensions.Logging;
 namespace Orleans;
 
 /// <summary>
-/// Represents a specific stage in the client / silo lifecycle.
+/// 代表客户/ silo 生命周期中的一个特定阶段。
 /// </summary>
 public interface IServiceLifecycleStage
 {
     /// <summary>
-    /// Gets a cancellation token that is triggered when this stage completes.
+    /// 获取此阶段完成时触发的取消符。
     /// </summary>
-    /// <remarks>Avoid registering callbacks in this token, prefer
-    /// <see cref="Register(Func{object?, CancellationToken, Task}, object?, bool)"/> instead.</remarks>
+    /// <remarks>避免以此符号登记回调, 更可取
+    /// <see cref="Register(Func{object?, CancellationToken, Task}, object?, bool)"/> 而不是。</remarks>
     CancellationToken Token { get; }
 
     /// <summary>
-    /// Waits for this lifecycle stage to complete.
+    /// 等待整个生命周期阶段的完成
     /// </summary>
     /// <param name="cancellationToken">
-    /// A token used to cancel the wait. This does not cancel the lifecycle stage itself!
+    /// 取消等待时使用的标记。 这不会取消生命周期阶段本身 !
     /// </param>
     Task WaitAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Registers a callback to be executed during this lifecycle stage.
+    /// 登记在生命周期阶段执行的回调。
     /// </summary>
     /// <param name="callback">
-    /// <para>The asynchronous operation to perform.</para>
-    /// <para><strong>Never call <see cref="WaitAsync(CancellationToken)"/></strong> inside a callback, as it will result in a deadlock!</para>
+    /// <para>进行无同步操作。</para>
+    /// <para><strong>永不拨打 <see cref="WaitAsync(CancellationToken)"/></strong> 里面的回调,因为那将导致僵局!</para>
     /// </param>
     /// <param name="terminateOnError">
-    /// If <c>true</c>, the client / silo will shut down if there is a failure;
-    /// otherwise an error will be logged and the client / silo will continue to the next stage.
+    /// 如果 <c>true</c>,客户端/ silo 如果失败将关闭;
+    /// 否则,错误将被登录,客户端 / silo 将继续到下一阶段。
     /// </param>
-    /// <param name="state">An optional state to pass.</param>
+    /// <param name="state">一个可选通过的国家。</param>
     /// <remarks>
-    /// Disposing the returned value removes the callback from the lifecycle stage.
-    /// This is useful for components that have a shorter lifespan than the client / silo to prevent holding onto the reference,
-    /// and ensure that cleanup logic is not executed for components that are no longer active.
+    /// 处置返回的值会消除生命周期阶段回回弹。
+    /// 这对于使用寿命短于客户 / silo 的组件有用,以防止坚持引用。
+    /// 并确保不再活动的部件不执行清理逻辑。
     /// </remarks>
     IDisposable Register(Func<object?, CancellationToken, Task> callback, object? state = null, bool terminateOnError = true);
 }
 
 internal sealed partial class ServiceLifecycleNotificationStage(ILogger logger, string name) : IServiceLifecycleStage, IDisposable
 {
-    // We use this so that late registrations can still be executed, otherwise
-    // we'd need to rely on the TCS which means we'd need to set it *before* the callbacks
-    // have been executed, ideally we should fire the TCS only after non-late registered callbacks have completed.
+    // 我们使用这个方法,以便可以继续执行逾期登记,否则
+    // 我们需要依靠TCS 这就意味着我们需要设置它 *之前* 调回
+    // 最好在未迟交的登记回电完成后,
     private bool _isNotifyingOrHasCompleted;
 
     private readonly object _lock = new();
@@ -90,9 +90,9 @@ internal sealed partial class ServiceLifecycleNotificationStage(ILogger logger, 
         {
             try
             {
-                // The original token passed to NotifyCompleted (typically related to the silo startup/shutdown) must be "gone" by now.
-                // Since the stage has already completed, there is no impending timeout for this late registration, so we pass CancellationToken.None.
-                // For late participants we do not check for termination!
+                // 传递到 NotifyCompleted (通常与 silo 启动/shutdown 相关) 的原始牌必须“ 消失 ” 。
+                // 由于阶段已经完成,因此没有为这种迟登记规定任何时间,所以我们通过 CancellationToken.None。
+                // 对于已故的参与者,我们不检查终止!
 
                 await participant.ExecuteAsync(CancellationToken.None).ConfigureAwait(false);
             }
@@ -149,29 +149,29 @@ internal sealed partial class ServiceLifecycleNotificationStage(ILogger logger, 
         }
         catch (Exception ex)
         {
-            // Note that awaiting WhenAll returns only the first exception, and we want to show all, if there are multiple.
+            // 请注意,等待 WhenAll 只返回第一个例外, 如果有多个, 我们想要显示全部 。
             if (allTasks.Exception is { } aggEx)
             {
                 var flattened = aggEx.Flatten();
 
                 if (flattened.InnerExceptions.Count == 1)
                 {
-                    // For cleaner reporting in case one callback throws.
+                    // 以防万一出现回击投球时 更干净的报告
                     _tcs.SetException(flattened.InnerExceptions[0]);
                 }
                 else
                 {
-                    // Otherwise we let the user see all failures.
+                    // 否则,我们让用户看到所有的失败。
                     _tcs.SetException(flattened);
                 }
             }
             else
             {
-                // Unlikely but hey!
+                // 不太可能,但嘿!
                 _tcs.SetException(ex);
             }
 
-            // We throw here regardless, because it's the callback participant who controls whether to TerminateOnError or not.
+            // 我们在这里投球,因为是回击参与者 控制着是否 TerminateOnError
             throw;
         }
     }
@@ -184,8 +184,8 @@ internal sealed partial class ServiceLifecycleNotificationStage(ILogger logger, 
         }
         catch (Exception ex)
         {
-            // Should not happen if callers respect the contract to register
-            // callbacks with the proper method, but it can happen!
+            // 如果打电话者遵守登记合同,则不应发生
+            // 使用正确方法回调,但可能发生!
             LogCancellationCallbackError(logger, ex, name);
         }
     }
@@ -205,7 +205,7 @@ internal sealed partial class ServiceLifecycleNotificationStage(ILogger logger, 
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // If the upstream token triggered this, we rethrow so WhenAll knows we stopped due to cancellation.
+            // 如果上游的标牌触发了这个, 我们重新抛出 如此 WhenAll 知道我们停止是因为取消。
             throw;
         }
         catch (Exception ex)
@@ -214,8 +214,8 @@ internal sealed partial class ServiceLifecycleNotificationStage(ILogger logger, 
 
             if (participant.TerminateOnError)
             {
-                // This will cause WhenAll to fault, eventually triggering _tcs.SetException above.
-                // NotifyCompleted relies on us to throw in case TerminateOnError is set to true.
+                // 这将造成 WhenAll 的错误,最终触发上面的 _tcs.SetException 。
+                // NotifyCompleted 万一被害,就靠我们投 TerminateOnError 设置为真实。
                 throw;
             }
         }

@@ -6,7 +6,7 @@ using Xunit;
 namespace UnitTests.PlacementFilterTests;
 
 /// <summary>
-/// Tests for required match silo metadata placement filter director behavior.
+/// 要求的匹配 silo 元数据设置过滤器主任行为的测试。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

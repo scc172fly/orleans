@@ -12,9 +12,9 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.Codecs;
 
 /// <summary>
-/// Serializer for <see cref="Collection{T}"/>.
+/// <see cref="Collection{T}"/>的序列器。
 /// </summary>
-/// <typeparam name="T">The element type.</typeparam>
+/// <typeparam name="T">元素类型。</typeparam>
 [RegisterSerializer]
 public sealed class CollectionCodec<T> : IFieldCodec<Collection<T>>, IBaseCodec<Collection<T>>
 {
@@ -23,9 +23,9 @@ public sealed class CollectionCodec<T> : IFieldCodec<Collection<T>>, IBaseCodec<
     private readonly IFieldCodec<T> _fieldCodec;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CollectionCodec{T}"/> class.
+    /// 初始化 <see cref="CollectionCodec{T}"/> 类的新实例。
     /// </summary>
-    /// <param name="fieldCodec">The field codec.</param>
+    /// <param name="fieldCodec">字段编码。</param>
     public CollectionCodec(IFieldCodec<T> fieldCodec)
     {
         _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -127,8 +127,8 @@ public sealed class CollectionCodec<T> : IFieldCodec<Collection<T>>, IBaseCodec<
     {
         ArgumentNullExceptionPolyfill.ThrowIfNull(value);
 
-        // If the value has some values added by the constructor, clear them.
-        // If those values are in the serialized payload, they will be added below.
+        // 如果该值有建筑商添加的某种值,请清除这些值。
+        // 如果这些数值在序列式有效载荷中,则将添加到下文。
         value.Clear();
 
         uint fieldId = 0;
@@ -160,18 +160,18 @@ public sealed class CollectionCodec<T> : IFieldCodec<Collection<T>>, IBaseCodec<
 }
 
 /// <summary>
-/// Copier for <see cref="Collection{T}"/>.
+/// <see cref="Collection{T}"/>的复印机。
 /// </summary>
-/// <typeparam name="T">The element type.</typeparam>
+/// <typeparam name="T">元素类型。</typeparam>
 [RegisterCopier]
 public sealed class CollectionCopier<T> : IDeepCopier<Collection<T>>, IBaseCopier<Collection<T>>
 {
     private readonly IDeepCopier<T> _copier;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CollectionCopier{T}"/> class.
+    /// 初始化 <see cref="CollectionCopier{T}"/> 类的新实例。
     /// </summary>
-    /// <param name="valueCopier">The value copier.</param>
+    /// <param name="valueCopier">价值复印机。</param>
     public CollectionCopier(IDeepCopier<T> valueCopier)
     {
         _copier = valueCopier;

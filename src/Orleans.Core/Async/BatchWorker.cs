@@ -6,12 +6,12 @@ using Orleans.Timers.Internal;
 namespace Orleans
 {
     /// <summary>
-    /// General pattern for an asynchronous worker that performs a work task, when notified,
-    /// to service queued work. Each work cycle handles ALL the queued work. 
-    /// If new work arrives during a work cycle, another cycle is scheduled. 
-    /// The worker never executes more than one instance of the work cycle at a time, 
-    /// and consumes no resources when idle. It uses TaskScheduler.Current 
-    /// to schedule the work cycles.
+    /// 从事某项工作任务的非同步工人在接到通知后的一般模式,
+    /// 用于服务排队工作。每个工作周期处理所有排队工作。 
+    /// 如果在工作周期内新工作到来,则安排另一个周期。 
+    /// 工人一次执行的工作周期从未超过一个实例, 
+    /// 闲置时不消耗资源,而是使用 TaskScheduler.Current 
+    /// 以安排工作周期。
     /// </summary>
     public abstract class BatchWorker
     {
@@ -19,30 +19,30 @@ namespace Orleans
 
         private DateTime? scheduledNotify;
 
-        // Task for the current work cycle, or null if idle
+        // 当前工作周期的任务, 即空时无效
         private Task? currentWorkCycle;
 
-        // Flag is set to indicate that more work has arrived during execution of the task
+        // 设置的旗帜表示在执行任务期间已完成更多工作
         private bool moreWork;
 
-        // Used to communicate the task for the next work cycle to waiters.
-        // This value is non-null only if there are waiters.
+        // 用于向服务生传达下一个工作周期的任务。
+        // 只有有服务生时, 此值才为非无效值 。
         private TaskCompletionSource<Task>? nextWorkCyclePromise;
         private Task? nextWorkCycle;
 
-        /// <summary>Implement this member in derived classes to define what constitutes a work cycle</summary>
+        /// <summary>在衍生类别中执行该成员,以界定什么构成工作周期</summary>
         /// <returns>>
         /// A <see cref="Task"/>
         /// </returns>
         protected abstract Task Work();
 
         /// <summary>
-        /// Gets or sets the cancellation used to cancel this batch worker.
+        /// 获取或设置取消该批量工人的取消时所用的取消 。
         /// </summary>
         protected CancellationToken CancellationToken { get; set; }
 
         /// <summary>
-        /// Notify the worker that there is more work.
+        /// 通知工人还有更多工作。
         /// </summary>
         public void Notify()
         {
@@ -50,20 +50,20 @@ namespace Orleans
             {
                 if (currentWorkCycle != null)
                 {
-                    // lets the current work cycle know that there is more work
+                    // 让当前工作周期知道还有更多工作要做
                     moreWork = true;
                 }
                 else
                 {
-                    // start a work cycle
+                    // 开始工作周期
                     Start();
                 }
             }
         }
 
         /// <summary>
-        /// Instructs the batch worker to run again to check for work, if
-        /// it has not run again already by then, at specified <paramref name="utcTime"/>.
+        /// 指示批批工人再次跑去检查工作,如果
+        /// 此时它尚未在指定 <paramref name="utcTime"/>时再次运行。
         /// </summary>
         /// <param name="utcTime"></param>
         public void Notify(DateTime utcTime)
@@ -100,14 +100,14 @@ namespace Orleans
 
         private Task Start()
         {
-            // Clear any scheduled runs
+            // 清除任何计划运行
             scheduledNotify = null;
 
-            // Queue a task that is doing the work
+            // 正在做的工作任务排队
             var task = Task.Factory.StartNew(s => ((BatchWorker)s!).Work(), this, default, default, TaskScheduler.Current).Unwrap();
             currentWorkCycle = task;
 
-            // chain a continuation that checks for more work, on the same scheduler
+            // 同一排程器上检查更多工作的链条的连续链
             task.ContinueWith(
                 (_, s) => ((BatchWorker)s!).CheckForMoreWork(),
                 this,
@@ -118,7 +118,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Executes at the end of each work cycle on the same task scheduler.
+        /// 在每个工作周期结束时执行同一任务调度器。
         /// </summary>
         private void CheckForMoreWork()
         {
@@ -131,13 +131,13 @@ namespace Orleans
                 {
                     moreWork = false;
 
-                    // see if someone created a promise for waiting for the next work cycle
-                    // if so, take it and remove it
+                    // 看看是否有人创造了一个希望 等待下一个工作周期
+                    // 如果有,拿取并移走
                     signal = this.nextWorkCyclePromise;
                     this.nextWorkCyclePromise = null;
                     this.nextWorkCycle = null;
 
-                    // start the next work cycle
+                    // 开始下一个工作周期
                     taskToSignal = Start();
                 }
                 else
@@ -147,32 +147,32 @@ namespace Orleans
                 }
             }
 
-            // to be safe, must do the signalling out here so it is not under the lock
+            // 安全起见,必须在这里发出信号 所以它不会在锁下
             signal?.SetResult(taskToSignal);
         }
 
         /// <summary>
-        /// Check if this worker is idle.
+        /// 检查该工人是否闲置。
         /// </summary>
         public bool IsIdle() => currentWorkCycle == null;
 
         /// <summary>
-        /// Wait for the current work cycle, and also the next work cycle if there is currently unserviced work.
+        /// 等待目前的工作周期,以及如果目前没有服务的工作,则等待下一个工作周期。
         /// </summary>
         public Task WaitForCurrentWorkToBeServiced()
         {
-            // Figure out exactly what we need to wait for
+            // 找出我们到底需要等待什么
             lock (lockable)
             {
                 if (!moreWork)
                 {
-                    // Just wait for current work cycle
+                    // 等待当前工作周期
                     return currentWorkCycle ?? Task.CompletedTask;
                 }
                 else
                 {
-                    // we need to wait for the next work cycle
-                    // but that task does not exist yet, so we use a promise that signals when the next work cycle is launched
+                    // 我们需要等待下一个工作周期
+                    // 但这项任务还不存在,所以我们使用一个承诺,即下一个工作周期启动时发出信号
                     return nextWorkCycle ?? CreateNextWorkCyclePromise();
                 }
             }
@@ -180,13 +180,13 @@ namespace Orleans
 
         private Task CreateNextWorkCyclePromise()
         {
-            // it's OK to run any continuations synchrnously because this promise only gets signaled at the very end of CheckForMoreWork
+            // 同步运行任何后续数据是可以的, 因为这个承诺只在 CheckForMoreWork结束时才发出信号
             nextWorkCyclePromise = new TaskCompletionSource<Task>();
             return nextWorkCycle = nextWorkCyclePromise.Task.Unwrap();
         }
 
         /// <summary>
-        /// Notify the worker that there is more work, and wait for the current work cycle, and also the next work cycle if there is currently unserviced work.
+        /// 通知工人还有更多的工作,等待目前的工作周期,如果目前没有服务的工作,还要等待下一个工作周期。
         /// </summary>
         public Task NotifyAndWaitForWorkToBeServiced()
         {
@@ -206,17 +206,17 @@ namespace Orleans
     }
 
     /// <summary>
-    /// A <see cref="BatchWorker"/> implementation which executes a provided delegate as its <see cref="BatchWorker.Work"/> implementation.
+    /// 执行 <see cref="BatchWorker"/> ,作为执行 <see cref="BatchWorker.Work"/> ,执行指定的代表。
     /// </summary>
     public class BatchWorkerFromDelegate : BatchWorker
     {
         private readonly Func<Task> work;
 
         /// <summary>
-        /// Initializes a new <see cref="BatchWorkerFromDelegate"/> instance.
+        /// 初始化一个新的 <see cref="BatchWorkerFromDelegate"/> 实例。
         /// </summary>
-        /// <param name="work">The delegate to invoke when <see cref="BatchWorker.Work"/> is invoked.</param>
-        /// <param name="cancellationToken">The cancellation token used to stop the worker.</param>
+        /// <param name="work">代表援引时的援引 <see cref="BatchWorker.Work"/> 援引。</param>
+        /// <param name="cancellationToken">用于阻止工人的取消牌。</param>
         public BatchWorkerFromDelegate(Func<Task> work, CancellationToken cancellationToken = default)
         {
             this.work = work;

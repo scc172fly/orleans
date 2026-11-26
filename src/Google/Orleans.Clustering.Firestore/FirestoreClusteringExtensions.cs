@@ -8,21 +8,21 @@ using Orleans.Clustering.Firestore;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Provides extension methods for configuring Google Firestore clustering.
+/// 提供谷歌消防站集群配置的扩展方法。
 /// </summary>
 public static class FirestoreClusteringExtensions
 {
     /// <summary>
-    /// Configures the silo to use Google Firestore for clustering.
+    /// 配置 silo ,使用 Google 消防站进行分组。
     /// </summary>
     /// <param name="builder">
-    /// The silo builder.
+    /// 下 silo 建筑商
     /// </param>
     /// <param name="configureOptions">
-    /// The configuration delegate.
+    /// 组合代表
     /// </param>
     /// <returns>
-    /// The provided <see cref="ISiloBuilder"/>.
+    /// 提供 <see cref="ISiloBuilder"/>。
     /// </returns>
     public static ISiloBuilder UseFirestoreClustering(
         this ISiloBuilder builder,
@@ -38,16 +38,16 @@ public static class FirestoreClusteringExtensions
     }
 
     /// <summary>
-    /// Configures the silo to use Google Firestore for clustering.
+    /// 配置 silo ,使用 Google 消防站进行分组。
     /// </summary>
     /// <param name="builder">
-    /// The silo builder.
+    /// 下 silo 建筑商
     /// </param>
     /// <param name="configureOptions">
-    /// The configuration delegate.
+    /// 组合代表
     /// </param>
     /// <returns>
-    /// The provided <see cref="ISiloBuilder"/>.
+    /// 提供 <see cref="ISiloBuilder"/>。
     /// </returns>
     public static ISiloBuilder UseFirestoreClustering(
         this ISiloBuilder builder,
@@ -67,16 +67,16 @@ public static class FirestoreClusteringExtensions
     }
 
     /// <summary>
-    /// Configures the client to use Google Firestore for clustering.
+    /// 配置客户端使用 Google 消防商店进行分组。
     /// </summary>
     /// <param name="builder">
-    /// The client builder.
+    /// 客户的建设者
     /// </param>
     /// <param name="configureOptions">
-    /// The configuration delegate.
+    /// 组合代表
     /// </param>
     /// <returns>
-    /// The provided <see cref="IClientBuilder"/>.
+    /// 提供 <see cref="IClientBuilder"/>。
     /// </returns>
     public static IClientBuilder UseFirestoreClustering(
         this IClientBuilder builder,
@@ -92,16 +92,16 @@ public static class FirestoreClusteringExtensions
     }
 
     /// <summary>
-    /// Configures the client to use Google Firestore for clustering.
+    /// 配置客户端使用 Google 消防商店进行分组。
     /// </summary>
     /// <param name="builder">
-    /// The client builder.
+    /// 客户的建设者
     /// </param>
     /// <param name="configureOptions">
-    /// The configuration delegate.
+    /// 组合代表
     /// </param>
     /// <returns>
-    /// The provided <see cref="IClientBuilder"/>.
+    /// 提供 <see cref="IClientBuilder"/>。
     /// </returns>
     public static IClientBuilder UseFirestoreClustering(
         this IClientBuilder builder,

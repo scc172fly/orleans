@@ -34,10 +34,10 @@ internal static class SearchAlgorithms
         return -1;
     }
 
-    // Binary search for collections of ranges along a ring (eg, a consistent hash ring), sorted by the starting point of each range.
-    // This differs from a standard binary search in that the search can wrap around from the start to the last element in the collection.
-    // This is accommodated by checking the last element in the collection before returning a negative result, to handle the case where a
-    // range wraps around from end to start. See RingRange
+    // 以一个环(例如,一个一致的散列环)为基准,按每个范围的起点排序,对环(如,一个连续的散列环)上的靶场收藏进行二进制搜索。
+    // 这与标准的二进制搜索有所不同, 因为搜索可以从开始到收藏中最后一个元素的周围环绕。
+    // 这一点通过在返回负结果之前核对收藏中最后一项内容,以适应上述情况,处理以下案件:
+    // 区域从结束到开始环绕。见 RingRange
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int RingRangeBinarySearch<TCollection, TElement, TKey>(
         int length,
@@ -63,17 +63,17 @@ internal static class SearchAlgorithms
             }
             else if (comparison < 0)
             {
-                // Go right.
+                // 右转
                 left = mid + 1;
             }
             else
             {
-                // Go left.
+                // 左转
                 right = mid - 1;
             }
         }
 
-        // Try the last element.
+        // 试一下最后一个元素。
         entry = getEntry(collection, length - 1);
         if (entry.CompareTo(key) == 0)
         {
@@ -81,7 +81,7 @@ internal static class SearchAlgorithms
         }
 
 #if DEBUG
-        // Try the first element.
+        // 试一下第一个元素。
         entry = getEntry(collection, 0);
         if (entry.CompareTo(key) == 0)
         {

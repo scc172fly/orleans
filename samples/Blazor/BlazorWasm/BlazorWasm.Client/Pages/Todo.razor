@@ -50,7 +50,7 @@
     {
         if (!string.IsNullOrWhiteSpace(newTodo))
         {
-            // create a new todo
+            // 创建一个新待办事宜
             var todo = new TodoItem
             {
                 Key = Guid.NewGuid(),
@@ -59,13 +59,13 @@
                 Title = newTodo
             };
 
-            // add it to the cluster
+            // 将之加入到分组中
             await ApiService.SetTodoAsync(todo);
 
-            // show it on the user interface
+            // 在用户界面中显示
             todos.Add(todo);
 
-            // reset the box
+            // 重置框
             newTodo = null;
         }
     }

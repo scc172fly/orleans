@@ -1,58 +1,58 @@
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Service keys used to resolve per-area <see cref="System.TimeProvider"/> instances from dependency injection for
-/// the areas owned by the Orleans core runtime. Individual extension packages (reminders, streaming, transactions,
-/// durable jobs, journaling, and similar) define their own keys in the corresponding package.
+/// 用于解决每个地区从按需打针的 <see cref="System.TimeProvider"/> 个案的服务键
+/// 区域所有区域 Orleans 单个扩展包(重新定位、流流、交易、
+/// 持续工作、日记或类似的工作)在相应的软件包中定义自己的密钥。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Orleans resolves time from a single default <see cref="System.TimeProvider"/> registration. To allow individual
-/// subsystems to be driven by different clocks, each area also resolves a <em>keyed</em> <see cref="System.TimeProvider"/>
-/// using one of these keys. A catch-all <see cref="Microsoft.Extensions.DependencyInjection.KeyedService.AnyKey"/>
-/// registration resolves every key to the unkeyed default provider, so behavior is unchanged unless a specific area
-/// is overridden.
+/// Orleans 解析单个默认 <see cref="System.TimeProvider"/> 登记的时间。允许个人
+/// 由不同时钟驱动的子系统,每个区域还解析一个 <em>键</em> <see cref="System.TimeProvider"/>
+/// 使用其中的密钥之一。 A 全部套接 <see cref="Microsoft.Extensions.DependencyInjection.KeyedService.AnyKey"/>
+/// 注册解决了无密钥默认提供方的每一个密钥,所以行为不变,除非有特定区域
+/// 被压倒。
 /// </para>
 /// <para>
-/// This is primarily useful for testing: a test can install a controllable clock (such as
-/// <c>Microsoft.Extensions.Time.Testing.FakeTimeProvider</c>) as the default provider to drive grain timers and
-/// grain-facing delays deterministically, while pinning the silo''s background maintenance timers to real time so that
-/// advancing the fake clock does not resume those loops inline.
+/// 这主要可用于测试:测试可以安装可控时钟(例如
+/// <c>Microsoft.Extensions.Time.Testing.FakeTimeProvider</c>作为默认驱动器驱动 grain 计时器和
+/// grain- 以确定性延迟为定点,同时将 silo的背景维护计时器与实时定位相连接,以便
+/// 推进假时钟不会恢复这些循环的内嵌。
 /// </para>
 /// </remarks>
 public static class TimeProviderNames
 {
     /// <summary>
-    /// The clock exposed to grains via <c>IGrainRuntime.TimeProvider</c> and used to drive grain timers.
+    /// 时钟暴露在 grains 经由 <c>IGrainRuntime.TimeProvider</c> 驱动时 grain 计时器。
     /// </summary>
     public const string Grains = "Orleans.Grains";
 
     /// <summary>
-    /// The clock used by messaging infrastructure, such as request timeout tracking and gateway maintenance.
+    /// 信息通信基础设施所用的时钟,如请求超时跟踪和维护网关。
     /// </summary>
     public const string Messaging = "Orleans.Messaging";
 
     /// <summary>
-    /// The clock used by silo background maintenance loops driven by <c>IAsyncTimerFactory</c>
-    /// (grain directory maintenance and similar), excluding cluster membership, which uses
+    /// silo 背景维护环所使用的时钟由 <c>IAsyncTimerFactory</c>驱动
+    /// (grain 目录维护及类似),不包括使用
     /// <see cref="Membership"/>.
     /// </summary>
     public const string SystemTimers = "Orleans.SystemTimers";
 
     /// <summary>
-    /// The clock used by cluster membership loops, including the membership agent, membership table
-    /// maintenance and cleanup, and silo health monitoring and probing.
+    /// 包括成员代理、成员表在内的分组成员循环利用的时钟
+    /// 和清除, silo 健康监测和检测。
     /// </summary>
     public const string Membership = "Orleans.Membership";
 
     /// <summary>
-    /// The clock used by activation lifecycle management, including activation collection, migratability checks,
-    /// repartitioning, and rebalancing.
+    /// 激活生命周期管理所用的时钟,包括启动收集、偏差检查、
+    /// 重新分割,再平衡
     /// </summary>
     public const string ActivationManagement = "Orleans.ActivationManagement";
 
     /// <summary>
-    /// The clock used by the grain directory cache for entry expiration.
+    /// grain 目录缓存过期时所用的时钟。
     /// </summary>
     public const string GrainDirectory = "Orleans.GrainDirectory";
 }

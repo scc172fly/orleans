@@ -6,7 +6,7 @@ public sealed class DeliveryGrain : DurableGrain
     // <orleans0218_violation>
     public async DurableTask<string> DeliverAsync(Guid orderId, string region, int newestVersion)
     {
-        // The name depends on the region, and the range on the caller.
+        // 名字取决于区域,以及呼叫者的距离。
         var version = DurableTask.GetVersion($"carrier-booking-{region}", 0, newestVersion);
         return version >= 1
             ? await Book(orderId, region).WithId("book")
@@ -20,7 +20,7 @@ public sealed class DeliveryGrain : DurableGrain
 
     public async DurableTask<string> DeliverByCarrierAsync(Guid orderId, string region)
     {
-        // Every replay reads the version which the execution recorded under this name.
+        // 每一段重播都读取执行记录 以这个名字记录的版本
         var version = DurableTask.GetVersion(CarrierBookingChange, minSupported: 0, maxSupported: 1);
         return version >= 1
             ? await Book(orderId, region).WithId("book")

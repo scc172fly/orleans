@@ -13,53 +13,53 @@ internal sealed class FrequentEdgeCounter(int capacity) : FrequentItemCollection
     public void Remove(in Edge element) => RemoveCore(GetKey(element));
 }
 
-// This is Implementation of "Filtered Space-Saving" from "Finding top-k elements in data streams"
-// by Nuno Homem &amp; Joao Paulo Carvalho (https://www.hlt.inesc-id.pt/~fmmb/references/misnis.ref0a.pdf). 
-// In turn, this is a modification of the "Space-Saving" algorithm by Metwally, Agrawal, and Abbadi,
-// Described in "Efficient Computation of Frequent and Top-k Elements in Data Streams" (https://www.cs.emory.edu/~cheung/Courses/584/Syllabus/papers/Frequency-count/2005-Metwally-Top-k-elements.pdf).
-// This is implemented using an in-lined version of .NET's PriorityQueue which has been modified
-// to support incrementing a value and with an index mapping key hashes to heap indexes.
+// 这是从“在数据流中查找顶点元素” 中“稳定空间”的“功能。
+// 以努诺·霍姆 &amp; 乔奥·保罗·卡尔瓦略(https://www.hlt.inesc-id.pt/~fmmb/references/misnis.ref0a.pdf)为首。 
+// 反过来,这是对Metwally、Agrawal和Abbadi的“空间拯救”算法的修改。
+// “数据流中常见和顶端元素的高效计算”(“数据流中常见和高空要素的高效计算”)中描述(第1段)https://www.cs.emory.edu/~cheung/Courses/584/Syllabus/papers/Frequency-count/2005-Metwally-Top-k-elements.pdf).
+// 执行此操作时使用了已修改的内嵌 .NET PriorityQueue 版本
+// 支持递增值, 并使用索引绘制关键杂交物到堆积指数 。
 internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) where TElement : notnull where TKey : notnull
 {
     /// <summary>
-    /// Represents an implicit heap-ordered complete d-ary tree, stored as an array.
+    /// 表示一个内含堆积定序的全干枯树,以数组形式储存。
     /// </summary>
     private Counter[] _heap = [];
 
     /// <summary>
-    /// A dictionary that maps the hash of a key to its index in the heap.
+    /// 一种字典,它绘制了堆积中索引的钥匙的散列。
     /// </summary>
     private readonly Dictionary<TKey, int> _heapIndex = [];
 
     /// <summary>
-    /// The number of nodes in the heap.
+    /// 堆积中的节点数 。
     /// </summary>
     private int _heapSize;
 
     /// <summary>
-    /// Specifies the arity of the d-ary heap, which here is quaternary.
-    /// It is assumed that this value is a power of 2.
+    /// 指定 d-ary 堆积的乘以, 这里为四。
+    /// 假定这一价值是2的功率。
     /// </summary>
     private const int Arity = 4;
 
     /// <summary>
-    /// The binary logarithm of <see cref="Arity" />.
+    /// 二进制对数 <see cref="Arity" />。
     /// </summary>
     private const int Log2Arity = 2;
 
     /// <summary>
-    /// Contains count estimates for keys that are not being tracked, indexed by the hash of the key.
-    /// Collisions are expected.
+    /// 包含未跟踪的键的计算估计,按键的散列编制索引。
+    /// 预计将发生碰撞。
     /// </summary>
     private readonly uint[] _sketch = new uint[GetSketchSize(capacity)];
 
     /// <summary>
-    /// Gets the number of elements contained in the <see cref="FrequentItemCollection{TKey,TElement}"/>.
+    /// 获取 <see cref="FrequentItemCollection{TKey,TElement}"/>中包含的元素数。
     /// </summary>
     public int Count => _heapSize;
 
     /// <summary>
-    /// Gets the number of elements which the <see cref="FrequentItemCollection{TKey, TElement}"/> will track.
+    /// 获取 <see cref="FrequentItemCollection{TKey, TElement}"/> 将跟踪的元素数。
     /// </summary>
     public int Capacity { get; } = capacity;
 
@@ -71,7 +71,7 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
 #endif
 
     /// <summary>
-    /// Returns a collection of up to <see cref="Capacity"/> keys, along with their count estimates, in unspecified order.
+    /// 返回最多为 <see cref="Capacity"/> 键的集合,并按未说明顺序返回其计算估计数。
     /// </summary>
     public ElementEnumerator Elements => new(this);
 
@@ -82,8 +82,8 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
         const int Increment = 1;
         var nodeIndexHash = GetKey(element);
 
-        // Increase count of a key that is already being tracked.
-        // There is a minute chance of a hash collision, which is deemed acceptable and ignored.
+        // 正在跟踪的密钥增加计数 。
+        // 发生散列碰撞的可能性很小,这被认为是可以接受和被忽视的。
         if (_heapIndex.TryGetValue(nodeIndexHash, out var index))
         {
             ref var counter = ref _heap[index];
@@ -92,7 +92,7 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
             return;
         }
 
-        // Key is not being tracked, but can fit in the top K, so add it.
+        // 键未被跟踪, 但可以安装在顶部 K, 所以添加它 。
         if (Count < Capacity)
         {
             InsertHeap(new Counter(element, Increment, error: 0), nodeIndexHash);
@@ -101,55 +101,55 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
 
         var min = _heap[0];
 
-        // Filter out values which are estimated to have appeared less frequently than the minimum.
+        // 筛选估计显示的数值比最低值少。
         var sketchMask = _sketch.Length - 1;
         var sketchHash = nodeIndexHash.GetHashCode();
         var countEstimate = _sketch[sketchHash & sketchMask];
         if (countEstimate + Increment < min.Count)
         {
-            // Increase the count estimate.
+            // 增加计算估计数。
             _sketch[sketchHash & sketchMask] += Increment;
             return;
         }
 
-        // Remove the minimum element from the hash index.
+        // 从散列指数中删除最小元素。
         var minIndexHash = GetKey(min.Element);
         _heapIndex.Remove(minIndexHash);
 
-        // While evicting the minimum element, update its counter in the sketch to improve the chance of it
-        // passing the filter in the future.
+        // 将最低元素除去的同时,在草图中更新其计数器,以增加其机会
+        // 未来通过过滤器。
         var minHash = minIndexHash.GetHashCode();
         _sketch[minHash & sketchMask] = min.Count;
 
-        // Push the new element in place of the last and move it down until it's in position.
+        // 将新元素推到最后,然后往下移直到它就位
         MoveDownHeap(new Counter(element, countEstimate + Increment, error: countEstimate), 0, nodeIndexHash);
     }
 
     /// <summary>
-    /// Removes the counter corresponding to the specified hash.
+    /// 删除对应指定散列的对应于反面。
     /// </summary>
-    /// <param name="key">The key of the value to remove.</param>
-    /// <returns><see langword="true"/> if matching entry was found and removed, <see langword="false"/> otherwise.</returns>
+    /// <param name="key">要删除的值的密钥。</param>
+    /// <returns><see langword="true"/> 如果找到并删除匹配条目, <see langword="false"/> 否则。</returns>
     protected bool RemoveCore(TKey key)
     {
-        // Remove the element from the sketch
+        // 从草图中删除元素
         var sketchMask = _sketch.Length - 1;
         var sketchHash = key.GetHashCode();
         _sketch[sketchHash & sketchMask] = 0;
 
-        // Remove the element from the heap index
+        // 从堆积指数中删除元素
         if (!_heapIndex.Remove(key, out var index))
         {
             return false;
         }
 
-        // Remove the element from the heap
+        // 从堆放中删除元素
         var nodes = _heap;
         var newSize = --_heapSize;
         if (index < newSize)
         {
-            // We're removing an element from the middle of the heap.
-            // Pop the last element in the collection and sift downward from the removed index.
+            // 我们正在从堆积的中间 去除一个元素
+            // 弹出收藏中的最后元素, 从已删除的索引中向下筛选 。
             var lastNode = nodes[newSize];
 
             MoveDownHeap(lastNode, index, GetKey(lastNode.Element));
@@ -170,23 +170,23 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
 
     private static int GetSketchSize(int capacity)
     {
-        // Suggested constants in the paper "Finding top-k elements in data streams", chap 6. equation (24)
-        // Round to nearest power of 2 for cheaper binning without modulo
+        // 文件中建议的常数“找出数据流中最重的元素”,第6章,方程(24)
+        // 圆到最近的电源为 2,用于更便宜的宾式宾客,无模版
         const int SketchEntriesPerHeapEntry = 6;
 
         return 1 << 32 - int.LeadingZeroCount(capacity * SketchEntriesPerHeapEntry);
     }
 
     /// <summary>
-    ///  Adds the specified element to the <see cref="FrequentItemCollection{TKey, TElement}"/>.
+    ///  将指定元素添加到 <see cref="FrequentItemCollection{TKey, TElement}"/>。
     /// </summary>
-    /// <param name="element">The element to add.</param>
-    /// <param name="key">The key used to index the element in the heap.</param>
+    /// <param name="element">要添加的元素。</param>
+    /// <param name="key">用于对堆积中元素进行索引的密钥。</param>
     private void InsertHeap(Counter element, TKey key)
     {
-        // Virtually add the node at the end of the underlying array.
-        // Note that the node being enqueued does not need to be physically placed
-        // there at this point, as such an assignment would be redundant.
+        // 几乎在底端数组的末尾添加节点。
+        // 注意: 所排的节点不需要实际安装
+        // 此时此刻,这种转让是多余的。
 
         var currentSize = _heapSize;
 
@@ -201,7 +201,7 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
     }
 
     /// <summary>
-    /// Grows the priority queue to match the specified min capacity.
+    /// 将优先队列增长到符合指定分钟容量的大小 。
     /// </summary>
     private void GrowHeap(int minCapacity)
     {
@@ -212,37 +212,37 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
 
         var newCapacity = GrowFactor * _heap.Length;
 
-        // Allow the queue to grow to maximum possible capacity (~2G elements) before encountering overflow.
-        // Note that this check works even when _nodes.Length overflowed thanks to the (uint) cast
+        // 允许队列在出现溢出前增长到最大容量(~ 2G元素) 。
+        // 请注意,本检查即使在 _nodes.Length 这是由于众人因他而使众人疲倦,
         if ((uint)newCapacity > Array.MaxLength) newCapacity = Array.MaxLength;
 
-        // Ensure minimum growth is respected.
+        // 确保最低增长得到尊重。
         newCapacity = Math.Max(newCapacity, _heap.Length + MinimumGrow);
 
-        // If the computed capacity is still less than specified, set to the original argument.
-        // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
+        // 如果计算能力仍然低于规定,则与原论点挂钩。
+        // 超过 Array.MaxLength 将如 OutOfMemoryException 年 Array.Resize.
         if (newCapacity < minCapacity) newCapacity = minCapacity;
 
         Array.Resize(ref _heap, newCapacity);
     }
 
     /// <summary>
-    /// Gets the index of an element's parent.
+    /// 获取元素父系的索引。
     /// </summary>
     private static int GetParentIndex(int index) => index - 1 >> Log2Arity;
 
     /// <summary>
-    /// Gets the index of the first child of an element.
+    /// 获取元素第一个子孙的索引。
     /// </summary>
     private static int GetFirstChildIndex(int index) => (index << Log2Arity) + 1;
 
     /// <summary>
-    /// Moves a node up in the tree to restore heap order.
+    /// 将树上的节点上移以恢复堆积顺序。
     /// </summary>
     private void MoveUpHeap(Counter node, int nodeIndex, TKey nodeKey)
     {
-        // Instead of swapping items all the way to the root, we will perform
-        // a similar optimization as in the insertion sort.
+        // 与其把项目全部换成根,不如我们继续
+        // 与插入类相似的优化。
 
         Debug.Assert(0 <= nodeIndex && nodeIndex < _heapSize);
 
@@ -271,13 +271,13 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
     }
 
     /// <summary>
-    /// Moves a node down in the tree to restore heap order.
+    /// 将树上的节点下移以恢复堆积顺序。
     /// </summary>
     private void MoveDownHeap(Counter node, int nodeIndex, TKey nodeKey)
     {
-        // The node to move down will not actually be swapped every time.
-        // Rather, values on the affected path will be moved up, thus leaving a free spot
-        // for this value to drop in. Similar optimization as in the insertion sort.
+        // 移动下移的节点不会每次被互换。
+        // 相反,受影响道路上的价值观将提升,从而留下一个自由的场所
+        // 。插入类中的优化与插入类相似。
 
         Debug.Assert(0 <= nodeIndex && nodeIndex < _heapSize);
 
@@ -288,7 +288,7 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
         int i;
         while ((i = GetFirstChildIndex(nodeIndex)) < size)
         {
-            // Find the child node with the minimal priority
+            // 找到孩子的节点, 且给予最小优先
             var minChild = nodes[i];
             var minChildIndex = i;
 
@@ -303,13 +303,13 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
                 }
             }
 
-            // Heap property is satisfied; insert node in this location.
+            // 满足了堆积属性;在此位置插入节点。
             if (node.CompareTo(minChild) <= 0)
             {
                 break;
             }
 
-            // Move the minimal child up by one node and continue recursively from its location.
+            // 将最小子上移一个节点,并重现其位置。
             nodes[nodeIndex] = minChild;
             hashIndex[GetKey(minChild.Element)] = nodeIndex;
             nodeIndex = minChildIndex;
@@ -331,8 +331,8 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
     }
 
     /// <summary>
-    ///  Enumerates the element and priority pairs of a <see cref="FrequentItemCollection{TKey, TElement}"/>,
-    ///  without any ordering guarantees.
+    ///  列出 <see cref="FrequentItemCollection{TKey, TElement}"/>的元素和优先配对,
+    ///  没有任何命令保证。
     /// </summary>
     public struct ElementEnumerator : IEnumerator<(TElement Element, uint Count, uint Error)>, IEnumerable<(TElement Element, uint Count, uint Error)>
     {
@@ -348,14 +348,14 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
         }
 
         /// <summary>
-        /// Releases all resources used by the <see cref="ElementEnumerator"/>.
+        /// <see cref="ElementEnumerator"/>释放所有使用的资源。
         /// </summary>
         public readonly void Dispose() { }
 
         /// <summary>
-        /// Advances the enumerator to the next element of the heap.
+        /// 将分子推进到堆积的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             var localHeap = _heap;
@@ -378,7 +378,7 @@ internal abstract class FrequentItemCollection<TKey, TElement>(int capacity) whe
         }
 
         /// <summary>
-        /// Gets the element at the current position of the enumerator.
+        /// 将元素放在当前点的分子位置。
         /// </summary>
         public readonly (TElement Element, uint Count, uint Error) Current => (_current.Element, _current.Count, _current.Error);
 

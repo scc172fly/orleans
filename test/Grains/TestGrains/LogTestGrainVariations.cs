@@ -4,40 +4,40 @@ using UnitTests.GrainInterfaces;
 
 namespace TestGrains
 {
-    // variations of the log consistent grain are used to test a variety of provider and configurations
+    // 一致日志的变量 grain 用于测试各种供应商和配置
 
-    // use azure storage and a explicitly configured consistency provider
+    // 使用“正流存储”和明确配置的自定义软件
     [StorageProvider(ProviderName = "AzureStore")]
     [LogConsistencyProvider(ProviderName = "StateStorage")]
     public class LogTestGrainSharedStateStorage : LogTestGrain
     {
     }
 
-    // use azure storage and a explicitly configured consistency provider
+    // 使用“正流存储”和明确配置的自定义软件
     [StorageProvider(ProviderName = "AzureStore")]
     [LogConsistencyProvider(ProviderName = "LogStorage")]
     public class LogTestGrainSharedLogStorage : LogTestGrain
     {
     }
 
-    // use the default storage provider as the shared storage
+    // 使用默认存储提供方作为共享存储
     public class LogTestGrainDefaultStorage : LogTestGrain
     {
     }
 
-    // use MemoryStore (which uses GSI grain)
+    // 使用 MemoryStore (使用 GSI grain)
     [StorageProvider(ProviderName = "MemoryStore")]
     public class LogTestGrainMemoryStorage : LogTestGrain
     {
     }
 
-    // use the explictly specified "CustomStorage" log-consistency provider with symmetric access from all clusters
+    // 使用所有组群均具有对称访问权限的、直白指定的 "CustomStorage" 日志一致性提供方
     [LogConsistencyProvider(ProviderName = "CustomStorage")]
     public class LogTestGrainCustomStorage : LogTestGrain,
         Orleans.EventSourcing.CustomStorage.ICustomStorageInterface<MyGrainState, object>
     {
 
-        // we use another impl of this grain as the primary.
+        // 我们用这个 grain 的另外一根断线作为主电路。
         private ILogTestGrain? storagegrain;
 
         private ILogTestGrain GetStorageGrain()
@@ -67,14 +67,14 @@ namespace TestGrains
         }
     }
 
-    // use the explictly specified "CustomStorage" log-consistency provider with access from primary cluster only
+    // 使用只从主集中访问的、 Exlicit 指定 "CustomStorage" 逻辑一致性的用户名
     [LogConsistencyProvider(ProviderName = "CustomStoragePrimaryCluster")]
     public class LogTestGrainCustomStoragePrimaryCluster : LogTestGrain,
         Orleans.EventSourcing.CustomStorage.ICustomStorageInterface<MyGrainState, object>
     {
         private readonly DeepCopier<MyGrainState> copier;
 
-        // we use fake in-memory state as the storage
+        // 我们用假的存储状态
         private MyGrainState? state;
         private int version;
 
@@ -83,8 +83,8 @@ namespace TestGrains
             this.copier = copier;
         }
 
-        // simulate an async call during activation. This caused deadlock in earlier version,
-        // so I add it here to catch regressions.
+        // 激活时模拟一个自动同步呼叫。 这在先前版本中造成僵局,
+        // 所以我在这里加上它 来赶上倒退
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
             await Task.Run(async () =>
@@ -121,7 +121,7 @@ namespace TestGrains
                 state = new MyGrainState();
                 version = 0;
             }
-            return Task.FromResult(new KeyValuePair<int, MyGrainState>(version, this.copier.Copy(state!)!)); // State is initialized in the branch above.
+            return Task.FromResult(new KeyValuePair<int, MyGrainState>(version, this.copier.Copy(state!)!)); // 国家在上述分支中初始化。
         }
 
         public Task ClearStoredState()

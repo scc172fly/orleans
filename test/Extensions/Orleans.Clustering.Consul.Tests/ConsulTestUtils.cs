@@ -6,7 +6,7 @@ using Xunit;
 namespace Consul.Tests
 {
     /// <summary>
-    /// Utility class for Consul test setup and connection verification.
+    /// 领事测试和连接验证的实用等级。
     /// </summary>
     public static class ConsulTestUtils
     {

@@ -6,7 +6,7 @@ using Xunit;
 namespace Consul.Tests
 {
     /// <summary>
-    /// Tests Orleans cluster liveness functionality using Consul as the membership provider.
+    /// 使用领事作为成员提供者测试 Orleans 群集实时功能。
     /// </summary>
     [TestCategory("Membership"), TestCategory("Consul")]
     [TestSuite("Functional")]

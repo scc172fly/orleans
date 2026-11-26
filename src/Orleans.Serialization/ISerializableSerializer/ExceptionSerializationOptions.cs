@@ -4,18 +4,18 @@ using System.Collections.Generic;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Options for exception serialization.
+    /// 例外序列化的备选办法。
     /// </summary>
     public class ExceptionSerializationOptions
     {
         /// <summary>
-        /// Gets the collection of supported namespace prefixes for the exception serializer.
-        /// Any exception type which has a namespace with one of these prefixes will be serialized using the exception serializer.
+        /// 获取例外序列化器的辅助命名空间前缀收藏。
+        /// 任何带有这些前缀之一的命名空间的例外类型,都将使用例外序列器进行序列化。
         /// </summary>
         public HashSet<string> SupportedNamespacePrefixes { get; } = new HashSet<string>(StringComparer.Ordinal) { "Microsoft", "System", "Azure" };
 
         /// <summary>
-        /// Gets or sets the predicate used to enable serialization for an exception type.
+        /// 获取或设置用于为例外类型进行序列化的前提。
         /// </summary>
         public Func<Type, bool> SupportedExceptionTypeFilter { get; set; } = _ => false;
     }

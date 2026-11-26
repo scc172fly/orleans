@@ -29,7 +29,7 @@ public sealed class TaskIdJsonTests
                 var reflected = JsonSerializer.Serialize(holder);
                 var generated = JsonSerializer.Serialize(holder, TaskIdJsonTestContext.Default.TaskIdHolder);
 
-                // Both serializers write the identifier's canonical string, as a value and as a property name.
+                // 两种序列器都以数值和属性名称来写出识别符号的卡通字符串。
                 var canonical = JsonSerializer.Serialize(taskId.ToString());
                 Assert.Equal("{\"Id\":" + canonical + ",\"Optional\":" + canonical + ",\"Counts\":{" + canonical + ":1}}", reflected);
                 Assert.Equal(reflected, generated);
@@ -60,7 +60,7 @@ public sealed class TaskIdJsonTests
     [Fact]
     public void TaskIdsWithAnyWellFormedTextRoundTripAndUnpairedSurrogatesAreRejected()
     {
-        // Characters near and inside the surrogate range, so segments hold pairs, unpaired halves, and ordinary text.
+        // 代位范围附近和内部的字符, 所以各区间有对对, 平面上没有偏差的半分, 普通文字。
         var character = Gen.OneOf(Gen.Char['\uD7FE', '\uE001'], Gen.Char["ab/\\"]);
         var segment = character.Array[1, 4].Select(static characters => new string(characters));
         segment.Array[1, 3].Sample(
@@ -68,7 +68,7 @@ public sealed class TaskIdJsonTests
             {
                 if (!segments.All(IsWellFormed))
                 {
-                    // Every way of building or parsing the identifier rejects malformed text, so no encoding replaces it.
+                    // 每一个构建或解析识别码的方法都拒绝错误的文本, 所以没有编码可以取代它。
                     var malformed = Array.Find(segments, static segment => !IsWellFormed(segment))!;
                     Assert.ThrowsAny<ArgumentException>(() => TaskId.CreateRoot(malformed));
                     Assert.ThrowsAny<ArgumentException>(() => TaskId.CreateRoot("root").Child(malformed));
@@ -83,7 +83,7 @@ public sealed class TaskIdJsonTests
                     taskId = taskId.Child(child);
                 }
 
-                // A value and a dictionary key both round-trip through JSON's UTF-8 encoding unchanged.
+                // 数值和字典键,通过 JSONUTF-8 编码的圆曲脚,不改变。
                 var holder = new TaskIdHolder(taskId, taskId, new() { [taskId] = 1 });
                 var json = JsonSerializer.Serialize(holder, TaskIdJsonTestContext.Default.TaskIdHolder);
                 var read = JsonSerializer.Deserialize(json, TaskIdJsonTestContext.Default.TaskIdHolder)!;

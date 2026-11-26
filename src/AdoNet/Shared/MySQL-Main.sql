@@ -1,31 +1,31 @@
 /*
-Implementation notes:
+执行情况说明:
 
-1) The general idea is that data is read and written through Orleans specific queries.
-   Orleans operates on column names and types when reading and on parameter names and types when writing.
+(1) 通常的想法是,数据是通过 Orleans 具体查询读写。
+   Orleans 在读取时以列名和类型操作,在写作时以参数名和类型操作。
 
-2) The implementations *must* preserve input and output names and types. Orleans uses these parameters to reads query results by name and type.
-   Vendor and deployment specific tuning is allowed and contributions are encouraged as long as the interface contract
-   is maintained.
+(2) 执行 *必须* 保留输入和输出名称及类型。 Orleans 使用这些参数来读取查询结果, 以名称和类型分类 。
+   允许供应商和部署方面的具体调试,只要接口合同,捐款就得到鼓励
+   维持。
 
-3) The implementation across vendor specific scripts *should* preserve the constraint names. This simplifies troubleshooting
-   by virtue of uniform naming across concrete implementations.
+(3) 执行供应商具体文字 *应在* 保存限制名称。这简化了排除故障
+   具体实施之间统一命名。
 
-5) ETag for Orleans is an opaque column that represents a unique version. The type of its actual implementation
-   is not important as long as it represents a unique version. In this implementation we use integers for versioning
+5) Orleans 的ETag是一个不透明的列,代表一个独特的版本。
+   只要它代表一个独有版本, 不重要。 在此执行中我们使用整数来进行编译
 
-6) For the sake of being explicit and removing ambiguity, Orleans expects some queries to return either TRUE as >0 value
-   or FALSE as =0 value. That is, affected rows or such does not matter. If an error is raised or an exception is thrown
-   the query *must* ensure the entire transaction is rolled back and may either return FALSE or propagate the exception.
-   Orleans handles exception as a failure and will retry.
+(6) 为了明确和排除含糊不清之处, Orleans 期望某些查询返回 TRUE 值 >0 的 TRUE
+   或 FALSE 值=0。也就是说,受影响的行或这样无关紧要。如果出现错误或提出例外
+   查询 *必须* 确保整个交易被回落,可以退回FALSE或宣传例外。
+   Orleans 将例外作为失败处理,并将重试。
 
-7) The implementation follows the Extended Orleans membership protocol. For more information, see at:
+7) 执行遵循扩大 Orleans 成员议定书。
         https://learn.microsoft.com/dotnet/orleans/implementation/cluster-management
         https://github.com/dotnet/orleans/blob/main/src/Orleans.Core/SystemTargetInterfaces/IMembershipTable.cs
 */
--- This table defines Orleans operational queries. Orleans uses these to manage its operations,
--- these are the only queries Orleans issues to the database.
--- These can be redefined (e.g. to provide non-destructive updates) provided the stated interface principles hold.
+-- 本表定义了 Orleans 业务查询。 Orleans 使用这些查询管理其业务,
+-- 这些都是唯一的查询 Orleans 向数据库提出的问题。
+-- 只要有所述接口原则,这些系统就可以重新定义(e.g.),提供无损更新。
 CREATE TABLE OrleansQuery
 (
     QueryKey VARCHAR(64) NOT NULL,

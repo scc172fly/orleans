@@ -6,8 +6,8 @@ using static Orleans.Durable.Journaling.Tests.ObservationTestHelpers;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Tests watch streams for durable values and log reads, including delivery after acknowledged writes, recovery,
-/// deletion, cancellation, and manager failure.
+/// 测试观察耐久值流,日志读作,包括经确认的写作后交付、恢复、恢复、恢复和记录。
+/// 删除、取消和管理人员失败。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -39,7 +39,7 @@ public class DurableStateObservationTests : JournalingTestBase
             draft.Write("draft item");
         }
 
-        // Creating a stream without enumerating it does not subscribe.
+        // 创建一条流而不列出其不订阅的版本。
         _ = value.WatchAsync(CancellationToken);
         _ = log.ReadAsync(cancellationToken: CancellationToken);
         await sut.Manager.WriteStateAsync(CancellationToken);
@@ -54,7 +54,7 @@ public class DurableStateObservationTests : JournalingTestBase
         var value = CreateValue(sut.Manager);
         var log = CreateLog(sut.Manager);
 
-        // An unrecovered manager has no durable state to report.
+        // 一名未恢复的经理没有耐久状态报告。
         await using var watch = value.WatchAsync(cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken);
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await watch.MoveNextAsync());
         await using var read = log.ReadAsync(cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken);
@@ -142,13 +142,13 @@ public class DurableStateObservationTests : JournalingTestBase
         value.Value = "durable";
         await sut.Manager.WriteStateAsync(CancellationToken);
 
-        // A write which contains only the log's entry is held in storage.
+        // 只包含日志条目的写作存放在储存中。
         log.Append("entry");
         sut.Storage.HoldNextWrite();
         var write = sut.Manager.WriteStateAsync(CancellationToken).AsTask();
         await sut.Storage.WriteStarted.Task;
 
-        // The value is already durable, so a watch which begins now delivers it without waiting for the held write.
+        // 价值已经是持久的, 所以从现在开始的手表可以不等待所写的内容而传递。
         await using var watch = value.WatchAsync(CancellationToken).GetAsyncEnumerator(CancellationToken);
         var next = watch.MoveNextAsync();
         Assert.True(next.IsCompleted);
@@ -178,11 +178,11 @@ public class DurableStateObservationTests : JournalingTestBase
         var firstWrite = sut.Manager.WriteStateAsync(CancellationToken).AsTask();
         await sut.Storage.WriteStarted.Task;
 
-        // Another turn stages changes after the write captured its entries.
+        // 写入记录后, 另一个转折阶段会发生变化。
         value.Value = "staged";
         log.Append("staged");
 
-        // A watch which begins now waits for the write which makes its value durable.
+        // 眼睁睁看着写作,
         await using var lateWatch = value.WatchAsync(CancellationToken).GetAsyncEnumerator(CancellationToken);
         var lateNext = lateWatch.MoveNextAsync();
         var valueNext = valueWatch.MoveNextAsync();
@@ -288,8 +288,8 @@ public class DurableStateObservationTests : JournalingTestBase
         await opened.Task;
         var segmentCount = sut.Storage.Inner.Segments.Count;
 
-        // An entry which another thread holds open occupies the journal buffer, so the write waits for it rather than
-        // acknowledging changes which it has not captured.
+        // 另一线索保持打开的条目占据了日记缓冲,因此写作等待它而不是
+        // 承认它没有记录到的变化。
         var write = sut.Manager.WriteStateAsync(CancellationToken).AsTask();
         await Task.Delay(TimeSpan.FromMilliseconds(100), CancellationToken);
         Assert.False(write.IsCompleted);
@@ -327,7 +327,7 @@ public class DurableStateObservationTests : JournalingTestBase
         var persisted = 0;
         value.OnPersisted = () => persisted++;
 
-        // A write which does not capture the value does not acknowledge it.
+        // 不包含值的写作不承认它 。
         other["a"] = 1;
         await sut.Manager.WriteStateAsync(CancellationToken);
         Assert.Equal(0, persisted);
@@ -341,7 +341,7 @@ public class DurableStateObservationTests : JournalingTestBase
         await write;
         Assert.Equal(1, persisted);
 
-        // The value set during the write is acknowledged by the write which captures it.
+        // 写入期间的设定值由记录该值的写作确认。
         other["b"] = 2;
         sut.Storage.HoldNextWrite();
         write = sut.Manager.WriteStateAsync(CancellationToken).AsTask();
@@ -365,7 +365,7 @@ public class DurableStateObservationTests : JournalingTestBase
         var other = CreateDictionary(sut.Manager);
         await sut.Lifecycle.OnStart(CancellationToken);
 
-        // The write in flight captured the pending state, so its acknowledgement does not complete the task.
+        // 飞行中的文字记录了等待状态,所以其确认不能完成这项任务。
         other["a"] = 1;
         sut.Storage.HoldNextWrite();
         var write = sut.Manager.WriteStateAsync(CancellationToken).AsTask();
@@ -463,7 +463,7 @@ public class DurableStateObservationTests : JournalingTestBase
             });
             codec.Fail = false;
 
-            // The failed operation changes neither the state nor the journal, so the next write and a recovery agree with it.
+            // 失败的操作既不改变国家,也不改变日记, 因此下一篇书写和一份追偿都同意。
             Assert.Equal(expectedDictionary, dictionary.OrderBy(static pair => pair.Key));
             Assert.Equal(expectedList, list);
             Assert.Equal(expectedQueue, queue);
@@ -567,7 +567,7 @@ public class DurableStateObservationTests : JournalingTestBase
         var readException = await Assert.ThrowsAsync<InvalidOperationException>(() => readNext);
         Assert.Same(failure, readException.InnerException);
 
-        // The fenced manager accepts no new watchers.
+        // 围着栅栏的经理不接受新的看门人。
         await using var lateWatch = value.WatchAsync(CancellationToken).GetAsyncEnumerator(CancellationToken);
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await lateWatch.MoveNextAsync());
         await using var lateRead = log.ReadAsync(cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken);

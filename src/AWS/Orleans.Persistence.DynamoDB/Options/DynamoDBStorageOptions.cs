@@ -6,70 +6,70 @@ using Orleans.Storage;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures the DynamoDB grain storage provider.
+    /// 配置 DynamoDB grain 存储提供者。
     /// </summary>
     public class DynamoDBStorageOptions : DynamoDBClientOptions, IStorageProviderSerializerOptions
     {
         /// <summary>
-        /// Gets or sets a unique identifier for this service, which should survive deployment and redeployment.
+        /// 获取或设置此项服务的独特识别符,该服务应能在部署和重新部署后生存。
         /// </summary>
         /// <remarks>
-        /// The value prefixes the key of every grain state and must be set explicitly.
-        /// For new deployments, use a stable identifier such as <see cref="ClusterOptions.ServiceId"/>.
-        /// For existing deployments, retain the value used to write their state, including
-        /// <see cref="string.Empty"/> when upgrading from the previous empty-string default.
+        /// 值前缀每个 grain 状态的键,必须明确设置。
+        /// 对于新的部署,使用稳定识别符号,如 <see cref="ClusterOptions.ServiceId"/>。
+        /// 对于现有的部署,保留用于写出其状态的数值,包括
+        /// 从上一个空字符串默认值升级时<see cref="string.Empty"/> 。
         /// </remarks>
         public string? ServiceId { get; set; }
 
         /// <summary>
-        /// Use Provisioned Throughput for tables
+        /// 表中已提供投入的用途
         /// </summary>
         public bool UseProvisionedThroughput { get; set; } = true;
 
         /// <summary>
-        /// Create the table if it doesn't exist
+        /// 如果表格不存在创建表格
         /// </summary>
         public bool CreateIfNotExists { get; set; } = true;
 
         /// <summary>
-        /// Update the table if it exists
+        /// 如果有更新表格,则更新列表
         /// </summary>
         public bool UpdateIfExists { get; set; } = true;
 
         /// <summary>
-        /// Read capacity unit for DynamoDB storage
+        /// DynamoDB 储存读能力单位
         /// </summary>
         public int ReadCapacityUnits { get; set; } = DynamoDBStorage.DefaultReadCapacityUnits;
 
         /// <summary>
-        /// Write capacity unit for DynamoDB storage
+        /// DynamoDB 储存的写能力单位
         /// </summary>
         public int WriteCapacityUnits { get; set; } = DynamoDBStorage.DefaultWriteCapacityUnits;
 
         /// <summary>
-        /// DynamoDB table name.
-        /// Defaults to 'OrleansGrainState'.
+        /// DynamoDB 表格名称。
+        /// 默认值为 'OrleansGrainState' 。
         /// </summary>
         public string TableName { get; set; } = "OrleansGrainState";
 
         /// <summary>
-        /// Indicates if grain data should be deleted or reset to defaults when a grain clears it's state.
+        /// 表明 grain 数据应删除,或当 grain 清清楚楚,这是状态。
         /// </summary>
         public bool DeleteStateOnClear { get; set; } = false;
 
         /// <summary>
-        /// Stage of silo lifecycle where storage should be initialized.  Storage must be initialized prior to use.
+        /// 储存应初始化的 silo 生命周期阶段,储存必须在使用前初始化。
         /// </summary>
         public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
         /// <summary>
-        /// The default silo lifecycle stage at which the storage provider is initialized.
+        /// 存储提供者初始化的默认 silo 生命周期阶段。
         /// </summary>
         public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
 
         /// <summary>
-        /// Specifies a time span in which the item would be expired in the future
-        /// every StateWrite will increase the TTL of the grain
+        /// 指定项目未来过期的期间
+        /// 每 StateWrite 将增加 grain的TTL
         /// </summary>
         public TimeSpan? TimeToLive { get; set; }
 
@@ -78,7 +78,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Configuration validator for DynamoDBStorageOptions
+    /// DynamoDBStorageOptions的配置验证符
     /// </summary>
     public class DynamoDBGrainStorageOptionsValidator : IConfigurationValidator
     {
@@ -86,10 +86,10 @@ namespace Orleans.Configuration
         private readonly string name;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
-        /// <param name="options">The option to be validated.</param>
-        /// <param name="name">The option name to be validated.</param>
+        /// <param name="options">选项将生效。</param>
+        /// <param name="name">需要验证的选项名称。</param>
         public DynamoDBGrainStorageOptionsValidator(DynamoDBStorageOptions options, string name)
         {
             this.options = options;

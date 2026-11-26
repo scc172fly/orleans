@@ -1,35 +1,43 @@
 ---
 name: review-performance
-description: Performance lens for Orleans — back-of-envelope cost estimates, bottleneck identification, batching, control/data plane separation, and GC-aware hot paths in messaging, serialization, scheduling, and per-activation state. Use during code review, and when designing or implementing performance-sensitive code.
+description: "Orleans 的性能透镜—— 信封后成本估算、瓶颈识别、批量、控制/数据平面分离以及GC-觉察到的信息、序列、时间安排和每次激活状态等热路。 在代码审查期间以及在设计或实施对性能敏感的代码时使用。"
 ---
 
-# Performance lens
+<a id="performance-lens"></a>
 
-Apply with root `AGENTS.md`, including its allocation and retained-memory
-guidance. This lens examines resource cost: network, disk, memory, and CPU, each
-by bandwidth and latency.
+# 业绩透视镜
 
-## Procedure
+应用根 `AGENTS.md`,包括分配和保留存储
+。这个透镜检查资源成本:网络、磁盘、存储和CPU,每个
+带宽和延时。
 
-1. For performance-sensitive changes (hot paths, per-message or per-activation state, scale-dependent work), estimate the dominant costs at realistic counts of activations, messages per second, and silos.
-2. Identify the slowest resource on the path, weighted by frequency.
-3. Prefer design-level wins (batching, control/data plane separation, locality) to micro-optimizations.
-4. Support performance claims with comparable before-and-after measurements: BenchmarkDotNet projects under `test/Benchmarks` for local code paths, and load or integration measurements for distributed behavior.
-5. Keep correctness and simplicity intact; a faster design that weakens an invariant is a regression.
+<a id="procedure"></a>
 
-## Checklist
+## 程序程序程序
 
-- **Back-of-envelope at design time.** The largest wins come from design, so new designs and scale-dependent changes start from an estimate of network, disk, memory, and CPU cost.
-- **Slowest resource first.** Effort goes to the few bottleneck operations, identified by measurement and weighted by frequency.
-- **Tail latency.** Fan-out and background contention are evaluated through end-to-end latency percentiles under representative load ([The Tail at Scale](https://research.google/pubs/the-tail-at-scale/)).
-- **Bounded speculation.** Retries and hedges share explicit attempt, concurrency, and time budgets with the original request; duplicate execution and work continuing after cancellation preserve the operation's contract.
-- **Batch.** Per-operation overhead (storage writes, messages, directory operations) is amortized across batches where latency, ordering, and partial-failure semantics permit.
-- **Separate planes.** Control-plane work (membership, directory, placement) stays out of per-message and per-turn paths, which use cached decisions with defined refresh.
-- **Run at your own pace.** A component that receives external events processes them in batches at its own rate, rather than doing full work per event as it arrives, where latency permits.
-- **Simple algorithms for small N.** Where N is small in practice (per-activation collections, silo counts), the simplest algorithm wins; scale-dependent N (activations, messages, subscriptions) justifies better complexity.
-- **GC-aware hot paths.** On hot paths (messaging, serialization, scheduling), avoidable steady-state allocations are removed with pooled buffers, pre-sized collections, `Span<T>`, and structs where measurement shows net benefit.
+1. 对于对性能敏感的变化(热路径、每个消息或每个活动状态、取决于规模的工作),按实际计算启动、信息每秒、以及 silos.
+2. 确定路径上最慢的资源, 并按频率加权 。
+3. 设计一级的胜算(比对、控制/数据飞机分离、地点)更倾向于微优化。
+4. 支持业绩索赔,在前后进行可比计量: BenchmarkDotNet 执行中的项目下 `test/Benchmarks` 用于本地代码路径,以及分布式行为的负载或集成测量。
+5. 保持正确和简洁完整;一个较快的设计削弱一个变数就是回归。
 
-## Findings
+<a id="checklist"></a>
 
-Report findings ordered by expected impact, each with the location, a cost
-estimate or measurement with its stated assumptions, and a concrete fix.
+## 核对列表
+
+- **设计时的后信封。** 最大的赢家来自设计,因此新的设计和规模变化是从对网络、磁盘、内存和CPU成本的估计开始的。
+- **最慢的资源第一。** 努力进行少数瓶颈作业,通过测量和频率加权确定。
+- **尾部延时。** 扇门和背景争议通过按代表性载荷([缩放时的反面](https://research.google/pubs/the-tail-at-scale/))的端到端悬时空百分位数进行评估。
+- **投机活动** 重整和套期保值与原始请求的明显尝试、货币和时间预算相同;重复执行和取消后继续工作保留了业务合同。
+- **批量。** 操作间接费用(存储书写、信息、目录操作)在延迟、订购和部分故障语义允许的情况下,分批摊销。
+- **分开的飞机。** 控制机的工作(会员、目录、位置)不出现在每个消息和每个转弯路径上,因为每个邮件和转弯路径使用带有定义的刷新的缓存决定。
+- **以你自己的速度运行。** 一个接收外部事件的组成部分按自己的速度分批处理,而不是在出现时按每次活动全数工作,只要有潜伏许可。
+- **小型N型简易算法** N级实际数量很少(每起活动时的收集; silo 最简单的算法胜出; 以规模为主 N (活动、 信息、 订阅) 证明需要更复杂。
+- **GC-aware热路。** 在热路(消息、序列、时间安排)、可避免的稳定状态分配,用集合缓冲、预先规模的收集、 `Span<T>`和测量显示净效益的支架来清除。
+
+<a id="findings"></a>
+
+## 审计结果
+
+按预期影响、每个地点、成本和预计效果要求的报告结果
+估计或衡量,并附有其声明的假设和具体解决办法。

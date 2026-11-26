@@ -5,7 +5,7 @@
     <IsOrleansFrameworkPart>false</IsOrleansFrameworkPart>
     <NeutralLanguage>en-US</NeutralLanguage>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <!-- Analyzers and code fixes share this assembly so the packaged component exposes both; code fixes require Roslyn Workspaces. -->
+    <!-- 分析器和代码修正方法共享此组件, 所以包件组件将同时暴露; 代码修正需要Roslyn Workingspaces。 -->
     <NoWarn>$(NoWarn);RS1038</NoWarn>
   </PropertyGroup>
 

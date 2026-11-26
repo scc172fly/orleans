@@ -43,16 +43,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // subscribe to updates for the current list
-        // note that the blazor task scheduler is reentrant
-        // therefore notifications can and will come
-        // // through when the code is stuck at an await
+        // 订阅当前列表的更新
+        // 注意, 火焰任务调度器已重新启用
+        // 因此,通知可以而且将来也会发出
+        // 等代码被卡在等待的时
         subscription = await TodoService.SubscribeAsync(
             ownerKey,
             notification => InvokeAsync(
                 () => HandleNotificationAsync(notification)));
 
-        // get all items from the cluster
+        // 获取组群中的所有项目
         foreach (var item in await TodoService.GetAllAsync(ownerKey))
         {
             todos.Add(item);
@@ -67,13 +67,13 @@
         {
             if (subscription is not null)
             {
-                // unsubscribe from the orleans stream - best effort
+                // 从 orleans 流中取消订阅 - 尽最大努力
                 await subscription.UnsubscribeAsync();
             }
         }
         catch
         {
-            // noop
+            // 点数
         }
     }
 
@@ -81,17 +81,17 @@
     {
         if (!string.IsNullOrWhiteSpace(newTodo))
         {
-            // create a new todo
+            // 创建一个新待办事宜
             var todo = new TodoItem(Guid.NewGuid(), newTodo, false, ownerKey, DateTime.UtcNow);
 
-            // add it to the cluster
+            // 将之加入到分组中
             await TodoService.SetAsync(todo);
 
-            // the above this will generate a stream notification that may or may not have come through while we were awaiting the call
-            // therefore only add it to the interface if it is not there yet
+            // 以上情况将产生一个在等待电话时可能已经或可能尚未通过的流动通知
+            // 因此,只有当接口尚未安装时,才将其添加到界面中
             if (todos.TryGetValue(todo.Key, out var current))
             {
-                // latest one wins
+                // 最新一赢
                 if (todo.Timestamp > current.Timestamp)
                 {
                     todos[todos.IndexOf(current)] = todo;
@@ -102,17 +102,17 @@
                 todos.Add(todo);
             }
 
-            // reset the text box
+            // 重置文本框
             newTodo = null;
         }
     }
 
     private Task HandleNotificationAsync(TodoNotification notification)
     {
-        // was the item removed
+        // 是删除的项目
         if (notification.Item is null)
         {
-            // attempt to remove it from the user interface
+            // 试图从用户界面中删除
             if (todos.Remove(notification.ItemKey))
             {
                 StateHasChanged();
@@ -122,7 +122,7 @@
 
         if (todos.TryGetValue(notification.Item.Key, out var current))
         {
-            // latest one wins
+            // 最新一赢
             if (notification.Item.Timestamp > current.Timestamp)
             {
                 todos[todos.IndexOf(current)] = notification.Item;
@@ -138,11 +138,11 @@
 
     private void TryUpdateCollection(TodoItem item)
     {
-        // we need to cater for reentrancy allowing a stream notification during the previous await
-        // the notification may have even have deleted the item - if so then deletion wins
+        // 需要满足在等待期间发出流传通知的回放
+        // 通知甚至可能已经删除了该项目----如果如此的话,则删除胜出
         if (todos.TryGetValue(item.Key, out var current))
         {
-            // latest one wins
+            // 最新一赢
             if (item.Timestamp > current.Timestamp)
             {
                 todos[todos.IndexOf(current)] = item;

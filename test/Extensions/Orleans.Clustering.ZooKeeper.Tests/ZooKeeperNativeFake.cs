@@ -79,7 +79,7 @@ internal sealed class ZooKeeperNativeFake
             await before(requests);
         }
 
-        // Apply against a copy so failed native preconditions roll back every earlier operation.
+        // 申请副本时,当地的先决条件没有成功,因此,每次提前行动都要退缩。
         var next = new Dictionary<string, Node>(Nodes, StringComparer.Ordinal);
         foreach (var request in requests)
         {
@@ -137,7 +137,7 @@ internal sealed class ZooKeeperNativeFake
 
     private static Request ToRequest(Op operation)
     {
-        // ZooKeeperNetEx exposes only an Op's type and path publicly; decoding its payload requires this SDK seam.
+        // ZooKeeperNetEx 只公开暴露了操作中心的型号和路径; 解码其有效载荷需要SDK接缝。
         var result = GetValue<object>(operation, "toRequestRecord", visibility: BindingFlags.NonPublic);
         var path = GetValue<string>(result, "getPath");
         return result.GetType().Name switch

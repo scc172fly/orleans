@@ -37,8 +37,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Test placement behaviour for newly added silos. The grain placement strategy should favor them
-        /// until they reach a similar load as the other silos.
+        /// 测试新添加 silos的测试布置行为。 grain 安置策略应有利于他们
+        /// 直到他们达到一个与另一个相似的负荷 silos.
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_CatchingUp()
@@ -91,8 +91,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// This evaluates the how the placement strategy behaves once silos are stopped: The strategy should
-        /// balance the activations from the stopped silo evenly among the remaining silos.
+        /// 评估安置策略的一举一动 silos 停止:战略应
+        /// 停止时的激活平衡 silo 其余的,相等于 silos.
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_StoppingSilos()
@@ -137,7 +137,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Do not place activation in case all silos are at 100 CPU utilization.
+        /// 万一所有 silos 都在100 CPU使用时, 不要点亮激活。
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_AllSilosCPUTooHigh()
@@ -156,7 +156,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Do not place activation in case all silos are at 100 CPU utilization or have overloaded flag set.
+        /// 万一所有 silos 都在100个CPU使用状态或已设置过载的国旗, 不要启动激活 。
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_AllSilosOverloaded()
@@ -167,7 +167,7 @@ namespace UnitTests.General
             await taintedGrainPrimary.LatchCpuUsage(100.0f);
             await taintedGrainSecondary.LatchOverloaded();
 
-            // OrleansException or GateWayTooBusyException
+            // OrleansException 或 GateWayTooBusyException
             var exception = await Assert.ThrowsAnyAsync<Exception>(() =>
                 this.AddTestGrains(1));
 
@@ -190,7 +190,7 @@ namespace UnitTests.General
         [Fact, TestCategory("Functional")]
         public async Task LoadAwareGrainShouldNotAttemptToCreateActivationsOnBusySilos()
         {
-            // a CPU usage of 100% will disqualify a silo from getting new grains.
+            // a CPU100%的使用率将使 silo 无法获得新的 grains。
             await ElasticityGrainPlacementTest(
                 g =>
                     g.LatchCpuUsage(100.0f),
@@ -241,7 +241,7 @@ namespace UnitTests.General
                     n =>
                         this.GrainFactory.GetGrain<IActivationCountBasedPlacementTestGrain>(Guid.NewGuid()));
 
-            // make the grain's silo undesirable for new grains.
+            // 使 grain的 silo 对新的 grains不可取。
             taint(taintedGrain).Wait();
             List<IPEndPoint> actual;
             try
@@ -253,7 +253,7 @@ namespace UnitTests.General
             }
             finally
             {
-                // i don't know if this necessary but to be safe, i'll restore the silo's desirability.
+                // 我不知道这是否必要 但为了安全 我会恢复 silo的可取性
                 logger.LogInformation("********************** Finalizing the test {Name} ******************************", name);
                 restore(taintedGrain).Wait();
             }
@@ -273,7 +273,7 @@ namespace UnitTests.General
             {
                 IActivationCountBasedPlacementTestGrain grain = this.GrainFactory.GetGrain<IActivationCountBasedPlacementTestGrain>(Guid.NewGuid());
                 this.grains.Add(grain);
-                // Make sure we activate grain:
+                // 确保我们启动 grain:
                 promises.Add(grain.Nop());
             }
             return Task.WhenAll(promises);

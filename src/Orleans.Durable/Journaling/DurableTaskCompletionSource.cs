@@ -5,39 +5,39 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Represents a task completion source whose terminal state is recorded in a journal.
+/// 代表一个任务完成源,其结束状态记录在日记中。
 /// </summary>
-/// <typeparam name="T">The type of the task result.</typeparam>
+/// <typeparam name="T">任务结果的类型。</typeparam>
 public interface IDurableTaskCompletionSource<T>
 {
     /// <summary>
-    /// Gets the task which completes after the terminal state has been persisted.
+    /// 获得在终端状态持续后完成的任务。
     /// </summary>
     Task<T> Task { get; }
 
     /// <summary>
-    /// Gets the current durable completion state.
+    /// 获得当前持久的完成状态。
     /// </summary>
     DurableTaskCompletionSourceState<T> State { get; }
 
     /// <summary>
-    /// Attempts to transition the durable state to canceled.
+    /// 试图将永久状态过渡为取消。
     /// </summary>
-    /// <returns><see langword="true"/> if the state was transitioned; otherwise, <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> 如果国家已经过渡;否则, <see langword="false"/>。</returns>
     bool TrySetCanceled();
 
     /// <summary>
-    /// Attempts to transition the durable state to faulted with the specified exception.
+    /// 试图将持久状态过渡,以指责其有特定例外。
     /// </summary>
-    /// <param name="exception">The exception which faults the task.</param>
-    /// <returns><see langword="true"/> if the state was transitioned; otherwise, <see langword="false"/>.</returns>
+    /// <param name="exception">任务错误的例外。</param>
+    /// <returns><see langword="true"/> 如果国家已经过渡;否则, <see langword="false"/>。</returns>
     bool TrySetException(Exception exception);
 
     /// <summary>
-    /// Attempts to transition the durable state to completed with the specified result.
+    /// 试图将持久状态过渡,以取得具体结果完成。
     /// </summary>
-    /// <param name="value">The task result.</param>
-    /// <returns><see langword="true"/> if the state was transitioned; otherwise, <see langword="false"/>.</returns>
+    /// <param name="value">任务结果。</param>
+    /// <returns><see langword="true"/> 如果国家已经过渡;否则, <see langword="false"/>。</returns>
     bool TrySetResult(T value);
 }
 
@@ -53,7 +53,7 @@ internal sealed class DurableTaskCompletionSource<T> : IDurableTaskCompletionSou
     private T? _value;
     private Exception? _exception;
 
-    // Whether the write in flight captured the terminal state. A completed write publishes only the state it captured.
+    // 飞行中的文字是否捕捉到终点状态。 已完成的文字只发布它所捕捉的状态 。
     private bool _isCompletionCaptured;
 
     public DurableTaskCompletionSource(
@@ -172,7 +172,7 @@ internal sealed class DurableTaskCompletionSource<T> : IDurableTaskCompletionSou
         _exception = null;
         _isCompletionCaptured = false;
 
-        // Reset the task completion source if necessary.
+        // 必要时重置任务完成源。
         if (_completion.Task.IsCompleted)
         {
             _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -231,55 +231,55 @@ internal sealed class DurableTaskCompletionSource<T> : IDurableTaskCompletionSou
 }
 
 /// <summary>
-/// Identifies the state of a durable task completion source.
+/// 确定一个持久任务完成来源的状况。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Journaling.DurableTaskCompletionSourceStatus")]
 public enum DurableTaskCompletionSourceStatus : byte
 {
     /// <summary>
-    /// The task is awaiting completion.
+    /// 这项任务正在等待完成。
     /// </summary>
     Pending = 0,
 
     /// <summary>
-    /// The task completed successfully.
+    /// 任务成功完成 。
     /// </summary>
     Completed,
 
     /// <summary>
-    /// The task completed with an exception.
+    /// 任务完成后,除此以外。
     /// </summary>
     Faulted,
 
     /// <summary>
-    /// The task was canceled.
+    /// 此任务被取消 。
     /// </summary>
     Canceled
 }
 
 /// <summary>
-/// Describes the state of a durable task completion source.
+/// 描述持久任务完成来源的状况。
 /// </summary>
-/// <typeparam name="T">The type of the task result.</typeparam>
+/// <typeparam name="T">任务结果的类型。</typeparam>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Journaling.DurableTaskCompletionSourceState`1")]
 public readonly struct DurableTaskCompletionSourceState<T>
 {
     /// <summary>
-    /// Gets the completion status.
+    /// 获得完成状态。
     /// </summary>
     [Id(0)]
     public DurableTaskCompletionSourceStatus Status { get; init; }
 
     /// <summary>
-    /// Gets the result for a successfully completed task.
+    /// 获取成功完成任务的结果。
     /// </summary>
     [Id(1)]
     public T? Value { get; init; }
 
     /// <summary>
-    /// Gets the exception for a faulted task.
+    /// 获得一个错误任务的例外。
     /// </summary>
     [Id(2)]
     public Exception? Exception { get; init; }

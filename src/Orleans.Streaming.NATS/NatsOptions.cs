@@ -6,84 +6,84 @@ using NATS.Client.JetStream.Models;
 namespace Orleans.Streaming.NATS;
 
 /// <summary>
-/// Configures the NATS JetStream stream provider.
+/// 配置 NATS JetStream 流提供商。
 /// </summary>
 public class NatsOptions
 {
     /// <summary>
-    /// Gets or sets the name of the NATS JetStream stream used by the provider.
+    /// 获取或设置提供者使用的 NATS JetStream 流的名称。
     /// </summary>
     public string StreamName { get; set; } = default!;
 
     /// <summary>
-    /// Gets or sets the NATS client options.
+    /// 获取或设置 NATS 客户端选项 。
     /// </summary>
     /// <remarks>
-    /// When this value is <see langword="null"/>, the provider creates a client named
-    /// <c>Orleans-{providerName}</c> which connects to <c>localhost:4222</c>.
+    /// 当此值为 <see langword="null"/>时, 服务提供方创建了一个名为客户端的客户端
+    /// <c>Orleans-{providerName}</c> ,连接到 <c>localhost:4222</c>。
     /// </remarks>
     public NatsOpts? NatsClientOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum number of messages to fetch in a single batch.
-    /// The value must be at least 1.
+    /// 获取或设置每批中要获取的最大信件数量。
+    /// 值必须至少为 1。
     /// </summary>
     public int BatchSize { get; set; } = 100;
 
     /// <summary>
-    /// Gets or sets the number of partitions in the NATS JetStream stream.
-    /// The value must be at least 1.
-    /// This value determines the deterministic subject partitioning scheme and must match the number of
-    /// Orleans stream queues configured for the provider.
+    /// 获取或设置 NATS JetStream 流中的分区数。
+    /// 值必须至少为 1。
+    /// 此值决定确定主题分配方案, 且必须匹配
+    /// Orleans 为提供者配置的 流队列 。
     /// </summary>
     /// <remarks>
-    /// The provider creates the stream and its subject mapping when it starts for the first time.
-    /// When the configured partition count changes, the provider attempts to update the existing stream definition
-    /// during startup. Startup fails if the NATS server rejects the requested update.
-    /// For details, see
+    /// 提供商在首次启动时创建了流及其主题映射。
+    /// 当配置的分区计数修改时, 提供方试图更新现有流定义
+    /// 启动过程中。 如果NATS 服务器拒绝要求更新, 启动失败 。
+    /// 详情见
     /// <see href="https://docs.nats.io/nats-concepts/subject_mapping#deterministic-subject-token-partitioning">
-    /// deterministic subject token partitioning
+    /// 定点主题
     /// </see>.
     /// </remarks>
     public int PartitionCount { get; set; } = 8;
 
     /// <summary>
-    /// Gets or sets the number of connections used to send stream messages to NATS JetStream.
-    /// The value must be at least 1.
+    /// 获取或设置用于向NATS发送流信息 JetStream的连接数。
+    /// 值必须至少为 1。
     /// </summary>
     public int ProducerCount { get; set; } = 8;
 
     /// <summary>
-    /// Gets or sets the JSON serializer options used by the provider.
+    /// 获取或设置供应商使用的 JSON 序列器选项。
     /// </summary>
     public JsonSerializerOptions? JsonSerializerOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets the number of stream replicas in the NATS JetStream cluster.
+    /// 获取或设置 NATS JetStream 组群中的流复制件数量。
     /// </summary>
     /// <remarks>
-    /// Higher values improve availability during node restarts. Odd values are recommended for quorum,
-    /// and the value cannot exceed the cluster size. A value of <c>3</c> tolerates a single-node failure
-    /// in a three-node cluster.
+    /// 节点重新启动时,更高的数值会增加可用性。建议法定人数的奇数值,
+    /// 和数值不能超过组群大小。 <c>3</c> 的值可以容忍单节点失败
+    /// 在一个三节组别中。
     /// </remarks>
     public int NumReplicas { get; set; } = 1;
 
     /// <summary>
-    /// Gets or sets the storage backend used by the NATS JetStream stream.
+    /// 获取或设置NATS JetStream 流所使用的存储后端。
     /// </summary>
     /// <remarks>
-    /// <see cref="StreamConfigStorage.File"/> provides durability across NATS server restarts.
-    /// <see cref="StreamConfigStorage.Memory"/> stores messages in memory. The selected storage type
-    /// must be enabled on the NATS server.
+    /// <see cref="StreamConfigStorage.File"/> 提供NATS服务器重新启动的耐久性。
+    /// <see cref="StreamConfigStorage.Memory"/> 将信件存储在内存中。选中的存储类型
+    /// 必须启用NATS 服务器。
     /// </remarks>
     public StreamConfigStorage StorageType { get; set; } = StreamConfigStorage.File;
 }
 
 /// <summary>
-/// Validates <see cref="NatsOptions"/> for a named NATS stream provider.
+/// 验证名为NATS流提供商的 <see cref="NatsOptions"/> 。
 /// </summary>
-/// <param name="options">The options to validate.</param>
-/// <param name="name">The stream provider name.</param>
+/// <param name="options">验证的选项。</param>
+/// <param name="name">流体提供者名称。</param>
 public class NatsStreamOptionsValidator(NatsOptions options, string? name = null) : IConfigurationValidator
 {
     /// <inheritdoc />

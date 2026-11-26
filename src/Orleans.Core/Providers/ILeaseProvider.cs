@@ -4,37 +4,37 @@ using System.Threading.Tasks;
 namespace Orleans.LeaseProviders
 {
     /// <summary>
-    /// Acquired lease
+    /// 后租赁
     /// </summary>
     [GenerateSerializer, Immutable]
     public sealed class AcquiredLease
     {
         /// <summary>
-        /// The resource key which the lease is attached to 
+        /// 租赁所附属的资源钥匙 
         /// </summary>
         [Id(0)]
         public string ResourceKey { get; }
 
         /// <summary>
-        /// Duration of the acquired lease
+        /// 租期
         /// </summary>
         [Id(1)]
         public TimeSpan Duration { get; }
 
         /// <summary>
-        /// Lease token, which will be null if acquiring or renewing the lease failed
+        /// 租赁凭证,如果租约的获得或续续租失败,则无效
         /// </summary>
         [Id(2)]
         public string? Token { get; }
 
         /// <summary>
-        /// Caller side start time for this lease, which is when the lease is acquired or renewed
+        /// 本次租赁的起算时间,即租约获得或续租时
         /// </summary>
         [Id(3)]
         public DateTime StartTimeUtc { get; }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="resourceKey"></param>
         /// <param name="duration"></param>
@@ -49,7 +49,7 @@ namespace Orleans.LeaseProviders
         }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="resourceKey"></param>
         public AcquiredLease(string resourceKey)
@@ -59,35 +59,35 @@ namespace Orleans.LeaseProviders
     }
 
     /// <summary>
-    /// AcquireLeaseResult class, which demonstrates result of acquiring or renewing lease operation
+    /// AcquireLeaseResult 类,证明获得或续展租赁经营的结果
     /// </summary>
     [GenerateSerializer, Immutable]
     public sealed class AcquireLeaseResult
     {
         /// <summary>
-        /// Acquired lease, which will be null if acquire or renew operation failed.
+        /// 获得租赁,如果购置或续展业务失败,则无效。
         /// </summary>
         [Id(0)]
         public AcquiredLease? AcquiredLease { get; }
 
         /// <summary>
-        /// Response status
+        /// 答复状态
         /// </summary>
         [Id(1)]
         public ResponseCode StatusCode { get; }
 
         /// <summary>
-        /// If acquiring or renewing the lease failed, this is the exception which caused it. This field would be null if operation succeed.
+        /// 如果获得或续租失败,则造成这一例外。如果操作成功,此字段将无效。
         /// </summary>
         [Id(2)]
         public Exception? FailureException { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AcquireLeaseResult"/> class.
+        /// 初始化 <see cref="AcquireLeaseResult"/> 类的新实例。
         /// </summary>
-        /// <param name="acquiredLease">The acquired or renewed lease, or <see langword="null"/> if the operation failed.</param>
-        /// <param name="statusCode">The operation status.</param>
-        /// <param name="failureException">The exception which caused the operation to fail, if any.</param>
+        /// <param name="acquiredLease">获得或续租,或 <see langword="null"/> 如果操作失败。</param>
+        /// <param name="statusCode">作战状态。</param>
+        /// <param name="failureException">导致操作失败的例外,如果有的话。</param>
         public AcquireLeaseResult(AcquiredLease? acquiredLease, ResponseCode statusCode, Exception? failureException)
         {
             this.AcquiredLease = acquiredLease;
@@ -97,49 +97,49 @@ namespace Orleans.LeaseProviders
     }
 
     /// <summary>
-    /// Identifies the result of a lease acquisition or renewal operation.
+    /// 说明租赁购置或续租业务的结果。
     /// </summary>
     [GenerateSerializer]
     public enum ResponseCode
     {
         /// <summary>
-        /// Operation succeed
+        /// 操作成功
         /// </summary>
         OK,
         /// <summary>
-        /// Lease is owned by other entity
+        /// 租赁由其他实体拥有
         /// </summary>
         LeaseNotAvailable,
         /// <summary>
-        /// The token in the AcquiredLease is invalid, which means the lease expired
+        /// AcquiredLease 中的质标无效,这意味着租约到期
         /// </summary>
         InvalidToken,
         /// <summary>
-        /// TransientFailure, which should be retriable. 
+        /// TransientFailure,应该可以检索。 
         /// </summary>
         TransientFailure
     }
 
     /// <summary>
-    /// Lease request where you can specify ResourceKey and duration of your lease. 
+    /// 租赁请求,请注明 ResourceKey 和租约期限。 
     /// </summary>
     [GenerateSerializer, Immutable]
     public sealed class LeaseRequest
     {
         /// <summary>
-        /// The key of the resource where you want to apply the lease on
+        /// 您想要应用租赁的资源的密钥
         /// </summary>
         [Id(0)]
         public string ResourceKey { get; }
 
         /// <summary>
-        /// Duration of the lease
+        /// 租约期限
         /// </summary>
         [Id(1)]
         public TimeSpan Duration { get; }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="resourceKey"></param>
         /// <param name="duration"></param>
@@ -151,28 +151,28 @@ namespace Orleans.LeaseProviders
     }
 
     /// <summary>
-    /// Lease provider interface 
+    /// 租赁供应商接口 
     /// </summary>
     public interface ILeaseProvider
     {
         /// <summary>
-        /// Batch acquire leases operation
+        /// 批次购货租赁经营
         /// </summary>
-        /// <param name="category">resource category</param>
+        /// <param name="category">资源类别</param>
         /// <param name="leaseRequests"></param>
-        /// <returns>Lease acquiring results array, whose order is the same with leaseRequstes</returns>
+        /// <returns>租赁获取结果阵列,其顺序与 leaseRequstes</returns>相同
         Task<AcquireLeaseResult[]> Acquire(string category, LeaseRequest[] leaseRequests);
         /// <summary>
-        /// Batch renew lease operation
+        /// 批次续期租赁业务
         /// </summary>
-        /// <param name="category">resource category</param>
+        /// <param name="category">资源类别</param>
         /// <param name="aquiredLeases"></param>
-        /// <returns>Lease renew results array, whose order is the same with acquiredLeases</returns>
+        /// <returns>租赁续期结果阵列,其顺序与 acquiredLeases</returns>相同
         Task<AcquireLeaseResult[]> Renew(string category, AcquiredLease[] aquiredLeases);
         /// <summary>
-        /// Batch release lease operation
+        /// 批次放货租赁租赁业务
         /// </summary>
-        /// <param name="category">resource category</param>
+        /// <param name="category">资源类别</param>
         /// <param name="aquiredLeases"></param>
         /// <returns></returns>
         Task Release(string category, AcquiredLease[] aquiredLeases);

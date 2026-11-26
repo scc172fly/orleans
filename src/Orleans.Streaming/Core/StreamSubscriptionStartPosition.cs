@@ -3,22 +3,22 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Specifies the initial position of a rewindable persistent stream subscription.
+    /// 指定可回放的持续流订阅初始位置。
     /// </summary>
     /// <remarks>
-    /// During a rolling deployment, use start-position subscriptions after the silos hosting persistent-stream
-    /// pulling agents have been upgraded to a version which supports this enum.
+    /// 在滚动部署期间,在 silos 主机持续流后使用启动点订阅
+    /// 拖拉剂已升级为支持此环的版本。
     /// </remarks>
     public enum StreamSubscriptionStartPosition
     {
         /// <summary>
-        /// Begins with messages published after the subscription is established.
+        /// 开始在订阅建立后发布消息。
         /// </summary>
         Latest,
 
         /// <summary>
-        /// Begins inclusively at the earliest message for the target stream currently retained in the local queue cache.
-        /// When the cache has no retained message for the stream, delivery begins with its first future message.
+        /// 以本地队列缓存中目前保留的目标流最早消息开始( 包括所有信息) 。
+        /// 当缓存没有保留流信息时, 发送将开始于第一个未来消息 。
         /// </summary>
         EarliestAvailable,
     }

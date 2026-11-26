@@ -4,14 +4,14 @@ setlocal
 if not defined BuildConfiguration SET BuildConfiguration=Debug
 
 SET CMDHOME=%~dp0
-@REM Remove trailing backslash \
+@REM 移除尾端反斜线 \
 set CMDHOME=%CMDHOME:~0,-1%
 
-:: Clear the 'Platform' env variable for this session, as it's a per-project setting within the build, and
-:: misleading value (such as 'MCD' in HP PCs) may lead to build breakage (issue: #69).
+:: 清除本次会话的“ Platform” 信封变量, 因为它是建筑内部每个项目设置, 而且
+:: 误导价值(如HPPC中的“MCD”)可能导致断裂(问题:#69)。
 set Platform=
 
-:: Disable multilevel lookup https://github.com/dotnet/core-setup/blob/main/Documentation/design-docs/multilevel-sharedfx-lookup.md
+:: 禁用多级别搜索 https://github.com/dotnet/core-setup/blob/main/Documentation/design-docs/multilevel-sharedfx-lookup.md
 set DOTNET_MULTILEVEL_LOOKUP=0
 
 pushd "%CMDHOME%"

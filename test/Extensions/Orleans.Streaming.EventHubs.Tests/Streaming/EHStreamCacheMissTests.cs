@@ -10,7 +10,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// Tests for EventHub streaming cache miss scenarios with custom stream filters and cache eviction.
+    /// 测试 EventHub 使用自定义流过滤器和缓存驱逐来流缓存误差情形。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional"), TestCategory("StreamingCacheMiss")]
     [TestSuite("Functional")]

@@ -6,10 +6,10 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// Tests for the analyzer that detects duplicate [Id] attributes in serializable types.
-/// In Orleans serialization, each field must have a unique [Id] attribute value to ensure
-/// proper deserialization and version tolerance. Duplicate IDs would cause serialization
-/// conflicts and data corruption when messages are exchanged between grains.
+/// 检测可序列类型中重复[ID]属性的分析器测试。
+/// 在 Orleans 序号序列化中,每个字段必须有一个独 [Id] 属性值以确保
+/// 重复的识别码将引起序列化
+/// grains之间交换信息时发生数据冲突和数据腐败。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -37,9 +37,9 @@ public class IdClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<IdClashAt
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when multiple fields in a [GenerateSerializer] type
-    /// have the same [Id] value. This would cause serialization conflicts as the serializer
-    /// wouldn't know which field to map to which ID during deserialization.
+    /// 证明分析器在[GenerateSerializer]类型中多个字段时检测到
+    /// 具有与序列器相同的[Id]值。 这将引起连序冲突
+    /// 不知道在解密期间 地图上该绘制的标识
     /// </summary>
     [Fact]
     public Task TypesWithGenerateSerializerAndDuplicatedIds_ShouldTriggerDiagnostic()
@@ -80,8 +80,8 @@ public class IdClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<IdClashAt
     }
 
     /// <summary>
-    /// Verifies that the analyzer doesn't report issues when all fields in a [GenerateSerializer]
-    /// type have unique [Id] values. This is the correct pattern for Orleans serialization.
+    /// 证明分析器没有报告在GenerateSerializer所有字段时出现问题
+    /// 类型中具有独有的[ID]值。这是 Orleans 序列化的正确模式。
     /// </summary>
     [Fact]
     public Task TypesWithGenerateSerializerAndNoDuplicatedIds_ShouldNoTriggerDiagnostic()
@@ -122,9 +122,9 @@ public class IdClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<IdClashAt
     }
 
     /// <summary>
-    /// Verifies that the analyzer ignores types without [GenerateSerializer] attribute,
-    /// even if they have duplicate [Id] attributes. The analyzer only validates types
-    /// that participate in Orleans serialization.
+    /// 证明分析器忽略了没有类型的类型 [GenerateSerializer属性,
+    /// 即使它们重复了[ID]属性。分析器只验证类型
+    /// 参与 Orleans 序列化的。
     /// </summary>
     [Fact]
     public Task TypesWithoutGenerateSerializerAndDuplicatedIds_ShouldNotTriggerDiagnostic()

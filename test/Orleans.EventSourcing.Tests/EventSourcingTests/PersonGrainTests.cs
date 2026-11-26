@@ -5,7 +5,7 @@ using Assert = Xunit.Assert;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// Tests for journaled person grain functionality including birth registration, marriage events, and state transitions.
+    /// 进行包括出生登记、婚姻事件和州过渡在内的经周记的人 grain 功能测试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -62,8 +62,8 @@ namespace Tester.EventSourcingTests
         {
             var leia = this.fixture.GrainFactory.GetGrain<IPersonGrain>(Guid.NewGuid());
 
-            // the whole test has to run inside the grain, otherwise the interleaving of 
-            // the individual steps is nondeterministic
+            // 整个测试必须运行在 grain内,否则 
+            // 单步不是决定性的
             await leia.RunTentativeConfirmedStateTest();
         }
     }

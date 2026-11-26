@@ -5,7 +5,7 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Populates grain interface properties with the grain interfaces implemented by a grain class.
+    /// 弹出 grain 界面属性的 grain 由 grain 类.
     /// </summary>
     internal sealed class ImplementedInterfaceProvider : IGrainPropertiesProvider
     {
@@ -13,9 +13,9 @@ namespace Orleans.Metadata
         private readonly string[] _cachedKeys = new string[16];
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImplementedInterfaceProvider"/> class.
+        /// 初始化 <see cref="ImplementedInterfaceProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="interfaceTypeResolver">The interface type resolver.</param>
+        /// <param name="interfaceTypeResolver">接口类型解答器。</param>
         public ImplementedInterfaceProvider(GrainInterfaceTypeResolver interfaceTypeResolver)
         {
             this.interfaceTypeResolver = interfaceTypeResolver;
@@ -44,10 +44,10 @@ namespace Orleans.Metadata
         private static string GetKey(int counter) => $"{WellKnownGrainTypeProperties.ImplementedInterfacePrefix}{counter}";
 
         /// <summary>
-        /// Gets a value indicating whether the specified type is a grain interface type.
+        /// 获得一个值,以显示指定类型是否为 grain 接口类型。
         /// </summary>
-        /// <param name="type">The type to inspect.</param>
-        /// <returns>A value indicating whether the specified type is a grain interface type.</returns>
+        /// <param name="type">检查的类型。</param>
+        /// <returns>表示指定类型是否为 grain 接口类型的值。</returns>
         public static bool IsGrainInterface(Type type)
         {
             if (type.IsClass)

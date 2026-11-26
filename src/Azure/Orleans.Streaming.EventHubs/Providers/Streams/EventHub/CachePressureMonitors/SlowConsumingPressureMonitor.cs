@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Pressure monitor which is in favor of the slow consumer in the cache
+    /// 压力监视器,它有利于缓存中慢速消费者
     /// </summary>
     public partial class SlowConsumingPressureMonitor : ICachePressureMonitor
     {
@@ -14,11 +14,11 @@ namespace Orleans.Streaming.EventHubs
         /// </summary>
         public static TimeSpan DefaultPressureWindowSize = TimeSpan.FromMinutes(1);
         /// <summary>
-        /// Cache monitor which is used to report cache related metrics
+        /// 用于报告缓存相关度量的缓存监测器
         /// </summary>
         public ICacheMonitor? CacheMonitor { set; private get; }
         /// <summary>
-        /// Default flow control threshold
+        /// 默认流量控制阈值
         /// </summary>
         public const double DefaultFlowControlThreshold = 0.5;
 
@@ -37,7 +37,7 @@ namespace Orleans.Streaming.EventHubs
         private bool wasUnderPressure;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="monitor"></param>
@@ -46,7 +46,7 @@ namespace Orleans.Streaming.EventHubs
         { }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="pressureWindowSize"></param>
         /// <param name="logger"></param>
@@ -57,7 +57,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="flowControlThreshold"></param>
         /// <param name="logger"></param>
@@ -68,7 +68,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="flowControlThreshold"></param>
         /// <param name="pressureWindowSzie"></param>
@@ -95,13 +95,13 @@ namespace Orleans.Streaming.EventHubs
         /// <inheritdoc />
         public bool IsUnderPressure(DateTime utcNow)
         {
-            //if any pressure contribution in current period is bigger than flowControlThreshold
-            //we see the cache is under pressure
+            //如果当期的压力贡献大于 flowControlThreshold
+            //我们看到藏匿处的压力很大
             bool underPressure = this.biggestPressureInCurrentWindow > this.FlowControlThreshold;
 
             if (underPressure && !this.wasUnderPressure)
             {
-                //if under pressure, extend the nextCheckedTime, make sure wasUnderPressure is true for a whole window
+                //如果在压力下,请扩展 nextCheckedTime,确保 wasUnderPressure 对整个窗口是真实的
                 this.wasUnderPressure = underPressure;
                 this.nextCheckedTime = utcNow + this.PressureWindowSize;
                 this.CacheMonitor?.TrackCachePressureMonitorStatusChange(this.GetType().Name, underPressure, null, biggestPressureInCurrentWindow, this.FlowControlThreshold);
@@ -111,10 +111,10 @@ namespace Orleans.Streaming.EventHubs
 
             if (this.nextCheckedTime < utcNow)
             {
-                //at the end of each check period, reset biggestPressureInCurrentPeriod
+                //每个检查期结束时重置 biggestPressureInCurrentPeriod
                 this.nextCheckedTime = utcNow + this.PressureWindowSize;
                 this.biggestPressureInCurrentWindow = 0;
-                //if at the end of the window, pressure clears out, log
+                //如果窗口末端有压力清除,则对日志进行记录。
                 if (this.wasUnderPressure && !underPressure)
                 {
                     this.CacheMonitor?.TrackCachePressureMonitorStatusChange(this.GetType().Name, underPressure, null, biggestPressureInCurrentWindow, this.FlowControlThreshold);

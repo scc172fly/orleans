@@ -2,16 +2,16 @@ namespace TicTacToe.Grains;
 
 public interface IPlayerGrain : IGrainWithGuidKey
 {
-    // get a list of all active games
+    // 获取所有活动游戏列表
 
     Task<PairingSummary[]> GetAvailableGames();
 
     Task<List<GameSummary>> GetGameSummaries();
 
-    // create a new game and join it
+    // 创建一个新游戏并加入它
     Task<Guid> CreateGame();
 
-    // join an existing game
+    // 加入一个已有游戏
     Task<GameState> JoinGame(Guid gameId);
 
     Task LeaveGame(Guid gameId, GameOutcome outcome);

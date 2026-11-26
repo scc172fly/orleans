@@ -7,7 +7,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for enum types with a 32-bit base.
+    /// 序列器,用于32位基数的昆虫类型的序列。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="Orleans.Serialization.Codecs.IFieldCodec{T}" />
@@ -41,13 +41,13 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer and copier for <see cref="DateTimeKind"/>.
+    /// 序列式机和复印机 <see cref="DateTimeKind"/>。
     /// </summary>
     [RegisterSerializer]
     internal sealed class DateTimeKindCodec : Enum32BaseCodec<DateTimeKind> { }
 
     /// <summary>
-    /// Serializer and copier for <see cref="DayOfWeek"/>.
+    /// 序列式机和复印机 <see cref="DayOfWeek"/>。
     /// </summary>
     [RegisterSerializer]
     internal sealed class DayOfWeekCodec : Enum32BaseCodec<DayOfWeek> { }

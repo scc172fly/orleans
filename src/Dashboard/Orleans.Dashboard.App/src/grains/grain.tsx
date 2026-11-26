@@ -6,13 +6,13 @@ import Panel from '../components/panel';
 import Page from '../components/page';
 import { getName } from '../lib/typeName';
 
-// Format a fully-qualified member name so the type is shortened but the
-// member/method part is preserved. Examples:
+// 格式化一个完全合格的成员姓名,以便缩短该类型,但
+// 保留了成员/方法部分。
 //  - "A.B.C<T>.M" -> "C<T>.M"
 //  - "A.B.C<T>.N.M" -> "C<T>.N.M"
 function formatMemberName(value: string): string {
   if (!value) return value;
-  // find last top-level separator (dot, slash, or '#') not inside generics
+  // 查找上层最后分隔符(点、斜线或“#”),不在非常规中
   let depth = 0;
   for (let i = value.length - 1; i >= 0; i--) {
     const ch = value[i];
@@ -98,7 +98,7 @@ const GrainGraph: React.FC<GrainGraphProps> = (props) => {
   );
 };
 
-// add multiple axis to the chart
+// 向图表添加多个轴
 // https://jsfiddle.net/devonuto/pa7k6xn9/
 export default class Grain extends React.Component<GrainProps> {
   renderEmpty() {

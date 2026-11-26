@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.StorageTests
 {
     /// <summary>
-    /// Tests for hierarchical key-value store operations including multi-key storage.
+    /// 进行等级键值交易测试,包括多钥匙储存。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -31,7 +31,7 @@ namespace UnitTests.StorageTests
         [Fact, TestCategory("Functional"), TestCategory("MemoryStore")]
         public void HKS_MakeKey()
         {
-            //string testName = TestContext.TestName;
+            //testName 字符串= TestContext.TestName;
 
             var keys = new[]
             {
@@ -40,7 +40,7 @@ namespace UnitTests.StorageTests
             }.ToList();
 
             string keyStr = HierarchicalKeyStore.MakeStoreKey(keys);
-            Assert.Equal("One=1+Two=2", keyStr); // Output from MakeStoreKey
+            Assert.Equal("One=1+Two=2", keyStr); // MakeStoreKey输出
         }
 
         [Fact, TestCategory("Functional"), TestCategory("MemoryStore")]
@@ -63,7 +63,7 @@ namespace UnitTests.StorageTests
 
             var result = store.ReadRow(keys);
 
-            Assert.NotNull(result); // Null result
+            Assert.NotNull(result); // 无效结果
             foreach (string valueName in data.Keys)
             {
                 Assert.Equal(data[valueName], result[valueName]);
@@ -92,7 +92,7 @@ namespace UnitTests.StorageTests
 
             var result = store.ReadRow(keys);
 
-            Assert.NotNull(result); // Null result
+            Assert.NotNull(result); // 无效结果
             foreach (string valueName in data.Keys)
             {
                 Assert.Equal(data[valueName], result[valueName]);
@@ -125,7 +125,7 @@ namespace UnitTests.StorageTests
 
             var result = store.ReadRow(keys);
 
-            Assert.NotNull(result); // Null result
+            Assert.NotNull(result); // 无效结果
             foreach (string valueName in data.Keys)
             {
                 Assert.Equal(data[valueName], result[valueName]);
@@ -147,19 +147,19 @@ namespace UnitTests.StorageTests
 
             var store = new HierarchicalKeyStore(keys.Count);
 
-            // Write #1
+            // 写 # 1
             string eTag = store.WriteRow(keys, data, null);
 
             data[ValueName1] = "One";
             data[ValueName2] = "Two";
             data[ValueName3] = "Three";
 
-            // Write #2
+            // 写2
             _ = store.WriteRow(keys, data, eTag);
 
             var result = store.ReadRow(keys);
 
-            Assert.NotNull(result); // Null result
+            Assert.NotNull(result); // 无效结果
             foreach (string valueName in data.Keys)
             {
                 Assert.Equal(data[valueName], result[valueName]);
@@ -184,26 +184,26 @@ namespace UnitTests.StorageTests
 
             var store = new HierarchicalKeyStore(keys1.Count);
 
-            // Write #1
+            // 写 # 1
             string eTag = store.WriteRow(keys1, data, null);
 
             data[ValueName1] = "One";
             data[ValueName2] = "Two";
             data[ValueName3] = "Three";
 
-            // Write #2
+            // 写2
             string newEtag = store.WriteRow(keys2, data, eTag);
 
             store.DeleteRow(keys1, newEtag);
 
             var result = store.ReadRow(keys1);
 
-            Assert.NotNull(result); // Should not be Null result after DeleteRow
-            Assert.Empty(result); // No data after DeleteRow
+            Assert.NotNull(result); // DeleteRow之后不应为 Null 结果
+            Assert.Empty(result); // DeleteRow之后没有数据
 
             result = store.ReadRow(keys2);
 
-            Assert.NotNull(result); // Null result
+            Assert.NotNull(result); // 无效结果
             foreach (string valueName in data.Keys)
             {
                 Assert.Equal(data[valueName], result[valueName]);
@@ -233,12 +233,12 @@ namespace UnitTests.StorageTests
 
             var results = store.ReadMultiRow(readKeys);
 
-            Assert.NotNull(results); // Null results
-            Assert.Single(results); // Number of results
+            Assert.NotNull(results); // 无效结果
+            Assert.Single(results); // 结果数
 
             var result = results.First();
 
-            Assert.NotNull(result); // Null result
+            Assert.NotNull(result); // 无效结果
             foreach (string valueName in data.Keys)
             {
                 Assert.Equal(data[valueName], result[valueName]);
@@ -259,11 +259,11 @@ namespace UnitTests.StorageTests
 
             var result = store.ReadRow(keys);
 
-            Assert.NotNull(result); // Null result
-            Assert.Empty(result); // No data
+            Assert.NotNull(result); // 无效结果
+            Assert.Empty(result); // 无数据
         }
 
-        // Utility methods
+        // 实用方法
 
         private List<Tuple<string, string>> MakeKeys(int key1, int key2)
         {

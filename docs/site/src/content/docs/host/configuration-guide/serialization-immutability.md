@@ -1,68 +1,80 @@
 ---
-title: Serialization of immutable types in Orleans
-description: Learn how .NET Orleans handles type immutability in the context of serialization.
+title: "Orleans中不可变型的序列化"
+description: "学习 .NET Orleans 在序列化背景下如何处理不可移动性的类型。"
 ms.date: 05/23/2025
 ms.topic: concept-article
 ---
 
-# Serialization of immutable types in Orleans
+<a id="serialization-of-immutable-types-in-orleans"></a>
 
-Orleans has a feature you can use to avoid some overhead associated with serializing messages containing immutable types. This section describes the feature and its application, starting with the context where it's relevant.
+# Orleans中不可变型的序列化
 
-## Serialization in Orleans
+Orleans 具有一个特性, 您可以用来避免与含有不可更改类型的信件序列相关的一些间接费用。 本节描述该特性及其应用, 从相关背景开始 。
 
-When you invoke a grain method, the Orleans runtime makes a deep copy of the method arguments and forms the request from these copies. This protects against the calling code modifying the argument objects before the data passes to the called grain.
+<a id="serialization-in-orleans"></a>
 
-If the called grain is on a different silo, the copies are eventually serialized into a byte stream and sent over the network to the target silo, where they are deserialized back into objects. If the called grain is on the same silo, the copies are handed directly to the called method.
+## Orleans中的序列化
 
-Return values are handled the same way: first copied, then possibly serialized and deserialized.
+当您使用 grain 方法时, Orleans 运行时间将生成一份精密的方法参数副本并从这些副本中提出请求。这防止在数据传送到所谓的 grain之前调用代码修改参数对象。
 
-Note that all three processes—copying, serializing, and deserializing—respect object identity. In other words, if you pass a list containing the same object twice, the receiving side gets a list with the same object twice, rather than two objects with the same values.
+如果调用 grain 的是在不同的 silo上,则最终将副本序列成字节流,并传送到网络目标 silo,然后将其解密后再送回对象。如果调用的 grain 在同一 silo上,则直接交给称为方法。
 
-## Optimize copying
+返回值处理方式相同:首先复制,然后可能按顺序排列和取消。
 
-In many cases, deep copying is unnecessary. For instance, consider a scenario where a web front-end receives a byte array from its client and passes that request, including the byte array, to a grain for processing. The front-end process does nothing with the array after passing it to the grain; specifically, it doesn't reuse the array for future requests. Inside the grain, the byte array is parsed to fetch input data but isn't modified. The grain returns another byte array it created back to the web client and discards the array immediately after returning it. The web front-end passes the result byte array back to its client without modification.
+请注意,所有三个过程——复制、序列化和消散——都以尊重对象身份为单位。 换句话说,如果通过一份包含同一物体的清单两次,接收方得到一份带有相同物体的清单两次,而不是两个具有相同价值的物体两次。
 
-In such a scenario, there's no need to copy either the request or response byte arrays. Unfortunately, the Orleans runtime can't figure this out automatically, as it can't determine whether the web front-end or the grain modifies the arrays later. Ideally, a .NET mechanism would indicate that a value is no longer modified. Lacking that, we've added Orleans-specific mechanisms: the <xref:Orleans.Concurrency.Immutable`1> wrapper class and the <xref:Orleans.ImmutableAttribute>.
+<a id="optimize-copying"></a>
 
-### Use the <xref:Orleans.ImmutableAttribute> attribute to mark a type, parameter, property, or field as immutable
+## 优化复制
 
-For user-defined types, you can add the <xref:Orleans.ImmutableAttribute> to the type. This instructs the Orleans serializer to avoid copying instances of this type. The following code snippet demonstrates using <xref:Orleans.ImmutableAttribute> to denote an immutable type. This type won't be copied during transmission.
+在许多情况下, 深复制是不必要的。 例如, 考虑一个假设方案, 即网络前端从客户端接收字节阵列, 并将该请求( 包括字节阵列) 传递到 grain 处理中。 前端进程在将数组传送至 grain后, 没有使用此阵列; 具体地说, 它不会再为未来请求重新使用该阵列。 在 grain内, 字节阵列是用来获取输入数据的, 但并没有修改。 grain 将它创建的另一个字节阵列返回网络客户, 然后在返回后立即丢弃该阵列。 网前端将结果逐项不加修改地传回客户端 。
+
+在这样的情况下, 不需要复制请求或响应字节数组。 不幸的是, Orleans 运行时间无法自动解答这一点, 因为无法确定网络前端还是 grain 稍后修改阵列。 理想的情况是, 一个 .NET 机制将表明一个数值不再更改。 没有这个机制, 我们添加了 Orleans- 特定机制: <xref:Orleans.Concurrency.Immutable`1> 包装类和 <xref:Orleans.ImmutableAttribute>。
+
+<a id="use-the--attribute-to-mark-a-type-parameter-property-or-field-as-immutable"></a>
+
+### 使用 <xref:Orleans.ImmutableAttribute> 属性来标记不可更改的类型、参数、属性或字段
+
+对于用户定义的类型,您可以将 <xref:Orleans.ImmutableAttribute> 添加到类型中。这指示 Orleans 序列器避免复制这类类型的实例。以下代码片段显示使用 <xref:Orleans.ImmutableAttribute> 表示不可更改的类型。在传输过程中不会复制这种类型。
 
 :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="immutable_type":::
 
-Sometimes, you might not control the object; for example, it might be a `List<int>` you're sending between grains. Other times, parts of your objects might be immutable while others aren't. For these cases, Orleans supports additional options.
+有时,你可能无法控制对象;例如,它可能是 `List<int>` 发送到 grains。其他时候,你物品的部分可能无法移动,而其他的则不是。 Orleans 支持其他选项。
 
-1. Method signatures can include <xref:Orleans.ImmutableAttribute> on a per-parameter basis:
+1. 方法的特征可包括每参数 <xref:Orleans.ImmutableAttribute> :
 
     :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="immutable_parameter":::
 
-1. Mark individual properties and fields as <xref:Orleans.ImmutableAttribute> to prevent copies when instances of the containing type are copied.
+1. 将单个属性和字段标为 <xref:Orleans.ImmutableAttribute> ,以防止复制内容类型被复制。
 
     :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="immutable_members":::
 
-### Use <xref:Orleans.Concurrency.Immutable`1>
+<a id="use-"></a>
 
-Use the <xref:Orleans.Concurrency.Immutable`1> wrapper class to indicate a value can be considered immutable; that is, the underlying value won't be modified, so no copying is required for safe sharing. Note that using <xref:Orleans.Concurrency.Immutable`1> implies neither the provider nor the recipient of the value will modify it in the future. It's a mutual, dual-sided commitment, not a one-sided one.
+### 使用 <xref:Orleans.Concurrency.Immutable`1>
 
-To use <xref:Orleans.Concurrency.Immutable`1> in your grain interface, pass <xref:Orleans.Concurrency.Immutable`1> instead of `T`. For instance, in the scenario described above, the grain method was:
+使用 <xref:Orleans.Concurrency.Immutable`1> 包装器类来表示一个值可以被视为不可改变的; 也就是说, 基本值不会被修改, 所以安全共享不需要复制。 请注意, 使用 <xref:Orleans.Concurrency.Immutable`1> 既不意味着该值的提供者或接受者今后也不会更改它。 这是一个相互、 双向的承诺, 不是单方面的承诺 。
+
+使用 <xref:Orleans.Concurrency.Immutable`1> 插入 grain 接口、过 <xref:Orleans.Concurrency.Immutable`1> 代替 `T`例如,在上述假设情况中, grain 方法为:
 
 :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="mutable_request":::
 
-Which would then become:
+其结果将是:
 
 :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="immutable_request":::
 
-To create an <xref:Orleans.Concurrency.Immutable`1>, simply use its constructor:
+创建 <xref:Orleans.Concurrency.Immutable`1>,只需使用其构建器:
 
 :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="create_immutable":::
 
-To get the value inside the immutable wrapper, use the `.Value` property:
+要获取不可更改的包装内值, 请使用 `.Value` 属性:
 
 :::code language="csharp" source="../../snippets/compiled/Host/HostSnippets.cs" id="read_immutable":::
 
-## Immutability in Orleans
+<a id="immutability-in-orleans"></a>
 
-For Orleans' purposes, immutability is a strict statement: the contents of the data item won't be modified in any way that could change the item's semantic meaning or interfere with another thread simultaneously accessing it. The safest way to ensure this is simply not to modify the item at all: use bitwise immutability rather than logical immutability.
+## Orleans中的不易变性
 
-In some cases, it's safe to relax this to logical immutability, but you must take care to ensure the mutating code is properly thread-safe. Because dealing with multithreading is complex and uncommon in an Orleans context, we strongly recommend against this approach and advise sticking to bitwise immutability.
+对于 Orleans目的,不可变性是一个严格的说明:数据项的内容不会以任何方式修改,从而改变其语义含义或干扰同时访问它的另一行。最安全的方法就是确保这根本不修改项目:使用不易变的比特逻辑而非逻辑不更动。
+
+在某些情况下,将这种变化放松到逻辑的不易变性是安全的,但你必须小心确保突变代码适当安全。 因为多读化处理在 Orleans 背景下复杂且罕见,我们强烈建议反对这种做法,并建议坚持比特不易变。

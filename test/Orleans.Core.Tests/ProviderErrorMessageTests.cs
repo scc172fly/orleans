@@ -12,8 +12,8 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// Tests configuration-based provider activation and diagnostics which identify available providers
-    /// for the specified kind (e.g., Clustering, GrainStorage, etc.).
+    /// 以测试配置为基础的供应商启动和诊断,确定现有供应商
+    /// 指定种类(e.g.、组群、 GrainStorage等)。
     /// </summary>
     [TestCategory("BVT")]
     [TestCategory("Providers")]
@@ -23,9 +23,9 @@ namespace NonSilo.Tests
     public class ProviderErrorMessageTests
     {
         /// <summary>
-        /// Tests that client builder includes known providers in error message when a provider is not found.
-        /// Verifies that the error message contains both the standard message and a list of known providers
-        /// for the specified kind when an invalid provider type is requested.
+        /// 测试客户端构建器在找不到服务提供商时将已知的提供者包含在内, 以错误信息方式进行 。
+        /// 证明错误信息包含标准电文和已知供应商列表
+        /// 指定类型。
         /// </summary>
         [Fact]
         public void ClientBuilder_IncludesKnownProvidersInErrorMessage()
@@ -48,19 +48,19 @@ namespace NonSilo.Tests
                     .Build();
             });
 
-            // Verify the error message contains the provider name that was not found
+            // 校验错误消息中包含未找到的提供者名
             Assert.Contains("Could not find Clustering provider named 'NonExistentProvider'", exception.Message);
 
-            // Verify the error message includes information about known providers
-            // The exact list will depend on what providers are registered, but the message should contain "Known Clustering providers:"
-            // if there are any registered Clustering providers
+            // 校验错误消息包含已知提供者的信息
+            // 确切的列表将取决于注册的供应商, 但讯息中应包含“已知集群提供者 : ” 。
+            // 如果有任何注册的集束供应商
             Assert.Contains("This can indicate that either the 'Microsoft.Orleans.Sdk' or the provider's package are not referenced", exception.Message);
         }
 
         /// <summary>
-        /// Tests that silo builder includes known providers in error message when a provider is not found.
-        /// Verifies that the error message contains both the standard message and a list of known providers
-        /// for the specified kind when an invalid provider type is requested.
+        /// 测试找不到提供者时 silo 构建器包含错误信息中已知的提供者。
+        /// 证明错误信息包含标准电文和已知供应商列表
+        /// 指定类型。
         /// </summary>
         [Fact]
         public void SiloBuilder_IncludesKnownProvidersInErrorMessage()
@@ -83,17 +83,17 @@ namespace NonSilo.Tests
                     .Build();
             });
 
-            // Verify the error message contains the provider name that was not found
+            // 校验错误消息中包含未找到的提供者名
             Assert.Contains("Could not find Clustering provider named 'NonExistentProvider'", exception.Message);
 
-            // Verify the error message includes information about known providers
+            // 校验错误消息包含已知提供者的信息
             Assert.Contains("This can indicate that either the 'Microsoft.Orleans.Sdk' or the provider's package are not referenced", exception.Message);
         }
 
         /// <summary>
-        /// Tests that error message for GrainStorage provider includes known providers.
-        /// Verifies that when an invalid GrainStorage provider is specified, the error message
-        /// includes helpful information about available GrainStorage providers.
+        /// 测试 GrainStorage 提供者的错误消息包含已知提供者。
+        /// 证明指定了无效的 GrainStorage 服务提供人时,错误信息
+        /// 包括可用 GrainStorage 提供者的有用信息。
         /// </summary>
         [Fact]
         public void SiloBuilder_IncludesKnownGrainStorageProvidersInErrorMessage()
@@ -119,10 +119,10 @@ namespace NonSilo.Tests
                     .Build();
             });
 
-            // Verify the error message contains the provider name that was not found
+            // 校验错误消息中包含未找到的提供者名
             Assert.Contains("Could not find GrainStorage provider named 'InvalidStorageProvider'", exception.Message);
 
-            // Verify the error message includes information about known providers
+            // 校验错误消息包含已知提供者的信息
             Assert.Contains("This can indicate that either the 'Microsoft.Orleans.Sdk' or the provider's package are not referenced", exception.Message);
         }
 

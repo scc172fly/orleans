@@ -9,29 +9,29 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Represents an integer value stored in transactional grain state.
+    /// 表示存储在交易状态 grain 中的整数。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class GrainData
     {
         /// <summary>
-        /// Gets or sets the stored value.
+        /// 获取或设置存储值。
         /// </summary>
         [Id(0)]
         public int Value { get; set; }
     }
 
     /// <summary>
-    /// Implements transaction test operations over the maximum supported number of coordinated states.
+    /// 执行超过最大支助数目的协调州的交易测试业务。
     /// </summary>
     public class MaxStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MaxStateTransactionalGrain"/> class.
+        /// 初始化 <see cref="MaxStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="stateFactory">The factory used to create transactional states.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="stateFactory">工厂用来建立交易状态</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public MaxStateTransactionalGrain(ITransactionalStateFactory stateFactory,
             ILoggerFactory loggerFactory)
             : base(Enumerable.Range(0, TransactionTestConstants.MaxCoordinatedTransactions)
@@ -43,16 +43,16 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Implements transaction test operations over two transactional states.
+    /// 执行两个交易州的交易测试业务。
     /// </summary>
     public class DoubleStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DoubleStateTransactionalGrain"/> class.
+        /// 初始化 <see cref="DoubleStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data1">The first transactional state.</param>
-        /// <param name="data2">The second transactional state.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="data1">第一个交易状态。</param>
+        /// <param name="data2">第二个交易状态。</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public DoubleStateTransactionalGrain(
             [TransactionalState("data1", TransactionTestConstants.TransactionStore)]
             ITransactionalState<GrainData> data1,
@@ -65,15 +65,15 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Implements transaction test operations over one transactional state.
+    /// 在一个交易状态下实施交易测试业务。
     /// </summary>
     public class SingleStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleStateTransactionalGrain"/> class.
+        /// 初始化 <see cref="SingleStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data">The transactional state.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="data">交易状态</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public SingleStateTransactionalGrain(
             [TransactionalState("data", TransactionTestConstants.TransactionStore)]
             ITransactionalState<GrainData> data,
@@ -84,14 +84,14 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Implements transaction test operations without transactional state.
+    /// 实施交易测试业务,没有交易状态。
     /// </summary>
     public class NoStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NoStateTransactionalGrain"/> class.
+        /// 初始化 <see cref="NoStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public NoStateTransactionalGrain(
             ILoggerFactory loggerFactory)
             : base(Array.Empty<ITransactionalState<GrainData>>(), loggerFactory)
@@ -100,26 +100,26 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Provides transaction test operations over an ordered collection of integer states.
+    /// 提供对整数状态的定单收集进行交易测试的业务。
     /// </summary>
     public partial class MultiStateTransactionalGrainBaseClass : Grain, ITransactionTestGrain
     {
         /// <summary>
-        /// The transactional states operated on by this grain.
+        /// 交易国以该 grain为业务基础。
         /// </summary>
         protected ITransactionalState<GrainData>[] dataArray;
         private readonly ILoggerFactory loggerFactory;
 
         /// <summary>
-        /// The logger for this grain activation.
+        /// 启动 grain 的登录器 。
         /// </summary>
         protected ILogger logger = null!;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MultiStateTransactionalGrainBaseClass"/> class.
+        /// 初始化 <see cref="MultiStateTransactionalGrainBaseClass"/> 类的新实例。
         /// </summary>
-        /// <param name="dataArray">The ordered transactional states.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="dataArray">被命令交易状态</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public MultiStateTransactionalGrainBaseClass(
             ITransactionalState<GrainData>[] dataArray,
             ILoggerFactory loggerFactory)
@@ -245,35 +245,35 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Represents the intentional failure raised after a transactional state update.
+    /// 表示交易状态更新后故意造成的失败。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class AddAndThrowException : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AddAndThrowException"/> class.
+        /// 初始化 <see cref="AddAndThrowException"/> 类的新实例。
         /// </summary>
         public AddAndThrowException() : base("Unexpected error.") { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AddAndThrowException"/> class with a message.
+        /// 初始化有消息的 <see cref="AddAndThrowException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message describing the failure.</param>
+        /// <param name="message">描述失败的电文。</param>
         public AddAndThrowException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AddAndThrowException"/> class with a message and inner exception.
+        /// 初始化 <see cref="AddAndThrowException"/> 类的新实例,其中含有一条消息和内置例外。
         /// </summary>
-        /// <param name="message">The message describing the failure.</param>
-        /// <param name="innerException">The exception which caused this failure.</param>
+        /// <param name="message">描述失败的电文。</param>
+        /// <param name="innerException">造成这一失败的例外。</param>
         public AddAndThrowException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AddAndThrowException"/> class from serialized data.
+        /// 从序列数据初始化了 <see cref="AddAndThrowException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialized exception data.</param>
-        /// <param name="context">The serialization context.</param>
+        /// <param name="info">序列的例外数据。</param>
+        /// <param name="context">序列化背景。</param>
         [Obsolete]
         protected AddAndThrowException(SerializationInfo info, StreamingContext context)
             : base(info, context)

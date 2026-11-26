@@ -9,22 +9,22 @@ namespace Orleans.Placement.Rebalancing;
 internal interface IActivationRebalancerWorker : IGrainWithIntegerKey
 {
     /// <summary>
-    /// Returns the most recent rebalancing report.
+    /// 返回最新的再平衡报告。
     /// </summary>
-    /// <remarks>Acts also as a way to wake up the rebalancer, if its deactivated.</remarks>
+    /// <remarks>也作为一种方法 唤醒了再平衡器, 如果它停止使用。</remarks>
     [AlwaysInterleave, Alias("GetReport")] ValueTask<RebalancingReport> GetReport(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Resumes rebalancing if its suspended, otherwise its a no-op.
+    /// 如果暂停,恢复再平衡,否则是停止。
     /// </summary>
     [Alias("ResumeRebalancing")] Task ResumeRebalancing(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Suspends rebalancing if its running, otherwise its a no-op.
+    /// 暂停了再平衡 如果它运行, 否则它不执行。
     /// </summary>
     /// <param name="duration">
-    /// The amount of time to suspend the rebalancer.
-    /// <para><see langword="null"/> means suspend indefinitely.</para>
+    /// 暂停再平衡的时间长度 。
+    /// <para><see langword="null"/> 意味着无限期中止。</para>
     /// </param>
     [Alias("SuspendRebalancing")] Task SuspendRebalancing(TimeSpan? duration, CancellationToken cancellationToken = default);
 }

@@ -6,7 +6,7 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// Tests registered grain-call return types and their resolution for each generated proxy receiver.
+/// 所登记的测试 grain- 调用返回类型及其分辨率,用于每个生成的代理接收器。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -18,9 +18,9 @@ public class GrainInterfaceMethodReturnTypeDiagnosticAnalyzerTest : DiagnosticAn
     private const string MessageFormat = GrainInterfaceMethodReturnTypeDiagnosticAnalyzer.MessageFormat;
 
     /// <summary>
-    /// Verifies that the analyzer accepts valid return types for grain interface methods:
-    /// Task, Task&lt;T&gt;, ValueTask, ValueTask&lt;T&gt;, and void are all allowed because they
-    /// support the asynchronous nature of grain calls in Orleans.
+    /// 证明分析器接受 grain 接口方法的有效返回类型:
+    /// 任务、任务&lt;T&gt;, ValueTask, ValueTask&lt;T&gt;无效是允许的,因为他们
+    /// 支持 grain 中 Orleans调用的不同步性质。
     /// </summary>
     [Fact]
     public async Task GrainInterfaceMethodReturnTypeNoError()
@@ -59,8 +59,8 @@ public class GrainInterfaceMethodReturnTypeDiagnosticAnalyzerTest : DiagnosticAn
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when a grain interface method returns a synchronous type (int).
-    /// This is invalid because grain calls must be asynchronous to work across the distributed cluster.
+    /// 证明分析器在 grain 接口方法返回同步类型(int)时会检测到。
+    /// 无效, 因为 grain 调用必须同分布式组群工作一样同步。
     /// </summary>
     [Fact]
     public async Task IncompatibleGrainInterfaceMethodReturnType()
@@ -84,9 +84,9 @@ public class GrainInterfaceMethodReturnTypeDiagnosticAnalyzerTest : DiagnosticAn
     }
 
     /// <summary>
-    /// Verifies that static interface methods can have any return type since they are not
-    /// subject to the grain call restrictions. Static methods don't participate in the
-    /// distributed grain invocation mechanism.
+    /// 证明静态接口方法可以具有任何返回类型,因为它们不是
+    /// 须付 grain 静态方法不参与
+    /// 分发的 grain 援引机制。
     /// </summary>
     [Fact]
     public async Task StaticInterfaceMethodsWithRegularReturnsAreAllowed()

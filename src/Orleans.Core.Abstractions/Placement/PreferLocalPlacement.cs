@@ -3,18 +3,18 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// The prefer local placement strategy indicates that a grain should always be placed on the local host if the grain
-    /// is not already active elsewhere in the cluster and the local host is compatible with it.
+    /// 更偏喜欢当地安插战略表明, grain 如果 grain
+    /// 组群中其他部分尚未活跃,当地主机与该主机兼容。
     /// </summary>
     /// <remarks>
-    /// If the host is not compatible with the grain type or if a grain receives an incompatible request, the grain will be
-    /// placed on a random, compatible server.
+    /// 如果主机与 grain 类型不兼容,或如果 grain 收到一项不兼容的请求,则 grain 将
+    /// 随机、兼容的服务器上安装。
     /// </remarks>
     [Serializable, GenerateSerializer, Immutable, SuppressReferenceTracking]
     public sealed class PreferLocalPlacement : PlacementStrategy
     {
         /// <summary>
-        /// Gets the singleton instance of this class.
+        /// 获得单吨的例子 这个类。
         /// </summary>
         internal static PreferLocalPlacement Singleton { get; } = new PreferLocalPlacement();
     }

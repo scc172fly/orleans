@@ -12,12 +12,12 @@ using Orleans.Storage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> extensions.
+    /// <see cref="IServiceCollection"/> 扩展。
     /// </summary>
     public static class AzureBlobGrainStorageServiceCollectionExtensions
     {
         /// <summary>
-        /// Configure silo to use azure blob storage as the default grain storage.
+        /// 配置 silo 将“ zure blob” 存储作为默认的 grain 存储。
         /// </summary>
         public static IServiceCollection AddAzureBlobGrainStorageAsDefault(this IServiceCollection services, Action<AzureBlobStorageOptions> configureOptions)
         {
@@ -25,7 +25,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure blob storage for grain storage.
+        /// 配置 silo 用于 grain 存储的 紫色布洛布存储 。
         /// </summary>
         public static IServiceCollection AddAzureBlobGrainStorage(this IServiceCollection services, string name, Action<AzureBlobStorageOptions> configureOptions)
         {
@@ -33,7 +33,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure blob storage as the default grain storage.
+        /// 配置 silo 将“ zure blob” 存储作为默认的 grain 存储。
         /// </summary>
         public static IServiceCollection AddAzureBlobGrainStorageAsDefault(this IServiceCollection services, Action<OptionsBuilder<AzureBlobStorageOptions>>? configureOptions = null)
         {
@@ -41,7 +41,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure blob storage for grain storage.
+        /// 配置 silo 用于 grain 存储的 紫色布洛布存储 。
         /// </summary>
         public static IServiceCollection AddAzureBlobGrainStorage(this IServiceCollection services, string name,
             Action<OptionsBuilder<AzureBlobStorageOptions>>? configureOptions = null)

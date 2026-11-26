@@ -1,13 +1,13 @@
 using Xunit.v3;
 
 /// <summary>
-/// Provides a compatibility bridge for the legacy xUnit <c>Category</c> trait while the test suite
-/// migrates to first-class <see cref="TestSuiteAttribute"/>, <see cref="TestProviderAttribute"/>, and
-/// <see cref="TestAreaAttribute"/> traits.
+/// 提供测试套件时遗留 xUnit <c>Category</c> 特性的兼容性桥桥
+/// 向头等舱 <see cref="TestSuiteAttribute"/>、 <see cref="TestProviderAttribute"/>和
+/// <see cref="TestAreaAttribute"/> 特征。
 /// </summary>
 /// <remarks>
-/// New tests should prefer the first-class traits. Existing tests can continue using
-/// <c>[TestCategory("BVT")]</c> until they are migrated.
+/// 新的试验应更倾向于第一等特征。
+/// <c>[TestCategory("BVT")]</c> 直到他们迁移。
 /// </remarks>
 /// <example>
 /// <code>

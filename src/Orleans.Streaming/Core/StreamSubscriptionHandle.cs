@@ -5,62 +5,62 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Handle representing this subscription.
-    /// Consumer may serialize and store the handle in order to unsubscribe later, for example
-    /// in another activation on this grain.
+    /// 处理代表订阅事宜 。
+    /// 消费者可以将控柄序列化并储存,以便日后取消订货,例如
+    /// 中,此 grain上的另一个激活。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public abstract class StreamSubscriptionHandle<T> : IEquatable<StreamSubscriptionHandle<T>?>
     {
         /// <summary>
-        /// Gets the stream identifier.
+        /// 获取溪流识别码。
         /// </summary>
-        /// <value>The stream identifier.</value>
+        /// <value>流体识别符号。</value>
         public abstract StreamId StreamId { get; }
 
         /// <summary>
-        /// Gets the name of the provider.
+        /// 获取提供者的名字。
         /// </summary>
-        /// <value>The name of the provider.</value>
+        /// <value>提供者的名称。</value>
         public abstract string ProviderName { get; }
 
         /// <summary>
-        /// Gets the unique identifier for this StreamSubscriptionHandle
+        /// 获取此 StreamSubscriptionHandle的独特标识符
         /// </summary>
         public abstract Guid HandleId { get; }
 
         /// <summary>
-        /// Unsubscribe a stream consumer from this observable.
+        /// 取消从此可见的源流消费者订阅。
         /// </summary>
         /// <returns>
-        /// A <see cref="Task"/> representing the operation.
+        /// 代表行动的一个 <see cref="Task"/> 。
         /// </returns>
         public abstract Task UnsubscribeAsync();
 
         /// <summary>
-        /// Resumed consumption from a subscription to a stream.
+        /// 订阅流的重新消费。
         /// </summary>
-        /// <param name="observer">The observer object.</param>
-        /// <param name="token">The stream sequence to be used as an offset to start the subscription from.</param>
+        /// <param name="observer">观察员反对。</param>
+        /// <param name="token">用于抵消启动订阅的流序序列。</param>
         /// <returns>
-        /// The new stream subscription handle.
+        /// 新的流订阅器。
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        /// The active implicit subscription has already completed a delivery and <paramref name="token"/> is non-null.
+        /// 主动的默认订阅已完成交付, <paramref name="token"/> 并非中标。
         /// </exception>
         public abstract Task<StreamSubscriptionHandle<T>> ResumeAsync(IAsyncObserver<T> observer, StreamSequenceToken? token = null);
 
         /// <summary>
-        /// Resume batch consumption from a subscription to a stream.
+        /// 恢复溪流订阅的批量消费。
         /// </summary>
-        /// <param name="observer">The batcj bserver object.</param>
-        /// <param name="token">The stream sequence to be used as an offset to start the subscription from.</param>
+        /// <param name="observer">蝙蝠bserver 对象。</param>
+        /// <param name="token">用于抵消启动订阅的流序序列。</param>
         /// <returns>
-        /// The new stream subscription handle.
+        /// 新的流订阅器。
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        /// The active implicit subscription has already completed a delivery and <paramref name="token"/> is non-null.
+        /// 主动的默认订阅已完成交付, <paramref name="token"/> 并非中标。
         /// </exception>
         public abstract Task<StreamSubscriptionHandle<T>> ResumeAsync(IAsyncBatchObserver<T> observer, StreamSequenceToken? token = null);
 

@@ -1,45 +1,45 @@
 <#
 .SYNOPSIS
-    Validates all Orleans documentation snippet projects.
+    校验所有 Orleans 文件片断项目 。
 
 .DESCRIPTION
-    This script finds all .csproj files in documentation snippet directories, verifies
-    that they target the documentation framework (or the exception framework which
-    OrleansDocumentationTargetFrameworkException selects) and reference the approved
-    Orleans packages, then runs
-    'dotnet build' on ordinary projects or 'dotnet test' on projects which declare
-    IsTestProject=true.
+    此脚本在文档片断目录中查找所有 .csproj 文件, 校验
+    或针对文件框架(或
+    OrleansDocumentationTargetFrameworkException 选择)和参考经核准的
+    Orleans 包包,然后运行
+    '以普通项目为基础或对申报的项目进行“dotnet测试”的基础上建立“ dotnet ”
+    IsTestProject=正。
     
-    Use this script to validate snippet code after making changes to ensure all
-    documentation examples remain buildable and executable test examples pass.
+    修改后使用此脚本来验证片断代码, 以确保全部
+    文档示例仍然可以构建,且可执行的测试实例通过。
 
 .PARAMETER Parallel
-    Run validations in parallel with isolated build outputs (default: false for clearer output)
+    运行验证,与孤立的建筑产出并行(默认:错误以获得更明确的输出)
 
 .PARAMETER PolicyOnly
-    Validate target frameworks and Orleans package versions without building.
+    校验目标框架和 Orleans 包版本,不建楼。
 
 .PARAMETER RootPath
-    Root directory to scan. Defaults to the documentation content directory.
+    要扫描的根目录。 默认为文档内容目录 。
 
 .PARAMETER SiteRootPath
-    Documentation site boundary for resolving includes. Defaults to docs/site for the
-    repository documentation, or RootPath when validating a fixture.
+    需要解决的文件站点边界包括。
+    仓库文档,或验证固定线时的 RootPath 。
 
 .EXAMPLE
-    .\validate-snippets.ps1
+    。\ validate - 的确认snippets.ps1
     
-    Validates all snippet projects sequentially and reports results.
+    依次校验所有片段项目并报告结果。
 
 .EXAMPLE
-    .\validate-snippets.ps1 -Parallel
+    。\ validate - 的确认snippets.ps1 - 帕拉莱
     
-    Validates all snippet projects in parallel for faster validation.
+    平行校验所有片段项目,以更快的验证 。
 
 .NOTES
-    Exit codes:
-    0 - All projects validated successfully
-    1 - One or more projects failed validation
+    出处代码:
+    - 所有项目成功验证
+    1 - 一个或多个项目没有审定
 #>
 
 param(
@@ -68,7 +68,7 @@ Write-Host "Orleans Documentation Snippet Validator" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Find all .csproj files in snippets directories
+# 在片段目录中查找全部.csproj 文件
 $snippetProjects = @(Get-ChildItem -Path $validationRoot -Recurse -Filter "*.csproj" |
     Where-Object { $_.FullName -match "snippets" } |
     Select-Object -ExpandProperty FullName)
@@ -531,7 +531,7 @@ Write-Host "Succeeded: $successCount" -ForegroundColor Green
 Write-Host "Failed:    $failCount" -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
 Write-Host ""
 
-# Show details for failed validations
+# 显示失败验证的详情
 $failed = $results | Where-Object { -not $_.Success }
 if ($failed.Count -gt 0) {
     Write-Host "Failed Projects:" -ForegroundColor Red

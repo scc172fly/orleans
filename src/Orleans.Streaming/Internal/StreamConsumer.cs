@@ -114,18 +114,18 @@ namespace Orleans.Streams
 
             GuidId subscriptionId = pubSub.CreateSubscriptionId(stream.InternalStreamId, myGrainReference!.GetGrainId());
 
-            // Optimistic Concurrency:
-            // In general, we should first register the subsription with the pubsub (pubSub.RegisterConsumer)
-            // and only if it succeeds store it locally (myExtension.SetObserver).
-            // Basicaly, those 2 operations should be done as one atomic transaction - either both or none and isolated from concurrent reads.
-            // BUT: there is a distributed race here: the first msg may arrive before the call is awaited
-            // (since the pubsub notifies the producer that may immideately produce)
-            // and will thus not find the subriptionHandle in the extension, basically violating "isolation".
-            // Therefore, we employ Optimistic Concurrency Control here to guarantee isolation:
-            // we optimisticaly store subscriptionId in the handle first before calling pubSub.RegisterConsumer
-            // and undo it in the case of failure.
-            // There is no problem with that we call myExtension.SetObserver too early before the handle is registered in pub sub,
-            // since this subscriptionId is unique (random Guid) and no one knows it anyway, unless successfully subscribed in the pubsub.
+            // 乐观货币:
+            // 一般来说,我们首先应在公子处登记分解(pubSub.RegisterConsumer)
+            // 仅在成功存储的情况下, 才能在本地存储(myExtension.SetObserver) 。
+            // 基本上,这2项行动应作为一次原子交易进行 -- -- 要么两者兼有要么不进行,并且与同时读的文字分开。
+            // 但:这里有分布式种族:第一组兆克可能赶在等待电话之前到达
+            // (因为公证机构通知可能生产副产品的生产商)
+            // 因而没有发现 subriptionHandle 基本上违反了"隔离"
+            // 因此,我们在此采用乐观货币管制,以保证孤立:
+            // 我们乐观地储存 subscriptionId 调用前在手柄中先拨打 pubSub.RegisterConsumer
+            // 万一失败,就把它撤销。
+            // 没有任何问题,我们打电话 myExtension.SetObserver 太早了,然后把把手登记在酒吧的地下一层,
+            // 这是因为 subscriptionId 是独一无二的(《吉吉大雅特》),而且无人知道,除非在酒吧里成功订阅。
             var subriptionHandle = myExtension!.SetObserver(subscriptionId, stream, observer, batchObserver, token, startPosition, filterData);
             try
             {
@@ -134,7 +134,7 @@ namespace Orleans.Streams
             }
             catch (Exception)
             {
-                // Undo the previous call myExtension.SetObserver.
+                // 撤消上一个调用 myExtension.SetObserver。
                 myExtension!.RemoveObserver(subscriptionId);
                 throw;
             }
@@ -186,7 +186,7 @@ namespace Orleans.Streams
                 oldHandleImpl.FilterData,
                 handshakeState: token is null ? oldHandleImpl.SharedHandshake : null);
 
-            // On failure caller should be able to retry using the original handle, so invalidate old handle only if everything succeeded.
+            // 失败时, 电话人应该能够使用原始控件重新尝试, 所以只有在一切成功后才能失效旧控件 。
             oldHandleImpl.Invalidate();
 
             return newHandle;
@@ -203,7 +203,7 @@ namespace Orleans.Streams
             LogDebugUnsubscribe(handle);
 
             myExtension!.RemoveObserver(handleImpl.SubscriptionId);
-            // UnregisterConsumer from pubsub even if does not have this handle locally, to allow UnsubscribeAsync retries.
+            // UnregisterConsumer 允许 UnsubscribeAsync 重试。
 
             LogDebugUnsubscribeRendezvous(pubSub, myGrainReference!);
 
@@ -249,7 +249,7 @@ namespace Orleans.Streams
             myExtension = null;
         }
 
-        // Used in test.
+        // 用于测试。
         internal bool InternalRemoveObserver(StreamSubscriptionHandle<T> handle)
         {
             return myExtension != null && myExtension.RemoveObserver(((StreamSubscriptionHandleImpl<T>)handle).SubscriptionId);
@@ -260,9 +260,9 @@ namespace Orleans.Streams
             return Task.FromResult(myExtension!.DiagCountStreamObservers<T>(stream.InternalStreamId));
         }
 
-        // Sets myExtension and myGrainReference as a side effect. The lazy-binding pattern below guarantees
-        // both are non-null once this method returns, but the compiler cannot prove this across the await
-        // boundary, so callers use the null-forgiving operator (!) after awaiting this method.
+        // 设置 myExtension 和 myGrainReference 作为副作用。以下的担保下的懒惰约束模式
+        // 两种方法都非null 。 一旦此方法返回, 两者都不无效, 但汇编者无法在等待中证明这一点
+        // 使用无效操作者,等待此方法后,
         private async Task BindExtensionLazy()
         {
             if (myExtension == null)

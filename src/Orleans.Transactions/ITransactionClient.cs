@@ -4,47 +4,47 @@ using System.Threading.Tasks;
 namespace Orleans;
 
 /// <summary>
-/// Executes delegates using Orleans transaction semantics.
+/// 使用 Orleans 交易语义执行代表。
 /// </summary>
 public interface ITransactionClient
 {
     /// <summary>
-    /// Executes a delegate using the specified transaction option. A newly created transaction commits when the delegate completes successfully; a joined transaction records this participant's commit vote.
+    /// 使用指定的交易选项执行代表。 新创建的交易在代表成功完成后进行; 合并的交易记录该参与者的承付票 。
     /// </summary>
-    /// <param name="transactionOption">The transaction creation, joining, or suppression behavior.</param>
-    /// <param name="transactionDelegate">The delegate to execute.</param>
-    /// <returns>A <see cref="Task"/> representing the transaction operation.</returns>
+    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
+    /// <param name="transactionDelegate">执行代表。</param>
+    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task> transactionDelegate);
 
     /// <summary>
-    /// Executes a delegate using the specified transaction option.
+    /// 使用指定的交易选项执行代表。
     /// </summary>
-    /// <param name="transactionOption">The transaction creation, joining, or suppression behavior.</param>
+    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
     /// <param name="transactionDelegate">
-    /// The delegate to execute. Its result indicates whether the transaction should commit.
+    /// 执行代表。 其结果显示交易是否应该进行。
     /// </param>
-    /// <returns>A <see cref="Task"/> representing the transaction operation.</returns>
+    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task<bool>> transactionDelegate);
 
     /// <summary>
-    /// Executes a delegate using the specified transaction option. A newly created transaction commits when the delegate completes successfully; a joined transaction records this participant's commit vote.
+    /// 使用指定的交易选项执行代表。 新创建的交易在代表成功完成后进行; 合并的交易记录该参与者的承付票 。
     /// </summary>
-    /// <param name="transactionOption">The transaction creation, joining, or suppression behavior.</param>
-    /// <param name="transactionDelegate">The delegate to execute.</param>
-    /// <param name="useExclusiveLock">When <see langword="true"/>, all transactional states accessed during this transaction
-    /// will acquire exclusive locks even for read operations, preventing lock upgrade conflicts under high contention.</param>
-    /// <returns>A <see cref="Task"/> representing the transaction operation.</returns>
+    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
+    /// <param name="transactionDelegate">执行代表。</param>
+    /// <param name="useExclusiveLock"> <see langword="true"/>时,交易期间访问的所有交易状态
+    /// 即使在读操作中,将获得独家锁,防止在争议激烈的情况下发生锁定升级冲突。</param>
+    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task> transactionDelegate, bool useExclusiveLock);
 
     /// <summary>
-    /// Executes a delegate using the specified transaction option.
+    /// 使用指定的交易选项执行代表。
     /// </summary>
-    /// <param name="transactionOption">The transaction creation, joining, or suppression behavior.</param>
+    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
     /// <param name="transactionDelegate">
-    /// The delegate to execute. Its result indicates whether the transaction should commit.
+    /// 执行代表。 其结果显示交易是否应该进行。
     /// </param>
-    /// <param name="useExclusiveLock">When <see langword="true"/>, all transactional states accessed during this transaction
-    /// will acquire exclusive locks even for read operations, preventing lock upgrade conflicts under high contention.</param>
-    /// <returns>A <see cref="Task"/> representing the transaction operation.</returns>
+    /// <param name="useExclusiveLock"> <see langword="true"/>时,交易期间访问的所有交易状态
+    /// 即使在读操作中,将获得独家锁,防止在争议激烈的情况下发生锁定升级冲突。</param>
+    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task<bool>> transactionDelegate, bool useExclusiveLock);
 }

@@ -2,7 +2,7 @@ using Orleans;
 
 namespace Orleans.Docs.Snippets.Interceptors;
 
-// Shared interfaces used across filter examples
+// 跨过滤示例使用共享界面
 public interface IMyGrain : IGrainWithIntegerKey
 {
     Task<int> MyInterceptedMethod();

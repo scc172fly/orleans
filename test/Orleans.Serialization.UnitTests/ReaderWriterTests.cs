@@ -875,22 +875,22 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// Tests for Orleans' low-level Reader and Writer implementations.
+    /// Orleans' 低水平阅读器和作家实施测试。
     /// 
-    /// These tests verify the fundamental building blocks of Orleans serialization:
-    /// - Binary encoding/decoding of primitive types
-    /// - Variable-length integer encoding (VarInt) for space efficiency
-    /// - Buffer management and pooling strategies
-    /// - Stream-based and memory-based I/O operations
+    /// 这些测试核实了 Orleans 序号化的基本组成部分:
+    /// - 原始类型二元编码/代法
+    /// - 空间效率的变量长整数编码(VarInt)
+    /// - 缓冲管理和集中战略
+    /// - 以流为基础的和以记忆为基础的一/O临时业务
     /// 
-    /// The Reader/Writer infrastructure provides:
-    /// - High-performance binary serialization primitives
-    /// - Zero-allocation patterns for common scenarios
-    /// - Support for various buffer types (streams, arrays, pipes)
-    /// - Efficient handling of large data through segmented buffers
+    /// 读者/作家基础设施提供:
+    /// - 高性能二进制序列化原始
+    /// - 通用设想情况零分配模式
+    /// - 支持各种缓冲类型(流、阵列、管)
+    /// - 通过分片缓冲带有效处理大数据
     /// 
-    /// These components are critical for Orleans' wire protocol efficiency
-    /// and directly impact the performance of grain communication.
+    /// 这些组成部分对于 Orleans电汇协议效率至关重要
+    /// 并直接影响 grain 通信的履行。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]
@@ -1259,18 +1259,18 @@ namespace Orleans.Serialization.UnitTests
 
             var buffer = new PooledBuffer();
 
-            // PooledBuffer / BufferSlice is more abstract than ReadOnlySequence, which is why we are relying on 
-            // implementation details.
+            // PooledBuffer / BufferSlice 比 ReadOnlySequence更抽象,因此我们依赖 
+            // 执行细节。
             var buf = buffer.GetMemory(1);
             Assert.True(MemoryMarshal.TryGetArray<byte>(buf, out var seg));
-            // A successful TryGetArray call guarantees that the returned segment is array-backed.
+            // 成功调用 TryGetArray 保证返回的段系以数组支持。
             var offset = seg.Array!.Length - b.Length;
             buffer.Write(new byte[offset]);
             buffer.Write(b);
             buffer.Write(b2);
             var slice = buffer.Slice(offset);
 
-            // Verify that the slices are what we expect.
+            // 核实切片是否是我们期望的
             var count = 0;
             foreach (var s in slice)
             {
@@ -1311,7 +1311,7 @@ namespace Orleans.Serialization.UnitTests
             var services = new ServiceCollection();
             _ = services.AddSerializer();
             _serviceProvider = services.BuildServiceProvider();
-            // AddSerializer guarantees that the session pool is registered.
+            // AddSerializer 保证会场集合已经登记。
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>()!;
             _testOutputHelper = testOutputHelper;
         }

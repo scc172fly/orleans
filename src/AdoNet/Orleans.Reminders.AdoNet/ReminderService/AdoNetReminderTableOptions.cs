@@ -3,26 +3,26 @@ using System.Data.Common;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for ADO.NET reminder storage.
+    /// ADO.NET 提醒存储选项。
     /// </summary>
     public class AdoNetReminderTableOptions
     {
         /// <summary>
-        /// Gets or sets the ADO.NET invariant.
+        /// 获取或设置 ADO.NET 变量。
         /// </summary>
         public string Invariant { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the connection string.
+        /// 获取或设置连接字符串。
         /// </summary>
         [Redact]
         public string? ConnectionString { get; set; }
 
         /// <summary>
-        /// Gets or sets the data source used to open database connections.
+        /// 获取或设置打开数据库连接所使用的数据源。
         /// </summary>
         /// <remarks>
-        /// The data source is owned by the caller and is not disposed by Orleans.
+        /// 数据源由调用者拥有, Orleans不处置。
         /// </remarks>
         [Redact]
         public DbDataSource? DataSource { get; set; }

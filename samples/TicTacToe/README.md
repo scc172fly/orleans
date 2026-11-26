@@ -7,54 +7,60 @@ products:
 page_type: sample
 name: "Orleans TicTacToe web-based game"
 urlFragment: "orleans-tictactoe-web-based-game"
-description: "An Orleans sample TicTacToe web-based game."
+description: "网基游戏 Orleans 样本 TicTacToe"
 ---
 
-# Orleans TicTacToe web-based game
+<a id="orleans-tictactoe-web-based-game"></a>
 
-This sample demonstrates a Web-based [Tic-tac-toe](https://en.wikipedia.org/wiki/Tic-tac-toe) game.
+# Orleans TicTacToe 网基游戏
 
-The game is implemented as a single project, `TicTacToe.csproj`, which uses the [.NET Generic Host](https://docs.microsoft.com/dotnet/core/extensions/generic-host) to host an ASP.NET Core MVC application alongside Orleans.
+本样本展示了基于网络的 [Tic-tac-toe](https://en.wikipedia.org/wiki/Tic-tac-toe) 游戏。
 
-The client-side of the game is a JavaScript application that polls the MVC application for updates. MVC controllers forward request to grains. The application has 3 types of grains:
+游戏作为单一项目执行, `TicTacToe.csproj`,该 [.NET 通用主机](https://docs.microsoft.com/dotnet/core/extensions/generic-host) 将 ASP.NET 核心MVC应用软件与 Orleans.
 
-* `PlayerGrain` represents a player, allowing the caller to join and leave games, update properties, and retrieve an overview of the past and present games.
-* `GameGrain` represents an individual game session and the accompanying game logic. `GameGrain` allows clients to make moves and see the current game board state.
-* `PairingGrain` which holds a list of the currently available games which other players can join.
+游戏的客户端是用于测试 MVC 更新应用程序的 JavaScript 应用程序。 MVC 控制器将请求转发到 grains。 应用程序有三种 grains:
 
-The call flow is as follows:
+* `PlayerGrain` 代表一个玩家, 让调用者可以加入和退出游戏, 更新属性, 并检索过去和现在游戏的概览 。
+* `GameGrain` 代表单个游戏会话和相应的游戏逻辑。 `GameGrain` 允许客户进行移动并查看当前游戏板状态。
+* `PairingGrain` ,它持有一份其他玩家可以加入的现有游戏列表。
 
-![A diagram showing the calls made in the application](dataflow.png)
+电话流量如下:
 
-## Sample prerequisites
+![显示应用程序中通话的图表](dataflow.png)
 
-This sample is written in C# and targets .NET 10. It requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+<a id="sample-prerequisites"></a>
 
-## Building the sample
+## 抽样的前提条件
 
-To download and run the sample, follow these steps:
+本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
+<a id="building-the-sample"></a>
+
+## 建立样本
+
+下载和运行样本时,请遵循以下步骤:
+
+1. 下载并解开样本的平面
+2. 视觉演播室(2022年或以后):
+    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
     2. Navigate to the folder that holds the unzipped sample code, and open the C# project (.csproj) file.
     3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. At the command line, type [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run).
+3. 从命令行 :
+   1. 导航到持有未设偏移样本代码的文件夹 。
+   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-Open a terminal window and execute the following at the command prompt:
+打开终端窗口,并在命令提示时执行以下内容:
 
 ```bash
 dotnet run
 ```
 
-The game server will start and you can open a browser to `https://localhost:5000/` to interact with the game.
+游戏服务器将启动, 您可以打开一个浏览器到 `https://localhost:5000/` 与游戏互动 。
 
-If you wish, you can start more instances of the host to see them form a cluster. If you do so, add the `InstanceId` option on the command line to differentiate them. A production application would use something other than the "localhost clustering" which this application uses (see _Program.cs_ for where clustering is configured via `UseLocalhostClustering`) and therefore this `InstanceId` option would not be necessary.
+如果您愿意, 您可以开始更多关于主机的实例来查看它们组成一个集。 如果您可以这样做, 请在命令行中添加 `InstanceId` 选项来区分它们。 生产应用程序将使用除此应用程序所使用的“ 本地主机组合” 以外的其它东西( 参见 _Program.cs_ , 因为组合是通过 `UseLocalhostClustering`配置的) , 因此不需要这个 `InstanceId` 选项 。
 
 ```bash
 dotnet run -- --InstanceId 1
 ```
 
-Since the game uses cookies to identify players, you will need a separate browser session to be able to play against yourself and experience the game.
+由于游戏使用 cookie 来识别玩家, 您需要另外的浏览器会话才能与自己相对打并体验游戏 。

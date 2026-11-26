@@ -5,8 +5,8 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for Orleans' ability to handle types defined outside of the grain interface and implementation assemblies.
-    /// Verifies that the serialization system correctly handles external types (like enums) passed as parameters to grain methods.
+    /// 测试 Orleans处理 grain 接口和执行组件以外定义的类型的能力。
+    /// 证明序列系统正确处理外部类型(如昆虫),作为参数通过至 grain 方法。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -18,9 +18,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests that grains can successfully receive and process enum types defined in external assemblies.
-        /// This validates Orleans' type system's ability to serialize/deserialize types not directly referenced
-        /// in the grain interface assembly, which is important for supporting shared domain models.
+        /// grains 能够成功接收和处理外部组合中定义的昆虫类型的测试。
+        /// 以此验证 Orleans' 类型系统对未直接引用的类别进行序列/去序化的能力
+        /// 在 grain 接口组件中,这对支持共享域模型十分重要。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Serialization")]
         public async Task ExternalTypesTest_GrainWithEnumExternalTypeParam()

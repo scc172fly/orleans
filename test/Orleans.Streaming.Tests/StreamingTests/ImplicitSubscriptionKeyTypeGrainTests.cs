@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// Tests implicit stream subscriptions with different grain key types, specifically testing long key type grain subscriptions.
+    /// 测试不同 grain 关键类型隐含流订阅,具体测试长键类型 grain 订阅。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

@@ -62,7 +62,7 @@ public sealed class StockGrain(
         var next = new Inventory(outcome.RemainingStock,
             reservations,
             checked(inventory.ProcessedRequests + 1));
-        // SendReply encodes before staging; remaining changes run synchronously through return.
+        // 中转前的编码SendReply ;其余更改通过返回同步运行。
         outbox.SendReply(messages.Result, context, request.ReplyDestination, outcome);
         _inventory.Value = next;
         context.Complete();

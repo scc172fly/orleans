@@ -1,29 +1,29 @@
 
 namespace DurableOrderProcessing;
 
-// The body of a payment authorization request to the gateway.
+// 付款授权书的主体 请求进入网关。
 public sealed record PaymentAuthorizationRequest(Guid OrderId, decimal Amount, string CardLast4);
 
-// A gateway authorization's status monitor, in the shape of an Azure long-running operation.
+// 网关授权状况监测器,以 Azure 长期运行作业的形式。
 public sealed record PaymentAuthorizationStatus(string Id, string Status, PaymentResult? Result);
 
-// An authorization in the gateway's ledger, which GET /gateway/authorizations lists.
+// 网关分类账的许可 获得/门道/授权名单
 public sealed record PaymentAuthorizationEntry(string Id, Guid OrderId, decimal Amount, string Status, bool Voided, int Requests);
 
-// A simulated external payment gateway, which the order workflow calls over HTTP through an IDurableHttpClient.
+// 模拟外部付款网关,订单工作流程通过一个 IDurableHttpClient通过HTTP呼叫。
 //
-// The gateway honors Idempotency-Key as Stripe does. It records each key with its request's body, and answers a
-// request with a known key and an equal body with the first response, marked Idempotent-Replayed. A known key with
-// another body is rejected with 422 Unprocessable Content, and a request without a key with 400 Bad Request. Each key
-// therefore authorizes at most one payment, whichever number of times a client retries the request.
+// 网关像黑条一样,是荣誉-关键。它记录了每个钥匙及其请求的体形,并回答
+// 具有已知密钥和与第一个回应平等机构的请求,有标注的“能力强”重放。
+// 以422个不可处理的内容拒绝另一个正文,而没有密钥的请求则以400个错误请求拒绝。每个密钥
+// 因此,最多授权一次付款,以客户重报请求的次数为准。
 //
-// An authorization completes asynchronously: the request returns 202 Accepted with an Operation-Location status monitor,
-// which reports Running until the authorization decides, and POST {monitor}:cancel voids it.
-// Card numbers ending in 0002 are declined. For card numbers ending in 0003, the gateway doesn't decide, so the
-// authorization runs until the order's payment timeout voids it. For card numbers ending in 0004, the gateway drops the
-// connection instead of sending its first response for a key, as a network failure would after the gateway recorded the
-// authorization; the client's resilience handler retries the request with the same key. For card numbers ending in
-// 0005, the gateway is unavailable and answers 503 Service Unavailable, so the order's payment fails.
+// 授权无一例外地完成:请求返回202接受,并设有行动所在地状况监测器;
+// 哪些报告在授权决定前运行, 而 POST { 监测}: cancel 宣布无效 。
+// 以2000年结束的卡片号码被拒绝。对于以0003结束的卡片号码,则由网关决定,所以
+// 授权运行到订单的支付超时失效。 对于以0004结束的卡号, 网关会掉下
+// 连接而不是发送第一个密钥响应,因为网关记录后网络故障
+// 授权;客户客户的复原力处理器使用相同的密钥重新发送请求。
+// 5千元,网关无法接通,回答503 服务无可用,所以订单的付款失败。
 public sealed class PaymentGateway(TimeProvider timeProvider)
 {
     public const string IdempotencyKeyHeader = "Idempotency-Key";
@@ -138,7 +138,7 @@ public sealed class PaymentGateway(TimeProvider timeProvider)
         return Results.Json(status, statusCode: statusCode);
     }
 
-    // An authorization in the ledger. The gateway's lock guards its mutable members.
+    // 帐簿上的授权 网关锁着可变成员
     private sealed class Authorization(string id, PaymentAuthorizationRequest request, DateTimeOffset createdAt)
     {
         public string Id => id;
@@ -151,10 +151,10 @@ public sealed class PaymentGateway(TimeProvider timeProvider)
 
         public DateTimeOffset? VoidedAt { get; set; }
 
-        // The gateway decides after a latency, except for card numbers ending in 0003.
+        // 网关在延迟后决定,但以千三时结束的卡片号码除外。
         private DateTimeOffset? DecidesAt => request.CardLast4 == "0003" ? null : createdAt + DecisionLatency;
 
-        // A void before the decision cancels the authorization; a void after it releases the authorized payment.
+        // 在决定取消授权之前即为无效;在发放授权付款之后即为无效。
         public PaymentAuthorizationStatus GetStatus(DateTimeOffset now)
         {
             if (DecidesAt is not { } decidesAt || decidesAt > (VoidedAt ?? now))

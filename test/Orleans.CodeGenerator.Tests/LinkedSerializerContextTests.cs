@@ -16,8 +16,8 @@ namespace Orleans.CodeGenerator.Tests;
 [TestArea("CodeGen")]
 public sealed class LinkedSerializerContextTests
 {
-    // Field-target attributes disappear from genuine reference assemblies. Public accessors
-    // still let the source-owned generator implement the selected contract without private access.
+    // 真正的参考集会上,现场目标属性消失。
+    // 仍允许源自发电机在私人无法进入的情况下执行选定的合同。
     private const string ProducerSource = """
         namespace Producer;
         [Orleans.GenerateSerializer, Orleans.Alias("linked-payload")]
@@ -73,8 +73,8 @@ public sealed class LinkedSerializerContextTests
             [Orleans.GeneratedContextImport<int>]
             public partial class ConsumerContext : Orleans.Serialization.GeneratedContext { }
             """);
-        // The ungenerated partial still lacks ConfigureInner, but C# accepts the
-        // unconstrained attribute argument: there is no generic constraint error.
+        // 未生成的片段仍然缺少 ConfigureInner, 但 C# 接受
+        // 不受限制的属性参数:不存在通用约束错误。
         Assert.Equal(new[] { "CS0534" }, input.GetDiagnostics(TestContext.Current.CancellationToken)
             .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
             .Select(static diagnostic => diagnostic.Id));
@@ -150,13 +150,13 @@ public sealed class LinkedSerializerContextTests
         var context = ContextSource(result, "ConsumerContext");
         Assert.True(context.IndexOf("new global::Producer.ExportedContext()", StringComparison.Ordinal)
             < context.IndexOf("options.AddSerializer", StringComparison.Ordinal), context);
-        // Local generic collections can allow their closed Payload<int> argument.
-        // The linked producer, not this context, supplies the open model's alias metadata.
+        // 本地通用集成可以允许它们关闭有效载荷<int> 参数。
+        // 相关生产商而不是这一背景提供开放模型的别名元数据。
         Assert.DoesNotContain("AddAllowedType(typeof(global::Producer.Payload<>))", context, StringComparison.Ordinal);
         Assert.DoesNotContain("linked-payload", context, StringComparison.Ordinal);
         Assert.DoesNotContain("options.WellKnownTypeIds", context, StringComparison.Ordinal);
-        // The producer's field-target selection and copy policy are hidden. The consumer
-        // context must not recover their List<int> graph from implementation metadata.
+        // 生产者的实地目标选择和复制政策被隐藏。
+        // 环境上下文不得从执行元数据中收回其清单<int> 图表。
         Assert.DoesNotContain("ListCodec<int>", context, StringComparison.Ordinal);
         Assert.DoesNotContain("ListCopier<int>", context, StringComparison.Ordinal);
         Assert.DoesNotContain("AddSerializer<global::System.Collections.Generic.List<int>>(", context, StringComparison.Ordinal);
@@ -198,8 +198,8 @@ public sealed class LinkedSerializerContextTests
     [Fact]
     public async Task DeclaredSuppliedRootUsesTransitiveOwnerWithoutReconstruction()
     {
-        // Bridge also declares the root, but its included context owns the implementation.
-        // Declaring that same external root in the consumer must not trigger ref inspection.
+        // 桥梁还宣布了根,但其包含的背景是执行的主人。
+        // 消费者在公开声明同一外部根根时,不得触发反射检查。
         var (producer, producerResult) = Generate(await Compile(ProducerSource + """
             [Orleans.GeneratedContextType<Producer.Payload<int>>]
             [Orleans.GeneratedContextImport<Producer.ExportedContext>]
@@ -302,7 +302,7 @@ public sealed class LinkedSerializerContextTests
             """;
         if (transitive)
         {
-            // Invalid linked metadata is deliberately emitted without running its generator.
+            // 无效的链接元数据在不运行生成器的情况下被故意释放。
             var producer = await Compile("""
                 [Orleans.GeneratedContextType<LeafContext>]
                 public class BadContext : Orleans.Serialization.GeneratedContext
@@ -629,8 +629,8 @@ public sealed class LinkedSerializerContextTests
         Assert.Equal(1, Occurrences(entry, "new global::LeftContext()"));
         Assert.Equal(1, Occurrences(entry, "new global::RightContext()"));
         Assert.DoesNotContain("new global::LeafContext()", entry, StringComparison.Ordinal);
-        // Key reads count attempts, not ConfigureInner executions. The independent probe below
-        // pins executions, including equality of distinct key objects and per-options isolation.
+        // 关键读数数尝试, 不 ConfigureInner 下述独立调查
+        // 死刑,包括不同关键物体的平等以及每个选择的隔离。
         Assert.Equal(new object[] { 2, 1, 1, 2, 3, true, true, true, 2, 2 }, Run(output));
     }
 
@@ -651,8 +651,8 @@ public sealed class LinkedSerializerContextTests
             return;
         }
 
-        // Corrupt supplied declarations are compiled as metadata, not generated. The consumer
-        // must diagnose the cycle itself, including the ownerless A/B case with identical roots.
+        // 提供的更正报表作为元数据汇编,而不是生成。
+        // 周期本身必须诊断,包括无主A/B型病例的根数相同。
         var producer = await Compile($$"""
             namespace Producer;
             [Orleans.GeneratedContextType<int>]
@@ -722,8 +722,8 @@ public sealed class LinkedSerializerContextTests
     [Fact]
     public async Task LinkedGraphBudgetCountsUniqueContextsIncludingConsumer()
     {
-        // A flat graph avoids conflating the context budget with the independent depth bound.
-        // All leaves supply the same int root, so the closed-type graph cannot mask this boundary.
+        // 平面图避免将上下文预算与独立深度绑定相混合。
+        // 所有叶子都提供相同的直根, 所以封闭型图形无法遮盖此边界 。
         var source = new StringBuilder("namespace Producer;\n");
         for (var index = 0; index < 1024; index++)
             source.AppendLine($"[Orleans.GeneratedContextType<int>] public partial class C{index} : Orleans.Serialization.GeneratedContext {{ }}");
@@ -817,13 +817,13 @@ public sealed class LinkedSerializerContextTests
         var generated = string.Join("\n", Sources(result).Select(static source => source.SourceText.ToString()));
         foreach (var model in models)
         {
-            // Ordinary local serializers can name public concrete producer services. They
-            // resolve those services through the linked factories, without reconstructing
-            // their graph. Only the consumer context owns registration/construction here.
+            // 普通本地连环器可以命名为公共混凝土生产服务。
+            // 通过连结工厂,不重建而解决这些服务问题
+            // 只有消费者环境才拥有注册/建造权。
             Assert.DoesNotContain($"Codec_{model.Name}", context, StringComparison.Ordinal);
             Assert.DoesNotContain($"Copier_{model.Name}", context, StringComparison.Ordinal);
-            // Arrays/collections of a supplied model are local roots, not the supplied
-            // exact root. Match the closing generic argument and invocation boundary.
+            // 提供模型的阵列/收集是当地根,而不是供应的
+            // 准确根。 匹配结束的通用参数和引用边界 。
             Assert.DoesNotContain($"AddSerializer<global::Producer.{model.Root}>(", context, StringComparison.Ordinal);
         }
         Assert.DoesNotContain("AssemblyMetadata", generated, StringComparison.Ordinal);
@@ -888,10 +888,10 @@ public sealed class LinkedSerializerContextTests
 
     private static Assembly LoadIsolatedRuntimeAssembly(CSharpCompilation compilation)
     {
-        // Default ALC images remain loaded for the module's lifetime. Synthetic producers
-        // must not join later AddSerializer assembly discovery and collide on their IDs/
-        // aliases. Strip only assembly discovery opt-ins, retaining model metadata, IVT,
-        // context declarations and all generated services/factories.
+        // 默认 ALC 图像仍留有模块寿命期间的装入。
+        // 以后必须加入 AddSerializer 组装发现并碰撞身份证明/
+        // 仅将组装发现选择区,保留模型元数据,
+        // 环境声明和所有产生的服务/要素。
         var discoveryAttributes = compilation.Assembly.GetAttributes()
             .Where(static attribute => IsAutomaticDiscoveryAttribute(attribute.AttributeClass?.ToDisplayString()))
             .Select(static attribute => attribute.ApplicationSyntaxReference!)

@@ -8,13 +8,13 @@ using Orleans.Runtime;
 
 namespace Orleans.TestingHost;
 
-/// <summary>Configuration builder for starting a <see cref="InProcessTestCluster"/>.</summary>
+/// <summary>启动 <see cref="InProcessTestCluster"/>的配置构建器。</summary>
 public sealed class InProcessTestClusterBuilder
 {
     private InProcessTestCluster? _cluster;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="InProcessTestClusterBuilder"/> using the default options.
+    /// 使用默认选项初始化一个 <see cref="InProcessTestClusterBuilder"/> 新实例。
     /// </summary>
     public InProcessTestClusterBuilder()
         : this(2)
@@ -22,9 +22,9 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="InProcessTestClusterBuilder"/> overriding the initial silos count.
+    /// 初始化一个 <see cref="InProcessTestClusterBuilder"/> 新实例,该例子将超越初始 silos 计数。
     /// </summary>
-    /// <param name="initialSilosCount">The number of initial silos to deploy.</param>
+    /// <param name="initialSilosCount">初始数 silos 部署。</param>
     public InProcessTestClusterBuilder(short initialSilosCount)
     {
         Options = new InProcessTestClusterOptions
@@ -41,18 +41,18 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Gets the options.
+    /// 获得选项。
     /// </summary>
-    /// <value>The options.</value>
+    /// <value>选项。</value>
     public InProcessTestClusterOptions Options { get; }
 
     /// <summary>
-    /// The port allocator.
+    /// 港口分配器
     /// </summary>
     public ITestClusterPortAllocator PortAllocator { get; } = new TestClusterPortAllocator();
 
     /// <summary>
-    /// Adds a delegate for configuring silo and client hosts.
+    /// 添加一个用于配置 silo 和客户端主机的代表。
     /// </summary>
     public InProcessTestClusterBuilder ConfigureHost(Action<IHostApplicationBuilder> configureDelegate)
     {
@@ -62,9 +62,9 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Adds a delegate to configure silos.
+    /// 添加一个代表配置 silos。
     /// </summary>
-    /// <returns>The builder.</returns>
+    /// <returns>建筑工。</returns>
     public InProcessTestClusterBuilder ConfigureSilo(Action<InProcessTestSiloSpecificOptions, ISiloBuilder> configureSiloDelegate)
     {
         Options.SiloHostConfigurationDelegates.Add((options, hostBuilder) => hostBuilder.UseOrleans(siloBuilder => configureSiloDelegate(options, siloBuilder)));
@@ -72,9 +72,9 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Adds a delegate to configure silo hosts.
+    /// 添加一个代表来配置 silo 主机。
     /// </summary>
-    /// <returns>The builder.</returns>
+    /// <returns>建筑工。</returns>
     public InProcessTestClusterBuilder ConfigureSiloHost(Action<InProcessTestSiloSpecificOptions, IHostApplicationBuilder> configureSiloHostDelegate)
     {
         Options.SiloHostConfigurationDelegates.Add(configureSiloHostDelegate);
@@ -82,9 +82,9 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Adds a delegate to configure clients.
+    /// 添加一个代表配置客户端 。
     /// </summary>
-    /// <returns>The builder.</returns>
+    /// <returns>建筑工。</returns>
     public InProcessTestClusterBuilder ConfigureClient(Action<IClientBuilder> configureClientDelegate)
     {
         Options.ClientHostConfigurationDelegates.Add(hostBuilder => hostBuilder.UseOrleansClient(clientBuilder => configureClientDelegate(clientBuilder)));
@@ -92,9 +92,9 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Adds a delegate to configure clients hosts.
+    /// 添加代表来配置客户端主机 。
     /// </summary>
-    /// <returns>The builder.</returns>
+    /// <returns>建筑工。</returns>
     public InProcessTestClusterBuilder ConfigureClientHost(Action<IHostApplicationBuilder> configureHostDelegate)
     {
         Options.ClientHostConfigurationDelegates.Add(hostBuilder => configureHostDelegate(hostBuilder));
@@ -102,7 +102,7 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Builds this instance.
+    /// 构建此实例。
     /// </summary>
     /// <returns>InProcessTestCluster.</returns>
     public InProcessTestCluster Build()
@@ -115,10 +115,10 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Returns whether the address belongs to the cluster built by this builder.
+    /// 返回该地址是否属于由此构建器建立的集。
     /// </summary>
-    /// <param name="siloAddress">The silo address.</param>
-    /// <returns><see langword="true"/> when the address belongs to this cluster.</returns>
+    /// <param name="siloAddress"> silo 地址。</param>
+    /// 当地址属于本组时,<returns><see langword="true"/> 。</returns>
     public bool ContainsSilo(SiloAddress siloAddress)
     {
         ArgumentNullException.ThrowIfNull(siloAddress);
@@ -126,9 +126,9 @@ public sealed class InProcessTestClusterBuilder
     }
 
     /// <summary>
-    /// Creates a cluster identifier.
+    /// 创建集束标识符。
     /// </summary>
-    /// <returns>A new cluster identifier.</returns>
+    /// <returns>一个新的集束识别码。</returns>
     public static string CreateClusterId()
     {
         string prefix = "testcluster-";
@@ -140,7 +140,7 @@ public sealed class InProcessTestClusterBuilder
 
     private void ConfigureDefaultPorts()
     {
-        // Set base ports if none are currently set.
+        // 如果目前没有设置基准端口, 则设定基端端口 。
         (int baseSiloPort, int baseGatewayPort) = PortAllocator.AllocateConsecutivePortPairs(Options.InitialSilosCount + 3);
         if (Options.BaseSiloPort == 0) Options.BaseSiloPort = baseSiloPort;
         if (Options.BaseGatewayPort == 0) Options.BaseGatewayPort = baseGatewayPort;

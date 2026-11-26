@@ -6,83 +6,83 @@ using Orleans.Runtime;
 namespace Orleans.Core.Diagnostics;
 
 /// <summary>
-/// Provides the diagnostic listener and event payload types for Orleans membership events.
+/// 为 Orleans 会员活动提供诊断听众和事件有效载荷类型。
 /// </summary>
 /// <remarks>
-/// These types are public but may change between minor versions. They are intended for
-/// advanced scenarios such as simulation testing and diagnostics.
+/// 这些类型是公开的,但可能在不同版本之间发生变化。
+/// 模拟测试和诊断等先进假设情景。
 /// </remarks>
 internal static class MembershipEvents
 {
     /// <summary>
-    /// The name of the diagnostic listener for membership events.
+    /// 会员活动诊断听众的姓名。
     /// </summary>
     public const string ListenerName = "Orleans.Membership";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// Gets an observable sequence of all membership events.
+    /// 获得所有会员活动的可观测序列。
     /// </summary>
     public static IObservable<MembershipEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// The base class used for membership diagnostic events.
+    /// 用于成员诊断活动的基本等级。
     /// </summary>
     public abstract class MembershipEvent
     {
     }
 
     /// <summary>
-    /// Event payload for when the membership view changes.
+    /// 当会籍视图改变时的事件有效载荷 。
     /// </summary>
-    /// <param name="snapshot">The new membership snapshot.</param>
-    /// <param name="observerSiloAddress">The address of the silo that observed this change.</param>
+    /// <param name="snapshot">新的成员快照。</param>
+    /// <param name="observerSiloAddress">大会主席的地址 silo 也注意到这一变化。</param>
     public sealed class ViewChanged(
         MembershipTableSnapshot snapshot,
         SiloAddress? observerSiloAddress) : MembershipEvent
     {
         /// <summary>
-        /// The new membership snapshot.
+        /// 新的成员快照。
         /// </summary>
         public readonly MembershipTableSnapshot Snapshot = snapshot;
 
         /// <summary>
-        /// The address of the silo that observed this change.
+        /// 观察到这一变化的 silo 地址。
         /// </summary>
         public readonly SiloAddress? ObserverSiloAddress = observerSiloAddress;
     }
 
     /// <summary>
-    /// The type of suspect or kill request.
+    /// 嫌疑犯或杀人请求的类型
     /// </summary>
     public enum SuspectOrKillRequestType
     {
         /// <summary>
-        /// Unknown request type.
+        /// 未知的请求类型 。
         /// </summary>
         Unknown = 0,
 
         /// <summary>
-        /// A request to suspect a silo or declare it dead.
+        /// 要求怀疑 silo 或宣布其死亡。
         /// </summary>
         SuspectOrKill,
 
         /// <summary>
-        /// A request to declare a silo dead.
+        /// 请求宣布 silo 死亡。
         /// </summary>
         Kill
     }
 
     /// <summary>
-    /// Event payload for when a suspect or kill request completes.
+    /// 当嫌疑人或杀人请求完成时, 事件有效载荷。
     /// </summary>
-    /// <param name="observerSiloAddress">The silo which processed the request.</param>
-    /// <param name="siloAddress">The silo targeted by the request.</param>
-    /// <param name="otherSiloAddress">The other silo associated with the request, if any.</param>
-    /// <param name="requestType">The request type.</param>
-    /// <param name="success">Whether the request completed successfully.</param>
-    /// <param name="exception">The exception thrown by the request, if any.</param>
+    /// <param name="observerSiloAddress">下 silo 处理过请求。</param>
+    /// <param name="siloAddress">下 silo 请求所针对的对象。</param>
+    /// <param name="otherSiloAddress">与请求有关的其他 silo ,如果有的话。</param>
+    /// <param name="requestType">请求类型。</param>
+    /// <param name="success">请求是否成功完成 。</param>
+    /// <param name="exception">请求提出的例外,如果有的话。</param>
     public sealed class SuspectOrKillRequestCompleted(
         SiloAddress observerSiloAddress,
         SiloAddress siloAddress,
@@ -92,32 +92,32 @@ internal static class MembershipEvents
         Exception? exception) : MembershipEvent
     {
         /// <summary>
-        /// The silo which processed the request.
+        /// 处理请求的 silo 。
         /// </summary>
         public readonly SiloAddress ObserverSiloAddress = observerSiloAddress;
 
         /// <summary>
-        /// The silo targeted by the request.
+        /// 请求所针对的 silo 。
         /// </summary>
         public readonly SiloAddress SiloAddress = siloAddress;
 
         /// <summary>
-        /// The other silo associated with the request, if any.
+        /// 另一 silo 与请求有关联(如果有的话)。
         /// </summary>
         public readonly SiloAddress? OtherSiloAddress = otherSiloAddress;
 
         /// <summary>
-        /// The request type.
+        /// 请求类型。
         /// </summary>
         public readonly SuspectOrKillRequestType RequestType = requestType;
 
         /// <summary>
-        /// Whether the request completed successfully.
+        /// 请求是否成功完成 。
         /// </summary>
         public readonly bool Success = success;
 
         /// <summary>
-        /// The exception thrown by the request, if any.
+        /// 请求提出的例外,如果有的话。
         /// </summary>
         public readonly Exception? Exception = exception;
     }

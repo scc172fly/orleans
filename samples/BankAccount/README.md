@@ -7,20 +7,22 @@ products:
 page_type: sample
 name: "Orleans BankAccount ACID transactions"
 urlFragment: "orleans-bank-account-acid-transactions"
-description: "An example of a BankAccount using ACID transactions."
+description: "例如,使用ACID交易的 BankAccount 。"
 ---
 
-# Orleans Bank Account with ACID transactions
+<a id="orleans-bank-account-with-acid-transactions"></a>
 
-This sample demonstrates how to implement ACID transactions using Orleans using a bank account scenario.
-There are two kinds of grains:
+# Orleans 与ACIDS交易的银行账户
 
-![BankClient application running in a terminal](./assets/BankClient.png)
+本样本表明如何使用银行账户假想情况 Orleans 实施ACID交易。
+有两种 grains:
 
-* `AccountGrain`, which implements `IAccountGrain`, simulates a bank account with a balance.
-* `AtmGrain`, which implements `IAtmGrain`, simulates an Automatic Teller Machine that allows transfers between two bank accounts.
+![在终端运行的银行服务程序](./assets/BankClient.png)
 
-`AtmGrain` has this interface:
+* `AccountGrain`执行 `IAccountGrain`,模拟银行账户的余额。
+* `AtmGrain`执行 `IAtmGrain`,模拟自动取款机,允许两个银行账户之间的转账。
+
+`AtmGrain` 具有此接口 :
 
 ```csharp
 public interface IAtmGrain : IGrainWithIntegerKey
@@ -30,7 +32,7 @@ public interface IAtmGrain : IGrainWithIntegerKey
 }
 ```
 
-`AccountGrain` has this interface:
+`AccountGrain` 具有此接口 :
 
 ```csharp
 public interface IAccountGrain : IGrainWithGuidKey
@@ -46,10 +48,10 @@ public interface IAccountGrain : IGrainWithGuidKey
 }
 ```
 
-The `[Transaction(option)]` attributes on the grain methods tell the runtime that these methods are transactional.
-The `IAtmGrain.Transfer` method creates a transaction, while the `IAccountGrain.Withdraw` and `IAccountGrain.Deposit` methods must be called in the context of existing transactions.
+下 `[Transaction(option)]` 上 grain 方法告诉运行时间这些方法是交易的。
+`IAtmGrain.Transfer` 方法产生交易,而 `IAccountGrain.Withdraw` 方法和 `IAccountGrain.Deposit` 方法则必须在现有交易中使用。
 
-`AtmGrain.Transfer(...)` is implemented as follows:
+`AtmGrain.Transfer(...)` 执行情况如下:
 
 ```csharp
 public async Task Transfer(
@@ -63,15 +65,15 @@ public async Task Transfer(
 }
 ```
 
-The `Transfer` method withdraws the specified amount from one `IAccountGrain` and deposits it in the other. Orleans ensures that this occurs in the context of a transaction to ensure consistency.
+`Transfer` 方法从一个 `IAccountGrain` 中提取指定数额并将其存入另一个。 Orleans 确保交易中出现这种情况,以确保一致性。
 
-The `AccountGrain.Deposit` method adds the deposited amount to the account balance using the `ITransactionalState<T>.PerformUpdate` method:
+`AccountGrain.Deposit` 方法使用 `ITransactionalState<T>.PerformUpdate` 方法将交存的金额加入账户余额:
 
 ```csharp
 public Task Deposit(uint amount) => _balance.PerformUpdate(x => x.Value += amount);
 ```
 
-Real banks allow overdrawing accounts, but this sample does not. `AccountGrain.Withdraw(uint amount)` prevents overdrawing by throwing an exception, causing the transaction to be aborted:
+实际银行允许超额放款账户,但本样本没有这样做。 `AccountGrain.Withdraw(uint amount)` 通过提出例外条款防止过度放款,导致交易中止:
 
 ```csharp
 public Task Withdraw(uint amount) => _balance.PerformUpdate(x =>
@@ -87,36 +89,40 @@ public Task Withdraw(uint amount) => _balance.PerformUpdate(x =>
 });
 ```
 
-## Sample prerequisites
+<a id="sample-prerequisites"></a>
 
-This sample is written in C# and targets .NET 10. It requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+## 抽样的前提条件
 
-## Building the sample
+本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
 
-To download and run the sample, follow these steps:
+<a id="building-the-sample"></a>
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
+## 建立样本
+
+下载和运行样本时,请遵循以下步骤:
+
+1. 下载并解开样本的平面
+2. 视觉演播室(2022年或以后):
+    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
     2. Navigate to the folder that holds the unzipped sample code, and open the C# project (.csproj) file.
     3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. At the command line, type [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run).
+3. 从命令行 :
+   1. 导航到持有未设偏移样本代码的文件夹 。
+   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-First start the *BankServer* process
+开始 *BankServer* 进程
 
 ``` bash
 dotnet run --project BankServer
 ```
 
-Then start the *BankClient* process
+然后启动 *BankClient* 进程
 
 ``` bash
 dotnet run --project BankClient
 ```
 
-The client will issue transactions between random accounts in a loop, printing the results. For example:
+客户端将循环在随机账户之间发布交易,打印结果。 例如 :
 
 ```console
 We transferred 100 credits from Pasqualino to Ida.
@@ -124,7 +130,7 @@ Pasqualino balance: 1500
 Ida balance: 1600
 ```
 
-When a withdraw would overdraw an account, the client will print an error like so:
+当提取账户时会超支, 客户端将打印错误, 如:
 
 ```console
 Error transferring 100 credits from Derick to Xaawo: Transaction 2edc92f5-a94d-4167-9522-fa661cc030ff Aborted because of an unhandled exception in a grain method call. See InnerException for details.

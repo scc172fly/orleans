@@ -9,8 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Analyzers;
 
 /// <summary>
-/// An analyzer that warns when grain code uses ConfigureAwait(false) or ConfigureAwait(ConfigureAwaitOptions)
-/// without the ContinueOnCapturedContext flag.
+/// 分析器, 当 grain 代码使用 ConfigureAwait(假) 或 ConfigureAwait(ConfigureAwaitOptions) 时警告它
+/// 没有 ContinueOnCapturedContext 标志。
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
@@ -55,39 +55,39 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
-        // Check if this is a ConfigureAwait call
+        // 检查是否是 ConfigureAwait 调用
         if (!IsConfigureAwaitCall(invocation, out var methodName))
         {
             return;
         }
 
-        // Check if this code is inside a grain class
+        // 检查此代码是否在 grain 类中
         if (!IsInsideGrainClass(invocation, context.SemanticModel))
         {
             return;
         }
 
-        // Get the symbol for the invocation to analyze the argument
+        // 获取援引的符号来分析参数
         var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation, context.CancellationToken);
         if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
         {
             return;
         }
 
-        // Only check ConfigureAwait method
+        // 只检查 ConfigureAwait 方法
         if (!string.Equals(methodSymbol.Name, "ConfigureAwait", StringComparison.Ordinal))
         {
             return;
         }
 
-        // Check if it's a ConfigureAwait method on a Task-like type
+        // 检查是否是类似任务类型的 ConfigureAwait 方法
         var containingType = methodSymbol.ContainingType;
         if (!IsTaskLikeType(containingType))
         {
             return;
         }
 
-        // Get the arguments
+        // 获取参数
         var arguments = invocation.ArgumentList?.Arguments;
         if (arguments is null || arguments.Value.Count == 0)
         {
@@ -102,19 +102,19 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Check for ConfigureAwait(bool) overload
+        // 检查 ConfigureAwait(bool) 超载
         if (argumentType.SpecialType == SpecialType.System_Boolean)
         {
             var constantValue = context.SemanticModel.GetConstantValue(firstArgument.Expression, context.CancellationToken);
             if (constantValue.HasValue && constantValue.Value is false)
             {
-                // ConfigureAwait(false) is not allowed
+                // ConfigureAwait(假)不允许
                 context.ReportDiagnostic(Diagnostic.Create(Rule, invocation.GetLocation()));
             }
             return;
         }
 
-        // Check for ConfigureAwait(ConfigureAwaitOptions) overload
+        // 检查 ConfigureAwait(ConfigureAwaitOptions)超载
         if (IsConfigureAwaitOptionsType(argumentType))
         {
             if (!HasContinueOnCapturedContextFlag(firstArgument.Expression, context.SemanticModel, context.CancellationToken))
@@ -139,7 +139,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
 
     private static bool IsInsideGrainClass(SyntaxNode node, SemanticModel semanticModel)
     {
-        // Walk up to find the containing type declaration
+        // 上到上找到包含声明的
         var current = node.Parent;
         while (current is not null)
         {
@@ -153,8 +153,8 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
             }
             else if (current is StructDeclarationSyntax or RecordDeclarationSyntax)
             {
-                // If we hit a struct or record before finding a grain class, we're not in a grain
-                // (structs and records can't be grains)
+                // 如果我们在找到 grain 类之前打中断断或记录, 我们便不是在 grain
+                // (台词和记录不能是 grains)
                 return false;
             }
 
@@ -173,7 +173,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
 
         var fullName = type.ToDisplayString(NullableFlowState.None);
 
-        // Check for common task-like types that have ConfigureAwait
+        // 检查具有 ConfigureAwait的通用任务类型
         return fullName.StartsWith("System.Threading.Tasks.Task", StringComparison.Ordinal)
             || fullName.StartsWith("System.Threading.Tasks.ValueTask", StringComparison.Ordinal)
             || fullName.StartsWith("System.Runtime.CompilerServices.ConfiguredTaskAwaitable", StringComparison.Ordinal)
@@ -197,25 +197,25 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
 
     private static bool HasContinueOnCapturedContextFlag(ExpressionSyntax expression, SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken)
     {
-        // ConfigureAwaitOptions.ContinueOnCapturedContext has value 1
+        // ConfigureAwaitOptions.ContinueOnCapturedContext 值为 1
         const int ContinueOnCapturedContextValue = 1;
 
-        // Try to get the constant value
+        // 尝试获取常值
         var constantValue = semanticModel.GetConstantValue(expression, cancellationToken);
         if (constantValue.HasValue && constantValue.Value is int intValue)
         {
-            // Check if ContinueOnCapturedContext flag (value 1) is set
+            // 检查是否设置 ContinueOnCapturedContext 标志( 值 1)
             return (intValue & ContinueOnCapturedContextValue) != 0;
         }
 
-        // If we can't determine the value at compile time, we need to analyze the expression
-        // to check if it includes ContinueOnCapturedContext
+        // 如果我们无法在编译时间确定值, 我们需要分析表达式
+        // 检查是否包含 ContinueOnCapturedContext
         return ExpressionIncludesContinueOnCapturedContext(expression, semanticModel, cancellationToken);
     }
 
     private static bool ExpressionIncludesContinueOnCapturedContext(ExpressionSyntax expression, SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken)
     {
-        // Handle member access like ConfigureAwaitOptions.ContinueOnCapturedContext
+        // 处理成员访问像 ConfigureAwaitOptions.ContinueOnCapturedContext
         if (expression is MemberAccessExpressionSyntax memberAccess)
         {
             var memberName = memberAccess.Name.Identifier.Text;
@@ -225,7 +225,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        // Handle binary OR expressions like ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.ForceYielding
+        // 处理二进制或表达式 ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.ForceYielding
         if (expression is BinaryExpressionSyntax binaryExpression &&
             binaryExpression.IsKind(SyntaxKind.BitwiseOrExpression))
         {
@@ -233,23 +233,23 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 || ExpressionIncludesContinueOnCapturedContext(binaryExpression.Right, semanticModel, cancellationToken);
         }
 
-        // Handle parenthesized expressions
+        // 处理括号表达式
         if (expression is ParenthesizedExpressionSyntax parenthesized)
         {
             return ExpressionIncludesContinueOnCapturedContext(parenthesized.Expression, semanticModel, cancellationToken);
         }
 
-        // Handle cast expressions
+        // 处理投石表达式
         if (expression is CastExpressionSyntax castExpression)
         {
             return ExpressionIncludesContinueOnCapturedContext(castExpression.Expression, semanticModel, cancellationToken);
         }
 
-        // If we encounter a variable or method call, we can't statically determine the flags
-        // In this case, we give the benefit of the doubt and don't report
+        // 如果我们遇到变数或方法的呼叫, 我们无法静态地确定国旗
+        // 在这种情况下,我们给出了怀疑的利弊 而不报告
         if (expression is IdentifierNameSyntax or InvocationExpressionSyntax)
         {
-            // Try to get the constant value as a fallback
+            // 尝试将常值作为后退值
             var constantValue = semanticModel.GetConstantValue(expression, cancellationToken);
             if (constantValue.HasValue && constantValue.Value is int intValue)
             {
@@ -257,7 +257,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 return (intValue & ContinueOnCapturedContextValue) != 0;
             }
 
-            // Can't determine - don't report false positives
+            // 无法确定 - 不要报告假阳性
             return true;
         }
 

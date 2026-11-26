@@ -4,178 +4,178 @@ using System.Threading.Tasks;
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// Observes and controls the durable tasks of the current durable grain activation, without a grain call.
+/// 观察和控制当前耐久 grain 激活的持久任务,无需 grain 呼叫。
 /// </summary>
 /// <remarks>
-/// Durable grains, which derive from <see cref="Orleans.Durable.Journaling.DurableGrain"/>, resolve the manager from their
-/// activation services, for example
-/// through constructor injection. Each activation has its own manager, whose operations run against that activation's
-/// durable task runtime. Call it from the activation, such as from the grain's methods and durable tasks.
+/// 持久 grains来源于 <see cref="Orleans.Durable.Journaling.DurableGrain"/>,从他们的
+/// 例如,激活服务
+/// 每个启动器都有自己的经理, 其操作与该激活装置的操作相悖
+/// 任务运行时。 从激活中调用它, 例如从 grain的方法和任务中调用它 。
 /// </remarks>
 public interface IDurableTaskManager
 {
-    /// <summary>Gets a handle which observes or cancels an existing task of this grain.</summary>
-    /// <param name="taskId">The task identifier.</param>
+    /// <summary>获得一个手柄, 显示或取消此 grain的现有任务。</summary>
+    /// <param name="taskId">任务标识符。</param>
     /// <returns>
-    /// A handle for the task. Polling or waiting for a task which this grain doesn't retain throws
+    /// 任务的一个控点。 投牌或等待此 grain 无法保留丢弃的任务
     /// <see cref="DurableTaskNotFoundException"/>.
     /// </returns>
     ScheduledTask GetTask(TaskId taskId);
 
-    /// <summary>Gets a handle which observes or cancels the existing root task <paramref name="rootId"/> of this grain.</summary>
-    /// <param name="rootId">The root task's identifier, as passed to <see cref="TaskId.CreateRoot(string)"/>.</param>
-    /// <returns>A handle for the task, as <see cref="GetTask(TaskId)"/> returns.</returns>
+    /// <summary>获得一个手柄, 显示或取消现有的根任务 <paramref name="rootId"/> 中 的 grain.</summary>
+    /// <param name="rootId">根任务传递到 <see cref="TaskId.CreateRoot(string)"/>的标识符。</param>
+    /// <returns>任务的一个控件,因为 <see cref="GetTask(TaskId)"/> 返回。</returns>
     ScheduledTask GetTask(string rootId) => GetTask(TaskId.CreateRoot(rootId));
 
-    /// <summary>Gets a typed handle which observes or cancels an existing task of this grain.</summary>
-    /// <typeparam name="TResult">The task's result type.</typeparam>
-    /// <param name="taskId">The task identifier.</param>
+    /// <summary>获得一个打印式控点, 显示或取消此 grain的现有任务。</summary>
+    /// <typeparam name="TResult">任务结果类型。</typeparam>
+    /// <param name="taskId">任务标识符。</param>
     /// <returns>
-    /// A handle for the task. Polling or waiting for a task which this grain doesn't retain throws
+    /// 任务的一个控点。 投牌或等待此 grain 无法保留丢弃的任务
     /// <see cref="DurableTaskNotFoundException"/>.
     /// </returns>
     ScheduledTask<TResult> GetTask<TResult>(TaskId taskId);
 
-    /// <summary>Gets a typed handle which observes or cancels the existing root task <paramref name="rootId"/> of this grain.</summary>
-    /// <typeparam name="TResult">The task's result type.</typeparam>
-    /// <param name="rootId">The root task's identifier, as passed to <see cref="TaskId.CreateRoot(string)"/>.</param>
-    /// <returns>A handle for the task, as <see cref="GetTask{TResult}(TaskId)"/> returns.</returns>
+    /// <summary>获得一个已输入的控点, 以观察或取消现有的根任务 <paramref name="rootId"/> 中 的 grain.</summary>
+    /// <typeparam name="TResult">任务结果类型。</typeparam>
+    /// <param name="rootId">根任务传递到 <see cref="TaskId.CreateRoot(string)"/>的标识符。</param>
+    /// <returns>任务的一个控件,因为 <see cref="GetTask{TResult}(TaskId)"/> 返回。</returns>
     ScheduledTask<TResult> GetTask<TResult>(string rootId) => GetTask<TResult>(TaskId.CreateRoot(rootId));
 
-    /// <summary>Durably requests cancellation of a task of this grain and its execution tree.</summary>
-    /// <param name="taskId">The task identifier.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the request to commit.</param>
-    /// <returns>An operation which completes once the cancellation request has committed and propagated.</returns>
-    /// <remarks>This request carries no reason; otherwise it behaves as <see cref="CancelAsync(TaskId, string?, CancellationToken)"/>.</remarks>
+    /// <summary>可持久地请求取消此任务 grain 和它的树的处决。</summary>
+    /// <param name="taskId">任务标识符。</param>
+    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
+    /// <returns>一旦取消请求被执行并传播,一项行动即告完成。</returns>
+    /// <remarks>此项请求没有任何理由;否则,其行为就如同 <see cref="CancelAsync(TaskId, string?, CancellationToken)"/>。</remarks>
     ValueTask CancelAsync(TaskId taskId, CancellationToken cancellationToken = default)
         => CancelAsync(taskId, reason: null, cancellationToken);
 
-    /// <summary>Durably requests cancellation of a task of this grain and its execution tree, carrying <paramref name="reason"/>.</summary>
-    /// <param name="taskId">The task identifier.</param>
+    /// <summary>可持久地请求取消此任务 grain 以及那棵树的被取出, <paramref name="reason"/>.</summary>
+    /// <param name="taskId">任务标识符。</param>
     /// <param name="reason">
-    /// The reason which the task's <see cref="DurableTaskContext.TaskCancellationReason"/> reports, or
-    /// <see langword="null"/> for none.
+    /// 任务 <see cref="DurableTaskContext.TaskCancellationReason"/> 报告的原因,或
+    /// <see langword="null"/> 毫无理由。
     /// </param>
-    /// <param name="cancellationToken">A token which abandons waiting for the request to commit.</param>
-    /// <returns>An operation which completes once the cancellation request has committed and propagated.</returns>
+    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
+    /// <returns>一旦取消请求被执行并传播,一项行动即告完成。</returns>
     /// <remarks>
-    /// The request is monotonic and idempotent, and a terminal task is unchanged. The first request determines the reason,
-    /// which the task and its execution tree record with the request and which reaches the tree's calls to other grains.
-    /// A running task observes the request through its durable cancellation token and decides its own outcome; the
-    /// operation doesn't wait for it to finish. A request for a task which this grain doesn't retain throws
-    /// <see cref="DurableTaskNotFoundException"/> and stores nothing.
+    /// 请求是单调和一无所有,终端任务不变。
+    /// 并且将任务及其执行树记录在请求中,然后到达树的呼声到其他 grains。
+    /// 一项运行中的任务通过其持久的取消标记来观察请求并决定其结果;
+    /// 请求执行本 grain 不保留丢弃的任务
+    /// <see cref="DurableTaskNotFoundException"/> 并存留任何物品。
     /// </remarks>
-    /// <exception cref="DurableTaskNotFoundException">This grain doesn't retain the task.</exception>
+    /// <exception cref="DurableTaskNotFoundException">这个 grain 不再保留任务。</exception>
     ValueTask CancelAsync(TaskId taskId, string? reason, CancellationToken cancellationToken = default);
 
-    /// <summary>Durably requests cancellation of the root task <paramref name="rootId"/> of this grain and its execution tree.</summary>
-    /// <param name="rootId">The root task's identifier, as passed to <see cref="TaskId.CreateRoot(string)"/>.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the request to commit.</param>
-    /// <returns>An operation which completes once the cancellation request has committed and propagated.</returns>
-    /// <remarks>This request carries no reason; otherwise it behaves as <see cref="CancelAsync(TaskId, string?, CancellationToken)"/>.</remarks>
+    /// <summary>可持久地请求取消根任务 <paramref name="rootId"/> 中 的 grain 和它的树的处决。</summary>
+    /// <param name="rootId">根任务传递到 <see cref="TaskId.CreateRoot(string)"/>的标识符。</param>
+    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
+    /// <returns>一旦取消请求被执行并传播,一项行动即告完成。</returns>
+    /// <remarks>此项请求没有任何理由;否则,其行为就如同 <see cref="CancelAsync(TaskId, string?, CancellationToken)"/>。</remarks>
     ValueTask CancelAsync(string rootId, CancellationToken cancellationToken = default)
         => CancelAsync(TaskId.CreateRoot(rootId), reason: null, cancellationToken);
 
     /// <summary>
-    /// Durably requests cancellation of the root task <paramref name="rootId"/> of this grain and its execution tree,
-    /// carrying <paramref name="reason"/>.
+    /// 可持久地请求取消根任务 <paramref name="rootId"/> 中 的 grain 以及那被截取的树木,
+    /// 包括 <paramref name="reason"/>。
     /// </summary>
-    /// <param name="rootId">The root task's identifier, as passed to <see cref="TaskId.CreateRoot(string)"/>.</param>
+    /// <param name="rootId">根任务传递到 <see cref="TaskId.CreateRoot(string)"/>的标识符。</param>
     /// <param name="reason">
-    /// The reason which the task's <see cref="DurableTaskContext.TaskCancellationReason"/> reports, or
-    /// <see langword="null"/> for none.
+    /// 任务 <see cref="DurableTaskContext.TaskCancellationReason"/> 报告的原因,或
+    /// <see langword="null"/> 毫无理由。
     /// </param>
-    /// <param name="cancellationToken">A token which abandons waiting for the request to commit.</param>
-    /// <returns>An operation which completes once the cancellation request has committed and propagated.</returns>
-    /// <remarks>The request behaves as <see cref="CancelAsync(TaskId, string?, CancellationToken)"/>.</remarks>
+    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
+    /// <returns>一旦取消请求被执行并传播,一项行动即告完成。</returns>
+    /// <remarks>请求行为为 <see cref="CancelAsync(TaskId, string?, CancellationToken)"/>.</remarks>
     ValueTask CancelAsync(string rootId, string? reason, CancellationToken cancellationToken = default)
         => CancelAsync(TaskId.CreateRoot(rootId), reason, cancellationToken);
 
     /// <summary>
-    /// Administratively aborts a task of this grain: commits the task and its execution tree as failed with
-    /// <see cref="DurableTaskAbortedException"/> in one write, and stops their running attempts without running further
-    /// task code.
+    /// 行政中止此 grain的任务 : 执行任务及其执行树失败, 执行任务
+    /// <see cref="DurableTaskAbortedException"/> 在一个字中写,停止运行尝试,不继续运行
+    /// 任务代码。
     /// </summary>
-    /// <param name="taskId">The task identifier.</param>
-    /// <param name="reason">The reason for the abort, recorded as the exception message.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the abort to commit.</param>
-    /// <returns>An operation which completes once the abort has committed.</returns>
+    /// <param name="taskId">任务标识符。</param>
+    /// <param name="reason">中止的原因,记录为例外信息。</param>
+    /// <param name="cancellationToken">放弃等待中止执行的标记。</param>
+    /// <returns>中止实施后完成的操作。</returns>
     /// <remarks>
-    /// Pending calls to other grains in the tree receive an abort of their own tasks. A task which is terminal, or which
-    /// this grain doesn't retain, is unchanged.
+    /// 树上其他 grains 的待拨电话将中止他们的任务。任务为终端,或
+    /// 此 grain 不予保留, 不变 。
     /// </remarks>
     ValueTask AbortAsync(TaskId taskId, string reason, CancellationToken cancellationToken = default);
 
-    /// <summary>Administratively aborts the root task <paramref name="rootId"/> of this grain and its execution tree.</summary>
-    /// <param name="rootId">The root task's identifier, as passed to <see cref="TaskId.CreateRoot(string)"/>.</param>
-    /// <param name="reason">The reason for the abort, recorded as the exception message.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the abort to commit.</param>
-    /// <returns>An operation which completes once the abort has committed.</returns>
-    /// <remarks>The abort behaves as <see cref="AbortAsync(TaskId, string, CancellationToken)"/>.</remarks>
+    /// <summary>自动中止根任务 <paramref name="rootId"/> 中 的 grain 和它的树的处决。</summary>
+    /// <param name="rootId">根任务传递到 <see cref="TaskId.CreateRoot(string)"/>的标识符。</param>
+    /// <param name="reason">中止的原因,记录为例外信息。</param>
+    /// <param name="cancellationToken">放弃等待中止执行的标记。</param>
+    /// <returns>中止实施后完成的操作。</returns>
+    /// <remarks>中止行为以 <see cref="AbortAsync(TaskId, string, CancellationToken)"/>进行 。</remarks>
     ValueTask AbortAsync(string rootId, string reason, CancellationToken cancellationToken = default)
         => AbortAsync(TaskId.CreateRoot(rootId), reason, cancellationToken);
 
-    /// <summary>Delivers <paramref name="signal"/> with <paramref name="value"/> to an invoked task of this grain.</summary>
-    /// <typeparam name="T">The signal's value type.</typeparam>
-    /// <param name="taskId">The identifier of a task which a client or another grain invoked on this grain.</param>
-    /// <param name="signal">The signal descriptor which the task's waits share.</param>
-    /// <param name="value">The signal's value.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the signal to commit.</param>
-    /// <returns>An operation which completes once the signal commits with this grain's pending state changes.</returns>
+    /// <summary>交付交付 <paramref name="signal"/> 与 <paramref name="value"/> 所提任务的任务 grain.</summary>
+    /// <typeparam name="T">信号值类型。</typeparam>
+    /// <param name="taskId">客户端或其他人的任务标识符 grain 援引于本 grain.</param>
+    /// <param name="signal">任务等待共享的信号描述符。</param>
+    /// <param name="value">信号值。</param>
+    /// <param name="cancellationToken">放弃等待信号承诺的标记。</param>
+    /// <returns>操作,一旦信号与该 grain的待更改状态一起执行,即完成此操作。</returns>
     /// <remarks>
-    /// The task records the first value for each signal name. A signal with an equal value leaves the task unchanged.
-    /// Within a durable execution, the send is recorded in the execution's tree under an identifier derived from the task
-    /// and the signal name, so a replay leaves the task unchanged; repeated sends of one signal in an execution are
-    /// numbered by occurrence. <see cref="TrySignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/>
-    /// reports a rejection as its result instead of throwing.
+    /// 任务记录每个信号名称的第一个值。 一个等值的信号使任务保持不变 。
+    /// 在持久执行期间,送货在行车树上记录,根据任务产生的识别特征
+    /// 和信号名称,所以重放使任务保持不变;执行时重复发送一个信号
+    /// 以发生时的编号。 <see cref="TrySignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/>
+    /// 拒绝不是扔掉 而是拒绝
     /// </remarks>
-    /// <exception cref="DurableTaskNotFoundException">This grain retains no invoked task <paramref name="taskId"/>.</exception>
+    /// <exception cref="DurableTaskNotFoundException">此 grain 保留不执行援引的任务 <paramref name="taskId"/>。</exception>
     /// <exception cref="InvalidOperationException">
-    /// The task holds a different value for the signal, or it is terminal and holds no value for the signal.
+    /// 任务对信号持有不同的值, 或者它是一个终端, 对信号没有价值 。
     /// </exception>
     ValueTask SignalAsync<T>(TaskId taskId, DurableSignal<T> signal, T value, CancellationToken cancellationToken = default);
 
-    /// <summary>Delivers <paramref name="signal"/> with <paramref name="value"/> to the invoked root task <paramref name="rootId"/> of this grain.</summary>
-    /// <typeparam name="T">The signal's value type.</typeparam>
-    /// <param name="rootId">The root task's identifier, as passed to <see cref="TaskId.CreateRoot(string)"/>.</param>
-    /// <param name="signal">The signal descriptor which the task's waits share.</param>
-    /// <param name="value">The signal's value.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the signal to commit.</param>
-    /// <returns>An operation which completes once the signal commits with this grain's pending state changes.</returns>
-    /// <remarks>The signal behaves as <see cref="SignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/>.</remarks>
+    /// <summary>交付交付 <paramref name="signal"/> 与 <paramref name="value"/> 引用的根任务 <paramref name="rootId"/> 中 的 grain.</summary>
+    /// <typeparam name="T">信号值类型。</typeparam>
+    /// <param name="rootId">根任务传递到 <see cref="TaskId.CreateRoot(string)"/>的标识符。</param>
+    /// <param name="signal">任务等待共享的信号描述符。</param>
+    /// <param name="value">信号值。</param>
+    /// <param name="cancellationToken">放弃等待信号承诺的标记。</param>
+    /// <returns>操作,一旦信号与该 grain的待更改状态一起执行,即完成此操作。</returns>
+    /// <remarks>信号行为为 <see cref="SignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/>。</remarks>
     ValueTask SignalAsync<T>(string rootId, DurableSignal<T> signal, T value, CancellationToken cancellationToken = default)
         => SignalAsync(TaskId.CreateRoot(rootId), signal, value, cancellationToken);
 
     /// <summary>
-    /// Delivers <paramref name="signal"/> with <paramref name="value"/> to an invoked task of this grain, and returns how
-    /// the task handled it.
+    /// 交付交付 <paramref name="signal"/> 与 <paramref name="value"/> 所提任务的任务 grain返回,以及返回如何
+    /// 任务处理它。
     /// </summary>
-    /// <typeparam name="T">The signal's value type.</typeparam>
-    /// <param name="taskId">The identifier of a task which a client or another grain invoked on this grain.</param>
-    /// <param name="signal">The signal descriptor which the task's waits share.</param>
-    /// <param name="value">The signal's value.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the signal to commit.</param>
+    /// <typeparam name="T">信号值类型。</typeparam>
+    /// <param name="taskId">客户端或其他人的任务标识符 grain 援引于本 grain.</param>
+    /// <param name="signal">任务等待共享的信号描述符。</param>
+    /// <param name="value">信号值。</param>
+    /// <param name="cancellationToken">放弃等待信号承诺的标记。</param>
     /// <returns>
-    /// <see cref="DurableSignalResult.Accepted"/> or <see cref="DurableSignalResult.Duplicate"/> once the task durably
-    /// holds the value, or the reason the task rejected it, which changes nothing.
+    /// <see cref="DurableSignalResult.Accepted"/> 或 <see cref="DurableSignalResult.Duplicate"/> 任务一旦完成
+    /// 持有该值,或任务拒绝的原因,但不会改变任何内容。
     /// </returns>
     /// <remarks>
-    /// The signal behaves as <see cref="SignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/>, which throws
-    /// for the rejections this method returns. Within a durable execution, the send and its result are recorded in the
-    /// execution's tree, so a replay returns the same result.
+    /// 信号的动作与投出时的 <see cref="SignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/>一样
+    /// 拒绝的拒绝 返回此方法。 在持久执行中,发送及其结果记录在
+    /// 执行的树, 因此重放返回相同的结果 。
     /// </remarks>
     ValueTask<DurableSignalResult> TrySignalAsync<T>(TaskId taskId, DurableSignal<T> signal, T value, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Delivers <paramref name="signal"/> with <paramref name="value"/> to the invoked root task <paramref name="rootId"/>
-    /// of this grain, and returns how the task handled it.
+    /// 将 <paramref name="signal"/> 与 <paramref name="value"/> 一起交付给所引用的根任务 <paramref name="rootId"/>
+    /// 中 的 grain,然后返回任务是如何处理的。
     /// </summary>
-    /// <typeparam name="T">The signal's value type.</typeparam>
-    /// <param name="rootId">The root task's identifier, as passed to <see cref="TaskId.CreateRoot(string)"/>.</param>
-    /// <param name="signal">The signal descriptor which the task's waits share.</param>
-    /// <param name="value">The signal's value.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the signal to commit.</param>
-    /// <returns>The task's handling of the signal, as <see cref="TrySignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/> returns.</returns>
+    /// <typeparam name="T">信号值类型。</typeparam>
+    /// <param name="rootId">根任务传递到 <see cref="TaskId.CreateRoot(string)"/>的标识符。</param>
+    /// <param name="signal">任务等待共享的信号描述符。</param>
+    /// <param name="value">信号值。</param>
+    /// <param name="cancellationToken">放弃等待信号承诺的标记。</param>
+    /// <returns>任务处理信号,因为 <see cref="TrySignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/> 返回。</returns>
     ValueTask<DurableSignalResult> TrySignalAsync<T>(string rootId, DurableSignal<T> signal, T value, CancellationToken cancellationToken = default)
         => TrySignalAsync(TaskId.CreateRoot(rootId), signal, value, cancellationToken);
 }

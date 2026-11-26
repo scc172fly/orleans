@@ -3,55 +3,55 @@ using System.Text.Json.Serialization;
 namespace Orleans.Durable.Tasks.Protocol;
 
 /// <summary>
-/// The kind of operation which a stored task records, which the runtime sets when it creates the record.
+/// 存储任务记录时的操作类型, 当运行时间创建该记录时设置它 。
 /// </summary>
 /// <remarks>
-/// A replay compares the operation which it requests under an identifier with the recorded kind, so an operation of
-/// another kind diverges, which stalls the attempt, instead of observing or changing the other operation's record. The
-/// kind changes only when an invocation arrives for an <see cref="EarlyCancellation"/> record, which becomes its
-/// <see cref="Invocation"/>. JSON journals store the kind by name.
+/// 重放比照其请求在识别特征下进行的操作与记录的类型,因此
+/// 另一种类型的差异,它阻碍尝试,而不是观察或改变另一类操作的记录。
+/// 只有当一个祈祷到达可成为其记录的 <see cref="EarlyCancellation"/> 记录时,才会更改该记录。
+/// <see cref="Invocation"/>. JSON 期刊以名称存储该类。
 /// </remarks>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Tasks.Protocol.DurableTaskRecordKind")]
 [JsonConverter(typeof(JsonStringEnumConverter<DurableTaskRecordKind>))]
 internal enum DurableTaskRecordKind : byte
 {
-    /// <summary>A task which a client or a grain scheduled as a request, which owns its execution tree.</summary>
+    /// <summary>一项任务,即客户或 grain 请求中注明了执行树的产地。</summary>
     Invocation,
 
-    /// <summary>A cancellation which arrived before the invocation of its task.</summary>
+    /// <summary>是在援引其任务之前取消的。</summary>
     EarlyCancellation,
 
-    /// <summary>A durable execution's call to another grain.</summary>
+    /// <summary>持久处决对另一个人的号召 grain.</summary>
     RemoteCall,
 
-    /// <summary>A durable execution's local child, such as a <c>DurableTask.Run</c> step.</summary>
+    /// <summary>持久处决的当地儿童,例如 <c>DurableTask.Run</c> 步骤。</summary>
     LocalStep,
 
-    /// <summary>A durable delay.</summary>
+    /// <summary>持久拖延。</summary>
     Delay,
 
-    /// <summary>The recorded outcome of a <c>DurableTask.RunInline</c> effect.</summary>
+    /// <summary>记录的结果 <c>DurableTask.RunInline</c> 效果。</summary>
     Effect,
 
-    /// <summary>A version decision.</summary>
+    /// <summary>一份决定的文本。</summary>
     Version,
 
-    /// <summary>A signal's value, beneath the invoked task which received it.</summary>
+    /// <summary>信号的价值, 在所援引的任务之下 接收它。</summary>
     SignalValue,
 
-    /// <summary>A durable execution's send of a signal.</summary>
+    /// <summary>持久处决的信号发出</summary>
     SignalSend,
 
-    /// <summary>A selection of the first task to complete among a combinator's candidates.</summary>
+    /// <summary>选择在组合候选人中完成的第一个任务。</summary>
     Selection,
 
-    /// <summary>A subscription to an existing task's result.</summary>
+    /// <summary>订阅一项现有任务的结果。</summary>
     Subscription,
 
-    /// <summary>A start of a detached task, which subscribes to the task's result.</summary>
+    /// <summary>独立任务的开始, 且该任务同意任务结果。</summary>
     DetachedStart,
 
-    /// <summary>The cancellation point at which a durable execution's body first observed its task's cancellation.</summary>
+    /// <summary>持久执行机关首次观察其取消任务时的取消点。</summary>
     CancellationObserved,
 }

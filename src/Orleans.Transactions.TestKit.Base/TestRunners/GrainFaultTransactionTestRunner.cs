@@ -7,24 +7,24 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Runs transaction scenarios which exercise failures raised by participating grains.
+    /// 运行交易情景,以证明参与 grains引起的故障。
     /// </summary>
     public abstract class GrainFaultTransactionTestRunner : TransactionTestRunnerBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainFaultTransactionTestRunner"/> class.
+        /// 初始化 <see cref="GrainFaultTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to access test grains.</param>
-        /// <param name="output">The callback used to write test output.</param>
+        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="output">用于写入测试输出的回调。</param>
         public GrainFaultTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
         : base(grainFactory, output)
         { }
 
         /// <summary>
-        /// Verifies that a grain exception aborts its transaction without changing committed state.
+        /// 证明 grain 例外规定中止其交易而不改变承诺状态。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select the test grain.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task AbortTransactionOnExceptions(string grainStates)
         {
             const int expected = 5;
@@ -47,10 +47,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that a write attempted in a read-only transaction is rejected without changing committed state.
+        /// 证明只读交易中试图写作的拒绝不改变承诺状态。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select the test grain.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task AbortTransactionOnReadOnlyViolatedException(string grainStates)
         {
             const int expected = 5;
@@ -73,10 +73,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that an exception from one participant aborts a multi-grain transaction atomically.
+        /// 证明一名参与人的例外情形会以原子方式中止多grain 交易。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task MultiGrainAbortTransactionOnExceptions(string grainStates)
         {
             const int grainCount = TransactionTestConstants.MaxCoordinatedTransactions - 1;
@@ -112,10 +112,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that a multi-grain abort reports one root-cause grain exception as its inner exception.
+        /// 证明多grain 中止报告有一个根原因 grain 例外,作为内部例外。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task AbortTransactionExceptionInnerExceptionOnlyContainsOneRootCauseException(string grainStates)
         {
             const int throwGrainCount = 3;
@@ -166,10 +166,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that an orphaned call aborts its transaction without changing committed state.
+        /// 证明一个孤儿的呼唤会中止其交易,而不改变承诺状态。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select the test grain.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task AbortTransactionOnOrphanCalls(string grainStates)
         {
             const int expected = 5;
@@ -181,7 +181,7 @@ namespace Orleans.Transactions.TestKit
             Func<Task> task = () => coordinator.OrphanCallTransaction();
             await task.Should().ThrowAsync<OrleansOrphanCallException>();
 
-            //await Task.Delay(20000); // give time for GC
+            //等待 Task.Delay(2000年) ;/给GC留有时间
 
             await TestAfterDustSettles(async () =>
             {
@@ -204,8 +204,8 @@ namespace Orleans.Transactions.TestKit
                 }
                 catch (OrleansCascadingAbortException)
                 {
-                    // due to optimistic reading we may read state of aborted transactions
-                    // which causes cascading abort
+                    // 是因为阅读结果乐观,我们可能读到中止交易的状态
+                    // 导致串列中止
                 }
             }
         }

@@ -7,53 +7,53 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Formats values for logging purposes.
+    /// 用于记录目的的格式值。
     /// </summary>
     public static class LogFormatter
     {
         /// <summary>
-        /// The maximum supported log message size.
+        /// 支持的最大日志消息大小 。
         /// </summary>
         public const int MAX_LOG_MESSAGE_SIZE = 20000;
-        private const string TIME_FORMAT = "HH:mm:ss.fff 'GMT'"; // Example: 09:50:43.341 GMT
-        private const string DATE_FORMAT = "yyyy-MM-dd " + TIME_FORMAT; // Example: 2010-09-02 09:50:43.341 GMT - Variant of UniversalSorta­bleDateTimePat­tern
+        private const string TIME_FORMAT = "HH:mm:ss.fff 'GMT'"; // 示例:09:50:43.341格林尼治标准
+        private const string DATE_FORMAT = "yyyy-MM-dd " + TIME_FORMAT; // 示例:2010-09-02 UniversalSorta­bleDateTimePat任
         private static readonly ConcurrentDictionary<Type, Func<Exception, string>> exceptionDecoders = new ConcurrentDictionary<Type, Func<Exception, string>>();
 
         /// <summary>
-        /// Utility function to convert a <c>DateTime</c> object into printable data format used by the Logger subsystem.
+        /// 将 <c>DateTime</c> 对象转换为Logger子系统使用的可打印数据格式的实用功能。
         /// </summary>
-        /// <param name="date">The <c>DateTime</c> value to be printed.</param>
-        /// <returns>Formatted string representation of the input data, in the printable format used by the Logger subsystem.</returns>
+        /// <param name="date">下 <c>DateTime</c> 要打印的值。</param>
+        /// <returns>输入数据的格式字符串表示,以Logger子系统使用的可打印格式。</returns>
         public static string PrintDate(DateTime date)
         {
             return date.ToString(DATE_FORMAT, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
-        /// Parses a date.
+        /// 约会
         /// </summary>
-        /// <param name="dateStr">The date string.</param>
-        /// <returns>The parsed date.</returns>
+        /// <param name="dateStr">日期字符串。</param>
+        /// <returns>解析日期。</returns>
         public static DateTime ParseDate(string dateStr)
         {
             return DateTime.ParseExact(dateStr, DATE_FORMAT, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
-        /// Utility function to convert a <c>DateTime</c> object into printable time format used by the Logger subsystem.
+        /// 将一个 <c>DateTime</c> 对象转换为Logger子系统使用的可打印时间格式的实用函数。
         /// </summary>
-        /// <param name="date">The <c>DateTime</c> value to be printed.</param>
-        /// <returns>Formatted string representation of the input data, in the printable format used by the Logger subsystem.</returns>
+        /// <param name="date">下 <c>DateTime</c> 要打印的值。</param>
+        /// <returns>输入数据的格式字符串表示,以Logger子系统使用的可打印格式。</returns>
         public static string PrintTime(DateTime date)
         {
             return date.ToString(TIME_FORMAT, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
-        /// Utility function to convert an exception into printable format, including expanding and formatting any nested sub-expressions.
+        /// 将例外转换为可打印格式的实用功能,包括扩展和格式化任何嵌套子表达式。
         /// </summary>
-        /// <param name="exception">The exception to be printed.</param>
-        /// <returns>Formatted string representation of the exception, including expanding and formatting any nested sub-expressions.</returns>
+        /// <param name="exception">要打印的例外。</param>
+        /// <returns>格式化的字符串表示例外,包括扩展和格式化任何嵌套子表达式。</returns>
         public static string PrintException(Exception? exception)
         {
             if (exception == null)
@@ -65,10 +65,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Configures the exception decoder for the specified exception type.
+        /// 配置指定例外类型的特殊解码器。
         /// </summary>
-        /// <param name="exceptionType">The exception type to configure a decoder for.</param>
-        /// <param name="decoder">The decoder.</param>
+        /// <param name="exceptionType">用于配置解码器的例外类型。</param>
+        /// <param name="decoder">解码器。</param>
         public static void SetExceptionDecoder(Type exceptionType, Func<Exception, string> decoder)
         {
             exceptionDecoders.TryAdd(exceptionType, decoder);
@@ -99,7 +99,7 @@ namespace Orleans.Runtime
                     {
                         if (inner is not null)
                         {
-                            // call recursively on all loader exceptions. Same level for all.
+                            // 对所有装载器例外的重复呼叫。 所有都使用相同水平 。
                             PrintException_Helper(sb, inner, level + 1);
                         }
                     }
@@ -111,13 +111,13 @@ namespace Orleans.Runtime
                 {
                     foreach (Exception inner in innerExceptions)
                     {
-                        // call recursively on all inner exceptions. Same level for all.
+                        // 对所有内部例外的重复呼叫。 对于所有其它情况, 都使用相同的级别 。
                         PrintException_Helper(sb, inner, level + 1);
                     }
                 }
                 else
                 {
-                    // call recursively on a single inner exception.
+                    // 重复呼叫单一内部例外。
                     PrintException_Helper(sb, exception.InnerException, level + 1);
                 }
             }

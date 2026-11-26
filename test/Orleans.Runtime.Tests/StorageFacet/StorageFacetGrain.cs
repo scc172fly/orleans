@@ -1,4 +1,4 @@
-// Note that for a feature exposed to a grain as a facet, only it's abstractions should be necessary.
+// 请注意,对于暴露在 grain 面部的特征,只需要抽象。
 using Tester.StorageFacet.Abstractions;
 
 namespace Tester

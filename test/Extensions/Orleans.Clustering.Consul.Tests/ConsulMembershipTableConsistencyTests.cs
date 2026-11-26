@@ -961,8 +961,8 @@ public class ConsulMembershipTableConsistencyTests
         SuspectTimes = new()
     };
 
-    // Exercises the real SDK's serialization, HTTP status handling, and transaction results.
-    // Hooks interleave independent providers immediately before the backend applies a transaction.
+    // 实际的SDK序列、HTTP状态处理和交易结果。
+    // 钩子在后端实施交易之前,立即将独立供应商隔开。
     private sealed class ConsulHandler : HttpMessageHandler
     {
         private Dictionary<string, KVPair> _rows = new(StringComparer.Ordinal);

@@ -11,21 +11,21 @@ using Xunit;
 namespace UnitTests;
 
 /// <summary>
-/// Tests for the in-memory grain storage provider.
+/// 模拟 grain 存储提供者的测试。
 /// 
-/// Memory storage provider characteristics:
-/// - Stores grain state in memory only (non-durable)
-/// - State is lost when silo restarts
-/// - Useful for development, testing, and caching scenarios
-/// - Supports all standard persistence operations (Read, Write, Clear)
-/// - Multiple named instances can be configured
+/// 内存存储供应商的特点:
+/// - 仅存储储存 grain 状态(不可耐用)
+/// - silo 重新启动时损失状态
+/// - 有助于发展、测试和缓存情景
+/// - 支持所有标准持久性作业(阅读、写、清除)
+/// - 多个已命名的实例可以配置
 /// 
-/// These tests verify that memory storage correctly implements the
-/// IGrainStorage interface and handles all persistence operations,
-/// even though the storage is not durable across restarts.
+/// 这些测试核查内存存储正确执行
+/// IGrainStorage 接口和处理所有持续运行,
+/// 尽管存储在重新开始时不耐久。
 /// 
-/// The tests inherit from GrainPersistenceTestsRunner which provides
-/// a comprehensive suite of persistence behavior tests.
+/// 试验的继承 GrainPersistenceTestsRunner ,该试验规定
+/// 一套全面的持久性行为测试
 /// </summary>
 [TestCategory("Persistence"), TestCategory("Memory")]
 [TestSuite("Functional")]
@@ -39,8 +39,8 @@ public class MemoryGrainStorageTests : GrainPersistenceTestsRunner, IClassFixtur
         {
             public void Configure(ISiloBuilder hostBuilder)
             {
-                // Configure multiple named memory storage providers
-                // Grains can specify which provider to use via [StorageProvider] attribute
+                // 配置多个名为内存存储供应商
+                // Grains 可指定通过[StorageProvider属性使用哪个供应商
                 hostBuilder.AddMemoryGrainStorage("GrainStorageForTest")
                 .AddMemoryGrainStorage("test1")
                 .AddMemoryGrainStorage("MemoryStore");
@@ -56,8 +56,8 @@ public class MemoryGrainStorageTests : GrainPersistenceTestsRunner, IClassFixtur
     public MemoryGrainStorageTests(ITestOutputHelper output, Fixture fixture) : base(output, fixture)
     {
         fixture.EnsurePreconditionsMet();
-        // Memory storage is not durable - state is lost on restart
-        // This flag tells the base test runner to skip durability tests
+        // 内存存储不耐久 - 恢复时丢失状态
+        // 国旗让基准测试运行者跳过耐久性测试
         IsDurableStorage = false;
     }
 }

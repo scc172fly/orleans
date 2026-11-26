@@ -4,59 +4,59 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// The stream queue balancer is responsible for load balancing queues across all other related queue balancers.  It
-    /// notifies any listeners (<code>IStreamQueueBalanceListener</code>) of changes to the distribution of queues.
-    /// Method GetMyQueues, SubscribeToQueueDistributionChangeEvents, and UnSubscribeFromQueueDistributionChangeEvents will 
-    /// likely be called in the IStreamQueueBalanceListener's thread so they need to be thread safe
+    /// 流队列平衡器负责在所有其他相关的队列平衡器中加载均衡队列。
+    /// 在队列分布变化时通知所有监听器（<code>IStreamQueueBalanceListener</code>）。
+    /// 方法 GetMyQueues、 SubscribeToQueueDistributionChangeEvents和 UnSubscribeFromQueueDistributionChangeEvents 将 
+    /// 可能被调入 IStreamQueueBalanceListener线串, 以便它们需要安全
     /// </summary>
     public interface IStreamQueueBalancer
     {
         /// <summary>
-        /// Initializes this instance.
+        /// 初始化了这个实例。
         /// </summary>
-        /// <param name="queueMapper">The queue mapper.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="queueMapper">队列映像仪。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Initialize(IStreamQueueMapper queueMapper);
 
         /// <summary>
-        /// Shutdown the queue balancer.
+        /// 关闭队列平衡器
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Shutdown();
 
         /// <summary>
-        /// Retrieves the latest queue distribution for this balancer.
+        /// 获取此平衡器的最新队列分布 。
         /// </summary>
-        /// <returns>Queue allocated to this balancer.</returns>
+        /// <returns>分配给此平衡器的队列 。</returns>
         IEnumerable<QueueId> GetMyQueues();
 
         /// <summary>
-        /// Subscribes to receive queue distribution change notifications
+        /// 订阅接收队列分配更改通知
         /// </summary>
-        /// <param name="observer">An observer interface to receive queue distribution change notifications.</param>
-        /// <returns>A value indicating whether subscription succeeded or not.</returns>
+        /// <param name="observer">一个接收队列分配变更通知的观察界面。</param>
+        /// <returns>表示订阅成功与否的值。</returns>
         bool SubscribeToQueueDistributionChangeEvents(IStreamQueueBalanceListener observer);
 
         /// <summary>
-        /// Unsubscribes from receiving queue distribution notifications.
+        /// 不接受队列分布通知的订阅。
         /// </summary>
-        /// <param name="observer">An observer interface to receive queue distribution change notifications.</param>
-        /// <returns>A value indicating whether teh unsubscription succeeded or not</returns>
+        /// <param name="observer">一个接收队列分配变更通知的观察界面。</param>
+        /// <returns>表示 Teh 取消订阅是否成功</returns>的数值
         bool UnSubscribeFromQueueDistributionChangeEvents(IStreamQueueBalanceListener observer);
     }
 
     /// <summary>
-    /// The stream queue balancer listener receives notifications from a stream queue balancer (<code>IStreamQueueBalancer</code>)
-    /// indicating that the balance of queues has changed.
-    /// It should be implemented by components interested in stream queue load balancing.
-    /// When change notification is received, listener should request updated list of queues from the queue balancer.
+    /// 流队列均衡监听器接收流队列均衡器（<code>IStreamQueueBalancer</code>）发出的通知
+    /// 显示队列的平衡已经改变。
+    /// 实施时应当由关心排队量平衡的构成部分组成。
+    /// 收到更改通知后,听众应请求从队列平衡器中获取最新的队列列表。
     /// </summary>
     public interface IStreamQueueBalanceListener
     {
         /// <summary>
-        /// Called when adapter queue responsibility changes. 
+        /// 当适应者队列责任改变时呼叫 。 
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task QueueDistributionChangeNotification();
     }
 }

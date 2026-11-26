@@ -12,20 +12,20 @@ public abstract partial class DurableTask
     private const string ScheduleAllOperation = "schedule-all";
     private const string WhenAllCompletedOperation = "when-all-completed";
 
-    /// <summary>Creates a durable task which completes once every input task has completed.</summary>
-    /// <param name="tasks">The input tasks, which are captured when this method is called.</param>
-    /// <returns>A combinator which, awaited within a durable execution, runs as part of that execution.</returns>
+    /// <summary>创建一个耐久的任务,在每次输入任务完成后完成。</summary>
+    /// <param name="tasks">输入任务,当此方法被调用时将记录这些输入任务。</param>
+    /// <returns>组合器,在等待耐久处决期间作为执行的一部分运行。</returns>
     /// <remarks>
     /// <para>
-    /// Like <see cref="Task.WhenAll(IEnumerable{Task})"/>, the combined task completes only after every input is terminal,
-    /// including inputs which durable cancellation reaches. Awaiting it then throws the first failure in input order when
-    /// any input failed; otherwise it throws the first input's <see cref="OperationCanceledException"/> in input order when
-    /// any input was canceled; otherwise it completes successfully. Input order selects the exception, so a replay observes
-    /// the same one.
+    /// 和 <see cref="Task.WhenAll(IEnumerable{Task})"/>一样,合并任务只有在每次输入为终端后才能完成,
+    /// 包括永久取消时达到的输入。等待它,然后在输入顺序中丢弃第一个失败
+    /// 任何输入失败; 否则它会丢弃第一个输入 <see cref="OperationCanceledException"/> 输入顺序
+    /// 取消任何输入; 否则它会成功完成。 输入命令选择例外, 所以重放观察
+    /// 同一个
     /// </para>
     /// <para>
-    /// Each input runs as a child identified by its input index under the combinator's operation identifier: the segment
-    /// assigned with <c>WithId</c>, or a segment generated in execution order.
+    /// 每个输入都以儿童身份运行,由组合组合操作识别符下输入索引所识别:
+    /// 含有 <c>WithId</c>或执行令产生的一个段。
     /// </para>
     /// </remarks>
     public static DurableTask WhenAll(IReadOnlyList<DurableTask> tasks)
@@ -41,23 +41,23 @@ public abstract partial class DurableTask
         return new CombinatorDurableTask(WhenAllOperation, tasks.ToArray(), WhenAllCoreAsync);
     }
 
-    /// <summary>Creates a durable task which returns the results of every input task, in input order.</summary>
-    /// <param name="tasks">The input tasks, which are captured when this method is called.</param>
+    /// <summary>创建一个持久任务,以输入顺序返回每项输入任务的结果。</summary>
+    /// <param name="tasks">输入任务,当此方法被调用时将记录这些输入任务。</param>
     /// <returns>
-    /// A combinator which, awaited within a durable execution, runs as part of that execution and returns an array with
-    /// each input's result at its input index.
+    /// 组合器,在等待耐久执行的处决期间作为执行的一部分运行,并返回
+    /// 输入指数的每项输入结果。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// Like <see cref="Task.WhenAll{TResult}(IEnumerable{Task{TResult}})"/>, the combined task completes only after every
-    /// input is terminal, including inputs which durable cancellation reaches. Awaiting it then throws the first failure in
-    /// input order when any input failed; otherwise it throws the first input's <see cref="OperationCanceledException"/> in
-    /// input order when any input was canceled; otherwise it returns the results. Input order selects the exception, so a
-    /// replay observes the same one.
+    /// 喜欢 <see cref="Task.WhenAll{TResult}(IEnumerable{Task{TResult}})"/>,在每
+    /// 输入终端是输入终端,包括永久取消到达的输入。等待它后将第一个失败丢弃于
+    /// 当任何输入失败时, 输入命令键; 否则它会将第一个输入 <see cref="OperationCanceledException"/> 投入
+    /// 任何输入被取消时,当任何输入被取消时的输入命令;否则它返回结果。输入顺序选择例外,所以a
+    /// 重播观察的是同一个。
     /// </para>
     /// <para>
-    /// Each input runs as a child identified by its input index under the combinator's operation identifier: the segment
-    /// assigned with <c>WithId</c>, or a segment generated in execution order.
+    /// 每个输入都以儿童身份运行,由组合组合操作识别符下输入索引所识别:
+    /// 含有 <c>WithId</c>或执行令产生的一个段。
     /// </para>
     /// </remarks>
     public static DurableTask<TResult[]> WhenAll<TResult>(IReadOnlyList<DurableTask<TResult>> tasks)
@@ -73,17 +73,17 @@ public abstract partial class DurableTask
         return new CombinatorDurableTask<TResult[]>(WhenAllOperation, tasks.ToArray<DurableTask>(), WhenAllCoreAsync<TResult>);
     }
 
-    /// <summary>Creates a durable task which returns the input index of the first input task to complete.</summary>
-    /// <param name="tasks">The input tasks.</param>
-    /// <returns>A combinator which, awaited within a durable execution, runs as part of that execution.</returns>
+    /// <summary>创建一个持久任务,返回第一个要完成的输入任务的投入索引。</summary>
+    /// <param name="tasks">输入任务。</param>
+    /// <returns>组合器,在等待耐久处决期间作为执行的一部分运行。</returns>
     /// <remarks>
-    /// The winner is the input which completed first, and the host selects the same winner on replay, from its durable
-    /// completion order or from a record of the selection. A winner which failed or was canceled fails the combined task.
-    /// The other inputs keep running; <see cref="Race(IReadOnlyList{DurableTask})"/> also cancels them. Each input runs
-    /// as a child identified by its input index under the combinator's operation identifier, which also identifies a
-    /// recorded selection: the segment assigned with <c>WithId</c>, or a segment generated in execution order.
+    /// 胜者是第一个完成的输入, 且主机从耐用中选择了同一个赢者
+    /// 完成顺序或选择记录。 失败或被取消的中选者不执行合并任务 。
+    /// 其他输入继续运行; <see cref="Race(IReadOnlyList{DurableTask})"/> 也取消它们。
+    /// 儿童,根据组合组合器操作识别特征识别符号以其输入索引确定的,该识别识别符号还确定
+    /// 所选区域: 指定给 <c>WithId</c>的段, 或者按照执行顺序产生的段。
     /// </remarks>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> is empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> 是空的。</exception>
     public static DurableTask<int> WhenAny(IReadOnlyList<DurableTask> tasks)
         => new CombinatorDurableTask<int>(WhenAnyOperation, CreateCandidates(tasks), WhenAnyCoreAsync);
 
@@ -91,17 +91,17 @@ public abstract partial class DurableTask
     public static DurableTask<int> WhenAny(IEnumerable<DurableTask> tasks)
         => new CombinatorDurableTask<int>(WhenAnyOperation, CreateCandidates(tasks), WhenAnyCoreAsync);
 
-    /// <summary>Creates a durable task which returns the input index and result of the first input task to complete.</summary>
-    /// <param name="tasks">The input tasks.</param>
-    /// <returns>A combinator which, awaited within a durable execution, runs as part of that execution.</returns>
+    /// <summary>创建一个持久任务,返回要完成的第一个输入任务的投入索引和结果。</summary>
+    /// <param name="tasks">输入任务。</param>
+    /// <returns>组合器,在等待耐久处决期间作为执行的一部分运行。</returns>
     /// <remarks>
-    /// The winner is the input which completed first, and the host selects the same winner on replay, from its durable
-    /// completion order or from a record of the selection. A winner which failed or was canceled fails the combined task.
-    /// The other inputs keep running; <see cref="Race{TResult}(IReadOnlyList{DurableTask{TResult}})"/> also cancels them.
-    /// Each input runs as a child identified by its input index under the combinator's operation identifier, which also
-    /// identifies a recorded selection: the segment assigned with <c>WithId</c>, or a segment generated in execution order.
+    /// 胜者是第一个完成的输入, 且主机从耐用中选择了同一个赢者
+    /// 完成顺序或选择记录。 失败或被取消的中选者不执行合并任务 。
+    /// 其他输入继续运行; <see cref="Race{TResult}(IReadOnlyList{DurableTask{TResult}})"/> 也取消它们。
+    /// 每个输入的每个输入都以儿童的身份运行,由组合器操作识别符号下的输入索引所识别,该识别符号还用于
+    /// 标明所记录的选定:指定 <c>WithId</c>的段,或根据执行顺序产生的段。
     /// </remarks>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> is empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> 是空的。</exception>
     public static DurableTask<(int Index, TResult Result)> WhenAny<TResult>(IReadOnlyList<DurableTask<TResult>> tasks)
         => new CombinatorDurableTask<(int Index, TResult Result)>(WhenAnyOperation, CreateCandidates(tasks), WhenAnyCoreAsync<TResult>);
 
@@ -109,21 +109,21 @@ public abstract partial class DurableTask
     public static DurableTask<(int Index, TResult Result)> WhenAny<TResult>(IEnumerable<DurableTask<TResult>> tasks)
         => new CombinatorDurableTask<(int Index, TResult Result)>(WhenAnyOperation, CreateCandidates(tasks), WhenAnyCoreAsync<TResult>);
 
-    /// <summary>Creates a durable task which schedules every input task and returns their handles, in input order.</summary>
-    /// <param name="tasks">The input tasks, which are captured when this method is called.</param>
+    /// <summary>创建一个持久的任务,该任务将每个输入任务都安排在时间表上,然后按输入顺序返回其控件。</summary>
+    /// <param name="tasks">输入任务,当此方法被调用时将记录这些输入任务。</param>
     /// <returns>
-    /// A combinator which, awaited within a durable execution, runs as part of that execution and returns each input's
-    /// handle at its input index once the inputs are scheduled, without waiting for their results.
+    /// 组合器, 等待在耐久执行中, 作为执行的一部分运行并返回输入的
+    /// 输入指数一旦排期,即处理输入索引,不等待结果。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// The inputs are scheduled concurrently, so a host can commit the batch together. Each input runs as a child identified
-    /// by its input index under the combinator's operation identifier: the segment assigned with <c>WithId</c>, or a
-    /// segment generated in execution order.
+    /// 输入时间同时排期,这样东道方可以将批量合并。
+    /// 组合器操作识别符号下输入索引: <c>WithId</c>,或 a
+    /// 执行命令中生成的线段。
     /// </para>
     /// <para>
-    /// The handles belong to the awaiting execution, so the combinator runs only when awaited within a durable execution.
-    /// Scheduling it as a task of its own throws <see cref="NotSupportedException"/>.
+    /// 手柄属于等待处决者, 所以组合器只有在等待持久处决时才能运行。
+    /// 将它安排为一项自投自乐的任务 <see cref="NotSupportedException"/>.
     /// </para>
     /// </remarks>
     public static DurableTask<ScheduledTask[]> ScheduleAll(IReadOnlyList<DurableTask> tasks)
@@ -162,24 +162,24 @@ public abstract partial class DurableTask
     }
 
     /// <summary>
-    /// Creates a durable task which schedules every input task, waits until each is terminal, and returns their handles, in
-    /// input order.
+    /// 创建持久任务, 以设定每个输入任务的时间, 等待到每一个终端结束, 然后返回他们的控点, 于
+    /// 输入顺序。
     /// </summary>
-    /// <param name="tasks">The input tasks, which are captured when this method is called.</param>
+    /// <param name="tasks">输入任务,当此方法被调用时将记录这些输入任务。</param>
     /// <returns>
-    /// A combinator which, awaited within a durable execution, runs as part of that execution and returns each input's
-    /// handle at its input index. Each handle has observed its terminal response, so <see cref="ScheduledTask.Status"/>,
-    /// <see cref="ScheduledTask.Exception"/>, and <see cref="ScheduledTask{TResult}.TryGetResult(out TResult)"/> inspect it.
+    /// 组合器, 等待在耐久执行中, 作为执行的一部分运行并返回输入的
+    /// 输入指数。每个处理器都观察了它的终端响应, 所以 <see cref="ScheduledTask.Status"/>,
+    /// <see cref="ScheduledTask.Exception"/>和 <see cref="ScheduledTask{TResult}.TryGetResult(out TResult)"/> 检查它。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// An input's failure or cancellation doesn't fail the combinator, so the awaiting execution can act on each input's
-    /// outcome, for example by compensating exactly the inputs which succeeded. Durable cancellation reaches the inputs,
-    /// which are attached children, and the combinator waits for their outcomes; the cancellation of the attempt fails it with <see cref="DurableTaskAttemptCanceledException"/>.
+    /// 输入失败或取消不会让组合器失效, 所以等待执行的可按每个输入
+    /// 其结果,例如通过对成功的投入进行精确补偿。
+    /// 被附着的婴儿,而组合者等待结果;取消尝试以 <see cref="DurableTaskAttemptCanceledException"/>失败。
     /// </para>
     /// <para>
-    /// The inputs are scheduled concurrently and identified like <see cref="ScheduleAll(IReadOnlyList{DurableTask})"/>
-    /// inputs. The combinator runs only when awaited within a durable execution; scheduling it as a task of its own throws
+    /// 投入同时排期,并标为 <see cref="ScheduleAll(IReadOnlyList{DurableTask})"/>
+    /// 输入组合器仅在等待持久执行期间运行;将它作为自己扔出的任务安排
     /// <see cref="NotSupportedException"/>.
     /// </para>
     /// </remarks>
@@ -219,30 +219,30 @@ public abstract partial class DurableTask
     }
 
     /// <summary>
-    /// Schedules every input task and yields each input's handle once, in completion order, as the input reaches a
-    /// terminal state.
+    /// 将每个输入任务排成时间表,并产生每次输入的处理器一次,在完成顺序下,随着输入达到
+    /// 状态结束状态。
     /// </summary>
-    /// <param name="tasks">The input tasks, which are captured when this method is called.</param>
+    /// <param name="tasks">输入任务,当此方法被调用时将记录这些输入任务。</param>
     /// <returns>
-    /// The inputs' handles in completion order. Each yielded handle has observed its terminal response, including a failure
-    /// or a cancellation, which doesn't fail the enumeration.
+    /// 输入处理器按完成顺序进行。每个输出的处理器都观察了它的终端反应,包括失败
+    /// 或者取消, 并不会错过列举。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// Call this method within a durable execution, which schedules the inputs when the enumeration begins, concurrently, as
-    /// children identified by their input indexes under an operation identifier generated in execution order when this
-    /// method is called. To name the inputs, await <see cref="ScheduleAll{TResult}(IReadOnlyList{DurableTask{TResult}})"/>
-    /// with <c>WithId</c> and pass its handles to <see cref="ScheduledTask.WhenEach{TResult}(IReadOnlyList{ScheduledTask{TResult}})"/>.
+    /// 将这种方法称为长期执行,同时在计数开始时记录输入数据。
+    /// 儿童在被处决时,根据执行令产生的操作识别特征,按其输入指数确定
+    /// 方法。要命名输入,请等待 <see cref="ScheduleAll{TResult}(IReadOnlyList{DurableTask{TResult}})"/>
+    /// 与 <c>WithId</c> 并将手柄传递给 <see cref="ScheduledTask.WhenEach{TResult}(IReadOnlyList{ScheduledTask{TResult}})"/>.
     /// </para>
     /// <para>
-    /// The host selects each next input: the remaining input which completed first in the host's durable completion order,
-    /// so every replay yields the same order, including a replay in which more inputs have already completed. Inputs which
-    /// the enumeration doesn't reach keep running, and durable cancellation reaches the inputs, which are attached
-    /// children. The enumeration's cancellation token abandons scheduling the inputs and waiting for them, without
-    /// canceling the inputs.
+    /// 东道方选择下一个输入:在东道方持久完成命令中首先完成的其余输入,
+    /// 所以每个重放的重放都产生相同的顺序, 包括一个重复播放, 更多的输入已经完成。
+    /// 持续取消 输入也随之而来
+    /// 儿童。 查点取消儿童,表示放弃安排投入时间和等待输入,不要求
+    /// 取消输入。
     /// </para>
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The method is called outside a durable execution.</exception>
+    /// <exception cref="InvalidOperationException">这种方法被称为耐用执行之外的方法。</exception>
     public static IAsyncEnumerable<ScheduledTask> WhenEach(IReadOnlyList<DurableTask> tasks)
     {
         ArgumentNullException.ThrowIfNull(tasks);
@@ -339,8 +339,8 @@ public abstract partial class DurableTask
         return tasks;
     }
 
-    // Cancellation reaches the inputs, which are attached children, so each combinator waits for their outcomes and stops
-    // waiting only when the host cancels the attempt.
+    // 取消时到达输入, 并附加了子子, 所以每个组合器都等待结果并停止
+    // 仅在主机取消尝试时才等待 。
     private static async Task WhenAllCoreAsync(DurableTask[] inputs, DurableTaskContext context, TaskId operationId)
         => await WaitForAllAsync(inputs, context, operationId);
 
@@ -360,10 +360,10 @@ public abstract partial class DurableTask
     }
 
     /// <summary>
-    /// Waits for every input's terminal response, then throws the first failure in input order or, when no input failed,
-    /// the first cancellation in input order.
+    /// 等待输入的终端响应, 然后按输入顺序丢弃第一个失败, 或者当输入没有失败时,
+    /// 输入顺序中的第一个取消。
     /// </summary>
-    /// <remarks>Input order selects the exception, so a replay observes the same one in any completion order.</remarks>
+    /// <remarks>输入顺序选择例外, 因此重播在任何完成顺序中都观察到相同。</remarks>
     private static async Task<DurableTaskResponse[]> WaitForAllAsync(
         DurableTask[] inputs,
         DurableTaskContext context,
@@ -400,8 +400,8 @@ public abstract partial class DurableTask
     }
 
     /// <summary>
-    /// Schedules <paramref name="inputs"/> and returns them with the index of the winner, which the host selects under the
-    /// decision identifier <c>$winner</c> beneath <paramref name="operationId"/>.
+    /// 调度表 <paramref name="inputs"/> 并随赢家的索引返回这些附表,而该指数是主机在
+    /// 确定决定标识符 <c>$winner</c> 下 <paramref name="operationId"/>.
     /// </summary>
     internal static async Task<(ScheduledTask[] Tasks, int Index)> SelectAsync(
         DurableTask[] inputs,
@@ -421,8 +421,8 @@ public abstract partial class DurableTask
         CancellationToken cancellationToken)
         where TTask : ScheduledTask
     {
-        // Inputs are scheduled concurrently, so a host can commit the whole batch together. Their indexed identifiers keep
-        // them replay-stable in any scheduling order.
+        // 输入同时排期, 这样主机可以将整批输入一起进行。 他们的索引识别符保存
+        // 它们在任何排期顺序中都可重播。
         var scheduling = new Task<IScheduledTaskHandle>[inputs.Length];
         for (var index = 0; index < inputs.Length; index++)
         {
@@ -448,7 +448,7 @@ public abstract partial class DurableTask
         {
             await SettleStartedInputsAsync(context, tasks);
 
-            // The first failure in input order is thrown, so a replay observes the same one in any completion order.
+            // 输入顺序的第一个故障被抛出, 因此重放在任何完成顺序中都可以看到相同的错误 。
             await scheduling[failed];
         }
 
@@ -456,8 +456,8 @@ public abstract partial class DurableTask
     }
 
     /// <summary>
-    /// Requests cancellation of the inputs which started when another input's start failed, and waits until they are
-    /// terminal, so no input outlives the combinator. A canceled attempt leaves them to the attempt which replays it.
+    /// 请求取消在另一个输入启动失败时开始的输入, 并等待它们
+    /// 终端, 所以没有输入会比组合器长。 取消的尝试会让它们重播它。
     /// </summary>
     private static async Task SettleStartedInputsAsync<TTask>(DurableTaskContext context, TTask?[] tasks)
         where TTask : ScheduledTask
@@ -479,7 +479,7 @@ public abstract partial class DurableTask
         _ = await ScheduledTask.SettleRaceAsync([.. started], winnerIndex: -1, reason: null, context.AttemptCancellationToken);
     }
 
-    /// <summary>Schedules <paramref name="task"/> as the child <paramref name="taskId"/> of <paramref name="context"/>.</summary>
+    /// <summary>附表附表附表 <paramref name="task"/> 儿童(童) <paramref name="taskId"/> 联 年 月 日 月 日 月 月 日 <paramref name="context"/>.</summary>
     internal static Task<IScheduledTaskHandle> ScheduleChildAsync(
         DurableTask task,
         DurableTaskContext context,
@@ -509,35 +509,35 @@ public abstract partial class DurableTask
 }
 
 /// <summary>
-/// A definition which runs as part of the execution which awaits it, using the identifier assigned with <c>WithId</c> as
-/// its operation identifier.
+/// 使用指定识别符号 <c>WithId</c> 年为
+/// 其操作识别符。
 /// </summary>
 /// <remarks>
-/// A scheduled definition runs as a child task with its own execution, which generates its operation identifier.
+/// 预定定义是儿童的任务,由自己执行,产生其操作识别符。
 /// </remarks>
 internal interface IInlineOperation
 {
     /// <summary>
-    /// Gets whether the operation runs only inline, because its result holds objects of the awaiting execution, such as
-    /// scheduled task handles, so it can't run as a task of its own.
+    /// 获取操作是否只运行内线, 因为结果会保留等待执行的物体, 例如
+    /// 任务调度控点, 所以它不能作为自己的任务运行 。
     /// </summary>
     bool InlineOnly { get; }
 
     /// <summary>
-    /// Runs the operation in <paramref name="context"/> under <paramref name="operationId"/>, or under an identifier
-    /// generated in <paramref name="context"/> when <paramref name="operationId"/> is <see cref="TaskId.None"/>.
+    /// 运行操作 <paramref name="context"/> 下 <paramref name="operationId"/>,或根据识别符号
+    /// 生成的 <paramref name="context"/> 何时 <paramref name="operationId"/> 是 <see cref="TaskId.None"/>.
     /// </summary>
     ValueTask<DurableTaskResponse> RunInlineAsync(DurableTaskContext context, TaskId operationId);
 
-    /// <summary>Creates the error for scheduling an inline-only operation as a task of its own.</summary>
+    /// <summary>创建错误,将一个只包含内线的操作作为其自身任务列表。</summary>
     static NotSupportedException CreateInlineOnlyException() =>
         new("This combinator returns scheduled task handles, which belong to the awaiting execution, so it runs only when awaited within a durable execution and can't be scheduled as a task of its own.");
 }
 
-/// <summary>A combinator without a result.</summary>
-/// <param name="operationKind">The kind which names a generated operation identifier.</param>
-/// <param name="inputs">The combinator's inputs.</param>
-/// <param name="body">The combinator's body, which receives the inputs, the execution, and the operation identifier.</param>
+/// <summary>一个没有结果的组合器。</summary>
+/// <param name="operationKind">命名生成操作标识符的类型。</param>
+/// <param name="inputs">组合器输入。</param>
+/// <param name="body">组合体,接收输入、执行和操作识别符。</param>
 internal sealed class CombinatorDurableTask(
     string operationKind,
     DurableTask[] inputs,
@@ -563,11 +563,11 @@ internal sealed class CombinatorDurableTask(
     }
 }
 
-/// <summary>A combinator with a result.</summary>
-/// <param name="operationKind">The kind which names a generated operation identifier.</param>
-/// <param name="inputs">The combinator's inputs.</param>
-/// <param name="body">The combinator's body, which receives the inputs, the execution, and the operation identifier.</param>
-/// <param name="inlineOnly">Whether the combinator runs only inline; see <see cref="IInlineOperation.InlineOnly"/>.</param>
+/// <summary>结果的组合器。</summary>
+/// <param name="operationKind">命名生成操作标识符的类型。</param>
+/// <param name="inputs">组合器输入。</param>
+/// <param name="body">组合体,接收输入、执行和操作识别符。</param>
+/// <param name="inlineOnly">组合器是否只运行内线; 见 <see cref="IInlineOperation.InlineOnly"/>。</param>
 internal sealed class CombinatorDurableTask<TResult>(
     string operationKind,
     DurableTask[] inputs,
@@ -599,8 +599,8 @@ internal sealed class CombinatorDurableTask<TResult>(
 
 internal static class CombinatorOperation
 {
-    // A generated identifier is allocated before the body's first await, so combinators which begin in deterministic
-    // order receive the same identifiers on replay.
+    // 生成的识别特征在尸体第一次等待之前被分配, 所以从确定性开始的组合
+    // 命令在重放时接收相同的识别符号。
     public static TaskId Resolve(DurableTaskContext context, string operationKind, TaskId operationId)
         => operationId.IsDefault ? context.CreateOperationId(operationKind) : operationId;
 }

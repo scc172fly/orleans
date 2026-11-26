@@ -8,8 +8,8 @@ public interface ICatalogItemGrain : IGrainWithIntegerKey
     Task<CatalogItem?> GetAsync();
 }
 
-// One grain per product owns its stock. Orders reserve stock while they await validation,
-// commit it once paid, and release it when cancelled.
+// 每产品一个 grain 拥有其库存。
+// 支付后,应缴还,注销时,应发还。
 public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 {
     private readonly IOutbox _outbox;
@@ -32,13 +32,13 @@ public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 
     private int ProductId => (int)this.GetPrimaryKeyLong();
 
-    // The journal holds the item once its stock first changes; until then, it is the seed entry.
+    // 日记在股票首次变化时持有该物品;在此之前,它是种子条目。
     private CatalogItem? Item => _item.Value ?? CatalogData.Find(ProductId);
 
     public Task<CatalogItem?> GetAsync() => Task.FromResult(Item);
 
-    // The reply is staged before stock changes, so a failed send leaves stock untouched for the retry.
-    // Each order retains its outcome after release or commit, independently of inbox deduplication.
+    // 答复是在股票变动前进行,所以发送的剩余存货未再作重试。
+    // 每项订单在释放或实施后保留其结果,而不论信箱重复。
     private void HandleReserve(ReserveStock request, IInboxHandlerContext context)
     {
         if (_reservationOutcomes.TryGetValue(request.OrderId, out var outcome))
@@ -75,7 +75,7 @@ public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 
     private void HandleRelease(ReleaseStock request, IInboxHandlerContext context)
     {
-        // A release which overtakes the reserve records a terminal rejection for that order.
+        // 超过储备的释放记录了该命令的终局否决
         _reservationOutcomes.TryAdd(request.OrderId, new(null, false));
         if (_reservations.Remove(request.OrderId, out var units))
         {

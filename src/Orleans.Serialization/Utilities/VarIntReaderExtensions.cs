@@ -5,71 +5,71 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Serialization.Buffers
 {
     /// <summary>
-    /// Extension method for working with variable-width integers.
+    /// 使用可变宽整数的扩展方法。
     /// </summary>
     public static class VarIntReaderExtensions
     {
         /// <summary>
-        /// Reads a variable-width <see cref="sbyte"/>.
+        /// 读取变量宽 <see cref="sbyte"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ReadVarInt8<TInput>(this ref Reader<TInput> reader) => ZigZagDecode(checked((byte)reader.ReadVarUInt32()));
 
         /// <summary>
-        /// Reads a variable-width <see cref="ushort"/>.
+        /// 读取变量宽 <see cref="ushort"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short ReadVarInt16<TInput>(this ref Reader<TInput> reader) => ZigZagDecode(checked((ushort)reader.ReadVarUInt32()));
 
         /// <summary>
-        /// Reads a variable-width <see cref="byte"/>.
+        /// 读取变量宽 <see cref="byte"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte ReadVarUInt8<TInput>(this ref Reader<TInput> reader) => checked((byte)reader.ReadVarUInt32());
 
         /// <summary>
-        /// Reads a variable-width <see cref="ushort"/>.
+        /// 读取变量宽 <see cref="ushort"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadVarUInt16<TInput>(this ref Reader<TInput> reader) => checked((ushort)reader.ReadVarUInt32());
 
         /// <summary>
-        /// Reads a variable-width <see cref="int"/>.
+        /// 读取变量宽 <see cref="int"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadVarInt32<TInput>(this ref Reader<TInput> reader) => ZigZagDecode(reader.ReadVarUInt32());
 
         /// <summary>
-        /// Reads a variable-width <see cref="long"/>.
+        /// 读取变量宽 <see cref="long"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ReadVarInt64<TInput>(this ref Reader<TInput> reader) => ZigZagDecode(reader.ReadVarUInt64());
 
         /// <summary>
-        /// Reads a variable-width <see cref="byte"/>.
+        /// 读取变量宽 <see cref="byte"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte ReadUInt8<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
@@ -83,12 +83,12 @@ namespace Orleans.Serialization.Buffers
         };
 
         /// <summary>
-        /// Reads a variable-width <see cref="ushort"/>.
+        /// 读取变量宽 <see cref="ushort"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUInt16<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
@@ -102,12 +102,12 @@ namespace Orleans.Serialization.Buffers
         };
 
         /// <summary>
-        /// Reads a variable-width <see cref="uint"/>.
+        /// 读取变量宽 <see cref="uint"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint ReadUInt32<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
@@ -121,12 +121,12 @@ namespace Orleans.Serialization.Buffers
         };
 
         /// <summary>
-        /// Reads a variable-width <see cref="ulong"/>.
+        /// 读取变量宽 <see cref="ulong"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ReadUInt64<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
@@ -140,12 +140,12 @@ namespace Orleans.Serialization.Buffers
         };
 
         /// <summary>
-        /// Reads a variable-width <see cref="sbyte"/>.
+        /// 读取变量宽 <see cref="sbyte"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ReadInt8<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
@@ -159,12 +159,12 @@ namespace Orleans.Serialization.Buffers
         };
 
         /// <summary>
-        /// Reads a variable-width <see cref="short"/>.
+        /// 读取变量宽 <see cref="short"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short ReadInt16<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
@@ -178,12 +178,12 @@ namespace Orleans.Serialization.Buffers
         };
 
         /// <summary>
-        /// Reads a variable-width <see cref="int"/>.
+        /// 读取变量宽 <see cref="int"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadInt32<TInput>(this ref Reader<TInput> reader, WireType wireType)
         {
@@ -207,12 +207,12 @@ namespace Orleans.Serialization.Buffers
         };
 
         /// <summary>
-        /// Reads a variable-width <see cref="long"/>.
+        /// 读取变量宽 <see cref="long"/>。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="wireType">The wire type.</param>
-        /// <returns>A variable-width integer.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="wireType">电线型号。</param>
+        /// <returns>一个变量-宽整数。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ReadInt64<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {

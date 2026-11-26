@@ -12,19 +12,19 @@ using Polly;
 namespace Orleans.Runtime.Membership
 {
     /// <summary>
-    /// Provides Orleans gateway addresses from ZooKeeper cluster membership.
+    /// 提供 Orleans 网关地址 ZooKeeper 分组成员。
     /// </summary>
     public class ZooKeeperGatewayListProvider : IGatewayListProvider
     {
         private readonly ZooKeeperWatcher _watcher;
 
         /// <summary>
-        /// the node name for this deployment. for eg. /ClusterId
+        /// 此部署的节点名称。 例如 /ClusterId
         /// </summary>
         private readonly string _deploymentPath;
 
         /// <summary>
-        /// The deployment connection string. for eg. "192.168.1.1,192.168.1.2/ClusterId"
+        /// “192.168.1.1、192.168.1.2/ClusterId”等的部署连接字符串。
         /// </summary>
         private readonly string _deploymentConnectionString;
         private readonly TimeSpan _maxStaleness;
@@ -32,15 +32,15 @@ namespace Orleans.Runtime.Membership
         private readonly ResiliencePipeline _readRetryPipeline;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ZooKeeperGatewayListProvider"/> class.
+        /// 初始化 <see cref="ZooKeeperGatewayListProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="options">The ZooKeeper gateway discovery options.</param>
-        /// <param name="gatewayOptions">The gateway discovery refresh options.</param>
-        /// <param name="clusterOptions">The cluster identity options.</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="options"> ZooKeeper 网关发现选项。</param>
+        /// <param name="gatewayOptions">网关发现刷新选项。</param>
+        /// <param name="clusterOptions">集群识别选项。</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="logger"/>, <paramref name="options"/>, <paramref name="gatewayOptions"/>, or
-        /// <paramref name="clusterOptions"/> is <see langword="null"/>.
+        /// <paramref name="logger"/>, <paramref name="options"/>, <paramref name="gatewayOptions"/>,或
+        /// <paramref name="clusterOptions"/> 是 <see langword="null"/>。
         /// </exception>
         public ZooKeeperGatewayListProvider(
             ILogger<ZooKeeperGatewayListProvider> logger,
@@ -73,7 +73,7 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Initializes the ZooKeeper based gateway provider
+        /// 初始化基于 ZooKeeper 的网关提供者
         /// </summary>
         public Task InitializeGatewayListProvider() => InitializeGatewayListProviderAsync(CancellationToken.None);
 
@@ -85,12 +85,12 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Returns the list of gateways (silos) that can be used by a client to connect to Orleans cluster.
-        /// The Uri is in the form of: "gwy.tcp://IP:port/Generation". See Utils.ToGatewayUri and Utils.ToSiloAddress for more details about Uri format.
+        /// 返回网关列表( 返回) (n)silos客户端可以连接到 Orleans 组。
+        /// 尤里语的形式是: "gwy.tcp/IP:port/Generation. " 关于尤里格式的更多详情,见 Utils.ToGatewayUri 和 Utils.ToSiloAddress 。
         /// </summary>
         /// <remarks>
-        /// Gateway discovery uses a version-fenced membership snapshot. Native reads retry connection-loss
-        /// failures up to four times on the operation's session before propagating the final failure.
+        /// 网关发现使用版本的封隔会员快照。 本地读者读到 retry connect- loss
+        /// 操作会话失败最多四次,然后传播最后失败。
         /// </remarks>
         public Task<IList<Uri>> GetGateways() => GetGatewaysAsync(CancellationToken.None);
 
@@ -109,13 +109,13 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Specifies how often this IGatewayListProvider is refreshed, to have a bound on max staleness of its returned information.
+        /// 指定该 IGatewayListProvider 刷新的次数,以锁定其返回信息的最大淡度。
         /// </summary>
         public TimeSpan MaxStaleness => _maxStaleness;
 
         /// <summary>
-        /// Specifies whether this IGatewayListProvider ever refreshes its returned information, or always returns the same gw list.
-        /// (currently only the static config based StaticGatewayListProvider is not updatable. All others are.)
+        /// 指定此 IGatewayListProvider 是否刷新其返回的信息,还是总是返回相同的 gw 列表。
+        /// (目前只有基于静态配置 StaticGatewayListProvider 的配置不可上调。所有其他都是 。)
         /// </summary>
         public bool IsUpdatable => true;
     }

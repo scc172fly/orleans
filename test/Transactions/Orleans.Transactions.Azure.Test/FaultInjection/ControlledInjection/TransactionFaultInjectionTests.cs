@@ -5,7 +5,7 @@ using Xunit;
 namespace Orleans.Transactions.Azure.Tests
 {
     /// <summary>
-    /// Tests for transaction behavior under controlled fault injection scenarios with Azure Storage.
+    /// 在控制性排爆情况下对 Azure 储存的交易行为进行测试。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

@@ -1,23 +1,29 @@
 ---
-title: Test an Orleans application end to end
-description: Progress from a first grain test to reusable cluster and topology tests with Orleans.TestingHost.
+title: "测试 Orleans 应用程序的结束"
+description: "从第一次 grain 测试到可重复使用的集束和表层测试的进展,使用 Orleans.TestingHost。"
 ms.date: 08/11/2026
 ms.topic: tutorial
 ---
 
-# Test an Orleans application end to end
+<a id="test-an-orleans-application-end-to-end"></a>
 
-This walkthrough builds Orleans runtime tests in layers: a first in-process cluster test, a shared cluster fixture, and a topology change. The complete, buildable source is in the documentation's `grains/snippets/testing/orleans-testing` project.
+# 测试 Orleans 应用程序的结束
 
-## Choose the right boundary
+这条通路构建了 Orleans 层数运行时间测试:第一次在工艺中进行集束试验,一个共享的集束固定体,以及一种地形变化。完整的、可建来源在文档的 `grains/snippets/testing/orleans-testing` 项目中。
 
-Use ordinary unit tests for pure application logic, <xref:Orleans.TestingHost.InProcessTestCluster> for Orleans runtime behavior, and production-provider tests for external contracts.
+<a id="choose-the-right-boundary"></a>
 
-These boundaries preserve fast feedback and runtime fidelity.
+## 选择右边框
 
-## Run the first cluster test
+使用普通单位测试来进行纯应用逻辑, <xref:Orleans.TestingHost.InProcessTestCluster> 用于 Orleans 运行时间行为,生产供应商测试外部合同。
 
-Clone the repository, then run the test project:
+这些边界保持快速反馈和运行时的忠诚。
+
+<a id="run-the-first-cluster-test"></a>
+
+## 运行第一个集集测试
+
+克隆存储库, 然后运行测试工程 :
 
 ```powershell
 git clone https://github.com/dotnet/orleans.git
@@ -25,58 +31,66 @@ cd orleans
 dotnet test --project .\docs\site\src\content\docs\grains\snippets\testing\orleans-testing\Sample.OrleansTesting\Sample.OrleansTesting.csproj --minimum-expected-tests 1
 ```
 
-The first test creates a cluster, deploys it, obtains a grain reference from the client, makes a call, and disposes the cluster:
+第一个测试创建了一个集束,部署它,从客户那里获得 grain 参考,发出呼叫并处置该组:
 
 :::code language="csharp" source="../grains/snippets/testing/orleans-testing/Sample.OrleansTesting/HelloGrainTests.cs" id="basic_cluster_test":::
 
-This validates code generation, serialization, activation, message dispatch, and the grain implementation together. The default builder starts two silos and a client with fast in-memory test infrastructure.
+它可以验证代码生成、序列化、激活、信息发送和 grain 执行。 默认构建器启动两个 silos 和一个客户端, 其测试基础设施在模拟中快速运行 。
 
-## Add application configuration
+<a id="add-application-configuration"></a>
 
-Production grains commonly depend on services registered through dependency injection. Configure all hosts, only silos, or only the client using the matching builder scope:
+## 添加应用程序配置
+
+生产 grains 通常依赖于通过依赖性注射注册的服务。配置所有主机,仅 silos,或只有使用匹配构建器范围的客户 :
 
 :::code language="csharp" source="../grains/snippets/testing/orleans-testing/Sample.OrleansTesting/ClusterConfiguration.cs" id="configure_cluster":::
 
-Each host owns a service provider. Registering a service type creates one instance per host. Registering a captured instance intentionally shares it across silos and the client, so shared test doubles must be thread-safe.
+每个主机都拥有一个服务提供商。 注册服务类型后, 每个主机都会有一个实例。 注册被捕获的操作程序会故意在 silos 和客户之间共享, 因此共享测试双倍必须是安全的线性测试 。
 
-Run the tests again after each configuration change. Propagate deployment failures through test setup so the test run reports them as failures.
+每次配置改变后再运行测试。 通过测试设置来显示部署失败, 测试运行报告它们为失败 。
 
-## Reuse an expensive cluster
+<a id="reuse-an-expensive-cluster"></a>
 
-Create an xUnit fixture when multiple tests need identical cluster configuration:
+## 重新使用昂贵的集聚体
+
+当多次测试需要相同组群配置时创建 xUnit 固定值:
 
 :::code language="csharp" source="../grains/snippets/testing/orleans-testing/Sample.OrleansTesting/ClusterFixture.cs" id="cluster_fixture":::
 
-Register the fixture as a collection:
+将固定点登记为收藏:
 
 :::code language="csharp" source="../grains/snippets/testing/orleans-testing/Sample.OrleansTesting/ClusterCollection.cs" id="cluster_collection":::
 
-Then consume the fixture's already-started cluster from every test:
+然后用每件试验中 已经启动的定着集
 
 :::code language="csharp" source="../grains/snippets/testing/orleans-testing/Sample.OrleansTesting/HelloGrainTestsWithFixture.cs" id="shared_cluster_test":::
 
-Give each test unique grain identities, reset shared external state, and make every test order-independent.
+每次测试都给 grain 独有的身份, 重置共享外部状态, 使每次测试均独立。
 
-## Exercise a topology change
+<a id="exercise-a-topology-change"></a>
 
-Add a silo, wait for membership to stabilize, then stop it gracefully:
+## 改变地形变化
+
+添加一个 silo,等待成员稳定下来,然后优雅地予以停止:
 
 :::code language="csharp" source="../grains/snippets/testing/orleans-testing/Sample.OrleansTesting/ClusterConfiguration.cs" id="change_topology":::
 
-Invoke the helper from a test and verify an application call after the membership changes:
+由测试及验证成员变更后的申请通知,
 
 :::code language="csharp" source="../grains/snippets/testing/orleans-testing/Sample.OrleansTesting/TopologyTests.cs" id="topology_change_test":::
 
-The documented `dotnet test` command executes this test. A same-process cluster exercises membership changes. Use a separate environment to exercise process crashes, network partitions, socket transport, and production membership providers.
+文档中的 `dotnet test` 命令执行此测试。 一个相同的进程组会籍会演算改变。 使用一个单独的环境来操作流程崩溃、 网络分割、套接运输和生产成员供应商 。
 
-## Add production-provider tests
+<a id="add-production-provider-tests"></a>
 
-For persistence, reminders, clustering, or streams, add an opt-in suite which:
+## 附加生产提供者测试
 
-1. Provisions an isolated provider instance or emulator.
-1. Configures the cluster with the same provider extension used in production.
-1. Uses unique database, table, stream, and grain identifiers.
-1. Verifies behavior across a silo restart.
-1. Cleans up owned resources even when an assertion fails.
+对于持久性、提醒、集群或流,增加一个选择入套件,其内容是:
 
-Store credentials in the test environment's secret facility and report missing prerequisites explicitly. For API details and fidelity boundaries, see [Test Orleans applications](../grains/testing.md) and [TestingHost architecture](../implementation/testing.md).
+1. 提供孤立的提供者实例或模拟器。
+1. 配置组群,使用生产中使用的同一供应商扩展功能。
+1. 使用独特的数据库、表格、流和 grain 识别符号。
+1. 验证在 silo 重新启动时的行为。
+1. 清理自有资源,即使一项主张失败。
+
+将证书存放在试验环境的秘密设施中,并明确报告缺失的先决条件。关于 API 细节和忠诚界限,见 [测试 Orleans 应用](../grains/testing.md) 和 [TestingHost 结构架构](../implementation/testing.md)。

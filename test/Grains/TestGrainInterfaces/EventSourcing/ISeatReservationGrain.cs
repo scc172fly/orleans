@@ -1,9 +1,9 @@
 namespace TestGrainInterfaces
 {
-    // The grain supports an operation to reserve a seat
+    // grain 支持一项行动,以保留一个座位
     public interface ISeatReservationGrain : IGrainWithIntegerKey
     {
-        // returns a boolean if reservation was successful
+        // 如果保留成功,返回布尔值
         Task<bool> Reserve(int seatnumber, string userid);
     }
 

@@ -7,16 +7,16 @@ using Xunit;
 namespace AWSUtils.Tests.Liveness
 {
     /// <summary>
-    /// Liveness tests for AWS DynamoDB membership provider.
+    /// AWS DynamoDB 成员供应商的活度测试。
     /// 
-    /// These tests verify that Orleans cluster membership management works correctly
-    /// when using DynamoDB as the membership table provider. DynamoDB provides:
-    /// - Distributed membership tracking across silos
-    /// - Failure detection and recovery
-    /// - Consistent cluster topology views
+    /// 这些测试核实 Orleans 群组成员管理是否正确
+    /// 当使用 DynamoDB 作为成员表提供者时。 DynamoDB 规定:
+    /// - silos之间分配成员跟踪
+    /// - 故障检测和复原
+    /// - 一致的群集地形学观点
     /// 
-    /// The tests simulate various failure scenarios to ensure the cluster
-    /// maintains consistency and recovers properly.
+    /// 测试模拟各种故障假设情景,以确保集群
+    /// 保持一致性,并妥善收回。
     /// </summary>
     [TestCategory("Membership"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]
@@ -37,8 +37,8 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// Configures silos to use DynamoDB for cluster membership.
-        /// Sets up the DynamoDB service endpoint for testing (typically a local simulator).
+        /// 配置配置 silos 使用 DynamoDB 分组成员。
+        /// 设置 DynamoDB 服务端点用于测试(通常是本地模拟器)。
         /// </summary>
         public class SiloBuilderConfigurator : ISiloConfigurator
         {
@@ -49,9 +49,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// Configures clients to use DynamoDB for discovering cluster gateways.
-        /// Ensures clients can locate and connect to silos using the same
-        /// DynamoDB-based membership information.
+        /// 配置客户端, 以使用 DynamoDB 来发现集束网关 。
+        /// 确保客户能够找到并连接到 silos 使用相同
+        /// DynamoDB- 以成员信息为基础的成员信息。
         /// </summary>
         public class ClientBuilderConfigurator : IClientBuilderConfigurator
         {
@@ -65,9 +65,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// Basic liveness test verifying cluster membership operations.
-        /// Tests that silos can join the cluster, be discovered by other silos,
-        /// and maintain accurate membership information in DynamoDB.
+        /// 基本生存测试,核查分组成员业务。
+        /// 测试 silos 能够加入该组群,由其他 silos发现,
+        /// 并保持 DynamoDB的准确成员信息。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_1()
@@ -76,9 +76,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// Tests cluster recovery when the primary silo is restarted.
-        /// Verifies that the cluster can handle the loss and recovery of
-        /// the primary silo without losing membership consistency.
+        /// 重新启动主 silo 时测试组群恢复 。
+        /// 证明该组群能够处理损失和追回
+        /// 基本 silo ,但不会失去成员一致性。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_2_Restart_Primary()
@@ -87,9 +87,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// Tests cluster recovery when a gateway silo is restarted.
-        /// Verifies that client connections can recover and find alternative
-        /// gateways when their connected gateway fails.
+        /// 当网关 silo 重新启动时测试组群恢复 。
+        /// 证明客户联系能够恢复并找到替代
+        /// 当连接的网关失败时, 将打开网关 。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_3_Restart_GW()
@@ -98,9 +98,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// Tests cluster recovery when a non-primary silo is restarted.
-        /// Verifies that grain activations are properly migrated and
-        /// the cluster maintains operation during silo failures.
+        /// 当非主 silo 重新启动时测试组群恢复。
+        /// 证明 grain 启动程序已适当迁移和
+        /// 组群在 silo 故障时保持运行。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_4_Restart_Silo_1()
@@ -109,9 +109,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// Tests cluster recovery when a silo with active timers is killed.
-        /// Verifies that timer registrations are properly recovered when
-        /// grains are reactivated on other silos after failure.
+        /// 当有活动计时器的 silo 被杀死时测试集集恢复 。
+        /// 证明在下列情况下适当收回计时器登记时,即
+        /// grains 在失败后在其他 silos 上重新启动。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_5_Kill_Silo_1_With_Timers()

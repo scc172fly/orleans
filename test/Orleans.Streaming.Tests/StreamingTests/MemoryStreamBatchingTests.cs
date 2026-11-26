@@ -9,7 +9,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// Tests memory stream batching functionality with configured batch container size of 10 items.
+    /// 测试内存流分批功能,配置成10个物品的批量集装箱尺寸。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -23,7 +23,7 @@ namespace UnitTests.StreamingTests
 
             protected override void ConfigureTestCluster(TestClusterBuilder builder)
             {
-                // This fixture tests batching, not rebalancing. Keep one owner for the destructive in-memory queue.
+                // 固定测试批量, 不是重新平衡。 请保留一个所有者来进行破坏性的模拟队列 。
                 builder.Options.InitialSilosCount = 1;
                 builder.AddSiloBuilderConfigurator<MySiloBuilderConfigurator>();
                 builder.AddClientBuilderConfigurator<MyClientBuilderConfigurator>();

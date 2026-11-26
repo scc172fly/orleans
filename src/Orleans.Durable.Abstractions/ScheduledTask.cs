@@ -4,11 +4,11 @@ using System.Runtime.CompilerServices;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>Represents a host-scheduled durable task.</summary>
+/// <summary>代表东道国排定的持久任务。</summary>
 /// <remarks>
-/// A handle caches the task's terminal response once a wait, a poll, or a combinator observes it. A terminal response
-/// never changes, so <see cref="IsCompleted"/>, <see cref="Status"/>, and <see cref="Exception"/> then inspect the task
-/// synchronously, without contacting the host.
+/// 控点会缓存任务终端响应, 一旦等待、 民意调查或组合器观察它。 终端回应
+/// 永不变,所以 <see cref="IsCompleted"/>, <see cref="Status"/>,和 <see cref="Exception"/> 然后检查任务
+/// 同步, 未联系主机 。
 /// </remarks>
 public abstract partial class ScheduledTask
 {
@@ -16,95 +16,95 @@ public abstract partial class ScheduledTask
 
     internal ScheduledTask() { }
 
-    /// <summary>Gets the stable durable task identifier.</summary>
+    /// <summary>获得稳定、持久的任务识别符。</summary>
     /// <remarks>
-    /// In a durable execution, the identifier names the execution's operation which started or observes the task, such as
-    /// the record of a detached task, so combinators and replays address the operation by it.
+    /// 在持久执行中,识别符号标明了执行处决开始或观察到任务的行动,例如:
+    /// 记录一个分离的任务, 所以组合和重播处理它的运作。
     /// </remarks>
     public abstract TaskId Id { get; }
 
     /// <summary>
-    /// Gets the identifier under which the task's host stores the task which this handle observes, which other parties use
-    /// to address the task.
+    /// 获得任务主机存储此处理器所观察的任务的标识符,而其他当事人使用
+    /// 处理这项任务。
     /// </summary>
     /// <remarks>
-    /// The identifier equals <see cref="Id"/> unless the host stores the task under another one: in a durable execution,
-    /// the handle of a detached task observes the task's root identifier on its target, and a host can scope the
-    /// identifier of a call to another host by the caller.
+    /// 识别符号等于 <see cref="Id"/> ,除非主机将任务存放在另一件之下:
+    /// 任务根标识符,且主机可以覆盖
+    /// 呼叫者调用另一个主机时的通话标识符。
     /// </remarks>
     public virtual TaskId TargetTaskId => Id;
 
     /// <summary>
-    /// Returns the feature <typeparamref name="TFeature"/> through which the task's host describes the task, or
-    /// <see langword="null"/> when the host provides none.
+    /// 返回任务主机描述任务时的特性 <typeparamref name="TFeature"/> ,或
+    /// <see langword="null"/> 当宿主没有给养的时候,
     /// </summary>
-    /// <typeparam name="TFeature">The feature's type, which the host defines or documents.</typeparam>
-    /// <returns>The feature, or <see langword="null"/>.</returns>
+    /// <typeparam name="TFeature">特性类型, 主机定义或文档的类型。</typeparam>
+    /// <returns>特性,或 <see langword="null"/>.</returns>
     /// <remarks>
-    /// A host exposes host-specific information through features, such as the address under which other parties reach
-    /// the task, while the handle stays independent of the host.
+    /// 东道主通过其他当事方联系地址等特征,暴露具体东道主的信息
+    /// 任务,而操作程序则独立于主机。
     /// </remarks>
     public virtual TFeature? GetFeature<TFeature>()
         where TFeature : class => null;
 
-    /// <summary>Gets whether this handle has observed the task's terminal response.</summary>
+    /// <summary>获取此控件是否观察到任务终端响应 。</summary>
     /// <remarks>
-    /// The handle observes the terminal response when a wait, such as awaiting the handle or
-    /// <see cref="GetResponseAsync(CancellationToken)"/>, or a poll returns it, or when a combinator such as
-    /// <see cref="WhenAllCompleted(IReadOnlyList{ScheduledTask}, CancellationToken)"/> returns or yields the handle. Use
-    /// <see cref="IsCompletedAsync"/> to poll the host.
+    /// 控制器在等待时观察终端反应,例如等待处理或等待
+    /// <see cref="GetResponseAsync(CancellationToken)"/>或民意测验返回它,或当组合器(例如)
+    /// <see cref="WhenAllCompleted(IReadOnlyList{ScheduledTask}, CancellationToken)"/> 返回或生成控柄。使用
+    /// 调查主机的<see cref="IsCompletedAsync"/>
     /// </remarks>
     public bool IsCompleted => Volatile.Read(ref _response) is not null;
 
     /// <summary>
-    /// Gets the terminal status which this handle observed, or <see cref="DurableTaskStatus.Pending"/> until it observes
-    /// the terminal response.
+    /// 获得此控点所观察到的终端状态,或者 <see cref="DurableTaskStatus.Pending"/> ,直到它观察到
+    /// 终端反应
     /// </summary>
-    /// <remarks>Use <see cref="GetStatusAsync"/> to poll the host.</remarks>
+    /// <remarks>使用 <see cref="GetStatusAsync"/> 来测量主机。</remarks>
     public DurableTaskStatus Status => Volatile.Read(ref _response)?.Status ?? DurableTaskStatus.Pending;
 
     /// <summary>
-    /// Gets the recorded failure or cancellation of a task which failed or was canceled, once this handle has observed its
-    /// terminal response; otherwise <see langword="null"/>.
+    /// 一旦此操作观察到它, 就会获得记录失败或取消任务失败或取消的失败或取消
+    /// 终端响应;否则 <see langword="null"/>。
     /// </summary>
     public Exception? Exception => Volatile.Read(ref _response)?.Exception;
 
-    /// <summary>Gets the terminal response which this handle observed, or <see langword="null"/>.</summary>
+    /// <summary>得到此控点所观察到的终端响应,或 <see langword="null"/>。</summary>
     internal DurableTaskResponse? Response => Volatile.Read(ref _response);
 
-    /// <summary>Gets an awaiter which waits for successful completion.</summary>
+    /// <summary>寻找等待成功完成的等待者。</summary>
     public ScheduledTaskAwaiter GetAwaiter() => new(this, CancellationToken.None);
 
-    /// <summary>Polls whether the task has reached a terminal state.</summary>
+    /// <summary>填报任务是否已经达到终点状态。</summary>
     /// <remarks>
-    /// A poll observes the task's status when it runs, so code outside durable task bodies, such as a client, polls. A
-    /// durable task body awaits the task, or waits for it with a durable timeout.
+    /// 民意测验观察任务运行时的状况, 所以在客户、民调等持久任务机构之外代码。 A
+    /// 长期任务机构等待任务完成,或等待任务完成,并等待持久暂停。
     /// </remarks>
-    /// <exception cref="NotSupportedException">The calling code runs in a durable task.</exception>
+    /// <exception cref="NotSupportedException">调用代码运行在一个耐久的任务中。</exception>
     public async Task<bool> IsCompletedAsync(PollingOptions options = default, CancellationToken cancellationToken = default)
         => (await PollAsync(options, cancellationToken)).IsCompleted;
 
-    /// <summary>Polls the current task status.</summary>
+    /// <summary>投放当前任务状态。</summary>
     /// <remarks><inheritdoc cref="IsCompletedAsync" path="/remarks"/></remarks>
-    /// <exception cref="NotSupportedException">The calling code runs in a durable task.</exception>
+    /// <exception cref="NotSupportedException">调用代码运行在一个耐久的任务中。</exception>
     public async Task<DurableTaskStatus> GetStatusAsync(PollingOptions options = default, CancellationToken cancellationToken = default)
         => (await PollAsync(options, cancellationToken)).Status;
 
-    /// <summary>Waits for and returns the terminal response.</summary>
+    /// <summary>等待并返回终端响应。</summary>
     public Task<DurableTaskResponse> GetResponseAsync(CancellationToken cancellationToken = default)
         => ObserveAsync(cancellationToken).AsTask();
 
-    /// <summary>Polls and returns the current response.</summary>
+    /// <summary>投出并返回当前回复。</summary>
     /// <remarks><inheritdoc cref="IsCompletedAsync" path="/remarks"/></remarks>
-    /// <exception cref="NotSupportedException">The calling code runs in a durable task.</exception>
+    /// <exception cref="NotSupportedException">调用代码运行在一个耐久的任务中。</exception>
     public Task<DurableTaskResponse> GetResponseAsync(PollingOptions options, CancellationToken cancellationToken = default)
         => PollAsync(options, cancellationToken).AsTask();
 
-    /// <summary>Waits for successful completion.</summary>
+    /// <summary>等待成功完成。</summary>
     public async ValueTask WaitAsync(CancellationToken cancellationToken = default)
         => (await ObserveAsync(cancellationToken)).EnsureSuccessfulCompletion();
 
-    /// <summary>Caches <paramref name="response"/> when it is terminal, and returns it.</summary>
+    /// <summary>罐头当它是终端时 <paramref name="response"/> , 并返回它。</summary>
     internal DurableTaskResponse Observe(DurableTaskResponse response)
     {
         if (response.IsCompleted)
@@ -115,19 +115,19 @@ public abstract partial class ScheduledTask
         return response;
     }
 
-    /// <summary>Waits for the terminal response and caches it.</summary>
-    /// <remarks>A host failure which <see cref="WaitAsyncCore"/> throws synchronously propagates synchronously.</remarks>
+    /// <summary>等待终端响应并缓存。</summary>
+    /// <remarks>主机故障, 即 <see cref="WaitAsyncCore"/> 投掷同步传播同步。</remarks>
     internal ValueTask<DurableTaskResponse> ObserveAsync(CancellationToken cancellationToken)
     {
         var wait = WaitAsyncCore(cancellationToken);
         return wait.IsCompletedSuccessfully ? new(Observe(wait.Result)) : ObserveAsync(wait);
     }
 
-    /// <summary>Polls the task's host, and caches a terminal response.</summary>
+    /// <summary>将任务的主机打倒,并隐藏终端响应</summary>
     /// <remarks>
-    /// A replay of a durable task body re-runs its code at another time, when a poll observes another status. The poll
-    /// records nothing, so a body which branched on it would schedule other operations in the replay than in the run which
-    /// it replays.
+    /// 在一个持久的任务机构重播一个重播 在另一个时候重新运行它的代码 当民意测验观察另一状态。
+    /// 记录没有记录,所以一个机构在它上分支的 会安排其他操作 在重放中比运行
+    /// 重播着
     /// </remarks>
     private ValueTask<DurableTaskResponse> PollAsync(PollingOptions options, CancellationToken cancellationToken)
     {
@@ -147,12 +147,12 @@ public abstract partial class ScheduledTask
         => Observe(await response);
 
     /// <summary>
-    /// Waits for the terminal response and caches it, rejecting an incomplete response from the host with an
+    /// 等待终端响应并隐藏它,拒绝主机提供不完整的回复
     /// <see cref="InvalidOperationException"/>.
     /// </summary>
     /// <remarks>
-    /// Selection and aggregation helpers use this wait, since they return tasks which have observed their terminal
-    /// responses. A host failure which <see cref="WaitAsyncCore"/> throws synchronously propagates synchronously.
+    /// 甄选和汇总帮助人员使用这一等待,因为他们返回了观察其终点站的任务
+    /// 。主机故障,即 <see cref="WaitAsyncCore"/> 同步投出时同步传播时同步传播。
     /// </remarks>
     internal ValueTask<DurableTaskResponse> ObserveTerminalAsync(CancellationToken cancellationToken)
     {
@@ -166,67 +166,67 @@ public abstract partial class ScheduledTask
     private async ValueTask<DurableTaskResponse> ObserveTerminalAsync(ValueTask<DurableTaskResponse> response)
         => ObserveTerminal(await response);
 
-    /// <summary>Durably requests cancellation.</summary>
+    /// <summary>请求取消是可持久地。</summary>
     /// <remarks>
-    /// The operation completes once the host has durably recorded the request, without waiting for the task to finish.
-    /// The task's body observes the request and decides its outcome: the task is canceled when the cancellation escapes
-    /// its body, and otherwise completes with the body's result or failure. Await the task to observe the outcome.
+    /// 操作在主机长期记录请求后完成,而不等待任务完成。
+    /// 任务机构注意请求并决定其结果:当取消时取消任务
+    /// 等待任务来观察结果。
     /// </remarks>
     public ValueTask CancelAsync(CancellationToken cancellationToken = default) => CancelAsyncCore(reason: null, cancellationToken);
 
-    /// <summary>Durably requests cancellation carrying <paramref name="reason"/>.</summary>
+    /// <summary>可调可操作请求取消 <paramref name="reason"/>.</summary>
     /// <param name="reason">
-    /// The reason which the task's <see cref="DurableTaskContext.TaskCancellationReason"/> reports, or
-    /// <see langword="null"/> for none.
+    /// 任务 <see cref="DurableTaskContext.TaskCancellationReason"/> 报告的原因,或
+    /// <see langword="null"/> 毫无理由。
     /// </param>
-    /// <param name="cancellationToken">A token which abandons waiting for the request to commit.</param>
+    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
     /// <remarks>
-    /// The request behaves as <see cref="CancelAsync(CancellationToken)"/>. The first request determines the reason, so the
-    /// task's body, for example in a <see langword="catch"/> block, can tell why it was canceled.
+    /// 请求行为与 <see cref="CancelAsync(CancellationToken)"/>一样。第一个请求确定理由,所以
+    /// 任务正文,例如 <see langword="catch"/> 块中,可以说明为什么取消该任务。
     /// </remarks>
     public ValueTask CancelAsync(string? reason, CancellationToken cancellationToken = default)
         => CancelAsyncCore(reason, cancellationToken);
 
-    /// <summary>Asks the host to cancel the task carrying <paramref name="reason"/>, or no reason when it is <see langword="null"/>.</summary>
+    /// <summary>要求主机取消包含 <paramref name="reason"/>或没有原因的 <see langword="null"/>任务。</summary>
     protected abstract ValueTask CancelAsyncCore(string? reason, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Administratively aborts the task: the host terminalizes it and its attached descendants as failed with a
-    /// <see cref="DurableTaskAbortedException"/> carrying <paramref name="reason"/>, without running further task code.
+    /// 行政上中止任务:主机将它及其附属子孙子孙子孙子因下列原因失效而终止
+    /// <see cref="DurableTaskAbortedException"/> 带有 <paramref name="reason"/>,没有运行进一步的任务代码。
     /// </summary>
-    /// <param name="reason">The reason for the abort, recorded as the exception message.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the abort to commit.</param>
+    /// <param name="reason">中止的原因,记录为例外信息。</param>
+    /// <param name="cancellationToken">放弃等待中止执行的标记。</param>
     /// <remarks>
-    /// Abort is for operators, for example when a task's body ignores cancellation or its cleanup is stuck. It runs no
-    /// compensation: the host cancels the attempt which runs the task, whose later durable operations throw, and discards
-    /// the attempt's response. The operation completes once the host has durably recorded the abort. Aborting a terminal task leaves
-    /// it unchanged. Detached tasks are independent roots, which are aborted separately.
+    /// 中止是操作员的终止, 例如当任务正文忽略取消取消或清理卡住时。 它不运行
+    /// 补偿:东道方取消了执行这项任务的尝试,后来其持久作业抛出,以及抛弃物
+    /// 尝试响应。 一旦主机记录了中止, 操作将完成。 中止终端任务休假
+    /// 脱钩的任务是独立的根,被分别中止。
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="reason"/> is <see langword="null"/>, empty, or whitespace.</exception>
-    /// <exception cref="NotSupportedException">The host doesn't support aborting tasks.</exception>
+    /// <exception cref="ArgumentException"><paramref name="reason"/> 是 <see langword="null"/>,空或空白。</exception>
+    /// <exception cref="NotSupportedException">主机不支持中止任务。</exception>
     public ValueTask AbortAsync(string reason, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         return AbortAsyncCore(reason, cancellationToken);
     }
 
-    /// <summary>Asks the host to abort the task for a validated <paramref name="reason"/>.</summary>
-    /// <remarks>Hosts which support abort override this default implementation, which throws <see cref="NotSupportedException"/>.</remarks>
+    /// <summary>要求主机中止一个被验证的 <paramref name="reason"/>的任务。</summary>
+    /// 支持中止的<remarks>主机推翻了默认的安装, 从而抛出 <see cref="NotSupportedException"/>。</remarks>
     protected virtual ValueTask AbortAsyncCore(string reason, CancellationToken cancellationToken)
         => throw new NotSupportedException("The durable task host does not support aborting tasks.");
 
-    /// <summary>Waits for a terminal host response.</summary>
+    /// <summary>等待终端主机响应。</summary>
     protected internal abstract ValueTask<DurableTaskResponse> WaitAsyncCore(CancellationToken cancellationToken);
 
-    /// <summary>Polls the current host response.</summary>
+    /// <summary>投放当前主机响应。</summary>
     protected abstract ValueTask<DurableTaskResponse> PollAsyncCore(PollingOptions options, CancellationToken cancellationToken);
 
-    /// <summary>Waits for every scheduled task to complete successfully.</summary>
+    /// <summary>等待每个计划任务成功完成。</summary>
     /// <remarks>
-    /// The returned task completes only after every input is terminal. It then throws the first failure in input order
-    /// when any input failed; otherwise it throws the first input's <see cref="OperationCanceledException"/> in input
-    /// order when any input was canceled. Input order selects the exception, so a replay observes the same one in any
-    /// completion order. Wait cancellation and host wait failures are propagated.
+    /// 返回的任务只有在每个输入为终端之后才完成。 然后它会按输入顺序丢弃第一个失败
+    /// 当任何输入失败时; 否则它会将第一个输入 <see cref="OperationCanceledException"/> 投进
+    /// 中选择例外,因此重播放在任何
+    /// 完成命令。 发布取消等待和主机等候失败的信号 。
     /// </remarks>
     public static async Task WhenAll(IReadOnlyList<ScheduledTask> tasks, CancellationToken cancellationToken = default)
     {
@@ -241,15 +241,15 @@ public abstract partial class ScheduledTask
         EnsureSuccessfulCompletion(await WaitForAllAsync(tasks.ToArray<ScheduledTask>(), cancellationToken));
     }
 
-    /// <summary>Waits until every scheduled task is terminal, and returns the tasks in input order.</summary>
-    /// <param name="tasks">The tasks, which are captured when this method is called.</param>
-    /// <param name="cancellationToken">A token which abandons the wait. It doesn't cancel the tasks.</param>
+    /// <summary>等待到每个指定任务为终端,然后将任务按输入顺序返回。</summary>
+    /// <param name="tasks">任务,当调用此方法时将记录这些任务。</param>
+    /// <param name="cancellationToken">放弃等待的象征,它不会取消任务</param>
     /// <returns>
-    /// The tasks, in input order. Each has observed its terminal response, so <see cref="Status"/>,
-    /// <see cref="Exception"/>, and <see cref="ScheduledTask{TResult}.TryGetResult(out TResult)"/> inspect it.
+    /// 每个任务都观察了它的终端反应,所以 <see cref="Status"/>,
+    /// <see cref="Exception"/>和 <see cref="ScheduledTask{TResult}.TryGetResult(out TResult)"/> 检查它。
     /// </returns>
     /// <remarks>
-    /// A task's failure or cancellation doesn't fail the wait; wait cancellation and host wait failures are propagated.
+    /// 任务失败或取消不会让等待失败; 等待取消和主机等待失败会传播 。
     /// </remarks>
     public static async Task<ScheduledTask[]> WhenAllCompleted(
         IReadOnlyList<ScheduledTask> tasks,
@@ -272,24 +272,24 @@ public abstract partial class ScheduledTask
         return candidates;
     }
 
-    /// <summary>Yields each scheduled task once, in completion order, as it reaches a terminal state.</summary>
-    /// <param name="tasks">The tasks, which are captured when this method is called.</param>
+    /// <summary>完成单上规定,每次完成一次,在到达终点时就完成。</summary>
+    /// <param name="tasks">任务,当调用此方法时将记录这些任务。</param>
     /// <returns>
-    /// The tasks in completion order. Each yielded task has observed its terminal response, including a failure or a
-    /// cancellation, which doesn't fail the enumeration.
+    /// 每项任务都观察了它的终端反应,包括故障或
+    /// 取消,它不会失败的
     /// </returns>
     /// <remarks>
     /// <para>
-    /// Called within a durable execution, the tasks are children of that execution, and the host selects each next task:
-    /// the remaining task which completed first in the host's durable completion order, so every replay yields the same
-    /// order, including a replay in which more tasks have already completed. A host without a durable completion order
-    /// records each selection, under a decision identifier beneath an operation identifier which this method generates in
-    /// execution order when called. Outside a durable execution, tasks are yielded in the order their waits observe their
-    /// responses.
+    /// 执行要持续进行,任务就是执行的后代,而东道主则选择下一个任务:
+    /// 剩下的任务,在东道方的持久完工令中首先完成, 所以每次重放都产生同样的效果
+    /// 包括重放,其中更多的任务已经完成。
+    /// 使用此方法生成的操作识别符号下的决定标识符记录了每个选择
+    /// 执行命令时,请按命令执行。
+    /// 答复。
     /// </para>
     /// <para>
-    /// The enumeration's cancellation token abandons the wait without canceling the tasks, and host wait failures are
-    /// propagated. Tasks which the enumeration doesn't reach keep running.
+    /// 取消点数取消的标记放弃等待而不取消任务, 而主机的等待失败
+    /// 传播。查点没有达到的任务 继续运行。
     /// </para>
     /// </remarks>
     public static IAsyncEnumerable<ScheduledTask> WhenEach(IReadOnlyList<ScheduledTask> tasks)
@@ -314,8 +314,8 @@ public abstract partial class ScheduledTask
     internal const string WhenEachOperation = "when-each";
 
     /// <summary>
-    /// Yields <paramref name="tasks"/> in the order in which the host of <paramref name="context"/> selects their
-    /// completions, each under a decision identifier beneath <paramref name="operationId"/>.
+    /// 所给 <paramref name="tasks"/> 的给付,按 <paramref name="context"/> 主机选择它们的顺序排序
+    /// 完成,每个在 <paramref name="operationId"/>之下的决定识别符号下。
     /// </summary>
     internal static async IAsyncEnumerable<TTask> WhenEachSelectedAsync<TTask>(
         DurableTaskContext context,
@@ -386,10 +386,10 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// Waits for the terminal response of every task, caching it in the task, and returns the responses in input order.
+    /// 等待每项任务的终端响应, 将它刻在任务中, 然后按输入顺序返回回复 。
     /// </summary>
     /// <remarks>
-    /// Every wait completes before the first failed wait, in input order, is propagated.
+    /// 第一次失败前完成的每段等待都按输入顺序进行传播。
     /// </remarks>
     private static async Task<DurableTaskResponse[]> WaitForAllAsync(ScheduledTask[] tasks, CancellationToken cancellationToken)
     {
@@ -408,13 +408,13 @@ public abstract partial class ScheduledTask
 
         return responses;
 
-        // A wait which fails synchronously fails only its own observation, so the other waits still start.
+        // 失败的等待同步 仅仅没有达到它自己的观察, 所以其他的等待仍然开始。
         static async Task<DurableTaskResponse> ObserveTaskAsync(ScheduledTask task, CancellationToken cancellationToken)
             => await task.ObserveTerminalAsync(cancellationToken);
     }
 
     /// <summary>
-    /// Throws the first failure in input order or, when no response failed, the first cancellation in input order.
+    /// 将第一个失败丢弃为输入顺序,或者在未回复失败时,将第一个取消丢弃为输入顺序。
     /// </summary>
     internal static void EnsureSuccessfulCompletion(DurableTaskResponse[] responses)
     {
@@ -436,20 +436,20 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// Returns the first scheduled task whose response completes, including failed or canceled durable
-    /// responses. Wait cancellation and transport failures are propagated, and losing waits are canceled
-    /// without canceling the durable tasks. Candidates are captured when this method is called.
+    /// 返回第一个已完成响应的预定任务,包括失败或取消的耐用性
+    /// 等待取消和交通故障被推广, 失去的等待被取消
+    /// 候选人在使用该方法时被俘虏。
     /// </summary>
     /// <remarks>
-    /// Called within a durable execution, the tasks are children of that execution, and the host selects the task which
-    /// completed first in its durable completion order, so every replay returns the same task, including a replay in which
-    /// more tasks have already completed. A host without a durable completion order records the selection, under the
-    /// decision identifier <c>$winner</c> beneath an operation identifier which this method generates in execution order
-    /// when called. Outside a durable execution, the method returns the task whose wait observes its response first. The
-    /// returned task has observed its terminal response.
+    /// 执行要持久,任务就是执行的后代,而东道主选择的任务
+    /// 其持久完成顺序中的第一个部分首次完成,因此每次重放都返回同样的任务,包括一个重放
+    /// 已完成更多任务。
+    /// 确定决定标识符 <c>$winner</c> 执行命令中此方法生成的操作标识符
+    /// 调用时。 在持久执行之外, 方法返回等待先观察响应的任务。
+    /// 返回任务已观察其终端响应。
     /// </remarks>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> is empty.</exception>
-    /// <exception cref="InvalidOperationException">The host's wait for the selected task returned an incomplete response.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> 是空的。</exception>
+    /// <exception cref="InvalidOperationException">所选任务的主机等待返回的回复不完整。</exception>
     public static async Task<ScheduledTask> WhenAny(IReadOnlyList<ScheduledTask> tasks, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tasks);
@@ -468,12 +468,12 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// Selects the first completion of <paramref name="tasks"/> through the current execution's host, or by observing the
-    /// waits outside a durable execution.
+    /// 选择第一个完成 <paramref name="tasks"/> ,或者通过当前执行的东道主,或通过观察
+    /// 等待在耐久处决之外。
     /// </summary>
     /// <remarks>
-    /// The operation identifier is generated before the first await, so calls which begin in deterministic order receive
-    /// the same identifiers on replay.
+    /// 操作识别身份标识符是在第一次等待之前生成的, 所以以确定性命令开始的通话会收到
+    /// 重放时相同的识别符。
     /// </remarks>
     private static Task<int> SelectAnyIndexAsync<TTask>(TTask[] tasks, CancellationToken cancellationToken)
         where TTask : ScheduledTask
@@ -506,8 +506,8 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// Returns the index of the task among <paramref name="tasks"/> which the host of <paramref name="context"/> selects as
-    /// the first to complete, under the decision identifier <c>$winner</c> beneath <paramref name="operationId"/>.
+    /// 返回任务中的任务索引 <paramref name="tasks"/> 所在的 <paramref name="context"/> 选择为
+    /// 第一次完成,根据决定识别符号 <c>$winner</c> 下 <paramref name="operationId"/>.
     /// </summary>
     internal static async Task<int> SelectIndexAsync(
         DurableTaskContext context,
@@ -533,8 +533,8 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// Links the caller's wait cancellation with the attempt's cancellation token, or returns <see langword="null"/> when the
-    /// caller's token can't be canceled, so the attempt's token alone applies.
+    /// 将调用者取消等待的取消与尝试取消标记或返回链接 <see langword="null"/> 时
+    /// 无法取消调用者的代号, 因此仅此尝试的代号即可适用 。
     /// </summary>
     internal static CancellationTokenSource? CreateLinkedWaitCancellation(DurableTaskContext context, CancellationToken cancellationToken) =>
         cancellationToken.CanBeCanceled
@@ -598,7 +598,7 @@ public abstract partial class ScheduledTask
         }
         catch
         {
-            // The failure which interrupted wait construction takes precedence over cleanup failures.
+            // 中断施工的失败优先于清理失败。
         }
     }
 
@@ -615,7 +615,7 @@ public abstract partial class ScheduledTask
         }
         catch
         {
-            // Canceling losing wait observations is best-effort cleanup.
+            // 取消等待观察的失败是最佳的清理。
         }
 
         await DrainLosingWaitsAsync(waits, winnerIndex);
@@ -639,38 +639,38 @@ public abstract partial class ScheduledTask
             }
             catch
             {
-                // Losing observations are canceled and do not determine the result.
+                // 失去观察被取消,而且没有确定结果。
             }
         }
     }
 }
 
-/// <summary>Represents a host-scheduled durable task with a result.</summary>
+/// <summary>表示东道国排定的持久任务,结果产生。</summary>
 public abstract partial class ScheduledTask<TResult> : ScheduledTask
 {
-    /// <summary>Gets an awaiter which returns the successful result.</summary>
+    /// <summary>获得返回成功结果的等待者。</summary>
     public new ScheduledTaskAwaiter<TResult> GetAwaiter() => new(this, CancellationToken.None);
 
-    /// <summary>Configures a typed wait with a wait-cancellation token.</summary>
+    /// <summary>配置一个输入的等待, 并配有等待取消标记。</summary>
     public new ConfiguredScheduledTaskAwaitable<TResult> WaitAsync(CancellationToken cancellationToken = default)
         => new(this, cancellationToken);
 
     /// <summary>
-    /// Returns the result which this handle observed, or throws the recorded failure or cancellation, as awaiting the task
-    /// does.
+    /// 返回此处理观察到的结果,或丢弃记录失败或取消的结果,以等待任务
+    /// 确实如此。
     /// </summary>
-    /// <returns>The task's successful result.</returns>
-    /// <exception cref="InvalidOperationException">This handle hasn't observed the task's terminal response.</exception>
+    /// <returns>任务的成功结果。</returns>
+    /// <exception cref="InvalidOperationException">此把手没有观察到任务终端响应 。</exception>
     public TResult GetResult()
         => (Response ?? throw new InvalidOperationException(
             $"Durable task '{Id}' has no observed terminal response. Await the task, or a combinator which returns it, first."))
             .GetResult<TResult>();
 
-    /// <summary>Gets the result, when this handle has observed that the task completed successfully.</summary>
-    /// <param name="value">The successful result, or <see langword="default"/>.</param>
+    /// <summary>当此手柄观察到任务成功完成时, 获取结果。</summary>
+    /// <param name="value">成功的结果,或 <see langword="default"/>.</param>
     /// <returns>
-    /// <see langword="true"/> when this handle observed a successful completion; otherwise <see langword="false"/>, for a
-    /// task which failed, was canceled, or whose terminal response this handle hasn't observed.
+    /// 当处理时发现成功完成时<see langword="true"/> ;否则 <see langword="false"/>,a
+    /// 任务失败, 被取消, 或者谁的终端响应 此手柄没有观察到 。
     /// </returns>
     public bool TryGetResult([MaybeNullWhen(false)] out TResult value)
     {
@@ -730,15 +730,15 @@ internal sealed class ScheduledTaskHandle<TResult>(IScheduledTaskHandle handle) 
 }
 
 /// <summary>
-/// Runs the operations of host handles for the durable execution which calls them: a canceled attempt's operations throw
-/// <see cref="DurableTaskAttemptCanceledException"/>, including operations which the attempt's cancellation ends.
+/// 运行耐久执行的东道主控手柄操作,称为:
+/// <see cref="DurableTaskAttemptCanceledException"/>,包括取消努力结束的业务。
 /// </summary>
-/// <remarks>Outside a durable execution, the operations run unchanged.</remarks>
+/// <remarks>在持久执行之外,业务保持不变。</remarks>
 internal static class HostHandleOperations
 {
     /// <remarks>
-    /// The wait ends when the attempt is canceled, whether or not the host links the attempt's cancellation itself, so a
-    /// canceled attempt's waits throw <see cref="DurableTaskAttemptCanceledException"/>.
+    /// 尝试取消时等待结束, 是否主机连接了尝试取消本身, 所以
+    /// 取消尝试的等待丢弃 <see cref="DurableTaskAttemptCanceledException"/>。
     /// </remarks>
     public static ValueTask<DurableTaskResponse> WaitAsync(IScheduledTaskHandle handle, CancellationToken cancellationToken)
     {
@@ -764,7 +764,7 @@ internal static class HostHandleOperations
             }
             catch (OperationCanceledException exception) when (DurableTaskContext.IsCallerCancellation(exception, cancellationToken))
             {
-                // The caller's cancellation ends the wait, so the wait reports the caller's token.
+                // 取消电话的取消结束了等待 所以等待报告了打电话者的告示
                 throw new OperationCanceledException(exception.Message, exception, cancellationToken);
             }
         }
@@ -838,7 +838,7 @@ internal sealed class CompletedScheduledTask<TResult> : ScheduledTask<TResult>
     protected override ValueTask<DurableTaskResponse> PollAsyncCore(PollingOptions options, CancellationToken cancellationToken) => new(_response);
 }
 
-/// <summary>Provides an awaiter for a scheduled durable task without a result.</summary>
+/// <summary>提供等待者,以完成预定的持久任务,但无结果。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Awaiters are compiler protocol values whose equality is not part of their contract.")]
 public readonly struct ScheduledTaskAwaiter : ICriticalNotifyCompletion
 {
@@ -857,11 +857,11 @@ public readonly struct ScheduledTaskAwaiter : ICriticalNotifyCompletion
     /// <inheritdoc />
     public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
 
-    /// <summary>Waits for successful completion.</summary>
+    /// <summary>等待成功完成。</summary>
     public void GetResult() => _awaiter.GetResult();
 }
 
-/// <summary>Provides an awaiter for a scheduled durable task with a result.</summary>
+/// <summary>提供等待者完成预定的持久任务,并取得结果。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Awaiters are compiler protocol values whose equality is not part of their contract.")]
 public readonly struct ScheduledTaskAwaiter<TResult> : ICriticalNotifyCompletion
 {
@@ -884,16 +884,16 @@ public readonly struct ScheduledTaskAwaiter<TResult> : ICriticalNotifyCompletion
     /// <inheritdoc />
     public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
 
-    /// <summary>Returns the successful result.</summary>
+    /// <summary>返回成功的结果。</summary>
     public TResult GetResult() => _task.Observe(_awaiter.GetResult()).GetResult<TResult>();
 }
 
-/// <summary>Provides an awaitable scheduled durable task with a wait-cancellation token.</summary>
+/// <summary>提供等待取消标记的等待批准、预定的持久任务。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Configured awaitables are compiler protocol values whose equality is not part of their contract.")]
 public readonly struct ConfiguredScheduledTaskAwaitable<TResult>(
     ScheduledTask<TResult> task,
     CancellationToken cancellationToken)
 {
-    /// <summary>Gets the configured awaiter.</summary>
+    /// <summary>获取配置的等待者。</summary>
     public ScheduledTaskAwaiter<TResult> GetAwaiter() => new(task, cancellationToken);
 }

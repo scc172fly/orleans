@@ -7,30 +7,30 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>Waits for durable task runtime transitions which a <see cref="DiagnosticEventCollector"/> captured.</summary>
-/// <remarks>Arm the collector before the action which causes the transition, so it captures the event.</remarks>
+/// <summary>等待持久任务运行时的过渡 <see cref="DiagnosticEventCollector"/> 捕获。</summary>
+/// <remarks>在引起转换动作之前武装收藏家, 从而将事件记录下来 。</remarks>
 internal static class DurableTaskEventBarriers
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
 
-    /// <summary>Creates a collector for the durable task runtime's events.</summary>
+    /// <summary>为耐久任务运行时间事件创建收藏家。</summary>
     public static DiagnosticEventCollector Collect() => new(DurableTaskEvents.ListenerName);
 
-    /// <summary>Waits until <paramref name="grainId"/>'s runtime staged the terminal result of <paramref name="taskId"/>.</summary>
+    /// <summary>等待 <paramref name="grainId"/>运行时间完成 <paramref name="taskId"/>的终端结果。</summary>
     public static async Task<DurableTaskResponse> WaitForCompletedAsync(this DiagnosticEventCollector events, GrainId grainId, TaskId taskId) =>
         ((DurableTaskEvents.TaskCompleted)(await Wait<DurableTaskEvents.TaskCompleted>(events, grainId, taskId)).Payload!).Response;
 
-    /// <summary>Waits until <paramref name="grainId"/>'s runtime staged the deletion of <paramref name="taskId"/>.</summary>
+    /// <summary>等待 <paramref name="grainId"/>的运行时间阶段删除 <paramref name="taskId"/>。</summary>
     public static Task WaitForDeletedAsync(this DiagnosticEventCollector events, GrainId grainId, TaskId taskId) =>
         Wait<DurableTaskEvents.TaskDeleted>(events, grainId, taskId);
 
     /// <summary>
-    /// Waits until <paramref name="calleeId"/>'s runtime created the task which it stores for the node
-    /// <paramref name="nodeId"/> which <paramref name="callerId"/> invoked, and returns that task's ID.
+    /// 等待 <paramref name="calleeId"/>运行时创建它存储用于节点的任务
+    /// <paramref name="nodeId"/> 减去 <paramref name="callerId"/> 引用,并返回该任务的身份。
     /// </summary>
     /// <remarks>
-    /// The callee stores the node under the caller's scope by its wire ID, which covers the incarnation of the caller's
-    /// run, so a test finds the ID which the run uses rather than deriving it.
+    /// 被调用者通过电线识别码将接头的节点存放在来电者的视野之下,该识别码覆盖了来电者的化身。
+    /// 运行,所以测试找到运行使用的代号而不是衍生的代号。
     /// </remarks>
     public static async Task<TaskId> WaitForCallerChildAsync(this DiagnosticEventCollector events, GrainId calleeId, GrainId callerId, TaskId nodeId)
     {
@@ -45,8 +45,8 @@ internal static class DurableTaskEventBarriers
     }
 
     /// <summary>
-    /// Returns whether a callee stores <paramref name="taskId"/> for the node <paramref name="nodeId"/> which
-    /// <paramref name="callerId"/> invoked, in any run of the node's tree.
+    /// 返回是否有一个调用商店 <paramref name="taskId"/> 节点 <paramref name="nodeId"/> 减去
+    /// 在节点树的任何一根管子上都引用了<paramref name="callerId"/> 。
     /// </summary>
     public static bool IsCallerChild(GrainId callerId, TaskId nodeId, TaskId taskId) =>
         CallerScope.Root.Child(callerId.ToString()).IsAncestorOf(taskId)

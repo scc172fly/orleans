@@ -11,7 +11,7 @@ namespace Tester.StreamingTests.ProgrammaticSubscribeTests
     public abstract class SubscriptionObserverWithImplicitSubscribingTestRunner : OrleansTestingBase
     {
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
-        //test utilities and statics
+        //水电和静电测试
         public static string StreamProviderName = "StreamProvider1";
         public static string StreamProviderName2 = "StreamProvider2";
         protected readonly BaseTestClusterFixture fixture;
@@ -49,7 +49,7 @@ namespace Tester.StreamingTests.ProgrammaticSubscribeTests
             var implicitConsumer = this.fixture.HostedCluster.GrainFactory!.GetGrain<IImplicitSubscribeGrain>(streamId.Guid);
             Assert.Equal(10, await implicitConsumer.GetNumberConsumed());
 
-            //clean up test
+            //清洁净化测试
             await implicitConsumer.StopConsuming();
         }
 
@@ -65,14 +65,14 @@ namespace Tester.StreamingTests.ProgrammaticSubscribeTests
             cts.Token.ThrowIfCancellationRequested();
             await producer.BecomeProducer(streamId.Guid, streamId.Namespace, streamId.ProviderName);
 
-            // set up the new stream with the same guid, but different namespace, so it would invoke the same consumer grain
+            // 以相同的guid 设置新流, 但不同的命名空间, 从而引用同一消费者 grain
             var streamId2 = new FullStreamIdentity(streamId.Guid, ImplicitSubscribeGrain.StreamNameSpace2, StreamProviderName);
             var rxStreamId2 = StreamId.Create(ImplicitSubscribeGrain.StreamNameSpace2, streamId2.Guid);
             var producer2 = this.fixture.GrainFactory.GetGrain<ITypedProducerGrainProducingApple>(Guid.NewGuid());
             cts.Token.ThrowIfCancellationRequested();
             await producer2.BecomeProducer(streamId2.Guid, streamId2.Namespace, streamId2.ProviderName);
 
-            // Produce 10 events in streamId, 8 on streamId2
+            // 在 streamId、8和 streamId2中举办10场活动
             for (var i = 0; i < 10; i++)
             {
                 cts.Token.ThrowIfCancellationRequested();
@@ -91,7 +91,7 @@ namespace Tester.StreamingTests.ProgrammaticSubscribeTests
             var implicitConsumer = this.fixture.HostedCluster.GrainFactory!.GetGrain<IImplicitSubscribeGrain>(streamId.Guid);
             Assert.Equal(18, await implicitConsumer.GetNumberConsumed());
 
-            //clean up test
+            //清洁净化测试
             await implicitConsumer.StopConsuming();
         }
 
@@ -108,14 +108,14 @@ namespace Tester.StreamingTests.ProgrammaticSubscribeTests
             cts.Token.ThrowIfCancellationRequested();
             await producer.BecomeProducer(streamId.Guid, streamId.Namespace, streamId.ProviderName);
 
-            // set up the new stream with the same guid, but different namespace, so it would invoke the same consumer grain
+            // 以相同的guid 设置新流, 但不同的命名空间, 从而引用同一消费者 grain
             var streamId2 = new FullStreamIdentity(streamId.Guid, ImplicitSubscribeGrain.StreamNameSpace2, StreamProviderName2);
             var rxStreamId2 = StreamId.Create(ImplicitSubscribeGrain.StreamNameSpace2, streamId2.Guid);
             var producer2 = this.fixture.GrainFactory.GetGrain<ITypedProducerGrainProducingApple>(Guid.NewGuid());
             cts.Token.ThrowIfCancellationRequested();
             await producer2.BecomeProducer(streamId2.Guid, streamId2.Namespace, streamId2.ProviderName);
 
-            // Produce 10 events in streamId, 8 on streamId2
+            // 在 streamId、8和 streamId2中举办10场活动
             for (var i = 0; i < 10; i++)
             {
                 cts.Token.ThrowIfCancellationRequested();
@@ -135,7 +135,7 @@ namespace Tester.StreamingTests.ProgrammaticSubscribeTests
                 this.fixture.HostedCluster.GrainFactory!.GetGrain<IImplicitSubscribeGrain>(streamId.Guid);
             Assert.Equal(18, await implicitConsumer.GetNumberConsumed());
 
-            //clean up test
+            //清洁净化测试
             await implicitConsumer.StopConsuming();
         }
     }

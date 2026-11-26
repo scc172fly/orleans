@@ -1,17 +1,17 @@
 namespace Orleans.Serialization.WireProtocol
 {
     /// <summary>
-    /// Represents an extended wire type
+    /// 代表长线型
     /// </summary>
     public enum ExtendedWireType : uint
     {
         /// <summary>
-        /// Marks the end of a tag-delimited field.
+        /// 标记标签限制字段的结尾。
         /// </summary>
         EndTagDelimited = 0b00 << 3,
 
         /// <summary>
-        /// Marks the end of base-type fields in a tag-delimited object.
+        /// 标记标签限制对象中基型字段的结束。
         /// </summary>
         EndBaseFields = 0b01 << 3,
     }

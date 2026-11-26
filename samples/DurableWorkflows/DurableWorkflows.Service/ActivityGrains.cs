@@ -3,9 +3,9 @@ using Orleans.Durable.Tasks;
 
 namespace DurableWorkflows;
 
-// Each durable task method's state change commits in the same journal write as its result. The grains record every
-// effect by operation ID and return the recorded effect for a repeated operation, so a retried or repeated workflow
-// applies each effect once.
+// 每项持久任务方法的状态变化都承诺在同一份日记上写成。 grains 记录每
+// 返回重复操作的记录效果,因此要重新或重复工作流程
+// 每种效果都适用一次。
 public sealed class ActivityGrain : DurableGrain, IActivityGrain
 {
     private readonly IDurableDictionary<string, ActivityResult> _effects;

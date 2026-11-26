@@ -6,10 +6,10 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// Runs generated schedules of sends, delivery faults, crashes, and time against one sender and one receiver, and checks
-/// the end-to-end delivery contract: no fault ever applies a message's effect twice, and once faults stop, every message
-/// is processed exactly once in effect or dead-lettered at the sender when its absolute retry budget expires.
-/// A fenced terminal outcome is unknown: the receiver may already have applied the message before an acknowledgement was lost.
+/// 运行生成发送、交付故障、碰撞和时间时间表,以一个发件人和一个接收器为对象,并进行检查
+/// 端对端交付合同:任何过失都从未两次应用电文的效果,一旦断层停止,每条电文就停止
+/// 其绝对重试预算到期时,正完全处理一次有效或发件人未填字母。
+/// 围栏终端结果未知:接收者可能已在确认丢失之前应用了电文。
 /// </summary>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
@@ -67,11 +67,11 @@ public sealed class DeliverySimulationTests : MessagingBehaviorTestBase
                     break;
             }
 
-            // Safety holds during faults: no message's effect is ever applied twice.
+            // 故障时的安全屏蔽:电文的效应从未两次应用。
             Assert.All((await receiver.GetSnapshotAsync()).Effects, static effect => Assert.Equal(1, effect.Count));
         }
 
-        // Faults stop; each retry becomes due and succeeds, unless the message's retry timeout elapsed first.
+        // 错误停止; 每一次重试都到期并成功, 除非信件的重试超时先过。
         _cluster.Deliveries.Clear();
         for (var round = 0; round < 8; round++)
         {

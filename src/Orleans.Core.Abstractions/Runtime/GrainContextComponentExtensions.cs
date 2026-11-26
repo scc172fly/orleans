@@ -4,21 +4,21 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// Extensions for <see cref="IGrainContext"/> related to <see cref="IGrainExtension"/>.
+    /// 延期 <see cref="IGrainContext"/> 与 <see cref="IGrainExtension"/>.
     /// </summary>
     public static class GrainContextComponentExtensions
     {
         /// <summary>
-        /// Used by generated code for <see cref="IGrainExtension" /> interfaces.
+        /// 被生成的 <see cref="IGrainExtension" /> 接口代码所使用。
         /// </summary>
         /// <typeparam name="TComponent">
-        /// The type of the component to get.
+        /// 要获取的组件类型 。
         /// </typeparam>
         /// <param name="context">
-        /// The grain context.
+        /// grain 上下文。
         /// </param>
         /// <returns>
-        /// The grain extension.
+        /// 延长 grain 。
         /// </returns>
         public static TComponent GetGrainExtension<TComponent>(this IGrainContext context)
             where TComponent : class, IGrainExtension

@@ -6,44 +6,44 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Provides cached access to messages received from a stream queue.
+    /// 提供缓存访问从流队列接收的信件的机会 。
     /// </summary>
     public interface IQueueCache : IQueueFlowController
     {
         /// <summary>
-        /// Adds messages to the cache.
+        /// 将信件添加到缓存中。
         /// </summary>
-        /// <param name="messages">The message batches.</param>
+        /// <param name="messages">信件批次。</param>
         void AddToCache(IList<IBatchContainer> messages);
 
         /// <summary>
-        /// Requests that the cache purge any items that can be purged.
+        /// 要求暗藏处清除任何可以清洗的物品
         /// </summary>
-        /// <param name="purgedItems">The purged items.</param>
-        /// <returns><see langword="true" /> if items were successfully purged from the cache., <see langword="false" /> otherwise.</returns>
+        /// <param name="purgedItems">清理的项目。</param>
+        /// <returns><see langword="true" /> 如果从缓存中成功清除了项目 。 <see langword="false" /> 否则。</returns>
         bool TryPurgeFromCache([MaybeNullWhen(false)] out IList<IBatchContainer> purgedItems);
 
         /// <summary>
-        /// Acquire a stream message cursor.  This can be used to retrieve messages from the
-        /// cache starting at the location indicated by the provided token.
+        /// 获取流信息光标。 此功能可用于从
+        /// 从所提供的标记所显示的位置开始缓存 。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="token">The token.</param>
-        /// <returns>The queue cache cursor, which the caller is responsible for disposing.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="token">牌子。</param>
+        /// <returns>队列缓存光标, 调用者负责处置它。</returns>
         /// <exception cref="QueueCacheMissException">
-        /// The requested token is older than the messages retained by the cache.
+        /// 请求的符名比缓存保存的信件要旧 。
         /// </exception>
         [Obsolete("Use TryGetCacheCursor instead.")]
         IQueueCacheCursor GetCacheCursor(StreamId streamId, StreamSequenceToken? token);
 
         /// <summary>
-        /// Attempts to acquire a stream message cursor at the location indicated by the provided token.
+        /// 试图在所提供的标记所显示的位置获取流信息光标。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="token">The token.</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="token">牌子。</param>
         /// <returns>
-        /// A successful result containing the acquired cursor, or a cache-miss result containing the
-        /// unavailable position and current cache bounds. The caller is responsible for disposing a successfully acquired cursor.
+        /// 包含获得的光标的成功结果,或含有
+        /// 无法获取位置和当前缓存边框。 调用者负责处理成功获得的光标 。
         /// </returns>
         QueueCacheCursorResult<IQueueCacheCursor> TryGetCacheCursor(StreamId streamId, StreamSequenceToken? token)
         {
@@ -61,21 +61,21 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Attempts to acquire a stream message cursor at the specified subscription start position.
+        /// 试图在指定的订阅启动位置获取流信息光标 。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="startPosition">The initial subscription position.</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="startPosition">初始订阅位置。</param>
         /// <returns>
-        /// A successful result containing the acquired cursor, a cache-miss result containing the unavailable
-        /// position and current cache bounds, or <see cref="QueueCacheCursorResultKind.NotSupported"/>.
-        /// The caller is responsible for disposing a successfully acquired cursor.
+        /// 包含获得光标的成功结果, 含有无法的缓存错误结果
+        /// 和当前缓存边框,或 <see cref="QueueCacheCursorResultKind.NotSupported"/>。
+        /// 调用器负责处理成功获取的光标。
         /// </returns>
         /// <remarks>
-        /// The default implementation acquires the latest cursor using <see cref="TryGetCacheCursor"/>
-        /// with a null token. Providers support earliest positioning by implementing this method
-        /// and returning a cursor positioned inclusively at the oldest retained message for the stream.
+        /// 默认执行使用 <see cref="TryGetCacheCursor"/>获取最新的光标
+        /// 供应商通过采用这种方法支持尽早定位
+        /// 并返回一个光标,位置包含在流中最古老的预留信息处。
         /// </remarks>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="startPosition"/> is not defined.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="startPosition"/> 未定义。</exception>
         QueueCacheCursorResult<IQueueCacheCursor> TryGetCacheCursorAtPosition(
             StreamId streamId,
             StreamSubscriptionStartPosition startPosition)
@@ -94,20 +94,20 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Returns <see langword="true" /> if this cache is under pressure, <see langword="false" /> otherwise.
+        /// 如果缓存受到压力,则返回 <see langword="true" /> 。 <see langword="false" /> 其它情况。
         /// </summary>
-        /// <returns><see langword="true" /> if this cache is under pressure; otherwise, <see langword="false" />.</returns>
+        /// <returns><see langword="true" /> 如果该缓存受到压力;否则, <see langword="false" />。</returns>
         bool IsUnderPressure();
 
         /// <summary>
-        /// Updates the cache with the current delivery progress of all active subscriptions.
+        /// 以当前所有当前订阅的发送进度更新缓存 。
         /// </summary>
         /// <param name="earliestSubscriptionToken">
-        /// The earliest last processed sequence token across registered subscriptions.
-        /// A <see langword="null"/> value indicates that there are no active subscriptions.
-        /// The token is only valid for the duration of the call and must not be stored.
+        /// 注册订阅者之间最早处理的序列符号。
+        /// <see langword="null"/> 值表示没有活动订阅。
+        /// 此牌只对通话期间有效, 不得存储 。
         /// </param>
-        /// <param name="utcNow">The current UTC time.</param>
+        /// <param name="utcNow">当前UTC 时间。</param>
         void UpdateDeliveryProgress(StreamSequenceToken? earliestSubscriptionToken, DateTime utcNow) { }
     }
 }

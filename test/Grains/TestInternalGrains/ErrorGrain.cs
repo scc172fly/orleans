@@ -5,7 +5,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains
 {
     /// <summary>
-    /// A simple grain that allows to set two arguments and then multiply them.
+    /// 简单 grain ,它允许设置两个参数然后乘以它们。
     /// </summary>
     public class ErrorGrain : SimpleGrain, IErrorGrain
     {
@@ -94,7 +94,7 @@ namespace UnitTests.Grains
             logger.LogInformation("UnobservedErrorImmediate()");
 
             bool doThrow = true;
-            // the grain method returns OK, but leaves some unobserved promise
+            // grain 方法返回OK,但留下一些未遵守的承诺
             Task<long>? promise = Task<long>.Factory.StartNew(() =>
             {
                 if (!doThrow)
@@ -114,7 +114,7 @@ namespace UnitTests.Grains
         {
             logger.LogInformation("UnobservedErrorDelayed()");
             bool doThrow = true;
-            // the grain method rturns OK, but leaves some unobserved promise
+            // 排 grain 方法rurturn 确定,但留下一些未兑现的承诺
             Task<long>? promise = Task.Factory.StartNew(async () =>
             {
                 if (!doThrow)
@@ -137,7 +137,7 @@ namespace UnitTests.Grains
         public Task<int> UnobservedErrorContinuation2()
         {
             logger.LogInformation("UnobservedErrorContinuation2()");
-            // the grain method returns OK, but leaves some unobserved promise
+            // grain 方法返回OK,但留下一些未遵守的承诺
             Task<long>? promise = Task.FromResult((long)25);
             Task? cont = promise.ContinueWith(_ =>
                 {
@@ -156,7 +156,7 @@ namespace UnitTests.Grains
         public Task<int> UnobservedErrorContinuation3()
         {
             logger.LogInformation("UnobservedErrorContinuation3() from Task {TaskId}", Task.CurrentId);
-            // the grain method returns OK, but leaves some unobserved promise
+            // grain 方法返回OK,但留下一些未遵守的承诺
             Task<long>? promise = Task<long>.Factory.StartNew(() =>
             {
                 logger.LogInformation("First promise from Task {TaskId}", Task.CurrentId);
@@ -181,7 +181,7 @@ namespace UnitTests.Grains
         {
             logger.LogInformation("UnobservedIgnoredError()");
             bool doThrow = true;
-            // the grain method rturns OK, but leaves some unobserved promise
+            // 排 grain 方法rurturn 确定,但留下一些未兑现的承诺
             Task<long> promise = Task<long>.Factory.StartNew(() =>
             {
                 if (!doThrow)

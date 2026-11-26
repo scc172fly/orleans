@@ -6,17 +6,17 @@ using Orleans.CodeGenerator.SyntaxGeneration;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// A case of a union type or of a closed type hierarchy, identified on the wire by <see cref="Id"/>.
+/// 工会类型或封闭型等级的情况,在线上 <see cref="Id"/>标明。
 /// </summary>
-/// <param name="Id">The case identifier, which is the field identifier of the case value within the union field.</param>
-/// <param name="CaseType">The case type, expressed in terms of the union type's type parameters.</param>
-/// <param name="ValueType">The type of case values: <paramref name="CaseType"/>, or its underlying type when it is a nullable value type.</param>
+/// <param name="Id">案件识别符号,即联盟字段内案例值的实地识别符号。</param>
+/// <param name="CaseType">案例类型,以工会类型参数表示。</param>
+/// <param name="ValueType">案件值类型 : <paramref name="CaseType"/>,或其基本类型为无效值的类型。</param>
 internal sealed record UnionCaseDescription(uint Id, ITypeSymbol CaseType, ITypeSymbol ValueType);
 
 internal static class UnionCaseResolver
 {
     /// <summary>
-    /// Gets the cases of a union type in declaration order, or <see langword="null"/> if <paramref name="type"/> is not a union type.
+    /// 获得工会类型的情况按申报顺序排列,或 <see langword="null"/> 如果 <paramref name="type"/> 不属于工会类型。
     /// </summary>
     public static List<UnionCaseDescription>? GetUnionTypeCases(INamedTypeSymbol type, Compilation compilation, LibraryTypes libraryTypes)
     {
@@ -67,8 +67,8 @@ internal static class UnionCaseResolver
     }
 
     /// <summary>
-    /// Gets the cases of a closed type ordered by case identifier, or <see langword="null"/> if <paramref name="type"/> is not a closed type
-    /// or if none of its direct subtypes declare a case identifier.
+    /// 获取按案件标识符或 <see langword="null"/> (如果 <paramref name="type"/> 不是封闭类型)订购的封闭型号
+    /// 或如果其直接子类型都没有声明案件识别符号。
     /// </summary>
     public static List<UnionCaseDescription>? GetClosedTypeCases(INamedTypeSymbol type, Compilation compilation, LibraryTypes libraryTypes)
     {
@@ -111,12 +111,12 @@ internal static class UnionCaseResolver
     }
 
     /// <summary>
-    /// Expresses a direct subtype of a closed type in terms of the closed type's type parameters.
+    /// 表示封闭型直接的子类型,即封闭型参数。
     /// </summary>
     /// <remarks>
-    /// A case of a generic closed type must be a case of every instantiation of that type, so each type argument of its base type must be a distinct
-    /// type parameter of the case, as in 'Circle&lt;T&gt; : Shape&lt;T&gt;'. A subtype of one instantiation, such as 'IntSquare : Shape&lt;int&gt;', is rejected.
-    /// The mapping supports closed types and cases declared outside generic containing types.
+    /// 通用封闭型案件必须是每种这类的即时推理,因此其基本类型的每一类辩论都必须是不同的
+    /// 案件类型参数,如“圆环&lt;T&gt; :形状&lt;T&gt;' 。一个即时的子类型,例如`IntSquare :形状&lt;int&gt;' ,被否决。
+    /// 测绘支持封闭型和宣布不属于通用含汞类型的案件。
     /// </remarks>
     private static INamedTypeSymbol GetClosedCaseType(INamedTypeSymbol subtype, INamedTypeSymbol closedType, Compilation compilation)
     {
@@ -149,7 +149,7 @@ internal static class UnionCaseResolver
             throw new OrleansGeneratorDiagnosticAnalysisException(InvalidUnionCaseDiagnostic.CreateUnsupportedGenericCaseDiagnostic(subtype, closedType));
         }
 
-        // The generated codec for the closed type names each case using the closed type's type parameters, so those parameters must satisfy the case's constraints.
+        // 使用封闭类型类型参数为每个案件生成的封闭型名编码器,这些参数必须符合该案件的制约。
         if (!AreCaseConstraintsSatisfied(subtype, subtypeArguments, compilation))
         {
             throw new OrleansGeneratorDiagnosticAnalysisException(InvalidUnionCaseDiagnostic.CreateUnsupportedConstrainedCaseDiagnostic(subtype, closedType));
@@ -159,10 +159,10 @@ internal static class UnionCaseResolver
     }
 
     /// <summary>
-    /// Returns <see langword="true"/> if the closed type's type parameters, substituted for the subtype's type parameters, satisfy every constraint of the subtype.
+    /// 如果封闭型号的类型参数被子类型参数所替代, 满足子类型的所有限制, 返回 <see langword="true"/> 。
     /// </summary>
     /// <remarks>
-    /// Each constraint must be declared on the corresponding closed-type parameter. Constraints which are only implied, such as an interface implemented by a class constraint, are rejected.
+    /// 必须在相应的封闭型参数上宣布每项限制。仅含的制约,如通过等级约束执行的界面,将被否决。
     /// </remarks>
     private static bool AreCaseConstraintsSatisfied(INamedTypeSymbol subtype, ITypeSymbol[] subtypeArguments, Compilation compilation)
     {
@@ -201,7 +201,7 @@ internal static class UnionCaseResolver
 
     private static INamedTypeSymbol SubstituteNamedType(INamedTypeSymbol type, INamedTypeSymbol subtype, ITypeSymbol[] subtypeArguments, Compilation compilation)
     {
-        // A nested type's own type arguments exclude its containing type's arguments, so substitute the containing type before constructing the nested type.
+        // 嵌套型的自有类型参数排除了含有类型的参数, 所以在构建嵌套型之前先用包含的类型替换 。
         var definition = type.ContainingType is { } containing
             ? ((INamedTypeSymbol)Substitute(containing, subtype, subtypeArguments, compilation)).GetTypeMembers(type.Name, type.Arity).Single()
             : type.OriginalDefinition;

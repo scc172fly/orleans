@@ -4,18 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Placement;
 
 /// <summary>
-/// Provides extension methods for registering placement filters.
+/// 提供登记安置过滤器的推广方法。
 /// </summary>
 public static class PlacementFilterExtensions
 {
     /// <summary>
-    /// Registers a placement filter strategy and its director for filtering candidate grain placements.
+    /// 登记职位安排筛选战略及其负责筛选候选人 grain 职位安排的主任。
     /// </summary>
-    /// <typeparam name="TFilter">The placement filter strategy type, including the public constructors used for dependency injection.</typeparam>
-    /// <typeparam name="TDirector">The director which applies <typeparamref name="TFilter"/>, including the public constructors used for dependency injection.</typeparam>
-    /// <param name="services">The service collection.</param>
-    /// <param name="strategyLifetime">The service lifetime of the placement filter strategy.</param>
-    /// <returns>The provided service collection.</returns>
+    /// <typeparam name="TFilter">安置过滤战略类型,包括用于依赖注射的公共建筑师。</typeparam>
+    /// <typeparam name="TDirector">适用 <typeparamref name="TFilter"/>包括用于依赖注射的公共建筑师。</typeparam>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="strategyLifetime">安置过滤策略的服务寿命。</param>
+    /// <returns>提供的服务收藏。</returns>
     public static IServiceCollection AddPlacementFilter<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TFilter,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TDirector>(

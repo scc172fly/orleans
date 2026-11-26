@@ -12,7 +12,7 @@ using Orleans.Streams;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Identifies a Stream within a provider
+    /// 确定供应商内部的一条溪流
     /// </summary>
     [Immutable]
     [Serializable]
@@ -30,21 +30,21 @@ namespace Orleans.Runtime
         private readonly int hash;
 
         /// <summary>
-        /// Gets the full key.
+        /// 拿到了全部钥匙
         /// </summary>
-        /// <value>The full key.</value>
+        /// <value>整键。</value>
         public ReadOnlyMemory<byte> FullKey => fullKey;
 
         /// <summary>
-        /// Gets the namespace.
+        /// 获得命名空间。
         /// </summary>
-        /// <value>The namespace.</value>
+        /// <value>命名空间。</value>
         public ReadOnlyMemory<byte> Namespace => fullKey.AsMemory(0, this.keyIndex);
 
         /// <summary>
-        /// Gets the key.
+        /// 拿到钥匙
         /// </summary>
-        /// <value>The key.</value>
+        /// <value>密钥。</value>
         public ReadOnlyMemory<byte> Key => fullKey.AsMemory(this.keyIndex);
 
         private StreamId(byte[] fullKey, ushort keyIndex, int hash)
@@ -67,10 +67,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamId"/> struct.
+        /// 初始化 <see cref="StreamId"/> 结构的新实例。
         /// </summary>
-        /// <param name="ns">The namespace.</param>
-        /// <param name="key">The key.</param>
+        /// <param name="ns">命名空间。</param>
+        /// <param name="key">密钥。</param>
         public static StreamId Create(ReadOnlySpan<byte> ns, ReadOnlySpan<byte> key)
         {
             if (key.IsEmpty)
@@ -90,10 +90,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamId"/> struct.
+        /// 初始化 <see cref="StreamId"/> 结构的新实例。
         /// </summary>
-        /// <param name="ns">The namespace.</param>
-        /// <param name="key">The key.</param>
+        /// <param name="ns">命名空间。</param>
+        /// <param name="key">密钥。</param>
         public static StreamId Create(string? ns, Guid key)
         {
             if (ns is null)
@@ -115,18 +115,18 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamId"/> struct.
+        /// 初始化 <see cref="StreamId"/> 结构的新实例。
         /// </summary>
-        /// <param name="ns">The namespace.</param>
-        /// <param name="key">The key.</param>
+        /// <param name="ns">命名空间。</param>
+        /// <param name="key">密钥。</param>
         public static StreamId Create(string? ns, long key) => Create(ns, key.ToString());
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamId"/> struct.
+        /// 初始化 <see cref="StreamId"/> 结构的新实例。
         /// </summary>
-        /// <param name="ns">The namespace.</param>
-        /// <param name="key">The key.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+        /// <param name="ns">命名空间。</param>
+        /// <param name="key">密钥。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> 是 <see langword="null"/>.</exception>
         public static StreamId Create(string? ns, string key)
         {
             ArgumentNullException.ThrowIfNull(key);
@@ -142,10 +142,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamId"/> struct.
+        /// 初始化 <see cref="StreamId"/> 结构的新实例。
         /// </summary>
-        /// <param name="streamIdentity">The stream identity.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="streamIdentity"/> is <see langword="null"/>.</exception>
+        /// <param name="streamIdentity">流体身份。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="streamIdentity"/> 是 <see langword="null"/>.</exception>
         public static StreamId Create(IStreamIdentity streamIdentity)
         {
             ArgumentNullException.ThrowIfNull(streamIdentity);
@@ -162,23 +162,23 @@ namespace Orleans.Runtime
         public override bool Equals(object? obj) => obj is StreamId other ? this.Equals(other) : false;
 
         /// <summary>
-        /// Compares two <see cref="StreamId"/> instances for equality.
+        /// 比较了两个 <see cref="StreamId"/> 平等实例。
         /// </summary>
-        /// <param name="s1">The first stream identity.</param>
-        /// <param name="s2">The second stream identity.</param>
-        /// <returns>The result of the operator.</returns>
+        /// <param name="s1">第一个流身份。</param>
+        /// <param name="s2">第二个流身份。</param>
+        /// <returns>操作员的结果。</returns>
         public static bool operator ==(StreamId s1, StreamId s2) => s1.Equals(s2);
 
         /// <summary>
-        /// Compares two <see cref="StreamId"/> instances for equality.
+        /// 比较了两个 <see cref="StreamId"/> 平等实例。
         /// </summary>
-        /// <param name="s1">The first stream identity.</param>
-        /// <param name="s2">The second stream identity.</param>
-        /// <returns>The result of the operator.</returns>
+        /// <param name="s1">第一个流身份。</param>
+        /// <param name="s2">第二个流身份。</param>
+        /// <returns>操作员的结果。</returns>
         public static bool operator !=(StreamId s1, StreamId s2) => !s2.Equals(s1);
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="info"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info"/> 是 <see langword="null"/>.</exception>
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             ArgumentNullException.ThrowIfNull(info);
@@ -196,7 +196,7 @@ namespace Orleans.Runtime
             var len = Encoding.UTF8.GetCharCount(fullKey);
             if (keyIndex == 0)
             {
-                // QualifiedStreamId.ToString() is used as the pub/sub rendezvous grain key, so preserve its historical format.
+                // QualifiedStreamId.ToString() 被用作酒吧/次会合 grain 密钥,因此保留其历史形式。
                 if (destination.Length >= len + 5)
                 {
                     "null/".CopyTo(destination);
@@ -242,10 +242,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Parses a <see cref="StreamId"/> instance from a <see cref="string"/>.
+        /// 专业a <see cref="StreamId"/> 实例 <see cref="string"/>.
         /// </summary>
-        /// <param name="value">The UTF-8 encoded value.</param>
-        /// <returns>The parsed stream identity.</returns>
+        /// <param name="value">UTF-8 编码值。</param>
+        /// <returns>解析流身份。</returns>
         public static StreamId Parse(ReadOnlySpan<byte> value)
         {
             var i = value.IndexOf((byte)'/');
@@ -265,22 +265,22 @@ namespace Orleans.Runtime
         internal uint GetKeyIndex() => keyIndex;
 
         /// <summary>
-        /// Returns the <see cref="Key"/> component of this instance as a string.
+        /// 返回此实例的 <see cref="Key"/> 组件,作为字符串。
         /// </summary>
-        /// <returns>The key component of this instance.</returns>
+        /// <returns>此实例的关键组成部分。</returns>
         public string GetKeyAsString() => Encoding.UTF8.GetString(fullKey, keyIndex, fullKey.Length - keyIndex);
 
         /// <summary>
-        /// Returns the <see cref="Namespace"/> component of this instance as a string.
+        /// 返回此实例的 <see cref="Namespace"/> 组件,作为字符串。
         /// </summary>
-        /// <returns>The namespace component of this instance.</returns>
+        /// <returns>此实例的命名空间组件。</returns>
         public string? GetNamespace() => keyIndex == 0 ? null : Encoding.UTF8.GetString(fullKey, 0, keyIndex);
 
         internal IdSpan GetKeyIdSpan() => keyIndex == 0 ? IdSpan.UnsafeCreate(fullKey, hash) : new(fullKey.AsSpan(keyIndex).ToArray());
     }
 
     /// <summary>
-    /// Functionality for converting <see cref="StreamId"/> instances to and from their JSON representation.
+    /// 换算功能 <see cref="StreamId"/> 与从这些天起 JSON 代表。
     /// </summary>
     public sealed class StreamIdJsonConverter : JsonConverter<StreamId>
     {
@@ -316,7 +316,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 是 <see langword="null"/>.</exception>
         public override void Write(Utf8JsonWriter writer, StreamId value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);
@@ -347,7 +347,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 是 <see langword="null"/>.</exception>
         public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] StreamId value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);

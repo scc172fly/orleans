@@ -95,12 +95,12 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Indicates that application messages should be blocked from being sent or received.
-        /// This method is used by the "fast stop" process.
+        /// 表示应阻止发送或收到应用程序信息。
+        /// 此方法用于“ 快速停止” 进程 。
         /// <para>
-        /// Specifically, all outbound application requests and one-way messages are rejected or dropped,
-        /// while responses and messages to the membership table grain are allowed to complete.
-        /// Inbound application requests are rejected with cache invalidation, and other inbound application messages are dropped.
+        /// 具体而言,所有出境申请请求和单向信息都被拒绝或放弃;
+        /// 成员名单的答复和致辞 grain 允许完成。
+        /// 入境申请被以缓存失效的方式驳回,其他入境申请信息被丢弃。
         /// </para>
         /// </summary>
         public void BlockApplicationMessages()
@@ -145,7 +145,7 @@ namespace Orleans.Runtime.Messaging
         {
             Debug.Assert(!msg.IsLocalOnly);
 
-            // Note that if we identify or add other grains that are required for proper stopping, we will need to treat them as we do the membership table grain here.
+            // 请注意,如果我们确定或添加其他 grains 需要适当停止,我们需要对待他们,就像对待会员国一样 grain 这里
             var isBlockedApplicationMessage = IsBlockingApplicationMessages
                 && !msg.IsSystemMessage
                 && msg.Direction is not Message.Directions.Response
@@ -180,7 +180,7 @@ namespace Orleans.Runtime.Messaging
                     return;
                 }
 
-                // Don't process messages that have already timed out
+                // 不要处理已经超时的消息
                 if (msg.IsExpired)
                 {
                     this.messagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Send);
@@ -188,10 +188,10 @@ namespace Orleans.Runtime.Messaging
                     return;
                 }
 
-                // First check to see if it's really destined for a proxied client, instead of a local grain.
+                // 首先检查是否真的指定给代理客户端, 而不是本地 grain。
                 if (TryDeliverToProxy(msg))
                 {
-                    // Message was successfully delivered to the proxy.
+                    // 信件已成功传送到代理服务器 。
                     return;
                 }
 
@@ -219,7 +219,7 @@ namespace Orleans.Runtime.Messaging
                     }
                     else if (this.siloStatusOracle.IsDeadSilo(targetSilo))
                     {
-                        // Do not try to establish
+                        // 不尝试建立
                         if (msg.Direction is Message.Directions.Request or Message.Directions.OneWay)
                         {
                             this.messagingTrace.OnRejectSendMessageToDeadSilo(_siloAddress, msg);
@@ -292,9 +292,9 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Sends a rejection response for <paramref name="message"/> to its sender, together with its cache invalidation header.
+        /// 将 <paramref name="message"/> 拒绝回复连同其缓存失效信头发送给发件人。
         /// </summary>
-        /// <remarks>The caller retains ownership of <paramref name="message"/>.</remarks>
+        /// <remarks>电话人保留所有权 <paramref name="message"/>.</remarks>
         internal void SendRejectionResponse(Message message, Message.RejectionTypes rejectionType, string reason, Exception? exception)
         {
             var rejection = messageFactory.CreateRejectionResponse(message, rejectionType, reason, exception);
@@ -363,13 +363,13 @@ namespace Orleans.Runtime.Messaging
         {
             Debug.Assert(!message.IsLocalOnly);
 
-            // Just use this opportunity to invalidate local Cache Entry as well.
+            // 利用这个机会也废除本地快取条目 。
             if (oldAddress != null)
             {
                 _grainLocator.InvalidateCache(oldAddress);
             }
 
-            // IMPORTANT: do not do anything on activation context anymore, since this activation is invalid already.
+            // 重要:在激活上下文中,不要做任何事情了,因为启动已经无效。
             if (rejectMessages)
             {
                 if (oldAddress != null)
@@ -421,7 +421,7 @@ namespace Orleans.Runtime.Messaging
             {
                 var sentRejection = false;
 
-                // If the message was a one-way message, send a cache invalidation response even if the message was successfully forwarded.
+                // 如果信件是单向信息,即使信件已成功转发,也发送缓存无效响应。
                 if (message.Direction == Message.Directions.OneWay)
                 {
                     SendRejectionResponse(
@@ -449,7 +449,7 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Reroute a message coming in through a gateway
+        /// 更改通过通道传来的信息的路径
         /// </summary>
         /// <param name="message"></param>
         internal void RerouteMessage(Message message)
@@ -489,18 +489,18 @@ namespace Orleans.Runtime.Messaging
             }
         }
 
-        // Forwarding is used by the receiver, usually when it cannot process the message and forwards it to another silo to perform the processing
-        // (got here due to duplicate activation, outdated cache, silo is shutting down/overloaded, ...).
+        // 转发由接收人使用,通常当它无法处理电文并将其转发给另一个 silo 进行处理时。
+        // (此处是因为重复激活、过期缓存、 silo 关闭/超载,......)
         private static bool MayForward(Message message, SiloMessagingOptions messagingOptions)
         {
             return message.ForwardCount < messagingOptions.MaxForwardCount;
         }
 
         /// <summary>
-        /// Send an outgoing message, may complete synchronously
-        /// - may buffer for transaction completion / commit if it ends a transaction
-        /// - choose target placement address, maintaining send order
-        /// - add ordering info and maintain send order
+        /// 发送发出信件, 可能同步完成
+        /// - 交易结束时,可缓冲完成/承诺交易的缓冲区
+        /// - 选择目标定位地址,维持发送顺序
+        /// - 增加订购信息并维持发送订单
         ///
         /// </summary>
         internal Task AddressAndSendMessage(Message message)
@@ -547,7 +547,7 @@ namespace Orleans.Runtime.Messaging
         internal void SendResponse(Message request, Response response)
         {
             Debug.Assert(!request.IsLocalOnly);
-            // create the response
+            // 创建响应
             var message = this.messageFactory.CreateResponseMessage(request);
             message.BodyObject = response;
 
@@ -611,7 +611,7 @@ namespace Orleans.Runtime.Messaging
                 _messagingInstruments.OnRejectedMessage(msg);
                 LogWarningUnknownSystemTarget(log, msg, msg.TargetGrain);
 
-                // Send a rejection only on a request
+                // 只根据请求发送拒绝
                 if (msg.Direction == Message.Directions.Request)
                 {
                     var response = this.messageFactory.CreateRejectionResponse(
@@ -626,7 +626,7 @@ namespace Orleans.Runtime.Messaging
             }
             else
             {
-                // Activation does not exists and is not a new placement.
+                // 启动并不存在,也不是新的安置。
                 LogDebugUnableToCreateActivation(log, msg);
 
                 var partialAddress = new GrainAddress { SiloAddress = msg.TargetSilo, GrainId = msg.TargetGrain };
@@ -642,7 +642,7 @@ namespace Orleans.Runtime.Messaging
 
                 if (msg.Direction is Message.Directions.Response && msg.Result is Message.ResponseTypes.Rejection)
                 {
-                    // Do not send reject a rejection locally, it will create a stack overflow
+                    // 不发送拒绝本地拒绝的拒绝, 将会造成堆叠溢出
                     _messagingInstruments.OnDroppedSentMessage(msg);
                     LogDebugDroppingRejection(log, msg);
                 }
@@ -650,7 +650,7 @@ namespace Orleans.Runtime.Messaging
                 {
                     if (string.IsNullOrEmpty(reason)) reason = $"Rejection from silo {this._siloAddress} - Unknown reason.";
                     var error = this.messageFactory.CreateRejectionResponse(msg, rejectionType, reason, exception);
-                    // rejection msgs are always originated in the local silo, they are never remote.
+                    // 拒绝 msgs 总是来自本地 silo, 它们从不远程 。
                     this.ReceiveMessage(error);
                 }
             }

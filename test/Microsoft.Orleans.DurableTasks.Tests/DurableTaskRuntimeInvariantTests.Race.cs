@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>Races and timeouts over calls to other grains: cancellation of the inputs which lose, and recovery mid-wait.</summary>
+/// <summary>排在向其他人通话的 grains:取消损失的投入,并在中途恢复。</summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
     private const string RaceLostReason = "Another task won the race.";
@@ -31,7 +31,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(cancellationToken);
         await canceling.WaitAsync(CancellationTestTimeout, cancellationToken);
 
-        // The callee receives the timeout's reason, and the workflow waits for the call's outcome.
+        // 被调用者收到超时原因,工作流程等待通话结果。
         Assert.Equal(PaymentTimeoutReason, Assert.Single(transport.CancellationReasons));
         Assert.Equal(PaymentTimeoutReason, storage.Get(callId).CancellationReason);
         Assert.Null(storage.Get(rootId).Result);
@@ -55,7 +55,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await transport.ResumeSent.WaitAsync(CancellationTestTimeout, cancellationToken);
         var resume = Assert.Single(transport.Resumes);
 
-        // The activation stops while the workflow waits, and the next one replays the workflow three minutes later.
+        // 启动停止时工作流程等待, 而下一个在三分钟后重播工作流程。
         await runtime.StopAsync(cancellationToken).WaitAsync(CancellationTestTimeout, cancellationToken);
         clock.Advance(TimeSpan.FromMinutes(3));
         var (replacement, _, _, replacementTransport) = CreateRuntime(storage, manager, timeProvider: clock);
@@ -96,7 +96,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal([quoteIds[0], quoteIds[2]], transport.Cancellations.Select(static cancellation => GetNodeId(cancellation.TaskId)).OrderBy(static id => id.ToString(), StringComparer.Ordinal));
         Assert.Equal([RaceLostReason, RaceLostReason], transport.CancellationReasons);
 
-        // The race waits until every other call settles: one ends canceled, and the other completes anyway.
+        // 比赛等到其他所有电话都解决了为止:一个结局取消,另一个结局也结束。
         runtime.AcceptResponseFromInbox(quoteIds[0], DurableTaskResponse.Canceled, RemoteTarget);
         await manager.WriteStateAsync(cancellationToken);
         Assert.Null(storage.Get(rootId).Result);
@@ -178,7 +178,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         return sent.Task;
     }
 
-    /// <summary>Returns the node of this grain's execution tree which the wire identifier <paramref name="wireId"/> names.</summary>
+    /// <summary>返回此值的节点 grain线条识别符所在的行刑树 <paramref name="wireId"/> 姓名。</summary>
     private static TaskId GetNodeId(TaskId wireId)
     {
         Assert.True(global::Orleans.Durable.Tasks.Runtime.CallerScope.TryParseWireId(wireId, out _, out var nodeId));

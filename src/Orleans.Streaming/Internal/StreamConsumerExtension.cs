@@ -22,11 +22,11 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// The extension multiplexes all stream related messages to this grain between different streams and their stream observers.
+    /// 扩展多路转换将所有流信息都包含到不同流及其流观察者之间与此 grain 有关的信息。
     ///
-    /// On the silo, we have one extension object per activation and this extension multiplexes all streams on this activation
-    ///     (streams of all types and ids: different stream ids and different stream providers).
-    /// On the client, we have one extension per stream (we bind an extension for every StreamConsumer, therefore every stream has its own extension).
+    /// 在 silo上,我们每激活一个扩展对象, 而此扩展多ex将所有流都用于此激活
+    ///     (所有类型和ids的流体:不同的流体代号以及不同的流体提供者)。
+    /// 客户每流都有一个扩展(我们为每 StreamConsumer设定一个扩展,因此每一流都有自己的扩展)。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -35,7 +35,7 @@ namespace Orleans.Streams
         [Id(0)]
         private readonly IStreamProviderRuntime providerRuntime;
         [Id(1)]
-        private readonly ConcurrentDictionary<GuidId, IStreamSubscriptionHandle> allStreamObservers = new(); // map to different ObserversCollection<T> of different Ts.
+        private readonly ConcurrentDictionary<GuidId, IStreamSubscriptionHandle> allStreamObservers = new(); // 以不同的 Ts 的 ObserversCollection<T> 地图为对象。
         [Id(2)]
         private readonly ILogger logger;
         [NonSerialized]
@@ -90,7 +90,7 @@ namespace Orleans.Streams
             {
                 LogDebugAddObserver(providerRuntime.ExecutingEntityIdentity(), stream.InternalStreamId);
 
-                // Note: The caller [StreamConsumer] already handles locking for Add/Remove operations, so we don't need to repeat here.
+                // 注:呼叫器StreamConsumer已经处理添加/删除操作的锁定, 所以我们不需要在此重复 。
                 var handle = new StreamSubscriptionHandleImpl<T>(
                     subscriptionId,
                     observer,
@@ -138,7 +138,7 @@ namespace Orleans.Streams
                 {
                     var subscriptionHandlerFactory = new StreamSubscriptionHandlerFactory(streamProvider, streamId, streamId.ProviderName, subscriptionId);
                     await streamSubscriptionObserver.OnSubscribed(subscriptionHandlerFactory);
-                    //check if an observer were attached after handling the new subscription, deliver on it if attached
+                    //处理新订阅后是否附观察员,如附观察员,请在印上
                     if (allStreamObservers.TryGetValue(subscriptionId, out observer))
                     {
                         return await observer.DeliverItem(item, currentToken, handshakeToken);
@@ -150,8 +150,8 @@ namespace Orleans.Streams
                 providerRuntime.ExecutingEntityIdentity(),
                 subscriptionId);
 
-            // We got an item when we don't think we're the subscriber. This is a normal race condition.
-            // We can drop the item on the floor, or pass it to the rendezvous, or ...
+            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
+            // 我们可以把东西扔到地上 或把它送到会合点 或者...
             return default;
         }
 
@@ -171,7 +171,7 @@ namespace Orleans.Streams
                 {
                     var subscriptionHandlerFactory = new StreamSubscriptionHandlerFactory(streamProvider, streamId, streamId.ProviderName, subscriptionId);
                     await streamSubscriptionObserver.OnSubscribed(subscriptionHandlerFactory);
-                    // check if an observer were attached after handling the new subscription, deliver on it if attached
+                    // 处理新订阅后是否附观察员,如附观察员,请在印上
                     if (allStreamObservers.TryGetValue(subscriptionId, out observer))
                     {
                         return await observer.DeliverBatch(batch, handshakeToken);
@@ -183,8 +183,8 @@ namespace Orleans.Streams
                 providerRuntime.ExecutingEntityIdentity(),
                 subscriptionId);
 
-            // We got an item when we don't think we're the subscriber. This is a normal race condition.
-            // We can drop the item on the floor, or pass it to the rendezvous, or ...
+            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
+            // 我们可以把东西扔到地上 或把它送到会合点 或者...
             return default;
         }
 
@@ -200,8 +200,8 @@ namespace Orleans.Streams
                 providerRuntime.ExecutingEntityIdentity(),
                 subscriptionId);
 
-            // We got an item when we don't think we're the subscriber. This is a normal race condition.
-            // We can drop the item on the floor, or pass it to the rendezvous, or ...
+            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
+            // 我们可以把东西扔到地上 或把它送到会合点 或者...
             return Task.CompletedTask;
         }
 
@@ -218,8 +218,8 @@ namespace Orleans.Streams
                 subscriptionId,
                 exc);
 
-            // We got an item when we don't think we're the subscriber. This is a normal race condition.
-            // We can drop the item on the floor, or pass it to the rendezvous, or ...
+            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
+            // 我们可以把东西扔到地上 或把它送到会合点 或者...
             return Task.CompletedTask;
         }
 

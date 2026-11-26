@@ -6,9 +6,9 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Implementation of <see cref="ISerializationBinder"/> which resolves types using a <see cref="TypeConverter"/>
-    /// and enforces the configured Orleans type allow-list, preventing arbitrary types from being constructed
-    /// during deserialization.
+    /// 执行《公约》的执行情况 <see cref="ISerializationBinder"/> 使用 <see cref="TypeConverter"/>
+    /// 并强制实施配置的 Orleans 型允许列表类型,防止任意类型构建
+    /// 正在消毒
     /// </summary>
     public class OrleansJsonSerializationBinder : DefaultSerializationBinder
     {
@@ -17,13 +17,13 @@ namespace Orleans.Serialization
         private readonly bool _allowAllTypes;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansJsonSerializationBinder"/> class.
+        /// 初始化 <see cref="OrleansJsonSerializationBinder"/> 类的新实例。
         /// </summary>
-        /// <param name="typeResolver">The type resolver.</param>
+        /// <param name="typeResolver">类型解答器。</param>
         /// <remarks>
-        /// This constructor does not enforce the Orleans type allow-list: any resolvable type may be constructed
-        /// during deserialization. It is retained for backwards compatibility. Prefer the constructor which accepts
-        /// a <see cref="TypeConverter"/> so that the type allow-list is enforced.
+        /// 此构建器不强制执行 Orleans 类型允许列表: 任何可溶性类型都可以构造
+        /// 用于后向兼容性。
+        /// a <see cref="TypeConverter"/> ,以便执行类型的允许清单。
         /// </remarks>
         public OrleansJsonSerializationBinder(TypeResolver typeResolver)
         {
@@ -32,14 +32,14 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansJsonSerializationBinder"/> class which enforces the
-        /// Orleans type allow-list.
+        /// 初始化执行 <see cref="OrleansJsonSerializationBinder"/> 类的新实例
+        /// Orleans 类型允许列表。
         /// </summary>
-        /// <param name="typeConverter">The type converter used to resolve and validate types against the allow-list.</param>
-        /// <param name="typeResolver">The type resolver used to resolve types when the allow-list is disabled.</param>
+        /// <param name="typeConverter">用于根据允许列表解析和验证类型的类型转换器。</param>
+        /// <param name="typeResolver">当允许列表禁用时用于解析类型的类型解答器。</param>
         /// <param name="allowAllTypes">
-        /// When <see langword="true"/>, restores the legacy behavior of allowing any resolvable type to be constructed
-        /// during deserialization, bypassing the type allow-list. This is insecure and is not recommended.
+        /// 当 <see langword="true"/>时,恢复允许构建任何可溶类型遗留行为
+        /// 正在解密, 绕过允许列表的类型。 这不安全, 不推荐 。
         /// </param>
         public OrleansJsonSerializationBinder(TypeConverter typeConverter, TypeResolver typeResolver, bool allowAllTypes = false)
         {
@@ -55,7 +55,7 @@ namespace Orleans.Serialization
 
             if (_allowAllTypes || _typeConverter is null)
             {
-                // Legacy, permissive behavior: resolve any type without consulting the allow-list.
+                // 遗产,容许行为: 不参考许可名单就解决任何类型问题。
                 if (_typeResolver is not null && _typeResolver.TryResolveType(fullName, out var resolvedType))
                 {
                     return resolvedType;
@@ -64,9 +64,9 @@ namespace Orleans.Serialization
                 return base.BindToType(assemblyName, typeName);
             }
 
-            // Enforce the Orleans type allow-list. TypeConverter.TryParse throws for types which are explicitly
-            // disallowed and only resolves types which are permitted by the configured filters and allowed-type
-            // configuration.
+            // 强制执行 Orleans 类型允许列表。 TypeConverter.TryParse 投出明确类型
+            // 被不允许且只解决配置过滤器和允许类型所允许的类型
+            // 配置。
             try
             {
                 if (_typeConverter.TryParse(fullName, out var type))
@@ -76,8 +76,8 @@ namespace Orleans.Serialization
             }
             catch (InvalidOperationException exception)
             {
-                // TypeConverter throws InvalidOperationException when the type is resolvable but not permitted by
-                // the allow-list. Surface a JSON-specific error which also mentions the opt-out.
+                // TypeConverter 丢弃 InvalidOperationException ,当该类型可以溶解但不允许
+                // 允许列表。表面有 JSON- 特定错误,其中也提到选择退出。
                 throw new JsonSerializationException(BuildNotAllowedMessage(fullName), exception);
             }
 

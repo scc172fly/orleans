@@ -10,34 +10,34 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extensions for configuring custom-storage log consistency providers.
+    /// 提供定制存储日志一致性提供者配置的扩展。
     /// </summary>
     public static class CustomStorageSiloBuilderExtensions
     {
         /// <summary>
-        /// Adds a custom-storage log consistency provider as the default log consistency provider.
+        /// 添加一个自定义存储日志一致性提供者作为默认日志一致性提供者。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
+        /// <param name="builder">下 silo 建筑商</param>
         /// <param name="primaryCluster">
-        /// The cluster identifier stored in the provider options and passed to each custom-storage adaptor.
-        /// Custom-storage adaptors accept submissions from every cluster.
+        /// 集束识别码存储在供应商选项中,并传递给每个定制储存适配器。
+        /// 自定义存储适应器接受每个组群的提交文件。
         /// </param>
-        /// <returns>The silo builder.</returns>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddCustomStorageBasedLogConsistencyProviderAsDefault(this ISiloBuilder builder, string? primaryCluster = null)
         {
             return builder.AddCustomStorageBasedLogConsistencyProvider(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, primaryCluster);
         }
 
         /// <summary>
-        /// Adds a named custom-storage log consistency provider.
+        /// 添加一个名为自定义存储日志一致性提供者的用户名。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The provider name.</param>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name">提供者名称。</param>
         /// <param name="primaryCluster">
-        /// The cluster identifier stored in the provider options and passed to each custom-storage adaptor.
-        /// Custom-storage adaptors accept submissions from every cluster.
+        /// 集束识别码存储在供应商选项中,并传递给每个定制储存适配器。
+        /// 自定义存储适应器接受每个组群的提交文件。
         /// </param>
-        /// <returns>The silo builder.</returns>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddCustomStorageBasedLogConsistencyProvider(this ISiloBuilder builder, string name = "LogStorage", string? primaryCluster = null)
         {
             return builder.ConfigureServices(services => services.AddCustomStorageBasedLogConsistencyProvider(name, primaryCluster));

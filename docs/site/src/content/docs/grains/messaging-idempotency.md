@@ -1,134 +1,142 @@
 ---
-title: Messaging idempotency
-description: Design application command identities, hierarchical keys, retained completion facts, and external idempotency.
+title: "通信通信应急能力"
+description: "设计应用指令身份、等级钥匙、保持完成事实和外部应急能力。"
 ms.date: 10/09/2026
 ms.topic: conceptual
 ---
 
-# Messaging idempotency
+<a id="messaging-idempotency"></a>
 
-An application assigns one stable hierarchical ID to each logical command. Durable
-Messaging uses that ID throughout admission, retries, completion, diagnostics, and
-recovery. The receiving inbox's retained completion record recognizes repeated
-submissions of that command, from any grain.
+# 通信通信应急能力
 
-For the commit protocol, see [Messaging](messaging.md).
-For complete grain examples, see [Practical recipes](messaging-recipes.md).
+应用程序为每个逻辑命令指定一个稳定的等级标识符。
+在整个入境、回程、完成、诊断和
+接收收件箱保留的完成记录确认重复
+任何 grain提交该命令。
 
-## Choose an identity at each boundary
+承诺协议见 [通信通信](messaging.md)。
+完整 grain 示例见 [实用实用食谱](messaging-recipes.md)。
 
-| Identity | Owner and scope | Purpose |
+<a id="choose-an-identity-at-each-boundary"></a>
+
+## 在每一边界选择一个身份
+
+| 身份特征 | 所有人和范围 | 目的目的宗旨 |
 | --- | --- | --- |
-| Envelope `MessageId` | Exact key in the receiving grain's inbox | Coalesces pending repeats and recognizes completed commands during retention. |
-| Envelope `MessageId` | Exact key in the sending grain's outbox | Binds one pending outgoing message to its destination, subject, and body. |
-| Workflow root | The application's protocol | Groups related command IDs and deterministic reply IDs. |
-| External idempotency key | The external system's account or API namespace | Recognizes a retried external side effect using the canonical command ID. |
+| 信封 `MessageId` | 接收器 grain收件框中精确密钥 | 等待重复的果实,确认保留期间已完成的命令。 |
+| 信封 `MessageId` | 发送 grain发件箱中精确密钥 | 将一个信息放入其目的地、主题和身体,等待发送。 |
+| 工作流程根 | 申请程序协议 | 与组相关的命令编号和确定响应编号。 |
+| 外部应急能力关键 | 外部系统的账户或 API 命名空间 | 使用“卡尼科命令编号”确认重新研究的外部副作用。 |
 
-Derive a command ID from stable tenant, entity, and action identifiers before
-sending. Every retry and reconstructed submission uses the original ID. Namespace
-independent producers explicitly. A forwarding grain preserves the original
-command ID. A new workflow command
-uses a distinct child or sibling ID; fan-out derives one stable recipient child
-per destination.
+生成一个来自稳定租户、实体和行动识别码的指令身份
+发送。每次重新输入和重新编辑的提交文件都使用原始 ID。Namespace
+转发 grain 保留原
+新的工作流程命令
+使用独生子女或兄弟姐妹身份证;扇形输出产生一个稳定的接收儿童
+每个目的地。
 
-One key identifies one immutable command: destination, subject, and body retain
-their original meaning. A genuinely new reservation, authorized compensation, or
-revision uses a new key. Protocol upgrades preserve the identity of an existing
-command even when producers and consumers are deployed at different times.
+关键之一确定了不可改变的命令:目的、主题和身体保留
+真正的新保留,授权赔偿或
+修改后版本使用新的密钥。
+即使生产者和消费者在不同时间被部署, 也仍然可以命令 。
 
-## Transport deduplication
+<a id="transport-deduplication"></a>
 
-For deliveries, the inbox answers a tracked identity from its pending or completed
-record, whatever the delivered `SentAt`, including after a receiver clock rollback.
-An untracked identity whose send time is at or below the admission floor receives
-`Expired`. Above the floor, the inbox bounds an untracked identity's `SentAt` by the
-receiver's Durable Jobs time plus
+## 运输的重复
+
+对于交付货物,收件箱回答待发或已完成的跟踪身份
+所派遣的, `SentAt`,包括后一个接收器时钟倒回。
+其发送时间在或低于入场层的未跟踪身份可得到
+`Expired`. 在楼层上方,收件箱将以下文件的未跟踪身份 `SentAt` 绑定为:
+接收者的持久工作时间加
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.DeduplicationWindow>;
-equality is admitted, and a later time throws
+承认平等,而后弃
 <xref:System.ArgumentOutOfRangeException> with no staged change or sink offer. The
-sender retries within its original budget, so diagnose clock skew or an incorrectly
-stamped direct caller.
+发送发送者在原始预算范围内重新列印, 所以诊断时钟扭曲或错误
+直接打电话的人被钉上印章
 
-A grain's messages to itself use its local staging time, or the first time above
-the admission floor after a backward clock jump. The latter remains just beyond
-the floor for compaction, even when it exceeds the delivery-time bound.
+A grain给自己使用本地中转时间或首次以上时间的电文
+后时钟跳过后,入会层在倒时空跳过之后,后一层仍然仅超出
+压实地板,即使超过交货时间约束。
 
-Each receiver checks the exact `MessageId`, which identifies one command at that
-receiver regardless of sender or subject. A parent and its child are independent
-commands. A pending duplicate refers to the already-accepted work and carries the
-same subject, body bytes, and `DeliverAt` time; a pending repeat with a different
-subject, body, or `DeliverAt` fails.
-A completed duplicate returns `Duplicate` while its completion record is retained.
-Pending and completed records retain the ID and the
+每个接收器检查精确的 `MessageId`, 确定一个命令
+父母及其子女是独立的,不论发件人或受送人或受体。
+命令。待处理的重复文件是指已经接受的工作,并带有
+同一主题、正文字节和 `DeliverAt` 时间;不同
+主题、身体或 `DeliverAt` 失败。
+填全的重复返回 `Duplicate` ,同时保留其完成记录。
+尚待处理和完成的记录保留身份证和
 <xref:Orleans.Durable.Messaging.InboxMessage.SentAt> which the inbox accepted. A repeat
-keeps that accepted time, and the record is durable before the receiver answers
-`Duplicate` or repeats its recorded rejection.
-Applications uphold the immutable command contract; the completion fact
-acknowledges the original execution.
+记录在接收者回答前是耐久的。
+`Duplicate` 或重复其记录中的拒绝。
+申请支持不可改变指挥合同;完成事实
+承认原执行。
 
-A handler stages its business changes and outgoing messages, then calls
-<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Complete*>, which stages the inbox
-removal and completion record. One journal write persists them together, and replay
-restores the business effects and completion record together. Effects therefore
-apply once per logical send. A handler can execute
-more than once for the same ID, for example after a failed attempt or activation
-loss, so its preparation must tolerate repetition.
+处理器程序将它的业务变化和发送信息, 然后调用
+<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Complete*>,该分级框
+清除和完成记录。 一份日记将它们一起存在, 然后重放
+将恢复业务效果和完成记录一起并列。
+逻辑发送一次应用。处理者可以执行
+同一身份识别器不止一次,例如,在尝试失败或激活失败后
+损失,所以它的准备必须容忍重复。
 
-The sending journal write records `SentAt` from the Durable Jobs clock. Every
-attempt and recovery uses that same time, including after backpressure, and the
-retry budget ends at `SentAt + OutboxRetryTimeout`. Configure `OutboxRetryTimeout`
-shorter than
+发送日记从持久工作钟中写入记录 `SentAt` 。
+和回收利用,包括后压,以及
+将预算结尾重试 `SentAt + OutboxRetryTimeout`。配置 `OutboxRetryTimeout`
+短于
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.DeduplicationWindow>.
-Each inbox journals a non-decreasing admission floor. The retention period
+每个收件箱日记本都有非降排的入场楼层。
 <xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions.DeduplicationWindow>
-controls how far behind the observed Durable Jobs time the floor advances.
-Completed records become eligible for removal once their accepted `SentAt` is at
-or below that durable floor. Snapshot acknowledgement and recovery reclaim them.
-A delayed delivery with that original send time then receives `Expired` before
-any sink or handler runs. Forward clock jumps can expire sends early; backward
-jumps can retain history longer. Budget history by processing rate and retention.
-Application result-query retention serves business query and audit needs independently.
+所观察到的“持久工作”在最低进步时间上有多远,控制了多少距离。
+完成的记录一旦被接受,即有资格删除 `SentAt` 时
+光照确认并恢复它们。
+交货延迟,且原发件时间为原来发送时间,然后收到 `Expired`
+任何下水道或处理器运行。 前时钟跳跃可以过期, 提前发送; 向后发送
+跳跃可以保留更长的历史。 通过处理率和留存率,预算历史可以保持更长的历史。
+应用结果查询保留办法独立满足业务查询和审计需求。
 
-`Expired` means that earlier acceptance is unknown: an acknowledgement may have
-been lost before the receiver compacted its completion record. Reconcile business
-state using the original ID before authorizing another command. Automatic outbox
-retries and recovery preserve the original `SentAt`; direct delivery callers
-likewise reuse it. A new outbox submission after retirement receives a new staging
-time. A fresh submission after an
-identity's retention ends can be processed again when its new send time is
-admitted; reconcile the original outcome before authorizing it.
+`Expired` 表示先前的接受尚不清楚:确认可能已经
+在接收器压缩其完成记录之前丢失了记录。
+指定另一个命令前使用原始 ID。自动发件箱
+重试和恢复保留原 `SentAt`;直接发货呼叫
+退休后新的发箱申请得到一个新的中转站
+之后的新的划界案
+保留身份的端点,在新的发送时间是
+承认;在批准之前核对原始结果。
 
-The outbox coalesces equivalent messages that share a pending message ID, whether
-staged or durable. Equivalent messages have the same destination, subject,
-payload bytes, and `DeliverAt` time; the original message and its headers are kept. Reusing a pending ID
-for different content throws and leaves the original message in place.
+发件箱将共享待定信件 ID 的等同信息合并到
+等同信息具有相同的目的地、主题、目的和目的。
+有效载荷字元, 和 `DeliverAt` 时间; 原始信件及其信头被保留。 重用待处理的 ID
+将内容投放并保留原始信息。
 
-A message a grain sends to itself is keyed only in that grain's inbox. `Send` applies
-the receiver rules synchronously: a pending repeat with the same subject, body bytes,
-and `DeliverAt` time coalesces, a retained completed ID is a duplicate, and a pending
-repeat with different content throws. A local send receives a staging time which
-the inbox admits, including after a clock rollback. A local repeat of a tracked
-identity keeps the record's accepted send time.
+grain 发送到它自己的邮件只用 grain的收件箱中键入。 `Send`
+接球者同步规则:同一主题的待决重复, 体字节,
+和 `DeliverAt` 时间合并、保留完整的ID为重复,待处理
+本地发送接收一个中继时间
+包括时钟倒回后。
+身份保留了记录被接受的发送时间
 
-## Hierarchical business-operation keys
+<a id="hierarchical-business-operation-keys"></a>
+
+## 等级级商业业务操作钥匙
 
 <xref:Orleans.Durable.Messaging.MessageId> identifies a message by wrapping a
 <xref:Orleans.Durable.Messaging.HierarchicalKey>. Construct it with `new MessageId(key)` or
-<xref:Orleans.Durable.Messaging.MessageId.Create*>, and read the key through
+<xref:Orleans.Durable.Messaging.MessageId.Create*>,然后读取键
 <xref:Orleans.Durable.Messaging.MessageId.Key>. Message IDs compare, hash, parse, and format
-through that key.
+穿过那个钥匙
 
 <xref:Orleans.Durable.Messaging.HierarchicalKey> is an immutable value type wrapping its
-canonical escaped path. Equality, `==`, `!=`, and hashing compare that path
-ordinally and case-sensitively. The key provides segment-aware navigation through
+平、 `==`、 `!=`和散列比较这条路径
+提供对段的导航
 <xref:Orleans.Durable.Messaging.HierarchicalKey.GetParent*>,
 <xref:Orleans.Durable.Messaging.HierarchicalKey.IsParentOf*>,
 <xref:Orleans.Durable.Messaging.HierarchicalKey.IsChildOf*>,
-<xref:Orleans.Durable.Messaging.HierarchicalKey.IsAncestorOf*>, and a segment enumerator.
-`default(HierarchicalKey)` is the unset value, exposed by `IsDefault`; envelope
-validation requires a set ID.
+<xref:Orleans.Durable.Messaging.HierarchicalKey.IsAncestorOf*>和一个段数计算器。
+`default(HierarchicalKey)` 是指被 `IsDefault`暴露的未设定值;信封
+验证需要设定的ID。
 
-A useful hierarchy is:
+一个有用的等级是:
 
 ```text
 tenants/{tenant}/orders/{order}
@@ -139,108 +147,116 @@ tenants/{tenant}/orders/{order}
   shipment/create
 ```
 
-The root groups a workflow; each leaf identifies one effect. Retried requests keep
-the same leaf. Assign a stable attempt/revision segment once when authorizing a
-new effect. Format numeric components invariantly and normalize business identifiers
-before construction. Key comparison preserves their ordinal spelling.
+根根组对工作流程进行分组;每一叶叶都确定了一个效果。
+指定一个稳定的尝试/修改段,在批准时一次指定
+新的效果。
+构建前。 键比较保留了它的正则拼写 。
 
-<xref:Orleans.Durable.Messaging.HierarchicalKey.Create*> accepts literal segments,
-and <xref:Orleans.Durable.Messaging.HierarchicalKey.CreateChildKey*> appends one literal
-segment. Both escape slash and backslash characters exactly once. Construct
-`payment/charge` using separate `"payment"` and `"charge"` arguments.
-<xref:Orleans.Durable.Messaging.HierarchicalKey.Parse*> reads an already escaped path,
-and formatting emits that canonical representation.
+<xref:Orleans.Durable.Messaging.HierarchicalKey.Create*> 接受字面部分,
+和 <xref:Orleans.Durable.Messaging.HierarchicalKey.CreateChildKey*> ,仅附加一字
+。 构造
+`payment/charge` ,使用单独的 `"payment"` 和 `"charge"` 参数。
+<xref:Orleans.Durable.Messaging.HierarchicalKey.Parse*> 读经,
+并格式化发布卡通式代表。
 
-The following helper constructs command IDs using literal tenant and SKU identifiers:
+下列助手使用字面租户和SKU识别符构建命令代号:
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_operation_keys" language="csharp":::
 
-The SKU `widget/blue` occupies one literal segment:
+SKU `widget/blue` 占用一个字句段:
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_hierarchy" language="csharp":::
 
-Use the same canonical identity across producers, inboxes, logs, result queries,
-and external provider keys.
-<xref:Orleans.Durable.Messaging.HierarchicalKey.IsAncestorOf*> matches at segment
-boundaries: `orders/42` groups `orders/42/payment`, while `orders/420/payment`
-belongs to another order. A key is its own ancestor; `IsChildOf` tests exactly one
-additional segment. Deduplication always compares the full key.
+制作者、收件箱、日志、结果查询使用相同的卡尼卡身份,
+和外部提供者键。
+<xref:Orleans.Durable.Messaging.HierarchicalKey.IsAncestorOf*> 相片段匹配
+边界: `orders/42` 组 `orders/42/payment`,而 `orders/420/payment`
+属于其它顺序。密钥是它自己的祖先; `IsChildOf` 测试完全是一个
+附加的段。调试总是比较整键。
 
-Trusted ingress derives the authorized tenant/entity root and checks the claimed
-command key, subject, and destination against it before accepting work. A key
-expresses identity; authorization comes from that trusted application boundary.
-Sending and delivery limit a message ID's canonical path to 1,024 UTF-8 bytes and a
-subject to 256 UTF-8 bytes.
+获得授权的承租人/实体根根取出被信任的内地,并核实索赔
+键,在接受工作之前,命令、主题和目的地将与之相对。
+表示身份; 授权来自信任的应用边界。
+发送和传送限制在1 024 UTF-8字节和a
+受受控的256 UTF-8 字节。
 
 <a id="persist-a-result-not-just-a-flag"></a>
 
-## Persist queryable results
+<a id="persist-queryable-results"></a>
 
-A handler can stage a durable reply whose ID is the command's stable `result` child.
-The [inventory recipe](messaging-recipes.md#reserve-inventory-once-per-order-line)
-computes its reservation decision and next stock locally. Typed `SendReply`
-encodes and stages the reply, then the method updates stock and completes synchronously. A shortage is a completed rejection with unchanged
-stock. The originally committed outbox intent supplies result delivery within its
-configured policy. A resubmission acknowledges the retained completion fact and
-preserves that original execution.
+## 持久性可查询结果
 
-An inbox `Duplicate` acknowledges pending or completed command identity. Obtain
-the business result from the durable reply, or query business state keyed by the
-same command ID. A distinct query command can request a result after the original
-reply's delivery policy ends.
+处理器可以制作一个耐久的回答,其身份是命令稳定的 `result` 孩子。
+下 [清单清单配制](messaging-recipes.md#reserve-inventory-once-per-order-line)
+计算其保留决定和下一批本地库存。 `SendReply`
+编码和分解回复的状态,然后方法更新库存并同步完成。 短缺是完全拒绝, 没有变化
+最初承诺的发箱意向用品在
+重新提交确认保留完成事实
+保留了原来的执行。
 
-Store reservation records when lookup, release, or expiry needs them, payment
-results for status and reconciliation, and workflow phases for progress queries.
-These are business state with explicit query/audit retention. Commit them together
-with local effects, outgoing intent, and inbox completion. The
-[payment recipe](messaging-recipes.md#charge-an-external-provider-with-a-stable-key)
-exposes a result query by the original command ID.
+收件箱 `Duplicate` 确认待处理或已完成的指挥身份。
+或询问
+同一命令的同一个命令 ID。不同的查询命令可以在原始
+答复的交付政策结束。
 
-## External side effects
+需要时保存保留记录、备查、放行或过期失效,付款
+现状和调节结果,以及进展查询工作流程阶段的结果。
+这些是商业状态,明确保留询问/审计保留。
+带有本地效果、 输出意图和收件箱完成。 The
+[付款配方](messaging-recipes.md#charge-an-external-provider-with-a-stable-key)
+显示原始命令ID的结果查询。
 
-An external payment, email, or HTTP operation has its own commit boundary. An
-activation can fail after that operation succeeds and before its result is journaled.
-The payment recipe calls its provider during local preparation with
-`context.Message.Envelope.MessageId.ToString()`. The provider enforces request consistency
-and returns its original result on retries with that key.
+<a id="external-side-effects"></a>
 
-Specify the provider account/tenant namespace, key format, retention, conflict
-behavior, and outcome-query API as part of that integration. Retain provider
-idempotency facts for every retry or replay which can reach it. For a provider's
-key-length restriction, an adapter can deterministically hash the canonical ID and
-retain the original command ID locally for correlation. Reconcile an ambiguous
-response or retry with the original key. An API with an uncertain outcome requires
-its reconciliation workflow before another effect is authorized.
+## 外部副作用
 
-Once the result is known, observe cancellation, send the typed reply, and finish the
-journaled result and `Complete()` without awaiting. Every asynchronous
-provider call precedes the first shared mutation.
+外部付款、电子邮件或 HTTP 操作有自己的承诺边界。
+操作成功后, 且结果被日记前, 激活可能失败 。
+支付配方在当地准备时,
+`context.Message.Envelope.MessageId.ToString()`. 提供方强制执行要求一致性
+返回该键的重试时的原始结果。
 
-## Fan-out and multi-grain workflows
+指定提供方账户/租赁商命名空间、密钥格式、保留、冲突
+和结果查询 API 作为整合的一部分。
+每一重试或重放,只要能达到它,其所有重试或重播都具备充分的事实。
+关键长限制,适配器可以确定地按速
+校正模糊
+使用原始键对响应或重试。如果 API 结果不确定,则需要
+在批准另一影响之前,其调节工作流程。
 
-Give each participant or step its own command ID under the workflow root. One live
-outbox key maps to one destination, so notifications use stable recipient-specific
-children. A coordinator records submitted steps and aggregates correlated outcomes
-in its own journal. Participants commit their effects and deterministic replies
-atomically; the coordinator commits each received outcome and next-step intent together.
+一旦结果被公布,观察取消、发送打印的回复并完成
+被日记的结果和 `Complete()` ,没有等待。
+提供商在第一次共享突变之前拨打服务。
 
-Use a durable step status such as `Requested`, `Succeeded`, `Rejected`, or
-`Compensated` with the participant outcome. A rejection can emit separately keyed
-release or refund commands for completed steps. Each participant completes that
-compensation under its own exact key. This gives the workflow an explicit forward
-and recovery path across independently committed grain journals.
+<a id="fan-out-and-multi-grain-workflows"></a>
 
-## Ordering and replay
+## 扇出和多grain 工作流程
 
-| Operation | Application policy |
+给每个参与者或一步给每一个参与者或一步给自己的命令编号, 在工作流程根下。 1个现场
+将关键地图发送到一个目的地,因此通知使用稳定的、针对特定受援方的
+儿童协调员提交的一份记录提交了步骤和综合相关结果
+参与者承诺其效果和决定性答复
+原子;协调员将每个收到的结果和下一步的意图一起承诺。
+
+使用耐久步骤状态,如 `Requested`、 `Succeeded`、 `Rejected`,或
+`Compensated` 与参与者结果。拒绝可单独发出有键
+已完成步骤的释放或退款命令。
+使工作流程有一个明确的前方
+独立承诺的 grain 期刊,以及恢复路径。
+
+<a id="ordering-and-replay"></a>
+
+## 秩序和重放
+
+| 业务 | 应用政策 |
 | --- | --- |
-| Reserve stock or charge a payment | Preserve the command ID through retries and retain its inbox completion fact for the supported horizon. |
-| Replace a projection with a complete snapshot | Apply only a newer domain version; complete older snapshots as superseded. |
-| Apply every incremental event | Persist the expected sequence and buffer gaps before applying contiguous events. |
-| Intentionally reprocess with corrected logic | Authorize a new revision key and record its relationship to the original outcome. |
-| Replay an inbox dead letter | Reconcile effects keyed by the original ID, then authorize a new revision key, such as a child of the original; a retained completion answers `Duplicate`, and an untracked old send time answers `Expired`. |
+| 储备库存或收取付款 | 通过重试保存命令代号,并保留其信箱完成事实,以用于支持的地平线。 |
+| a 用完整的快照取代投影 | 只应用较新的域名版本; 完成被取代的旧快照 。 |
+| 应用每个递增事件 | 在适用毗连事件之前,应始终保持预期的顺序和缓冲缺口。 |
+| 以正确逻辑进行有意识的再处理 | 授权使用新的修订关键字,记录其与原始结果的关系。 |
+| 重放收件箱已用过的信封 | 以原始身份识别符为键的调和效果,然后授权使用新的修改键,例如原名的子节;保留完成回答 `Duplicate`;未跟踪的旧发送时间答 `Expired`。 |
 
-Message identity recognizes completed commands; a domain version or sequence
-establishes order. The
-[projection recipe](messaging-recipes.md#converge-an-out-of-order-stock-projection)
-demonstrates a complete-snapshot policy.
+信件身份识别确认已完成命令; 域版或序列
+建立顺序。
+[预测投影配方](messaging-recipes.md#converge-an-out-of-order-stock-projection)
+显示完整光谱政策。

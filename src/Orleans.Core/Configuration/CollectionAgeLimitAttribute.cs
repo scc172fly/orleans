@@ -7,7 +7,7 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// Specifies the period of inactivity before a grain is available for collection and deactivation.
+    /// 指定在 grain 可以用于收集和禁用之前的不活动期。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class CollectionAgeLimitAttribute : Attribute, IGrainPropertiesProviderAttribute
@@ -15,48 +15,48 @@ namespace Orleans
         private TimeSpan? _value;
 
         /// <summary>
-        /// Specifies the period of inactivity before a grain is available for collection and deactivation.
+        /// 指定在 grain 可以用于收集和禁用之前的不活动期。
         /// </summary>
         /// <remarks>
-        /// Use the <see cref="Minutes"/>, <see cref="Days"/>, and <see cref="Hours"/> properties or the <see cref="AlwaysActive"/> to set the limit.
+        /// 使用 <see cref="Minutes"/>、 <see cref="Days"/>和 <see cref="Hours"/> 属性或 <see cref="AlwaysActive"/> 设定限制。
         /// </remarks>
         public CollectionAgeLimitAttribute() { }
 
         /// <summary>
-        /// Specifies the period of inactivity before a grain is available for collection and deactivation.
+        /// 指定在 grain 可以用于收集和禁用之前的不活动期。
         /// </summary>
-        /// <param name="inactivityPeriod">The period of inactivity before a grain is available for collection and deactivation, expressed as a string using <see cref="TimeSpan.Parse(string)"/> syntax.</param>
+        /// <param name="inactivityPeriod">之前的无活动期 grain 可用于收集和禁用,以字符串表示 <see cref="TimeSpan.Parse(string)"/> 语法。</param>
         [SuppressMessage("Design", "CA1019:Define accessors for attribute arguments",
             Justification = "The parsed inactivity period is exposed through the typed TimeSpan AgeLimit property.")]
         public CollectionAgeLimitAttribute(string inactivityPeriod) => _value = TimeSpan.Parse(inactivityPeriod);
 
         /// <summary>
-        /// Gets the minimum activation age.
+        /// 达到最低激活年龄。
         /// </summary>
         public static readonly TimeSpan MinAgeLimit = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// Gets or sets the number of days to delay collecting an idle activation for.
+        /// 获取或设置延迟收集闲置激活的天数。
         /// </summary>
         public double Days { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of hours to delay collecting an idle activation for.
+        /// 获取或设定延迟收集闲置激活的小时数 。
         /// </summary>
         public double Hours { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of minutes to delay collecting an idle activation for.
+        /// 获取或设置延迟收集闲置激活的分钟数。
         /// </summary>
         public double Minutes { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this grain should never be collected by the idle activation collector.
+        /// 获取或设置一个值,以显示闲置激活收藏器是否永远不应该收集此 grain 。
         /// </summary>
         public bool AlwaysActive { get; set; }
 
         /// <summary>
-        /// Gets the idle activation collection age.
+        /// 获得闲置的激活收集年龄。
         /// </summary>
         public TimeSpan AgeLimit => _value ??= CalculateValue();
 
@@ -91,7 +91,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// When applied to a grain implementation type this attribute specifies that activations of the grain shouldn't be collected by the idle activation collector.
+    /// 当应用到 grain 执行类型时, 此属性指定了闲置激活收藏器不应收集 grain 的启动 。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class KeepAliveAttribute : Attribute, IGrainPropertiesProviderAttribute

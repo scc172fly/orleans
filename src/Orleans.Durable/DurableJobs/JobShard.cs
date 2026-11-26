@@ -7,150 +7,150 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Represents a shard of durable jobs that manages a collection of jobs within a specific time range.
-/// A job shard is responsible for storing, retrieving, and managing the lifecycle of durable jobs
-/// that fall within its designated time window.
+/// 代表着在特定时限内管理大量工作的持久工作。
+/// 工作碎片负责储存、回收和管理持久工作的生命周期
+/// 属于指定时间窗口。
 /// </summary>
 /// <remarks>
-/// Job shards are used to partition durable jobs across time ranges to improve scalability
-/// and performance. Each shard has a defined start and end time that determines which jobs
-/// it manages. Shards can be marked as complete when all jobs within their time range
-/// have been processed.
+/// 使用工作碎片来将可持久工作分成不同时间段,以提高可缩放性
+/// 和性能。每个碎片都有明确的开始时间和结束时间,确定哪些任务
+/// 。当所有工作都在时间范围内时, 碎片可以标记为完整
+/// 已经处理完毕。
 /// </remarks>
 public interface IJobShard : IAsyncDisposable
 {
     /// <summary>
-    /// Gets the unique identifier for this job shard.
+    /// 获取此工作碎片的独特标识符 。
     /// </summary>
     string Id { get; }
 
     /// <summary>
-    /// Gets the start time of the time range managed by this shard.
+    /// 获取由此碎片管理的时段的起始时间 。
     /// </summary>
     DateTimeOffset StartTime { get; }
 
     /// <summary>
-    /// Gets the end time of the time range managed by this shard.
+    /// 获取由此碎片管理的时间范围结束时间 。
     /// </summary>
     DateTimeOffset EndTime { get; }
 
     /// <summary>
-    /// Gets optional metadata associated with this job shard.
+    /// 获取与此工作碎片相关的可选元数据。
     /// </summary>
     IDictionary<string, string>? Metadata { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this shard has been marked as complete and is no longer accepting new jobs.
+    /// 获得一个值, 显示是否该碎片被标记为完整且不再接受新任务 。
     /// </summary>
     /// <remarks>
-    /// When a shard is marked as complete (via <see cref="MarkAsCompleteAsync"/>), no new jobs can be added to it.
+    /// 当一个碎片被标记成完整的时, <see cref="MarkAsCompleteAsync"/>),不能增加新的工作。
     /// </remarks>
     bool IsAddingCompleted { get; }
 
     /// <summary>
-    /// Consumes durable jobs from this shard in order of their due time.
+    /// 以合适的时间为条件,
     /// </summary>
-    /// <returns>An asynchronous enumerable of durable job contexts.</returns>
+    /// <returns>大量持久的工作环境。</returns>
     IAsyncEnumerable<IJobRunContext> ConsumeDurableJobsAsync();
 
     /// <summary>
-    /// Attempts to reserve a dequeued durable job for execution.
+    /// 试图保留一个被解密的持久工作供执行。
     /// </summary>
-    /// <param name="jobContext">The dequeued job context.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <param name="jobContext">被裁员的工作环境</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
     /// <returns>
-    /// A task containing <see cref="DurableJobMutationResult.Applied"/> when the attempt may start,
-    /// <see cref="DurableJobMutationResult.JobNotFound"/> when cancellation or completion removed the job first,
-    /// or <see cref="DurableJobMutationResult.OwnershipLost"/> when this shard is no longer locally owned.
+    /// 包含任务 <see cref="DurableJobMutationResult.Applied"/> , 当尝试开始时
+    /// <see cref="DurableJobMutationResult.JobNotFound"/> 取消或完成该工作后,首先将职位从岗位上撤走,
+    /// 或 <see cref="DurableJobMutationResult.OwnershipLost"/> ,当此碎片不再由本地所有时。
     /// </returns>
     Task<DurableJobMutationResult> TryStartAttemptAsync(
         IJobRunContext jobContext,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets the number of jobs currently scheduled in this shard.
+    /// 获取当前在此碎片中安排的工作数量 。
     /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the job count.</returns>
+    /// <returns>代表无同步操作的任务。任务结果包含任务计数。</returns>
     ValueTask<int> GetJobCountAsync();
 
     /// <summary>
-    /// Marks this shard as complete, preventing new jobs from being scheduled.
+    /// 将这一碎片标为完整, 从而阻止新任务排期 。
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>代表无同步操作的任务。</returns>
     Task MarkAsCompleteAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Removes a durable job from this shard.
+    /// 从这个碎片中删除一个耐久的工作 。
     /// </summary>
-    /// <param name="jobId">The unique identifier of the job to remove.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task containing the durable mutation outcome.</returns>
+    /// <param name="jobId">要删除的任务的唯一标识符。</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>一项任务包含持久的突变结果。</returns>
     Task<DurableJobMutationResult> RemoveJobAsync(string jobId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reschedules a job to be retried at a later time.
+    /// 重新安排日后再找工作。
     /// </summary>
-    /// <param name="jobContext">The context of the job to retry.</param>
+    /// <param name="jobContext">要重新尝试的工作的上下文。</param>
     /// <param name="newDueTime">
-    /// The new due time for the job. This value supersedes <see cref="DurableJob.DueTime"/> on
+    /// 任务的新到期时间。 此值取代 <see cref="DurableJob.DueTime"/>
     /// <see cref="IJobRunContext.Job"/>.
     /// </param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task containing the durable mutation outcome.</returns>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>一项任务包含持久的突变结果。</returns>
     Task<DurableJobMutationResult> RetryJobLaterAsync(
         IJobRunContext jobContext,
         DateTimeOffset newDueTime,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reschedules a successfully completed execution with its dequeue count reset.
+    /// 重新安排成功完成的执行, 并重置计数。
     /// </summary>
-    /// <param name="jobContext">The context of the completed execution.</param>
+    /// <param name="jobContext">已完成执行的背景。</param>
     /// <param name="newDueTime">
-    /// The new due time for the job. This value supersedes <see cref="DurableJob.DueTime"/> on
+    /// 任务的新到期时间。 此值取代 <see cref="DurableJob.DueTime"/>
     /// <see cref="IJobRunContext.Job"/>.
     /// </param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task containing the durable mutation outcome.</returns>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>一项任务包含持久的突变结果。</returns>
     Task<DurableJobMutationResult> RescheduleJobAsync(
         IJobRunContext jobContext,
         DateTimeOffset newDueTime,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Attempts to schedule a new job on this shard.
+    /// 试图在这个碎片上安排新工作
     /// </summary>
-    /// <param name="request">The request containing the job scheduling parameters.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the durable job if successful, or null if the job could not be scheduled (e.g., the shard was marked as complete).</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the due time is outside the shard's time range.</exception>
+    /// <param name="request">载有工作时间安排参数的请求。</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>代表非同步操作的任务。 任务结果包含如果成功, 则持久工作; 如果无法安排该工作, 则无效(e.g. 碎片标记为完整) 。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">当到期时间超出碎片的时间范围时丢弃。</exception>
     Task<DurableJob?> TryScheduleJobAsync(ScheduleJobRequest request, CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// Describes the outcome of an attempt to mutate a durable job after execution.
+/// 描述执行后试图改变持久工作的结果。
 /// </summary>
 public enum DurableJobMutationResult
 {
     /// <summary>
-    /// The mutation was durably applied.
+    /// 变异被长期应用
     /// </summary>
     Applied,
 
     /// <summary>
-    /// The job was no longer present, typically because cancellation or completion removed it first.
+    /// 这项工作已经不存在,通常是由于取消或完成后首先取消了。
     /// </summary>
     JobNotFound,
 
     /// <summary>
-    /// The local silo no longer owned the shard, so the mutation was not applied.
+    /// 本地 silo 不再拥有碎片, 因此突变没有应用 。
     /// </summary>
     OwnershipLost
 }
 
 /// <summary>
-/// Base implementation of <see cref="IJobShard"/> that provides common functionality for job shard implementations.
+/// 实施 <see cref="IJobShard"/> 的基础,为工作零散化实施提供共同功能。
 /// </summary>
 public abstract class JobShard : IJobShard
 {
@@ -173,11 +173,11 @@ public abstract class JobShard : IJobShard
     public bool IsAddingCompleted { get; protected set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="JobShard"/> class.
+    /// 初始化 <see cref="JobShard"/> 类的新实例。
     /// </summary>
-    /// <param name="id">The unique identifier for this job shard.</param>
-    /// <param name="startTime">The start time of the time range managed by this shard.</param>
-    /// <param name="endTime">The end time of the time range managed by this shard.</param>
+    /// <param name="id">此工作碎片的独特标识符。</param>
+    /// <param name="startTime">由此碎片管理的时段的起始时间。</param>
+    /// <param name="endTime">由此碎片管理的时间范围的结束时间。</param>
     protected JobShard(string id, DateTimeOffset startTime, DateTimeOffset endTime)
     {
         Id = id;
@@ -348,41 +348,41 @@ public abstract class JobShard : IJobShard
     }
 
     /// <summary>
-    /// Enqueues a job into the in-memory queue with the specified dequeue count.
+    /// 将一项任务加入含有指定删除数的模拟队列。
     /// </summary>
-    /// <param name="job">The job to enqueue.</param>
-    /// <param name="dequeueCount">The number of times this job has been dequeued.</param>
+    /// <param name="job">任务要排队。</param>
+    /// <param name="dequeueCount">任务被排队的次数。</param>
     protected void EnqueueJob(DurableJob job, int dequeueCount)
     {
         _jobQueue.Enqueue(job, dequeueCount);
     }
 
     /// <summary>
-    /// Persists the addition of a new job to the underlying storage.
+    /// 坚持在仓库里增加一份新工作。
     /// </summary>
-    /// <param name="job">The job to persist.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="job">这份工作要坚持下去</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>代表无同步操作的任务。</returns>
     protected abstract Task PersistAddJobAsync(DurableJob job, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Persists the removal of a job from the underlying storage.
+    /// 坚持要从底库仓库中撤换一份工作。
     /// </summary>
-    /// <param name="jobId">The unique identifier of the job to remove.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="jobId">要删除的任务的唯一标识符。</param>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>代表无同步操作的任务。</returns>
     protected abstract Task PersistRemoveJobAsync(string jobId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Persists the rescheduling of a job to the underlying storage.
+    /// 坚持将工作重新安排到仓库
     /// </summary>
-    /// <param name="jobContext">The execution context of the job to retry.</param>
+    /// <param name="jobContext">要重试的任务执行环境。</param>
     /// <param name="newDueTime">
-    /// The new due time for the job. This value supersedes <see cref="DurableJob.DueTime"/> on
+    /// 任务的新到期时间。 此值取代 <see cref="DurableJob.DueTime"/>
     /// <see cref="IJobRunContext.Job"/>.
     /// </param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>代表无同步操作的任务。</returns>
     protected abstract Task PersistRetryJobAsync(IJobRunContext jobContext, DateTimeOffset newDueTime, CancellationToken cancellationToken);
 
     /// <inheritdoc/>

@@ -16,7 +16,7 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// Tests for membership table snapshot functionality including silo status retrieval and IAmAliveTime preservation.
+    /// 会员表快照功能测试,包括 silo 状态检索和 IAmAliveTime 保存。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -42,7 +42,7 @@ namespace NonSilo.Tests.Membership
                 var snapshotType = clusterSnapshot ? typeof(ClusterMembershipSnapshot) : typeof(MembershipTableSnapshot);
                 ReferenceCodec.MarkValueField(session);
                 writer.WriteFieldHeader(0, typeof(object), snapshotType, WireType.TagDelimited);
-                // Orleans 10.4.0 snapshots contain only their original two fields.
+                // Orleans 10.4.0 片段仅包含最初的两个字段。
                 if (clusterSnapshot)
                 {
                     var members = ImmutableDictionary<SiloAddress, ClusterMember>.Empty.Add(
@@ -744,7 +744,7 @@ namespace NonSilo.Tests.Membership
         {
             var silo = Silo("127.0.0.1:100@1");
 
-            // The table is empty
+            // 表格为空
             var localSiloEntry = Entry(silo, SiloStatus.Joining);
             var snapshot = AddOrUpdateEntry(MembershipTableSnapshot.Create(Table()), localSiloEntry);
 
@@ -759,8 +759,8 @@ namespace NonSilo.Tests.Membership
         {
             var silo = Silo("127.0.0.1:100@1");
 
-            // Check that the Silo status in the entry directly provided to the
-            // constructor overrides the value in the table.
+            // 检查条目中的 Silo 状态是否直接提供给
+            // 构建器推翻表格中的值。
             var localSiloEntry = Entry(silo, SiloStatus.Stopping);
             var snapshot = AddOrUpdateEntry(MembershipTableSnapshot.Create(
                 Table(
@@ -793,7 +793,7 @@ namespace NonSilo.Tests.Membership
             var earlierDate = new DateTimeOffset(new DateTime(2025, 1, 30, 12, 30, 45, DateTimeKind.Utc));
             var laterDate = earlierDate.AddDays(1);
 
-            // Merging a later snapshot with an earlier date with an older snapshot with a later date should preserve the later date.
+            // 较晚的快照与较早的日期合并,较晚的快照与较晚的日期合并,应保留较晚的日期。
             {
                 var originalSnapshot = MembershipTableSnapshot.Create(Table(Entry(originalSilo, SiloStatus.Active, laterDate)));
                 var newSnapshot = MembershipTableSnapshot.Update(originalSnapshot, Table(Entry(originalSilo, SiloStatus.Active, earlierDate)));
@@ -802,7 +802,7 @@ namespace NonSilo.Tests.Membership
                 Assert.Equal(laterDate, iAmAliveTime);
             }
 
-            // Now do the same thing, but using a snapshot instead of a table
+            // 现在做同样的事情, 但用快照代替桌子
             {
                 var originalSnapshot = MembershipTableSnapshot.Create(Table(Entry(originalSilo, SiloStatus.Active, laterDate)));
                 var newSnapshot = MembershipTableSnapshot.Update(originalSnapshot, MembershipTableSnapshot.Create(Table(Entry(originalSilo, SiloStatus.Active, earlierDate))));

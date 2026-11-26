@@ -18,9 +18,9 @@ namespace Orleans.Storage
 
 
         /// <summary>
-        /// A constructor.
+        /// 建筑师
         /// </summary>
-        /// <param name="hashProviders">The hash providers this picker uses.</param>
+        /// <param name="hashProviders">此处选取器使用的散列提供者。</param>
         public StorageHasherPicker(IEnumerable<IHasher> hashProviders)
         {
             if (hashProviders == null)

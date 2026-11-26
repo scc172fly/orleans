@@ -3,12 +3,12 @@ using Azure.Storage.Blobs;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// A default blob container factory that uses the default container name.
+/// 使用默认容器名称的默认泡沫集装箱工厂。
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="DefaultBlobContainerFactory"/> class.
+/// 初始化 <see cref="DefaultBlobContainerFactory"/> 类的新实例。
 /// </remarks>
-/// <param name="options">The blob storage options</param>
+/// <param name="options">易泡布储存选项</param>
 internal sealed class DefaultBlobContainerFactory(AzureBlobJournalStorageOptions options) : IBlobContainerFactory
 {
     private BlobContainerClient _defaultContainer = null!;

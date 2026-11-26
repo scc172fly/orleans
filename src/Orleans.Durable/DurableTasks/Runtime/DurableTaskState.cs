@@ -10,25 +10,25 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// The persisted state of one durable task.
+/// 一项持久任务持续存在。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every persisted member is a primitive, enumeration, timestamp, string, <see cref="GrainId"/>, or set of subscribers, each a grain
-/// identity and a task identifier, so every journal format can store the state. The request and the result are
-/// polymorphic Orleans-serializable values, held as
-/// opaque Orleans-serialized payloads in <see cref="RequestPayload"/> and <see cref="ResultPayload"/>. The payloads are
-/// not serialized with the state: the state is rewritten on every update, so the owning storage persists each payload
-/// separately, once, and attaches it to the state it exposes.
+/// 每个成员都是原始的、点数、时间戳、字符串、 <see cref="GrainId"/>或一组订户,每个 grain
+/// 身份和任务标识符, 所以每个日记格式都能够存储状态。 请求和结果
+/// 多态 Orleans- 可序列值,以
+/// Orleans- <see cref="RequestPayload"/> 和 <see cref="ResultPayload"/>中的定序有效载荷。
+/// 与状态没有序列化: 状态每更新一次都重新写入, 所以拥有的存储器会持续每个有效载荷
+/// 单独,一次,并把它附加到它所暴露的国家。
 /// </para>
 /// <para>
-/// The owning storage binds each state to its <see cref="Serializer"/> before exposing it. <see cref="Request"/> and
-/// <see cref="Result"/> decode their payload on first access and cache the decoded value, so recovery does not decode
-/// every payload and later updates reuse the stored payloads. A payload which no longer decodes throws on each access and
-/// stays stored unchanged, so code which decodes it, such as a later deployment's, reads it.
+/// 拥有所有权的储存库将每个国家约束于其 <see cref="Serializer"/> 之前,公开它。 <see cref="Request"/> 和
+/// <see cref="Result"/> 在第一次进入时解码其有效载荷,并隐藏已解码值,因此回收不会编码
+/// 不再编码的有效载荷将每一次进入和每次进入都投下,
+/// 保存不变,所以代码解码 它,例如后期部署的,读它。
 /// </para>
 /// <para>
-/// JSON journals omit unset grain identities, so they recover as <see langword="default"/>.
+/// JSON 日记省去未设置的 grain 身份,因此恢复为 <see langword="default"/>。
 /// </para>
 /// </remarks>
 [GenerateSerializer, SuppressReferenceTracking]
@@ -49,9 +49,9 @@ internal class DurableTaskState : IDurableTaskState
     private bool _payloadsAttached;
 
     /// <summary>
-    /// Gets or sets the Orleans-serialized <see cref="IDurableTaskRequest"/>, or <see langword="null"/> when the task has no stored request.
+    /// 获取或设置 Orleans- 序列化的 <see cref="IDurableTaskRequest"/>,或者当任务没有存储请求时,获取或设置 <see langword="null"/> 。
     /// </summary>
-    /// <remarks>The owning storage persists the payload separately from the state.</remarks>
+    /// <remarks>拥有的储存库将有效载荷与状态分开。</remarks>
     [JsonIgnore]
     public byte[]? RequestPayload
     {
@@ -64,9 +64,9 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// Gets or sets the Orleans-serialized terminal <see cref="DurableTaskResponse"/>, or <see langword="null"/> when the task has no stored result.
+    /// 获取或设置 Orleans- 序列终端 <see cref="DurableTaskResponse"/>,或者当任务没有存储结果时,获取或设置 <see langword="null"/> 。
     /// </summary>
-    /// <remarks>The owning storage persists the payload separately from the state.</remarks>
+    /// <remarks>拥有的储存库将有效载荷与状态分开。</remarks>
     [JsonIgnore]
     public byte[]? ResultPayload
     {
@@ -79,8 +79,8 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <inheritdoc cref="IDurableTaskState.Result"/>
-    /// <remarks>The value is decoded from <see cref="ResultPayload"/> on first access.</remarks>
-    /// <exception cref="InvalidOperationException">The state stores a result but is not bound to its storage.</exception>
+    /// <remarks>数值解码 <see cref="ResultPayload"/> 第一次访问。</remarks>
+    /// <exception cref="InvalidOperationException">国家储存是结果,但不受储存的约束。</exception>
     [JsonIgnore]
     public DurableTaskResponse? Result => _result ??= _resultPayload is { } payload
         ? GetSerializer().Deserialize<DurableTaskResponse>(payload)
@@ -95,8 +95,8 @@ internal class DurableTaskState : IDurableTaskState
     public HashSet<DurableTaskSubscriber> CompletionDestinations { get; set; } = [];
 
     /// <inheritdoc cref="IDurableTaskState.Request"/>
-    /// <remarks>The value is decoded from <see cref="RequestPayload"/> on first access.</remarks>
-    /// <exception cref="InvalidOperationException">The state stores a request but is not bound to its storage.</exception>
+    /// <remarks>数值解码 <see cref="RequestPayload"/> 第一次访问。</remarks>
+    /// <exception cref="InvalidOperationException">国家储存一项请求,但不受其储存的约束。</exception>
     [JsonIgnore]
     public IDurableTaskRequest? Request => _request ??= _requestPayload is { } payload
         ? GetSerializer().Deserialize<IDurableTaskRequest>(payload)
@@ -179,7 +179,7 @@ internal class DurableTaskState : IDurableTaskState
     IReadOnlySet<DurableTaskSubscriber> IDurableTaskState.CompletionDestinations => CompletionDestinations;
 
     /// <summary>
-    /// Binds this state to the serializer which encodes and decodes its payloads.
+    /// 将这个状态绑在序列器上 用于编码和解码其有效载荷的序列器
     /// </summary>
     internal DurableTaskState Bind(Serializer serializer)
     {
@@ -188,10 +188,10 @@ internal class DurableTaskState : IDurableTaskState
         return this;
     }
 
-    /// <summary>Gets whether the payloads which the owning storage persists separately are attached.</summary>
+    /// <summary>了解拥有存储器的剩余有效载荷是否被单独连接。</summary>
     internal bool PayloadsAttached => _payloadsAttached;
 
-    /// <summary>Attaches the payloads which the owning storage persists separately from a recovered state.</summary>
+    /// <summary>随附拥有的储存库与回收状态分开存在的有效载荷。</summary>
     internal void AttachPayloads(byte[]? request, byte[]? result)
     {
         Debug.Assert(!_payloadsAttached, "A state's payloads are attached once.");
@@ -201,7 +201,7 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// Shares the payloads of the state this instance was copied from. The payloads are immutable once stored.
+    /// 共享此实例复制的状态的有效载荷。 这些有效载荷一旦存储后就不可移动 。
     /// </summary>
     internal void CopyPayloadsFrom(DurableTaskState source)
     {
@@ -210,7 +210,7 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// Stores <paramref name="request"/> as an Orleans-serialized payload and caches it as the decoded value.
+    /// 仓库 <paramref name="request"/> 以 A 时 Orleans- 序列有效载荷并隐藏作为解码值。
     /// </summary>
     internal void SetRequest(IDurableTaskRequest? request)
     {
@@ -220,7 +220,7 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// Stores <paramref name="result"/> as an Orleans-serialized payload and caches it as the decoded value.
+    /// 仓库 <paramref name="result"/> 以 A 时 Orleans- 序列有效载荷并隐藏作为解码值。
     /// </summary>
     internal void SetResult(DurableTaskResponse? result)
     {

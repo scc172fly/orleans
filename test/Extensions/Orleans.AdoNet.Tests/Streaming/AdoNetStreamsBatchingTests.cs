@@ -15,7 +15,7 @@ using Xunit;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// Tests for SQL Server ADO.NET stream batching functionality.
+/// 测试 SQL 服务器 ADO.NET 流批量功能。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -25,7 +25,7 @@ public class SqlServerAdoNetStreamsBatchingTests(ITestOutputHelper output) : Ado
 }
 
 /// <summary>
-/// Tests for MySQL ADO.NET stream batching functionality.
+/// MySQL ADO.NET 流批量功能测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -39,7 +39,7 @@ public class MySqlAdoNetStreamsBatchingTests : AdoNetStreamsBatchingTests
 }
 
 /// <summary>
-/// Tests for PostgreSQL ADO.NET stream batching functionality.
+/// PostgreSQL ADO.NET 流批量功能测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -49,7 +49,7 @@ public class PostgreSqlAdoNetStreamsBatchingTests(ITestOutputHelper output) : Ad
 }
 
 /// <summary>
-/// Base class for ADO.NET stream batching tests.
+/// ADO.NET 流批量测试的基准类。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestSuite("Functional")]
@@ -79,7 +79,7 @@ public abstract class AdoNetStreamsBatchingTests : StreamBatchingTestRunner, IAs
 
         public override async ValueTask InitializeAsync()
         {
-            // set up the adonet environment before the base initializes
+            // 在基初始化前设置 adonet 环境
             _testing = await RelationalStorageForTesting.SetupInstance(
                 _invariant,
                 TestDatabaseName,

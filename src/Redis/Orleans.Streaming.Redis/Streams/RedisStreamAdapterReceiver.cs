@@ -23,7 +23,7 @@ internal sealed class RedisStreamAdapterReceiver : IQueueAdapterReceiver
 
     public async Task Initialize(TimeSpan timeout)
     {
-        if (_queue != null) // check in case we already shut it down.
+        if (_queue != null) // 以防我们已经关闭了
         {
             await _queue.ConnectAsync();
         }

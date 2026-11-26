@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>Verifies that <c>ScheduledTask.WhenAny</c> selects through the host within a durable execution.</summary>
+/// <summary>证明: <c>ScheduledTask.WhenAny</c> 在耐久执行中通过主机选择。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -39,7 +39,7 @@ public class ScheduledTaskWhenAnyTests
         releases[1].SetResult(1);
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, (await live.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation)).Status);
 
-        // Both candidates are complete when the execution replays; the recorded selection returns the same task.
+        // 执行重播时,两名候选人都已完成;所记录的甄选记录也返回了同样的任务。
         releases[0].SetResult(0);
         var replay = await DurableTaskRuntimeHelper.RunAsync(definition, host.CreateContext(RootId));
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, replay.Status);

@@ -16,7 +16,7 @@ internal sealed class NatsAdapter(
     NatsConnectionManager natsConnectionManager) : IQueueAdapter
 {
     public string Name => providerName;
-    public bool IsRewindable => false; // We will make it rewindable later
+    public bool IsRewindable => false; // 我们稍后再把它改回来
     public StreamProviderDirection Direction => StreamProviderDirection.ReadWrite;
 
     public IQueueAdapterReceiver CreateReceiver(QueueId queueId) =>
@@ -35,7 +35,7 @@ internal sealed class NatsAdapter(
         var batchContainer = new NatsBatchContainer(streamId, events.Cast<object>().ToArray(), requestContext);
         var raw = serializer.GetSerializer<NatsBatchContainer>().SerializeToArray(batchContainer);
 
-        // Request context is carried in the Orleans-serialized payload, which preserves its value types.
+        // 请求内容在 Orleans-序列有效载荷内携带,保留其价值类型。
         return new NatsStreamMessage
         {
             StreamId = streamId,

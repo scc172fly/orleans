@@ -7,80 +7,88 @@ products:
 page_type: sample
 name: "Orleans GPS device tracker sample"
 urlFragment: "orleans-gps-device-tracker-sample"
-description: "An Orleans sample demonstrating how to use GPS device tracker."
+description: "Orleans 样本表明如何使用全球定位系统设备跟踪器。"
 ---
 
-# Orleans GPS device tracker sample app
+<a id="orleans-gps-device-tracker-sample-app"></a>
 
-This sample demonstrates a service for tracking GPS-equipped IoT devices on a map. Device locations are updated in near-real-time using SignalR and hence this sample demonstrates one approach to integrating Orleans with SignalR. The device updates originate from a *device gateway*, which is implemented using a separate process that connects to the main service and simulates several devices moving in a pseudorandom fashion around an area of San Francisco.
+# Orleans GPS 设备追踪器样本应用
 
-![The map view of the GPS tracker](screenshot.jpeg)
+该样本显示在地图上跟踪GPS装备的 IoT 装置的服务。设备位置使用 SignalR 近实时更新,因此该样本显示了将 Orleans 与 SignalR合并的一种方法。设备更新来自一个 *装置网关*,实施时采用了一个单独的程序,它连接主服务,模拟了以假冒方式在旧金山附近移动的若干装置。
 
-Data flows around the system as follows:
+![GPS 跟踪器的地图视图](screenshot.jpeg)
 
-* A device gateway sends periodic location updates to a per-device `DeviceGrain`
-* The `DeviceGrain` updates a singleton `PushNotifierGrain` with its location
-* The `PushNotifierGrain` collects these updates into batches and pushes them to `IRemoteLocationHub` instances which it discovers by periodically polling the singleton `HubListGrain`
-* `HubListGrain` maintains a list containing an `IRemoteLocationHub` reference for each host which is connected to the Orleans cluster
-* Each host has a `HubListUpdater` instance, which implements [`BackgroundService`](https://docs.microsoft.com/aspnet/core/fundamentals/host/hosted-services#backgroundservice-base-class) and periodically updates `HubListGrain` with its local `IRemoteLocationHub` reference.
-* The `RemoteLocationHub` class which implements `IRemoteLocationHub` has an instance of [`IHubContext<LocationHub>`](https://docs.microsoft.com/aspnet/core/signalr/hubcontext) injected into its constructor. This allows it to send messages to the Web clients which have connected to the `LocationHub`.
+整个系统的数据流动情况如下:
 
-The following diagram is a representation of the above description:
+* 一个设备网关向每个设备发送定期位置更新 `DeviceGrain`
+* `DeviceGrain` 更新单吨 `PushNotifierGrain` , 并更新其位置
+* 下 `PushNotifierGrain` 将这些更新集成批次,并推至 `IRemoteLocationHub` 定期投票发现单吨 `HubListGrain`
+* `HubListGrain` 维持一份载有 `IRemoteLocationHub` 连接到 Orleans 组群
+* 每个主机都有一个 `HubListUpdater` 实例,用于执行 [`BackgroundService`](https://docs.microsoft.com/aspnet/core/fundamentals/host/hosted-services#backgroundservice-base-class) 并定期更新 `HubListGrain` ,并参照其本地 `IRemoteLocationHub` 参考。
+* 下 `RemoteLocationHub` 执行工具的类 `IRemoteLocationHub` 具有 [`IHubContext<LocationHub>`](https://docs.microsoft.com/aspnet/core/signalr/hubcontext) 将信息输入到其构建器中。 这样它就可以向连接到 `LocationHub`.
 
-![A diagram depicting the flow of data around the system](./dataflow.png)
+以下图表是上述说明的缩写:
 
-The following is an example of how this might look with multiple hosts and many browsers. Note that the `PushNotifierGrain` and `HubListGrain` are singletons and therefore there is one instance of each of those grains shared by the cluster. Singleton grains are a pattern in Orleans whereby only a single grain of a given type is accessed, for example by always calling the instance with a key `0` or `Guid.Empty` or some other fixed value, depending on if the grain is an `IGrainWithIntegerKey` or `IGrainWithGuidKey`. For example, each `DeviceGrain` gets an instance of the `IPushNotifierGrain` with id `0`:
+![显示整个系统数据流的图表](./dataflow.png)
+
+下面的例子说明了这个方法如何与多个主机和浏览器一起看。 `PushNotifierGrain` 和 `HubListGrain` 单吨为单吨,因此其中每个实例都有一个。 grains 与集共享。 grains 中 Orleans 只有一个 grain 访问特定类型,例如总是用键调用实例 `0` 或 `Guid.Empty` 或某些其他固定价值,视 grain 是 `IGrainWithIntegerKey` 或 `IGrainWithGuidKey`例如,每个 `DeviceGrain` 获得一个实例 `IPushNotifierGrain` 与id 和 `0`:
 
 ```csharp
 var notifier = GrainFactory.GetGrain<IPushNotifierGrain>(0);
 ```
 
-![A diagram showing multiple hosts with grains distributed across them](./example.png)
+![显示多个主机的图表, 上面分布着粮食](./example.png)
 
-## Sample prerequisites
+<a id="sample-prerequisites"></a>
 
-This sample is written in C# and targets .NET 10. It requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+## 抽样的前提条件
 
-## Building the sample
+本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
 
-To download and run the sample, follow these steps:
+<a id="building-the-sample"></a>
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
+## 建立样本
+
+下载和运行样本时,请遵循以下步骤:
+
+1. 下载并解开样本的平面
+2. 视觉演播室(2022年或以后):
+    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
     2. Navigate to the folder that holds the unzipped sample code, and open the C# project (.csproj) file.
     3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. At the command line, type [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run).
+3. 从命令行 :
+   1. 导航到持有未设偏移样本代码的文件夹 。
+   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-Open three terminal windows. In the first terminal window, run the following at the command prompt:
+打开三个终端窗口。在第一个终端窗口中,命令提示时运行以下操作:
 
 ```dotnetcli
 dotnet run --project GPSTracker.Service
 ```
 
-In the second terminal, launch another instance of the host, specifying that it's the second host by passing an `InstanceId` value as follows:
+在第二个终端中,再发射一个主机实例,通过传递以下 `InstanceId` 值来说明它是第二个主机:
 
 ```dotnetcli
 dotnet run --project GPSTracker.Service -- --InstanceId 1
 ```
 
-Now open a web browser to `http://localhost:5001/index.html`. At this point, there will be no points moving around the map.
+现在打开一个 `http://localhost:5001/index.html`的网络浏览器。 到此点, 在地图周围将没有移动的点 。
 
-In the third terminal window, run the following at the command prompt to begin simulating devices:
+在第三个终端窗口中,在命令提示处运行以下操作以启动模拟设备:
 
 ```dotnetcli
 dotnet run --project GPSTracker.FakeDeviceGateway
 ```
 
-Dots will appear on the map in the Web browser and begin moving randomly around the area.
+点将出现在地图上的 Web 浏览器中,并随机在区域周围移动。
 
-## Orleans observability
+<a id="orleans-observability"></a>
 
-If you're interested in observability, this sample includes some optional logging, metrics, and distributed tracing.
+## Orleans 易观测
 
-Import `grafana_dash.json` into Grafana to view the Prometheus metrics. Activation panels sum grain-type series per emitting instance: current populations use gauge snapshots, and lifecycle throughput uses counter rates or increases. The Grains panel groups current-schema metrics by canonical `grain_type`. It also shows older Orleans metrics with their CLR `type` names and a `legacy CLR` legend, supporting the sample's published packages and mixed-version upgrades. Map legacy CLR names to canonical grain-type registrations before combining those two schemas into a single type-level total.
+如果你对可观察性感兴趣, 这个样本包括一些选择性的伐木、测量和分布式追踪。
+
+进口 `grafana_dash.json` 启动小组和 grain- 每一排放实例的类型系列:当前人口使用测量速记片,而生命周期的吞吐量则使用反比率或反增长。 Grains 以卡尼基调计的当前气相测量 `grain_type`显示的年长 Orleans 使用CLR的量度 `type` 和名称 `legacy CLR` 用于支持样本已公布的软件包和混合版本升级的图例。 grain- 将这两个方案合并成单一类型总数之前的登记类型。
 
 ```docker
 docker run -p 9090:9090 --mount type=bind,source="${PWD}/prometheus.yml",target=/etc/prometheus/prometheus.yml prom/prometheus
@@ -90,7 +98,7 @@ docker run -p 9090:9090 --mount type=bind,source="${PWD}/prometheus.yml",target=
 docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 14250:14250 -p 9411:9411 jaegertracing/all-in-one:1.22
 ```
 
-OR zipkin:
+OR 拉链金:
 
 ```docker
 docker run -p 9411:9411 openzipkin/zipkin

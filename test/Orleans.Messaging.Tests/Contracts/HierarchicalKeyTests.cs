@@ -255,7 +255,7 @@ public class HierarchicalKeyTests
         Assert.True(key.IsDefault);
     }
 
-    // Theory data replaces unpaired surrogates during discovery serialization, so cases use placeholders.
+    // 理论数据取代了发现序列过程中的无偏差代孕,因此案例使用占位符。
     [Theory]
     [InlineData("order-{high}")]
     [InlineData("{low}-order")]

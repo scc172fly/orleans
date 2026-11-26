@@ -12,7 +12,7 @@ using Orleans.Configuration;
 namespace AWSUtils.Tests.Streaming
 {
     /// <summary>
-    /// Tests SQS streaming functionality from Orleans client perspective including producer dropout scenarios.
+    /// 从 Orleans 客户角度测试SQS流式功能,包括生产者辍学情况。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]

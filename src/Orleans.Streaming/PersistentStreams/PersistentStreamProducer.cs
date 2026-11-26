@@ -39,13 +39,13 @@ namespace Orleans.Streams
 
         public Task OnCompletedAsync()
         {
-            // Maybe send a close message to the rendezvous?
+            // 也许可以给会合点发出一个密讯?
             throw new NotImplementedException("OnCompletedAsync is not implemented for now.");
         }
 
         public Task OnErrorAsync(Exception ex)
         {
-            // Maybe send a close message to the rendezvous?
+            // 也许可以给会合点发出一个密讯?
             throw new NotImplementedException("OnErrorAsync is not implemented for now.");
         }
 

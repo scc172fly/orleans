@@ -4,7 +4,7 @@ using Orleans.Runtime;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Orleans v3-compatible hash picker implementation for Orleans v3 -> v7+ migration scenarios.
+    /// Orleans v3 兼容的散射采集器执行 Orleans v3 - > v7+迁移情景。
     /// </summary>
     public class Orleans3CompatibleStorageHashPicker : IStorageHasherPicker
     {
@@ -16,7 +16,7 @@ namespace Orleans.Storage
         public ICollection<IHasher> HashProviders { get; }
 
         /// <summary>
-        /// A constructor.
+        /// 建筑师
         /// </summary>
         public Orleans3CompatibleStorageHashPicker()
         {
@@ -35,11 +35,11 @@ namespace Orleans.Storage
             IGrainState<T> grainState,
             string? tag = null)
         {
-            // string-only grain keys had special behaviour in Orleans v3
+            // 仅字符串 grain 键在 Orleans v3 有特殊行为
             if (grainId.TryGetIntegerKey(out _, out _) || grainId.TryGetGuidKey(out _, out _))
                 return _nonStringHasher;
 
-            // unable to cache hasher instances: content-aware behaviour, see hasher implementation for details
+            // 无法隐藏有误的事例:内容意识行为,详情请见hashher impact
             return new Orleans3CompatibleStringKeyHasher(_nonStringHasher, grainType);
         }
     }

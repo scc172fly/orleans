@@ -9,7 +9,7 @@ using Orleans.Serialization.Session;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// Benchmarks Orleans deep copy performance for various object types including arrays and value types.
+/// 基准 Orleans 深处复制各种对象类型,包括阵列和价值类型的性能。
 /// </summary>
 [Config(typeof(BenchmarkConfig))]
 public class CopierBenchmark

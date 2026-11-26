@@ -17,7 +17,7 @@ public class PushNotifierGrain : Grain, IPushNotifierGrain
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        // Set up a timer to regularly flush the message queue
+        // 设置一个定时器, 定期冲红信件队列
         this.RegisterGrainTimer(
             _ =>
             {
@@ -31,7 +31,7 @@ public class PushNotifierGrain : Grain, IPushNotifierGrain
                 Interleave = true
             });
 
-        // Set up a timer to regularly refresh the hubs, to respond to azure infrastructure changes
+        // 设置定期更新枢纽的定时器,以应对“暴风”基础设施的变化
         await RefreshHubs();
         this.RegisterGrainTimer(
             async _ => await RefreshHubs(),
@@ -53,14 +53,14 @@ public class PushNotifierGrain : Grain, IPushNotifierGrain
 
     private async ValueTask RefreshHubs()
     {
-        // Discover the current infrastructure
+        // 发现当前基础设施
         IHubListGrain hubListGrain = GrainFactory.GetGrain<IHubListGrain>(Guid.Empty);
         _hubs = await hubListGrain.GetHubs();
     }
 
     public ValueTask SendMessage(VelocityMessage message)
     {
-        // Add a message to the send queue
+        // 向发送队列添加消息
         _messageQueue.Enqueue(message);
         return new(Flush());
     }
@@ -81,7 +81,7 @@ public class PushNotifierGrain : Grain, IPushNotifierGrain
 
             while (_messageQueue.Count > 0)
             {
-                // Send all messages to all SignalR hubs
+                // 将所有信件发送到全部 SignalR 中心
                 var messagesToSend = new List<VelocityMessage>(Math.Min(_messageQueue.Count, MaxMessagesPerBatch));
                 while (messagesToSend.Count < MaxMessagesPerBatch && _messageQueue.TryDequeue(out VelocityMessage? msg)) messagesToSend.Add(msg);
 

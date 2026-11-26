@@ -1,16 +1,24 @@
-# Microsoft Orleans Persistence for DynamoDB
+<a id="microsoft-orleans-persistence-for-dynamodb"></a>
 
-## Introduction
-Microsoft Orleans Persistence for DynamoDB provides grain persistence for Microsoft Orleans using Amazon's DynamoDB. This allows your grains to persist their state in DynamoDB and reload it when they are reactivated.
+# Microsoft Orleans 持久性 DynamoDB
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 持久性 DynamoDB 提供 grain 持久性或持久性 Microsoft Orleans 使用亚马逊 DynamoDB。这样可以让您 grains 坚持自己在 DynamoDB 当他们被重新造化的时候,你们要装填它。
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Persistence.DynamoDB
 ```
 
-## Example - Configuring DynamoDB Persistence
+<a id="example---configuring-dynamodb-persistence"></a>
+
+## 示例 - 配置 DynamoDB 持久性
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Configuration;
@@ -37,19 +45,25 @@ var builder = Host.CreateApplicationBuilder(args)
 await builder.RunAsync();
 ```
 
-## Service identity and upgrades
+<a id="service-identity-and-upgrades"></a>
 
-Set `DynamoDBStorageOptions.ServiceId` explicitly for every provider. It prefixes each grain state key as `{ServiceId}_{grainId}` and must remain stable across deployments that share state. Startup validation reports an `OrleansConfigurationException` when it is unset.
+## 服务身份和升级
 
-For new deployments, choose a stable application identifier, such as the cluster's `ServiceId`. When upgrading, retain the identifier used to write the existing state. If the deployment used the previous empty-string default, set `ServiceId = string.Empty` in code or `"ServiceId": ""` in configuration to preserve access to those keys. Choosing a different identifier selects a different state namespace; accessing existing state under that prefix requires a separate data migration.
+明确为每个提供者设置 `DynamoDBStorageOptions.ServiceId` 。 它将每一个 grain 键的前缀标为 `{ServiceId}_{grainId}` , 并且必须保持共享状态的部署之间的稳定性。 当启动验证报告未设置时, 启动验证报告为 `OrleansConfigurationException` 。
 
-## Endpoints and credentials
+对于新部署,选择一个稳定的应用程序识别标识符,例如分组 `ServiceId`。升级时,保留用于写入现有状态的标识符。如果部署使用了前一个空字符串默认,则设置 `ServiceId = string.Empty` 代码或 `"ServiceId": ""` 配置中保存这些密钥的存取权限。选择不同的识别符号可以选择不同的州名空间;在前缀下访问现有状态需要单独的数据迁移 。
 
-`Service` selects an AWS region or an HTTP/HTTPS endpoint URL. `AccessKey` and `SecretKey` supply explicit credentials; adding `Token` supplies session credentials. `ProfileName` selects a named AWS profile when explicit keys are omitted. These credentials apply to both regions and endpoint URLs.
+<a id="endpoints-and-credentials"></a>
 
-The AWS SDK credential chain supplies credentials for regions and HTTPS endpoints when explicit keys and a profile are omitted. HTTP endpoints use the local-development credentials `dummy` and `dummyKey` in that case. Configure explicit credentials when a DynamoDB Local instance uses an access key to select its database.
+## 终点和全权证书
 
-## Example - Using Grain Storage in a Grain
+`Service` 选择 AWS 区域或 HTTP/HTTPS 端点 URL。 `AccessKey` 和 `SecretKey` 提供明确的全权证书;添加 `Token` 会话证书。 `ProfileName` 在省略明确密钥时选择名为 AWS 的配置文件。这些全权证书适用于区域和端点 URL 。
+
+AWS SDK 证书链路由提供区域及HTTPS终点点的证书,如果删除明确的密钥和剖面, HTTP终点点在这种情况下使用当地开发证书 `dummy` 和 `dummyKey` 。当 DynamoDB 地方机构使用访问键选择数据库时,配置明确的全权证书。
+
+<a id="example---using-grain-storage-in-a-grain"></a>
+
+## 实例 - 使用 Grain 储存在 Grain
 ```csharp
 // Define grain state class
 
@@ -83,15 +97,19 @@ public class MyGrain : Grain, IMyGrain, IGrainWithStringKey
 }
 ```
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Grain Persistence](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
-- [AWS SDK for .NET Documentation](https://docs.aws.amazon.com/sdk-for-net/index.html)
+<a id="documentation"></a>
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [Grain 持久性](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
+- [.NET 文档的 AWSSDK](https://docs.aws.amazon.com/sdk-for-net/index.html)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

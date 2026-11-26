@@ -7,7 +7,7 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents a snapshot of cluster membership.
+    /// 分组成员简况。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class ClusterMembershipSnapshot : ISpanFormattable
@@ -16,22 +16,22 @@ namespace Orleans.Runtime
         private readonly IReadOnlySet<SiloAddress>? _recentlyDeadSilos;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterMembershipSnapshot"/> class.
+        /// 初始化 <see cref="ClusterMembershipSnapshot"/> 类的新实例。
         /// </summary>
-        /// <param name="members">The cluster members.</param>
-        /// <param name="version">The cluster membership version.</param>
+        /// <param name="members">分组成员。</param>
+        /// <param name="version">分组成员版本。</param>
         public ClusterMembershipSnapshot(ImmutableDictionary<SiloAddress, ClusterMember> members, MembershipVersion version)
             : this(members, version, 0)
         {
         }
 
         /// <summary>
-        /// Initializes a cluster view with local generation-retirement knowledge.
+        /// 利用当地退休知识,开始采用集群观点。
         /// </summary>
-        /// <param name="members">The cluster members.</param>
-        /// <param name="version">The cluster membership version.</param>
-        /// <param name="minimumSiloGeneration">The exclusive upper bound of retired positive silo generations.</param>
-        /// <param name="recentlyDeadSilos">Known dead identities whose records have been removed.</param>
+        /// <param name="members">分组成员。</param>
+        /// <param name="version">分组成员版本。</param>
+        /// <param name="minimumSiloGeneration">退休阳性退休人员的独上限 silo 几代人</param>
+        /// <param name="recentlyDeadSilos">已知身份已死亡 记录已被删除。</param>
         internal ClusterMembershipSnapshot(
             ImmutableDictionary<SiloAddress, ClusterMember> members,
             MembershipVersion version,
@@ -47,27 +47,27 @@ namespace Orleans.Runtime
         internal static ClusterMembershipSnapshot Default => new(ImmutableDictionary<SiloAddress, ClusterMember>.Empty, MembershipVersion.MinValue);
 
         /// <summary>
-        /// Gets the cluster members.
+        /// 获得分组成员。
         /// </summary>
-        /// <value>The cluster members.</value>
+        /// <value>分组成员。</value>
         [Id(0)]
         public ImmutableDictionary<SiloAddress, ClusterMember> Members { get; }
 
         /// <summary>
-        /// Gets the cluster membership version.
+        /// 获得分组成员版本。
         /// </summary>
-        /// <value>The cluster membership version.</value>
+        /// <value>分组成员版本。</value>
         [Id(1)]
         public MembershipVersion Version { get; }
 
         /// <summary>
-        /// Gets the exclusive upper bound of retired positive silo generations.
-        /// Absent silos below this bound are dead; present members retain their recorded status.
+        /// 获得退休阳性者独有的上限 silo 几代人
+        /// 没有低于这一约束的 silos 即已死亡;现任成员仍保留其记录身份。
         /// </summary>
         [Id(2)]
         internal int MinimumSiloGeneration { get; }
 
-        // Snapshots from older silos omit field 3 and carry no retained death history.
+        // 旧 silos 的截图忽略了字段3, 没有保留死亡历史 。
         internal IReadOnlySet<SiloAddress> RecentlyDeadSilos => _recentlyDeadSilos ?? FrozenSet<SiloAddress>.Empty;
 
         internal bool IsSuccessorTo(ClusterMembershipSnapshot previous)
@@ -88,14 +88,14 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets status of the specified silo.
+        /// 获取指定 silo状态。
         /// </summary>
         /// <remarks>
-        /// Present members retain their recorded status. Absent identities are classified using
-        /// the snapshot's fixed generation cutoff, retained death evidence, and successor incarnations.
+        /// 现成员保留其记录身份。
+        /// 保存死亡证据 以及继承者化身 之后的代名词
         /// </remarks>
-        /// <param name="silo">The silo.</param>
-        /// <returns>The status of the specified silo.</returns>
+        /// <param name="silo">下 silo.</param>
+        /// <returns>指定 silo的状况。</returns>
         public SiloStatus GetSiloStatus(SiloAddress silo)
         {
             return this.Members.TryGetValue(silo, out var entry)
@@ -104,11 +104,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets status of the specified silo, treating unknown silos as dead if this snapshot is newer than when the silo was seen.
+        /// 获取指定状态 silo,处理未知 silos 如果这个快照比当 silo 被看见
         /// </summary>
-        /// <param name="silo">The silo.</param>
-        /// <param name="seenAtVersion">The membership version when the silo was last seen.</param>
-        /// <returns>The status of the specified silo.</returns>
+        /// <param name="silo">下 silo.</param>
+        /// <param name="seenAtVersion">成员时的版本 silo 最后一次被看见。</param>
+        /// <returns>指定 silo的状况。</returns>
         public SiloStatus GetSiloStatus(SiloAddress silo, MembershipVersion seenAtVersion)
         {
             var status = GetSiloStatus(silo);
@@ -116,15 +116,15 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns a <see cref="ClusterMembershipUpdate"/> which represents this instance.
+        /// 返回代表此实例的 <see cref="ClusterMembershipUpdate"/> 。
         /// </summary>
-        /// <returns>A <see cref="ClusterMembershipUpdate"/> which represents this instance.</returns>
+        /// <returns>A <see cref="ClusterMembershipUpdate"/> ,代表此实例。</returns>
         public ClusterMembershipUpdate AsUpdate() => new ClusterMembershipUpdate(this, this.Members.Values.ToImmutableArray());
 
         /// <summary>
-        /// Returns a <see cref="ClusterMembershipUpdate"/> which represents the change in cluster membership from the provided snapshot to this instance.
+        /// a 返回 <see cref="ClusterMembershipUpdate"/> ,表示分组成员从提供的快照到此实例的变化。
         /// </summary>
-        /// <returns>A <see cref="ClusterMembershipUpdate"/> which represents the change in cluster membership from the provided snapshot to this instance.</returns>
+        /// <returns>A <see cref="ClusterMembershipUpdate"/> ,表示组群成员从提供的简要情况改为这种情况。</returns>
         public ClusterMembershipUpdate CreateUpdate(ClusterMembershipSnapshot previous)
         {
             if (previous is null) throw new ArgumentNullException(nameof(previous));
@@ -141,14 +141,14 @@ namespace Orleans.Runtime
             var changes = ImmutableHashSet.CreateBuilder<ClusterMember>();
             foreach (var entry in this.Members)
             {
-                // Include any entry which is new or has changed state.
+                // 包括任何新条目或已更改状态的条目。
                 if (!previous.Members.TryGetValue(entry.Key, out var previousEntry) || previousEntry.Status != entry.Value.Status)
                 {
                     changes.Add(entry.Value);
                 }
             }
 
-            // Handle entries which were removed entirely.
+            // 处理全部删除的条目 。
             foreach (var entry in previous.Members)
             {
                 if (!this.Members.TryGetValue(entry.Key, out _))

@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.Redis.Persistence
 {
     /// <summary>
-    /// Tests for Redis grain storage provider with various data types and serialization scenarios.
+    /// 测试 Redis grain 储存提供者,其中含有各种数据类型和序列设想。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Persistence"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

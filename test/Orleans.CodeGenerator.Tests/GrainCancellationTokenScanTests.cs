@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Tests that generated invokables opt out of the runtime's <c>GrainCancellationToken</c> argument scan
-/// only when none of their arguments can hold a <c>GrainCancellationToken</c>.
+/// 生成可引用的可引用值的测试选择退出运行时 <c>GrainCancellationToken</c> 参数扫描
+/// 只有当他们的论点都无法持有 <c>GrainCancellationToken</c>时,才有。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

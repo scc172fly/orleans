@@ -6,7 +6,7 @@ using Orleans.Runtime;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// Tests for event-sourced counters grain functionality including concurrent increments and state management.
+    /// 事件源计数器测试 grain 功能包括同时加薪和国家管理。
     /// </summary>
     [TestProvider("None")]
     [TestArea("EventSourcing")]
@@ -32,10 +32,10 @@ namespace Tester.EventSourcingTests
             await grain.Add("Alice", 1, false);
             await grain.Add("Alice", 1, false);
 
-            // all three updates should be visible in the tentative count (even if not confirmed yet)
+            // 所有三个更新应在暂定清点中显示(即使尚未确认)
             Assert.Equal(3, await grain.GetTentativeCount("Alice"));
 
-            // reset all counters to zero, and wait for confirmation
+            // 将全部对数重置为零,等待确认
             await grain.Reset(true);
 
             Assert.Empty((await grain.GetTentativeState()));
@@ -54,23 +54,23 @@ namespace Tester.EventSourcingTests
 
         private static async Task ConcurrentIncrementsRunner(ICountersGrain grain, int count, bool wait_for_confirmation_on_each)
         {
-            // increment (count) times, on random keys, concurrently
+            // 随机键同时
             var tasks = new List<Task>();
             for (int i = 0; i < count; i++)
                 tasks.Add(grain.Add(RandomKey(), 1, wait_for_confirmation_on_each));
             await Task.WhenAll(tasks);
 
-            // check that the tentative state shows all increments
+            // 检查是否临时状态显示所有加量
             Assert.Equal(count, (await grain.GetTentativeState()).Aggregate(0, (c, kvp) => c + kvp.Value));
 
-            // if we did not wait for confirmation on each event, wait now
+            // 如果我们不等待每一事件的确认,那末,你们等待吧!
             if (!wait_for_confirmation_on_each)
                 await grain.ConfirmAllPreviouslyRaisedEvents();
 
-            // check that the confirmed state shows all the increments
+            // 检查是否确认状态显示所有加量
             Assert.Equal(count, (await grain.GetConfirmedState()).Aggregate(0, (c, kvp) => c + kvp.Value));
 
-            // reset all counters
+            // 重置所有计数器
             await grain.Reset(true);
         }
     }

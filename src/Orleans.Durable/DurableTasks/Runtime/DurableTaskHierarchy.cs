@@ -6,20 +6,20 @@ using System.Runtime.InteropServices;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// Indexes the identifiers of stored tasks by hierarchy, so a task's nearest stored descendants are found without
-/// scanning every task.
+/// 将存储任务的身份识别特征按等级顺序索引,这样就发现任务中最接近的存储子孙
+/// 扫描每个任务
 /// </summary>
 /// <remarks>
-/// Every identifier which is stored, or which has stored descendants, is linked into its parent's child set. An
-/// identifier between a task and its nearest stored descendants, such as a combinator's operation identifier, is linked
-/// without being stored. Adding or removing a task costs time proportional to its depth, and the index holds one child
-/// set per identifier with linked children.
+/// 储存的或存有后代的所有识别资料都与父母的子女组合联系在一起。
+/// 任务与最接近存储的子孙之间,例如组合器操作识别符号之间,有链接
+/// 增加或删除任务成本,其时间与深度成比例,指数有一个孩子
+/// 与相关儿童一起设定每个标识符。
 /// </remarks>
 internal sealed class DurableTaskHierarchy
 {
     private readonly Dictionary<TaskId, HashSet<TaskId>> _children = [];
 
-    /// <summary>Creates an index of <paramref name="taskIds"/>.</summary>
+    /// <summary>创建 <paramref name="taskIds"/>的索引。</summary>
     public static DurableTaskHierarchy Create(IEnumerable<TaskId> taskIds)
     {
         var result = new DurableTaskHierarchy();
@@ -31,7 +31,7 @@ internal sealed class DurableTaskHierarchy
         return result;
     }
 
-    /// <summary>Links a newly stored task.</summary>
+    /// <summary>链接新存储的任务。</summary>
     public void Add(TaskId taskId)
     {
         for (var child = taskId; ;)
@@ -42,7 +42,7 @@ internal sealed class DurableTaskHierarchy
                 return;
             }
 
-            // An identifier with linked children is itself linked, so the walk ends at the first one.
+            // 与相关儿童的身份识别符本身就相连,所以步行结束于第一个。
             ref var children = ref CollectionsMarshal.GetValueRefOrAddDefault(_children, parent, out var parentLinked);
             children ??= [];
             if (!children.Add(child) || parentLinked)
@@ -54,9 +54,9 @@ internal sealed class DurableTaskHierarchy
         }
     }
 
-    /// <summary>Unlinks a task which is no longer stored, keeping it linked while it has stored descendants.</summary>
-    /// <param name="taskId">The removed task.</param>
-    /// <param name="isStored">Returns whether an identifier is stored.</param>
+    /// <summary>取消不再储存的任务的链接,在它存留后代时保持其连接。</summary>
+    /// <param name="taskId">任务已删除。</param>
+    /// <param name="isStored">返回是否存储了标识符。</param>
     public void Remove(TaskId taskId, Func<TaskId, bool> isStored)
     {
         for (var child = taskId; !_children.ContainsKey(child);)
@@ -85,12 +85,12 @@ internal sealed class DurableTaskHierarchy
         }
     }
 
-    /// <summary>Removes every task.</summary>
+    /// <summary>删除每一项任务。</summary>
     public void Clear() => _children.Clear();
 
-    /// <summary>Gets the stored tasks whose nearest stored ancestor is <paramref name="taskId"/>.</summary>
-    /// <param name="taskId">The ancestor.</param>
-    /// <param name="isStored">Returns whether an identifier is stored.</param>
+    /// <summary>获取储藏最接近的祖先 <paramref name="taskId"/>的存储任务。</summary>
+    /// <param name="taskId">祖先的传说</param>
+    /// <param name="isStored">返回是否存储了标识符。</param>
     public IEnumerable<TaskId> GetNearestStoredDescendants(TaskId taskId, Func<TaskId, bool> isStored)
     {
         if (!_children.TryGetValue(taskId, out var children))

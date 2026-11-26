@@ -6,15 +6,15 @@ using Orleans.Serialization;
 namespace Orleans.Runtime.LogConsistency
 {
     /// <summary>
-    /// Functionality for use by log view adaptors that run distributed protocols.
-    /// This class allows access to these services to providers that cannot see runtime-internals.
-    /// It also stores grain-specific information like the grain reference, and caches
+    /// 运行分布式协议的日志查看调整器使用的功能性。
+    /// 这一类允许无法看到运行时内部的供应商获得这些服务。
+    /// 它还储存 grain- 具体信息,如 grain 参考文献和缓存
     /// </summary>
     internal partial class ProtocolServices : ILogConsistencyProtocolServices
     {
         private readonly ILogger log;
         private readonly DeepCopier deepCopier;
-        private readonly IGrainContext grainContext;   // links to the grain that owns this service object
+        private readonly IGrainContext grainContext;   // 与拥有此服务对象的 grain 链接
 
         public ProtocolServices(
             IGrainContext grainContext,

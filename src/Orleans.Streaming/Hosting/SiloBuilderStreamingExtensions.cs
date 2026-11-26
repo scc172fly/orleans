@@ -5,56 +5,56 @@ using Orleans.Streams.Filtering;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for configuring streaming on silos.
+    /// silos上的配置流的扩展方法。
     /// </summary>
     public static class SiloBuilderStreamingExtensions
     {
         /// <summary>
-        /// Add support for streaming to this application.
+        /// 添加对此应用程序流的支持 。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddStreaming(this ISiloBuilder builder) => builder.ConfigureServices(services => services.AddSiloStreaming());
 
         /// <summary>
-        /// Configures the silo to use persistent streams.
+        /// 配置使用持久性流的 silo 。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="name">The provider name.</param>
-        /// <param name="adapterFactory">The provider adapter factory.</param>
-        /// <param name="configureStream">The stream provider configuration delegate.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="name">提供者名称。</param>
+        /// <param name="adapterFactory">供应商适配厂</param>
+        /// <param name="configureStream">流体提供者配置代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddPersistentStreams(
             this ISiloBuilder builder,
             string name,
             Func<IServiceProvider, string, IQueueAdapterFactory> adapterFactory,
             Action<ISiloPersistentStreamConfigurator> configureStream)
         {
-            //the constructor wire up DI with all default components of the streams , so need to be called regardless of configureStream null or not
+            //构造器将DI与流的所有默认组件连接起来, 因此无论 configureStream 无效与否, 都需要调用
             var streamConfigurator = new SiloPersistentStreamConfigurator(name, configureDelegate => builder.ConfigureServices(configureDelegate), adapterFactory);
             configureStream?.Invoke(streamConfigurator);
             return builder;
         }
 
         /// <summary>
-        /// Adds a stream filter. 
+        /// 添加流过滤器。 
         /// </summary>
-        /// <typeparam name="T">The stream filter type.</typeparam>
-        /// <param name="builder">The builder.</param>
-        /// <param name="name">The stream filter name.</param>
-        /// <returns>The silo builder.</returns>
+        /// <typeparam name="T">流筛选类型。</typeparam>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="name">流体过滤器名称。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddStreamFilter<T>(this ISiloBuilder builder, string name) where T : class, IStreamFilter
         {
             return builder.ConfigureServices(svc => svc.AddStreamFilter<T>(name));
         }
 
         /// <summary>
-        /// Adds a stream filter. 
+        /// 添加流过滤器。 
         /// </summary>
-        /// <typeparam name="T">The stream filter type.</typeparam>
-        /// <param name="builder">The builder.</param>
-        /// <param name="name">The stream filter name.</param>
-        /// <returns>The client builder.</returns>
+        /// <typeparam name="T">流筛选类型。</typeparam>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="name">流体过滤器名称。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddStreamFilter<T>(this IClientBuilder builder, string name) where T : class, IStreamFilter
         {
             return builder.ConfigureServices(svc => svc.AddStreamFilter<T>(name));

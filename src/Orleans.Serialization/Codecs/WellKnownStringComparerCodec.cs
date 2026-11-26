@@ -16,7 +16,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for well-known <see cref="StringComparer"/> types.
+    /// 用于已知 <see cref="StringComparer"/> 型号的序列器。
     /// </summary>
     [Alias("StringComparer")]
     public sealed class WellKnownStringComparerCodec : IGeneralizedCodec
@@ -34,7 +34,7 @@ namespace Orleans.Serialization.Codecs
 #endif
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WellKnownStringComparerCodec"/> class.
+        /// 初始化 <see cref="WellKnownStringComparerCodec"/> 类的新实例。
         /// </summary>
         public WellKnownStringComparerCodec()
         {
@@ -127,7 +127,7 @@ namespace Orleans.Serialization.Codecs
                         return StringComparer.InvariantCultureIgnoreCase;
                     }
 
-                    // Otherwise, perhaps some other options were specified, in which case we fall-through to create a new comparer.
+                    // 否则,也许还会有其他选择,这样我们就可以通过建立新的比较器来进行。
                 }
 
                 var cultureInfo = CultureInfo.GetCultureInfo(lcid);
@@ -155,7 +155,7 @@ namespace Orleans.Serialization.Codecs
                 var comparer = (IEqualityComparer<string?>)value;
                 if (StringComparer.IsWellKnownOrdinalComparer(comparer, out var ignoreCase))
                 {
-                    // Ordinal. This also handles EqualityComparer<string>.Default.
+                    // 奥迪纳尔。 这也可以处理 EqualityComparer<string>. Default.
                     type = 1;
                     if (ignoreCase)
                     {
@@ -254,9 +254,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="EqualityComparer{T}"/>.
+    /// <see cref="EqualityComparer{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     [RegisterSerializer]
     internal sealed class EqualityComparerBaseCodec<T> : IBaseCodec<EqualityComparer<T>>, IBaseCopier<EqualityComparer<T>>
@@ -274,9 +274,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Comparer{T}"/>.
+    /// <see cref="Comparer{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     [RegisterSerializer]
     internal sealed class ComparerBaseCodec<T> : IBaseCodec<Comparer<T>>, IBaseCopier<Comparer<T>>

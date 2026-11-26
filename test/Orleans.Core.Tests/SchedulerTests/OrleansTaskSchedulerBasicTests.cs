@@ -9,7 +9,7 @@ using Orleans.TestingHost.Utils;
 namespace UnitTests.SchedulerTests
 {
     /// <summary>
-    /// Test implementation of IGrainContext for unit testing the Orleans task scheduler without requiring a full grain activation.
+    /// 测试 IGrainContext ,用于单位测试 Orleans 任务调度器,无需完全启动 grain 。
     /// </summary>
     internal class UnitTestSchedulingContext : IGrainContext, IDisposable
     {
@@ -70,9 +70,9 @@ namespace UnitTests.SchedulerTests
     }
 
     /// <summary>
-    /// Basic tests for the Orleans task scheduler, which is the core component responsible for scheduling grain work items.
-    /// The scheduler ensures single-threaded execution semantics for grains while efficiently utilizing thread pool resources.
-    /// These tests verify fundamental scheduling operations without requiring a full Orleans runtime.
+    /// Orleans 任务调度器的基本测试,该排程器是负责安排 grain 工作项目的核心组成部分。
+    /// 调度器确保 grains 的单行执行语义,同时有效利用线性集合资源。
+    /// 这些测试核实基本时间安排操作,无需全部 Orleans 运行时间。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Scheduler")]
     [TestSuite("BVT")]
@@ -98,8 +98,8 @@ namespace UnitTests.SchedulerTests
         }
 
         /// <summary>
-        /// Tests that tasks can be scheduled and executed on the Orleans activation task scheduler.
-        /// Verifies basic task execution flow in the grain's single-threaded execution context.
+        /// 测试任务可在 Orleans 激活任务调度器上排期和执行。
+        /// 在 grain单行执行背景下验证基本任务执行流程。
         /// </summary>
         [Fact, TestCategory("AsynchronyPrimitives")]
         public async Task Async_Task_Start_ActivationTaskScheduler()
@@ -226,8 +226,8 @@ namespace UnitTests.SchedulerTests
         [Fact]
         public async Task Sched_SimpleFifoTest()
         {
-            // This is not a great test because there's a 50/50 shot that it will work even if the scheduling
-            // is completely and thoroughly broken and both closures are executed "simultaneously"
+            // 这不是一个伟大的测试 因为有一个50/50的镜头 即使时间安排,它也会有效
+            // 封锁完全彻底被打破,
 
             var n = 0;
             var completed = new TaskCompletionSource<bool>();
@@ -238,10 +238,10 @@ namespace UnitTests.SchedulerTests
             _rootContext.Scheduler.QueueAction(item1);
             _rootContext.Scheduler.QueueAction(item2);
 
-            // Wait for completion
+            // 等待完成
             await completed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-            // N should be 15, because the two tasks should execute in order
+            // N应为15岁,因为这两项任务应执行
             Assert.True(n != 0, "Work items did not get executed");
             Assert.Equal(15, n);
             _output.WriteLine("Test executed OK.");
@@ -250,8 +250,8 @@ namespace UnitTests.SchedulerTests
         [Fact]
         public async Task Sched_Task_TplFifoTest()
         {
-            // This is not a great test because there's a 50/50 shot that it will work even if the scheduling
-            // is completely and thoroughly broken and both closures are executed "simultaneously"
+            // 这不是一个伟大的测试 因为有一个50/50的镜头 即使时间安排,它也会有效
+            // 封锁完全彻底被打破,
 
             var n = 0;
             var gate = new SemaphoreSlim(0, 1);
@@ -264,14 +264,14 @@ namespace UnitTests.SchedulerTests
             _rootContext.Scheduler.QueueTask(task1);
             _rootContext.Scheduler.QueueTask(task2);
 
-            // Release task1 to proceed
+            // 释放任务1要继续
             gate.Release();
 
             await Task.WhenAll(task1, task2).WaitAsync(
                 TimeSpan.FromSeconds(5),
                 TestContext.Current.CancellationToken);
 
-            // N should be 15, because the two tasks should execute in order
+            // N应为15岁,因为这两项任务应执行
             Assert.True(n != 0, "Work items did not get executed");
             Assert.Equal(15, n);
         }
@@ -291,14 +291,14 @@ namespace UnitTests.SchedulerTests
             var tasks = new Task[NumTasks];
             for (var i = 0; i < NumTasks; i++)
             {
-                var taskNum = i; // Capture
+                var taskNum = i; // 捕获
                 tasks[i] = new Task(() => { _output.WriteLine("Inside Task-" + taskNum); flags[taskNum].WaitOne(); });
             }
 
             var workItems = new Task[NumTasks];
             for (var i = 0; i < NumTasks; i++)
             {
-                var taskNum = i; // Capture
+                var taskNum = i; // 捕获
                 workItems[i] = _rootContext.QueueAction(taskIndex =>
                 {
                     _output.WriteLine("Inside ClosureWorkItem-" + taskIndex);
@@ -358,9 +358,9 @@ namespace UnitTests.SchedulerTests
             Assert.True(result0.Task.Exception == null, "Task-0 should not throw exception: " + result0.Task.Exception);
             Assert.True(await result0.Task, "Task-0 completed");
 
-            Assert.NotNull(t1); // Task-1 started
+            Assert.NotNull(t1); // 任务-1开始
             await result1.Task.WaitAsync(TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
-            // give a minimum extra chance to yield after result0 has been set, as it might not have finished the t1 task
+            // 给一个最小的额外机会, 在结果0 设定后再产生, 因为它可能没有完成 t1 任务
             await t1.WaitAsync(TimeSpan.FromMilliseconds(1), TestContext.Current.CancellationToken);
 
             Assert.True(t1.IsCompleted, "Task-1 completed");
@@ -416,7 +416,7 @@ namespace UnitTests.SchedulerTests
                     });
                 }
 
-                // Release all gates in sequence to ensure sequential execution
+                // 释放所有门,按顺序排列,以确保相继执行
                 for (var i = 0; i < 10; i++)
                 {
                     gates[i].Release();
@@ -425,14 +425,14 @@ namespace UnitTests.SchedulerTests
 
             _rootContext.Scheduler.QueueAction(closure);
 
-            // Wait for completion
+            // 等待完成
             _output.WriteLine("Main-task waiting");
             await finished.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
             _output.WriteLine("Main-task done");
 
-            // N should be 10, because all tasks should execute serially
+            // N应为10,因为所有任务都应连续执行
             Assert.True(n != 0, "Work items did not get executed");
-            Assert.Equal(10, n);  // "Work items executed concurrently"
+            Assert.Equal(10, n);  // “同时执行的工作项目”
         }
 
         [Fact]
@@ -445,7 +445,7 @@ namespace UnitTests.SchedulerTests
             _output.WriteLine("Initial - SynchronizationContext.Current={0} TaskScheduler.Current={1}",
                 SynchronizationContext.Current!, TaskScheduler.Current!);
 
-            Assert.Equal(val, RequestContext.Get(key));  // "RequestContext.Get Initial"
+            Assert.Equal(val, RequestContext.Get(key));  // “RequestContext.Get 初始”
 
             Task t0 = Task.Factory.StartNew(async () =>
             {
@@ -478,16 +478,16 @@ namespace UnitTests.SchedulerTests
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid().ToString();
 
-            // Caller RequestContext is protected from clear within QueueTask
+            // RequestContext 调用器在 QueueTask内不受清除
             RequestContext.Set(key, value);
             await _rootContext.QueueTask(() => AsyncCheckClearRequestContext(key));
             Assert.Equal(value, (string)RequestContext.Get(key)!);
 
-            // Caller RequestContext is protected from clear within QueueTask even if work is not actually asynchronous.
+            // 调用者 RequestContext 在 QueueTask 内不受清除,即使工作实际上不是无序的。
             await _rootContext.QueueTask(() => NonAsyncCheckClearRequestContext(key));
             Assert.Equal(value, (string)RequestContext.Get(key)!);
 
-            // Caller RequestContext is protected from clear when work is asynchronous.
+            // 工作非同步时,调用者 RequestContext 不受清晰保护。
             async Task asyncCheckClearRequestContext()
             {
                 RequestContext.Clear();
@@ -497,7 +497,7 @@ namespace UnitTests.SchedulerTests
             await asyncCheckClearRequestContext();
             Assert.Equal(value, (string)RequestContext.Get(key)!);
 
-            // Caller RequestContext is NOT protected from clear when work is not asynchronous.
+            // 调用者 RequestContext 在工作不是无序时没有被保护不受清除。
             Task nonAsyncCheckClearRequestContext()
             {
                 RequestContext.Clear();

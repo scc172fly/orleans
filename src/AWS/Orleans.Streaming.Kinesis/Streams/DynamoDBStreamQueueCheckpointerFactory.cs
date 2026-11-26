@@ -15,7 +15,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.Kinesis
 {
     /// <summary>
-    /// Creates DynamoDB-backed stream queue checkpointers.
+    /// 创建 DynamoDB- 支持的串列队列检查器。
     /// </summary>
     public sealed class DynamoDBStreamQueueCheckpointerFactory : IStreamQueueCheckpointerFactory, IDisposable
     {
@@ -30,7 +30,7 @@ namespace Orleans.Streaming.Kinesis
         private int _disposed;
 
         /// <summary>
-        /// Initializes a new instance.
+        /// 初始化一个新实例 。
         /// </summary>
         public DynamoDBStreamQueueCheckpointerFactory(
             string providerName,
@@ -63,7 +63,7 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// Creates a factory from a service provider.
+        /// 由服务供应商创建工厂。
         /// </summary>
         public static IStreamQueueCheckpointerFactory CreateFactory(IServiceProvider services, string providerName)
         {

@@ -10,8 +10,8 @@ using Xunit;
 namespace Tester.AdoNet.Persistence
 {
     /// <summary>
-    /// Tests for Orleans grain state persistence functionality using SQL Server
-    /// with the delete-state-on-clear option enabled.
+    /// 试验 Orleans grain 使用状态持久性功能 SQL 服务器服务器
+    /// 启用了删除状态为清空选项。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("SqlServer")]
     [TestSuite("Functional")]

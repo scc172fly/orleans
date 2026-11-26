@@ -6,12 +6,12 @@ using System.Text.RegularExpressions;
 namespace Orleans.TestingHost.UnixSocketTransport;
 
 /// <summary>
-/// Options for the Orleans Unix domain socket transport.
+/// Orleans Unix 域套接字传输选项。
 /// </summary>
 public partial class UnixSocketConnectionOptions
 {
     /// <summary>
-    /// Gets or sets the function which maps an endpoint to a Unix domain socket path.
+    /// 获取或设置函数,以绘制 Unix 域套接字路径的终点。
     /// </summary>
     public Func<EndPoint, string> ConvertEndpointToPath { get; set; } = DefaultConvertEndpointToPath;
 

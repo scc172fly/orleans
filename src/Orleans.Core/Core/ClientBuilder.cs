@@ -4,18 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Builder for configuring an Orleans client.
+    /// 配置 Orleans 客户端的构建器。
     /// </summary>
     public class ClientBuilder : IClientBuilder
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientBuilder"/> class.
+        /// 初始化 <see cref="ClientBuilder"/> 类的新实例。
         /// </summary>
         /// <param name="services">
-        /// The service collection.
+        /// 服务收藏
         /// </param>
         /// <param name="configuration">
-        /// The client configuration.
+        /// 客户配置。
         /// </param>
         public ClientBuilder(IServiceCollection services, IConfiguration configuration)
         {

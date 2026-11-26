@@ -1,148 +1,166 @@
 ---
-title: Operate and troubleshoot Orleans Journaling
-description: Monitor capacity, compaction, recovery, upgrades, and failures for experimental Orleans Journaling.
+title: "操作和拼出故障 Orleans"
+description: "实验 Orleans 日记的监控能力、压缩、恢复、升级和故障。"
 ms.date: 08/21/2026
 ms.topic: how-to
 ---
 
-# Operate and troubleshoot Orleans Journaling
+<a id="operate-and-troubleshoot-orleans-journaling"></a>
 
-Orleans Journaling is an experimental alpha feature. A production evaluation should define owners and tested procedures for package upgrades, storage-format migration, rollback, backup, restore, compaction, and provider outages.
+# 操作和拼出故障 Orleans
 
-## Monitor writes and recovery
+Orleans 日记是一个实验性的阿尔法特征。生产评价应界定包件升级、储存-格式迁移、回滚、备份、恢复、压缩和供应商停机等所有者和测试程序。
 
-Journaling emits metrics through the `Microsoft.Orleans` meter. Use the [metrics catalog](../../host/monitoring/metrics-catalog.md#journaling) for the full instrument list.
+<a id="monitor-writes-and-recovery"></a>
 
-At minimum, dashboard and alert on:
+## 监测器写作和恢复
 
-- Storage operation errors and latency by `append`, `snapshot`, `replace`, `read`, and `delete`.
-- Recovery failures and recovery duration.
-- Storage-operation queue duration, which shows time waiting behind earlier work for the same journal.
-- Compaction triggers by `storage_requested`, `migration`, and `user_snapshot`.
-- Write coalescing, gathered state count, and operation byte distributions.
-- Catalog page and candidate counts, grouped by `provider`.
-- Native listing item counts compared with delivered catalog entries, and explicit provider retry rates.
+日记通过 `Microsoft.Orleans` 计量表发布量度。使用 [计量表](../../host/monitoring/metrics-catalog.md#journaling) 来填充仪器清单。
 
-Correlate these signals with grain identity, provider dependency health, deployment version, and storage throttling.
+至少,仪表板和警报器应显示:
 
-### Monitor Durable Jobs provider draining
+- 以 `append`、 `snapshot`、 `replace`、 `read`和 `delete`的方式储存运行错误和延迟。
+- 恢复失败和恢复期。
+- 存储操作队列时间,显示等待同一日记早前工作的时间。
+- 由 `storage_requested`、 `migration`和 `user_snapshot`引发的断裂触发器。
+- 写作联结、收集州数和操作字节分布。
+- 表格页和候选人人数,按 `provider`分类。
+- 与交付的目录条目和明确的供应商再试率相比,土著人列出物品清单。
 
-Track the configured provider name separately from the backend category in
-journaling catalog metrics. Two named Blob providers use the same backend but
-can have different availability and remaining work.
+将这些信号与 grain 身份、供应商依赖健康、部署版本和储存节流等内容相匹配。
 
-Use <xref:Orleans.Durable.Jobs.IDurableJobsStorageInspector.InspectAsync*> to
-collect a complete shard-namespace snapshot per selected provider. Record the
-inventory's start/completion timestamps, caller, configured write provider,
-success/failure, counts, and oldest/newest shard start time. Keep the last
-successful result with its timestamp for history; mark current status unknown
-on failure.
+<a id="monitor-durable-jobs-provider-draining"></a>
 
-Successful inspection also emits a structured Information-level inventory log.
-Provider errors emit structured Error-level logs with the configured provider
-name. Use inspector snapshots and these logs for provider-scoped drain progress;
-existing execution and catalog metrics provide complementary workload signals.
+### 监测可持久就业提供者的排水
 
-During cutover, alert on old-provider write-permission failures, failed
-discovery or known-ID lookups, inventory failures, poisoned or unrecognized
-entries, and an unexpectedly flat drain curve. Each shard may contain many jobs,
-and retries or rescheduling can extend its
-lifetime beyond its original time window. Oldest/newest shard start times
-describe recognized shard windows; retries and reschedules can move attempts
-beyond those windows.
+音轨配置的提供者名与后端类别分开
+正在使用日记目录度量。 两个名为 Blob 的 Blob 提供商使用相同的后端, 但
+可用性和剩余工作可有所不同。
 
-Normal discovery uses lookahead bounds and can skip future or poisoned work.
-Use the complete inspector results and deployment evidence in the
-[retirement checklist](durable-jobs-migration.md#verify-retirement) to decide
-whether old storage can be removed. Execution throughput and eligible-work
-sweeps provide complementary workload signals. Run inspection as a protected
-operator command or background diagnostic task, and apply authentication and
-authorization to operational interfaces.
+使用 <xref:Orleans.Durable.Jobs.IDurableJobsStorageInspector.InspectAsync*>
+收集每个选定提供者的完整 hard- name 空间快照。
+开始/完成时间戳、呼叫器、配置的写作提供者,
+成功/失败、计数和最古老/最晚的开始时间。 保留最后一个
+成功结果及其历史时间戳; 标记当前状态未知
+失败时。
 
-### Monitor catalog traversal and retries
+成功的检查还发出结构化的信息级清单日志。
+提供方错误 , 使用配置的提供者发布结构化错误级别日志
+使用检查员快照和这些日志,以利供应商范围排水进度;
+现有的执行和目录衡量标准提供了补充工作量信号。
 
-Use `orleans-journaling-provider-catalog-pages` to track pages received during S3 and Azure catalog
-traversal, including empty pages. Compare `orleans-journaling-provider-catalog-items` with
-`orleans-journaling-provider-catalog-entries` to see how many returned candidates are filtered before
-reaching the consumer. Redis candidate counts include consumed scan keys before filtering and
-duplicate suppression. Volatile storage records delivered entries.
+在切换期间,对老供应商写作-许可不合格情况警报失败
+发现或已知识别号查寻、库存故障、中毒或未承认
+和意外的平坦排水曲线。每块碎片可能包含许多任务,
+和重试或重新安排可以延长
+超过其原始时窗的寿命值。
+描述识别的软化窗口; 重试和重新计划可以移动尝试
+窗外的窗户。
 
-`orleans-journaling-provider-retries` records explicit retries in provider storage recovery loops.
-Correlate retry rates with the existing journaling and provider-specific storage latency and outcome
-metrics. Catalog pages, candidates, and entries describe traversal work; use service-side transaction
-metrics when reconciling costs.
+正常发现会利用目光界限,可以跳过未来或有毒的工作。
+使用完整的检查员结果和部署证据
+[退休退休清单](durable-jobs-migration.md#verify-retirement) 决定决定
+能否删除旧存储器。
+扫描提供辅助工作量信号。
+操作操作器命令或背景诊断任务,并应用认证和
+授权操作接口。
 
-### Use host-provided dependency telemetry
+<a id="monitor-catalog-traversal-and-retries"></a>
 
-The application supplies client SDK telemetry through its hosting integrations, instrumentation
-libraries, and diagnostic configuration. For example, Aspire integrations can enable dependency
-telemetry for their registered clients. Reuse that existing instrumentation when investigating
-SDK request latency, failures, and transport retries. Additional diagnostic collection belongs
-in the application's client configuration:
+### 监测目录穿行和重新检查
 
-| Provider | Opt-in diagnostics |
+使用 `orleans-journaling-provider-catalog-pages` 跟踪S3和 Azure 目录中收到的页数
+跨行, 包括空页面。 比较 `orleans-journaling-provider-catalog-items`
+`orleans-journaling-provider-catalog-entries` 以查看在之前筛选了多少名返回的候选人
+候选人数在过滤和筛选前包括消耗的扫描键。 Redis
+易变存储记录传送了条目。
+
+`orleans-journaling-provider-retries` 记录供应商储存回收循环中的明确重试。
+与现有日记和供应商专用储存时间和结果的存储间隔和具体储存时间及结果相对应的重试率
+图表页、候选人和条目描述工作历程;使用服务方交易
+调节费用时采用衡量尺度。
+
+<a id="use-host-provided-dependency-telemetry"></a>
+
+### 使用东道国提供的抚养用电话
+
+应用程序通过主机集成、仪器测量,向客户SDK提供远程测量服务
+图书馆和诊断配置。例如, 远端集成可以使
+重新使用现有的仪器,进行调查
+SDK要求延迟、故障和运输回转。
+应用程序客户配置中的:
+
+| 提供商 | 选择使用诊断 |
 | --- | --- |
-| Azure Blob and Table | Follow [Azure SDK logging](https://learn.microsoft.com/dotnet/azure/sdk/logging) to attach an event listener or forward SDK events to application logging. Request/response events include HTTP status and I/O duration. |
-| S3 | Configure [AWS SDK logging](https://docs.aws.amazon.com/sdkfornet/v4/apidocs/items/Util/TLoggingConfig.html) at application startup, before constructing the S3 client. Select a logging destination and enable SDK metric logging for request diagnostics. |
-| Redis | Register a profiler on the provider's connection multiplexer using [StackExchange.Redis profiling](https://seredis.dev/Profiling_v2). Scope sessions to the investigated work and finish each session to collect command queue, send, and response timings. |
+| Azure 布线和表格 | 跟随 [Azure SDK 记录](https://learn.microsoft.com/dotnet/azure/sdk/logging) 将事件听众附加或将 SDK 事件转发到应用程序记录。请求/回复活动包括 HTTP 状态和 I/O 持续时间 。 |
+| S3 | 配置 [AWSSDK 伐木](https://docs.aws.amazon.com/sdkfornet/v4/apidocs/items/Util/TLoggingConfig.html) 应用程序启动时, 在构建 S3 客户端之前 配置 。 请选择一个登录目的地, 并启用 SDK 公制记录请求诊断 。 |
+| Redis | 使用 [StackExchange.Redis 特征分析](https://seredis.dev/Profiling_v2)注册一个配置器,用于连接供应商的多路驱动器。 范围会议与调查工作有关,完成每期会议以收集命令队列、发送和响应时间。 |
 
-The application controls diagnostic collection, exporters, and retention. Limit detailed collection
-to the required interval and protect resource identities and response contents using the SDK's
-logging controls and the application's data-handling policy. Shared clients retain their existing
-diagnostic configuration and caller-owned lifetime.
+应用控制控制诊断收集、出口和保留。
+并使用SDK的源代码保护资源身份和响应内容
+共享客户保留现有的
+诊断配置和呼叫者拥有的寿命。
 
-## Plan capacity
+<a id="plan-capacity"></a>
 
-Journal replay cost grows with bytes and operations since the latest snapshot. Snapshot cost grows with the complete durable state of the grain.
+## 计划能力
 
-Capacity tests should include:
+最新一幕以来,日记重播成本随着字节和运行而增加。 快速闪烁成本随着 grain完全的耐久状态而增长。
 
-- The largest expected durable collection and persistent-state payload.
-- Hot grain identities with frequent writes.
-- Activation after a long append sequence.
-- Provider-requested compaction during peak traffic.
-- Storage throttling, transient failures, and optimistic-concurrency recovery.
-- Backup and restore followed by activation and another write.
+能力测试应包括:
 
-Tune provider thresholds before replay time, storage growth, or backend transaction limits become operational risks. The [Azure Table provider](azure-storage.md#azure-table-storage) limits one append batch to 2 MiB. Redis requests compaction at 128 MiB by default. Azure Blob compacts before exhausting its append-block budget.
+- 最大的预期耐久集载荷和持久性有效载荷。
+- 热 grain 身份经常写。
+- 启动后经过长附件序列。
+- 提供方在高峰交通期间要求压缩。
+- 储存节流、瞬时故障和乐观货币复苏。
+- 备份和修复后,启动并写另一本。
 
-## Upgrade and rollback
+在重放时间、储存增长或后端交易限制之前,提供商的门槛值在重播存储时间、储存增长或后端交易限制成为操作风险。 [Azure 表格提供者](azure-storage.md#azure-table-storage) 将一个批次附加到2 MiB。 Redis 要求默认压缩128 MiB 。 Azure 布洛布契约在用完其附件区块预算前先行完成。
 
-Treat the package version, public API, journal format, application payload schema, and durable-state names as one compatibility contract.
+<a id="upgrade-and-rollback"></a>
 
-1. Back up journal bytes and metadata.
-1. Validate old data against the candidate binaries in an isolated environment.
-1. Keep all silos which can activate a journaling grain on a tested compatible version set.
-1. Deploy readers for old and new payload schemas before writers emit only the new schema.
-1. Observe recovery and migration-compaction metrics.
-1. Retain old readers, codecs, and state definitions through the rollback window.
+## 升级和回放
 
-A provider key prefix, blob-name mapping, table partition mapping, journal format key, or durable-state name defines how the runtime finds and interprets existing data. Perform and verify the corresponding data migration before a new mapping serves traffic.
+将包件版本、公开 API、日记格式、应用有效载荷模型和耐久状态名称作为一项兼容性合同处理。
 
-## Backup and disaster recovery
+1. 备份日记字节和元数据。
+1. 在孤立的环境中对照候选的二进制文件校验旧数据。
+1. 全部保留 silos 能够激活日记 grain 在一个测试兼容的版本组上。
+1. 将新旧有效载荷图案的读者 放到作家们发布新的图案之前
+1. 观察复苏和移徙-人口统计衡量标准。
+1. 保留旧读者、代码和状态定义,
 
-Provider metadata selects the published generation and journal format. Back up metadata and journal data consistently. Restore them as one unit and keep the same application `ServiceId`, grain identities, state names, format readers, and payload codecs.
+提供方键前缀、 blob-name 映射、 表格分区映射、 日记格式密钥或耐久状态名称定义运行时间查找和解释现有数据的方式。 在新映射为流量服务之前, 执行并验证相应的数据迁移 。
 
-Exercise restore procedures regularly:
+<a id="backup-and-disaster-recovery"></a>
 
-1. Restore to an isolated provider namespace.
-1. Start a compatible silo.
-1. Activate representative grains and verify recovered state.
-1. Execute and acknowledge a new write.
-1. Trigger or await compaction and verify a second activation.
+## 备份和灾后恢复
 
-## Diagnose common failures
+提供方元数据选择已公布的生成和日记格式。 一贯备份元数据和日记数据。 恢复它们为一体, 并保持相同的应用程序 `ServiceId`、 grain 身份、 状态名称、 格式阅读器和有效载荷编码 。
 
-| Symptom | Runtime outcome | Operator response |
+定期恢复程序:
+
+1. 恢复到孤立的提供者命名空间 。
+1. 启动兼容 silo。
+1. 活性代表 grains 并核实回收状态。
+1. 执行并确认新写。
+1. 触发或等待压缩 并验证第二个激活。
+
+<a id="diagnose-common-failures"></a>
+
+## 诊断常见失败
+
+| 症状 | 运行时间结果 | 操作者响应 |
 | --- | --- | --- |
-| Activation fails with a journal format key | Recovery leaves storage unchanged | Deploy the required format and command codecs, or restore metadata which names the actual stored format |
-| Activation reports malformed or truncated journal data | Recovery stops before activation completes | Quarantine writes, restore a consistent backup, and preserve the failed data for diagnosis |
-| <xref:Orleans.Storage.InconsistentStateException> during a write | The manager fences operations and requests deactivation; a fresh activation recovers durable state | Find stale or competing writers, confirm grain identity and cluster configuration, then retry the application command according to its idempotency contract |
-| Storage commits a write but its acknowledgement is lost | The manager fences operations and requests deactivation; the new activation observes the committed mutation | Reconcile using the operation identifier and retry the command only through its idempotency protocol |
-| <xref:Orleans.Durable.Journaling.JournaledStatePreCommitException> reports a state preparation failure | The storage operation is prevented and pending changes remain available | Restore the prerequisite and explicitly retry the journal write, retaining the staged business outcome |
-| Write latency rises with storage queue duration | Writes for the journal are waiting behind earlier operations | Inspect provider latency and throttling, hot-grain traffic, write frequency, and snapshot size |
-| Recovery time and journal bytes grow | The current append history is large | Confirm compaction thresholds are enabled and that snapshot replacements succeed |
-| Format migration reports an unregistered state | A retired stream still requires its previous codec | Re-register the state for migration or retain the previous write format until retirement and compaction remove it |
-| Redis state is lost after a server failure | Recovery reflects the Redis durability configuration | Configure and test Redis persistence and replication for the required recovery point |
+| 使用日记格式密钥激活失败 | 回收休假储存未变 | 部署所需的格式和命令代码器,或恢复列出实际存储格式的元数据 |
+| 激活报告错误或短短日记数据 | 启动完成前恢复停止 | 检疫线写作、恢复一贯备份、保存失灵数据以进行诊断 |
+|  写作时 <xref:Orleans.Storage.InconsistentStateException> | 管理人员围栏业务和要求解除行动;新的启动可恢复耐久状态 | 查找陈旧或相竞的作家,确认 grain 身份和集组配置,然后根据适用命令的确定合同重试该应用指令 |
+| 存储承诺书面承诺,但确认已丢失 | 管理人员进行围栏作业,要求解除其功能;新的启动程序观察已发生的突变 | 使用操作标识符和解,仅通过其应急协议重新输入命令 |
+| <xref:Orleans.Durable.Journaling.JournaledStatePreCommitException> 报告国家准备失败 | 防止储存作业,在仍有改动之前,仍可进行变更 | 恢复先决条件并明确重试日记写,保留分阶段业务结果 |
+| 存储队列时间长,写时的延缓期增加 | 日记的写作正在等待早期操作 | 检查供应商的延时和抽动、热-grain 流量、写频率和快照大小 |
+| 恢复时间和日记字节增长 | 当前附加历史历史大 | 确认压缩阈值被启用,即时替换成功 |
+| 格式移民报告未登记状态 | 退休的流流仍然需要以前的编码 | 重新登记国家移民,或保留先前的写作格式,直到退休和压缩将其消除 |
+|  服务器失败后丢失 Redis 状态 | 恢复反映 Redis 耐久配置 | 配置和测试所需回收点的 Redis 持久性和复制性 |
 
-Storage and codec exceptions are surfaced to the grain call. Preserve them in logs and traces rather than converting them into successful application responses.
+grain 调用时会显示存储和编码的例外情况。将其保留在日志和跟踪中,而不是将其转换成成功的应用响应。

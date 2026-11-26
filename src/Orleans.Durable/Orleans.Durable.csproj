@@ -12,7 +12,7 @@
     <VersionSuffix Condition="$(VersionSuffix) != ''">$(VersionSuffix).alpha.1</VersionSuffix>
     <VersionSuffix Condition="$(VersionSuffix) == ''">alpha.1</VersionSuffix>
     <OrleansPackageValidationBaselineSuffix>alpha.1</OrleansPackageValidationBaselineSuffix>
-    <!-- Validate framework assets while the first release establishes a package baseline. -->
+    <!-- 验证框架资产,而第一次释放则确定一揽子基准。 -->
     <OrleansPackageValidationBaselineVersion></OrleansPackageValidationBaselineVersion>
     <EnablePackageValidation>true</EnablePackageValidation>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
@@ -42,7 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="$(SourceRoot)src\Orleans.Serialization\Orleans.Serialization.csproj" />
     <ProjectReference Include="$(SourceRoot)src\Orleans.Sdk\Orleans.Sdk.csproj" />
-    <!-- These packages share internals with this package, so it depends on their exact versions. -->
+    <!-- 这些软件包与此软件包共享内部, 所以取决于其准确版本 。 -->
     <ProjectReference Include="$(SourceRoot)src\Orleans.Core\Orleans.Core.csproj" PackExactVersion="true" />
     <ProjectReference Include="$(SourceRoot)src\Orleans.Core.Abstractions\Orleans.Core.Abstractions.csproj" PackExactVersion="true" />
     <ProjectReference Include="$(SourceRoot)src\Orleans.Durable.Abstractions\Orleans.Durable.Abstractions.csproj" PackExactVersion="true" />

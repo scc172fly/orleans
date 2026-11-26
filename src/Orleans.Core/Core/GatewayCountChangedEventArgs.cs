@@ -3,47 +3,47 @@ using System;
 namespace Orleans
 {
     /// <summary>
-    /// Handler for client disconnection from a cluster.
+    /// 客户端断开集的处理器
     /// </summary>
-    /// <param name="sender">The sender.</param>
-    /// <param name="e">The event arguments.</param>
+    /// <param name="sender">发件人</param>
+    /// <param name="e">事件参数。</param>
     public delegate void ConnectionToClusterLostHandler(object? sender, EventArgs e);
 
     /// <summary>
-    /// Handler for the number of gateways.
+    /// 网关数目的处理器
     /// </summary>
-    /// <param name="sender">The sender.</param>
-    /// <param name="e">The event arguments.</param>
+    /// <param name="sender">发件人</param>
+    /// <param name="e">事件参数。</param>
     public delegate void GatewayCountChangedHandler(object? sender, GatewayCountChangedEventArgs e);
 
     /// <summary>
-    /// Event arguments for gateway connectivity events.
+    /// 网关连接活动的活动论证。
     /// </summary>
     public class GatewayCountChangedEventArgs : EventArgs
     {
         /// <summary>
-        /// Gets the number of gateways which this client is currently connected to.
+        /// 获取此客户端当前连接的网关数 。
         /// </summary>
         public int NumberOfConnectedGateways { get; }
 
         /// <summary>
-        /// Gets the number of gateways which this client was currently connected to before this event.
+        /// 获取此客户端在此事件之前连接到的网关数 。
         /// </summary>
         public int PreviousNumberOfConnectedGateways { get; }
 
         /// <summary>
-        /// Helper to detect situations where cluster connectivity was regained.
+        /// 帮助发现集群连通恢复的情况。
         /// </summary>
         public bool ConnectionRecovered => this.NumberOfConnectedGateways > 0 && this.PreviousNumberOfConnectedGateways <= 0;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GatewayCountChangedEventArgs"/> class.
+        /// 初始化 <see cref="GatewayCountChangedEventArgs"/> 类的新实例。
         /// </summary>
         /// <param name="currentNumberOfConnectedGateways">
-        /// The current number of connected gateways.
+        /// 连接网关的当前数量 。
         /// </param>
         /// <param name="previousNumberOfConnectedGateways">
-        /// The previous number of connected gateways.
+        /// 之前连接的网关数量 。
         /// </param>
         public GatewayCountChangedEventArgs(int currentNumberOfConnectedGateways, int previousNumberOfConnectedGateways)
         {

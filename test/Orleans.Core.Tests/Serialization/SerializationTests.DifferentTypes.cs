@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.Serialization
 {
     /// <summary>
-    /// Summary description for SerializationTests
+    /// SerializationTests简 简 述
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestSuite("BVT")]
@@ -25,21 +25,21 @@ namespace UnitTests.Serialization
         [Fact, TestCategory("BVT"), TestCategory("Serialization")]
         public void SerializationTests_DateTime()
         {
-            // Local Kind
+            // 本地端
             DateTime inputLocal = DateTime.Now;
 
             DateTime outputLocal = this.fixture.Serializer.RoundTripSerializationForTesting(inputLocal);
             Assert.Equal(inputLocal.ToString(CultureInfo.InvariantCulture), outputLocal.ToString(CultureInfo.InvariantCulture));
             Assert.Equal(inputLocal.Kind, outputLocal.Kind);
 
-            // UTC Kind
+            // 世界协调时大学
             DateTime inputUtc = DateTime.UtcNow;
 
             DateTime outputUtc = this.fixture.Serializer.RoundTripSerializationForTesting(inputUtc);
             Assert.Equal(inputUtc.ToString(CultureInfo.InvariantCulture), outputUtc.ToString(CultureInfo.InvariantCulture));
             Assert.Equal(inputUtc.Kind, outputUtc.Kind);
 
-            // Unspecified Kind
+            // 未具体说明的种类
             DateTime inputUnspecified = new DateTime(0x08d27e2c0cc7dfb9);
 
             DateTime outputUnspecified = this.fixture.Serializer.RoundTripSerializationForTesting(inputUnspecified);
@@ -50,7 +50,7 @@ namespace UnitTests.Serialization
         [Fact, TestCategory("BVT"), TestCategory("Serialization")]
         public void SerializationTests_DateTimeOffset()
         {
-            // Local Kind
+            // 本地端
             DateTime inputLocalDateTime = DateTime.Now;
             DateTimeOffset inputLocal = new DateTimeOffset(inputLocalDateTime);
 
@@ -61,7 +61,7 @@ namespace UnitTests.Serialization
                 outputLocal.ToString(CultureInfo.InvariantCulture));
             Assert.Equal(inputLocal.DateTime.Kind, outputLocal.DateTime.Kind);
 
-            // UTC Kind
+            // 世界协调时大学
             DateTime inputUtcDateTime = DateTime.UtcNow;
             DateTimeOffset inputUtc = new DateTimeOffset(inputUtcDateTime);
 
@@ -72,7 +72,7 @@ namespace UnitTests.Serialization
                 outputUtc.ToString(CultureInfo.InvariantCulture));
             Assert.Equal(inputUtc.DateTime.Kind, outputUtc.DateTime.Kind);
 
-            // Unspecified Kind
+            // 未具体说明的种类
             DateTime inputUnspecifiedDateTime = new DateTime(0x08d27e2c0cc7dfb9);
             DateTimeOffset inputUnspecified = new DateTimeOffset(inputUnspecifiedDateTime);
 

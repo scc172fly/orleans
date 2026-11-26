@@ -4,24 +4,24 @@ using System.Diagnostics;
 namespace Orleans.TestingHost.Diagnostics;
 
 /// <summary>
-/// Represents a captured diagnostic event with its name and payload.
+/// 代表一个记录下来的诊断事件,带有其名称和有效载荷。
 /// </summary>
-/// <param name="Name">The name of the event.</param>
-/// <param name="Payload">The event payload object.</param>
-/// <param name="Timestamp">The time the event was captured.</param>
+/// <param name="Name">事件名称。</param>
+/// <param name="Payload">事件有效载荷物体。</param>
+/// <param name="Timestamp">事件被捕捉的时间。</param>
 public readonly record struct DiagnosticEvent(
     string Name,
     object? Payload,
     DateTimeOffset Timestamp);
 
 /// <summary>
-/// A test utility for collecting and waiting on diagnostic events.
-/// Subscribes to <see cref="DiagnosticListener.AllListeners"/> and captures events
-/// from listeners matching specified patterns.
+/// 用于收集和等待诊断事件的测试工具。
+/// 订阅 <see cref="DiagnosticListener.AllListeners"/> 并记录事件
+/// 由符合指定模式的听众提供。
 /// </summary>
 /// <remarks>
-/// Use this class to wait for specific Orleans events in tests without
-/// relying on Task.Delay or Thread.Sleep.
+/// 使用此类在测试中等待特定 Orleans 事件, 不使用
+/// 依赖 Task.Delay 或 Thread.Sleep。
 /// </remarks>
 public sealed class DiagnosticEventCollector : IDisposable, IObserver<DiagnosticListener>, IObserver<KeyValuePair<string, object?>>
 {
@@ -33,12 +33,12 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
     private bool _disposed;
 
     /// <summary>
-    /// Creates a new diagnostic event collector that subscribes to listeners with names
-    /// starting with any of the specified prefixes.
+    /// 创建一个新的诊断事件收藏器, 订阅有名字的听众
+    /// 开始于指定的前缀中的任何一处。
     /// </summary>
     /// <param name="listenerPrefixes">
-    /// Prefixes of listener names to subscribe to (e.g., "Orleans." to capture all Orleans events).
-    /// If empty, subscribes to all listeners.
+    /// 订阅(e.g, "Orleans.")以记录所有 Orleans 事件)的听众姓名前缀。
+    /// 如果为空,则订阅所有听众。
     /// </param>
     public DiagnosticEventCollector(IEnumerable<string>? listenerPrefixes = null)
     {
@@ -47,12 +47,12 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
     }
 
     /// <summary>
-    /// Creates a new diagnostic event collector that subscribes to listeners with names
-    /// starting with any of the specified prefixes.
+    /// 创建一个新的诊断事件收藏器, 订阅有名字的听众
+    /// 开始于指定的前缀中的任何一处。
     /// </summary>
     /// <param name="listenerPrefixes">
-    /// Prefixes of listener names to subscribe to (e.g., "Orleans." to capture all Orleans events).
-    /// If empty, subscribes to all listeners.
+    /// 订阅(e.g, "Orleans.")以记录所有 Orleans 事件)的听众姓名前缀。
+    /// 如果为空,则订阅所有听众。
     /// </param>
     public DiagnosticEventCollector(params string[] listenerPrefixes)
         : this((IEnumerable<string>)listenerPrefixes)
@@ -60,24 +60,24 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
     }
 
     /// <summary>
-    /// Gets all captured diagnostic events.
+    /// 掌握了所有被俘获的诊断事件
     /// </summary>
     public IReadOnlyList<DiagnosticEvent> Events => [.. _events];
 
     /// <summary>
-    /// Gets events with the specified name.
+    /// 获取指定名称的事件 。
     /// </summary>
     public IEnumerable<DiagnosticEvent> GetEvents(string eventName)
         => _events.Where(e => e.Name == eventName);
 
     /// <summary>
-    /// Gets the count of events with the specified name.
+    /// 获取指定名称的事件的统计。
     /// </summary>
     public int GetEventCount(string eventName)
         => _events.Count(e => e.Name == eventName);
 
     /// <summary>
-    /// Clears all captured events.
+    /// 清除所有被俘事件
     /// </summary>
     public void Clear()
     {
@@ -85,14 +85,14 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
     }
 
     /// <summary>
-    /// Waits for an event with the specified name to be captured.
-    /// If an event with that name has already been captured, returns immediately.
+    /// 等待包含指定名称的事件被捕捉 。
+    /// 如果已经捕获了使用此名称的事件, 立即返回 。
     /// </summary>
-    /// <param name="eventName">The name of the event to wait for.</param>
-    /// <param name="timeout">The maximum time to wait.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The captured event.</returns>
-    /// <exception cref="TimeoutException">Thrown if the event is not captured within the timeout.</exception>
+    /// <param name="eventName">等待的事件名称。</param>
+    /// <param name="timeout">等待的最长时间。</param>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>被捕获事件。</returns>
+    /// <exception cref="TimeoutException">如果事件未在超时内被记录, 丢弃。</exception>
     public async Task<DiagnosticEvent> WaitForEventAsync(
         string eventName,
         TimeSpan timeout,
@@ -121,13 +121,13 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
     }
 
     /// <summary>
-    /// Waits for an event with the specified name that matches a predicate.
+    /// 等待一个符合前提的指定名称的事件。
     /// </summary>
-    /// <param name="eventName">The name of the event to wait for.</param>
-    /// <param name="predicate">A predicate to match the event payload.</param>
-    /// <param name="timeout">The maximum time to wait.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The captured event.</returns>
+    /// <param name="eventName">等待的事件名称。</param>
+    /// <param name="predicate">与事件有效载荷匹配的上游。</param>
+    /// <param name="timeout">等待的最长时间。</param>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>被捕获事件。</returns>
     public async Task<DiagnosticEvent> WaitForEventAsync(
         string eventName,
         Func<DiagnosticEvent, bool> predicate,
@@ -158,25 +158,25 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
     }
 
     /// <summary>
-    /// Creates a task that completes when the specified event is captured.
-    /// Unlike WaitForEventAsync, this does not check for existing events.
+    /// 创建任务,在记录指定事件时完成。
+    /// 与 WaitForEventAsync不同,此选项不检查现有事件。
     /// </summary>
-    /// <param name="eventName">The name of the event to wait for.</param>
-    /// <returns>A task completion source that will be completed when the event is captured.</returns>
+    /// <param name="eventName">等待的事件名称。</param>
+    /// <returns>任务完成源,将在事件被捕捉后完成。</returns>
     public TaskCompletionSource<DiagnosticEvent> CreateEventAwaiter(string eventName)
     {
         return CreateWaiter(eventName).Completion;
     }
 
     /// <summary>
-    /// Waits until at least the specified number of events with the given name have been captured.
+    /// 等待至少捕捉到指定名称的事件数量 。
     /// </summary>
-    /// <param name="eventName">The name of the event to count.</param>
-    /// <param name="expectedCount">The minimum number of events expected.</param>
-    /// <param name="timeout">The maximum time to wait.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>All captured events with the specified name.</returns>
-    /// <exception cref="TimeoutException">Thrown if the expected count is not reached within the timeout.</exception>
+    /// <param name="eventName">要计算的事件名称。</param>
+    /// <param name="expectedCount">预期活动的最低数量。</param>
+    /// <param name="timeout">等待的最长时间。</param>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>所有记录的事件都以指定名称。</returns>
+    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
     public async Task<IReadOnlyList<DiagnosticEvent>> WaitForEventCountAsync(
         string eventName,
         int expectedCount,
@@ -255,7 +255,7 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
 
     void IObserver<DiagnosticListener>.OnNext(DiagnosticListener listener)
     {
-        // Subscribe to all listeners if no prefixes specified, or to matching ones
+        // 如果未指定前缀, 订阅所有听众, 或者匹配的
         if (_listenerPrefixes.Count == 0 || _listenerPrefixes.Any(p => listener.Name.StartsWith(p, StringComparison.Ordinal)))
         {
             var subscription = listener.Subscribe(this);
@@ -268,7 +268,7 @@ public sealed class DiagnosticEventCollector : IDisposable, IObserver<Diagnostic
         var evt = new DiagnosticEvent(kvp.Key, kvp.Value, DateTimeOffset.UtcNow);
         _events.Enqueue(evt);
 
-        // Signal any waiters
+        // 信号 任何服务员
         if (_waiters.TryGetValue(kvp.Key, out var waiters))
         {
             List<EventWaiter> waitersSnapshot;

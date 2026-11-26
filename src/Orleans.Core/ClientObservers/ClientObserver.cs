@@ -3,15 +3,15 @@ using Orleans.Runtime;
 namespace Orleans.ClientObservers
 {
     /// <summary>
-    /// Base type for special client-wide observers.
+    /// 特别客户观察员的基数。
     /// </summary>
     internal abstract class ClientObserver
     {
         /// <summary>
-        /// Gets the observer id.
+        /// 获取观察者身份
         /// </summary>
-        /// <param name="clientId">The client id.</param>
-        /// <returns>The observer id.</returns>
+        /// <param name="clientId">客户端id。</param>
+        /// <returns>观察员id。</returns>
         internal abstract ObserverGrainId GetObserverGrainId(ClientGrainId clientId);
     }
 }

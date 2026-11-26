@@ -10,7 +10,7 @@ using Xunit;
 namespace Tester.AdoNet.Persistence
 {
     /// <summary>
-    /// Tests for Orleans grain state persistence functionality using SQL Server as the storage provider.
+    /// 试验 Orleans grain 使用状态持久性功能 SQL 服务器作为存储提供者 。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("SqlServer")]
     [TestSuite("Functional")]

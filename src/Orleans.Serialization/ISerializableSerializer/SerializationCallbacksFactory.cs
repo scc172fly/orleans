@@ -9,7 +9,7 @@ using System.Security;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Creates delegates for calling methods marked with serialization attributes.
+    /// 创建带有序列属性的呼叫方法代表。
     /// </summary>
     internal sealed class SerializationCallbacksFactory
     {
@@ -21,10 +21,10 @@ namespace Orleans.Serialization
         private readonly ConcurrentDictionary<Type, object> _cache = new();
 
         /// <summary>
-        /// Gets serialization callbacks for reference types.
+        /// 获取引用类型的序列回调。
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>Serialization callbacks.</returns>
+        /// <param name="type">类型。</param>
+        /// <returns>序列化回调。</returns>
         [SecurityCritical]
         public SerializationCallbacks<Action<object, StreamingContext>> GetReferenceTypeCallbacks(
 #if NET5_0_OR_GREATER
@@ -42,12 +42,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Gets serialization callbacks for value types.
+        /// 获取序列化回调值类型。
         /// </summary>
-        /// <typeparam name="TOwner">The declaring type.</typeparam>
-        /// <typeparam name="TDelegate">The delegate type.</typeparam>
-        /// <param name="type">The type.</param>
-        /// <returns>Serialization callbacks.</returns>
+        /// <typeparam name="TOwner">声明类型。</typeparam>
+        /// <typeparam name="TDelegate">代表类型。</typeparam>
+        /// <param name="type">类型。</param>
+        /// <returns>序列化回调。</returns>
         [SecurityCritical]
         public SerializationCallbacks<TDelegate> GetValueTypeCallbacks<TOwner, TDelegate>(
 #if NET5_0_OR_GREATER
@@ -141,7 +141,7 @@ namespace Orleans.Serialization
             var method = new DynamicMethod($"{callbackMethod.Name}_Trampoline", null, callbackParameterTypes, type, skipVisibility: true);
             var il = method.GetILGenerator();
 
-            // arg0 is unused for better delegate performance (avoids argument shuffling thunk)
+            // arg0 用于更好地履行代表职能(避免辩论打折)
             il.Emit(OpCodes.Ldarg_1);
             if (type != owner)
             {
@@ -156,18 +156,18 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Serialization callbacks.
+        /// 序列回击
         /// </summary>
-        /// <typeparam name="TDelegate">The delegate type for each callback.</typeparam>
+        /// <typeparam name="TDelegate">代表类型,用于每次回调。</typeparam>
         public sealed class SerializationCallbacks<TDelegate>
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="SerializationCallbacks{TDelegate}"/> class.
+            /// 初始化 <see cref="SerializationCallbacks{TDelegate}"/> 类的新实例。
             /// </summary>
-            /// <param name="onDeserializing">The callback invoked during deserialization.</param>
-            /// <param name="onDeserialized">The callback invoked once a value is deserialized.</param>
-            /// <param name="onSerializing">The callback invoked during serialization.</param>
-            /// <param name="onSerialized">The callback invoked once a value is serialized.</param>
+            /// <param name="onDeserializing">解毒过程中援引的回调。</param>
+            /// <param name="onDeserialized">数值被淡化时所引用的回调。</param>
+            /// <param name="onSerializing">连环处理时的回调</param>
+            /// <param name="onSerialized">数值序列化后引用的回调。</param>
             public SerializationCallbacks(
                 TDelegate? onDeserializing,
                 TDelegate? onDeserialized,
@@ -181,23 +181,23 @@ namespace Orleans.Serialization
             }
 
             /// <summary>
-            /// Gets the callback invoked while deserializing.
+            /// 获得回调的引用 同时进行机能消减
             /// </summary>
             public readonly TDelegate? OnDeserializing;
 
             /// <summary>
-            /// Gets the callback invoked once a value has been deserialized.
+            /// 一旦一个值被淡化, 就会得到回调的响应。
             /// </summary>
             public readonly TDelegate? OnDeserialized;
 
             /// <summary>
-            /// Gets the callback invoked during serialization.
+            /// 获得在序列过程中援引的回调。
             /// </summary>
-            /// <value>The on serializing.</value>
+            /// <value>连环化</value>
             public readonly TDelegate? OnSerializing;
 
             /// <summary>
-            /// Gets the callback invoked once a value has been serialized.
+            /// 一旦一个价值被序列化, 就会得到回调的响应。
             /// </summary>
             public readonly TDelegate? OnSerialized;
         }

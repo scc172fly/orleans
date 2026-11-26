@@ -61,7 +61,7 @@ public class DurableJobGrain : Grain, IDurableJobGrain, IDurableJobHandler
     {
         if (!jobRunStatus.TryGetValue(jobId, out var taskResult))
         {
-            // The job might not have been scheduled on this grain.
+            // 可能没有安排此 grain上的工作。
             jobRunStatus[jobId] = new TaskCompletionSource();
             taskResult = jobRunStatus[jobId];
         }

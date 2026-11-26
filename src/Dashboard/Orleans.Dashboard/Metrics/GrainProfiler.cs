@@ -69,7 +69,7 @@ internal sealed partial class GrainProfiler(
             return;
         }
 
-        // This is the method that Orleans uses to convert a grain type into the grain type name when calling the GetSimpleGrainStatistics method
+        // 这就是方法 Orleans 转换 grain 类型中 grain 键入 GetSimpleGrainStatistics 方法
         var grainName = RuntimeTypeNameFormatter.Format(grainType);
         var grainMethodKey = $"{grainName}.{methodName}";
 

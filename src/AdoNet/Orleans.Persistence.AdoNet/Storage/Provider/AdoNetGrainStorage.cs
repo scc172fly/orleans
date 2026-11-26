@@ -21,12 +21,12 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Logging codes used by <see cref="AdoNetGrainStorage"/>.
+    /// <see cref="AdoNetGrainStorage"/>使用的伐木编码。
     /// </summary>
-    /// <remarks> These are taken from <em>Orleans.Providers.ProviderErrorCode</em> and <em>Orleans.Providers.AzureProviderErrorCode</em>.</remarks>
+    /// <remarks> 取自 <em>Orleans.Providers.ProviderErrorCode</em> 和 <em>Orleans.Providers.AzureProviderErrorCode</em>.</remarks>
     internal enum RelationalStorageProviderCodes
     {
-        //These is from Orleans.Providers.ProviderErrorCode and Orleans.Providers.AzureProviderErrorCode.
+        //这些是来自 Orleans.Providers.ProviderErrorCode 和 Orleans.Providers.AzureProviderErrorCode的。
         ProvidersBase = 200000,
 
         RelationalProviderBase = ProvidersBase + 400,
@@ -45,16 +45,16 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// Creates named <see cref="AdoNetGrainStorage"/> providers from registered services and options.
+    /// 创建来自注册服务和选项的 <see cref="AdoNetGrainStorage"/> 提供者。
     /// </summary>
     public static class AdoNetGrainStorageFactory
     {
         /// <summary>
-        /// Creates an ADO.NET grain storage provider with the specified name.
+        /// 创建有指定名称的 ADO.NET grain 存储提供者。
         /// </summary>
-        /// <param name="services">The service provider used to resolve dependencies and named options.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <returns>The configured ADO.NET grain storage provider.</returns>
+        /// <param name="services">用于解决依赖关系和指定选项的服务提供者。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <returns>配置 ADO.NET grain 储存提供者。</returns>
         public static AdoNetGrainStorage Create(IServiceProvider services, string name)
         {
             var optionsMonitor = services.GetRequiredService<IOptionsMonitor<AdoNetGrainStorageOptions>>();
@@ -64,18 +64,18 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// Stores grain state in a relational database using ADO.NET.
+    /// 仓库 grain 状态,在关系数据库中使用 ADO.NET.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Configuration is provided through <see cref="AdoNetGrainStorageOptions"/>.
+    /// 配置通过 <see cref="AdoNetGrainStorageOptions"/>提供。
     /// </para>
     /// <para>
-    /// Configure exactly one of <see cref="AdoNetGrainStorageOptions.ConnectionString"/> or
+    /// 配置完全 <see cref="AdoNetGrainStorageOptions.ConnectionString"/> 或
     /// <see cref="AdoNetGrainStorageOptions.DataSource"/>.
     /// </para>
     /// <para>
-    /// <see cref="AdoNetGrainStorageOptions.Invariant"/> identifies the ADO.NET provider and defaults to
+    /// <see cref="AdoNetGrainStorageOptions.Invariant"/> 确定 ADO.NET 提供者和违约
     /// <c>Microsoft.Data.SqlClient</c>.
     /// </para>
     /// </remarks>
@@ -83,54 +83,54 @@ namespace Orleans.Storage
     public partial class AdoNetGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
     {
         /// <summary>
-        /// Gets or sets the serializer used to convert grain state to and from its stored representation.
+        /// 获取或设置用于转换 grain 状态的序列器,使其与存储的表示法相连接。
         /// </summary>
         public IGrainStorageSerializer Serializer { get; set; }
 
         /// <summary>
-        /// Tag for BinaryFormatSerializer
+        /// BinaryFormatSerializer标记
         /// </summary>
         public const string BinaryFormatSerializerTag = "BinaryFormatSerializer";
         /// <summary>
-        /// Tag for JsonFormatSerializer
+        /// JsonFormatSerializer标记
         /// </summary>
         public const string JsonFormatSerializerTag = "JsonFormatSerializer";
         /// <summary>
-        /// Tag for XmlFormatSerializer
+        /// XmlFormatSerializer标记
         /// </summary>
         public const string XmlFormatSerializerTag = "XmlFormatSerializer";
 
         /// <summary>
-        /// The Service ID for which this relational provider is used.
+        /// 使用该关系供应商的服务代号。
         /// </summary>
         private readonly string serviceId;
         private readonly IActivatorProvider _activatorProvider;
         private readonly ILogger logger;
 
         /// <summary>
-        /// The storage used for back-end operations.
+        /// 后端操作使用的存储器。
         /// </summary>
         private IRelationalStorage Storage { get; set; } = null!;
 
         /// <summary>
-        /// These chars are delimiters when used to extract a class base type from a class
-        /// that is either <see cref="Type.AssemblyQualifiedName"/> or <see cref="Type.FullName"/>.
+        /// 这些字符是用来从类中提取类基类型时的分隔符
+        /// 或 <see cref="Type.AssemblyQualifiedName"/> ,或 <see cref="Type.FullName"/>。
         /// <see cref="ExtractBaseClass(string)"/>.
         /// </summary>
         private static char[] BaseClassExtractionSplitDelimeters { get; } = new[] { '[', ']' };
 
         /// <summary>
-        /// The default query to initialize this structure from the Orleans database.
+        /// 从 Orleans 数据库初始化此结构的默认查询 。
         /// </summary>
         public const string DefaultInitializationQuery = "SELECT QueryKey, QueryText FROM OrleansQuery WHERE QueryKey = 'WriteToStorageKey' OR QueryKey = 'ReadFromStorageKey' OR QueryKey = 'ClearStorageKey' OR QueryKey = 'DeleteStorageKey'";
 
         /// <summary>
-        /// The queries currently used. When this is updated, the new queries will take effect immediately.
+        /// 目前使用的查询。 更新后, 新查询将立即生效 。
         /// </summary>
         public RelationalStorageProviderQueries CurrentOperationalQueries { get; set; } = null!;
 
         /// <summary>
-        /// The hash generator used to hash natural keys, grain ID and grain type to a more narrow index.
+        /// 散列生成器用于按实键、 grain ID和 grain 类型进行小于指数的散列。
         /// </summary>
         public IStorageHasherPicker HashPicker { get; set; }
 
@@ -138,13 +138,13 @@ namespace Orleans.Storage
         private readonly string name;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AdoNetGrainStorage"/> class.
+        /// 初始化 <see cref="AdoNetGrainStorage"/> 类的新实例。
         /// </summary>
-        /// <param name="activatorProvider">The activator used to create empty grain state values.</param>
-        /// <param name="logger">The provider logger.</param>
-        /// <param name="options">The storage provider options.</param>
-        /// <param name="clusterOptions">The cluster options used to scope stored grain state.</param>
-        /// <param name="name">The storage provider name.</param>
+        /// <param name="activatorProvider">用于创建空 grain 状态值的激活器。</param>
+        /// <param name="logger">供应商日志器。</param>
+        /// <param name="options">储存提供者的选项。</param>
+        /// <param name="clusterOptions">用于范围已储存的群集选项 grain 状态。</param>
+        /// <param name="name">存储提供者的名称。</param>
         public AdoNetGrainStorage(
             IActivatorProvider activatorProvider,
             ILogger<AdoNetGrainStorage> logger,
@@ -162,22 +162,22 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Registers the provider's initialization and shutdown callbacks with the silo lifecycle.
+        /// 将供应商的初始化和关闭与 silo 生命周期相连接的回调登记在册。
         /// </summary>
-        /// <param name="lifecycle">The silo lifecycle.</param>
+        /// <param name="lifecycle">下 silo 生命周期。</param>
         public void Participate(ISiloLifecycle lifecycle)
         {
             lifecycle.Subscribe(OptionFormattingUtilities.Name<AdoNetGrainStorage>(this.name), this.options.InitStage, Init, Close);
         }
 
-        /// <summary>Clear state data function for this storage provider.</summary>
+        /// <summary>此存储提供者的清空状态数据函数。</summary>
         /// <see cref="IGrainStorage.ClearStateAsync{T}(string, GrainId, IGrainState{T})"/>.
-        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
         public Task ClearStateAsync<T>(string grainType, GrainId grainReference, IGrainState<T> grainState)
             => ClearStateAsync(grainType, grainReference, grainState, CancellationToken.None);
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
         public async Task ClearStateAsync<T>(string grainType, GrainId grainReference, IGrainState<T> grainState, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -198,12 +198,12 @@ namespace Orleans.Storage
             string? storageVersion = null;
             try
             {
-                var grainIdHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(grainId.GetHashBytes()); // Storage configuration always supplies a matching hasher.
-                var grainTypeHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(Encoding.UTF8.GetBytes(baseGrainType)); // Storage configuration always supplies a matching hasher.
+                var grainIdHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(grainId.GetHashBytes()); // 储存配置总是提供匹配的散列。
+                var grainTypeHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(Encoding.UTF8.GetBytes(baseGrainType)); // 储存配置总是提供匹配的散列。
 
                 var queryText = options.DeleteStateOnClear ? CurrentOperationalQueries.DeleteState : CurrentOperationalQueries.ClearState;
 
-                // Backward compatibility checks in Init should handle this case and throw prior to reaching this state.
+                // Init的后向兼容性检查应该处理此案,然后在达到这一状态之前抛出。
                 if (queryText is null)
                 {
                     throw new UnreachableException($"QueryText is null for {nameof(options.DeleteStateOnClear)}={options.DeleteStateOnClear}");
@@ -234,9 +234,9 @@ namespace Orleans.Storage
                 throw inconsistentStateException;
             }
 
-            // When delete on clear is set, ETag should be null since the record was deleted.
-            // The DB script returns deleted record version + 1 as storageVersion for the CheckVersionInconsistency check above.
-            //No errors found, the version of the state held by the grain can be updated and also the state.
+            // 当确定在明确位置删除时,ETag应为无效,因为记录已删除。
+            // DB 脚本返回删除的记录版本+1 storageVersion 排排 CheckVersionInconsistency 上文支票。
+            //找不到错误, grain 所持有的国家版本可以更新,也可以更新状态。
             grainState.ETag = options.DeleteStateOnClear ? null : storageVersion;
             grainState.RecordExists = false;
             grainState.State = CreateInstance<T>();
@@ -244,14 +244,14 @@ namespace Orleans.Storage
         }
 
 
-        /// <summary> Read state data function for this storage provider.</summary>
+        /// <summary> 为此存储提供者读取国家数据函数。</summary>
         /// <see cref="IGrainStorage.ReadStateAsync{T}(string, GrainId, IGrainState{T})"/>.
-        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
         public Task ReadStateAsync<T>(string grainType, GrainId grainReference, IGrainState<T> grainState)
             => ReadStateAsync(grainType, grainReference, grainState, CancellationToken.None);
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
         public async Task ReadStateAsync<T>(string grainType, GrainId grainReference, IGrainState<T> grainState, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -263,8 +263,8 @@ namespace Orleans.Storage
             try
             {
                 var commandBehavior = CommandBehavior.Default;
-                var grainIdHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(grainId.GetHashBytes()); // Storage configuration always supplies a matching hasher.
-                var grainTypeHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(Encoding.UTF8.GetBytes(baseGrainType)); // Storage configuration always supplies a matching hasher.
+                var grainIdHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(grainId.GetHashBytes()); // 储存配置总是提供匹配的散列。
+                var grainTypeHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(Encoding.UTF8.GetBytes(baseGrainType)); // 储存配置总是提供匹配的散列。
                 var readRecords = (await Storage.ReadAsync(
                     CurrentOperationalQueries.ReadFromStorage,
                     command =>
@@ -315,14 +315,14 @@ namespace Orleans.Storage
         }
 
 
-        /// <summary> Write state data function for this storage provider.</summary>
+        /// <summary> 为此存储提供者写入状态数据函数 。</summary>
         /// <see cref="IGrainStorage.WriteStateAsync{T}(string, GrainId, IGrainState{T})"/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
         public Task WriteStateAsync<T>(string grainType, GrainId grainReference, IGrainState<T> grainState)
             => WriteStateAsync(grainType, grainReference, grainState, CancellationToken.None);
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
         public async Task WriteStateAsync<T>(string grainType, GrainId grainReference, IGrainState<T> grainState, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -335,8 +335,8 @@ namespace Orleans.Storage
             string? storageVersion = null;
             try
             {
-                var grainIdHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(grainId.GetHashBytes()); // Storage configuration always supplies a matching hasher.
-                var grainTypeHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(Encoding.UTF8.GetBytes(baseGrainType)); // Storage configuration always supplies a matching hasher.
+                var grainIdHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(grainId.GetHashBytes()); // 储存配置总是提供匹配的散列。
+                var grainTypeHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState)!.Hash(Encoding.UTF8.GetBytes(baseGrainType)); // 储存配置总是提供匹配的散列。
                 var writeRecord = await Storage.ReadAsync(CurrentOperationalQueries.WriteToStorage, command =>
                 {
                     var serialized = this.Serializer.Serialize<T>(grainState.State);
@@ -367,14 +367,14 @@ namespace Orleans.Storage
                 throw inconsistentStateException;
             }
 
-            //No errors found, the version of the state held by the grain can be updated.
+            //找不到错误, grain 所持有的国家版本可以更新 。
             grainState.ETag = storageVersion;
             grainState.RecordExists = true;
 
             LogTraceWroteGrainState(serviceId, name, baseGrainType, grainId, grainState.ETag);
         }
 
-        /// <summary> Initialization function for this storage provider. </summary>
+        /// <summary> 该存储提供者的初始化功能。 </summary>
         private async Task Init(CancellationToken cancellationToken)
         {
             Storage = RelationalStorage.CreateInstance(options.Invariant, options.ConnectionString, options.DataSource);
@@ -383,9 +383,9 @@ namespace Orleans.Storage
                 return Task.FromResult(Tuple.Create(selector.GetValue<string>("QueryKey"), selector.GetValue<string>("QueryText")));
             }, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // This check is for backward compatibility:
-            // 1. Some AdoNet storage invariants may not support delete on clear.
-            // 2. AdoNet invariant supports delete on clear but updated persistence scripts have not been deployed to management db.
+            // 此检查是用于后向兼容性 :
+            // 1. 有些 AdoNet 储存变量可能不支持删除,但可以明确删除。
+            // 2. AdoNet 变量支持删除清晰但更新的持久性脚本尚未部署到管理 db。
             var deleteStateQuery = queries.SingleOrDefault(i => i.Item1 == "DeleteStorageKey")?.Item2;
             if (options.DeleteStateOnClear && deleteStateQuery is null)
             {
@@ -405,7 +405,7 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Close this provider
+        /// 关闭此提供者
         /// </summary>
         private Task Close(CancellationToken token)
         {
@@ -413,29 +413,29 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Checks for version inconsistency as defined in the database scripts.
+        /// 检查数据库脚本定义的版本不一致。
         /// </summary>
-        /// <param name="serviceId">Service Id.</param>
-        /// <param name="providerName">The name of this storage provider.</param>
-        /// <param name="operation">The operation attempted.</param>
-        /// <param name="storageVersion">The version from storage.</param>
-        /// <param name="grainVersion">The grain version.</param>
-        /// <param name="normalizedGrainType">Grain type without generics information.</param>
-        /// <param name="grainId">The grain ID.</param>
-        /// <returns>An exception for throwing or <em>null</em> if no violation was detected.</returns>
-        /// <remarks>This means that the version was not updated in the database or the version storage version was something else than null
-        /// when the grain version was null, meaning effectively a double activation and save.</remarks>
+        /// <param name="serviceId">服务 Id.</param>
+        /// <param name="providerName">此存储提供者的名称 。</param>
+        /// <param name="operation">操作尝试。</param>
+        /// <param name="storageVersion">存储版本。</param>
+        /// <param name="grainVersion">下 grain 版本。</param>
+        /// <param name="normalizedGrainType">Grain 类型没有通用信息。</param>
+        /// <param name="grainId">下 grain ID.</param>
+        /// <returns>扔或 <em>无效</em> 如果没有发现任何违规情况。</returns>
+        /// <remarks>这意味着数据库中没有更新版本,或者版本存储版本不是空的
+        /// 当 grain 版本为无效时,这意味着有效双倍激活并保存。</remarks>
         private static InconsistentStateException? CheckVersionInconsistency(string operation, string serviceId, string providerName, string? storageVersion, string? grainVersion, string normalizedGrainType, string grainId)
         {
-            //If these are the same, it means no row was inserted or updated in the storage.
-            //Effectively it means the UPDATE or INSERT conditions failed due to ETag violation.
-            //Also if grainState.ETag storageVersion is null and storage comes back as null,
-            //it means two grains were activated an the other one succeeded in writing its state.
+            //如果这些是相同的,则表示没有在存储中插入行或更新。
+            //实际上,这意味着由于ETag违规,更新或INSTERT的条件没有达到。
+            //如果 grainState.ETag storageVersion 无效,而储存又以无效形式返回,
+            //意思是两个 grains 被激活 另一个成功写出状态
             //
-            //NOTE: the storage could return also the new and old ETag (Version), but currently it doesn't.
+            //注意:存储器也可以返回新的和旧的ETag(Version),但目前没有。
             if (storageVersion == grainVersion || storageVersion is { Length: 0 } || (storageVersion is null && grainVersion is not null))
             {
-                //TODO: Note that this error message should be canonical across back-ends.
+                //TODO: 注意, 此错误消息应该跨后端的语法化 。
                 return new InconsistentStateException($"Version conflict ({operation}): ServiceId={serviceId} ProviderName={providerName} GrainType={normalizedGrainType} GrainId={grainId} ETag={grainVersion}.");
             }
 
@@ -443,11 +443,11 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Maps a grain state to the grain key and grain type values stored in the key columns, as selected by
+        /// 地图a grain 状态至 grain 键和 grain 键栏中存储的数值类型类型,由
         /// <see cref="AdoNetGrainStorageOptions.KeyFormat"/>.
         /// </summary>
-        /// <param name="stateName">The state name passed to the <see cref="IGrainStorage"/> operation.</param>
-        /// <param name="grainId">The grain ID.</param>
+        /// <param name="stateName">国名传给 <see cref="IGrainStorage"/> 操作。</param>
+        /// <param name="grainId">下 grain ID.</param>
         private (AdoGrainKey GrainKey, string GrainType) GetStorageKey(string stateName, GrainId grainId)
         {
             if (options.KeyFormat == AdoNetGrainStorageKeyFormat.Legacy)
@@ -457,11 +457,11 @@ namespace Orleans.Storage
 
             Debug.Assert(options.KeyFormat == AdoNetGrainStorageKeyFormat.GrainTypeQualified, "Options validation admits only defined key formats.");
 
-            // Identity components are stored as hexadecimal text of their exact bytes. Database collations may
-            // compare text case-, accent-, or trailing-space-insensitively, and GrainIdHash/GrainTypeHash can be made
-            // to collide, so the key columns must differ for every distinct identity. Hex digits compare exactly
-            // under any collation, preserve bytes which are not valid UTF-8, and never contain the '/' separator.
-            // The whole key is stored as a string key: the integer and GUID columns carry no key kind.
+            // 身份组成部分作为精确字节的十六进制文本存储。
+            // 可比较文字 例数、口音或后方-对空间不敏感,以及 GrainIdHash/GrainTypeHash
+            // 相撞,因此每个不同身份的键列必须有所不同。
+            // 在任何核对中保存无效 UTF-8 的字节, 并且从不包含“ /” 分隔符 。
+            // 整个键以字符串键存储:整数和图形与数字列不包含任何密钥类型。
             var grainType = $"{Convert.ToHexString(grainId.Type.AsSpan())}/{Convert.ToHexString(StrictUtf8.GetBytes(stateName))}";
             var grainKey = Convert.ToHexString(grainId.Key.AsSpan());
             if (grainType.Length > MaxKeyColumnLength || grainKey.Length > MaxKeyColumnLength)
@@ -475,20 +475,20 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// The length of the <c>GrainTypeString</c> and <c>GrainIdExtensionString</c> columns in the persistence scripts.
+        /// 时间长度 <c>GrainTypeString</c> 和 <c>GrainIdExtensionString</c> 列中,以耐久脚本的形式。
         /// </summary>
         private const int MaxKeyColumnLength = 512;
 
         /// <summary>
-        /// Encodes state names without replacing invalid UTF-16, which would map distinct names to the same bytes.
+        /// 编码国名,但不替换无效的 UTF-16, 它将将不同的名称映射为相同的字节。
         /// </summary>
         private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
-        /// Extracts a grain ID as a string and appends the key extension with '#' infix is present.
+        /// 将 grain ID作为字符串提取出来,并附加关键扩展名,其中显示“#” 的字条。
         /// </summary>
-        /// <returns>The grain ID as a string.</returns>
-        /// <remarks>This likely should exist in Orleans core in more optimized form.</remarks>
+        /// <returns> grain ID作为字符串。</returns>
+        /// <remarks>这很可能存在于 Orleans 核心中, 以更优化的形式存在。</remarks>
         private static AdoGrainKey GrainIdAndExtensionAsString(GrainId grainId)
         {
             string? keyExt;
@@ -506,18 +506,18 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Extracts a base class from a string that is either <see cref="Type.AssemblyQualifiedName"/> or
-        /// <see cref="Type.FullName"/> or returns the one given as a parameter if no type is given.
+        /// 从 <see cref="Type.AssemblyQualifiedName"/> 或
+        /// <see cref="Type.FullName"/> 或返回未给定类型时作为参数的参数。
         /// </summary>
-        /// <param name="typeName">The base class name to give.</param>
-        /// <returns>The extracted base class or the one given as a parameter if it didn't have a generic part.</returns>
+        /// <param name="typeName">给定的基类名称。</param>
+        /// <returns>提取的基准等级或如果没有通用部分,则作为参数给定的基准等级。</returns>
         private static string ExtractBaseClass(string typeName)
         {
             var genericPosition = typeName.IndexOf('`', StringComparison.Ordinal);
             if (genericPosition != -1)
             {
-                //The following relies the generic argument list to be in form as described
-                //at https://msdn.microsoft.com/en-us/library/w3f99sx1.aspx.
+                //以下依据通用参数表,其格式如下:
+                //年 https://msdn.microsoft.com/en-us/library/w3f99sx1.aspx.
                 var split = typeName.Split(BaseClassExtractionSplitDelimeters, StringSplitOptions.RemoveEmptyEntries);
                 var stripped = new Queue<string>(split.Where(i => i.Length > 1 && i[0] != ',').Select(WithoutAssemblyVersion));
 

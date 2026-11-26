@@ -3,14 +3,14 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Stores a persistent stream queue checkpoint.
+    /// 储存一个长串排队检查站。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class StreamCheckpointerGrainState
     {
         /// <summary>
-        /// Gets or sets the persisted checkpoint.
+        /// 设置或设置长期存在的检查站。
         /// </summary>
         [Id(0)]
         public string Checkpoint { get; set; } = string.Empty;

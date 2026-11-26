@@ -5,12 +5,12 @@ using TestGrainInterfaces;
 namespace TestGrains
 {
     /// <summary>
-    /// An example of a journaled grain that models a bank account.
+    /// 例如,一个以银行账户为模型的日记 grain 。
     /// 
-    /// Configured to use the default storage provider.
-    /// Configured to use the LogStorage consistency provider.
+    /// 配置后使用默认的存储提供者。
+    /// 配置后使用 LogStorage 一致性提供商。
     /// 
-    /// This provider persists all events, and allows us to retrieve them all.
+    /// 提供商坚持所有事件,使我们能够收回所有事件。
     /// </summary>
 
     [StorageProvider(ProviderName = "Default")]
@@ -19,7 +19,7 @@ namespace TestGrains
     public class AccountGrain : JournaledGrain<AccountGrain.GrainState, Transaction>, IAccountGrain
     {
         /// <summary>
-        /// The state of this grain is just the current balance.
+        /// 现状 grain 仅仅是当前平衡。
         /// </summary>
         [Serializable]
         [Orleans.GenerateSerializer]
@@ -57,21 +57,21 @@ namespace TestGrains
                 Description = description
             });
 
-            // we wait for storage ack
+            // 我们等待储存的当
             return ConfirmEvents();
         }
 
         public Task<bool> Withdraw(uint amount, Guid guid, string description)
         {
-            // if the balance is too low, can't withdraw
-            // reject it immediately
+            // 如果余额太低,不能退
+            // 立即拒绝
             if (State.Balance < amount)
                 return Task.FromResult(false);
 
-            // use a conditional event for withdrawal
-            // (conditional events commit only if the version hasn't already changed in the meantime)
-            // this is important so we can guarantee that we never overdraw
-            // even if racing with other clusters, of in transient duplicate grain situations
+            // 使用有条件退出事件
+            // (有条件的事件只有在版本尚未改变的情况下才会发生)
+            // 这一点很重要,所以我们才能保证 我们不会过度借债
+            // 即使与其他组群赛跑,但属于短暂重复 grain 情况
             return RaiseConditionalEvent(new WithdrawalTransaction()
             {
                 Guid = guid,
@@ -88,8 +88,8 @@ namespace TestGrains
     }
 
 
-    /// A variant of the same grain that does not persist the log, but only the latest grain state
-    /// (so it does not do true event sourcing). 
+    /// 同一 grain 的变异,该变异不持续日志,而仅维持最新的 grain 状态
+    /// (因此它并不真正产生事件来源) 
     [LogConsistencyProvider(ProviderName = "StateStorage")]
     public class AccountGrain_PersistStateOnly : AccountGrain
     {

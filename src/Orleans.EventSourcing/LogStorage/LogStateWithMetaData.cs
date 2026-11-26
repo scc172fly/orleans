@@ -5,16 +5,16 @@ using System.Collections.Generic;
 namespace Orleans.EventSourcing.LogStorage
 {
     /// <summary>
-    /// A class that extends grain state with versioning metadata, so that a grain with log-view consistency
-    /// can use a standard storage provider.
+    /// 扩展的类 grain 状态与元数据版本的元数据,因此 a grain 具有日志一致性
+    /// 使用标准的储存提供者。
     /// </summary>
-    /// <typeparam name="TEntry">The type used for log entries</typeparam>
+    /// <typeparam name="TEntry">日志条目使用的类型</typeparam>
     [Serializable]
     [GenerateSerializer]
     public sealed class LogStateWithMetaDataAndETag<TEntry> : IGrainState<LogStateWithMetaData<TEntry>> where TEntry : class
     {
         /// <summary>
-        /// Gets and Sets StateAndMetaData
+        /// 获取和设置 StateAndMetaData
         /// </summary>
         [Id(0)]
         public LogStateWithMetaData<TEntry> StateAndMetaData
@@ -24,7 +24,7 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// Gets and Sets Etag
+        /// 获取和设置标签
         /// </summary>
         [Id(1)]
         public string? ETag { get; set; }
@@ -43,7 +43,7 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// Initializes a new instance of GrainStateWithMetaDataAndETag class
+        /// 初始化 GrainStateWithMetaDataAndETag 类的新实例
         /// </summary>
         public LogStateWithMetaDataAndETag()
         {
@@ -51,7 +51,7 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// Convert current GrainStateWithMetaDataAndETag object information to a string
+        /// 将当前 GrainStateWithMetaDataAndETag 对象信息转换为字符串
         /// </summary>
         public override string ToString()
         {
@@ -60,37 +60,37 @@ namespace Orleans.EventSourcing.LogStorage
     }
 
     /// <summary>
-    /// A class that extends grain state with versioning metadata, so that a log-consistent grain
-    /// can use a standard storage provider.
+    /// 包含元元元版本的扩展 grain 状态的分类,以便符合日志的 grain
+    /// 使用标准的储存提供者。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class LogStateWithMetaData<TEntry> where TEntry : class
     {
         /// <summary>
-        /// The stored view of the log
+        /// 日志的存储视图
         /// </summary>
         [Id(0)]
         public List<TEntry> Log { get; set; }
 
         /// <summary>
-        /// The length of the log
+        /// 日志长度
         /// </summary>
         public int GlobalVersion { get { return Log.Count; } }
 
         /// <summary>
-        /// Metadata that is used to avoid duplicate appends.
-        /// Logically, this is a (string->bit) map, the keys being replica ids
-        /// But this map is represented compactly as a simple string to reduce serialization/deserialization overhead
-        /// Bits are read by <see cref="GetBit"/> and flipped by  <see cref="FlipBit"/>.
-        /// Bits are toggled when writing, so that the retry logic can avoid appending an entry twice
-        /// when retrying a failed append.
+        /// 用于避免重复附件的元数据。
+        /// 逻辑上, 这是一张( 字符串- >bit) 映射图, 键是复制代码
+        /// 但这张地图的缩写 简单代表一个字符串 以减少序列化/后级化间接费用
+        /// 位数由 <see cref="GetBit"/> 读取,而由 <see cref="FlipBit"/>翻转。
+        /// 写时会将位元混在一起, 这样重试逻辑可以避免两次附加条目
+        /// 重试失败的附加件时。
         /// </summary>
         [Id(1)]
         public string WriteVector { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogStateWithMetaData{TView}"/> class.
+        /// 初始化 <see cref="LogStateWithMetaData{TView}"/> 类的新实例。
         /// </summary>
         public LogStateWithMetaData()
         {
@@ -99,9 +99,9 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// Gets one of the bits in <see cref="WriteVector"/>
+        /// 在 <see cref="WriteVector"/>中获取一个位数
         /// </summary>
-        /// <param name="replica">The replica for which we want to look up the bit</param>
+        /// <param name="replica">我们希望查找位数的复制件</param>
         /// <returns></returns>
         public bool GetBit(string replica)
         {
@@ -109,10 +109,10 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// Toggle one of the bits in <see cref="WriteVector"/> and return the new value.
+        /// 切换 <see cref="WriteVector"/> 中的比特之一并返回新值。
         /// </summary>
-        /// <param name="replica">The replica for which we want to flip the bit</param>
-        /// <returns>the state of the bit after flipping it</returns>
+        /// <param name="replica">复制我们想要翻转位</param>
+        /// <returns>翻转时位数的状态</returns>
         public bool FlipBit(string replica)
         {
             var str = WriteVector;

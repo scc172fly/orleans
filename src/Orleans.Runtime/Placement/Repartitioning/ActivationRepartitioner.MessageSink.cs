@@ -10,8 +10,8 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
 {
     private readonly CancellationTokenSource _shutdownCts = new();
 
-    // This filter contains grain ids which will are anchored to the current silo.
-    // Ids are inserted when a grain is found to have a negative transfer score.
+    // 此过滤器包含 grain id, 它将锁定在当前 silo上。
+    // grain 被发现负转移分数时插入了日期。
     private readonly AnchoredGrainsFilter? _anchoredFilter;
     private Task? _processPendingEdgesTask;
 
@@ -51,7 +51,7 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
             {
                 foreach (var message in drainBuffer[..count])
                 {
-                    if (!IsFullyAddressed(message) || // The silo addresses (likely the target) is set null some time later (after the message is recorded), this can lead to a NRE
+                    if (!IsFullyAddressed(message) || // silo 地址(目标可能)在稍后一段时间后被设为无效(在信件被记录后),这可能导致 NRE
                         !_messageFilter.IsAcceptable(message, out var isSenderMigratable, out var isTargetMigratable))
                     {
                         continue;
@@ -79,7 +79,7 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
 
                     if (!sourceVertex.IsMigratable && !destinationVertex.IsMigratable)
                     {
-                        // Ignore edges between two non-migratable grains.
+                        // 忽略两个非移位 grains之间的边缘 。
                         continue;
                     }
 
@@ -110,13 +110,13 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
             return;
         }
 
-        // It must have a direction, and must not be a 'response' as it would skew analysis.
+        // 分析必须有一个方向,
         if (message.Direction is Message.Directions.None or Message.Directions.Response)
         {
             return;
         }
 
-        // Sender and target need to be fully addressable to know where to move to or towards.
+        // 发信人和目标需要完全可处理,才能知道向何处移动或走向何方。
         if (!IsFullyAddressed(message))
         {
             return;

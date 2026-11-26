@@ -1,72 +1,72 @@
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Defines names for activities emitted by the Orleans runtime.
+/// 定义 Orleans 运行时所排放活动的名称。
 /// </summary>
 public static class ActivityNames
 {
     /// <summary>
-    /// The name of the activity emitted while selecting a silo for a grain.
+    /// 选择 a 时所排放的活动的名称 silo a 的a grain.
     /// </summary>
     public const string PlaceGrain = "place grain";
 
     /// <summary>
-    /// The name of the activity emitted while filtering placement candidates.
+    /// 过滤职位安置候选人时所排放活动的名称。
     /// </summary>
     public const string FilterPlacementCandidates = "filter placement candidates";
 
     /// <summary>
-    /// The name of the activity emitted while activating a grain.
+    /// 激活 grain时所排放的活动的名称。
     /// </summary>
     public const string ActivateGrain = "activate grain";
 
     /// <summary>
-    /// The name of the activity emitted while deactivating a grain.
+    /// 注销 grain时所排放活动的名称。
     /// </summary>
     public const string DeactivateGrain = "deactivate grain";
 
     /// <summary>
-    /// The name of the activity emitted while invoking a grain's activation callback.
+    /// 援引 grain激活回调时所释放的活动的名称。
     /// </summary>
     public const string OnActivate = "execute OnActivateAsync";
 
     /// <summary>
-    /// The name of the activity emitted while invoking a grain's deactivation callback.
+    /// 援引 grain的取消回调时所释放的活动的名称。
     /// </summary>
     public const string OnDeactivate = "execute OnDeactivateAsync";
 
     /// <summary>
-    /// The name of the activity emitted while registering a grain activation with the grain directory.
+    /// 登记时所排放的活动的名称 grain 激活 grain 目录。
     /// </summary>
     public const string RegisterDirectoryEntry = "register directory entry";
 
     /// <summary>
-    /// The name of the activity emitted while reading grain state from storage.
+    /// 读取存储状态 grain 时所排放的活动的名称。
     /// </summary>
     public const string StorageRead = "read storage";
 
     /// <summary>
-    /// The name of the activity emitted while writing grain state to storage.
+    /// 写入 grain 存储状态时所排放的活动的名称。
     /// </summary>
     public const string StorageWrite = "write storage";
 
     /// <summary>
-    /// The name of the activity emitted while clearing grain state from storage.
+    /// 储存时清除 grain 状态时所排放的活动的名称。
     /// </summary>
     public const string StorageClear = "clear storage";
 
     /// <summary>
-    /// The name of the activity emitted while dehydrating a grain activation for migration.
+    /// 在为移民而启动 grain 活化时脱水时所排放活动的名称。
     /// </summary>
     public const string ActivationDehydrate = "dehydrate activation";
 
     /// <summary>
-    /// The name of the activity emitted while rehydrating a migrated grain activation.
+    /// 在移动 grain 激活时补水时所释放的活动的名称。
     /// </summary>
     public const string ActivationRehydrate = "rehydrate activation";
 
     /// <summary>
-    /// The name of the activity emitted while waiting for a grain migration to complete.
+    /// 等待 grain 迁移完成时所排放的活动的名称。
     /// </summary>
     public const string WaitMigration = "wait migration";
 }

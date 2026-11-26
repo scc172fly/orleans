@@ -8,16 +8,16 @@ using Orleans.Configuration;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// Creates <see cref="IGrainDirectoryCache"/> instances.
+    /// 创建 <see cref="IGrainDirectoryCache"/> 实例。
     /// </summary>
     public static class GrainDirectoryCacheFactory
     {
         /// <summary>
-        /// Creates a new grain directory cache instance.
+        /// 创建新的 grain 目录缓存实例。
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="options">The options.</param>
-        /// <returns>The newly created <see cref="IGrainDirectoryCache"/> instance.</returns>
+        /// <param name="services">服务。</param>
+        /// <param name="options">选项。</param>
+        /// <returns>新建的 <see cref="IGrainDirectoryCache"/> 实例。</returns>
         public static IGrainDirectoryCache CreateGrainDirectoryCache(IServiceProvider services, GrainDirectoryOptions options)
             => CreateGrainDirectoryCache(services, options, out _);
 

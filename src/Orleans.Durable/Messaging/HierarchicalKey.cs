@@ -8,21 +8,21 @@ using System.Text.Json.Serialization;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// An immutable, ordinal application identity formed from nonempty hierarchical segments.
+/// 一种由非空等级构成的永恒、常规应用身份。
 /// </summary>
 /// <remarks>
-/// Create constructs literal segments and escapes slash and backslash characters exactly once.
-/// Parse reads the canonical escaped path. The key wraps its canonical string; equality and hashing use that string. Applications preserve the identity across retries.
-/// Every key is well-formed UTF-16: surrogate characters appear only as high-low pairs, so distinct keys keep distinct serialized forms.
+/// 创建字面区段, 并避免一次的斜线和反斜字符 。
+/// 分析读取金刚石脱轨路径。 键盘将它包扎在条金刚石线上; 平等和散列使用该字符串。 应用程序会保护跨串的特性 。
+/// 每个键都是完善的UTF-16:代用字符只作为高低的对子出现,因此不同的键保持不同的序列形式。
 /// </remarks>
 [Immutable, Alias("Orleans.Durable.Messaging.HierarchicalKey")]
 [JsonConverter(typeof(HierarchicalKeyJsonConverter))]
 public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<HierarchicalKey>, IParsable<HierarchicalKey>, ISpanParsable<HierarchicalKey>
 {
-    /// <summary>The escape character used within canonical segments.</summary>
+    /// <summary>共弦段内使用的逃避字符。</summary>
     public const char EscapeCharacter = '\\';
 
-    /// <summary>The separator between canonical segments.</summary>
+    /// <summary>峡谷段之间的分隔符。</summary>
     public const char SegmentSeparator = '/';
 
     private const char HighSurrogateStart = '\uD800';
@@ -32,10 +32,10 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
 
     private HierarchicalKey(string canonical) => _value = canonical;
 
-    /// <summary>Serializes hierarchical identities as canonical escaped JSON strings.</summary>
+    /// <summary>序列等级身份为可控逃逸 JSON 字符串。</summary>
     public sealed class HierarchicalKeyJsonConverter : JsonConverter<HierarchicalKey>
     {
-        /// <summary>Creates a hierarchical identity JSON converter.</summary>
+        /// <summary>创建等级身份 JSON 转换器。</summary>
         public HierarchicalKeyJsonConverter() { }
 
         /// <inheritdoc/>
@@ -66,28 +66,28 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         }
     }
 
-    /// <summary>Gets whether this value is unset.</summary>
+    /// <summary>获取是否该值未设定。</summary>
     public bool IsDefault => _value is null;
 
-    /// <summary>Gets the canonical path length in UTF-16 characters.</summary>
+    /// <summary>获得以 UTF-16 字符为主线路径长度。</summary>
     public int Length => _value?.Length ?? 0;
 
-    /// <summary>Creates one literal segment, escaping slash and backslash characters.</summary>
-    /// <param name="value">The nonempty literal segment.</param>
-    /// <returns>The segment identity.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="value"/> is empty or contains an unpaired surrogate.</exception>
+    /// <summary>创建一个字面段, 避开斜线和反斜线字符。</summary>
+    /// <param name="value">非空字面段。</param>
+    /// <returns>分块身份</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> 无效。</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> 是空的或含有一个未受偏移的代孕。</exception>
     public static HierarchicalKey Create(string value)
     {
         ValidateSegment(value);
         return new(Escape(value));
     }
 
-    /// <summary>Creates a hierarchy from literal segments in root-first order.</summary>
-    /// <param name="values">The nonempty literal segments.</param>
-    /// <returns>A flat canonical identity which owns its immutable backing string.</returns>
-    /// <exception cref="ArgumentNullException">A segment is null.</exception>
-    /// <exception cref="ArgumentException">The input or a segment is empty, or a segment contains an unpaired surrogate.</exception>
+    /// <summary>从根一顺序的字面段创建层次。</summary>
+    /// <param name="values">非空字区段。</param>
+    /// <returns>一个拥有不可改变的背弦的平板金刚石身份。</returns>
+    /// <exception cref="ArgumentNullException">段无效。</exception>
+    /// <exception cref="ArgumentException">输入或一个段为空,或者一个段含有未受偏移的代孕。</exception>
     public static HierarchicalKey Create(params ReadOnlySpan<string> values)
     {
         if (values.IsEmpty)
@@ -104,12 +104,12 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         return new(builder.ToString());
     }
 
-    /// <summary>Appends one literal child segment.</summary>
-    /// <param name="value">The nonempty literal child segment.</param>
-    /// <returns>The child identity.</returns>
-    /// <exception cref="InvalidOperationException">This key is unset.</exception>
-    /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="value"/> is empty or contains an unpaired surrogate.</exception>
+    /// <summary>附加一个字节子段。</summary>
+    /// <param name="value">非空字子子节。</param>
+    /// <returns>儿童身份。</returns>
+    /// <exception cref="InvalidOperationException">此密钥未设置 。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> 无效。</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> 是空的或含有一个未受偏移的代孕。</exception>
     public HierarchicalKey CreateChildKey(string value)
     {
         EnsureSet();
@@ -117,11 +117,11 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         return new(string.Concat(_value, "/", Escape(value)));
     }
 
-    /// <summary>Composes this hierarchy with an already constructed suffix hierarchy.</summary>
-    /// <param name="suffix">The constructed suffix.</param>
-    /// <returns>A flat concatenated identity preserving both paths' segment boundaries.</returns>
-    /// <exception cref="InvalidOperationException">This key is unset.</exception>
-    /// <exception cref="ArgumentException"><paramref name="suffix"/> is unset.</exception>
+    /// <summary>组成此等级, 并带有已经构建的后缀等级。</summary>
+    /// <param name="suffix">构造的后缀。</param>
+    /// <returns>一种固定的连接身份 保护两条路段的边界</returns>
+    /// <exception cref="InvalidOperationException">此密钥未设置 。</exception>
+    /// <exception cref="ArgumentException"><paramref name="suffix"/> 已被解置。</exception>
     public HierarchicalKey Append(HierarchicalKey suffix)
     {
         EnsureSet();
@@ -129,8 +129,8 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         return new(string.Concat(_value, "/", suffix._value));
     }
 
-    /// <summary>Gets the immediate parent, or null for a root or unset key.</summary>
-    /// <returns>The parent identity when this key has more than one segment.</returns>
+    /// <summary>获取直系父母,或者根或未设密钥的无效。</summary>
+    /// <returns>当此键有多个段时父称。</returns>
     public HierarchicalKey? GetParent()
     {
         if (_value is null) return null;
@@ -138,19 +138,19 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         return lastSeparator < 0 ? null : new HierarchicalKey(_value[..lastSeparator]);
     }
 
-    /// <summary>Tests whether this key is the other's immediate child.</summary>
-    /// <param name="other">The potential parent.</param>
-    /// <returns>Whether there is exactly one additional segment.</returns>
+    /// <summary>测试此密钥是否是对方的直生子。</summary>
+    /// <param name="other">潜在的母体。</param>
+    /// <returns>是否还有一小段。</returns>
     public bool IsChildOf(HierarchicalKey other) => other.IsParentOf(this);
 
-    /// <summary>Tests whether this key is the other's immediate parent.</summary>
-    /// <param name="other">The potential child.</param>
-    /// <returns>Whether the other key extends this key by exactly one segment.</returns>
+    /// <summary>测试此密钥是否为对方的直系父。</summary>
+    /// <param name="other">潜在的孩子</param>
+    /// <returns>其它键是否将此密钥完全扩展为一个段。</returns>
     public bool IsParentOf(HierarchicalKey other) => IsAncestorOf(other) && LastSeparator(other._value!) == Length;
 
-    /// <summary>Tests whether this key is equal to or an ancestor of the other key.</summary>
-    /// <param name="other">The identity to inspect.</param>
-    /// <returns>Whether the full prefix consists of equal ordinal segments. Unset keys return false.</returns>
+    /// <summary>测试此密钥是否等于或是一个其他密钥的祖先。</summary>
+    /// <param name="other">检查的身份。</param>
+    /// <returns>完整前缀是否包含相等的正则区段。 取消设置键返回假 。</returns>
     public bool IsAncestorOf(HierarchicalKey other) => !IsDefault && !other.IsDefault
         && (Equals(other) || other.Length > Length && other._value![Length] == SegmentSeparator
             && other._value.StartsWith(_value!, StringComparison.Ordinal));
@@ -200,16 +200,16 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
     /// <inheritdoc/>
     public override int GetHashCode() => _value is null ? 0 : StringComparer.Ordinal.GetHashCode(_value);
 
-    /// <summary>Compares complete ordinal key values.</summary>
-    /// <param name="left">The first identity.</param>
-    /// <param name="right">The second identity.</param>
-    /// <returns>Whether the identities are equal.</returns>
+    /// <summary>比较完整的正则密钥值。</summary>
+    /// <param name="left">第一个身份。</param>
+    /// <param name="right">第二个身份。</param>
+    /// <returns>身份是否相等。</returns>
     public static bool operator ==(HierarchicalKey left, HierarchicalKey right) => left.Equals(right);
 
-    /// <summary>Compares complete ordinal key values for inequality.</summary>
-    /// <param name="left">The first identity.</param>
-    /// <param name="right">The second identity.</param>
-    /// <returns>Whether the identities differ.</returns>
+    /// <summary>比较不平等的完整正则关键值。</summary>
+    /// <param name="left">第一个身份。</param>
+    /// <param name="right">第二个身份。</param>
+    /// <returns>身份是否不同。</returns>
     public static bool operator !=(HierarchicalKey left, HierarchicalKey right) => !left.Equals(right);
 
     /// <inheritdoc/>
@@ -230,8 +230,8 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         return false;
     }
 
-    /// <summary>Enumerates escaped canonical segment spans in root-first order.</summary>
-    /// <returns>An allocation-free segment enumerator.</returns>
+    /// <summary>逃出的金刚石段数以根第一顺序横穿。</summary>
+    /// <returns>一个不分配部分的点数员。</returns>
     public SegmentEnumerator GetEnumerator() => new(ToString().AsSpan());
 
     private void EnsureSet()
@@ -245,7 +245,7 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         if (!IsWellFormedUtf16(value)) throw new ArgumentException("The value must not contain unpaired surrogate characters.", paramName);
     }
 
-    // Orleans string serialization replaces unpaired surrogates, so accepting them would let distinct keys collide on the wire.
+    // Orleans 字符串序列化取代了无偏差的代孕器,所以接受它们会使不同的钥匙在线上相撞。
     internal static bool IsWellFormedUtf16(ReadOnlySpan<char> value)
     {
         var i = value.IndexOfAnyInRange(HighSurrogateStart, LowSurrogateEnd);
@@ -316,7 +316,7 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
         return segmentLength != 0;
     }
 
-    /// <summary>Enumerates borrowed spans of the immutable canonical key.</summary>
+    /// <summary>数字,列出不可变的金刚金字键的借款跨度。</summary>
     public ref struct SegmentEnumerator
     {
         private readonly ReadOnlySpan<char> _path;
@@ -324,11 +324,11 @@ public readonly struct HierarchicalKey : ISpanFormattable, IEquatable<Hierarchic
 
         internal SegmentEnumerator(ReadOnlySpan<char> path) => _path = path;
 
-        /// <summary>Gets the current escaped canonical segment.</summary>
+        /// <summary>获取当前逃逸的金刚石段。</summary>
         public ReadOnlySpan<char> Current { get; private set; }
 
-        /// <summary>Advances to the next segment.</summary>
-        /// <returns>Whether a segment is available.</returns>
+        /// <summary>下一部分的进度。</summary>
+        /// <returns>是否有一个段。</returns>
         public bool MoveNext()
         {
             if (_next >= _path.Length)

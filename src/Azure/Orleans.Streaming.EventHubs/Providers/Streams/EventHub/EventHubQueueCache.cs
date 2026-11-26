@@ -10,22 +10,22 @@ using Azure.Messaging.EventHubs;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// EventHub queue cache
+    /// EventHub 队列缓存
     /// </summary>
     public partial class EventHubQueueCache : IEventHubQueueCache
     {
         /// <summary>
-        /// Gets the Event Hub partition cached by this instance.
+        /// 获取此实例所缓存的事件枢纽分区 。
         /// </summary>
         public string Partition { get; private set; }
 
         /// <summary>
-        /// Default max number of items that can be added to the cache between purge calls
+        /// 默认最多可以添加到在清洗调用之间缓存的项目数
         /// </summary>
         private readonly int defaultMaxAddCount;
         /// <summary>
-        /// Underlying message cache implementation
-        /// Protected for test purposes
+        /// 执行信封缓存
+        /// 保护用于试验目的
         /// </summary>
         protected readonly PooledQueueCache cache;
         private readonly IObjectPool<FixedSizeBuffer> bufferPool;
@@ -38,18 +38,18 @@ namespace Orleans.Streaming.EventHubs
         private FixedSizeBuffer? currentBuffer;
 
         /// <summary>
-        /// EventHub queue cache.
+        /// EventHub 队列缓存。
         /// </summary>
-        /// <param name="partition">Partition this instance is caching.</param>
-        /// <param name="defaultMaxAddCount">Default max number of items that can be added to the cache between purge calls.</param>
-        /// <param name="bufferPool">The raw data block pool.</param>
-        /// <param name="dataAdapter">The adapter used to convert Event Hubs data into cached messages.</param>
-        /// <param name="evictionStrategy">The strategy used to evict cached messages.</param>
-        /// <param name="checkpointer">The checkpointer used to persist queue progress.</param>
-        /// <param name="logger">The logger.</param>
-        /// <param name="cacheMonitor">The cache statistics monitor.</param>
-        /// <param name="cacheMonitorWriteInterval">The interval between cache statistics updates.</param>
-        /// <param name="metadataMinTimeInCache">The minimum time metadata remains in the cache.</param>
+        /// <param name="partition">分隔段此实例正在缓存。</param>
+        /// <param name="defaultMaxAddCount">可在清除调用之间添加到缓存的项目的默认最大数量。</param>
+        /// <param name="bufferPool">原始数据库。</param>
+        /// <param name="dataAdapter">用于将事件枢纽数据转换成缓存信件的适配器。</param>
+        /// <param name="evictionStrategy">用于驱逐缓存信件的战略。</param>
+        /// <param name="checkpointer">用于坚持队列进度的检查站。</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="cacheMonitor">缓存统计监测器。</param>
+        /// <param name="cacheMonitorWriteInterval">缓存统计更新之间的间隔。</param>
+        /// <param name="metadataMinTimeInCache">元数据留在缓存中的时间最小值。</param>
         public EventHubQueueCache(
             string partition,
             int defaultMaxAddCount,
@@ -87,9 +87,9 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Add cache pressure monitor to the cache's back pressure algorithm
+        /// 添加缓存压力监视器到缓存后压算法
         /// </summary>
-        /// <param name="monitor">The cache pressure monitor.</param>
+        /// <param name="monitor">缓存压力监视器。</param>
         public void AddCachePressureMonitor(ICachePressureMonitor monitor)
         {
             monitor.CacheMonitor = this.cacheMonitor;
@@ -97,7 +97,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// 执行与释放、释放或重新设置未管理的资源有关的应用程序界定的任务。
         /// </summary>
         /// <filterpriority>2</filterpriority>
         public void Dispose()
@@ -106,20 +106,20 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// The limit of the maximum number of items that can be added
+        /// 可添加项目的最大数量限制
         /// </summary>
-        /// <returns>The maximum number of items which can currently be added.</returns>
+        /// <returns>目前可以添加的项目的最大数量 。</returns>
         public int GetMaxAddCount()
         {
             return cachePressureMonitor.IsUnderPressure(DateTime.UtcNow) ? 0 : defaultMaxAddCount;
         }
 
         /// <summary>
-        /// Add a list of EventHub EventData to the cache.
+        /// 向缓存添加 EventHub EventData 列表。
         /// </summary>
-        /// <param name="messages">The Event Hub messages to cache.</param>
-        /// <param name="dequeueTimeUtc">The UTC time when the messages were dequeued.</param>
-        /// <returns>The stream positions of the cached messages.</returns>
+        /// <param name="messages">事件中心信息缓存。</param>
+        /// <param name="dequeueTimeUtc">信件解密时UTC时间。</param>
+        /// <returns>缓存信件的流位置。</returns>
         public List<StreamPosition> Add(List<EventData> messages, DateTime dequeueTimeUtc)
         {
             List<StreamPosition> positions = new List<StreamPosition>();
@@ -135,11 +135,11 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Get a cursor into the cache to read events from a stream.
+        /// 将光标带入缓存,从流读事件。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="sequenceToken">The position from which to begin reading.</param>
-        /// <returns>A cache cursor.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="sequenceToken">开始阅读的位置 。</param>
+        /// <returns>一个缓存光标。</returns>
         [Obsolete("Use TryGetCursor instead.")]
         public object GetCursor(StreamId streamId, StreamSequenceToken? sequenceToken)
         {
@@ -169,11 +169,11 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Try to get the next message in the cache for the provided cursor.
+        /// 尝试在提供的光标的缓存中获取下一个消息 。
         /// </summary>
-        /// <param name="cursorObj">The cache cursor.</param>
-        /// <param name="message">The next message when one is available.</param>
-        /// <returns><see langword="true"/> when a message was returned; otherwise, <see langword="false"/>.</returns>
+        /// <param name="cursorObj">缓存光标。</param>
+        /// <param name="message">下一条消息可用时的下一个消息。</param>
+        /// <returns><see langword="true"/> 电文被退回时;否则, <see langword="false"/>。</returns>
         [Obsolete("Use TryGetNextMessageWithResult instead.")]
         public bool TryGetNextMessage(object cursorObj, [NotNullWhen(true)] out IBatchContainer? message)
         {
@@ -213,7 +213,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Handles cache purge signals
+        /// 处理缓存清除信号
         /// </summary>
         /// <param name="lastItemPurged"></param>
         /// <param name="newestItem"></param>
@@ -237,18 +237,18 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// cachePressureContribution should be a double between 0-1, indicating how much danger the item is of being removed from the cache.
-        ///   0 indicating  no danger,
-        ///   1 indicating removal is imminent.
+        /// cachePressureContribution 应该是0-1之间的双倍,表明从缓存中移除物品的危险程度。
+        ///   表示没有危险
+        ///   1个表示即将撤职。
         /// </summary>
         private bool TryCalculateCachePressureContribution(StreamSequenceToken token, out double cachePressureContribution)
         {
             cachePressureContribution = 0;
-            // if cache is empty or has few items, don't calculate pressure
+            // 如果缓存为空或项目不多, 不要计算压力
             if (cache.IsEmpty ||
                 !cache.Newest.HasValue ||
                 !cache.Oldest.HasValue ||
-                cache.Newest.Value.SequenceNumber - cache.Oldest.Value.SequenceNumber < 10 * defaultMaxAddCount) // not enough items in cache.
+                cache.Newest.Value.SequenceNumber - cache.Oldest.Value.SequenceNumber < 10 * defaultMaxAddCount) // 无法在缓存中找到足够的物品 。
             {
                 return false;
             }
@@ -256,7 +256,7 @@ namespace Orleans.Streaming.EventHubs
             IEventHubPartitionLocation location = (IEventHubPartitionLocation)token;
             double cacheSize = cache.Newest.Value.SequenceNumber - cache.Oldest.Value.SequenceNumber;
             long distanceFromNewestMessage = cache.Newest.Value.SequenceNumber - location.SequenceNumber;
-            // pressure is the ratio of the distance from the front of the cache to the
+            // 压力是缓存前方距离与缓存之间的比例
             cachePressureContribution = distanceFromNewestMessage / cacheSize;
 
             return true;
@@ -264,23 +264,23 @@ namespace Orleans.Streaming.EventHubs
 
         private ArraySegment<byte> GetSegment(int size)
         {
-            // get segment from current block
+            // 获取当前块的段
             ArraySegment<byte> segment;
             if (currentBuffer == null || !currentBuffer.TryGetSegment(size, out segment))
             {
-                // no block or block full, get new block and try again
+                // 没有块或整块, 获得新块并再次试
                 var newBuffer = bufferPool.Allocate();
-                // if this fails with a clean block, then requested size is too big; return the
-                // unused block to the pool and fail. Registering it with the eviction strategy
-                // before confirming the segment fits would leak it, because a batch that never
-                // commits is never reclaimed by the purge-time logic.
+                // 如果此失败与干净块块失败, 那么请求的大小太大; 返回
+                // 未使用的池积块块块, 失败。 以驱逐策略注册
+                // 确定电段的尺寸之前会泄漏掉 因为一批货从来没有
+                // 承诺永远不会被清洗时的逻辑所恢复。
                 if (!newBuffer.TryGetSegment(size, out segment))
                 {
                     newBuffer.Dispose();
                     throw new ArgumentOutOfRangeException(nameof(size), $"Message size is too big. MessageSize: {size}");
                 }
                 currentBuffer = newBuffer;
-                //call EvictionStrategy's OnBlockAllocated method
+                //[调用 EvictionStrategy的 OnBlockAllocated 方法
                 this.evictionStrategy.OnBlockAllocated(currentBuffer);
             }
             return segment;

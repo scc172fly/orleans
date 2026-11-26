@@ -18,7 +18,7 @@ using Xunit;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// Methods for testing field codecs.
+    /// 实地编码测试方法。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]
@@ -35,18 +35,18 @@ namespace Orleans.Serialization.TestKit
         private SerializerSessionPool _sessionPool => _sessionPoolValue ??= ServiceProvider.GetRequiredService<SerializerSessionPool>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldCodecTester{TValue, TCodec}"/> class.
+        /// 初始化 <see cref="FieldCodecTester{TValue, TCodec}"/> 类的新实例。
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="output"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="output"/> 是 <see langword="null"/>.</exception>
         protected FieldCodecTester(ITestOutputHelper output) : base(output ?? throw new ArgumentNullException(nameof(output)))
         {
             output.WriteLine($"Random seed: {RandomSeed}");
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldCodecTester{TValue, TCodec}"/> class.
+        /// 初始化 <see cref="FieldCodecTester{TValue, TCodec}"/> 类的新实例。
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="output"/> or <paramref name="fixture"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="output"/> 或 <paramref name="fixture"/> 是 <see langword="null"/>。</exception>
         protected FieldCodecTester(ITestOutputHelper output, SerializationTesterFixture fixture) : base(output ?? throw new ArgumentNullException(nameof(output)), fixture)
         {
             output.WriteLine($"Random seed: {RandomSeed}");
@@ -72,57 +72,57 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Gets the session pool.
+        /// 拿到会话池
         /// </summary>
         protected SerializerSessionPool SessionPool => _sessionPool;
 
         /// <summary>
-        /// Gets the maximum segment sizes for buffer testing.
+        /// 获得最大段数用于缓冲测试。
         /// </summary>
         protected virtual int[] MaxSegmentSizes => [16];
 
         /// <summary>
-        /// Configures the serializer.
+        /// 配置序列器。
         /// </summary>
         protected virtual void Configure(ISerializerBuilder builder)
         {
         }
 
         /// <summary>
-        /// Creates a codec.
+        /// 创建编码器。
         /// </summary>
         protected virtual TCodec CreateCodec() => ServiceProvider.GetRequiredService<TCodec>();
 
         /// <summary>
-        /// Creates a value.
+        /// 创建值。
         /// </summary>
         protected abstract TValue CreateValue();
 
         /// <summary>
-        /// Gets test values.
+        /// 获得测试值。
         /// </summary>
         protected abstract TValue[] TestValues { get; }
 
         /// <summary>
-        /// Compares two values for equality.
+        /// 将平等的两个价值观进行比较。
         /// </summary>
         protected virtual bool Equals(TValue? left, TValue? right) => EqualityComparer<TValue>.Default.Equals(left!, right!);
 
         /// <summary>
-        /// Gets a value provider delegate.
+        /// 获得一个价值提供方代表。
         /// </summary>
         protected virtual Action<Action<TValue>>? ValueProvider { get; }
 
         /// <summary>
-        /// Creates the value instance to write during serialization tests.
+        /// 创建在序列测试期间要写入的值实例。
         /// </summary>
-        /// <param name="input">The value supplied by the test.</param>
-        /// <returns>The value instance to write.</returns>
+        /// <param name="input">试验提供的价值。</param>
+        /// <returns>要写入的值实例。</returns>
         [return: NotNullIfNotNull(nameof(input))]
         protected virtual TValue? GetWriteCopy(TValue? input) => input;
 
         /// <summary>
-        /// Checks whether the codec correctly advances the reference counter when writing to a stream and reading from a stream.
+        /// 检查编码器在写入流和从流读时是否正确预发引用计数。
         /// </summary>
         [Fact]
         public void CorrectlyAdvancesReferenceCounterStream()
@@ -133,7 +133,7 @@ namespace Orleans.Serialization.TestKit
             var writer = Writer.Create(stream, writerSession);
             var writerCodec = CreateCodec();
 
-            // Write the field. This should involve marking at least one reference in the session.
+            // 写入字段。 这应该涉及在会话中至少标记一个引用。
             Assert.Equal(0, writer.Position);
 
             foreach (var value in TestValues)
@@ -178,7 +178,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec correctly advances the reference counter when writing to a pipe and reading from a pipe.
+        /// 检查编码器在写入管道和读取管道时是否正确提前了引用柜台。
         /// </summary>
         [Fact]
         public void CorrectlyAdvancesReferenceCounter()
@@ -189,7 +189,7 @@ namespace Orleans.Serialization.TestKit
             var writerCodec = CreateCodec();
             var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
 
-            // Write the field. This should involve marking at least one reference in the session.
+            // 写入字段。 这应该涉及在会话中至少标记一个引用。
             Assert.Equal(0, writer.Position);
 
             writerCodec.WriteField(ref writer, 0, typeof(TValue), CreateValue());
@@ -225,7 +225,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec correctly round-trips values when using a pooled stream.
+        /// 检查代码器使用集合流时圆轨值是否正确。
         /// </summary>
         [Fact]
         public void CanRoundTripViaSerializer_StreamPooled()
@@ -263,7 +263,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec correctly round-trips values when writing to a span.
+        /// 检查在写入一个空格时,编码器圆脚值是否正确。
         /// </summary>
         [Fact]
         public void CanRoundTripViaSerializer_Span()
@@ -299,7 +299,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec correctly round-trips values when writing to an array.
+        /// 检查在写入数组时,编码器圆轨值是否正确。
         /// </summary>
         [Fact]
         public void CanRoundTripViaSerializer_Array()
@@ -335,7 +335,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec correctly round-trips values when writing to a memory slice.
+        /// 检查编码器在写入内存切块时是否正确值。
         /// </summary>
         [Fact]
         public void CanRoundTripViaSerializer_Memory()
@@ -371,7 +371,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec correctly round-trips values when writing to a memory stream.
+        /// 检查编码器在写入内存流时是否正确值。
         /// </summary>
         [Fact]
         public void CanRoundTripViaSerializer_MemoryStream()
@@ -414,7 +414,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec correctly round-trips values when reading byte-by-byte, simulating fragmented reads.
+        /// 检查读取字节byte、 模拟碎裂读时代码集是否正确圆曲值 。
         /// </summary>
         [Fact]
         public void CanRoundTripViaSerializer_ReadByteByByte()
@@ -453,7 +453,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether the codec produces a valid bit stream.
+        /// 检查编码器是否产生有效的位流。
         /// </summary>
         [Fact]
         public void ProducesValidBitStream()
@@ -488,7 +488,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether various buffer writers produce bit-wise identical results.
+        /// 检查各种缓冲作者是否产生比特角度相同的结果 。
         /// </summary>
         [Fact]
         public void WritersProduceSameResults()
@@ -594,7 +594,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether a strongly typed collection of values can be round-tripped.
+        /// 检查是否可圆盘地打印一个强打的数值集合。
         /// </summary>
         [Fact]
         public void CanRoundTripCollectionViaSerializer()
@@ -638,7 +638,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks whether a strongly typed collection of values can be round-tripped.
+        /// 检查是否可圆盘地打印一个强打的数值集合。
         /// </summary>
         [Fact]
         public void CanRoundTripWeaklyTypedCollectionViaSerializer()
@@ -686,7 +686,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks if values can be round-tripped when used as a field in a tuple.
+        /// 检查是否在使用一个图普时可以将值作为字段进行圆边切换。
         /// </summary>
         [Fact]
         public void CanRoundTripTupleViaSerializer()
@@ -725,7 +725,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks if values can be round-tripped through <see cref="Serializer{T}"/> when using <typeparamref name="TValue"/> as the type parameter.
+        /// 检查是否可以将值进行圆倍的切换 <see cref="Serializer{T}"/> 使用时 <typeparamref name="TValue"/> 用作类型参数。
         /// </summary>
         [Fact]
         public void CanRoundTripViaSerializer()
@@ -763,7 +763,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks if values can be round-tripped through <see cref="Serializer{T}"/> when using <see cref="object"/> as the type parameter.
+        /// 检查是否可以将值进行圆倍的切换 <see cref="Serializer{T}"/> 使用时 <see cref="object"/> 用作类型参数。
         /// </summary>
         [Fact]
         public void CanRoundTripViaObjectSerializer()
@@ -810,31 +810,31 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Checks if round-tripped values are equal.
+        /// 检查圆倾角值是否相等。
         /// </summary>
         [Fact]
         public void RoundTrippedValuesEqual() => TestRoundTrippedValue(CreateValue());
 
         /// <summary>
-        /// Checks if round-tripped default values are equal.
+        /// 检查圆角的默认值是否等于。
         /// </summary>
         [Fact]
         public void CanRoundTripDefaultValueViaCodec() => TestRoundTrippedValue(default);
 
         /// <summary>
-        /// Checks if values can be skipped over.
+        /// 检查值是否可以跳过。
         /// </summary>
         [Fact]
         public void CanSkipValue() => CanBeSkipped(default);
 
         /// <summary>
-        /// Checks if default values can be skipped over.
+        /// 检查默认值是否可以跳过。
         /// </summary>
         [Fact]
         public void CanSkipDefaultValue() => CanBeSkipped(default);
 
         /// <summary>
-        /// Checks if buffers are handled correctly.
+        /// 检查缓冲带是否被正确处理 。
         /// </summary>
         [Fact]
         public void CorrectlyHandlesBuffers()
@@ -937,7 +937,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Round-trips a value through the codec.
+        /// 通过编码器的圆形跟踪值。
         /// </summary>
         [return: MaybeNull]
         protected T RoundTripThroughCodec<T>([AllowNull] T original)
@@ -976,7 +976,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Round-trips a value through an untyped serializer.
+        /// 通过未类型序列器回转一个值。
         /// </summary>
         [return: NotNullIfNotNull(nameof(original))]
         protected object? RoundTripThroughUntypedSerializer(object? original, out string formattedBitStream)

@@ -1,67 +1,81 @@
 ---
-title: Stream delivery, ordering, replay, and recovery
-description: Design Orleans streaming consumers for provider-specific delivery, ordering, replay, and failure behavior.
+title: "流流输送、订购、重播和回收"
+description: "设计 Orleans 流用户,用于具体供应商的交付、订购、重播和故障行为。"
 ms.date: 08/24/2026
 ms.topic: concept-article
 ---
 
-# Stream delivery, ordering, replay, and recovery
+<a id="stream-delivery-ordering-replay-and-recovery"></a>
 
-The Orleans stream API doesn't promise one universal delivery guarantee. The selected provider and its backing service determine when an event is accepted, whether failed delivery is retried, what order is observable, and whether old events remain available.
+# 流流输送、订购、重播和回收
 
-Orleans doesn't guarantee exactly-once delivery or processing by itself. Network failures can make publication outcomes ambiguous, and persistent providers can redeliver events.
+Orleans 流 API 并不保证一个通用交付担保。 选定的提供者及其支持服务决定了事件何时被接受,是否重新审理了未成功交付,什么顺序是可见的,以及旧的事件是否仍然可用。
 
-## Exactly-once effects
+Orleans 并不能保证一经交付或处理后就自动完成。 网络故障会使出版物结果模糊不清,而持续供应商可以再次发布事件。
 
-An application can achieve exactly-once observable effects within a transactional boundary. Identify each event with a stable value, such as an application-defined event ID or a provider <xref:Orleans.Streams.StreamSequenceToken> only when the provider guarantees that the token is stable across redelivery. Atomically commit both the event's effects and the fact that the identity was processed. On redelivery, skip an identity which was already committed.
+<a id="exactly-once-effects"></a>
 
-Recording a sequence token alone isn't sufficient. If the consumer records the token before applying the effect, a failure between those operations can lose the effect. If it applies the effect before recording the token, a failure can cause the effect to be applied again. The effect and checkpoint must share one atomic commit, or the effect destination must provide equivalent deduplication.
+## 一次发生完全效果
 
-For effects outside that transaction, use an idempotency key, transactional inbox or outbox, or a destination which rejects duplicate event IDs. The scope and stability of sequence tokens are provider-specific. Tokens from non-rewindable queue providers can represent a read position and can change when an event is redelivered. Use an application event ID unless the provider explicitly guarantees a token which is suitable for deduplication.
+应用程序可在交易边界内实现一经观察到的准确效果。 识别每个具有稳定价值的事件, 如应用程序定义的事件编号或供应商 <xref:Orleans.Streams.StreamSequenceToken> , 只有在提供方保证该标记在整个再交付过程中保持稳定时才能确认。 原子上既承诺事件的效果,也承诺身份得到处理。 再交付时, 跳过已经实施的身份 。
 
-## Producer acknowledgment
+仅记录一个序列符号是不够的。 如果消费者在应用效果之前记录了该标记, 这些操作之间的失败会失去效果。 如果在记录该标记之前应用此效果, 失败可能会再次造成效果。 效果和检查站必须共享一个原子承诺, 或者效果目的地必须提供相同的重复 。
 
-The task returned by <xref:Orleans.Streams.IAsyncObserver`1.OnNextAsync*> completes when the provider has accepted responsibility for the item according to that provider's contract. For a durable provider, this is normally after the backing service accepts the event. It isn't a receipt proving that all subscribers completed processing.
+对于交易之外的效果,请使用一无所不能的密钥、交易框或发件箱,或者拒绝重复事件编号的目的地。序列符号的范围和稳定性是特定供应商的。不可倒转的队列提供者的调子可以代表一个读位,在事件重新交付时也可以改变。使用应用程序事件代号,除非服务商明确保证适合拆换的标记。
 
-A producer timeout or exception means acceptance wasn't confirmed. The item might not have been accepted, or the acknowledgment might have been lost. Retrying can create a duplicate, so include an application event ID when retries are possible.
+<a id="producer-acknowledgment"></a>
 
-## Consumer acknowledgment and retries
+## 生产者确认
 
-A consumer's `OnNextAsync` task signals when that consumer has accepted responsibility for the item. Queue-backed providers generally retain or redeliver an item when delivery fails before successful completion. Retries can delay later items and can change observed order.
+由 <xref:Orleans.Streams.IAsyncObserver`1.OnNextAsync*> 返回的任务在供应商根据该供应商的合同接受项目责任后完成。对于耐久供应商来说,通常在支持服务接受事件之后完成。这不是证明所有订户都已完成处理的收据。
 
-Don't acknowledge before required state changes or side effects are safely recorded. Don't hold the task open for unrelated background work either; that consumes delivery capacity and increases queue and cache pressure.
+制作人超时或例外意味着接受未被确认。 此项目可能不被接受, 或确认可能丢失。 重试可以创建重复文件, 因此当可重试时包含应用程序事件编号 。
 
-## Ordering
+<a id="consumer-acknowledgment-and-retries"></a>
 
-Treat ordering as scoped, not global:
+## 消费者确认和再处理
 
-- Awaiting publication calls serializes one producer's submissions, but concurrent producers have no shared order.
-- Physical partitions and queues order independently.
-- Retries, visibility timeouts, consumer failures, and rebalancing can reorder delivery.
-- A grain processes its own turns serially unless its concurrency configuration says otherwise, but that doesn't impose a total order across grains or subscriptions.
-- A stateless worker stream subscription assigns each delivery attempt to one selected activation. Concurrent deliveries and retries can run on different activations, so completion order across the worker pool is unspecified.
+当消费者接受了对物品的责任时,消费者的 `OnNextAsync` 任务信号。 Que 支持的供应商通常在交货失败后保留或重新交付项目,然后才能成功完成。 退让可以推迟以后的项目并改变观察到的顺序。
 
-Use event version numbers or domain sequence numbers when business logic requires ordering. A <xref:Orleans.Streams.StreamSequenceToken> represents provider position; it isn't a universal business sequence and not every provider accepts application-supplied tokens.
+在安全记录要求的状态变化或副作用之前, 不要承认。 任务也不要为无关的背景工作打开; 这会消耗交付能力并增加队列和缓存压力 。
 
-## Replay and rewindability
+<a id="ordering"></a>
 
-A rewindable provider can start or resume a subscription from a provider sequence token while the corresponding event remains in that provider's retention window. Rewindability isn't the same as durability:
+## 订购
 
-- Memory streams are rewindable only over their transient in-memory cache.
-- Event Hubs and Redis Streams are rewindable over retained external data.
-- Azure Queue, Amazon SQS, ADO.NET, and NATS JetStream providers aren't rewindable.
+订单处理为范围范围,而非全球范围:
 
-Explicit subscriptions can resume from retained positions according to the provider's token semantics. An implicit subscription accepts a recovery token when an activation attaches its observer, then advances monotonically for that attachment. Once a delivery call completes successfully, resuming the active implicit handle with a sequence token throws <xref:System.InvalidOperationException>; passing `null` replaces the observer at its current position.
+- 等待发布电话的出版将一个生产者提交文件相继出现,但同时生产的产品没有共同的订单。
+- 物理分隔和排队单列。
+- 重整、可见度超时、消费者失灵和再平衡可以重新安排订单的交付。
+- A grain 本身的转折过程是连续进行的,除非其同值货币配置另有不同说法,但这并不要求整个 grains 或订阅单位有总订单。
+- 无国籍工人的用户会将每次交付尝试指定为选定的激活。 同时分娩和回溯可以使用不同的启动程序,因此整个工人库的完成顺序没有说明。
 
-New explicit subscriptions to rewindable persistent streams can also select [a cache-relative start position](subscription-start-positions.md). See the [provider matrix](stream-providers.md#provider-matrix) for provider capabilities.
+当商业逻辑需要订购时使用事件版本号或域序列号。 A <xref:Orleans.Streams.StreamSequenceToken> 代表提供者的位置; 它不是一个通用的商业序列, 不是每个提供者都接受应用程序提供的标记 。
 
-## Recovery checklist
+<a id="replay-and-rewindability"></a>
 
-1. Use a durable provider when accepted events must survive silo or cluster loss.
-1. Use a durable [`PubSubStore`](pubsub-storage.md) when explicit subscription records must survive cluster loss.
-1. Resume existing explicit handles after grain activation; don't call <xref:Orleans.Streams.IAsyncObservable`1.SubscribeAsync*> unconditionally.
-1. Persist the last applied domain position when the application needs deterministic recovery.
-1. For a rewindable provider, restart from a checkpointed token and tolerate replay of the checkpoint boundary.
-1. Make effects idempotent and alert on poison events, repeated retries, and growing lag.
+## 重放和可回放
 
-Provider retention and subscription storage solve different problems. Durable events without durable subscription metadata can wait with no consumer binding; durable subscriptions with a transient provider can't recover events that disappeared.
+可倒带的供应商可以启动或恢复从提供方序列符号的订阅,而相应的事件则保留在该供应商的保留窗口中。
+
+- 内存流只能通过瞬时的模拟缓存进行回缩。
+- 事件枢纽和 Redis 流可倒转到留存的外部数据上。
+- Azure Quue、 亚马逊 SQS、 ADO.NET和 NATS JetStream 提供者无法倒转 。
+
+明确订阅可根据供应商的象征性语义从保留的位置恢复。 默认订阅可在激活时接受回收符号, 然后在附加观察员时单调推进该附件。 一旦发送通知成功完成, 即用序列符号投出 <xref:System.InvalidOperationException>恢复主动暗中操作; 通过 `null` 替换观察员当前位置 。
+
+可倒转的持久性流的新明确订阅也可以选择 [缓存相对启动位置](subscription-start-positions.md)。供货商能力见 [供应商矩阵](stream-providers.md#provider-matrix) 。
+
+<a id="recovery-checklist"></a>
+
+## 追回收回清单
+
+1. 当被接受的事件必须生存 silo 或组群损失时,使用耐久提供者。
+1. 当明确的订阅记录必须经受集束损失后,使用耐久 [`PubSubStore`](pubsub-storage.md) 。
+1. 在启动 grain 后恢复现有的明确控点; 不要无条件地调用 <xref:Orleans.Streams.IAsyncObservable`1.SubscribeAsync*> 。
+1. 当应用程序需要确定性恢复时, 坚持最后一个应用域的位置 。
+1. 对于可倒置的供应商来说,从一个检查站牌子上重新开始,并容忍重播检查站边界。
+1. 产生副作用,使无能和警觉的中毒事件、反复重复重试以及日益滞后。
+
+提供商的留存和订阅存储解决了各种问题。 没有持久订阅元数据的长期事件可以等待,消费者无法约束;与临时提供者的持久订阅无法恢复失踪的事件。

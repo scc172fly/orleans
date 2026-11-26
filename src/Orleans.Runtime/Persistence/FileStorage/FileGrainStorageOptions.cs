@@ -4,12 +4,12 @@ using Orleans.Storage;
 namespace Orleans.Persistence.FileStorage;
 
 /// <summary>
-/// Options for <see cref="FileGrainStorage"/>.
+/// <see cref="FileGrainStorage"/>选项。
 /// </summary>
 public sealed class FileGrainStorageOptions : IStorageProviderSerializerOptions
 {
     /// <summary>
-    /// Gets or sets the directory used to store grain state.
+    /// 获取或设置存储 grain 状态所用的目录。
     /// </summary>
     public required string RootDirectory { get; set; }
 

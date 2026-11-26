@@ -32,8 +32,8 @@ public class LoggingCallFilter : IIncomingGrainCallFilter
                 context.Grain.GetType(),
                 context.MethodName);
 
-            // If this exception is not re-thrown, it is considered to be
-            // handled by this filter.
+            // 如果这一例外不重新提出,则视为
+            // 由此过滤器处理 。
             throw;
         }
     }
@@ -70,8 +70,8 @@ public class OutgoingLoggingCallFilter : IOutgoingGrainCallFilter
                 context.Grain.GetType(),
                 context.MethodName);
 
-            // If this exception is not re-thrown, it is considered to be
-            // handled by this filter.
+            // 如果这一例外不重新提出,则视为
+            // 由此过滤器处理 。
             throw;
         }
     }

@@ -10,7 +10,7 @@ using Orleans.Runtime.Diagnostics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Decorator over lifecycle subject for silo.  Adds some logging and monitoring
+    /// silo生命周期单元的装饰设计,添加一些记录和监测
     /// </summary>
     public partial class SiloLifecycleSubject : LifecycleSubject, ISiloLifecycleSubject
     {
@@ -31,19 +31,19 @@ namespace Orleans.Runtime
         internal bool IsStopping => Volatile.Read(ref _isStopping) != 0;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SiloLifecycleSubject"/> class.
+        /// 初始化 <see cref="SiloLifecycleSubject"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
+        /// <param name="logger">日志器。</param>
         public SiloLifecycleSubject(ILogger<SiloLifecycleSubject> logger)
             : this(logger, null)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SiloLifecycleSubject"/> class.
+        /// 初始化 <see cref="SiloLifecycleSubject"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="localSiloDetails">Local silo details for diagnostic events.</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="localSiloDetails">当地 silo 诊断事件的细节。</param>
         public SiloLifecycleSubject(ILogger<SiloLifecycleSubject> logger, ILocalSiloDetails? localSiloDetails) : base(logger)
         {
             this.observers = new List<MonitoredObserver>();

@@ -46,7 +46,7 @@ public class NatsClientStreamTests : TestClusterPerTest
         }
         catch (NatsJSApiException)
         {
-            // Ignore, stream not found
+            // 忽略, 找不到流
         }
 
         await base.InitializeAsync();

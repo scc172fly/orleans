@@ -9,7 +9,7 @@ namespace UnitTests.CancellationTests
 {
 #pragma warning disable CS0618 // This suite exercises the legacy cancellation token API.
     /// <summary>
-    /// Tests for GrainCancellationToken functionality including task cancellation and token callbacks.
+    /// 测试 GrainCancellationToken 功能,包括任务取消和象征性回调。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

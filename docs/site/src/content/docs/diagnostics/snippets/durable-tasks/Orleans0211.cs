@@ -6,7 +6,7 @@ public sealed class TrialGrain(IEmailSender email) : DurableGrain
     // <orleans0211_violation>
     public async DurableTask ExpireTrialAsync(string customer)
     {
-        // The wait lives in memory: a deactivation loses it, and the replay waits the full 14 days again.
+        // 等待生命在记忆中:失能会失去它,重播又再等待整整14天。
         await Task.Delay(TimeSpan.FromDays(14));
         await Notify(customer, "Your trial has ended").WithId("expired");
     }
@@ -16,7 +16,7 @@ public sealed class TrialGrain(IEmailSender email) : DurableGrain
     // <orleans0211_fix_delay>
     public async DurableTask ExpireTrialDurablyAsync(string customer)
     {
-        // The runtime records the due time, and Durable Jobs reactivates the grain when it is due.
+        // 运行时间记录了到期时间,而持久工作在到期时重新启动 grain 。
         await DurableTask.Delay(TimeSpan.FromDays(14)).WithId("trial");
         await Notify(customer, "Your trial has ended").WithId("expired");
     }
@@ -35,7 +35,7 @@ public sealed class TrialGrain(IEmailSender email) : DurableGrain
     {
         try
         {
-            // Instead of racing the work with Task.Delay: a durable timeout which counts from the first run.
+            // 而不是与 Task.Delay:一个从第一次运行起计数的耐久超时赛跑。
             await Notify(customer, "Your trial has ended").WaitAsync(TimeSpan.FromMinutes(5)).WithId("notify");
             return true;
         }

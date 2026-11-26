@@ -163,7 +163,7 @@ namespace Orleans.Streaming.Kinesis
 
             foreach (var record in getRecordsResponse.Records)
             {
-                // Kinesis only has a long string sequence ID, so we fake one based on the order we read from the partition.
+                // Kinesis只有长字符串序列ID 所以我们根据分区的顺序伪造一个
                 batch.Add(KinesisBatchContainer.FromKinesisRecord(_serializer, record, _lastReadMessage++));
             }
 

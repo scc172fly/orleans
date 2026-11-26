@@ -21,7 +21,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.GrainReferences
 {
     /// <summary>
-    /// The central point for creating <see cref="GrainReference"/> instances.
+    /// 创建 <see cref="GrainReference"/> 实例的中心点。
     /// </summary>
     public sealed class GrainReferenceActivator
     {
@@ -31,10 +31,10 @@ namespace Orleans.GrainReferences
         private Dictionary<(GrainType, GrainInterfaceType), IGrainReferenceActivator> _activators = new();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainReferenceActivator"/> class.
+        /// 初始化 <see cref="GrainReferenceActivator"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="providers">The collection of grain reference activator providers.</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="providers">收藏集 grain 参考激活器提供者。</param>
         public GrainReferenceActivator(
             IServiceProvider serviceProvider,
             IEnumerable<IGrainReferenceActivatorProvider> providers)
@@ -44,11 +44,11 @@ namespace Orleans.GrainReferences
         }
 
         /// <summary>
-        /// Creates a grain reference pointing to the specified grain id and implementing the specified grain interface type.
+        /// 创建 grain 引用点,指向指定的 grain id,并落实指定的 grain 接口类型。
         /// </summary>
-        /// <param name="grainId">The grain id.</param>
-        /// <param name="interfaceType">The grain interface type.</param>
-        /// <returns>A new grain reference.</returns>
+        /// <param name="grainId">下 grain id. 数据。</param>
+        /// <param name="interfaceType"> grain 接口类型。</param>
+        /// <returns>新的 grain 参考。</returns>
         public GrainReference CreateReference(GrainId grainId, GrainInterfaceType interfaceType)
         {
             if (!_activators.TryGetValue((grainId.Type, interfaceType), out var entry))
@@ -61,12 +61,12 @@ namespace Orleans.GrainReferences
         }
 
         /// <summary>
-        /// Creates a grain reference activator for the provided arguments.
+        /// 为所提供的参数创建 grain 参考激活器。
         /// </summary>
-        /// <param name="grainType">The grain type.</param>
-        /// <param name="interfaceType">the grain interface type.</param>
-        /// <returns>An activator for the provided arguments.</returns>
-        /// <exception cref="InvalidOperationException">No suitable activator was found.</exception>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <param name="interfaceType"> grain 接口类型。</param>
+        /// <returns>提供论点的激活者。</returns>
+        /// <exception cref="InvalidOperationException">找不到合适的活动器。</exception>
         private IGrainReferenceActivator CreateActivator(GrainType grainType, GrainInterfaceType interfaceType)
         {
             lock (_lockObj)
@@ -97,7 +97,7 @@ namespace Orleans.GrainReferences
     }
 
     /// <summary>
-    /// Creates grain references which do not have any specified grain interface, only a target grain id.
+    /// 创建 grain 没有指定引用 grain 接口,仅目标 grain id. 数据。
     /// </summary>
     internal class UntypedGrainReferenceActivatorProvider : IGrainReferenceActivatorProvider
     {
@@ -108,12 +108,12 @@ namespace Orleans.GrainReferences
         private IGrainReferenceRuntime? _grainReferenceRuntime;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UntypedGrainReferenceActivatorProvider"/> class.
+        /// 初始化 <see cref="UntypedGrainReferenceActivatorProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="manifest">The grain version manifest.</param>
-        /// <param name="copyContextPool">The copy context pool.</param>
-        /// <param name="codecProvider">The serialization codec provider.</param>
-        /// <param name="serviceProvider">The service provider.</param>
+        /// <param name="manifest">下 grain 显示文本。</param>
+        /// <param name="copyContextPool">复制背景库。</param>
+        /// <param name="codecProvider">序列编码提供商</param>
+        /// <param name="serviceProvider">服务供应商。</param>
         public UntypedGrainReferenceActivatorProvider(
             GrainVersionManifest manifest,
             CodecProvider codecProvider,
@@ -152,16 +152,16 @@ namespace Orleans.GrainReferences
         }
 
         /// <summary>
-        /// Activator for grain references which have no specified grain interface, only a target grain id.
+        /// 激活器 grain 没有指定引用 grain 接口,仅目标 grain id. 数据。
         /// </summary>
         private class UntypedGrainReferenceActivator : IGrainReferenceActivator
         {
             private readonly GrainReferenceShared _shared;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="UntypedGrainReferenceActivator "/> class.
+            /// 初始化 <see cref="UntypedGrainReferenceActivator "/> 类的新实例。
             /// </summary>
-            /// <param name="shared">The shared functionality for all grains of a given type.</param>
+            /// <param name="shared">人人共享的功能 grains 某一类型。</param>
             public UntypedGrainReferenceActivator(GrainReferenceShared shared)
             {
                 _shared = shared;
@@ -176,7 +176,7 @@ namespace Orleans.GrainReferences
     }
 
     /// <summary>
-    /// Provides functionality for mapping from a <see cref="GrainInterfaceType"/> to the corresponding generated proxy type.
+    /// 提供从 <see cref="GrainInterfaceType"/> 映射到相应的代用类型(Q0Q)的功能。
     /// </summary>
     internal class RpcProvider
     {
@@ -184,11 +184,11 @@ namespace Orleans.GrainReferences
         private readonly Dictionary<GrainInterfaceType, Type> _mapping;
 
         /// <summary>
-        /// Initializes a new  instance of the <see cref="RpcProvider"/> class.
+        /// 初始化 <see cref="RpcProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="config">The local type manifest.</param>
-        /// <param name="resolver">The grain interface type to grain type resolver.</param>
-        /// <param name="typeConverter">The type converter, for generic parameter.</param>
+        /// <param name="config">本地类型清单。</param>
+        /// <param name="resolver">下 grain 界面类型 grain 类型解析器。</param>
+        /// <param name="typeConverter">通用参数的型号转换器。</param>
         public RpcProvider(
             IOptions<TypeManifestOptions> config,
             GrainInterfaceTypeResolver resolver,
@@ -247,11 +247,11 @@ namespace Orleans.GrainReferences
         }
 
         /// <summary>
-        /// Gets the generated proxy object type corresponding to the specified <see cref="GrainInterfaceType"/>.
+        /// 获取与指定 <see cref="GrainInterfaceType"/>相对应的生成代理对象类型。
         /// </summary>
-        /// <param name="interfaceType">The grain interface type.</param>
-        /// <param name="result">The proxy object type.</param>
-        /// <returns>A value indicating whether a suitable type was found and was able to be constructed.</returns>
+        /// <param name="interfaceType"> grain 接口类型。</param>
+        /// <param name="result">代理对象类型。</param>
+        /// <returns>表明是否找到合适类型并能够构建的数值。</returns>
         public bool TryGet(GrainInterfaceType interfaceType, [NotNullWhen(true)] out Type? result)
         {
             GrainInterfaceType lookupId;
@@ -282,7 +282,7 @@ namespace Orleans.GrainReferences
     }
 
     /// <summary>
-    /// Creates grain references using generated proxy objects.
+    /// 使用生成的代理对象创建 grain 引用。
     /// </summary>
     internal class GrainReferenceActivatorProvider : IGrainReferenceActivatorProvider
     {
@@ -295,14 +295,14 @@ namespace Orleans.GrainReferences
         private IGrainReferenceRuntime? _grainReferenceRuntime;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainReferenceActivatorProvider"/> class.
+        /// 初始化 <see cref="GrainReferenceActivatorProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="propertiesResolver">The grain property resolver.</param>
-        /// <param name="rpcProvider">The proxy object type provider.</param>
-        /// <param name="copyContextPool">The copy context pool.</param>
-        /// <param name="codecProvider">The serialization codec provider.</param>
-        /// <param name="grainVersionManifest">The grain version manifest.</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="propertiesResolver">下 grain 财产结算程序。</param>
+        /// <param name="rpcProvider">代理对象类型提供者。</param>
+        /// <param name="copyContextPool">复制背景库。</param>
+        /// <param name="codecProvider">序列编码提供商</param>
+        /// <param name="grainVersionManifest">下 grain 显示文本。</param>
         public GrainReferenceActivatorProvider(
             IServiceProvider serviceProvider,
             GrainPropertiesResolver propertiesResolver,
@@ -358,7 +358,7 @@ namespace Orleans.GrainReferences
         }
 
         /// <summary>
-        /// Creates grain references for a given grain type and grain interface type.
+        /// 创建 grain 指定引用的参考 grain 和类型 grain 界面类型。
         /// </summary>
         private sealed class GrainReferenceActivator : IGrainReferenceActivator
         {
@@ -366,10 +366,10 @@ namespace Orleans.GrainReferences
             private readonly Func<GrainReferenceShared, IdSpan, GrainReference> _create;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="GrainReferenceActivator"/> class.
+            /// 初始化 <see cref="GrainReferenceActivator"/> 类的新实例。
             /// </summary>
-            /// <param name="referenceType">The generated proxy object type.</param>
-            /// <param name="shared">The functionality shared between all grain references for a specified grain type and grain interface type.</param>
+            /// <param name="referenceType">生成的代理对象类型。</param>
+            /// <param name="shared">人人共享的功能 grain 指定引用的指定引用 grain 和类型 grain 界面类型。</param>
             [UnconditionalSuppressMessage(
                 "Trimming",
                 "IL2070",
@@ -392,7 +392,7 @@ namespace Orleans.GrainReferences
 
                 var method = new DynamicMethod(referenceType.Name, typeof(GrainReference), new[] { typeof(object), typeof(GrainReferenceShared), typeof(IdSpan) });
                 var il = method.GetILGenerator();
-                // arg0 is unused for better delegate performance (avoids argument shuffling thunk)
+                // arg0 用于更好地履行代表职能(避免辩论打折)
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldarg_2);
                 il.Emit(OpCodes.Newobj, ctor);
@@ -405,30 +405,30 @@ namespace Orleans.GrainReferences
     }
 
     /// <summary>
-    /// Functionality for getting the appropriate <see cref="IGrainReferenceActivator"/> for a given <see cref="GrainType"/> and <see cref="GrainInterfaceType"/>.
+    /// 适当利用 <see cref="IGrainReferenceActivator"/> 给定 <see cref="GrainType"/> 和 <see cref="GrainInterfaceType"/>.
     /// </summary>
     public interface IGrainReferenceActivatorProvider
     {
         /// <summary>
-        /// Gets a grain reference activator for the provided arguments.
+        /// 获得提供参数的 grain 参考激活器。
         /// </summary>
-        /// <param name="grainType">The grain type.</param>
-        /// <param name="interfaceType">The grain interface type.</param>
-        /// <param name="activator">The grain activator.</param>
-        /// <returns>A value indicating whether a suitable grain activator was found.</returns>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <param name="interfaceType"> grain 接口类型。</param>
+        /// <param name="activator"> grain 激活器。</param>
+        /// <returns>表示是否合适的值 grain 找到了活动器 。</returns>
         bool TryGet(GrainType grainType, GrainInterfaceType interfaceType, [NotNullWhen(true)] out IGrainReferenceActivator? activator);
     }
 
     /// <summary>
-    /// Creates grain references.
+    /// 创建 grain 引用。
     /// </summary>
     public interface IGrainReferenceActivator
     {
         /// <summary>
-        /// Creates a new grain reference.
+        /// 创建新的 grain 引用。
         /// </summary>
-        /// <param name="grainId">The grain id.</param>
-        /// <returns>A new grain reference.</returns>
+        /// <param name="grainId">下 grain id. 数据。</param>
+        /// <returns>新的 grain 参考。</returns>
         public GrainReference CreateReference(GrainId grainId);
     }
 }

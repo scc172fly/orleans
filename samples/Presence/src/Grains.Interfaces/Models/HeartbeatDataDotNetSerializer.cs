@@ -3,10 +3,10 @@ using MsgPack.Serialization;
 namespace Presence.Grains.Models;
 
 /// <summary>
-/// This class encapsulates serialization/deserialization of HeartbeatData.
-/// It is used only to simulate the real life scenario where data comes in from devices in the binary.
-/// If an instance of HeartbeatData is passed as an argument to a grain call, no such serializer is necessary
-/// because Orleans auto-generates efficient serializers for all argument types.
+/// 本类封装 HeartbeatData的序列/分离。
+/// 它仅用于模拟数据来自二进制设备的实际生活情景。
+/// 如果将 HeartbeatData 实例作为理由转至 grain 呼叫,则不需要这种序列器
+/// 因为 Orleans 对所有参数类型自动生成高效的序列器。
 /// </summary>
 public static class HeartbeatDataDotNetSerializer
 {

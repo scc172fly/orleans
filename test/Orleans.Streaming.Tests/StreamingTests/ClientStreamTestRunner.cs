@@ -31,16 +31,16 @@ namespace Tester.StreamingTests
 
             await ProduceEventsFromClient(streamProviderName, streamGuid, streamNamespace, eventsProduced, cancellationToken);
 
-            // Hard kill client
+            // 硬性杀手客户端
             var droppedClients = GetConnectedClients();
             using var gatewayObserver = GatewayDiagnosticObserver.Create(testHost);
             await testHost.KillClientAsync();
             await WaitForDroppedClientsAsync(droppedClients, gatewayObserver, cancellationToken);
 
-            // initialize new client
+            // 初始化新客户端
             await testHost.InitializeClientAsync(cancellationToken);
 
-            // run test again.
+            // 再来一次测试
             await ProduceEventsFromClient(streamProviderName, streamGuid, streamNamespace, eventsProduced, cancellationToken);
         }
 
@@ -61,21 +61,21 @@ namespace Tester.StreamingTests
 
             var droppedSubscriptionId = await ProduceEventsToClient(streamProviderName, streamGuid, streamNamespace, 10, eventCount, cancellationToken);
 
-            // Hard kill client
+            // 硬性杀手客户端
             var droppedClients = GetConnectedClients();
             using var gatewayObserver = GatewayDiagnosticObserver.Create(testHost);
             using var streamingObserver = StreamingDiagnosticObserver.Create(testHost);
             await testHost.KillClientAsync();
             await WaitForDroppedClientsAsync(droppedClients, gatewayObserver, cancellationToken);
 
-            // initialize new client
+            // 初始化新客户端
             await testHost.InitializeClientAsync(cancellationToken);
 
             eventCount[0] = 0;
 
             await ProduceEventsToClient(streamProviderName, streamGuid, streamNamespace, 10, eventCount, cancellationToken);
 
-            // Wait for the dropped client's subscription to be removed after delivery fails.
+            // 等待交付失败后删除被放弃客户的订阅。
             if (waitForRetryTimeouts && hasDeliveryFailureCounter)
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -90,7 +90,7 @@ namespace Tester.StreamingTests
         private Task<StreamSubscriptionHandle<int>> SubscribeToStream(string streamProviderName, Guid streamGuid, string streamNamespace,
             Func<int, StreamSequenceToken?, Task> onNextAsync)
         {
-            IStreamProvider streamProvider = this.testHost.Client!.GetStreamProvider(streamProviderName); // The runner deploys the client.
+            IStreamProvider streamProvider = this.testHost.Client!.GetStreamProvider(streamProviderName); // 跑者部署客户
             IAsyncObservable<int> stream = streamProvider.GetStream<int>(streamNamespace, streamGuid);
             return stream.SubscribeAsync(onNextAsync);
         }
@@ -107,15 +107,15 @@ namespace Tester.StreamingTests
             cts.CancelAfter(_timeout);
             var streamId = StreamId.Create(streamNamespace, streamGuid);
 
-            // get reference to a consumer
-            var consumer = this.testHost.GrainFactory!.GetGrain<ISampleStreaming_ConsumerGrain>(Guid.NewGuid()); // The runner deploys the client.
+            // 被引用为消费者
+            var consumer = this.testHost.GrainFactory!.GetGrain<ISampleStreaming_ConsumerGrain>(Guid.NewGuid()); // 跑者部署客户
 
-            // subscribe
+            // 订阅
             await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName, cts.Token);
             var subscription = await observer.WaitForSubscriptionRegisteredAsync(streamId, streamProviderName, cts.Token);
             try
             {
-                // generate events
+                // 生成事件
                 await GenerateEvents(streamProviderName, streamGuid, streamNamespace, eventsProduced);
 
                 await observer.WaitForItemDeliveryCountAsync(streamId, subscription.SubscriptionId, eventsProduced, streamProviderName, cts.Token);
@@ -131,7 +131,7 @@ namespace Tester.StreamingTests
 
         private async Task GenerateEvents(string streamProviderName, Guid streamGuid, string streamNamespace, int produceCount)
         {
-            IStreamProvider streamProvider = this.testHost.Client!.GetStreamProvider(streamProviderName); // The runner deploys the client.
+            IStreamProvider streamProvider = this.testHost.Client!.GetStreamProvider(streamProviderName); // 跑者部署客户
             IAsyncObserver<int> observer = streamProvider.GetStream<int>(streamNamespace, streamGuid);
             for (int i = 0; i < produceCount; i++)
             {
@@ -159,7 +159,7 @@ namespace Tester.StreamingTests
                     return Task.CompletedTask;
                 });
 
-            var producer = this.testHost.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid()); // The runner deploys the client.
+            var producer = this.testHost.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid()); // 跑者部署客户
             await producer.BecomeProducer(streamGuid, streamNamespace, streamProviderName, cts.Token);
 
             await ProduceExactCountAsync(producer, eventsProduced, cts.Token);

@@ -147,7 +147,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var message = InvocationMessage(sender, receiver, TaskId.Parse("no-context"), new TestDurableTaskRequest());
         var handler = CreateHandler(runtime);
 
-        // The inbox dead-letters a message which its sink rejects; the sink stages nothing first.
+        // 信箱里写着一个信息, 其水槽拒绝它; 水槽没有先分级。
         var exception = Assert.Throws<InvalidOperationException>(
             () => handler.TryAccept(message, out _));
 
@@ -373,12 +373,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // The caller's cancellation is staged, and its propagation to the body waits for the write which commits it. The
-        // body starts its step before that write, so the staged cancellation refuses the step.
+        // 取消电话的手续已经安排妥当,向身体传播该通知等待作出该通知的文字。
+        // 开始在写入前一步, 所以分阶段取消会拒绝该步骤 。
         Accept(CreateHandler(runtime), CancellationMessage(caller, runtime.GrainId, rootId, "caller stopped"));
         release.SetResult();
 
-        // The body observes the cancellation which refused its step, and compensates.
+        // 该机构观察拒绝其步骤的取消,并给予补偿。
         var response = await runtime.GetScheduledTaskHandle(rootId)
             .WaitAsync(TestContext.Current.CancellationToken)
             .AsTask()
@@ -428,7 +428,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         var writesBeforeBatch = manager.WriteCount;
 
-        // The inbox accepts every message before the write which commits them, so no message may wait for it.
+        // 信箱接受所有信息, 在写作之前, 并且接受每个信息, 所以任何消息都不可等待 。
         InboxMessage[] batch =
         [
             CancellationMessage(caller, receiver, rootIds[0]),
@@ -479,7 +479,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         Accept(handler, CompletionMessage(expectedTarget, receiver, runtime.GetWireId(taskId), response));
 
-        // The accepted completion is staged once, in task state, and nothing is sent back to the child.
+        // 接受的完成阶段在任务状态下,一旦完成,就可完成,而且不会将任何东西送回给儿童。
         Assert.Equal(42, storage.Get(taskId).Result!.GetResult<int>());
         Assert.Empty(transport.Completions);
         Assert.Empty(transport.Cancellations);
@@ -498,7 +498,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.AddCompletionDestination(taskId, state, new(request.Context!.CallerId, taskId));
         storage.SetResponse(taskId, state, DurableTaskResponse.FromResult(42));
 
-        // A listed destination has a completion pending in the outbox, which retires it.
+        // 所列目的地在发信箱中有一个待完成的目的地,该发信箱将予以留存。
         var response = runtime.ScheduleFromInbox(taskId, request);
 
         Assert.Equal(42, response.GetResult<int>());
@@ -643,7 +643,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             }
         };
 
-        // An abort which the inbox delivers stages the task's result, which ends its retention at once.
+        // 中止, 由信箱交付的中止会使任务结果处于阶段, 从而立即结束保留 。
         runtime.AbortFromInbox(taskId, "stopped", caller);
         Assert.True(storage.Contains(taskId));
 
@@ -677,7 +677,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 request,
                 TestContext.Current.CancellationToken).AsTask());
 
-        // The staged identity is safe to commit, so it is retained; the failed journal is fenced instead of reverted.
+        // 分阶段身份安全,所以可以保留;失败日记被围起来,而不是复发。
         Assert.Equal(IDurableTaskRequest.GetFingerprint(request, CreateSerializer()), storage.Get(taskId).RequestFingerprint);
         Assert.True(manager.IsFenced);
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -708,7 +708,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             }
         };
 
-        // Aborts which the inbox delivers stage the tasks' results.
+        // 中止, 由信箱交付的中止将任务结果置于舞台 。
         runtime.AbortFromInbox(firstId, "first", caller);
         manager.AfterWriteStarted = () =>
         {
@@ -788,7 +788,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var caller = request.Context!.CallerId;
         var taskId = CallerScope.GetTaskId(caller, TaskId.Parse("starter/call"));
 
-        // A caller's cancellation of its child can overtake the child's invocation through the inbox.
+        // 打电话者取消孩子的电话可以通过收件箱超过孩子的援引。
         runtime.SignalCancellationFromInbox(taskId, caller, reason: null);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         var response = runtime.ScheduleFromInbox(taskId, request);
@@ -837,7 +837,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var taskId = TaskId.Parse("root/scheduled-delay");
         manager.BeforeWrite = () =>
         {
-            // The delay state and its resume message are staged before the write which commits both.
+            // 拖延状态及其回信是在这两件事情都写完之前就准备好的。
             var resume = Assert.Single(transport.Resumes);
             Assert.Equal(storage.Get(taskId).ResumeGeneration, resume.Generation);
             Assert.Equal(storage.Get(taskId).DueTime, resume.DueTime);
@@ -871,7 +871,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var context = ResumeContext(runtime, taskId, resume.Generation, resume.DueTime);
         await HandleAsync(CreateHandler(runtime), context);
 
-        // The completion is staged with the inbox outcome and the handle completes only after their write.
+        // 完成阶段由收件箱结果进行,处理器在写完后才完成。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, storage.Get(taskId).Result!.Status);
         Assert.Null(storage.Get(taskId).DueTime);
         Assert.False((await handle.PollAsync(new PollingOptions { PollTimeout = TimeSpan.Zero }, TestContext.Current.CancellationToken)).IsCompleted);
@@ -900,7 +900,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await HandleAsync(handler, ResumeContext(runtime, taskId, generation, dueTime));
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, storage.Get(taskId).Result!.Status);
 
-        // A duplicate resume of the completed delay is harmless.
+        // 重复的完成延迟恢复是无害的。
         await HandleAsync(handler, ResumeContext(runtime, taskId, generation, dueTime));
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, storage.Get(taskId).Result!.Status);
     });
@@ -988,7 +988,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var recordedDueTime = storage.Get(taskId).DueTime;
         var generation = storage.Get(taskId).ResumeGeneration;
 
-        // A replay which requests another duration, for example after configuration changed, keeps the commitment.
+        // 重播要求延长期限,例如,在配置改变后,即保持承诺。
         var replay = await runtime.ScheduleDelayAsync(
             taskId,
             TimeSpan.FromMinutes(6),
@@ -998,7 +998,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(recordedDueTime, storage.Get(taskId).DueTime);
         Assert.Equal(generation, storage.Get(taskId).ResumeGeneration);
 
-        // The resume message committed with the delay, so a replay sends nothing new.
+        // 延迟发送的回信,重播不代表什么新内容。
         var resume = Assert.Single(transport.Resumes);
         Assert.Equal(recordedDueTime, resume.DueTime);
         await HandleAsync(CreateHandler(runtime), ResumeContext(runtime, taskId, resume.Generation, resume.DueTime));
@@ -1014,7 +1014,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var releaseDelayWrite = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         manager.AfterWriteStarted = async () =>
         {
-            // Hold the write which commits the delay and its resume message.
+            // 将拖延的写作和回信搁置。
             if (transport.Resumes.Count == 1 && delayWriteStarted.TrySetResult())
             {
                 await releaseDelayWrite.Task;
@@ -1038,7 +1038,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(DurableTaskStatus.Canceled, delay.Result!.Status);
         Assert.Null(delay.DueTime);
 
-        // The resume committed with the delay is stale, so it changes nothing.
+        // 拖延执行的恢复是老旧的,所以它没有改变。
         var writes = manager.WriteCount;
         await HandleAsync(CreateHandler(runtime), ResumeContext(runtime, resume.TaskId, resume.Generation, resume.DueTime));
         Assert.Equal(writes, manager.WriteCount);
@@ -1062,7 +1062,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, request, TestContext.Current.CancellationToken);
         await transport.ResumeSent.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // Only the delay's own task records a due time; its parent keeps running and replays it by identifier.
+        // 只有延迟本身的任务记录了一个合适的时间; 其父( 父) 继续运行并按标识符重放 。
         var resume = Assert.Single(transport.Resumes);
         Assert.True(rootId.IsParentOf(resume.TaskId));
         Assert.All(storage.Tasks, task => Assert.Equal(task.Id == resume.TaskId, task.State.DueTime is not null));
@@ -1139,7 +1139,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Null(storage.Get(taskId).Result);
         Assert.Null(storage.Get(taskId).CompletedAt);
 
-        // The resume message is durable with the delay, so recovery leaves the delay pending without resending it.
+        // 恢复信息延迟后是持久的,因此收回留下的拖延没有延期,不再继续。
         var writes = manager.WriteCount;
         await runtime.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
         Assert.Single(transport.Resumes);
@@ -1247,7 +1247,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         await runtime.CancelRemoteAsync(taskId, target, reason: null, TestContext.Current.CancellationToken);
 
-        // The cancellation and its message commit in one write; the outbox delivers only committed messages.
+        // 取消时及其信息以一个字形式承诺;发件箱只发送承诺的信息。
         Assert.Equal(1, manager.WriteCount);
         Assert.Single(transport.Cancellations);
         Assert.NotNull(storage.Get(taskId).CancellationRequestedAt);
@@ -1266,9 +1266,9 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var requestedAt = storage.Get(taskId).CancellationRequestedAt;
         Assert.Single(transport.Cancellations);
 
-        // The outbox may already have retired the committed message. Sending its identity again would start a new send
-        // with a later admission cutoff, which a receiver that processed the first rejects, so a recovered activation whose
-        // replay cancels the task again stages nothing.
+        // 发件箱可能已经已将承诺的邮件退封。 发送身份后, 将会启动新的发送
+        // 处理第一个拒绝的接收器, 处理第一个拒绝者, 所以回收的激活
+        // 重放再次取消任务, 停止任何阶段 。
         var (recovered, _, _, recoveredTransport) = CreateRuntime(storage, manager);
         await recovered.CancelRemoteAsync(taskId, target, reason: "replayed", TestContext.Current.CancellationToken);
         await runtime.CancelRemoteAsync(taskId, target, reason: "repeated", TestContext.Current.CancellationToken);
@@ -1300,7 +1300,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var pendingWireId = runtime.GetWireId(pendingId);
         Assert.Equal(canceledWireId, Assert.Single(transport.Cancellations).TaskId);
 
-        // Deleting the tree cancels its pending remote child; the canceled child's committed message is the outbox's.
+        // 树的删除会取消待决的远方孩子;
         ((IOutboxMessageSource)runtime).OnRetired(completion.MessageId, OutboxMessageRetirement.Delivered.Instance);
 
         Assert.False(storage.Contains(canceledId));
@@ -1351,7 +1351,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         await recovered.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
 
-        // The cancellation message committed with the request; the callee decides the child's outcome.
+        // 请求书中发出的取消信息;被传唤人决定儿童的结果。
         Assert.Equal(0, manager.WriteCount);
         Assert.Null(storage.Get(childId).Result);
         Assert.Empty(transport.Cancellations);
@@ -1480,7 +1480,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 }
                 catch (OperationCanceledException) when (executionToken.IsCancellationRequested)
                 {
-                    // Host abort reaches the delegate token, but it is not durable cancellation.
+                    // 主机中止到达代表牌, 但这不是永久取消 。
                     var context = DurableTask.Current;
                     aborted.TrySetResult((executionToken.IsCancellationRequested, context.IsTaskCancellationRequested));
                 }
@@ -1576,7 +1576,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // The stop fails each waiter, like a call which arrives while the runtime stops, and leaves the task pending.
+        // 停止令每个服务员都失败, 就像一个在运行时间停止时到达的电话, 并且让任务处于等待状态。
         var pollFailure = await Assert.ThrowsAsync<DurableTaskAttemptCanceledException>(() => polling.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Equal(DurableTaskAttemptCancellationReason.ActivationStopping, pollFailure.Reason);
         await Assert.ThrowsAsync<DurableTaskAttemptCanceledException>(() => waiting.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
@@ -1600,7 +1600,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var delayId = TaskId.Parse("delay");
         Assert.Null(workSource.GetWakeupDelay());
 
-        // A body which runs code is runnable, so a deactivated grain must wake to resume it.
+        // 运行代码的正文是可运行的, 所以被禁用的 grain 必须醒过来恢复它 。
         await ((IDurableTaskServer)runtime).ScheduleAsync(stepId, CreateRequest(1, () => DurableTask.Run(async _ =>
         {
             started.TrySetResult();
@@ -1614,13 +1614,13 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await WaitForNoWorkAsync();
 
-        // A body parked on a delay waits for its resume message, which reactivates the grain.
+        // 拖拉机上停着的一具尸体等待回信,该回信重新启动 grain。
         await ((IDurableTaskServer)runtime).ScheduleAsync(delayId, CreateRequest(2, () => DurableTask.Delay(TimeSpan.FromDays(1))), TestContext.Current.CancellationToken);
         await transport.ResumeSent.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await WaitForNoWorkAsync();
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // Work items queued on the activation scheduler run in order, so yielding lets the attempts park or end.
+        // 启动调度器上排队的工作项目按顺序运行,所以让尝试停放或结束。
         async Task WaitForNoWorkAsync()
         {
             for (var yields = 0; workSource.GetWakeupDelay() is not null; yields++)
@@ -1653,8 +1653,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             await Task.Yield();
         }
 
-        // The write which commits the call's result resumes the root, whose code continues in a later work item. Every
-        // consult until then, such as a later write's and a wake-up's, reports the root as runnable.
+        // 发出呼叫后结果的写作恢复了根,其代码在以后的工作项目中继续。
+        // 之前的咨询,例如后期的书和警醒, 将根作为可调用词来报告。
         (bool Resumed, TimeSpan? First, TimeSpan? Second)? consults = null;
         manager.AfterWriteCompleted = _ => consults ??= (resumed, workSource.GetWakeupDelay(), workSource.GetWakeupDelay());
         runtime.AcceptResponseFromInbox(rootId.Child("call"), DurableTaskResponse.FromResult(2), RemoteTarget);
@@ -1675,7 +1675,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var request = CreateRequest(1, () => DurableTask.Run(_ => started.TrySetResult()));
 
-        // Recovery resets the runtime's volatile state, replays journaled task state, and completes before activation.
+        // 回收重现运行时的波动状态, 重播日记任务状态, 并在激活前完成 。
         stateMachine.Reset(default);
         var state = storage.GetOrCreate(taskId);
         storage.SetRequest(taskId, state, request);
@@ -1690,7 +1690,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         await runtime.RecoverAsync(TestContext.Current.CancellationToken);
 
-        // Recovery defers the execution until the activation has completed.
+        // 追回工作推迟执行,直到启动完成。
         Assert.Equal(0, request.CreateTaskCallCount);
 
         runtime.StartRecoveredExecutions();
@@ -1723,7 +1723,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         stateMachine.OnRecoveryCompleted();
         await runtime.RecoverAsync(TestContext.Current.CancellationToken);
 
-        // A call which reaches the recovered task before the activation completes starts it.
+        // 在一个在启动完成之前 到达回收任务的一个电话
         var response = await ((IDurableTaskServer)runtime).ScheduleAsync(taskId, request, TestContext.Current.CancellationToken);
         Assert.Equal(DurableTaskStatus.Pending, response.Status);
         await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
@@ -1753,7 +1753,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             1,
             () => DurableTask.Run(async cancellationToken =>
             {
-                // The replay reaches the child which the earlier run recorded.
+                // 重播到达了孩子 早期运行记录。
                 capturedChild = await DurableTask.Run(_ => Interlocked.Increment(ref childRuns) * 42).WithId("child").ScheduleAsync(cancellationToken);
                 return await capturedChild;
             }));
@@ -1775,7 +1775,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             .AsTask()
             .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // The execution's handle wraps the runtime's single handle for the child.
+        // 执行的手柄将运行时间的单把手包起来 给孩子。
         var executionHandle = GetInnerHandle(capturedChild!);
         var capturedInnerHandle = GetInnerHandle(executionHandle);
 
@@ -1903,7 +1903,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     [Fact]
     public Task WhenAnyAwaitsItsCandidatesWithoutPolling() => ActivationScheduler.RunAsync(async () =>
     {
-        // The clock never advances, so only awaiting the candidates can select a winner.
+        // 时钟永远不能进步,所以只有等待候选人才能选出获胜者。
         var time = new FakeTimeProvider(DateTimeOffset.UnixEpoch);
         var (runtime, storage, _, _) = CreateRuntime(timeProvider: time, reentrant: true);
         var rootId = TaskId.Parse("root");
@@ -1940,7 +1940,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, request, TestContext.Current.CancellationToken);
         await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // Complete the first candidate only once both candidates run and the selection, which found no winner, waits.
+        // 第一批候选人只有两个候选人都参加竞选,而且没有获胜者被选中,才完成第一候选人的甄选,等待。
         await secondStarted.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await selectionWaits.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         first.SetResult(7);
@@ -1951,7 +1951,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         Assert.Equal(7, response.GetResult<int>());
 
-        // The candidates' completion order selects the winner, so no decision is recorded.
+        // 候选人的完成令选择获胜者,因此不记录任何决定。
         Assert.DoesNotContain(storage.Tasks, task => task.Id.ToString().EndsWith("/$winner", StringComparison.Ordinal));
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
     });
@@ -1976,7 +1976,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             observations.Enqueue((before, context.UtcNow));
             if (Interlocked.Increment(ref attempts) == 1)
             {
-                // The first attempt stops here and is aborted, so the next activation replays it.
+                // 第一次尝试停在这里,中止了 所以下一次激活会重播
                 firstAttemptObserved.TrySetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
@@ -2015,8 +2015,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             TaskCreationOptions.DenyChildAttach,
             scheduler);
 
-        // The operation runs off the activation's scheduler, which owns the attempt's state, so it fails without
-        // reaching the runtime rather than being dispatched to that scheduler.
+        // 操作运行从启动的调度器上运行, 它拥有尝试状态, 所以它没有失败
+        // 到达运行时间,而不是被发送到调度器。
         var response = await DurableTaskRuntimeHelper.RunAsync(DurableTask.Delay(TimeSpan.FromMinutes(1)), context);
 
         Assert.Contains(
@@ -2117,7 +2117,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.GetOrCreate(winner).Result = DurableTaskResponse.Completed;
         await runtime.SelectCompletionAsync(decisionId, [winner], TestContext.Current.CancellationToken);
 
-        // The workflow changed: a replay schedules a local step where the first execution recorded a race's selection.
+        // 工作流程改变了:重播计划了第一个执行过程记录种族选择的本地步骤。
         var exception = await Assert.ThrowsAsync<DurableTaskDivergenceException>(
             () => runtime.ScheduleChildAsync(decisionId, DurableTask.FromResult(1), TestContext.Current.CancellationToken).AsTask());
 
@@ -2146,7 +2146,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.True(context.EndAttempt(DurableTaskAttemptCancellationReason.ActivationStopping));
         Assert.False(context.EndAttempt(DurableTaskAttemptCancellationReason.TaskAborted));
 
-        // The attempt's tokens are signaled separately from its cancellation.
+        // 尝试的标记与取消分开发出
         Assert.False(operationCancellation.IsCancellationRequested);
         context.ApplyCancellation();
         var response = await invocation.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
@@ -2175,7 +2175,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             context).AsTask();
         await runtime.SchedulingStarted.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // An abort cancels the attempt, and the abort's commit completes the delay before the attempt's tokens are signaled.
+        // 中止取消尝试, 并且中止的操作在尝试标记发出前完成延迟 。
         Assert.True(context.EndAttempt(DurableTaskAttemptCancellationReason.TaskAborted));
         var aborted = new DurableTaskAbortedException("operator");
         runtime.CompleteDelay(DurableTaskResponse.FromException(aborted));
@@ -2239,7 +2239,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         cancellation.Cancel();
         await runtime.StopAsync(cancellation.Token).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // Local waiters fail with the shutdown; the staged response still commits with the inbox batch for the next activation.
+        // 本地服务员无法完成关机; 分阶段反应仍承诺为下次激活使用箱批次。
         await Assert.ThrowsAsync<DurableTaskAttemptCanceledException>(async () => await handle.WaitAsync(TestContext.Current.CancellationToken));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         Assert.Equal(42, storage.Get(taskId).Result!.GetResult<int>());
@@ -2347,7 +2347,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var taskId = TaskId.Parse("root/local");
         var invocations = 0;
 
-        // The step runs first, so the write which records the step also records its result.
+        // 第一步运行第一, 所以记录一步的写作 也记录了它的结果。
         manager.BeforeWrite = () => Assert.Equal(42, storage.Get(taskId).Result!.GetResult<int>());
         var handle = await runtime.ScheduleChildAsync(
             taskId,
@@ -2376,9 +2376,9 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Task<bool>? probe = null;
 
-        // The step's final code queues work on the activation, as a grain operation which requests a journal write while
-        // the step completes would. That work runs before any continuation of the step, so the write it requests commits
-        // the step's state changes; it must find the step's result staged with them.
+        // 步骤的最后代码队列最后代码组对激活工作, 作为一种 grain 操作, 需要同时写入日记
+        // 这项工作在步骤延续之前进行,因此它要求的写作承诺
+        // 步骤的状态变化; 它必须发现步骤的结果是和它们一起进行的。
         int FinalCode()
         {
             probe = Task.Factory.StartNew(
@@ -2437,7 +2437,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 return value;
             }));
 
-        // The record stages without a write of its own, and commits with the delay's write.
+        // 记录阶段没有自己写作, 并承诺延迟写作。
         manager.BeforeWrite = () =>
         {
             if (storage.Contains(effectId))
@@ -2493,7 +2493,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
         var replay = await waiting[1].Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // The replay reaches the delay, the last operation which the first run recorded, and then runs live.
+        // 重播到达延迟, 最后一次操作 第一次运行记录, 然后运行现场。
         await WaitUntilAsync(() => !replay.IsReplaying);
         Assert.False(first.IsReplaying);
         Assert.Equal(
@@ -2520,7 +2520,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 var context = DurableTask.Current;
                 if (run > 1)
                 {
-                    // A deployment added an effect before the recorded ones.
+                    // 部署在记录前增加了效果。
                     observations.Enqueue((run, "start", context.IsReplaying));
                     DurableTask.RunInline("added", () => 0);
                 }
@@ -2560,7 +2560,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 var run = Interlocked.Increment(ref runs);
                 var context = DurableTask.Current;
 
-                // The second start of the same detached task reaches the record which the first one reached.
+                // 同一独立任务的第二个开始,达到第一个任务实现的记录。
                 _ = new TestStateManager.TestRemoteDurableTask(detachedRequest).Detached("detached").Post();
                 _ = new TestStateManager.TestRemoteDurableTask(detachedRequest).Detached("detached").Post();
                 observations.Enqueue((run, "detached", context.IsReplaying));
@@ -2614,7 +2614,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var taskId = TaskId.Parse("root/wait");
         manager.BeforeWrite = () =>
         {
-            // The step's record, its delay child, and the delay's resume message commit together.
+            // 步骤的记录,它的延迟 孩子, 和延迟的回信 承诺一起。
             Assert.True(storage.Contains(taskId));
             Assert.Single(transport.Resumes);
         };
@@ -2653,7 +2653,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await invoked.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => manager.IsFenced);
 
-        // Nothing the step did was recorded, so the next activation replays the step and runs it again.
+        // 步骤没有记录,所以下一个启动重播一步并再次运行。
         Assert.Equal(0, manager.WriteCount);
         Assert.False((await handle.PollAsync(new PollingOptions { PollTimeout = TimeSpan.Zero }, TestContext.Current.CancellationToken)).IsCompleted);
     });
@@ -2679,7 +2679,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             }),
             TestContext.Current.CancellationToken);
 
-        // The failed write retained the staged result, and a background write commits it and completes the step.
+        // 失败的写作保留了分阶段的结果,背景文件承诺完成该步骤。
         var response = await handle.WaitAsync(TestContext.Current.CancellationToken).AsTask()
             .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
@@ -2748,7 +2748,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await handle.WaitAsync(TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => Volatile.Read(ref observedDeletionWrite));
 
-        // The invoked child owns its own tree, which holds the grandchild, and each tree is deleted once it expires.
+        // 被援引的儿童拥有自己的树,而树则拥有孙子,每棵树一旦过期就予以删除。
         Assert.False(storage.Contains(rootId));
         Assert.False(storage.Contains(childId));
         Assert.False(storage.Contains(grandchildId));
@@ -2784,7 +2784,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var writes = manager.WriteCount;
         var enumerations = storage.TasksEnumerationCount;
 
-        // The outbox stages the completion's removal and calls the source in the same synchronous block.
+        // 发件箱的阶段 完成清除并调用源 在同一个同步区块。
         ((IOutboxMessageSource)runtime).OnRetired(completion.MessageId, OutboxMessageRetirement.Delivered.Instance);
 
         Assert.False(storage.Contains(taskId));
@@ -2796,16 +2796,16 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal((runtime.GrainId, target, loserWireId), Assert.Single(transport.Cancellations));
         Assert.Equal(writes, manager.WriteCount);
 
-        // An invocation nested under the task's identifier keeps its own lifecycle.
+        // 任务识别特征下的某一个职业保留了自己的生命周期。
         Assert.True(storage.Contains(nestedId));
 
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         Assert.Equal(writes + 1, manager.WriteCount);
 
-        // Deletion follows the tree rather than scanning every task.
+        // 而不是扫描每件任务
         Assert.Equal(enumerations, storage.TasksEnumerationCount);
 
-        // A late completion of the canceled remote child is accepted without changing state.
+        // 被取消的远程孩子的晚期完成,
         Accept(CreateHandler(runtime), CompletionMessage(target, runtime.GrainId, loserWireId, DurableTaskResponse.FromResult(5)));
         Assert.False(storage.Contains(loserId));
     });
@@ -2828,7 +2828,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Empty(retained.CompletionDestinations);
         Assert.Equal(0, (await runtime.SubscribeOrPollAsync(taskId, new SubscribeOrPollOptions(), TestContext.Current.CancellationToken)).GetResult<int>());
 
-        // A re-invocation after the completion was dead-lettered sends the retained result again.
+        // 完成后重新重述,但信上未注明,保留的结果再次发送。
         Assert.Equal(0, runtime.ScheduleFromInbox(taskId, request).GetResult<int>());
         Assert.Equal(2, transport.Completions.Count);
         Assert.Equal(completion.MessageId, transport.Completions[1].MessageId);
@@ -2850,7 +2850,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.SetResponse(childId, storage.GetOrCreate(childId), DurableTaskResponse.Completed);
         var completion = Assert.Single(transport.Completions);
 
-        // The outbox dead-letters the completion after OutboxRetryTimeout, which exceeds the retention period.
+        // 发箱废信后完成 OutboxRetryTimeout,该数值超过留存期。
         clock.Advance(TimeSpan.FromDays(1));
         ((IOutboxMessageSource)runtime).OnRetired(completion.MessageId, new OutboxMessageRetirement.DeadLettered("The outbox dead-lettered the completion."));
         Assert.Equal(clock.GetUtcNow(), storage.Get(taskId).RetainedSince);
@@ -2895,7 +2895,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             async () => await runtime.SubscribeOrPollAsync(taskId, new SubscribeOrPollOptions(), TestContext.Current.CancellationToken));
         Assert.Equal(taskId, failure.TaskId);
 
-        // The task identifier deduplicates schedules only while the result is retained.
+        // 任务识别符仅在结果保留期间重复时间表。
         var again = CreateRequest(1);
         await ((IDurableTaskServer)runtime).ScheduleAsync(taskId, again, TestContext.Current.CancellationToken);
         Assert.Equal(0, (await runtime.GetScheduledTaskHandle(taskId).WaitAsync(TestContext.Current.CancellationToken)).GetResult<int>());
@@ -2919,8 +2919,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(0, (await runtime.GetScheduledTaskHandle(scheduledId).WaitAsync(TestContext.Current.CancellationToken)).GetResult<int>());
         await WaitUntilIdleAsync(runtime);
 
-        // No write or activation follows the end of retention, so the schedule applies it itself and runs the request
-        // again, and a later poll observes the deletion.
+        // 保留结束后没有写或激活, 因此时间表本身适用并运行请求
+        // 之后的民意调查又注意到删除的内容。
         clock.Advance(retention);
         var again = CreateRequest(2);
         await ((IDurableTaskServer)runtime).ScheduleAsync(scheduledId, again, TestContext.Current.CancellationToken);
@@ -2966,7 +2966,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.SetResponse(outerId, outer, DurableTaskResponse.Completed);
         storage.SetResponse(localId, storage.GetOrCreate(localId), DurableTaskResponse.Completed);
 
-        // Task identifiers are chosen by callers, so another grain can invoke a task under the outer task's identifier.
+        // 任务识别符由调用者选择,因此另一个 grain 可以在外任务的识别符下援引一项任务。
         runtime.ScheduleFromInbox(nestedId, CreateRequest(1));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => transport.Completions.Count == 1);
@@ -3007,7 +3007,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 }
                 catch (OperationCanceledException) when (DurableTask.Current.AttemptCancellationToken.IsCancellationRequested)
                 {
-                    // A deleted attempt can't schedule durable work, which would outlive its tree.
+                    // 删掉的尝试无法安排持久的工作, 这会比树长寿。
                     canceled.TrySetResult(await Record.ExceptionAsync(async () => await DurableTask.Delay(TimeSpan.FromDays(1))));
                     throw new InvalidOperationException("The deleted attempt fails after cancellation.");
                 }
@@ -3021,14 +3021,14 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(DurableTaskStatus.Canceled, (await childHandle.WaitAsync(TestContext.Current.CancellationToken)).Status);
         Assert.False(canceled.Task.IsCompleted);
 
-        // The deletion cancels the running attempt, whose tokens are signaled in a later work item.
+        // 删除后将取消运行中的尝试, 其符号将在以后的工作项目中显示 。
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         var exception = Assert.IsType<DurableTaskAttemptCanceledException>(await canceled.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Equal(DurableTaskAttemptCancellationReason.TaskDeleted, exception.Reason);
         Assert.Empty(storage.Tasks);
         var writes = manager.WriteCount;
 
-        // Deactivation drains the attempt, whose result is discarded without restoring state.
+        // 拆除工作使这一企图付诸东流,其结果被抛弃而不恢复状态。
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         Assert.False(storage.Contains(childId));
         Assert.Equal(writes, manager.WriteCount);
@@ -3047,15 +3047,15 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var taskId = TaskId.Parse("root");
         var caller = GrainId.Create("caller", "one");
 
-        // A cancellation for a task which is unknown, for example because it was deleted, records the cancellation in
-        // case its invocation is still in flight.
+        // 取消一项未知的任务, 例如因为删除而取消, 将取消记录在
+        // 情况是,其援引仍在飞行中。
         Accept(CreateHandler(runtime), CancellationMessage(caller, runtime.GrainId, taskId));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         var record = storage.Get(taskId);
         Assert.NotNull(record.CancellationRequestedAt);
         Assert.Null(record.Result);
 
-        // The record outlives the admission window by one more window, which covers the sender's clock running ahead.
+        // 记录比接收窗口的长度长一个窗口,它覆盖发件人的时钟在前面。
         clock.Advance(retryAge * 2 - TimeSpan.FromTicks(1));
         Assert.False(InvokeDeleteExpiredTasks(runtime));
         Assert.True(storage.Contains(taskId));
@@ -3084,7 +3084,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var observedPrunedWrite = false;
         manager.BeforeWrite = () =>
         {
-            // The first write commits the step with its result; the next deletes it.
+            // 第一个写作承诺该步骤及其结果; 下一个删除它。
             if (manager.WriteCount >= 1)
             {
                 observedPrunedWrite = !storage.Contains(taskId);
@@ -3128,7 +3128,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         IScheduledTaskHandle handle;
         try
         {
-            // The staged cancellation is visible before it commits, and any effect derived from it commits after it.
+            // 分阶段取消在作出承诺之前是显而易见的,其产生的任何影响在承诺之后也是很明显的。
             handle = await runtime.ScheduleChildAsync(
                 childId,
                 childTask,
@@ -3219,7 +3219,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 new TestStateManager.TestRemoteDurableTask(otherTarget),
                 TestContext.Current.CancellationToken).AsTask());
 
-        // The error names the recorded and the requested operations, so a diverging replay is diagnosable.
+        // 错误命名记录和请求操作, 因此不同的重放是可判断的 。
         Assert.StartsWith(
             $"Durable child task '{childId}' is already associated with a different request. It records a call to method '{IDurableTaskRequest.GetMethod(originalTask)}' on grain '{originalRequest.Context!.TargetId}' (fingerprint ",
             exception.Message);
@@ -3235,7 +3235,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var target = GrainId.Create("target", "one");
         storage.SetRemoteRequest(childId, storage.GetOrCreate(childId, DurableTaskRecordKind.RemoteCall), target, "method", "0123456789ABCDEF0123");
 
-        // The workflow changed: a replay schedules a local step where the first execution recorded a grain call.
+        // 工作流程改变了:重播计划了第一个执行时记录了一个 grain 呼叫的本地步骤。
         var exception = await Assert.ThrowsAsync<DurableTaskDivergenceException>(
             () => runtime.ScheduleChildAsync(
                 childId,
@@ -3263,12 +3263,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         ((IOutboxMessageSource)runtime).OnRetired(Assert.Single(transport.SentInvocations), OutboxMessageRetirement.Delivered.Instance);
         runtime.AcceptResponseFromInbox(taskId, DurableTaskResponse.FromResult(42), target);
 
-        // The root's retention ends once it completes, so the write which commits its result deletes its tree.
+        // 根的留存一旦完成,根的留存就结束,因此,写作结果的文字会删除树。
         storage.SetResponse(rootId, storage.Get(rootId), DurableTaskResponse.Completed);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => !storage.Contains(rootId) && !storage.Contains(taskId));
 
-        // A later run of the root records the child again, under the same identifier and with another wire identifier.
+        // 根部的一卷后来记录了孩子再次,根据同一身份识别特征和另一个线标识。
         storage.AddInvoked(rootId);
         var replacementRequest = CreateRemoteChild(18);
         var handle = await runtime.ScheduleChildAsync(taskId, replacementRequest, TestContext.Current.CancellationToken);
@@ -3359,7 +3359,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await posted[0].Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => writes.Contains((true, 1)));
 
-        // The invocation names the record as its subscriber and claims no caller.
+        // 被召者将记录命名为其订阅人,不要求打电话。
         var invocation = Assert.Single(transport.DetachedInvocations);
         Assert.Equal(
             (runtime.GrainId, detachedRequest.Context!.TargetId, rootId, (TaskId?)runtime.GetWireId(recordId)),
@@ -3368,7 +3368,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(default, detachedRequest.Context.CallerId);
         Assert.False(detachedRequest.Context.SupportsDurableCompletion);
 
-        // The invocation and its record commit in one write; the record observes the task, which the starter doesn't store.
+        // 请求及其记录以一个字写下;记录记录记录了任务,启动人不储存的任务。
         Assert.DoesNotContain((false, 1), writes);
         var record = storage.Get(recordId);
         Assert.Null(record.Result);
@@ -3376,7 +3376,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.True(record.RemoteTarget.IsDefault);
         Assert.False(storage.Contains(rootId));
 
-        // A replacement activation replays the starter, which reaches the record without sending the invocation again.
+        // 替换激活重放启动器, 它到达记录时不会发送再次的调用 。
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         var (replacement, _, _, replacementTransport) = CreateRuntime(storage, manager);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
@@ -3385,7 +3385,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Empty(replacementTransport.DetachedInvocations);
         Assert.Empty(replacementTransport.Invocations);
 
-        // The detached task's result completes the record.
+        // 分离任务的结果完成记录
         replacement.AcceptResponseFromInbox(replacement.GetWireId(recordId), rootId, DurableTaskResponse.FromResult(3), detachedRequest.Context.TargetId);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         Assert.Equal(3, storage.Get(recordId).Result!.GetResult<int>());
@@ -3403,7 +3403,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             1,
             () => DurableTask.Run(async executionToken =>
             {
-                // An unnamed child before the start doesn't change the record which the start reaches.
+                // 开始前未命名的孩子不会改变开始到达的记录 。
                 await DurableTask.Run(static _ => { });
                 _ = new TestStateManager.TestRemoteDurableTask(detachedRequest).Detached("detached").Post();
                 _ = new TestStateManager.TestRemoteDurableTask(detachedRequest).Detached("detached").Post();
@@ -3435,8 +3435,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => transport.DetachedInvocations.Count == 1);
 
-        // The root is the single segment {HostId}/{Id}/{segment}, whose parts escape their '/' as task identifiers do, so
-        // another grain's execution with the same identifier derives a different root identifier.
+        // 根是单段{HostId}/{Id}/{separtment},其部件作为任务识别符而脱离了“/”的部件,所以
+        // 使用同一标识符执行的 grain,产生不同的根标识符。
         Assert.Equal("test/one", runtime.GrainId.ToString());
         Assert.Equal(TaskId.CreateRoot(@"test\/one/starter/$child-1"), Assert.Single(transport.DetachedInvocations).TaskId);
     });
@@ -3467,9 +3467,9 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => attempts.Count == 1);
 
-        // A detached start observes the target's root task, which other parties address. A call reaches the task which its
-        // target stores under this grain's scope, and a local child is stored under its own identifier; the execution's
-        // tree owns both, so neither has an address.
+        // 独立开始观察目标的根任务,而其他当事方则处理这个目标。
+        // 目标储存库,在此 grain范围下,当地儿童以自己的识别码存储;执行
+        // 树是两者的主人,所以也没有地址。
         (TaskId Id, TaskId TargetTaskId, DurableTaskAddress? Address)[] expected =
         [
             (
@@ -3481,7 +3481,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         ];
         Assert.Equal(expected, Assert.Single(attempts));
 
-        // A replay reaches the same records, whose handles name the same tasks.
+        // 重播到达相同的记录,其手柄命名相同的任务。
         await WaitUntilAsync(() => storage.Contains(starterId.Child("wait")));
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         var (replacement, _, _, _) = CreateRuntime(storage, manager);
@@ -3513,7 +3513,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 }
                 catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
                 {
-                    // Cleanup outlives the canceled starter.
+                    // 清理时间比取消启动程序的时间长。
                     _ = new TestStateManager.TestRemoteDurableTask(detachedRequest).Detached("cleanup").Post();
                     throw;
                 }
@@ -3532,7 +3532,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(DurableTaskStatus.Canceled, storage.Get(recordId).Result!.Status);
         Assert.Equal(new RecordedSubscription(runtime.GrainId, target, rootId, recordWireId, Unsubscribe: true), Assert.Single(transport.Subscriptions));
 
-        // Deleting the starter's tree deletes the record and sends nothing more to the detached task.
+        // 删除启动器树删除记录,不向独立任务发送更多信息。
         await WaitUntilIdleAsync(runtime);
         ((IOutboxMessageSource)runtime).OnRetired(Assert.Single(transport.Completions).MessageId, OutboxMessageRetirement.Delivered.Instance);
         Assert.False(storage.Contains(starterId));
@@ -3540,7 +3540,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Empty(transport.Cancellations);
         Assert.Single(transport.Subscriptions);
 
-        // The table of pending invocations still provides the cleanup's invocation, which retires without its record.
+        // 尚未解决的雇用情况表仍然提供清理工作,但无记录退休。
         var source = (IOutboxMessageSource)runtime;
         var messageId = Assert.Single(transport.SentInvocations);
         Assert.True(source.TryGetMessage(messageId, out var pending));
@@ -3580,7 +3580,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // The canceled starter's record ends its subscription at once, and the start still awaits the target.
+        // 取消的启动器记录立刻结束订阅, 开始仍然等待目标。
         await runtime.SignalCancellationAsync(starterId, TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => transport.SentInvocations.Count == 1 && storage.Contains(recordId));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
@@ -3619,7 +3619,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilAsync(() => transport.Completions.Count == 1);
         await WaitUntilIdleAsync(runtime);
 
-        // The root and the record commit together; the root has no caller, and its result reached the record directly.
+        // 根和记录一起承诺;根没有呼唤者,结果直接记录下来。
         Assert.All(writes, write => Assert.Equal(write.Record, write.Root));
         var root = storage.Get(rootId);
         Assert.Equal(5, root.Result!.GetResult<int>());
@@ -3631,13 +3631,13 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Empty(transport.DetachedInvocations);
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, storage.Get(starterId).Result!.Status);
 
-        // Delivering the starter's completion deletes its tree, which holds the record but not the detached root.
+        // 执行启动器的完成删除树, 树保留记录, 但不能保存分离根 。
         ((IOutboxMessageSource)runtime).OnRetired(Assert.Single(transport.Completions).MessageId, OutboxMessageRetirement.Delivered.Instance);
         Assert.False(storage.Contains(starterId));
         Assert.False(storage.Contains(recordId));
         Assert.Equal(5, (await runtime.SubscribeOrPollAsync(rootId, new SubscribeOrPollOptions(), TestContext.Current.CancellationToken)).GetResult<int>());
 
-        // Like a client-scheduled root, the detached root is retained for the retention period after completion.
+        // 与客户排期根一样,独立根在完成后保留到留存期内。
         clock.Advance(retention);
         Assert.True(InvokeDeleteExpiredTasks(runtime));
         Assert.False(storage.Contains(rootId));
@@ -3677,7 +3677,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(1, first.CreateTaskCallCount);
         Assert.Equal(0, again.CreateTaskCallCount);
 
-        // A post of the same method whose arguments differ reaches the stored task; another method conflicts.
+        // 同一方法的一篇文章,其争论不同之处会到达存储的任务;另一种方法冲突。
         var differentArguments = CreateRequest(2);
         runtime.PostRoot(rootId, differentArguments);
         Assert.Equal(0, differentArguments.CreateTaskCallCount);
@@ -3695,7 +3695,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         runtime.PostDetached(recordId, TaskId.CreateRoot("first"), CreateRemoteRequest(1), shielded: false);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
 
-        // A replay reaching the record with the same start stages nothing new.
+        // 重播到记录 与相同的开始阶段 没有新的。
         runtime.PostDetached(recordId, TaskId.CreateRoot("first"), CreateRemoteRequest(1), shielded: false);
         Assert.Single(transport.DetachedInvocations);
 
@@ -3725,7 +3725,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 new DurableTaskInvocationMessage { TaskId = rootId, Request = request, Sender = sender, Detached = true, SubscriberId = recordId },
                 runtime.UtcNow));
 
-        // The task and its subscriber are staged together.
+        // 任务及其用户是一起安排的。
         var state = storage.Get(rootId);
         Assert.True(state.CallerId.IsDefault);
         Assert.Equal([new DurableTaskSubscriber(sender, recordId)], state.CompletionDestinations);
@@ -3754,7 +3754,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var sender = GrainId.Create("caller", "one");
         var taskId = TaskId.Parse("starter/call");
 
-        // This grain stores the sender's child under the sender's scope, where another request already runs.
+        // 该 grain 将发送者的子女存放在发送者的范围之下,而另一请求已经发出。
         var storedId = CallerScope.GetTaskId(sender, taskId);
         runtime.ScheduleFromInbox(storedId, CreateRequest(1, () => DurableTask.Run(static async cancellationToken => await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken))));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
@@ -3762,8 +3762,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var destinations = storage.Get(storedId).CompletionDestinations.ToArray();
         var request = CreateSerializableRequest(runtime.GrainId);
 
-        // The attached invocation's identifier already identifies another request, so the inbox dead-letters it with the
-        // conflict's code and message, which the sender's outbox reports as the rejection.
+        // 所附的援引识别资料已经确定了另一个请求,所以收件箱中写着“
+        // 冲突代码和讯息 发送者发件人发件人发件箱报告拒绝
         Assert.True(CreateHandler(runtime).TryAccept(
             MessagingTestHelpers.CreateInvocationMessage(
                 sender,
@@ -3792,14 +3792,14 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var taskId = TaskId.Parse("starter/call");
         var storedId = CallerScope.Resolve(sender, taskId);
 
-        // The sender's clock runs ahead of the grain's, so it stamps the invocation later than the grain's time when the
-        // cancellation which follows it arrives first.
+        // 发件人的时钟在 grain的提前运行,所以发者在 grain时间之后即开始发通知。
+        // 取消后先到的。
         var sentAt = clock.GetUtcNow() + skew;
         Accept(handler, CancellationMessage(sender, runtime.GrainId, taskId));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
 
-        // Past one window on the grain's clock, the invocation is still within its admission window, and so is the
-        // cancellation's record.
+        // 时间在 grain时钟上的一个窗口过去,该请求仍然在其允许窗口内,同样
+        // 取消记录
         clock.Advance(window + skew / 2);
         Assert.False(InvokeDeleteExpiredTasks(runtime));
         Assert.True(handler.TryAccept(
@@ -3832,8 +3832,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var request = CreateSerializableRequest(runtime.GrainId);
         var sentAt = clock.GetUtcNow();
 
-        // The caller staged the invocations, then a cancellation of the first. The cancellation arrives first, and
-        // backpressure holds the invocations until the end of the admission window.
+        // 打电话者先进行祈祷,然后取消第一个。取消行动首先到来,
+        // 后压将值数维持到接收窗口结束。
         Accept(handler, CancellationMessage(sender, runtime.GrainId, taskId));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         clock.Advance(window - TimeSpan.FromTicks(1));
@@ -3844,8 +3844,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilAsync(() => storage.Get(storedId).Result is { IsCompleted: true });
         Assert.Equal(DurableTaskStatus.Canceled, storage.Get(storedId).Result!.Status);
 
-        // Once the window ends, the grain dead-letters an invocation which it doesn't store, and admits a redelivery of one
-        // which it stores.
+        // 一旦窗口关闭, grain 信上写着死亡信 是一种不储存的祈祷 承认一个又被送来
+        // 所储存的,
         clock.Advance(TimeSpan.FromTicks(1));
         Assert.True(handler.TryAccept(Invocation(lateId), out var late));
         Assert.Equal(DurableTaskRejectionCodes.Expired, Assert.IsType<DeliveryResult.DeadLettered>(late.Value).Code);
@@ -3881,7 +3881,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             ReceiverId = runtime.GrainId,
         }.ToInboxMessage();
 
-        // The sink throws instead of rejecting the invocation, so the sender's outbox retries its delivery.
+        // 水槽抛出而不是拒绝请求, 所以发件人发送信箱重试了送货。
         Assert.ThrowsAny<Exception>(() => CreateHandler(runtime).TryAccept(truncated, out _));
 
         Assert.False(storage.Contains(taskId));
@@ -3912,13 +3912,13 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilAsync(() => storage.Contains(childId) && transport.Invocations.Count == 1);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
 
-        // The call is staged by reference and committed, and the schedule awaits the target's acceptance.
+        // 电话是参照和作出承诺的,时间表等待目标接受。
         var messageId = Assert.Single(transport.SentInvocations);
         Assert.Equal(transport.GetInvocationMessageId(runtime.GrainId, target, runtime.GetWireId(childId), subscriberId: null), messageId);
         Assert.False(scheduled.Task.IsCompleted);
         Assert.Null(storage.Get(childId).Accepted);
 
-        // The outbox retires the invocation as delivered once the target durably accepted it.
+        // 一旦目标持久接受,发信箱就将交付的祈祷品退伍。
         ((IOutboxMessageSource)runtime).OnRetired(messageId, OutboxMessageRetirement.Delivered.Instance);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         Assert.Equal(childId, await scheduled.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
@@ -3973,7 +3973,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilAsync(() => storage.Contains(recordId) && transport.SentInvocations.Count == 1);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
 
-        // The target dead-lettered the invocation, and the outbox retires it as rejected with the target's code and reason.
+        // 目标用死字母来表示使用, 发箱则以目标代码和理由 拒绝退出。
         ((IOutboxMessageSource)runtime).OnRetired(
             Assert.Single(transport.SentInvocations),
             new OutboxMessageRetirement.Rejected("rejected", code));
@@ -3983,7 +3983,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.False(storage.Get(recordId).Accepted);
         Assert.Equal(DurableTaskStatus.Failed, storage.Get(recordId).Result!.Status);
 
-        // A replay observes the recorded rejection without sending the invocation again.
+        // 重播观看记录中的拒绝,而不发送再次的援引。
         await WaitUntilAsync(() => storage.Contains(starterId.Child("wait")));
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         var (replacement, _, _, replacementTransport) = CreateRuntime(storage, manager);
@@ -4024,7 +4024,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilAsync(() => storage.Contains(childId) && transport.Invocations.Count == 1);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
 
-        // The outbox dead-letters the invocation after its retry timeout.
+        // 发信箱在重新尝试超时后, 发出无字的回音。
         ((IOutboxMessageSource)runtime).OnRetired(
             transport.GetInvocationMessageId(runtime.GrainId, target, runtime.GetWireId(childId), subscriberId: null),
             new OutboxMessageRetirement.DeadLettered("The receiver is unavailable."));
@@ -4055,7 +4055,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         var messageId = Assert.Single(transport.SentInvocations);
 
-        // A replacement activation replays the call, which coalesces with the invocation that its table still holds.
+        // 替换启动重播了调用, 与其表上仍然持有的调用合并。
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         var (replacement, _, _, replacementTransport) = CreateRuntime(storage, manager);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
@@ -4066,7 +4066,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.True(source.TryGetMessage(messageId, out var pending));
         Assert.Equal(target, pending.ReceiverId);
 
-        // The delivered invocation records the target's acceptance, and the call's result completes the starter.
+        // 发送的传票记录了目标接受的情况 通话结果完成启动程序
         source.OnRetired(messageId, OutboxMessageRetirement.Delivered.Instance);
         Assert.True(storage.Get(childId).Accepted);
         Assert.False(storage.Invocations.ContainsKey(messageId));
@@ -4083,8 +4083,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var (runtime, storage, _, transport) = CreateRuntime();
         var rootId = TaskId.CreateRoot("posted");
 
-        // A posted root task keeps its identifier, so its invocation's identity is the same for every post. A post of the
-        // same method coalesces with the pending invocation, whatever its arguments.
+        // 根任务会保留其识别特征, 所以它援引的特性与每个职位相同。
+        // 同一方法与待发的援引合并,而不论其论点如何。
         runtime.PostRoot(rootId, CreateRemoteRequest(17));
         var messageId = Assert.Single(transport.SentInvocations);
         runtime.PostRoot(rootId, CreateRemoteRequest(18));
@@ -4126,14 +4126,14 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal((rootId, (TaskId?)recordWireId), (invocation.TaskId, invocation.SubscriberId));
         Assert.False(scheduled.Task.IsCompleted);
 
-        // The task's result can arrive before its invocation retires; it shows that the target held the task.
+        // 任务的结果可以在其调职退休之前就已经达到;它表明,目标承担了这项任务。
         runtime.AcceptResponseFromInbox(recordWireId, rootId, DurableTaskResponse.Completed, target);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await scheduled.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => storage.Get(starterId).Result is { IsCompleted: true });
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, storage.Get(starterId).Result!.Status);
 
-        // The retirement which follows records the acceptance, and a rejection can't replace the result.
+        // 退休后记录了接受,拒绝不能取代结果。
         ((IOutboxMessageSource)runtime).OnRetired(
             transport.GetInvocationMessageId(runtime.GrainId, target, rootId, recordWireId),
             OutboxMessageRetirement.Delivered.Instance);
@@ -4261,7 +4261,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.True(handler.CanHandle(context.Message));
         var handling = handler.HandleAsync(context, TestContext.Current.CancellationToken);
 
-        // Handlers stage their changes synchronously; the inbox owns the batch write.
+        // 处理器同步进行更改; 收件箱拥有批量写作。
         Assert.True(handling.IsCompletedSuccessfully);
         await handling;
         context.Received(1).Complete();
@@ -4282,8 +4282,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             DateTimeOffset.UtcNow);
 
     /// <summary>
-    /// Creates the completion which <paramref name="sender"/> sends for the remote child of <paramref name="receiver"/>
-    /// whose wire identifier is <paramref name="wireId"/>, which it stores under the receiver's caller scope.
+    /// 创建 <paramref name="sender"/> 为 <paramref name="receiver"/>的远端子孙发送的补全
+    /// 其线标识符 <paramref name="wireId"/>,存储在接收器的调用范围之下。
     /// </summary>
     private static InboxMessage CompletionMessage(
         GrainId sender,
@@ -4359,8 +4359,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     }
 
     /// <summary>
-    /// Creates a runtime bound to <paramref name="manager"/>. Reusing durable storage and the manager models a
-    /// replacement activation: the new runtime replaces the previous one as the manager's journal hook.
+    /// 创建运行时与 <paramref name="manager"/>的连接时间。重新使用耐久存储和管理员模式a
+    /// 替换激活: 新运行时间将取代前一个操作时间, 成为管理器日记钩 。
     /// </summary>
     private static (
         DurableTaskGrainRuntime Runtime,
@@ -4406,7 +4406,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         manager.RegisterStateMachine(DurableTaskGrainRuntime.StateMachineName, runtime);
         return (runtime, storage, manager, transport);
     }
-    /// <summary>Creates a substitute activation which runs its local requests as a non-reentrant activation does.</summary>
+    /// <summary>创建一个替代激活,该启动可以作为非回复激活程序运行其本地请求。</summary>
     private static IGrainContext CreateTestActivation(bool reentrant = false)
     {
         var context = Substitute.For<IGrainContext>();
@@ -4432,7 +4432,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         private readonly TaskCompletionSource<DurableTaskResponse> _delayResponse =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        /// <summary>Completes a pending delay with <paramref name="response"/>, as a committed result does.</summary>
+        /// <summary>完成一个待处理的拖延 <paramref name="response"/>,作为承诺的结果。</summary>
         public void CompleteDelay(DurableTaskResponse response) => _delayResponse.SetResult(response);
 
         public GrainId GrainId { get; } = GrainId.Create("test", "probe");
@@ -4635,7 +4635,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         public TestDurableDictionary<MessageId, PendingInvocation> Invocations { get; } = [];
 
-        /// <summary>Gets how many times <see cref="Tasks"/> has been enumerated.</summary>
+        /// <summary>获取列出的 <see cref="Tasks"/> 次数。</summary>
         public int TasksEnumerationCount { get; private set; }
 
         public IEnumerable<(TaskId Id, IDurableTaskState State)> Tasks
@@ -4653,8 +4653,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             (TestTaskState)GetOrCreateTask(id, kind, null);
 
         /// <summary>
-        /// Stores a pending invoked task whose execution tree holds the nodes which a test records beneath it, as a durable
-        /// execution's nodes belong to the tree of the task it runs for.
+        /// 储存一个待决的援引任务,其执行树将保存在试验记录下的一个节点,作为耐久性
+        /// 执行部分的节点属于它所执行的任务的树。
         /// </summary>
         public TestTaskState AddInvoked(TaskId id)
         {
@@ -4781,8 +4781,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     }
 
     /// <summary>
-    /// In-memory task state for <see cref="TestStorage"/>. It holds decoded requests and responses directly, so runtime
-    /// tests can use requests which have no Orleans codec.
+    /// <see cref="TestStorage"/>的模拟任务状态。 它直接持有解码请求和答复, 即运行时间
+    /// 测试可使用没有 Orleans 编码器的请求。
     /// </summary>
     private sealed class TestTaskState : IDurableTaskState
     {
@@ -4792,14 +4792,14 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         public DurableTaskResponse? Result { get; set; }
         public HashSet<DurableTaskSubscriber> CompletionDestinations { get; set; } = [];
 
-        /// <summary>Gets or sets the stored request, which throws <see cref="RequestDecodeFailure"/> when that is set.</summary>
+        /// <summary>获取或设置存储的请求,该请求在设定时丢弃 <see cref="RequestDecodeFailure"/> 。</summary>
         public IDurableTaskRequest? Request
         {
             get => RequestDecodeFailure is { } failure ? throw failure : _request;
             set => _request = value;
         }
 
-        /// <summary>Gets or sets the failure which decoding the stored request throws, as a request which no longer decodes does.</summary>
+        /// <summary>获取或设置解码存储请求时的失败,因为不再编码的请求会被解码。</summary>
         public Exception? RequestDecodeFailure { get; set; }
 
         public bool HasRequest => _request is not null;
@@ -4827,8 +4827,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         where TKey : notnull;
 
     /// <summary>
-    /// Models the journaled state manager's write protocol: preparation, capture, storage acknowledgement, and
-    /// completion callbacks. A preparation failure retains staged changes; a storage failure fences the manager.
+    /// 以《国家管理人员的编制协议:准备、捕获、储存确认和
+    /// 完成回调。 准备失败保留了分阶段的改动;储存失败使管理人员成为围栏。
     /// </summary>
     private sealed class TestStateManager : IJournaledStateManager
     {
@@ -4838,25 +4838,25 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         public int WriteCount { get; private set; }
         public bool IsFenced => _failure is not null;
 
-        /// <summary>Runs before state preparation; throwing models a preparation failure.</summary>
+        /// <summary>运行前先于国家准备; 丢弃模型一个准备失败。</summary>
         public Action? BeforePrepare { get; set; }
 
-        /// <summary>Runs after preparation and before capture; throwing models a storage failure.</summary>
+        /// <summary>准备后和捕获前运行; 抛掷存储失败的模型。</summary>
         public Action? BeforeWrite { get; set; }
 
-        /// <summary>Runs after capture and before storage acknowledgement; throwing models a storage failure.</summary>
+        /// <summary>捕获后运行, 储存确认前运行; 抛掷存储失败的模型。</summary>
         public Func<ValueTask>? AfterWriteStarted { get; set; }
         public Action<int>? AfterWriteCompleted { get; set; }
 
         /// <summary>
-        /// Models writes which carry no journal entries, such as one whose changes an earlier write captured: Journaling
-        /// stores nothing and doesn't acknowledge them to state machines.
+        /// 模型写作时没有日记条目,例如其先前的文字被记录到的更改:
+        /// 却不承认这些物品是国家机器的
         /// </summary>
         public bool WritesAreEmpty { get; set; }
 
         /// <summary>
-        /// Resumes each writer in a later work item than the write's acknowledgements to state machines, as Journaling
-        /// does, rather than synchronously with them.
+        /// 将每位作家重新列入比该作者对国有机器的确认书, 更晚的工作项目中, 称为《日刊》
+        /// 而不是和他们同步
         /// </summary>
         public bool ResumesWritersAsynchronously { get; set; }
 

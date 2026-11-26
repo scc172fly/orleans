@@ -4,7 +4,7 @@ using AdventureGrainInterfaces;
 namespace AdventureGrains;
 
 /// <summary>
-/// Orleans grain implementation class Grain1.
+/// Orleans grain 执行类谷物1。
 /// </summary>
 public class RoomGrain : Grain, IRoomGrain
 {

@@ -8,7 +8,7 @@ using System.Threading;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// cache monitor used as a default option in GeneratorStreamprovider and MemoryStreamProvider
+    /// GeneratorStreamprovider 和 MemoryStreamProvider中作为默认选项使用的缓存监视器
     /// </summary>
     public class DefaultCacheMonitor : ICacheMonitor
     {
@@ -35,20 +35,20 @@ namespace Orleans.Providers.Streams.Common
         private ValueStopwatch _oldestToNewestAge;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultCacheMonitor"/> class.
+        /// 初始化 <see cref="DefaultCacheMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">The cache metric dimensions.</param>
-        /// <param name="instruments">The Orleans runtime instruments.</param>
+        /// <param name="dimensions">缓存量度。</param>
+        /// <param name="instruments">下 Orleans 运行工具。</param>
         public DefaultCacheMonitor(CacheMonitorDimensions dimensions, OrleansInstruments instruments)
             : this(CreateDimensions(dimensions), GetMeter(instruments))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultCacheMonitor"/> class.
+        /// 初始化 <see cref="DefaultCacheMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">The dimensions attached to metrics reported by this monitor.</param>
-        /// <param name="instruments">The Orleans runtime instruments.</param>
+        /// <param name="dimensions">该监测仪报告的计量尺度的尺寸。</param>
+        /// <param name="instruments">下 Orleans 运行工具。</param>
         protected DefaultCacheMonitor(KeyValuePair<string, object>[] dimensions, OrleansInstruments instruments)
             : this(dimensions, GetMeter(instruments))
         {
@@ -68,9 +68,9 @@ namespace Orleans.Providers.Streams.Common
 
         private DefaultCacheMonitor(KeyValuePair<string, object>[] dimensions, Meter meter)
         {
-            // The tag values are never actually null here; the cast only widens the nullability annotation of the array element
-            // type to satisfy the (nullable-annotated) System.Diagnostics.Metrics APIs below, which is safe since the underlying
-            // CLR array type is identical regardless of the element's nullable annotation.
+            // 标记值从不在这里实际无效; 投影只会扩大数组元素的无效性注释
+            // 满足以下(可附加说明的) System.Diagnostics.Metrics API的,自下
+            // CLR 阵列类型相同,不管元素的无效注解。
             _dimensions = (KeyValuePair<string, object?>[])(object)dimensions;
             _queueCacheSizeCounter = meter.CreateObservableCounter<long>(InstrumentNames.STREAMS_QUEUE_CACHE_SIZE, () => new(_totalCacheSize, _dimensions), unit: "bytes");
             _queueCacheMessageCountCounter = meter.CreateObservableCounter<long>(InstrumentNames.STREAMS_QUEUE_CACHE_LENGTH, () => new(_messageCount, _dimensions), unit: "messages");

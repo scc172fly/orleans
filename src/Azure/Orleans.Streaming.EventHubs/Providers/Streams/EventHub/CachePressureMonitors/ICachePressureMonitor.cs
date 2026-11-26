@@ -4,26 +4,26 @@ using System;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Cache pressure monitor records pressure contribution to the cache, and determine if the cache is under pressure based on its 
-    /// back pressure algorithm
+    /// 缓存压力监测器记录暗藏处的档案压力,确定该藏匿处是否因其 
+    /// 反向压力算法
     /// </summary>
     public interface ICachePressureMonitor
     {
         /// <summary>
-        /// Record cache pressure contribution to the monitor
+        /// 记录对监视器的缓存压力贡献
         /// </summary>
         /// <param name="cachePressureContribution"></param>
         void RecordCachePressureContribution(double cachePressureContribution);
 
         /// <summary>
-        /// Determine if the monitor is under pressure
+        /// 确定显示器是否受到压力
         /// </summary>
         /// <param name="utcNow"></param>
         /// <returns></returns>
         bool IsUnderPressure(DateTime utcNow);
 
         /// <summary>
-        /// Cache monitor which is used to report cache related metrics
+        /// 用于报告缓存相关度量的缓存监测器
         /// </summary>
         ICacheMonitor? CacheMonitor { set; }
     }

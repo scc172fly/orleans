@@ -1,7 +1,7 @@
 namespace Orleans
 {
     /// <summary>
-    /// A <see cref="ILifecycleObservable"/> marker type for client lifecycles.
+    /// 客户生命周期的 <see cref="ILifecycleObservable"/> 标记类型。
     /// </summary>
     public interface IClusterClientLifecycle : ILifecycleObservable
     {

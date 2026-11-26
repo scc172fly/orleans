@@ -7,7 +7,7 @@ using System.Reflection;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// Type resolver which caches results.
+    /// 缓存结果的类型解析器 。
     /// </summary>
     public sealed class CachedTypeResolver : TypeResolver
     {
@@ -16,7 +16,7 @@ namespace Orleans.Serialization.TypeSystem
         private static readonly ConcurrentDictionary<Assembly, string> _assemblyNameCache = new();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CachedTypeResolver"/> class.
+        /// 初始化 <see cref="CachedTypeResolver"/> 类的新实例。
         /// </summary>
         public CachedTypeResolver()
         {
@@ -36,7 +36,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Gets the cached assembly name.
+        /// 获取缓存组装名称 。
         /// </summary>
         public static string GetName(Assembly assembly) => _assemblyNameCache.GetOrAdd(assembly, static a => a.GetName().Name!);
 

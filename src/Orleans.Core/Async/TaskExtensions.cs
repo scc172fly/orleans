@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Internal
 {
     /// <summary>
-    /// Extensions for working with <see cref="Task"/> and <see cref="Task{TResult}"/>.
+    /// 与 <see cref="Task"/> 和 <see cref="Task{TResult}"/>合作的扩展。
     /// </summary>
     internal static class OrleansTaskExtentions
     {
@@ -45,7 +45,7 @@ namespace Orleans.Internal
             }
         }
 
-        // Executes an async function such as Exception is never thrown but rather always returned as a broken task.
+        // 执行一个自动同步函数,例如例外从不抛出,而是总是作为中断的任务返回。
         public static async Task SafeExecute(Func<Task> action)
         {
             await action();
@@ -59,20 +59,20 @@ namespace Orleans.Internal
             }
             catch (Exception)
             {
-                // dont re-throw, just eat it.
+                // 不要再拉,就吃吧
             }
         }
 
         internal static string ToString(this Task? t) => t == null ? "null" : $"[Id={t.Id}, Status={t.Status}]";
 
         /// <summary>
-        /// This will apply a timeout delay to the task, allowing us to exit early
+        /// 这将对任务造成超时延迟, 使我们提前退出
         /// </summary>
-        /// <param name="taskToComplete">The task we will timeout after timeSpan</param>
-        /// <param name="timeout">Amount of time to wait before timing out</param>
-        /// <param name="exceptionMessage">Text to put into the timeout exception message</param>
-        /// <exception cref="TimeoutException">If we time out we will get this exception</exception>
-        /// <returns>The completed task</returns>
+        /// <param name="taskToComplete">任务在 timeSpan</param>之后我们将超时
+        /// <param name="timeout">计时前等待时间的长度</param>
+        /// <param name="exceptionMessage">用于超时发送例外电文的文本</param>
+        /// <exception cref="TimeoutException">如果我们暂停时间 就会破例</exception>
+        /// <returns>已完成的任务</returns>
         public static async Task WithTimeout(this Task taskToComplete, TimeSpan timeout, string? exceptionMessage = null)
         {
             if (taskToComplete.IsCompleted)
@@ -84,30 +84,30 @@ namespace Orleans.Internal
             using var timeoutCancellationTokenSource = new CancellationTokenSource();
             var completedTask = await Task.WhenAny(taskToComplete, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
 
-            // We got done before the timeout, or were able to complete before this code ran, return the result
+            // 暂停前我们完成的 或者在代码运行之前完成的 返回结果
             if (taskToComplete == completedTask)
             {
                 await timeoutCancellationTokenSource.CancelAsync();
-                // Await this so as to propagate the exception correctly
+                // 等待这个,以便正确宣传例外
                 await taskToComplete;
                 return;
             }
 
-            // We did not complete before the timeout, we fire and forget to ensure we observe any exceptions that may occur
+            // 超时前我们没有完成,我们开火并忘记确保遵守任何例外
             taskToComplete.Ignore();
             var errorMessage = exceptionMessage ?? $"WithTimeout has timed out after {timeout}";
             throw new TimeoutException(errorMessage);
         }
 
         /// <summary>
-        /// This will apply a timeout delay to the task, allowing us to exit early
+        /// 这将对任务造成超时延迟, 使我们提前退出
         /// </summary>
-        /// <param name="taskToComplete">The task we will timeout after timeSpan</param>
-        /// <param name="timeSpan">Amount of time to wait before timing out</param>
-        /// <param name="exceptionMessage">Text to put into the timeout exception message</param>
-        /// <exception cref="TimeoutException">If we time out we will get this exception</exception>
-        /// <exception cref="TimeoutException">If we time out we will get this exception</exception>
-        /// <returns>The value of the completed task</returns>
+        /// <param name="taskToComplete">任务在 timeSpan</param>之后我们将超时
+        /// <param name="timeSpan">计时前等待时间的长度</param>
+        /// <param name="exceptionMessage">用于超时发送例外电文的文本</param>
+        /// <exception cref="TimeoutException">如果我们暂停时间 就会破例</exception>
+        /// <exception cref="TimeoutException">如果我们暂停时间 就会破例</exception>
+        /// <returns>已完成任务值</returns>
         public static async Task<T> WithTimeout<T>(this Task<T> taskToComplete, TimeSpan timeSpan, string? exceptionMessage = null)
         {
             if (taskToComplete.IsCompleted)
@@ -118,26 +118,26 @@ namespace Orleans.Internal
             using var timeoutCancellationTokenSource = new CancellationTokenSource();
             var completedTask = await Task.WhenAny(taskToComplete, Task.Delay(timeSpan, timeoutCancellationTokenSource.Token));
 
-            // We got done before the timeout, or were able to complete before this code ran, return the result
+            // 暂停前我们完成的 或者在代码运行之前完成的 返回结果
             if (taskToComplete == completedTask)
             {
                 await timeoutCancellationTokenSource.CancelAsync();
-                // Await this so as to propagate the exception correctly
+                // 等待这个,以便正确宣传例外
                 return await taskToComplete;
             }
 
-            // We did not complete before the timeout, we fire and forget to ensure we observe any exceptions that may occur
+            // 超时前我们没有完成,我们开火并忘记确保遵守任何例外
             taskToComplete.Ignore();
             var errorMessage = exceptionMessage ?? $"WithTimeout has timed out after {timeSpan}";
             throw new TimeoutException(errorMessage);
         }
 
         /// <summary>
-        /// For making an uncancellable task cancellable, by ignoring its result.
+        /// 使不可挽回的任务可以被消除,忽视其结果。
         /// </summary>
-        /// <param name="taskToComplete">The task to wait for unless cancelled</param>
-        /// <param name="message">Message to set in the exception</param>
-        /// <param name="cancellationToken">A cancellation token for cancelling the wait</param>
+        /// <param name="taskToComplete">除非取消否则等待的任务</param>
+        /// <param name="message">信件要置入例外</param>
+        /// <param name="cancellationToken">取消等待的取消标记</param>
         /// <returns></returns>
         internal static async Task WithCancellation(
             this Task taskToComplete,
@@ -155,10 +155,10 @@ namespace Orleans.Internal
         }
 
         /// <summary>
-        /// For making an uncancellable task cancellable, by ignoring its result.
+        /// 使不可挽回的任务可以被消除,忽视其结果。
         /// </summary>
-        /// <param name="taskToComplete">The task to wait for unless cancelled</param>
-        /// <param name="cancellationToken">A cancellation token for cancelling the wait</param>
+        /// <param name="taskToComplete">除非取消否则等待的任务</param>
+        /// <param name="cancellationToken">取消等待的取消标记</param>
         /// <returns></returns>
         internal static Task WithCancellation(this Task taskToComplete, CancellationToken cancellationToken)
         {
@@ -206,8 +206,8 @@ namespace Orleans.Internal
             }
         }
 
-        //The rationale for GetAwaiter().GetResult() instead of .Result
-        //is presented at https://github.com/aspnet/Security/issues/59.
+        //GetAwaiter()的理由理由[。GetResult() 而不是.
+        //以 https://github.com/aspnet/Security/issues/59表示。
         internal static T GetResult<T>(this Task<T> task)
         {
             return task.GetAwaiter().GetResult();

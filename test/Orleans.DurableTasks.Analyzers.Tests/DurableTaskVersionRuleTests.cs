@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>Tests the rule for version checks.</summary>
+/// <summary>测试版本检查规则。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskVersionRuleTests
 {

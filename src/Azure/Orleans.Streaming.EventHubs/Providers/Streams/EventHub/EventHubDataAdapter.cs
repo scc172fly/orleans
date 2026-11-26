@@ -8,26 +8,26 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Default event hub data adapter.  Users may subclass to override event data to stream mapping.
+    /// 默认事件中心数据适配器。 用户可以将事件数据覆盖到流图映射中。
     /// </summary>
     public class EventHubDataAdapter : IEventHubDataAdapter
     {
         private readonly Serialization.Serializer serializer;
 
         /// <summary>
-        /// Cache data adapter that adapts EventHub's EventData to CachedEventHubMessage used in cache
+        /// 适应缓存数据适配器 EventHub's EventData 至 CachedEventHubMessage 用于缓存中的缓存
         /// </summary>
-        /// <param name="serializer">The serializer used to encode and decode stream events.</param>
+        /// <param name="serializer">用于编码和解码流事件的序列器。</param>
         public EventHubDataAdapter(Serialization.Serializer serializer)
         {
             this.serializer = serializer;
         }
 
         /// <summary>
-        /// Converts a cached message to a batch container for delivery
+        /// 将缓存信件转换成批量容器交付
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <returns>The batch container.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <returns>货箱</returns>
         public virtual IBatchContainer GetBatchContainer(ref CachedMessage cachedMessage)
         {
             var evenHubMessage = new EventHubMessage(cachedMessage, this.serializer);
@@ -35,20 +35,20 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Convert an EventHubMessage to a batch container
+        /// 将 EventHubMessage 转换成批量容器
         /// </summary>
-        /// <param name="eventHubMessage">The Event Hub message.</param>
-        /// <returns>The batch container.</returns>
+        /// <param name="eventHubMessage">事件枢纽信息。</param>
+        /// <returns>货箱</returns>
         protected virtual IBatchContainer GetBatchContainer(EventHubMessage eventHubMessage)
         {
             return new EventHubBatchContainer(eventHubMessage, this.serializer);
         }
 
         /// <summary>
-        /// Gets the stream sequence token from a cached message.
+        /// 从缓存信件获取流序序列符号 。
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <returns>The stream sequence token.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <returns>流序序列符号。</returns>
         public virtual StreamSequenceToken GetSequenceToken(ref CachedMessage cachedMessage)
         {
             return new EventHubSequenceTokenV2("", cachedMessage.SequenceNumber, 0);
@@ -85,10 +85,10 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Get offset from cached message.  Left to derived class, as only it knows how to get this from the cached message.
+        /// 从缓存信件中获取偏移。 左侧为导出类, 因为只有它知道如何从缓存信件中获得此信息 。
         /// </summary>
-        /// <param name="lastItemPurged">The cached message.</param>
-        /// <returns>The Event Hub offset.</returns>
+        /// <param name="lastItemPurged">缓存信件。</param>
+        /// <returns>活动枢纽(HUB)</returns>
         public virtual string GetOffset(CachedMessage lastItemPurged)
         {
             int readOffset = 0;
@@ -97,17 +97,17 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Get the Event Hub partition key to use for a stream.
+        /// 获取事件枢纽分区密钥用于流。
         /// </summary>
-        /// <param name="streamId">The stream Guid.</param>
-        /// <returns>The partition key to use for the stream.</returns>
+        /// <param name="streamId">流式指南。</param>
+        /// <returns>流的分区密钥。</returns>
         public virtual string GetPartitionKey(StreamId streamId) => streamId.GetKeyAsString();
 
         /// <summary>
-        /// Get the <see cref="IStreamIdentity"/> for an event message.
+        /// 获取事件消息的 <see cref="IStreamIdentity"/> 。
         /// </summary>
-        /// <param name="queueMessage">The event message.</param>
-        /// <returns>The stream identity.</returns>
+        /// <param name="queueMessage">事件消息。</param>
+        /// <returns>流体身份。</returns>
         public virtual StreamId GetStreamIdentity(EventData queueMessage)
         {
             string streamKey = queueMessage.PartitionKey;
@@ -116,26 +116,26 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Encodes an Event Hub message into a cache segment.
+        /// 将事件枢纽信息编码为缓存段。
         /// </summary>
-        /// <param name="queueMessage">The Event Hub message.</param>
-        /// <param name="getSegment">The delegate used to allocate a cache segment of the required size.</param>
-        /// <returns>The segment containing the encoded message.</returns>
+        /// <param name="queueMessage">事件枢纽信息。</param>
+        /// <param name="getSegment">代表过去分配所需大小的缓存段。</param>
+        /// <returns>包含编码电文的段。</returns>
         protected virtual ArraySegment<byte> EncodeMessageIntoSegment(EventData queueMessage, Func<int, ArraySegment<byte>> getSegment)
         {
             byte[] propertiesBytes = queueMessage.SerializeProperties(this.serializer);
             var payload = queueMessage.Body.Span;
             var offset = queueMessage.OffsetString;
-            // get size of namespace, offset, partitionkey, properties, and payload
+            // 命名空间、 偏移、 分割键、 属性和有效载荷的大小
             int size = SegmentBuilder.CalculateAppendSize(offset) +
                 SegmentBuilder.CalculateAppendSize(queueMessage.PartitionKey) +
                 SegmentBuilder.CalculateAppendSize(propertiesBytes) +
                 SegmentBuilder.CalculateAppendSize(payload);
 
-            // get segment
+            // 获取分段
             ArraySegment<byte> segment = getSegment(size);
 
-            // encode namespace, offset, partitionkey, properties and payload into segment
+            // 编码名称空间、 偏移、 分割键、 属性和有效载荷等元件
             int writeOffset = 0;
             SegmentBuilder.Append(segment, ref writeOffset, offset);
             SegmentBuilder.Append(segment, ref writeOffset, queueMessage.PartitionKey);

@@ -9,17 +9,17 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests for distributed tracing and activity propagation across Orleans grain calls.
+    /// 分布式追踪和活动测试,通过 Orleans grain 电话进行传播。
     ///
-    /// Orleans supports distributed tracing through .NET's Activity API, which is compatible with OpenTelemetry.
-    /// These tests verify that:
-    /// - Activity context (trace ID, span ID, trace state) is properly propagated from client to grain
-    /// - Both W3C and Hierarchical activity ID formats are supported
-    /// - Baggage items (key-value pairs) are correctly transmitted across grain boundaries
-    /// - Activity propagation works correctly both from external clients and between grains
+    /// Orleans 支持通过 .NET活动 API进行分布式追踪,该活动与 OpenTelemetry兼容。
+    /// 这些测试证实:
+    /// - 活动环境(跟踪身份识别、横跨身份识别、追踪状态)从客户向 grain适当传播
+    /// - W3C和等级活动身份识别格式都得到支持
+    /// - 正确跨越 grain 边界传送行李(钥匙价值对)
+    /// - 活动传播工作正确,既从外部客户那里,也从 grains之间进行。
     ///
-    /// The ActivityPropagationGrainCallFilter is responsible for creating child activities for grain calls
-    /// and ensuring proper context propagation throughout the distributed system.
+    /// ActivityPropagationGrainCallFilter 负责为 grain 电话创建儿童活动
+    /// 并确保在整个分布式系统适当传播环境。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -30,8 +30,8 @@ namespace UnitTests.General
 
         static ActivityPropagationTests()
         {
-            // Configure an ActivityListener to monitor grain call activities
-            // This listener specifically targets activities created by Orleans for grain calls
+            // 配置 ActivityListener 以监测 grain 调用活动
+            // 该听众专门针对 Orleans 为 grain 电话创建的活动
             Listener = new()
             {
                 ShouldListenTo = p => p.Name == ActivitySources.ApplicationGrainActivitySourceName,
@@ -41,9 +41,9 @@ namespace UnitTests.General
 
             static ActivitySamplingResult Sample(ref ActivityCreationOptions<ActivityContext> options)
             {
-                // Accessing TraceId during sampling is important to ensure the Activity system
-                // properly initializes the trace context. This reproduces a specific scenario
-                // where SetParentId might not work correctly if TraceId isn't accessed.
+                // 在取样期间访问 TraceId 对于确保活动系统十分重要
+                // 正确初始化跟踪上下文。 这复制了特定的设想情景
+                // 何 地 SetParentId 如果 TraceId 无法进入
                 var _ = options.TraceId;
                 return ActivitySamplingResult.PropagationData;
             }
@@ -51,7 +51,7 @@ namespace UnitTests.General
 
             static ActivitySamplingResult SampleUsingParentId(ref ActivityCreationOptions<string> options)
             {
-                //Trace id has to be accessed in sample to reproduce the scenario when SetParentId does not work
+                //在 SetParentId 不工作时,必须用样本访问追踪id才能复制设想情况
                 var _ = options.TraceId;
                 return ActivitySamplingResult.PropagationData;
             }
@@ -59,8 +59,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Test fixture that configures an Orleans cluster with activity propagation enabled.
-        /// Both the silo and client are configured to support distributed tracing.
+        /// 测试设置,以配置 Orleans 组群,并启用活动传播功能。
+        /// silo 和客户端都配置了支持分布式跟踪的配置。
         /// </summary>
         public class Fixture : BaseTestClusterFixture
         {
@@ -75,9 +75,9 @@ namespace UnitTests.General
             {
                 public void Configure(ISiloBuilder hostBuilder) =>
                     hostBuilder
-                        // Enable activity propagation on the silo to support distributed tracing
+                        // 启用 silo 上的活动传播以支持分布追踪
                         .AddActivityPropagation()
-                        // Configure memory storage providers for testing
+                        // 用于测试的配置内存存储存储供应商
                         .AddMemoryGrainStorageAsDefault()
                         .AddMemoryGrainStorage("PubSubStore");
             }
@@ -86,7 +86,7 @@ namespace UnitTests.General
             {
                 public void Configure(IConfiguration configuration, IClientBuilder clientBuilder) =>
                     clientBuilder
-                        // Enable activity propagation on the client to participate in distributed traces
+                        // 使向客户宣传活动能够参与分布式跟踪
                         .AddActivityPropagation();
             }
         }
@@ -104,9 +104,9 @@ namespace UnitTests.General
         public void Dispose() => Activity.DefaultIdFormat = _defaultIdFormat;
 
         /// <summary>
-        /// Tests that grain calls create new activities when no parent activity exists.
-        /// Verifies both W3C (standard format) and Hierarchical (legacy .NET format) activity ID formats.
-        /// When no parent activity is present, Orleans creates a new root activity for the grain call.
+        /// 测试当不存在父活动时 grain 调用创建新活动。
+        /// 验证 W3C(标准格式)和等级(传统 .NET 格式)活动身份识别格式。
+        /// 当不存在父活动时, Orleans 为 grain 调用创建新的根活动。
         /// </summary>
         [Theory]
         [InlineData(ActivityIdFormat.W3C)]
@@ -132,12 +132,12 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests activity propagation with W3C format when a parent activity exists.
-        /// Verifies that:
-        /// - The trace ID from the parent activity is preserved in the grain
-        /// - Trace state (vendor-specific tracing data) is correctly propagated
-        /// - Baggage items (contextual key-value pairs) are transmitted to the grain
-        /// This ensures distributed traces can span across client-to-grain boundaries.
+        /// 当父活动存在时, 测试以 W3C 格式传播的活动。
+        /// 证明:
+        /// - 母体活动踪迹识别码保存在 grain中
+        /// - 正确传播追踪状态(具体针对供应商的追查数据)
+        /// - 行李(配对的原始钥匙)传送至 grain
+        /// 这确保分布的痕迹能够跨越客户到grain 边界。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -147,7 +147,7 @@ namespace UnitTests.General
 
             var activity = new Activity("SomeName")
             {
-                // The W3C propagator requires key=value trace state.
+                // W3C 传播器需要键=值跟踪状态。
                 TraceStateString = "vendor=value"
             };
             activity.AddBaggage("foo", "bar");
@@ -171,7 +171,7 @@ namespace UnitTests.General
 
                 Assert.NotNull(result);
                 Assert.NotNull(result.Id);
-                Assert.Contains(activity.TraceId.ToHexString(), result.Id); // ensure, that trace id is persisted.
+                Assert.Contains(activity.TraceId.ToHexString(), result.Id); // 确保追踪id得以持续。
                 Assert.Equal(activity.TraceStateString, result.TraceState);
                 Assert.Equal(
                     activity.Baggage.Select(static pair => new KeyValuePair<string, string>(pair.Key, pair.Value!)),
@@ -180,9 +180,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests activity propagation with Hierarchical format (legacy .NET format).
-        /// The default W3C propagator cannot inject Hierarchical activities, so the grain
-        /// starts a new root activity instead of a child of the caller's activity.
+        /// 以等级格式(传统 .NET 格式)进行测试活动传播。
+        /// 默认 W3C 推进器无法输入等级活动, 所以 grain
+        /// 开始新的根活动, 而不是调用器活动的子。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]

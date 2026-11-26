@@ -4,17 +4,17 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extension methods for configuring Amazon SQS-backed persistent streams on Orleans clients.
+    /// 为配置 Orleans 客户的亚马逊 SQS 支持的持久性流提供扩展方法。
     /// </summary>
     public static class ClientBuilderExtensions
     {
         /// <summary>
-        /// Configures the client to use an Amazon SQS-backed persistent stream provider.
+        /// 配置客户端使用 Amazon SQS 支持的持久性流提供者。
         /// </summary>
-        /// <param name="builder">The client builder.</param>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="configureOptions">The delegate used to configure the SQS options.</param>
-        /// <returns>The client builder.</returns>
+        /// <param name="builder">客户端构建器。</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="configureOptions">用于配置 SQS 选项的代表。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddSqsStreams(this IClientBuilder builder, string name, Action<SqsOptions> configureOptions)
         {
             builder.AddSqsStreams(name, b =>
@@ -23,12 +23,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to use an Amazon SQS-backed persistent stream provider.
+        /// 配置客户端使用 Amazon SQS 支持的持久性流提供者。
         /// </summary>
-        /// <param name="builder">The client builder.</param>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="configure">The delegate used to configure the stream provider.</param>
-        /// <returns>The client builder.</returns>
+        /// <param name="builder">客户端构建器。</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="configure">用于配置流提供方的代表。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddSqsStreams(this IClientBuilder builder, string name, Action<ClusterClientSqsStreamConfigurator> configure)
         {
             var configurator = new ClusterClientSqsStreamConfigurator(name, builder);

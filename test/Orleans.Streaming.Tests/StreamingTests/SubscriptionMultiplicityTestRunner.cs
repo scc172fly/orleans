@@ -65,7 +65,7 @@ public class SubscriptionMultiplicityTestRunner
                     && targetCounts.TryGetValue(handleId, out var targetCount)
                     && count >= targetCount)
                 {
-                    // completed outside lock
+                    // 外部锁外完成
                 }
                 else
                 {
@@ -173,17 +173,17 @@ public class SubscriptionMultiplicityTestRunner
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(Timeout);
 
-        // get producer and consumer
+        // 生产者和消费者
         var producer = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var consumer = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
         var streamId = StreamId.Create(streamNamespace, streamGuid);
 
-        // setup two subscriptions
+        // 设置两封订阅
         StreamSubscriptionHandle<int> firstSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => firstSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
         StreamSubscriptionHandle<int> secondSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => secondSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
-        // produce some messages
+        // 生成一些消息
         await producer.BecomeProducer(streamGuid, streamNamespace, streamProviderName, cts.Token);
         await WarmUpColdStreamAsync(
             producer,
@@ -202,7 +202,7 @@ public class SubscriptionMultiplicityTestRunner
             (consumer, secondSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 2);
 
-        // unsubscribe
+        // 取消订阅
         await consumer.StopConsuming(firstSubscriptionHandle);
         await consumer.StopConsuming(secondSubscriptionHandle);
     }
@@ -215,34 +215,34 @@ public class SubscriptionMultiplicityTestRunner
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(Timeout);
 
-        // get producer and consumer
+        // 生产者和消费者
         var producer = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var consumer = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
         var streamId = StreamId.Create(streamNamespace, streamGuid);
 
         await producer.BecomeProducer(streamGuid, streamNamespace, streamProviderName, cts.Token);
 
-        // setup one subscription and send messsages
+        // 设置一个订阅点,发送杂乱的垃圾
         StreamSubscriptionHandle<int> firstSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => firstSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
         await WarmUpColdStreamAsync(producer, this.testCluster.Client!, streamId, cts.Token, (consumer, firstSubscriptionHandle.HandleId));
         var produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, (consumer, firstSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // clear counts
+        // 清点计数
         await consumer.ClearNumberConsumed();
         await producer.ClearNumberProduced();
-        // remove first subscription and send messages
+        // 首次删除订阅并发送信件
         await WaitForSubscriptionDetachedAsync(streamId, async () => await consumer.StopConsuming(firstSubscriptionHandle), cts.Token);
 
-        // setup second subscription and send messages
+        // 设置第二次订阅和发送信件
         StreamSubscriptionHandle<int> secondSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => secondSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
         await WarmUpColdStreamAsync(producer, this.testCluster.Client!, streamId, cts.Token, (consumer, secondSubscriptionHandle.HandleId));
         produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, (consumer, secondSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // remove second subscription
+        // 删除第二次订阅
         await consumer.StopConsuming(secondSubscriptionHandle);
     }
 
@@ -254,25 +254,25 @@ public class SubscriptionMultiplicityTestRunner
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(Timeout);
 
-        // get producer and consumer
+        // 生产者和消费者
         var producer = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var consumer = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
         var streamId = StreamId.Create(streamNamespace, streamGuid);
 
         await producer.BecomeProducer(streamGuid, streamNamespace, streamProviderName, cts.Token);
 
-        // setup one subscription and send messsages
+        // 设置一个订阅点,发送杂乱的垃圾
         StreamSubscriptionHandle<int> firstSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => firstSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
         await WarmUpColdStreamAsync(producer, this.testCluster.Client!, streamId, cts.Token, (consumer, firstSubscriptionHandle.HandleId));
         var produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, (consumer, firstSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // clear counts
+        // 清点计数
         await consumer.ClearNumberConsumed();
         await producer.ClearNumberProduced();
 
-        // setup second subscription and send messages
+        // 设置第二次订阅和发送信件
         StreamSubscriptionHandle<int> secondSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => secondSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
         await WarmUpColdStreamAsync(
@@ -292,17 +292,17 @@ public class SubscriptionMultiplicityTestRunner
             (consumer, secondSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 2);
 
-        // clear counts
+        // 清点计数
         await consumer.ClearNumberConsumed();
         await producer.ClearNumberProduced();
 
-        // remove first subscription and send messages
+        // 首次删除订阅并发送信件
         await WaitForSubscriptionDetachedAsync(streamId, async () => await consumer.StopConsuming(firstSubscriptionHandle), cts.Token);
 
         produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, (consumer, secondSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // remove second subscription
+        // 删除第二次订阅
         await consumer.StopConsuming(secondSubscriptionHandle);
     }
 
@@ -314,21 +314,21 @@ public class SubscriptionMultiplicityTestRunner
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(Timeout);
 
-        // get producer and consumer
+        // 生产者和消费者
         var producer = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var consumer = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
         var streamId = StreamId.Create(streamNamespace, streamGuid);
 
         await producer.BecomeProducer(streamGuid, streamNamespace, streamProviderName, cts.Token);
 
-        // setup one subscription and send messsages
+        // 设置一个订阅点,发送杂乱的垃圾
         StreamSubscriptionHandle<int> firstSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => firstSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
         await WarmUpColdStreamAsync(producer, this.testCluster.Client!, streamId, cts.Token, (consumer, firstSubscriptionHandle.HandleId));
         var produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, (consumer, firstSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // Resume
+        // 恢复
         StreamSubscriptionHandle<int> resumeHandle = null!;
         resumeHandle = await consumer.Resume(firstSubscriptionHandle);
 
@@ -337,7 +337,7 @@ public class SubscriptionMultiplicityTestRunner
         produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, false, (consumer, resumeHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // remove subscription
+        // 删除订阅
         await consumer.StopConsuming(resumeHandle);
     }
 
@@ -350,28 +350,28 @@ public class SubscriptionMultiplicityTestRunner
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(Timeout);
 
-        // get producer and consumer
+        // 生产者和消费者
         var producer = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var consumer = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
         var streamId = StreamId.Create(streamNamespace, streamGuid);
 
         await producer.BecomeProducer(streamGuid, streamNamespace, streamProviderName, cts.Token);
 
-        // setup one subscription and send messsages
+        // 设置一个订阅点,发送杂乱的垃圾
         StreamSubscriptionHandle<int> firstSubscriptionHandle = null!;
         await WaitForSubscriptionRegisteredAsync(streamId, async () => firstSubscriptionHandle = await consumer.BecomeConsumer(streamGuid, streamNamespace, streamProviderName), cts.Token);
         await WarmUpColdStreamAsync(producer, this.testCluster.Client!, streamId, cts.Token, (consumer, firstSubscriptionHandle.HandleId));
         var produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, (consumer, firstSubscriptionHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // Deactivate grain
+        // 禁用关闭 grain
         await consumer.Deactivate();
         await grainObserver.WaitForDeactivatedAsync(consumer, Timeout);
 
-        // clear producer counts
+        // 清晰的制片人计数
         await producer.ClearNumberProduced();
 
-        // Resume
+        // 恢复
         StreamSubscriptionHandle<int> resumeHandle = null!;
         resumeHandle = await consumer.Resume(firstSubscriptionHandle);
 
@@ -380,7 +380,7 @@ public class SubscriptionMultiplicityTestRunner
         produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId, cts.Token, EventCountPerPhase, (consumer, resumeHandle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // remove subscription
+        // 删除订阅
         await consumer.StopConsuming(resumeHandle);
     }
 
@@ -391,10 +391,10 @@ public class SubscriptionMultiplicityTestRunner
     {
         const int subscriptionCount = 10;
 
-        // get producer and consumer
+        // 生产者和消费者
         var consumer = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
 
-        // create expected subscriptions
+        // 创建预期订阅
         IEnumerable<Task<StreamSubscriptionHandle<int>>> subscriptionTasks =
             Enumerable.Range(0, subscriptionCount)
                 .Select(async i =>
@@ -404,10 +404,10 @@ public class SubscriptionMultiplicityTestRunner
                 });
         List<StreamSubscriptionHandle<int>> expectedSubscriptions = (await Task.WhenAll(subscriptionTasks)).ToList();
 
-        // query actuall subscriptions
+        // 查询实际订阅
         IList<StreamSubscriptionHandle<int>> actualSubscriptions = await consumer.GetAllSubscriptions(streamGuid, streamNamespace, streamProviderName);
 
-        // validate
+        // 验证
         Assert.Equal(subscriptionCount, actualSubscriptions.Count);
         Assert.Equal(subscriptionCount, expectedSubscriptions.Count);
         foreach (StreamSubscriptionHandle<int> subscription in actualSubscriptions)
@@ -415,16 +415,16 @@ public class SubscriptionMultiplicityTestRunner
             Assert.True(expectedSubscriptions.Contains(subscription), "Subscription Match");
         }
 
-        // unsubscribe from one of the subscriptions
+        // 订书者中,有1名订书者,已取消订阅
         StreamSubscriptionHandle<int> firstHandle = expectedSubscriptions.First();
         cancellationToken.ThrowIfCancellationRequested();
         await consumer.StopConsuming(firstHandle);
         expectedSubscriptions.Remove(firstHandle);
 
-        // query actuall subscriptions again
+        // 查询实际订阅数
         actualSubscriptions = await consumer.GetAllSubscriptions(streamGuid, streamNamespace, streamProviderName);
 
-        // validate
+        // 验证
         Assert.Equal(subscriptionCount - 1, actualSubscriptions.Count);
         Assert.Equal(subscriptionCount - 1, expectedSubscriptions.Count);
         foreach (StreamSubscriptionHandle<int> subscription in actualSubscriptions)
@@ -432,14 +432,14 @@ public class SubscriptionMultiplicityTestRunner
             Assert.True(expectedSubscriptions.Contains(subscription), "Subscription Match");
         }
 
-        // unsubscribe from the rest of the subscriptions
+        // 其余订阅者不订阅
         cancellationToken.ThrowIfCancellationRequested();
         await Task.WhenAll(expectedSubscriptions.Select(h => consumer.StopConsuming(h)));
 
-        // query actuall subscriptions again
+        // 查询实际订阅数
         actualSubscriptions = await consumer.GetAllSubscriptions(streamGuid, streamNamespace, streamProviderName);
 
-        // validate
+        // 验证
         Assert.Empty(actualSubscriptions);
     }
 
@@ -452,7 +452,7 @@ public class SubscriptionMultiplicityTestRunner
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(Timeout);
 
-        // send events on first stream /////////////////////////////
+        // 在第一条流上发送事件 /////////////////////////////
         var producer = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var consumer = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
         var streamId1 = StreamId.Create(streamNamespace1, streamGuid);
@@ -465,7 +465,7 @@ public class SubscriptionMultiplicityTestRunner
         var produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId1, cts.Token, EventCountPerPhase, (consumer, handle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
-        // send some events on second stream /////////////////////////////
+        // 在第二流中发送一些事件 ////////////////////////////////////////////////////////////////////
         var producer2 = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var consumer2 = this.testCluster.GrainFactory!.GetGrain<IMultipleSubscriptionConsumerGrain>(Guid.NewGuid());
         var streamId2 = StreamId.Create(streamNamespace2, streamGuid);
@@ -478,7 +478,7 @@ public class SubscriptionMultiplicityTestRunner
         var produced2 = await ProduceUntilConsumedAsync(producer2, this.testCluster.Client!, streamId2, cts.Token, EventCountPerPhase, (consumer2, handle2.HandleId));
         await AssertCountersAsync(producer2, consumer2, produced2, 1);
 
-        // send some events on first stream again /////////////////////////////
+        // 再次在第一条流上发送一些事件 /////////////////////////////
         produced = await ProduceUntilConsumedAsync(producer, this.testCluster.Client!, streamId1, cts.Token, EventCountPerPhase, false, (consumer, handle.HandleId));
         await AssertCountersAsync(producer, consumer, produced, 1);
 
@@ -494,7 +494,7 @@ public class SubscriptionMultiplicityTestRunner
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(Timeout);
 
-        // get producer and consumer
+        // 生产者和消费者
         var producer = this.testCluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
         var eventCount = new LocalCountObserver(cts.Token);
         var streamId = StreamId.Create(streamNamespace, streamGuid);
@@ -515,13 +515,13 @@ public class SubscriptionMultiplicityTestRunner
             },
             cts.Token);
 
-        // produce some messages
+        // 生成一些消息
         await producer.BecomeProducer(streamGuid, streamNamespace, streamProviderName, cts.Token);
         await WarmUpColdClientStreamAsync(producer, cts.Token, eventCount);
         var produced = await ProduceUntilClientConsumedAsync(producer, cts.Token, eventCount, EventCountPerPhase);
         await AssertCountersAsync(producer, () => eventCount.CurrentCount, produced);
 
-        // unsubscribe
+        // 取消订阅
         await handle.UnsubscribeAsync();
     }
 

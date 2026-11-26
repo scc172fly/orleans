@@ -9,13 +9,13 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Carries the identity, timing, participant access, and commit state of a transaction.
+    /// 获取交易的身份、时间、参与者的接触和进行交易。
     /// </summary>
     [GenerateSerializer]
     public sealed class TransactionInfo
     {
         /// <summary>
-        /// Initializes an empty transaction information instance.
+        /// 初始化一个空交易信息实例 。
         /// </summary>
         public TransactionInfo()
         {
@@ -24,12 +24,12 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Initializes transaction information with its identity and scheduling timestamps.
+        /// 以其身份和时间安排时间戳初始化交易信息。
         /// </summary>
-        /// <param name="id">The unique transaction identifier.</param>
-        /// <param name="timeStamp">The initial causal timestamp used to determine the commit timestamp.</param>
-        /// <param name="priority">The timestamp used to order the transaction when acquiring participant locks.</param>
-        /// <param name="readOnly">Whether the transaction is declared read-only.</param>
+        /// <param name="id">独特的交易识别特征。</param>
+        /// <param name="timeStamp">用于确定承诺时间戳的初始因果时间戳。</param>
+        /// <param name="priority">获取参与人锁定时用于命令交易的时间戳。</param>
+        /// <param name="readOnly">是否只宣布交易为只读。</param>
         public TransactionInfo(Guid id, DateTime timeStamp, DateTime priority, bool readOnly = false) : this()
         {
             this.TransactionId = id;
@@ -39,13 +39,13 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Initializes a transaction branch with the transaction-wide metadata from another instance.
+        /// 以另一个实例的全交易元数据初始化交易分支。
         /// </summary>
-        /// <param name="other">The transaction information to copy.</param>
+        /// <param name="other">要复制的交易信息。</param>
         /// <remarks>
-        /// Participant access counts, pending-call state, and joined branches remain local to each instance.
+        /// 参加调查者对进入情况进行清点,待查州和加入的分支机构对每个案件来说仍然是地方性的。
         /// </remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="other"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="other"/> 是 <see langword="null"/>.</exception>
         public TransactionInfo(TransactionInfo other) : this()
         {
             ArgumentNullException.ThrowIfNull(other);
@@ -59,55 +59,55 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Gets the string representation of the transaction identifier.
+        /// 获取交易标识符的字符串表示。
         /// </summary>
         public string Id => TransactionId.ToString();
 
         /// <summary>
-        /// Gets the unique transaction identifier.
+        /// 获得唯一的交易识别特征。
         /// </summary>
         [Id(0)]
         public Guid TransactionId { get; }
 
         /// <summary>
-        /// Gets or sets the transaction's causal timestamp, which advances to include participant timestamps.
+        /// 获取或设置交易的因果时间戳,预支时戳包括参与者的时间戳。
         /// </summary>
         [Id(1)]
         public DateTime TimeStamp { get; set; }
 
         /// <summary>
-        /// Gets or sets the timestamp used to order the transaction when acquiring participant locks.
+        /// 获取参与者锁定时, 获取或设置用于命令交易的时间戳 。
         /// </summary>
         [Id(2)]
         public DateTime Priority { get; set; }
 
         /// <summary>
-        /// Gets a value indicating whether the transaction is declared read-only.
+        /// 获得一个值,显示是否只宣布只读交易。
         /// </summary>
         [Id(3)]
         public bool IsReadOnly { get; }
 
         /// <summary>
-        /// Gets or sets the serialized first exception which requires the transaction to abort.
+        /// 获取或设置要求交易中止的第一个序列化例外。
         /// </summary>
         [Id(4)]
         public byte[]? OriginalException { get; set; }
 
         /// <summary>
-        /// Gets participant access counts keyed by participant identifier.
+        /// 获得参与者识别符号所输入的参与者访问数。
         /// </summary>
-        /// <remarks>A write count of zero indicates that the participant was only read.</remarks>
+        /// <remarks>写数为零表示只读取了参与人。</remarks>
         [Id(5)]
         public Dictionary<ParticipantId, AccessCounter> Participants { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the transaction delegate voted to commit.
+        /// 获得一个显示交易代表是否投票承诺的值。
         /// </summary>
         [Id(6)]
         public bool TryToCommit { get; internal set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether participant reads acquire exclusive locks.
+        /// 获取或设定一个值,显示参与者是否读取了独家锁。
         /// </summary>
         [Id(7)]
         public bool UseExclusiveLock { get; set; } = false;
@@ -116,7 +116,7 @@ namespace Orleans.Transactions
         internal TimeSpan Timeout { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of forked calls which have not yet been reconciled.
+        /// 获取或设置尚未调节的打到的打字电话数量。
         /// </summary>
         [NonSerialized]
         public int PendingCalls;
@@ -125,9 +125,9 @@ namespace Orleans.Transactions
         private readonly ConcurrentQueue<TransactionInfo> joined;
 
         /// <summary>
-        /// Creates transaction information for a forked call and records that the call is pending.
+        /// 为预先通知创建交易信息,记录电话待发。
         /// </summary>
-        /// <returns>A new transaction branch containing the transaction-wide metadata from this instance.</returns>
+        /// <returns>一个新的交易分支,包含来自此实例的全交易元数据。</returns>
         public TransactionInfo Fork()
         {
             Interlocked.Increment(ref PendingCalls);
@@ -135,10 +135,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Queues a completed transaction branch for reconciliation with this instance.
+        /// 将一个已完成的交易分支与此实例核对。
         /// </summary>
-        /// <param name="x">The completed transaction branch to join.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="x"/> is <see langword="null"/>.</exception>
+        /// <param name="x">已完成的交易事务组加入。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="x"/> 是 <see langword="null"/>.</exception>
         public void Join(TransactionInfo x)
         {
             ArgumentNullException.ThrowIfNull(x);
@@ -146,15 +146,15 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Determines whether the transaction must abort because an exception was recorded or forked calls remain outstanding.
+        /// 确定交易是否因为记录了例外或被提前通知的电话仍然未结而必须中止。
         /// </summary>
-        /// <param name="serializer">The serializer used to deserialize a recorded transaction exception.</param>
+        /// <param name="serializer">用于解除已记录的交易例外的序列器。</param>
         /// <returns>
-        /// The recorded abort exception, an orphan-call exception for outstanding calls, or <see langword="null"/>
-        /// when the transaction has no mandatory abort condition.
+        /// 记录的堕胎例外、未结电话的致孤电话例外,或 <see langword="null"/>
+        /// 当交易没有强制性中止条件时。
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="serializer"/> is <see langword="null"/> when a recorded exception requires deserialization.
+        /// <paramref name="serializer"/> 是指记录中的例外情况需要取消机能时的 <see langword="null"/> 。
         /// </exception>
         public OrleansTransactionAbortedException? MustAbort(Serializer<OrleansTransactionAbortedException> serializer)
         {
@@ -174,12 +174,12 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Records the first exception raised by transaction execution as a serialized transaction abort exception.
+        /// 将交易执行引起的第一个例外记录为系列交易中止例外。
         /// </summary>
-        /// <param name="e">The exception raised during transaction execution.</param>
-        /// <param name="sm">The serializer used to store the exception for transaction propagation.</param>
+        /// <param name="e">交易执行期间提出的例外。</param>
+        /// <param name="sm">用于存储交易传播例外的序列器。</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="sm"/> is <see langword="null"/> when recording the first exception.
+        /// <paramref name="sm"/> 记录第一个例外时为 <see langword="null"/> 。
         /// </exception>
         public void RecordException(Exception e, Serializer<OrleansTransactionAbortedException> sm)
         {
@@ -194,7 +194,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Merges all joined transaction branches and updates the outstanding-call count.
+        /// 合并所有合并的交易分支并更新未清的调用计数。
         /// </summary>
         public void ReconcilePending()
         {
@@ -213,7 +213,7 @@ namespace Orleans.Transactions
                 OriginalException = other.OriginalException;
             }
 
-            // Take sum of write counts
+            // 记笔数总和
             foreach (KeyValuePair<ParticipantId, AccessCounter> participant in other.Participants)
             {
                 if (!this.Participants.TryGetValue(participant.Key, out var existing))
@@ -226,20 +226,20 @@ namespace Orleans.Transactions
                 }
             }
 
-            // take max of timestamp
+            // 使用最大时间戳
             if (TimeStamp < other.TimeStamp)
                 TimeStamp = other.TimeStamp;
 
-            // take commit pending flag
+            // 执行待悬挂的国旗
             if (TryToCommit)
                 TryToCommit = other.TryToCommit;
         }
 
         /// <summary>
-        /// Records a participant read and advances the transaction timestamp when required.
+        /// 参与人在需要时读取并预发交易时间戳的记录。
         /// </summary>
-        /// <param name="id">The participant which was read.</param>
-        /// <param name="minTime">The minimum timestamp which the transaction must observe after the read.</param>
+        /// <param name="id">被宣读的与会者。</param>
+        /// <param name="minTime">读后交易必须遵守的最低时间戳。</param>
         public void RecordRead(ParticipantId id, DateTime minTime)
         {
             this.Participants.TryGetValue(id, out AccessCounter count);
@@ -255,10 +255,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Records a participant write and advances the transaction timestamp when required.
+        /// 参与人必要时记录并预发交易时间戳。
         /// </summary>
-        /// <param name="id">The participant which was written.</param>
-        /// <param name="minTime">The minimum timestamp which the transaction must observe after the write.</param>
+        /// <param name="id">参加方写了那封信</param>
+        /// <param name="minTime">写后交易必须遵守的最小时间戳。</param>
         public void RecordWrite(ParticipantId id, DateTime minTime)
         {
             this.Participants.TryGetValue(id, out AccessCounter count);
@@ -274,9 +274,9 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Returns a diagnostic representation of the transaction and its participant accesses.
+        /// 返回交易及其参与者存取的诊断性表示。
         /// </summary>
-        /// <returns>A string containing transaction timing, outcome state, and participant access counts.</returns>
+        /// <returns>包含交易时间、结果状态和参与者访问量的字符串。</returns>
         public override string ToString()
         {
             return string.Join("",

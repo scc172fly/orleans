@@ -1,28 +1,28 @@
 namespace Orleans.Dashboard;
 
 /// <summary>
-/// Configuration options for the Orleans Dashboard.
+/// Orleans 仪表板配置选项。
 /// </summary>
 public sealed class DashboardOptions
 {
     /// <summary>
-    /// Gets or sets a value indicating whether to disable the trace feature.
-    /// When true, the live log streaming endpoint will be disabled.
-    /// The default is false.
+    /// 获取或设置一个值,以显示是否禁用跟踪特性。
+    /// 当真时, 现场日志流端点将被禁用 。
+    /// 默认值为假 。
     /// </summary>
     public bool HideTrace { get; set; }
 
     /// <summary>
-    /// Gets or sets the number of milliseconds between counter samples.
-    /// Must be greater than or equal to 1000.
-    /// The default is 1000 (1 second).
+    /// 获取或设定反向样本之间的毫秒数。
+    /// 必须大于或等于1000。
+    /// 默认为 1000 (1秒) 。
     /// </summary>
     public int CounterUpdateIntervalMs { get; set; } = 1000;
 
     /// <summary>
-    /// Gets or sets the length of the history to maintain for metrics.
-    /// Higher values provide more historical data but consume more memory.
-    /// The default is 100.
+    /// 获取或设置用于测量的历史长度。
+    /// 较高数值提供了更多的历史数据,但消耗了更多的内存。
+    /// 违约为100。
     /// </summary>
     public int HistoryLength { get; set; } = 100;
 }

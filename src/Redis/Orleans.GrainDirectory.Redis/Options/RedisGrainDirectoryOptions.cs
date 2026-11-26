@@ -7,36 +7,36 @@ using StackExchange.Redis;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configuration options for the <see cref="RedisGrainDirectory"/>
+    /// <see cref="RedisGrainDirectory"/>配置选项
     /// </summary>
     public class RedisGrainDirectoryOptions
     {
         /// <summary>
-        /// Gets or sets the Redis client configuration.
+        /// 获取或设置 Redis 客户端配置。
         /// </summary>
         [RedactRedisConfigurationOptions]
         public ConfigurationOptions? ConfigurationOptions { get; set; }
 
         /// <summary>
-        /// The delegate used to create a Redis connection multiplexer and indicate whether it is shared.
+        /// 该代表用来创建 Redis 连接多路驱动器,并表明该多路转换器是否共享。
         /// </summary>
         /// <remarks>
-        /// When <c>IsShared</c> is <see langword="true"/>, the provider will not dispose the returned multiplexer.
+        /// 当 <c>IsShared</c> 是 <see langword="true"/>时,供应商将不处置返回的多路驱动器。
         /// </remarks>
         public Func<RedisGrainDirectoryOptions, Task<(IConnectionMultiplexer Multiplexer, bool IsShared)>> CreateMultiplexer { get; set; } = DefaultCreateMultiplexer;
 
         /// <summary>
-        /// Entry expiry, null by default. A value should be set ONLY for ephemeral environments (like in tests).
-        /// Setting a value different from null will cause duplicate activations in the cluster.
+        /// 输入过期, 默认为无效。 值应该只为短时间环境设定( 如测试中) 。
+        /// 设定一个不同于无效的值将导致集群中重复激活。
         /// </summary>
         public TimeSpan? EntryExpiry { get; set; } = null;
 
         /// <summary>
-        /// The default multiplexer creation delegate.
+        /// 默认的多路驱动器创建代表 。
         /// </summary>
-        /// <param name="options">The Redis grain directory options.</param>
-        /// <returns>A task which returns a provider-owned connection multiplexer.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
+        /// <param name="options"> Redis grain 目录选项。</param>
+        /// <returns>返回一个自供应商拥有的连接多路驱动器的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> 是 <see langword="null"/>.</exception>
         public static async Task<(IConnectionMultiplexer Multiplexer, bool IsShared)> DefaultCreateMultiplexer(RedisGrainDirectoryOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
@@ -50,7 +50,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Configuration validator for <see cref="RedisGrainDirectoryOptions"/>.
+    /// <see cref="RedisGrainDirectoryOptions"/>的配置验证符 。
     /// </summary>
     public class RedisGrainDirectoryOptionsValidator : IConfigurationValidator
     {
@@ -58,10 +58,10 @@ namespace Orleans.Configuration
         private readonly string _name;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RedisGrainDirectoryOptionsValidator"/> class.
+        /// 初始化 <see cref="RedisGrainDirectoryOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options to validate.</param>
-        /// <param name="name">The name of the grain directory.</param>
+        /// <param name="options">验证的选项。</param>
+        /// <param name="name"> grain 目录的名称。</param>
         public RedisGrainDirectoryOptionsValidator(RedisGrainDirectoryOptions options, string name)
         {
             _options = options;

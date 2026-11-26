@@ -8,7 +8,7 @@ using Xunit;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Tests structural equality behavior that Roslyn incremental caching depends on.
+/// 测试Roslyn的结构性平等行为 以及罗丝琳的累积性积蓄
 /// </summary>
 public class IncrementalModelEqualityTests
 {

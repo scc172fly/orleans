@@ -8,20 +8,20 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Durable.Tasks.Protocol;
 
 /// <summary>
-/// Polls a task's grain, and requests its cancellation or abort, from code outside a durable execution, such as a client,
-/// retrying the failures which leave the task itself unaffected.
+/// 将任务 grain从耐用执行之外的代码(如客户)中调出,并要求取消或中止任务。
+/// 重新尝试使任务本身不受影响的种种失败。
 /// </summary>
 /// <remarks>
 /// <para>
-/// A poll is a read, and cancellation and abort are idempotent, so repeating them is safe. A failure to reach the grain,
-/// such as a lost connection, a silo which stopped or crashed, a call which timed out, or an activation which was
-/// stopping, leaves the task as it was, and the next attempt reaches its grain's next activation. Such failures are
-/// retried with exponential backoff, from <see cref="InitialRetryDelay"/> to <see cref="MaxRetryDelay"/>, until the call
-/// returns or the caller's token ends the wait. The task's outcome, and <see cref="DurableTaskNotFoundException"/> for a
-/// task which the grain doesn't retain, surface at once.
+/// 民意测验是读取,取消和中止是一无所有,所以重复这些调查是安全的。未能达到 grain,
+/// 例如,失去连接、停止或崩溃的 silo 、超时的呼叫或启动
+/// 停止, 离开任务原样, 而下一次尝试达到其下次启动 grain。 这种失败是
+/// 以指数反射重新审判,从 <see cref="InitialRetryDelay"/> 到 <see cref="MaxRetryDelay"/>,直到呼叫
+/// 返回调用符号,或调用符号停止等待。任务结果,以及 <see cref="DurableTaskNotFoundException"/> a 的a
+/// 任务,而 grain 没有保留,即时浮出水面。
 /// </para>
 /// <para>
-/// A call which the calling grain serves from its own runtime has no transport to fail, and isn't retried.
+/// 呼唤的召唤 grain 服务从它自己的运行时间 没有运输失败,也没有再尝试。
 /// </para>
 /// </remarks>
 internal static class DurableTaskPolling
@@ -29,7 +29,7 @@ internal static class DurableTaskPolling
     internal static readonly TimeSpan InitialRetryDelay = TimeSpan.FromMilliseconds(50);
     internal static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(5);
 
-    /// <summary>Polls <paramref name="taskId"/> on <paramref name="server"/>, retrying transient failures.</summary>
+    /// <summary>投票 <paramref name="taskId"/> 日期 时 <paramref name="server"/>,重新尝试瞬时失败。</summary>
     public static async ValueTask<DurableTaskResponse> PollAsync(
         IDurableTaskServer server,
         TaskId taskId,
@@ -56,12 +56,12 @@ internal static class DurableTaskPolling
     }
 
     /// <summary>
-    /// Runs <paramref name="request"/>, an idempotent request to <paramref name="server"/> such as a cancellation or an
-    /// abort, retrying transient failures.
+    /// 运行 <paramref name="request"/>,即向 <paramref name="server"/> 提出不称职的请求,例如取消或
+    /// 中止, 重试瞬态失败 。
     /// </summary>
     /// <remarks>
-    /// Each call runs to completion on the grain regardless of <paramref name="cancellationToken"/>, which ends only the
-    /// caller's wait, so a request which the grain already received takes effect.
+    /// 每一通呼的速率 grain 不论 <paramref name="cancellationToken"/>,而它只结束
+    /// 呼叫者等待,因此已经收到的 grain 请求生效。
     /// </remarks>
     public static async ValueTask SendAsync<TState>(
         IDurableTaskServer server,
@@ -90,7 +90,7 @@ internal static class DurableTaskPolling
         }
     }
 
-    /// <summary>Waits <paramref name="delay"/> and returns the next, doubled up to <see cref="MaxRetryDelay"/>.</summary>
+    /// <summary>等待 <paramref name="delay"/> 并返回下一个,翻倍到 <see cref="MaxRetryDelay"/>。</summary>
     private static async ValueTask<TimeSpan> BackOffAsync(TimeSpan delay, CancellationToken cancellationToken)
     {
         await Task.Delay(delay, cancellationToken);
@@ -98,16 +98,16 @@ internal static class DurableTaskPolling
     }
 
     /// <summary>
-    /// Returns whether <paramref name="exception"/> reports a failure to reach the task's grain, rather than the task's
-    /// outcome or the end of the caller's wait.
+    /// 返回 <paramref name="exception"/> 报告未达到任务 grain,而不是任务
+    /// 或呼叫者等待的结束
     /// </summary>
     internal static bool IsTransient(Exception exception, CancellationToken cancellationToken) => exception switch
     {
-        // Includes SiloUnavailableException, and rejections of calls to activations which fail or move.
+        // 包括 SiloUnavailableException,以及拒绝启动失败或移动的电话。
         OrleansMessageRejectionException => true,
         ConnectionFailedException or GatewayTooBusyException or TimeoutException => true,
 
-        // The grain's runtime rejects calls, and fails pending waits, while its activation stops.
+        // grain运行时拒绝呼叫,在启动停止时无法等待。
         DurableTaskAttemptCanceledException { Reason: DurableTaskAttemptCancellationReason.ActivationStopping } => !cancellationToken.IsCancellationRequested,
         _ => false,
     };

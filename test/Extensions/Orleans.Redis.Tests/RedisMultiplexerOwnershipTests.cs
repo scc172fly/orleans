@@ -18,9 +18,9 @@ using Xunit;
 namespace Tester.Redis;
 
 /// <summary>
-/// Verifies that the non-streaming Redis providers dispose multiplexers they own while leaving shared
-/// (for example, DI-provided) multiplexers untouched. Each provider implements <see cref="System.IDisposable"/>
-/// and <see cref="System.IAsyncDisposable"/> independently, so both disposal paths are exercised.
+/// 证明非流放 Redis 供应商处置其拥有的多路驱动器,同时放弃共享
+/// 多个多路驱动器未动。每个供应商都执行 <see cref="System.IDisposable"/>
+/// 和 <see cref="System.IAsyncDisposable"/> 因此,两种处置途径都是独立行使的。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("Redis")]
@@ -39,8 +39,8 @@ public sealed class RedisMultiplexerOwnershipTests
     {
         var connectionString = TestDefaultConfiguration.RedisConnectionString;
 
-        // The dispose-before-initialize tests do not require a live Redis and never connect, so fall back to an
-        // empty configuration when no connection string is configured rather than failing to parse a null value.
+        // 处置前的启动前测试不需要实时 Redis ,也从未连接,所以返回
+        // 当没有配置连接字符串时的空配置, 而不是无法分析一个空值 。
         return string.IsNullOrWhiteSpace(connectionString)
             ? new ConfigurationOptions()
             : ConfigurationOptions.Parse(connectionString);
@@ -177,7 +177,7 @@ public sealed class RedisMultiplexerOwnershipTests
 
         provider.Dispose();
 
-        // Disposing before Initialize should leave the directory in a disposed state rather than throwing.
+        // 初始化前的处置应该离开目录,以处置状态而不是扔弃。
         Assert.Null(await provider.Lookup(GrainId.Create("test", "key")));
     }
 
@@ -202,7 +202,7 @@ public sealed class RedisMultiplexerOwnershipTests
 
         await dispose();
 
-        // The shared multiplexer is owned by the caller, so it must remain usable after the provider is disposed.
+        // 共享的多路驱动器由呼叫者拥有,因此在供应商处置后必须保持可用。
         Assert.True(connection.IsConnected);
         await connection.GetDatabase().PingAsync();
     }
@@ -222,7 +222,7 @@ public sealed class RedisMultiplexerOwnershipTests
 
             await dispose();
 
-            // The provider created and therefore owns this multiplexer, so disposal must tear it down.
+            // 供应商创建了这个多路驱动器,因此拥有它 所以处置必须把它拆掉
             Assert.False(connection.IsConnected);
         }
         finally

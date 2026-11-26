@@ -1,9 +1,9 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// Combined model aggregating all pipeline outputs for metadata class generation.
-/// This is the input to the final <c>RegisterImplementationSourceOutput</c> that produces the
-/// <c>Metadata_{AssemblyName}</c> class and assembly-level attributes.
+/// 综合模型,汇总元数据类生成的所有编审中产出。
+/// 这是对最后 <c>RegisterImplementationSourceOutput</c> 生产可生产
+/// <c>Metadata_{AssemblyName}</c> 类和组级属性。
 /// </summary>
 internal sealed record class MetadataAggregateModel(
     string AssemblyName,
@@ -21,6 +21,6 @@ internal sealed record class MetadataAggregateModel(
     EquatableArray<DefaultCopierModel> DefaultCopiers);
 
 /// <summary>
-/// Describes a default copier mapping (type → copier type) for shallow-copyable types.
+/// 描述为浅可复制型的默认复印机映射(类型为“复印机”类型)。
 /// </summary>
 internal readonly record struct DefaultCopierModel(TypeRef OriginalType, TypeRef CopierType);

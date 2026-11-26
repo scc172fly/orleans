@@ -1,40 +1,40 @@
 namespace Orleans.Caching.Internal;
 
 /// <summary>
-/// Represents cache metrics collected over the lifetime of the cache.
-/// If metrics are disabled.
+/// 代表缓冲使用寿命期间收集的缓存量度。
+/// 如果测量标准被禁用。
 /// </summary>
-// Derived from BitFaster.Caching by Alex Peck
+// 由Alex Peck从 BitFaster.Caching 取出
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/ICacheMetrics.cs?plain=1#L8C22-L8C35
 internal interface ICacheMetrics
 {
     /// <summary>
-    /// Gets the ratio of hits to misses, where a value of 1 indicates 100% hits.
+    /// 获得点击率和误差率, 其中值为 1 表示100%的点击率 。
     /// </summary>
     double HitRatio { get; }
 
     /// <summary>
-    /// Gets the total number of requests made to the cache.
+    /// 获得向缓存处提出的申请总数。
     /// </summary>
     long Total { get; }
 
     /// <summary>
-    /// Gets the total number of cache hits.
+    /// 获得缓冲点击总数。
     /// </summary>
     long Hits { get; }
 
     /// <summary>
-    /// Gets the total number of cache misses.
+    /// 获得缓存失灵的总数。
     /// </summary>
     long Misses { get; }
 
     /// <summary>
-    /// Gets the total number of evicted items.
+    /// 获得被逐出物品的总数。
     /// </summary>
     long Evicted { get; }
 
     /// <summary>
-    /// Gets the total number of updated items.
+    /// 获得更新项目总数。
     /// </summary>
     long Updated { get; }
 }

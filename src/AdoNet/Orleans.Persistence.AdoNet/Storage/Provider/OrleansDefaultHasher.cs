@@ -1,7 +1,7 @@
 namespace Orleans.Storage
 {
     /// <summary>
-    /// A default implementation uses the same hash as Orleans in grains placement.
+    /// 默认执行默认使用与 Orleans 内 grains 安置。
     /// </summary>
     public sealed class OrleansDefaultHasher : IHasher
     {

@@ -4,7 +4,7 @@ using System;
 
 namespace Orleans.Serialization;
 
-// Shared with the attribute analyzer so declarations have the same contract at build time and runtime.
+// 属性分析器共享,因此声明在构建时间和运行时间具有相同的合同。
 internal static class IdentityNameValidator
 {
     public const int MaxGenericArity = 64;
@@ -40,7 +40,7 @@ internal static class IdentityNameValidator
                     }
                 }
 
-                // Runtime type parsing consumes an arity suffix followed only by a nested type or the end.
+                // 运行时间类型分析会消耗一个数后缀, 之后只有嵌套的类型或结尾。
                 if (index < arityStart || index + 1 < value.Length && value[index + 1] != '+')
                 {
                     return false;

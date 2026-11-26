@@ -13,7 +13,7 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Serialization.UnitTests.TaggedUnions;
 
 /// <summary>
-/// Tests tagged-union serialization of closed type hierarchies and union types.
+/// 测试封闭式等级和工会类型的有标签的工会连锁化。
 /// </summary>
 [Trait("Category", "BVT")]
 [Trait("Suite", "BVT")]
@@ -84,7 +84,7 @@ public class TaggedUnionSerializationTests : IDisposable
         var asClosedType = _serializer.SerializeToArray<Sensor>(value);
         var asObject = _serializer.SerializeToArray<object>(value);
 
-        // The union field adds a header byte and an end byte around the case field, which is encoded with the expected-type optimization.
+        // 联盟字段在案例字段周围添加一个页眉字节和一个端字节,该词节以预期类型的优化编码。
         Assert.Equal(asCase.Length + 2, asClosedType.Length);
         Assert.True(asObject.Length > asClosedType.Length + 20, $"Expected the encoded type name to dominate: {asObject.Length} vs {asClosedType.Length}");
     }
@@ -92,7 +92,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public Task ClosedHierarchyAndEquivalentUnionEncoding_MatchesSnapshot()
     {
-        // The snapshot records the closed hierarchy's encoding, and the union with the same cases and case identifiers must produce the same bytes.
+        // 快速记录了封闭式等级的编码,而拥有相同案例和案件识别特征的工会必须产生相同的字节。
         var snapshot = new StringBuilder();
         foreach (var value in SensorValues.Append<Sensor?>(null))
         {
@@ -120,7 +120,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public Task TransparentClosedHierarchyReplacedByUnionEncoding_MatchesSnapshot()
     {
-        // Before the upgrade: a stateless, serializer-transparent closed base. After: a union of the same records without the base.
+        // 升级前:无国籍、连续式透明封闭基地。之后:没有固定基地的同一记录合并。
         var snapshot = new StringBuilder();
         foreach (var (before, after) in new (ShapeV1?, ShapeV2)[] { (new CircleV1(1.5), new CircleV2(1.5)), (new SquareV1(2), new SquareV2(2)), (null, default) })
         {
@@ -167,7 +167,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void UnionReadsPayloadsWithEncodedRuntimeTypeOrNullReference()
     {
-        // Payloads written for a closed type before it used case identifiers encode the runtime type, and encode null as a null reference.
+        // 用于封闭型号的有效载荷,在它使用案件识别符号编码运行时间类型和编码无效参考编号前,先为该封闭型号而写成。
         var value = new Humidity(55) { Location = "attic" };
 
         Assert.Equal(value, _serializer.Deserialize<SensorUnion>(_serializer.SerializeToArray<object>(value)).Value);
@@ -177,7 +177,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void ClosedHierarchyCaseIdentifiersAboveSixAreSupported()
     {
-        // Contact uses case identifier 9, which does not fit in the tag byte.
+        // 联系人使用与标记字节不符的9号案识别符号。
         var result = RoundTrip<Sensor>(new Contact { Open = true });
 
         Assert.Equal(new Contact { Open = true }, result);
@@ -188,7 +188,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [InlineData(true)]
     public void ClosedHierarchyReadsLegacyPayloadAndWritesTaggedFormat(bool empty)
     {
-        // The legacy format uses a runtime-type header for a value and a null reference for null.
+        // 遗留格式使用运行时间类型头来表示一个值,而无效引用则表示无效。
         var value = empty ? null : new Humidity(55) { Location = "attic" };
         var legacyBytes = _serializer.SerializeToArray<object?>(value);
 
@@ -229,7 +229,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void SkippedUnionFieldsKeepReferencesAligned()
     {
-        // A reader without the first field skips it, so it resolves the reference in the second field from the skipped union field.
+        // 读者没有第一个字段跳过它, 所以从被忽略的联盟字段中解决第二个字段中的引用。
         var shared = new Temperature(30);
         var bytes = _serializer.SerializeToArray(new SensorHolder { First = shared, Second = shared, Trailing = "after" });
 
@@ -303,7 +303,7 @@ public class TaggedUnionSerializationTests : IDisposable
         Assert.Null(RoundTrip(default(IntOrString)).Value);
         Assert.Equal(42, Copy<IntOrString>(42).Value);
 
-        // A value-type case is written with its static codec: union header, case header, value, end.
+        // 价值类型案例用固定代码书写:工会页头、案件页眉、价值、结束。
         Assert.Equal(_serializer.SerializeToArray(42).Length + 2, _serializer.SerializeToArray<IntOrString>(42).Length);
     }
 
@@ -322,7 +322,7 @@ public class TaggedUnionSerializationTests : IDisposable
         Assert.Equal(new Value<string>("r"), RoundTrip(right).Value);
         Assert.Equal(new Value<int>(1), RoundTrip(left).Value);
 
-        // When both cases have the same type, the union cannot distinguish them, and its value round-trips through the first case.
+        // 当两种情况都属于同一类型时,工会无法区分它们,其价值贯穿第一个情况。
         var same = CreateRight<int, int>(2);
         Assert.Equal(new Value<int>(2), RoundTrip(same).Value);
     }
@@ -332,7 +332,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void UnionCaseIdentifiersCanBeAssigned()
     {
-        // PetV2 retires the identifier between its cases, so its first case remains readable by PetV1.
+        // PetV2 将案件之间识别符号留存,因此第一个案件仍可被 PetV1读取。
         var catBytes = _serializer.SerializeToArray<PetV2>(new Cat("Tom"));
         Assert.Equal(new Cat("Tom"), _serializer.Deserialize<PetV1>(catBytes).Value);
         Assert.Equal(new Dog("Fido"), RoundTrip<PetV2>(new Dog("Fido")).Value);
@@ -569,12 +569,12 @@ public sealed record ReedContact : Contact
 }
 
 /// <summary>
-/// A union with the same cases and case identifiers as <see cref="Sensor"/>.
+/// 与 <see cref="Sensor"/>具有相同案例和案件识别特征的结合。
 /// </summary>
 [GenerateSerializer, CaseIds(0, 1, 2, 9)]
 public union SensorUnion(Temperature, Humidity, Environmental, Contact);
 
-// A closed hierarchy whose stateless base is invisible to serialization, and the union which replaces it.
+// 一种封闭的等级,其无国籍基础对序列化和取代它的联盟是看不见的。
 [GenerateSerializer, SerializerTransparent]
 public closed record ShapeV1;
 
@@ -748,7 +748,7 @@ public union MaybeNumber(int?, string);
 [GenerateSerializer]
 public sealed record Value<T>([property: Id(0)] T Item);
 
-// The cases intentionally share a generic definition to verify first-case semantics when the type arguments are equal.
+// 这些案件有意在类型辩论相同时使用通用定义,以核实第一案语义。
 [GenerateSerializer]
 public union Either<L, R>(Value<L>, Value<R>);
 

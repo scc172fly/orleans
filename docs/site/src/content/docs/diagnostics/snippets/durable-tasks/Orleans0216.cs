@@ -4,7 +4,7 @@ namespace Documentation.Diagnostics.DurableTasks;
 // <orleans0216_violation>
 public sealed class CheckoutEndpoint(IOrderWorkflows orders)
 {
-    // A client has no durable outbox, so Post throws InvalidOperationException.
+    // 客户没有耐久发件箱,所以Post投出 InvalidOperationException。
     public void Checkout(Guid orderId) =>
         orders.PlaceOrderAsync(orderId).WithId($"place-order-{orderId:N}").Post();
 }
@@ -14,7 +14,7 @@ public sealed class CheckoutEndpoint(IOrderWorkflows orders)
 // <orleans0216_fix_schedule>
 public sealed class ScheduledCheckoutEndpoint(IOrderWorkflows orders)
 {
-    // Returns once the order's grain has accepted and stored the task. A retry with the same ID reaches the same task.
+    // 一旦命令 grain 接受并存储任务,返回该返回。使用同一身份的重试将达到相同的任务 。
     public async Task<string> CheckoutAsync(Guid orderId)
     {
         var workflow = await orders.PlaceOrderAsync(orderId).WithId($"place-order-{orderId:N}").ScheduleAsync();
@@ -35,7 +35,7 @@ public sealed class BasketGrain : DurableGrain
         _checkedOut = StateManager.GetOrAddValue<Guid?>("checked-out");
     }
 
-    // In a durable grain, Post stages the start in the grain's outbox, and it commits with the grain's state change.
+    // 在耐用 grain中,“邮政”将启动在 grain发件箱中的起始阶段,并承诺进行 grain的国家变化。
     public async Task CheckoutAsync(Guid orderId)
     {
         _checkedOut.Value = orderId;

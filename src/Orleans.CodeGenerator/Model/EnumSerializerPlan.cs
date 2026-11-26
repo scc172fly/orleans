@@ -1,6 +1,6 @@
 namespace Orleans.CodeGenerator.Model;
 
-// Each fragment is spelled against the current compilation before this symbol-free cache boundary.
+// 每一碎片都拼写在目前的汇编上,然后才划出无符号缓存边界。
 internal sealed record EnumSerializerPlan(
     string Name,
     bool IsPublic,
@@ -10,7 +10,7 @@ internal sealed record EnumSerializerPlan(
     string CodecInterface,
     EmissionLibraryTypes Library);
 
-// TypeSyntax is the serializable type's identity spelling, which names its source hint.
+// TypeSyntax 是可连号式的身份拼写,标明其源提示。
 internal sealed record EnumSerializerOutputPlan(
     EnumSerializerPlan Serializer,
     string AssemblyName,

@@ -8,19 +8,19 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Surrogate serializer for <typeparamref name="TField"/>.
+    /// <typeparamref name="TField"/>的代用序列器。
     /// </summary>
-    /// <typeparam name="TField">The type which the implementation of this class supports.</typeparam>
-    /// <typeparam name="TSurrogate">The surrogate type serialized in place of <typeparamref name="TField"/>.</typeparam>
+    /// <typeparam name="TField">执行此类支持的类型。</typeparam>
+    /// <typeparam name="TSurrogate">代替代用类型 <typeparamref name="TField"/>.</typeparam>
     public abstract class ReferenceTypeSurrogateCodec<TField, TSurrogate> : IFieldCodec<TField> where TSurrogate : struct
     {
         private readonly Type CodecFieldType = typeof(TField);
         private readonly IValueSerializer<TSurrogate> _surrogateSerializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReferenceTypeSurrogateCodec{TField, TSurrogate}"/> class.
+        /// 初始化 <see cref="ReferenceTypeSurrogateCodec{TField, TSurrogate}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         protected ReferenceTypeSurrogateCodec(IValueSerializer<TSurrogate> surrogateSerializer)
         {
             _surrogateSerializer = surrogateSerializer;
@@ -47,7 +47,7 @@ namespace Orleans.Serialization.Codecs
                 return result;
             }
 
-            // The type is a descendant, not an exact match, so get the specific serializer for it.
+            // 类型是后裔,不是完全吻合 所以请具体连发器
             var specificSerializer = reader.Session.CodecProvider.GetCodec(fieldType);
             return (TField)specificSerializer.ReadValue(ref reader, field)!;
         }
@@ -76,17 +76,17 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Converts a surrogate value to the field type.
+        /// 将代数转换为字段类型。
         /// </summary>
-        /// <param name="surrogate">The surrogate.</param>
-        /// <returns>The value.</returns>
+        /// <param name="surrogate">代孕人。</param>
+        /// <returns>数值。</returns>
         public abstract TField ConvertFromSurrogate(ref TSurrogate surrogate);
 
         /// <summary>
-        /// Converts a value to the surrogate type.
+        /// 将一个值转换为代孕类型。
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="surrogate">The surrogate.</param>
+        /// <param name="value">数值。</param>
+        /// <param name="surrogate">代孕人。</param>
         public abstract void ConvertToSurrogate(TField value, ref TSurrogate surrogate);
     }
 }

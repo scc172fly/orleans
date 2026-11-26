@@ -8,9 +8,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1}"/>.
+    /// <see cref="Tuple{T1}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T> : IFieldCodec<Tuple<T>>
     {
@@ -19,9 +19,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T> _valueCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T}"/> class.
+        /// 初始化 <see cref="TupleCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCodec">The value codec.</param>
+        /// <param name="valueCodec">值代码。</param>
         public TupleCodec(IFieldCodec<T> valueCodec)
         {
             _valueCodec = OrleansGeneratedCodeHelper.UnwrapService(this, valueCodec);
@@ -84,9 +84,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1}"/>.
+    /// <see cref="Tuple{T1}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T> : IDeepCopier<Tuple<T>>, IOptionalDeepCopier
     {
@@ -95,9 +95,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T}"/> class.
+        /// 初始化 <see cref="TupleCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">The copier.</param>
+        /// <param name="copier">复印机。</param>
         public TupleCopier(IDeepCopier<T> copier) => _copier = OrleansGeneratedCodeHelper.UnwrapService(this, copier);
 
         /// <inheritdoc />
@@ -120,8 +120,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = Tuple.Create(_copier.DeepCopy(input.Item1, context)!);
@@ -131,10 +131,10 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1, T2}"/>.
+    /// <see cref="Tuple{T1, T2}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T1, T2> : IFieldCodec<Tuple<T1, T2>>
     {
@@ -145,10 +145,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T2> _item2Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T1, T2}"/> class.
+        /// 初始化 <see cref="TupleCodec{T1, T2}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The <typeparamref name="T1"/> codec.</param>
-        /// <param name="item2Codec">The <typeparamref name="T2"/> codec.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
         public TupleCodec(IFieldCodec<T1> item1Codec, IFieldCodec<T2> item2Codec)
         {
             _item1Codec = OrleansGeneratedCodeHelper.UnwrapService(this, item1Codec);
@@ -217,10 +217,10 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1, T2}"/>
+    /// <see cref="Tuple{T1, T2}"/>的复印机
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T1, T2> : IDeepCopier<Tuple<T1, T2>>, IOptionalDeepCopier
     {
@@ -230,10 +230,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T2> _copier2;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T1, T2}"/> class.
+        /// 初始化 <see cref="TupleCopier{T1, T2}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The copier for <typeparamref name="T1"/>.</param>
-        /// <param name="copier2">The copier for <typeparamref name="T2"/>.</param>
+        /// <param name="copier1"> <typeparamref name="T1"/>的复印机。</param>
+        /// <param name="copier2"> <typeparamref name="T2"/>的复印机。</param>
         public TupleCopier(IDeepCopier<T1> copier1, IDeepCopier<T2> copier2)
         {
             _copier1 = OrleansGeneratedCodeHelper.UnwrapService(this, copier1);
@@ -260,8 +260,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = Tuple.Create(
@@ -273,11 +273,11 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1, T2, T3}"/>.
+    /// <see cref="Tuple{T1, T2, T3}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T1, T2, T3> : IFieldCodec<Tuple<T1, T2, T3>>
     {
@@ -290,11 +290,11 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T3> _item3Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T1, T2, T3}"/> class.
+        /// 初始化 <see cref="TupleCodec{T1, T2, T3}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The <typeparamref name="T1"/> codec.</param>
-        /// <param name="item2Codec">The <typeparamref name="T2"/> codec.</param>
-        /// <param name="item3Codec">The <typeparamref name="T3"/> codec.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
         public TupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -372,11 +372,11 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1, T2, T3}"/>.
+    /// <see cref="Tuple{T1, T2, T3}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T1, T2, T3> : IDeepCopier<Tuple<T1, T2, T3>>, IOptionalDeepCopier
     {
@@ -387,11 +387,11 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T3> _copier3;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T1, T2, T3}"/> class.
+        /// 初始化 <see cref="TupleCopier{T1, T2, T3}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The <typeparamref name="T1"/> copier.</param>
-        /// <param name="copier2">The <typeparamref name="T2"/> copier.</param>
-        /// <param name="copier3">The <typeparamref name="T3"/> copier.</param>
+        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
+        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
+        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
         public TupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -422,8 +422,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = Tuple.Create(
@@ -436,12 +436,12 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1, T2, T3, T4}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T1, T2, T3, T4> : IFieldCodec<Tuple<T1, T2, T3, T4>>
     {
@@ -456,12 +456,12 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T4> _item4Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T1, T2, T3, T4}"/> class.
+        /// 初始化 <see cref="TupleCodec{T1, T2, T3, T4}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The <typeparamref name="T1"/> codec.</param>
-        /// <param name="item2Codec">The <typeparamref name="T2"/> codec.</param>
-        /// <param name="item3Codec">The <typeparamref name="T3"/> codec.</param>
-        /// <param name="item4Codec">The <typeparamref name="T4"/> codec.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
         public TupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -546,12 +546,12 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1, T2, T3, T4}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T1, T2, T3, T4> : IDeepCopier<Tuple<T1, T2, T3, T4>>, IOptionalDeepCopier
     {
@@ -563,12 +563,12 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T4> _copier4;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T1, T2, T3, T4}"/> class.
+        /// 初始化 <see cref="TupleCopier{T1, T2, T3, T4}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The <typeparamref name="T1"/> copier.</param>
-        /// <param name="copier2">The <typeparamref name="T2"/> copier.</param>
-        /// <param name="copier3">The <typeparamref name="T3"/> copier.</param>
-        /// <param name="copier4">The <typeparamref name="T4"/> copier.</param>
+        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
+        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
+        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
+        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
         public TupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -601,8 +601,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = Tuple.Create(
@@ -616,13 +616,13 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1, T2, T3, T4, T5}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T1, T2, T3, T4, T5> : IFieldCodec<Tuple<T1, T2, T3, T4, T5>>
     {
@@ -639,13 +639,13 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T5> _item5Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T1, T2, T3, T4, T5}"/> class.
+        /// 初始化 <see cref="TupleCodec{T1, T2, T3, T4, T5}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The <typeparamref name="T1"/> codec.</param>
-        /// <param name="item2Codec">The <typeparamref name="T2"/> codec.</param>
-        /// <param name="item3Codec">The <typeparamref name="T3"/> codec.</param>
-        /// <param name="item4Codec">The <typeparamref name="T4"/> codec.</param>
-        /// <param name="item5Codec">The <typeparamref name="T5"/> codec.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
+        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
         public TupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -740,13 +740,13 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1, T2, T3, T4, T5}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T1, T2, T3, T4, T5> : IDeepCopier<Tuple<T1, T2, T3, T4, T5>>, IOptionalDeepCopier
     {
@@ -759,13 +759,13 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T5> _copier5;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T1, T2, T3, T4, T5}"/> class.
+        /// 初始化 <see cref="TupleCopier{T1, T2, T3, T4, T5}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The <typeparamref name="T1"/> copier.</param>
-        /// <param name="copier2">The <typeparamref name="T2"/> copier.</param>
-        /// <param name="copier3">The <typeparamref name="T3"/> copier.</param>
-        /// <param name="copier4">The <typeparamref name="T4"/> copier.</param>
-        /// <param name="copier5">The <typeparamref name="T5"/> copier.</param>
+        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
+        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
+        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
+        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
+        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
         public TupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -800,8 +800,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = Tuple.Create(
@@ -816,14 +816,14 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1, T2, T3, T4, T5, T6}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5, T6}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
-    /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T1, T2, T3, T4, T5, T6> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6>>
     {
@@ -842,14 +842,14 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T6> _item6Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T1, T2, T3, T4, T5, T6}"/> class.
+        /// 初始化 <see cref="TupleCodec{T1, T2, T3, T4, T5, T6}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The <typeparamref name="T1"/> codec.</param>
-        /// <param name="item2Codec">The <typeparamref name="T2"/> codec.</param>
-        /// <param name="item3Codec">The <typeparamref name="T3"/> codec.</param>
-        /// <param name="item4Codec">The <typeparamref name="T4"/> codec.</param>
-        /// <param name="item5Codec">The <typeparamref name="T5"/> codec.</param>
-        /// <param name="item6Codec">The <typeparamref name="T6"/> codec.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
+        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
+        /// <param name="item6Codec"> <typeparamref name="T6"/> 代码。</param>
         public TupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -951,14 +951,14 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1, T2, T3, T4, T5, T6}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5, T6}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
-    /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T1, T2, T3, T4, T5, T6> : IDeepCopier<Tuple<T1, T2, T3, T4, T5, T6>>, IOptionalDeepCopier
     {
@@ -972,14 +972,14 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T6> _copier6;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T1, T2, T3, T4, T5, T6}"/> class.
+        /// 初始化 <see cref="TupleCopier{T1, T2, T3, T4, T5, T6}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The <typeparamref name="T1"/> copier.</param>
-        /// <param name="copier2">The <typeparamref name="T2"/> copier.</param>
-        /// <param name="copier3">The <typeparamref name="T3"/> copier.</param>
-        /// <param name="copier4">The <typeparamref name="T4"/> copier.</param>
-        /// <param name="copier5">The <typeparamref name="T5"/> copier.</param>
-        /// <param name="copier6">The <typeparamref name="T6"/> copier.</param>
+        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
+        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
+        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
+        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
+        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
+        /// <param name="copier6">下 <typeparamref name="T6"/> 复印机</param>
         public TupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -1016,8 +1016,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = Tuple.Create(
@@ -1033,15 +1033,15 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
-    /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
-    /// <typeparam name="T7">The type of the tuple's seventh component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
+    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T1, T2, T3, T4, T5, T6, T7> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7>>
     {
@@ -1062,15 +1062,15 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T7> _item7Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T1, T2, T3, T4, T5, T6, T7}"/> class.
+        /// 初始化 <see cref="TupleCodec{T1, T2, T3, T4, T5, T6, T7}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The <typeparamref name="T1"/> codec.</param>
-        /// <param name="item2Codec">The <typeparamref name="T2"/> codec.</param>
-        /// <param name="item3Codec">The <typeparamref name="T3"/> codec.</param>
-        /// <param name="item4Codec">The <typeparamref name="T4"/> codec.</param>
-        /// <param name="item5Codec">The <typeparamref name="T5"/> codec.</param>
-        /// <param name="item6Codec">The <typeparamref name="T6"/> codec.</param>
-        /// <param name="item7Codec">The <typeparamref name="T7"/> codec.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
+        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
+        /// <param name="item6Codec"> <typeparamref name="T6"/> 代码。</param>
+        /// <param name="item7Codec"> <typeparamref name="T7"/> 代码。</param>
         public TupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -1180,15 +1180,15 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
-    /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
-    /// <typeparam name="T7">The type of the tuple's seventh component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
+    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T1, T2, T3, T4, T5, T6, T7> : IDeepCopier<Tuple<T1, T2, T3, T4, T5, T6, T7>>, IOptionalDeepCopier
     {
@@ -1203,15 +1203,15 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T7> _copier7;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T1, T2, T3, T4, T5, T6, T7}"/> class.
+        /// 初始化 <see cref="TupleCopier{T1, T2, T3, T4, T5, T6, T7}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The <typeparamref name="T1"/> copier.</param>
-        /// <param name="copier2">The <typeparamref name="T2"/> copier.</param>
-        /// <param name="copier3">The <typeparamref name="T3"/> copier.</param>
-        /// <param name="copier4">The <typeparamref name="T4"/> copier.</param>
-        /// <param name="copier5">The <typeparamref name="T5"/> copier.</param>
-        /// <param name="copier6">The <typeparamref name="T6"/> copier.</param>
-        /// <param name="copier7">The <typeparamref name="T7"/> copier.</param>
+        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
+        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
+        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
+        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
+        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
+        /// <param name="copier6">下 <typeparamref name="T6"/> 复印机</param>
+        /// <param name="copier7">下 <typeparamref name="T7"/> 复印机</param>
         public TupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -1250,8 +1250,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = Tuple.Create(
@@ -1268,16 +1268,16 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7, T8}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7, T8}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
-    /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
-    /// <typeparam name="T7">The type of the tuple's seventh component.</typeparam>
-    /// <typeparam name="T8">The type of the tuple's eighth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
+    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
+    /// <typeparam name="T8">象牙第八部分的型号</typeparam>
     [RegisterSerializer]
     public sealed class TupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>> where T8 : notnull
     {
@@ -1300,16 +1300,16 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T8> _item8Codec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCodec{T1, T2, T3, T4, T5, T6, T7, T8}"/> class.
+        /// 初始化 <see cref="TupleCodec{T1, T2, T3, T4, T5, T6, T7, T8}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec">The <typeparamref name="T1"/> codec.</param>
-        /// <param name="item2Codec">The <typeparamref name="T2"/> codec.</param>
-        /// <param name="item3Codec">The <typeparamref name="T3"/> codec.</param>
-        /// <param name="item4Codec">The <typeparamref name="T4"/> codec.</param>
-        /// <param name="item5Codec">The <typeparamref name="T5"/> codec.</param>
-        /// <param name="item6Codec">The <typeparamref name="T6"/> codec.</param>
-        /// <param name="item7Codec">The <typeparamref name="T7"/> codec.</param>
-        /// <param name="item8Codec">The <typeparamref name="T8"/> codec.</param>
+        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
+        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
+        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
+        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
+        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
+        /// <param name="item6Codec"> <typeparamref name="T6"/> 代码。</param>
+        /// <param name="item7Codec"> <typeparamref name="T7"/> 代码。</param>
+        /// <param name="item8Codec"> <typeparamref name="T8"/> 代码。</param>
         public TupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -1425,16 +1425,16 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7, T8}"/>.
+    /// <see cref="Tuple{T1, T2, T3, T4, T5, T6, T7, T8}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-    /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
-    /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
-    /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
-    /// <typeparam name="T7">The type of the tuple's seventh component.</typeparam>
-    /// <typeparam name="T8">The type of the tuple's eighth component.</typeparam>
+    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
+    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
+    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
+    /// <typeparam name="T8">象牙第八部分的型号</typeparam>
     [RegisterCopier]
     public sealed class TupleCopier<T1, T2, T3, T4, T5, T6, T7, T8> : IDeepCopier<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>>, IOptionalDeepCopier where T8 : notnull
     {
@@ -1450,16 +1450,16 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T8> _copier8;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TupleCopier{T1, T2, T3, T4, T5, T6, T7, T8}"/> class.
+        /// 初始化 <see cref="TupleCopier{T1, T2, T3, T4, T5, T6, T7, T8}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">The <typeparamref name="T1"/> copier.</param>
-        /// <param name="copier2">The <typeparamref name="T2"/> copier.</param>
-        /// <param name="copier3">The <typeparamref name="T3"/> copier.</param>
-        /// <param name="copier4">The <typeparamref name="T4"/> copier.</param>
-        /// <param name="copier5">The <typeparamref name="T5"/> copier.</param>
-        /// <param name="copier6">The <typeparamref name="T6"/> copier.</param>
-        /// <param name="copier7">The <typeparamref name="T7"/> copier.</param>
-        /// <param name="copier8">The <typeparamref name="T8"/> copier.</param>
+        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
+        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
+        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
+        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
+        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
+        /// <param name="copier6">下 <typeparamref name="T6"/> 复印机</param>
+        /// <param name="copier7">下 <typeparamref name="T7"/> 复印机</param>
+        /// <param name="copier8">下 <typeparamref name="T8"/> 复印机</param>
         public TupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -1500,8 +1500,8 @@ namespace Orleans.Serialization.Codecs
             if (IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input tuple is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入图普的任何价值能够参与循环参考,这里就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var result = new Tuple<T1, T2, T3, T4, T5, T6, T7, T8>(

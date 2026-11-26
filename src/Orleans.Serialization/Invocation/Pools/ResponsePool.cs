@@ -1,22 +1,22 @@
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// Object pool for <see cref="Response{TResult}"/> values.
+    /// 对象集合,以 <see cref="Response{TResult}"/> 值计算。
     /// </summary>
     public static class ResponsePool
     {
         /// <summary>
-        /// Gets a value from the pool.
+        /// 从池子里取出一个价值。
         /// </summary>
-        /// <typeparam name="T">The underlying response type.</typeparam>
-        /// <returns>A value from the pool.</returns>
+        /// <typeparam name="T">基本反应类型。</typeparam>
+        /// <returns>集合中的数值。</returns>
         public static Response<T> Get<T>() => TypedPool<T>.Pool.Get();
 
         /// <summary>
-        /// Returns a value to the pool.
+        /// 返回池内值。
         /// </summary>
-        /// <typeparam name="T">The underlying response type.</typeparam>
-        /// <param name="obj">The value to return to the pool.</param>
+        /// <typeparam name="T">基本反应类型。</typeparam>
+        /// <param name="obj">返回集合值。</param>
         public static void Return<T>(Response<T> obj) => TypedPool<T>.Pool.Return(obj);
 
         private static class TypedPool<T>

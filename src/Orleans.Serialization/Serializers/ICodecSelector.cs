@@ -3,43 +3,43 @@ using System;
 namespace Orleans.Serialization.Serializers;
 
 /// <summary>
-/// Functionality used by general-purpose codecs (such as a JSON codec) to allow types to opt-in to using them.
+/// 普通用途编码器(例如 JSON 编码器)的功能允许选择使用这些编码器的类型。
 /// </summary>
 public interface ICodecSelector
 {
     /// <summary>
-    /// The well-known codec name, used to match an instance with a codec.
+    /// 众所周知的编码名称,用来匹配一个实例和一个编码。
     /// </summary>
     public string CodecName { get; }
 
     /// <summary>
-    /// Returns true if the specified codec should be used for this type.
+    /// 如果指定代码用于此类型, 返回为真 。
     /// </summary>
-    /// <param name="type">The type to inspect.</param>
-    /// <returns><see langword="true"/> if the codec should be used for the specified type; otherwise, <see langword="false"/>.</returns>
+    /// <param name="type">检查的类型。</param>
+    /// <returns><see langword="true"/> 如果编码器应用于指定类型;否则, <see langword="false"/>。</returns>
     public bool IsSupportedType(Type type);
 }
 
 /// <summary>
-/// Functionality used by general-purpose copiers (such as a JSON copier) to allow types to opt-in to using them.
+/// 通用复印机(如 JSON 复印机)使用功能,允许选择使用这些复印机的类型。
 /// </summary>
 public interface ICopierSelector
 {
     /// <summary>
-    /// The well-known copier name, used to match an instance with a copier.
+    /// 众所周知的复印机名,用来比对一个案件和一台复印机。
     /// </summary>
     public string CopierName { get; }
 
     /// <summary>
-    /// Returns true if the specified copier should be used for this type.
+    /// 如果指定复印机用于此类型, 返回为真 。
     /// </summary>
-    /// <param name="type">The type to inspect.</param>
-    /// <returns><see langword="true"/> if the copier should be used for the specified type; otherwise, <see langword="false"/>.</returns>
+    /// <param name="type">检查的类型。</param>
+    /// <returns><see langword="true"/> 如果复印机应用于指定类型;否则, <see langword="false"/>。</returns>
     public bool IsSupportedType(Type type);
 }
 
 /// <summary>
-/// Implementation of <see cref="ICodecSelector"/> which uses a delegate.
+/// 使用代表的 <see cref="ICodecSelector"/> 实施。
 /// </summary>
 public sealed class DelegateCodecSelector : ICodecSelector
 {
@@ -47,7 +47,7 @@ public sealed class DelegateCodecSelector : ICodecSelector
     public string CodecName { get; init; } = null!;
 
     /// <summary>
-    /// Gets or initializes the delegate used to determine whether a type is supported.
+    /// 获取或初始化用于确定是否支持某类型的代表。
     /// </summary>
     public Func<Type, bool> IsSupportedTypeDelegate { get; init; } = null!;
 
@@ -56,7 +56,7 @@ public sealed class DelegateCodecSelector : ICodecSelector
 }
 
 /// <summary>
-/// Implementation of <see cref="ICopierSelector"/> which uses a delegate.
+/// 使用代表的 <see cref="ICopierSelector"/> 实施。
 /// </summary>
 public sealed class DelegateCopierSelector : ICopierSelector
 {
@@ -64,7 +64,7 @@ public sealed class DelegateCopierSelector : ICopierSelector
     public string CopierName { get; init; } = null!;
 
     /// <summary>
-    /// Gets or initializes the delegate used to determine whether a type is supported.
+    /// 获取或初始化用于确定是否支持某类型的代表。
     /// </summary>
     public Func<Type, bool> IsSupportedTypeDelegate { get; init; } = null!;
 

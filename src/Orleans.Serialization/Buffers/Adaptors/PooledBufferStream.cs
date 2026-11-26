@@ -7,7 +7,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// A <see cref="IBufferWriter{T}"/> implementation which boxes another buffer writer.
+    /// 将另建一个缓冲作者的 <see cref="IBufferWriter{T}"/> 执行。
     /// </summary>
     public sealed class PooledBufferStream : Stream
     {
@@ -19,15 +19,15 @@ namespace Orleans.Serialization.Buffers.Adaptors
         private long _capacity;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PooledBufferStream"/> class.
+        /// 初始化 <see cref="PooledBufferStream"/> 类的新实例。
         /// </summary>
         public PooledBufferStream() : this(0)
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PooledBufferStream"/> class.
+        /// 初始化 <see cref="PooledBufferStream"/> 类的新实例。
         /// </summary>
-        /// <param name="minAllocationSize">Minimum size of the allocation.</param>
+        /// <param name="minAllocationSize">最低拨款规模。</param>
         public PooledBufferStream(int minAllocationSize = 0)
         {
             _segments = new();
@@ -36,13 +36,13 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// Gets an object from the pool if one is available, otherwise creates one.
+        /// 如果有的话,从池子里获取一个对象,否则会创建一个。
         /// </summary>
         /// <returns>A <see cref="PooledBufferStream"/>.</returns>
         public static PooledBufferStream Rent() => StreamPool.Get();
 
         /// <summary>
-        /// Return an object to the pool.
+        /// 返回一个对象到池。
         /// </summary>
         public static void Return(PooledBufferStream stream)
         {
@@ -57,13 +57,13 @@ namespace Orleans.Serialization.Buffers.Adaptors
             StreamPool.Return(stream);
         }
 
-        /// <summary>Gets the total length which has been written.</summary>
+        /// <summary>获取已写入的长度。</summary>
         public override long Length => _length;
 
         /// <summary>
-        /// Returns the data which has been written as an array.
+        /// 返回以数组形式写入的数据。
         /// </summary>
-        /// <returns>The data which has been written.</returns>
+        /// <returns>已经写入的数据 。</returns>
         public byte[] ToArray()
         {
             var result = new byte[_length];
@@ -80,7 +80,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
             return result;
         }
 
-        /// <summary>Copies the contents of this writer to another writer.</summary>
+        /// <summary>将此作家的内容复制到另一个作家。</summary>
         public void CopyTo<TBufferWriter>(ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte>
         {
             var remaining = _length;
@@ -93,7 +93,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// Returns all rented buffers and resets the stream to an empty state.
+        /// 返回所有租用的缓冲文件, 并重置流为空状态 。
         /// </summary>
         public void Reset()
         {
@@ -109,7 +109,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// Returns a new <see cref="ReadOnlySequence{T}"/> which must be used and returned before resetting this instance via the <see cref="ReturnReadOnlySequence"/> method.
+        /// 返回新 <see cref="ReadOnlySequence{T}"/> 必须在使用和返回该程序之前,通过 <see cref="ReturnReadOnlySequence"/> 方法。
         /// </summary>
         public ReadOnlySequence<byte> RentReadOnlySequence()
         {
@@ -148,7 +148,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// Returns a <see cref="ReadOnlySequence{T}"/> previously rented by <see cref="RentReadOnlySequence"/>;
+        /// 回返a <see cref="ReadOnlySequence{T}"/> 先前租给 <see cref="RentReadOnlySequence"/>;
         /// </summary>
         public void ReturnReadOnlySequence(in ReadOnlySequence<byte> sequence)
         {
@@ -241,7 +241,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         {
             if (value == Length)
             {
-                // Do nothing
+                // 什么都不做
                 return;
             }
             else if (value == 0)
@@ -252,14 +252,14 @@ namespace Orleans.Serialization.Buffers.Adaptors
             {
                 if (value < Length)
                 {
-                    // Truncate/remove already-written buffers
+                    // 运行/ 删除已写缓冲
                     var excess = Length - value;
                     while (excess > 0)
                     {
                         var lastSegment = _segments[^1];
                         if (excess >= lastSegment.Length)
                         {
-                            // Remove the entire segment.
+                            // 删除整个段。
                             excess -= lastSegment.Length;
                             _segments.RemoveAt(_segments.Count - 1);
                             _capacity -= lastSegment.Length;
@@ -267,15 +267,15 @@ namespace Orleans.Serialization.Buffers.Adaptors
                         }
                         else
                         {
-                            // Partially truncate the last segment - we don't need to do anything 
-                            // since we're just reducing the logical length, not the physical buffer
+                            // 部分缩短最后一部分 - 我们不需要做任何事情 
+                            // 因为我们只是缩短逻辑长度,而不是物理缓冲
                             break;
                         }
                     }
                 }
                 else
                 {
-                    // Append empty buffers
+                    // 添加空缓冲
                     var deficit = value - Length;
                     while (deficit > 0)
                     {
@@ -320,20 +320,20 @@ namespace Orleans.Serialization.Buffers.Adaptors
                     var writeHead = _segments[segmentIndex].AsMemory(indexIntoSegment);
                     var writeLength = Math.Min(writeHead.Length, data.Length);
 
-                    // Copy the data and update the input
+                    // 复制数据并更新输入
                     data[..writeLength].CopyTo(writeHead);
                     data = data[writeLength..];
 
-                    // Update the cursor
+                    // 更新光标
                     Position += writeLength;
 
-                    // Advance to the next segment;
+                    // 预先安排下一部分会议;
                     ++segmentIndex;
                     indexIntoSegment = 0;
                 }
             }
 
-            // Append any remaining data.
+            // 附加任何剩余数据。
             Append(ref data);
         }
 
@@ -346,7 +346,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
             {
                 var currentSegment = _segments[i];
 
-                // Check if this segment contains the current position.
+                // 检查此段是否包含当前位置 。
                 if (segmentStartPos + currentSegment.Length > Position)
                 {
                     segmentIndex = i;
@@ -392,7 +392,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
             }
         }
 
-        // Internal for testing purposes only.
+        // 内部,仅用于测试。
         internal sealed class BufferSegment : ReadOnlySequenceSegment<byte>
         {
             public static readonly ObjectPool<BufferSegment> Pool = ObjectPool.Create(new SegmentPoolPolicy());

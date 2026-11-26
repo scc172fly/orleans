@@ -1,31 +1,31 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Stages of a grains lifecycle.
-    /// TODO: Add more later, see ActivationInitializationStage
-    /// Full grain lifecycle, including register, state setup, and
-    ///   stream cleanup should all eventually be triggered by the
-    ///   grain lifecycle.
+    /// 生命周期 grains 的各个阶段。
+    /// 待办事项:以后再增加,见 ActivationInitializationStage
+    /// 完整的 grain 生命周期,包括登记、国家设置和
+    ///   流流清理最终应全部由
+    ///   grain 生命周期。
     /// </summary>
     public static class GrainLifecycleStage
     {
         /// <summary>
-        /// First valid stage in grain's lifecycle.
+        /// grain生命周期中的第一个有效阶段。
         /// </summary>
         public const int First = int.MinValue;
 
         /// <summary>
-        /// Setup grain state prior to activation.
+        /// 激活前设置 grain 状态 。
         /// </summary>
         public const int SetupState = 1000;
 
         /// <summary>
-        /// Activate grain.
+        /// 激活 grain。
         /// </summary>
         public const int Activate = 2000;
 
         /// <summary>
-        /// Last valid stage in grain's lifecycle.
+        /// grain生命周期中的最后有效阶段。
         /// </summary>
         public const int Last = int.MaxValue;
     }

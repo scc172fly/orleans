@@ -45,7 +45,7 @@ namespace Orleans.Transactions.Tests
             var elapsed = timeProvider.GetUtcNow() - start;
             double averageRate = statistics.TransactionsStarted / elapsed.TotalSeconds;
             this.output.WriteLine($"Average of {averageRate}, with target of {options.Limit}. Performed {statistics.TransactionsStarted} transactions of a max of {total} in {elapsed.TotalMilliseconds} simulated ms.");
-            // check to make sure average rate is withing rate +- 10%
+            // 检查以确保平均率达到+-10%
             Assert.True(options.Limit * 0.9 <= averageRate);
             Assert.True(options.Limit * 1.1 >= averageRate);
         }

@@ -37,7 +37,7 @@ public sealed class GrainDirectoryShutdownMigrationTests
 
         var survivingSilo = cluster.Silos[0];
         var shuttingDownSilo = cluster.Silos[1];
-        var client = cluster.Client!; // DeployAsync initializes the client.
+        var client = cluster.Client!; // DeployAsync 初始化客户端。
         var immediateGrain = client.GetGrain<IShutdownMigrationGrain>(Guid.NewGuid());
         var postHandoffGrain = client.GetGrain<IShutdownMigrationGrain>(Guid.NewGuid());
 
@@ -199,7 +199,7 @@ public sealed class ShutdownMigrationGrain : Grain, IShutdownMigrationGrain, IGr
                 await ShutdownMigrationTestCoordinator.WaitForDirectoryHandoff(cancellationToken);
             }
 
-            // A migration must not honor a hint targeting the shutting-down source silo.
+            // 移民决不能满足一个针对关闭源的提示 silo。
             GrainContext.Migrate(new()
             {
                 [IPlacementDirector.PlacementHintKey] = GrainContext.Address.SiloAddress!
@@ -280,14 +280,14 @@ internal sealed class DelayedMembershipManager(MembershipTableManager inner) : I
     {
         if (status is SiloStatus.ShuttingDown)
         {
-            // Model a membership provider which takes long enough to expose concurrent shutdown callbacks.
+            // 以会员提供商为模范,它需要足够长的时间来揭露同时出现的停产回扣回扣。
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // End the artificial delay promptly, but let the real manager publish the requested status.
+                // 迅速终止人为拖延,但让真正的经理公布所要求的状况。
             }
         }
 

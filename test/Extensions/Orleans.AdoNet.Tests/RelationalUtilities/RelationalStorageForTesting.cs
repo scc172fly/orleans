@@ -31,12 +31,12 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// The name of the provider type (MySQL, SQLServer, Oracle, PostgreSQL, etc).
+        /// 提供者类型(MySQL、SQL服务员、甲骨文、 PostgreSQL等)的名称。
         /// </summary>
         protected abstract string ProviderMoniker { get; }
 
         /// <summary>
-        /// A delayed query that is then cancelled in a test to see if cancellation works.
+        /// 延迟查询, 然后在测试中取消该查询, 以查看取消是否有效 。
         /// </summary>
         public abstract string CancellationTestQuery { get; }
 
@@ -52,9 +52,9 @@ namespace UnitTests.General
         { get { return "INSERT INTO StreamingTest(Id, StreamData) VALUES(@id, @streamData);"; } }
 
         /// <summary>
-        /// The script that creates Orleans schema in the database, usually CreateOrleansTables_xxxx.sql
+        /// 在数据库中创建 Orleans smama 的脚本,通常为 CreateOrleansTables_xxxx.sql
         /// </summary>
-        // Fresh clustering and persistence scripts install current routines; historical migrations can replace them.
+        // 新的集群和持久性脚本可以安装当前常规;历史迁移可以取代这些例行程序。
         protected string[] SetupSqlScriptFileNames => new[] {
                                 $"{this.ProviderMoniker}-Main.sql",
                                 $"{this.ProviderMoniker}-Clustering.sql",
@@ -69,25 +69,25 @@ namespace UnitTests.General
                                 .OrderBy(f => f)).ToArray();
 
         /// <summary>
-        /// A query template to create a database with a given name.
+        /// 创建数据库时使用指定名称的查询模板。
         /// </summary>
         protected abstract string CreateDatabaseTemplate { get; }
 
         /// <summary>
-        /// A query template to drop a database with a given name.
+        /// 用于用给定名称丢弃数据库的查询模板 。
         /// </summary>
         protected abstract string DropDatabaseTemplate { get; }
 
         /// <summary>
-        /// A query template if a database with a given name exists.
+        /// 如果存在带有指定名称的数据库, 询问模板 。
         /// </summary>
         protected abstract string ExistsDatabaseTemplate { get; }
 
         /// <summary>
-        /// Converts the given script into batches to execute sequentially
+        /// 将给定脚本转换成分批执行的分批
         /// </summary>
-        /// <param name="setupScript">the script. usually CreateOrleansTables_xxxx.sql</param>
-        /// <param name="databaseName">the name of the database</param>
+        /// <param name="setupScript">脚本。通常 CreateOrleansTables_xxxx.sql</param>
+        /// <param name="databaseName">数据库的名称</param>
         protected abstract IEnumerable<string> ConvertToExecutableBatches(string setupScript, string databaseName);
 
         public static void CheckPreconditionsOrThrow(string invariantName, string? connectionString = null)
@@ -143,7 +143,7 @@ namespace UnitTests.General
 
             await testStorage.CreateDatabaseAsync(testDatabaseName, cancellationToken);
 
-            //The old storage instance has the previous connection string, time have a new handle with a new connection string...
+            //旧的存储实例有前一个连接字符串, 时间有一个新控点, 并有新的连接字符串...
             testStorage = testStorage.CopyInstance(testDatabaseName);
             await testStorage.WaitForDatabaseReadyAsync(cancellationToken);
 
@@ -151,12 +151,12 @@ namespace UnitTests.General
 
             var setupScript = string.Empty;
 
-            // Concatenate scripts
+            // 相连接脚本
             foreach (var fileName in setupSqlScriptFileNames ?? testStorage.SetupSqlScriptFileNames)
             {
                 setupScript += await File.ReadAllTextAsync(fileName, cancellationToken);
 
-                // Just in case add a CRLF between files, but they should end in a new line.
+                // 以防在文件之间添加 CRLF, 但结尾应该是一条新行。
                 setupScript += "\r\n";
             }
 
@@ -173,7 +173,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="invariantName"></param>
         /// <param name="connectionString"></param>
@@ -196,10 +196,10 @@ namespace UnitTests.General
         protected virtual Task WaitForDatabaseReadyAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         /// <summary>
-        /// Executes the given script in a test context.
+        /// 在测试上下文中执行给定脚本 。
         /// </summary>
-        /// <param name="setupScript">the script. usually CreateOrleansTables_xxxx.sql</param>
-        /// <param name="dataBaseName">the target database to be populated</param>
+        /// <param name="setupScript">脚本。通常 CreateOrleansTables_xxxx.sql</param>
+        /// <param name="dataBaseName">目标数据库要被覆盖</param>
         /// <returns></returns>
         protected virtual async Task ExecuteSetupScript(
             string setupScript,
@@ -219,10 +219,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Checks the existence of a database using the given <see paramref="storage"/> storage object.
+        /// 使用给定的 <see paramref="storage"/> 存储对象检查数据库的存在。
         /// </summary>
-        /// <param name="databaseName">The name of the database existence of which to check.</param>
-        /// <returns><em>TRUE</em> if the given database exists. <em>FALSE</em> otherwise.</returns>
+        /// <param name="databaseName">要检查的数据库名称 。</param>
+        /// <returns><em>真实</em> 如果存在指定数据库。 <em>平</em> 否则。</returns>
         private async Task<bool> ExistsDatabaseAsync(string databaseName, CancellationToken cancellationToken)
         {
             var ret = await Storage.ReadAsync(string.Format(ExistsDatabaseTemplate, databaseName), command =>
@@ -232,10 +232,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Creates a database with a given name.
+        /// 创建带有指定名称的数据库。
         /// </summary>
-        /// <param name="databaseName">The name of the database to create.</param>
-        /// <returns>The call will be successful if the DDL query is successful. Otherwise an exception will be thrown.</returns>
+        /// <param name="databaseName">要创建的数据库的名称。</param>
+        /// <returns>如果 DDL 查询成功, 电话将成功。 否则将会丢弃例外 。</returns>
         private async Task CreateDatabaseAsync(string databaseName, CancellationToken cancellationToken)
         {
             await Storage.ExecuteAsync(
@@ -245,10 +245,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Drops a database with a given name.
+        /// 丢弃带有指定名称的数据库 。
         /// </summary>
-        /// <param name="databaseName">The name of the database to drop.</param>
-        /// <returns>The call will be successful if the DDL query is successful. Otherwise an exception will be thrown.</returns>
+        /// <param name="databaseName">要丢弃的数据库名称。</param>
+        /// <returns>如果 DDL 查询成功, 电话将成功。 否则将会丢弃例外 。</returns>
         protected virtual async Task DropDatabaseAsync(string databaseName, CancellationToken cancellationToken)
         {
             await Storage.ExecuteAsync(
@@ -258,10 +258,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Creates a new instance of the storage based on the old connection string by changing the database name.
+        /// 通过修改数据库名称,根据旧的连接字符串创建存储的新实例。
         /// </summary>
-        /// <param name="newDatabaseName">Connection string instance name of the database.</param>
-        /// <returns>A new <see cref="RelationalStorageForTesting"/> instance with having the same connection string but with a new databaseName.</returns>
+        /// <param name="newDatabaseName">数据库的连接字符串实例名称。</param>
+        /// <returns>一个新的 <see cref="RelationalStorageForTesting"/> 例,该例具有相同的连接字符串,但有一个新的 databaseName。</returns>
         private RelationalStorageForTesting CopyInstance(string newDatabaseName)
         {
             var csb = new DbConnectionStringBuilder();

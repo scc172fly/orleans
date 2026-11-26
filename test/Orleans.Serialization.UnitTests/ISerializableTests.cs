@@ -17,22 +17,22 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// Tests for Orleans' support of the .NET ISerializable interface.
+    /// Orleans支持 .NET 可连载界面的测试。
     /// 
-    /// Orleans provides compatibility with types that implement ISerializable for custom serialization,
-    /// which is important for:
-    /// - Integrating with legacy .NET types
-    /// - Supporting types that require custom serialization logic
-    /// - Maintaining compatibility with existing serialization patterns
+    /// Orleans 与可按海关顺序排列的可采用易变号的类型兼容,
+    /// 这一点对于下列各方面十分重要:
+    /// - 与遗留 .NET 类型相结合
+    /// - 需要定制序列逻辑的辅助类型
+    /// - 保持与现有序列化模式的兼容性
     /// 
-    /// The DotNetSerializableCodec handles ISerializable types by:
-    /// - Respecting serialization callbacks (OnSerializing, OnSerialized, etc.)
-    /// - Supporting streaming contexts
-    /// - Handling serialization constructors
-    /// - Providing fallback serialization for types without Orleans-specific serializers
+    /// DotNetSerializableCodec 处理可采用下列方式的可实现序列类型:
+    /// - 尊重连序回调(OnSerializing、 OnSerialized等)
+    /// - 支持流流环境
+    /// - 处理序列化构造器
+    /// - 为没有 Orleans类型 -- -- 特定序列器的系列器提供后备序列序列化
     /// 
-    /// Note: While supported for compatibility, Orleans' native serialization is preferred
-    /// for better performance and version tolerance.
+    /// 注:虽然支持兼容性,但倾向于 Orleans的本地序列化
+    /// 提高业绩和接受度。
     /// </summary>
     [Trait("Category", "BVT"), Trait("Category", "ISerializable")]
     [Trait("Suite", "BVT")]
@@ -54,7 +54,7 @@ namespace Orleans.Serialization.UnitTests
             services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
 
             _serviceProvider = services.BuildServiceProvider();
-            // AddSerializer guarantees that the session pool is registered.
+            // AddSerializer 保证会场集合已经登记。
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>()!;
             _serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
             _log = log;
@@ -93,7 +93,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// Tests that <see cref="DotNetSerializableCodec"/> can correctly serialize objects.
+        /// 测试 <see cref="DotNetSerializableCodec"/> 能够正确序列化对象。
         /// </summary>
         [Fact]
         public void ISerializableObjectWithCallbacks()
@@ -103,7 +103,7 @@ namespace Orleans.Serialization.UnitTests
                 Payload = "pyjamas"
             };
 
-            // Verify that our behavior conforms to our expected behavior.
+            // 核实我们的行为符合预期行为
             var result = (SimpleISerializableObject)SerializationLoop(input);
             Assert.Equal(
                 new[]
@@ -129,7 +129,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// Tests that <see cref="DotNetSerializableCodec"/> can correctly serialize structs.
+        /// 测试 <see cref="DotNetSerializableCodec"/> 能够正确序列结构。
         /// </summary>
         [Fact]
         public void ISerializableStructWithCallbacks()
@@ -139,7 +139,7 @@ namespace Orleans.Serialization.UnitTests
                 Payload = "pyjamas"
             };
 
-            // Verify that our behavior conforms to our expected behavior.
+            // 核实我们的行为符合预期行为
             var result = (SimpleISerializableStruct)SerializationLoop(input);
             Assert.Equal(
                 new[]
@@ -262,7 +262,7 @@ namespace Orleans.Serialization.UnitTests
                 }
             }
 
-            // This test resolver intentionally widens the legacy non-nullable contract for blocked types.
+            // 这个测试解决者有意扩大遗留的被封杀类型不可停用的合同。
 #pragma warning disable CS8764
             [return: MaybeNull]
             public override Type ResolveType(string name)
@@ -277,7 +277,7 @@ namespace Orleans.Serialization.UnitTests
             }
 #pragma warning restore CS8764
 
-            // This test resolver intentionally widens the legacy non-nullable out contract on failure.
+            // 这个测试解决者有意扩大遗留的无法避免的失败合同。
 #pragma warning disable CS8765
             public override bool TryResolveType(string name, [MaybeNullWhen(false)] out Type type)
             {
@@ -304,7 +304,7 @@ namespace Orleans.Serialization.UnitTests
 
             var serializer = _serviceProvider.GetRequiredService<Serializer>();
 
-            // Throw the exception so that stack trace is populated
+            // 丢出例外, 这样可以让堆叠追踪被显示
             Exception source = Assert.Throws<UnserializableNonConformingException>((Action)(() =>
             {
                 throw new UnserializableNonConformingException(message);
@@ -316,14 +316,14 @@ namespace Orleans.Serialization.UnitTests
 
             object deserialized = serializer.Deserialize<Exception>(serialized)!;
 
-            // Type is wrong after round trip of unserializable exception
+            // 无法序列的例外在往返旅行后类型错误
             var result = Assert.IsAssignableFrom<UnavailableExceptionFallbackException>(deserialized);
 
-            // Exception message is correct after round trip of unserializable exception
+            // 无法序列的例外情形经过往返后,例外电文正确无误
             Assert.Contains(message, result.Message);
             Assert.Equal(RuntimeTypeNameFormatter.Format(source.GetType()), result.ExceptionType);
 
-            // Throw the exception so that stack trace is populated
+            // 丢出例外, 这样可以让堆叠追踪被显示
             source = Assert.Throws<UnserializableConformingException>((Action)(() =>
             {
                 Exception inner;
@@ -345,10 +345,10 @@ namespace Orleans.Serialization.UnitTests
             }));
             deserialized = serializer.Deserialize<Exception>(serializer.SerializeToArray(source))!;
 
-            // Type is wrong after round trip of unserializable exception
+            // 无法序列的例外在往返旅行后类型错误
             result = Assert.IsAssignableFrom<UnavailableExceptionFallbackException>(deserialized);
 
-            // Exception message is correct after round trip of unserializable exception
+            // 无法序列的例外情形经过往返后,例外电文正确无误
             Assert.Contains(message, result.Message);
             Assert.Equal(RuntimeTypeNameFormatter.Format(source.GetType()), result.ExceptionType);
 

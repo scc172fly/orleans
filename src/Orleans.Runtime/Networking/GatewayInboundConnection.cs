@@ -62,7 +62,7 @@ namespace Orleans.Runtime.Messaging
 
         protected internal override void OnReceivedMessage(Message msg)
         {
-            // Don't process messages that have already timed out
+            // 不要处理已经超时的消息
             if (msg.IsExpired)
             {
                 this.MessagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Receive);
@@ -70,7 +70,7 @@ namespace Orleans.Runtime.Messaging
                 return;
             }
 
-            // Are we overloaded?
+            // 我们超负荷了吗?
             if (this.overloadDetector.IsOverloaded)
             {
                 MessagingMetrics.OnRejectedMessage(msg);
@@ -86,7 +86,7 @@ namespace Orleans.Runtime.Messaging
             msg.SendingSilo = this.myAddress;
             if (targetAddress is null)
             {
-                // reroute via Dispatcher
+                // 通过调度器重新转正路由
                 msg.TargetSilo = null;
 
                 if (SystemTargetGrainId.TryParse(msg.TargetGrain, out var systemTargetId))
@@ -100,7 +100,7 @@ namespace Orleans.Runtime.Messaging
             }
             else
             {
-                // send directly
+                // 直接直接发送
                 msg.TargetSilo = targetAddress;
 
                 if (SystemTargetGrainId.TryParse(msg.TargetGrain, out var systemTargetId))
@@ -150,7 +150,7 @@ namespace Orleans.Runtime.Messaging
 
         protected override bool PrepareMessageForSend(Message msg)
         {
-            // Don't send messages that have already timed out
+            // 不要发送已经超时的信息
             if (msg.IsExpired)
             {
                 this.MessagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Send);
@@ -158,7 +158,7 @@ namespace Orleans.Runtime.Messaging
                 return false;
             }
 
-            // Fill in the outbound message with our silo address, if it's not already set
+            // 如果尚未设置, 请用我们的 silo 地址填入发出信件
             msg.SendingSilo ??= this.myAddress;
 
             return true;
@@ -171,7 +171,7 @@ namespace Orleans.Runtime.Messaging
             {
                 LogSiloRejectingMessage(this.Log, this.myAddress, msg, reason);
 
-                // Done retrying, send back an error instead
+                // 重试完成后, 将错误寄回
                 this.messageCenter.SendRejection(
                     msg,
                     Message.RejectionTypes.Transient,

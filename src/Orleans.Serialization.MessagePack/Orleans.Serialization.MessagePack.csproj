@@ -7,7 +7,7 @@
     <PackageDescription>MessagePack integration for Orleans.Serialization</PackageDescription>
     <OrleansBuildTimeCodeGen>true</OrleansBuildTimeCodeGen>
     <IsOrleansFrameworkPart>false</IsOrleansFrameworkPart>
-    <!-- Set during project evaluation because the validation-only reference below participates in restore. -->
+    <!-- 在项目评价期间设置,因为以下仅供验证的参考文献参与恢复。 -->
     <EnablePackageValidation Condition="'$(EnablePackageValidation)' == '' and '$(IsPackable)' == 'true'">true</EnablePackageValidation>
   </PropertyGroup>
 

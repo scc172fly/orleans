@@ -3,36 +3,36 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Pooled queue cache stores data in tightly packed structures that need to be transformed to various
-    ///   other formats quickly.  Since the data formats may change by queue type and data format,
-    ///   this interface allows adapter developers to build custom data transforms appropriate for 
-    ///   the various types of queue data.
+    /// 需要转换成各种结构的紧密包装结构中集合队列缓存数据
+    ///   由于数据格式可能因队列类型和数据格式而变化,
+    ///   此界面允许调试器开发者建立适合 
+    ///   各种队列数据类型。
     /// </summary>
     public interface ICacheDataAdapter
     {
         /// <summary>
-        /// Converts a cached message to a batch container for delivery
+        /// 将缓存信件转换成批量容器交付
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <returns>The batch container.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <returns>货箱</returns>
         IBatchContainer GetBatchContainer(ref CachedMessage cachedMessage);
 
         /// <summary>
-        /// Gets the stream sequence token from a cached message.
+        /// 从缓存信件获取流序序列符号 。
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <returns>The sequence token.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <returns>序列符号。</returns>
         StreamSequenceToken GetSequenceToken(ref CachedMessage cachedMessage);
 
         /// <summary>
-        /// Compares a cached message with a stream sequence token.
+        /// 将缓存信件与串流序列符号比较 。
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <param name="token">The sequence token.</param>
-        /// <returns>A value indicating the relative order of the cached message and token.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <param name="token">序列符号。</param>
+        /// <returns>表示缓存信件和牌子的相对顺序的值。</returns>
         /// <remarks>
-        /// The default implementation uses the allocation-free sequence number and event index fields.
-        /// Providers with external offsets can override this method and compare encoded offset data directly.
+        /// 默认实施使用不分配序列编号和事件索引字段。
+        /// 提供方如果有外部抵消,可以取代这种方法,直接比较编码的抵销数据。
         /// </remarks>
         int Compare(ref CachedMessage cachedMessage, StreamSequenceToken token)
             => cachedMessage.Compare(token);

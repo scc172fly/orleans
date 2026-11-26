@@ -4,27 +4,27 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Extension methods for consuming unknown fields.
+    /// 消费未知字段的扩展方法。
     /// </summary>
     public static class ConsumeFieldExtension
     {
         /// <summary>
-        /// Consumes an unknown field.
+        /// 消耗了一个未知的字段。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
         public static void ConsumeUnknownField<TInput>(this ref Reader<TInput> reader, Field field) => ConsumeUnknownField(ref reader, ref field);
 
         /// <summary>
-        /// Consumes an unknown field.
+        /// 消耗了一个未知的字段。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
         public static void ConsumeUnknownField<TInput>(this ref Reader<TInput> reader, scoped ref Field field)
         {
-            // References cannot themselves be referenced.
+            // 无法引用参考文献本身。
             if (field.WireType == WireType.Reference)
             {
                 ReferenceCodec.MarkValueField(reader.Session);
@@ -32,7 +32,7 @@ namespace Orleans.Serialization.Codecs
                 return;
             }
 
-            // Record a placeholder so that this field can later be correctly deserialized if it is referenced.
+            // 记录占位符,以便本字段在被引用时稍后可以正确取消其音量。
             ReferenceCodec.RecordObject(reader.Session, new UnknownFieldMarker(field, reader.Position));
 
             switch (field.WireType)
@@ -41,7 +41,7 @@ namespace Orleans.Serialization.Codecs
                     _ = reader.ReadVarUInt64();
                     break;
                 case WireType.TagDelimited:
-                    // Since tag delimited fields can be comprised of other fields, recursively consume those, too.
+                    // 由于标记的划定字段可以由其它字段组成,因此这些字段也相继消耗。
                     reader.ConsumeTagDelimitedField();
                     break;
                 case WireType.LengthPrefixed:
@@ -63,10 +63,10 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Consumes a tag-delimited field.
+        /// 占用了限定标签的字段。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
         private static void ConsumeTagDelimitedField<TInput>(this ref Reader<TInput> reader)
         {
             while (true)

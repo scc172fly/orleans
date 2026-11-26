@@ -1,27 +1,27 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Describes the latest committed value of an <see cref="IDurableValue{T}"/>.
+/// 描述一个 <see cref="IDurableValue{T}"/>的最新承诺值。
 /// </summary>
-/// <typeparam name="T">The value type.</typeparam>
+/// <typeparam name="T">值类型。</typeparam>
 /// <remarks>
-/// Value watches deliver the latest committed value. A reader which falls behind receives the newest value and skips
-/// intermediate values.
+/// 值表显示最新的承诺值。 落后的读者会收到最新的值和跳过
+/// 中间值。
 /// </remarks>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Journaling.ValueChange`1")]
 public readonly record struct ValueChange<T>
 {
     /// <summary>
-    /// Gets the value.
+    /// 得到价值。
     /// </summary>
     [Id(0)]
     public T? Value { get; init; }
 
     /// <summary>
-    /// Gets the activation-local version of the journal write which made <see cref="Value"/> durable.
+    /// 获取使 <see cref="Value"/> 耐久的日记书的激活本地版本 。
     /// </summary>
-    /// <remarks>Versions increase within an activation and are not comparable across activations.</remarks>
+    /// <remarks>激活中版本的增加,且在所有启动中无法进行比较。</remarks>
     [Id(1)]
     public long Version { get; init; }
 }

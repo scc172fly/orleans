@@ -22,10 +22,10 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Repro for https://github.com/dotnet/orleans/issues/3713.
-    /// Having multiple methods with the same name and same parameter type
-    /// name would cause a code generation failure because only one of the
-    /// methods would be implemented in the generated GrainReference.
+    /// 回答 https://github.com/dotnet/orleans/issues/3713。
+    /// 具有相同名称和相同参数类型的多种方法
+    /// 名称将导致代码生成失败, 因为只有其中
+    /// 方法将在生成的 GrainReference中实施。
     /// </summary>
     internal interface ISameNameParameterTypeGrain : IGrainWithIntegerKey
     {
@@ -303,8 +303,8 @@ namespace UnitTests.GrainInterfaces
         public T Value { get; set; }
     }
 
-    // This class should not have a serializer generated for it, since the serializer would not be able to access
-    // the nested private class.
+    // 此类不应有为其制作的序列器, 因为序列器无法访问
+    // 筑巢的私人阶级。
     [Serializable]
     public class ClassWithNestedPrivateClassInListField
     {
@@ -321,7 +321,7 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Regression test for https://github.com/dotnet/orleans/issues/5243.
+    /// https://github.com/dotnet/orleans/issues/5243的回归测试。
     /// </summary>
     [Serializable]
     [GenerateSerializer]

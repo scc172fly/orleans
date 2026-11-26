@@ -39,7 +39,7 @@ internal sealed class EnvironmentStatisticsProvider : IEnvironmentStatisticsProv
 
     private EnvironmentStatisticsProvider(Meter meter)
     {
-        GC.Collect(0, GCCollectionMode.Forced, true); // we make sure the GC structure wont be empty, also performing a blocking GC guarantees immediate collection.
+        GC.Collect(0, GCCollectionMode.Forced, true); // 我们确保GC结构不会空, 并履行封锁GC保证立即收取。
 
         _availableMemoryGauge = meter.CreateObservableGauge(InstrumentNames.RUNTIME_MEMORY_AVAILABLE_MEMORY_MB, () => (long)(_availableMemoryBytes / OneKiloByte / OneKiloByte), unit: "MB");
         _maximumAvailableMemoryGauge = meter.CreateObservableGauge(InstrumentNames.RUNTIME_MEMORY_TOTAL_PHYSICAL_MEMORY_MB, () => (long)(_maximumAvailableMemoryBytes / OneKiloByte / OneKiloByte), unit: "MB");
@@ -116,11 +116,11 @@ internal sealed class EnvironmentStatisticsProvider : IEnvironmentStatisticsProv
         }
     }
 
-    // See: https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
+    // 见: https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
 
-    // The rationale behind using a cooperative dual-mode KF, is that we want the input signal to follow a trajectory that
-    // decays with a slower rate than the original one, but also tracks the signal in case of signal increases
-    // (which represent potential of overloading). Both are important, but they are inversely correlated to each other.
+    // 使用合作双模式KF的理由是我们希望输入信号沿着
+    // 与原信标速度相比,衰变速度慢于原信标的速度,但一旦信号增加,也会跟踪信号
+    // 两者都很重要,但它们彼此之间却反相相关。
     private sealed class DualModeKalmanFilter
     {
         private const float SlowProcessNoiseCovariance = 0f;

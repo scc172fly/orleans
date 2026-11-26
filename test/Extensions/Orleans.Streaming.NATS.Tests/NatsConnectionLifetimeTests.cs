@@ -217,7 +217,7 @@ public sealed class NatsConnectionLifetimeTests
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // Preserve the original test cancellation after bounded cleanup.
+            // 保留在受约束的清理后取消原试验。
         }
     }
 

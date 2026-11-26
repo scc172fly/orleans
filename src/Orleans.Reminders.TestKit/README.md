@@ -1,47 +1,53 @@
 # Microsoft.Orleans.Reminders.TestKit
 
-Test infrastructure for validating Orleans `IReminderTable` implementations and their reminder-service integration.
+验证 Orleans `IReminderTable` 执行及其提醒服务整合的测试基础设施。
 
-Every provider executes one contract. Provider suites supply construction and external-service configuration only;
-they do not disable guarantees or tune retries. The TestKit owns deterministic data generation, assertions, serialized
-cardinality setup and cleanup, bounded retries, diagnostics, and failure messages.
+每个供应商都执行一份合同。
+它们不禁用保障或调制重试。 TestKit 确定数据、断言和序列
+设置和清理、受约束的重整、诊断和故障信息。
 
-## Contents
+<a id="contents"></a>
 
-| Type | Purpose |
+## 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录
+
+| 类型类型 | 目的目的宗旨 |
 | --- | --- |
-| `ReminderTableTestRunner` | Direct conformance facts for every documented table guarantee. |
-| `ReminderServiceTestRunner` | Cluster-level registration, replacement, lookup, enumeration, and removal conformance. |
-| `ReminderServiceLifecycleTestRunner` | Deterministic startup, ownership, exact-due, reconciliation, churn, and cleanup-isolation conformance. |
-| `IReminderServiceLifecycleHarness` | Adapter contract for one cluster, one reminder clock, diagnostics, and explicit topology barriers. |
-| `ReminderTableModelBasedTestRunner` | Generated sequential conformance against the same full contract. |
-| `IdealizedReminderTable` | Deterministic, strongly consistent reference implementation and fault-injection oracle. |
-| `ReminderTableTestFixture` | In-process cluster fixture which deploys and resolves a provider. |
-| `ReminderConformanceException` / `ReminderFailureReport` | Uniform, provider-named diagnostics. |
+| `ReminderTableTestRunner` | 每个有记录的表格保证书的直接符合事实。 |
+| `ReminderServiceTestRunner` | 聚类级登记、替换、查找、查点和清除符合规定。 |
+| `ReminderServiceLifecycleTestRunner` | 确定性的启动、所有权、准确到期、和解、杂乱无章和清洁隔离。 |
+| `IReminderServiceLifecycleHarness` | 一组的适应器合同、一个提醒钟、诊断和明确的地形障碍。 |
+| `ReminderTableModelBasedTestRunner` | 与同一合同完全一致,产生相继符合的情况。 |
+| `IdealizedReminderTable` | 确定性、强烈一致的参考实施和错误注射手肘。 |
+| `ReminderTableTestFixture` | 部署和解决供应商问题的流程中集束固定装置。 |
+| `ReminderConformanceException` / `ReminderFailureReport` | 统一、供应商名诊断。 |
 
-## Contract
+<a id="contract"></a>
 
-The shared suite requires:
+## 合同合同合同合同
 
-- idempotent start and durable restart after stop;
-- a non-empty, provider-issued ETag for every successful upsert and a different ETag for every replacement;
-- exact point, grain, and range reads, including identity, UTC whole-second `StartAt`, `Period`, ETag, cardinality,
-  and duplicate rejection;
-- unsigned `(begin, end]` ring semantics, including wrap-around and `(0, 0]` as the full ring;
-- current- and stale-ETag conditional removal, exact absence observations, and `TestOnlyClearTable`;
-- concurrent same-identity replacements and parallel per-grain writes using one bounded mutation-retry policy; and
-- one bounded read-convergence policy (10 seconds with 100 millisecond delays).
+共享套房要求:
 
-Retry time is measured before the first attempt, so a blocked initial operation is bounded. Timeout diagnostics retain
-the provider, guarantee, operation, expected result, attempt count, last completed observation, and last exception.
-Exact-cardinality setup and cleanup are serialized for every provider; concurrency is exercised by dedicated facts.
+- 极强的启动和停止后持久恢复;
+- a 供每个成功上岗者使用的非空、供应商签发的ETag,供每个替代者使用的不同ETag;
+- 准确点、 grain和范围如下,包括身份,统合时秒 `StartAt`、 `Period`、ETag、主要内容,
+  重复拒绝;
+- (a) 不带符号 `(begin, end]` 环词义,包括整环包装和 `(0, 0]` ;
+- 现职和已停工的ETag有条件驱逐、确切缺勤观察和 `TestOnlyClearTable`;
+- 使用一个连接的突变回录法政策撰写同身份替换和平行的每 -grain ;
+- 一条约束的阅读一致政策(10秒,100毫秒延迟)。
 
-Provider suites own additional backend semantics such as conditional upsert from `ReminderEntry.ETag`,
-start-cancellation timing, cross-table isolation, paging, and continuation behavior.
+第一次尝试前测量重试时间, 从而将被阻隔的初始操作捆绑起来。 超时诊断仍然保留
+提供方、担保、运行、预期结果、尝试计算、最后完成的观察和最后例外。
+每一个供应商都对确切的心肌梗塞设置和清理进行序列记录;共同货币由专门的事实来行使。
 
-## Adopting the suite
+供应商套件拥有额外的后端语义学,例如 `ReminderEntry.ETag`的有条件调高器等,
+启动取消时间、交叉隔离、传呼和持续行为。
 
-Reference the TestKit privately from the provider test project:
+<a id="adopting-the-suite"></a>
+
+## 采用套套套件
+
+供应商测试项目私下提及 TestKit :
 
 ```xml
 <ProjectReference
@@ -49,10 +55,12 @@ Reference the TestKit privately from the provider test project:
     PrivateAssets="all" />
 ```
 
-### Create a provider fixture
+<a id="create-a-provider-fixture"></a>
 
-Derive from `ReminderTableTestFixture` to configure the provider in an in-process silo. The fixture starts the table,
-exposes the deployed `IGrainFactory` and `IReminderTable`, and stops and disposes the cluster after the suite.
+### 创建提供者固定设置
+
+从 `ReminderTableTestFixture` 提取,用于在进程 silo中配置供应商。固定线开始表格
+暴露已部署的 `IGrainFactory` 和 `IReminderTable`,并在套件后停止并处置集束。
 
 ```csharp
 public sealed class MyReminderTableFixture : ReminderTableTestFixture, IAsyncLifetime
@@ -68,13 +76,15 @@ public sealed class MyReminderTableFixture : ReminderTableTestFixture, IAsyncLif
 }
 ```
 
-`CheckPreconditionsOrThrow` captures external-service availability failures during fixture initialization.
-Call `EnsurePreconditionsMet` from the test constructor so the test framework reports that captured result consistently.
+`CheckPreconditionsOrThrow` 记录了固定装置启动期间的外部服务可用性失效。
+调用测试构建器的 `EnsurePreconditionsMet` ,以便测试框架报告一致地记录结果。
 
-### Run the direct contract
+<a id="run-the-direct-contract"></a>
 
-Derive from `ReminderTableTestRunner`, pass the resolved table and a stable provider name, then expose each shared
-guarantee using the attributes of the test framework:
+### 运行直接合同
+
+从 `ReminderTableTestRunner`中衍生出,通过已解决的表格和一个稳定的提供者名称,然后暴露每个共享
+使用测试框架属性保证:
 
 ```csharp
 public sealed class MyReminderTableTests
@@ -100,13 +110,15 @@ public sealed class MyReminderTableTests
 }
 ```
 
-The built-in provider suites inherit these facts through `ReminderTableTestsBase`. A standalone suite exposes every
-public guarantee on `ReminderTableTestRunner` so additions to the shared contract become visible during review.
+内置提供套房通过 `ReminderTableTestsBase`继承这些事实。
+`ReminderTableTestRunner` 上的公共担保,因此在审查过程中可以看到对共享合同的增补。
 
-### Run the model-based contract
+<a id="run-the-model-based-contract"></a>
 
-The model runner generates deterministic operation sequences covering upsert, point and grain reads, unsigned range
-reads, current and stale ETag removal, and table clearing:
+### 运行基于示范合同的合同
+
+模型运行器生成确定性操作序列,覆盖上移、点和 grain 读作, 未符号范围
+读物,当前和平淡的ETag清除和清理表格:
 
 ```csharp
 public sealed class MyReminderTableModelTests : IClassFixture<MyReminderTableFixture>
@@ -141,14 +153,16 @@ public sealed class MyReminderTableModelTests : IClassFixture<MyReminderTableFix
 }
 ```
 
-`Seed` and `KeyPrefix` make identities and failure traces reproducible. The runner clears the table before and after
-each generated case and performs a final empty-table observation before returning.
+`Seed` 和 `KeyPrefix` 使身份和故障痕迹可以复制。
+每个生成的立案, 在返回前进行最后空表观测 。
 
-### Run the grain-facing reminder service contract
+<a id="run-the-grain-facing-reminder-service-contract"></a>
 
-`ReminderServiceTestRunner` verifies registration, lookup, enumeration, schedule replacement, ETag replacement, and
-unregistration through the public grain API. Pass the same `TimeProvider` that the silo registers for
-`ReminderTimeProviderNames.Reminders` so due-time assertions use the subsystem clock:
+### 运行 grain- 附加提醒服务合同
+
+`ReminderServiceTestRunner` 核实登记、查查、查查、查点、时间表替换、ETag替换和
+未经公众登记 grain API相同的 `TimeProvider` 和 silo 登记册登记
+`ReminderTimeProviderNames.Reminders` 所以,适时的主张使用子系统时钟:
 
 ```csharp
 public sealed class MyReminderServiceTests
@@ -175,19 +189,21 @@ public sealed class MyReminderServiceTests
 }
 ```
 
-### Run lifecycle and churn conformance
+<a id="run-lifecycle-and-churn-conformance"></a>
 
-`ReminderServiceLifecycleTestRunner` adds the shared service-level contract. The same eight scenarios run for every
-service provider: startup readiness, single registration ownership, in-place schedule update, removal quiescence,
-exact-due recovery, stale-owner registration reconciliation, one-silo join/leave transfer, and cleanup isolation.
+### 运行生命周期和周期性
 
-Use `ReminderTestClock` as the sole time driver and `ReminderDiagnosticObserver` as the lifecycle/tick source. The
-`ReminderServiceLifecycleHarness` adapter for `InProcessTestCluster` supplies explicit membership and reminder-range
-reconciliation barriers.
+`ReminderServiceLifecycleTestRunner` 添加共享服务级合同。
+服务提供商:开办准备、单一登记所有权、现场时间表更新、清除不便、
+及时追回、陈旧的所有人登记核对、一silo 连/休假转移以及清理隔离。
 
-Join scenarios start a silo with its natural address hashes and wait for topology reconciliation before selecting
-a deterministic grain identity in that silo's actual ownership range. Identity selection is bounded and reports a
-structured conformance failure when no matching candidate is found; scenario cleanup still removes the joined silo.
+使用 `ReminderTestClock` 作为唯一的时间驱动程序,使用 `ReminderDiagnosticObserver` 作为生命周期/ ticklick 源。
+`ReminderServiceLifecycleHarness` 用于 `InProcessTestCluster` 提供明确的成员和提醒-
+和解障碍。
+
+加入假想开始 silo , 以其自然地址杂乱状态启动, 等待在选择前进行地表调节
+确定论 grain 身份 silo身份选择受约束,报告a
+找不到匹配的候选人时结构结构不一致性; 情景清理仍然删除了合并 silo。
 
 ```csharp
 var clock = builder.AddReminderTestClock();
@@ -215,23 +231,25 @@ public sealed class MyLifecycleTests : ReminderServiceLifecycleTestRunner
 }
 ```
 
-Do not replace harness barriers with delays, retry loops, longer timeouts, or provider-specific skips. Scenario cleanup
-uses its own bounded token, removes only deterministic scenario rows using their current ETags, advances one explicit
-refresh for owner quiescence, and verifies their absence; it never clears unrelated provider rows or replaces the
-original scenario failure. Ownership assertions count local reminder instance identities, including duplicate
-instances on one silo, rather than counting distinct silo addresses.
+不以延迟、 重新运行环、 超时或特定供应商跳过来取代带环屏障。 方案清理
+使用自己的约束牌, 使用当前ETags 来去除仅确定性情景的行, 并使用其当前的ETags, 前进一列
+用于自控自控器不自密的刷新, 并验证其不存在; 它从不清除无关的提供行或替换
+所有权主张计算当地提醒事件身份,包括重复
+在一个 silo地址上,而不是计算单独的 silo 地址。
 
-The built-in in-memory, Azure Table, Cosmos DB, ADO.NET SQL Server, PostgreSQL, MySQL, Redis, DynamoDB, and Firestore
-providers all expose these same inherited facts. Their adapters contain only backend precondition/setup and provider
-registration. External-service availability can skip fixture construction, but no provider disables individual
-lifecycle guarantees. Add a documented capability boundary here before omitting a future provider which cannot host
-the Orleans reminder service or participate in in-process silo churn.
+内置的存储器、 Azure 表、宇宙 DB、 ADO.NET SQL 服务器、 PostgreSQL、 MySQL、 Redis、 DynamoDB和消防站
+它们的适应器只包含后端先决条件/设置和提供者
+提供外部服务可跳过固定建筑,但没有任何供应商能够使个人残疾
+寿命周期保障。在此添加一个有文件证明的能力界限,然后忽略无法托管的未来供应商
+排 Orleans 提醒服务或参与处理中 silo 胡说八道
 
-## Deterministic oracle and cluster testing
+<a id="deterministic-oracle-and-cluster-testing"></a>
 
-`IdealizedReminderTable` supplies a strongly consistent reference implementation for TestKit self-tests and
-runtime-integration tests. `UseIdealizedReminderTable` registers one shared oracle across every silo and can install a
-dedicated reminder clock and reminder options:
+## 确定性神器和集束测试
+
+`IdealizedReminderTable` 提供 TestKit 自测试和自试的严格一致的参考执行
+`UseIdealizedReminderTable` 登记每个 silo 共有的孔器,并安装
+专用提醒时钟和提醒选项:
 
 ```csharp
 var builder = new InProcessTestClusterBuilder();
@@ -246,34 +264,38 @@ var records = oracle.Snapshot();
 var operations = oracle.Operations;
 ```
 
-The oracle exposes:
+先知揭发:
 
-- `Snapshot`, `Find`, `Operations`, and `OperationCount` for deterministic state and operation assertions;
-- `BlockNext` for phase barriers around a selected table operation;
-- `InjectFailure` and `SetAvailable` for transient failure and outage scenarios;
-- `FreezeReads` for stale-read convergence scenarios; and
-- lifecycle cancellation and invariant checks.
+- `Snapshot`、 `Find`、 `Operations`和 `OperationCount` ,用于确定状态和运行主张;
+- 选定表格业务周围的阶段障碍`BlockNext` ;
+- 短暂故障和断电情景的`InjectFailure` 和 `SetAvailable` ;
+- 用于读取淡化趋同设想情景的`FreezeReads` ;以及
+- 取消生命周期和无差别检查。
 
-`ReminderTestClock` creates its lifecycle observer before the cluster is built, allowing startup conformance to await
-one `ReminderServiceStarted` event for every silo before liveness and range-reconciliation barriers. The TestKit
-cluster integration suite uses these controls to cover exact-due delivery, exact-due storage recovery,
-due times beyond the platform timer limit, stale-refresh suppression after unregister, and single-owner delivery in a
-multi-silo cluster.
+`ReminderTestClock` 在集群组建立之前设立其生命周期观察者,允许启动合规等待
+单 `ReminderServiceStarted` 用于每 silo 和距离调和障碍。 TestKit
+集束集成套件利用这些控制手段,处理应交付、应收回储存、应归还的准确交货、应归还的仓储、
+超过平台定时时限的到期时间,未登记后停止再登记,以及单人交货
+-silo 组合体。
 
-## Diagnostics and cleanup
+<a id="diagnostics-and-cleanup"></a>
 
-Every conformance failure throws `ReminderConformanceException` with a `ReminderFailureReport`. Reports identify the
-provider, guarantee, operation, reminder identity, expected and observed state, ETag lineage, range ownership, retry
-attempts, and the final observation or exception.
+## 诊断和清理
 
-Direct facts use unique deterministic identities and remove their rows. Exact-cardinality setup and cleanup are
-serialized. Model-based cases clear the table at each boundary. `ReminderTableTestFixture` owns cluster shutdown and
-resource disposal, including cleanup after failed deployment.
+每次不合规都丢弃 `ReminderConformanceException` ,并丢出 `ReminderFailureReport`。
+提供方、担保、操作、提醒身份、预期和观察状态、ETATag线系、牧场所有权、再加工
+以及最后的观察或例外
 
-Provider-specific tests cover schema, configuration, serialization, migration, emulator, and external-service
-behavior alongside the shared contract.
+直接事实使用独特的确定身份,并删除行排。
+以模型为基础的案例清除了每个边界的表格。 `ReminderTableTestFixture` 拥有集束关闭和
+资源处置,包括部署失败后清理。
 
-## Consumption
+具体供应商的测试包括:计划、配置、序列化、迁移、模拟和外部服务
+与共享合同同时发生的行为。
 
-Provider test projects consume the project from source using a private project reference, matching
+<a id="consumption"></a>
+
+## 消费消费
+
+供应商测试项目利用私人项目参考书,从源头消耗项目,匹配
 `Orleans.Persistence.TestKit`.

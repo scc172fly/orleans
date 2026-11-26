@@ -1,107 +1,127 @@
 ---
-title: Troubleshoot Orleans incidents
-description: Operational runbooks for common Orleans connection, timeout, membership, storage, overload, memory, and shutdown incidents.
+title: "排除故障 Orleans 事件"
+description: "通用 Orleans 连接、超时、会员资格、储存、超载、记忆和停机事件的业务运行手册。"
 ms.date: 08/02/2026
 ms.topic: troubleshooting
 ---
 
-# Troubleshoot Orleans incidents
+<a id="troubleshoot-orleans-incidents"></a>
 
-Use these runbooks as investigation sequences, not as automatic proof of one root cause. Capture the incident window, deployment changes, cluster topology, and traffic level before changing configuration. Prefer a rollback or traffic reduction when user impact is growing.
+# 排除故障 Orleans 事件
 
-If you're starting from an exception, log event, metric, or literal error text, use the [Orleans symptom and signal catalog](troubleshooting-symptom-catalog.md).
+使用这些运行手册作为调查序列,而不是自动证明一个根源。 在改变配置之前先捕捉事件窗口、部署变化、集束地形和交通量水平。 当用户影响增加时,最好可以进行回落或减少流量。
 
-## Client can't connect
+如果您是从例外、日志事件、公制或字面错误文字开始使用 [Orleans 症状和信号目录](troubleshooting-symptom-catalog.md)。
 
-**Evidence:** no connected gateways, repeated connection failures, <xref:Orleans.Runtime.Messaging.ConnectionFailedException>, or a dashboard/client reporting lost cluster connectivity.
+<a id="client-cant-connect"></a>
 
-1. Confirm the client and silos use the same cluster and service IDs and the same clustering provider.
-2. Query the membership/gateway source from the client's network boundary. Confirm it returns active silos with reachable advertised gateway addresses.
-3. Test DNS and TCP reachability to those addresses. Check firewalls, network policy, NAT, and load balancers.
-4. If TLS is enabled, inspect handshake errors, certificate validity, SAN/`TargetHost`, trust chain, EKU, and whether the silo unexpectedly requires a client certificate.
-5. Compare all silo logs. One reachable gateway can mask a partial routing problem.
+## 客户无法连接
 
-Don't add retries around startup indefinitely. Bound startup/reconnect behavior and expose readiness as false while the client has no usable gateway.
+**证据:** 没有连接网关、多次连接故障、 <xref:Orleans.Runtime.Messaging.ConnectionFailedException>或仪表板/客户报告集群连通性丧失。
 
-## Grain calls time out
+1. 确认客户和 silos 使用相同的组群和服务标识以及同样的组群提供者。
+2. 查询客户网络边界的成员/ 门户来源。 确认它返回活动 silos , 并使用可到达的广告网关地址 。
+3. 测试 DNS 和 TCP 能够到达这些地址。 检查防火墙、 网络政策、 NAT 和负载平衡器 。
+4. 如果启用 TLS, 检查握手错误、 证书有效性、 SAN/`TargetHost`、 信托链、 EKU 以及该 silo 是否意外需要客户证书 。
+5. 比较全部 silo 日志。 一个可达网关可以掩蔽部分路由问题 。
 
-**Evidence:** increased `orleans-app-requests-timedout`, high request latency, or <xref:System.TimeoutException> at callers.
+启动时不要无限期地在启动前后添加重试。 启动/ 重新连接行为并显示准备为假, 而客户没有可用的网关 。
 
-1. Follow a sampled trace from the caller. Determine whether the call reached a silo and whether it waited before grain execution, inside the grain, or in a dependency.
-2. Compare timeout growth with rejected/dropped messages, gateway connectivity, long-running turns, CPU, thread-pool starvation, GC pauses, and storage latency.
-3. Check whether the timeout started with a deployment, traffic increase, membership change, or dependency degradation.
-4. Inspect the target grain type and operation. Look for blocking calls, lock contention, synchronous I/O, fan-out, or calls which don't honor cancellation.
-5. Increase a timeout only when the operation's valid latency exceeds the existing budget. A larger timeout doesn't fix overload or a blocked turn and can increase queued work.
+<a id="grain-calls-time-out"></a>
 
-## Membership is unstable
+## Grain 呼叫暂停
 
-**Evidence:** silos repeatedly transition out of `Active`, ping replies are missed, or membership warnings occur across the cluster.
+**证据:** 增加 `orleans-app-requests-timedout`,高要求的延迟或呼叫者的 <xref:System.TimeoutException> 。
 
-1. Compare each silo's membership view and timestamps. Account for an intentional rollout before treating changes as failures.
-2. Check host pauses, CPU starvation, GC pauses, packet loss, DNS changes, and clock synchronization.
-3. Verify membership-store latency, availability, credentials, and throttling from every silo.
-4. Confirm advertised silo addresses are stable and mutually reachable; don't advertise loopback or an ephemeral address across hosts.
-5. Avoid loosening liveness settings until infrastructure stalls and store latency are understood. Longer detection can reduce false positives but also delays failure recovery.
+1. 跟随调用者的样本跟踪追踪。确定调用是否达到 silo 以及等待的等待, grain 内执行 grain,或依赖。
+2. 将超时增长与拒绝/删除的信息、网关连接、长途转折、CPU、线池饥饿、GC暂停和存储延迟等进行比较。
+3. 检查超时是否以部署、交通量增加、会籍变动或依赖性退化为开端。
+4. 检查目标 grain 和操作。 查找屏蔽电话、 锁定争议、 同步 I/ O、 fan- out 或不荣誉取消的通话 。
+5. 只有当操作的有效延迟超过现有预算时, 才会增加超时。 更大的超时不会固定超载或被屏蔽的转弯, 并且可以增加排队工作 。
 
-## Grain turns appear stuck
+<a id="membership-is-unstable"></a>
 
-**Evidence:** `orleans-scheduler-long-running-turns` increases, one grain's queue grows, or traces show long application execution.
+## 成员不稳定
 
-1. Identify the grain type and method from traces, dashboard profiling, and logs.
-2. Capture a process trace or dump while the issue is active. Inspect managed stacks, CPU consumers, thread-pool queues, and monitor contention.
-3. Look for synchronous blocking (`.Result`, `.Wait()`), unbounded loops, CPU-heavy work, external calls without timeouts, and non-reentrant grains waiting through cyclic calls.
-4. Reduce incoming load or isolate the affected operation before restarting. A restart clears evidence and may only move the blockage.
-5. Move blocking/CPU-heavy work out of grain turns or split it into bounded asynchronous steps.
+**证据:** silos 反复过渡 `Active`、 错过了答复,或在整个组别出现成员警告。
 
-## Storage operations fail
+1. 比较每个 silo成员视图和时间戳。 在将更改视为失败之前先说明有意推出的情况。
+2. 检查主机暂停、 CPU 饥荒、 GC 暂停、 包丢失、 DNS 更改以及时钟同步 。
+3. 核查每个实体的会员存定、可用性、全权证书和减速 silo.
+4. 确认已公布 silo 地址是稳定且可相互获取的; 不要在主机之间登回回路或时间地址广告。
+5. 避免在基础设施摊位和存储延缓期之前放松生活环境。 更长时间的检测可以减少假阳性,但也会推迟故障恢复。
 
-**Evidence:** Orleans storage error instruments increase, storage spans fail, activation fails, or provider exceptions appear.
+<a id="grain-turns-appear-stuck"></a>
 
-1. Separate reads, writes, and clears and identify the storage provider and grain type.
-2. Check backend health, throttling, authentication, DNS/TLS, connection pools, and latency from the affected silo.
-3. Determine whether failures are transient, concurrency/ETag conflicts, serialization failures, or deterministic data/schema problems.
-4. Compare affected silos and partitions. A single host suggests local connectivity or credentials; a shared partition suggests backend hot-spotting.
-5. Don't retry deterministic serialization or concurrency failures indefinitely. Use bounded retry for provider-documented transient failures and preserve idempotency.
+## Grain 转弯似乎卡住了
 
-## The cluster is overloaded
+**证据:** `orleans-scheduler-long-running-turns` 增加,一个 grain的队列增长,或痕迹显示应用期长。
 
-**Evidence:** rejected messages, gateway load shedding, rising queue/latency, high CPU, or falling throughput while demand rises.
+1. 确定通过跟踪、仪表板特征分析以及日志得出的 grain 类型和方法。
+2. 问题正在处理时抓取进程跟踪或倾弃。 检查管理过的堆叠、 CPU 消费者、 线串队列以及监控争议 。
+3. 寻找同步屏蔽( F)`.Result`, `.Wait()`),无约束环圈、CPU重工作、没有超时的外部通话和未回复 grains 等待着骑行电话
+4. 减少进入的负载或在重新启动前隔离受影响的操作。 重启会清除证据, 只能移动阻塞 。
+5. 将屏蔽/CPU-重工程移出 grain 转弯或分割成交接的不同步步骤。
 
-1. Verify whether pressure is at gateways, grain execution, storage, streams, or another dependency.
-2. Compare request rate, completion rate, latency, rejections, activation count, CPU, thread pool, and GC across silos.
-3. Reduce admission or shed optional work. Retrying rejected work immediately amplifies overload; use bounded exponential backoff with jitter at an appropriate boundary.
-4. Scale only if work partitions across additional silos and the bottleneck isn't a shared dependency or hot grain.
-5. After recovery, set capacity alerts below the rejection point and add load tests for the triggering traffic shape.
+<a id="storage-operations-fail"></a>
 
-## Memory pressure rises
+## 储存作业发生故障
 
-**Evidence:** low `orleans-runtime-available-memory`, growing working set/GC heap, long GC pauses, container OOM kills, or activation collection churn.
+**证据:** Orleans 储存错误仪器增加、存储周期失败、启动失败或供应商例外出现。
 
-1. Compare process working set, GC heap size, allocation rate, collection count/pause time, Orleans activation working set, and stream cache metrics.
-2. Check the real container or host memory limit. Physical-host availability can mislead a containerized process.
-3. Capture a dump or GC trace before restart if safe. Group retained objects by type and retention path.
-4. Check unbounded grain state, caches, stream buffers, request payloads, telemetry cardinality, and activation growth.
-5. Lower load or scale out to stabilize. Don't simply raise limits without identifying whether memory is intentionally bounded.
+1. 单独阅读、写作和清除并识别存储提供者和 grain 类型。
+2. 检查后端健康、抽动、验证、 DNS/TLS、连接池和受影响方的延迟状态 silo。
+3. 确定失败是短暂的、货币/ETag冲突、序列化故障还是决定性的数据/系统问题。
+4. 比较受影响的 silos 和分区。 单个主机建议本地连接或证书; 共享分区表示后端热点 。
+5. 使用约束性重试, 以保存代理商记录的瞬时失效 并保存剩余能力 。
 
-## Shutdown doesn't complete
+<a id="the-cluster-is-overloaded"></a>
 
-**Evidence:** the orchestrator kills silos after the grace period, membership remains `ShuttingDown`/`Stopping`, or logs report that graceful shutdown was aborted.
+## 集组超载
 
-1. Compare the host shutdown timeout with the orchestrator termination grace period. Leave time for Orleans and other hosted services to stop before forced termination.
-2. Stop accepting new external work before stopping the silo.
-3. Inspect the final lifecycle logs and traces for long-running grain calls, deactivation, membership-store updates, stream shutdown, or blocked hosted services.
-4. Ensure <xref:Orleans.ILifecycleObserver.OnStop*> honors cancellation and custom lifecycle participants complete promptly.
-5. Treat repeated forced termination as an availability risk. Fix the blocking component rather than relying on process kill.
+**证据:** 拒绝发送信息、网关负荷叠叠、队列/延迟上升、CPU高或需求增加时吞吐量下降。
 
-## Preserve diagnostic evidence
+1. 验证压力是在网关、 grain 执行、存储、流或其他依赖性。
+2. 将申请率、完成率、延迟率、拒绝、激活计数、CPU、线性集合和GC silos比较。
+3. 减少入场或卸下可选工作。 重试被拒的工作会立即放大超载; 在适当的边界使用带神经质的捆绑指数后退。
+4. 只有当工作分割跨额外 silos 和瓶颈不是共同依赖或热 grain时,才缩放 。
+5. 恢复后,在拒绝点下设定能力警报,并添加触发交通形状的负荷测试。
 
-For intermittent or production-only failures, retain:
+<a id="memory-pressure-rises"></a>
 
-- UTC timestamps and deployment/version identifiers.
-- Logs from all involved clients and silos.
-- Metrics covering before, during, and after the event.
-- Representative trace IDs and unsampled request counts.
-- Membership snapshots and provider health.
-- A process trace or dump when scheduler, CPU, or memory behavior is involved.
+## 内存压力上升
 
-Redact secrets and grain state before sharing artifacts. See [.NET diagnostics](https://learn.microsoft.com/dotnet/core/diagnostics/) for `dotnet-counters`, `dotnet-trace`, and dump collection guidance.
+**证据:** 低 `orleans-runtime-available-memory`工作组/气体堆积、GC停顿时间长、OOM容器残杀或激活收集。
+
+1. 比较流程设定、GC堆积大小、分配率、收缴计数/暂停时间、 Orleans 启动工作设定以及流缓存度。
+2. 实物主机可用性会误导集装箱化过程。
+3. 重新启用前捕获倾弃或GC追踪, 如果安全的话。 按类型和保留路径组保留对象。
+4. 检查未约束的 grain 状态、缓存、流缓冲、请求有效载荷、遥测主干线和激活增长。
+5. 降低负荷或缩放以稳定。 不要简单地提出限制, 不确定内存是否被故意捆绑 。
+
+<a id="shutdown-doesnt-complete"></a>
+
+## 关闭未完成
+
+**证据:** 管弦乐队在宽限期后杀死 silos ,成员资格仍然 `ShuttingDown`/`Stopping`,或记录显示优雅的关闭已经中止。
+
+1. 将主机关闭超时时间与管弦乐终止宽限期进行比较。 在强制终止之前, Orleans 和其他托管服务停止的时间。
+2. 停止 silo之前停止接受新的外部工作。
+3. 检查长期 grain 电话、停用、会员商店更新、流状关闭或被封存的服务的最后生命周期日志和痕迹。
+4. 确保 <xref:Orleans.ILifecycleObserver.OnStop*> 取消荣誉和定制生命周期参与者迅速完成。
+5. 将重复强迫终止视为一种供应风险。 修复阻塞部分,而不是依赖过程杀人。
+
+<a id="preserve-diagnostic-evidence"></a>
+
+## 保存诊断证据
+
+对于间断性或仅生产故障,保留:
+
+- UTC 时间戳和部署/转换识别资料。
+- 所有所涉客户和 silos的日志。
+- 测量范围涵盖事件前后、期间和之后。
+- 代表追踪身份和未标定的请求数。
+- 会员简介和保健提供者。
+- 当涉及到调度器、 CPU或记忆行为时, 过程跟踪或倾弃 。
+
+共享文物前的 grain 状态和(Q0Q)状态,请见 [.NET 诊断](https://learn.microsoft.com/dotnet/core/diagnostics/) 中的 `dotnet-counters`、 `dotnet-trace`和垃圾回收指南。

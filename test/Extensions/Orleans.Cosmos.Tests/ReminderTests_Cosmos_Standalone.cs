@@ -11,7 +11,7 @@ using Xunit;
 namespace Tester.Cosmos.Reminders;
 
 /// <summary>
-/// Standalone tests for Cosmos DB reminder table operations including performance benchmarks and table-level operations.
+/// 独立测试宇宙DB提醒表业务,包括业绩基准和表格级业务。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("Cosmos")]
@@ -93,10 +93,10 @@ public class ReminderTests_Cosmos_Standalone
 
         Assert.Single(rows); // "The reminder table (sid={0}, did={1}) did not contain the correct number of rows (1).", ServiceId, clusterId);
         ReminderEntry actual = rows[0];
-        Assert.Equal(expected.GrainId, actual.GrainId); // "The newly inserted reminder table (sid={0}, did={1}) row did not contain the expected grain reference.", ServiceId, clusterId);
+        Assert.Equal(expected.GrainId, actual.GrainId); // "The newly inserted reminder table (sid={0}, did={1}) row did not contain the expected grain 参考书", ServiceId, clusterId);
         Assert.Equal(expected.ReminderName, actual.ReminderName); // "The newly inserted reminder table (sid={0}, did={1}) row did not have the expected reminder name.", ServiceId, clusterId);
         Assert.Equal(expected.Period, actual.Period); // "The newly inserted reminder table (sid={0}, did={1}) row did not have the expected period.", ServiceId, clusterId);
-                                                      // the following assertion fails but i don't know why yet-- the timestamps appear identical in the error message. it's not really a priority to hunt down the reason, however, because i have high confidence it is working well enough for the moment.
+                                                      // 以下的断言失败了,但我还不知道为什么... 错误信息中的时间戳看起来是一样的。 但是,找到原因并不是一个优先事项, 因为我非常有信心它目前已经很好工作了。
         /*Assert.Equal(expected.StartAt,  actual.StartAt); // "The newly inserted reminder table (sid={0}, did={1}) row did not contain the correct start time.", ServiceId, clusterId);*/
         Assert.False(string.IsNullOrWhiteSpace(actual.ETag), $"The newly inserted reminder table (sid={_serviceId}, did={clusterId}) row contains an invalid etag.");
     }
@@ -116,7 +116,7 @@ public class ReminderTests_Cosmos_Standalone
 
             var e = new ReminderEntry
             {
-                //GrainId = LegacyGrainId.GetGrainId(new Guid(s)),
+                //GrainId = LegacyGrainId.GetGrainId(新指南),
                 GrainId = _fixture.InternalGrainFactory.GetGrain(LegacyGrainId.NewId()).GetGrainId(),
                 ReminderName = "MY_REMINDER_" + i,
                 Period = TimeSpan.FromSeconds(5),

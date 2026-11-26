@@ -14,7 +14,7 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net11.0'">
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <WarningsAsErrors>$(WarningsAsErrors);IL2067;IL2070;IL2075;IL2091</WarningsAsErrors>
-    <!-- Keep the remaining trim and AOT backlog visible in the compatibility audit while enforcing this bounded rollout. -->
+    <!-- 在执行这一约束性推广的同时,在兼容性审计中保留其余的细小和AOT积压情况。 -->
     <NoWarn Condition="'$(EnableCompatibilityAnalyzerAudit)' != 'true'">$(NoWarn);IL2026;IL2055;IL2057;IL2060;IL2071;IL2077;IL2090;IL2096;IL3050;IL4000</NoWarn>
   </PropertyGroup>
 

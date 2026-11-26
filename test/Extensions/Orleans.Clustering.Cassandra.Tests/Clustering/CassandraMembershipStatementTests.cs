@@ -204,7 +204,7 @@ public sealed class CassandraMembershipStatementTests
             var entry = Entry(SiloStatus.Dead, backend.Entries.Count + 1);
             entry.StartTime = field == 0 ? Timestamp : Timestamp.AddDays(-1);
             entry.IAmAliveTime = field == 1 ? Timestamp : Timestamp.AddDays(-1);
-            // The newest vote is deliberately first.
+            // 最新的投票是有意的先进行。
             entry.SuspectTimes = field == 2
                 ? [Tuple.Create(entry.SiloAddress, Timestamp), Tuple.Create(entry.SiloAddress, Timestamp.AddDays(-1))]
                 : null;

@@ -1,13 +1,13 @@
 namespace Orleans.Transactions;
 
 /// <summary>
-/// Service key used to resolve the transactions subsystem's <see cref="System.TimeProvider"/> from keyed dependency
-/// injection. See <see cref="Orleans.Runtime.TimeProviderNames"/> for the core runtime areas.
+/// 用于解决按键依赖性交易子系统 <see cref="System.TimeProvider"/> 的事务关键
+/// 。请参见核心运行时间区域 <see cref="Orleans.Runtime.TimeProviderNames"/> 。
 /// </summary>
 public static class TransactionTimeProviderNames
 {
     /// <summary>
-    /// The clock used by the transactions subsystem.
+    /// 交易子系统所用的时钟。
     /// </summary>
     public const string Transactions = "Orleans.Transactions";
 }

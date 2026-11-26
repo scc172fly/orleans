@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.StreamingTests.BroadcastChannel
 {
     /// <summary>
-    /// Tests broadcast channel functionality including fire-and-forget and non-fire-and-forget delivery modes with multiple subscribers.
+    /// 测试广播频道功能,包括多个用户的火和福及非火和福交付模式。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -208,7 +208,7 @@ namespace Tester.StreamingTests.BroadcastChannel
             await stream.Publish(2, cancellationToken);
             await stream.Publish(3, cancellationToken);
 
-            // 3 items × 2 subscribers = 6 deliveries
+            // 3项x2个用户=6个交付
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(CallTimeout);
             await observer.WaitForDeliveryCountAsync(channelId, 6, providerName: null, cancellationToken: cts.Token);
@@ -256,7 +256,7 @@ namespace Tester.StreamingTests.BroadcastChannel
             await stream.Publish(1, cancellationToken);
             if (fireAndForget)
             {
-                // 1 item × 2 subscribers = 2 deliveries
+                // 1项x2个用户=2个交付
                 using var cts1 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts1.CancelAfter(CallTimeout);
                 await observer.WaitForDeliveryCountAsync(channelId, 2, providerName: null, cancellationToken: cts1.Token);
@@ -268,13 +268,13 @@ namespace Tester.StreamingTests.BroadcastChannel
             if (fireAndForget)
             {
                 await stream.Publish(2, cancellationToken);
-                // Wait for good grain delivery (total: 3 successful deliveries)
+                // 等待良好交货 grain (共计:3个成功交付)
                 using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts2.CancelAfter(CallTimeout);
                 await observer.WaitForDeliveryCountAsync(channelId, 3, providerName: null, cancellationToken: cts2.Token);
 
-                // Bad grain callback is still invoked (but throws), so emit doesn't fire.
-                // Poll for the counter as the diagnostic event can't observe failed deliveries.
+                // 坏 grain 仍会呼唤(但投球),
+                // 检查台的票数,因为诊断事件无法观察到失败交货。
                 var counter = 0;
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(CallTimeout);
@@ -294,7 +294,7 @@ namespace Tester.StreamingTests.BroadcastChannel
             await badGrain.ThrowsOnReceive(false);
             await stream.Publish(3, cancellationToken);
 
-            // Wait for all remaining deliveries: 5 total (good: 3, bad: 2)
+            // 等待所有剩余交货:5个总交货数(良好:3个,坏:2)
             using var ctsFinal = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             ctsFinal.CancelAfter(CallTimeout);
             await observer.WaitForDeliveryCountAsync(channelId, 5, providerName: null, cancellationToken: ctsFinal.Token);

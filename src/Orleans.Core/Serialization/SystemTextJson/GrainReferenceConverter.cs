@@ -9,9 +9,9 @@ using Orleans.Runtime;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// A <see cref="JsonConverter{T}"/> for <see cref="IAddressable"/> types (grain references).
+    /// A <see cref="JsonConverter{T}"/> 用于 <see cref="IAddressable"/> (类型)grain 参考文献)
     /// </summary>
-    /// <param name="referenceActivator">The activator used to construct grain references during deserialization.</param>
+    /// <param name="referenceActivator">用于构造的活性器 grain 进行分解时参考文献。</param>
     public sealed class GrainReferenceConverter(GrainReferenceActivator referenceActivator) : JsonConverter<IAddressable>
     {
         private readonly Type _addressableType = typeof(IAddressable);

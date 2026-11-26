@@ -11,7 +11,7 @@ using Orleans.Configuration;
 namespace Orleans.Runtime.Membership
 {
     /// <summary>
-    /// Provides Orleans gateway addresses from a relational clustering table.
+    /// 提供关系组表格中的 Orleans 网关地址。
     /// </summary>
     public partial class AdoNetGatewayListProvider : IGatewayListProvider
     {
@@ -23,14 +23,14 @@ namespace Orleans.Runtime.Membership
         private readonly TimeSpan _maxStaleness;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AdoNetGatewayListProvider"/> class.
+        /// 初始化 <see cref="AdoNetGatewayListProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="options">The relational clustering options.</param>
-        /// <param name="gatewayOptions">The gateway discovery options.</param>
-        /// <param name="clusterOptions">The cluster identity options.</param>
-        /// <exception cref="ArgumentNullException">A required options accessor is <see langword="null"/>.</exception>
+        /// <param name="logger">日志器。</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="options">关联组合组合选项。</param>
+        /// <param name="gatewayOptions">网关发现选项。</param>
+        /// <param name="clusterOptions">集群识别选项。</param>
+        /// <exception cref="ArgumentNullException">所需的选项访问器是 <see langword="null"/>。</exception>
         public AdoNetGatewayListProvider(
             ILogger<AdoNetGatewayListProvider> logger,
             IServiceProvider serviceProvider,

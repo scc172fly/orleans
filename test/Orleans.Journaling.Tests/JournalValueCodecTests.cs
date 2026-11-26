@@ -11,7 +11,7 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Tests for the binary durable journal codec implementations.
+/// 二进制日记代码执行测试 。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

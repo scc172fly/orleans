@@ -17,7 +17,7 @@ namespace Orleans.Streaming.Kinesis
         [Id(0)]
         private readonly byte[] _rawRecord = null!;
 
-        // Payload is local cache of deserialized payloadBytes.  Should never be serialized as part of batch container.  During batch container serialization raw payloadBytes will always be used.
+        // 有效载荷是已解除的 payloadBytes本地缓存。不应作为批量容器的一部分进行序列化,在批量集装箱序化过程中将始终使用原 payloadBytes 。
         [NonSerialized]
         private Body? _payload;
 
@@ -44,19 +44,19 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// Stream identifier for the stream this batch is part of.
+        /// 此批次是溪流的串流识别符 。
         /// </summary>
         public StreamId StreamId => GetPayload().StreamId;
 
         /// <summary>
-        /// Stream Sequence Token for the start of this batch.
+        /// 开始这批货的串流序列 Token 。
         /// </summary>
         public StreamSequenceToken SequenceToken => Token;
 
         private Body GetPayload() => _payload ??= this.Serializer.Deserialize(_rawRecord)!;
 
         /// <summary>
-        /// Gets events of a specific type from the batch.
+        /// 从批量中获取特定类型的事件 。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -66,10 +66,10 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// Gives an opportunity to IBatchContainer to set any data in the RequestContext before this IBatchContainer is sent to consumers.
-        /// It can be the data that was set at the time event was generated and enqueued into the persistent provider or any other data.
+        /// 给一个机会 IBatchContainer 中设置数据 RequestContext 此前 IBatchContainer 发送到消费者。
+        /// 可以是生成事件时设定的数据,并排入持续提供方或任何其他数据。
         /// </summary>
-        /// <returns>True if the RequestContext was indeed modified, false otherwise.</returns>
+        /// <returns>如果 RequestContext 确实被修改, 且以其他方式伪造, 则属 True。</returns>
         public bool ImportRequestContext()
         {
             if (GetPayload().RequestContext != null)

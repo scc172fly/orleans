@@ -1,7 +1,7 @@
 namespace Orleans.Streams
 {
     /// <summary>
-    /// A stream namespace predicate which matches all namespaces.
+    /// 串行命名空间前置, 它与所有命名空间匹配 。
     /// </summary>
     internal class AllStreamNamespacesPredicate : IStreamNamespacePredicate
     {

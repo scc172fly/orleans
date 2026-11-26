@@ -17,7 +17,7 @@ public sealed class ReminderGrain : DurableGrain
     // <orleans0200_violation>
     public async DurableTask<int> RemindAsync(string recipient)
     {
-        // A replay runs this line again after the reminder was sent, and counts it twice.
+        // 提醒发送后, 重放再次运行此行, 并两次计数 。
         _remindersSent.Value++;
         await SendReminderAsync(recipient).WithId("send");
         return _remindersSent.Value;
@@ -25,7 +25,7 @@ public sealed class ReminderGrain : DurableGrain
 
     public async DurableTask ShipWhenPaidAsync()
     {
-        // A replay reads the status which the "ship" step wrote, takes the other branch, and skips the recorded step.
+        // 重播读取“ship”步骤写下的位置, 选择另一分支, 跳过记录的步骤 。
         if (_status.Value == OrderStatus.Paid)
         {
             await MarkShipped().WithId("ship");
@@ -37,7 +37,7 @@ public sealed class ReminderGrain : DurableGrain
     // <orleans0200_fix_once>
     public async DurableTask<int> RemindOnceAsync(string recipient)
     {
-        // The effect runs once, and its change commits with its record. A replay returns the recorded count.
+        // 效果运行一次, 更改后会随记录一起发生。 重放返回所记录的计数 。
         var sent = DurableTask.RunInline("count", () => ++_remindersSent.Value);
         await SendReminderAsync(recipient).WithId("send");
         return sent;
@@ -45,7 +45,7 @@ public sealed class ReminderGrain : DurableGrain
 
     public async DurableTask ShipWhenPaidOnceAsync()
     {
-        // A replay returns the status which the first run read, so it takes the same branch.
+        // 重播返回第一个运行读取状态,所以它需要同一个分支。
         var status = DurableTask.RunInline("read-status", () => _status.Value);
         if (status == OrderStatus.Paid)
         {
@@ -59,13 +59,13 @@ public sealed class ReminderGrain : DurableGrain
     {
         await SendReminderAsync(recipient).WithId("send");
 
-        // No durable operation follows, so this change commits with the task's result and no replay runs it again.
+        // 之后没有持久行动,所以这一变化与任务的结果相伴而生,不再重复。
         return ++_remindersSent.Value;
     }
     // </orleans0200_fix_tail>
 
     // <orleans0200_fix_step>
-    // A local step: its whole body is its final code, so its change commits with its recorded result.
+    // 地方步骤:整个机构是其最终守则,因此它的变化承诺以记录的结果。
     private async DurableTask<OrderStatus> MarkShipped() => _status.Value = OrderStatus.Shipped;
     // </orleans0200_fix_step>
 

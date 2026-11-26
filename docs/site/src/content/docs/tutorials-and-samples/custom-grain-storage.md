@@ -1,107 +1,121 @@
 ---
-title: Custom grain storage sample project
-description: Explore a custom grain storage sample project written with .NET Orleans.
+title: "自定义 grain 储存样本项目"
+description: "探索自定义 grain 储存样板项目 .NET Orleans."
 ms.date: 08/14/2026
 ms.topic: tutorial
 ai-usage: ai-assisted
 ---
 
-# Custom grain storage
+<a id="custom-grain-storage"></a>
 
-In the tutorial on declarative actor storage, you learned how to allow grains to store their state in an Azure table using one of the built-in storage providers. While Azure is a great place to store your data, many alternatives exist. There are so many that supporting them all isn't feasible. Instead, Orleans is designed to let you easily add support for your preferred storage by writing a custom grain storage provider.
+# 自定义 grain 存储
 
-In this tutorial, you'll build a simple file-based grain storage provider for a local, single-silo application. It stores binary state records on the local filesystem and uses persisted ETags for basic optimistic concurrency checks.
+在宣言性行为者存储指导课程中,您学会了如何允许 grains 使用一个内置存储提供者将状态保存在一张 Azure 表格中。虽然 Azure 是存储数据的一个好地方,但有许多替代方法存在。有这么多支持它们的方法都行不通。相反, Orleans 的设计是为了通过写一个自定义的 grain 存储提供者来方便地添加对首选存储的支持。
 
-## Get started
+在此教程中, 您将建立一个基于文件的简单 grain 存储服务 , 用于本地的单项silo 应用程序。 它在当地的文件系统中储存二进制国家记录, 并使用持续存在的ETags进行基本的乐观货币对等检查 。
 
-An Orleans grain storage provider is a class that implements <xref:Orleans.Storage.IGrainStorage>, included in the [Microsoft.Orleans.Core](https://www.nuget.org/packages/Microsoft.Orleans.Core) NuGet package. This sample also implements <xref:Orleans.ILifecycleParticipant`1>, where the lifecycle type is <xref:Orleans.Runtime.ISiloLifecycle>, so that it can initialize during the silo lifecycle. Start by creating a class named `FileGrainStorage`; the complete, compiling implementation appears at the end of the tutorial.
+<a id="get-started"></a>
 
-Each method implements the corresponding method in the <xref:Orleans.Storage.IGrainStorage> interface, accepting a generic type parameter for the underlying state type. The methods are:
+## 开始
 
-- <xref:Orleans.Storage.IGrainStorage.ReadStateAsync*?displayProperty=nameWithType>: Reads the state of a grain.
-- <xref:Orleans.Storage.IGrainStorage.WriteStateAsync*?displayProperty=nameWithType>: Writes the state of a grain.
-- <xref:Orleans.Storage.IGrainStorage.ClearStateAsync*?displayProperty=nameWithType>: Clears the state of a grain.
+Orleans grain 存储提供者是执行 <xref:Orleans.Storage.IGrainStorage>的类别,包含在 [Microsoft.Orleans.Core](https://www.nuget.org/packages/Microsoft.Orleans.Core) NuGet 包中。该样本还执行 <xref:Orleans.ILifecycleParticipant`1>,其生命周期类型为 <xref:Orleans.Runtime.ISiloLifecycle>,以便可以在 silo 生命周期内初始化。从创建名为 `FileGrainStorage`的类别开始;完整、汇编的实施出现在教程末尾。
 
-All three methods receive the same arguments:
+每种方法在 <xref:Orleans.Storage.IGrainStorage> 接口中执行相应的方法,接受一个用于基础状态类型的通用类型参数。
 
-| Argument | Meaning |
+- <xref:Orleans.Storage.IGrainStorage.ReadStateAsync*?displayProperty=nameWithType>:读取 grain的状态。
+- <xref:Orleans.Storage.IGrainStorage.WriteStateAsync*?displayProperty=nameWithType>:写出一个 grain的状态。
+- <xref:Orleans.Storage.IGrainStorage.ClearStateAsync*?displayProperty=nameWithType>:清除 grain状态。
+
+所有三种方法都得到同样的论据:
+
+| 参数 | 意义的含义含义 |
 | --- | --- |
-| `stateName` | The logical name of this state record. For <xref:Orleans.Runtime.IPersistentState`1>, this is the state name configured by <xref:Orleans.Runtime.PersistentStateAttribute>; legacy <xref:Orleans.Grain`1> state uses `state`. A grain can have multiple named state records, so include this value in the storage key. Older versions of the interface called this argument `grainType`, but it doesn't describe the state object's .NET type. |
-| `grainId` | The complete Orleans grain identity, including its grain type and primary key. Combine it with `stateName` to identify a record. Don't key records using only the primary key, because different grain types can use the same key. |
-| `grainState` | The state container Orleans passes to the provider. Its <xref:Orleans.IGrainState`1.State> property contains the application state, <xref:Orleans.IGrainState`1.ETag> carries the provider's optimistic-concurrency token, and <xref:Orleans.IGrainState`1.RecordExists> indicates whether the record exists. A read populates these properties; a write or clear updates them to reflect the completed operation. |
-| `T` | The declared .NET type of the state payload. Use `T` (or `typeof(T)`) for serialization and type metadata. It isn't a record identifier and can be shared by many grains and named state records. |
+| `stateName` | 此状态记录的逻辑名称。 对于 <xref:Orleans.Runtime.IPersistentState`1>, 这是以 <xref:Orleans.Runtime.PersistentStateAttribute>配置的国名; 遗留 <xref:Orleans.Grain`1> 状态使用 `state`。 A grain 可以有多个命名的国家记录, 所以可以在存储键中包含此值。 界面的旧版本称为该参数 `grainType`, 但并不描述国家对象的 .NET 类型 。 |
+| `grainId` | 完整的 Orleans grain 身份,包括其 grain 类型和主键。将其与 `stateName` 合并以识别记录。不要只使用主键的密钥记录,因为不同的 grain 类型可以使用相同的密钥。 |
+| `grainState` | 国家集装箱 Orleans 发往提供者。 <xref:Orleans.IGrainState`1.State> 属性包含申请状态, <xref:Orleans.IGrainState`1.ETag> 提供商的票面上带有乐观货币表示, <xref:Orleans.IGrainState`1.RecordExists> 表示是否存在记录。读写后会显示这些属性;写或清晰更新以反映出已完成的操作。 |
+| `T` | 国家有效载荷的申报 .NET 类型。使用 `T` (或 `typeof(T)`) 进行序列和元数据类型。它不是一个记录标识符,可以由许多 grains 和命名的国家记录共享。 |
 
-Therefore, `stateName` and `grainState.State?.GetType().Name` aren't interchangeable. The first identifies one of a grain's logical state records and is stable independently of the payload implementation. The second is only the runtime type name of the current payload; it can be `null`, can differ from `typeof(T)` when polymorphism is involved, and can change during a refactoring. The sample uses `stateName` and `grainId` for identity and delegates payload type handling to the configured serializer.
+因此, `stateName` 和 `grainState.State?.GetType().Name` 不可互换。 首先是确定 grain逻辑状态记录之一, 并且与有效载荷的安装无关, 其次只是当前有效载荷的运行时间类型名称; 可能是 `null`, 当涉及多形态时可以不同于 `typeof(T)` , 在重构过程中也可以改变。 样本使用 `stateName` 和 `grainId` 来进行身份识别和代表对配置的序列器处理的有效载荷类型。
 
-The <xref:Orleans.ILifecycleParticipant`1.Participate*?displayProperty=nameWithType> method subscribes to the silo's lifecycle.
+<xref:Orleans.ILifecycleParticipant`1.Participate*?displayProperty=nameWithType> 方法符合 silo的生命周期。
 
-Before starting the implementation, create an options class containing the root directory where grain state files are persisted. Create an options file named `FileGrainStorageOptions` containing the following:
+在开始实施执行前,在启动实施之前创建一个选项类,其中包含根目录的选项类别 grain 状态文件被维持。创建一个名为“%s”的选项文件 `FileGrainStorageOptions` 包含以下内容:
 
 :::code source="snippets/custom-grain-storage/FileGrainStorageOptions.cs" id="file_grain_storage_options":::
 
-With the options class created, explore the constructor parameters of the `FileGrainStorage` class:
+创建选项类别后, 探索 `FileGrainStorage` 类的构建参数 :
 
-- `storageName`: Specifies which grains should use this storage provider through <xref:Orleans.Providers.StorageProviderAttribute>, for example, `[StorageProvider(ProviderName = "File")]`.
-- `options`: The options class just created.
-- `clusterOptions`: The cluster options used for retrieving the <xref:Orleans.Configuration.ClusterOptions.ServiceId>.
-- `activatorProvider`: Creates missing or cleared state instances using the same activation rules as Orleans serialization.
+- `storageName`:指定哪个 grains 应通过 <xref:Orleans.Providers.StorageProviderAttribute>,例如 `[StorageProvider(ProviderName = "File")]`,使用该储存提供者。
+- `options`: 选项类刚刚创建 。
+- `clusterOptions`:检索 <xref:Orleans.Configuration.ClusterOptions.ServiceId>所用的组群选项。
+- `activatorProvider`:使用与 Orleans 序列化相同的激活规则,创建缺失或清理的状态实例。
 
-## Initialize the storage
+<a id="initialize-the-storage"></a>
 
-To initialize the storage, subscribe to the <xref:Orleans.ServiceLifecycleStage.ApplicationServices?displayProperty=nameWithType> stage with an `onStart` function. Consider the following <xref:Orleans.ILifecycleParticipant`1.Participate*?displayProperty=nameWithType> implementation:
+## 初始化存储
+
+初始化存储,订阅 <xref:Orleans.ServiceLifecycleStage.ApplicationServices?displayProperty=nameWithType> 阶段的 `onStart` 函数。考虑以下 <xref:Orleans.ILifecycleParticipant`1.Participate*?displayProperty=nameWithType> 执行:
 
 :::code source="snippets/custom-grain-storage/FileGrainStorage.cs" id="participate":::
 
-The `onStart` function creates the root directory before application services use the provider.
+`onStart` 函数在应用程序服务使用提供者之前创建根目录。
 
-Also, derive a fixed-length filename from length-delimited service ID, grain type, grain key, and state name components:
+另外,从有长度限制的服务编号、 grain 类型、 grain 键和国名组成部分中得出固定长的名文件名:
 
 :::code source="snippets/custom-grain-storage/FileGrainStorage.cs" id="getkeystring":::
 
-## Read state
+<a id="read-state"></a>
 
-To read a grain state, derive its record path and read the file if it exists.
+## 读状态
+
+要读取 grain 状态, 获取记录路径, 如果文件存在的话, 则阅读它的文件 。
 
 :::code source="snippets/custom-grain-storage/FileGrainStorage.cs" id="readstateasync":::
 
-The record header contains a persisted opaque `ETag`. Set <xref:Orleans.IGrainState`1.RecordExists> to indicate whether the read found a record, and reset all three state-container properties when the record is absent.
+记录页头含有一个持续不透明 `ETag`。设置 <xref:Orleans.IGrainState`1.RecordExists> 以显示读取时是否找到记录,并在没有记录时重置所有三个状态容器属性。
 
-Read the payload as bytes and deserialize it using <xref:Orleans.Storage.IStorageProviderSerializerOptions.GrainStorageSerializer?displayProperty=nameWithType>, preserving arbitrary serializer output without text conversion.
+将有效载荷作为字节读取,使用 <xref:Orleans.Storage.IStorageProviderSerializerOptions.GrainStorageSerializer?displayProperty=nameWithType>使其消散,不转换文字,保留任意的序列输出。
 
-## Write state
+<a id="write-state"></a>
 
-Writing the state is similar to reading the state.
+## 写状态
+
+国家写作与阅读国家相似。
 
 :::code source="snippets/custom-grain-storage/FileGrainStorage.cs" id="writestateasync":::
 
-Use <xref:Orleans.Storage.IStorageProviderSerializerOptions.GrainStorageSerializer?displayProperty=nameWithType> to produce the binary payload. Compare the caller's `ETag` with the persisted token and throw an <xref:Orleans.Storage.InconsistentStateException> when they differ. A successful write creates a new opaque `ETag` and writes the record file.
+使用 <xref:Orleans.Storage.IStorageProviderSerializerOptions.GrainStorageSerializer?displayProperty=nameWithType> 来生产二进制有效载荷。 比较调用器的 `ETag` 和持续牌子, 当它们不同时丢出一个 <xref:Orleans.Storage.InconsistentStateException> 。 成功写入创建了一个新的不透明 `ETag` 并写入记录文件 。
 
-## Clear state
+<a id="clear-state"></a>
 
-Clearing the state involves deleting the file if it exists.
+## 清状态
+
+如果文件存在, 清理状态涉及删除它 。
 
 :::code source="snippets/custom-grain-storage/FileGrainStorage.cs" id="clearstateasync":::
 
-Before deleting an existing record, verify that the caller's `ETag` matches the persisted token. A successful clear resets the state instance, `ETag`, and <xref:Orleans.IGrainState`1.RecordExists>.
+删除已有记录之前, 请核实调用者的 `ETag` 是否匹配持续标记。 成功清除后将重置国家实例、 `ETag`和 <xref:Orleans.IGrainState`1.RecordExists>。
 
-## Put it all together
+<a id="put-it-all-together"></a>
 
-Next, create a factory that allows scoping the options to the provider name while creating an instance of `FileGrainStorage` to ease registration with the service collection.
+## 都一起拼起来
+
+下一步,建立一个工厂,在创建 `FileGrainStorage` 实例以方便服务收藏登记的同时,可以对供货商名称的选项进行范围界定。
 
 :::code source="snippets/custom-grain-storage/FileGrainStorageFactory.cs" id="file_grain_storage_factory":::
 
-Lastly, create extensions on <xref:Orleans.Hosting.ISiloBuilder> and <xref:Microsoft.Extensions.DependencyInjection.IServiceCollection>. They configure named options, register configuration validation and serializer defaults, and add the provider using Orleans storage registration.
+最后,在 <xref:Orleans.Hosting.ISiloBuilder> 和 <xref:Microsoft.Extensions.DependencyInjection.IServiceCollection>上创建扩展。它们配置了命名选项、登记配置验证和序列器默认,并使用 Orleans 存储注册添加供应商。
 
 :::code source="snippets/custom-grain-storage/FileSiloBuilderExtensions.cs" id="file_silo_builder_extensions":::
 
-The Orleans storage registration detects that `FileGrainStorage` implements <xref:Orleans.ILifecycleParticipant`1> for <xref:Orleans.Runtime.ISiloLifecycle> and registers its lifecycle participation.
+下 Orleans 储存登记注册的检测发现 `FileGrainStorage` 执行 <xref:Orleans.ILifecycleParticipant`1> 用于 <xref:Orleans.Runtime.ISiloLifecycle> 登记其参与生命周期的情况。
 
 :::code source="snippets/custom-grain-storage/FileSiloBuilderExtensions.cs" id="storage_registration":::
 
-This enables adding the file storage using the extension on <xref:Orleans.Hosting.ISiloBuilder>:
+允许在 <xref:Orleans.Hosting.ISiloBuilder>上使用扩展名添加文件存储 :
 
 :::code source="snippets/custom-grain-storage/Program.cs" id="custom_grain_storage_program":::
 
-Now you can select the provider using <xref:Orleans.Providers.StorageProviderAttribute>, for example, `[StorageProvider(ProviderName = "File")]`, and it stores the grain state in the root directory set in the options. Consider the full implementation of `FileGrainStorage`:
+现在您可以使用 <xref:Orleans.Providers.StorageProviderAttribute>等 `[StorageProvider(ProviderName = "File")]`选择提供者,并将 grain 状态存储在选项中设置的根目录中。考虑全面执行 `FileGrainStorage`:
 
 :::code source="snippets/custom-grain-storage/FileGrainStorage.cs" id="file_grain_storage":::

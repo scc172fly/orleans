@@ -11,15 +11,15 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// Injects faults at each boundary of the delivery chain and asserts that transient infrastructure faults only delay a
-/// message, which is then processed and delivered exactly once in effect, while only explicit rejections and expired
-/// retries are permanent.
+/// 分导交货链每一边界的错误,并声称短暂的基础设施故障只会拖延
+/// 电文,然后处理并发送,准确一次有效,但仅明确拒绝和过期
+/// 重试是永久性的
 /// </summary>
 /// <remarks>
-/// Faults are injected through <see cref="DeliveryFaultInjector"/> for the outbox's call to the receiver,
-/// <see cref="ControlledJournalStorageProvider"/> for journal writes, <see cref="DurableJobManagerProbe"/> for wake-up
-/// scheduling, and <see cref="HandlerProbe"/> for handlers. Time moves only through
-/// <see cref="FaultInjectionClusterFixture.JobClock"/>, and each retry runs through an explicit pump run.
+/// 发送箱呼叫接收器时通过 <see cref="DeliveryFaultInjector"/> 注射错误
+/// <see cref="ControlledJournalStorageProvider"/> 用于日记写, <see cref="DurableJobManagerProbe"/> 用于唤醒
+/// 处理器的排程和 <see cref="HandlerProbe"/> 。时间仅移动
+/// <see cref="FaultInjectionClusterFixture.JobClock"/>,每次重试都通过一个清晰的泵运行。
 /// </remarks>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
@@ -89,7 +89,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         Assert.False(sending.IsCompleted);
         Assert.Equal(0, Deliveries.ReceiverCalls);
 
-        // Captured entries retain a wake-up while delivery awaits the write acknowledgement.
+        // 被捕获的条目保持了警醒状态,交付等待书面确认。
         var wakeup = await Fixture.RunPumpAsync(sender);
         Assert.Equal(DurableJobRunStatus.RescheduleRequested, wakeup.Status);
         Assert.Equal(_cluster.JobClock.GetUtcNow() + TimeSpan.FromSeconds(1), wakeup.RescheduleTime);
@@ -150,7 +150,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
 
         var id = await sender.SendAsync(receiver.GetGrainId(), Route, message);
 
-        // The fault only schedules a retry; the receiver was never called.
+        // 唯一的错误是安排重试;接收者从未被调用。
         var attempt = await WaitForFailedAttemptAsync(sender, id, 1);
         Assert.Contains(error, attempt.LastError);
         Assert.Equal(startedAt + RetryInterval, attempt.NextAttemptAt);
@@ -179,13 +179,13 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
             DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, queued));
             await receiver.ConfigureHandlerAsync(false);
 
-            // Deactivation cancels the in-flight attempt, which ends without an outcome and fails messaging, so the
-            // activation journals no clean stop, as if the process had died mid-attempt.
+            // 停止活动取消飞行中飞行的尝试, 最终没有结果和失败的讯息,所以
+            // 启动日记本没有干净的停止, 就好像过程在尝试中已经死。
             await _cluster.CrashAsync(receiver);
         }
 
-        // Recovery charges the interrupted attempt and the queued message which hadn't run, one attempt each. Neither
-        // had failed before, so even this fixture's zero InboxRetryTimeout dead-letters neither.
+        // 追回指控中断的尝试和排队信息 没有运行,每个尝试。
+        // 之前失败过,所以即使这个固定点的零 InboxRetryTimeout 也不算是死字母。
         var recovered = await receiver.GetSnapshotAsync();
         var inbox = Fixture.GetInbox(receiver);
         var states = await Fixture.OnGrainAsync(receiver, () => new[]
@@ -215,14 +215,14 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         var id = await sender.SendAsync(receiver.GetGrainId(), Route, message);
         var attempt = await WaitForFailedAttemptAsync(sender, id, 1);
 
-        // The retry write schedules no job of its own: the wake-up which the send ensured before it became durable keeps
-        // running while the outbox holds the entry, and its run reschedules to the retry time.
+        // 重试写入时间表没有自己的工作:发送在持久之前确保的提醒
+        // 输出框将保持条目, 运行时间则重新排程到重试的时间 。
         Assert.Single(Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, sender.GetGrainId()));
         var wakeup = await Fixture.RunPumpAsync(sender);
         Assert.Equal(DurableJobRunStatus.RescheduleRequested, wakeup.Status);
         Assert.Equal(attempt.NextAttemptAt, wakeup.RescheduleTime);
 
-        // A crash loses the activation; recovery re-arms the wake-up from the journaled retry time.
+        // 崩溃会失去激活; 恢复从日记回溯时间重新武装提醒。
         await _cluster.CrashAsync(sender);
         _ = await sender.GetSnapshotAsync();
         await _cluster.AdvanceAndRunPumpAsync(sender, RetryInterval);
@@ -239,22 +239,22 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         var receiver = NewGrain();
         _ = await sender.GetSnapshotAsync();
 
-        // The send is the sender's first write, and the failed attempt's retry is its second.
+        // 发送是发件人的首篇作品 失败的尝试重试是第二本
         using var retryWrite = Fixture.Storage.BlockWrite(JournalId.FromGrainId(sender.GetGrainId()), matchingWrite: 2);
         Deliveries.Enqueue(DeliveryFault.Throw());
         var message = NewMessage(24, "retry-write");
         await sender.SendAsync(receiver.GetGrainId(), Route, message);
         await retryWrite.WaitUntilEnteredAsync();
 
-        // Every wake-up signals the pump's one processing loop, which is awaiting the retry write, so a duplicate wake-up
-        // after the retry time starts no attempt from the staged retry state.
+        // 每一个警醒信号都显示泵的处理循环, 它正在等待重新写入, 所以重复提醒
+        // 重试时间开始后, 将不尝试从预演的重试状态开始 。
         _cluster.JobClock.Advance(RetryInterval);
         var duplicate = Fixture.RunDuplicatePumpAsync(sender);
         _ = await Fixture.OnGrainAsync(sender, static () => true);
         Assert.False(duplicate.IsCompleted);
         Assert.Equal(1, Deliveries.Executions);
 
-        // Once the retry is durable, the duplicate wake-up's pass delivers the message.
+        // 一旦重试是耐久的, 重复的唤醒通行证传递信息。
         retryWrite.Release();
         await duplicate;
         await WaitForDrainedOutboxAsync(sender);
@@ -307,7 +307,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         DeliveryResultAssert.Equal([DeliveryResult.Accepted.Instance, DeliveryResult.Duplicate.Instance], Deliveries.Answers);
         Assert.Equal(payload, (await OnSinkAsync(receiver, static grain => grain.GetState())).Received[id.ToString()]);
 
-        // The receiver's deduplication answered the retry before offering it to the sink again.
+        // 接收器的解析回答了重新试过,然后又把它送到水槽。
         var probe = _cluster.SourceSinkProbe.For(receiver);
         Assert.Equal(1, probe.SinkOffers);
         Assert.Equal(1, probe.SinkAcceptances);
@@ -324,7 +324,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         var probe = _cluster.SourceSinkProbe.For(receiver);
         probe.Mode = SinkMode.DeadLetter;
 
-        // The rejection's write is the receiver's first, so a requested snapshot holds its processed record.
+        // 拒绝书是接收者的第一个记录 所以请求的快照能保存其处理的记录
         if (recovery == ReceiverRecovery.Snapshot) Fixture.Storage.RequestSnapshot(JournalId.FromGrainId(receiver.GetGrainId()));
         var lost = DeliveryFault.LoseResponse();
         Deliveries.Enqueue(lost);
@@ -342,7 +342,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
             await previous.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         }
 
-        // The receiver answers the retry from its processed record, without offering the message to the sink again.
+        // 接收器从处理过的记录中回答重试,不向水槽再次提供电文。
         probe.Mode = SinkMode.Accept;
         await _cluster.AdvanceAndRunPumpAsync(sender, RetryInterval);
 
@@ -376,7 +376,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
 
         var id = await sender.SendAsync(receiver.GetGrainId(), Route, message);
 
-        // The sender gave up on the call while the receiver's acceptance write is still in progress, then retries.
+        // 发件人放弃电话,接收人的验收书仍在写,然后重试。
         await acceptance.WaitUntilEnteredAsync();
         await WaitForFailedAttemptAsync(sender, id, 1);
         await _cluster.AdvanceAndRunPumpAsync(sender, RetryInterval);
@@ -409,7 +409,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         Assert.Equal(startedAt, second.SentAt);
         Assert.Equal(startedAt + RetryInterval + 2 * RetryInterval, second.NextAttemptAt);
 
-        // Once the retry timeout passes, the next due attempt dead-letters the message without another try.
+        // 一旦重试超时, 下次尝试将信息用死字字母发送, 而不再尝试 。
         await _cluster.AdvanceAndRunPumpAsync(sender, RetryTimeout);
 
         await Fixture.WaitUntilAsync(sender, () => Sink(sender).GetState().Retired.Count == 1);
@@ -443,7 +443,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         Assert.Equal(sentAt, first.SentAt);
         Assert.Equal("The receiver is backpressured.", first.LastError);
 
-        // Backpressure never renews the logical send's bounded retry budget.
+        // 后压从不更新逻辑发送的受约束重试预算。
         var step = RetryTimeout * 3 / 4;
         await _cluster.AdvanceAndRunPumpAsync(sender, step);
         var second = await WaitForFailedAttemptAsync(sender, id, 2);
@@ -492,7 +492,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         await _cluster.AdvanceAndRunPumpAsync(sender, 2 * step);
         await Fixture.WaitUntilAsync(sender, () => Sink(sender).GetState().Retired.Count == 1);
 
-        // Transport timeouts and recovery cannot change the journaled logical send time.
+        // 运输超时和回收无法改变日记逻辑发送时间。
         Assert.Equal(
             [sentAt, sentAt, sentAt],
             Deliveries.SentTimes);
@@ -550,13 +550,13 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
 
         var id = await sender.SendAsync(receiver.GetGrainId(), Route, message);
 
-        // The receiver failed the call and deactivated; the sender holds the message for a retry.
+        // 接收器失败了通话并停止使用;发送者持有信息进行重试。
         Assert.Contains("Injected", (await WaitForFailedAttemptAsync(sender, id, 1)).LastError);
         Assert.Empty(Deliveries.Answers);
         await _cluster.AdvanceAndRunPumpAsync(sender, RetryInterval);
 
         await WaitForDrainedOutboxAsync(sender);
-        // An acceptance which became durable despite the failure is recovered, so the retry is a duplicate.
+        // 接受尽管失败仍成为持久的,但被收回,因此重试是重复的。
         DeliveryResultAssert.Equal([ambiguous ? DeliveryResult.Duplicate.Instance : DeliveryResult.Accepted.Instance], Deliveries.Answers);
         var processed = await AssertProcessedOnceAsync(receiver, message);
         Assert.NotEqual(before.ActivationId, processed.ActivationId);
@@ -578,14 +578,14 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         ArmSenderWriteFailure(sender, ambiguous);
         var previous = Fixture.GetGrainContext(sender);
 
-        // The delivery fails, and so does the write which records the failed attempt.
+        // 交付失败,记录失败尝试的写作也失败。
         hold.Fail(new IOException("Injected delivery failure."));
         await previous.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         _ = await sender.GetSnapshotAsync();
 
         if (ambiguous)
         {
-            // The recorded attempt became durable, so the recovered message waits for its backoff.
+            // 记录中的企图变得耐久,所以收回的信息等待其回落。
             var recovered = await Fixture.OnGrainAsync(sender, () => _cluster.GetOutboxState(sender).Attempt(id));
             Assert.Equal(1, recovered.AttemptCount);
             Assert.Equal(startedAt + RetryInterval, recovered.NextAttemptAt);
@@ -620,7 +620,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         _ = await sender.GetSnapshotAsync();
 
         await WaitForDrainedOutboxAsync(sender);
-        // A removal which never became durable is redelivered, and the receiver reports the duplicate.
+        // 永远无法持久的清除被重新交付,接收者报告重复。
         DeliveryResult[] expected = ambiguous ? [DeliveryResult.Accepted.Instance] : [DeliveryResult.Accepted.Instance, DeliveryResult.Duplicate.Instance];
         DeliveryResultAssert.Equal(expected, Deliveries.Answers);
         await AssertProcessedOnceAsync(receiver, message);
@@ -643,8 +643,8 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         hold.Release();
         await previous.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
 
-        // The recovered entry's retry timeout runs from its send, so an attempt now could reach the receiver after its
-        // deduplication window. The outbox dead-letters it instead of redelivering it.
+        // 回收条目的重新尝试从发送时出时间运行, 所以现在可以尝试在接收器完成后到达接收器
+        // 发信箱是死字,而不是再发
         _cluster.JobClock.Advance(RetryTimeout);
         var snapshot = await Fixture.WaitForDeadLetterCountAsync(sender, 1);
 
@@ -670,7 +670,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         await held.WaitUntilEnteredAsync();
         _ = await sender.SendAsync(fast.GetGrainId(), Route, fastMessage);
 
-        // Attempts complete independently, so the message to the other receiver is delivered while the first is held.
+        // 独立完成尝试, 所以在第一个接收器被保存时, 将信息传送给其他接收器 。
         await AssertProcessedOnceAsync(fast, fastMessage);
         Assert.Equal(1, (await sender.GetSnapshotAsync()).OutboxCount);
 
@@ -694,7 +694,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         await sender.WithdrawAsync(id);
         await sender.WriteAsync();
 
-        // The attempt already reached the receiver, but the withdrawn entry neither retires nor delivers again.
+        // 尝试已经到达接收者,但撤回的入境既不退休也不交货。
         hold.Release();
         var outbox = Fixture.GetGrainContext(sender).ActivationServices.GetRequiredService<Outbox>();
         await Fixture.WaitUntilAsync(sender, () => !outbox.IsDelivering);
@@ -721,7 +721,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         Assert.Equal(_cluster.JobClock.GetUtcNow() + TimeSpan.FromSeconds(1), wakeup.RescheduleTime);
         Assert.Equal(1, Deliveries.ReceiverCalls);
 
-        // Deactivation cancels the in-flight delivery, whose outcome is never applied or counted as an attempt.
+        // 停止活动取消飞行时的交付,其结果从未被应用或算作企图。
         await _cluster.CrashAsync(sender);
         _ = await sender.GetSnapshotAsync();
 
@@ -743,7 +743,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, Schedule(CreateEnvelope(receiver, held, HeldRoute), deliverAt)));
         var barrier = Fixture.HandlerProbe.Arm(receiver.GetGrainId(), HeldRoute);
 
-        // Both messages become due in one batch; the first is handled and the second is in its handler at the crash.
+        // 这两条信息分批发送;第一组处理,第二组在坠机时由处理者处理。
         _cluster.JobClock.Advance(RetryTimeout);
         var run = Fixture.RunPumpAsync(receiver);
         await WaitForBarrierAsync(receiver, barrier);
@@ -772,8 +772,8 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         await WaitForBarrierAsync(receiver, barrier);
         var attempts = Fixture.JobManagerProbe.GetAttemptCount(MessagingPump.JobName, receiver.GetGrainId());
 
-        // Durable Jobs cancels a run only when its shard moves, and the job stays stored for the next owner, so the
-        // activation schedules nothing and keeps working.
+        // 只有在工作变的碎片移动时才取消运行, 而该工作仍保存在下一个所有者手中, 所以
+        // 启动计划一无所获,继续工作
         using var cancellation = new CancellationTokenSource();
         var run = Fixture.RunCancelablePumpAsync(receiver, cancellation.Token);
         cancellation.Cancel();
@@ -803,7 +803,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         await sender.RetryWriteStateAsync();
         await hold.WaitUntilEnteredAsync();
 
-        // The receiver's acceptance write schedules its wake-up for the message, and the scheduling fails.
+        // 接收人的接受书写下时间 提醒信息 排程失败
         if (scheduledBeforeFailure)
         {
             Fixture.JobManagerProbe.FailAfterNext(MessagingPump.JobName);
@@ -842,7 +842,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         await _cluster.CrashAsync(sender);
         await Fixture.WaitForOutboxDepthAsync(0);
 
-        // Recovery reports the pending message again, and retiring it releases that depth.
+        // 回收报告尚未解决的信息再次,而退出后释放出这一深度。
         Assert.Equal(1, (await sender.GetSnapshotAsync()).OutboxCount);
         await Fixture.WaitForOutboxDepthAsync(1);
         await _cluster.AdvanceAndRunPumpAsync(sender, RetryInterval);
@@ -864,7 +864,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         var previous = Fixture.GetGrainContext(sender);
         ArmSenderWriteFailure(sender, ambiguous: false);
 
-        // The failed write fences the activation, which releases the depth of both messages.
+        // 失败的写作围栏 激活, 释放出两个信息深度。
         await Assert.ThrowsAnyAsync<Exception>(() => sender.SendAsync(receiver.GetGrainId(), Route, NewMessage(14, "lost")));
         await previous.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         await Fixture.WaitForOutboxDepthAsync(0);
@@ -891,7 +891,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         var attempt = await WaitForFailedAttemptAsync(sender, id, 1);
         var before = await sender.GetSnapshotAsync();
 
-        // The grain call delivers a copy of the envelope, which is equivalent to the committed one.
+        // 下 grain 电话中送来信封副本,相当于承诺信封。
         await sender.StageOutputAsync(outgoing);
         await sender.RetryWriteStateAsync();
 
@@ -1008,7 +1008,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
             Assert.Equal(receiverTime, await Fixture.OnGrainAsync(receiver, receiverClock.GetUtcNow));
         }
 
-        // Keep the floor+1 boundary at the permitted future upper bound after the earlier clock rollback.
+        // 将地平面+1边界保留在较早时倒回后允许的未来上限。
         _cluster.JobClock.Advance(TimeSpan.FromTicks(1));
         var available = CreateEnvelope(receiver, NewMessage(82, "above-floor")) with { SentAt = floor.AddTicks(1) };
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, available));
@@ -1125,7 +1125,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
             DeliveryResultAssert.IsCase<DeliveryResult.Expired>(await extension.DeliverAsync(stale, TestContext.Current.CancellationToken));
             Assert.Equal(writes + index + 1, Fixture.Storage.GetSuccessfulWriteCount(journal));
             Assert.Equal(floor, await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.DurableAdmissionFloor(inbox)));
-            // These finite records are already eligible. Their continued presence proves scalar acks did not compact.
+            // 这些有限记录已经符合资格,它们的继续存在证明是卡拉尔·阿克没有紧凑。
             Assert.True(retained.SetEquals(await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetProcessedKeys(inbox))));
         }
 
@@ -1139,7 +1139,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         Assert.Equal(writes + 33, Fixture.Storage.GetSuccessfulWriteCount(journal));
         Assert.True(retained.SetEquals(await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetProcessedKeys(inbox))));
 
-        // The floor is already durable. This snapshot must reclaim history even though its candidate cannot advance.
+        // 发言已经是持久的,这幅画面必须重新开历史的转折,即使候选人无法前进。
         _cluster.JobClock.Advance(started - _cluster.JobClock.GetUtcNow());
         Fixture.Storage.RequestSnapshot(journal);
         using var acknowledgement = Fixture.Storage.BlockAcknowledgement(journal);
@@ -1165,7 +1165,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         {
             DeliveryResultAssert.IsCase<DeliveryResult.Expired>(await extension.DeliverAsync(message, TestContext.Current.CancellationToken));
         }
-        // Do not present the later retained record outside the receiver's new future-time bound after rollback.
+        // 不得在接收人重新返回后新的未来时间约束之外提交后来的保留记录。
         _cluster.JobClock.Advance(ordinary.SentAt - _cluster.JobClock.GetUtcNow());
         foreach (var message in recent.Append(future).Append(ordinary))
         {
@@ -1193,7 +1193,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         var delayed = DeliveryFault.HoldBeforeCall();
         Deliveries.Enqueue(lost, delayed);
         var started = _cluster.JobClock.GetUtcNow();
-        // The source's payload is raw in the sink case and a real application envelope in the handler case.
+        // 源头的有效载荷在水槽盒中是原始的,处理器箱子中是一个真正的应用信封。
         if (realSink)
         {
             await sender.StageFromSourceAsync(receiver.GetGrainId(), id, payload, write: true);
@@ -1201,7 +1201,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         else
         {
             _ = await sender.GetOutboxCountAsync();
-            // Use an ordinary outbox envelope to preserve the application's route.
+            // 使用普通发信箱来保护申请的路线。
             await Fixture.OnGrainAsync(sender, () => Fixture.GetGrainContext(sender).ActivationServices.GetRequiredService<IOutbox>().Send(new OutboxMessage
             {
                 ReceiverId = receiver.GetGrainId(),
@@ -1214,8 +1214,8 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         Assert.Equal(id, (await retryScheduled).MessageId);
         if (!realSink) await Fixture.WaitForInboxCountAsync((IMessagingTestGrain)receiver, 0);
         await sender.WriteAsync();
-        // Start the retry inside its original budget, then delay its arrival beyond receiver compaction.
-        // A pending retry could otherwise legitimately expire while the shared clock is two days ahead.
+        // 开始在原始预算范围内重新尝试,然后将其到达时间推迟到接收器压缩之后。
+        // 等待重试本来可以合法地过期,而共享时间则提前两天。
         await _cluster.AdvanceAndRunPumpAsync(sender, RetryInterval);
         await delayed.WaitUntilEnteredAsync();
         Assert.Equal(1, Deliveries.ReceiverCalls);
@@ -1256,8 +1256,8 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
             Assert.Equal(1, effect.Count);
         }
 
-        // Observe this delayed attempt's answer and retirement, not an empty outbox caused by an earlier timeout.
-        // Its earlier acceptance is real, but the source must receive UNKNOWN, not a false rejection.
+        // 观察这次延迟的尝试和退休,而不是早点超时造成的空发箱。
+        // 先前的接受是真实的,但消息来源必须收到UNKNOWN,而不是虚假拒绝。
         var answers = Deliveries.WaitForAnswersAsync(2);
         delayed.Release();
         DeliveryResultAssert.IsCase<DeliveryResult.Expired>(await delayed.ReceiverAnswer);
@@ -1400,7 +1400,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         Assert.Empty(events.Retries);
         Assert.Equal(0, (await Fixture.OnGrainAsync(sender, () => _cluster.GetOutboxState(sender).Attempt(id))).AttemptCount);
 
-        // The receiver answers from its record, which keeps the send time it accepted, and writes nothing.
+        // 接收者从记录中回答, 保存发送时间,
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
         var inbox = Fixture.GetInbox(receiver);
         Assert.Equal(original.SentAt, await Fixture.OnGrainAsync(receiver, () => completed
@@ -1419,7 +1419,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         handler.Release();
         await Fixture.WaitForInboxCountAsync(receiver, 0);
         Assert.Equal(original.SentAt, await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetProcessedSentAt(inbox, id)));
-        // The record stays until DeduplicationWindow after its accepted send time, whatever the resend's time.
+        // 记录在接收发送时间后,不论重新发送的时间为何,一直保存到 DeduplicationWindow 为止。
         _cluster.JobClock.Advance(original.SentAt + TimeSpan.FromDays(1) - TimeSpan.FromTicks(1) - _cluster.JobClock.GetUtcNow());
         Fixture.Storage.RequestSnapshot(journal);
         await receiver.RetryWriteStateAsync();
@@ -1469,7 +1469,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
         if (outcome == TerminalOutcome.Rejected) _cluster.SourceSinkProbe.For(receiver).Mode = SinkMode.DeadLetter;
         if (outcome == TerminalOutcome.Expired)
         {
-            // The receiver has durably advanced its admission floor past this send time, then its clock moves backward.
+            // 接收器已经持续提前了录取底线 超过了这个发送时间 然后它的时钟向后退
             _cluster.JobClock.Advance(TimeSpan.FromDays(2));
             var stale = new InboxMessage
             {
@@ -1543,7 +1543,7 @@ public sealed class FaultInjectionTests : MessagingBehaviorTestBase
             Assert.Equal(outcome == TerminalOutcome.Delivered ? 1 : 0, _cluster.SourceSinkProbe.For(receiver).SinkAcceptances);
         }
 
-        // Crash again with durable pending work, then execute it through the recovered real inbox pump.
+        // 重新撞坏耐久的待处理工作 然后通过回收的真正的收箱泵执行
         await _cluster.CrashAsync(sender);
         Assert.Equal(0, await sender.GetOutboxCountAsync());
         await _cluster.AdvanceAndRunPumpAsync(sender, sourceProbe.FollowUpAt!.Value - _cluster.JobClock.GetUtcNow());

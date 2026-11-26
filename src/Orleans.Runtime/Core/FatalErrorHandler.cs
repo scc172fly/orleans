@@ -32,7 +32,7 @@ namespace Orleans.Runtime
             var msg = @$"FATAL EXCEPTION from {sender?.ToString() ?? "null"}. Context: {context ?? "null"}. Exception: {(exception != null ? LogFormatter.PrintException(exception) : "null")}.\nCurrent stack: {Environment.StackTrace}";
             Console.Error.WriteLine(msg);
 
-            // Allow some time for loggers to flush.
+            // 允许伐木者有时间冲洗。
             Thread.Sleep(2000);
 
             if (Debugger.IsAttached) Debugger.Break();

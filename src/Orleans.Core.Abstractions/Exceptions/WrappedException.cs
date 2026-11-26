@@ -7,21 +7,21 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// An exception class used by the Orleans runtime for reporting errors.
+    /// 用于报告错误的 Orleans 运行时间所使用的例外类别。
     /// </summary>
     /// <remarks>
-    /// This is also the base class for any more specific exceptions
-    /// raised by the Orleans runtime.
+    /// 这也是任何更具体例外的基级
+    /// 和《公约》所提出 Orleans 运行时间。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public class WrappedException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="WrappedException"/> class.
+        /// 初始化 <see cref="WrappedException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         public WrappedException(string message)
             : base(message)
@@ -29,16 +29,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WrappedException"/> class.
+        /// 初始化 <see cref="WrappedException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// The serialization info.
+        /// 序列信息
         /// </param>
         /// <param name="context">
-        /// The context.
+        /// 背景。
         /// </param>
-        /// <exception cref="SerializationException">The class name is <see langword="null" /> or <see cref="P:System.Exception.HResult" /> is zero (0).</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="info" /> is <see langword="null" />.</exception>
+        /// <exception cref="SerializationException">类名为 <see langword="null" /> 或 <see cref="P:System.Exception.HResult" /> 为零(0)</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info" /> 是 <see langword="null" />.</exception>
         [Obsolete]
         protected WrappedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -47,7 +47,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets or sets the type of the original exception.
+        /// 获取或设置原始例外的类型。
         /// </summary>
         [Id(0)]
         public string? OriginalExceptionType { get; set; }
@@ -61,9 +61,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="WrappedException"/> class and rethrows it using the provided exception's stack trace.
+        /// 创建 <see cref="WrappedException"/> 类的新实例,并使用所提供的例外的书串跟踪重新丢弃它。
         /// </summary>
-        /// <param name="exception">The exception.</param>
+        /// <param name="exception">例外。</param>
         [DoesNotReturn]
         public static void CreateAndRethrow(Exception exception)
         {

@@ -10,23 +10,23 @@ using Microsoft.Extensions.Options;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// Options for fault injection grain storage
+    /// 错误注入 grain 存储选项
     /// </summary>
     public class FaultInjectionGrainStorageOptions
     {
         /// <summary>
-        /// The default latency.
+        /// 默认的延迟时间 。
         /// </summary>
         public static TimeSpan DEFAULT_LATENCY = TimeSpan.FromMilliseconds(10);
 
         /// <summary>
-        /// Gets or sets the latency applied on storage operations.
+        /// 获取或设置储存操作所用的潜伏。
         /// </summary>
         public TimeSpan Latency { get; set; } = DEFAULT_LATENCY;
     }
 
     /// <summary>
-    /// Fault injection decorator for storage providers.  This allows users to inject storage exceptions to test error handling scenarios.
+    /// 存储提供者的错误注入设计器。 这样用户可以将存储例外输入到测试错误处理方案 。
     /// </summary>
     public partial class FaultInjectionGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -36,13 +36,13 @@ namespace Orleans.TestingHost
         private readonly FaultInjectionGrainStorageOptions options;
 
         /// <summary>
-        /// Default constructor which creates the decorated storage provider.
+        /// 创建装饰存储提供者的默认构建器。
         /// </summary>
-        /// <param name="realStorageProvider">The real storage provider.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="faultInjectionOptions">The fault injection options.</param>
+        /// <param name="realStorageProvider">真实储存提供者。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="faultInjectionOptions">错误注射选项。</param>
         public FaultInjectionGrainStorage(IGrainStorage realStorageProvider, string name, ILoggerFactory loggerFactory,
             IGrainFactory grainFactory, FaultInjectionGrainStorageOptions faultInjectionOptions)
         {
@@ -57,8 +57,8 @@ namespace Orleans.TestingHost
             return Task.Delay(this.options.Latency);
         }
 
-        /// <summary>Faults if exception is provided, otherwise calls through to  decorated storage provider.</summary>
-        /// <returns>Completion promise for the Read operation on the specified grain.</returns>
+        /// <summary>如果规定了例外,则有过失,否则通过电话呼叫装饰式的储存供应商。</summary>
+        /// <returns>特定 grain的读化操作的完成承诺。</returns>
         public async Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             IStorageFaultGrain faultGrain = grainFactory.GetGrain<IStorageFaultGrain>(grainType);
@@ -76,8 +76,8 @@ namespace Orleans.TestingHost
             await realStorageProvider.ReadStateAsync(grainType, grainId, grainState);
         }
 
-        /// <summary>Faults if exception is provided, otherwise calls through to  decorated storage provider.</summary>
-        /// <returns>Completion promise for the Write operation on the specified grain.</returns>
+        /// <summary>如果规定了例外,则有过失,否则通过电话呼叫装饰式的储存供应商。</summary>
+        /// <returns>指定写入操作的完成承诺 grain.</returns>
         public async Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             IStorageFaultGrain faultGrain = grainFactory.GetGrain<IStorageFaultGrain>(grainType);
@@ -95,8 +95,8 @@ namespace Orleans.TestingHost
             await realStorageProvider.WriteStateAsync(grainType, grainId, grainState);
         }
 
-        /// <summary>Faults if exception is provided, otherwise calls through to  decorated storage provider.</summary>
-        /// <returns>Completion promise for the Delete operation on the specified grain.</returns>
+        /// <summary>如果规定了例外,则有过失,否则通过电话呼叫装饰式的储存供应商。</summary>
+        /// <returns>特定 grain的删除操作的完成承诺。</returns>
         public async Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             IStorageFaultGrain faultGrain = grainFactory.GetGrain<IStorageFaultGrain>(grainType);
@@ -159,17 +159,17 @@ namespace Orleans.TestingHost
     }
 
     /// <summary>
-    /// Factory to create FaultInjectionGrainStorage
+    /// 要创建 FaultInjectionGrainStorage的工厂
     /// </summary>
     public static class FaultInjectionGrainStorageFactory
     {
         /// <summary>
-        /// Creates a new <see cref="FaultInjectionGrainStorage"/> instance.
+        /// 创建新的 <see cref="FaultInjectionGrainStorage"/> 实例。
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <param name="injectedGrainStorageFactory">The injected grain storage factory.</param>
-        /// <returns>The new instance.</returns>
+        /// <param name="services">服务。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <param name="injectedGrainStorageFactory">注射 grain 储存厂。</param>
+        /// <returns>新实例。</returns>
         public static IGrainStorage Create(IServiceProvider services, string name, Func<IServiceProvider, string, IGrainStorage> injectedGrainStorageFactory)
         {
             return new FaultInjectionGrainStorage(injectedGrainStorageFactory(services, name), name, services.GetRequiredService<ILoggerFactory>(), services.GetRequiredService<IGrainFactory>(),

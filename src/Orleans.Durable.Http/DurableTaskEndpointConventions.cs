@@ -8,17 +8,17 @@ using Orleans.Durable.Tasks;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>Configures endpoints whose handlers return durable work, which the endpoints start as operations.</summary>
+/// <summary>配置处理者返回持久工作的终点,端点以操作开始。</summary>
 internal static class DurableTaskEndpointConventions
 {
     private static readonly string[] JsonContentTypes = ["application/json"];
     private static readonly string[] ProblemContentTypes = ["application/problem+json"];
 
     /// <summary>
-    /// Replaces the response metadata which a durable start's handler infers, since the endpoint responds with the
-    /// operation rather than the durable work, with the operation's responses.
+    /// 替换耐久启动源处理器处理器计算响应元数据,因为端点是
+    /// 行动的反应是持久工作,而不是持久工作。
     /// </summary>
-    /// <exception cref="InvalidOperationException">The start answers only safe methods, such as <c>GET</c>.</exception>
+    /// <exception cref="InvalidOperationException">启动回答只安全,例如 <c>GET</c>。</exception>
     public static void DescribeStart(EndpointBuilder endpoint)
     {
         if (endpoint.Metadata.OfType<MethodInfo>().LastOrDefault() is not { } method || GetResultType(method) is not { } resultType)
@@ -26,7 +26,7 @@ internal static class DurableTaskEndpointConventions
             return;
         }
 
-        // A start creates an operation, which a safe method, whose requests clients and caches repeat freely, doesn't.
+        // 开始创造一种操作, 安全的方法, 客户和缓存可以自由重复, 而不是。
         if (endpoint.Metadata.OfType<IHttpMethodMetadata>().LastOrDefault() is { HttpMethods: { Count: > 0 } methods }
             && methods.All(static method => HttpMethods.IsGet(method) || HttpMethods.IsHead(method) || HttpMethods.IsOptions(method) || HttpMethods.IsTrace(method)))
         {
@@ -54,8 +54,8 @@ internal static class DurableTaskEndpointConventions
     }
 
     /// <summary>
-    /// Returns the result type of a handler which returns durable work, <see cref="void"/> for work without a result, or
-    /// <see langword="null"/> for a handler which doesn't return durable work.
+    /// 返回一个处理器的结果类型,该处理器将返回耐久工作, <see cref="void"/> 工作无结果,或
+    /// <see langword="null"/> 处理者不会回来的持久工作。
     /// </summary>
     public static Type? GetResultType(MethodInfo handler)
     {
@@ -77,7 +77,7 @@ internal static class DurableTaskEndpointConventions
         return typeof(DurableTask).IsAssignableFrom(returnType) ? typeof(void) : null;
     }
 
-    /// <summary>Throws when <paramref name="name"/>, a name which is a URL path segment, has characters other than URL-unreserved ones.</summary>
+    /// <summary>丢弃时, <paramref name="name"/>即是一个 URL 路径段的名称,其字符除 URL - 无保留的字符外,还有其他字符。</summary>
     public static void ThrowIfInvalidName(string name, string? parameter)
     {
         ArgumentException.ThrowIfNullOrEmpty(name, parameter);

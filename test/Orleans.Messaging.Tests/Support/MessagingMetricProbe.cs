@@ -39,8 +39,8 @@ public sealed class MessagingMetricProbe : IDisposable
     public long GetCount(string instrument, string tagValue = "") =>
         _measurements.TryGetValue((instrument, tagValue), out var count) ? count : 0;
 
-    /// <summary>Gets the current value of a depth instrument created by <paramref name="meter"/>.</summary>
-    /// <remarks>Each silo creates its own meter, so a meter identifies one silo's depth.</remarks>
+    /// <summary>获取 <paramref name="meter"/>所创建的深度仪器的当前值。</summary>
+    /// <remarks>每一 silo 自己创建自己的计量仪, 所以一个计数识别一个 silo深度。</remarks>
     public long GetDepth(Meter meter, string instrument) => _depths.TryGetValue((meter, instrument), out var value) ? value : 0;
 
     public Task WaitForCountAsync(
@@ -60,7 +60,7 @@ public sealed class MessagingMetricProbe : IDisposable
         CancellationToken cancellationToken) =>
         WaitUntilAsync(() => GetCount(instrument, tagValue) >= expected, cancellationToken);
 
-    /// <summary>Waits until <paramref name="condition"/>, which reads this probe's measurements, holds.</summary>
+    /// <summary>等待到 <paramref name="condition"/>,读本探测器的测量结果,它会保持。</summary>
     public async Task WaitUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -92,7 +92,7 @@ public sealed class MessagingMetricProbe : IDisposable
     {
         if (instrument.Name is "orleans-messaging-inbox-depth" or "orleans-messaging-outbox-depth")
         {
-            // The depth instruments are UpDownCounters, so each measurement is a delta.
+            // 深度仪器是 UpDownCounters,因此每个测量都是三角洲。
             _depths.AddOrUpdate((instrument.Meter, instrument.Name), measurement, (_, current) => current + measurement);
             SignalChanged();
             return;

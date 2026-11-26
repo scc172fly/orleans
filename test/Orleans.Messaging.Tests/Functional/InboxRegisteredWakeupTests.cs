@@ -9,7 +9,7 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// The inbox's durable wake-up reactivates a grain while a callback registered with <see cref="IInbox.RegisterWakeup"/> reports work.
+/// 收件箱的持久唤醒功能重新启动了 grain ,而回调则登记在 <see cref="IInbox.RegisterWakeup"/> 报告工作上。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -58,7 +58,7 @@ public sealed class InboxRegisteredWakeupTests() : MessagingBehaviorTestBase(rec
         await grain.GetPendingAsync();
         var crashed = Fixture.GetGrainContext(grain);
 
-        // The write becomes durable but its acknowledgement fails, so the activation fences and stops.
+        // 写作变得耐久,但承认失败了 所以启动的围栏和停止。
         Fixture.Storage.FailAfterWrite(Journal(grain));
         await Assert.ThrowsAsync<IOException>(() => grain.AddWorkAsync(TimeSpan.Zero));
         await crashed.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
@@ -90,7 +90,7 @@ public sealed class InboxRegisteredWakeupTests() : MessagingBehaviorTestBase(rec
         var grain = NewWorkGrain();
         await grain.AddWorkAsync(delay);
 
-        // The pump reschedules on the Durable Jobs clock.
+        // 工作长途的时钟上的抽水机改期
         var before = Fixture.JobNow;
         var pending = await Fixture.RunPumpAsync(grain);
         var after = Fixture.JobNow;
@@ -132,7 +132,7 @@ public interface IWorkSourceTestGrain : IGrainWithGuidKey
     Task DeactivateAsync();
 }
 
-/// <summary>Holds pending work in journaled state and reports it through a registered wake-up.</summary>
+/// <summary>以日记状态搁置待处理的工作,并通过登记提醒报告。</summary>
 public sealed class WorkSourceTestGrain : Grain, IWorkSourceTestGrain
 {
     private static readonly ConcurrentDictionary<GrainId, ActivationLog> Activations = new();
@@ -155,7 +155,7 @@ public sealed class WorkSourceTestGrain : Grain, IWorkSourceTestGrain
         inbox.RegisterWakeup(GetWakeupDelay);
     }
 
-    /// <summary>Completes once the grain has activated at least <paramref name="expected"/> times.</summary>
+    /// <summary>完成 grain 至少启动 <paramref name="expected"/> 次后完成。</summary>
     internal static async Task WaitForActivationsAsync(GrainId grainId, int expected)
     {
         var log = Activations.GetOrAdd(grainId, static _ => new());

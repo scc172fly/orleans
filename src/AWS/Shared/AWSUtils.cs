@@ -16,26 +16,26 @@ namespace Orleans.AWSUtils.Tests
 #elif TRANSACTIONS_DYNAMODB
 namespace Orleans.Transactions.DynamoDB
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// Some basic utilities methods for AWS SDK
+    /// AWS SDK的一些基本公用事业方法
     /// </summary>
     internal static class AWSUtils
     {
         internal static RegionEndpoint GetRegionEndpoint(string zone = "")
         {
             //
-            // Keep the order from RegionEndpoint so it is easier to maintain.
-            // us-west-2 is the default
+            // 将订单从 RegionEndpoint 中保留,这样就更容易维持。
+            // 默认值为us- 西West-2
             //
 
             return RegionEndpoint.GetBySystemName(zone) ?? RegionEndpoint.USWest2;
         }
 
         /// <summary>
-        /// Validate DynamoDB PartitionKey.
+        /// 校验 DynamoDB PartitionKey。
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -48,7 +48,7 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Validate DynamoDB RowKey.
+        /// 校验 DynamoDB RowKey。
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>

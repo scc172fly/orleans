@@ -5,7 +5,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains
 {
     /// <summary>
-    /// SlowConsumingGrain keep asking to rewind to the first item it received to mimic slow consuming behavior
+    /// SlowConsumingGrain 一直要求倒回到第一件物品上 以模仿慢消费行为
     /// </summary>
     public class SlowConsumingGrain : Grain, ISlowConsumingGrain
     {
@@ -51,7 +51,7 @@ namespace UnitTests.Grains
     }
 
     /// <summary>
-    /// SlowObserver keep rewind to the first item it received, to mimic slow consuming behavior
+    /// SlowObserver 继续倒回到收到的第一件物品上 模仿慢消费行为
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class SlowObserver<T> : IAsyncObserver<T>
@@ -78,7 +78,7 @@ namespace UnitTests.Grains
             }
             else
             {
-                // slow consumer keep asking for the first item it received to mimic slow consuming behavior
+                // 消费者不断要求第一件物品 来模仿慢消费行为
                 this.slowConsumingGrain.ConsumerHandle = await this.slowConsumingGrain.ConsumerHandle!.ResumeAsync(this.slowConsumingGrain.ConsumerObserver!, firstToken);
             }
 

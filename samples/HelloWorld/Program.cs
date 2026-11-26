@@ -2,21 +2,21 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-// Configure the host
+// 配置主机
 using var host = new HostBuilder()
     .UseOrleans(builder => builder.UseLocalhostClustering())
     .Build();
 
-// Start the host
+// 启动主机
 await host.StartAsync();
 
-// Get the grain factory
+// 获取 grain 工厂
 var grainFactory = host.Services.GetRequiredService<IGrainFactory>();
 
-// Get a reference to the HelloGrain grain with the key "friend"
+// 获取密钥“ Friend” 的 HelloGrain grain 引用
 var friend = grainFactory.GetGrain<IHelloGrain>("friend");
 
-// Call the grain and print the result to the console
+// 调用 grain 并将结果打印到控制台
 var result = await friend.SayHello("Good morning!");
 Console.WriteLine($"""
 

@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Persistence tests for MySQL with the delete-state-on-clear option enabled.
+    /// 启用删除状态对清选项的 MySQL 持久性测试。
     /// </summary>
     [TestCategory("MySql"), TestCategory("Persistence")]
     [TestSuite("Functional")]

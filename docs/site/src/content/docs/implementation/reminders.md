@@ -1,40 +1,50 @@
 ---
-title: Reminder implementation
-description: Explain reminder ownership, durable table reconciliation, scheduling, and delivery behavior inside Orleans.
+title: "提醒执行"
+description: "解释提醒所有人、常桌对账、时间安排和交付行为 Orleans."
 ms.date: 08/21/2026
 ms.topic: concept-article
 ---
 
-# Reminder implementation
+<a id="reminder-implementation"></a>
 
-Reminders are durable schedules with volatile local execution. A reminder row is stored in an `IReminderTable`; the silo responsible for the grain's consistent-ring range loads that row into `LocalReminderService` and runs the schedule locally. The table is the source of truth for registration, while the local `ReminderData` state is a cache and timer.
+# 提醒执行
 
-## Registration and ownership
+提醒是耐久的日程时间表,当地执行时变化不定。 `IReminderTable`; ; 和 silo 负责者负责的 grain划入 `LocalReminderService` 并在当地运行时间表。表格是真实的登记来源,而本地 `ReminderData` 状态是缓存和计时器。
 
-`ReminderRegistry` validates names, due times, periods, and the configured minimum period before forwarding the operation to the grain service for the grain's current owner. `LocalReminderService` performs a responsibility check, upserts the row, and reconciles its local entry using the returned ETag. Conditional removal succeeds for the matching ETag and preserves newer registrations.
+<a id="registration-and-ownership"></a>
 
-The reminder service is a grain service attached to the consistent ring. Ownership changes when membership changes; a new owner reconstructs responsibility from the durable row during its next table read.
+## 登记和所有权
 
-## Refresh and reconciliation
+`ReminderRegistry` 验证名称、到期时间、期限和将操作转交 grain 服务 grain目前的主人 `LocalReminderService` 进行责任检查, 上移行, 并使用返回的 Etag 来调节本地条目。 有条件删除成功匹配 ETag 并保存更新的注册 。
 
-After the reminder table starts successfully, the service refreshes the ring range periodically. Reads are staggered and retried during initialization. Each refresh reads the range, compares the table sequence with local mutations, starts or updates owned entries whose next tick is within <xref:Orleans.Hosting.ReminderOptions.ReminderLoadingWindow>, and stops entries which disappeared, moved elsewhere, or no longer fall within the loading window. A local sequence prevents a concurrent registration or removal from being overwritten by an older refresh result.
+提醒服务是附在一致环上的 grain 服务,当会员身份变更时所有权就发生变化;新的所有人从下一行的“长列”中重新确定责任。
 
-The reminder table contract returns every row in the owner's consistent-hash range. A refresh therefore transfers and materializes all owned rows before applying the loading window. Resident schedules scale with reminders due within the window, while refresh I/O, deserialization, and peak allocations scale with all reminders owned by the silo.
+<a id="refresh-and-reconciliation"></a>
 
-Reminder ownership uses periodic reconciliation. A brief ownership overlap during membership convergence is possible; ETags, responsibility checks, and the service's delivery state converge the overlap toward the current owner.
+## 刷新和对账
 
-## Tick delivery
+提醒表成功启动后, 服务会定期刷新环范围。 读取时间被错开并在初始化期间重新尝试。 每个更新都读取范围, 将表格序列与本地变异进行比较, 开始或更新自有条目, 其下个选项在 <xref:Orleans.Hosting.ReminderOptions.ReminderLoadingWindow>之内, 并停止丢失、 移到别处或不再属于装入窗口的条目。 一个本地序列阻止同时登记或删除被旧的更新结果覆盖 。
 
-Each local reminder reports one of three states: stopped, running, or tombstone. A stopped reminder keeps its run task inactive. A running reminder computes the next due time from the stored start time and period, waits using the reminder `TimeProvider`, and invokes the target grain through the normal messaging path. A tombstone records a stop reason while refresh reconciliation observes the scheduling decision.
+提醒表合同返回所有者统一频带范围内的每一行。 因此, 在应用装入窗口前, 重新更新并实现所有自有行的传输。 居民时间表表在窗口内应加提醒, 而更新 I/ O、 取消序列化和最高分配等级则包含所有由 silo拥有的提醒 。
 
-Each delivery owns an `AdmissionGate` token through callback completion and outcome reporting. Stopping the service closes admission, waits for admitted deliveries to finish, and then stops the local reminder loops. Cancellation of a stop wait releases the caller while draining and cleanup continue. A concurrent start waits for that cleanup to finish before creating a fresh gate, and table reconciliation recreates local schedules from durable rows.
+提醒所有制使用定期调节。 在会员合并期间,可以出现短暂的拥有权重叠;ETags、责任检查和服务的提供国将重叠情况集中到目前的所有人身上。
 
-The provider durably stores the schedule, while owners generate individual ticks in memory. After owner or process failure, the next owner reconstructs the schedule and calculates the next delivery from current time. Applications reconcile timing gaps from durable business state, and idempotent callbacks tolerate duplicate execution.
+<a id="tick-delivery"></a>
 
-## Storage and operational boundaries
+## 滴滴滴滴滴滴滴滴滴滴滴滴滴滴滴滴滴滴滴
 
-The in-memory table is suitable for development only. Production tables provide the durability and concurrency behavior required for ownership changes, but their consistency and availability characteristics remain provider-specific. Table startup is part of silo lifecycle initialization; failure to open the configured table prevents normal reminder service startup.
+本地提醒通知报告三个州中的一个国家:停止、运行或墓碑。 停止的提醒使其运行任务保持不活动。 从存储的开始时间和时期算出下一个到期时间, 使用提醒等待 `TimeProvider`,并援引目标 grain 墓碑记录了停止的理由, 重新调节时却观察了日程安排决定。
 
-The [reminders guide](../grains/reminders.md) covers registration and application behavior. Reminder persistence, ring movement, refresh intervals, and callback failures determine observed scheduling behavior.
+发送时都拥有一个通过回调完成和结果报告而发出的 `AdmissionGate` 标记。 停止服务会关闭接收,等待被接送完,然后停止本地提醒循环。 取消停止等候会释放拨打者,同时排水和清理工作继续。 同时开始在创建新大门之前完成清理,表格对账则从耐用行重建本地时间表。
 
-Source: [`LocalReminderService`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Reminders/ReminderService/LocalReminderService.cs), [`ReminderRegistry`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Reminders/ReminderService/ReminderRegistry.cs), and [`IReminderTable`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Reminders/SystemTargetInterfaces/IReminderTable.cs).
+供应商长期存储时间表, 而所有者会在记忆中生成单个的勾选。 在所有人或进程失败后, 下一个所有人将重建时间表并计算从目前开始的下一批交货。 应用程序可以调节耐用商业状态的时间差, 并且一无所有回调能容忍重复执行 。
+
+<a id="storage-and-operational-boundaries"></a>
+
+## 储存和作业边界
+
+生产表提供所有权变更所需的耐久性和同货币行为,但其一致性和可用性特点仍由供应商决定。 silo 生命周期初始化; 未打开配置的表格, 无法启动正常提醒服务 。
+
+[提醒提示指南](../grains/reminders.md) 涵盖登记和应用行为。提醒、环状运动、更新间隔和回击失败决定了观察到的时间安排行为。
+
+来源: [`LocalReminderService`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Reminders/ReminderService/LocalReminderService.cs)、 [`ReminderRegistry`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Reminders/ReminderService/ReminderRegistry.cs)和 [`IReminderTable`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Reminders/SystemTargetInterfaces/IReminderTable.cs)。

@@ -1,4 +1,4 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+#查看 https://aka.ms/containerfastmode 要了解视觉工作室如何使用此 Docker 文件构建您的图像以更快地调试 。
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app

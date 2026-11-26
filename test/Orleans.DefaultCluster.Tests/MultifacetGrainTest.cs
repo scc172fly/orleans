@@ -5,11 +5,11 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for multifaceted grain functionality in Orleans.
-    /// Multifaceted grains can implement multiple interfaces and be accessed
-    /// through different interface references using AsReference<T>().
-    /// This enables grains to expose different APIs to different consumers
-    /// while maintaining a single grain instance.
+    /// 多元测试 grain 功能在 Orleans.
+    /// 多元 grains 可实施多个接口并访问
+    /// 使用 AsReference<T>() 通过不同的界面引用。
+    /// 这使 grains 能够向不同的消费者披露不同的API
+    /// 中,同时保留一个 grain 实例。
     /// </summary>
     //using ValueUpdateEventArgs = MultifacetGrainClient.ValueUpdateEventArgs;
     [TestArea("Runtime")]
@@ -18,7 +18,7 @@ namespace DefaultCluster.Tests.General
         private IMultifacetWriter writer = null!;
         private IMultifacetReader reader = null!;
 
-        //int eventCounter;
+        //以 eventCounter;
         private const int EXPECTED_NUMBER_OF_EVENTS = 4;
         private readonly TimeSpan timeout = TimeSpan.FromSeconds(5);
 
@@ -27,10 +27,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests accessing a grain through different interface facets.
-        /// Verifies that a grain implementing multiple interfaces (writer and reader)
-        /// can be accessed through either interface using AsReference<T>(),
-        /// and that both references operate on the same underlying grain state.
+        /// 测试通过不同接口的方方面面访问 grain 。
+        /// 证明一个 grain 实施多个接口(撰稿人和读者)
+        /// 可以通过两个接口中的任何一个接口使用 AsReference<T>()访问,
+        /// 并且两个参考文献在相同的 grain 基本状态下运作。
         /// </summary>
         [TestSuite("Functional")]
         [TestProvider("None")]
@@ -48,10 +48,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Verifies that invalid interface casts throw appropriate exceptions.
-        /// Tests that attempting to cast a grain reference to an interface
-        /// it doesn't implement results in an InvalidCastException,
-        /// ensuring type safety in the multifacet pattern.
+        /// 证明无效的界面投影会丢弃适当的例外。
+        /// 试图投放 grain 引用界面的测试
+        /// 它不执行结果 在 InvalidCastException,
+        /// 保证多面模式中的类型安全。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -66,10 +66,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests factory methods that return different facets of a grain.
-        /// Verifies that factory grains can create and return references
-        /// to different interfaces of the same grain, enabling patterns
-        /// where grain creation logic returns appropriate interfaces to callers.
+        /// 测试工厂的方法,以返回 grain的不同方面。
+        /// 证明工厂 grains 能够创建和返回参考文件
+        /// 同一 grain、扶持型
+        /// 何 地 grain 创建逻辑返回合适的界面到调用者。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -87,10 +87,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests passing grain interface references as method arguments.
-        /// Verifies that different interface facets of a grain can be passed
-        /// to and stored by other grains, and that these references remain
-        /// valid and operate on the same underlying grain instance.
+        /// 测试通过 grain 界面引用作为方法参数。
+        /// 证明 grain 的不同接口面可以通过
+        /// 将其他 grains储存,这些参考文献仍保留
+        /// 在同一基础 grain 实例上有效并运行。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]

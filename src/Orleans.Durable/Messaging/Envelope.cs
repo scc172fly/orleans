@@ -4,45 +4,45 @@ using System.Text.Json.Serialization;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>Contains a command identity, payload, subject, optional application headers, and an optional delivery time.</summary>
+/// <summary>包含指令身份、有效载荷、主题、可选应用头和可选投送时间。</summary>
 /// <remarks>
-/// Message identity and payload are required; an empty payload is valid. Raw protocols can omit
-/// subject and headers. Prepare the payload and headers before publishing a message and keep them
-/// unchanged afterward. Struct assignment shares these objects; ordinary Orleans deep copying
-/// and deserialization produce independent payload arrays, header dictionaries, and header value arrays.
+/// 需要信件身份和有效载荷;空有效载荷有效。 Raw 协议可以省略
+/// 将有效载荷和信头放在上方,然后发布信息并保存
+/// 之后没有变化。 Struct 任务分配共享这些对象; 一般 Orleans 深重复制
+/// 和去航空化产生独立的有效载荷阵列、信头字典和信头值阵列。
 /// </remarks>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.Envelope")]
 public readonly struct Envelope
 {
-    /// <summary>Gets the exact application-defined command identity within the receiving inbox.</summary>
+    /// <summary>获取接收箱内精确的应用程序定义命令身份。</summary>
     [Id(0)]
     public required MessageId MessageId { get; init; }
 
-    /// <summary>Gets the required application payload bytes, including an empty payload.</summary>
+    /// <summary>获得所需的应用有效载荷字节,包括空有效载荷。</summary>
     [Id(1)]
     public required byte[] Payload { get; init; }
 
-    /// <summary>Gets the optional, nonempty ordinal application protocol subject.</summary>
+    /// <summary>获得非空正统的任择应用协议主题。</summary>
     [Id(2)]
     public string? Subject { get; init; }
 
-    /// <summary>Gets optional application-defined named byte-array headers.</summary>
-    /// <remarks>Use an ordinal dictionary for case-sensitive header names. Keys are nonempty, well-formed UTF-16 strings, and arrays are non-null.</remarks>
+    /// <summary>获得可选应用程序定义的用字数头标定。</summary>
+    /// <remarks>使用一个例常字典用于区分大小写标题的名称。密钥是非空的、完善的 UTF-16 字符串,而数组是非null 。</remarks>
     [Id(3)]
     public Dictionary<string, byte[]>? Headers { get; init; }
 
-    /// <summary>Gets the optional earliest time at which the receiving inbox processes the message.</summary>
+    /// <summary>获得接收收件箱处理信件的可选最早时间。</summary>
     /// <remarks>
     /// <para>
-    /// The outbox delivers the message immediately. The receiving inbox accepts, deduplicates, and persists it
-    /// as usual, then holds it until this time is reached on the Durable Jobs clock, and one durable wake-up
-    /// resumes the grain when the message becomes due. A message a grain sends to itself is accepted by its own
-    /// inbox in the sending journal write. <see langword="null"/> processes the message as soon as
-    /// its acceptance is durable.
+    /// 发件箱立即发送消息。 收件人收件箱接受、 复制并维持
+    /// 照常,然后保持到这个时间到达 持久工作钟的时钟, 并有一个持久的觉醒
+    /// 当信件到期时恢复 grain 。 grain 发送给自己的邮件被它自己所接受
+    /// 发送日记写中的框。 <see langword="null"/> 一旦处理此消息
+    /// 接受是持久的。
     /// </para>
     /// <para>
-    /// The time is part of the command: reusing a pending message ID with a different value is a conflicting command.
-    /// The message counts toward the inbox <c>MaxCapacity</c> from its acceptance until it completes.
+    /// 时间是命令的一部分: 重用一个不同值的待处理信件代号是一个相互矛盾的命令。
+    /// 信件从接受到完成,从接收到收件箱 <c>MaxCapacity</c> 的数。
     /// </para>
     /// </remarks>
     [Id(4)]

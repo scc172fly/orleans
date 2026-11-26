@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Client for communicating with clusters of Orleans silos.
+    /// 与 Orleans silos组群通信的客户端。
     /// </summary>
     internal class InternalClusterClient : IInternalClusterClient
     {
@@ -11,7 +11,7 @@ namespace Orleans.Runtime
         private readonly IInternalGrainFactory grainFactory;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InternalClusterClient"/> class.
+        /// 初始化 <see cref="InternalClusterClient"/> 类的新实例。
         /// </summary>
         public InternalClusterClient(IRuntimeClient runtimeClient, IInternalGrainFactory grainFactory)
         {

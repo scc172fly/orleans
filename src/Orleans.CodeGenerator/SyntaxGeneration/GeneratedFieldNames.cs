@@ -3,8 +3,8 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.SyntaxGeneration;
 
 /// <summary>
-/// Produces names for generated private fields which are stable under member reordering and additions,
-/// so that .NET Hot Reload sees additions rather than retyped or renamed fields.
+/// 产生在成员重新排序和添加下稳定的私有字段的名称,
+/// 以便 .NET 热重新装入能够看到添加而不是重排或重命名字段。
 /// </summary>
 internal static class GeneratedFieldNames
 {
@@ -36,8 +36,8 @@ internal static class GeneratedFieldNames
         }
         catch (NotSupportedException)
         {
-            // Some types (e.g. pointers) don't have a valid identifier form, so we fall back to the hash-only form.
-            // GetValidIdentifier() throws NotSupportedException for these types, so we catch it and return null to indicate that.
+            // 有些类型 (e.g. 指针) 没有有效的标识表, 所以我们返回到只使用散列的表格 。
+            // GetValidIdentifier() 扔掷 NotSupportedException 用来表示这些类型, 所以我们抓住它,然后返回无效。
             return null;
         }
     }

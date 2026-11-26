@@ -2,16 +2,16 @@
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Creates independent copies of data used by transactions.
+    /// 创建交易所使用的数据的独立副本。
     /// </summary>
-    /// <typeparam name="TData">The data type.</typeparam>
+    /// <typeparam name="TData">数据类型。</typeparam>
     public interface ITransactionDataCopier<TData>
     {
         /// <summary>
-        /// Creates a deep copy of the specified value.
+        /// 创建指定值的深重副本。
         /// </summary>
-        /// <param name="original">The value to copy.</param>
-        /// <returns>An independent copy of <paramref name="original"/>.</returns>
+        /// <param name="original">要复制的值。</param>
+        /// <returns>独立副本 <paramref name="original"/>.</returns>
         TData DeepCopy(TData original);
     }
 }

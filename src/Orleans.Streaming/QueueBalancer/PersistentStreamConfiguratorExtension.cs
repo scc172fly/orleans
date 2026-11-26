@@ -8,24 +8,24 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for <see cref="ISiloPersistentStreamConfigurator"/>.
+    /// <see cref="ISiloPersistentStreamConfigurator"/>的推广方法。
     /// </summary>
     public static class SiloPersistentStreamConfiguratorExtension
     {
         /// <summary>
-        /// Configures the stream provider to use the consistent ring queue balancer.
+        /// 配置流提供方使用一致的环队列平衡器。
         /// </summary>
-        /// <param name="configurator">The confiurator.</param>
+        /// <param name="configurator">和弦师</param>
         public static void UseConsistentRingQueueBalancer(this ISiloPersistentStreamConfigurator configurator)
         {
             configurator.ConfigurePartitionBalancing(ConsistentRingQueueBalancer.Create);
         }
 
         /// <summary>
-        /// Configures the stream provider to use the static cluster configuration deployment balancer.
+        /// 配置流提供方使用静态集束配置部署平衡器的配置。
         /// </summary>
-        /// <param name="configurator">The configuration builder.</param>
-        /// <param name="siloMaturityPeriod">The silo maturity period.</param>
+        /// <param name="configurator">配置构建器。</param>
+        /// <param name="siloMaturityPeriod">下 silo 到期日。</param>
         public static void UseStaticClusterConfigDeploymentBalancer(
             this ISiloPersistentStreamConfigurator configurator,
             TimeSpan? siloMaturityPeriod = null)
@@ -41,10 +41,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the stream provider to use the dynamic cluster configuration deployment balancer.
+        /// 配置流提供方使用动态集束配置部署平衡器。
         /// </summary>
-        /// <param name="configurator">The configuration builder.</param>
-        /// <param name="siloMaturityPeriod">The silo maturity period.</param>
+        /// <param name="configurator">配置构建器。</param>
+        /// <param name="siloMaturityPeriod">下 silo 到期日。</param>
         public static void UseDynamicClusterConfigDeploymentBalancer(
             this ISiloPersistentStreamConfigurator configurator,
             TimeSpan? siloMaturityPeriod = null)
@@ -60,10 +60,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the stream provider to use the lease based queue balancer.
+        /// 配置流提供方使用租赁的队列平衡器。
         /// </summary>
-        /// <param name="configurator">The configuration builder.</param>
-        /// <param name="configureOptions">The configure options.</param>
+        /// <param name="configurator">配置构建器。</param>
+        /// <param name="configureOptions">配置选项。</param>
         public static void UseLeaseBasedQueueBalancer(this ISiloPersistentStreamConfigurator configurator,
             Action<OptionsBuilder<LeaseBasedQueueBalancerOptions>>? configureOptions = null)
         {
@@ -72,26 +72,26 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the stream provider to use grain-based checkpointer.
+        /// 配置流提供方使用 grain- 基于检查器的流提供方。
         /// </summary>
         /// <remarks>
-        /// Checkpoints are persisted using the <c>PubSubStore</c> grain storage provider.
+        /// 使用 <c>PubSubStore</c> grain 存储提供者,检查站一直保持。
         /// </remarks>
-        /// <param name="configurator">The configuration builder.</param>
+        /// <param name="configurator">配置构建器。</param>
         public static void UseGrainCheckpointer(this ISiloPersistentStreamConfigurator configurator)
         {
             UseGrainCheckpointer(configurator, configureOptions: null);
         }
 
         /// <summary>
-        /// Configures the stream provider to use a grain-based checkpointer.
+        /// 配置流提供方使用 grain- 基于检查器的流提供方。
         /// </summary>
         /// <remarks>
-        /// The configured grain storage provider must be registered with the silo.
-        /// Each stream provider can select a different grain storage provider.
+        /// 配置的 grain 存储提供者必须向 silo注册。
+        /// 每个流提供者可选择不同的 grain 存储提供者。
         /// </remarks>
-        /// <param name="configurator">The configuration builder.</param>
-        /// <param name="configureOptions">The grain checkpointer configuration.</param>
+        /// <param name="configurator">配置构建器。</param>
+        /// <param name="configureOptions"> grain 检查站配置。</param>
         public static void UseGrainCheckpointer(
             this ISiloPersistentStreamConfigurator configurator,
             Action<OptionsBuilder<GrainStreamQueueCheckpointerOptions>>? configureOptions)

@@ -7,7 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- Analyzer assets are packed outside lib/ref and are not package-validation API surfaces. -->
+    <!-- 分析资产在lib/ref以外包装,不是包件验证 API 表面。 -->
     <EnablePackageValidation>false</EnablePackageValidation>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IsOrleansFrameworkPart>false</IsOrleansFrameworkPart>

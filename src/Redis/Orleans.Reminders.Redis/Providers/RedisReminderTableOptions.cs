@@ -9,36 +9,36 @@ using StackExchange.Redis;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Redis reminder options.
+    /// Redis 提醒选项。
     /// </summary>
     public class RedisReminderTableOptions
     {
         /// <summary>
-        /// Gets or sets the Redis client options.
+        /// 获取或设置 Redis 客户端选项。
         /// </summary>
         [RedactRedisConfigurationOptions]
         public ConfigurationOptions? ConfigurationOptions { get; set; }
 
         /// <summary>
-        /// The delegate used to create a Redis connection multiplexer and indicate whether it is shared.
+        /// 该代表用来创建 Redis 连接多路驱动器,并表明该多路转换器是否共享。
         /// </summary>
         /// <remarks>
-        /// When <c>IsShared</c> is <see langword="true"/>, the provider will not dispose the returned multiplexer.
+        /// 当 <c>IsShared</c> 是 <see langword="true"/>时,供应商将不处置返回的多路驱动器。
         /// </remarks>
         public Func<RedisReminderTableOptions, Task<(IConnectionMultiplexer Multiplexer, bool IsShared)>> CreateMultiplexer { get; set; } = DefaultCreateMultiplexer;
 
         /// <summary>
-        /// Entry expiry, null by default. A value should be set ONLY for ephemeral environments (like in tests).
-        /// Setting a value different from null will cause reminder entries to be deleted after some period of time.
+        /// 输入过期, 默认为无效。 值应该只为短时间环境设定( 如测试中) 。
+        /// 设置一个与 null 不同的值, 会在一段时间后导致删除提醒项 。
         /// </summary>
         public TimeSpan? EntryExpiry { get; set; } = null;
 
         /// <summary>
-        /// The default multiplexer creation delegate.
+        /// 默认的多路驱动器创建代表 。
         /// </summary>
-        /// <param name="options">The reminder table options containing the Redis connection configuration.</param>
-        /// <returns>A task containing the created multiplexer and an indication that the provider owns it.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
+        /// <param name="options">包含 Redis 连接配置的提醒表格选项。</param>
+        /// <returns>含有创建的多路驱动器的任务,并注明供应商拥有该多路驱动器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> 是 <see langword="null"/>.</exception>
         public static async Task<(IConnectionMultiplexer Multiplexer, bool IsShared)> DefaultCreateMultiplexer(RedisReminderTableOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
@@ -52,16 +52,16 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Configuration validator for <see cref="RedisReminderTableOptions"/>.
+    /// <see cref="RedisReminderTableOptions"/>的配置验证符 。
     /// </summary>
     public class RedisReminderTableOptionsValidator : IConfigurationValidator
     {
         private readonly RedisReminderTableOptions _options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RedisReminderTableOptionsValidator"/> class.
+        /// 初始化 <see cref="RedisReminderTableOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The reminder table options to validate.</param>
+        /// <param name="options">提醒表选项进行验证。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the registered options instance.")]
         public RedisReminderTableOptionsValidator(IOptions<RedisReminderTableOptions> options)
         {

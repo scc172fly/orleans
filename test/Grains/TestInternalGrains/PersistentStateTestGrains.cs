@@ -30,7 +30,7 @@ namespace UnitTests.PersistentState.Grains
 
         public async Task<int> DoRead()
         {
-            await this.persistentState.ReadStateAsync(); // Re-read state from store
+            await this.persistentState.ReadStateAsync(); // 从仓库重新读取状态
             return this.persistentState.State.Field1;
         }
 
@@ -84,7 +84,7 @@ namespace UnitTests.PersistentState.Grains
 
         public async Task<int> DoRead()
         {
-            await this.persistentState.ReadStateAsync(); // Re-read state from store
+            await this.persistentState.ReadStateAsync(); // 从仓库重新读取状态
             return this.persistentState.State.Field1;
         }
 
@@ -121,7 +121,7 @@ namespace UnitTests.PersistentState.Grains
 
         public async Task<T> DoRead()
         {
-            await this.persistentState.ReadStateAsync(); // Re-read state from store
+            await this.persistentState.ReadStateAsync(); // 从仓库重新读取状态
             return this.persistentState.State.Field1!;
         }
 

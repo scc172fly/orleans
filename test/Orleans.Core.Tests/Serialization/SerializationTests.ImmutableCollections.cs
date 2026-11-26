@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.Serialization
 {
     /// <summary>
-    /// Tests for serialization of immutable collections.
+    /// 无法更改收藏的序列化测试。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestSuite("BVT")]

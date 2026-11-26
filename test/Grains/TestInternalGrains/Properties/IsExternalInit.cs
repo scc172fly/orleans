@@ -1,4 +1,4 @@
 namespace System.Runtime.CompilerServices;
 
-// required for record serialization support for downlevel
+// 下一级记录序列化支持所需的
 internal static class IsExternalInit { }

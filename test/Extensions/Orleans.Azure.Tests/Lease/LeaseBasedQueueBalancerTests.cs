@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.AzureUtils.Lease
 {
     /// <summary>
-    /// Tests for lease-based queue balancer functionality in Azure Storage, including auto-scaling and node failure scenarios.
+    /// 存储 Azure 中基于租赁的队列平衡器功能测试,包括自动缩放和节点故障假想。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("AzureStorage")]
@@ -24,7 +24,7 @@ namespace Tester.AzureUtils.Lease
         private static readonly int totalQueueCount = 6;
         private static readonly short siloCount = 4;
 
-        // Azure Blob leases must be at least 15 seconds, so keep the timeout long enough for lease expiry scenarios.
+        // Azure 组合租赁必须至少15秒,以便保持超时时间,以备租期到期。
         public static readonly TimeSpan TimeOut = TimeSpan.FromMinutes(2);
 
         protected override void ConfigureTestCluster(TestClusterBuilder builder)
@@ -65,14 +65,14 @@ namespace Tester.AzureUtils.Lease
         {
             var mgmtGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             using var queueChanges = new StreamProviderQueueChangeSignal(StreamProviderName);
-            //6 queue and 4 silo, then each agent manager should own queues/agents in range of [1, 2]
+            //6队列和4 silo,然后每个代理经理应拥有[1、2] 范围范围内的队列/试剂
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 1,
                 2,
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //stop one silo, 6 queues, 3 silo, then each agent manager should own 2 queues 
+            //中左一 silo、 6 队列、 3 silo, 然后每个代理经理应该拥有 2 个队列 
             await this.HostedCluster.StopSiloAsync(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -82,7 +82,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //stop another silo, 6 queues, 2 silo, then each agent manager should own 3 queues
+            //另停 silo、 6 队列、 2 silo, 然后每个代理经理应该拥有 3 个队列
             await this.HostedCluster.StopSiloAsync(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -92,7 +92,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //start one silo, 6 queues, 3 silo, then each agent manager should own 2 queues
+            //开始 silo、 6 队列、 3 silo, 然后每个代理管理器应拥有 2个队列
             this.HostedCluster.StartAdditionalSilo(true);
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 2,
@@ -107,14 +107,14 @@ namespace Tester.AzureUtils.Lease
         {
             var mgmtGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             using var queueChanges = new StreamProviderQueueChangeSignal(StreamProviderName);
-            //6 queue and 4 silo, then each agent manager should own queues/agents in range of [1, 2]
+            //6队列和4 silo,然后每个代理经理应拥有[1、2] 范围范围内的队列/试剂
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 1,
                 2,
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //stop one silo, 6 queues, 3 silo, then each agent manager should own 2 queues 
+            //中左一 silo、 6 队列、 3 silo, 然后每个代理经理应该拥有 2 个队列 
             await KillSiloAndWaitForFailureDetection(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -124,7 +124,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //stop another silo, 6 queues, 2 silo, then each agent manager should own 3 queues
+            //另停 silo、 6 队列、 2 silo, 然后每个代理经理应该拥有 3 个队列
             await KillSiloAndWaitForFailureDetection(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -134,7 +134,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //start one silo, 6 queues, 3 silo, then each agent manager should own 2 queues
+            //开始 silo、 6 队列、 3 silo, 然后每个代理管理器应拥有 2个队列
             this.HostedCluster.StartAdditionalSilo(true);
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 2,

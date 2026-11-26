@@ -6,15 +6,15 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Orleans.Durable.Analyzers;
 
 /// <summary>
-/// Reports code which runs only after task cancellation and passes <c>DurableTaskContext.CancellationToken</c>, which
-/// task cancellation has already canceled, to a call.
+/// 报告代码,仅在任务取消和传过后才运行 <c>DurableTaskContext.CancellationToken</c>, 其中
+/// 任务取消已取消, 以拨打 。
 /// </summary>
 /// <remarks>
-/// Code runs only after task cancellation when it is the handler of a <see langword="catch"/> clause, or the true branch of
-/// an <see langword="if"/> statement or a conditional expression, whose filter or condition is
-/// <c>DurableTaskContext.IsTaskCancellationRequested</c> or a conjunction with it as an operand. Task cancellation is never
-/// withdrawn, so the region stays canceled. Nested lambdas and local functions can run in another task's context, so they
-/// aren't inspected.
+/// 代码在任务取消后,当它是一个 <see langword="catch"/> 条款,或
+/// a <see langword="if"/> 语句或有条件表达式,其过滤器或条件为
+/// <c>DurableTaskContext.IsTaskCancellationRequested</c> 或与其作为操作性连接。任务取消从不
+/// 区域会被取消。 雀巢羊羔和本地功能可以在另一个任务的背景中运行, 所以它们
+/// 未经检查
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskCleanupAnalyzer : DiagnosticAnalyzer
@@ -64,7 +64,7 @@ public sealed class DurableTaskCleanupAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    /// <summary>Returns whether a condition is true only when <paramref name="requested"/> is.</summary>
+    /// <summary>返回是否只有 <paramref name="requested"/> 是条件才为真实。</summary>
     private static bool Requires(IOperation condition, IPropertySymbol requested) => DurableTaskSymbols.Unwrap(condition) switch
     {
         IPropertyReferenceOperation reference => SymbolEqualityComparer.Default.Equals(reference.Property, requested),

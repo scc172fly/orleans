@@ -5,9 +5,9 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// Tests for the Orleans RuntimeTypeNameFormatter, which is responsible for formatting and parsing .NET type names
-    /// in a way that is recoverable and consistent across different environments. This is crucial for Orleans' serialization
-    /// system and type resolution when communicating between silos and clients.
+    /// 测试 Orleans RuntimeTypeNameFormatter,负责格式化和分割 .NET 字词名名称
+    /// 以可恢复和在不同环境中保持一致的方式,对于 Orleans的序列化至关重要
+    /// silos 与客户进行沟通时,应使用系统类型和型号分辨率。
     /// </summary>
     [TestCategory("BVT")]
     [TestSuite("BVT")]
@@ -51,7 +51,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that various strings formatted with <see cref="RuntimeTypeNameFormatter"/> can be loaded using <see cref="Type.GetType(string)"/>.
+        /// 测试,以 <see cref="RuntimeTypeNameFormatter"/> 格式格式排列的各种字符串格式可以用 <see cref="Type.GetType(string)"/>装入。
         /// </summary>
         [Fact]
         public void FormattedTypeNamesAreRecoverable()
@@ -70,7 +70,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that various strings parsed by <see cref="RuntimeTypeNameParser"/> are reformatted identically to their input, when the input was produced by <see cref="RuntimeTypeNameFormatter"/>.
+        /// 测试 <see cref="RuntimeTypeNameParser"/> 所分析的各种字符串在输入由 <see cref="RuntimeTypeNameFormatter"/>生成时被重新配置,与输入相同。
         /// </summary>
         [Fact]
         public void ParsedTypeNamesAreIdenticalToFormattedNames()
@@ -91,8 +91,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that parsing invalid type names produces descriptive error messages with position indicators.
-        /// This helps developers debug type resolution issues in Orleans serialization.
+        /// 测试解析无效类型名称会产生带有位置指标的描述性错误信息。
+        /// 这有助于开发者在 Orleans 序列化中调试类型解答问题。
         /// </summary>
         [Fact]
         public void InvalidNamesThrowDescriptiveErrorMessage()
@@ -101,7 +101,7 @@ namespace NonSilo.Tests
             var exception = Assert.Throws<InvalidOperationException>(() => RuntimeTypeNameParser.Parse(input));
             _output.WriteLine(exception.Message);
             Assert.Contains(input, exception.Message);
-            Assert.Contains("^", exception.Message); // Position indicator
+            Assert.Contains("^", exception.Message); // 位置指标
         }
 
         public class Inner<T>

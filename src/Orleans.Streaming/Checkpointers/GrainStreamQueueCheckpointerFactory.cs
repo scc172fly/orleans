@@ -9,7 +9,7 @@ using Orleans.Configuration.Overrides;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Creates grain-based stream queue checkpointers.
+    /// 创建 grain- 基于流队列的检查器。
     /// </summary>
     public class GrainStreamQueueCheckpointerFactory : IStreamQueueCheckpointerFactory
     {
@@ -19,7 +19,7 @@ namespace Orleans.Streams
         private readonly GrainStreamQueueCheckpointerOptions _checkpointerOptions;
 
         /// <summary>
-        /// Initializes a new instance with default checkpointer options.
+        /// 初始化一个带有默认检查站选项的新实例。
         /// </summary>
         public GrainStreamQueueCheckpointerFactory(string providerName, IOptions<ClusterOptions> clusterOptions, IClusterClient clusterClient)
             : this(providerName, clusterOptions, clusterClient, new GrainStreamQueueCheckpointerOptions())
@@ -27,7 +27,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Initializes a new instance.
+        /// 初始化一个新实例 。
         /// </summary>
         public GrainStreamQueueCheckpointerFactory(
             string providerName,
@@ -42,7 +42,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Creates a factory from a service provider.
+        /// 由服务供应商创建工厂。
         /// </summary>
         public static IStreamQueueCheckpointerFactory CreateFactory(IServiceProvider services, string providerName)
         {

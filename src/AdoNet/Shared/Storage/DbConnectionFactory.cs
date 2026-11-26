@@ -18,10 +18,10 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
-    /// This class caches the references to all loaded factories
+    /// 此类缓存所有已装入工厂的引用
     internal static class DbConnectionFactory
     {
         private static readonly ConcurrentDictionary<string, CachedFactory> factoryCache =
@@ -154,24 +154,24 @@ namespace Orleans.Tests.SqlUtils
             }
 
             /// <summary>
-            /// The factory to provide vendor specific functionality.
+            /// 工厂提供供应商特定功能。
             /// </summary>
-            /// <remarks>For more about <see href="http://florianreischl.blogspot.fi/2011/08/adonet-connection-pooling-internals-and.html">ConnectionPool</see>
-            /// and issues with using this factory. Take these notes into account when considering robustness of Orleans!</remarks>
+            /// <remarks>更多左右 <see href="http://florianreischl.blogspot.fi/2011/08/adonet-connection-pooling-internals-and.html">ConnectionPool</see>
+            /// 以及使用该工厂的问题。在考虑 Orleans是否可靠时,将这些注释考虑在内!</remarks>
             public readonly DbProviderFactory Factory;
 
             /// <summary>
-            /// The name of the loaded factory, set by a database connector vendor.
+            /// 由数据库连接商设定的装货厂名称
             /// </summary>
             public readonly string FactoryName;
 
             /// <summary>
-            /// The description of the loaded factory, set by a database connector vendor.
+            /// 由数据库连接商供应商设定的装货厂的说明。
             /// </summary>
             public readonly string FactoryDescription;
 
             /// <summary>
-            /// The description of the loaded factory, set by a database connector vendor.
+            /// 由数据库连接商供应商设定的装货厂的说明。
             /// </summary>
             public readonly string FactoryAssemblyQualifiedNameKey;
         }

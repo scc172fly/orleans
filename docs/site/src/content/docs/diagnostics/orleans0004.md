@@ -1,35 +1,45 @@
 ---
-title: "ORLEANS0004: Add missing serialization attributes"
-description: Understand and resolve ORLEANS0004 when a generated serializer type has unannotated members.
+title: "ORLEANS0004:添加缺失的序列属性"
+description: "当生成的序列器类型有无注释成员时, 理解并解决 ORLEANS0004 。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0004: Add missing serialization attributes
+<a id="orleans0004-add-missing-serialization-attributes"></a>
 
-| Property | Value |
+# ORLEANS0004:添加缺失的序列属性
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Error |
-| Code fix | Available |
+| 类别类 | 用法 |
+| 严重性 | 错误错误 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-A class, struct, or record marked `[GenerateSerializer]` has an instance field or auto-property without `[Id]` or `[NonSerialized]`.
+## 原因原因原因
 
-## Impact
+标记的类、支架或记录 `[GenerateSerializer]` 有一个例字段或自动财产,没有 `[Id]` 或 `[NonSerialized]`。
 
-Unmarked members can be omitted from Orleans serialization, producing default or lost values and an incomplete version-tolerant schema.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Assign stable, unique `[Id(n)]` values to serialized members. Mark members which are intentionally excluded with `[NonSerialized]`.
+无标识成员可从 Orleans 序列中省略,产生缺省或损失的值和不完整的耐版性计划。
 
-The code fix can add sequential IDs after the highest existing ID or mark all unannotated members as non-serialized. Review generated IDs before committing them and never renumber deployed fields.
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Prefer `[NonSerialized]` for intentional exclusion. Suppress only for test fixtures or legacy types whose omission is explicitly required.
+给有序列的成员指定稳定、独特的 `[Id(n)]` 值。标记被故意排除的 `[NonSerialized]`成员。
+
+代码修正可以在现有最高身份识别符之后添加顺序标识,或者将所有未加注的成员标记为非序列化。 在使用这些身份证明之前先审查生成了身份证明,而不再重新编号已部署的字段。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+优 `[NonSerialized]` 仅对试验装置或明确要求遗漏的遗留类型加以禁止。
 
 ```ini
 [*.cs]

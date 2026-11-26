@@ -47,11 +47,11 @@ namespace Orleans.Runtime
         internal readonly Counter<int> PingReplyReceivedCounter;
         internal readonly Counter<int> PingReplyMissedCounter;
 
-        // currently, bucket size need to be configured at collector side
-        // [Add "hints" in Metric API to provide things like histogram bounds]
+        // 目前, 桶大小需要配置在收藏器侧
+        // [在度量 API 中添加“内装”以提供直方图边框等内容]
         // https://github.com/dotnet/runtime/issues/63650
-        // Histogram of sent  message size, starting from 0 in multiples of 2
-        // (1=2^0, 2=2^2, ... , 256=2^8, 512=2^9, 1024==2^10, ... , up to ... 2^30=1GB)
+        // 以已发信件大小的直方图, 从 0 乘以 2 倍数开始
+        // （1=2^0, 2=2^2, ... , 256=2^8, 512=2^9, 1024==2^10, ... , 最高可达 2^30=1GB）
         internal readonly Histogram<int> MessageSentSizeHistogram;
         internal readonly Histogram<int> MessageReceivedSizeHistogram;
 

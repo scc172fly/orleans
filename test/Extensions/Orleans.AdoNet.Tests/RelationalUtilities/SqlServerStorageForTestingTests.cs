@@ -141,7 +141,7 @@ public class SqlServerStorageForTestingTests
             try
             {
                 await using var connection = new SqlConnection(connectionString);
-                // Worker shutdown drains SQL operations; test cancellation still aborts I/O.
+                // 工人关闭排水管 SQL 操作;取消测试仍然中止 I/O 。
                 await connection.OpenAsync(cancellationToken);
                 reconnectAttempt.TrySetResult();
                 await using var command = connection.CreateCommand();

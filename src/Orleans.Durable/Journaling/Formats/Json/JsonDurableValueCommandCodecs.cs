@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace Orleans.Durable.Journaling.Json;
 
 /// <summary>
-/// JSON codec for durable value journal entries.
+/// 耐久值日记条目的JSON 编码。
 /// </summary>
 public sealed class JsonDurableValueCommandCodec<T>(JsonSerializerOptions? options = null)
     : IDurableValueCommandCodec<T>
@@ -55,7 +55,7 @@ public sealed class JsonDurableValueCommandCodec<T>(JsonSerializerOptions? optio
     }
 }
 /// <summary>
-/// JSON codec for durable persistent state journal entries.
+/// 耐久的国家日记条目的编码JSON
 /// </summary>
 public sealed class JsonPersistentStateCommandCodec<T>(JsonSerializerOptions? options = null)
     : IPersistentStateCommandCodec<T>
@@ -124,7 +124,7 @@ public sealed class JsonPersistentStateCommandCodec<T>(JsonSerializerOptions? op
 }
 
 /// <summary>
-/// JSON codec for durable task completion source journal entries.
+/// 耐久任务完成源日记条目的编码JSON
 /// </summary>
 public sealed class JsonDurableTaskCompletionSourceCommandCodec<T>(JsonSerializerOptions? options = null)
     : IDurableTaskCompletionSourceCommandCodec<T>

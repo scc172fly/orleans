@@ -6,17 +6,17 @@ using Orleans.CodeGenerator.Diagnostics;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Compatibility boundary for closed-type and union symbol APIs across supported compiler versions.
+/// 封闭型和工会标志API在所支持的汇编者版本之间的兼容性边界。
 /// </summary>
 /// <remarks>
-/// The generator is compiled against an older Roslyn API so that it loads in older compilers.
-/// Compilers which predate these features cannot declare closed or union types, but they can reference union types compiled by newer compilers.
-/// Those compilers identify referenced unions by their <c>System.Runtime.CompilerServices.UnionAttribute</c> metadata and expose no case types.
-/// Compilers which declare unions but expose no case types receive an actionable generator diagnostic when those cases are required.
-/// This boundary owns API discovery, metadata recognition, and reporting unavailable case types.
-/// Once the minimum supported Roslyn version exposes all three properties, replace calls with
-/// <c>ITypeSymbol.IsClosed</c>, <c>ITypeSymbol.IsUnion</c>, and <c>ITypeSymbol.UnionCaseTypes</c>, then remove this class
-/// and its unavailable-case-types diagnostic from <see cref="InvalidUnionCaseDiagnostic"/>.
+/// 发电机是用老Roslyn API 编译的,这样它就装在旧的编译器上。
+/// 在上述特征之前的汇编者不能宣布封闭或工会类型,但可以参考较新的汇编者所编制的工会类型。
+/// 以其 <c>System.Runtime.CompilerServices.UnionAttribute</c> 并披露任何案件类型。
+/// 申报工会但没有发现任何案件类型的汇编者,在需要这类案件时,可得到可诉的发电机诊断。
+/// 该边界拥有 API 发现、元数据识别和报告无法提供的个案类型。
+/// 一旦最小支持的Roslyn 版本版本显示所有三种属性, 用以下方式替换电话
+/// <c>ITypeSymbol.IsClosed</c>, <c>ITypeSymbol.IsUnion</c>,和 <c>ITypeSymbol.UnionCaseTypes</c>,然后删除此类
+/// 以及从 <see cref="InvalidUnionCaseDiagnostic"/>获得的无病例型诊断。
 /// </remarks>
 internal static class LanguageFeatureSymbols
 {
@@ -51,10 +51,10 @@ internal static class LanguageFeatureSymbols
     }
 
     /// <summary>
-    /// Gets the case types of a union type in declaration order.
+    /// 获得工会类型类型的案件按申报顺序排列。
     /// </summary>
     /// <exception cref="OrleansGeneratorDiagnosticAnalysisException">
-    /// The compiler does not expose union case types.
+    /// 汇编者并不披露工会案件的类型。
     /// </exception>
     public static ImmutableArray<ITypeSymbol> GetUnionCaseTypes(INamedTypeSymbol type)
     {

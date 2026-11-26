@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.Tests
 {
     /// <summary>
-    /// Tests for transaction consistency behavior with in-memory storage.
+    /// 测试与存储中的交易一致性行为。
     /// </summary>
     [TestCategory("Transactions-dev")]
     [TestSuite("Nightly")]

@@ -14,7 +14,7 @@ using Orleans.Serialization.Utilities;
 namespace Orleans.Serialization.Buffers;
 
 /// <summary>
-/// A <see cref="IBufferWriter{T}"/> implementation implemented using pooled arrays which is specialized for creating <see cref="ReadOnlySequence{T}"/> instances.
+/// <see cref="IBufferWriter{T}"/> 实施使用专门用来创建 <see cref="ReadOnlySequence{T}"/> 实例的集合阵列。
 /// </summary>
 [StructLayout(LayoutKind.Auto)]
 [Immutable]
@@ -27,7 +27,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     internal int CurrentPosition;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PooledBuffer"/> struct.
+    /// 初始化 <see cref="PooledBuffer"/> 结构的新实例。
     /// </summary>
     public PooledBuffer()
     {
@@ -37,13 +37,13 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         CurrentPosition = 0;
     }
 
-    /// <summary>Gets the total length which has been written.</summary>
+    /// <summary>获取已写入的长度。</summary>
     public readonly int Length => TotalLength + CurrentPosition;
 
     /// <summary>
-    /// Returns the data which has been written as an array.
+    /// 返回以数组形式写入的数据。
     /// </summary>
-    /// <returns>The data which has been written.</returns>
+    /// <returns>已经写入的数据 。</returns>
     public readonly byte[] ToArray()
     {
         var result = new byte[Length];
@@ -80,7 +80,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Resets this instance, returning all memory.
+    /// 重设此实例, 返回全部内存 。
     /// </summary>
     public void Reset()
     {
@@ -126,7 +126,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         return GetSpanSlow(sizeHint);
     }
 
-    /// <summary>Copies the contents of this writer to a span.</summary>
+    /// <summary>将此作家的内容复制到一个字符串。</summary>
     public readonly void CopyTo(Span<byte> output)
     {
         var current = First;
@@ -146,7 +146,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
     }
 
-    /// <summary>Copies the contents of this writer to another writer.</summary>
+    /// <summary>将此作家的内容复制到另一个作家。</summary>
     public readonly void CopyTo<TBufferWriter>(ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte>
     {
         var current = First;
@@ -163,7 +163,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
     }
 
-    /// <summary>Copies the contents of this writer to another writer.</summary>
+    /// <summary>将此作家的内容复制到另一个作家。</summary>
     public readonly void CopyTo<TBufferWriter>(ref TBufferWriter writer) where TBufferWriter : IBufferWriter<byte>
     {
         var current = First;
@@ -181,7 +181,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Returns a new <see cref="ReadOnlySequence{T}"/> which must not be accessed after disposing this instance.
+    /// 返回新的 <see cref="ReadOnlySequence{T}"/> ,在处理此实例后不得访问。
     /// </summary>
     public ReadOnlySequence<byte> AsReadOnlySequence()
     {
@@ -200,42 +200,42 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Returns a <see cref="BufferSlice"/> covering this entire buffer.
+    /// a 返回 <see cref="BufferSlice"/> ,涵盖整个缓冲。
     /// </summary>
     /// <remarks>
-    /// The lifetime of the returned <see cref="BufferSlice"/> must be shorter than the lifetime of this instance.
+    /// 返回的 <see cref="BufferSlice"/> 寿命必须短于本例的寿命。
     /// </remarks>
-    /// <returns>A <see cref="BufferSlice"/> covering this entire buffer.</returns>
+    /// <returns>A <see cref="BufferSlice"/> 覆盖整个缓冲。</returns>
     public readonly BufferSlice Slice() => new(this, 0, Length);
 
     /// <summary>
-    /// Returns a slice of this buffer, beginning at the specified offset.
+    /// 返回此缓冲的片段, 从指定偏移开始 。
     /// </summary>
     /// <remarks>
-    /// The lifetime of the returned <see cref="BufferSlice"/> must be shorter than the lifetime of this instance.
+    /// 返回的 <see cref="BufferSlice"/> 寿命必须短于本例的寿命。
     /// </remarks>
-    /// <returns>A slice representing a subset of this instance, beginning at the specified offset.</returns>
+    /// <returns>一个切片,代表从指定偏移开始的本例子集。</returns>
     public readonly BufferSlice Slice(int offset) => new(this, offset, Length - offset);
 
     /// <summary>
-    /// Returns a slice of this buffer, beginning at the specified offset and having the specified length.
+    /// 返回此缓冲片的切片, 从指定偏移开始, 并具有指定的长度 。
     /// </summary>
     /// <remarks>
-    /// The lifetime of the returned <see cref="BufferSlice"/> must be shorter than the lifetime of this instance.
+    /// 返回的 <see cref="BufferSlice"/> 寿命必须短于本例的寿命。
     /// </remarks>
-    /// <returns>A slice representing a subset of this instance, beginning at the specified offset.</returns>
+    /// <returns>一个切片,代表从指定偏移开始的本例子集。</returns>
     public readonly BufferSlice Slice(int offset, int length) => new(this, offset, length);
 
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+    /// 返回一个可以用来计算此实例引用数据的数值。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     public readonly MemoryEnumerator MemorySegments => new(this);
 
     /// <summary>
-    /// Writes the provided sequence to this buffer.
+    /// 将提供的序列写入此缓冲。
     /// </summary>
-    /// <param name="input">The data to write.</param>
+    /// <param name="input">要写入的数据。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ReadOnlySequence<byte> input)
     {
@@ -246,13 +246,13 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Writes the provided value to this buffer.
+    /// 将提供的值写入此缓冲。
     /// </summary>
-    /// <param name="value">The data to write.</param>
+    /// <param name="value">要写入的数据。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ReadOnlySpan<byte> value)
     {
-        // Fast path, try copying to the available memory directly
+        // 快路径, 尝试直接复制到可用内存
         if (WriteHead is { Array: { } head })
         {
             var destination = head.AsSpan(CurrentPosition);
@@ -325,7 +325,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Enumerates over sequences of bytes in a <see cref="PooledBuffer"/>.
+    /// 在 <see cref="PooledBuffer"/>中,对字节序列的数。
     /// </summary>
     public struct MemoryEnumerator
     {
@@ -336,9 +336,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         private SequenceSegment? _segment;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryEnumerator"/> type.
+        /// 初始化 <see cref="MemoryEnumerator"/> 类型的新实例。
         /// </summary>
-        /// <param name="buffer">The buffer to enumerate.</param>
+        /// <param name="buffer">缓冲点要加。</param>
         public MemoryEnumerator(PooledBuffer buffer)
         {
             _buffer = buffer;
@@ -347,25 +347,25 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
 
         /// <summary>
-        /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+        /// 返回一个可以用来计算此实例引用数据的数值。
         /// </summary>
-        /// <returns>An enumerator for the data contained in this instance.</returns>
+        /// <returns>用于此例中所含数据的计算器。</returns>
         public readonly MemoryEnumerator GetEnumerator() => this;
 
         /// <summary>
-        /// Gets the element in the collection at the current position of the enumerator.
+        /// 将收藏中的元素移到当前点的分子位置。
         /// </summary>
         public readonly ReadOnlyMemory<byte> Current => CurrentMemory;
 
         /// <summary>
-        /// The memory at the current position of the enumerator.
+        /// 分子当前位置的内存。
         /// </summary>
         public ReadOnlyMemory<byte> CurrentMemory;
 
         /// <summary>
-        /// Advances the enumerator to the next element of the collection.
+        /// 将分子推进到收藏的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             if (ReferenceEquals(_segment, InitialSegmentSentinel))
@@ -378,7 +378,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             {
                 var segment = _segment.CommittedMemory;
 
-                // Find the starting segment and the offset to copy from.
+                // 查找起始段和要复制的偏移。
                 var segmentLength = segment.Length;
                 CurrentMemory = segment[..segmentLength];
                 _position += segmentLength;
@@ -386,9 +386,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
                 return true;
             }
 
-            // Account for the uncommitted data at the end of the buffer.
-            // The write head is only linked to the previous buffers when Commit() is called and it is set to null afterwards,
-            // meaning that if the write head is not null, the other buffers are not linked to it and it therefore has not been enumerated.
+            // 缓冲符末尾未交付数据账户。
+            // 写入头仅与前一个缓冲连接, 当调用 $[] 时, 它会设置为无效, 然后将无效,
+            // 意思是,如果写头不是空的,其他缓冲没有与之连接,因此也没有列出。
             if (_segment != FinalSegmentSentinel && _buffer.CurrentPosition > 0 && _buffer.WriteHead is { } head)
             {
                 var finalLength = _buffer.CurrentPosition;
@@ -404,7 +404,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Enumerates over sequences of bytes in a <see cref="PooledBuffer"/>.
+    /// 在 <see cref="PooledBuffer"/>中,对字节序列的数。
     /// </summary>
     public ref struct SpanEnumerator
     {
@@ -419,9 +419,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         private SequenceSegment? _segment;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SpanEnumerator"/> type.
+        /// 初始化 <see cref="SpanEnumerator"/> 类型的新实例。
         /// </summary>
-        /// <param name="buffer">The buffer to enumerate.</param>
+        /// <param name="buffer">缓冲点要加。</param>
         public SpanEnumerator(ref PooledBuffer buffer)
         {
             _buffer =
@@ -434,20 +434,20 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
 
         /// <summary>
-        /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+        /// 返回一个可以用来计算此实例引用数据的数值。
         /// </summary>
-        /// <returns>An enumerator for the data contained in this instance.</returns>
+        /// <returns>用于此例中所含数据的计算器。</returns>
         public readonly SpanEnumerator GetEnumerator() => this;
 
         /// <summary>
-        /// Gets the element in the collection at the current position of the enumerator.
+        /// 将收藏中的元素移到当前点的分子位置。
         /// </summary>
         public ReadOnlySpan<byte> Current { get; private set; }
 
         /// <summary>
-        /// Advances the enumerator to the next element of the collection.
+        /// 将分子推进到收藏的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             if (ReferenceEquals(_segment, InitialSegmentSentinel))
@@ -460,7 +460,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             {
                 var segment = _segment.CommittedMemory;
 
-                // Find the starting segment and the offset to copy from.
+                // 查找起始段和要复制的偏移。
                 var segmentLength = Math.Min(segment.Length, endPosition - _position);
                 Current = segment.Span[..segmentLength];
                 _position += segmentLength;
@@ -468,9 +468,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
                 return true;
             }
 
-            // Account for the uncommitted data at the end of the buffer.
-            // The write head is only linked to the previous buffers when Commit() is called and it is set to null afterwards,
-            // meaning that if the write head is not null, the other buffers are not linked to it and it therefore has not been enumerated.
+            // 缓冲符末尾未交付数据账户。
+            // 写入头仅与前一个缓冲连接, 当调用 $[] 时, 它会设置为无效, 然后将无效,
+            // 意思是,如果写头不是空的,其他缓冲没有与之连接,因此也没有列出。
             if (_segment != FinalSegmentSentinel && _buffer.CurrentPosition > 0 && _buffer.WriteHead is { } head && _position < endPosition)
             {
                 var finalLength = Math.Min(_buffer.CurrentPosition, endPosition - _position);
@@ -486,7 +486,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Represents a slice of a <see cref="PooledBuffer"/>.
+    /// 表示一个 <see cref="PooledBuffer"/>的片段。
     /// </summary>
     public readonly struct BufferSlice
     {
@@ -497,11 +497,11 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
 #pragma warning restore IDE1006 // Naming Styles
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BufferSlice"/> type.
+        /// 初始化 <see cref="BufferSlice"/> 类型的新实例。
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset into the buffer at which this slice begins.</param>
-        /// <param name="length">The length of this slice.</param>
+        /// <param name="buffer">缓冲。</param>
+        /// <param name="offset">切片开始的缓冲中偏移。</param>
+        /// <param name="length">此切片的长度。</param>
         public BufferSlice(in PooledBuffer buffer, int offset, int length)
         {
             _buffer = buffer;
@@ -510,36 +510,36 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
 
         /// <summary>
-        /// Gets the underlying <see cref="PooledBuffer"/>.
+        /// 获取底部 <see cref="PooledBuffer"/>。
         /// </summary>
         public readonly PooledBuffer Buffer => _buffer;
 
         /// <summary>
-        /// Gets the offset into the underlying buffer at which this slice begins.
+        /// 将偏移点移入开始切片的缓冲底部。
         /// </summary>
         public readonly int Offset => _offset;
 
         /// <summary>
-        /// Gets the length of this slice.
+        /// 得到这个切片的长度。
         /// </summary>
         public readonly int Length => _length;
 
         /// <summary>
-        /// Forms a slice out of this instance, beginning at the specified offset into this slice.
+        /// 窗体从此实例中选择一个切片, 从指定的偏移开始到这个切片 。
         /// </summary>
-        /// <param name="offset">The offset into this slice where the newly formed slice will begin.</param>
-        /// <returns>A slice instance.</returns>
+        /// <param name="offset">切片的偏移将进入此切片, 开始新形成的切片。</param>
+        /// <returns>一个切片实例。</returns>
         public readonly BufferSlice Slice(int offset) => new(in _buffer, _offset + offset, _length - offset);
 
         /// <summary>
-        /// Forms a slice out of this instance, beginning at the specified offset into this slice and having the specified length.
+        /// 窗体中从此实例的切片, 从指定的偏移开始, 以指定长度为单位。
         /// </summary>
-        /// <param name="offset">The offset into this slice where the newly formed slice will begin.</param>
-        /// <param name="length">The length of the new slice.</param>
-        /// <returns>A slice instance.</returns>
+        /// <param name="offset">切片的偏移将进入此切片, 开始新形成的切片。</param>
+        /// <param name="length">新切片的长度。</param>
+        /// <returns>一个切片实例。</returns>
         public readonly BufferSlice Slice(int offset, int length) => new(in _buffer, _offset + offset, length);
 
-        /// <summary>Copies the contents of this writer to a span.</summary>
+        /// <summary>将此作家的内容复制到一个字符串。</summary>
         public readonly int CopyTo(Span<byte> output)
         {
             var copied = 0;
@@ -554,7 +554,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             return copied;
         }
 
-        /// <summary>Copies the contents of this writer to a pooled buffer.</summary>
+        /// <summary>将此作家的内容复制到集合缓冲。</summary>
         public readonly void CopyTo(ref PooledBuffer output)
         {
             foreach (var span in this)
@@ -563,7 +563,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             }
         }
 
-        /// <summary>Copies the contents of this writer to a buffer writer.</summary>
+        /// <summary>将此作家的内容复制到缓冲作者。</summary>
         public readonly void CopyTo<TBufferWriter>(ref TBufferWriter output) where TBufferWriter : struct, IBufferWriter<byte>
         {
             foreach (var span in this)
@@ -573,9 +573,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
 
         /// <summary>
-        /// Returns the data which has been written as an array.
+        /// 返回以数组形式写入的数据。
         /// </summary>
-        /// <returns>The data which has been written.</returns>
+        /// <returns>已经写入的数据 。</returns>
         public readonly byte[] ToArray()
         {
             var result = new byte[_length];
@@ -584,19 +584,19 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
 
         /// <summary>
-        /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+        /// 返回一个可以用来计算此实例引用数据的数值。
         /// </summary>
-        /// <returns>An enumerator for the data contained in this instance.</returns>
+        /// <returns>用于此例中所含数据的计算器。</returns>
         public readonly SpanEnumerator GetEnumerator() => new(this);
 
         /// <summary>
-        /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+        /// 返回一个可以用来计算此实例引用数据的数值。
         /// </summary>
-        /// <returns>An enumerator for the data contained in this instance.</returns>
+        /// <returns>用于此例中所含数据的计算器。</returns>
         public readonly MemoryEnumerator MemorySegments => new(this);
 
         /// <summary>
-        /// Enumerates over spans of bytes in a <see cref="BufferSlice"/>.
+        /// 在 <see cref="BufferSlice"/>中横跨字节的数值。
         /// </summary>
         public ref struct SpanEnumerator
         {
@@ -607,9 +607,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             private SequenceSegment? _segment;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="SpanEnumerator"/> type.
+            /// 初始化 <see cref="SpanEnumerator"/> 类型的新实例。
             /// </summary>
-            /// <param name="slice">The slice to enumerate.</param>
+            /// <param name="slice">切片要加。</param>
             public SpanEnumerator(BufferSlice slice)
             {
                 _slice = slice;
@@ -622,20 +622,20 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             internal readonly int Length => _slice._length;
 
             /// <summary>
-            /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+            /// 返回一个可以用来计算此实例引用数据的数值。
             /// </summary>
-            /// <returns>An enumerator for the data contained in this instance.</returns>
+            /// <returns>用于此例中所含数据的计算器。</returns>
             public readonly SpanEnumerator GetEnumerator() => this;
 
             /// <summary>
-            /// Gets the element in the collection at the current position of the enumerator.
+            /// 将收藏中的元素移到当前点的分子位置。
             /// </summary>
             public ReadOnlySpan<byte> Current { get; private set; }
 
             /// <summary>
-            /// Advances the enumerator to the next element of the collection.
+            /// 将分子推进到收藏的下一个元素。
             /// </summary>
-            /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+            /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
             public bool MoveNext()
             {
                 if (ReferenceEquals(_segment, InitialSegmentSentinel))
@@ -648,20 +648,20 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
                 {
                     var segment = _segment.CommittedMemory.Span;
 
-                    // Find the starting segment and the offset to copy from.
+                    // 查找起始段和要复制的偏移。
                     int segmentOffset;
                     if (_position < Offset)
                     {
                         if (_position + segment.Length <= Offset)
                         {
-                            // Start is in a subsequent segment
+                            // 启动于随后的一段
                             _position += segment.Length;
                             _segment = _segment.Next as SequenceSegment;
                             continue;
                         }
                         else
                         {
-                            // Start is in this segment
+                            // 启动于此段
                             segmentOffset = Offset - _position;
                         }
                     }
@@ -684,9 +684,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
                     return true;
                 }
 
-                // Account for the uncommitted data at the end of the buffer.
-                // The write head is only linked to the previous buffers when Commit() is called and it is set to null afterwards,
-                // meaning that if the write head is not null, the other buffers are not linked to it and it therefore has not been enumerated.
+                // 缓冲符末尾未交付数据账户。
+                // 写入头仅与前一个缓冲连接, 当调用 $[] 时, 它会设置为无效, 然后将无效,
+                // 意思是,如果写头不是空的,其他缓冲没有与之连接,因此也没有列出。
                 if (_segment != FinalSegmentSentinel && Buffer.CurrentPosition > 0 && Buffer.WriteHead is { } head && _position < endPosition)
                 {
                     var finalOffset = Math.Max(Offset - _position, 0);
@@ -710,7 +710,7 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         }
 
         /// <summary>
-        /// Enumerates over sequences of bytes in a <see cref="BufferSlice"/>.
+        /// 在 <see cref="BufferSlice"/>中,对字节序列的数。
         /// </summary>
         public struct MemoryEnumerator
         {
@@ -721,9 +721,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             private SequenceSegment? _segment;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="MemoryEnumerator"/> type.
+            /// 初始化 <see cref="MemoryEnumerator"/> 类型的新实例。
             /// </summary>
-            /// <param name="slice">The slice to enumerate.</param>
+            /// <param name="slice">切片要加。</param>
             public MemoryEnumerator(BufferSlice slice)
             {
                 _slice = slice;
@@ -736,20 +736,20 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
             internal readonly int Length => _slice._length;
 
             /// <summary>
-            /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+            /// 返回一个可以用来计算此实例引用数据的数值。
             /// </summary>
-            /// <returns>An enumerator for the data contained in this instance.</returns>
+            /// <returns>用于此例中所含数据的计算器。</returns>
             public readonly MemoryEnumerator GetEnumerator() => this;
 
             /// <summary>
-            /// Gets the element in the collection at the current position of the enumerator.
+            /// 将收藏中的元素移到当前点的分子位置。
             /// </summary>
             public ReadOnlyMemory<byte> Current { get; private set; }
 
             /// <summary>
-            /// Advances the enumerator to the next element of the collection.
+            /// 将分子推进到收藏的下一个元素。
             /// </summary>
-            /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+            /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
             public bool MoveNext()
             {
                 if (ReferenceEquals(_segment, InitialSegmentSentinel))
@@ -762,20 +762,20 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
                 {
                     var segment = _segment.CommittedMemory;
 
-                    // Find the starting segment and the offset to copy from.
+                    // 查找起始段和要复制的偏移。
                     int segmentOffset;
                     if (_position < Offset)
                     {
                         if (_position + segment.Length <= Offset)
                         {
-                            // Start is in a subsequent segment
+                            // 启动于随后的一段
                             _position += segment.Length;
                             _segment = _segment.Next as SequenceSegment;
                             continue;
                         }
                         else
                         {
-                            // Start is in this segment
+                            // 启动于此段
                             segmentOffset = Offset - _position;
                         }
                     }
@@ -798,9 +798,9 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
                     return true;
                 }
 
-                // Account for the uncommitted data at the end of the buffer.
-                // The write head is only linked to the previous buffers when Commit() is called and it is set to null afterwards,
-                // meaning that if the write head is not null, the other buffers are not linked to it and it therefore has not been enumerated.
+                // 缓冲符末尾未交付数据账户。
+                // 写入头仅与前一个缓冲连接, 当调用 $[] 时, 它会设置为无效, 然后将无效,
+                // 意思是,如果写头不是空的,其他缓冲没有与之连接,因此也没有列出。
                 if (_segment != FinalSegmentSentinel && Buffer.CurrentPosition > 0 && Buffer.WriteHead is { } head && _position < endPosition)
                 {
                     var finalOffset = Math.Max(Offset - _position, 0);
@@ -878,18 +878,18 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
         public void ResizeLargeSegment(int length)
         {
             Debug.Assert(length > SequenceSegmentPool.MinimumBlockSize);
-            // Round up to a power of two.
+            // 集中到两个力量
             length = (int)BitOperations.RoundUpToPowerOf2((uint)length);
 
             if (Array is { } array)
             {
-                // The segment has an appropriate size already.
+                // 段的大小已经适当。
                 if (array.Length == length)
                 {
                     return;
                 }
 
-                // The segment is being resized.
+                // 正在调整该段的大小。
                 Array = null!;
                 ArrayPool<byte>.Shared.Return(array);
             }
@@ -948,13 +948,13 @@ public partial struct PooledBuffer : IBufferWriter<byte>, IDisposable
 }
 
 /// <summary>
-/// Extensions for <see cref="PooledBuffer"/>.
+/// <see cref="PooledBuffer"/>的扩展期。
 /// </summary>
 public static class PooledBufferExtensions
 {
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the data referenced by this instance.
+    /// 返回一个可以用来计算此实例引用数据的数值。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     public static PooledBuffer.SpanEnumerator GetEnumerator(this ref PooledBuffer buffer) => new(ref buffer);
 }

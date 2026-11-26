@@ -10,7 +10,7 @@ namespace Orleans.CodeGenerator;
 
 internal static class SerializerFactoryGenerator
 {
-    // Configuration statements are written inside the context's partial class and configuration method.
+    // 配置语句是使用上下文的局部类和配置方法撰写的。
     private const int ContextStatementIndentation = 2;
 
     internal sealed class Registration(ITypeSymbol type, bool isProvided = false)
@@ -87,7 +87,7 @@ internal static class SerializerFactoryGenerator
                     return false;
                 }
 
-                // Keep checking contracts whose types are available even when runtime metadata is omitted.
+                // 不断检查那些即使没有运行时的元数据也可提供类型合同。
                 failure ??= new(type, reason, RequiresImplementation: true);
             }
             registrations.Add(type, registration);
@@ -377,9 +377,9 @@ internal static class SerializerFactoryGenerator
             return $"type '{named}' cannot be named unambiguously from generated code";
         }
         var library = LibraryTypes.FromCompilation(implementationCompilation, services.Options);
-        // Contexts inspect only retained model header/base facts; all serialized dependencies below
-        // come from complete generated C# services. This also covers F# model reference images,
-        // whose compiler omits ReferenceAssemblyAttribute while retaining these declaration facts.
+        // 环境仅检查所保留的示范头/基底事实;所有以下的序列式依赖关系
+        // 由完整生成的 C# 服务产生。 这也包括 F# 模型参考图像,
+        // 其汇编者省略 ReferenceAssemblyAttribute ,同时保留这些声明的事实。
         if (SerializableSourceOutputGenerator.HasReferenceAssemblyAttribute(named.ContainingAssembly))
         {
             return "provide full implementation metadata for external serializer-context generation";
@@ -534,7 +534,7 @@ internal static class SerializerFactoryGenerator
                 if (AppendTypeMetadata(result, argument, library, visited, depth + 1) is { } argumentFailure) return argumentFailure;
             }
         }
-        // Only metadata-bearing types need their open spelling; predefined types have no generic definition to spell.
+        // 只有元数据源类型需要公开拼写;预定义类型没有通用定义可拼写。
         string? openTypeText = null;
         string OpenType() => openTypeText ??= CodeText.Type(type.ToOpenTypeSyntax());
         if (type.HasAttribute(library.AliasAttribute) || type.HasAttribute(library.CompoundTypeAliasAttribute)
@@ -589,7 +589,7 @@ internal static class SerializerFactoryGenerator
         Dictionary<ITypeSymbol, Registration> registrations, HashSet<ITypeSymbol> visited)
     {
         if (SymbolEqualityComparer.Default.Equals(current.Type, target)) return true;
-        // Linked graphs are opaque. A closed holder preserves construction safety across hidden back-edges.
+        // 链接的图表不透明。 封闭式持单人保护建筑安全, 跨越隐藏的后方。
         if (current.IsProvided) return true;
         if (!visited.Add(current.Type)) return false;
         return current.Dependencies.Any(dependency =>

@@ -83,7 +83,7 @@ internal sealed class AzureBlobJournalStorageProvider : ILifecycleParticipant<IS
             foreach (var item in page.Values)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                // The native bound encloses every ordinal match in both flat and HNS traversal.
+                // 本地的束缚性连接将每个交界处都封存在一起,既包括平坦的、也包括HNS穿梭的。
                 if (maxBlobName is not null && string.CompareOrdinal(item.Name, maxBlobName) > 0)
                 {
                     yield break;
@@ -124,8 +124,8 @@ internal sealed class AzureBlobJournalStorageProvider : ILifecycleParticipant<IS
             index++;
         }
 
-        // HNS sorts '/' first. Beyond the shared prefix, keep boundary characters above '/'
-        // so both service orderings agree, widening the requested interval where necessary.
+        // 将边框字符保留在“ /” 之上
+        // 以便两个服务订单都同意,必要时扩大所要求的间隔。
         for (; index < bound.Length; index++)
         {
             if (bound[index] <= '/')

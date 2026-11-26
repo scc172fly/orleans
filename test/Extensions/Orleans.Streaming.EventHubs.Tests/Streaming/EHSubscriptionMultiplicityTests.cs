@@ -9,7 +9,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// Tests for EventHub subscription multiplicity scenarios including parallel, linear, and resubscription behaviors.
+    /// 测试 EventHub 订阅多重假设情景,包括平行、线性以及重新订阅行为。
     /// </summary>
     [TestCategory("Functional")]
     [TestSuite("Functional")]

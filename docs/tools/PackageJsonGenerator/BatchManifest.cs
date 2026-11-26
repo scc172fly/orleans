@@ -1,12 +1,12 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// 根据一项或多项协定获得 .NET 基金会许可证。
+// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
 
 using System.Text.Json.Serialization;
 
 namespace PackageJsonGenerator;
 
 /// <summary>
-/// JSON manifest for batch-processing multiple packages in a single tool invocation.
+/// 批处理多包件单次工具调用的JSON 货单。
 /// </summary>
 internal sealed class BatchManifest
 {
@@ -15,7 +15,7 @@ internal sealed class BatchManifest
 }
 
 /// <summary>
-/// A single package entry within a <see cref="BatchManifest"/>.
+/// <see cref="BatchManifest"/>内的一个单一包件条目。
 /// </summary>
 internal sealed class BatchPackageEntry
 {

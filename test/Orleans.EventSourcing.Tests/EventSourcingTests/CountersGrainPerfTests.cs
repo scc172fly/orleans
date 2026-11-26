@@ -6,26 +6,26 @@ using Xunit.v3;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// Performance tests for event-sourced counters grain comparing different synchronization and reentrancy strategies.
+    /// 事件源对面器 grain 的性能测试,比较不同的同步和再生战略。
     /// </summary>
     [TestMethodOrderer(typeof(SimplePriorityOrderer))]
     public partial class CountersGrainTests
     {
 
-        // you can look at the time taken by each of the tests below
-        // to get a rough idea on how the synchronization choices, and the configuration parameters,
-        // and the consistency provider, affect throughput
+        // 您可以查看以下每次测试的时间
+        // 来获得一个粗略的想法 关于同步选择, 和配置参数,
+        // 以及一致性提供方,影响输送量
 
-        // To run these perf tests from within visual studio, first type
-        // "CountersGrainTests.Perf" in the search box, and then "Run All"
-        // This will run the warmup and then all tests, in the same test cluster. Afterwards it reports
-        // approximate time taken for each. It's not really a test, just an
-        // illustration of how JournaledGrain performance can vary with the choices made.
+        // 使用视觉摄影棚进行这些孔径测试
+        // "CountersGrainTests.Perf"在搜索箱中,然后是"全部运行"
+        // 这将运行热热电流, 然后所有测试, 在同一测试组群中。 它随后报告
+        // 每种试验的大约时间。这不是一个测试,只是
+        // 说明 JournaledGrain 绩效如何随所作选择而变化。
 
-        // what you should see is:
-        // - the conservative approach (confirm each update, disallow reentrancy) is slow.
-        // - confirming at end only, instead of after each update, is fast.
-        // - allowing reentrancy, while still confirming after each update, is also fast.
+        // 你该看到的是:
+        // - 保守方法(确认每次更新,不允许重新使用)缓慢。
+        // - 仅确认结尾,而不是每次更新后,是快速的。
+        // - 允许再生,虽然每次更新后仍然确认,但速度也很快。
 
         private const int iterations = 400;
 
@@ -33,7 +33,7 @@ namespace Tester.EventSourcingTests
         [Fact, RunThisFirst, TestSuite("Nightly"), TestCategory("EventSourcing")]
         public Task Perf_Warmup()
         {
-            // Call reset on each grain to ensure every test activation is loaded and primed.
+            // 在每个 grain 上重新调用,以确保每次测试激活都装上并启动。
             return Task.WhenAll(
                 GetGrain(PerfGrain.MemoryStateStoreNonReentrantConfirmEach, "TestGrains.CountersGrain_StateStore_NonReentrant").Reset(true),
                 GetGrain(PerfGrain.MemoryStateStoreNonReentrantConfirmAtEnd, "TestGrains.CountersGrain_StateStore_NonReentrant").Reset(true),

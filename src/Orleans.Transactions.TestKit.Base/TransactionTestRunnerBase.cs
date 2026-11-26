@@ -3,25 +3,25 @@ using System;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Provides grain reference creation and output services for transaction test runners.
+    /// 为交易测试选手提供 grain 参考创建和产出服务。
     /// </summary>
     public class TransactionTestRunnerBase
     {
         /// <summary>
-        /// The grain factory used to create references for test operations.
+        /// grain 工厂用来为测试作业创建参考。
         /// </summary>
         protected readonly IGrainFactory grainFactory;
 
         /// <summary>
-        /// The callback used to write test diagnostics.
+        /// 用来写测试诊断的回调
         /// </summary>
         protected readonly Action<string> testOutput;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionTestRunnerBase"/> class.
+        /// 初始化 <see cref="TransactionTestRunnerBase"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to create test grain references.</param>
-        /// <param name="testOutput">The callback used to write test diagnostics.</param>
+        /// <param name="grainFactory">下 grain 用于创建测试的工厂 grain 参考文献。</param>
+        /// <param name="testOutput">用于写作测试诊断的回调。</param>
         protected TransactionTestRunnerBase(IGrainFactory grainFactory, Action<string> testOutput)
         {
             this.grainFactory = grainFactory;
@@ -29,21 +29,21 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Creates a transaction test grain reference with a new random key.
+        /// 创建交易测试 grain 引用,并使用新的随机密钥。
         /// </summary>
-        /// <param name="transactionTestGrainClassNames">The transaction test grain implementation class name.</param>
-        /// <returns>A transaction test grain reference.</returns>
+        /// <param name="transactionTestGrainClassNames">交易测试 grain 执行类名称。</param>
+        /// <returns>交易测试 grain 参考。</returns>
         protected ITransactionTestGrain RandomTestGrain(string transactionTestGrainClassNames)
         {
             return RandomTestGrain<ITransactionTestGrain>(transactionTestGrainClassNames);
         }
 
         /// <summary>
-        /// Creates a test grain reference with a new random key.
+        /// 使用新的随机密钥创建测试 grain 引用。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The grain interface type.</typeparam>
-        /// <param name="transactionTestGrainClassNames">The transaction test grain implementation class name.</param>
-        /// <returns>A test grain reference.</returns>
+        /// <typeparam name="TGrainInterface"> grain 接口类型。</typeparam>
+        /// <param name="transactionTestGrainClassNames">交易测试 grain 执行类名称。</param>
+        /// <returns>测试试验 grain 参考。</returns>
         protected TGrainInterface RandomTestGrain<TGrainInterface>(string transactionTestGrainClassNames)
             where TGrainInterface : IGrainWithGuidKey
         {
@@ -51,23 +51,23 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Creates a transaction test grain reference with the specified key.
+        /// 创建指定密钥的交易测试 grain 参考。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The transaction test grain implementation class name.</param>
-        /// <param name="id">The grain key.</param>
-        /// <returns>A transaction test grain reference.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试 grain 执行类名称。</param>
+        /// <param name="id"> grain 密钥。</param>
+        /// <returns>交易测试 grain 参考。</returns>
         protected virtual ITransactionTestGrain TestGrain(string transactionTestGrainClassName, Guid id)
         {
             return TestGrain<ITransactionTestGrain>(transactionTestGrainClassName, id);
         }
 
         /// <summary>
-        /// Creates a test grain reference with the specified key.
+        /// 创建指定密钥的测试 grain 引用。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The grain interface type.</typeparam>
-        /// <param name="transactionTestGrainClassName">The transaction test grain implementation class name.</param>
-        /// <param name="id">The grain key.</param>
-        /// <returns>A test grain reference.</returns>
+        /// <typeparam name="TGrainInterface"> grain 接口类型。</typeparam>
+        /// <param name="transactionTestGrainClassName">交易测试 grain 执行类名称。</param>
+        /// <param name="id"> grain 密钥。</param>
+        /// <returns>测试试验 grain 参考。</returns>
         protected virtual TGrainInterface TestGrain<TGrainInterface>(string transactionTestGrainClassName, Guid id)
             where TGrainInterface : IGrainWithGuidKey
         {

@@ -34,35 +34,35 @@ internal interface IHeapElement<TElement> where TElement : notnull
 }
 
 /// <summary>
-///  Represents a max heap.
+///  代表最大堆积物。
 /// </summary>
-/// <typeparam name="TElement">Specifies the type of elements in the heap.</typeparam>
+/// <typeparam name="TElement">指定堆积中元素的类型。</typeparam>
 /// <remarks>
-///  Implements an array-backed quaternary max-heap.
-///  Elements with the lowest priority get removed first.
-///  Note: this is based on .NET's PriorityQueue: https://github.com/dotnet/runtime/blob/e78b72b1fdf43d9678877400bcfe801b38c14681/src/libraries/System.Collections/src/System/Collections/Generic/PriorityQueue.cs
+///  执行一个以阵列支持的四面形最大堆积。
+///  最优先的元素先删除。
+///  注:这是基于 .NET的 PriorityQueue: https://github.com/dotnet/runtime/blob/e78b72b1fdf43d9678877400bcfe801b38c14681/src/libraries/System.Collections/src/System/Collections/Generic/PriorityQueue.cs。
 /// </remarks>
 [DebuggerDisplay("Count = {Count}")]
 internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<TElement>
 {
     /// <summary>
-    /// Represents an implicit heap-ordered complete d-ary tree, stored as an array.
+    /// 表示一个内含堆积定序的全干枯树,以数组形式储存。
     /// </summary>
     private readonly TElement?[] _nodes;
 
     /// <summary>
-    /// The number of nodes in the heap.
+    /// 堆积中的节点数 。
     /// </summary>
     private int _size;
 
     /// <summary>
-    /// Specifies the arity of the d-ary heap, which here is quaternary.
-    /// It is assumed that this value is a power of 2.
+    /// 指定 d-ary 堆积的乘以, 这里为四。
+    /// 假定这一价值是2的功率。
     /// </summary>
     private const int Arity = 4;
 
     /// <summary>
-    /// The binary logarithm of <see cref="Arity" />.
+    /// 二进制对数 <see cref="Arity" />。
     /// </summary>
     private const int Log2Arity = 2;
 
@@ -74,16 +74,16 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
 #endif
 
     /// <summary>
-    ///  Initializes a new instance of the <see cref="MaxHeap{TElement}"/> class
-    ///  that is populated with the specified elements and priorities.
+    ///  初始化 <see cref="MaxHeap{TElement}"/> 类的新实例
+    ///  包含特定元素和优先事项。
     /// </summary>
-    /// <param name="items">The pairs of elements and priorities with which to populate the queue.</param>
+    /// <param name="items">用于填充队列的元素和优先级对齐。</param>
     /// <exception cref="ArgumentNullException">
-    ///  The specified <paramref name="items"/> argument was <see langword="null"/>.
+    ///  指定的 <paramref name="items"/> 参数为 <see langword="null"/>。
     /// </exception>
     /// <remarks>
-    ///  Constructs the heap using a heapify operation,
-    ///  which is generally faster than enqueuing individual elements sequentially.
+    ///  使用加压操作构造堆积,
+    ///  通常比按顺序排列个别元素的排队速度要快。
     /// </remarks>
     public MaxHeap(List<TElement> items)
     {
@@ -113,7 +113,7 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
     }
 
     /// <summary>
-    ///  Gets the number of elements contained in the <see cref="MaxHeap{TElement}"/>.
+    ///  获取 <see cref="MaxHeap{TElement}"/>中包含的元素数。
     /// </summary>
     public int Count => _size;
 
@@ -132,10 +132,10 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
     }
 
     /// <summary>
-    ///  Returns the maximal element from the <see cref="MaxHeap{TElement}"/> without removing it.
+    ///  返回 <see cref="MaxHeap{TElement}"/> 的最大元素,但不删除该元素。
     /// </summary>
-    /// <exception cref="InvalidOperationException">The <see cref="MaxHeap{TElement}"/> is empty.</exception>
-    /// <returns>The maximal element of the <see cref="MaxHeap{TElement}"/>.</returns>
+    /// <exception cref="InvalidOperationException"> <see cref="MaxHeap{TElement}"/> 是空的。</exception>
+    /// <returns> <see cref="MaxHeap{TElement}"/>的最大要素。</returns>
     public TElement Peek()
     {
         if (_size == 0)
@@ -159,10 +159,10 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
     }
 
     /// <summary>
-    ///  Removes and returns the maximal element from the <see cref="MaxHeap{TElement}"/>.
+    ///  从 <see cref="MaxHeap{TElement}"/>删除最大值元素并返回该元素。
     /// </summary>
-    /// <exception cref="InvalidOperationException">The queue is empty.</exception>
-    /// <returns>The maximal element of the <see cref="MaxHeap{TElement}"/>.</returns>
+    /// <exception cref="InvalidOperationException">队列为空。</exception>
+    /// <returns> <see cref="MaxHeap{TElement}"/>的最大要素。</returns>
     public TElement Pop()
     {
         if (_size == 0)
@@ -193,48 +193,48 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
     }
 
     /// <summary>
-    /// Gets the index of an element's parent.
+    /// 获取元素父系的索引。
     /// </summary>
     private static int GetParentIndex(int index) => (index - 1) >> Log2Arity;
 
     /// <summary>
-    /// Gets the index of the first child of an element.
+    /// 获取元素第一个子孙的索引。
     /// </summary>
     private static int GetFirstChildIndex(int index) => (index << Log2Arity) + 1;
 
     public void OnDecreaseElementPriority(TElement element)
     {
-        // If the element has already been removed from the heap, this is a no-op.
+        // 如果元素已经从堆积中移除, 则此选项为无操作 。
         if (element.HeapIndex < 0)
         {
             return;
         }
 
-        // The element's priority has decreased, so move it down as necessary to restore the heap property.
+        // 元素的优先级已经降低, 所以根据需要将其往下移 以恢复堆积属性 。
         MoveDown(element, element.HeapIndex);
     }
 
     public void OnIncreaseElementPriority(TElement element)
     {
-        // If the element has already been removed from the heap, this is a no-op.
+        // 如果元素已经从堆积中移除, 则此选项为无操作 。
         if (element.HeapIndex <= 0)
         {
             return;
         }
 
-        // The element's priority has increased, so move it down as necessary to restore the heap property.
+        // 元素的优先性已经提高, 所以根据需要将其移到下方 以恢复堆积物产。
         MoveUp(element, element.HeapIndex);
     }
 
     /// <summary>
-    /// Converts an unordered list into a heap.
+    /// 将未排序列表转换成堆。
     /// </summary>
     public void Heapify()
     {
-        // Leaves of the tree are in fact 1-element heaps, for which there
-        // is no need to correct them. The heap property needs to be restored
-        // only for higher nodes, starting from the first node that has children.
-        // It is the parent of the very last element in the array.
+        // 树叶的叶子,实际上是一分一毫,
+        // 不需要纠正这些财产。
+        // 仅用于更高的节点, 从第一个有孩子的节点开始。
+        // 它是数组中最后一个元素的母值。
 
         var nodes = _nodes;
         var lastParentWithChildren = GetParentIndex(_size - 1);
@@ -245,12 +245,12 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
     }
 
     /// <summary>
-    /// Gets the elements in this collection with specified order.
+    /// 以指定顺序获取此收藏中的元素。
     /// </summary>
     public UnorderedElementEnumerable UnorderedElements => new(this);
 
     /// <summary>
-    /// Moves a node up in the tree to restore heap order.
+    /// 将树上的节点上移以恢复堆积顺序。
     /// </summary>
     private void MoveUp(TElement node, int nodeIndex)
     {
@@ -265,7 +265,7 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
 
             if (node.CompareTo(parentNode) <= 0)
             {
-                // The parent is more larger than the current node.
+                // 父母比当前节点大。
                 break;
             }
 
@@ -279,13 +279,13 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
     }
 
     /// <summary>
-    /// Moves a node down in the tree to restore heap order.
+    /// 将树上的节点下移以恢复堆积顺序。
     /// </summary>
     private void MoveDown(TElement node, int nodeIndex)
     {
-        // The node to move down will not actually be swapped every time.
-        // Rather, values on the affected path will be moved up, thus leaving a free spot
-        // for this value to drop in. Similar optimization as in the insertion sort.
+        // 移动下移的节点不会每次被互换。
+        // 相反,受影响道路上的价值观将提升,从而留下一个自由的场所
+        // 。插入类中的优化与插入类相似。
 
         Debug.Assert(0 <= nodeIndex && nodeIndex < _size);
 
@@ -295,7 +295,7 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
         int i;
         while ((i = GetFirstChildIndex(nodeIndex)) < size)
         {
-            // Find the child node with the maximal priority
+            // 找到孩子的最大优先级的节点
             var maxChild = nodes[i]!;
             var maxChildIndex = i;
 
@@ -310,14 +310,14 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
                 }
             }
 
-            // Heap property is satisfied; insert node in this location.
+            // 满足了堆积属性;在此位置插入节点。
             if (node.CompareTo(maxChild) >= 0)
             {
                 break;
             }
 
-            // Move the maximal child up by one node and
-            // continue recursively from its location.
+            // 将最大子节点向上移动
+            // 继续从它的位置重复运行。
             nodes[nodeIndex] = maxChild;
             maxChild.HeapIndex = nodeIndex;
             nodeIndex = maxChildIndex;
@@ -328,8 +328,8 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
     }
 
     /// <summary>
-    ///  Enumerates the element and priority pairs of a <see cref="MaxHeap{TElement}"/>
-    ///  without any ordering guarantees.
+    ///  列出 <see cref="MaxHeap{TElement}"/>的元素和优先配对
+    ///  没有任何命令保证。
     /// </summary>
     public struct UnorderedElementEnumerable : IEnumerator<TElement>, IEnumerable<TElement>
     {
@@ -345,14 +345,14 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
         }
 
         /// <summary>
-        /// Releases all resources used by the <see cref="UnorderedElementEnumerable"/>.
+        /// <see cref="UnorderedElementEnumerable"/>释放所有使用的资源。
         /// </summary>
         public readonly void Dispose() { }
 
         /// <summary>
-        /// Advances the enumerator to the next element of the heap.
+        /// 将分子推进到堆积的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             var localHeap = _heap;
@@ -375,7 +375,7 @@ internal sealed class MaxHeap<TElement> where TElement : notnull, IHeapElement<T
         }
 
         /// <summary>
-        /// Gets the element at the current position of the enumerator.
+        /// 将元素放在当前点的分子位置。
         /// </summary>
         public readonly TElement Current => _current ?? throw new InvalidOperationException("Current element is not valid.");
 

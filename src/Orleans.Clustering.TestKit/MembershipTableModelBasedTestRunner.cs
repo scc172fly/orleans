@@ -2,31 +2,31 @@ using Microsoft.Accordant;
 
 namespace Orleans.Clustering.TestKit;
 
-/// <summary>Bounds generated membership operation-sequence exploration.</summary>
+/// <summary>矿井的钻探活动导致成员身份的勘探。</summary>
 public sealed class MembershipTableModelBasedConformanceOptions
 {
-    /// <summary>Gets or sets the non-secret provider label.</summary>
+    /// <summary>获取或设置非机密供应商标签。</summary>
     public string ProviderName { get; set; } = "MembershipTable";
-    /// <summary>Gets or sets the reproducible identity seed.</summary>
+    /// <summary>获取或设置可复制的身份种子。</summary>
     public int Seed { get; set; }
-    /// <summary>Gets or sets general transition exploration depth (at least three).</summary>
+    /// <summary>获取或设定一般过渡勘探深度(至少三个)。</summary>
     public int MaxDepth { get; set; } = 3;
-    /// <summary>Gets or sets general generated sequence length (at least three).</summary>
+    /// <summary>获取或设置一般生成序列长度(至少三个)。</summary>
     public int MaxSequenceLength { get; set; } = 3;
 }
 
-/// <summary>Runs actual Accordant transition generation/execution in fresh factory-owned scopes per case.</summary>
+/// <summary>运行每个案例在新鲜工厂拥有的工程范围内实际的个体过渡阶段生成/执行。</summary>
 public sealed class MembershipTableModelBasedTestRunner
 {
     private readonly Func<MembershipTableTestFixture> _factory;
     private readonly MembershipTableModelBasedConformanceOptions _options;
     private readonly Action<string>? _output;
 
-    /// <summary>Creates a generated runner using default bounded exploration.</summary>
+    /// <summary>使用默认的连接勘探创建生成的运行者。</summary>
     public MembershipTableModelBasedTestRunner(Func<MembershipTableTestFixture> fixtureFactory, string providerName, Action<string>? output = null)
         : this(fixtureFactory, new MembershipTableModelBasedConformanceOptions { ProviderName = providerName }, output) { }
 
-    /// <summary>Creates a generated runner. The factory must return a new fixture on every call.</summary>
+    /// <summary>创建一个生成的运行者。 工厂必须归还每个呼叫的新固定符。</summary>
     public MembershipTableModelBasedTestRunner(Func<MembershipTableTestFixture> fixtureFactory, MembershipTableModelBasedConformanceOptions options, Action<string>? output = null)
     {
         _factory = fixtureFactory ?? throw new ArgumentNullException(nameof(fixtureFactory));
@@ -38,7 +38,7 @@ public sealed class MembershipTableModelBasedTestRunner
         _output = output;
     }
 
-    /// <summary>Generates legal transitions, required reachable prefixes, and verifies every operation's expected state.</summary>
+    /// <summary>产生法律转型,需要可达的前缀,并核实每项行动的预期状态。</summary>
     public Task RunGeneratedConformanceTests(CancellationToken cancellationToken = default)
         => RunGeneratedConformanceTests(0, 1, cancellationToken);
 
@@ -109,7 +109,7 @@ public sealed class MembershipTableModelBasedTestRunner
                         current = _factory() ?? throw new InvalidOperationException("The model fixture factory returned null.");
                         ClusteringTestKitDiagnostics.Require(scopes.Add(current.ClusterId), "model factory reused a fixture/scope between cases");
                         ReportProgress("initialize", current);
-                        // Preserve the caller's bound when a provider callback blocks synchronously.
+                        // 保护电话的固定 当供应商回调区同步。
                         var fixture = current;
                         await Task.Run(() => fixture.InitializeAsync(ct).AsTask(), ct).WaitAsync(ct);
                         ReportProgress("initialized", current);
@@ -199,7 +199,7 @@ public sealed class MembershipTableModelBasedTestRunner
             var initial = new MembershipModelState();
             var cases = spec.GenerateTests(initial, spec.CreateInputSet(prefix?.Distinct()), new TestGenerationOptions
             {
-                // Accordant counts the initial state toward exploration depth.
+                // 承租人计算勘探深度的初始状态。
                 MaxDepth = prefix is null ? _options.MaxDepth : prefix.Length + 1,
                 SequentialTestCaseAlgorithm = SequentialTestCaseAlgorithms.CreateTransitionCoverage(prefix?.Length ?? _options.MaxSequenceLength),
                 ShouldApply = (input, state) =>
@@ -244,7 +244,7 @@ public sealed class MembershipTableModelBasedTestRunner
         if (partitionCount > cases.Length)
             throw new ArgumentOutOfRangeException(nameof(partitionCount), "Partition count cannot exceed the generated case count.");
         if (partitionCount == 1) return batches;
-        // Ranking canonical identities balances whole cases without relying on process-randomized hash codes.
+        // 等级的卡尼科身份平衡了整个案件,而没有依赖程序上被随机调整的散列代码。
         var selected = cases.Where((_, index) => index % partitionCount == partitionIndex)
             .Select(testCase => testCase.Identity).ToHashSet(StringComparer.Ordinal);
         return batches.Select(batch =>

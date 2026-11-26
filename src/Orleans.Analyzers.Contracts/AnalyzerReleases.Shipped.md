@@ -1,1 +1,1 @@
-; This analyzer has no shipped rules yet.
+; 此分析器尚无已发布的规则。

@@ -13,7 +13,7 @@ using Orleans.Transactions;
 namespace Orleans
 {
     /// <summary>
-    /// The TransactionAttribute attribute is used to mark methods that start and join transactions.
+    /// TransactionAttribute 属性用于标记开始和加入交易的方法。
     /// </summary>
     [InvokableCustomInitializer("SetTransactionOptions")]
     [InvokableBaseType(typeof(GrainReference), typeof(ValueTask), typeof(TransactionRequest))]
@@ -24,38 +24,38 @@ namespace Orleans
     public sealed class TransactionAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionAttribute"/> class.
+        /// 初始化 <see cref="TransactionAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="requirement">The transaction behavior required by the attributed method.</param>
+        /// <param name="requirement">配给方法要求的交易行为。</param>
         public TransactionAttribute(TransactionOption requirement)
         {
             Requirement = requirement;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionAttribute"/> class.
+        /// 初始化 <see cref="TransactionAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="alias">An alias for the transaction behavior required by the attributed method.</param>
+        /// <param name="alias">指定方法所要求的交易行为的别名。</param>
         public TransactionAttribute(TransactionOptionAlias alias)
         {
             Requirement = (TransactionOption)(int)alias;
         }
 
         /// <summary>
-        /// Gets the transaction behavior required by the attributed method.
+        /// 获得配给方法所要求的交易行为。
         /// </summary>
         public TransactionOption Requirement { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the transaction permits read operations only.
+        /// 获取或设定一个数值,表明交易是否允许只读操作。
         /// </summary>
         [Obsolete("Use [ReadOnly] attribute instead.")]
         public bool ReadOnly { get; set; }
     }
 
     /// <summary>
-    /// The UseExclusiveLock attribute is used to mark transactional methods that should acquire
-    /// exclusive locks even for read operations. This prevents frequent lock upgrade conflicts under high contention.
+    /// UseExclusiveLock 属性用于标示应当获得的交易方法
+    /// 即使是用于阅读操作的独家锁,也防止经常发生争议激烈的锁升级冲突。
     /// </summary>
     /// <example>
     /// <code>
@@ -71,74 +71,74 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Specifies how a method call or delegate interacts with an ambient transaction.
+    /// 指定方法调用或委托如何与环境交易发生相互作用。
     /// </summary>
     public enum TransactionOption
     {
         /// <summary>
-        /// Executes grain calls without propagating an ambient transaction. Delegate execution rejects an existing ambient transaction.
+        /// 执行 grain 电话而不传播环境交易。代表执行拒绝现有的环境交易 。
         /// </summary>
         Suppress,
 
         /// <summary>
-        /// Joins the ambient transaction when one exists; otherwise, creates a transaction.
+        /// 存在环境交易时加入该环境交易;否则,创建交易。
         /// </summary>
         CreateOrJoin,
 
         /// <summary>
-        /// Creates a transaction, independently of any ambient transaction.
+        /// 创建一项交易,独立于任何环境交易。
         /// </summary>
         Create,
 
         /// <summary>
-        /// Joins the ambient transaction and requires one to exist.
+        /// 加入环境交易,要求存在。
         /// </summary>
         Join,
 
         /// <summary>
-        /// Propagates the ambient transaction when one exists and executes without a transaction otherwise.
+        /// 当存在环境交易时,则进行环境交易,并且在没有其他交易的情况下执行。
         /// </summary>
         Supported,
 
         /// <summary>
-        /// Executes without a transaction and rejects calls made within an ambient transaction.
+        /// 执行无交易,拒绝环境交易中发出的电话。
         /// </summary>
         NotAllowed
     }
 
     /// <summary>
-    /// Provides compatibility aliases for <see cref="TransactionOption"/> values.
+    /// 提供 <see cref="TransactionOption"/> 值的兼容性别名。
     /// </summary>
     public enum TransactionOptionAlias
     {
         /// <summary>
-        /// Maps to <see cref="TransactionOption.Supported"/>.
+        /// 地图到 <see cref="TransactionOption.Supported"/>。
         /// </summary>
         Suppress = TransactionOption.Supported,
 
         /// <summary>
-        /// Maps to <see cref="TransactionOption.CreateOrJoin"/>.
+        /// 地图到 <see cref="TransactionOption.CreateOrJoin"/>。
         /// </summary>
         Required = TransactionOption.CreateOrJoin,
 
         /// <summary>
-        /// Maps to <see cref="TransactionOption.Create"/>.
+        /// 地图到 <see cref="TransactionOption.Create"/>。
         /// </summary>
         RequiresNew = TransactionOption.Create,
 
         /// <summary>
-        /// Maps to <see cref="TransactionOption.Join"/>.
+        /// 地图到 <see cref="TransactionOption.Join"/>。
         /// </summary>
         Mandatory = TransactionOption.Join,
 
         /// <summary>
-        /// Maps to <see cref="TransactionOption.NotAllowed"/>.
+        /// 地图到 <see cref="TransactionOption.NotAllowed"/>。
         /// </summary>
         Never = TransactionOption.NotAllowed,
     }
 
     /// <summary>
-    /// Provides transaction propagation and resolution for generated grain request invokers.
+    /// 为生成 grain 请求查询者提供交易传播和解决。
     /// </summary>
     [GenerateSerializer]
     public abstract class TransactionRequestBase : RequestBase, IOutgoingGrainCallFilter, IOnDeserialized
@@ -152,39 +152,39 @@ namespace Orleans
         private ITransactionAgent TransactionAgent => _transactionAgent ?? throw new OrleansTransactionsDisabledException();
 
         /// <summary>
-        /// Gets or sets the transaction behavior for the request.
+        /// 获取或设置请求的交易行为。
         /// </summary>
         [Id(0)]
         public TransactionOption TransactionOption { get; set; }
 
         /// <summary>
-        /// Gets or sets the transaction information propagated with the request.
+        /// 获取或设置随请求传播的交易信息。
         /// </summary>
         [Id(1)]
         public TransactionInfo? TransactionInfo { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether transactional state reads acquire exclusive locks.
+        /// 获取或设定一个值,以显示交易状态是否读取了独家锁。
         /// </summary>
         [Id(2)]
         public bool UseExclusiveLock { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionRequestBase"/> class.
+        /// 初始化 <see cref="TransactionRequestBase"/> 类的新实例。
         /// </summary>
-        /// <param name="exceptionSerializer">The serializer for transaction abort exceptions.</param>
-        /// <param name="serviceProvider">The service provider used to resolve transaction services.</param>
+        /// <param name="exceptionSerializer">交易中止例外的序列器。</param>
+        /// <param name="serviceProvider">用于解决交易服务的服务提供者。</param>
         [GeneratedActivatorConstructor]
         protected TransactionRequestBase(Serializer<OrleansTransactionAbortedException> exceptionSerializer, IServiceProvider serviceProvider)
         {
             _serializer = exceptionSerializer;
 
-            // May be null, eg on an external client. We will throw if it's null at the time of invocation.
+            // 可能无效, 例如对外部客户端。 如果在援引时无效, 我们将丢弃它 。
             _transactionAgent = serviceProvider.GetService<ITransactionAgent>();
         }
 
         /// <summary>
-        /// Gets a value indicating whether the request executes outside the ambient transaction.
+        /// 获得一个数值,显示请求是否在环境交易之外执行。
         /// </summary>
         public bool IsAmbientTransactionSuppressed => TransactionOption switch
         {
@@ -194,7 +194,7 @@ namespace Orleans
         };
 
         /// <summary>
-        /// Gets a value indicating whether the request requires a transaction context.
+        /// 获得一个值,显示请求是否需要交易环境。
         /// </summary>
         public bool IsTransactionRequired => TransactionOption switch
         {
@@ -205,25 +205,25 @@ namespace Orleans
         };
 
         /// <summary>
-        /// Sets the transaction behavior using a compatibility alias.
+        /// 使用兼容性别名设置交易行为。
         /// </summary>
-        /// <param name="txOption">The transaction option alias.</param>
+        /// <param name="txOption">交易选项别名。</param>
         protected void SetTransactionOptions(TransactionOptionAlias txOption) => SetTransactionOptions((TransactionOption)txOption);
 
         /// <summary>
-        /// Sets the transaction behavior for the request.
+        /// 设置请求的交易行为。
         /// </summary>
-        /// <param name="txOption">The transaction option.</param>
+        /// <param name="txOption">交易选项。</param>
         protected void SetTransactionOptions(TransactionOption txOption)
         {
             this.TransactionOption = txOption;
         }
 
         /// <summary>
-        /// Sets whether transactional state reads acquire exclusive locks.
+        /// 设定交易状态是否读取获取独家锁 。
         /// </summary>
         /// <param name="value">
-        /// <see langword="true"/> to acquire exclusive locks for reads; otherwise, <see langword="false"/>.
+        /// <see langword="true"/> 获取专用锁,以作以下用途;否则, <see langword="false"/>。
         /// </param>
         protected void SetExclusiveLock(bool value)
         {
@@ -258,22 +258,22 @@ namespace Orleans
 
         private TransactionInfo? SetTransactionInfo()
         {
-            // Clear transaction info if transaction operation requires new transaction.
+            // 如果交易操作需要新的交易, 请清除交易信息 。
             var transactionInfo = TransactionContext.GetTransactionInfo();
 
-            // Enforce join transaction calls
+            // 强制加入交易电话
             if (TransactionOption == TransactionOption.Join && transactionInfo == null)
             {
                 throw new NotSupportedException("Call cannot be made outside of a transaction.");
             }
 
-            // Enforce not allowed transaction calls
+            // 不允许强制执行交易电话
             if (TransactionOption == TransactionOption.NotAllowed && transactionInfo != null)
             {
                 throw new NotSupportedException("Call cannot be made within a transaction.");
             }
 
-            // Clear transaction context if creating a transaction or transaction is suppressed
+            // 如果创建交易或交易被抑制, 将清除交易上下文
             if (TransactionOption is TransactionOption.Create or TransactionOption.Suppress)
             {
                 transactionInfo = null;
@@ -281,7 +281,7 @@ namespace Orleans
 
             if (transactionInfo == null)
             {
-                // if we're leaving a transaction context, make sure it's been cleared from the request context.
+                // 如果我们离开交易背景 确保它被清除 从请求的背景。
                 TransactionContext.Clear();
             }
             else
@@ -302,16 +302,16 @@ namespace Orleans
             {
                 if (IsTransactionRequired && transactionInfo == null)
                 {
-                    // TODO: this should be a configurable parameter
+                    // TODO: 这应该是可配置参数
                     var transactionTimeout = Debugger.IsAttached ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(10);
 
-                    // Start a new transaction
+                    // 开始新交易
                     var isReadOnly = this.Options.HasFlag(InvokeMethodOptions.ReadOnly);
                     transactionInfo = await TransactionAgent.StartTransaction(isReadOnly, transactionTimeout);
                     startedNewTransaction = true;
                 }
 
-                // Apply this flag if requested by Attribute
+                // 如果属性要求应用此标记
                 if (this.UseExclusiveLock && transactionInfo != null)
                 {
                     transactionInfo.UseExclusiveLock = true;
@@ -340,14 +340,14 @@ namespace Orleans
 
                 if (response.Exception is { } invokeException)
                 {
-                    // Record reason for abort, if not already set.
+                    // 中止记录理由, 如果尚未设置的话 。
                     transactionInfo.RecordException(invokeException, _serializer);
                 }
 
                 OrleansTransactionException? transactionException = transactionInfo.MustAbort(_serializer);
 
-                // This request started the transaction, so we try to commit before returning,
-                // or if it must abort, tell participants that it aborted
+                // 请求启动了交易 所以我们在返回前要承诺
+                // 或者如果必须中止,请告诉参与者它已经中止
                 if (startedNewTransaction)
                 {
                     if (transactionException is not null || transactionInfo.TryToCommit is false)
@@ -370,7 +370,7 @@ namespace Orleans
                 }
 
                 var result = TransactionResponse.Create(response, transactionInfo);
-                response = null; // The returned wrapper now owns the invocation response.
+                response = null; // 返回的包装纸现在拥有要求响应。
                 return result;
             }
             finally
@@ -380,9 +380,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Invokes the generated request implementation.
+        /// 启动生成的请求执行。
         /// </summary>
-        /// <returns>A response representing the invocation result.</returns>
+        /// <returns>代表呼唤结果的答复。</returns>
         protected abstract ValueTask<Response> BaseInvoke();
 
         /// <inheritdoc/>
@@ -399,7 +399,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Wraps a response together with the transaction information produced by an invocation.
+    /// 将答复与援引产生的交易信息包装在一起。
     /// </summary>
     [GenerateSerializer]
     public sealed class TransactionResponse : Response
@@ -408,17 +408,17 @@ namespace Orleans
         private Response _response = null!;
 
         /// <summary>
-        /// Gets or sets the transaction information returned by the invocation.
+        /// 获取或设置通过援引返回的交易信息。
         /// </summary>
         [Id(1)]
         public TransactionInfo? TransactionInfo { get; set; }
 
         /// <summary>
-        /// Creates a transaction response which wraps an invocation response.
+        /// 创建交易响应,以包绕调用响应。
         /// </summary>
-        /// <param name="response">The invocation response whose ownership transfers to the returned wrapper.</param>
-        /// <param name="transactionInfo">The transaction information to return with the response.</param>
-        /// <returns>The transaction response, which the caller disposes to release the wrapped response.</returns>
+        /// <param name="response">所有权转移到返回的包装纸上的呼唤反应。</param>
+        /// <param name="transactionInfo">随回复返回的交易信息。</param>
+        /// <returns>交易反应, 打电话者处置 释放包装反应。</returns>
         public static TransactionResponse Create(Response response, TransactionInfo transactionInfo)
         {
             return new TransactionResponse
@@ -429,12 +429,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the wrapped invocation response.
+        /// 得到包装的求救反应
         /// </summary>
         public Response InnerResponse => _response;
 
         /// <summary>
-        /// Gets or sets the wrapped response result.
+        /// 获取或设置包装响应结果 。
         /// </summary>
         public override object? Result
         {
@@ -452,16 +452,16 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets <see langword="null"/> so that the wrapper can be delivered as a successful response, or sets the
-        /// exception on the wrapped response.
+        /// 获取 <see langword="null"/> ,以便包装纸能够作为成功响应交付,或设置
+        /// 包装响应的例外。
         /// </summary>
         public override Exception? Exception
         {
             get
             {
-                // Suppress any exception here, allowing ResponseCompletionSource to complete with a Response instead of an exception.
-                // This gives TransactionRequestBase a chance to inspect this instance and retrieve the TransactionInfo property first.
-                // After, it will use GetException to get and throw the exeption.
+                // 在此禁止任何例外, 允许 ResponseCompletionSource 在答复中填写完整, 而不是例外 。
+                // 这给了 TransactionRequestBase 检查此实例并首先检索 TransactionInfo 属性的机会。
+                // 之后,它将用 GetException 来获取和丢弃豁免。
                 return null;
             }
 
@@ -469,9 +469,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the exception from the wrapped response.
+        /// 得到例外 从包装回应。
         /// </summary>
-        /// <returns>The wrapped exception, or <see langword="null"/> if the invocation completed successfully.</returns>
+        /// <returns>包装例外,或如果成功完成调用,则 <see langword="null"/> 。</returns>
         public Exception? GetException() => _response.Exception;
 
         /// <inheritdoc/>
@@ -490,16 +490,16 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Base type for generated transactional request invokers which return a <see cref="ValueTask"/>.
+    /// 返回 <see cref="ValueTask"/>的生成交易请求请求请求请求请求请求人的基准类型。
     /// </summary>
     [SerializerTransparent]
     public abstract class TransactionRequest : TransactionRequestBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionRequest"/> class.
+        /// 初始化 <see cref="TransactionRequest"/> 类的新实例。
         /// </summary>
-        /// <param name="exceptionSerializer">The serializer for transaction abort exceptions.</param>
-        /// <param name="serviceProvider">The service provider used to resolve transaction services.</param>
+        /// <param name="exceptionSerializer">交易中止例外的序列器。</param>
+        /// <param name="serviceProvider">用于解决交易服务的服务提供者。</param>
         protected TransactionRequest(Serializer<OrleansTransactionAbortedException> exceptionSerializer, IServiceProvider serviceProvider) : base(exceptionSerializer, serviceProvider)
         {
         }
@@ -539,26 +539,26 @@ namespace Orleans
             }
         }
 
-        // Generated
+        // 生成
         /// <summary>
-        /// Invokes the generated method implementation.
+        /// 启动生成的方法实施。
         /// </summary>
-        /// <returns>A task representing the invocation.</returns>
+        /// <returns>代表召唤者的任务</returns>
         protected abstract ValueTask InvokeInner();
     }
 
     /// <summary>
-    /// Base type for generated transactional request invokers which return a <see cref="ValueTask{TResult}"/>.
+    /// 返回 <see cref="ValueTask{TResult}"/>的生成交易请求请求请求请求请求请求人的基准类型。
     /// </summary>
-    /// <typeparam name="TResult">The invocation result type.</typeparam>
+    /// <typeparam name="TResult">调用结果类型。</typeparam>
     [SerializerTransparent]
     public abstract class TransactionRequest<TResult> : TransactionRequestBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionRequest{TResult}"/> class.
+        /// 初始化 <see cref="TransactionRequest{TResult}"/> 类的新实例。
         /// </summary>
-        /// <param name="exceptionSerializer">The serializer for transaction abort exceptions.</param>
-        /// <param name="serviceProvider">The service provider used to resolve transaction services.</param>
+        /// <param name="exceptionSerializer">交易中止例外的序列器。</param>
+        /// <param name="serviceProvider">用于解决交易服务的服务提供者。</param>
         protected TransactionRequest(Serializer<OrleansTransactionAbortedException> exceptionSerializer, IServiceProvider serviceProvider) : base(exceptionSerializer, serviceProvider)
         {
         }
@@ -595,26 +595,26 @@ namespace Orleans
             }
         }
 
-        // Generated
+        // 生成
         /// <summary>
-        /// Invokes the generated method implementation.
+        /// 启动生成的方法实施。
         /// </summary>
-        /// <returns>A task containing the invocation result.</returns>
+        /// <returns>含有调用结果的任务。</returns>
         protected abstract ValueTask<TResult> InvokeInner();
     }
 
     /// <summary>
-    /// Base type for generated transactional request invokers which return a <see cref="Task{TResult}"/>.
+    /// 返回 <see cref="Task{TResult}"/>的生成交易请求请求请求请求请求请求人的基准类型。
     /// </summary>
-    /// <typeparam name="TResult">The invocation result type.</typeparam>
+    /// <typeparam name="TResult">调用结果类型。</typeparam>
     [SerializerTransparent]
     public abstract class TransactionTaskRequest<TResult> : TransactionRequestBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionTaskRequest{TResult}"/> class.
+        /// 初始化 <see cref="TransactionTaskRequest{TResult}"/> 类的新实例。
         /// </summary>
-        /// <param name="exceptionSerializer">The serializer for transaction abort exceptions.</param>
-        /// <param name="serviceProvider">The service provider used to resolve transaction services.</param>
+        /// <param name="exceptionSerializer">交易中止例外的序列器。</param>
+        /// <param name="serviceProvider">用于解决交易服务的服务提供者。</param>
         protected TransactionTaskRequest(Serializer<OrleansTransactionAbortedException> exceptionSerializer, IServiceProvider serviceProvider) : base(exceptionSerializer, serviceProvider)
         {
         }
@@ -652,25 +652,25 @@ namespace Orleans
             }
         }
 
-        // Generated
+        // 生成
         /// <summary>
-        /// Invokes the generated method implementation.
+        /// 启动生成的方法实施。
         /// </summary>
-        /// <returns>A task containing the invocation result.</returns>
+        /// <returns>含有调用结果的任务。</returns>
         protected abstract Task<TResult> InvokeInner();
     }
 
     /// <summary>
-    /// Base type for generated transactional request invokers which return a <see cref="Task"/>.
+    /// 返回 <see cref="Task"/>的生成交易请求请求请求请求请求请求人的基准类型。
     /// </summary>
     [SerializerTransparent]
     public abstract class TransactionTaskRequest : TransactionRequestBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionTaskRequest"/> class.
+        /// 初始化 <see cref="TransactionTaskRequest"/> 类的新实例。
         /// </summary>
-        /// <param name="exceptionSerializer">The serializer for transaction abort exceptions.</param>
-        /// <param name="serviceProvider">The service provider used to resolve transaction services.</param>
+        /// <param name="exceptionSerializer">交易中止例外的序列器。</param>
+        /// <param name="serviceProvider">用于解决交易服务的服务提供者。</param>
         protected TransactionTaskRequest(Serializer<OrleansTransactionAbortedException> exceptionSerializer, IServiceProvider serviceProvider) : base(exceptionSerializer, serviceProvider)
         {
         }
@@ -711,11 +711,11 @@ namespace Orleans
             }
         }
 
-        // Generated
+        // 生成
         /// <summary>
-        /// Invokes the generated method implementation.
+        /// 启动生成的方法实施。
         /// </summary>
-        /// <returns>A task representing the invocation.</returns>
+        /// <returns>代表召唤者的任务</returns>
         protected abstract Task InvokeInner();
     }
 }

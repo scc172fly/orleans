@@ -14,19 +14,19 @@ using System.Threading.Tasks;
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// Tests for Orleans' version tolerance capabilities in serialization.
+    /// 测试 Orleans版本在序列化中的耐受能力。
     /// 
-    /// Version tolerance is a critical feature of Orleans that allows:
-    /// - Adding new fields to types without breaking existing serialized data
-    /// - Removing fields gracefully (old data with removed fields can still be deserialized)
-    /// - Changing type hierarchies while maintaining compatibility
-    /// - Rolling upgrades in distributed systems without downtime
+    /// 版本容度是 Orleans 的关键特征,允许:
+    /// - 在不破坏现有序列数据的情况下,将新字段添加到类型中
+    /// - 优雅地删除字段(已移除字段的旧数据仍可被解密)
+    /// - 改变类型等级,同时保持兼容性
+    /// - 将升级的系统在分布式系统中进行,不中断
     /// 
-    /// Orleans achieves version tolerance through:
-    /// - Field-based serialization (not order-dependent)
-    /// - Explicit field IDs that remain stable across versions
-    /// - Graceful handling of unknown fields during deserialization
-    /// - Support for schema evolution patterns
+    /// Orleans 通过以下方式实现版本容忍度:
+    /// - 实地序列化(不依赖订单)
+    /// - 各种版本保持稳定的明确字段身份
+    /// - 在解除航空化期间优异地处理未知领域
+    /// - 支持计划演变模式
     /// </summary>
     [Trait("Suite", "BVT")]
     [Trait("Provider", "None")]
@@ -54,7 +54,7 @@ namespace Orleans.Serialization.UnitTests
                         configuration.AddSerializer(typeof(ObjectWithNewFieldTypeSerializer));
                         configuration.AddSerializer(typeof(ObjectWithoutNewFieldTypeSerializer));
 
-                        // Intentionally remove the generated serializer for these type. It will be added back during tests.
+                        // 有意删除这些类型的序列器。 在测试时将添加到此上面 。
                         configuration.Serializers.RemoveWhere(s => typeof(IFieldCodec<ObjectWithNewField>).IsAssignableFrom(s));
                         configuration.Serializers.RemoveWhere(s => typeof(IFieldCodec<ObjectWithoutNewField>).IsAssignableFrom(s));
                     });
@@ -172,7 +172,7 @@ namespace Orleans.Serialization.UnitTests
             _log.WriteLine($"Expect: {expected}\nActual: {actual}");
 
             Assert.Equal(expected.BaseTypeString, actual.BaseTypeString);
-            Assert.Null(actual.AddedLaterString); // The deserializer isn't 'aware' of this field which was added later - version tolerance.
+            Assert.Null(actual.AddedLaterString); // 消毒剂不是“意识到”这个领域,
             Assert.Equal(expected.String, actual.String);
             Assert.Equal(expected.Int, actual.Int);
             if (assertRef)
@@ -239,8 +239,8 @@ namespace Orleans.Serialization.UnitTests
             var expected = new ObjectWithNewField("blah", newField: "this field will not be manually serialized -- the binary will not have it!");
             var pipe = new Pipe();
 
-            // Using manual serializer that ignores ObjectWithNewField.NewField
-            // not serializing NewField to simulate a binary that's created from a previous version of the object
+            // 使用无视 ObjectWithNewField.NewField的手工序列器
+            // 不对 NewField 进行序列化,以模拟从对象上一个版本创建的二进制
             var objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
             var objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
             _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(objectWithNewFieldSerializer);
@@ -275,7 +275,7 @@ namespace Orleans.Serialization.UnitTests
                 GetGeneratedSerializer(out objectWithNewFieldSerializer);
                 Assert.IsNotType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(objectWithNewFieldSerializer);
 
-                // using Generated Deserializer, which is capable of deserializing NewField 
+                // 使用能解除音量的生成降序器 NewField 
                 var value = objectWithNewFieldSerializer.ReadValue(ref reader, initialHeader)!;
                 return (value, reader.Position, reader.Session.ReferencedObjects.CurrentReferenceId);
             }
@@ -288,7 +288,7 @@ namespace Orleans.Serialization.UnitTests
             Assert.Equal(expected.Blah, actual.Blah);
             objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
             objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
-            Assert.Null(actual.NewField); // Null, since it should not be in the binary
+            Assert.Null(actual.NewField); // 努尔,因为它不应该在二进制
             Assert.Equal(expected.Version, actual.Version);
             Assert.Equal(writerPosition, readerPosition);
             Assert.Equal(writerCurrentReferenceId, readerCurrentReferenceId);
@@ -307,8 +307,8 @@ namespace Orleans.Serialization.UnitTests
 
             var objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
             var objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
-            // Using a manual serializer that writes a new field
-            // serializing a new field to simulate a binary that created from a newer version of the object
+            // 使用一个手工连环播放器, 以撰写新字段
+            // 正在对一个新字段进行序列序列操作以模拟从对象新版本中创建的二进制
             _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(objectWithoutNewFieldSerializer);
 
             var (writerPosition, writerCurrentReferenceId) = WriteToPipe();
@@ -341,7 +341,7 @@ namespace Orleans.Serialization.UnitTests
                 GetGeneratedSerializer(out objectWithoutNewFieldSerializer);
                 Assert.IsNotType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(objectWithoutNewFieldSerializer);
 
-                // using Generated Deserializer, which is not able to deserialize the new field that was serialized
+                // 使用生成的降序器,它无法将序列化的新字段降序
                 var value = objectWithoutNewFieldSerializer.ReadValue(ref reader, initialHeader)!;
                 return (value, reader.Position, reader.Session.ReferencedObjects.CurrentReferenceId);
             }
@@ -392,12 +392,12 @@ namespace Orleans.Serialization.UnitTests
         {
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ObjectWithNewField obj) where TBufferWriter : IBufferWriter<byte>
             {
-                // not serializing newField to simulate a binary that's created from a previous version of the object
+                // 不对 newField 进行序列化,以模拟从对象上一个版本创建的二进制
                 StringCodec.WriteField(ref writer, 0, obj.Blah);
                 Int32Codec.WriteField(ref writer, 2, obj.Version);
             }
 
-            // using a generated deserializer for deserialization
+            // 使用生成的去气分解器进行下气化
             public void Deserialize<TInput>(ref Reader<TInput> reader, ObjectWithNewField obj)
             {
             }
@@ -426,18 +426,18 @@ namespace Orleans.Serialization.UnitTests
             {
                 StringCodec.WriteField(ref writer, 0, obj.Blah);
                 Int32Codec.WriteField(ref writer, 1, obj.Version);
-                // serializing a new field to simulate a binary that's created from a newer version of the object
+                // 正在对一个新字段进行序列序列操作以模拟从对象新版本创建的二进制
                 ObjectCodec.WriteField(ref writer, 6, "I will be stuck in binary limbo! (I shouldn't be part of the deserialized object)");
             }
 
-            // using a generated deserializer for deserialization
+            // 使用生成的去气分解器进行下气化
             public void Deserialize<TInput>(ref Reader<TInput> reader, ObjectWithoutNewField obj)
             {
             }
         }
 
         /// <summary>
-        /// NOTE: The serializer for this type is HAND-ROLLED. See <see cref="BaseTypeSerializer" />
+        /// 注:这种类型的序列器是手动转盘。 <see cref="BaseTypeSerializer" />
         /// </summary>
         public class BaseType : IEquatable<BaseType>
         {
@@ -456,7 +456,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// NOTE: The serializer for this type is HAND-ROLLED. See <see cref="SubTypeSerializer" />
+        /// 注:这种类型的序列器是手动转盘。 <see cref="SubTypeSerializer" />
         /// </summary>
         public class SubType : BaseType, IEquatable<SubType>
         {
@@ -480,7 +480,7 @@ namespace Orleans.Serialization.UnitTests
                     base.Equals(other)
                     && string.Equals(String, other.String, StringComparison.Ordinal)
                     && Int == other.Int
-                    // Round-tripped equality inputs preserve whether Ref is present.
+                    // 圆桌的平等投入保留了参考文献是否存在。
                     && (ReferenceEquals(Ref, other.Ref) || Ref!.Equals(other.Ref));
             }
 
@@ -494,7 +494,7 @@ namespace Orleans.Serialization.UnitTests
 
             public override int GetHashCode()
             {
-                // Avoid stack overflows with this one weird trick.
+                // 避免堆叠溢出与这个奇怪的把戏。
                 if (ReferenceEquals(Ref, this))
                 {
                     return HashCode.Combine(base.GetHashCode(), String, Int);
@@ -522,16 +522,16 @@ namespace Orleans.Serialization.UnitTests
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SubType obj) where TBufferWriter : IBufferWriter<byte>
             {
                 _baseTypeSerializer.Serialize(ref writer, obj);
-                writer.WriteEndBase(); // the base object is complete.
+                writer.WriteEndBase(); // 基对象已完成。
 
-                // The codec supports null payloads despite its legacy non-nullable signature.
+                // 尽管该编码码支持了遗留的不可更改签名,但该编码码仍然支持空有效载荷。
                 _stringCodec.WriteField(ref writer, 0, typeof(string), obj.String!);
                 _intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
                 _objectCodec.WriteField(ref writer, 1, typeof(object), obj.Ref!);
                 _intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
                 _intCodec.WriteField(ref writer, 409, typeof(int), obj.Int);
-                /*writer.WriteFieldHeader(session, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
-                writer.WriteFieldHeader(session, 1020, typeof(object), typeof(Program), WireType.Reference);*/
+                /*writer.WriteFieldHeader(届会, 1025, 类型( 指南) ) Guid.Empty.GetType(), WireType.Fixed128);
+                writer.WriteFieldHeader(会议,1020,类型(目标),类型(方案), WireType.Reference);*/
             }
 
             public void Deserialize<TInput>(ref Reader<TInput> reader, SubType obj)
@@ -570,7 +570,7 @@ namespace Orleans.Serialization.UnitTests
         {
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, BaseType obj) where TBufferWriter : IBufferWriter<byte>
             {
-                // The codec supports null payloads despite its legacy non-nullable signature.
+                // 尽管该编码码支持了遗留的不可更改签名,但该编码码仍然支持空有效载荷。
                 StringCodec.WriteField(ref writer, 0, obj.BaseTypeString!);
                 StringCodec.WriteField(ref writer, 234, obj.AddedLaterString!);
             }

@@ -8,9 +8,9 @@ namespace Orleans.Streams.Core
 
         public StreamSubscriptionManagerAdmin(IStreamProviderRuntime providerRuntime)
         {
-            // using ExplicitGrainBasedAndImplicit pubsub here, so if StreamSubscriptionManager.Add(Remove)Subscription called on a implicit subscribed
-            // consumer grain, its subscription will be handled by ImplicitPubsub, and will not be messed into GrainBasedPubsub 
-            _explicitStreamSubscriptionManager = new StreamSubscriptionManager(providerRuntime.PubSub(StreamPubSubType.ExplicitGrainBasedAndImplicit)!, // This defined enum value always selects a runtime.
+            // 在此使用 ExplicitGrainBasedAndImplicit 旁端次元, 所以如果 StreamSubscriptionManager.Add(删除)订阅要求默认订阅
+            // 消费者 grain,其订阅将由 ImplicitPubsub处理,不会被搅乱成 GrainBasedPubsub 
+            _explicitStreamSubscriptionManager = new StreamSubscriptionManager(providerRuntime.PubSub(StreamPubSubType.ExplicitGrainBasedAndImplicit)!, // 此定义的 enum 值总是选择运行时间 。
                 StreamSubscriptionManagerType.ExplicitSubscribeOnly);
         }
 

@@ -14,10 +14,10 @@ using Orleans.Storage;
 namespace Orleans.Core
 {
     /// <summary>
-    /// Provides functionality for operating on grain state.
-    /// Implements the <see cref="IStorage{TState}" />
+    /// 提供在 grain 状态运行的功能。
+    /// 执行 <see cref="IStorage{TState}" />
     /// </summary>
-    /// <typeparam name="TState">The underlying state type.</typeparam>
+    /// <typeparam name="TState">基本状态类型。</typeparam>
     /// <seealso cref="IStorage{TState}" />
     public partial class StateStorageBridge<TState> : IStorage<TState>, IGrainMigrationParticipant
     {
@@ -36,10 +36,10 @@ namespace Orleans.Core
                 GrainRuntime.CheckRuntimeContext(RuntimeContext.Current);
                 if (_grainState is { } grainState)
                 {
-                    return grainState.State!; // ReadStateAsync initializes state before consumers access it.
+                    return grainState.State!; // ReadStateAsync 初始化状态后消费者才能使用。
                 }
 
-                return default!; // Access before ReadStateAsync is outside the storage lifecycle contract.
+                return default!; // ReadStateAsync 在储存生命周期合同之外之前进入。
             }
 
             set
@@ -65,23 +65,23 @@ namespace Orleans.Core
         };
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StateStorageBridge{TState}"/> class.
+        /// 初始化 <see cref="StateStorageBridge{TState}"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The state name.</param>
-        /// <param name="grainContext">The grain context.</param>
-        /// <param name="store">The grain storage provider.</param>
-        /// <param name="loggerFactory">The logger factory retained for compatibility.</param>
-        /// <param name="activatorProvider">The activator provider retained for compatibility.</param>
+        /// <param name="name">国名。</param>
+        /// <param name="grainContext"> grain 上下文。</param>
+        /// <param name="store">下 grain 储存提供者。</param>
+        /// <param name="loggerFactory">伐木厂保留了兼容性</param>
+        /// <param name="activatorProvider">活性器供应商保留,以保持兼容性。</param>
         [Obsolete("Use StateStorageBridge(string, IGrainContext, IGrainStorage) instead.")]
         public StateStorageBridge(string name, IGrainContext grainContext, IGrainStorage store, ILoggerFactory loggerFactory, IActivatorProvider activatorProvider) : this(name, grainContext, store)
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StateStorageBridge{TState}"/> class.
+        /// 初始化 <see cref="StateStorageBridge{TState}"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The state name.</param>
-        /// <param name="grainContext">The grain context.</param>
-        /// <param name="store">The grain storage provider.</param>
+        /// <param name="name">国名。</param>
+        /// <param name="grainContext"> grain 上下文。</param>
+        /// <param name="store">下 grain 储存提供者。</param>
         public StateStorageBridge(string name, IGrainContext grainContext, IGrainStorage store)
         {
             ArgumentNullException.ThrowIfNull(name);
@@ -300,11 +300,11 @@ namespace Orleans.Core
             {
                 GrainRuntime.CheckRuntimeContext(RuntimeContext.Current);
 
-                // Try to get the parent activity context from the current activity or from the activation's stored activity
+                // 尝试从当前活动或激活存储的活动获取父活动背景
                 var parentContext = Activity.Current?.Context;
                 if (parentContext is null && _grainContext is ActivationData activationData)
                 {
-                    // If we're in activation context and there's an activation activity, use it as parent
+                    // 如果我们处于激活环境,有启动活动 使用它作为父母
                     parentContext = activationData.GetActivationActivityContext();
                 }
 
@@ -338,7 +338,7 @@ namespace Orleans.Core
             {
                 GrainRuntime.CheckRuntimeContext(RuntimeContext.Current);
 
-                // Try to get the parent activity context from the current activity or from the activation's stored activity
+                // 尝试从当前活动或激活存储的活动获取父活动背景
                 var parentContext = Activity.Current?.Context;
                 if (parentContext is null && _grainContext is ActivationData activationData)
                 {
@@ -374,7 +374,7 @@ namespace Orleans.Core
             {
                 GrainRuntime.CheckRuntimeContext(RuntimeContext.Current);
 
-                // Try to get the parent activity context from the current activity or from the activation's stored activity
+                // 尝试从当前活动或激活存储的活动获取父活动背景
                 var parentContext = Activity.Current?.Context;
                 if (parentContext is null && _grainContext is ActivationData activationData)
                 {
@@ -391,11 +391,11 @@ namespace Orleans.Core
 
                 var sw = ValueStopwatch.StartNew();
 
-                // Clear state in external storage
+                // 外部存储中的清状态
                 await _shared.Store.ClearStateAsync(_shared.Name, _grainContext.GrainId, GrainState, cancellationToken);
                 sw.Stop();
 
-                // Update counters
+                // 更新计时器
                 _storageInstruments.OnStorageDelete(sw.Elapsed, _shared.ProviderTypeName, _shared.Name, _shared.StateTypeName);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -465,7 +465,7 @@ namespace Orleans.Core
                     break;
             }
 
-            // If error is not specialization of OrleansException, wrap it
+            // 如果错误不是 OrleansException的自定义,请将其折叠
             if (exception is not OrleansException)
             {
                 var errMsg = $"Error from storage provider {_shared.ProviderTypeName}.{_shared.Name} during {operation} for grain {grainId}{errorString}{Environment.NewLine} {LogFormatter.PrintException(exception)}";

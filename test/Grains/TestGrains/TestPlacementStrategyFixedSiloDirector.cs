@@ -15,17 +15,17 @@ namespace UnitTests.GrainInterfaces
             switch (((TestCustomPlacementStrategy)strategy).Scenario)
             {
                 case CustomPlacementScenario.FixedSilo:
-                    return Task.FromResult(silos[silos.Length - 2]); // second from last silos.
+                    return Task.FromResult(silos[silos.Length - 2]); // 上一个 silos的第二秒。
 
                 case CustomPlacementScenario.ExcludeOne:
-                    return Task.FromResult(oddTick ? silos[0] : silos[silos.Length - 1]); // randomly return first or last silos
+                    return Task.FromResult(oddTick ? silos[0] : silos[silos.Length - 1]); // 随机返回第一个或最后一个 silos
 
                 case CustomPlacementScenario.RequestContextBased:
                     var index = (int)target.RequestContextData[TARGET_SILO_INDEX];
                     return Task.FromResult(silos[index]);
 
                 default:
-                    throw new InvalidOperationException(); // should never get here, only to make compiler happy
+                    throw new InvalidOperationException(); // 永远也不应该来这里,只为了让编译者开心
             }
         }
     }

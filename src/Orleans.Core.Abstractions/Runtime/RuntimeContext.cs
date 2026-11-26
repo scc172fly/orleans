@@ -4,26 +4,26 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Functionality for managing the current grain context.
+    /// 管理当前 grain 背景的职能。
     /// </summary>
     internal static class RuntimeContext
     {
         /// <summary>
-        /// The thread-local context.
+        /// 线形本地背景。
         /// </summary>
         [ThreadStatic]
         private static IGrainContext? _threadLocalContext;
 
         /// <summary>
-        /// Gets the current grain context.
+        /// 获取当前 grain 上下文。
         /// </summary>
         public static IGrainContext? Current => _threadLocalContext;
 
         /// <summary>
-        /// Sets the current grain context.
+        /// 设置当前 grain 上下文。
         /// </summary>
-        /// <param name="newContext">The new context.</param>
-        /// <param name="currentContext">The current context at the time of the call.</param>
+        /// <param name="newContext">新上下文。</param>
+        /// <param name="currentContext">呼叫时的当前上下文。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SetExecutionContext(IGrainContext newContext, out IGrainContext? currentContext)
         {
@@ -32,9 +32,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Resets the current grain context to the provided original context.
+        /// 将当前 grain 上下文重置到所提供的原始上下文。
         /// </summary>
-        /// <param name="originalContext">The original context.</param>
+        /// <param name="originalContext">原始背景。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void ResetExecutionContext(IGrainContext? originalContext)
         {

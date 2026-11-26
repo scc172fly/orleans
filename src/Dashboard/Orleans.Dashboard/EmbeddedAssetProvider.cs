@@ -28,7 +28,7 @@ internal sealed class EmbeddedAssetProvider
 
     public EmbeddedAssetProvider()
     {
-        // Build resource cache for all embedded resources
+        // 为所有嵌入资源构建资源缓存
         var resourceNamePrefix = $"{Assembly.GetName().Name}.wwwroot.";
         _resourceCache = Assembly
             .GetManifestResourceNames()
@@ -41,7 +41,7 @@ internal sealed class EmbeddedAssetProvider
 
     public IResult ServeAsset(string name, HttpContext context)
     {
-        // Embedded resources use dots instead of slashes for directory separators
+        // 嵌入资源使用点而不是用于目录分隔符的斜线
         var resourceKey = name.Replace('/', '.');
 
         if (!_resourceCache.TryGetValue(resourceKey, out var entry))
@@ -49,7 +49,7 @@ internal sealed class EmbeddedAssetProvider
             return Results.NotFound();
         }
 
-        // Check if client has cached version
+        // 检查客户端是否已缓存版本
         if (context.Request.Headers.IfNoneMatch == entry.ETag)
         {
             return Results.StatusCode(StatusCodes.Status304NotModified);
@@ -101,14 +101,14 @@ internal sealed class EmbeddedAssetProvider
         resourceStream.CopyTo(decompressedContent);
         var decompressedArray = decompressedContent.ToArray();
 
-        // Compress the content
+        // 压缩内容
         using var compressedContent = new MemoryStream();
         using (var gzip = new GZipStream(compressedContent, CompressionMode.Compress, leaveOpen: true))
         {
             gzip.Write(decompressedArray);
         }
 
-        // Only use compression if it actually reduces size
+        // 只有实际压缩大小时才使用压缩
         byte[]? compressedArray = compressedContent.Length < decompressedArray.Length
             ? compressedContent.ToArray()
             : null;
@@ -116,7 +116,7 @@ internal sealed class EmbeddedAssetProvider
         var hash = SHA256.HashData(compressedArray ?? decompressedArray);
         var eTag = $"\"{Convert.ToBase64String(hash)}\"";
 
-        // Extract just the file name with extension for content type detection
+        // 仅提取带有内容类型探测扩展名的文件名
         var fileName = fullResourceName.Split('.').TakeLast(2).FirstOrDefault() + "." + fullResourceName.Split('.').Last();
         var contentType = ContentTypeProvider.TryGetContentType(fileName, out var ct)
             ? ct

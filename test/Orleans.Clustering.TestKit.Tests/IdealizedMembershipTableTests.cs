@@ -9,7 +9,7 @@ public sealed class IdealizedMembershipTableTests
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
     private static readonly DateTime Start = new(2024, 5, 6, 7, 8, 0, DateTimeKind.Utc);
 
-    // Hand-authored provider expectations, not the conformance runner or its snapshot oracle.
+    // 手持供应商的期望,而不是顺从者或其快照。
     private static MembershipEntry Entry(int port = 13001) => new()
     {
         SiloAddress = SiloAddress.New(IPAddress.Loopback, port, 20),

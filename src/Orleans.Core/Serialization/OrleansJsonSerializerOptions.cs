@@ -5,44 +5,44 @@ using Newtonsoft.Json;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Configures Newtonsoft.Json serialization for Orleans framework types.
+    /// 配置 Newtonsoft.Json 框架类型中的序列化 Orleans 。
     /// </summary>
     public class OrleansJsonSerializerOptions
     {
         /// <summary>
-        /// Gets or sets the serializer settings.
+        /// 获取或设置序列器设置。
         /// </summary>
         /// <remarks>
-        /// The settings are initialized with Orleans defaults and augmented with the Orleans serialization binder
-        /// and converters during options post-configuration.
+        /// 设置在 Orleans 默认值下初始化,并用 Orleans 序列化夹增强
+        /// 配置后选项期间的转换器和转换器。
         /// </remarks>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether any resolvable type may be constructed during
-        /// deserialization, including types named in the serialized payload via
+        /// 获取或设定值,以显示在
+        /// 包括经
         /// <see cref="Newtonsoft.Json.TypeNameHandling"/>.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The default value is <see langword="false"/>. When <see langword="false"/>, only types permitted
-        /// by the Orleans type allow-list may be constructed during deserialization &#8212; for example,
-        /// types marked with <c>[GenerateSerializer]</c>, types added to
-        /// <see cref="Orleans.Serialization.Configuration.TypeManifestOptions.AllowedTypes"/>, or types
-        /// allowed by a registered <see cref="ITypeNameFilter"/> or <see cref="ITypeFilter"/>. This prevents
-        /// arbitrary, potentially dangerous types from being instantiated when deserializing untrusted
-        /// persisted or streamed state.
+        /// 默认值为 <see langword="false"/>。当 <see langword="false"/>时,仅允许类型
+        /// 以 Orleans 类型允许列表为基准,可在解序 &#8212; 期间构建,例如
+        /// 标有 <c>[GenerateSerializer]</c>中,添加到
+        /// <see cref="Orleans.Serialization.Configuration.TypeManifestOptions.AllowedTypes"/>或类型
+        /// 被注册的 <see cref="ITypeNameFilter"/> 或 <see cref="ITypeFilter"/>所允许。这防止了
+        /// 被无信任地摧毁的空气化时,不立即将具有潜在危险的类型即刻即予处理
+        /// 持续状态或流态。
         /// </para>
         /// <para>
-        /// Setting this to <see langword="true"/> restores the previous behavior of allowing any loadable
-        /// type to be constructed during deserialization. This is <b>insecure</b> and is not recommended;
-        /// prefer allow-listing individual types instead.
+        /// 设置此选项为 <see langword="true"/> 恢复了先前允许任何可装入的行为
+        /// 类型将在解序期间构建。 这是 <b>无保障</b> , 不推荐;
+        /// 更倾向于将个别类型列入允许清单。
         /// </para>
         /// </remarks>
         public bool AllowAllTypes { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansJsonSerializerOptions"/> class using the default settings.
+        /// 使用默认设置初始化 <see cref="OrleansJsonSerializerOptions"/> 类的新实例。
         /// </summary>
         public OrleansJsonSerializerOptions()
         {
@@ -51,16 +51,16 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Configures <see cref="OrleansJsonSerializerOptions"/> with the Orleans serialization binder and converters.
+    /// 配置 <see cref="OrleansJsonSerializerOptions"/> ,配有 Orleans 序列绑定和转换器。
     /// </summary>
     public class ConfigureOrleansJsonSerializerOptions : IPostConfigureOptions<OrleansJsonSerializerOptions>
     {
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConfigureOrleansJsonSerializerOptions"/> class.
+        /// 初始化 <see cref="ConfigureOrleansJsonSerializerOptions"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">The service provider used to resolve serializer dependencies.</param>
+        /// <param name="serviceProvider">用于解决序列器依赖关系的服务供应商。</param>
         public ConfigureOrleansJsonSerializerOptions(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

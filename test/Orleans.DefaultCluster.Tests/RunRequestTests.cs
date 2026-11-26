@@ -9,8 +9,8 @@ using Xunit;
 namespace DefaultCluster.Tests.General;
 
 /// <summary>
-/// Tests for <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>,
-/// which runs a delegate as a request on the grain's activation.
+/// 试验 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>,
+/// 代表请求启动时,该代表将按 grain激活请求运行。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Scheduler")]
 [TestSuite("BVT")]
@@ -258,7 +258,7 @@ public class RunRequestTests : HostedTestClusterEnsureDefaultStarted
         var grain = GrainFactory.GetGrain<INonReentrantRunRequestGrain>(key);
         await grain.DeactivateAndRetainInstance();
 
-        // Requests queued while the activation is still deactivating run; once it is invalid, they are rejected.
+        // 启动时排队的请求仍在取消活动运行; 无效后, 被拒绝 。
         await WaitForRejectionAsync(key);
     }
 
@@ -270,7 +270,7 @@ public class RunRequestTests : HostedTestClusterEnsureDefaultStarted
         await grain.DeactivateAndRetainInstance();
         await WaitForRejectionAsync(key);
 
-        // The first request's rejection queues the second request while the activation drains its queue.
+        // 第一次请求拒绝的队列排入第二次请求,而启动后排出其队列。
         var (firstCompletions, secondResponse) = await RunRequestGrainBase.QueueChainedRequestsOnRetainedInstance(key).WaitAsync(Timeout, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, firstCompletions);
@@ -306,8 +306,8 @@ public class RunRequestTests : HostedTestClusterEnsureDefaultStarted
 }
 
 /// <summary>
-/// Tests how requests queued by <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>
-/// interact with <see cref="SiloMessagingOptions.MaxEnqueuedRequestsHardLimit"/>.
+/// 测试排队 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>的请求如何
+/// 与 <see cref="SiloMessagingOptions.MaxEnqueuedRequestsHardLimit"/>互动。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Scheduler")]
 [TestSuite("BVT")]

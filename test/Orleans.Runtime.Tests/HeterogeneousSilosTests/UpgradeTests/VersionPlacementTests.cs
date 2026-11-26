@@ -6,7 +6,7 @@ using Xunit;
 namespace Tester.HeterogeneousSilosTests.UpgradeTests
 {
     /// <summary>
-    /// Tests grain placement behavior during version upgrades when using AllCompatibleVersions selector and AllVersionsCompatible compatibility strategy.
+    /// 测试 grain 使用版本升级时的放置行为 AllCompatibleVersions 选择和 AllVersionsCompatible 兼容性战略。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]

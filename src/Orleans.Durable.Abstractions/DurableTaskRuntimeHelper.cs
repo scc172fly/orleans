@@ -2,10 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>Provides the host entry point for running durable definitions.</summary>
+/// <summary>提供运行耐久定义的东道主切入点。</summary>
 public static class DurableTaskRuntimeHelper
 {
-    /// <summary>Runs <paramref name="task"/> in <paramref name="context"/> and converts terminal exceptions to responses.</summary>
+    /// <summary>运行运行 <paramref name="task"/> 内 <paramref name="context"/> 将终端例外转换为响应。</summary>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Durable task failures are represented as terminal responses.")]
     public static async ValueTask<DurableTaskResponse> RunAsync(DurableTask task, DurableTaskContext context)
     {

@@ -9,12 +9,12 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for the Orleans Observer pattern implementation.
-    /// Observers enable grains to send notifications to clients or other grains
-    /// through callback interfaces. This is Orleans' mechanism for push-based
-    /// communication, allowing grains to notify interested parties of state changes
-    /// or events without polling. Observers are weakly referenced to prevent
-    /// memory leaks and support automatic cleanup.
+    /// 测试 Orleans 执行观察员模式。
+    /// 观察员使 grains 能够向客户或其他 grains发送通知
+    /// 后回调界面。 这是用于按键的 Orleans机制
+    /// 允许 grains 将国家变化通知有关各方
+    /// 观察员被指为防止
+    /// 内存泄漏,支持自动清理。
     /// </summary>
     [TestArea("Runtime")]
     public class ObserverTests : HostedTestClusterEnsureDefaultStarted
@@ -23,8 +23,8 @@ namespace DefaultCluster.Tests.General
         private int callbackCounter;
         private readonly bool[] callbacksReceived = new bool[2];
 
-        // we keep the observer objects as instance variables to prevent them from
-        // being garbage collected prematurely (the runtime stores them as weak references).
+        // 我们保留观察员对象作为实例变量,以防止它们
+        // 垃圾过早收集(运行时将它们作为薄弱的参考文献储存)。
         private SimpleGrainObserver? observer1;
         private SimpleGrainObserver? observer2;
 
@@ -48,10 +48,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests basic observer notification functionality.
-        /// Verifies that a grain can notify registered observers of state changes,
-        /// that multiple notifications are delivered correctly, and that the
-        /// observer callback context is properly maintained.
+        /// 测试观察员的基本通知功能。
+        /// 证明a grain 可就国家变化向已登记观察员发出通知,
+        /// 多次通知的递送正确无误,而且
+        /// 正确维护了对观察员回调的背景。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -74,9 +74,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests observer notifications using generated factory methods.
-        /// Similar to SimpleNotification test but uses the generated factory pattern
-        /// to create observer references, verifying both approaches work identically.
+        /// 使用产生的工厂方法测试观察员通知。
+        /// 与 SimpleNotification 测试类似,但使用产生的工厂型态
+        /// 建立观察员参考,核查两种方法都同样有效。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -112,7 +112,7 @@ namespace DefaultCluster.Tests.General
 
             if (callbackCounter == 1)
             {
-                // Allow for callbacks occurring in any order
+                // 允许按任何顺序进行回调
                 Assert.True(callbacksReceived[0] || callbacksReceived[1]);
             }
             else if (callbackCounter == 2)
@@ -127,9 +127,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests that subscribing the same observer reference twice is prevented.
-        /// Verifies that Orleans detects and rejects duplicate subscriptions
-        /// to prevent duplicate notifications and maintain subscription integrity.
+        /// 防止两次签署同一观察员的参考书的测试。
+        /// 证明: Orleans 检测和拒绝重复订阅
+        /// 防止重复通知,并保持订阅的完整性。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -143,7 +143,7 @@ namespace DefaultCluster.Tests.General
             this.observer1 = new SimpleGrainObserver(this.ObserverTest_DoubleSubscriptionSameReference_Callback, result, this.Logger);
             ISimpleGrainObserver reference = this.GrainFactory.CreateObjectReference<ISimpleGrainObserver>(observer1);
             await grain.Subscribe(reference);
-            await grain.SetA(1); // Use grain
+            await grain.SetA(1); // 使用 grain
             try
             {
                 await grain.Subscribe(reference);
@@ -163,7 +163,7 @@ namespace DefaultCluster.Tests.General
                 }
             }
 
-            await grain.SetA(2); // Use grain
+            await grain.SetA(2); // 使用 grain
 
             Assert.False(await result.WaitForFinished(timeout), $"Should timeout waiting {timeout} for SetA(2)");
 
@@ -182,10 +182,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests the subscribe/unsubscribe lifecycle for observers.
-        /// Verifies that observers receive notifications after subscribing,
-        /// stop receiving them after unsubscribing, and that the unsubscribe
-        /// operation properly cleans up the subscription.
+        /// 测试观察员的订阅/不订阅生命周期。
+        /// 证明观察员在签署后收到通知,
+        /// 取消订阅后停止接收,
+        /// 操作中适当清理订阅。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -224,9 +224,9 @@ namespace DefaultCluster.Tests.General
 
 
         /// <summary>
-        /// Tests unsubscribing an observer that was never subscribed.
-        /// Verifies that attempting to unsubscribe a non-existent subscription
-        /// is handled gracefully without causing system errors.
+        /// 测试取消了订阅观察员的签名,但从未被签署过。
+        /// 证明试图取消不订阅的
+        /// 处理优雅,不会造成系统错误。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -256,9 +256,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests multiple different observers subscribing to the same grain.
-        /// Verifies that a grain can maintain multiple observer subscriptions
-        /// and correctly notify all registered observers of state changes.
+        /// 测试多个不同的观察员是否同时加入同一 grain。
+        /// 证明 grain 能够维持多个观察员订阅
+        /// 并正确通知所有已登记观察员国家变更。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -297,10 +297,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests that deleting an observer reference stops notifications.
-        /// Verifies that when an observer reference is deleted using
-        /// DeleteObjectReference, the grain can no longer send notifications
-        /// to that observer, demonstrating automatic cleanup behavior.
+        /// 测试删除观察员引用时停止通知。
+        /// 证明,在使用
+        /// DeleteObjectReference, 和 grain 无法再发送通知
+        /// 展示了自动清理行为
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -335,10 +335,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Verifies that only grain references can be used as observers.
-        /// Tests that attempting to subscribe a regular object (not created via
-        /// CreateObjectReference) throws an appropriate exception, enforcing
-        /// the requirement that observers must be grain references.
+        /// 证明只有 grain 参考文献可以作为观察员使用。
+        /// 试图订阅正正对象的测试(不是通过
+        /// CreateObjectReference提出适当的例外,强制执行
+        /// 要求观察员必须作为 grain 参考。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -353,17 +353,17 @@ namespace DefaultCluster.Tests.General
                 ISimpleObserverableGrain grain = this.GetGrain();
                 this.observer1 = new SimpleGrainObserver(this.ObserverTest_SimpleNotification_Callback, result, this.Logger);
                 ISimpleGrainObserver reference = this.observer1;
-                // Should be: this.GrainFactory.CreateObjectReference<ISimpleGrainObserver>(obj);
+                // 应该是: this.GrainFactory.CreateObjectReference<ISimpleGrainObserver>(obj);
                 await grain.Subscribe(reference);
-                // Not reached
+                // 未达到
             });
         }
 
         /// <summary>
-        /// Tests that CreateObjectReference validates its arguments correctly.
-        /// Verifies that attempting to create object references from invalid types
-        /// (like Grain classes or existing grain references) throws appropriate
-        /// exceptions, ensuring type safety in the observer pattern.
+        /// 测试 CreateObjectReference 是否正确验证其参数。
+        /// 证明试图从无效类型创建对象引用
+        /// (类似 Grain 类或现有的 grain 引用) 投出合适的
+        /// 例外,确保观察员模式的类型安全。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -372,10 +372,10 @@ namespace DefaultCluster.Tests.General
         {
             TestInitialize();
 
-            // Attempt to create an object reference to a Grain class.
+            // 试图创建 Grain 类的对象引用。
             Assert.Throws<ArgumentException>(() => this.Client.CreateObjectReference<ISimpleGrainObserver>(new DummyObserverGrain()));
 
-            // Attempt to create an object reference to an existing GrainReference.
+            // 试图创建引用现有 GrainReference的对象。
             var observer = new DummyObserver();
             var reference = this.Client.CreateObjectReference<ISimpleGrainObserver>(observer);
             Assert.Throws<ArgumentException>(() => this.Client.CreateObjectReference<ISimpleGrainObserver>(reference));

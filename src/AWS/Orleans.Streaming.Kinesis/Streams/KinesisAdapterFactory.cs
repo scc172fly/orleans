@@ -19,7 +19,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.Kinesis
 {
     /// <summary>
-    /// Queue adapter factory which allows the PersistentStreamProvider to use AWS Kinesis Data Streams as its backend persistent event queue.
+    /// 队列适配器工厂,允许 PersistentStreamProvider 使用 AWS Kinesis 数据流作为其后端持久性事件队列。
     /// </summary>
     internal class KinesisAdapterFactory : IQueueAdapterFactory, IQueueAdapter, IDisposable
     {

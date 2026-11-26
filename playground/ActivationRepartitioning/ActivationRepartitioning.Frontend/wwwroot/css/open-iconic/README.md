@@ -1,39 +1,53 @@
-[Open Iconic v1.1.1](https://github.com/iconic/open-iconic)
+[开阔图标 v1.1.1](https://github.com/iconic/open-iconic)
 ===========
 
-### Open Iconic is the open source sibling of [Iconic](https://github.com/iconic/open-iconic). It is a hyper-legible collection of 223 icons with a tiny footprint&mdash;ready to use with Bootstrap and Foundation. [View the collection](https://github.com/iconic/open-iconic)
+<a id="open-iconic-is-the-open-source-sibling-of-iconichttpsgithubcomiconicopen-iconic-it-is-a-hyper-legible-collection-of-223-icons-with-a-tiny-footprintmdashready-to-use-with-bootstrap-and-foundation-view-the-collectionhttpsgithubcomiconicopen-iconic"></a>
+
+### 开放图标是 [图标](https://github.com/iconic/open-iconic)的开源比方。它是一个由223个图标组成的超可读集,有小足迹&mdash;,可以随布茨陷阱和基础使用。 [查看收藏](https://github.com/iconic/open-iconic)
 
 
 
-## What's in Open Iconic?
+<a id="whats-in-open-iconic"></a>
 
-* 223 icons designed to be legible down to 8 pixels
-* Super-light SVG files - 61.8 for the entire set
-* SVG sprite&mdash;the modern replacement for icon fonts
-* Webfont (EOT, OTF, SVG, TTF, WOFF), PNG and WebP formats
-* Webfont stylesheets (including versions for Bootstrap and Foundation) in CSS, LESS, SCSS and Stylus formats
-* PNG and WebP raster images in 8px, 16px, 24px, 32px, 48px and 64px.
+## 开阔图象里是什么?
+
+* 设计为可读到 8 像素的223 个图标
+* 超光 SVG 文件 - 整个集61.8
+* SVG 文示&mdash;图标字体的现代替换
+* 网络组合(EOT、OTF、SVG、TTF、WOFF)、巴布亚新几内亚和 WebP 格式
+* 以 CSS、 LESS、 SSCSS 和 Stylus 格式提供的网络组合样式表(包括布设和基础的版本)
+* PNG和 WebP 光栅图像,以8px、16px、24px、32px、48px和64px。
 
 
-## Getting Started
+<a id="getting-started"></a>
 
-#### For code samples and everything else you need to get started with Open Iconic, check out our [Icons](https://github.com/iconic/open-iconic) and [Reference](https://github.com/iconic/open-iconic) sections.
+## 入门
 
-### General Usage
+<a id="for-code-samples-and-everything-else-you-need-to-get-started-with-open-iconic-check-out-our-iconshttpsgithubcomiconicopen-iconic-and-referencehttpsgithubcomiconicopen-iconic-sections"></a>
 
-#### Using Open Iconic's SVGs
+#### 对于代码样本和所有其它您需要的 以 Open 图标开始, 请检查我们的 [图标图标](https://github.com/iconic/open-iconic) 和 [参考参考资料](https://github.com/iconic/open-iconic) 部分。
 
-We like SVGs and we think they're the way to display icons on the web. Since Open Iconic are just basic SVGs, we suggest you display them like you would any other image (don't forget the `alt` attribute).
+<a id="general-usage"></a>
+
+### 一般使用
+
+<a id="using-open-iconics-svgs"></a>
+
+#### 使用打开图标的 SVG
+
+我们喜欢SVG, 我们认为它们就是在网上显示图标的方式。 因为开放的图标只是基本的 SVG, 我们建议您展示它们就像任何其它图像一样( 不要忘记 `alt` 属性 )。
 
 ```
 <img src="/open-iconic/svg/icon-name.svg" alt="icon name">
 ```
 
-#### Using Open Iconic's SVG Sprite
+<a id="using-open-iconics-svg-sprite"></a>
 
-Open Iconic also comes in a SVG sprite which allows you to display all the icons in the set with a single request. It's like an icon font, without being a hack.
+#### 使用打开图标的 SVG 斯布丽特
 
-Adding an icon from an SVG sprite is a little different than what you're used to, but it's still a piece of cake. *Tip: To make your icons easily style able, we suggest adding a general class to the* `<svg>` *tag and a unique class name for each different icon in the* `<use>` *tag.*
+打开图标还以 SVG 图示形式出现, 它允许您使用单一请求来显示集中的所有图标。 它就像一个图标字体, 而不是黑客 。
+
+从 SVG 图示中添加图标与您习惯的图标略有不同, 但还是一块蛋糕。 *Tip: 要让您的图标能够容易地样式, 我们建议在* `<svg>` *标签上添加一个普通类, 并为* `<use>` *标记中的每个不同的图标添加一个独有的类别名称。*
 
 ```
 <svg class="icon">
@@ -41,7 +55,7 @@ Adding an icon from an SVG sprite is a little different than what you're used to
 </svg>
 ```
 
-Sizing icons only needs basic CSS. All the icons are in a square format, so just set the `<svg>` tag with equal width and height dimensions.
+大小图标只需要基本的 CSS。 所有图标都以平方格式, 所以只要设置 `<svg>` 标记, 其宽度和高度尺寸相等 。
 
 ```
 .icon {
@@ -50,7 +64,7 @@ Sizing icons only needs basic CSS. All the icons are in a square format, so just
 }
 ```
 
-Coloring icons is even easier. All you need to do is set the `fill` rule on the `<use>` tag.
+颜色图标更加简单。您只需要设置 `fill` 规则的程序问题的裁定 `<use>` 标签。
 
 ```
 .icon-account-login {
@@ -58,14 +72,18 @@ Coloring icons is even easier. All you need to do is set the `fill` rule on the 
 }
 ```
 
-To learn more about SVG Sprites, read [Chris Coyier's guide](http://css-tricks.com/svg-sprites-use-better-icon-fonts/).
+要了解更多有关 SVG 斯普赖特的更多信息,请读 [克里斯·科伊耶的指南](http://css-tricks.com/svg-sprites-use-better-icon-fonts/)。
 
-#### Using Open Iconic's Icon Font...
+<a id="using-open-iconics-icon-font"></a>
+
+#### 使用 Open 图标的图标字体...
 
 
-##### …with Bootstrap
+<a id="with-bootstrap"></a>
 
-You can find our Bootstrap stylesheets in `font/css/open-iconic-bootstrap.{css, less, scss, styl}`
+##### ...带靴子的
+
+您可以在 `font/css/open-iconic-bootstrap.{css, less, scss, styl}`中找到我们的“启动陷阱”样式表
 
 
 ```
@@ -77,9 +95,11 @@ You can find our Bootstrap stylesheets in `font/css/open-iconic-bootstrap.{css, 
 <span class="oi oi-icon-name" title="icon name" aria-hidden="true"></span>
 ```
 
-##### …with Foundation
+<a id="with-foundation"></a>
 
-You can find our Foundation stylesheets in `font/css/open-iconic-foundation.{css, less, scss, styl}`
+##### 基金会
+
+您可以在 `font/css/open-iconic-foundation.{css, less, scss, styl}`中找到我们的基金会样式表
 
 ```
 <link href="/open-iconic/font/css/open-iconic-foundation.css" rel="stylesheet">
@@ -90,9 +110,11 @@ You can find our Foundation stylesheets in `font/css/open-iconic-foundation.{css
 <span class="fi-icon-name" title="icon name" aria-hidden="true"></span>
 ```
 
-##### …on its own
+<a id="on-its-own"></a>
 
-You can find our default stylesheets in `font/css/open-iconic.{css, less, scss, styl}`
+##### ...独自
+
+您可以在 `font/css/open-iconic.{css, less, scss, styl}`找到我们的默认样式表
 
 ```
 <link href="/open-iconic/font/css/open-iconic.css" rel="stylesheet">
@@ -103,12 +125,18 @@ You can find our default stylesheets in `font/css/open-iconic.{css, less, scss, 
 ```
 
 
-## License
+<a id="license"></a>
 
-### Icons
+## 许可证
 
-All code (including SVG markup) is under the [MIT License](http://opensource.org/licenses/MIT).
+<a id="icons"></a>
 
-### Fonts
+### 图标图标
 
-All fonts are under the [SIL Licensed](http://scripts.sil.org/cms/scripts/page.php?item_id=OFL_web).
+所有代码(包括 SVG 标记)都在 [麻省理工学院许可证](http://opensource.org/licenses/MIT)之下。
+
+<a id="fonts"></a>
+
+### 字体
+
+所有字体都在 [许可证](http://scripts.sil.org/cms/scripts/page.php?item_id=OFL_web)之下。

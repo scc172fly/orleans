@@ -3,55 +3,55 @@ using System;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for configuring scheduler behavior.
+    /// 配置调度器行为选项
     /// </summary>
     public class SchedulingOptions
     {
         /// <summary>
-        /// Gets or sets the work item queuing delay threshold, at which a warning log message is written.
-        /// That is, if the delay between enqueuing the work item and executing the work item is greater than DelayWarningThreshold, a warning log is written.
+        /// 获取或设置工作项排队延迟阈值, 在此值上写出警告日志消息 。
+        /// 也就是说,如果工作项目的排队和执行工作项目之间的延迟大于 DelayWarningThreshold,则会写出警告日志。
         /// </summary>
         public TimeSpan DelayWarningThreshold { get; set; } = DEFAULT_DELAY_WARNING_THRESHOLD;
 
         /// <summary>
-        /// The default value for <see cref="DelayWarningThreshold"/>.
+        /// <see cref="DelayWarningThreshold"/>的默认值。
         /// </summary>
-        public static readonly TimeSpan DEFAULT_DELAY_WARNING_THRESHOLD = TimeSpan.FromMilliseconds(10000); // 10 seconds
+        public static readonly TimeSpan DEFAULT_DELAY_WARNING_THRESHOLD = TimeSpan.FromMilliseconds(10000); // 10秒
 
         /// <summary>
-        /// Gets or sets the soft time limit on the duration of activation macro-turn (a number of micro-turns). 
-        /// If an activation was running its micro-turns longer than this, we will give up the thread.
-        /// If this is set to zero or a negative number, then the full work queue is drained (MaxWorkItemsPerTurn allowing).
+        /// 获取或设定启动宏观倾斜(若干微转)的时间期限的软性时间限制。 
+        /// 如果一个启动运行的微转速比这长 我们就会放弃线条
+        /// 如果设定此数为零或负数,则整个工作队列排干( ) (% 1)MaxWorkItemsPerTurn 允许)
         /// </summary>
         public TimeSpan ActivationSchedulingQuantum { get; set; } = DEFAULT_ACTIVATION_SCHEDULING_QUANTUM;
 
         /// <summary>
-        /// The default value for <see cref="ActivationSchedulingQuantum"/>.
+        /// <see cref="ActivationSchedulingQuantum"/>的默认值。
         /// </summary>
         public static readonly TimeSpan DEFAULT_ACTIVATION_SCHEDULING_QUANTUM = TimeSpan.FromMilliseconds(100);
 
         /// <summary>
-        /// Gets or sets the soft time limit to generate trace warning when the micro-turn executes longer then this period in CPU. 
+        /// 当微转在CPU中执行更长的时间时, 获取或设定软时间限制以生成跟踪警告 。 
         /// </summary>
         public TimeSpan TurnWarningLengthThreshold { get; set; } = DEFAULT_TURN_WARNING_THRESHOLD;
 
         /// <summary>
-        /// The default value for <see cref="TurnWarningLengthThreshold"/>.
+        /// <see cref="TurnWarningLengthThreshold"/>的默认值。
         /// </summary>
         public static readonly TimeSpan DEFAULT_TURN_WARNING_THRESHOLD = TimeSpan.FromMilliseconds(1_000);
 
         /// <summary>
-        /// Gets or sets the per work group limit of how many items can be queued up before warnings are generated.
+        /// 获取或设定每个工作组在生成警告前可以排队的项目数量限制。
         /// </summary>
         public int MaxPendingWorkItemsSoftLimit { get; set; } = DEFAULT_MAX_PENDING_ITEMS_SOFT_LIMIT;
 
         /// <summary>
-        /// The default value for <see cref="MaxPendingWorkItemsSoftLimit"/>.
+        /// <see cref="MaxPendingWorkItemsSoftLimit"/>的默认值。
         /// </summary>
         public const int DEFAULT_MAX_PENDING_ITEMS_SOFT_LIMIT = 0;
 
         /// <summary>
-        /// Gets or sets the period of time after which to log errors for tasks scheduled to stopped activations.
+        /// 获取或设定用于记录计划停止激活的任务错误的时间间隔 。
         /// </summary>
         public TimeSpan StoppedActivationWarningInterval { get; set; } = TimeSpan.FromMinutes(1);
     }

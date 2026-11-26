@@ -1,110 +1,120 @@
 ---
-title: Durable tasks
-description: Understand the durable task programming model, its replay and commit guarantees, cancellation, signals, and task lifecycle.
+title: "持久任务"
+description: "了解持久任务方案编制模式,重新播放并承诺提供保障、取消、信号和任务生命周期。"
 ms.date: 10/14/2026
 ms.topic: conceptual
 ---
 
-# Durable tasks
+<a id="durable-tasks"></a>
 
-Orleans Durable Tasks runs grain methods which return
+# 持久任务
+
+Orleans 耐久任务运行返回的 grain 方法
 <xref:Orleans.Durable.Tasks.DurableTask> or <xref:Orleans.Durable.Tasks.DurableTask`1>
-as durable executions. A workflow is ordinary sequential C#: it awaits calls to other
-grains, local state transitions, delays, and external signals. Each step's result is
-recorded in the grain's journal, so the workflow survives activation loss and resumes
-where it stopped. Durable tasks run over [Messaging](messaging.md), which carries
-invocations, results, cancellations, and signals between grains through each grain's
-durable inbox and outbox, and over Durable Jobs, which wakes grains when delays are due
-and resumes executions after their grain deactivates.
+工作流程是通常的顺序C##:它等待着其他
+grains,当地各州的过渡、拖延和外部信号。
+记录在 grain日记的日记中,因此工作流程能度过激活损失并恢复
+长期任务在 [通信通信](messaging.md)上空执行,随
+使用、结果、取消和信号之间的 grains 通过 grain's
+耐久的箱和发箱,以及超越持久工作,这唤醒了 grains 延误应交
+和在这些国家被 grain 停止使用
 
 > [!IMPORTANT]
-> `Microsoft.Orleans.Durable` and `Microsoft.Orleans.Durable.Abstractions` are
-> pre-release alpha packages which target .NET 11 (`net11.0`) and await their first NuGet
-> publication. Evaluate them with an
-> explicit upgrade, rollback, backup, and recovery plan because their APIs and persisted
-> formats can change before stabilization. Projects in the Orleans repository reference
-> them as source projects.
+> `Microsoft.Orleans.Durable` 和 `Microsoft.Orleans.Durable.Abstractions` 是
+> 目标 .NET 11(`net11.0`)并等待其第一个 NuGet的甲型A型货包
+> 以出版物出版、发表和
+> 明确的升级、回滚、备份和回收计划,因为其APP和持续
+> 稳定前可以修改格式格式。 Orleans 仓库参考文件中的项目
+> 它们是源项目。
 
-This page describes the programming model and its guarantees. Continue with:
+本页介绍方案拟定模式及其保障。
 
-- [Task identity and references](durable-tasks-identity.md) for how task IDs are
-  constructed, which changes keep them stable, and how to address a task from elsewhere.
-- [Structured concurrency](durable-tasks-structured-concurrency.md) for task trees,
-  ownership, lifetimes, and how cancellation flows through them.
-- [Idempotency](durable-tasks-idempotency.md) for the effects which commit exactly once
-  and the external effects which need idempotency keys.
-- [Replay-safety rules](durable-tasks-replay-rules.md) for the rules which the durable
-  task analyzers enforce.
-- [Versioning](durable-tasks-versioning.md) for changing workflow code while executions
-  are pending, and retiring old versions.
-- [Integrate with other systems](durable-tasks-integrations.md) for payment providers,
-  databases, HTTP services, webhooks, and where to retry.
-- [Practical recipes](durable-tasks-recipes.md) for fan-out, races, compensation,
-  signals, detached work, cancellation, and scheduling workflows from other grains.
-- [Operations and troubleshooting](durable-tasks-operations.md) for configuration,
-  retention, diagnostics, replay divergence, workflow versioning, and capacity.
+- [任务身份和参考](durable-tasks-identity.md) 任务编号是如何的
+  构建, 并改变它们稳定, 以及如何从别处处理任务 。
+- [结构通货币](durable-tasks-structured-concurrency.md) 以便他们依定律而得享受许多树木的果实,
+  注销如何通过这些方式流动。
+- 精确作用一次的效果[能力](durable-tasks-idempotency.md)
+  以及需要应急钥匙的外部影响。
+- [重演安全规则](durable-tasks-replay-rules.md) 临的可
+  任务分析器强制执行。
+- [版本](durable-tasks-versioning.md) 用于在处决期间修改工作流程代码
+  尚未解决,即将过期的旧版本。
+- 给付款提供人[与其他系统结合](durable-tasks-integrations.md) ,
+  数据库、 HTTP 服务、 Webhooks 和重试地点 。
+- [实用实用食谱](durable-tasks-recipes.md) 以享受恩惠、赛跑和报酬,
+  其它 grains.
+- 配置[操作和排除故障](durable-tasks-operations.md)
+  保留、诊断、重现差异、工作流程的版本和能力。
 
-## Choose durable tasks or message handlers
+<a id="choose-durable-tasks-or-message-handlers"></a>
 
-Both models commit business state, received messages, and outgoing messages in the
-grain's journal, and they share one inbox and outbox per grain.
+## 选择持久任务或信件处理器
 
-| Use durable tasks for | Use [message handlers](messaging.md) for |
+这两种模式都承诺企业状态、收到的信息和在
+grain和每份的邮箱和发件箱 grain.
+
+| 使用耐久任务 | 使用 [信件处理器](messaging.md) |
 | --- | --- |
-| Multi-step workflows written as sequential code, with results flowing between steps. | Reacting to individual commands and events, one handler call per message. |
-| Fan-out, races, and completion-order processing over durable calls. | Application-defined message identities, subjects, headers, and raw payloads. |
-| Durable timers, deadlines, and waits for external events inside a workflow. | Scheduled messages and state machines which the application models explicitly. |
-| Cooperative cancellation with inline compensation and recorded reasons. | Business replies and rejections exchanged as typed messages. |
+| 以相继代码书写,在步骤之间产生结果的多步工作流程。 | 响应单个命令和事件, 每条信息有一个处理器呼叫 |
+| 阵阵、赛跑和完成 处理耐用电话的订单 | 应用定义的信息身份、主体、信头和原始有效载荷。 |
+| 长期的时针、最后期限和等待工作流程中的外部事件。 | 应用模型明确显示的排定信息及国家机器。 |
+| 合作取消,内线补偿和记录理由。 | 业务答复和拒绝作为打字信息交换。 |
 
-## Define durable task methods
+<a id="define-durable-task-methods"></a>
 
-A grain interface declares a durable method by returning `DurableTask` or
-`DurableTask<TResult>`. Arguments and results cross grains and persist in task state,
-so their types need Orleans serializers:
+## 界定持久任务方法
+
+一个 grain 接口通过返回 `DurableTask` 或
+`DurableTask<TResult>`对比参数和结果 grains 且坚持工作,
+需要,以及 Orleans 序列器 :
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_contracts" language="csharp":::
 
-The implementing grain derives from <xref:Orleans.Durable.Journaling.DurableGrain>. The grain's
-durable state change
-and the task's result commit in one journal write, and the caller receives the result
-once that write completes:
+执行 grain 来源 <xref:Orleans.Durable.Journaling.DurableGrain>. The grain's
+国家变化的持久状态
+任务结果在一日记中进行, 呼叫者收到结果
+写完后:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_catalog_grain" language="csharp":::
 
-An `async DurableTask` method body is a deferred definition: calling the method creates
-the definition, and the durable task runtime runs it under the task's identity. A body
-which completes without awaiting is a normal step.
+`async DurableTask` 方法体是一个推迟定义:调用该方法创建
+定义,而持久任务运行时间在任务身份下运行。
+完成而不等待是正常的一步。
 
-Inside a durable task, awaiting a durable call runs it as a child task of the running
-execution. From a client or an ordinary grain method, awaiting it or
-<xref:Orleans.Durable.Tasks.DurableTaskExtensions.ScheduleAsync*> starts it as a root task.
-[Starting and observing tasks](#starting-and-observing-tasks) describes every way to start
-a task.
+在一个长期的任务中,等待一个持久的呼唤,作为儿童的一项任务,它作为儿童的跑步任务而运作。
+使用客户端或普通 grain 方法执行,等待它或
+<xref:Orleans.Durable.Tasks.DurableTaskExtensions.ScheduleAsync*> 开始作为根任务。
+[开始和观察任务](#starting-and-observing-tasks) 描述每个启动方式
+一项任务。
 
-## Example: an order workflow
+<a id="example-an-order-workflow"></a>
 
-The following grain runs an order as one durable task. It records each status change
-as a recorded effect, waits out a grace period, reserves every line concurrently, authorizes
-payment, and waits for a shipment signal. Ordinary grain methods cancel the workflow
-with a reason, abort it, and deliver the shipment. When the workflow is canceled, a line
-is out of stock, or payment is declined, it releases the reserved stock inline:
+## 示例:订单工作流程
+
+以下 grain 将命令作为一项持久任务运行。它记录了每个状态变化
+记录效果,等待一个宽限期,同时保留每一行,授权
+普通 grain 方法取消工作流程
+有理由、中止、发送和发运货物。当工作流程被取消时,一条线
+或付款减少, 释放保留库存内线:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_order_grain" language="csharp":::
 
-A basket grain starts the workflow under the root ID `place-order-{orderId}`. After
-a deactivation, the next activation replays `PlaceOrderAsync` from the start: `submit`,
-`grace-period`, `validate`, and the `reserve` inputs return their recorded results, and
-the workflow continues with the first operation which hasn't completed. The
-`playground/DurableOrderProcessing` project in the Orleans repository runs a complete
-version of this workflow with a browser UI which places orders through durable HTTP
-operations, detached projection updates, and diagnostics endpoints.
+篮子 grain 在根 ID `place-order-{orderId}`下启动工作流程。
+a 停止作用,下一次激活从开始重播 `PlaceOrderAsync` : `submit`,
+`grace-period`、 `validate`和 `reserve` 投入返回其记录的结果,
+工作流程继续第一个还没有完成的操作。
+`playground/DurableOrderProcessing` 项目中的项目 Orleans 存储库运行一个完整的
+使用浏览器界面版本的此工作流程版本, 用户界面通过耐用 HTTP 设置订单
+运行,独立预测更新和诊断端点。
 
-## Task identity
+<a id="task-identity"></a>
 
-A durable task is identified by its grain and its <xref:Orleans.Durable.Tasks.TaskId>.
-Task IDs are hierarchical: a root ID, which the starting caller chooses, followed by
-one segment per level of nesting. [Task identity and references](durable-tasks-identity.md)
-lists every kind of ID and its stability. The order workflow above produces this tree:
+## 任务身份
+
+其 grain 和 <xref:Orleans.Durable.Tasks.TaskId>确定了一项持久的任务。
+任务代号为等级级:根代号,由初始来电者选择,然后是
+每个嵌套水平的一等量。 [任务身份和参考](durable-tasks-identity.md)
+列出各种身份及其稳定性。上面的顺序工作流程生成了这棵树:
 
 ```text
 place-order-{orderId}
@@ -119,623 +129,649 @@ place-order-{orderId}/$signal:shipped
 place-order-{orderId}/ship
 ```
 
-- <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WithId*> names a child with a stable
-  segment. A name which one run repeats, for example in a loop, identifies its later
-  occurrences by their order: `line`, `line$2`, `line$3`. A child awaited without a name
-  receives a generated segment, which begins with `$` and follows the order in which the
-  execution creates unnamed children. Names don't contain `$`.
-- A named combinator gives its inputs IDs beneath its own:
-  `DurableTask.WhenAll(...).WithId("reserve")` identifies its inputs as `reserve/0`,
-  `reserve/1`, and so on, in input order.
-- A call to another grain runs on that grain under the caller's scope,
-  `$caller/{callerGrainId}/{incarnation}/{taskId}`, where `{incarnation}` identifies the caller's run: the
-  order's record of the call `place-order-{orderId}/reserve/0` is the catalog grain's task
-  `$caller/order/{orderId}/{incarnation}/place-order-{orderId}/reserve/0`. Each caller has its own
-  scope, so callers whose workflows share a root ID never share a callee's task, and each run of a
-  root ID has its own incarnation, so a run after the earlier one was deleted calls new tasks. A
-  root task, such as a detached start, keeps its root ID on its grain, and the root ID
-  `$caller` is reserved.
-- Scheduling a task ID again with the same method, from the same caller, reattaches to
-  the existing task and its recorded result, whatever the arguments, so a retry whose
-  arguments serialize differently reaches the task. Scheduling it with a different
-  interface or method fails, so a task ID deduplicates schedules while the grain retains
-  the task.
+- <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WithId*> 给有马子的孩子起名
+  。一个名称,如果运行重复,例如在一个循环中,将确定其后继
+  依顺序排列的发生情况: `line`, `line$2`, `line$3`等待其姓名的儿童
+  接收生成的段,该段以 `$` 开始,并遵循以下顺序:
+  执行中创建了未命名的儿童。名称不包含 `$`。
+- 名为组合的用户在自己的输入ID下提供其输入ID:
+  `DurableTask.WhenAll(...).WithId("reserve")` 将其投入确定为 `reserve/0`,
+  `reserve/1`等,按输入顺序排列。
+- 在调用者的范围下,另一个 grain 的调用在那个 grain 上,
+  `$caller/{callerGrainId}/{incarnation}/{taskId}`,其中 `{incarnation}` 指明了调用者的运行时间:
+  调用 `place-order-{orderId}/reserve/0` 的顺序记录是目录 grain的任务
+  `$caller/order/{orderId}/{incarnation}/place-order-{orderId}/reserve/0`. 每个来电者都有自己的
+  使用一个
+  根 ID 有其自身的化身, 所以在先前被删除的 后运行, 调用新任务 。 A
+  根任务, 如独立启动, 将根ID 保留在 grain和根ID
+  `$caller` 保留。
+- 以同样的方法再次安排任务编号,从同一个调用者重新连接到
+  现有任务及其记录的结果,无论论点如何,都可重试
+  参数序列化的参数以不同的顺序排序, 以不同的方式达到任务。
+  接口或方法失败, 所以任务编号重复时间表而 grain 保留
+  任务。
 
-A durable task calls its own grain's durable methods directly, as local steps, such as
-`await RefreshPricesAsync().WithId("refresh")`. A durable call through a reference to the
-task's own grain is rejected.
+一项持久任务直接要求自己的 grain的耐久方法,作为地方步骤,例如:
+`await RefreshPricesAsync().WithId("refresh")`. 提及《京都议定书》的持久呼吁
+拒绝自定义任务 grain 。
 
-## Recorded effects, local steps, and calls to other grains
+<a id="recorded-effects-local-steps-and-calls-to-other-grains"></a>
 
-A *recorded effect*,
-<xref:Orleans.Durable.Tasks.DurableTask.RunInline*?displayProperty=nameWithType>, runs
-synchronous code in the caller's current work item before it returns, with no
-suspension and no child execution, and records its result, or the exception it threw,
-in the task's tree under its name. The record commits in the same journal write as the
-journaled state which the effect changed, and a replay returns the recorded result
-without running the effect again. The order workflow changes its status this way:
+## 记录的效果、当地步骤和调用其他 grains
+
+*记录效果*,
+<xref:Orleans.Durable.Tasks.DurableTask.RunInline*?displayProperty=nameWithType>,运行
+返回前, 在调用器当前工作项中同步代码返回时的当前工作项目, 没有
+而不被处死,且记录其结果或所投的(意见),
+记录在与该日记相同的日志中进行
+重放返回所录结果
+不再运行效果。 顺序工作流程会以这种方式更改状态 :
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_run_inline" language="csharp":::
 
-- An effect changes grain state exactly once, reads state which later operations change,
-  and produces identifiers, random values, and wall-clock times which every replay
-  observes.
-- The effect passes data to the workflow through its result: assignments to captured
-  variables don't happen in later runs.
-- A failure is recorded too, because journaled state has no rollback: changes made
-  before the throw commit with the recorded exception. A result which doesn't serialize
-  is recorded as that failure. A run which ends before a journal write commits the
-  record also loses the effect's state changes, so the next run runs the effect again.
-- Consecutive effects in one synchronous block, and the journaled state which they
-  change, commit in the same journal write, and no other turn of the grain runs between
-  them. Returning from an effect doesn't mean that its record has committed: it commits
-  with the task's next journal write. The effect runs after task cancellation too, so
-  compensation records its effects.
-- A name identifies an effect as `WithId` identifies a step: `pay`, then `pay$2` for a
-  later occurrence in the same run.
-- `DurableTask.RunInline(effect)` omits the name, such as
-  `var reference = DurableTask.RunInline(Guid.NewGuid);`. The effect takes the execution's
-  next generated child ID, such as `$child-3`, which unnamed effects share with unnamed
-  children, so it finds its record when every run creates its unnamed operations in the
-  same order. Name effects whose position can change between runs or deployments.
-- Effects are synchronous: asynchronous and durable effects don't compile, and the
-  error shows the replacement, `await DurableTask.Run(async () => ...)`. An effect runs
-  on the activation's scheduler, so `RunInline` after `ConfigureAwait(false)` throws
-  `InvalidOperationException` without running it.
-- The record applies only within a durable task. Outside one, such as in a helper which
-  an ordinary grain method shares, the effect runs every time.
+- 效果改变 grain 状态一出就准确,读作后操作变化的状态
+  并生成识别符号、随机值和每重播放一次的墙时数
+  观察。
+- 效果将数据通过结果传送到工作流程:被捕获的任务
+  变量不会在以后运行中发生。
+- 失败也被记录下来, 因为日记状态没有回退: 更改已发生
+  抛出前有记录的例外。结果不连续
+  以该失败记录。在日记写前结束的运行
+  记录还丢失效果的状态变化,因此下一运行再次运行效果。
+- 在一个同步的街区中连续效应,
+  更改,在同一日记写中承诺,且 grain 在
+  其记录并不表示它犯下了罪行:它犯下了
+  任务任务下一个日记写入后, 任务也会被删除。 效果也随着任务取消而发生, 所以
+  赔偿记录了其影响。
+- 名称指一个效果,表示 `WithId` 指一个步骤: `pay`,然后指一个 `pay$2`
+  后来在同一运行中发生。
+- `DurableTask.RunInline(effect)` 省略名称,例如
+  `var reference = DurableTask.RunInline(Guid.NewGuid);`。执行时的效果
+  下一个生成的子代号, 如 `$child-3`, 未命名效果与未命名
+  儿童,因此它发现它的纪录 当每次运行都创建了
+  。名称效果,其位置在运行或部署之间可能发生变化。
+- 效果同步:非同步和耐久效应不会编译,
+  错误显示替换 `await DurableTask.Run(async () => ...)`。效果运行
+  激活调度器上的 `RunInline` 之后 `ConfigureAwait(false)` 扔弃
+  `InvalidOperationException` 没有运行它。
+- 记录只适用于长期任务。
+  a 普通 grain 方法共享,效果每次运行。
 
-A *local step* is an `async DurableTask` method of the same grain, awaited as a child,
-for work which awaits. It records its result in the grain's task state, and the record
-commits with its first durable write: its result, or a child, delay, or message which it
-schedules. Its result is staged in the work item which runs its final code, so the state
-changes which that code makes commit with the result. On replay, a step with a recorded
-result returns that result without running again.
+A *当地步数* 是 `async DurableTask` 方法的相同 grain等待着作为孩子,
+记录其成果, grain任务状态和记录
+承诺第一个耐久书写:其结果或儿童、拖延或信息
+其结果在工作项目中进行,该工作项目将运行最终代码,因此国家
+代码与结果一起承诺时的修改。在重放中,一个步骤与记录
+返回结果,不再次运行。
 
-A *call to another grain* is a durable invocation. The calling grain records the call
-in its task state and stages the invocation in its outbox; both commit with the
-execution's next journal write. The callee's inbox accepts the invocation directly into
-its task state, runs the method, and returns the result through the caller's inbox,
-which records it in the caller's task state. Messages use identities derived from the
-sender, receiver, task, and subject, so redeliveries and replayed sends are
-deduplicated.
+A *呼叫到另一个 grain* 这是一种永恒的祈祷。 grain 记录调用
+在其任务状态和阶段中,在发箱中进行援引;两者都承诺
+被调用对象的收件箱直接接受
+任务状态,运行方法,然后通过调用器的收件箱返回结果
+信息使用来自
+发送、接收、任务和主题, 所以重新复制和重播放的发送
+已经销毁了
 
-<xref:Orleans.Durable.Tasks.DurableTask.Run*?displayProperty=nameWithType> creates an
-unstarted step, for work which isn't a grain call, such as a call to an external
-service. The step runs its delegate when it's awaited, scheduled, or posted, possibly in
-a later turn, as a child execution with its own `DurableTask.Current` and cancellation
-scope. Creating it starts nothing, and nothing runs on the thread pool. A replay returns
-the delegate's recorded result, and runs a delegate whose result wasn't recorded again,
-so the delegate's external effect needs its own idempotency.
+<xref:Orleans.Durable.Tasks.DurableTask.Run*?displayProperty=nameWithType> 创建
+无法启动的步进, 用于不叫 grain 的工作, 例如呼叫外部
+服务。该职档在等待、安排或张贴时,在可能情况下在
+a 后转,作为处决儿童,自 `DurableTask.Current` 和注销
+创建它不起任何作用,线索池上也没有运行。重放返回
+代表记录的结果, 并经营一个代表 其结果没有再次记录,
+因此,代表的外部影响需要其自身的能力。
 
-### Effects and steps
+<a id="effects-and-steps"></a>
 
-`DurableTask.RunInline("hold-id", Guid.NewGuid)` and
-`await DurableTask.Run(async () => ...).WithId("hold-id")` use the same identifier,
-`{taskId}/hold-id`, and both record their outcome once. They differ in when the code
-runs, and the other differences follow from that. "Inline" means what it means elsewhere
-in .NET, as in `TaskScheduler.TryExecuteTaskInline`: the code runs synchronously in the
-current work item instead of being scheduled.
+### 效果和步骤
 
-- An effect runs immediately, in the current work item, before `RunInline` returns. So
-  consecutive effects commit together with the state they change, the effect observes
-  the caller's `DurableTask.Current`, and it runs after task cancellation.
-- A step runs when it's awaited, scheduled, or posted, possibly in a later turn, as a
-  child execution. So it has its own `DurableTask.Current`, a step which isn't shielded
-  completes as canceled when its parent's cancellation was requested before it starts,
-  and its record commits in a journal write of its own.
+`DurableTask.RunInline("hold-id", Guid.NewGuid)` 和
+`await DurableTask.Run(async () => ...).WithId("hold-id")` 使用相同的标识符,
+`{taskId}/hold-id`,并且都记录一次结果。当代码不同时它们就不一样
+运行,其他的差异随之而来。“内嵌”的意思是其它地方的含义
+.NET中,与 `TaskScheduler.TryExecuteTaskInline`一样:代码同步运行于
+当前的工作项目而不是排期。
+
+- 在当前工作项目中,效果在返回 `RunInline` 之前立即运行。因此
+  效果显示,连续效应与它们变化时的状态结合作用
+  调用者的 `DurableTask.Current`,在任务取消后运行。
+- 等待、计划或张贴时, 可能稍后转机,作为
+  儿童被处决。所以它有自己的 `DurableTask.Current`,这个步骤没有被遮蔽
+  当父子关系取消请求在启动前被请求取消时, 其完整为已取消的完整 。
+  其记录在一本日记中作成。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_effect_and_step" language="csharp":::
 
-A replay which finds one kind recorded where the body now runs the other diverges
-instead of running the work again: its execution stalls, and `ExecutionStalled` names
-both kinds. A deployment
-which changes an effect into a step, or a step into an effect, branches on
-[`DurableTask.GetVersion`](durable-tasks-versioning.md) so that executions which
-recorded the old kind keep it.
+重放发现一种记录, 身体现在运行其他的差异
+而不是再次运行工作:它的执行摊位,以及 `ExecutionStalled` 名称
+两种不同的种类。
+将效果改变为步骤或步骤,
+[`DurableTask.GetVersion`](durable-tasks-versioning.md) 处决时
+旧的唱片,保留它。
 
-## Publish progress and stream drafts
+<a id="publish-progress-and-stream-drafts"></a>
 
-A workflow publishes progress to observers through a journaled
-<xref:Orleans.Durable.Journaling.IDurableLog`1> of its grain. Observers read the log with
-<xref:Orleans.Durable.Journaling.IDurableLog`1.ReadAsync*>, typically through an
-`IAsyncEnumerable<T>` grain method. [Observe journaled state](journaling/observe-state.md)
-describes reading, resuming, and trimming logs.
+## 出版进展和流集草稿
 
-To publish an entry, append it in a recorded effect,
-`DurableTask.RunInline(() => log.Append(item))`. The effect appends once for its position in
-the task, and the entry commits together with the effect's record in the task's next
-durable write. A replay returns the recorded sequence number without appending again, so
-a reader in the committed mode receives each entry once, in the order in which the task
-appended it. Compute each entry from the task's arguments, recorded results, and logical
-time, so each replay makes the same appends at the same positions. Entries suit progress
-which callers and user interfaces watch, such as each status of an order or each
-completed partition of an export:
+工作流程通过一份期刊向观察员公布进展情况
+<xref:Orleans.Durable.Journaling.IDurableLog`1> of its grain观察员阅读日志时
+<xref:Orleans.Durable.Journaling.IDurableLog`1.ReadAsync*>,通常通过
+`IAsyncEnumerable<T>` grain 方法。 [观察日记状态](journaling/observe-state.md)
+描述读取、恢复和剪切日志。
+
+出版一个条目,并附上其记录效果
+`DurableTask.RunInline(() => log.Append(item))`。效果附加于
+任务, 和条目承诺与该效果记录一起在下一个任务中
+耐久写。重放返回已录入的序列编号,不附加附件,所以
+承诺模式的读者按任务顺序接受每个条目一次
+计算任务参数的每个条目、记录的结果和逻辑
+时间, 所以每次重放时, 都在同一位置上做相同的附件。 条目适合进度
+用户界面监视,例如命令的每个状态或每个
+导出已完成分割 :
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_progress" language="csharp":::
 
-The `playground/DurableOrderProcessing` project keeps each order's state as a log of
-snapshots which its workflow appends this way, and streams them to the browser as
-server-sent events.
+`playground/DurableOrderProcessing` 项目保持每份订单的状态,作为
+其工作流程依附的快照, 并以此方式将其传送到浏览器中
+服务器已存在事件 。
 
-To stream content as it's produced, such as a model's response, run the stream in a
-local step. The step opens a draft with
-<xref:Orleans.Durable.Journaling.IDurableLog`1.BeginDraft*>, writes each item to it, and commits
-the final content in its final synchronous code, after its last `await`:
+流流内容,例如模型的反应, 运行在
+本地步点。 该步骤打开了一张草稿
+<xref:Orleans.Durable.Journaling.IDurableLog`1.BeginDraft*>,写每个项目都写下来,并承诺
+其最后同步代码中的最后内容, 在其最后的 `await`之后:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_stream_draft" language="csharp":::
 
-- A draft's items are volatile. Readers which pass
-  `includeDrafts: true` to `ReadAsync` receive
-  each item as the step writes it, and the content becomes durable when `Commit` appends
-  the entries which replace the draft.
-- The step's result is staged in the work item which runs its final synchronous code, so
-  the entries which `Commit` appends and the step's recorded result commit in the same
-  journal write. Readers in the committed mode receive the entries once that write is
-  durable.
-- The content therefore commits exactly once: every committed journal holds both the
-  entries and the step's record, or neither. A replay after that write returns the
-  recorded result without running the step. A run which ends before that write loses
-  both, so the next run runs the step, which streams and commits the content.
-- A step which throws, including after cancellation, disposes the draft, which abandons
-  it, and the step's failure is recorded, so a replay rethrows it without streaming again.
-- Journaled changes inside a step belong in its final synchronous code. A change which
-  the step makes before an `await`, such as an `Append`, can commit with a journal write
-  which other grain work requests before the step completes, and a replay which runs the
-  step again makes the change again.
+- 草稿的项目变化不定。
+  `includeDrafts: true` 至 `ReadAsync` 接收
+  每一项作为每条的阶段写成,当 `Commit` 附加内容时内容就变得耐久
+  替换草稿的条目。
+- 步骤的结果在工作项目中进行, 运行它的最后同步代码, 所以
+  附加 `Commit` 条目和步骤记录的结果以相同方式被
+  日记写入。 在承诺模式中的读者一旦写入, 即接收条目
+  耐久。
+- 因此,内容完全承诺一次:每个承诺的期刊都同时载有
+  和该步骤的记录,或两者中两者的记录。写完后重放返回
+  记录结果,不运行该步。在写丢失之前结束的运行
+  两者都存在,所以下一赛跑是前进的一步, 流和承诺内容。
+- 包括取消后在内的一个步骤,将放弃的草案予以处置,
+  重播再重新播放它,不流出
+- 在一个阶级内日日记更改属于其最终同步代码。
+  在一个 `await`,例如 `Append`等能够以日记写方式进行承诺之前的单步
+  在步骤完成之前要求其他工作 grain ,以及运行
+  再一次使变化再次发生。
 
-## Replay and determinism
+<a id="replay-and-determinism"></a>
 
-After a deactivation or a failure, the next activation replays each pending task: the
-method body runs again from the start, and every recorded operation returns its recorded
-outcome. Replay starts once the grain's `OnActivateAsync` has completed, and a
-deactivation cancels the attempts of running tasks before the grain's `OnDeactivateAsync`
-runs, so their later durable operations throw; see
-[Task cancellation and attempt cancellation](durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation).
-A workflow resumes correctly when each replay schedules the same operations, with the
-same IDs and arguments, in the same order.
+## 重弹和确定论
 
-Replay doesn't rebuild the grain's journaled state, which holds the latest committed
-changes, including changes which later operations made. A durable body therefore has
-three kinds of code:
+停止或失败后,下一次激活将重现每个待执行的任务:
+方法的正文从开始就再次运行,每个记录操作都返回其记录
+。结果,在 grain `OnActivateAsync` 完成和
+取消在 grain `OnDeactivateAsync`之前取消运行任务尝试的取消
+运行,所以他们后来的持久运行就抛下;你看
+[任务取消和任务取消](durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation).
+每次重放时,每次重放相同的操作和
+同一身份和论点,按相同顺序排列。
 
-- **Recorded operations** run once per execution, and a replay returns their recorded
-  outcomes: durable calls to other grains, local steps, `DurableTask.Run` delegates,
-  delays, signal waits and sends, detached and posted starts, and `DurableTask.RunInline`
-  effects.
-- **Re-executed code** precedes the body's last recorded operation and runs again in
-  every replay. It computes values from the method's arguments, recorded results, the
-  execution's logical time and cancellation state, and configuration which stays the
-  same while executions are pending.
-- **The synchronous tail** follows the body's last recorded operation, with no other
-  `await` before the body returns. It runs only in a run which completes the body, and
-  its state changes commit in the same journal write as the task's result, whichever
-  operation requests that write, so no replay runs it again.
+重放并不重建 grain日记状态, 维持最新承诺的状态
+长期机构因此
+三种代码:
 
-The following grain allocates a ticket number in an effect, authorizes a payment, and
-records the outcome in its synchronous tail:
+- **记录操作** 每次执行一次运行,重放返回其记录
+  成果:向其他 grains、地方步骤、 `DurableTask.Run` 代表、
+  延迟、 信号等待和发送、 分离和发布启动, 以及 `DurableTask.RunInline`
+  效果。
+- **重新执行的代码** ,在尸体最后一次记录操作之前,再运行到
+  计算方法参数的数值,记录的结果,
+  和保持
+  处决时,也处于死刑候审状态。
+- **同步尾尾尾尾尾尾** 跟随尸体最后一次记录操作,没有其他
+  返回身体之前的`await` 。它只在一个完成身体的运行过程中运行,并且
+  以任务结果的同一日记写时的状态变化承诺
+  操作请求写入, 所以不要再重复播放它了 。
+
+下列 grain 发放实际的票号,授权付款,并
+记录同步尾巴的结果:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_replay_regions" language="csharp":::
 
-Follow these rules in re-executed code:
+遵循这些规则的重新执行代码:
 
-- Put each side effect in a recorded operation or in the synchronous tail. Code between
-  recorded operations computes values from the method's arguments, earlier results, and
-  other values which are the same on every replay.
-- Read and change grain state in recorded effects, steps, or the synchronous tail. Grain
-  state holds every committed change, so code which replays reads the state which later
-  operations wrote.
-- Read time from `DurableTask.Current.UtcNow`, the execution's logical time, which
-  <xref:Orleans.Durable.Tasks.DurableTask.Current?displayProperty=nameWithType> exposes.
-  The runtime persists it before the execution's effects commit and advances it to the
-  recorded completion time of each child result the execution observes, so a replay
-  observes the same times and a delay starts when the work before it completed.
-- Produce random values and identifiers in recorded effects or children, and call
-  external services in steps or `DurableTask.Run` delegates, whose external effects need
-  their own idempotency.
-- Name children with `WithId` when they're scheduled conditionally, in loops, or
-  concurrently outside a combinator, and name combinators. Generated segments are stable
-  only when unnamed children are created in the same order. Detached tasks and signal
-  sends are recorded under IDs derived from their target and root ID or signal, so adding
-  one doesn't move others.
-- Log through a logger which `logger.ReplaySafe()` returns, so each event is logged once.
+- 将每个副作用置于记录操作或同步尾巴中。
+  记录操作从方法的参数、先前结果和
+  其它数值在每次重放时相同。
+- 读取和修改所记录的效果、步骤或同步尾巴的 grain 状态。 Grain
+  显示每个承诺的修改, 所以重放代码读到状态
+  写下操作 。
+- 执行时的逻辑时间 `DurableTask.Current.UtcNow`的读取时间,
+  <xref:Orleans.Durable.Tasks.DurableTask.Current?displayProperty=nameWithType> 曝光
+  执行后,处决的执行效果尚未实施,并被推进到
+  记录每个孩子的完成时间,记录执行观察结果,所以重放
+  当完成之前的工程时,要对相同时间和延迟进行观察。
+- 产生随机值和识别特征,记录效果或儿童,以及呼叫
+  职级外部服务或 `DurableTask.Run` 代表,其外部影响需要
+  他们的自身能力。
+- 以 `WithId` 命名儿童,当他们被有条件地安排在循环中时,或
+  组合和名称组合。生成的区段是稳定的
+  只有在按照同一顺序创建了无名儿童时才使用。
+  发送由来自目标的ID和根ID或信号,所以添加
+  一个人不能移动别人
+- 通过一个返回 `logger.ReplaySafe()` 的日志记录器登录, 所以每个事件都一次登录 。
 
-[Replay-safety rules](durable-tasks-replay-rules.md) lists every rule, the failure which
-it prevents, and the analyzer diagnostic which reports it.
+[重演安全规则](durable-tasks-replay-rules.md) 列出每一规则,
+以及报告它的分析师诊断
 
 <xref:Orleans.Durable.Tasks.DurableTaskContext.IsReplaying?displayProperty=nameWithType>
-reports whether a run is re-running operations which earlier runs recorded: it is `true`
-from the start of a run which finds recorded operations in the task's tree, other than
-signal values, until the run has reached each of them or starts an operation which no
-earlier run recorded, and then stays `false`. Use it for logging and diagnostics only. A
-run which ended before a journal write committed its work is replayed, so code which runs
-only while `IsReplaying` is `false` can run twice or never, and code which branches on it
-schedules different operations in different runs.
+运行报告是否是先前运行的重运行操作:它是 `true`
+运行开始后在任务树上除
+符号,直到运行到达每个运行点或启动一个不
+先前运行记录, 然后停留 `false`。 仅用于记录和诊断。 A
+运行在日记写前结束, 工作被重放, 所以代码运行
+只有 `IsReplaying` 才有 `false` ,可以运行两次或永远不能运行,并编码在其中的分支
+以不同的运行模式列出不同的操作。
 
-A replay which schedules a different operation under a recorded ID, or which can't decode
-a recorded outcome, diverges: the runtime stalls its execution, which stays pending until
-code which matches the record replays it, and raises `ExecutionStalled`, which names the
-recorded and the requested operations. See
-[Diagnose replay divergence](durable-tasks-operations.md#diagnose-replay-divergence).
-To change a workflow while executions are pending, branch on
-`DurableTask.GetVersion`, which gives each execution the version of the change which it
-recorded, and version `0` to executions which earlier code ran past the change; see
-[Version durable tasks](durable-tasks-versioning.md).
+重放, 将不同的操作安排在记录ID下, 或者无法解码
+记录的结果有差异,不同的是:运行时间拖延执行,直到
+代码,该代码与记录重放相匹配,并生成 `ExecutionStalled`,该代码命名
+和所请求的操作。
+[诊断性重显示差异](durable-tasks-operations.md#diagnose-replay-divergence).
+在执行处决待审期间改变工作流程
+`DurableTask.GetVersion`,它使每个执行方都能够对修改版本进行修改
+和版本 `0` 执行前代码经过更改的处决;见
+[版本耐久任务](durable-tasks-versioning.md).
 
-## Combinators and handles
+<a id="combinators-and-handles"></a>
 
-Combinators schedule their inputs concurrently, so the runtime commits the batch of
-invocations together. Awaited, a combinator runs as part of the awaiting execution and
-records no result of its own; each input runs as a child identified by its input index
-under the combinator's operation ID. Name the operation with `WithId`, so its inputs
-keep their IDs when a later deployment adds or removes earlier combinators.
+## 组合器和控点
 
-Each combinator is also an extension method on a sequence of tasks, so a list, an
-array, or a query composes in place, as in
+混合体同时安排其输入时间, 所以运行时将进行
+等待,一个组合器作为等待处决的一部分运行
+输入指数所标明的每个输入都是儿童
+组合器操作 ID 的下端的组合器操作 ID。 用 `WithId`命名操作, 所以输入
+当以后部署时增加或删除早期组合时,他们的身份证将保留。
+
+每个组合器也是任务序列的扩展方法, 所以列表、 列表、 a
+设置的查询
 `lines.Select(line => Catalog(line.ProductId).ReserveAsync(OrderId, line.Units)).WhenAll().WithId("reserve")`.
-Lists of handles compose the same way, for example `handles.WhenAny(cancellationToken)`.
-A collection expression has no type of its own, so `[a, b]` goes to the static form:
+控点列表以同样方式组成,例如 `handles.WhenAny(cancellationToken)`。
+收藏表达式没有它自己的类型, 所以 `[a, b]` 转到静态形式 :
 `DurableTask.WhenAll([a, b])`.
 
-- <xref:Orleans.Durable.Tasks.DurableTask.WhenAll*?displayProperty=nameWithType> follows
-  `Task.WhenAll`. It completes after every input is terminal, including inputs which
-  durable cancellation reaches. It then throws the first failure in input order;
-  otherwise the first cancellation in input order; otherwise `WhenAll<TResult>` returns
-  the results in input order. Input order selects the exception, so a replay observes
-  the same one.
-- <xref:Orleans.Durable.Tasks.DurableTask.WhenAny*?displayProperty=nameWithType> returns
-  the index of the input which completed first, and `WhenAny<TResult>` also returns its
-  result. A winner which failed or was canceled fails the combinator. The other inputs
-  keep running.
-- <xref:Orleans.Durable.Tasks.DurableTask.Race*?displayProperty=nameWithType> selects its
-  winner like `WhenAny` and returns the same values, then requests cancellation of every
-  other input with the reason `Another task won the race.` and waits until each is
-  terminal, so no input outlives the race. A winner which failed or was canceled fails
-  it; the other inputs' outcomes don't.
-- <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitAsync*> and
-  <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitUntilAsync*> race a task, input
-  `0`, with a durable delay, input `1`. When the task completes first, the combinator
-  cancels the delay and returns the task's outcome. When the delay elapses first, the
-  task receives a cancellation request whose reason names the timeout, and the
-  combinator waits for the task's outcome: a task which ends canceled fails it with a
+- <xref:Orleans.Durable.Tasks.DurableTask.WhenAll*?displayProperty=nameWithType> 如下
+  `Task.WhenAll`. 。它将在每次输入为终端后完成,包括
+  永久取消达到。 然后按输入顺序抛出第一个失败;
+  其它的,输入顺序中第一次取消;否则 `WhenAll<TResult>` 返回
+  输入顺序中的结果。输入顺序选择例外,所以重放观察
+  同一个
+- <xref:Orleans.Durable.Tasks.DurableTask.WhenAny*?displayProperty=nameWithType> 返回
+  第一次完成输入的索引, `WhenAny<TResult>` 也返回其
+  组合失败。其他输入
+  继续跑
+- <xref:Orleans.Durable.Tasks.DurableTask.Race*?displayProperty=nameWithType> 选择它的
+  等赢 `WhenAny` 并返回相同值,然后请求取消
+  其它输入,并随原因而输入 `Another task won the race.` ,等待各输入
+  终端终端,所以没有输入会超过比赛。失败或被取消的赢家失败
+  ;其他投入的结果并不。
+- <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitAsync*> 和
+  <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitUntilAsync*> 种族任务,输入
+  `0`,有耐久延迟的输入 `1`。任务完成前,组合器
+  取消延迟并返回任务结果。当延迟先到时,
+  任务的任务中接收一个取消请求,该请求的理由名称为超时,并且
+  任务结果的等待:结束的任务取消后会失败
   <xref:System.TimeoutException>, and any other outcome, such as a result which the task
-  returns anyway, is its outcome.
+  无论如何,返回是结果。
 - <xref:Orleans.Durable.Tasks.DurableTask.ScheduleAll*?displayProperty=nameWithType>
-  schedules every input and returns their <xref:Orleans.Durable.Tasks.ScheduledTask>
-  handles in input order, without waiting for results.
+  将输入和返回其 <xref:Orleans.Durable.Tasks.ScheduledTask>
+  输入顺序的控件,不等待结果。
 - <xref:Orleans.Durable.Tasks.DurableTask.WhenAllCompleted*?displayProperty=nameWithType>
-  waits until every input is terminal and returns the handles. An input's failure or
-  cancellation leaves the combinator successful, so the workflow can act on each
-  outcome, for example by compensating exactly the inputs which succeeded.
-- <xref:Orleans.Durable.Tasks.DurableTask.WhenEach*?displayProperty=nameWithType> schedules
-  its inputs and yields each one's handle as an `IAsyncEnumerable`, in completion order.
-  An input's failure or cancellation is yielded like a success.
+  等待直到每个输入为终端并返回控点。输入失败或
+  取消后组合取消成功, 这样工作流程可以对每个
+  其结果,例如通过对成功的投入进行精确补偿。
+- <xref:Orleans.Durable.Tasks.DurableTask.WhenEach*?displayProperty=nameWithType> 附表
+  其投入和产生每个人的处理器 `IAsyncEnumerable`,按完成顺序排列。
+  输入失败或取消效果就像成功一样。
 
-The grain stamps each child's terminal result with a durable completion sequence, in
-the journal write which records the result. `WhenAny`, `Race`, and `WhenEach` select the
-remaining input with the lowest sequence, so every replay selects the same winner and
-yields the same order, including a replay in which more inputs have already completed.
-`ScheduleAll`, `WhenAllCompleted`, and `WhenEach` run only when awaited inside a durable
-execution, because their handles belong to that execution.
+下 grain 每个儿童最终结果的邮票,每个儿童的终端结果都有一个持久的完成顺序,
+记录结果的日记。 `WhenAny`、 `Race`和 `WhenEach` 选择
+以最小序列的剩余输入, 所以每重播放一次都选择相同的赢家
+输入相同的顺序,包括重播,其中更多的输入已经完成。
+`ScheduleAll`, `WhenAllCompleted`,和 `WhenEach` 仅在耐久的等待中运行
+因为他们的手柄属于执行过程
 
-A <xref:Orleans.Durable.Tasks.ScheduledTask> handle observes one task. Once a wait, a
-poll, or a combinator observes its terminal response, `IsCompleted`, `Status`, and
-`Exception` report it synchronously.
-<xref:Orleans.Durable.Tasks.ScheduledTask`1.GetResult*> returns the result or throws the
-recorded failure or cancellation, and
-<xref:Orleans.Durable.Tasks.ScheduledTask`1.TryGetResult*> returns `true` with the result
-of a task which completed successfully. Before the handle observes a terminal response,
-`Status` is `Pending`. Inside a durable task, a handle's `Id` names the task's operation,
-which combinators and replays address, and
+A <xref:Orleans.Durable.Tasks.ScheduledTask> 处理一个任务。等待一经等待,a
+或组合器观察其终端响应、 `IsCompleted`、 `Status`和
+`Exception` 报告同步。
+<xref:Orleans.Durable.Tasks.ScheduledTask`1.GetResult*> 返回结果或丢弃
+记录失账或注销,以及
+<xref:Orleans.Durable.Tasks.ScheduledTask`1.TryGetResult*> 返回 `true` ,结果
+任务完成后,处理器在观察终端响应前
+`Status` 是 `Pending`。在一项持久的任务中,一个把手的 `Id` 命名了任务的运作,
+组合和重放地址,
 <xref:Orleans.Durable.Tasks.ScheduledTask.TargetTaskId> names the task on the grain which
-stores it, which other parties address: a detached task's root ID, the task which
-`GetDurableTask` observes, or a call's task on its target. For existing handles,
+其它当事方处理的:
+`GetDurableTask` 或 电话 的 任务 、 或 其 目标 上 的 任务 。 对于 现有 把手 、 可以 观察
 <xref:Orleans.Durable.Tasks.ScheduledTask.WhenAll*?displayProperty=nameWithType>,
 <xref:Orleans.Durable.Tasks.ScheduledTask.WhenAllCompleted*?displayProperty=nameWithType>,
-and <xref:Orleans.Durable.Tasks.ScheduledTask.WhenEach*?displayProperty=nameWithType>
-provide the same semantics, and
-<xref:Orleans.Durable.Tasks.ScheduledTask.Race*?displayProperty=nameWithType> returns the
-winning handle once every handle has observed its outcome. A handle's `WaitAsync` and
-`WaitUntilAsync` with a timeout follow the combinators' timeout rules; outside a durable
-task, such as in a client, they measure the timeout on the system clock. `WhenEach`
-accepts no `WithId`, so the named form schedules the inputs with
-`ScheduleAll(...).WithId(name)` and enumerates `ScheduledTask.WhenEach(handles)`.
+和 <xref:Orleans.Durable.Tasks.ScheduledTask.WhenEach*?displayProperty=nameWithType>
+提供相同的语义,以及
+<xref:Orleans.Durable.Tasks.ScheduledTask.Race*?displayProperty=nameWithType> 返回返回
+每一个手都看到结果后,就赢了。 `WaitAsync` 和
+`WaitUntilAsync` 加上超时,可遵循组合组合的超时规则;在耐久之外
+任务,例如客户端的任务,它们测量系统时钟的超时。 `WhenEach`
+接受 `WithId`,因此命名的表格将输入时间与
+`ScheduleAll(...).WithId(name)` 和列举 `ScheduledTask.WhenEach(handles)`.
 
-<xref:Orleans.Durable.Tasks.DurableTask.Delay*?displayProperty=nameWithType> and
-<xref:Orleans.Durable.Tasks.DurableTask.DelayUntil*?displayProperty=nameWithType> are
-durable timers measured in logical time. The runtime records the delay's due time and
-sends the grain a scheduled resume message, which its inbox holds until the Durable Jobs
-clock reaches the due time. Logical time reads the Durable Jobs clock, so due times and
-the inbox share one time domain. A recorded due time is a commitment: a replay which requests
-another due time, for example after a configured duration changed, keeps the recorded
-one and logs a warning. Timeouts use these delays, so a timeout counts from the run which
-first awaited it.
+<xref:Orleans.Durable.Tasks.DurableTask.Delay*?displayProperty=nameWithType> 和
+<xref:Orleans.Durable.Tasks.DurableTask.DelayUntil*?displayProperty=nameWithType> 是
+以逻辑时间测量的耐久计时器。运行时记录延迟到期时间和
+发送预定的回信给 grain ,其内容保留到持久工作
+逻辑时间读取“持久工作”的时钟,所以时间到到到应得时间
+框中的内容框共共享一个时间域。记录到的到期时间是承诺:要求重放
+另定一个到期时间, 例如配置的时长更改后, 保留记录
+一次运行并记录警告。 超时使用这些延迟, 所以从运行中计算超时
+第一次等待它。
 
-## Cancellation
+<a id="cancellation"></a>
 
-Cancellation is cooperative, durable, and idempotent. A grain requests it for its own
-tasks with `IDurableTaskManager.CancelAsync(rootId, reason)`, and clients and other
-callers request it through
+## 注销
+
+取消是合作、持久和无能的。 grain 请求理事会提出
+与 `IDurableTaskManager.CancelAsync(rootId, reason)`任务、客户和其他
+打电话者通过
 <xref:Orleans.Durable.Tasks.ScheduledTask.CancelAsync*?displayProperty=nameWithType>.
-A request for a task which the grain doesn't retain throws `DurableTaskNotFoundException`
-and changes nothing. The request commits before it propagates through the task's execution tree:
+请求执行一项任务,但 grain 不保留丢弃 `DurableTaskNotFoundException`
+请求在被请求之前,通过任务执行树传播:
 
-- Delays, children whose bodies haven't started, and new children which the canceled
-  task schedules terminate as canceled without running.
-- Running children observe the request through
+- 拖延,儿童 尸体还没有开始的 和新的孩子
+  任务计划取消后终止, 不运行 。
+- 办理手续的儿童通过
   <xref:Orleans.Durable.Tasks.DurableTaskContext.CancellationToken?displayProperty=nameWithType>,
-  and pending calls to other grains receive a cancellation which their callee applies
-  to its own task.
-- The task's body decides its outcome. Awaiting a canceled child throws
-  `OperationCanceledException`. The task is canceled when that exception escapes the
-  body; a body which catches it completes with its own result or failure.
-- Completed children keep their recorded results, and a replay of a canceled task
-  observes the request at the same point as the run which it replays, so the body takes
-  the same path. That point is the start of one of the body's durable operations, such as
-  a child's start, a `DurableTask.RunInline` effect, or a wait for a task or a signal: a
-  running body observes the request at its current operation, which for a body waiting
-  durably is that wait, and the runtime records the point with the task. A replay keeps
-  the durable token uncanceled until it reaches the recorded point. A replay of a run
-  whose point didn't commit observes the request where it reaches the last operation
-  which the earlier run recorded, and records that point. A replay which ends before its
-  recorded point [stalls](durable-tasks-versioning.md#stalled-executions) as diverged.
+  等待其他 grains 电话的,收到被调用者申请的取消通知
+  完成自己的任务。
+- 任务机构决定结果。等待一个取消的孩子扔
+  `OperationCanceledException`。当该例外情形脱离
+  身体; 捕获体,其结果或失败会完全完成。
+- 完成的孩子们记录他们的成绩,重放取消的任务
+  与重放的运行点相同,在请求中对请求进行观察,然后身体开始
+  这一点是该身体持久运行之一的开始,例如
+  儿童开始、 `DurableTask.RunInline` 效应或等待任务或信号:a
+  正在运行的物体在目前工作时会观察请求,而当前工作需要等待
+  长期的等待是等待,运行时间记录了任务点。重放时保持
+  持久牌号未排出,直到它到达记录点。
+  其点没有承诺遵守请求,到达最后一次行动
+  记录前行的,然后记录此点。在它之前结束的重放
+  记录点 [闲置](durable-tasks-versioning.md#stalled-executions) 有差异。
 
-The first request's reason is durable:
+第一项请求的理由是可持久的:
 <xref:Orleans.Durable.Tasks.DurableTaskContext.TaskCancellationReason?displayProperty=nameWithType>
-returns it in the canceled execution, its descendants, and every replay, and the
-cancellation carries it to pending calls to other grains.
+以取消的处决、其子孙、每一次重播和
+将它转到其他 grains的待发电话。
 
-A body compensates inline by starting its compensation with
-<xref:Orleans.Durable.Tasks.DurableTaskExtensions.Shielded*>. A shielded child, such as a
-local step, a delay, or a call to another grain, runs to completion although the task's
-cancellation was requested, and a later request skips it, while the body still owns it
-and awaits its result. A shielded combinator shields each input which it starts. Every
-awaited operation honors the shield the same way, so a shielded signal wait, delay,
-`GetDurableTask` subscription, `Race`, `WhenAny`, or `WaitAsync` completes after the
-task's cancellation. The cancellation of the attempt, by a deactivation, an abort, or the
-deletion of the task's execution tree, still ends shielded operations.
+身体通过开始赔偿,从
+<xref:Orleans.Durable.Tasks.DurableTaskExtensions.Shielded*>. 被保护儿童,例如
+本地步、 延迟或呼叫另一个 grain, 工作将持续完成, 尽管任务
+请求取消,后来的一项要求跳过,而该机构仍然拥有
+等待结果,每输入一个屏蔽的组合盾,每输入一次,每输入一次。
+等待行动以同样的方式将盾牌封上 所以一个屏蔽信号等待,延迟
+`GetDurableTask` 订阅, `Race`, `WhenAny`,或 `WaitAsync` 完成后
+取消任务的任务。如果尝试,通过禁用、中止或
+删除任务执行树, 仍然结束屏蔽操作 。
 
-An administrative abort, through `IDurableTaskManager.AbortAsync(rootId, reason)` or
+行政中止,通过 `IDurableTaskManager.AbortAsync(rootId, reason)` 或
 <xref:Orleans.Durable.Tasks.ScheduledTask.AbortAsync*?displayProperty=nameWithType>,
-commits the task and its execution tree as failed with
+执行任务时失败的树及其执行树
 <xref:Orleans.Durable.Tasks.DurableTaskAbortedException> in one journal write, stops
-cancels their running attempts, and sends an abort to each pending call to another grain.
-A canceled attempt's durable operations throw
+取消运行中的尝试, 并向每个待决电话发送中止通知到另一个 grain。
+取消尝试的持久操作
 <xref:Orleans.Durable.Tasks.DurableTaskAttemptCanceledException>, and
-`IsTaskCancellationRequested` stays `false`, so an abort ends a task without compensation. Use it for a task whose body ignores cancellation or whose
-cleanup is stuck.
+`IsTaskCancellationRequested` 保留 `false`,所以中止结束一项没有补偿的任务。当一个机构忽略取消或其
+清理工作被卡住了。
 
-Task cancellation and attempt cancellation differ in what they record; see
-[Task cancellation and attempt cancellation](durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation).
+任务取消和尝试取消的记录不同;见
+[任务取消和任务取消](durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation).
 
-## Starting and observing tasks
+<a id="starting-and-observing-tasks"></a>
 
-Configuration on a durable call sets what the task is, and the call which starts it sets
-when the caller continues:
+## 开始和观察任务
+
+永久调用上的配置设置了任务是什么, 以及开始的调用
+当召唤者继续喊叫的时候,
 
 | | `await call` | `await call.ScheduleAsync()` | `call.Post()` |
 | --- | --- | --- | --- |
-| Attached (default) | Runs the child and returns its result once the result is durable. | Returns the child's handle once its grain has accepted and stored it. | Stages the child with the execution's next journal write and returns its handle. |
-| `.Shielded()` | As attached; the caller's cancellation doesn't reach the child. | As attached; the caller's cancellation doesn't reach the child. | As attached; the caller's cancellation doesn't reach the child. |
-| `.Detached()` | Starts an independent root task and returns its result. | Returns the root task's handle once its grain has accepted and stored it. | Stages the root task with the caller's next journal write and returns its handle. |
+| 附加( 默认) | 一旦结果持久,儿童将跑步并返回其结果。 | 一旦儿童 grain 接受并存储,返回其手柄。 | 执行后的儿童将使用下一期日记进行阶段,然后返回其手柄。 |
+| `.Shielded()` | 随附的, 电话取消没有到达孩子。 | 随附的, 电话取消没有到达孩子。 | 随附的, 电话取消没有到达孩子。 |
+| `.Detached()` | 启动独立的根任务并返回结果。 | 一旦根任务 grain 接受并存储后,返回其处理。 | 将根任务与调用者的下一期日记写入并返回其控点的状态相接。 |
 
-- An attached child belongs to the running execution's tree: the execution owns it, its
-  cancellation reaches the child, and deleting the tree deletes the child.
-- <xref:Orleans.Durable.Tasks.DurableTaskExtensions.Detached*> starts an independent root
-  task on its target, for follow-up work, cleanup which outlives the starter, and calls
-  whose results the starter doesn't need. The starter can complete while it runs, and the
-  task keeps running through the starter's cancellation, abort, and deletion. Its root ID
-  is the <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WithId*> name, verbatim, so
-  other parties address it by that name, or `{grainId}/{taskId}:{segment}`, where
-  `{grainId}` is the starting grain and `{segment}` is the generated ID of the execution's
-  next unnamed operation, so workflows with the same task ID on different grains start
-  different tasks. Starters which share a task name it. The start names the execution
-  as a subscriber, so awaiting the task, or its handle, receives its result; canceling
-  that wait ends only the subscription.
-- <xref:Orleans.Durable.Tasks.ConfiguredDurableTask.ScheduleAsync*> returns once the
-  target grain has accepted and durably stored the task, so the task's ID, the handle's
+- 一名随身生子属于行刑者所生的树:行刑者拥有它,其父或母系
+  取消时,将孩子删除。
+- 启动独立根<xref:Orleans.Durable.Tasks.DurableTaskExtensions.Detached*>
+  工作目标、后续工作、清理工作(比起步者早于启动者的时期)和
+  启动器不需要其结果。启动器可以运行时完成,
+  任务持续运行, 贯穿启动器的取消、 中止和删除。 其根 ID
+  是 <xref:Orleans.Durable.Tasks.DurableTaskExtensions.WithId*> 姓名、逐字记录、
+  以该名称或 `{grainId}/{taskId}:{segment}`为地址的其他各方,
+  `{grainId}` 是指开始 grain , `{segment}` 是执行的生成代号
+  下个未命名的操作, 所以在不同的 grains 上启动任务编号相同的工作流
+  执行
+  用户,如等待任务或处理任务时,收到结果;取消
+  等待只结束订阅。
+- <xref:Orleans.Durable.Tasks.ConfiguredDurableTask.ScheduleAsync*> 返回时返回
+  目标 grain 已经接受并长期保存任务, 所以任务编号, 手柄
   <xref:Orleans.Durable.Tasks.ScheduledTask.TargetTaskId>, can be handed to other parties,
-  which address it with `GetDurableTask`. The target acknowledges the
-  invocation, and the caller's outbox retires it, once the target's journal write stores
-  the task. A start which the target rejects, because the task ID already identifies
-  another method, throws `DurableTaskConflictException`. Other failures to accept the
-  start, such as a request which the target can't decode, are retried, and a start which
-  isn't accepted before Messaging's `OutboxRetryTimeout` throws
-  `DurableTaskDeliveryException`. Awaiting the task throws the same failure. See [Dead letters](durable-tasks-operations.md#dead-letters).
-- <xref:Orleans.Durable.Tasks.ConfiguredDurableTask.Post*> is synchronous. It stages the
-  invocation in the caller's outbox, which commits with the grain's next journal write,
-  together with the state changes which the calling code made, and delivers it once. The
-  target holds the task once the invocation is delivered, so a task whose ID other
-  parties look up starts with `ScheduleAsync`. Inside a durable task, the start is recorded like a `DurableTask.RunInline` effect, so a
-  replay returns the same handle, and awaiting the handle later observes the result. A
-  client has no outbox, so `Post` throws `InvalidOperationException` there, and
-  [ORLEANS0216](../diagnostics/orleans0216.md) reports it.
-- Inside a durable task, the record of a detached task, `$detach:{target}:{rootId}`,
-  commits with the start, so a replay which reaches the record starts nothing. The
-  starter holds the invocation, which carries the request, until its target accepts it,
-  so the start survives the deletion of the starter's tree. Starting the same method under the same root ID again leaves the task unchanged.
-- Outside a durable task, every task is a root task, so `.Detached()` leaves the call
-  unchanged. `WithId` supplies the root ID and makes a start safe to retry: a caller which
-  retries a start after an ambiguous failure, such as a timeout, reaches the same task. A
-  start without `WithId` receives a new random root ID, which the handle's `Id` reports,
-  and behaves like an ordinary call.
+  处理该主题的 `GetDurableTask`目标承认
+  目标的日记写书店
+  任务。一个目标拒绝的起始点,因为任务编号已经确定了
+  其它方法,丢弃 `DurableTaskConflictException`。其他不接受该方法
+  开始, 例如目标无法解码的请求, 重新尝试, 以及开始
+  接收前未接受 `OutboxRetryTimeout` 扔弃
+  `DurableTaskDeliveryException`. 等待任务时, 同样的失败会丢弃。 见 [死亡信](durable-tasks-operations.md#dead-letters)。
+- <xref:Orleans.Durable.Tasks.ConfiguredDurableTask.Post*> 是同步的。它会分阶段
+  引用调用器的发件箱, 该发件箱承诺使用 grain下一期日记写,
+  加上调用代码所设定的状态变化, 并一次性交付。
+  目标在完成任务时保持任务, 所以任务如果是其它身份
+  政党向上查找从 `ScheduleAsync`开始。在一个耐久的任务中,开始记录为 `DurableTask.RunInline` 效果,所以
+  重放返回同一把手,等待手柄稍后观察结果。
+  客户端没有发信箱, 所以 `Post` 扔弃 `InvalidOperationException` 在那里,和
+  [ORLEANS0216](../diagnostics/orleans0216.md) 已经报告。
+- 在一项持久的任务中,有一份独立任务的记录 `$detach:{target}:{rootId}`,
+  开始时要承诺, 因此重播到达记录后就没有什么意义。
+  启动者持有请求书的传召,直至其目标接受请求
+  开始时间在删除起始树的树之后, 才能维持。 在同一个根代号下启动相同方法后, 任务将再次保持不变 。
+- 一项长期任务之外的一项持久任务,每一项任务都是根本任务,所以 `.Detached()` 留空电话
+  。 `WithId` 提供根 根 ID,并让开始安全重试:一个调用器
+  模棱两可的失败(如超时)达到相同任务后,重试开始。 A
+  开始时不启动 `WithId` 接受一个新的随机根 ID, 控点的 `Id` 汇报,
+  并且行为如一般的召唤。
 
-A checkout clears the basket and starts the order's workflow in one journal write:
+检出后清理篮子,
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_checkout_post" language="csharp":::
 
-## Signals
+<a id="signals"></a>
 
-A <xref:Orleans.Durable.Tasks.DurableSignal`1> carries an external event, such as a
-shipment notice or an approval, into a running task. Senders and waiters share one
-descriptor, which names the signal:
+## 信号
 
-- <xref:Orleans.Durable.Tasks.DurableSignal`1.WaitAsync*> waits for the signal's value.
-  <xref:Orleans.Durable.Tasks.DurableSignal`1.TryWaitAsync*> races the wait with a
-  deadline and returns `(true, value)` or `(false, default)`, and the same outcome on
-  every replay.
-- A signal addresses an *invoked task*: a task which a client, another grain, or a
-  durable task which detached it started on the grain. Waits anywhere in that task's execution tree
-  observe its signals.
-- The task records the first value for each signal name and returns it to every wait for
-  that name, including waits during replay. A signal which arrives before its wait is
-  recorded, and the wait returns it at once. A repeated signal with an equal value
-  leaves the task unchanged, and a different value is rejected.
-  <xref:Orleans.Durable.Tasks.DurableSignal`1.For*> derives a distinct name, such as
-  `approved/round-2`, for each occurrence of a repeated event.
-- A grain signals its own tasks with `IDurableTaskManager.SignalAsync` or
-  `TrySignalAsync`, which commit with the grain's pending state changes. Clients and
-  ordinary methods of other grains use the `SignalDurableTaskAsync` and
-  `TrySignalDurableTaskAsync` grain-reference extensions, and durable tasks on other
-  grains use `SignalDurableTaskAsync`, which records the send for replay under
-  `$send:{target}:{taskId}:{name}`. Repeated sends of one signal in an execution, such
-  as a retry after `TaskNotFound`, are numbered by occurrence, `$send:...$2` and so on,
-  so each sends again. The `Try` forms return a `DurableSignalResult`: `Accepted`,
-  `Duplicate`, `Conflict`, `TaskNotFound`, or `TaskCompleted`.
-- A grain can commit an invocation on another grain and a signal for it in one journal
-  write. The signal message can then arrive first; the receiving grain records its value,
-  and the invocation observes it when it arrives.
+<xref:Orleans.Durable.Tasks.DurableSignal`1> 带有外部事件,例如
+发送通知或批准, 并进行中任务。 发件人和服务员共享一个
+标注符,其中命名信号:
 
-## Await tasks which another caller started
+- <xref:Orleans.Durable.Tasks.DurableSignal`1.WaitAsync*> 等待信号值。
+  <xref:Orleans.Durable.Tasks.DurableSignal`1.TryWaitAsync*> 与一个
+  和返回的最后期限 `(true, value)` 或 `(false, default)`,以及
+  每一次重播
+- 信号地址为 *所援引的任务*:客户端、另一个 grain或一个
+  将它分离到 grain上。在任务执行树的任意位置等待
+  观察它的信号。
+- 任务记录每个信号名的第一个值, 然后返回到每次等待
+  ,包括重放中的等待。在等待之前发出的信号是
+  记录,等待同时返回。一个重复信号,其等值相等
+  任务保持不变,拒绝不同的值。
+  <xref:Orleans.Durable.Tasks.DurableSignal`1.For*> 产生一个单独的名称,例如
+  `approved/round-2`,针对重复事件的每一次发生。
+- A grain 用 `IDurableTaskManager.SignalAsync` 或
+  `TrySignalAsync`,与 grain的待变状态承诺。
+  其他 grains 使用 `SignalDurableTaskAsync` 和
+  `TrySignalDurableTaskAsync` grain- 参考扩展,以及长期任务
+  grains 使用 `SignalDurableTaskAsync`,将发送重放记录在
+  `$send:{target}:{taskId}:{name}`。在一次执行中重复发送一个信号,
+  `TaskNotFound`之后的重试,按发生时、 `$send:...$2` 等编号。
+  于是,他们各再次发出, `Try` 窗窗窗窗窗窗返回 a `DurableSignalResult`: `Accepted`,
+  `Duplicate`、 `Conflict`、 `TaskNotFound`或 `TaskCompleted`。
+- grain 可在一份日记中对另一个 grain 进行援引和发出信号
+  。然后,信号信息可以先到达;接收方 grain 记录其价值,
+  礼拜降临的时候,他们要遵守它。
 
-The `GetDurableTask<TResult>(rootId)` grain-reference extension, or its `TaskId` overload,
-returns a <xref:Orleans.Durable.Tasks.DurableTaskReference`1> to an existing task, such as a
-client-scheduled operation or a detached task. A durable task awaits the reference to
-subscribe to the task's result, and other code awaits it to wait for the result. The
-reference is awaitable through an extension method, so an ASP.NET Core Minimal API
-handler returns it as a value, and <xref:Orleans.Durable.Tasks.IDurableTaskReference>
-reads its `Target` and `Id` without its result type. A webhook relay, for example, waits
-for an operation and then delivers its result:
+<a id="await-tasks-which-another-caller-started"></a>
+
+## 等待另一个呼叫器启动的任务
+
+`GetDurableTask<TResult>(rootId)` grain- 参考扩展名,或其 `TaskId` 超载,
+将 <xref:Orleans.Durable.Tasks.DurableTaskReference`1> 返回为现有任务,例如
+一项持久的任务等待提及
+订阅任务结果, 其他代码等待结果 。
+参考文献可通过一项扩展方法等待,因此 ASP.NET 核心最小 API
+处理器将它返回为值,并且 <xref:Orleans.Durable.Tasks.IDurableTaskReference>
+读取 `Target` 和 `Id` ,没有结果类型。例如,一个网钩中继等
+操作后,再交付结果:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_reference_relay" language="csharp":::
 
-- In a durable task, awaiting the reference, scheduling it, or passing it to `WhenAny`,
-  `Race`, `WaitAsync`, or `WaitUntilAsync` subscribes a child of the execution, recorded
-  under the child ID which that operation assigns, like a call to another grain. The child
-  and its subscription commit in one journal write, and a replay which reaches the child
-  doesn't subscribe again.
-- The subscription travels through the outbox to the task's grain as an invocation without
-  a request, which neither runs nor claims the task. The grain adds the child to the task's
-  subscribers, beside the task's invoker, sends the task's result through its outbox, as it
-  does to the invoker, and retains the task until that completion retires. The child
-  completes with the task's outcome: its result, its failure, or its cancellation.
-- A subscription to a terminal task completes promptly, and a subscription to a task which
-  the grain doesn't retain as an invoked task, because its retention ended or it was never
-  invoked, fails promptly with `DurableTaskNotFoundException`; replays observe the same
-  failure. A task ID which reaches the subscriber refers to a task which its grain holds,
-  because `ScheduleAsync` returns once the grain has accepted the task. Bound the wait with
-  `WaitAsync` or `WaitUntilAsync`.
-- Canceling the child, for example when a `WaitAsync` deadline passes or a `Race` input
-  loses, ends it as canceled and ends its subscription. The task continues.
-- A subscription to a task of the same grain completes in the journal write which stores
-  the task's result.
-- Clients and ordinary grain methods await the same reference, or poll, cancel, or abort
-  the task through it, with calls to the task's grain.
+- 这是一项持久的任务,等待参考、安排或转交 `WhenAny`,
+  `Race`、 `WaitAsync`或 `WaitUntilAsync` 认认执行时的孩子,记录
+  儿童身份,该操作指定给孩子的身份,如呼叫另一个儿童 grain。
+  并承诺在一份日记中订阅,同时向儿童发送回放
+  不再订阅了
+- 订阅者通过发件箱前往任务 grain 的发件箱,作为一次不需
+  问题 grain 将儿童添加到任务之外。
+  用户除了任务提示器之外,
+  向告发者施以刑,并保留任务直至完成后退休。
+  任务的结果:结果、失败或取消。
+- 终端任务订阅迅速完成,一个任务订阅
+  保留 grain 不作为援引的任务,因为保留结束或从未存在
+  引用时, 快速失败, 与 `DurableTaskNotFoundException`发生 迅速失败; 重放也遵守同样的
+  。一个任务编号,如果达到用户的用户,是指其 grain 持有的任务,
+  原因 `ScheduleAsync` 返回时返回 grain 已经接受了任务。
+  `WaitAsync` 或 `WaitUntilAsync`。
+- 取消儿童,例如当 `WaitAsync` 最后期限过后或输入 `Race` 时
+  失败、 以取消结束并终止订阅。 此任务继续 。
+- 订阅存储的日记本上完成的同一 grain 任务
+  任务的结果。
+- 客户端和普通 grain 方法等待相同的参考,或调查、取消或中止
+  完成使命, 号召该任务 grain.
 
-### Store and send task addresses
+<a id="store-and-send-task-addresses"></a>
 
-A <xref:Orleans.Durable.Tasks.DurableTaskAddress> pairs a task's grain with its ID, so code
-stores a task in journaled state, sends it in grain calls, or returns it in HTTP
-payloads, and reaches the task later. Orleans serializes it, and System.Text.Json writes
-it as `{"Target":"order/42","Id":"place-order"}` in JSON journals and HTTP payloads, with no
-registration. A <xref:Orleans.Durable.Tasks.TaskId> serializes as its escaped path, such as
+### 存储并发送任务地址
+
+A <xref:Orleans.Durable.Tasks.DurableTaskAddress> 将任务 grain 与身份识别码对齐, 所以代码
+以日记状态存储任务, 以 grain 调用发送任务, 或者在 HTTP 中返回任务
+有效载荷,然后到达任务后。 Orleans 将其序列化, System.Text.Json 写道:
+以 `{"Target":"order/42","Id":"place-order"}` 内 JSON 和HTTP有效载荷,无
+登记。A <xref:Orleans.Durable.Tasks.TaskId> 的序号是其逃出路径,例如
 `place-order/reserve`.
 
-- `GrainFactory.GetDurableTask<TResult>(address)`, or the same method on an
-  `IClusterClient`, returns the task's reference, which awaits, subscribes, polls,
-  cancels, or aborts it, as above.
-- `DurableTaskReference<TResult>.Address` reads a reference's address.
-- `handle.TryGetAddress(out var address)` reads the address of a
+- `GrainFactory.GetDurableTask<TResult>(address)`或对 a
+  `IClusterClient`返回任务参考, 它等待、 订阅、 投票,
+  取消或中止,如上所示。
+- `DurableTaskReference<TResult>.Address` 读取参考地址。
+- `handle.TryGetAddress(out var address)` 读作 a
   <xref:Orleans.Durable.Tasks.ScheduledTask> handle's task: a root task which a client or an
-  ordinary grain method started, or, inside a durable task, a detached task or a task which
-  `GetDurableTask` observes. An attached child belongs to its caller's tree, so its
-  handle has no address.
+  普通 grain 方法开始,或在耐久任务内,一个分离的任务或一项任务
+  `GetDurableTask` 随附的孩子属于其打电话者的树上,所以
+  控点没有地址 。
 
-A grain records the detached task which it hands off, and later awaits, polls, or cancels it,
-after any number of reactivations:
+A grain 记录它所执行的、等待的、调查的或取消的事务,
+在任何几次恢复活动之后:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskIdentitySnippets.cs" id="durable_tasks_identity_store" language="csharp":::
 
-[Task identity and references](durable-tasks-identity.md#address-a-task-from-elsewhere)
-describes which tasks have addresses and how long they resolve.
+[任务身份和参考](durable-tasks-identity.md#address-a-task-from-elsewhere)
+说明哪些任务已经解决,以及它们要解决多久。
 
-## Commit model and guarantees
+<a id="commit-model-and-guarantees"></a>
 
-- `(grain, TaskId)` identifies one execution. A task ID's reuse is the same request when
-  it invokes the same interface method from the same caller; arguments aren't compared,
-  and reuse with a different interface or method conflicts.
-- Request identity, task state, caller subscription, and inbox completion commit before
-  execution begins.
-- Task state and outgoing messages share the grain's journal commit boundary with the
-  grain's own journaled state. A failed journal write deactivates the grain, and the
-  next activation recovers from committed state.
-- Each segment of an execution, the code between two durable waits, runs as a request
-  on the grain, so it follows the grain's reentrancy rules as a grain method does.
-- While an execution's segment runs or waits to run, the grain keeps a Durable Jobs
-  wake-up, so a grain which crashes is reactivated within about 30 seconds and resumes
-  the execution. An execution parked on a call's result, a signal, or a delay resumes
-  when the message it waits for reactivates its grain.
-- Posting a durable call from a durable grain, including from an ordinary method, stages
-  the invocation in the outbox, so it commits atomically with the grain's state changes.
-  Inside a durable task, awaiting and scheduling a call stage it the same way.
-- Each request and result payload is journaled once per grain, in task state. A
-  dead-lettered completion's dead letter also holds its result, for inspection and replay.
-- Recovery precedes new execution. Child IDs, completion order, and outgoing messages
-  are replay-stable.
-- Terminal results and the completion notifications to callers commit together. The
-  first durable terminal result wins a race between completion and cancellation.
-- A body's result is staged in the work item which runs the body's final code on the
-  activation, so it commits in the same journal write as the state which that code
-  changed, whichever operation requests the write. A `DurableTask.RunInline` record is
-  staged in the same work item as the effect's state changes, and commits with them.
+## 提交模式和担保
 
-Durability covers state and messages which participate in Orleans Journaling and
-Messaging commits. External side effects, such as calls to a payment provider, need
-their own idempotency, for example a request key derived from the task ID; see
-[Idempotency in durable tasks](durable-tasks-idempotency.md).
+- `(grain, TaskId)` 指定一个执行执行。任务编号的再使用与
+  它从同一个打电话者中引用相同的界面方法; 参数没有比较,
+  和再利用与不同界面或方法冲突。
+- 请求身份、任务状态、电话订阅和信箱完成前承诺
+  开始执行。
+- 任务状态和发送信件共享 grain日记帐簿的
+  grain自己的日记状态。 失败的日记写将 grain和
+  下一轮启动从承诺状态恢复。
+- 执行的每个部分, 代码在两个耐久等待之间的间隔, 以请求方式运行
+  排在《公约》 grain,因此它遵循 grain`作为 grain 方法确实如此。
+- 当执行的段运行或等待运行时, grain 将保持一个永久工作
+  于30秒内重新启动撞车的 grain 并恢复
+  执行。停在电话结果、信号或延迟恢复
+  当它等待那迹象的时候,当它重新生动地, grain.
+- 发出耐久 grain呼吁,包括从普通方法中发出呼吁,分阶段
+  发件箱中的引用, 所以它以原子方式执行 grain的状态变化 。
+  在一个长期的任务中,等待并安排一个呼叫阶段,同样地。
+- 每个请求和结果有效载荷都按 grain,按任务状态一次日记。
+  以文字写成的完成信也保留了结果,
+- 重新执行前要恢复。儿童身份、完成顺序和发出的信息
+  复放稳定。
+- 终端结果和通知完成通知 通知呼叫者一起承诺。
+  第一次持久的终端结果赢得了完成和取消之间的竞争。
+- 人体的产物结果 由工作项目进行 操作身体最终代码
+  激活, 所以它承诺在同一个日记里 写到代码所在的状态
+  修改, 任何操作请求写入的, 都更改。 A `DurableTask.RunInline` 记录
+  与影响状态变化处于同一工作项目阶段,并承诺与之保持一致。
 
-## Lifecycle and retention
+可适用性涵盖参加 Orleans 日刊和
+外部副作用,例如向付款提供方打电话等,需要
+其自身的能力,例如任务编号中产生的请求键;见
+[持久任务中具有的](durable-tasks-idempotency.md).
 
-An *invoked task*, which a client or another grain scheduled, owns an execution tree:
-the task and its descendants which aren't invoked tasks themselves, such as local
-steps, delays, `DurableTask.RunInline` records, records of detached tasks, signal-send
-markers, subscriptions, and the records of calls to other grains. Once an invoked task is
-terminal, its grain deletes the tree:
+<a id="lifecycle-and-retention"></a>
 
-- When a grain called the task, in the journal write which retires the completion after
-  the calling grain has durably accepted the result.
-- When the task has no calling grain, such as a task which a client scheduled or a
-  detached task, `DurableTaskOptions.ResultRetentionPeriod` after completion. Polls
-  during that period return the retained result, and later polls throw
+## 生命周期和保留
+
+A 音 A *引用任务*客户或他人 grain 计划, 拥有执行树 :
+任务及其后代, 他们没有援引的任务本身, 例如当地
+单列、延迟、 `DurableTask.RunInline` 记录、独立任务记录、信号发送
+标记、订阅和调用其他 grains的通话记录。
+终端,其 grain 删除树:
+
+- 当一个 grain 调用任务时,在日记中写到完成后将退出的任务
+  呼唤 grain 已持久地接受了结果。
+- 当任务没有呼叫 grain时,例如客户预定的任务或
+  独立任务, 完成后 `DurableTaskOptions.ResultRetentionPeriod` 。
+  在此期间,将保留的结果归还原结果,随后投票
   `DurableTaskNotFoundException`.
-- In either case, not before the completion to each subscribing durable task retires.
+- 在这两种情况下,在每一个被确认的持久任务完成之前,都不得退休。
 
-Deleting a tree cancels its unfinished tasks. A task ID therefore deduplicates schedules
-until its task is deleted, and scheduling it after the deletion runs the request again.
-Completions and delay resumes which arrive for deleted tasks are ignored. See
-[Retention and deletion](durable-tasks-operations.md#retention-and-deletion) for
-operational details.
+删除树的树删除会取消未完成的任务。 因此任务 ID 将更改时间表
+直至任务被删除,在删除后安排时间再执行请求。
+完成和延迟恢复到达删除任务时的补全和延迟被忽略。 见
+[保留和删除](durable-tasks-operations.md#retention-and-deletion) 用于
+业务细节。
 
-## Configure the silo and clients
+<a id="configure-the-silo-and-clients"></a>
 
-Durable tasks need Journaling storage and Durable Jobs storage.
-`AddDurableTasks` on the silo builder adds Messaging and the durable task runtime,
-stores task state in the grain's journal, and registers the JSON metadata which the
-JSON journal format needs for task state. Its optional callback configures
-`DurableTaskOptions`. For development, configure in-memory storage:
+## 配置 silo 和客户端
+
+需要为长期性任务发布储存和工作持久储存的《日刊》。
+`AddDurableTasks` 排在《公约》 silo 建筑商添加了通信和持久任务运行时间,
+任务状态 grain登记和登记 JSON 元数据中
+JSON 日记日记格式对任务状态的需要。 它的可选回调配置
+`DurableTaskOptions`. 开发时,配置模拟存储:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_registration" language="csharp":::
 
-External clients which schedule, observe, cancel, or signal durable tasks register the
-client-side adapter:
+安排、观察、取消或信号通知持久任务
+客户端适配器 :
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_client_registration" language="csharp":::
 
-Grains which derive from <xref:Orleans.Durable.Journaling.DurableGrain> host durable tasks, and
-`AddDurableTasks` gives every such grain an inbox and an outbox. During activation setup,
-before journal recovery, the runtime binds to the grain's journal, inbox, and outbox,
-and the grain can inject `IDurableTaskManager` to observe, cancel, abort, and signal its
-own tasks. Task state can use any journal format; requests and results are stored with
-the Orleans serializer. Use shared, production-grade Journaling and Durable Jobs
-providers for multi-silo deployments; see
-[Journaling configuration](journaling/configuration.md).
+Grains 源自 <xref:Orleans.Durable.Journaling.DurableGrain> 包含可持久任务,并且
+`AddDurableTasks` 给每个这样的 grain 一个收件箱和一个发件箱。在激活设置期间,
+在日记恢复前,运行时间与 grain的日记、收件箱和发件箱连接,
+和 grain 可注射 `IDurableTaskManager` 观察、取消、中止并发出信号
+任务自任务。 任务状态可以使用任何日记格式;请求和结果存储于
+排 Orleans 使用共享、制作/职等期刊和持久工作
+多silo 部署的提供者;见
+[日记日报配置](journaling/configuration.md).

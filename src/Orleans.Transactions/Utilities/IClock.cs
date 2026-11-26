@@ -3,14 +3,14 @@ using System;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Provides the current Coordinated Universal Time.
+    /// 提供了当前协调世界时。
     /// </summary>
     public interface IClock
     {
         /// <summary>
-        /// Gets the current Coordinated Universal Time.
+        /// 获得当前协调世界时。
         /// </summary>
-        /// <returns>The current UTC date and time.</returns>
+        /// <returns>当前通用时点日期和时间。</returns>
         DateTime UtcNow();
     }
 }

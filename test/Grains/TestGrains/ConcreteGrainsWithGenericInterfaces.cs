@@ -36,7 +36,7 @@ namespace UnitTests.Grains
 
     internal class ConcreteGrainWith2GenericInterfaces : Grain, IGenericGrain<int, string>, ISimpleGenericGrain<int>
     {
-        // IGenericGrain<int, string> methods:
+        // IGenericGrain<int, string> 方法:
 
         protected int T { get; set; }
 
@@ -51,7 +51,7 @@ namespace UnitTests.Grains
             return Task.FromResult(Convert.ToString(T * 10, 10));
         }
 
-        //ISimpleGenericGrain<int> methods:
+        //ISimpleGenericGrain<int> 方法:
 
         public Task Set(int t)
         {

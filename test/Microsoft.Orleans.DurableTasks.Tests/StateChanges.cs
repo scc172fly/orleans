@@ -8,13 +8,13 @@ using Orleans.Durable.Tasks.Diagnostics;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Waits for test conditions at the transitions which can satisfy them, instead of polling.
+/// 等待在过渡阶段进行测试,以使他们满意,而不是投票。
 /// </summary>
 /// <remarks>
-/// Every <see cref="DurableTaskEvents"/> event, and every change which a test fake reports through <see cref="Notify"/>,
-/// wakes the waits, which then evaluate their conditions again. A runtime raises its events synchronously when it stages a
-/// transition, so a condition over runtime state holds by the time its wait wakes. A wait which times out names its
-/// condition.
+/// 每一 <see cref="DurableTaskEvents"/> 和每个变化,测试假报告 <see cref="Notify"/>,
+/// 时间流逝时会同步地增加事件
+/// 等待时间的倒数 。 等待时间的间隔时间
+/// 条件。
 /// </remarks>
 internal static class StateChanges
 {
@@ -24,11 +24,11 @@ internal static class StateChanges
 
     static StateChanges() => Subscription = DurableTaskEvents.AllEvents.Subscribe(new Observer());
 
-    /// <summary>Wakes the waits, so they evaluate their conditions again.</summary>
+    /// <summary>唤醒了等待,所以他们再次评估他们的状况。</summary>
     public static void Notify() => Interlocked.Exchange(ref _next, Create()).TrySetResult();
 
-    /// <summary>Waits until <paramref name="condition"/> holds.</summary>
-    /// <exception cref="TimeoutException">The condition didn't hold within the timeout.</exception>
+    /// <summary>等待到 <paramref name="condition"/> 搁置。</summary>
+    /// <exception cref="TimeoutException">状况没有在超时内维持</exception>
     public static async Task WaitUntilAsync(
         Func<bool> condition,
         TimeSpan? timeout = null,
@@ -39,7 +39,7 @@ internal static class StateChanges
         expiry.CancelAfter(timeout ?? DefaultTimeout);
         while (true)
         {
-            // A change which follows this read completes the captured signal, so no change is missed.
+            // 之后的更改, 读取后完成所捕捉到的信号, 因此不会遗漏任何更改 。
             var changed = Volatile.Read(ref _next).Task;
             if (condition())
             {

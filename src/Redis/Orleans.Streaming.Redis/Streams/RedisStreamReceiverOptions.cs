@@ -3,27 +3,27 @@ using System;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Redis streaming receiver options.
+/// Redis 流接收器选项。
 /// </summary>
 public sealed class RedisStreamReceiverOptions
 {
     /// <summary>
-    /// Redis streams message field name.
+    /// Redis 流信息字段名称 。
     /// </summary>
     public string FieldName { get; set; } = DefaultFieldName;
 
     /// <summary>
-    /// The default Redis stream message field name.
+    /// 默认 Redis 流信息字段名称。
     /// </summary>
     public const string DefaultFieldName = "payload";
 
     /// <summary>
-    /// The number of entries to fetch from Redis in a single read operation.
+    /// 单读操作中从 Redis 获取条目数 。
     /// </summary>
     public int ReadCount { get; set; } = DefaultReadCount;
 
     /// <summary>
-    /// The default number of entries to fetch from Redis in a single read operation.
+    /// 在单个读操作中从 Redis 获取的默认条目数。
     /// </summary>
     public const int DefaultReadCount = 1000;
 }

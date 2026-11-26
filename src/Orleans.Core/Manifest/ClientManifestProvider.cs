@@ -8,7 +8,7 @@ using Orleans.Metadata;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Creates a manifest of the locally available grain interface types.
+    /// 创建本地可用的 grain 接口类型的列表。
     /// </summary>
     internal class ClientManifestProvider
     {
@@ -22,7 +22,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the client manifest.
+        /// 获得客户名单。
         /// </summary>
         public GrainManifest ClientManifest { get; }
 

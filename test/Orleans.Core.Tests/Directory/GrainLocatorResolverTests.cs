@@ -19,7 +19,7 @@ using Xunit;
 namespace NonSilo.Tests.Directory
 {
     /// <summary>
-    /// Tests for grain locator resolver functionality including DHT, cached, and client grain locator resolution.
+    /// 测试 grain 定位解析器功能,包括 DHT、缓存和客户端 grain 定位分辨率。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Directory")]
     [TestSuite("BVT")]

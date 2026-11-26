@@ -6,7 +6,7 @@ using Orleans.TestingHost;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Configures a test silo to use a randomly skewed transaction clock.
+    /// 配置测试 silo ,以随机使用扭曲的交易时钟。
     /// </summary>
     public class SkewedClockConfigurator : ISiloConfigurator
     {

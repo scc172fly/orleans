@@ -35,7 +35,7 @@ namespace TestGrains
                 events.Add(new PersonLastNameChanged(spouseData.LastName));
             }
 
-            // issue all events atomically
+            // 以原子方式发布所有事件
             RaiseEvents(events);
             await ConfirmEvents();
         }
@@ -44,8 +44,8 @@ namespace TestGrains
         {
             RaiseEvent(new PersonLastNameChanged(lastName));
 
-            // we are not confirming this event here!
-            // therefore, the tentative state and the confirmed state can differ for some time
+            // 我们在这里无法证实这件事!
+            // 因此,暂定状态和确认状态可能会在一段时间内有所不同。
 
             return Task.CompletedTask;
         }
@@ -93,8 +93,8 @@ namespace TestGrains
             }
         }
 
-        // below is a unit test; ideally this code would be in the Tester project,
-        // but this test has to run on the grain, not the client, so we had to add it here
+        // 下面是单位测试; 理想情况下, 这个代码会出现在测试项目中,
+        // 但本次测试必须运行在 grain上,而不是客户端, 所以我们不得不在此添加
 
         private static void AssertEqual<T>(T a, T b)
         {
@@ -105,48 +105,48 @@ namespace TestGrains
 
         public async Task RunTentativeConfirmedStateTest()
         {
-            // initially both the confirmed version and the tentative version are the same: version 0
+            // 最初确认的版本和暂定版本相同:第0版
             AssertEqual(0, Version);
             AssertEqual(0, TentativeVersion);
             AssertEqual(null, State.LastName);
             AssertEqual(null, TentativeState.LastName);
 
-            // now we change the last name
+            // 现在改姓
             await ChangeLastName("Organa");
 
-            // while the udpate is pending, the confirmed version and the tentative version are different
+            // 乌版尚未确定,确认的版本和暂定版本不同
             AssertEqual(0, Version);
             AssertEqual(1, TentativeVersion);
             AssertEqual(null, State.LastName);
             AssertEqual("Organa", TentativeState.LastName);
 
-            // let's wait until the update has been confirmed.
+            // 等更新结果确认后再谈
             await ConfirmChanges();
 
-            // now the two versions are the same again
+            // 现在这两个版本又是一样的了
             AssertEqual(1, Version);
             AssertEqual(1, TentativeVersion);
             AssertEqual("Organa", State.LastName);
             AssertEqual("Organa", TentativeState.LastName);
 
-            // issue another change
+            // 发布另一个更改
             await ChangeLastName("Solo");
 
-            // again, the confirmed and the tentative versions are different
+            // ,确认的和暂定的版本不同
             AssertEqual(1, Version);
             AssertEqual(2, TentativeVersion);
             AssertEqual("Organa", State.LastName);
             AssertEqual("Solo", TentativeState.LastName);
 
-            // this time, we wait for (what should be) enough time to commit to MemoryStorage.
-            // we would never use such timing assumptions in real code. But this is a unit test.
+            // 此时此刻,我们等待(应当等待)足够时间来承诺 MemoryStorage。
+            // 我们绝不会在实际代码中使用这种时间假设。但这是单位测试。
             for (int i = 0; i < 10; i++)
             {
                 await Task.Delay(20);
                 if (Version == 2) break;
             }
 
-            // now the two versions should be the same again
+            // 现在两个版本应该又一样了
             AssertEqual(2, Version);
             AssertEqual(2, TentativeVersion);
             AssertEqual("Solo", State.LastName);

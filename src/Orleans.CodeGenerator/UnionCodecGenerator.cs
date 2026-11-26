@@ -8,11 +8,11 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Generates tagged-union codecs and copiers for union types and closed type hierarchies.
+/// 生成工会类型和封闭型等级的贴有标签的工会编码和复印机。
 /// </summary>
 /// <remarks>
-/// A tagged-union value is written as a tag-delimited field containing at most one field, whose field identifier is the case identifier
-/// and whose expected type is the case type. The runtime type of a case value is therefore encoded only when it differs from the case type.
+/// 贴标签的工会值是作为带标签的限定字段写成,最多包含一个字段,其实地识别符号即为案件识别符号
+/// 并且预期类型是案件类型。 因此, 案件值的运行时间类型只有在与案件类型不同时才编码。
 /// </remarks>
 internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
 {
@@ -43,7 +43,7 @@ internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
                 continue;
             }
 
-            // Case identifiers preserve field identities when hot reload inserts a case earlier in the list.
+            // 当热重装入在清单中较早插入一个案例时, 案件识别符号保留字段身份 。
             var fieldName = $"_caseCodec{unionCase.Id}";
             var field = new SerializerGenerator.CodecFieldDescription(GetCodecType(valueType), fieldName, valueType, HotReloadSafe);
             result.Add(new(unionCase, caseTypeName, valueTypeName, field, SerializerGenerator.GetCodecExpression(field)));
@@ -59,7 +59,7 @@ internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
             && (SymbolEqualityComparer.Default.Equals(named.ContainingAssembly, LibraryTypes.Compilation.Assembly)
                 || named.ContainingAssembly.HasAttribute(LibraryTypes.TypeManifestProviderAttribute)))
         {
-            // Use the concrete generated codec to avoid interface dispatch.
+            // 使用混凝土生成的编码来避免接口发送。
             return QualifiedName(
                 ParseName(SerializerGenerator.GetGeneratedNamespaceName(named)),
                 IdentifierName(SerializerGenerator.GetSimpleClassName(named.Name)));
@@ -258,7 +258,7 @@ internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
     }
 
     /// <summary>
-    /// Writes field codec methods for a closed base type. Its Serialize and Deserialize methods serialize the base members for its cases.
+    /// 用于编写封闭基型的实地编码方法,其序列化和去序化方法将案件基础成员顺序排列。
     /// </summary>
     internal static void WriteClosedTypeFieldCodecMethods(SourceWriter writer, SerializableTypeEmissionPlan type, EquatableArray<UnionCaseSerializerPlan> cases)
     {

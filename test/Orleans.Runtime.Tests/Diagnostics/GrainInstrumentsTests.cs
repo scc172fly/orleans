@@ -373,7 +373,7 @@ public class GrainInstrumentsTests
         Assert.Equal(1, second.GrainCount);
         if (!enabled)
         {
-            // Late enabling has no replay; fresh operations both emit and still update CLR bookkeeping.
+            // 启用延迟后没有重放; 新的操作既发布又更新了《公约》保存簿。
             foreach (var instrument in fixture.PublishedInstruments) listener.EnableMeasurementEvents(instrument);
             Assert.Equal(new int[3], positives);
             Assert.Equal(new int[3], negatives);

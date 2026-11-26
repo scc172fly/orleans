@@ -54,15 +54,15 @@ public class TraceHistoryTests
     {
         var history = CreateHistory();
 
-        // Seed with 100 values
+        // 种子值100 值
         Add(history, 100);
 
-        // check there are 100 values in the results
+        // 检查结果中显示100 值
         var grainTraceDictionary = history.QueryAll();
 
         Assert.Equal(100, grainTraceDictionary.Keys.Count);
 
-        // Add another 10 values
+        // 另添加10个值
         Add(history, 10);
 
         var grainTraceDictionary2 = history.QueryAll();

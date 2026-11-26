@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Represents a dictionary whose mutations are recorded in a journal.
+/// 表示在日记中记录突变的字典。
 /// </summary>
-/// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
-/// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
+/// <typeparam name="TKey">字典中的密钥类型。</typeparam>
+/// <typeparam name="TValue">字典中的数值类型。</typeparam>
 /// <remarks>
-/// The dictionary takes ownership of the keys and values passed to it, and the journal records each mutation when it is made. To change a value, assign a new instance.
+/// 字典将钥匙和数值的所有权传给它, 日记记录每个发生变异时的事物。 要更改一个值, 请指定一个新实例 。
 /// </remarks>
 public interface IDurableDictionary<TKey, TValue> : IDictionary<TKey, TValue> where TKey : notnull
 {
@@ -78,7 +78,7 @@ internal class DurableDictionary<TKey, TValue> : IDurableDictionary<TKey, TValue
 
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer)
     {
-        // This state implementation appends journal entries as the data structure is modified, so there is no need to perform separate writing here.
+        // 此状态的实施随着数据结构的修改而附加日记条目, 因此在此无需单独写入 。
     }
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter snapshotWriter)

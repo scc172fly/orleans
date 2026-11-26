@@ -9,7 +9,7 @@ using Xunit;
 namespace Tester.ClientConnectionTests
 {
     /// <summary>
-    /// Tests for handling invalid connection preambles sent to gateway endpoints.
+    /// 处理发送到网关端点的无效连接序言的测试 。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -24,22 +24,22 @@ namespace Tester.ClientConnectionTests
         [Fact, TestCategory("Functional")]
         public async Task ShouldCloseConnectionWhenClientSendsInvalidPreambleSize()
         {
-            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // The fixture deploys the client.
+            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // 固定装置会部署客户
             var gwEndpoint = gateways.First().ToIPEndPoint()!;
 
             using var socket = new Socket(gwEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            // Set receive timeout to avoid hanging indefinitely
+            // 设定接收接收超时, 以避免无限期挂起
             socket.ReceiveTimeout = 25_000;
 
             await socket.ConnectAsync(gwEndpoint, TestContext.Current.CancellationToken);
 
-            // Send invalid preamble size (exceeds MaxPreambleLength of 1024 from ConnectionPreambleHelper)
+            // 发送无效的序言大小( 超过) MaxPreambleLength 1024年 从 ConnectionPreambleHelper)
             int invalidSize = 99999;
             await socket.SendAsync(BitConverter.GetBytes(invalidSize), SocketFlags.None);
 
-            // Try to read from the socket to detect closure
-            // When the server closes the connection, Receive will return 0 bytes or throw
+            // 尝试从套接字读取以检测关闭
+            // 当服务器关闭连接时, 接收将返回 0 字节或扔
             var buffer = new byte[1];
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
@@ -47,12 +47,12 @@ namespace Tester.ClientConnectionTests
             {
                 var bytesReceived = await socket.ReceiveAsync(buffer, SocketFlags.None, cts.Token);
 
-                // If we receive 0 bytes, the connection was gracefully closed by the server
+                // 如果我们收到 0 字节, 服务器将连接优雅地关闭
                 Assert.Equal(0, bytesReceived);
             }
             catch (SocketException ex) when (ex.SocketErrorCode is SocketError.ConnectionReset or SocketError.ConnectionAborted)
             {
-                // Connection was forcibly closed - this is also acceptable
+                // 强行关闭连接――这也可以接受
             }
             catch (OperationCanceledException)
             {

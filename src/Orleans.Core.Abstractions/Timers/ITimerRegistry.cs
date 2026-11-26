@@ -6,36 +6,36 @@ using Orleans.Runtime;
 namespace Orleans.Timers;
 
 /// <summary>
-/// Functionality for managing grain timers.
+/// 管理 grain 计时器的功能。
 /// </summary>
 public interface ITimerRegistry
 {
     /// <summary>
-    /// Creates a grain timer.
+    /// 创建 grain 计时器。
     /// </summary>
-    /// <param name="grainContext">The grain which the timer is associated with.</param>
-    /// <param name="callback">The timer callback, which will fire whenever the timer becomes due.</param>
-    /// <param name="state">The state object passed to the callback.</param>
+    /// <param name="grainContext">计时器关联的 grain 。</param>
+    /// <param name="callback">计时器回调, 定时器到期后即会点火。</param>
+    /// <param name="state">国家对象传递到回调。</param>
     /// <param name="dueTime">
-    /// The amount of time to delay before the <paramref name="callback"/> is invoked.
-    /// Specify <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> to prevent the timer from starting.
-    /// Specify <see cref="TimeSpan.Zero"/> to invoke the callback promptly.
+    /// 援引 <paramref name="callback"/> 之前的延误时间。
+    /// 指定 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 以阻止计时器启动。
+    /// 指定 <see cref="TimeSpan.Zero"/> 迅速调用回调。
     /// </param>
     /// <param name="period">
-    /// The time interval between invocations of <paramref name="callback"/>.
-    /// Specify <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> to disable periodic signaling.
+    /// <paramref name="callback"/>的引用之间的时间间隔。
+    /// 指定用于禁用定期信号的 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 。
     /// </param>
     /// <returns>
-    /// An <see cref="IDisposable"/> instance which represents the timer.
+    /// <see cref="IDisposable"/> 实例,它代表计时器。
     /// </returns>
     [Obsolete("Use 'RegisterGrainTimer(grainContext, callback, state, new() { DueTime = dueTime, Period = period, Interleave = true })' instead.")]
     IDisposable RegisterTimer(IGrainContext grainContext, Func<object?, Task> callback, object? state, TimeSpan dueTime, TimeSpan period);
 
     /// <inheritdoc cref="GrainBaseExtensions.RegisterGrainTimer{TState}(IGrainBase, Func{TState, CancellationToken, Task}, TState, GrainTimerCreationOptions)"/>
-    /// <param name="grainContext">The grain which the timer is associated with.</param>
-    /// <param name="callback">The timer callback, which will be invoked whenever the timer becomes due.</param>
-    /// <param name="state">The state passed to the callback.</param>
-    /// <param name="options">The options for creating the timer.</param>
-    /// <typeparam name="TState">The type of the <paramref name="state"/> parameter.</typeparam>
+    /// <param name="grainContext">计时器关联的 grain 。</param>
+    /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
+    /// <param name="state">国家通过回调。</param>
+    /// <param name="options">创建计时器的选项。</param>
+    /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
     IGrainTimer RegisterGrainTimer<TState>(IGrainContext grainContext, Func<TState, CancellationToken, Task> callback, TState state, GrainTimerCreationOptions options);
 }

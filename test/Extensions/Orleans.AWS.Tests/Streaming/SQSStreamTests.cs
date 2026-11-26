@@ -11,7 +11,7 @@ using Xunit;
 namespace AWSUtils.Tests.Streaming
 {
     /// <summary>
-    /// Tests SQS streaming provider with various producer/consumer configurations between grains and clients.
+    /// 测试SQS流式供应商,在 grains 和客户之间有不同的生产者/消费者配置。
     /// </summary>
     [TestCategory("AWS"), TestCategory("SQS")]
     [TestSuite("Functional")]
@@ -149,7 +149,7 @@ namespace AWSUtils.Tests.Streaming
             await runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
         }
 
-        //------------------------ MANY to Many different grains ----------------------//
+        //和很多不同的人 grains ----------------------//
 
         [Fact]
         public async Task SQS_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
@@ -175,7 +175,7 @@ namespace AWSUtils.Tests.Streaming
             await runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
         }
 
-        //------------------------ MANY to Many Same grains ----------------------//
+        //和... 和很多相同 grains ----------------------//
         [Fact]
         public async Task SQS_09_ManySame_ManyProducerGrainsManyConsumerGrains()
         {

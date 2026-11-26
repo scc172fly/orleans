@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>Tests the rule and code fix for cleanup which passes the already-canceled token after task cancellation.</summary>
+/// <summary>测试清除规则及代码设置,该规则及代码设置在任务取消后通过已经传递的标记。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskCleanupTests
 {

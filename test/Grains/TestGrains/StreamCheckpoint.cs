@@ -23,18 +23,18 @@ namespace TestGrains
 
         public bool IsDuplicate(StreamSequenceToken sequenceToken)
         {
-            // This is the first event, so it can't be a duplicate
+            // 这是第一次,所以不能是重复
             if (StartToken == null)
                 return false;
 
-            // if we have processed events, compare with the sequence token of last event we processed.
+            // 如果我们处理过事件 和最后事件的顺序符号相比
             if (LastProcessedToken != null)
             {
-                // if Last processed is not older than this sequence token, then this token is a duplicate
+                // 如果上次处理的最后一个进程不比此序列顺序的旧, 那么这个符号是一个重复
                 return !LastProcessedToken.Older(sequenceToken);
             }
 
-            // If all we have is the start token, then we've not processed the first event, so we should process any event at or after the start token.
+            // 如果我们只有开始的象征, 那么我们还没有处理第一个事件, 所以我们应该处理任何 开始的象征或之后的事件。
             return StartToken.Newer(sequenceToken);
         }
 

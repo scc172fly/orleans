@@ -4,32 +4,32 @@ using System.Text.Json;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// Options for <see cref="JsonCodec"/>.
+/// <see cref="JsonCodec"/>选项。
 /// </summary>
 public class JsonCodecOptions
 {
     /// <summary>
-    /// Gets or sets the <see cref="JsonSerializerOptions"/>.
+    /// 获取或设置 <see cref="JsonSerializerOptions"/>。
     /// </summary>
     public JsonSerializerOptions SerializerOptions { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the <see cref="JsonReaderOptions"/>.
+    /// 获取或设置 <see cref="JsonReaderOptions"/>。
     /// </summary>
     public JsonReaderOptions ReaderOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets the <see cref="JsonWriterOptions"/>.
+    /// 获取或设置 <see cref="JsonWriterOptions"/>。
     /// </summary>
     public JsonWriterOptions WriterOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets a delegate used to determine if a type is supported by the JSON serializer for serialization and deserialization.
+    /// 获取或设置代表用来确定某一类型是否得到 JSON 序列器的佐证,以便进行序列和消毒。
     /// </summary>
     public Func<Type, bool?>? IsSerializableType { get; set; }
 
     /// <summary>
-    /// Gets or sets a delegate used to determine if a type is supported by the JSON serializer for copying.
+    /// 获取或设置用于确定某一类型是否得到 JSON 序列器支持的代表复制。
     /// </summary>
     public Func<Type, bool?>? IsCopyableType { get; set; }
 }

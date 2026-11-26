@@ -8,7 +8,7 @@ public sealed class ExportGrain(ILogger<ExportGrain> logger) : DurableGrain
     {
         foreach (var partition in partitions)
         {
-            // Logged again for every completed partition each time the task replays.
+            // 每次任务重放时, 都再次登录每个已完成分区 。
             logger.LogInformation("Exporting partition {Partition}.", partition);
             await Export(partition).WithId("partition");
         }
@@ -24,7 +24,7 @@ public sealed class ExportGrain(ILogger<ExportGrain> logger) : DurableGrain
 // <orleans0215_fix>
 public sealed class ReplaySafeExportGrain(ILogger<ReplaySafeExportGrain> logger) : DurableGrain
 {
-    // Skips events while a task replays, so each is logged once. Ordinary grain methods can use the same logger.
+    // 任务重放时跳过事件, 所以每个事件都记录一次。 普通 grain 方法可以使用相同的日志 。
     private readonly ILogger _logger = logger.ReplaySafe();
 
     public async DurableTask<int> ExportAsync(string[] partitions)

@@ -104,7 +104,7 @@ jobs:
           ./samples/Validate-Samples.ps1 -NoBuild
 
       - name: Build documentation projects
-        # Each project builds for its own target framework, including projects which target only net11.0.
+        # 每个项目都为自己的目标框架建立,包括只针对净11.0的项目。
         run: dotnet build docs/Docs.slnx --configuration Release -bl:docs-projects-build.binlog
 
       - name: Test documentation projects
@@ -112,10 +112,10 @@ jobs:
 
       - name: Build samples against local Orleans packages
         shell: pwsh
-        # Keep sample compiler processes isolated until the SDK's runtime includes the JIT fix
-        # from dotnet/runtime#132395 (shipped in .NET 10.0.13, absent from 11.0.0). Then validate
-        # shared compilation in repeated runs before removal.
-        # See #11235, dotnet/roslyn#85656, and dotnet/runtime#132631.
+        # 保持样本编译程序隔离, 直到 SDK 的运行时间包括 JIT 修正
+        # 从dotnet/运行时间#132395( 以 .NET 10.0. 13 乘船, 11. 0 0. 5 时缺席) 。 然后验证
+        # 重复使用汇编,然后删除。
+        # 见#11235,dotnet/roslyn#85656和dotnet/runtime#132631。
         run: ./samples/Build-Samples.ps1 -Configuration Release -NoIncremental -DisableSharedCompilation
 
       - name: Test durable workflow sample

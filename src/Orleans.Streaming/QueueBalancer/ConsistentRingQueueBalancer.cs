@@ -10,7 +10,7 @@ namespace Orleans.Streams
 {
     internal class ConsistentRingQueueBalancer : QueueBalancerBase, IStreamQueueBalancer, IRingRangeListener
     {
-        private IConsistentRingStreamQueueMapper _streamQueueMapper = null!; // Initialized in Initialize.
+        private IConsistentRingStreamQueueMapper _streamQueueMapper = null!; // 初始化时开始。
         private IRingRange _myRange;
 
         public static IStreamQueueBalancer Create(IServiceProvider services, string name)

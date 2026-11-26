@@ -13,8 +13,8 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Locks in representative generated-serializer payloads so future source-generator changes
-/// can be checked for wire-format drift without deserializing newly produced data.
+/// 具有代表性的生成序列式机载有效载荷中的锁,从而改变未来的源源生成器
+/// 可在不破坏新产生数据的情况下检查是否有线-格式漂移。
 /// </summary>
 [Trait("Category", "BVT")]
 [TestSuite("BVT")]
@@ -250,8 +250,8 @@ public sealed class GeneratedSerializerBitwiseCompatibilityTests : IDisposable
         [CallerMemberName] string testName = "")
     {
         var expectedPath = Path.Combine(Path.GetDirectoryName(sourceFile)!, "snapshots", $"{nameof(GeneratedSerializerBitwiseCompatibilityTests)}.{testName}.verified.hex.txt");
-        // Keep the checked-in baseline as inert text: normalize and compare the hex string,
-        // but never decode it back into bytes or deserialize it into an object graph.
+        // 将上检基准保留为无电文字: 普通化和比较十六进制字符串,
+        // 但从未将其解码成字节或将它分流为对象图。
         var normalizedExpected = NormalizeHex(File.ReadAllText(expectedPath));
         var actualHex = ToHexString(actualBytes);
 

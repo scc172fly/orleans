@@ -8,22 +8,22 @@ using Orleans.Streams;
 namespace OrleansAWSUtils.Streams;
 
 /// <summary>
-/// Stream sequence token that tracks sequence number and event index
+/// 跟踪序列编号和事件索引的串流序列符号
 /// </summary>
 [Serializable]
 [GenerateSerializer]
 public class SQSFIFOSequenceToken : StreamSequenceToken
 {
     /// <summary>
-    /// Gets the StreamId this SQS FIFO sequence token is related to,
-    /// as the SqsSequenceNumber is partitioned by StreamId (SQS MessageGroupId)
+    /// 获取 SQS FIFO 序列符号的 StreamId
+    /// 以当为 SqsSequenceNumber 分割由 StreamId (SQS MessageGroupId)
     /// </summary>
     [Id(2)]
     [JsonProperty]
     public StreamId StreamId { get; set; }
 
     /// <summary>
-    /// Gets the Amazon SQS FIFO sequence number for this message within its message group.
+    /// 在其信息组中获取此信件的 Amazon SQS FIFO 序列号。
     /// </summary>
     [Id(0)]
     [JsonProperty]
@@ -31,25 +31,25 @@ public class SQSFIFOSequenceToken : StreamSequenceToken
 
 
     /// <summary>
-    /// Gets the receiver-local sequence number used for queue cache ordering and progress.
+    /// 获取用于队列缓存订购和进度的接收器- 本地序列编号。
     /// </summary>
     [Id(3)]
     [JsonProperty]
     public override long SequenceNumber { get; protected set; }
 
     /// <summary>
-    /// Gets the number of events in batch prior to this event
+    /// 获取此事件之前的批次事件数量
     /// </summary>
     [Id(1)]
     [JsonProperty]
     public override int EventIndex { get; protected set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SQSFIFOSequenceToken"/> class.
+    /// 初始化 <see cref="SQSFIFOSequenceToken"/> 类的新实例。
     /// </summary>
-    /// <param name="streamId">The stream associated with the token.</param>
-    /// <param name="seqNumber">The sequence number.</param>
-    /// <param name="sequenceNumber">The receiver-local sequence number.</param>
+    /// <param name="streamId">与该符号相关的流。</param>
+    /// <param name="seqNumber">序列号。</param>
+    /// <param name="sequenceNumber">接收器- 本地序列号。</param>
     public SQSFIFOSequenceToken(StreamId streamId, UInt128 seqNumber, long sequenceNumber)
     {
         StreamId = streamId;
@@ -59,12 +59,12 @@ public class SQSFIFOSequenceToken : StreamSequenceToken
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SQSFIFOSequenceToken"/> class.
+    /// 初始化 <see cref="SQSFIFOSequenceToken"/> 类的新实例。
     /// </summary>
-    /// <param name="streamId">The stream id for which this token relates.</param>
-    /// <param name="seqNumber">The sequence number.</param>
-    /// <param name="sequenceNumber">The receiver-local sequence number.</param>
-    /// <param name="eventInd">The event index, for events which are part of a batch of events.</param>
+    /// <param name="streamId">此符号相关的流代号。</param>
+    /// <param name="seqNumber">序列号。</param>
+    /// <param name="sequenceNumber">接收器- 本地序列号。</param>
+    /// <param name="eventInd">事件索引,用于一系列活动的一部分。</param>
     public SQSFIFOSequenceToken(StreamId streamId, UInt128 seqNumber, long sequenceNumber, int eventInd)
     {
         StreamId = streamId;
@@ -74,20 +74,20 @@ public class SQSFIFOSequenceToken : StreamSequenceToken
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SQSFIFOSequenceToken"/> class.
+    /// 初始化 <see cref="SQSFIFOSequenceToken"/> 类的新实例。
     /// </summary>
     /// <remarks>
-    /// This constructor is for serializer use only.
+    /// 此构建器仅用于序列器 。
     /// </remarks>
     public SQSFIFOSequenceToken()
     {
     }
 
     /// <summary>
-    /// Creates a sequence token for a specific event in the current batch
+    /// 为当前批量中特定事件创建序列符号
     /// </summary>
-    /// <param name="eventInd">The event index.</param>
-    /// <returns>A new sequence token.</returns>
+    /// <param name="eventInd">事件索引。</param>
+    /// <returns>新的序列符号。</returns>
     public SQSFIFOSequenceToken CreateSequenceTokenForEvent(int eventInd)
     {
         return new SQSFIFOSequenceToken(StreamId, SqsSequenceNumber, SequenceNumber, eventInd);

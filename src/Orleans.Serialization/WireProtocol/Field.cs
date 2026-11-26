@@ -5,29 +5,29 @@ using System.Text;
 namespace Orleans.Serialization.WireProtocol
 {
     /// <summary>
-    /// Represents a field header.
+    /// 代表外地信头。
     /// </summary>
     public struct Field
     {
         /// <summary>
-        /// The tag byte.
+        /// 标签字节
         /// </summary>
         public Tag Tag;
 
         /// <summary>
-        /// The raw field identifier delta.
+        /// 原始字段识别符 三角形 。
         /// </summary>
         public uint FieldIdDeltaRaw;
 
         /// <summary>
-        /// The raw field type.
+        /// 原始田地类型。
         /// </summary>
         public Type? FieldTypeRaw;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Field"/> struct.
+        /// 初始化 <see cref="Field"/> 结构的新实例。
         /// </summary>
-        /// <param name="tag">The tag.</param>
+        /// <param name="tag">标签。</param>
         public Field(Tag tag)
         {
             Tag = tag;
@@ -36,11 +36,11 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Field"/> struct.
+        /// 初始化 <see cref="Field"/> 结构的新实例。
         /// </summary>
-        /// <param name="tag">The tag.</param>
-        /// <param name="extendedFieldIdDelta">The extended field identifier delta.</param>
-        /// <param name="type">The type.</param>
+        /// <param name="tag">标签。</param>
+        /// <param name="extendedFieldIdDelta">扩展的字段识别符号三角形。</param>
+        /// <param name="type">类型。</param>
         public Field(Tag tag, uint extendedFieldIdDelta, Type type)
         {
             Tag = tag;
@@ -49,13 +49,13 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets or sets the field identifier delta.
+        /// 获取或设置字段识别符三角形。
         /// </summary>
-        /// <value>The field identifier delta.</value>
+        /// <value>字段识别符号三角形。</value>
         public uint FieldIdDelta
         {
-            // If the embedded field id delta is valid, return it, otherwise return the extended field id delta.
-            // The extended field id might not be valid if this field has the Extended wire type.
+            // 如果嵌入字段 id 三角洲有效, 请返回它, 否则则返回扩展字段 id 三角洲 。
+            // 如果扩展字段有扩展线型, 则扩展域代号可能无效 。
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get
             {
@@ -68,7 +68,7 @@ namespace Orleans.Serialization.WireProtocol
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                // If the field id delta can fit into the tag, embed it there, otherwise invalidate the embedded field id delta and set the full field id delta.
+                // 如果字段 id 三角洲可以融入标记, 嵌入标签中, 否则将嵌入的字段 id 三角洲无效, 并设置整个字段 id 三角洲 。
                 if (value <= Tag.MaxEmbeddedFieldIdDelta)
                 {
                     Tag.FieldIdDelta = value;
@@ -82,9 +82,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets or sets the type of the field.
+        /// 获取或设置字段的类型。
         /// </summary>
-        /// <value>The type of the field.</value>
+        /// <value>字段的类型。</value>
         public Type? FieldType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -113,9 +113,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance has a field identifier.
+        /// 获得一个值,以显示此实例是否有字段标识符。
         /// </summary>
-        /// <value><see langword="true" /> if this instance has a field identifier; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> ,如果此实例中有一个字段标识符;否则, <see langword="false" />。</value>
         public readonly bool HasFieldId
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -123,9 +123,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance has an extended field identifier.
+        /// 获得一个值,以显示此实例是否有扩展字段标识符。
         /// </summary>
-        /// <value><see langword="true" /> if this instance has an extended field identifier; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果此实例有扩展字段标识符;否则, <see langword="false" />。</value>
         public readonly bool HasExtendedFieldId
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -133,9 +133,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets or sets the wire type.
+        /// 接线或设置电线型号
         /// </summary>
-        /// <value>The wire type.</value>
+        /// <value>电线型号。</value>
         public WireType WireType
         {
             readonly get => Tag.WireType;
@@ -143,9 +143,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets or sets the schema type.
+        /// 设置或设置模式类型。
         /// </summary>
-        /// <value>The schema type.</value>
+        /// <value>型号。</value>
         public SchemaType SchemaType
         {
             readonly get
@@ -164,9 +164,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets or sets the extended wire type.
+        /// 获取或设置扩展的线型。
         /// </summary>
-        /// <value>The extended wire type.</value>
+        /// <value>长线型</value>
         public ExtendedWireType ExtendedWireType
         {
             readonly get
@@ -183,33 +183,33 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance has a valid schema type.
+        /// 获得一个值,以显示此实例是否具有有效的 schema 类型。
         /// </summary>
-        /// <value><see langword="true" /> if this instance has a valid schema; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果这一案例有有效的计划,否则 <see langword="false" />.</value>
         public readonly bool IsSchemaTypeValid => Tag.IsSchemaTypeValid;
 
         /// <summary>
-        /// Gets a value indicating whether this instance has an extended schema type.
+        /// 获得一个值, 显示此实例是否有扩展的 schema 类型 。
         /// </summary>
-        /// <value><see langword="true" /> if this instance has an extended schema type; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> ,如果这种情况具有扩展的方形类型;否则, <see langword="false" />。</value>
         public readonly bool HasExtendedSchemaType => Tag.IsSchemaTypeValid && Tag.SchemaType != SchemaType.Expected;
 
         /// <summary>
-        /// Gets a value indicating whether this instance represents the end of base fields in a tag-delimited structure.
+        /// 获得一个值, 显示此实例是否代表标签限制结构中基字段的结束。
         /// </summary>
-        /// <value><see langword="true" /> if this instance represents end of base fields in a tag-delimited structure; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果此实例代表了标签上限定结构中基字段的结束;否则, <see langword="false" />。</value>
         public readonly bool IsEndBaseFields => Tag.IsEndBaseFields;
 
         /// <summary>
-        /// Gets a value indicating whether this instance represents the end of a tag-delimited structure.
+        /// 获得一个值, 显示此实例是否代表标签限制结构的结束 。
         /// </summary>
-        /// <value><see langword="true" /> if this instance represents end of a tag-delimited structure; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果此实例代表了标签限定结构的结束; 否则, <see langword="false" />。</value>
         public readonly bool IsEndObject => Tag.IsEndObject;
 
         /// <summary>
-        /// Gets a value indicating whether this instance represents the end of a tag-delimited structure or the end of base fields in a tag-delimited structure.
+        /// 获得一个值, 显示此实例是代表标签限制结构的结尾还是标记限制结构中基字段的终点。
         /// </summary>
-        /// <value><see langword="true" /> if this instance represents the end of a tag-delimited structure or the end of base fields in a tag-delimited structure; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果此实例代表标签上的限制结构的结束或标记上的限制结构中基字段的结束; 否则, <see langword="false" />。</value>
         public readonly bool IsEndBaseOrEndObject
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -217,12 +217,12 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance has a wire type of <see cref="WireType.Reference"/>.
+        /// 获得一个值,以显示此实例是否有 <see cref="WireType.Reference"/>的线型。
         /// </summary>
         public readonly bool IsReference => Tag.WireType == WireType.Reference;
 
         /// <summary>
-        /// Ensures that the wire type is <see cref="WireType.TagDelimited"/>.
+        /// 确保电线型号为 <see cref="WireType.TagDelimited"/>。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureWireTypeTagDelimited()
@@ -234,7 +234,7 @@ namespace Orleans.Serialization.WireProtocol
         private void UnsupportedWireType() => throw new UnsupportedWireTypeException($"A WireType value of {nameof(WireType.TagDelimited)} is expected by this codec. {this}");
 
         /// <summary>
-        /// Ensures that the wire type is supported.
+        /// 确保支持电线型号。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureWireType(WireType expectedType)

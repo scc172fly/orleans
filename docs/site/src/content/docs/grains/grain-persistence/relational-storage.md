@@ -1,56 +1,68 @@
 ---
-title: ADO.NET grain persistence
-description: Configure relational databases, including SQLite, for Orleans grain persistence.
+title: "ADO.NET grain 持久性"
+description: "配置关系数据库,包括SQLite,用于 Orleans grain 持久性。"
 ms.date: 08/08/2026
 ms.topic: how-to
 ---
 
-# ADO.NET grain persistence
+<a id="adonet-grain-persistence"></a>
 
-The [`Microsoft.Orleans.Persistence.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet) package stores grain state using database-specific queries exposed through ADO.NET. Orleans includes persistence scripts for:
+# ADO.NET grain 持久性
 
-| Database | Driver package | `Invariant` | Script |
+[`Microsoft.Orleans.Persistence.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet) 软件包存储状态 grain ,使用通过 ADO.NET接触的数据库特定查询。 Orleans 包括持久性脚本,用于:
+
+| 数据库数据库 | 司机软件包 | `Invariant` | 脚本 |
 |---|---|---|---|
-| SQL Server | `Microsoft.Data.SqlClient` | `Microsoft.Data.SqlClient` | `SQLServer-Persistence.sql` |
-| MySQL or MariaDB | `MySql.Data` or `MySqlConnector` | Driver-specific | `MySQL-Persistence.sql` |
+| SQL 服务器 | `Microsoft.Data.SqlClient` | `Microsoft.Data.SqlClient` | `SQLServer-Persistence.sql` |
+| MySQL 或 MariaDB | `MySql.Data` 或 `MySqlConnector` | Driver-specific | `MySQL-Persistence.sql` |
 | PostgreSQL | `Npgsql` | `Npgsql` | `PostgreSQL-Persistence.sql` |
-| Oracle | `Oracle.ManagedDataAccess.Core` | `Oracle.DataAccess.Client` | `Oracle-Persistence.sql` |
-| SQLite | `Microsoft.Data.Sqlite` | `System.Data.SQLite` | `Sqlite-Persistence.sql` |
+| 甲骨甲 | `Oracle.ManagedDataAccess.Core` | `Oracle.DataAccess.Client` | `Oracle-Persistence.sql` |
+| SQLite 标准 | `Microsoft.Data.Sqlite` | `System.Data.SQLite` | `Sqlite-Persistence.sql` |
 
-The invariant is an Orleans provider identifier and doesn't always match the driver package name. Install the driver package and run both the shared `*-Main.sql` script and `*-Persistence.sql` script for the selected database.
+变量是 Orleans 提供者标识符, 且不总是匹配驱动程序软件包名称。 请安装驱动程序套件, 并为选中的数据库运行共享的 `*-Main.sql` 脚本和 `*-Persistence.sql` 脚本 。
 
-## Configure a provider
+<a id="configure-a-provider"></a>
+
+## 配置提供者
 
 :::code language="csharp" source="../../snippets/compiled/Grains/PersistenceSnippets.cs" id="configure_ado_net_storage":::
-For SQLite:
+对于 SQLite :
 
 :::code language="csharp" source="../../snippets/compiled/Grains/PersistenceSnippets.cs" id="configure_sqlite_storage":::
-SQLite is useful for local, single-process scenarios. Its file locking, deployment topology, and availability characteristics generally don't fit a multi-silo production cluster.
+SQLite 可用于本地的单一进程情景。 它的文件锁定、 部署地貌和可用性特性通常不适应多silo 生产组群 。
 
-## Serialization and schema evolution
+<a id="serialization-and-schema-evolution"></a>
 
-Configure <xref:Orleans.Configuration.AdoNetGrainStorageOptions.GrainStorageSerializer> when the default JSON representation doesn't meet application requirements:
+## 序列化和系统演变
+
+配置配置 <xref:Orleans.Configuration.AdoNetGrainStorageOptions.GrainStorageSerializer> 默认时间 JSON 代表不符合申请要求:
 
 :::code language="csharp" source="./snippets/persistence/StorageConfiguration.cs" id="configure_adonet_serializer":::
 
-Changing the serializer isn't a database migration. The new serializer must read existing payloads or the application must migrate them separately.
+更改序列器不是数据库迁移。 新序列器必须读取现有的有效载荷, 否则应用程序必须分别迁移 。
 
-## Concurrency contract
+<a id="concurrency-contract"></a>
 
-ADO.NET persistence scripts implement Orleans' record-level optimistic concurrency. The database version is exposed to application code as an ETag. Writes and clears compare the expected version and fail on a mismatch.
+## 折货币合同
 
-Provider queries must preserve the parameter names, result names, and types expected by Orleans. Persistence writes run inside a database transaction and must roll back on failure. This transaction covers one grain-state record; it doesn't make writes to multiple <xref:Orleans.Runtime.IPersistentState`1> instances atomic.
+ADO.NET 持久性脚本执行 Orleans记录级的乐观和货币。数据库版本以ETag的形式被应用代码所暴露。 将预期版本进行比较,并因不匹配而失败。
 
-## Customize queries
+提供方询问必须保存 Orleans所期望的参数名、结果名称和类型。 持久性写作运行在数据库交易中, 失败时必须倒回。 此交易覆盖一个 grain- State record; 它不会将多个 <xref:Orleans.Runtime.IPersistentState`1> 原案写入文字 。
 
-The `OrleansQuery` table contains vendor-specific statements used by the provider. Administrators can tune those statements while preserving the Orleans query contract. Keep customized scripts under source control, apply them through the normal database deployment process—for example, using a [data-tier application (DACPAC)](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/data-tier-applications/overview)—and test reads, writes, clears, first-write races, and ETag conflicts after every change.
+<a id="customize-queries"></a>
 
-### Operational query shape
+## 自定义查询
 
-The provider supplies the common identity parameters `GrainIdHash`, `GrainIdN0`, `GrainIdN1`, `GrainTypeHash`, `GrainTypeString`, `GrainIdExtensionString`, and `ServiceId`. `WriteToStorageKey` also receives `GrainStateVersion` and `PayloadBinary`; `ClearStorageKey` and the optional `DeleteStorageKey` receive `GrainStateVersion`.
+下 `OrleansQuery` 管理人可在保存报表的同时,对这些报表进行调音。 Orleans 查询合同. 将定制脚本置于源控制之下,通过正常数据库部署程序应用这些脚本——例如使用 [数据级应用(DACPAC)](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/data-tier-applications/overview)测试读、写、清、第一手的种族,
 
-`ReadFromStorageKey` must return columns named `PayloadBinary` and `Version`. `WriteToStorageKey` must return the resulting version as `NewGrainStateVersion`. Clear and delete queries return one version value in their first result column; its name is ignored. A successful operation returns exactly one row across all result sets, containing the advanced version. An unchanged or missing value signals an ETag conflict. Versions must be representable as a signed 32-bit integer.
+<a id="operational-query-shape"></a>
 
-Each provider instance reads `OrleansQuery` during silo startup and doesn't poll it afterward. Changing the table therefore affects newly initialized providers only. A rolling silo restart is appropriate when old and new queries and schemas can coexist; coordinate an outage or staged migration when they can't.
+### 操作查询形状
 
-Database-specific customization can use features such as [partitioned tables and indexes](https://learn.microsoft.com/sql/relational-databases/partitions/partitioned-tables-and-indexes), [memory-optimized tables](https://learn.microsoft.com/sql/relational-databases/in-memory-oltp/overview-and-usage-scenarios), [natively compiled modules](https://learn.microsoft.com/sql/relational-databases/in-memory-oltp/native-compilation-of-tables-and-stored-procedures), [PolyBase](https://learn.microsoft.com/sql/relational-databases/polybase/overview), or [linked servers](https://learn.microsoft.com/sql/relational-databases/linked-servers/linked-servers-database-engine) when those capabilities fit the deployment.
+供应商提供共同身份参数 `GrainIdHash`、 `GrainIdN0`、 `GrainIdN1`、 `GrainTypeHash`、 `GrainTypeString`、 `GrainIdExtensionString`和 `ServiceId`。 `WriteToStorageKey` 还接收 `GrainStateVersion` 和 `PayloadBinary`; `ClearStorageKey` 和任择 `DeleteStorageKey` 接收 `GrainStateVersion`。
+
+`ReadFromStorageKey` 必须返回名为 `PayloadBinary` 和 `Version`的列。 `WriteToStorageKey` 必须将结果版本还给 `NewGrainStateVersion`。清除并删除查询返回第一个结果栏中的一版值; 其名称被忽略。 成功操作返回所有结果集中完全一行, 包含高级版本。 一个未变或缺失的价值信号表示ETag冲突。 版本必须作为签名32位整数来代表 。
+
+每个提供机构实例都写道 `OrleansQuery` 期间 silo 启动启动后不会在之后进行民意调查。 因此更改表格只影响新初始化的提供者。 滚动 silo 新的新问题和计划可以共存时, 重新开机是合适的; 如果无法的话, 协调断电或分阶段迁移。
+
+具体数据库的定制可使用 [配有分隔表和索引](https://learn.microsoft.com/sql/relational-databases/partitions/partitioned-tables-and-indexes)、 [内存优化表格](https://learn.microsoft.com/sql/relational-databases/in-memory-oltp/overview-and-usage-scenarios)、 [本地汇编模块](https://learn.microsoft.com/sql/relational-databases/in-memory-oltp/native-compilation-of-tables-and-stored-procedures)、 [PolyBase](https://learn.microsoft.com/sql/relational-databases/polybase/overview)或 [连接的服务器](https://learn.microsoft.com/sql/relational-databases/linked-servers/linked-servers-database-engine) 等功能,如果这些功能适合部署。

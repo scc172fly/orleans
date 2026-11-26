@@ -6,16 +6,16 @@ using System.Linq;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// A <see cref="IQueueFlowController"/> which aggregates multiple other <see cref="IQueueFlowController"/> values.
+    /// A <see cref="IQueueFlowController"/> 并加多个其他 <see cref="IQueueFlowController"/> 值。
     /// </summary>
     public class AggregatedQueueFlowController : List<IQueueFlowController>, IQueueFlowController
     {
         private readonly int defaultMaxAddCount;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AggregatedQueueFlowController"/> class.
+        /// 初始化 <see cref="AggregatedQueueFlowController"/> 类的新实例。
         /// </summary>
-        /// <param name="defaultMaxAddCount">The default maximum add count, see <see cref="IQueueFlowController.GetMaxAddCount"/>.</param>
+        /// <param name="defaultMaxAddCount">默认最大添加上限计数,见 <see cref="IQueueFlowController.GetMaxAddCount"/>.</param>
         public AggregatedQueueFlowController(int defaultMaxAddCount)
         {
             this.defaultMaxAddCount = defaultMaxAddCount;

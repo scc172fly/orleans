@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Characterization tests for generated source hint-name collisions.
+/// 生成源提示名碰撞的特性测试。
 /// </summary>
 public class HintNameCollisionTests
 {

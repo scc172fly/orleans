@@ -50,11 +50,11 @@ internal static class SocketExtensions
     }
 
     /// <summary>
-    /// Enables TCP Loopback Fast Path on a socket.
-    /// See https://blogs.technet.microsoft.com/wincat/2012/12/05/fast-tcp-loopback-performance-and-low-latency-with-windows-server-2012-tcp-loopback-fast-path/
-    /// for more information.
+    /// 启用 TCP 圈背快速路径。
+    /// 见 https://blogs.technet.microsoft.com/wincat/2012/12/05/fast-tcp-loopback-performance-and-low-latency-with-windows-server-2012-tcp-loopback-fast-path/
+    /// 以供参考。
     /// </summary>
-    /// <param name="socket">The socket for which FastPath should be enabled.</param>
+    /// <param name="socket">启用的套接字 FastPath 。</param>
     public static void EnableFastPath(this Socket socket, bool noDelay = true)
     {
         if (noDelay)
@@ -67,7 +67,7 @@ internal static class SocketExtensions
 
         try
         {
-            // Win8/Server2012+ only
+            // 仅 Win8/ Server2012+
             var osVersion = Environment.OSVersion.Version;
             if (osVersion.Major > 6 || osVersion.Major == 6 && osVersion.Minor >= 2)
             {
@@ -76,9 +76,9 @@ internal static class SocketExtensions
         }
         catch
         {
-            // If the operating system version on this machine did
-            // not support SIO_LOOPBACK_FAST_PATH (i.e. version
-            // prior to Windows 8 / Windows Server 2012), handle the exception
+            // 如果机器上的操作系统版本
+            // 支持 SIO_LOOPBACK_ FAST_ PATH (i.e. 版本) 不支持
+            // 在Windows 8/ Windows服务器(2012)之前处理例外
         }
     }
 }

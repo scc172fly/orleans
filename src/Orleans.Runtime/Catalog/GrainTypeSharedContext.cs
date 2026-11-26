@@ -17,7 +17,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Functionality which is shared between all instances of a grain type.
+/// 功能由 grain 类型的所有情况分担。
 /// </summary>
 public sealed class GrainTypeSharedContext
 {
@@ -27,21 +27,21 @@ public sealed class GrainTypeSharedContext
     private bool _configurationCompleted;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GrainTypeSharedContext"/> class.
+    /// 初始化 <see cref="GrainTypeSharedContext"/> 类的新实例。
     /// </summary>
-    /// <param name="grainType">The grain type represented by this context.</param>
-    /// <param name="clusterManifestProvider">The provider for cluster grain manifests.</param>
-    /// <param name="grainClassMap">The mapping from grain types to implementation classes.</param>
-    /// <param name="placementStrategyResolver">The resolver for the grain type's placement strategy.</param>
-    /// <param name="messagingOptions">The silo messaging options.</param>
-    /// <param name="collectionOptions">The activation collection options.</param>
-    /// <param name="schedulingOptions">The grain scheduling options.</param>
-    /// <param name="grainRuntime">The grain runtime.</param>
-    /// <param name="loggerFactory">The logger factory.</param>
-    /// <param name="grainReferenceActivator">The grain reference activator.</param>
-    /// <param name="serviceProvider">The service provider.</param>
-    /// <param name="serializerSessionPool">The serializer session pool.</param>
-    /// <exception cref="KeyNotFoundException">A grain implementation class is not registered for <paramref name="grainType"/>.</exception>
+    /// <param name="grainType">下 grain 由此上下文表示的类型。</param>
+    /// <param name="clusterManifestProvider">集群提供方 grain 数据。</param>
+    /// <param name="grainClassMap">从 grain 类型向执行类别绘图。</param>
+    /// <param name="placementStrategyResolver">类型 grain 的安置策略的解决者。</param>
+    /// <param name="messagingOptions"> silo 邮件发件选项。</param>
+    /// <param name="collectionOptions">激活收集选项。</param>
+    /// <param name="schedulingOptions">下 grain 列表选项。</param>
+    /// <param name="grainRuntime">运行时间 grain 。</param>
+    /// <param name="loggerFactory">伐木厂</param>
+    /// <param name="grainReferenceActivator">下 grain 参考激活器。</param>
+    /// <param name="serviceProvider">服务供应商。</param>
+    /// <param name="serializerSessionPool">序列器会话集合。</param>
+    /// <exception cref="KeyNotFoundException">A grain 用于不注册的 <paramref name="grainType"/>.</exception>
     public GrainTypeSharedContext(
         GrainType grainType,
         IClusterManifestProvider clusterManifestProvider,
@@ -89,35 +89,35 @@ public sealed class GrainTypeSharedContext
     }
 
     /// <summary>
-    /// Gets the grain instance type name, if available.
+    /// 如果有,则获取 grain 示例类型名称。
     /// </summary>
     public string GrainTypeName => GrainTypeMetrics.GrainClassName!;
 
     /// <summary>
-    /// Adds a synchronous setup action to run for each activation of this grain type.
+    /// 添加同步设置动作,运行此 grain 类型每次激活的操作。
     /// </summary>
-    /// <param name="setup">The setup action.</param>
+    /// <param name="setup">设置动作。</param>
     /// <remarks>
     /// <para>
-    /// Add actions during <see cref="IConfigureGrainTypeComponents.Configure"/>. Orleans caches the composed actions
-    /// with this shared context and runs them in registration order after the grain constructor completes and
-    /// <see cref="IGrainContext.GrainInstance"/> is assigned, before the grain object's lifecycle participation and
-    /// before lifecycle startup. Each addition runs once per activation, including each stateless worker activation.
+    /// <see cref="IConfigureGrainTypeComponents.Configure"/>中添加动作。 Orleans 缓存组成动作
+    /// 与这一共同背景一起,在 grain 建造器完成后按登记顺序运行和运行。
+    /// <see cref="IGrainContext.GrainInstance"/> 是在 grain 物体参与生命周期和
+    /// 每种添加都运行一次每次激活,包括每个无国籍工人的激活。
     /// </para>
     /// <para>
-    /// Actions are shared across activations and can execute concurrently for different activations. Keep captured
-    /// state safe for concurrent use. Resolve activation-scoped state from <see cref="IGrainContext.ActivationServices"/>
-    /// inside the action. An action can enroll that state using <see cref="ILifecycleParticipant{TLifecycleObservable}"/>
-    /// or subscribe callbacks to <see cref="IGrainContext.ObservableLifecycle"/>.
-    /// Use lifecycle callbacks for asynchronous startup and shutdown, with distinct stages for ordered work.
+    /// 不同激活时可以同时执行。
+    /// 安全状态,以用于同时使用。解析 <see cref="IGrainContext.ActivationServices"/>中的启动范围状态
+    /// 动作。一个动作可以使用 <see cref="ILifecycleParticipant{TLifecycleObservable}"/>注册状态
+    /// 或订阅回调到 <see cref="IGrainContext.ObservableLifecycle"/>。
+    /// 使用生命周期回调进行不同步的启动和关闭,并有不同的订单施工阶段。
     /// </para>
     /// <para>
-    /// A setup exception fails activation, skips subsequent setup actions and lifecycle startup, and triggers normal
-    /// grain and activation-scope cleanup. Each action owns enrollment of the services it resolves.
+    /// 设置例外失败激活, 跳过随后的设置动作和生命周期启动, 触发正常
+    /// grain 和启动范围清理。每个行动都拥有它解决的服务注册。
     /// </para>
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="setup"/> is <see langword="null"/>.</exception>
-    /// <exception cref="InvalidOperationException">Shared grain type configuration has completed.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="setup"/> 是 <see langword="null"/>.</exception>
+    /// <exception cref="InvalidOperationException">共享 grain 类型配置已完成。</exception>
     public void AddActivationSetup(Action<IGrainContext> setup)
     {
         ArgumentNullException.ThrowIfNull(setup);
@@ -164,9 +164,9 @@ public sealed class GrainTypeSharedContext
     }
 
     /// <summary>
-    /// Gets a component.
+    /// 得到一个组件。
     /// </summary>
-    /// <typeparam name="TComponent">The type specified in the corresponding <see cref="SetComponent{TComponent}"/> call.</typeparam>
+    /// <typeparam name="TComponent">相应 <see cref="SetComponent{TComponent}"/> 调用中指定的类型。</typeparam>
     public TComponent? GetComponent<TComponent>()
     {
         if (typeof(TComponent) == typeof(PlacementStrategy) && PlacementStrategy is TComponent component)
@@ -185,10 +185,10 @@ public sealed class GrainTypeSharedContext
     }
 
     /// <summary>
-    /// Gets a component.
+    /// 得到一个组件。
     /// </summary>
-    /// <param name="componentType">The type of the component.</param>
-    /// <returns>The component with the specified type.</returns>
+    /// <param name="componentType">组件的类型。</param>
+    /// <returns>带有指定类型的组成部分。</returns>
     public object? GetComponent(Type componentType)
     {
         if (componentType == typeof(PlacementStrategy))
@@ -207,9 +207,9 @@ public sealed class GrainTypeSharedContext
     }
 
     /// <summary>
-    /// Registers a component.
+    /// 登记一个组成部分。
     /// </summary>
-    /// <typeparam name="TComponent">The type which can be used as a key to <see cref="GetComponent{TComponent}"/>.</typeparam>
+    /// <typeparam name="TComponent">可用于作为 <see cref="GetComponent{TComponent}"/>的密钥的类型。</typeparam>
     public void SetComponent<TComponent>(TComponent? instance)
     {
         if (instance == null)
@@ -222,85 +222,85 @@ public sealed class GrainTypeSharedContext
     }
 
     /// <summary>
-    /// Gets the duration after which idle grains are eligible for collection.
+    /// 获得闲置 grains 有资格被收藏的时间间隔。
     /// </summary>
     public TimeSpan CollectionAgeLimit { get; }
 
     /// <summary>
-    /// Gets the logger.
+    /// 得到伐木者。
     /// </summary>
     public ILogger Logger { get; }
 
     internal ILogger SchedulerLogger { get; }
 
     /// <summary>
-    /// Gets the serializer session pool.
+    /// 获得连环器会话池。
     /// </summary>
     public SerializerSessionPool SerializerSessionPool { get; }
 
     /// <summary>
-    /// Gets the silo messaging options.
+    /// 获取 silo 信息选项。
     /// </summary>
     public SiloMessagingOptions MessagingOptions { get; }
 
     /// <summary>
-    /// Gets the grain reference activator.
+    /// 获取 grain 引用激活器。
     /// </summary>
     public GrainReferenceActivator GrainReferenceActivator { get; }
 
     /// <summary>
-    /// Gets the maximum amount of time we expect a request to continue processing before it is considered hung.
+    /// 获得最大时间,我们期望在被视作悬吊之前继续处理的请求。
     /// </summary>
     public TimeSpan MaxRequestProcessingTime { get; }
 
     /// <summary>
-    /// Gets the maximum amount of time we expect a request to continue processing before a warning may be logged.
+    /// 获得最大时间,我们期望在警告被登录之前继续处理的请求。
     /// </summary>
     public TimeSpan MaxWarningRequestProcessingTime { get; }
 
     /// <summary>
-    /// Gets the placement strategy used by grains of this type.
+    /// 获取这种类型 grains 所使用的安置策略。
     /// </summary>
     public PlacementStrategy PlacementStrategy { get; }
 
     /// <summary>
-    /// Gets the grain directory used by grains of this type, if this type uses a grain directory.
+    /// 得到 grain 使用的目录 grains 类型,如果使用 grain 目录。
     /// </summary>
     public IGrainDirectory? GrainDirectory { get; }
 
     /// <summary>
-    /// Gets the scheduling options.
+    /// 获取调度选项。
     /// </summary>
     public SchedulingOptions SchedulingOptions { get; }
 
     /// <summary>
-    /// Gets the grain runtime.
+    /// 得到 grain 运行时间。
     /// </summary>
     public IGrainRuntime Runtime { get; }
 
     /// <summary>
-    /// Gets the local activation migration manager.
+    /// 找当地启动移民经理
     /// </summary>
     internal IActivationMigrationManager? MigrationManager { get; }
 
     /// <summary>
-    /// Gets the internal grain runtime.
+    /// 获取内部 grain 运行时间。
     /// </summary>
     internal InternalGrainRuntime InternalRuntime => field ??= _serviceProvider.GetRequiredService<InternalGrainRuntime>();
 
     /// <summary>
-    /// Called on creation of an activation.
+    /// 请求创建启动程序
     /// </summary>
-    /// <param name="grainContext">The grain activation.</param>
+    /// <param name="grainContext">启动 grain 。</param>
     public void OnCreateActivation(IGrainContext grainContext)
     {
         GrainInstruments.IncrementGrainCounts(GrainTypeMetrics);
     }
 
     /// <summary>
-    /// Called when an activation is disposed.
+    /// 启动处理后呼叫
     /// </summary>
-    /// <param name="grainContext">The grain activation.</param>
+    /// <param name="grainContext">启动 grain 。</param>
     public void OnDestroyActivation(IGrainContext grainContext)
     {
         GrainInstruments.DecrementGrainCounts(GrainTypeMetrics);

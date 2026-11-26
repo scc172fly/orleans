@@ -18,7 +18,7 @@ using Orleans.Serialization.GeneratedCodeHelpers;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Provides access to serializers and related objects.
+    /// 提供连发器和相关物品的存取。
     /// </summary>
     public sealed class CodecProvider : ICodecProvider
     {
@@ -37,7 +37,7 @@ namespace Orleans.Serialization.Serializers
         private readonly ConcurrentDictionary<Type, IDeepCopier> _typedCopiers = new();
 
         private readonly ConcurrentDictionary<Type, object> _serializerServices = new();
-        // A null target groups array and bare-parameter patterns for shape matching.
+        // 一个空目标组阵列和用于形状匹配的光参数模式。
         private readonly Dictionary<(Type Contract, Type? Target), List<(Type Implementation, SerializationContract Contract)>> _implementationCandidates = new();
         private readonly List<IGeneralizedCodec> _generalizedCodecs = new();
         private readonly List<ISpecializableCodec> _specializableCodecs = new();
@@ -55,10 +55,10 @@ namespace Orleans.Serialization.Serializers
         private bool _initialized;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CodecProvider"/> class.
+        /// 初始化 <see cref="CodecProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="codecConfiguration">The codec configuration.</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="codecConfiguration">编码器配置。</param>
         public CodecProvider(IServiceProvider serviceProvider, IOptions<TypeManifestOptions> codecConfiguration)
         {
             _serviceProvider = serviceProvider;
@@ -133,7 +133,7 @@ namespace Orleans.Serialization.Serializers
                 var types = metadataCollection.ToArray();
                 var legacyOrders = new int[types.Length];
                 var nextOrder = int.MaxValue;
-                // Anchor legacy entries before subsequent collection members' explicit registrations.
+                // 紧扣遗产条目,然后随后收集成员明确登记。
                 for (var i = types.Length - 1; i >= 0; i--)
                 {
                     legacyOrders[i] = nextOrder;
@@ -149,7 +149,7 @@ namespace Orleans.Serialization.Serializers
                 for (var i = 0; i < types.Length; i++)
                 {
                     var type = types[i];
-                    // Open built-in array implementations are intrinsic fallbacks, after registered converters.
+                    // 开源数组执行是注册转换器后固有的后退。
                     if (type == typeof(ArrayCodec<>) || type == typeof(ArrayCopier<>))
                     {
                         continue;
@@ -258,7 +258,7 @@ namespace Orleans.Serialization.Serializers
         public IFieldCodec? TryGetCodec(Type fieldType)
         {
             if (fieldType is not null && _manifest.CodecFactories.TryGetValue(fieldType, out var factory)) return factory(this);
-            // If the field type is unavailable, return the void codec which can at least handle references.
+            // 如果字段类型不可用, 请返回至少可以处理引用的无效编码。
             return fieldType is null ? _voidCodec
                 : TryGetCached(_untypedCodecs, fieldType, out var existing) ? existing
                 : TryCreateCodec(fieldType) is { } res ? CacheValue(_untypedCodecs, fieldType, res) : null;
@@ -327,7 +327,7 @@ namespace Orleans.Serialization.Serializers
 
             ThrowIfUnsupportedType(fieldType);
 
-            // Try to find the codec from the configured codecs.
+            // 尝试从配置的编码器中找到编码器。
             var untypedResult = CreateBaseCodecInstance(fieldType, fieldType.IsConstructedGenericType ? fieldType.GetGenericTypeDefinition() : fieldType);
 
             if (untypedResult is null)
@@ -443,7 +443,7 @@ namespace Orleans.Serialization.Serializers
         public IDeepCopier? TryGetDeepCopier(Type fieldType)
         {
             if (fieldType is not null && _manifest.CopierFactories.TryGetValue(fieldType, out var factory)) return factory(this);
-            // If the field type is unavailable, return the void copier which can at least handle references.
+            // 如果字段类型不可用, 请返回至少可以处理引用的空白复印机 。
             return fieldType is null ? _voidCopier
                 : TryGetCached(_untypedCopiers, fieldType, out var existing) ? existing
                 : TryCreateCopier(fieldType) is { } res ? CacheValue(_untypedCopiers, fieldType, res)
@@ -589,7 +589,7 @@ namespace Orleans.Serialization.Serializers
         {
             if (TryGetCached(_serializerServices, type, out var completed)) return completed;
             if (TryGetSerializerService(type, out var registered)) return registered;
-            // Interface holders and external dependencies use the construction provider's routing and restrictions.
+            // 接口持有人和外部依赖者使用建筑供应商的路线安排和限制。
             return IsRegisteredImplementation(type)
                 ? GetServiceOrCreateInstance(type)
                 : ActivatorUtilities.GetServiceOrCreateInstance(Services, type);
@@ -625,7 +625,7 @@ namespace Orleans.Serialization.Serializers
             }
             catch (Exception exception) { RecordConstructionFailure(exception); throw; }
 
-            // Allocate captured construction state only on a cache miss.
+            // 只能用缓存失密来分配被俘获的建筑状态
             static object CreateService(CodecProvider provider, Type type, object[]? constructorArguments, bool cacheImplementation)
             {
                 var result = provider.ConstructService(type, () => provider.ActivateService(type, constructorArguments), beginGraph: false);
@@ -635,7 +635,7 @@ namespace Orleans.Serialization.Serializers
 
         private bool IsRegisteredImplementation(Type type)
         {
-            // Manifest implementations have provider lifetime; ordinary DI services keep their configured lifetimes.
+            // 实施示范项目时有供应商的寿命;普通的DI服务保持其配置的寿命。
             var definition = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
             return _manifest.SerializerTypes.Contains(type) || _manifest.SerializerTypes.Contains(definition)
                 || _manifest.FieldCodecTypes.Contains(type) || _manifest.FieldCodecTypes.Contains(definition)
@@ -703,7 +703,7 @@ namespace Orleans.Serialization.Serializers
             }
             var current = OrleansGeneratedCodeHelper.GetConstructionScope(this);
             using var ownedScope = current is null ? new ConstructionScope(this) : null;
-            var scope = current ?? ownedScope!; // Nested resolutions borrow the root's scope.
+            var scope = current ?? ownedScope!; // 嵌套式决议会借过根的范围 。
             if (ownedScope is not null)
             {
                 OrleansGeneratedCodeHelper.EnterServiceResolution(this, scope);
@@ -834,7 +834,7 @@ namespace Orleans.Serialization.Serializers
             {
                 if (_services?.TryGetValue(type, out service) == true)
                 {
-                    // A null entry marks a factory whose instance has not yet been allocated.
+                    // 空条目是指尚未分配其用途的工厂。
                     if (service is null)
                     {
                         if (!requireInstance) return false;
@@ -1060,13 +1060,13 @@ namespace Orleans.Serialization.Serializers
             object[]? constructorArguments = null;
             if (TrySelectImplementation(typeof(IBaseCodec<>), fieldType, searchType, out var baseCodecType))
             {
-                // If there is a base type serializer for this type, create a codec which will then accept that base type serializer.
+                // 如果这类类型的序列器有基准型号,请创建编码器,然后接受该基准型序列器。
                 codecType = ConstructGenericImplementation(typeof(ConcreteTypeSerializer<,>), fieldType, baseCodecType);
                 constructorArguments = new[] { GetServiceOrCreateInstance(baseCodecType) };
             }
             else if (TrySelectImplementation(typeof(IValueSerializer<>), fieldType, searchType, out var valueSerializerType))
             {
-                // If there is a value serializer for this type, create a codec which will then accept that value serializer.
+                // 如果有这种类型的值序列器,请创建一个编码器,然后接受该数值序列器。
                 codecType = ConstructGenericImplementation(typeof(ValueSerializer<,>), fieldType, valueSerializerType);
                 constructorArguments = new[] { GetServiceOrCreateInstance(valueSerializerType) };
             }
@@ -1080,7 +1080,7 @@ namespace Orleans.Serialization.Serializers
             }
             else if (fieldType.IsArray)
             {
-                // Depending on the type of the array, select the base array codec or the multi-dimensional codec.
+                // 视数组的类型而定,选择基数组编码或多维编码。
                 codecType = fieldType.IsSZArray
                     ? ConstructGenericImplementation(typeof(ArrayCodec<>), fieldType.GetElementType()!)
                     : ConstructGenericImplementation(typeof(MultiDimensionalArrayCodec<,>), fieldType, fieldType.GetElementType()!);
@@ -1094,7 +1094,7 @@ namespace Orleans.Serialization.Serializers
                         _ => searchType.BaseType
                     }) is IDerivedTypeCodec fieldCodec)
             {
-                // Find codecs which generalize over all subtypes.
+                // 查找可覆盖所有子类型范围的编码器。
                 return fieldCodec;
             }
 
@@ -1216,7 +1216,7 @@ namespace Orleans.Serialization.Serializers
                                 }
                                 catch (ArgumentException)
                                 {
-                                    // The runtime rejected the bound arguments, including generic constraints.
+                                    // 时间已久,但驳回约束性论点,包括一般性限制。
                                     continue;
                                 }
                             }
@@ -1381,7 +1381,7 @@ namespace Orleans.Serialization.Serializers
             }
             else if (fieldType.IsArray)
             {
-                // Depending on the type of the array, select the base array copier or the multi-dimensional copier.
+                // 根据数组的类型,选择基数组复印机或多维复印机。
                 var arrayCopierType = fieldType.IsSZArray ? typeof(ArrayCopier<>) : typeof(MultiDimensionalArrayCopier<>);
                 copierType = ConstructGenericImplementation(arrayCopierType, fieldType.GetElementType()!);
             }
@@ -1394,9 +1394,9 @@ namespace Orleans.Serialization.Serializers
                         _ => baseType
                     }) is IDerivedTypeCopier derivedTypeCopier)
             {
-                // Find copiers which generalize over all subtypes. The field type and search type are advanced in
-                // lockstep so that the generic arguments used to construct the copier always match the arity of the
-                // copier's declared type, even when a subtype changes arity (e.g. the internal frozen collection types).
+                // 查找可覆盖所有子类型范围的复印机。字段类型和搜索类型在
+                // 以便用来建造复印机的通用参数 总是与
+                // 复印机申报的类型,即使子类型改变其正态(e.g.内部冻结的收集类型)。
                 return derivedTypeCopier;
             }
 

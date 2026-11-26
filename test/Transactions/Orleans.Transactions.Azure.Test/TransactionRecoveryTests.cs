@@ -10,7 +10,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// Tests for transaction recovery after silo failures with Azure Storage clustering.
+    /// 交易后收回交易的检验 silo 失败 Azure 储存集群。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

@@ -9,32 +9,32 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// The exception thrown when a reminder table implementation violates a documented conformance guarantee.
+/// 执行提醒表违反文件记录的遵守保证时提出的例外。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
 public sealed class ReminderConformanceException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderConformanceException"/> class.
+    /// 初始化 <see cref="ReminderConformanceException"/> 类的新实例。
     /// </summary>
     public ReminderConformanceException() : base("A reminder table conformance guarantee was violated.")
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderConformanceException"/> class.
+    /// 初始化 <see cref="ReminderConformanceException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">The structured failure report.</param>
+    /// <param name="message">结构化故障报告。</param>
     public ReminderConformanceException(string message) : base(message)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderConformanceException"/> class.
+    /// 初始化 <see cref="ReminderConformanceException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">The structured failure report.</param>
-    /// <param name="innerException">The underlying exception.</param>
+    /// <param name="message">结构化故障报告。</param>
+    /// <param name="innerException">基本例外。</param>
     public ReminderConformanceException(string message, Exception? innerException) : base(message, innerException)
     {
     }
@@ -46,13 +46,13 @@ public sealed class ReminderConformanceException : Exception
 }
 
 /// <summary>
-/// Builds the structured failure report which every reminder conformance failure carries.
+/// 构建每条提醒提示不合规都携带的结构性故障报告。
 /// </summary>
 /// <remarks>
-/// A report always identifies the provider, the violated guarantee, and the failing operation. It additionally
-/// carries, when known: the operation sequence, the reminder identity and its uniform hash code, the expected and
-/// observed results, the current, previous and supplied ETags, the hash range and ownership under test, and the
-/// schedule or loading-window state at the point of failure.
+/// 报告总是指明提供者、被违反的担保和失败的操作。
+/// 已知时,即携带:操作序列、提醒身份及其统一的散列代码、预期和
+/// 观测结果、当前、过去和供应的ETags、散列范围以及正在测试的所有权,
+/// 计划或负载窗口在失败点的状态。
 /// </remarks>
 public sealed class ReminderFailureReport
 {
@@ -69,105 +69,105 @@ public sealed class ReminderFailureReport
     }
 
     /// <summary>
-    /// Creates a report for the specified provider, guarantee and operation.
+    /// 为指定的提供者、 担保和操作创建报告。
     /// </summary>
-    /// <param name="provider">The provider under test.</param>
-    /// <param name="guarantee">The conformance guarantee being verified.</param>
-    /// <param name="operation">The <see cref="IReminderTable"/> operation which produced the observation.</param>
-    /// <returns>The new report.</returns>
+    /// <param name="provider">供应商正在接受测试。</param>
+    /// <param name="guarantee">合规保证正在核实。</param>
+    /// <param name="operation">下 <see cref="IReminderTable"/> 其操作产生观察结果。</param>
+    /// <returns>新报告。</returns>
     public static ReminderFailureReport Create(string provider, string guarantee, string operation)
         => new(provider, guarantee, operation);
 
     /// <summary>
-    /// Records the reminder identity and its uniform hash code.
+    /// 记录提醒身份及其统一的散列代码。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <returns>This report.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithIdentity(GrainId grainId, string? reminderName)
         => Add("reminder", $"GrainId={grainId}, ReminderName={Format(reminderName)}, UniformHash={grainId.GetUniformHashCode()} (0x{grainId.GetUniformHashCode():X8})");
 
     /// <summary>
-    /// Records the expected result.
+    /// 记录预期成果。
     /// </summary>
-    /// <param name="expected">A description of the expected result.</param>
-    /// <returns>This report.</returns>
+    /// <param name="expected">说明预期成果。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithExpected(string expected) => Add("expected", expected);
 
     /// <summary>
-    /// Records the observed result.
+    /// 记录观察到的结果。
     /// </summary>
-    /// <param name="observed">A description of the observed result.</param>
-    /// <returns>This report.</returns>
+    /// <param name="observed">说明观察到的结果。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithObserved(string observed) => Add("observed", observed);
 
     /// <summary>
-    /// Records the ETags relevant to the failure.
+    /// 记录与失败有关的ETags。
     /// </summary>
-    /// <param name="current">The ETag currently believed to be persisted.</param>
-    /// <param name="previous">The ETag replaced by the most recent write.</param>
-    /// <param name="supplied">The ETag supplied to the failing operation.</param>
-    /// <returns>This report.</returns>
+    /// <param name="current">据信目前仍然存在的ETag。</param>
+    /// <param name="previous">以最近写作取代的ETag。</param>
+    /// <param name="supplied">ETag供应给失败的操作。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithETags(string? current, string? previous = null, string? supplied = null)
         => Add("etags", $"current={Format(current)}, previous={Format(previous)}, supplied={Format(supplied)}");
 
     /// <summary>
-    /// Records the hash range under test, including whether it wraps around zero.
+    /// 记录试验中的散列范围,包括是否在零周围。
     /// </summary>
-    /// <param name="begin">The exclusive lower bound.</param>
-    /// <param name="end">The inclusive upper bound.</param>
-    /// <returns>This report.</returns>
+    /// <param name="begin">排他性下限约束</param>
+    /// <param name="end">包含式上约束。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithRange(uint begin, uint end)
         => Add("range", $"(begin, end] = ({begin}, {end}], wrapAround={(begin >= end).ToString(CultureInfo.InvariantCulture)}");
 
     /// <summary>
-    /// Records the ownership hash codes relevant to the failure.
+    /// 记录与故障有关的所有权散列码。
     /// </summary>
-    /// <param name="label">A label describing the hash set, for example <c>expectedInRange</c>.</param>
-    /// <param name="hashes">The uniform hash codes.</param>
-    /// <returns>This report.</returns>
+    /// <param name="label">标签,例如 <c>expectedInRange</c>。</param>
+    /// <param name="hashes">统一的散列代码。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithOwnership(string label, IEnumerable<uint> hashes)
         => Add($"ownership.{label}", string.Join(", ", hashes.Select(hash => hash.ToString(CultureInfo.InvariantCulture))));
 
     /// <summary>
-    /// Records the persisted schedule.
+    /// 记录现行时间表。
     /// </summary>
-    /// <param name="startAt">The reminder start time.</param>
-    /// <param name="period">The reminder period.</param>
-    /// <returns>This report.</returns>
+    /// <param name="startAt">提醒开始时间。</param>
+    /// <param name="period">提醒期。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithSchedule(DateTime startAt, TimeSpan period)
         => Add("schedule", $"StartAt={startAt:O} (Kind={startAt.Kind}), Period={period}");
 
     /// <summary>
-    /// Records the time and window state at the point of failure.
+    /// 记录失败点的时间和窗口状态。
     /// </summary>
-    /// <param name="now">The current time observed by the test.</param>
-    /// <param name="window">The relevant window length.</param>
-    /// <returns>This report.</returns>
+    /// <param name="now">试验所观察到的当前时间。</param>
+    /// <param name="window">相关窗口长度。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithWindow(DateTime now, TimeSpan window)
         => Add("window", $"now={now:O}, window={window}, windowEnd={now + window:O}");
 
     /// <summary>
-    /// Records the operation sequence which produced the failure.
+    /// 记录产生故障的操作序列。
     /// </summary>
-    /// <param name="position">The one-based position of the failing operation.</param>
-    /// <param name="operations">The full operation sequence.</param>
-    /// <returns>This report.</returns>
+    /// <param name="position">运行失败的单一位置。</param>
+    /// <param name="operations">整个运行序列。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithSequence(int position, IEnumerable<string> operations)
         => Add("sequence", $"#{position} of [{string.Join(" -> ", operations)}]");
 
     /// <summary>
-    /// Records an additional named detail.
+    /// 记录一个附加的指定细节。
     /// </summary>
-    /// <param name="name">The detail name.</param>
-    /// <param name="value">The detail value.</param>
-    /// <returns>This report.</returns>
+    /// <param name="name">详细名称。</param>
+    /// <param name="value">详细值。</param>
+    /// <returns>本报告。</returns>
     public ReminderFailureReport WithDetail(string name, string? value) => Add(name, Format(value));
 
     /// <summary>
-    /// Renders the structured failure report.
+    /// 重审结构化故障报告
     /// </summary>
-    /// <returns>The rendered report.</returns>
+    /// <returns>所提报告。</returns>
     public string Build()
     {
         var builder = new StringBuilder();
@@ -185,18 +185,18 @@ public sealed class ReminderFailureReport
     }
 
     /// <summary>
-    /// Creates the exception which carries this report.
+    /// 创建包含此报表的例外。
     /// </summary>
-    /// <param name="innerException">An optional underlying exception.</param>
-    /// <returns>The exception.</returns>
+    /// <param name="innerException">一种任择性的基本例外。</param>
+    /// <returns>例外。</returns>
     public ReminderConformanceException ToException(Exception? innerException = null)
         => new(Build(), innerException);
 
     /// <summary>
-    /// Throws the exception which carries this report.
+    /// 将包含本报告的例外抛出。
     /// </summary>
-    /// <param name="innerException">An optional underlying exception.</param>
-    /// <exception cref="ReminderConformanceException">Always thrown.</exception>
+    /// <param name="innerException">一种任择性的基本例外。</param>
+    /// <exception cref="ReminderConformanceException">总是抛出。</exception>
     public void Throw(Exception? innerException = null) => throw ToException(innerException);
 
     private ReminderFailureReport Add(string name, string value)

@@ -6,10 +6,10 @@ using Orleans.Serialization.WireProtocol;
 
 namespace Orleans.Serialization.Codecs;
 
-/// <summary>Serializes raw Arc bytes while preserving the source's ownership and contents.</summary>
+/// <summary>将原始弧字节序列化,同时保留源的所有权和内含。</summary>
 /// <remarks>
-/// The caller owns each decoded buffer and disposes it when finished.
-/// Struct assignments borrow that ownership; <see cref="ArcBuffer.Slice(int)"/> acquires an independent owner.
+/// 电话人拥有每个解码缓冲器,完成后予以处置。
+/// 严格转让借用了这种所有权; <see cref="ArcBuffer.Slice(int)"/> 获得独立所有人。
 /// </remarks>
 [RegisterSerializer]
 public sealed class ArcBufferCodec : IFieldCodec<ArcBuffer>
@@ -40,8 +40,8 @@ public sealed class ArcBufferCodec : IFieldCodec<ArcBuffer>
     }
 }
 
-/// <summary>Creates an independent owner pin over the same immutable bytes.</summary>
-/// <remarks>The caller owns the returned buffer and disposes it independently of the source.</remarks>
+/// <summary>创建同一不可变字节上的独立所有人印记。</summary>
+/// <remarks>调用者拥有返回的缓冲带,并独立于源处理。</remarks>
 [RegisterCopier]
 public sealed class ArcBufferCopier : IDeepCopier<ArcBuffer>
 {

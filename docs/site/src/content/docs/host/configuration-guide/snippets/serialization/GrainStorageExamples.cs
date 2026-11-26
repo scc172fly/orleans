@@ -4,7 +4,7 @@ using Orleans.Storage;
 
 namespace Orleans.Docs.Snippets.Serialization;
 
-// Define a placeholder class for the custom serializer example
+// 为自定义序列器示例定义占位符类
 public class MyCustomSerializer : IGrainStorageSerializer
 {
     public BinaryData Serialize<T>(T? value) => throw new NotImplementedException();

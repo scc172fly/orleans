@@ -3,8 +3,8 @@ using Orleans.Durable.Messaging.Diagnostics;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Fails the delivery attempts which <paramref name="matches"/> selects at the receiving inbox, by throwing from
-/// <see cref="MessagingEvents.InboxMessageReceiving"/>: the inbox stages nothing, and the sender's outbox retries.
+/// 无法通过从接收箱丢弃 <paramref name="matches"/> 选择的投送尝试,
+/// <see cref="MessagingEvents.InboxMessageReceiving"/>:收件箱没有阶段,发件人发件人发件人发件人发件人发送的发件人发件人发件人发件人发件人电报。
 /// </summary>
 internal sealed class DeliveryFaultInjector : IObserver<MessagingEvents.MessagingEvent>, IDisposable
 {
@@ -19,7 +19,7 @@ internal sealed class DeliveryFaultInjector : IObserver<MessagingEvents.Messagin
         _subscription = MessagingEvents.AllEvents.Subscribe(this);
     }
 
-    /// <summary>Gets how many delivery attempts the injector failed.</summary>
+    /// <summary>获取注射器失败的投递次数。</summary>
     public int Count => Volatile.Read(ref _count);
 
     public void OnNext(MessagingEvents.MessagingEvent value)

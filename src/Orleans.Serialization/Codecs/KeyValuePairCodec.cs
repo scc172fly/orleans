@@ -10,10 +10,10 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="KeyValuePair{TKey, TValue}"/>.
+    /// <see cref="KeyValuePair{TKey, TValue}"/>的序列器。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class KeyValuePairCodec<TKey, TValue> : IFieldCodec<KeyValuePair<TKey, TValue>>
     {
@@ -23,10 +23,10 @@ namespace Orleans.Serialization.Codecs
         private readonly Type CodecValueType = typeof(TValue);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KeyValuePairCodec{TKey, TValue}"/> class.
+        /// 初始化 <see cref="KeyValuePairCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCodec">The key codec.</param>
-        /// <param name="valueCodec">The value codec.</param>
+        /// <param name="keyCodec">密钥编码器。</param>
+        /// <param name="valueCodec">值代码。</param>
         public KeyValuePairCodec(IFieldCodec<TKey> keyCodec, IFieldCodec<TValue> valueCodec)
         {
             _keyCodec = OrleansGeneratedCodeHelper.UnwrapService(this, keyCodec);
@@ -85,10 +85,10 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="KeyValuePair{TKey, TValue}"/>.
+    /// <see cref="KeyValuePair{TKey, TValue}"/>的复印机。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterCopier]
     public sealed class KeyValuePairCopier<TKey, TValue> : IDeepCopier<KeyValuePair<TKey, TValue>>, IOptionalDeepCopier
     {
@@ -97,10 +97,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<TValue> _valueCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KeyValuePairCopier{TKey, TValue}"/> class.
+        /// 初始化 <see cref="KeyValuePairCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">The key copier.</param>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="keyCopier">钥匙复印机。</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public KeyValuePairCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = OrleansGeneratedCodeHelper.UnwrapService(this, keyCopier);

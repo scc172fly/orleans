@@ -5,41 +5,41 @@ using Orleans.Providers;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Extensions for configuring Azure Blob Storage as the journal storage provider.
+/// 用于配置 Azure 布束存储器的扩展作为日记存储提供者。
 /// </summary>
 public static class AzureBlobStorageHostingExtensions
 {
     /// <summary>
-    /// Configures Azure Blob Storage as the journal storage provider.
+    /// 配置 Azure 布罗布存储作为日记存储提供者。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <returns>The silo builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <returns>下 silo 建筑商</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
     public static ISiloBuilder AddAzureBlobJournalStorage(this ISiloBuilder builder) => builder.AddAzureBlobJournalStorage(configure: null);
 
     /// <summary>
-    /// Configures Azure Blob Storage as the journal storage provider.
+    /// 配置 Azure 布罗布存储作为日记存储提供者。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configure">The delegate used to configure the journal storage provider.</param>
-    /// <returns>The silo builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configure">用于配置日记存储提供者的代表。</param>
+    /// <returns>下 silo 建筑商</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
     public static ISiloBuilder AddAzureBlobJournalStorage(this ISiloBuilder builder, Action<AzureBlobJournalStorageOptions>? configure)
         => builder.AddAzureBlobJournalStorage(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, configure);
 
     /// <summary>
-    /// Configures a named Azure Blob Storage journal provider.
+    /// 配置名为 Azure 的布束存储日记提供者 。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The provider name.</param>
-    /// <param name="configure">The delegate used to configure this provider, or <see langword="null"/> to use separately configured options.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">提供者名称。</param>
+    /// <param name="configure">代表用于配置此提供者,或 <see langword="null"/> 使用单独配置的选项。</param>
+    /// <returns>下 silo 建筑商</returns>
     /// <remarks>
-    /// Named providers share journal format configuration but have independent storage options and lifecycle initialization.
-    /// The default provider uses unnamed options; other providers use options named after the provider.
+    /// 命名的供应商共享日记格式配置,但拥有独立的存储选项和生命周期启动。
+    /// 默认提供者使用未命名的选项;其他提供者使用以提供人命名的选项。
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is empty or whitespace.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> 是空的或白色的空间。</exception>
     public static ISiloBuilder AddAzureBlobJournalStorage(
         this ISiloBuilder builder,
         string name,

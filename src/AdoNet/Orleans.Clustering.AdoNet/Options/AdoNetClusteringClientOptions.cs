@@ -3,27 +3,27 @@ using System.Data.Common;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures relational database access for client gateway discovery.
+    /// 配置客户端网关发现时的关联数据库访问权限。
     /// </summary>
     public class AdoNetClusteringClientOptions
     {
         /// <summary>
-        /// Connection string for Sql
+        /// Sql 的连接字符串
         /// </summary>
         [Redact]
         public string? ConnectionString { get; set; }
 
         /// <summary>
-        /// Gets or sets the data source used to open database connections.
+        /// 获取或设置打开数据库连接所使用的数据源。
         /// </summary>
         /// <remarks>
-        /// The data source is owned by the caller and is not disposed by Orleans.
+        /// 数据源由调用者拥有, Orleans不处置。
         /// </remarks>
         [Redact]
         public DbDataSource? DataSource { get; set; }
 
         /// <summary>
-        /// The invariant name of the connector for gatewayProvider's database.
+        /// gatewayProvider数据库连接器的变量名称。
         /// </summary>
         public string Invariant { get; set; } = null!;
     }

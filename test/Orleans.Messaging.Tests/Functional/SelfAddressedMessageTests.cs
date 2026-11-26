@@ -8,7 +8,7 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// Messages a grain sends to itself are accepted by its own inbox in the caller's journal write, without an outbox entry.
+/// 发往自己的 grain 邮件被调用者日记中自己收听的收件箱所接受,没有发件人条目。
 /// </summary>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
@@ -47,7 +47,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         Assert.Equal(effect, Assert.Single(written.Effects));
         Assert.Empty(instance.OutputCaptures[^1]);
 
-        // Processing starts after that one write; the handler is held before it stages any further write.
+        // 处理程序从此写作后开始; 处理者在它进行进一步写入之前就被扣留。
         await WaitForBarrierAsync(grain, held);
         Assert.Equal(writes + 1, Fixture.Storage.GetSuccessfulWriteCount(journal));
         held.Release();
@@ -69,7 +69,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         var send = grain.SendAsync(grain.GetGrainId(), "messages/self-blocked", NewMessage(2, "blocked"));
         await storage.WaitUntilEnteredAsync();
 
-        // A full pump pass while the write is in flight leaves the accepted message pending.
+        // 写作在飞行时的完整泵通行证留下接受的信息等待处理。
         Assert.Equal(DurableJobRunStatus.RescheduleRequested, (await Fixture.RunPumpAsync(grain)).Status);
         var pending = await Fixture.OnGrainAsync(grain, () => instance.GetSnapshotForTest());
         Assert.Equal(1, pending.InboxCount);
@@ -122,7 +122,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
             await Assert.ThrowsAsync<InvalidOperationException>(() => grain.StageOutputAsync(differentDeliverAt));
             Assert.Equal(1, (await grain.GetSnapshotAsync()).InboxCount);
 
-            // The outbox keys pending messages by ID, so the ID cannot address another grain while it is pending there.
+            // 发箱密钥, 正在通过 ID 发送信件, 因此 ID 无法地址 grain 在那日,那件《古兰经》将等待它。
             var other = SelfMessage(grain, NewMessage(6, "other"), route);
             var otherReceiver = NewGrain().GetGrainId();
             await grain.StageOutputAsync(new OutboxMessage { ReceiverId = otherReceiver, Envelope = other.Envelope });
@@ -135,7 +135,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         var completed = await Fixture.WaitForEffectCountAsync(grain, 1);
         Assert.Equal(1, completed.ProcessedMessageCount);
 
-        // A completed ID is a duplicate regardless of content while its completion record is retained.
+        // 填写完毕的ID无论内容如何都是重复的,而其完成记录则保留。
         await grain.StageOutputAsync(message);
         await grain.StageOutputAsync(differentBody);
         var repeated = await grain.GetSnapshotAsync();
@@ -155,7 +155,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         await grain.ConfigureHandlerAsync(false);
         await ReactivateAsync(grain);
 
-        // MaxCapacity is 2 and no handler is registered; a synchronous send admits every message.
+        // MaxCapacity 是 2, 没有处理器被注册; 同步发送会接收每条消息 。
         for (var sequence = 10; sequence < 13; sequence++)
         {
             await grain.StageOutputAsync(SelfMessage(grain, NewMessage(sequence, $"self-{sequence}"), "messages/self-capacity"));
@@ -166,7 +166,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         Assert.Equal(3, admitted.InboxCount);
         Assert.Equal(0, admitted.OutboxCount);
 
-        // Unscheduled self-sent messages occupy capacity for deliveries from other grains.
+        // 未经事先排定的自发信息占用了其他 grains交付的能力。
         var external = CreateEnvelope(grain, NewMessage(20, "external"));
         DeliveryResultAssert.IsCase<DeliveryResult.Backpressured>(await DeliverAsync(grain, external));
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(grain)).Status);
@@ -199,7 +199,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         Assert.Equal(0, completed.OutboxCount);
         Assert.Equal(2, completed.ProcessedMessageCount);
 
-        // The batch which processed the original also accepted the forwarded message, which a later batch processed.
+        // 处理原件的批次也接受了转发的信息,后一批则进行了处理。
         var captures = instance.Captures;
         var original = Assert.Single(captures, static capture => capture.Effects.Sum(static effect => effect.Count) == 1);
         Assert.Equal(1, original.InboxCount);
@@ -239,7 +239,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         Assert.Equal(DurableJobRunStatus.RescheduleRequested, held.Status);
         Assert.Equal(deliverAt, held.RescheduleTime);
 
-        // The recovered pending message deduplicates a repeated send.
+        // 所回复的待回信件重复重复发送 。
         await grain.StageOutputAsync(message);
         Assert.Equal(1, (await grain.GetSnapshotAsync()).InboxCount);
 
@@ -294,7 +294,7 @@ public sealed class SelfAddressedMessageTests() : MessagingBehaviorTestBase(new 
         await grain.StageOutputAsync(output);
         await grain.RetryWriteStateAsync();
 
-        // Each later self-send of the same message is a duplicate, so the record keeps the send time it accepted.
+        // 以后每次自发同一条信息都是重复的,所以记录保留了它接受发送的时间。
         var inbox = Fixture.GetInbox(grain);
         Assert.Equal(started, await Fixture.OnGrainAsync(grain, () =>
             InboxTestAccess.GetPendingMessages(inbox)[output.Envelope.MessageId].Message.SentAt));

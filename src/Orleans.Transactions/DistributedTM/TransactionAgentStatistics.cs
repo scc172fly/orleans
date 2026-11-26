@@ -6,7 +6,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Records cumulative transaction-agent outcomes and publishes them as Orleans metrics.
+    /// 记录交易代理商的累计结果,并将其作为 Orleans 衡量标准予以公布。
     /// </summary>
     public class TransactionAgentStatistics : ITransactionAgentStatistics
     {
@@ -25,7 +25,7 @@ namespace Orleans.Transactions
         private long _transactionsThrottled;
 
         /// <summary>
-        /// Initializes a new instance using a dedicated Orleans meter.
+        /// 使用专用 Orleans 仪初始化新实例。
         /// </summary>
         public TransactionAgentStatistics()
             : this(new Meter("Microsoft.Orleans"))
@@ -33,9 +33,9 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Initializes a new instance using the Orleans runtime meter.
+        /// 使用 Orleans 运行时计初始化新实例。
         /// </summary>
-        /// <param name="instruments">The Orleans instruments which provide the meter used to publish transaction counters.</param>
+        /// <param name="instruments">下 Orleans 提供用于公布交易柜台的仪表的工具。</param>
         public TransactionAgentStatistics(OrleansInstruments instruments)
             : this(instruments.Meter)
         {
@@ -50,27 +50,27 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Gets the total number of transactions which have started.
+        /// 获取已经开始的交易的总数 。
         /// </summary>
         public long TransactionsStarted => _transactionsStarted;
 
         /// <summary>
-        /// Gets the total number of transactions which completed successfully.
+        /// 获得成功完成的交易总数。
         /// </summary>
         public long TransactionsSucceeded => _transactionsSucceeded;
 
         /// <summary>
-        /// Gets the total number of transactions which failed or were aborted.
+        /// 获取失败或中止的交易的总数。
         /// </summary>
         public long TransactionsFailed => _transactionsFailed;
 
         /// <summary>
-        /// Gets the total number of transactions rejected by load shedding.
+        /// 获得通过加载停放拒绝的交易总数。
         /// </summary>
         public long TransactionsThrottled => _transactionsThrottled;
 
         /// <summary>
-        /// Records that a transaction has started.
+        /// 记录交易已经开始。
         /// </summary>
         public void TrackTransactionStarted()
         {
@@ -78,7 +78,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Records that a transaction completed successfully.
+        /// 记录交易成功完成的记录。
         /// </summary>
         public void TrackTransactionSucceeded()
         {
@@ -86,7 +86,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Records that a transaction failed or was aborted.
+        /// 记录交易失败或中止。
         /// </summary>
         public void TrackTransactionFailed()
         {
@@ -94,7 +94,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Records that a transaction was rejected by load shedding.
+        /// 记录显示交易被卸载后拒绝
         /// </summary>
         public void TrackTransactionThrottled()
         {
@@ -102,10 +102,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Creates an independent, mutable snapshot of transaction-agent statistics.
+        /// 创建独立的、可变的交易代理统计数据快照。
         /// </summary>
-        /// <param name="initialStatistics">The statistics whose current counter values initialize the snapshot.</param>
-        /// <returns>A statistics snapshot initialized with the current values from <paramref name="initialStatistics"/>.</returns>
+        /// <param name="initialStatistics">统计,其当前对应值的对比值初始化快照。</param>
+        /// <returns>与 <paramref name="initialStatistics"/>当前值一起草签的统计数据。</returns>
         public static ITransactionAgentStatistics Copy(ITransactionAgentStatistics initialStatistics)
         {
             return new TransactionAgentStatisticsSnapshot(initialStatistics);

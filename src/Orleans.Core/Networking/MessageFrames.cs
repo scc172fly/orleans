@@ -5,19 +5,19 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Runtime.Messaging;
 
 /// <summary>
-/// Reads and writes messages in connection framing, leaving decoded message bodies serialized.
+/// 阅读和撰写与设置相关的信息,留下解码的信息机构序列。
 /// </summary>
 /// <remarks>
-/// A message read back from a frame is equivalent to one received from a connection: its headers are decoded, and its body is decoded when it is first accessed.
-/// Forwarding such a message sends its serialized body without decoding it.
+/// 从框架读取的信息相当于从连接收到的信息:其信头被解码,其身体在首次访问时被解码。
+/// 发送这样的信息,会发出其序列式的文字,但不会解码。
 /// </remarks>
 internal static class MessageFrames
 {
     /// <summary>
-    /// Appends a frame for <paramref name="message"/> to <paramref name="buffer"/> using <paramref name="serializer"/>.
+    /// 附加框架 <paramref name="message"/> 至 <paramref name="buffer"/> 使用 <paramref name="serializer"/>.
     /// </summary>
-    /// <returns>The lengths of the message's serialized headers and body.</returns>
-    /// <remarks>If writing fails, <paramref name="buffer"/> is left unchanged.</remarks>
+    /// <returns>信件的序列页眉和体形长度。</returns>
+    /// <remarks>如果书面写作失败, <paramref name="buffer"/> 不变。</remarks>
     public static (int HeaderLength, int BodyLength) Write(MessageSerializer serializer, ArcBufferWriter buffer, Message message)
     {
         var startLength = buffer.Length;
@@ -38,7 +38,7 @@ internal static class MessageFrames
     }
 
     /// <summary>
-    /// Reads the single frame which <paramref name="buffer"/> holds, leaving the message's body serialized.
+    /// 读取 <paramref name="buffer"/> 持有的单个框架,使信件的体体序列化。
     /// </summary>
     public static Message Read(MessageHandlerShared shared, ArcBufferWriter buffer)
     {
@@ -47,7 +47,7 @@ internal static class MessageFrames
     }
 
     /// <summary>
-    /// Reads a frame, retaining independent slices for the message while the caller keeps ownership of <paramref name="buffer"/>.
+    /// 读取框架,保留信息的独立切片,而调用者保留 <paramref name="buffer"/>的所有权。
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
         "Reliability",

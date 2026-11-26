@@ -7,7 +7,7 @@ using Xunit;
 namespace Tester.AzureUtils;
 
 /// <summary>
-/// Tests for Azure Queue Stream Provider configuration builder, validating various configuration scenarios.
+/// Azure 队列供应方配置构建器测试,验证各种配置情景。
 /// </summary>
 [TestCategory("AzureStorage"), TestCategory("Streaming"), TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -16,7 +16,7 @@ namespace Tester.AzureUtils;
 public class AzureQueueStreamProviderBuilderTests
 {
     /// <summary>
-    /// Verifies that missing connection string results in null QueueServiceClient.
+    /// 证明缺失的连接字符串结果为无效 QueueServiceClient。
     /// </summary>
     [Fact]
     public void Missing_ConnectionString()
@@ -42,7 +42,7 @@ public class AzureQueueStreamProviderBuilderTests
     }
 
     /// <summary>
-    /// Verifies that minimal required configuration creates valid QueueServiceClient with default settings.
+    /// 证明最起码所需的配置在默认设置下创建了有效的 QueueServiceClient 。
     /// </summary>
     [Fact]
     public void Minimal_Configuration()
@@ -72,7 +72,7 @@ public class AzureQueueStreamProviderBuilderTests
     }
 
     /// <summary>
-    /// Verifies that all configuration options are properly parsed and applied.
+    /// 证明所有配置选项都经过适当分析和应用。
     /// </summary>
     [Fact]
     public void Full_Configuration()
@@ -104,7 +104,7 @@ public class AzureQueueStreamProviderBuilderTests
     }
 
     /// <summary>
-    /// Verifies that an invalid message visibility timeout fails options resolution.
+    /// 证明无效的信息可见度超时失败了选项解决方案。
     /// </summary>
     [Fact]
     public void Invalid_MessageVisibilityTimeout_Throws()

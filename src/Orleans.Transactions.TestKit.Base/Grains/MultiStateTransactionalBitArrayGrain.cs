@@ -12,17 +12,17 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.TestKit.Correctnesss
 {
     /// <summary>
-    /// Represents a growable bit array stored as packed 32-bit integer values.
+    /// 表示以包装 32 位整数值存储的可增殖比特阵列。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class BitArrayState
     {
         /// <summary>
-        /// Determines whether this instance contains the same packed bit values as another instance.
+        /// 确定此例是否包含与其它实例相同的已打包位值。
         /// </summary>
-        /// <param name="other">The instance to compare with this instance.</param>
-        /// <returns><see langword="true"/> when the packed values are equal; otherwise, <see langword="false"/>.</returns>
+        /// <param name="other">与此实例比较的示例。</param>
+        /// <returns><see langword="true"/> 当包装值相等时;否则, <see langword="false"/>.</returns>
         protected bool Equals(BitArrayState other)
         {
             ArgumentNullException.ThrowIfNull(other);
@@ -59,28 +59,28 @@ namespace Orleans.Transactions.TestKit.Correctnesss
         private int[] value = { 0 };
 
         /// <summary>
-        /// Gets the packed 32-bit values which store the bits.
+        /// 获得存储比特的32位数的包装值。
         /// </summary>
         [JsonIgnore]
         public int[] Value => value;
 
         /// <summary>
-        /// Gets the number of packed 32-bit values in the state.
+        /// 获得该州内32位值的包装数。
         /// </summary>
         [JsonIgnore]
         public int Length => this.value.Length;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BitArrayState"/> class with all bits cleared.
+        /// 初始化 <see cref="BitArrayState"/> 类的新实例, 并清除所有位数 。
         /// </summary>
         public BitArrayState()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BitArrayState"/> class by copying another instance.
+        /// 通过复制另一个实例, 初始化 <see cref="BitArrayState"/> 类的新实例 。
         /// </summary>
-        /// <param name="other">The state to copy.</param>
+        /// <param name="other">国家复制。</param>
         public BitArrayState(BitArrayState other)
         {
             ArgumentNullException.ThrowIfNull(other);
@@ -92,10 +92,10 @@ namespace Orleans.Transactions.TestKit.Correctnesss
         }
 
         /// <summary>
-        /// Sets or clears a bit, growing the backing storage when necessary.
+        /// 设置或清理一点, 必要时会增加备份存储 。
         /// </summary>
-        /// <param name="index">The zero-based bit index.</param>
-        /// <param name="value"><see langword="true"/> to set the bit; <see langword="false"/> to clear it.</param>
+        /// <param name="index">零位指数。</param>
+        /// <param name="value"><see langword="true"/> 设置比特; <see langword="false"/> 清除它。</param>
         public void Set(int index, bool value)
         {
             int idx = index / BitsInInt;
@@ -113,21 +113,21 @@ namespace Orleans.Transactions.TestKit.Correctnesss
         }
 
         /// <summary>
-        /// Returns an enumerator over the packed 32-bit values.
+        /// 返回32位数值以上的一个数值。
         /// </summary>
-        /// <returns>An enumerator over the backing values.</returns>
+        /// <returns>背值之上的分子。</returns>
         public IEnumerator<int> GetEnumerator()
         {
             foreach (var v in this.value) yield return v;
         }
 
         /// <summary>
-        /// Returns the bits as a string ordered from least significant to most significant within each packed value.
+        /// 返回每个包装值中从最小值到最显著值的字符串中的比特。
         /// </summary>
-        /// <returns>A binary representation of the state.</returns>
+        /// <returns>国家二进制代表</returns>
         public override string ToString()
         {
-            // Write the values from least significant bit to most significant bit
+            // 将最小比特的值写入最显著比特
             var builder = new StringBuilder();
             foreach (var v in this.value)
             {
@@ -144,10 +144,10 @@ namespace Orleans.Transactions.TestKit.Correctnesss
         }
 
         /// <summary>
-        /// Gets or sets a packed 32-bit value by storage index.
+        /// 以存储指数来计算或设置一个包装的32位数值。
         /// </summary>
-        /// <param name="index">The zero-based storage index.</param>
-        /// <value>The packed value at <paramref name="index"/>.</value>
+        /// <param name="index">零基储存指数。</param>
+        /// <value>包装价值 <paramref name="index"/>.</value>
         public int this[int index]
         {
             get => this.value[index];
@@ -155,11 +155,11 @@ namespace Orleans.Transactions.TestKit.Correctnesss
         }
 
         /// <summary>
-        /// Determines whether two instances contain the same packed bit values.
+        /// 确定两个实例是否包含相同的打包位数值。
         /// </summary>
-        /// <param name="left">The first instance to compare.</param>
-        /// <param name="right">The second instance to compare.</param>
-        /// <returns><see langword="true"/> when the instances are equal; otherwise, <see langword="false"/>.</returns>
+        /// <param name="left">比较的首例。</param>
+        /// <param name="right">比较二审</param>
+        /// <returns><see langword="true"/> 等情况相等时;否则, <see langword="false"/>。</returns>
         public static bool operator ==(BitArrayState? left, BitArrayState? right)
         {
             if (ReferenceEquals(left, right)) return true;
@@ -169,56 +169,56 @@ namespace Orleans.Transactions.TestKit.Correctnesss
         }
 
         /// <summary>
-        /// Determines whether two instances contain different packed bit values.
+        /// 确定两个实例是否包含不同的包装位数值。
         /// </summary>
-        /// <param name="left">The first instance to compare.</param>
-        /// <param name="right">The second instance to compare.</param>
-        /// <returns><see langword="true"/> when the instances differ; otherwise, <see langword="false"/>.</returns>
+        /// <param name="left">比较的首例。</param>
+        /// <param name="right">比较二审</param>
+        /// <returns><see langword="true"/> ,但情况不同;否则, <see langword="false"/>。</returns>
         public static bool operator !=(BitArrayState? left, BitArrayState? right)
         {
             return !(left == right);
         }
 
         /// <summary>
-        /// Computes the bitwise exclusive OR of two states.
+        /// 计算两个州中 比比奇的独家或专有性。
         /// </summary>
-        /// <param name="left">The first state.</param>
-        /// <param name="right">The second state.</param>
-        /// <returns>A new state containing the bitwise exclusive OR.</returns>
+        /// <param name="left">第一个状态。</param>
+        /// <param name="right">第二个状态。</param>
+        /// <returns>含有比位数独家 OR的新状态。</returns>
         public static BitArrayState operator ^(BitArrayState left, BitArrayState right)
         {
             return Apply(left, right, (l, r) => l ^ r);
         }
 
         /// <summary>
-        /// Computes the bitwise OR of two states.
+        /// 计算两个州的比特数或值。
         /// </summary>
-        /// <param name="left">The first state.</param>
-        /// <param name="right">The second state.</param>
-        /// <returns>A new state containing the bitwise OR.</returns>
+        /// <param name="left">第一个状态。</param>
+        /// <param name="right">第二个状态。</param>
+        /// <returns>含有比位 OR的新状态。</returns>
         public static BitArrayState operator |(BitArrayState left, BitArrayState right)
         {
             return Apply(left, right, (l, r) => l | r);
         }
 
         /// <summary>
-        /// Computes the bitwise AND of two states.
+        /// 计算两个州的比特数和值。
         /// </summary>
-        /// <param name="left">The first state.</param>
-        /// <param name="right">The second state.</param>
-        /// <returns>A new state containing the bitwise AND.</returns>
+        /// <param name="left">第一个状态。</param>
+        /// <param name="right">第二个状态。</param>
+        /// <returns>含有比特和的新状态。</returns>
         public static BitArrayState operator &(BitArrayState left, BitArrayState right)
         {
             return Apply(left, right, (l, r) => l & r);
         }
 
         /// <summary>
-        /// Applies a binary operation to the corresponding packed values of two states.
+        /// 对两个州相应的包装值应用二进制操作。
         /// </summary>
-        /// <param name="left">The first state.</param>
-        /// <param name="right">The second state.</param>
-        /// <param name="op">The operation applied to each pair of packed values.</param>
-        /// <returns>A new state containing the operation results.</returns>
+        /// <param name="left">第一个状态。</param>
+        /// <param name="right">第二个状态。</param>
+        /// <param name="op">操作适用于每对包装的数值。</param>
+        /// <returns>含有操作结果的新状态。</returns>
         public static BitArrayState Apply(BitArrayState left, BitArrayState right, Func<int, int, int> op)
         {
             ArgumentNullException.ThrowIfNull(left);
@@ -233,7 +233,7 @@ namespace Orleans.Transactions.TestKit.Correctnesss
                 result.value[i] = op(left.value[i], right.value[i]);
             }
 
-            // Continue with the non-overlapping portion.
+            // 继续使用不重叠的部分 。
             for (; i < result.value.Length; i++)
             {
                 var leftVal = left.value.Length > i ? left.value[i] : 0;
@@ -246,16 +246,16 @@ namespace Orleans.Transactions.TestKit.Correctnesss
     }
 
     /// <summary>
-    /// Implements bit-array transaction test operations over the maximum supported number of coordinated states.
+    /// 在最大支持的协调州数范围内实施比特数交易测试操作。
     /// </summary>
     [GrainType("txn-correctness-MaxStateTransactionalGrain")]
     public class MaxStateTransactionalGrain : MultiStateTransactionalBitArrayGrain
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MaxStateTransactionalGrain"/> class.
+        /// 初始化 <see cref="MaxStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="stateFactory">The factory used to create transactional states.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="stateFactory">工厂用来建立交易状态</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public MaxStateTransactionalGrain(ITransactionalStateFactory stateFactory,
             ILoggerFactory loggerFactory)
             : base(Enumerable.Range(0, TransactionTestConstants.MaxCoordinatedTransactions)
@@ -267,17 +267,17 @@ namespace Orleans.Transactions.TestKit.Correctnesss
     }
 
     /// <summary>
-    /// Implements bit-array transaction test operations over two transactional states.
+    /// 在两个交易州实施比特数交易测试操作。
     /// </summary>
     [GrainType("txn-correctness-DoubleStateTransactionalGrain")]
     public class DoubleStateTransactionalGrain : MultiStateTransactionalBitArrayGrain
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DoubleStateTransactionalGrain"/> class.
+        /// 初始化 <see cref="DoubleStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data1">The first transactional state.</param>
-        /// <param name="data2">The second transactional state.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="data1">第一个交易状态。</param>
+        /// <param name="data2">第二个交易状态。</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public DoubleStateTransactionalGrain(
             [TransactionalState("data1", TransactionTestConstants.TransactionStore)]
             ITransactionalState<BitArrayState> data1,
@@ -290,16 +290,16 @@ namespace Orleans.Transactions.TestKit.Correctnesss
     }
 
     /// <summary>
-    /// Implements bit-array transaction test operations over one transactional state.
+    /// 在一个交易状态下实施比特数数交易测试操作。
     /// </summary>
     [GrainType("txn-correctness-SingleStateTransactionalGrain")]
     public class SingleStateTransactionalGrain : MultiStateTransactionalBitArrayGrain
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleStateTransactionalGrain"/> class.
+        /// 初始化 <see cref="SingleStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data">The transactional state.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="data">交易状态</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public SingleStateTransactionalGrain(
             [TransactionalState("data", TransactionTestConstants.TransactionStore)]
             ITransactionalState<BitArrayState> data,
@@ -310,27 +310,27 @@ namespace Orleans.Transactions.TestKit.Correctnesss
     }
 
     /// <summary>
-    /// Provides transaction test operations over an ordered collection of bit-array states.
+    /// 提供对一连串比特数州进行定购交易测试的业务。
     /// </summary>
     [GrainType("txn-correctness-MultiStateTransactionalBitArrayGrain")]
     public partial class MultiStateTransactionalBitArrayGrain : Grain, ITransactionalBitArrayGrain
     {
         /// <summary>
-        /// The transactional states operated on by this grain.
+        /// 交易国以该 grain为业务基础。
         /// </summary>
         protected ITransactionalState<BitArrayState>[] dataArray;
         private readonly ILoggerFactory loggerFactory;
 
         /// <summary>
-        /// The logger for this grain activation.
+        /// 启动 grain 的登录器 。
         /// </summary>
         protected ILogger logger = null!;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MultiStateTransactionalBitArrayGrain"/> class.
+        /// 初始化 <see cref="MultiStateTransactionalBitArrayGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="dataArray">The ordered transactional states.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="dataArray">被命令交易状态</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public MultiStateTransactionalBitArrayGrain(
             ITransactionalState<BitArrayState>[] dataArray,
             ILoggerFactory loggerFactory)

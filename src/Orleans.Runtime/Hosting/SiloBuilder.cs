@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Builder for configuring an Orleans server.
+    /// 配置 Orleans 服务器的构建器。
     /// </summary>
     internal class SiloBuilder : ISiloBuilder
     {

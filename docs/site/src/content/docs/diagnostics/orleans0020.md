@@ -1,36 +1,46 @@
 ---
-title: "ORLEANS0020: OrleansContracts.txt is missing"
-description: Understand and resolve ORLEANS0020 when contract compatibility analysis is enabled without a manifest.
+title: "ORLEANS0020: OrleansContracts.txt 丢失"
+description: "当合同兼容性分析在没有显示器的情况下进行时,就能够理解和解决 ORLEANS0020 。"
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
-# ORLEANS0020: OrleansContracts.txt is missing
+<a id="orleans0020-orleanscontractstxt-is-missing"></a>
 
-| Property | Value |
+# ORLEANS0020: OrleansContracts.txt 丢失
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Info |
-| Code fix | Available |
+| 类别类 | 版本 |
+| 严重性 | 信息信息 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-Contract compatibility analysis is enabled, the project contains tracked Orleans contracts, and the configured `OrleansContracts.txt` file was not found.
+## 原因原因原因
 
-## Impact
+合同兼容性分析得以进行,项目包含跟踪 Orleans 合同,未找到配置的 `OrleansContracts.txt` 档案。
 
-The analyzer has no baseline, so it cannot detect RPC identity, signature, version, or grain-class changes.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Apply **Regenerate OrleansContracts.txt** to create and populate the complete project manifest. The configured path can be absent; the code fix creates the file and its parent directory. Run regeneration separately for each contract project instead of passing a solution path. Add the generated files to source control and review the baseline using the [contract compatibility guidance](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest).
+分析器没有基线,因此无法检测到RPC的身份、签名、版本或 grain- 类变化。
 
-## Suppress the diagnostic
+<a id="how-to-fix"></a>
 
-If the project does not need contract tracking, disable the analyzer. Otherwise suppression defeats the project opt-in.
+## 如何修补
+
+应用 **Regenerate OrleansContracts.txt** 创建和输入完整的工程显示。 配置路径可能不存在; 代码修正创建文件及其父目录。 为每个合同项目单独运行再生, 而不是通过解决方案路径。 添加生成的文件以源控制并使用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)来审查基准 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+如果项目不需要合同跟踪, 则禁用分析器。 否则抑制会挫败项目选择加入 。
 
 ```xml
 <EnableOrleansContractsAnalyzer>false</EnableOrleansContractsAnalyzer>
 ```
 
-See [Orleans contract compatibility analyzer](../grains/grain-versioning/contract-compatibility-analyzer.md).
+见 [Orleans 合同兼容性分析器](../grains/grain-versioning/contract-compatibility-analyzer.md)。

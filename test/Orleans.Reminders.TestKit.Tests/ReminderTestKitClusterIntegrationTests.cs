@@ -9,8 +9,8 @@ using Xunit;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// Verifies that the idealized oracle can be installed into every silo of an <see cref="InProcessTestCluster"/>
-/// and that it exposes exactly what the reminder service persisted.
+/// 证明理想先知之神能被安装在 silo 排排排排 <see cref="InProcessTestCluster"/>
+/// 并且揭露那份催问函究竟持续了些什么。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

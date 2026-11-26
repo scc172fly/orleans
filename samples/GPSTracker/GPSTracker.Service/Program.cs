@@ -12,7 +12,7 @@ builder.Services.AddOpenTelemetry()
             .AddMeter("Microsoft.Orleans"))
     .WithTracing(tracing =>
     {
-        // Set a service name
+        // 设置服务名称
         tracing.SetResourceBuilder(
             ResourceBuilder.CreateDefault()
                 .AddService(serviceName: "GPSTracker", serviceVersion: "1.0"));
@@ -27,8 +27,8 @@ builder.Services.AddOpenTelemetry()
 
 builder.Host.UseOrleans((ctx, siloBuilder) => {
 
-    // In order to support multiple hosts forming a cluster, they must listen on different ports.
-    // Use the --InstanceId X option to launch subsequent hosts.
+    // 为了支持多个东道主组成一个集群,它们必须倾听不同港口的声音。
+    // 使用 --InstanceId X 选项启动后续主机。
     int instanceId = ctx.Configuration.GetValue<int>("InstanceId");
     siloBuilder.UseLocalhostClustering(
         siloPort: 11111 + instanceId,
@@ -39,7 +39,7 @@ builder.Host.UseOrleans((ctx, siloBuilder) => {
 });
 builder.WebHost.UseKestrel((ctx, kestrelOptions) =>
 {
-    // To avoid port conflicts, each Web server must listen on a different port.
+    // 为了避免端口冲突,每个网络服务器都必须在不同的端口监听。
     int instanceId = ctx.Configuration.GetValue<int>("InstanceId");
     kestrelOptions.ListenLocalhost(5001 + instanceId);
 });

@@ -19,54 +19,54 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Durable.Tasks.Protocol;
 
 /// <summary>
-/// Represents a durable task request.
+/// 系长期任务请求。
 /// </summary>
 public interface IDurableTaskRequest : IRequest
 {
     /// <summary>
-    /// Gets the task request context.
+    /// 获取任务请求的背景。
     /// </summary>
     DurableTaskRequestContext? Context { get; }
 
     /// <summary>
-    /// Invoke the method on the target.
+    /// 启动目标方的方法
     /// </summary>
-    /// <returns>The result of invocation.</returns>
+    /// <returns>援引的结果。</returns>
     //ValueTask<DurableTaskResponse> InvokeImplementation(DurableTaskContext executionContext);
     DurableTask CreateTask();
 
     /// <summary>
-    /// Returns a string representation of the request.
+    /// 返回请求的字符串表示。
     /// </summary>
-    /// <returns>A string representation of the request.</returns>
+    /// <returns>请求的字符串表示。</returns>
     public string ToMethodCallString() => ToMethodCallString(this);
 
     /// <summary>
-    /// Returns <paramref name="request"/>'s context, which the grain reference that creates the request sets.
+    /// 返回 <paramref name="request"/>环境的上下文 grain 创建请求集的参考文献。
     /// </summary>
-    /// <exception cref="InvalidOperationException">The request has no context.</exception>
+    /// <exception cref="InvalidOperationException">请求没有上下文。</exception>
     internal static DurableTaskRequestContext GetContext(IDurableTaskRequest request) =>
         request.Context
         ?? throw new InvalidOperationException(
             $"Durable task request '{request.GetType()}' has no context. A grain reference creates durable task requests with their context.");
 
     /// <summary>
-    /// Returns the identity of the interface method which <paramref name="request"/> invokes: the formatted type of its
-    /// invokable, which the code generator emits once per interface method.
+    /// 返回 <paramref name="request"/> 引用的界面方法的身份:其格式型号
+    /// 代码生成器每个接口方法一次发出 不可置疑
     /// </summary>
     /// <remarks>
-    /// A replay of an operation, and a retry of a root task under its identifier, are the same operation when they invoke
-    /// the same method on the same target. The identity doesn't cover the arguments, so a deployment which changes how
-    /// the arguments serialize, such as by adding an optional field, replays the same operations.
+    /// 操作的重播和根据标识符重试根任务,在援引时是相同的
+    /// 同一目标上的相同方法。 身份不包含参数, 所以一个部署改变了如何
+    /// 重复重复同样的操作,例如通过添加一个可选字段来进行序列化的参数。
     /// </remarks>
     internal static string GetMethod(IDurableTaskRequest request) => RuntimeTypeNameFormatter.Format(request.GetType());
 
     /// <summary>
-    /// Returns a hash of <paramref name="request"/>'s invokable type and serialized arguments, which diagnostics report.
+    /// 返回 <paramref name="request"/>可引用类型和序列参数的散列,该点数由诊断报告。
     /// </summary>
     /// <remarks>
-    /// The hash changes whenever the serialized form of an argument changes, so it never decides whether two requests
-    /// are the same operation: <see cref="GetMethod"/> does.
+    /// 每当一个参数的序列形式发生变化时,散列就会变化,因此它永远无法决定是否提出两项请求
+    /// 相同的操作: <see cref="GetMethod"/> 具有。
     /// </remarks>
     internal static string GetFingerprint(IDurableTaskRequest request, Serializer serializer)
     {
@@ -107,9 +107,9 @@ public sealed class DurableTaskRequestShared(IGrainContextAccessor grainContextA
 [method: GeneratedActivatorConstructor]
 public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : DurableTask, IDurableTaskRequest, ISchedulableTask
 {
-    // Note: we could save a field here by using RuntimeContext, but that will require making internals visible to this assembly.
-    // For now, we're not doing that, just to make sure that we can get far without needing it, demonstrating the extensibility of Orleans.
-    // It might be worthwhile making RuntimeContext public at some point, even if it is not the recommended approach.
+    // 注:我们可以通过使用 RuntimeContext来保存字段,但这需要使内装件可见到本组群。
+    // 现今我们并没有这样做, 只是为了确保我们能走得远而不需要它, 证明 Orleans的可扩展性。
+    // 即便不是建议的办法,在某个时候公布 RuntimeContext 或许值得。
     [NonSerialized]
     private readonly DurableTaskRequestShared _shared = shared;
 
@@ -118,7 +118,7 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
     public DurableTaskRequestContext? Context { get; private set; }
 
     /// <summary>
-    /// Gets the invocation options.
+    /// 获得援引选项。
     /// </summary>
     [field: NonSerialized]
     public InvokeMethodOptions Options { get; private set; }
@@ -127,10 +127,10 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
     public virtual int GetArgumentCount() => 0;
 
     /// <summary>
-    /// Incorporates the provided invocation options.
+    /// 纳入了所提供的调用选项。
     /// </summary>
     /// <param name="options">
-    /// The options.
+    /// 选项。
     /// </param>
     public void AddInvokeMethodOptions(InvokeMethodOptions options) => Options |= options;
 
@@ -167,13 +167,13 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
     /// <inheritdoc/>
     public override string ToString() => IRequest.ToString(this);
 
-    // Called upon creation in generated code by the creating grain reference by virtue of the [SelfInvokingReturnType(nameof(InitializeRequest))] attribute on this class.
+    // 创建时呼吁创建生成代码 grain 以[SelfInvokingReturnType(姓名( )InitializeRequest() 属于本类。
     public DurableTask InitializeRequest(GrainReference targetGrainReference)
     {
-        // Capture the request context.
+        // 获取请求内容 。
         Context = new()
         {
-            // TaskId will be filled in later, before submission, via an extension method at the call site.
+            // TaskId 将在以后提交前通过呼叫站点的推广方法填写。
             TargetId = targetGrainReference.GrainId,
         };
         return this;
@@ -185,12 +185,12 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
     IScheduledTaskHandle ISchedulableTask.Post(TaskId taskId) => PostRoot(_shared, this, taskId);
 
     /// <summary>
-    /// Schedules a root task from code which runs outside a durable execution, and completes once the target grain has
-    /// accepted and durably stored the task.
+    /// 将一个在耐久执行之外运行的代码中的根任务安排在可执行范围之后,一旦目标 grain 达到完成
+    /// 被接受并长期保存此项任务。
     /// </summary>
     /// <remarks>
-    /// The call goes directly to the target, like a client's. Code which runs on the target grain schedules through the
-    /// grain's own runtime, so a non-reentrant grain doesn't call itself.
+    /// 电话直接接到目标,就像客户的一样 grain 附表通过
+    /// grain自己的运行时间, 所以一个非返回 grain 的人不会自呼自叫。
     /// </remarks>
     internal static ValueTask<DurableTaskResponse> ScheduleRootAsync(
         DurableTaskRequestShared shared,
@@ -205,11 +205,11 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
     }
 
     /// <summary>
-    /// Stages the start of a root task in the durable outbox of the grain which runs the calling code, and returns the
-    /// task's handle.
+    /// 将根任务在运行调用代码的 grain 耐久发件箱中开始阶段,并返回
+    /// 任务的任务处理。
     /// </summary>
-    /// <remarks>The start commits with the grain's next journal write.</remarks>
-    /// <exception cref="InvalidOperationException">The calling code doesn't run in a grain with durable tasks.</exception>
+    /// <remarks>启动承诺, 以 grain下个日记写入 。</remarks>
+    /// <exception cref="InvalidOperationException">调用代码没有在有耐久任务的 grain 中运行。</exception>
     internal static IScheduledTaskHandle PostRoot(DurableTaskRequestShared shared, IDurableTaskRequest request, TaskId taskId)
     {
         ArgumentOutOfRangeException.ThrowIfEqual(taskId, default);
@@ -223,7 +223,7 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
         return GetHandle(shared, request, taskId);
     }
 
-    /// <summary>Gets a handle for the root task <paramref name="taskId"/> of the request's target.</summary>
+    /// <summary>获取请求目标根任务 <paramref name="taskId"/> 的控点。</summary>
     internal static IScheduledTaskHandle GetHandle(DurableTaskRequestShared shared, IDurableTaskRequest request, TaskId taskId)
     {
         var target = IDurableTaskRequest.GetContext(request).TargetId;
@@ -231,8 +231,8 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
     }
 
     /// <summary>
-    /// Gets the server of <paramref name="target"/>'s tasks: the runtime of the grain which runs the calling code, when it's
-    /// the target, or the target's grain extension.
+    /// 获取 <paramref name="target"/>任务服务器的配置:运行调用代码的 grain 运行时间,当它
+    /// 目标,或目标的 grain 扩展。
     /// </summary>
     private static IDurableTaskServer GetServer(DurableTaskRequestShared shared, GrainId target) =>
         TryGetRuntime(shared, out var runtime)
@@ -246,19 +246,19 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
         RunRemoteAsync(_shared, this, executionContext);
 
     /// <summary>
-    /// Runs <paramref name="request"/> as an operation of <paramref name="executionContext"/>, a durable execution which
-    /// a host other than a grain runs: schedules the request on its target under the execution's identifier, and polls
-    /// the target until the task completes.
+    /// 运行运行 <paramref name="request"/> 业务的 <paramref name="executionContext"/>执行,一个持久的执行
+    /// 运行 grain 以外的主机:将请求表在执行的标识符下的目标上,并进行投票
+    /// 目标直到任务完成
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Scheduling is idempotent: a target which already holds the task under the identifier, with the same request,
-    /// accepts it again, so an execution which runs again reattaches to the same task. A grain's executions stage their
-    /// calls to other grains in the grain's durable outbox instead.
+    /// 排期是一等的:目标已经按照识别特征承担任务,并提出了同样的要求,
+    /// 再次接受它,所以执行时再次重复对同一任务进行连接。 A grain处决阶段
+    /// 调用其他电话 grains 中在 grain耐久发箱代替。
     /// </para>
     /// <para>
-    /// The execution's task cancellation is requested of the target task, which decides its outcome, so polling continues
-    /// until the target task completes. The cancellation of the execution's attempt ends the wait.
+    /// 要求取消执行部门的任务,是要求取消目标任务,而目标任务决定结果,因此继续投票
+    /// 取消执行的尝试结束了等待
     /// </para>
     /// </remarks>
     internal static async ValueTask<DurableTaskResponse> RunRemoteAsync(
@@ -284,13 +284,13 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
 
             try
             {
-                // Until task cancellation is requested, its token ends the poll so that the request is made promptly.
+                // 在要求取消任务之前,其象征性结束投票,以便迅速提出请求。
                 var token = cancellationRequested ? executionContext.AttemptCancellationToken : executionContext.CancellationToken;
                 response = await DurableTaskPolling.PollAsync(remote, executionContext.Id, options, token);
             }
             catch (OperationCanceledException) when (!cancellationRequested && !executionContext.AttemptCancellationToken.IsCancellationRequested)
             {
-                // Task cancellation was requested, which the next iteration requests of the target task.
+                // 要求取消任务,这是目标任务的下一个迭代要求。
             }
         }
 
@@ -298,22 +298,22 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
     }
     /// <inheritdoc/>
     ValueTask<Response> IInvokable.Invoke()
-        // This could be made to work... maybe pick a random task id, for example.
+        // 这样做可以有效... 比如说,也许选择一个随机任务代号
         => throw new NotImplementedException("Durable task requests can not be invoked directly");
 
     /// <inheritdoc/>
     //ValueTask<DurableTaskResponse> IDurableTaskRequest.InvokeImplementation(DurableTaskContext executionContext) => DurableTaskRuntimeHelper.RunAsync(InvokeInner(), executionContext);
     DurableTask IDurableTaskRequest.CreateTask() => InvokeInner();
 
-    // Generated. This invokes the target method directly.
+    // 生成。 这直接引用了目标方法 。
     protected abstract DurableTask InvokeInner();
 
     internal static bool TryGetRuntime(
         DurableTaskRequestShared shared,
         [NotNullWhen(true)] out IDurableTaskGrainRuntime? runtime)
     {
-        // Outside a grain, a silo resolves the hosted client, whose components come from the silo's root services and
-        // can't construct the activation-scoped runtime; that caller schedules like an external client.
+        // a grain之外, silo 解决了主机客户的用户,其组成部分来自 silo根服务,
+        // 无法构建激活范围运行时间; 调用器时间表像外部客户端一样 。
         var context = shared.GrainContextAccessor.GrainContext;
         if (context.GrainId.IsClient() || context.GetComponent<IDurableTaskGrainRuntime>() is not { } localProxy)
         {
@@ -338,7 +338,7 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
 }
 
 /// <summary>
-/// Represents a request to schedule a <see cref="DurableTask{TResult}"/>-returning method.
+/// 表示要求排出一个 <see cref="DurableTask{TResult}"/>-返回方法。
 /// </summary>
 [GenerateSerializer]
 [ReturnValueProxy(initializerMethodName: nameof(InitializeRequest))]
@@ -346,9 +346,9 @@ public abstract class DurableTaskRequest(DurableTaskRequestShared shared) : Dura
 [method: GeneratedActivatorConstructor]
 public abstract class DurableTaskRequest<TResult>(DurableTaskRequestShared shared) : DurableTask<TResult>, IDurableTaskRequest, ISchedulableTask
 {
-    // Note: we could save a field here by using RuntimeContext, but that will require making internals visible to this assembly.
-    // For now, we're not doing that, just to make sure that we can get far without needing it, demonstrating the extensibility of Orleans.
-    // It might be worthwhile making RuntimeContext public at some point, even if it is not the recommended approach.
+    // 注:我们可以通过使用 RuntimeContext来保存字段,但这需要使内装件可见到本组群。
+    // 现今我们并没有这样做, 只是为了确保我们能走得远而不需要它, 证明 Orleans的可扩展性。
+    // 即便不是建议的办法,在某个时候公布 RuntimeContext 或许值得。
     [NonSerialized]
     private readonly DurableTaskRequestShared _shared = shared;
 
@@ -357,7 +357,7 @@ public abstract class DurableTaskRequest<TResult>(DurableTaskRequestShared share
     public DurableTaskRequestContext? Context { get; private set; }
 
     /// <summary>
-    /// Gets the invocation options.
+    /// 获得援引选项。
     /// </summary>
     [field: NonSerialized]
     public InvokeMethodOptions Options { get; private set; }
@@ -366,10 +366,10 @@ public abstract class DurableTaskRequest<TResult>(DurableTaskRequestShared share
     public virtual int GetArgumentCount() => 0;
 
     /// <summary>
-    /// Incorporates the provided invocation options.
+    /// 纳入了所提供的调用选项。
     /// </summary>
     /// <param name="options">
-    /// The options.
+    /// 选项。
     /// </param>
     public void AddInvokeMethodOptions(InvokeMethodOptions options) => Options |= options;
 
@@ -406,13 +406,13 @@ public abstract class DurableTaskRequest<TResult>(DurableTaskRequestShared share
     /// <inheritdoc/>
     public override string ToString() => IRequest.ToString(this);
 
-    // Called upon creation in generated code by the creating grain reference by virtue of the [SelfInvokingReturnType(nameof(InitializeRequest))] attribute on this class.
+    // 创建时呼吁创建生成代码 grain 以[SelfInvokingReturnType(姓名( )InitializeRequest() 属于本类。
     public DurableTask<TResult> InitializeRequest(GrainReference targetGrainReference)
     {
-        // Capture the request context.
+        // 获取请求内容 。
         Context = new()
         {
-            // TaskId will be filled in later, before submission, via an extension method at the call site.
+            // TaskId 将在以后提交前通过呼叫站点的推广方法填写。
             TargetId = targetGrainReference.GrainId,
         };
         return this;
@@ -434,7 +434,7 @@ public abstract class DurableTaskRequest<TResult>(DurableTaskRequestShared share
     //ValueTask<DurableTaskResponse> IDurableTaskRequest.InvokeImplementation(DurableTaskContext executionContext) => DurableTaskRuntimeHelper.RunAsync(InvokeInner(), executionContext);
     DurableTask IDurableTaskRequest.CreateTask() => InvokeInner();
 
-    // Generated. This invokes the target method directly.
+    // 生成。 这直接引用了目标方法 。
     protected abstract DurableTask<TResult> InvokeInner();
 
     /// <inheritdoc/>
@@ -443,7 +443,7 @@ public abstract class DurableTaskRequest<TResult>(DurableTaskRequestShared share
     public IScheduledTaskHandle GetHandle(TaskId taskId) => DurableTaskRequest.GetHandle(_shared, this, taskId);
 }
 
-/// <summary>The handle of a root task of <paramref name="target"/>, which code outside a durable execution observes.</summary>
+/// <summary>根任务 <paramref name="target"/>的处理,该根任务在耐用执行观察之外编码。</summary>
 internal sealed class GrainScheduledTaskHandle(
     TaskId taskId,
     GrainId target,
@@ -453,12 +453,12 @@ internal sealed class GrainScheduledTaskHandle(
 {
     public TaskId TaskId { get; } = taskId;
 
-    /// <summary>Returns the task's <see cref="DurableTaskAddress"/>, as <see cref="IDurableTaskReference"/>.</summary>
+    /// <summary>返回任务 <see cref="DurableTaskAddress"/>,作为 <see cref="IDurableTaskReference"/>。</summary>
     public TFeature? GetFeature<TFeature>()
         where TFeature : class => new DurableTaskAddress(target, TaskId) as TFeature;
     public DurableTaskResponse? LastResponse { get; private set; } = lastResponse;
 
-    /// <remarks>Cancellation is idempotent, so failures to reach the grain are retried as polls are.</remarks>
+    /// <remarks>取消是无能的,所以无法达到 grain 调查结果会重新调查。</remarks>
     public ValueTask CancelAsync(string? reason, CancellationToken cancellationToken) =>
         DurableTaskPolling.SendAsync(
             grain,
@@ -466,14 +466,14 @@ internal sealed class GrainScheduledTaskHandle(
             static (grain, state) => RequestCancellationAsync(grain, state.TaskId, state.reason),
             cancellationToken);
 
-    /// <summary>Requests cancellation of <paramref name="taskId"/> on <paramref name="grain"/>, carrying <paramref name="reason"/>.</summary>
-    /// <remarks>A request without a reason uses the original operation, which every version of the grain serves.</remarks>
+    /// <summary>请求取消 <paramref name="taskId"/> 日期 时 <paramref name="grain"/>,携带 <paramref name="reason"/>.</summary>
+    /// <remarks>请求无任何理由无理由地使用最初作业,而最初作业是《联合国 grain 服务。</remarks>
     internal static ValueTask RequestCancellationAsync(IDurableTaskServer grain, TaskId taskId, string? reason) =>
         reason is null
             ? grain.CancelAsync(taskId, CancellationToken.None)
             : grain.CancelAsync(taskId, reason, CancellationToken.None);
 
-    /// <remarks>Abort is idempotent, so failures to reach the grain are retried as polls are.</remarks>
+    /// <remarks>中止是一无所有,所以无法到达 grain 的状态会随着民意调查重新被查获。</remarks>
     public ValueTask AbortAsync(string reason, CancellationToken cancellationToken) =>
         DurableTaskPolling.SendAsync(
             grain,

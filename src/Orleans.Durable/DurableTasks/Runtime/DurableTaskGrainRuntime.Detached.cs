@@ -13,48 +13,48 @@ namespace Orleans.Durable.Tasks.Runtime;
 
 /// <remarks>
 /// <para>
-/// A durable execution starts a detached task by recording a subscription child, whose fingerprint names the task's grain
-/// and root identifier, and whose method names the request's method, and staging the task's invocation in the same journal write. The invocation names the
-/// child as a subscriber, so the task's grain adds the child to the task's completion destinations when it stores the
-/// task, without a separate subscription. The child observes the task as other subscriptions do: its cancellation ends
-/// only the subscription. A detached task of the same grain is staged directly in task state.
+/// 持久执行从一个订阅儿童开始,通过记录其指纹名称为任务 grain的订阅儿童,开始一项独立的任务。
+/// 和根标识符,以及谁的方法命名请求的方法, 并在同一日记中进行任务引用。
+/// 儿童是订阅者,所以任务 grain 在存储该任务时将孩子添加到任务的完成目的地。
+/// 儿童与其他订阅者一样执行该任务:其注销结束
+/// 仅订阅。同一 grain 的单独任务直接在任务状态下进行。
 /// </para>
 /// <para>
-/// Every invocation of a task on another grain is a reference send, which the runtime provides from its journaled table of
-/// pending invocations. The table is separate from the execution trees, so a start survives deletion of the tree which
-/// made it, and the outbox reports the invocation's retirement to the runtime, which removes it from the table in the
-/// retirement's journal write and records the outcome on the starting record: the record of a call to another grain, or
-/// of a detached task. The outbox retires an invocation as delivered once the task's grain has durably stored the task,
-/// which is the target's acceptance. A grain which can't store the task, because its identifier already identifies
-/// another request or caller, dead-letters the invocation with the <see cref="DurableTaskRejectionCodes.Conflict"/> code,
-/// and the outbox retires it as rejected, with the grain's reason, which fails the record with a
-/// <see cref="DurableTaskConflictException"/>. A grain which receives an invocation after its admission window, Messaging's
-/// <c>DeduplicationWindow</c> since the invocation was first staged, dead-letters it with the
-/// <see cref="DurableTaskRejectionCodes.Expired"/> code. Another rejection, with another code or none, fails the record with
-/// a <see cref="DurableTaskRejectedException"/>, which reports the code. An invocation whose delivery the outbox can't
-/// confirm before Messaging's <c>OutboxRetryTimeout</c>, including one which the grain fails to accept, such as one which
-/// doesn't decode, or which the grain fences after its admission cutoff, retires as dead-lettered, which fails the record
-/// with a <see cref="DurableTaskDeliveryException"/>: an earlier attempt may have reached the grain, so the outcome is
-/// unknown. Awaiting the task, or a start which awaits its acceptance, throws the
-/// failure, in every replay.
+/// 每一次在另一个 grain 上援引任务,都是一个参考发送,运行时间从它的日记表格中提供。
+/// 表格与处决树分开,因此从开始到删除那些
+/// 发件箱上报告 援引退休到运行时间, 从而从表格中删除
+/// 将结果写入开始记录:呼叫另一台台 grain的记录,或
+/// 发送信箱将任务完成后提供的传回 grain 他曾将这件事,加以长期的保存,
+/// 目标是否接受。一个无法保存任务 grain ,因为其识别符号已经确认
+/// 另一请求人或打电话者,将使用 <see cref="DurableTaskRejectionCodes.Conflict"/> 代码的编号写成死字,
+/// 发箱将它退去,而它原是被拒绝的, grain原因,其中没有记录
+/// <see cref="DurableTaskConflictException"/>. A grain 其进入窗口后收到传讯的,
+/// <c>DeduplicationWindow</c> 开始阶段的援引 以死亡字母
+/// <see cref="DurableTaskRejectionCodes.Expired"/> 代码。如果拒绝,有另一个代码或没有代码,记录失效
+/// a <see cref="DurableTaskRejectedException"/>,报告代码。
+/// 在邮件传送前确认 <c>OutboxRetryTimeout</c>,包括 grain 不接受,例如
+/// 或哪些代码 grain 进入禁闭后,以死字字母退休,这不符合记录
+/// 具有 a 的 <see cref="DurableTaskDeliveryException"/>:早先的尝试可能已经达到 grain所以结果就是
+/// 未知。等待任务或等待接受的任务开始时,
+/// 失败,在每次重播中。
 /// </para>
 /// </remarks>
 internal sealed partial class DurableTaskGrainRuntime
 {
-    // A detached task's record is a subscription child whose fingerprint names the task's grain and root identifier, and
-    // the diagnostic fingerprint of the detached request. The record's method identifies the request, so a replay which
-    // starts another method under the same root identifier diverges, and one whose arguments serialize differently doesn't.
+    // 独立任务的记录是订阅儿童,其指纹为任务 grain 和根识别码,以及
+    // 记录的方法识别请求,所以重放
+    // 开始使用同一根标识符下的其他方法,但不同顺序的争论没有。
     private const string DetachedFingerprintPrefix = "$detach:";
 
-    // The starts which await their target's acceptance, by the identifier of their record. Each is signaled when the record
-    // records the acceptance or the failed start, or when the record is deleted.
+    // 开始时间等待目标接受, 以记录识别码表示。
+    // 记录接受或启动失败,或者删除记录。
     private readonly Dictionary<TaskId, TaskCompletionSource> _acceptanceWaiters = [];
 
     /// <summary>
-    /// Starts <paramref name="request"/> as the detached root task <paramref name="rootId"/>, recorded and subscribed under
-    /// <paramref name="recordId"/>, and waits for the write which commits the start.
+    /// 启动 <paramref name="request"/> ,作为独立根任务 <paramref name="rootId"/>,记录并订阅于
+    /// <paramref name="recordId"/>,等待开始的写作。
     /// </summary>
-    /// <param name="waitForAcceptance">Whether the start also waits for the task's grain to accept the task.</param>
+    /// <param name="waitForAcceptance">启动是否也等待任务 grain 接受任务。</param>
     public async ValueTask<IScheduledTaskHandle> StartDetachedAsync(
         TaskId recordId,
         TaskId rootId,
@@ -67,7 +67,7 @@ internal sealed partial class DurableTaskGrainRuntime
         cancellationToken.ThrowIfCancellationRequested();
         var handle = StageDetached(recordId, rootId, request, shielded);
 
-        // The record commits with the start, possibly in a write which an earlier attempt is still awaiting.
+        // 记录一开始就承诺,可能写在一份早期尝试仍在等待的书上。
         await WriteStateAsync(cancellationToken);
         if (waitForAcceptance)
         {
@@ -78,8 +78,8 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// Stages the start of the detached root task <paramref name="rootId"/>, recorded and subscribed under
-    /// <paramref name="recordId"/>, without writing.
+    /// 独立根任务 <paramref name="rootId"/>的启动阶段,在
+    /// <paramref name="recordId"/>,不以书面形式。
     /// </summary>
     public IScheduledTaskHandle PostDetached(TaskId recordId, TaskId rootId, IDurableTaskRequest request, bool shielded)
     {
@@ -88,11 +88,11 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// Stages the start of a detached root task without a subscriber, from code which runs outside a durable execution.
+    /// 启动一个没有订阅者的分离根任务, 与在耐久执行之外运行的代码相连接。
     /// </summary>
     /// <remarks>
-    /// The start commits with this grain's next journal write, together with the state changes which the calling work item
-    /// made. A task of this grain starts after that write.
+    /// 启动时要使用此 grain下个日记写入, 同时加上调用工作项的状态变化
+    /// 任务的任务 grain 写完后开始。
     /// </remarks>
     public void PostRoot(TaskId rootId, IDurableTaskRequest request)
     {
@@ -123,7 +123,7 @@ internal sealed partial class DurableTaskGrainRuntime
         DurableTaskResponse? response = null;
         if (target == GrainId)
         {
-            // The task is staged before its record, so a start which conflicts with the task fails without a record.
+            // 任务在记录前就已展开,因此与任务发生冲突的开始没有记录。
             StageScheduleWithCommitEffects(rootId, request, fromInbox: false);
             response = SubscribeLocal(rootId, recordId);
         }
@@ -143,7 +143,7 @@ internal sealed partial class DurableTaskGrainRuntime
             rootId);
         var handle = StageSubscriptionRecord(recordId, DurableTaskRecordKind.DetachedStart, fingerprint, shielded, response, method);
 
-        // A canceled starter still starts the task, which its cancellation doesn't reach, and ends only its subscription.
+        // 取消的启动器仍然开始任务, 而取消的任务没有达到, 并且只结束订阅 。
         if (response is null && IsStartRefusedByAncestorCancellation(recordId, state: null, shielded))
         {
             _pendingHandleResponses[recordId] = StageResponse(recordId, DurableTaskResponse.Canceled);
@@ -152,7 +152,7 @@ internal sealed partial class DurableTaskGrainRuntime
         return handle;
     }
 
-    /// <summary>Clears the caller of a detached request, which no caller claims.</summary>
+    /// <summary>清除一个独立请求的来电人,但无人声称。</summary>
     private static void PrepareDetachedInvocation(IDurableTaskRequest request)
     {
         var context = IDurableTaskRequest.GetContext(request);
@@ -160,7 +160,7 @@ internal sealed partial class DurableTaskGrainRuntime
         context.SupportsDurableCompletion = false;
     }
 
-    /// <summary>Returns whether a task is the record of a detached task, and the task which it started.</summary>
+    /// <summary>返回任务是否是独立任务的记录及其开始的任务。</summary>
     private static bool TryGetDetachedTask(IDurableTaskState state, out GrainId target, out TaskId rootId)
     {
         target = default;
@@ -171,7 +171,7 @@ internal sealed partial class DurableTaskGrainRuntime
             return false;
         }
 
-        // The request fingerprint, which contains no ':', precedes the identity.
+        // 请求指纹在身份之前,没有“ : ” 。
         var separator = fingerprint.IndexOf(':', DetachedFingerprintPrefix.Length);
         return separator > 0 && TryParseIdentity(fingerprint[..(separator + 1)], fingerprint, out target, out rootId);
     }
@@ -180,16 +180,16 @@ internal sealed partial class DurableTaskGrainRuntime
         $"a start of detached task '{rootId}' on grain '{target}' for {DescribeMethod(method)}";
 
     /// <summary>
-    /// Returns why the grain rejects an invocation of <paramref name="taskId"/> which its sender first staged at
-    /// <paramref name="sentAt"/>, or <see langword="null"/> when the grain admits it.
+    /// 返回为什么 grain 拒绝援引 <paramref name="taskId"/> 其发件人首先在
+    /// <paramref name="sentAt"/>或 <see langword="null"/> 接受时的 grain 。
     /// </summary>
     /// <remarks>
-    /// The grain admits an invocation before <see cref="DurableTaskGrainRuntimeShared.InvocationAdmissionWindow"/> has
-    /// elapsed since <paramref name="sentAt"/>. A cancellation or signal which its sender staged with or after the
-    /// invocation is recorded for <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/> after it arrives, which
-    /// covers the skew between the sender's clock and the grain's, so an admitted invocation finds it. Like Messaging's
-    /// <c>DeliverAt</c>, the check compares the sender's clock with the grain's. A
-    /// redelivery of an invocation which the grain stores stages nothing new, so the grain admits it at any time.
+    /// grain 在 <see cref="DurableTaskGrainRuntimeShared.InvocationAdmissionWindow"/> 之前接受一次请求
+    /// 发件人与 <paramref name="sentAt"/>之后或之后所装的注销或信号。
+    /// 召回在 <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/> 到达后登记,但
+    /// 发送者时钟和 grain之间的折叠,所以被承认的祈祷找到它。就像通信一样
+    /// <c>DeliverAt</c>,核对将发送器的时钟与 grain的时钟进行比较。
+    /// 重新交付援引, grain 没有任何新阶段的存储,所以 grain 在任何时候都承认
     /// </remarks>
     internal string? GetInvocationAdmissionRejection(TaskId taskId, DateTimeOffset sentAt)
     {
@@ -202,17 +202,17 @@ internal sealed partial class DurableTaskGrainRuntime
         return $"The invocation of durable task '{taskId}' arrived at or after its admission deadline, {deadline:O}.";
     }
 
-    /// <summary>Stages an invocation which the inbox delivered.</summary>
-    /// <param name="taskId">The invoked task: the caller's child, under the caller's scope, or a detached root task.</param>
-    /// <param name="request">The request which the task runs.</param>
-    /// <param name="sender">The grain which sent the invocation.</param>
-    /// <param name="detached">Whether the invocation starts a detached task, which has no caller.</param>
-    /// <param name="subscriberId">The wire identifier of the sender's task which subscribes to a detached task, if any.</param>
+    /// <summary>阶段的援引, 信箱发送了该请求。</summary>
+    /// <param name="taskId">所援引的任务:打电话者的子女,在打电话者的范围之内,或独立地执行根任务。</param>
+    /// <param name="request">任务运行的请求。</param>
+    /// <param name="sender">下 grain 他曾派遣祈祷者,</param>
+    /// <param name="detached">是否援引开始一项独立的任务,而该任务没有呼叫者。</param>
+    /// <param name="subscriberId">发送者任务中的线性识别符,如果有的话,该信号符可订阅一项独立的任务。</param>
     /// <remarks>
-    /// A detached task's subscriber is added to the task's completion destinations in the same write which stores the
-    /// task. An invocation which conflicts with the stored task, such as another request under the same identifier,
-    /// throws before staging anything, so the sink rejects it with the conflict's message and code, which the inbox
-    /// records as processed.
+    /// 将独立任务用户添加到任务完成目的地,其内容与存储
+    /// 任务。 与存储的任务发生冲突的援引,例如同一识别符号下的另一请求;
+    /// 之前抛出任何东西, 所以水槽拒绝它 冲突的信息和代码, 信箱
+    /// 记录已处理。
     /// </remarks>
     internal void InvokeFromInbox(TaskId taskId, IDurableTaskRequest request, GrainId sender, bool detached, TaskId? subscriberId)
     {
@@ -221,7 +221,7 @@ internal sealed partial class DurableTaskGrainRuntime
             ?? throw new InvalidOperationException("The durable task invocation request has no context.");
         if (detached)
         {
-            // A detached task is a root task, which no other grain's invocation creates beneath the reserved scope root.
+            // 分离任务是一个根任务, 而其他 grain的引用在保留范围根下没有产生。
             CallerScope.ThrowIfReserved(taskId);
             PrepareDetachedInvocation(request);
         }
@@ -244,16 +244,16 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// Stages <paramref name="invocation"/> in the outbox by reference, and journals it in the table of pending invocations
-    /// until it retires, with <paramref name="recordId"/>, the wire identifier of the task which records the start's
-    /// outcome, if any.
+    /// 发件箱中的阶段 <paramref name="invocation"/> ,参考文件编号,在待职职务表上予以记号
+    /// 至退休时, <paramref name="recordId"/>,记录启动的任务的线条识别符号
+    /// 如有结果的话。
     /// </summary>
     /// <remarks>
-    /// A pending invocation with the same identity coalesces: the replay of a start which recovery restored stages nothing.
-    /// The identity of a start which a record makes covers the record's wire identifier, so each run of a tree sends its
-    /// own. The pending invocation keeps the request which it journaled, so a replay whose arguments serialize differently
-    /// still coalesces. A pending invocation which invokes another method under the same identity, which an earlier post
-    /// of the same root task sent, fails the start.
+    /// 以相同身份连接的待查援引:重播一个恢复阶段没有恢复的开始。
+    /// 记录所记录的起始点的身份覆盖了记录中的线标识符,因此每棵树的运行都发送到
+    /// 尚未解决的援引保留了它所日记的请求,所以重述其论点的顺序不同
+    /// 援引同一身份下另一种方法的待发援引,该同一身份先前曾被
+    /// 的根任务,失败启动。
     /// </remarks>
     private void SendInvocation(OutboxMessage invocation, IDurableTaskRequest request, TaskId? recordId)
     {
@@ -274,8 +274,8 @@ internal sealed partial class DurableTaskGrainRuntime
         MessageTransport.Send(messageId);
     }
 
-    /// <summary>Returns whether the pending invocation invokes the method which <paramref name="request"/> invokes.</summary>
-    /// <remarks>A pending invocation whose request no longer decodes can't be shown to invoke the same method.</remarks>
+    /// <summary>返回待裁决的援引是否引用了 <paramref name="request"/> 援引的方法。</summary>
+    /// <remarks>无法证明他的请求 使用同一方法</remarks>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "A request which doesn't decode isn't the same method.")]
     private bool IsSameMethod(PendingInvocation pending, IDurableTaskRequest request)
     {
@@ -291,15 +291,15 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// Records how <paramref name="invocation"/> retired on the record which started it: its target's acceptance, or the
-    /// failed start, whose failure ends the record, without writing.
+    /// 记录 <paramref name="invocation"/> 如何在开始的记录中留存:其目标是否接受,或
+    /// 失败开始, 失败结束记录, 没有写入 。
     /// </summary>
     /// <remarks>
-    /// The outbox stages the invocation's removal in the same journal write. A record which the task's result already
-    /// reached recorded the acceptance then. A record which already stores its own outcome, such as its cancellation or
-    /// abort, keeps it, so every replay observes the outcome which it observed first. A posted root task has no record,
-    /// and a record which was deleted with its tree ignores the retirement, as does a record which a later run of the tree
-    /// recreated under the same identifier.
+    /// 发件箱在同一个日记写时, 将取消援引的删除分期进行。 任务结果已经记录的
+    /// 记录了当时的接受。记录中已经储存着它自己的结果,例如取消或取消。
+    /// 中止, 保留它, 所以每个重播都观察它首先观察到的结果。 一个已张贴的根任务没有记录,
+    /// 记录,用树的果木删除了它,而后出一棵树的记录,和那棵树的果实,也忽视了已老者已死的日子。
+    /// 在同一识别特征下再生。
     /// </remarks>
     private void RetireInvocation(PendingInvocation invocation, OutboxMessageRetirement retirement)
     {
@@ -334,9 +334,9 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// Throws unless <paramref name="recordId"/>, whose wire identifier is <paramref name="wireId"/>, started
-    /// <paramref name="sourceTaskId"/> of <paramref name="sender"/>: it is the remote child which that grain stores under
-    /// this grain's caller scope, or it subscribes to that task.
+    /// 除非 <paramref name="recordId"/>的铁丝标识符 <paramref name="wireId"/>启动投出
+    /// <paramref name="sourceTaskId"/> 联 年 月 日 月 日 月 月 日 <paramref name="sender"/>:是边远的孩子 grain 库内
+    /// 此 grain的调用范围, 或者它同意此项任务 。
     /// </summary>
     private void ThrowIfNotStartedBy(TaskId recordId, TaskId wireId, TaskId sourceTaskId, IDurableTaskState state, GrainId sender)
     {
@@ -354,13 +354,13 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// Waits until the record <paramref name="recordId"/> durably records whether the target of its start accepted the
-    /// task, and throws the outcome of a start which its target didn't accept.
+    /// 等到记录 <paramref name="recordId"/> 记录其启动目标是否接受
+    /// 并抛出一个开始的结果 而它的目标不接受。
     /// </summary>
     /// <remarks>
-    /// A start on this grain is accepted once its write commits. A start on another grain is accepted when its invocation
-    /// retires as delivered, or when the task's result reaches the record first. A failed start ends the record with its
-    /// failure, or with the record's own cancellation or abort, which it stored first.
+    /// 此 grain 的开始一旦被写入承诺,便被接受。当另一个 grain 被引用时,它会被接受
+    /// 完成时退休,或者当任务结果达到记录前先。失败的起始点以其
+    /// 失败,或者记录本身的取消或中止, 它先储存。
     /// </remarks>
     private async ValueTask WaitForAcceptanceAsync(TaskId recordId, CancellationToken cancellationToken)
     {
@@ -397,11 +397,11 @@ internal sealed partial class DurableTaskGrainRuntime
         }
     }
 
-    /// <summary>Returns whether a record starts a task on another grain, whose acceptance it awaits.</summary>
+    /// <summary>返回记录是否开始另一个 grain的任务,等待接受。</summary>
     private bool AwaitsAcceptance(IDurableTaskState state) =>
         !state.RemoteTarget.IsDefault || (TryGetDetachedTask(state, out var target, out _) && target != GrainId);
 
-    /// <summary>Wakes the start which awaits the reply for <paramref name="recordId"/>, if any.</summary>
+    /// <summary>唤醒了等待答复的开始 <paramref name="recordId"/>,如果有的话。</summary>
     private void SignalAcceptance(TaskId recordId)
     {
         if (_acceptanceWaiters.Remove(recordId, out var waiter))

@@ -7,10 +7,10 @@ namespace Orleans.Runtime;
 internal static partial class LocalRequests
 {
     /// <summary>
-    /// Completes the local request which <paramref name="message"/> carries with <paramref name="response"/> and then disposes it.
+    /// 完成 <paramref name="message"/> 随 <paramref name="response"/> 提出的本地请求,然后予以处置。
     /// </summary>
     /// <remarks>
-    /// A failure in the request's completion or disposal is logged rather than thrown, so callers completing a batch of requests complete every request.
+    /// 请求完成或处置失败的记录是记录而不是扔掉,因此填写了一批申请的打电话者完成所有申请。
     /// </remarks>
     public static void Complete(Message message, Response response, ILogger logger)
     {
@@ -34,7 +34,7 @@ internal static partial class LocalRequests
     }
 
     /// <summary>
-    /// Completes the local request which <paramref name="message"/> carries with <paramref name="exception"/> and then disposes it.
+    /// 完成 <paramref name="message"/> 随 <paramref name="exception"/> 提出的本地请求,然后予以处置。
     /// </summary>
     /// <inheritdoc cref="Complete(Message, Response, ILogger)" path="/remarks"/>
     public static void Reject(Message message, Exception exception, ILogger logger) => Complete(message, Response.FromException(exception), logger);

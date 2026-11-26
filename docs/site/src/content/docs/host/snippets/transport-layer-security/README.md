@@ -1,18 +1,22 @@
-# Orleans transport layer security snippets
+<a id="orleans-transport-layer-security-snippets"></a>
 
-This folder contains the compile-checked snippet projects used by
+# Orleans 运输层安全片段
+
+此文件夹包含用于
 `docs/site/src/content/docs/host/transport-layer-security.md`.
 
-## Build the snippets
+<a id="build-the-snippets"></a>
 
-Run `dotnet build` for each project:
+## 构建片段
+
+每个项目运行 `dotnet build` :
 
 - `csharp/SiloExample/SiloExample.csproj`
 - `csharp/ClientExample/ClientExample.csproj`
 
-The entry points intentionally don't start a silo or client. The article examples
-require deployment-specific certificates, names, and trust stores and are
-designed to compile without embedding development-only certificate bypasses.
+入境点故意不启动 silo 或客户。
+需要具体部署部署的证明、姓名和信托商店,
+设计成编译时不嵌入开发专用证书绕行。
 
-For a locally runnable mTLS example which creates a development certificate, see
-the [Orleans Transport Layer Security sample](https://learn.microsoft.com/samples/dotnet/samples/orleans-transport-layer-security-tls/).
+创建开发证书的本地可运行 mTLS 示例,请参见
+排 [Orleans 运输层安全抽样](https://learn.microsoft.com/samples/dotnet/samples/orleans-transport-layer-security-tls/).

@@ -49,8 +49,8 @@ public sealed class DurableRpcProtocolTests
     [Fact]
     public void DurableTaskExtensionOperationsInterleaveWithGrainTurns()
     {
-        // The extension's operations only stage host-owned task state, or wait for it, and run no grain code; the task
-        // bodies which they start run in their own non-interleaving segments.
+        // 扩展的操作仅运行由主机拥有的任务状态, 或者等待它, 然后运行没有 grain 代码; 任务
+        // 开始在自己非相互交错的区段运行
         var methods = typeof(IDurableTaskServer).GetMethods()
             .Concat(typeof(IDurableTaskGrainExtension).GetMethods())
             .ToArray();
@@ -198,7 +198,7 @@ public sealed class DurableRpcProtocolTests
         Assert.Equal(7, body.Generation);
         Assert.Equal(grain, body.Sender);
 
-        // Replays coalesce in the grain's own inbox: the identity and content are stable for one delay generation.
+        // 在 grain自己的收件箱中重放:身份和内容在延迟一代的时间里稳定。
         Assert.Equal(message.Envelope.MessageId, messages[1].Envelope.MessageId);
         Assert.Equal(message.Envelope.Payload, messages[1].Envelope.Payload);
         Assert.Equal(DurableTaskMessageTransport.CreateResumeMessageId(grain, taskId, incarnation, 7, dueTime), message.Envelope.MessageId);
@@ -321,7 +321,7 @@ public sealed class DurableRpcProtocolTests
         ];
         transport.SendCancellation(sender, target, taskId);
 
-        // The runtime stages invocations by reference, so the transport only encodes them.
+        // 运行阶段的职业参照, 所以运输只编码它们。
         var cancellation = Assert.Single(outbox.Messages);
         Assert.Equal(messages[0].Envelope.MessageId, messages[1].Envelope.MessageId);
         Assert.Equal(messages[0].Envelope.Payload, messages[1].Envelope.Payload);
@@ -329,7 +329,7 @@ public sealed class DurableRpcProtocolTests
         Assert.Equal(DurableTaskMessageTypes.InvocationSubject, messages[0].Envelope.Subject);
         Assert.Equal(target, messages[0].ReceiverId);
 
-        // The runtime rebuilds a pending invocation from its target and payload; the outbox stamps its send time.
+        // 运行时间重建了尚未从目标及其有效载荷中进行援引的信号;发送时间是发件箱印章。
         var rebuilt = transport.CreateInvocation(messages[0].Envelope.MessageId, target, messages[0].Envelope.Payload);
         Assert.Equal((target, messages[0].Envelope.MessageId), (rebuilt.ReceiverId, rebuilt.Envelope.MessageId));
         Assert.Equal((messages[0].Envelope.Subject, messages[0].Envelope.Payload), (rebuilt.Envelope.Subject, rebuilt.Envelope.Payload));
@@ -362,7 +362,7 @@ public sealed class DurableRpcProtocolTests
             transport.CreateDetachedInvocation(sender, target, rootId, request, subscriberId: null),
         ];
 
-        // Each subscriber, and a posted start which has none, has its own invocation.
+        // 每个订阅者和已张贴的起始点都没有,它们都有自己的援引。
         Assert.Empty(outbox.Messages);
         Assert.Equal(messages[0].Envelope.MessageId, messages[1].Envelope.MessageId);
         Assert.Equal(3, messages.Select(message => message.Envelope.MessageId).Distinct().Count());
@@ -398,7 +398,7 @@ public sealed class DurableRpcProtocolTests
             });
         }
 
-        // A posted root's entry has no record, which the JSON journal omits.
+        // 已张贴的 root 条目没有记录, 而 JSON 日记则忽略了记录 。
         Assert.DoesNotContain(nameof(PendingInvocation.RecordId), JsonSerializer.Serialize(posted, typeInfo), StringComparison.Ordinal);
         var messageIdTypeInfo = DurableTaskJsonContext.Default.MessageId;
         Assert.Equal(messageId, JsonSerializer.Deserialize(JsonSerializer.Serialize(messageId, messageIdTypeInfo), messageIdTypeInfo));
@@ -422,7 +422,7 @@ public sealed class DurableRpcProtocolTests
         var address = new DurableTaskAddress(GrainId.Create("order", "42"), TaskId.CreateRoot("place/order").Child("step"));
         var typeInfo = DurableTaskJsonContext.Default.DurableTaskAddress;
 
-        // JSON carries the grain and the task as their canonical strings, with source-generated and reflection metadata.
+        // JSON 带有 grain 和任务,作为它们的金字塔,由源产生元数据和反射元数据。
         var json = JsonSerializer.Serialize(address, typeInfo);
         Assert.Equal("""{"Target":"order/42","Id":"place\\/order/step"}""", json);
         Assert.Equal(json, JsonSerializer.Serialize(address));
@@ -459,7 +459,7 @@ public sealed class DurableRpcProtocolTests
         var target = GrainId.Create("worker", "one");
         var waitServer = new ScriptedDurableTaskServer(
             new SiloUnavailableException(),
-            // A stopping activation's runtime fails calls with this exception.
+            // 停止激活的运行时失灵电话,除此例外
             new DurableTaskAttemptCanceledException(DurableTaskAttemptCancellationReason.ActivationStopping, CancellationToken.None),
             new ConnectionFailedException("lost"),
             DurableTaskResponse.Pending,
@@ -471,7 +471,7 @@ public sealed class DurableRpcProtocolTests
         var polled = await new GrainScheduledTaskHandle(taskId, target, request: null, pollServer, lastResponse: null)
             .PollAsync(default, TestContext.Current.CancellationToken);
 
-        // Each failure to reach the grain is retried, and the task's response is the outcome.
+        // 每一个未能达到 grain 的单位都重新审理,任务的反应就是结果。
         Assert.Equal((7, 5), (waited.GetResult<int>(), waitServer.Polls));
         Assert.Equal((DurableTaskStatus.Pending, 3), (polled.Status, pollServer.Polls));
     }
@@ -493,7 +493,7 @@ public sealed class DurableRpcProtocolTests
         await new GrainScheduledTaskHandle(taskId, target, request: null, abortServer, lastResponse: null)
             .AbortAsync("broken", TestContext.Current.CancellationToken);
 
-        // Cancellation and abort are idempotent, so each failure to reach the grain is retried with the same request.
+        // 取消和中止是一无所有,所以每个未能达到 grain 的单位都以同样的请求进行重新审理。
         Assert.Equal(Enumerable.Repeat(("cancel", (string?)"stop"), 4), cancelServer.Requests);
         Assert.Equal(Enumerable.Repeat(("abort", (string?)"broken"), 3), abortServer.Requests);
     }
@@ -551,8 +551,8 @@ public sealed class DurableRpcProtocolTests
     [Fact]
     public void DurableTaskReferenceIsAwaitableOnlyThroughItsExtension()
     {
-        // ASP.NET Core Minimal APIs reject a handler whose return type has an instance GetAwaiter, so a handler returns a
-        // reference as a value.
+        // ASP.NET 核心最小 APIs拒绝一个处理器,如果其返回类型有一个实例 GetAwaiter,处理器返回a
+        // 以值表示。
         Assert.Null(typeof(DurableTaskReference<int>).GetMethod(nameof(DurableTaskReferenceExtensions.GetAwaiter), BindingFlags.Public | BindingFlags.Instance));
         Assert.Equal(
             typeof(DurableTaskReferenceAwaiter<int>),
@@ -563,7 +563,7 @@ public sealed class DurableRpcProtocolTests
     [Fact]
     public void CallerScopeMapsEachCallersChildToItsOwnTaskAndBack()
     {
-        // The caller's key contains the separator, which the scope escapes.
+        // 呼叫器的钥匙包含分离器 范围可以逃脱
         var caller = GrainId.Create("caller", "tenant/one");
         var other = GrainId.Create("caller", "two");
         var childId = TaskId.Parse("place-order/reserve");
@@ -577,7 +577,7 @@ public sealed class DurableRpcProtocolTests
         Assert.Equal(scoped, CallerScope.GetCallerTaskId(other, scoped));
         Assert.Equal(childId, CallerScope.GetCallerTaskId(default, childId));
 
-        // A root ID addresses the target's root task itself, and the scopes' root and every ID beneath it are reserved.
+        // 根的ID是针对目标的根任务本身, 范围根和下面的每一个身份都保留下来。
         Assert.Equal(TaskId.CreateRoot("detached"), CallerScope.Resolve(caller, TaskId.CreateRoot("detached")));
         Assert.Throws<ArgumentException>(() => CallerScope.ThrowIfReserved(CallerScope.Root));
         Assert.Throws<ArgumentException>(() => CallerScope.ThrowIfReserved(scoped));
@@ -593,13 +593,13 @@ public sealed class DurableRpcProtocolTests
 
         var wireId = CallerScope.GetWireId(incarnation, nodeId);
 
-        // The incarnation is the root segment, followed by the node's own segments.
+        // 化石是根段, 然后是节点自己的部分。
         Assert.Equal(TaskId.CreateRoot(incarnation.ToString("N")), wireId.Parent().Parent());
         Assert.Equal($"{incarnation:N}/{nodeId}", wireId.ToString());
         Assert.True(CallerScope.TryParseWireId(wireId, out var parsedIncarnation, out var parsedNodeId));
         Assert.Equal((incarnation, nodeId), (parsedIncarnation, parsedNodeId));
 
-        // Each run of the node's tree has its own wire ID, which a target stores under its own scoped ID.
+        // 节点树的每根树都有自己的线条识别码,目标仓库在自己的标尺内。
         var caller = GrainId.Create("caller", "one");
         var laterWireId = CallerScope.GetWireId(Guid.NewGuid(), nodeId);
         Assert.NotEqual(wireId, laterWireId);
@@ -650,7 +650,7 @@ public sealed class DurableRpcProtocolTests
         transport.Send(messageId);
         transport.Send(transport.GetCompletionMessageId(sender, new(target, taskId), taskId));
 
-        // The outbox journals only the reference; the runtime provides the message from the stored result.
+        // 发件箱日记只提供引用;运行时间提供存储结果的信息。
         Assert.Empty(outbox.Messages);
         Assert.Equal([messageId, messageId], outbox.SourceMessages);
         Assert.Equal(
@@ -779,7 +779,7 @@ public sealed class DurableRpcProtocolTests
         silo.AddDurableTasks();
         using var provider = silo.Services.BuildServiceProvider();
 
-        // The resolver chain has no reflection fallback, so every journaled key and value type needs registered metadata.
+        // 解析链没有反射回退 所以每个日记的钥匙和价值类型 都需要注册元数据
         var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<JsonJournalOptions>>().Value.SerializerOptions;
         Assert.NotNull(options.GetTypeInfo(typeof(DurableTaskState)));
         Assert.NotNull(options.GetTypeInfo(typeof(DateTimeOffset)));
@@ -1009,7 +1009,7 @@ public sealed class DurableRpcProtocolTests
 
     private sealed class TestSiloBuilder : ISiloBuilder
     {
-        // Like a silo, each area's keyed clock defaults to the unkeyed one.
+        // 类似 silo,每个区域的键盘时钟默认为无锁时钟。
         public IServiceCollection Services { get; } = new ServiceCollection()
             .AddKeyedSingleton<TimeProvider>(KeyedService.AnyKey, static (sp, _) => sp.GetRequiredService<TimeProvider>());
         public IConfiguration Configuration { get; } = new ConfigurationBuilder().Build();

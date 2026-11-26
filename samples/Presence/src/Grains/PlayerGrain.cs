@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 namespace Presence.Grains;
 
 /// <summary>
-/// Represents an individual player that may or may not be in a game at any point in time.
+/// 代表任何时间点可能或不会出现在游戏中的单个玩家。
 /// </summary>
 public class PlayerGrain : Grain, IPlayerGrain
 {
@@ -18,12 +18,12 @@ public class PlayerGrain : Grain, IPlayerGrain
     private Guid GrainKey => this.GetPrimaryKey();
 
     /// <summary>
-    /// Game the player is currently in. May be null.
+    /// 玩家当前正在游戏中。 可能为空 。
     /// </summary>
     public Task<IGameGrain?> GetCurrentGameAsync() => Task.FromResult(_currentGame);
 
     /// <summary>
-    /// Game grain calls this method to notify that the player has joined the game.
+    /// 游戏 grain 调用此方法通知玩家已加入游戏 。
     /// </summary>
     public Task JoinGameAsync(IGameGrain game)
     {
@@ -33,7 +33,7 @@ public class PlayerGrain : Grain, IPlayerGrain
     }
 
     /// <summary>
-    /// Game grain calls this method to notify that the player has left the game.
+    /// 游戏 grain 调用此方法通知玩家已离开游戏 。
     /// </summary>
     public Task LeaveGameAsync(IGameGrain game)
     {

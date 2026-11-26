@@ -3,77 +3,77 @@ using Microsoft.AspNetCore.Http;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>Configures the HTTP operations which expose durable tasks.</summary>
+/// <summary>配置暴露耐久任务的 HTTP 操作。</summary>
 public sealed class DurableHttpOptions
 {
     /// <summary>
-    /// Gets or sets whether a request which starts a durable task must carry an <c>Idempotency-Key</c> header.
+    /// 设置或确定启动耐久任务的请求是否必须包含 <c>Idempotency-Key</c> 页眉。
     /// </summary>
     /// <remarks>
-    /// When <see langword="true"/>, the default, a request without a key is rejected with <c>400 Bad Request</c>, so every
-    /// operation has a key which its client retries with. When <see langword="false"/>, a request without a key starts a
-    /// new operation under a generated identifier, which a retry of the request can't reach.
+    /// 何时 <see langword="true"/>,默认,没有密钥的请求被拒绝 <c>400 Bad Request</c>, 所以每
+    /// 选项卡。当 <see langword="false"/>时,在没有按键的情况下请求启动
+    /// 请求无法重试的特性标识符下的新操作。
     /// </remarks>
     public bool RequireIdempotencyKey { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the function which returns the authorization scope of a request's caller, such as the user or the
-    /// account which it authenticates as, or <see langword="null"/> for an anonymous caller.
+    /// 获取或设置返回请求人调用权限的函数,例如用户或
+    /// 其认证为匿名调用者的账户,或 <see langword="null"/> 。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An operation's key is its group's scope, the request's values for the group's route parameters, the caller's scope,
-    /// and the operation identifier, each a segment of its own. Every request which names an operation, both the request
-    /// which starts it and the requests which observe, cancel, signal, or attach callbacks to it, applies the function, so
-    /// a caller reaches only the operations of its own scope: an operation identifier names an operation of the caller
-    /// which uses it, not a capability which any caller who learns it holds. Anonymous callers share one scope.
+    /// 操作的关键是它的集团范围,请求中的集团路线参数值, 呼叫者的范围,
+    /// 和操作标识符,每个部分都是它自己的。
+    /// 和观察、取消、信号或附加回复的请求,应用此函数,所以
+    /// 呼叫者仅达到其范围范围内的业务:行动识别符号名称;呼叫者的操作
+    /// 匿名来电者有相同的范围。
     /// </para>
     /// <para>
-    /// The default, <see cref="DefaultGetCallerScope"/>, returns the authenticated user's
-    /// <see cref="ClaimTypes.NameIdentifier"/> or <c>sub</c> claim. An application scopes operations by what its
-    /// authorization grants, such as an account which several users share:
-    /// <c>options.GetCallerScope = context => context.User.FindFirst("account")?.Value;</c>. An authenticated caller
-    /// whose scope is <see langword="null"/> is rejected, so authenticated callers never share the anonymous scope.
+    /// 默认值 <see cref="DefaultGetCallerScope"/>返回已认证用户的
+    /// <see cref="ClaimTypes.NameIdentifier"/> 或 <c>sub</c> 一项适用的范围以其
+    /// 授权赠款,例如几个用户共用的账户:
+    /// <c>options.GetCallerScope = context => context.User.FindFirst("account")?.Value;</c>。
+    /// 其范围为 <see langword="null"/> 被否决,因此经认证的来电者永远不具有匿名范围。
     /// </para>
     /// </remarks>
     public Func<HttpContext, string?> GetCallerScope { get; set; } = DefaultGetCallerScope;
 
     /// <summary>
-    /// Gets or sets the function which decides whether the server accepts a callback URL which a request registers, such
-    /// as with an <c>Operation-Callback</c> header or a Nexus <c>callback</c>, or <see langword="null"/>, the default,
-    /// which accepts none.
+    /// 获取或设置函数,以决定服务器是否接受一个回回调的 URL,而请求登记簿则由该URL
+    /// 与 <c>Operation-Callback</c> 头或 Nexus <c>callback</c>,或 <see langword="null"/>默认,
+    /// 不接受任何保留。
     /// </summary>
     /// <remarks>
-    /// The silos which run the operations send requests to accepted URLs, so the application restricts them to receivers
-    /// which it trusts, for example by scheme, host, and the authenticated caller. Deliveries also connect only to the
-    /// addresses which <see cref="DurableCallbackOptions.AllowAddress"/> accepts, which the host's name resolves to when
-    /// each delivery connects.
+    /// 运行操作的 silos 向接受的 URL发送请求,因此应用程序将这些请求限制在接收器
+    /// 并且相信,例如通过阴谋、主机和经认证的来电者等。
+    /// 所接受的地址 <see cref="DurableCallbackOptions.AllowAddress"/> ,东道主的名称在
+    /// 每一个送货都连接在一起
     /// </remarks>
     public Func<HttpContext, Uri, bool>? AllowCallback { get; set; }
 
     /// <summary>
-    /// Gets or sets the interval which responses for running operations advertise in their <c>Retry-After</c> header, as
-    /// the minimum time before a client polls the operation again.
+    /// 查找或设置在 <c>Retry-After</c> 页眉中广告的运行操作回复间隔,以
+    /// 客户再次调查这次行动之前的最小时间
     /// </summary>
-    /// <remarks>The header carries whole seconds, so the interval is rounded up. The default is one second.</remarks>
+    /// <remarks>信头带有整秒, 因此间隔会四舍五入。 默认时间为一秒钟 。</remarks>
     public TimeSpan RetryAfter { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// Gets or sets the longest wait which a request's <c>Prefer: wait</c> preference receives before the response reports
-    /// a running operation.
+    /// 获取或设置请求 <c>Prefer: wait</c> 优先选择所接受的最长时间的等待
+    /// 正在运行中的行动。
     /// </summary>
-    /// <remarks>The default is one minute.</remarks>
+    /// <remarks>默认为一分钟。</remarks>
     public TimeSpan MaxWait { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Gets or sets the function which describes a failed or canceled task's exception to clients, in the operation's
+    /// 获取或设置函数, 描述失败或取消任务在操作中的客户例外
     /// <see cref="DurableOperation.Error"/>.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Exception messages can describe internal state, such as hosts and grain identities, so the default describes only
-    /// the outcome: <c>Canceled</c> for an <see cref="OperationCanceledException"/>, and <c>Failed</c> otherwise. An
-    /// application which defines exceptions for its clients returns their details, for example:
+    /// 例外信件可以描述内部状态, 如主机和 grain 身份等, 因此默认只能描述
+    /// 结果: <c>Canceled</c> 用于 a <see cref="OperationCanceledException"/>,和 <c>Failed</c> 以其他方式。
+    /// 其客户的例外定义在应用程序中返回了他们的细节,例如:
     /// </para>
     /// <code>
     /// options.CreateError = exception => exception is OrderRejectedException rejected
@@ -81,25 +81,25 @@ public sealed class DurableHttpOptions
     ///     : DurableHttpOptions.DefaultCreateError(exception);
     /// </code>
     /// <para>
-    /// An operation whose host failed to start its work fails with the <see cref="DurableOperationError.NotStartedCode"/>
-    /// or <see cref="DurableOperationError.OutcomeUnknownCode"/> code, which this function doesn't describe.
+    /// 其主机无法启动工作与 <see cref="DurableOperationError.NotStartedCode"/>失败的操作
+    /// 或 <see cref="DurableOperationError.OutcomeUnknownCode"/> 代码,此函数不描述该代码。
     /// </para>
     /// </remarks>
     public Func<Exception, DurableOperationError> CreateError { get; set; } = DefaultCreateError;
 
-    /// <summary>Describes an exception by the task's outcome alone, without its type or message.</summary>
-    /// <param name="exception">The exception which failed or canceled the task.</param>
-    /// <returns>An error whose code is <c>Canceled</c> or <c>Failed</c>.</returns>
+    /// <summary>仅按任务的结果描述例外,没有其类型或信息。</summary>
+    /// <param name="exception">任务失败或取消的例外。</param>
+    /// <returns>代码为错误 <c>Canceled</c> 或 <c>Failed</c>.</returns>
     public static DurableOperationError DefaultCreateError(Exception exception) => exception is OperationCanceledException
         ? new("Canceled", "The operation was canceled.")
         : new("Failed", "The operation failed.");
 
     /// <summary>
-    /// Returns the authenticated user's <see cref="ClaimTypes.NameIdentifier"/> claim, or its <c>sub</c> claim, or
-    /// <see langword="null"/> for a request without either.
+    /// 返回经认证的用户 <see cref="ClaimTypes.NameIdentifier"/> 索赔要求或其 <c>sub</c> 索赔要求,或
+    /// 请求没有同时提出<see langword="null"/> 。
     /// </summary>
-    /// <param name="context">The request.</param>
-    /// <returns>The caller's scope, or <see langword="null"/>.</returns>
+    /// <param name="context">请求。</param>
+    /// <returns>或 <see langword="null"/>.</returns>
     public static string? DefaultGetCallerScope(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

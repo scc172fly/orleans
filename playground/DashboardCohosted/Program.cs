@@ -2,20 +2,20 @@ using Orleans.Dashboard;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Orleans
+// 配置 Orleans
 builder.UseOrleans(siloBuilder =>
 {
     siloBuilder.UseLocalhostClustering();
     siloBuilder.UseInMemoryReminderService();
     siloBuilder.AddMemoryGrainStorageAsDefault();
 
-    // Add the dashboard
+    // 添加仪表板
     siloBuilder.AddDashboard();
 });
 
 var app = builder.Build();
 
-// Map dashboard endpoints at the root
+// 根部的地图仪表板端点
 app.MapOrleansDashboard();
 
 app.Run();

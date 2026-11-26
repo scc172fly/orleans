@@ -3,12 +3,12 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when generated serialization code cannot assign a member.
+/// 定义当生成序列代码无法指派成员时报告的诊断。
 /// </summary>
 public static class InaccessibleSetterDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string RuleId = DiagnosticRuleId.InaccessibleSetter;
     private const string Category = "Usage";
@@ -19,10 +19,10 @@ public static class InaccessibleSetterDiagnostic
     internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
 
     /// <summary>
-    /// Creates a diagnostic for an inaccessible member setter.
+    /// 为无法进入的会籍设置器创建诊断。
     /// </summary>
-    /// <param name="location">The source location associated with the diagnostic.</param>
-    /// <param name="identifier">The identifier of the member which cannot be assigned.</param>
-    /// <returns>The diagnostic.</returns>
+    /// <param name="location">与诊断有关的源位置。</param>
+    /// <param name="identifier">无法指定成员的身份识别符。</param>
+    /// <returns>诊断。</returns>
     public static Diagnostic CreateDiagnostic(Location? location, string identifier) => Diagnostic.Create(Rule, location, identifier);
 }

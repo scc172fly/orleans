@@ -2,16 +2,16 @@
 namespace Orleans.Runtime.MembershipService.SiloMetadata;
 
 /// <summary>
-/// Provides locally cached metadata for silos in the cluster.
+/// 提供组群中 silos 的本地缓存元数据。
 /// </summary>
 public interface ISiloMetadataCache
 {
     /// <summary>
-    /// Gets the cached metadata for the specified silo.
+    /// 获取指定 silo的缓存元数据。
     /// </summary>
-    /// <param name="siloAddress">The address of the silo.</param>
+    /// <param name="siloAddress">大会主席的地址 silo.</param>
     /// <returns>
-    /// The metadata for <paramref name="siloAddress"/>, or <see cref="SiloMetadata.Empty"/> when metadata is not available.
+    /// <paramref name="siloAddress"/>元数据,或当没有元数据时的 <see cref="SiloMetadata.Empty"/> 元数据。
     /// </returns>
     SiloMetadata GetSiloMetadata(SiloAddress siloAddress);
 }

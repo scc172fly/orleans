@@ -20,7 +20,7 @@ internal static class DrainTestHelpers
     {
         try
         {
-            // A failure backstop only: elapsed time is never evidence of correct ordering.
+            // 仅次于一个失败的后退:时间过长从来就没有证明命令正确。
             await task.WaitAsync(TimeSpan.FromSeconds(60), cancellationToken);
         }
         catch (TimeoutException exception)
@@ -30,8 +30,8 @@ internal static class DrainTestHelpers
     }
 
     internal static Task AwaitCleanupAsync(Task task, string phase, Func<string> describeState) =>
-        // Cleanup deliberately outlives runner cancellation: providers must not be freed
-        // while admitted user work still owns them. The 60-second backstop still applies.
+        // 故意清理比跑者时间长的操作员取消:供应商不得释放
+        // 被接纳用户的工作仍然拥有这些支持。 60秒的支持站依然适用。
         AwaitPhaseAsync(task, phase, describeState, CancellationToken.None);
 }
 
@@ -39,7 +39,7 @@ internal sealed class DrainObserver : IGrainObserver
 {
 }
 
-// Internal helper types and explicit interface implementations are not test classes.
+// 内部助理类型和明确的接口实施不是测试类别。
 internal class TestInvokable : IInvokable
 {
     private readonly string _result;
@@ -69,7 +69,7 @@ internal class TestInvokable : IInvokable
         }
         finally
         {
-            // Body exit is deliberately NOT used as proof that the manager released admission.
+            // 身体退出被故意不用作证明经理释放入场的证据。
             Exited.TrySetResult();
         }
     }
@@ -138,7 +138,7 @@ internal sealed class CancellableTestInvokable : TestInvokable
 
     internal override void ReleaseForCleanup()
     {
-        // Only called from finally, after success-path assertions or a recorded test failure.
+        // 最终,在成功治疗论或有记录的测试失败之后,才被调用。
         _cancellation.Cancel();
         base.ReleaseForCleanup();
     }
@@ -183,7 +183,7 @@ internal sealed class CallbackCompletionSource : IResponseCompletionSource
 
     void IResponseCompletionSource.Complete(Response value)
     {
-        // Copy observations immediately; never retain a possibly pooled Response.
+        // 立即复印观察结果;永远不要保留可能的综合反应。
         Exception = value.Exception;
         Result = Exception is null ? value.GetResult<object>() : null;
         Interlocked.Increment(ref _completionCount);

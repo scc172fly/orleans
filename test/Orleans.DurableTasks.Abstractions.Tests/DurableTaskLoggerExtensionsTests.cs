@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>Tests that <see cref="DurableTaskLoggerExtensions.ReplaySafe(ILogger)"/> reports each event of a task once.</summary>
+/// <summary>测试 <see cref="DurableTaskLoggerExtensions.ReplaySafe(ILogger)"/> 是否报告每个任务事件一次。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]

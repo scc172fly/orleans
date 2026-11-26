@@ -8,9 +8,9 @@ using Orleans.Serialization;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Grain storage serializer for System.Text.Json.
+    /// Grain 用于 System.Text.Json.
     /// </summary>
-    /// <param name="options">The serializer options.</param>
+    /// <param name="options">序列器选项。</param>
     public sealed class SystemTextJsonGrainStorageSerializer(IOptions<SystemTextJsonGrainStorageSerializerOptions> options) : IGrainStorageStreamingSerializer
     {
         /// <inheritdoc/>

@@ -1,20 +1,20 @@
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Specifies the isolation of a read performed through <see cref="ITransactionalState{TState}"/>.
+    /// 指定通过 <see cref="ITransactionalState{TState}"/>执行的读数的孤立。
     /// </summary>
     public enum ReadIsolation
     {
         /// <summary>
-        /// Reads inside the ambient transaction under a shared lock. This is the default.
+        /// 在共享锁下读取环境交易内部。这是默认的 。
         /// </summary>
         Serializable = 0,
 
         /// <summary>
-        /// Reads the latest locally committed state in an empty ambient transaction context, independently
-        /// copying the result while pending writers retain their locks and tentative state.
-        /// Remotely coordinated writes become locally visible after the participant receives and persists
-        /// commit confirmation, which can occur after the write transaction completes.
+        /// 在空环境交易背景下独立阅读本地承诺状态的最新信息
+        /// 复制结果,而待审作家保留着他们的锁和暂定状态。
+        /// 远程协调写作在参与者收到并坚持后在当地可见
+        /// 承诺确认, 可在写入交易完成后发生。
         /// </summary>
         ReadCommitted,
     }

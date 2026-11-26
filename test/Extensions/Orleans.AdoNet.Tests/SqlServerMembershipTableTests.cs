@@ -13,7 +13,7 @@ using UnitTests.General;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// Tests for operation of Orleans Membership Table using SQL Server
+    /// 试验试验的试验 Orleans 成员人数 SQL 服务器服务器
     /// </summary>
     [TestCategory("Membership"), TestCategory("SQLServer"), TestCategory("Functional")]
     [TestSuite("Functional")]

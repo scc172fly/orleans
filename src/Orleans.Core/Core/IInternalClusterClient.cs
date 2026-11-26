@@ -1,7 +1,7 @@
 namespace Orleans
 {
     /// <summary>
-    /// The internal-facing client interface.
+    /// 内部定位客户界面 。
     /// </summary>
     internal interface IInternalClusterClient : IClusterClient, IInternalGrainFactory
     {

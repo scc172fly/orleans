@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// Tests for transaction consistency with skewed clock scenarios using Azure Storage.
+    /// 使用 Azure 存储,测试交易是否与倾斜时钟情景相一致。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions-dev")]
     [TestSuite("Nightly")]

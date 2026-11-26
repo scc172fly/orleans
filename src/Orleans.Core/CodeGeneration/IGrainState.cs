@@ -3,31 +3,31 @@ using System;
 namespace Orleans
 {
     /// <summary>
-    /// Defines the state of a grain
+    /// 定义 grain状态
     /// </summary>
     /// <typeparam name="T">
-    /// The underlying state type.
+    /// 基本状态类型。
     /// </typeparam>
     public interface IGrainState<T>
     {
         /// <summary>
-        /// Gets or sets the state.
+        /// 建立州立或控制
         /// </summary>
         T? State { get; set; }
 
-        /// <summary>Gets or sets the ETag that allows optimistic concurrency checks at the storage provider level.</summary>
+        /// <summary>获取或设置允许在储存提供者一级进行乐观的货币汇率核对的ETag。</summary>
         string? ETag { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the record exists in storage.
+        /// 获取或设定一个值,以显示记录是否存于存储中。
         /// </summary>
         bool RecordExists { get; set; }
     }
 
     /// <summary>
-    /// Default implementation of <see cref="IGrainState{T}"/>.
+    /// <see cref="IGrainState{T}"/>的默认执行。
     /// </summary>
-    /// <typeparam name="T">The type of application level payload.</typeparam>
+    /// <typeparam name="T">应用水平有效载荷的类型。</typeparam>
     [Serializable]
     [GenerateSerializer]
     public sealed class GrainState<T> : IGrainState<T>
@@ -45,30 +45,30 @@ namespace Orleans
         public bool RecordExists { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainState{T}"/> class. 
+        /// 初始化 <see cref="GrainState{T}"/> 类的新实例。 
         /// </summary>
         public GrainState()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainState{T}"/> class. 
+        /// 初始化 <see cref="GrainState{T}"/> 类的新实例。 
         /// </summary>
         /// <param name="state">
-        /// The initial value of the state.
+        /// 状态的初始值 。
         /// </param>
         public GrainState(T? state) : this(state, null)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainState{T}"/> class.
+        /// 初始化 <see cref="GrainState{T}"/> 类的新实例。
         /// </summary>
         /// <param name="state">
-        /// The initial value of the state.
+        /// 状态的初始值 。
         /// </param>
         /// <param name="eTag">
-        /// The initial e-tag value that allows optimistic concurrency checks at the storage provider level.
+        /// 最初的电子牌值,可以在储存提供者一级进行乐观的货币汇率核对。
         /// </param>
         public GrainState(T? state, string? eTag)
         {

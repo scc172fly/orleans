@@ -6,25 +6,25 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for configuring Azure Queue stream providers on an <see cref="IClientBuilder"/>.
+    /// 配置 Azure 队列流提供者在 <see cref="IClientBuilder"/>上的扩展方法 。
     /// </summary>
     public static class ClientBuilderExtensions
     {
         /// <summary>
-        /// Configure cluster client to use azure queue persistent streams.
+        /// 配置组群集客户端, 使用“ zure” 队列持续流 。
         /// </summary>
         public static IClientBuilder AddAzureQueueStreams(this IClientBuilder builder,
             string name,
             Action<ClusterClientAzureQueueStreamConfigurator> configure)
         {
-            //the constructor wires up DI with AzureQueueStream, so has to be called regardless configure is null or not
+            //建造者电线将 AzureQueueStream,因此无论配置是否无效,都必须被调用
             var configurator = new ClusterClientAzureQueueStreamConfigurator(name, builder);
             configure?.Invoke(configurator);
             return builder;
         }
 
         /// <summary>
-        /// Configure cluster client to use azure queue persistent streams.
+        /// 配置组群集客户端, 使用“ zure” 队列持续流 。
         /// </summary>
         public static IClientBuilder AddAzureQueueStreams(this IClientBuilder builder,
             string name, Action<OptionsBuilder<AzureQueueOptions>> configureOptions)
@@ -34,13 +34,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure cluster client to use Azure Queue persistent streams with JSON serialization.
-        /// This feature is experimental and subject to change in future updates.
+        /// 配置组群集客户端, 使用 Azure 将有 JSON 序列化的持久性流排队 。
+        /// 这是试验性的,今后更新时会改变。
         /// </summary>
-        /// <param name="builder">The client builder.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configure">Configuration delegate for the JSON-enabled Azure Queue stream provider.</param>
-        /// <returns>The client builder for method chaining.</returns>
+        /// <param name="builder">客户端构建器。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configure"> JSON- 启用的 Azure 队列流提供者配置代表。</param>
+        /// <returns>用于方法链的客户端构建器。</returns>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static IClientBuilder AddAzureQueueJsonStreams(this IClientBuilder builder,
             string name,
@@ -52,13 +52,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure cluster client to use Azure Queue persistent streams with JSON serialization and default settings.
-        /// This feature is experimental and subject to change in future updates.
+        /// 配置组客户端, 使用 Azure 的队列持续流, 并有 JSON 序列化和默认设置 。
+        /// 这是试验性的,今后更新时会改变。
         /// </summary>
-        /// <param name="builder">The client builder.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configureOptions">Configuration delegate for Azure Queue options.</param>
-        /// <returns>The client builder for method chaining.</returns>
+        /// <param name="builder">客户端构建器。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configureOptions">配置代表 Azure 队列选项。</param>
+        /// <returns>用于方法链的客户端构建器。</returns>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static IClientBuilder AddAzureQueueJsonStreams(this IClientBuilder builder,
             string name, Action<OptionsBuilder<AzureQueueOptions>> configureOptions)

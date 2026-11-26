@@ -20,7 +20,7 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
     private Connection? _connection;
     private MessageSerializer? _messageSerializer;
 
-    // Keeps the serialized messages available after the transport consumes them, so that messages which are retried send the same bytes.
+    // 将运输消耗后的序列式信息保存在可获取性上,以便重新检索的信息发送相同的字节。
     private ArcBuffer _written;
     private bool _hasLargeMessages;
     private bool _disposed;
@@ -49,7 +49,7 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
     }
 
     /// <summary>
-    /// Completes writing messages to this request, before it is submitted to the transport.
+    /// 在向运输工具提交之前,填写对此项请求的书面信息。
     /// </summary>
     public void CompleteWriting()
     {
@@ -61,11 +61,11 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
     }
 
     /// <summary>
-    /// Sends the messages in this request again, after the request could not be written.
+    /// 在请求无法写出后再次发送请求中的邮件 。
     /// </summary>
     /// <remarks>
-    /// Serializing a message can consume values such as <see cref="PooledBuffer"/> arguments or request-context entries.
-    /// Each message keeps its serialized body and restores its request context from the written headers before retrying.
+    /// 信件的序列化可以消耗 <see cref="PooledBuffer"/> 参数或请求-文本条目等值。
+    /// 每条信息保留其序列体,并在重新尝试之前从书面信头恢复请求内容。
     /// </remarks>
     public void RerouteMessages(Exception? error)
     {
@@ -100,7 +100,7 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
         message.RequestContextData = original.RequestContextData;
         if (message._bodyObject is not MessageReadRequest && original._bodyObject is MessageReadRequest body)
         {
-            // Transfer the serialized body while retaining the message's current routing and expiry.
+            // 转移序列式文件,同时保留电文当前发送和过期的路径。
             original._bodyObject = null;
             message.SetMessageReadRequest(body);
             message.Result = original.Result;

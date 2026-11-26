@@ -7,17 +7,17 @@ using Microsoft.Extensions.Options;
 namespace Orleans
 {
     /// <summary>
-    /// Default implementation of <see cref="IOptionFormatter{T}"/>.
+    /// <see cref="IOptionFormatter{T}"/>的默认执行。
     /// </summary>
-    /// <typeparam name="T">The options type.</typeparam>
+    /// <typeparam name="T">选项类型。</typeparam>
     internal sealed class DefaultOptionsFormatter<T> : IOptionFormatter<T> where T : class
     {
         private readonly T _options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultOptionsFormatter{T}"/> class.
+        /// 初始化 <see cref="DefaultOptionsFormatter{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options.</param>
+        /// <param name="options">选项。</param>
         public DefaultOptionsFormatter(IOptions<T> options)
         {
             _options = options.Value;
@@ -25,10 +25,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultOptionsFormatter{T}"/> class.
+        /// 初始化 <see cref="DefaultOptionsFormatter{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The options name.</param>
-        /// <param name="options">The options.</param>
+        /// <param name="name">选项名称。</param>
+        /// <param name="options">选项。</param>
         internal DefaultOptionsFormatter(string name, T options)
         {
             _options = options;
@@ -36,12 +36,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the options name.
+        /// 获取选项名称。
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// For
+        /// 用于
         /// </summary>
         /// <returns></returns>
         public IEnumerable<string> Format()
@@ -91,7 +91,7 @@ namespace Orleans
             var value = property.GetValue(options);
             var redactAttribute = property.GetCustomAttribute<RedactAttribute>(inherit: true);
 
-            // If redact specified, let the attribute implementation do the work
+            // 如果指定了编辑, 则让属性执行来完成工作
             if (redactAttribute != null)
             {
                 yield return OptionFormattingUtilities.Format(name, redactAttribute.Redact(value));
@@ -100,7 +100,7 @@ namespace Orleans
             {
                 if (value is IDictionary dict)
                 {
-                    // If it is a dictionary -> one line per item
+                    // 如果是字典 - > 每个项目一行
                     var enumerator = dict.GetEnumerator();
                     while (enumerator.MoveNext())
                     {
@@ -110,7 +110,7 @@ namespace Orleans
                 }
                 else if (value is ICollection coll)
                 {
-                    // If it is a simple collection -> one line per item
+                    // 如果是简单收藏 - > 每个项目一行
                     if (coll.Count > 0)
                     {
                         var index = 0;
@@ -123,7 +123,7 @@ namespace Orleans
                 }
                 else
                 {
-                    // Simple case
+                    // 简单案件
                     yield return OptionFormattingUtilities.Format(name, value);
                 }
             }

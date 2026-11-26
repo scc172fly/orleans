@@ -1,7 +1,7 @@
 is_global = true
 
-# Registration-action checks apply to Roslyn analyzer authoring projects.
-# Scoping all rules from RegisterActionAnalyzer lets Roslyn skip its callbacks.
+# 登记-行动检查适用于Roslyn分析师的作者项目。
+# 检查 RegisterActionAnalyzer 的所有规则 让Roslyn跳过回调
 dotnet_diagnostic.RS1002.severity = none
 dotnet_diagnostic.RS1003.severity = none
 dotnet_diagnostic.RS1006.severity = none

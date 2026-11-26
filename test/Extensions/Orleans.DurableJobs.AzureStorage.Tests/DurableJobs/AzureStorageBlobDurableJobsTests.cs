@@ -55,7 +55,7 @@ public class AzureStorageBlobDurableJobsTests : TestClusterPerTest
                 }
                 catch (OperationCanceledException) when (TestContext.Current.CancellationToken.IsCancellationRequested)
                 {
-                    // Preserve the original test cancellation after bounded cleanup.
+                    // 保留在受约束的清理后取消原试验。
                 }
             }
         }

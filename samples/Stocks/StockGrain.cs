@@ -4,7 +4,7 @@ namespace Stocks.Grains;
 
 public sealed class StockGrain : Grain, IStockGrain
 {
-    // Request api key from here https://www.alphavantage.co/support/#api-key
+    // 从这里请求 api 密钥 https://www.alphavantage.co/support/#api-key
     private const string ApiKey = "5NVLFTOEC34MVTDE";
     private readonly HttpClient _httpClient = new();
 

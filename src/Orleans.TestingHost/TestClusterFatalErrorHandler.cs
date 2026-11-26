@@ -49,7 +49,7 @@ internal sealed class TestClusterHostTerminator(ILogger<TestClusterHostTerminato
 
         _ = Task.Run(async () =>
         {
-            // Fatal errors model process loss: cancel draining while completing in-process cleanup.
+            // 致命错误模型过程损失:在完成过程清理时取消排水。
             var cancellationToken = new CancellationToken(canceled: true);
             try
             {

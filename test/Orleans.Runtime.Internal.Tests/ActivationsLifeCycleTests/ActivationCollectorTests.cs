@@ -16,7 +16,7 @@ using Xunit;
 namespace UnitTests.ActivationsLifeCycleTests
 {
     /// <summary>
-    /// Tests for the activation collector that manages grain activation lifecycle and garbage collection.
+    /// 管理 grain 激活生命周期和垃圾收集的启动采集器测试。
     /// </summary>
     [TestArea("Runtime")]
     public class ActivationCollectorTests : OrleansTestingBase, IAsyncLifetime
@@ -231,7 +231,7 @@ namespace UnitTests.ActivationsLifeCycleTests
                     DEFAULT_IDLE_TIMEOUT.TotalSeconds);
                 await WaitForActivationCountToConverge(idleGrainTypeName, expectedCount: 0, cancellationToken);
 
-                // we should have only collected grains from the idle category (IdleActivationGcTestGrain1).
+                // 我们本该只收集 grains 闲置类别(IdleActivationGcTestGrain1).
                 int idleActivationsNotCollected = await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, idleGrainTypeName);
                 int busyActivationsNotCollected = await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, busyGrainTypeName);
                 Assert.Equal(0, idleActivationsNotCollected);
@@ -313,7 +313,7 @@ namespace UnitTests.ActivationsLifeCycleTests
         public async Task ActivationCollectorShouldCollectIdleActivationsSpecifiedInPerTypeConfiguration()
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            //make sure default value won't cause activation collection during wait time
+            //确定默认值不会在等待时间导致激活收藏
             var defaultCollectionAgeLimit = WAIT_TIME.Multiply(2);
             await Initialize(defaultCollectionAgeLimit, cancellationToken);
 
@@ -347,7 +347,7 @@ namespace UnitTests.ActivationsLifeCycleTests
         public async Task ActivationCollectorShouldNotCollectBusyActivationsSpecifiedInPerTypeConfiguration()
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            //make sure default value won't cause activation collection during wait time
+            //确定默认值不会在等待时间导致激活收藏
             var defaultCollectionAgeLimit = WAIT_TIME.Multiply(2);
             await Initialize(defaultCollectionAgeLimit, cancellationToken);
 
@@ -399,7 +399,7 @@ namespace UnitTests.ActivationsLifeCycleTests
                     DEFAULT_IDLE_TIMEOUT.TotalSeconds);
                 await WaitForActivationCountToConverge(idleGrainTypeName, expectedCount: 0, cancellationToken);
 
-                // we should have only collected grains from the idle category (IdleActivationGcTestGrain2).
+                // 我们本该只收集 grains 闲置类别(IdleActivationGcTestGrain2).
                 int idleActivationsNotCollected = await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, idleGrainTypeName);
                 int busyActivationsNotCollected = await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, busyGrainTypeName);
                 Assert.Equal(0, idleActivationsNotCollected);
@@ -419,16 +419,16 @@ namespace UnitTests.ActivationsLifeCycleTests
             var cancellationToken = TestContext.Current.CancellationToken;
             await Initialize(DEFAULT_IDLE_TIMEOUT, cancellationToken);
 
-            // the purpose of this test is to determine whether idle stateless worker activations are properly identified by the activation collector.
-            // in this test, we:
+            // 测试的目的是确定启动者是否适当识别了无所事事的无国籍工人的激活。
+            // 在此测试中,我们:
             //
-            //   1. setup the test.
-            //   2. activate a set of grains by sending a burst of messages to each one. the purpose of the burst is to ensure that multiple activations are used. 
-            //   3. verify that multiple activations for each grain have been created.
-            //   4. periodically send a message to each grain, ensuring that only one activation remains busy. each time we check the activation id and compare it against the activation id returned by the previous grain call. initially, these may not be identical but as the other activations become idle and are collected, there will be only one activation servicing these calls.
-            //   5. wait long enough for idle activations to be collected.
-            //   6. verify that only one activation is still active per grain.
-            //   7. ensure that test steps 2-6 are repeatable.
+            //   1. 设置测试。
+            //   2. 通过向每个发信人发送一个信号爆破,启动一套 grains 。 爆破的目的是为了确保使用多个激活。 
+            //   3. 核实为每个 grain 创建了多个启动装置。
+            //   4. 定期向每个 grain发送信息,确保只有一个启动仍然在忙。 每次我们检查激活代号并与前一个 grain 呼叫中返回的激活代号进行比较时,这些可能并不相同,但随着其他启动变得闲置并被收集起来,只有一次激活为这些电话服务。
+            //   5. 等待足够长的时间来收集闲置引爆装置。
+            //   6. 核实每 grain只有一个活化还在运行。
+            //   7. 确保试验步骤2-6可重复。
 
             const int grainCount = 1;
             var grainTypeName = RuntimeTypeNameFormatter.Format(typeof(StatelessWorkerActivationCollectorTestGrain1));
@@ -448,12 +448,12 @@ namespace UnitTests.ActivationsLifeCycleTests
             string[] activationIds = new string[grainCount];
             async Task workFunc(int index, CancellationToken cancellationToken)
             {
-                // (part of) 4. periodically send a message to each grain...
+                // 4. 定期向每个组织发出信息 grain...
 
-                // take a grain and call Delay to keep it busy.
+                // 采取a grain 并号召延迟,以便它保持忙碌。
                 IStatelessWorkerActivationCollectorTestGrain1 g = grains[index];
                 await g.Delay(DEFAULT_IDLE_TIMEOUT.Divide(2)).WaitAsync(cancellationToken);
-                // identify the activation and record whether it matches the activation ID last reported. it probably won't match in the beginning but should always converge on a match as other activations get collected.
+                // 识别激活并记录是否与上次报告的激活身份相符。 它可能初始时不匹配, 但总是会与其他启动相匹配 。
                 string aid = await g.IdentifyActivation();
                 logger.LogInformation("ActivationCollectorShouldNotCollectBusyStatelessWorkers: identified {Activation}", aid);
                 matched[index] = aid == activationIds[index];
@@ -461,7 +461,7 @@ namespace UnitTests.ActivationsLifeCycleTests
             }
             async Task workerFunc(CancellationToken cancellationToken)
             {
-                // (part of) 4. periodically send a message to each grain...
+                // 4. 定期向每个组织发出信息 grain...
                 logger.LogInformation("ActivationCollectorShouldNotCollectBusyStatelessWorkers: busyWorker started");
 
                 List<Task> tasks1 = new List<Task>();
@@ -481,49 +481,49 @@ namespace UnitTests.ActivationsLifeCycleTests
                 }
             }
 
-            // setup (1) ends here.
+            // 设置(1) 至此结束。
 
             for (int i = 0; i < 2; ++i)
             {
-                // 2. activate a set of grains... 
+                // 2. 启动一套 grains... 
                 this.logger.LogInformation("ActivationCollectorShouldNotCollectBusyStatelessWorkers: activating {Count} stateless worker grains (run #{RunNumber}).", grainCount, i);
                 foreach (var g in grains)
                 {
                     for (int j = 0; j < burstLength; ++j)
                     {
-                        // having the activation delay will ensure that one activation cannot serve all requests that we send to it, making it so that additional activations will be created.
+                        // 启动延迟将确保一个启动无法满足我们向其提交的所有请求,从而能够创建更多的启动。
                         tasks0.Add(g.Delay(TimeSpan.FromMilliseconds(10)));
                     }
                 }
                 await Task.WhenAll(tasks0);
 
 
-                // 3. verify that multiple activations for each grain have been created.
+                // 3. 核实为每个 grain 创建了多个启动装置。
                 int activationsCreated = await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, grainTypeName);
                 Assert.True(activationsCreated > grainCount, $"more than {grainCount} activations should have been created; got {activationsCreated} instead");
 
-                // 4. periodically send a message to each grain...
+                // 4. 定期向每个机构发出信息 grain...
                 this.logger.LogInformation("ActivationCollectorShouldNotCollectBusyStatelessWorkers: grains activated; sending heartbeat to {Count} stateless worker grains.", grainCount);
                 Task workerTask = Task.Run(() => workerFunc(cancellationToken), cancellationToken);
 
-                // 5. wait long enough for idle activations to be collected.
+                // 5. 等待足够长的时间来收集闲置引爆装置。
                 this.logger.LogInformation(
                     "ActivationCollectorShouldNotCollectBusyStatelessWorkers: grains activated; waiting {WaitSeconds} sec (activation GC idle timeout is {DefaultIdleTimeout} sec).",
                     WAIT_TIME.TotalSeconds,
                     DEFAULT_IDLE_TIMEOUT.TotalSeconds);
                 await Task.Delay(WAIT_TIME, cancellationToken);
 
-                // 6. verify that only one activation is still active per grain.
+                // 6. 核实每 grain只有一个活化还在运行。
                 int busyActivationsNotCollected = await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, grainTypeName);
 
-                // signal that the worker task should stop and wait for it to finish.
+                // 指示工人的任务应该停止,等待完成。
                 quit[0] = true;
                 await workerTask.WaitAsync(cancellationToken);
                 quit[0] = false;
 
                 Assert.Equal(grainCount, busyActivationsNotCollected);
 
-                // verify that we matched activation ids in the final iteration of step 4's loop.
+                // 验证我们是否匹配了第四步循环最后迭代中的激活代号。
                 for (int index = 0; index < grains.Count; ++index)
                 {
                     Assert.True(matched[index], string.Format("activation ID of final subsequent heartbeats did not match for grain {0}", grains[index]));
@@ -538,12 +538,12 @@ namespace UnitTests.ActivationsLifeCycleTests
         {
             var cancellationToken = TestContext.Current.CancellationToken;
             var defaultCollectionAge = COLLECTION_SPECIFIC_AGE_LIMIT.Multiply(4);
-            //make sure defaultCollectionAge value won't cause activation collection before the per-type limit
+            //确定 defaultCollectionAge 值不会在每类型限制之前导致启动收藏
             await Initialize(defaultCollectionAge, cancellationToken);
 
             const int grainCount = 1000;
 
-            // CollectionAgeLimit is configured per type.
+            // CollectionAgeLimit 是按照每类配置的。
             var fullGrainTypeName = RuntimeTypeNameFormatter.Format(typeof(CollectionSpecificAgeLimitForTenSecondsActivationGcTestGrain));
 
             List<Task> tasks = new List<Task>();
@@ -741,17 +741,17 @@ namespace UnitTests.ActivationsLifeCycleTests
 
             var fullGrainTypeName = RuntimeTypeNameFormatter.Format(typeof(KeepAliveActivationGcTestGrain));
 
-            // Activate the grain and extend its lifetime to 5 minutes.
+            // 激活 grain ,将其寿命延长至5分钟。
             var grain = this.testCluster.GrainFactory!.GetGrain<IKeepAliveActivationGcTestGrain>(Guid.NewGuid());
             await grain.SetKeepAlive(TimeSpan.FromMinutes(5));
 
-            // Verify the grain is not collected while it has an active keep-alive.
+            // 正在保存状态时, 无法检测 grain 是否被收集 。
             var mgmtGrain = this.testCluster.GrainFactory!.GetGrain<IManagementGrain>(0);
             await mgmtGrain.ForceActivationCollection(TimeSpan.Zero, cancellationToken);
             int activationsWithKeepAlive = await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, fullGrainTypeName);
             Assert.Equal(1, activationsWithKeepAlive);
 
-            // Cancel the keep-alive. The grain should now be collectable after the standard idle timeout.
+            // 取消保留状态。 grain 现在应该在标准闲置超时后可以回收 。
             await grain.CancelKeepAlive();
 
             await WaitForActivationCountToConverge(fullGrainTypeName, expectedCount: 0, cancellationToken);
@@ -773,7 +773,7 @@ namespace UnitTests.ActivationsLifeCycleTests
             await grain.AcquireKeepAliveHold();
             await grain.AcquireKeepAliveHold();
 
-            // Holds are counted, so the activation stays alive until every hold is released.
+            // 搁置时间会算数 所以激活时间会维持到每个搁置释放为止
             var mgmtGrain = this.testCluster.GrainFactory!.GetGrain<IManagementGrain>(0);
             await mgmtGrain.ForceActivationCollection(TimeSpan.Zero, cancellationToken);
             Assert.Equal(1, await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, fullGrainTypeName));
@@ -802,13 +802,13 @@ namespace UnitTests.ActivationsLifeCycleTests
             var directory = ((InProcessSiloHandle)this.testCluster.Primary!).SiloHost.Services.GetRequiredService<ActivationDirectory>();
             var keepAlive = Assert.IsAssignableFrom<IActivationKeepAlive>(directory.FindTarget(((GrainReference)grain).GrainId));
 
-            // The idle period which began after the last request expires while the hold is outstanding.
+            // 上次请求到期后开始的闲置期,而搁置时间尚未结束。
             await Task.Delay(DEFAULT_IDLE_TIMEOUT + DEFAULT_COLLECTION_QUANTUM, cancellationToken);
             var mgmtGrain = this.testCluster.GrainFactory!.GetGrain<IManagementGrain>(0);
             await mgmtGrain.ForceActivationCollection(DEFAULT_IDLE_TIMEOUT, cancellationToken);
             Assert.Equal(1, await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, fullGrainTypeName));
 
-            // Releasing the last hold outside request processing starts a fresh idle period.
+            // 解除请求处理之外的最后搁置开始一个空闲期。
             keepAlive.ReleaseKeepAlive();
             await mgmtGrain.ForceActivationCollection(DEFAULT_IDLE_TIMEOUT, cancellationToken);
             Assert.Equal(1, await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, fullGrainTypeName));
@@ -838,7 +838,7 @@ namespace UnitTests.ActivationsLifeCycleTests
                 await Task.Delay(10, cancellationToken);
             }
 
-            // The idle period began when the grain call completed, before the request ran, unless the request restarted it.
+            // 闲置期始于请求发回之前的 grain 调用完成之时,除非请求重新开始。
             var mgmtGrain = this.testCluster.GrainFactory!.GetGrain<IManagementGrain>(0);
             await mgmtGrain.ForceActivationCollection(TimeSpan.FromSeconds(1), cancellationToken);
             Assert.Equal(keepAlive ? 1 : 0, await TestUtils.GetActivationCount(this.testCluster.GrainFactory!, fullGrainTypeName));
@@ -857,13 +857,13 @@ namespace UnitTests.ActivationsLifeCycleTests
             var grain = this.testCluster.GrainFactory!.GetGrain<INonReentrantTimerCallGrain>(GetRandomGrainId());
             var fullGrainTypeName = RuntimeTypeNameFormatter.Format(typeof(NonReentrantTimerCallGrain));
 
-            // Schedule a timer to fire at the 30s mark which will not extend the grain's lifetime.
+            // 计划一个定时器在30秒时点发射,但不会延长 grain的寿命。
             await grain.StartTimer(testName, TimeSpan.FromSeconds(30), keepAlive: false);
             await WaitForActivationCountToConverge(fullGrainTypeName, expectedCount: 0, cancellationToken);
 
             var tickCount = await grain.GetTickCount();
 
-            // The grain should have been deactivated.
+            // grain 本应被解除作用。
             Assert.Equal(0, tickCount);
         }
 

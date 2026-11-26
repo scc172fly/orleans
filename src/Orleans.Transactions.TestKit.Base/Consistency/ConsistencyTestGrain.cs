@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit.Consistency
 {
     /// <summary>
-    /// Produces randomized transactional reads, writes, and nested calls for consistency validation.
+    /// 产生随机化的交易读、写和嵌套要求一致性验证。
     /// </summary>
     [Reentrant]
     public partial class ConsistencyTestGrain : Grain, IConsistencyTestGrain
@@ -19,35 +19,35 @@ namespace Orleans.Transactions.TestKit.Consistency
         private readonly ILogger logger;
 
         /// <summary>
-        /// Represents the versioned state maintained by a consistency test grain.
+        /// 表示经一致性测试 grain维持的版本状态。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
         public class State
         {
             /// <summary>
-            /// The identifier of the transaction which wrote the current version.
+            /// 写入当前版本的交易标识符 。
             /// </summary>
             [Id(0)]
-            public string WriterTx = ConsistencyTestHarness.InitialTx; // last writer
+            public string WriterTx = ConsistencyTestHarness.InitialTx; // 上一个作者
 
             /// <summary>
-            /// The sequence number of the current version.
+            /// 当前版本的序列编号 。
             /// </summary>
             [Id(1)]
             public int SeqNo;   // 0, 1, 2,...
         }
 
         /// <summary>
-        /// The transactional state used to record version and writer information.
+        /// 用于记录版本和作家信息的交易状态。
         /// </summary>
         protected ITransactionalState<State> data;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConsistencyTestGrain"/> class.
+        /// 初始化 <see cref="ConsistencyTestGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data">The transactional state for this grain.</param>
-        /// <param name="loggerFactory">The factory used to create the grain call logger.</param>
+        /// <param name="data">用于此 grain的交易状态。</param>
+        /// <param name="loggerFactory">用于创建 grain 调用日志的工厂。</param>
         public ConsistencyTestGrain(
             [TransactionalState("data", TransactionTestConstants.TransactionStore)]
             ITransactionalState<State> data,
@@ -87,9 +87,9 @@ namespace Orleans.Transactions.TestKit.Consistency
                 }
             }
 
-            //if (random.Next(20 + 6 * depth) == 0)
+            //(random.Next(20+6 *深度) = 0)
             //{
-            //    trace: g{MyNumber} {data.CurrentTransactionId} {partition}.{iteration} L{depth} UserAbort
+            //    微量: g{MyNumber}{data.CurrentTransactionId}{{{partidies}.{{线性}{深度}{ UserAbort
             //    throw new UserAbort();
             //}
 

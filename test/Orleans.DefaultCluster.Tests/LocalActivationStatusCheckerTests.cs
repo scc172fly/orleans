@@ -7,9 +7,9 @@ using Xunit;
 namespace DefaultCluster.Tests;
 
 /// <summary>
-/// Tests for ILocalActivationStatusChecker functionality.
-/// Validates that the activation status checker correctly identifies locally activated grains
-/// from both silo and client perspectives.
+/// ILocalActivationStatusChecker 功能测试。
+/// 验证激活状态检查器正确识别本地启动 grains
+/// 从 silo 和客户端角度出发。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -17,18 +17,18 @@ namespace DefaultCluster.Tests;
 public class LocalActivationStatusCheckerTests(DefaultClusterFixture fixture) : HostedTestClusterEnsureDefaultStarted(fixture)
 {
     /// <summary>
-    /// Tests that IsLocallyActivated returns true for a grain that has been activated on the local silo.
-    /// Verifies that after calling a grain method (which activates the grain), the silo-side
-    /// ILocalActivationStatusChecker correctly identifies the grain as locally activated.
+    /// 测试 IsLocallyActivated 返回 Rec Ret 的正数 grain 在当地 silo.
+    /// 证明在调用 grain 方法(该方法激活了 grain)之后, silo- 侧
+    /// ILocalActivationStatusChecker 正确标明 grain 是本地激活的 。
     /// </summary>
     [Fact, TestCategory("BVT")]
     public async Task ShouldReturnTrueForLocallyActivatedGrain()
     {
-        // Get a grain reference and activate it by calling a method
+        // 获取 grain 引用,然后调用一种方法激活它
         var grain = GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.NextInt64());
         await grain.SetA(42);
 
-        // The grain should be locally activated on exactly one silo
+        // grain 应在一个精确的 silo上就地激活
         var grainId = grain.GetGrainId();
         Assert.Single(HostedCluster.Silos, silo => IsLocallyActivated(silo, grainId));
 
@@ -41,17 +41,17 @@ public class LocalActivationStatusCheckerTests(DefaultClusterFixture fixture) : 
     }
 
     /// <summary>
-    /// Tests that IsLocallyActivated returns false for a grain that has not been activated.
-    /// Verifies that a grain reference that has been created but never invoked is not
-    /// considered locally activated.
+    /// 测试 IsLocallyActivated 返回没有被激活的 grain 时是否为虚假。
+    /// 证明没有提及已经建立但从未援引的 grain
+    /// 当地视为激活。
     /// </summary>
     [Fact, TestCategory("BVT")]
     public void ShouldReturnFalseForNonActivatedGrain()
     {
-        // Get a grain reference but don't activate it
+        // 获得 grain 引用, 但不要激活它
         var grain = GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.NextInt64());
 
-        // The grain should not be locally activated on any silo
+        // grain 不应在任何 silo上就地激活
         var grainId = grain.GetGrainId();
         Assert.DoesNotContain(HostedCluster.Silos, silo => IsLocallyActivated(silo, grainId));
 
@@ -64,20 +64,20 @@ public class LocalActivationStatusCheckerTests(DefaultClusterFixture fixture) : 
     }
 
     /// <summary>
-    /// Tests that IsLocallyActivated returns false for different grain identities.
-    /// Verifies that activating one grain does not affect the activation status of another grain.
+    /// 测试 IsLocallyActivated 返回不同 grain 身份的错误。
+    /// 证明激活一个 grain 不影响另一个 grain的启动状态。
     /// </summary>
     [Fact, TestCategory("BVT")]
     public async Task ShouldReturnFalseForDifferentGrainIdentity()
     {
-        // Activate one grain
+        // 激活一个 grain
         var grain1 = GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.NextInt64());
         await grain1.SetA(42);
 
-        // Get a different grain reference (different identity)
+        // 获取不同的 grain 引用(不同身份)
         var grain2 = GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.NextInt64());
 
-        // The second grain should not be locally activated on any silo
+        // 第二次 grain 不应在任何 silo
         var grainId2 = grain2.GetGrainId();
         Assert.DoesNotContain(HostedCluster.Silos, silo => IsLocallyActivated(silo, grainId2));
 
@@ -90,40 +90,40 @@ public class LocalActivationStatusCheckerTests(DefaultClusterFixture fixture) : 
     }
 
     /// <summary>
-    /// Tests that the client-side ILocalActivationStatusChecker always returns false.
-    /// Clients do not host grain activations, so IsLocallyActivated should always return false
-    /// regardless of whether a grain has been invoked or not.
+    /// 测试客户端 ILocalActivationStatusChecker 总是返回错误 。
+    /// 客户端不主机 grain 激活, 因此 IsLocallyActivated 总是应该返回假
+    /// 无论是否援引了 grain 。
     /// </summary>
     [Fact, TestCategory("BVT")]
     public async Task ClientShouldAlwaysReturnFalseForIsLocallyActivated()
     {
-        // Get a grain reference and activate it
+        // 获取 grain 引用并激活
         var grain = GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.NextInt64());
         await grain.SetA(42);
 
-        // Get the client-side activation checker
+        // 获取客户端激活检查器
         var clientChecker = Client.ServiceProvider.GetRequiredService<ILocalActivationStatusChecker>();
         var isLocalOnClient = clientChecker.IsLocallyActivated(grain.GetGrainId());
 
-        // Client should always return false
+        // 客户总是应该回假的
         Assert.False(isLocalOnClient, "Client should always return false for IsLocallyActivated");
     }
 
     /// <summary>
-    /// Tests that the client-side checker returns false even for non-activated grains.
-    /// Verifies consistent behavior regardless of grain activation state.
+    /// 测试客户端检查器即使未激活也返回假 grains。
+    /// 不论 grain 启动状态如何,都验证一致的行为。
     /// </summary>
     [Fact, TestCategory("BVT")]
     public void ClientShouldReturnFalseForNonActivatedGrain()
     {
-        // Get a grain reference without activating it
+        // 获取 grain 引用, 不激活它
         var grain = GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.NextInt64());
 
-        // Get the client-side activation checker
+        // 获取客户端激活检查器
         var clientChecker = Client.ServiceProvider.GetRequiredService<ILocalActivationStatusChecker>();
         var isLocalOnClient = clientChecker.IsLocallyActivated(grain.GetGrainId());
 
-        // Client should return false
+        // 客户应假返回
         Assert.False(isLocalOnClient, "Client should return false for non-activated grain");
     }
 }

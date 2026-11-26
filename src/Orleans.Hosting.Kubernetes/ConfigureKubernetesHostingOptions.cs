@@ -57,8 +57,8 @@ namespace Orleans.Hosting.Kubernetes
 
         public void PostConfigure(string? name, EndpointOptions options)
         {
-            // Use PostConfigure to give the developer an opportunity to set SiloPort and GatewayPort using regular
-            // Configure methods without needing to worry about ordering with respect to the UseKubernetesHosting call.
+            // 使用 PostConfigure 给开发商一个机会,使其有机会使用常规设置 SiloPort 和 GatewayPort
+            // 配置方法,无需担心与 UseKubernetesHosting 调用相关的排序。
             if (options.AdvertisedIPAddress is null)
             {
                 var hostingOptions = _serviceProvider.GetRequiredService<IOptions<KubernetesHostingOptions>>().Value;
@@ -95,7 +95,7 @@ namespace Orleans.Hosting.Kubernetes
 
         private static string? ReadNamespaceFromServiceAccount()
         {
-            // Read the namespace from the pod's service account.
+            // 从该库的服务账户中读取命名空间 。
             var serviceAccountNamespacePath = Path.Combine($"{Path.DirectorySeparatorChar}var", "run", "secrets", "kubernetes.io", "serviceaccount", "namespace");
             if (File.Exists(serviceAccountNamespacePath))
             {
@@ -107,7 +107,7 @@ namespace Orleans.Hosting.Kubernetes
 
         private static class IPAddressSelector
         {
-            // IANA private IPv4 addresses
+            // IANNA 私人IPv4 地址
             private static readonly (IPAddress Address, IPAddress SubnetMask)[] PreferredRanges = new[]
             {
                 (IPAddress.Parse("192.168.0.0"), IPAddress.Parse("255.255.0.0")),
@@ -134,7 +134,7 @@ namespace Orleans.Hosting.Kubernetes
                 }
                 return chosen;
 
-                // returns true if lhs is "less" (in some repeatable sense) than rhs
+                // lhs 值为“小”(以某种可重复的意义上)时返回 true
                 static bool CompareIPAddresses(IPAddress lhs, IPAddress rhs)
                 {
                     var lhsBytes = lhs.GetAddressBytes();
@@ -145,7 +145,7 @@ namespace Orleans.Hosting.Kubernetes
                         return lhsBytes.Length < rhsBytes.Length;
                     }
 
-                    // Prefer IANA private IPv4 address ranges 10.x.x.x, 192.168.x.x, 172.16-31.x.x over other addresses.
+                    // 优于IANA私人IPv4地址范围10x.x.x、192.168x.x、172.16-31。x.x 高于其他地址。
                     if (lhs.AddressFamily is AddressFamily.InterNetwork && rhs.AddressFamily is AddressFamily.InterNetwork)
                     {
                         var lhsPref = GetPreferredSubnetRank(lhs);
@@ -156,7 +156,7 @@ namespace Orleans.Hosting.Kubernetes
                         }
                     }
 
-                    // Compare starting from most significant octet.
+                    // 比较从最重要的奥特开始
                     // 10.68.20.21 < 10.98.05.04
                     return lhsBytes.AsSpan().SequenceCompareTo(rhsBytes.AsSpan()) < 0;
                 }

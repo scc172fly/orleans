@@ -9,12 +9,12 @@ using Orleans.Storage;
 namespace Orleans.Persistence.FileStorage;
 
 /// <summary>
-/// Stores grain state as files in a configured directory.
+/// 存储器 grain 状态为配置目录中的文件 。
 /// </summary>
-/// <param name="storageName">The storage provider name.</param>
-/// <param name="options">The provider options.</param>
-/// <param name="clusterOptions">The cluster options.</param>
-/// <param name="activatorProvider">The grain state activator provider.</param>
+/// <param name="storageName">存储提供者的名称。</param>
+/// <param name="options">供应商选项。</param>
+/// <param name="clusterOptions">组合组合选项。</param>
+/// <param name="activatorProvider">下 grain 状态活性器提供者。</param>
 public sealed class FileGrainStorage(
     string storageName,
     FileGrainStorageOptions options,
@@ -27,7 +27,7 @@ public sealed class FileGrainStorage(
     private readonly string _rootDirectory = Path.GetFullPath(options.RootDirectory);
 
     /// <inheritdoc />
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
     public Task ClearStateAsync<T>(
         string stateName,
         GrainId grainId,
@@ -62,7 +62,7 @@ public sealed class FileGrainStorage(
     }
 
     /// <inheritdoc />
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
     public Task ReadStateAsync<T>(
         string stateName,
         GrainId grainId,
@@ -100,7 +100,7 @@ public sealed class FileGrainStorage(
     }
 
     /// <inheritdoc />
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
     public Task WriteStateAsync<T>(
         string stateName,
         GrainId grainId,
@@ -137,7 +137,7 @@ public sealed class FileGrainStorage(
         cancellationToken.ThrowIfCancellationRequested();
         var payload = options.GrainStorageSerializer.Serialize(grainState.State).ToArray();
         cancellationToken.ThrowIfCancellationRequested();
-        // Once the write begins, complete it so cancellation cannot leave a partial record.
+        // 写作开始后完成,所以取消不能留下部分记录。
         await File.WriteAllBytesAsync(
             path,
             CreateRecord(etag, payload),

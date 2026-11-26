@@ -26,16 +26,16 @@ using Orleans.Statistics;
 namespace Orleans
 {
     /// <summary>
-    /// Configures the default services for a client.
+    /// 配置客户端的默认服务。
     /// </summary>
     internal static class DefaultClientServices
     {
         private static readonly ServiceDescriptor ServiceDescriptor = new(typeof(ServicesAdded), new ServicesAdded());
 
         /// <summary>
-        /// Configures the default services for a client.
+        /// 配置客户端的默认服务。
         /// </summary>
-        /// <param name="builder">The client builder.</param>
+        /// <param name="builder">客户端构建器。</param>
         public static void AddDefaultServices(IClientBuilder builder)
         {
             var services = builder.Services;
@@ -46,7 +46,7 @@ namespace Orleans
 
             services.Add(ServiceDescriptor);
 
-            // Common services
+            // 共同事务 共同事务
             services.AddLogging();
             services.AddOptions();
             services.AddMetrics();
@@ -57,19 +57,19 @@ namespace Orleans
             services.TryAddSingleton<MessagingInstruments>();
             services.TryAddSingleton<MessagingProcessingInstruments>();
 
-            // Options logging
+            // 选项的伐木
             services.TryAddSingleton(typeof(IOptionFormatter<>), typeof(DefaultOptionsFormatter<>));
             services.TryAddSingleton(typeof(IOptionFormatterResolver<>), typeof(DefaultOptionsFormatterResolver<>));
 
             services.AddSingleton<ClientOptionsLogger>();
             services.AddFromExisting<ILifecycleParticipant<IClusterClientLifecycle>, ClientOptionsLogger>();
 
-            // Lifecycle
+            // 生命周期
             services.AddSingleton<ServiceLifecycle<IClusterClientLifecycle>>();
             services.TryAddFromExisting<IServiceLifecycle, ServiceLifecycle<IClusterClientLifecycle>>();
             services.AddFromExisting<ILifecycleParticipant<IClusterClientLifecycle>, ServiceLifecycle<IClusterClientLifecycle>>();
 
-            // Statistics
+            // 统计统计统计
             services.AddSingleton<IEnvironmentStatisticsProvider, EnvironmentStatisticsProvider>();
 #pragma warning disable 618
             services.AddSingleton<OldEnvironmentStatistics>();
@@ -109,7 +109,7 @@ namespace Orleans
 
             services.AddSingleton<IConfigureOptions<GrainTypeOptions>, DefaultGrainTypeOptionsProvider>();
 
-            // Add default option formatter if none is configured, for options which are required to be configured
+            // 添加默认选项, 用于未配置的选项, 以配置需要配置的选项
             services.ConfigureFormatter<ClusterOptions>();
             services.ConfigureFormatter<ClientMessagingOptions>();
             services.ConfigureFormatter<ConnectionOptions>();
@@ -119,7 +119,7 @@ namespace Orleans
             services.AddTransient<IConfigurationValidator, ClientClusteringValidator>();
             services.AddTransient<IConfigurationValidator, SerializerConfigurationValidator>();
 
-            // Networking
+            // 建立网络
             services.AddSingleton<MessageHandlerShared>();
             services.TryAddSingleton<IMessageStatisticsSink, NoOpMessageStatisticsSink>();
             services.TryAddSingleton<NetworkingInstruments>();
@@ -152,7 +152,7 @@ namespace Orleans
             services.AddSingleton<ConnectionTrace>();
             services.AddSingleton<MessagingTrace>();
 
-            // Type metadata
+            // 元元数据类型
             services.AddSingleton<ClientClusterManifestProvider>();
             services.AddFromExisting<IClusterManifestProvider, ClientClusterManifestProvider>();
             services.AddSingleton<ClientManifestProvider>();
@@ -260,7 +260,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// A <see cref="ITypeNameFilter"/> which allows any type from an assembly containing "Orleans" in its name to be allowed for the purposes of serialization and deserialization.
+        /// A <see cref="ITypeNameFilter"/> 允许从装配中含有任何类型的“Orleans" 允许为序列化和去转性目的使用其名称。
         /// </summary>
         private class AllowOrleansTypes : ITypeNameFilter
         {
@@ -277,7 +277,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// A marker type used to determine whether the default services have been added.
+        /// 用于确定是否添加默认服务的标记类型。
         /// </summary>
         private class ServicesAdded { }
     }

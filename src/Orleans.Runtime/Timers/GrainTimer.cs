@@ -22,7 +22,7 @@ internal abstract partial class GrainTimer : IGrainTimer
         Justification = "The reusable invocation adapter borrows this timer and owns no disposable resources; the activation owns timer disposal.")]
     private readonly TimerTickInvoker _invoker;
     private TimerState _state;
-    // The current arm while idle; the next delay once a tick is queued. Change replaces it.
+    // 当前臂空闲时的当前臂; 键被排队后下次延迟。 更改替换它 。
     private TimeSpan _dueTime;
     private TimeSpan _period;
 
@@ -55,7 +55,7 @@ internal abstract partial class GrainTimer : IGrainTimer
 
     protected IGrainContext GrainContext => _grainContext;
 
-    // Called with _cts locked, after Change or callback completion.
+    // 与(_c)连接,在更改或回调完成后锁定。
     private bool ScheduleNextTick()
     {
         Debug.Assert(_state == TimerState.Idle);
@@ -99,7 +99,7 @@ internal abstract partial class GrainTimer : IGrainTimer
     {
         lock (_cts)
         {
-            // Provider callbacks may race Change. A reserved tick stays busy until completion.
+            // 提供方回调可能会在跑步中变换。 保留一个选中的点会一直忙到完成为止 。
             if (_state != TimerState.Idle || _dueTime == Timeout.InfiniteTimeSpan)
             {
                 return;
@@ -112,9 +112,9 @@ internal abstract partial class GrainTimer : IGrainTimer
         QueueTickOnActivation();
     }
 
-    // The admission is reserved under _cts, but enqueued outside it: activation shutdown disposes
-    // timers under its own lock. Taking that lock while holding _cts would invert the lock order.
-    // Changes during enqueueing affect the following tick; disposal prevents callback admission.
+    // 入场量保留在 _cts下,但排在外:启动关闭处置
+    // 自动锁定时器。在锁上锁时, 持有 _cts 就会反转锁定命令 。
+    // 排队过程中的变化会影响以下勾;处置可防止回调。
     private void QueueTickOnActivation()
     {
         try
@@ -129,7 +129,7 @@ internal abstract partial class GrainTimer : IGrainTimer
             }
             catch
             {
-                // Allowing an exception to escape a physical timer callback would crash the process.
+                // 允许例外以逃避物理定时回击会中断进程 。
             }
         }
     }
@@ -157,16 +157,16 @@ internal abstract partial class GrainTimer : IGrainTimer
             GrainTimerEvents.EmitTickStart(GrainContext, this);
             var task = InvokeCallbackAsync(_cts.Token);
 
-            // If the task is not completed, we need to await the tick asynchronously.
+            // 如果任务尚未完成,我们需要不时地等待这一时刻。
             if (task is { IsCompletedSuccessfully: false })
             {
-                // Complete asynchronously.
+                // 完全无与伦比
                 completeSynchronously = false;
                 return AwaitCallbackTask(task);
             }
             else
             {
-                // Complete synchronously.
+                // 完全同步
                 LogTraceAfterCallback(Logger, this);
 
                 GrainTimerEvents.EmitTickStop(GrainContext, this);
@@ -209,7 +209,7 @@ internal abstract partial class GrainTimer : IGrainTimer
         }
     }
 
-    // Cancellation and an admitted callback each retain the source until their completion.
+    // 取消和一次被接受的回召,每个都保留来源直至完成。
     private void ReleaseCancellationSource(TimerState owner)
     {
         Debug.Assert(Monitor.IsEntered(_cts));
@@ -260,7 +260,7 @@ internal abstract partial class GrainTimer : IGrainTimer
             _dueTime = dueTime;
             _period = period;
 
-            // A queued or running callback keeps its turn; changes schedule work after it completes.
+            // 排队或回调保持其转弯;完成后更改时间表。
             if (_state == TimerState.Idle)
             {
                 queueTick = ScheduleNextTick();
@@ -275,10 +275,10 @@ internal abstract partial class GrainTimer : IGrainTimer
 
     private static void ValidateArguments(TimeSpan dueTime, TimeSpan period)
     {
-        // See https://github.com/dotnet/runtime/blob/78b5f40a60d9e095abb2b0aabd8c062b171fb9ab/src/libraries/System.Private.CoreLib/src/System/Threading/Timer.cs#L824-L825
+        // 见 https://github.com/dotnet/runtime/blob/78b5f40a60d9e095abb2b0aabd8c062b171fb9ab/src/libraries/System.Private.CoreLib/src/System/Threading/Timer.cs#L824-L825
         const uint MaxSupportedTimeout = 0xfffffffe;
 
-        // See https://github.com/dotnet/runtime/blob/78b5f40a60d9e095abb2b0aabd8c062b171fb9ab/src/libraries/System.Private.CoreLib/src/System/Threading/Timer.cs#L927-L930
+        // 见 https://github.com/dotnet/runtime/blob/78b5f40a60d9e095abb2b0aabd8c062b171fb9ab/src/libraries/System.Private.CoreLib/src/System/Threading/Timer.cs#L927-L930
         long dueTm = (long)dueTime.TotalMilliseconds;
         ArgumentOutOfRangeException.ThrowIfLessThan(dueTm, -1, nameof(dueTime));
         ArgumentOutOfRangeException.ThrowIfGreaterThan(dueTm, MaxSupportedTimeout, nameof(dueTime));
@@ -297,14 +297,14 @@ internal abstract partial class GrainTimer : IGrainTimer
                 return;
             }
 
-            // Publish disposal before cancellation, whose registrations can reenter Change/Dispose.
+            // 注销前公布处置情况,其登记可重新进入变更/销毁。
             _state = (_state & TimerState.CallbackRunning) | TimerState.Disposed | TimerState.Cancelling;
             _timer.Dispose();
         }
 
         try
         {
-            // Do not run cancellation registrations under the timer's state lock.
+            // 不要在计时器国家锁下运行取消登记 。
             _cts.Cancel();
         }
         catch (Exception exception)
@@ -341,8 +341,8 @@ internal abstract partial class GrainTimer : IGrainTimer
 
         public ValueTask<Response> Invoke() => timer.InvokeGrainTimerCallbackAsync();
 
-        // No caller observes a tick, so the tick logs its failures, including call filter failures.
-        // An activation disposes its timers before it rejects their queued ticks, so a disposed timer's failures are expected.
+        // 没有呼叫器观察一个滴答, 所以选中键记录失败, 包括拨号过滤器失败 。
+        // 激活程序在它拒绝它们排队的滴答之前会处理它的计时器, 所以预计被处理的定时器会出故障。
         public void Complete(Response response)
         {
             if (response.Exception is { } exception && !timer.IsDisposed)
@@ -351,8 +351,8 @@ internal abstract partial class GrainTimer : IGrainTimer
             }
         }
 
-        // This method is declared for the sake of IGrainTimerCore, but it is not intended to be called directly.
-        // It exists for grain call interceptors which inspect the implementation method.
+        // 宣布采用这种方法是为了 IGrainTimerCore,但无意直接称为。
+        // 用于检查执行方法的 grain 呼叫拦截器。
         Task IGrainTimerInvoker.InvokeCallbackAsync(CancellationToken cancellationToken) => throw new InvalidOperationException();
 
         public int GetArgumentCount() => 0;
@@ -375,7 +375,7 @@ internal abstract partial class GrainTimer : IGrainTimer
 
         public void Dispose()
         {
-            // Do nothing. Instances are disposed after invocation, but this instance will be reused for the lifetime of the timer.
+            // 无。 案例在援引后处理, 但这个实例将重新使用到定时器的寿命中 。
         }
 
         public override string ToString() => timer.ToString();
@@ -469,11 +469,11 @@ internal sealed class InterleavingGrainTimer : GrainTimer
     public override string ToString() => $"{base.ToString()} Callback: '{_callback?.Target}.{_callback?.Method}'. State: '{_state}'";
 }
 
-// This interface exists for the IInvokable implementation, so that call filters behave as intended.
+// 此界面用于 IInvokable 执行, 这样呼叫过滤器就会按预期运行 。
 internal interface IGrainTimerInvoker : IAddressable
 {
     /// <summary>
-    /// Invokes the callback.
+    /// 调回电源
     /// </summary>
     [Alias("3F6C2672")]
     Task InvokeCallbackAsync(CancellationToken cancellationToken = default);

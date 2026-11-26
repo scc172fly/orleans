@@ -1,7 +1,7 @@
 namespace Orleans.GrainDirectory.AdoNet;
 
 /// <summary>
-/// The model that represents a grain activation in an ADONET grain directory.
+/// 代表一种 grain 在 ADONET 中激活 grain 目录。
 /// </summary>
 internal sealed record AdoNetGrainDirectoryEntry(
     string ClusterId,

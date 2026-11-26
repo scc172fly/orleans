@@ -7,28 +7,28 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// The grain contract used by <see cref="ReminderServiceTestRunner"/> to exercise the reminder service through its
-/// public grain-facing API.
+/// 下 grain 合同使用的合同合同合同 <see cref="ReminderServiceTestRunner"/> 以便通过派遣《公约》
+/// grain- 向上 API。
 /// </summary>
 public interface IReminderServiceTestGrain : IGrainWithGuidKey
 {
-    /// <summary>Registers or updates a reminder.</summary>
+    /// <summary>登记或更新催复通知。</summary>
     Task<string> RegisterOrUpdateAsync(string reminderName, TimeSpan dueTime, TimeSpan period);
 
-    /// <summary>Returns the names of all reminders registered by this grain.</summary>
+    /// <summary>返回本 grain登记的所有提醒通知的名称。</summary>
     Task<string[]> GetReminderNamesAsync();
 
-    /// <summary>Unregisters a reminder, returning <see langword="false"/> when it does not exist.</summary>
+    /// <summary>以至不登记记念, <see langword="false"/> 不存在时。</summary>
     Task<bool> UnregisterAsync(string reminderName);
 }
 
 /// <summary>
-/// A framework-neutral, cluster-level conformance runner for the grain-facing reminder service.
+/// grain- 符合要求的提醒服务框架中性、集束级一致运行者。
 /// </summary>
 /// <remarks>
-/// Provider suites host their <see cref="IReminderTable"/> in an <see cref="TestingHost.InProcessTestCluster"/>,
-/// derive from this type, and apply their test framework's attributes to overrides. The runner verifies the
-/// service-to-table integration independently from the direct table runner.
+/// 供应商套件将 <see cref="IReminderTable"/> 存放在 <see cref="TestingHost.InProcessTestCluster"/>,
+/// 运行者验证
+/// 独立于直接桌选手的服务性就地整合。
 /// </remarks>
 public abstract class ReminderServiceTestRunner
 {
@@ -37,13 +37,13 @@ public abstract class ReminderServiceTestRunner
     private int _grainCounter;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderServiceTestRunner"/> class.
+    /// 初始化 <see cref="ReminderServiceTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="grainFactory">The deployed cluster's grain factory.</param>
-    /// <param name="reminderTable">The provider resolved from the deployed cluster.</param>
-    /// <param name="providerName">The provider name used in failures.</param>
-    /// <param name="seed">The deterministic identity seed.</param>
-    /// <param name="reminderTimeProvider">The clock registered for the reminder subsystem.</param>
+    /// <param name="grainFactory">部署的群组 grain 工厂。</param>
+    /// <param name="reminderTable">供应商从部署的集群中解决。</param>
+    /// <param name="providerName">失败时使用的供应商名称。</param>
+    /// <param name="seed">确定性身份种子</param>
+    /// <param name="reminderTimeProvider">提醒子系统注册的时钟。</param>
     protected ReminderServiceTestRunner(
         IGrainFactory grainFactory,
         IReminderTable reminderTable,
@@ -59,27 +59,27 @@ public abstract class ReminderServiceTestRunner
         _reminderTimeProvider = reminderTimeProvider ?? TimeProvider.System;
     }
 
-    /// <summary>Gets the deployed cluster's grain factory.</summary>
+    /// <summary>获得部署的组群 grain 工厂。</summary>
     protected IGrainFactory GrainFactory { get; }
 
-    /// <summary>Gets the reminder table used by the deployed reminder service.</summary>
+    /// <summary>获取部署的提醒服务所使用的提醒表。</summary>
     protected IReminderTable ReminderTable { get; }
 
-    /// <summary>Gets the provider name used in failures.</summary>
+    /// <summary>获取失败时使用的提供者名称。</summary>
     protected string ProviderName { get; }
 
     /// <summary>
-    /// Guarantee: registration is visible through lookup and enumeration, and unregister is explicitly observed by
-    /// both the service and the table.
+    /// 保证:登记通过查查和查点可见,登记明确遵守了《公约》第12条(a)款的下列规定:
+    /// 服务与餐桌。
     /// </summary>
     public virtual Task ReminderService_RegisterLookupEnumerateAndUnregister()
         => RunReminderService_RegisterLookupEnumerateAndUnregister(CancellationToken.None);
 
     /// <summary>
-    /// Guarantee: registration is visible through lookup and enumeration, and unregister is explicitly observed by
-    /// both the service and the table.
+    /// 保证:登记通过查查和查点可见,登记明确遵守了《公约》第12条(a)款的下列规定:
+    /// 服务与餐桌。
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderService_RegisterLookupEnumerateAndUnregister(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_RegisterLookupEnumerateAndUnregister);
@@ -151,17 +151,17 @@ public abstract class ReminderServiceTestRunner
     }
 
     /// <summary>
-    /// Guarantee: updating an existing service reminder replaces its schedule and ETag without duplicating its
-    /// identity.
+    /// 保证:更新现有的提醒服务,以取代时间表和ETag系统,不重复
+    /// 身份。
     /// </summary>
     public virtual Task ReminderService_UpdateReplacesScheduleAndETagWithoutDuplicate()
         => RunReminderService_UpdateReplacesScheduleAndETagWithoutDuplicate(CancellationToken.None);
 
     /// <summary>
-    /// Guarantee: updating an existing service reminder replaces its schedule and ETag without duplicating its
-    /// identity.
+    /// 保证:更新现有的提醒服务,以取代时间表和ETag系统,不重复
+    /// 身份。
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderService_UpdateReplacesScheduleAndETagWithoutDuplicate(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderService_UpdateReplacesScheduleAndETagWithoutDuplicate);

@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// Detects delays in .NET Thread Pool execution using a periodic timer callback.
+/// 使用定期计时器回调检测到 .NET 线索库执行中的延误。
 /// </summary>
 /// <remarks>
-/// Timer callbacks execute on the Thread Pool. Each callback compares its execution time with the next expected
-/// cadence boundary, producing non-overlapping stall intervals when callback dispatch is delayed.
+/// 时间回调执行在线索库中执行。每次回调都比较其执行时间和下一个预期
+/// 禁区边界,在回击延迟时产生不重叠的间隔。
 /// </remarks>
 internal sealed partial class ThreadPoolStallDetector : IDisposable
 {

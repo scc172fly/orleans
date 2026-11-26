@@ -1,33 +1,43 @@
 ---
-title: "ORLEANS0021: Duplicate grain interface declaration"
-description: Understand and resolve ORLEANS0021 when OrleansContracts.txt declares an interface identity more than once.
+title: "ORLEANS0021:重复 grain 接口声明"
+description: "理解和决心 ORLEANS0021 何时 OrleansContracts.txt 多次声明接口身份 。"
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
-# ORLEANS0021: Duplicate grain interface declaration
+<a id="orleans0021-duplicate-grain-interface-declaration"></a>
 
-| Property | Value |
+# ORLEANS0021:重复 grain 接口声明
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Warning |
-| Code fix | Not available |
+| 类别类 | 版本 |
+| 严重性 | 警告 |
+| 代码修正 | 不详 |
 
-## Cause
+<a id="cause"></a>
 
-`OrleansContracts.txt` repeats an effective interface identity. The effective identity is `GrainInterfaceType` when present and the identity derived from the recorded CLR name using Orleans conventions for a legacy declaration.
+## 原因原因原因
 
-## Impact
+`OrleansContracts.txt` 重复有效的接口身份。有效身份是 `GrainInterfaceType` ,在存在时和从所记录的CLR名称中得出的身份,使用 Orleans 公约作为遗留声明的保存。
 
-The manifest is ambiguous. The parser retains the first declaration, so compatibility review can use the wrong version or method set.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Merge declarations which have the same effective identity into one canonical entry. Active and retired declarations can share a CLR name when they record different explicit `GrainInterfaceType` values across an identity migration.
+清单含糊不清。 分析师保留了第一项声明, 所以兼容性审查可以使用错误的版本或方法集 。
 
-## Suppress the diagnostic
+<a id="how-to-fix"></a>
 
-Repair the malformed manifest instead of suppressing this diagnostic.
+## 如何修补
+
+将具有相同有效身份的声明合并为一个卡尼基门入境。 当声明在身份移徙中记录不同的明确 `GrainInterfaceType` 值时, 主动和退休声明可以共享一个 CLR 名称 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+修复错误的显示器,而不是抑制诊断。
 
 ```ini
 [*.cs]

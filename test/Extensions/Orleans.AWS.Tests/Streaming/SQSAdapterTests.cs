@@ -18,7 +18,7 @@ using Xunit;
 namespace AWSUtils.Tests.Streaming
 {
     /// <summary>
-    /// Tests SQS queue adapter functionality for sending and receiving messages through Orleans streaming.
+    /// 测试 SQS 队列适配器功能, 以便通过 Orleans 流发送和接收信件。
     /// </summary>
     [TestCategory("AWS"), TestCategory("SQS")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]
@@ -150,21 +150,21 @@ namespace AWSUtils.Tests.Streaming
             IQueueAdapter adapter = await adapterFactory.CreateAdapter(cancellationToken);
             IQueueAdapterCache cache = adapterFactory.GetQueueAdapterCache();
 
-            // Create receiver per queue
+            // 每个队列创建接收器
             IStreamQueueMapper mapper = adapterFactory.GetStreamQueueMapper();
             Dictionary<QueueId, IQueueAdapterReceiver> receivers = mapper.GetAllQueues().ToDictionary(queueId => queueId, adapter.CreateReceiver);
             Dictionary<QueueId, IQueueCache> caches = mapper.GetAllQueues().ToDictionary(queueId => queueId, cache.CreateQueueCache);
 
             await Task.WhenAll(receivers.Values.Select(receiver => receiver.Initialize(TimeSpan.FromSeconds(5))));
 
-            // test using 2 streams
+            // 使用 2 流测试
             Guid streamId1 = Guid.NewGuid();
             Guid streamId2 = Guid.NewGuid();
 
             int receivedBatches = 0;
             var streamsPerQueue = new ConcurrentDictionary<QueueId, HashSet<StreamId>>();
 
-            // reader threads (at most 2 active queues because only two streams)
+            // 读者线(大多数为2个活动队列,因为只有两个串流)
             var work = new List<Task>();
             foreach (KeyValuePair<QueueId, IQueueAdapterReceiver> receiverKvp in receivers)
             {
@@ -193,8 +193,8 @@ namespace AWSUtils.Tests.Streaming
                                 });
                             output.WriteLine("Queue {0} received message on stream {1}", queueId,
                                 message.StreamId);
-                            Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<int>().Count());  // "Half the events were ints"
-                            Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<string>().Count());  // "Half the events were strings"
+                            Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<int>().Count());  // "如果事件是半个"
+                            Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<string>().Count());  // "如果事情是串通的"
                         }
                         Interlocked.Add(ref receivedBatches, messages.Length);
                         qCache.AddToCache(messages);
@@ -203,7 +203,7 @@ namespace AWSUtils.Tests.Streaming
                 work.Add(task);
             }
 
-            // send events
+            // 发送事件
             List<object> events = CreateEvents(NumMessagesPerBatch);
             work.Add(Task.Run(async () =>
             {
@@ -220,13 +220,13 @@ namespace AWSUtils.Tests.Streaming
             }, cancellationToken));
             await Task.WhenAll(work);
 
-            // Wait for everything to be consumed.
+            // 等待一切被消耗。
             await Task.Delay(QueuePollRate * 2, cancellationToken);
 
-            // Make sure we got back everything we sent
+            // 确保我们把寄送的东西都拿回来
             Assert.Equal(NumBatches, receivedBatches);
 
-            // check to see if all the events are in the cache and we can enumerate through them
+            // 检查是否所有事件都在缓存中, 我们可以通过它们来计算
             StreamSequenceToken firstInCache = new EventSequenceTokenV2(0);
             foreach (KeyValuePair<QueueId, HashSet<StreamId>> kvp in streamsPerQueue)
             {
@@ -235,7 +235,7 @@ namespace AWSUtils.Tests.Streaming
 
                 foreach (StreamId streamGuid in kvp.Value)
                 {
-                    // read all messages in cache for stream
+                    // 读取流的缓存中的所有信件
                     var cursorResult = qCache.TryGetCacheCursor(streamGuid, firstInCache);
                     Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                     var cursor = cursorResult.Cursor;
@@ -261,7 +261,7 @@ namespace AWSUtils.Tests.Streaming
                     Assert.Equal(NumBatches / 2, messageCount);
                     Assert.NotNull(tenthInCache);
 
-                    // read all messages from the 10th
+                    // 读取来自 第10次的所有消息
                     cursorResult = qCache.TryGetCacheCursor(streamGuid, tenthInCache);
                     Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                     cursor = cursorResult.Cursor;
@@ -272,7 +272,7 @@ namespace AWSUtils.Tests.Streaming
                         messageCount++;
                     }
                     output.WriteLine("On Queue {0} we received a total of {1} message on stream {2}", kvp.Key, messageCount, streamGuid);
-                    const int expected = NumBatches / 2 - 10 + 1; // all except the first 10, including the 10th (10 + 1)
+                    const int expected = NumBatches / 2 - 10 + 1; // 除前10名外,包括第10名(10+1)
                     Assert.Equal(expected, messageCount);
                 }
             }

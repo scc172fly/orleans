@@ -7,7 +7,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="CompareInfo"/>.
+    /// <see cref="CompareInfo"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class CompareInfoCodec : IFieldCodec<CompareInfo>

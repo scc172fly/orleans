@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// Tests for best-fit balancer algorithm including resource distribution across buckets and ordering invariance.
+    /// 测试最合适的平衡算法,包括资源在桶间分配和定购缺勤。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -136,7 +136,7 @@ namespace UnitTests.OrleansRuntime.Streams
             Dictionary<int, List<int>> balancerResults = resourceBalancer.GetDistribution(buckets);
             ValidateBalance(buckets, resources, balancerResults, idealBalance);
 
-            // reverse inputs
+            // 反向输入
             resources.Reverse();
             buckets.Reverse();
             resourceBalancer = new BestFitBalancer<int, int>(buckets, resources);
@@ -168,8 +168,8 @@ namespace UnitTests.OrleansRuntime.Streams
                 Assert.True(idealBalance <= kvp.Value.Count, "Balance not ideal");
                 Assert.True(idealBalance + 1 >= kvp.Value.Count, "Balance not ideal");
             }
-            Assert.Equal(buckets.Count, resultBuckets.Count);  // "bucket counts do not match"
-            Assert.Equal(resources.Count, resultResources.Count);  // "resource counts do not match"
+            Assert.Equal(buckets.Count, resultBuckets.Count);  // "工具计数不匹配"
+            Assert.Equal(resources.Count, resultResources.Count);  // "资源数不符"
         }
     }
 }

@@ -25,8 +25,8 @@ interface HostTableProps {
 }
 
 function sortFunction(a: Silo, b: Silo): number {
-  const nameA = a.siloAddress.toUpperCase(); // ignore upper and lowercase
-  const nameB = b.siloAddress.toUpperCase(); // ignore upper and lowercase
+  const nameA = a.siloAddress.toUpperCase(); // 忽略上下大小写
+  const nameB = b.siloAddress.toUpperCase(); // 忽略上下大小写
   if (nameA < nameB) return -1;
   if (nameA > nameB) return 1;
   return 0;

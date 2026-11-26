@@ -1,42 +1,42 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Options for enumerating journal storage identities.
+/// 列出日记存储身份的选项。
 /// </summary>
 /// <remarks>
-/// All constraints apply using ordinal comparisons. Providers snapshot these options when enumeration begins.
+/// 提供商在开始查点时对这些选项进行速记。
 /// </remarks>
 public sealed class JournalCatalogListOptions
 {
     /// <summary>
-    /// Gets or sets the raw prefix of <see cref="JournalId.Value"/>. The default value matches all ids.
+    /// 获取或设置 <see cref="JournalId.Value"/>的原始前缀。默认值符合所有ids。
     /// </summary>
     /// <remarks>
-    /// Prefixes can end within a path segment, for example <c>jobs/shards/20260909</c>.
-    /// Include a trailing slash to select descendants of a namespace.
+    /// 前缀可以在路径段内结束,例如 <c>jobs/shards/20260909</c>。
+    /// 包含一个后遗斜线以选择命名空间的子孙。
     /// </remarks>
     public JournalId Prefix { get; set; }
 
     /// <summary>
-    /// Gets or sets the inclusive lower bound on <see cref="JournalId.Value"/>, compared using
-    /// <see cref="StringComparison.Ordinal"/>. The default value does not impose a lower bound.
+    /// 获取或设置包含式下拉约束 <see cref="JournalId.Value"/>比较使用
+    /// <see cref="StringComparison.Ordinal"/>. 默认值不强制设定下限。
     /// </summary>
     public JournalId MinId { get; set; }
 
     /// <summary>
-    /// Gets or sets the inclusive upper bound on <see cref="JournalId.Value"/>, compared using
-    /// <see cref="StringComparison.Ordinal"/>. The default value does not impose an upper bound.
+    /// 将 <see cref="JournalId.Value"/>上的包容性上下约束设或获取
+    /// <see cref="StringComparison.Ordinal"/>. 默认值不强制设定上下限。
     /// </summary>
     public JournalId MaxId { get; set; }
 
     /// <summary>
-    /// Gets or sets whether the catalog includes metadata available from its listing operation.
-    /// Defaults to <see langword="false"/>.
+    /// 获取或确定目录是否包含其列表操作中可用的元数据。
+    /// 默认为 <see langword="false"/>。
     /// </summary>
     /// <remarks>
-    /// Providers project a complete metadata snapshot when available without a separate per-journal
-    /// metadata request. Otherwise, <see cref="JournalCatalogEntry.Metadata"/> is <see langword="null"/>.
-    /// Callers which require missing metadata can retrieve it using <see cref="IJournalStorage.GetMetadataAsync"/>.
+    /// 如果提供商在没有单独每期日刊的情况下提供完整的元数据快报
+    /// 请求中的数据。 否则, <see cref="JournalCatalogEntry.Metadata"/> 是 <see langword="null"/>。
+    /// 需要缺失元数据的调用者可以通过 <see cref="IJournalStorage.GetMetadataAsync"/>检索。
     /// </remarks>
     public bool IncludeMetadata { get; set; }
 }

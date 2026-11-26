@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Served from public/ so the build copies it verbatim, keeping the bundle and source map deterministic.
+// 由公众提供/因此制作副本的逐字记录, 保存包裹和源地图确定性。
 const logo = `${import.meta.env.BASE_URL}img/OrleansLogo.png`;
 
 export default function BrandHeader() {

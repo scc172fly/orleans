@@ -11,10 +11,10 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for multi-dimensional arrays.
+    /// 多维阵列的序列化器。
     /// </summary>
-    /// <typeparam name="TArray">The concrete array type.</typeparam>
-    /// <typeparam name="T">The array element type.</typeparam>
+    /// <typeparam name="TArray">混凝土阵列类型。</typeparam>
+    /// <typeparam name="T">数组元素类型。</typeparam>
     internal sealed class MultiDimensionalArrayCodec<TArray, T> : IGeneralizedCodec
     {
         private readonly Type DimensionFieldType = typeof(int[]);
@@ -25,10 +25,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T> _elementCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MultiDimensionalArrayCodec{TArray, T}"/> class.
+        /// 初始化 <see cref="MultiDimensionalArrayCodec{TArray, T}"/> 类的新实例。
         /// </summary>
-        /// <param name="intArrayCodec">The int array codec.</param>
-        /// <param name="elementCodec">The element codec.</param>
+        /// <param name="intArrayCodec">内数组编码器。</param>
+        /// <param name="elementCodec">元素编码器。</param>
         public MultiDimensionalArrayCodec(IFieldCodec<int[]> intArrayCodec, IFieldCodec<T> elementCodec)
         {
             _intArrayCodec = OrleansGeneratedCodeHelper.UnwrapService(this, intArrayCodec);
@@ -52,7 +52,7 @@ namespace Orleans.Serialization.Codecs
             var lengths = new int[rank];
             var indices = new int[rank];
 
-            // Write array lengths.
+            // 写出数组长度 。
             for (var i = 0; i < rank; i++)
             {
                 lengths[i] = array.GetLength(i);
@@ -68,7 +68,7 @@ namespace Orleans.Serialization.Codecs
                 _elementCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, (T)element!);
                 innerFieldIdDelta = 0;
 
-                // Increment the indices array by 1.
+                // 将指数数组增加1。
                 if (remaining > 0)
                 {
                     var idx = rank - 1;
@@ -122,7 +122,7 @@ namespace Orleans.Serialization.Codecs
                             rank = lengths.Length;
                             EnsureSufficientData(ref reader, lengths);
 
-                            // Multi-dimensional arrays must be indexed using indexing arrays, so create one now.
+                            // 多维数组必须使用索引式数组来编制索引,所以现在要创建一个。
                             indices = new int[rank];
 #if NET10_0_OR_GREATER
                             result = Array.CreateInstanceFromArrayType(_arrayType, lengths);
@@ -142,7 +142,7 @@ namespace Orleans.Serialization.Codecs
                             var element = _elementCodec.ReadValue(ref reader, header);
                             result!.SetValue(element, indices!);
 
-                            // Increment the indices array by 1.
+                            // 将指数数组增加1。
                             var idx = rank - 1;
                             while (idx >= 0 && ++indices![idx] >= lengths![idx])
                             {
@@ -169,7 +169,7 @@ namespace Orleans.Serialization.Codecs
 
         private static void EnsureSufficientData<TInput>(ref Reader<TInput> reader, int[] lengths)
         {
-            // A zero in any dimension makes the complete element count zero.
+            // 任何维度的0 使元素完全数为零。
             if (Array.IndexOf(lengths, 0) >= 0)
             {
                 return;
@@ -218,9 +218,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for multi-dimensional arrays.
+    /// 多元阵列的复印机。
     /// </summary>
-    /// <typeparam name="T">The array element type.</typeparam>
+    /// <typeparam name="T">数组元素类型。</typeparam>
     internal sealed class MultiDimensionalArrayCopier<T> : IGeneralizedCopier
     {
         /// <inheritdoc/>

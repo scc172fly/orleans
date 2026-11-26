@@ -4,30 +4,30 @@ using System.Threading;
 namespace Orleans.Caching.Internal;
 
 /// <summary>
-/// A long value padded by the size of a CPU cache line to mitigate false sharing.
+/// CPU缓存线大小的长值添加,以减少虚假共享。
 /// </summary>
-// Derived from BitFaster.Caching by Alex Peck
+// 由Alex Peck从 BitFaster.Caching 取出
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/Counters/PaddedLong.cs
-[StructLayout(LayoutKind.Explicit, Size = 2 * Padding.CACHE_LINE_SIZE)] // padding before/between/after fields
+[StructLayout(LayoutKind.Explicit, Size = 2 * Padding.CACHE_LINE_SIZE)] // 字段前后/之间/之后的
 internal struct PaddedLong
 {
     /// <summary>
-    /// The value.
+    /// 价值。
     /// </summary>
     [FieldOffset(Padding.CACHE_LINE_SIZE)] public long Value;
 
     /// <summary>
-    /// Reads the value of the field, and on systems that require it inserts a memory barrier to 
-    /// prevent reordering of memory operations.
+    /// 读取字段的价值,以及需要它插入内存屏障的系统 
+    /// 防止重新排列记忆操作。
     /// </summary>
-    /// <returns>The value that was read.</returns>
+    /// <returns>所读取的值。</returns>
     public long VolatileRead() => Volatile.Read(ref Value);
 
     /// <summary>
-    /// Compares the current value with an expected value, if they are equal replaces the current value.
+    /// 将当前值与预期值进行比较,如果等于则替换当前值。
     /// </summary>
-    /// <param name="expected">The expected value.</param>
-    /// <param name="updated">The updated value.</param>
-    /// <returns>True if the value is updated, otherwise false.</returns>
+    /// <param name="expected">预期值。</param>
+    /// <param name="updated">更新价值。</param>
+    /// <returns>如果更新了数值, 则 True, 否则是虚假的。</returns>
     public bool CompareAndSwap(long expected, long updated) => Interlocked.CompareExchange(ref Value, updated, expected) == expected;
 }

@@ -104,8 +104,8 @@ if ($partitions.Count -eq 0) {
     throw "No test result artifacts were found for run $RunId."
 }
 
-# The artifacts API has creation times, but no attempt field. IDs are not chronological.
-# Select each partition independently so failed-only reruns retain the other partitions.
+# 文物 API 有创建时间,但没有尝试字段。身份不是按时间顺序排列的。
+# 独立选择每个分区, 所以只运行失败的重新运行会保留其他分区 。
 $selected = @(
     foreach ($name in @($partitions.Keys | Sort-Object)) {
         $candidates = @($partitions[$name] | Sort-Object CreatedAt -Descending)

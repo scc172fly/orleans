@@ -71,7 +71,7 @@ internal sealed partial class DirectoryMembershipService : IAsyncDisposable
             yield return view;
         }
 
-        // Propagate the processor's failure to current and future subscribers.
+        // 宣传处理器对当前和未来订户的失败。
         await _runTask;
     }
 
@@ -157,7 +157,7 @@ internal sealed partial class DirectoryMembershipService : IAsyncDisposable
             }
 
             completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            // Publish completion before cancellation callbacks can reenter disposal.
+            // 在取消回馈可以重新进入处置之前公布完成情况。
             _disposeTask = completion.Task;
         }
 
@@ -177,7 +177,7 @@ internal sealed partial class DirectoryMembershipService : IAsyncDisposable
             }
             finally
             {
-                // The membership processor owns its subscription until it has completed.
+                // 成员处理员拥有订阅权,直至其完成。
                 await _runTask.SuppressThrowing();
                 _shutdownCts.Dispose();
             }

@@ -7,28 +7,28 @@ using Orleans.Runtime;
 namespace Orleans.GrainDirectory
 {
     /// <summary>
-    /// Specifies the name of the grain directory provider to use for the grain class which this attribute is applied to.
+    /// 指定 grain 要用于 grain 此属性应用到的类 。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class GrainDirectoryAttribute : Attribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// The default grain directory.
+        /// 默认 grain 目录。
         /// </summary>
         public const string DEFAULT_GRAIN_DIRECTORY = "default";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainDirectoryAttribute"/> class.
+        /// 初始化 <see cref="GrainDirectoryAttribute"/> 类的新实例。
         /// </summary>
         public GrainDirectoryAttribute() : this(DEFAULT_GRAIN_DIRECTORY)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainDirectoryAttribute"/> class.
+        /// 初始化 <see cref="GrainDirectoryAttribute"/> 类的新实例。
         /// </summary>
         /// <param name="grainDirectoryName">
-        /// The grain directory provider name.
+        /// grain 目录提供者名称。
         /// </param>
         public GrainDirectoryAttribute(string grainDirectoryName)
         {
@@ -36,7 +36,7 @@ namespace Orleans.GrainDirectory
         }
 
         /// <summary>
-        /// Gets or sets the grain directory provider name.
+        /// 获取或设置 grain 目录提供者名称。
         /// </summary>
         public string GrainDirectoryName { get; set; }
 

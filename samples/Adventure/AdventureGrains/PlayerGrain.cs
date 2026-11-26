@@ -6,8 +6,8 @@ namespace AdventureGrains;
 
 public class PlayerGrain : Grain, IPlayerGrain
 {
-    private readonly List<Thing> _things = []; // Things that the player is carrying
-    private IRoomGrain? _roomGrain; // Current room
+    private readonly List<Thing> _things = []; // 播放器携带的东西
+    private IRoomGrain? _roomGrain; // 现会议室
     private bool _killed = false;
     private PlayerInfo _myInfo = null!;
 
@@ -23,15 +23,15 @@ public class PlayerGrain : Grain, IPlayerGrain
 
     async Task IPlayerGrain.Die()
     {
-        // Drop everything
+        // 放下一切东西
         var dropTasks = new List<Task<string?>>();
-        foreach (var thing in _things.ToArray() /* New collection */)
+        foreach (var thing in _things.ToArray() /* 新建收藏 */)
         {
             dropTasks.Add(Drop(thing));
         }
         await Task.WhenAll(dropTasks);
 
-        // Exit the game
+        // 退出游戏
         if (_roomGrain is not null && _myInfo is not null)
         {
             await _roomGrain.Exit(_myInfo);
@@ -136,7 +136,7 @@ public class PlayerGrain : Grain, IPlayerGrain
             return null;
         }
 
-        // Go to room '-2', which is the place of no return.
+        // 转到2号房间,那里是不准回的
         var room = GrainFactory.GetGrain<IRoomGrain>(-2);
         return await room.Description(_myInfo);
     }

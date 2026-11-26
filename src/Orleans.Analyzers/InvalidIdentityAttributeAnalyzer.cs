@@ -65,8 +65,8 @@ public sealed class InvalidIdentityAttributeAnalyzer : DiagnosticAnalyzer
                 }
             }, SyntaxKind.Attribute);
 
-            // Only a simple attribute name can be a using alias. A qualified name binds to a type named by its rightmost
-            // identifier, with or without the "Attribute" suffix, so other qualified names cannot denote an identity attribute.
+            // 仅一个简单的属性名称可以是一个使用别名的属性名称。 符合条件的名称与最右侧命名的类型相连接
+            // 身份识别符, 无论有没有“ 属性” 后缀, 所以其他合格名称不能表示身份属性 。
             bool CanNameIdentityAttribute(NameSyntax name)
             {
                 var identifier = name switch

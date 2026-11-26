@@ -10,11 +10,11 @@ using Orleans.Durable.Tasks.Runtime;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Exercises durable grain RPC across grains over the messaging inbox and outbox.
+/// 耐久演习 grain 跨区域资源、全区域、全区域、全区域、全区域、全区域、 grains 发件人和发件人之间
 /// </summary>
 /// <remarks>
-/// A coordinator fans out several durable calls to one worker, so the worker's inbox and the coordinator's inbox
-/// each receive several durable RPC messages which can be processed in one inbox batch with a single batch write.
+/// 一位协调员向一个工人发出几个持久的电话,所以该工人的收件箱和协调员的收件箱
+/// 每个接收若干耐久的RPC信息,这些信息可以分一个盒处理,每箱中有一批单批书写。
 /// </remarks>
 public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -42,8 +42,8 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
     [Fact]
     public async Task SiloHostedCallerOutsideGrainSchedulesAndCancelsRootTasks()
     {
-        // Code which runs in the silo's host but outside a grain, such as a co-hosted web endpoint, schedules through
-        // the silo's grain factory like an external client.
+        // 在 silo主机中运行但位于 grain以外的代码,例如联合主持网站端点、时间表
+        // 与外部客户端一样, silo的工厂 grain 。
         var cancellationToken = TestContext.Current.CancellationToken;
         var grainFactory = _fixture.Cluster.GetSiloServiceProvider().GetRequiredService<IGrainFactory>();
         var worker = grainFactory.GetGrain<IDurableTaskWorkerGrain>(Guid.NewGuid());
@@ -67,8 +67,8 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
         var waiting = await worker.WaitForCancellationAsync(1).WithId("long-poll").ScheduleAsync(cancellationToken);
         await started.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
-        // The poll outlasts the test, so a request sent after it completes only if the grain interleaves them. A waiting
-        // client must not stall the grain whose requests and inbox messages complete the task.
+        // 民意测验超过测试,所以在调查完成后提出的请求只有在 grain 等待着,
+        // 客户端不能拖曳请求和信箱信息完成任务的 grain 。
         var poll = worker.AsReference<IDurableTaskGrainExtension>().SubscribeOrPollAsync(
             waiting.Id,
             new SubscribeOrPollOptions { PollTimeout = TimeSpan.FromMinutes(5) },
@@ -103,8 +103,8 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
         var workerId = _fixture.Client.GetGrain<IDurableTaskWorkerGrain>(workerKey).GetGrainId();
         for (var index = 0; index < FanOut; index++)
         {
-            // The worker retains each canceled child's terminal state under the caller's scope until the caller's inbox
-            // accepts its completion, then deletes it.
+            // 工人保留每个被取消的孩子的终点状态 在电话范围下,直到打电话者的收件箱
+            // 接受其完成,然后删除它。
             var childId = await events.WaitForCallerChildAsync(workerId, coordinator.GetGrainId(), TaskId.CreateRoot("fan-out").Child($"wait-{index}"));
             Assert.Equal(DurableTaskStatus.Canceled, (await events.WaitForCompletedAsync(workerId, childId)).Status);
             await events.WaitForDeletedAsync(workerId, childId);
@@ -112,14 +112,14 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
     }
 }
 
-/// <summary>Runs cross-grain messaging coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行跨grain 信息覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskMessagingTests() : DurableTaskMessagingTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs cross-grain messaging coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行跨grain 信息覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -137,7 +137,7 @@ public interface IDurableTaskWorkerGrain : IGrainWithGuidKey
     DurableTask<int> EchoAsync(int value);
     DurableTask<int> WaitForCancellationAsync(int value);
 
-    /// <summary>Gets the reasons of the worker's inbox dead letters.</summary>
+    /// <summary>弄清楚工人信箱里写了什么死信的原因</summary>
     Task<string[]> GetInboxDeadLetterReasonsAsync();
 }
 
@@ -257,7 +257,7 @@ public sealed class DurableTaskWorkerGrain(DurableTaskMessagingProbe probe, IMes
 
     private static readonly DurableSignal<int> Never = new("never");
 
-    // Parks on a signal which never arrives, so its grain admits other requests until the task's cancellation ends the wait.
+    // 空闲的公园在信号上,但一直没有到来,所以它 grain 承认了其他请求,直到任务取消结束等待。
     public async DurableTask<int> WaitForCancellationAsync(int value)
     {
         probe.RecordStarted(this.GetPrimaryKey());

@@ -62,14 +62,14 @@ namespace Orleans.Hosting
 
             services.Add(ServiceDescriptor);
 
-            // Common services
+            // 共同事务 共同事务
             services.AddLogging();
             services.AddOptions();
             services.AddMetrics();
             services.TryAddSingleton<TimeProvider>(TimeProvider.System);
 
-            // Catch-all keyed TimeProvider: consumers resolve their area's clock via [FromKeyedServices(TimeProviderNames.X)];
-            // unless an area has been explicitly overridden, this fallback supplies the unkeyed default provider.
+            // 全部抓紧键 TimeProvider:消费者通过[FromKeyedServices(TimeProviderNames.X)];
+            // 除非某区域被明确覆盖, 否则此后退会为无锁默认提供商提供 。
             services.TryAddKeyedSingleton<TimeProvider>(KeyedService.AnyKey, static (sp, _) => sp.GetRequiredService<TimeProvider>());
             services.TryAddSingleton<OrleansInstruments>();
             services.TryAddSingleton<SchedulerInstruments>();
@@ -98,12 +98,12 @@ namespace Orleans.Hosting
             services.AddSingleton<SiloControl>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, SiloControl>();
 
-            // Lifecycle
+            // 生命周期
             services.AddSingleton<ServiceLifecycle<ISiloLifecycle>>();
             services.TryAddFromExisting<IServiceLifecycle, ServiceLifecycle<ISiloLifecycle>>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, ServiceLifecycle<ISiloLifecycle>>();
 
-            // Statistics
+            // 统计统计统计
             services.AddSingleton<IEnvironmentStatisticsProvider, EnvironmentStatisticsProvider>();
 #pragma warning disable 618
             services.AddSingleton<OldEnvironmentStatistics>();
@@ -148,7 +148,7 @@ namespace Orleans.Hosting
             services.AddFromExisting<IActivationWorkingSet, ActivationWorkingSet>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, ActivationWorkingSet>();
 
-            // Directory
+            // 目录目录目录目录目录目录
             services.TryAddSingleton<LocalGrainDirectory>();
             services.TryAddFromExisting<ILocalGrainDirectory, LocalGrainDirectory>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, LocalGrainDirectory>();
@@ -226,7 +226,7 @@ namespace Orleans.Hosting
 
             services.TryAddSingleton(FactoryUtility.Create<LocalGrainDirectoryPartition>);
 
-            // Placement
+            // 安置职位安排
             services.AddSingleton<IConfigurationValidator, ActivationCountBasedPlacementOptionsValidator>();
             services.AddSingleton<IConfigurationValidator, ResourceOptimizedPlacementOptionsValidator>();
             services.AddSingleton<PlacementService>();
@@ -234,17 +234,17 @@ namespace Orleans.Hosting
             services.AddSingleton<PlacementDirectorResolver>();
             services.AddSingleton<IPlacementStrategyResolver, ClientObserverPlacementStrategyResolver>();
 
-            // Resilience policies
+            // 复原力政策
             OrleansRuntimeResiliencePolicies.AddOrleansRuntimeResiliencePolicies(services);
 
-            // Configure the default placement strategy.
+            // 配置默认职位设置策略。
             services.TryAddSingleton<PlacementStrategy, ResourceOptimizedPlacement>();
 
-            // Placement filters
+            // 放置过滤器
             services.AddSingleton<PlacementFilterStrategyResolver>();
             services.AddSingleton<PlacementFilterDirectorResolver>();
 
-            // Placement directors
+            // 职位安排主任
             services.AddPlacementDirector<RandomPlacement, RandomPlacementDirector>();
             services.AddPlacementDirector<PreferLocalPlacement, PreferLocalPlacementDirector>();
             services.AddPlacementDirector<StatelessWorkerPlacement, StatelessWorkerDirector>(ServiceLifetime.Transient);
@@ -254,10 +254,10 @@ namespace Orleans.Hosting
             services.AddPlacementDirector<SiloRoleBasedPlacement, SiloRoleBasedPlacementDirector>();
             services.AddPlacementDirector<ResourceOptimizedPlacement, ResourceOptimizedPlacementDirector>();
 
-            // Versioning
+            // 版本
             services.TryAddSingleton<VersionSelectorManager>();
             services.TryAddSingleton<CachedVersionSelectorManager>();
-            // Version selector strategy
+            // 版本选择器策略
             if (!services.Any(x => x.ServiceType == typeof(IVersionStore)))
             {
                 services.AddSingleton<GrainVersionStore>();
@@ -267,14 +267,14 @@ namespace Orleans.Hosting
             services.AddKeyedSingleton<VersionSelectorStrategy, AllCompatibleVersions>(nameof(AllCompatibleVersions));
             services.AddKeyedSingleton<VersionSelectorStrategy, LatestVersion>(nameof(LatestVersion));
             services.AddKeyedSingleton<VersionSelectorStrategy, MinimumVersion>(nameof(MinimumVersion));
-            // Versions selectors
+            // 版本选择器
             services.AddKeyedSingleton<IVersionSelector, MinimumVersionSelector>(typeof(MinimumVersion));
             services.AddKeyedSingleton<IVersionSelector, LatestVersionSelector>(typeof(LatestVersion));
             services.AddKeyedSingleton<IVersionSelector, AllCompatibleVersionsSelector>(typeof(AllCompatibleVersions));
 
-            // Compatibility
+            // 兼容性
             services.AddSingleton<CompatibilityDirectorManager>();
-            // Compatability strategy
+            // 兼容战略
             services.AddKeyedSingleton<CompatibilityStrategy, AllVersionsCompatible>(nameof(AllVersionsCompatible));
             services.AddKeyedSingleton<CompatibilityStrategy, BackwardCompatible>(nameof(BackwardCompatible));
             services.AddKeyedSingleton<CompatibilityStrategy, StrictVersionCompatible>(nameof(StrictVersionCompatible));
@@ -285,7 +285,7 @@ namespace Orleans.Hosting
 
             services.TryAddSingleton<Factory<IGrainRuntime>>(sp => () => sp.GetRequiredService<IGrainRuntime>());
 
-            // Grain activation
+            // Grain 激活
             services.AddSingleton<PlacementService>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, PlacementService>();
             services.AddSingleton<Catalog>();
@@ -299,13 +299,13 @@ namespace Orleans.Hosting
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, IncomingRequestMonitor>();
             services.AddSingleton<ILocalActivationStatusChecker, Runtime.LocalActivationStatusChecker>();
 
-            // Scoped to a grain activation
+            // 范围被测到 grain 激活
             services.AddScoped<IGrainContext>(sp => RuntimeContext.Current ?? throw new InvalidOperationException("No current grain context available."));
 
             services.TryAddSingleton<IConsistentRingProvider>(
                 sp =>
                 {
-                    // TODO: make this not sux - jbragg
+                    // TOD: 使这个不是 Sux - jbragg
                     var consistentRingOptions = sp.GetRequiredService<IOptions<ConsistentRingOptions>>().Value;
                     var siloDetails = sp.GetRequiredService<ILocalSiloDetails>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
@@ -322,7 +322,7 @@ namespace Orleans.Hosting
             services.AddSingleton<IConfigureOptions<GrainTypeOptions>, DefaultGrainTypeOptionsProvider>();
             services.AddSingleton<IPostConfigureOptions<EndpointOptions>, EndpointOptionsProvider>();
 
-            // Type metadata
+            // 元元数据类型
             services.AddSingleton<SiloManifestProvider>();
             services.AddSingleton<GrainClassMap>(sp => sp.GetRequiredService<SiloManifestProvider>().GrainTypeMap);
             services.AddSingleton<GrainTypeResolver>();
@@ -342,7 +342,7 @@ namespace Orleans.Hosting
             services.AddSingleton<ClusterManifestSystemTarget>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, ClusterManifestSystemTarget>();
 
-            //Add default option formatter if none is configured, for options which are required to be configured
+            //添加默认选项, 用于未配置的选项, 以配置需要配置的选项
             services.ConfigureFormatter<SiloOptions>();
             services.ConfigureFormatter<SchedulingOptions>();
             services.ConfigureFormatter<ConnectionOptions>();
@@ -360,8 +360,8 @@ namespace Orleans.Hosting
             services.ConfigureFormatter<EndpointOptions>();
             services.ConfigureFormatter<ClusterOptions>();
 
-            // This validator needs to construct the IMembershipOracle and the IMembershipTable
-            // so move it in the end so other validator are called first
+            // 此验证符需要构建 IMembershipOracle 和 IMembershipTable
+            // 所以在最后移动它, 所以先调用其它验证人
             services.AddTransient<IConfigurationValidator, ClusterOptionsValidator>();
             services.AddTransient<IConfigurationValidator, SiloClusteringValidator>();
             services.AddTransient<IConfigurationValidator, DevelopmentClusterMembershipOptionsValidator>();
@@ -369,14 +369,14 @@ namespace Orleans.Hosting
             services.AddTransient<IValidateOptions<SiloMessagingOptions>, SiloMessagingOptionsValidator>();
             services.AddTransient<IOptions<MessagingOptions>>(static sp => sp.GetRequiredService<IOptions<SiloMessagingOptions>>());
 
-            // Enable hosted client.
+            // 启用主机客户端 。
             services.TryAddSingleton<HostedClient>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, HostedClient>();
             services.TryAddSingleton<InternalClusterClient>();
             services.TryAddFromExisting<IInternalClusterClient, InternalClusterClient>();
             services.TryAddFromExisting<IClusterClient, InternalClusterClient>();
 
-            // Enable collection specific Age limits
+            // 启用特定收藏收藏的年龄限制
             services.AddOptions<GrainCollectionOptions>()
                 .Configure<IOptions<GrainTypeOptions>>((options, grainTypeOptions) =>
                 {
@@ -391,7 +391,7 @@ namespace Orleans.Hosting
                     }
                 });
 
-            // Validate all CollectionAgeLimit values for the right configuration.
+            // 校验右配置的所有 CollectionAgeLimit 值。
             services.AddTransient<IConfigurationValidator, GrainCollectionOptionsValidator>();
             services.AddTransient<IConfigurationValidator, LoadSheddingValidator>();
 
@@ -400,19 +400,19 @@ namespace Orleans.Hosting
             services.AddOptions<SystemTextJsonGrainStorageSerializerOptions>();
             services.AddSingleton<IPostConfigureOptions<SystemTextJsonGrainStorageSerializerOptions>, SystemTextJsonSerializerOptionsConfigure>();
 
-            // persistent state facet support
+            // 持续状态维值支持
             services.TryAddSingleton<IGrainStorageSerializer, JsonGrainStorageSerializer>();
             services.TryAddSingleton<IPersistentStateFactory, PersistentStateFactory>();
             services.TryAddSingleton(typeof(IAttributeToFactoryMapper<PersistentStateAttribute>), typeof(PersistentStateAttributeMapper));
             services.TryAddSingleton<StateStorageBridgeSharedMap>();
 
-            // IAsyncEnumerable support
+            // IAsyncEnumerable 支持
             services.AddScoped<IAsyncEnumerableGrainExtension, AsyncEnumerableGrainExtension>();
             services.AddKeyedTransient<IGrainExtension>(
                 typeof(IAsyncEnumerableGrainExtension),
                 (sp, _) => sp.GetRequiredService<IAsyncEnumerableGrainExtension>());
 
-            // Networking
+            // 建立网络
             services.AddSingleton<MessageHandlerShared>();
             services.TryAddSingleton<IMessageStatisticsSink, NoOpMessageStatisticsSink>();
             services.TryAddSingleton<NetworkingInstruments>();
@@ -443,11 +443,11 @@ namespace Orleans.Hosting
             services.AddSingleton<RuntimeMessagingTrace>();
             services.AddFromExisting<MessagingTrace, RuntimeMessagingTrace>();
 
-            // Activation migration
+            // 激活移徙
             services.AddSingleton<ActivationMigrationManager>();
             services.AddFromExisting<IActivationMigrationManager, ActivationMigrationManager>();
 
-            // Use Orleans server.
+            // 使用 Orleans 服务器 。
             services.AddSingleton<MessageTransportConnector, TcpMessageTransportConnector>();
             services.AddSingleton<MessageTransportListener>(sp => new TcpMessageTransportListener(
                 "gateway",
@@ -478,7 +478,7 @@ namespace Orleans.Hosting
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, ActivationMigrationManager>();
             services.AddSingleton<GrainMigratabilityChecker>();
 
-            // Cancellation manager
+            // 注销管理器
             services.AddSingleton<GrainCallCancellationManager>();
             services.AddFromExisting<IGrainCallCancellationManager, GrainCallCancellationManager>();
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, GrainCallCancellationManager>();

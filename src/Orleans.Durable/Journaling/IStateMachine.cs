@@ -1,113 +1,113 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Defines the replay, snapshot, and acknowledgement protocol for a journal-backed state machine.
+/// 定义日记支持的国家机器的重放、快照和确认协议。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Implementations are owned by a single <see cref="JournaledStateManager"/> and are accessed
-/// from one logical thread at a time. They participate in the journaling lifecycle as follows:
+/// 执行由一个 <see cref="JournaledStateManager"/> 拥有,并存取
+/// 一次从一个逻辑线条中选择一种逻辑线条。 他们参与以下日记生命周期:
 /// </para>
 /// <list type="bullet">
 /// <item>
-/// User code mutates in-memory state synchronously (typically by invoking codec helpers that
-/// both apply the mutation locally and emit the corresponding command to the journal).
+/// 用户代码同步同步转换模拟状态(通常通过援引编码助手来进行)
+/// 并同时在当地应用突变, 并将相应的命令发送到日记上 。
 /// </item>
 /// <item>
-/// When the application requests a write, the journaled state manager calls
-/// <see cref="PrepareWriteAsync"/> to establish the state's persistence prerequisites, then
-/// <see cref="WritePendingEntries"/> (and occasionally <see cref="WriteSnapshot"/>) to materialize
-/// the pending changes, then flushes the journal to durable storage.
+/// 当申请要求写作时,国家经理会打电话
+/// <see cref="PrepareWriteAsync"/> 建立国家持久性的先决条件,然后
+/// <see cref="WritePendingEntries"/> (偶尔 <see cref="WriteSnapshot"/>)实现
+/// 将日记冲到耐久存储处。
 /// </item>
 /// <item>
-/// <see cref="OnWriteCompleted"/> is invoked when the durable write has been acknowledged.
-/// Implementations that need to know when state has actually been persisted (for example,
-/// to release waiters or trigger downstream notifications) should hook into this callback
-/// rather than treating in-memory mutations as durable.
+/// <see cref="OnWriteCompleted"/> 是在承认耐用书写时被援引的。
+/// 需要知道国家何时实际持续执行(例如,
+/// 以释放服务员或触发下游通知))应接上这一回召
+/// 而不是将内部突变视为耐久的。
 /// </item>
 /// <item>
-/// A failed write or delete permanently fences the manager and requests grain deactivation.
-/// Recovery calls <see cref="Reset"/> before replaying durable entries, including when initialization is retried.
+/// 写作失败或永久删除,使管理者永久地围住,并要求 grain 停止使用。
+/// 在重放耐久条目之前,包括当启动程序重新尝试时,追偿呼叫 <see cref="Reset"/> 。
 /// </item>
 /// </list>
 /// <para>
-/// Application code prepares fallible work in operation-local data and stages only mutations which are
-/// safe to commit. Staged mutations are shared by all interleaved callers using the same manager.
-/// Storage acknowledgement establishes durability. A new activation creates a fresh manager and state instances;
-/// retrying failed initialization resets and replays the existing instances.
+/// 应用代码为操作-当地数据中的可失传工作准备了可编篡的可编造工作,而只有阶段变化才涉及
+/// 使用同一经理的跨部电话员共享已演化的突变。
+/// 新的启动机制将产生一个新的经理和州级实例;
+/// 重试初始化失败的重新设置, 重现现有实例 。
 /// </para>
 /// </remarks>
 public interface IStateMachine
 {
     /// <summary>
-    /// Replays one entry during journal recovery.
+    /// 在日记恢复期间重放一个条目 。
     /// </summary>
-    /// <param name="entry">The entry to replay.</param>
-    /// <param name="context">The replay context.</param>
+    /// <param name="entry">要重放的条目。</param>
+    /// <param name="context">重放上下文。</param>
     /// <remarks>
-    /// Implementations must not retain <see cref="JournalEntry.Reader"/> or references to its
-    /// backing storage after this method returns unless they copy the data.
+    /// 执行不得保留 <see cref="JournalEntry.Reader"/> 或提及该
+    /// 此方法返回后备份存储, 除非复制数据 。
     /// </remarks>
     void ReplayEntry(JournalEntry entry, JournalReplayContext context);
 
     /// <summary>
-    /// Resets the state.
+    /// 重开州际关系
     /// </summary>
     /// <remarks>
-    /// If the state has any volatile state, it must be cleared by this method.
-    /// The manager calls this method when binding a stream, deleting the journal, or retiring a state.
+    /// 如果国家有任何动荡状态,必须采用这种方法予以清除。
+    /// 管理器在绑定流、 删除日记或退出状态时调用此方法 。
     /// </remarks>
     void Reset(JournalStreamWriter writer);
 
     /// <summary>
-    /// Notifies the state that all prior journal entries and snapshots have been applied.
+    /// 通知国家,所有先前的日记条目和快照都已应用。
     /// </summary>
     /// <remarks>
-    /// The state should not expect any additional recovery entries after this method is called,
-    /// unless <see cref="Reset"/> is called to reset the state to its initial state.
-    /// This method will be called before any <see cref="WritePendingEntries"/> or <see cref="WriteSnapshot"/> calls.
+    /// 国家不应期望在采用这种方法后再有追回款项的条目,
+    /// 除非 <see cref="Reset"/> 被调用将状态重置到初始状态。
+    /// 这种方法将被调用到任何 <see cref="WritePendingEntries"/> 或 <see cref="WriteSnapshot"/> 调用之前。
     /// </remarks>
     void OnRecoveryCompleted() { }
 
     /// <summary>
-    /// Establishes the persistence prerequisites for this state's pending changes.
+    /// 确立了该国有待改变的持久性先决条件。
     /// </summary>
-    /// <param name="cancellationToken">The token which cancels preparation when the journal owner stops.</param>
-    /// <returns>A completion representing readiness to capture this state.</returns>
+    /// <param name="cancellationToken">当日记所有者停止时取消准备的符号。</param>
+    /// <returns>表示已准备好捕捉到此状态的完成。</returns>
     /// <remarks>
-    /// The manager prepares every registered state before capturing each append or snapshot, whether or not the state
-    /// has pending changes, so a state can establish prerequisites for changes which other states hold, or fail a write
-    /// whose pending changes must not commit. Preparation is idempotent. After asynchronous
-    /// preparation completes, the manager repeats preparation for all states to include changes
-    /// staged on interleaved turns. Prepared prerequisites complete synchronously on subsequent calls
-    /// and remain valid through capture. A complete synchronous pass flows directly into capture.
-    /// Preparation completes without awaiting another operation on its own journal manager,
-    /// since that operation is serialized behind the current write.
-    /// A failure reports <see cref="JournaledStatePreCommitException"/> and retains pending changes
-    /// for an explicit write retry.
+    /// 管理人员在捕捉每个附件或快照之前,先为每一个登记的国家做好准备,无论州是否
+    /// 国家可以建立其他国家持有的变更的先决条件,或未写
+    /// 不可进行修改。 准备是一无所有。 在非同步之后
+    /// 完成准备, 管理员重复准备所有各州的准备, 以包含更改
+    /// 预先准备的先决条件完全同步接听随后的电话
+    /// 完全同步的通行器直接流入捕捉
+    /// 完成准备工作,无需等待自己的日记经理再做一次业务;
+    /// 因为该操作在目前写入后按序列排列。
+    /// 故障报告 <see cref="JournaledStatePreCommitException"/> ,保留待更改
+    /// 用于明确的写重试。
     /// </remarks>
     ValueTask PrepareWriteAsync(CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
 
     /// <summary>
-    /// Writes pending state changes to the journal.
+    /// 正在撰写日记的状态更改。
     /// </summary>
-    /// <param name="writer">The journal stream writer.</param>
+    /// <param name="writer">日记流写作器。</param>
     void WritePendingEntries(JournalStreamWriter writer);
 
     /// <summary>
-    /// Writes a snapshot of the state to the provided writer.
+    /// 向提供作者写下国家简况。
     /// </summary>
-    /// <param name="writer">The journal stream writer.</param>
+    /// <param name="writer">日记流写作器。</param>
     void WriteSnapshot(JournalStreamWriter writer);
 
     /// <summary>
-    /// Notifies the state that all prior journal entries and snapshots which it has written have been written to stable storage.
+    /// 通知国家,它所写的所有先前的日记条目和快照都已书面保存到稳定存放处。
     /// </summary>
     /// <remarks>
-    /// The manager captures every state for each write: it calls <see cref="WritePendingEntries"/> or
-    /// <see cref="WriteSnapshot"/> on every state, persists the result, and then calls this method on every state. Changes
-    /// made after that capture belong to the next write, so an implementation acknowledges only the changes it captured
-    /// for this write. A write which captures nothing persists nothing and makes no call.
+    /// 管理器为每写一个文件, 记录每个状态: 它调用 <see cref="WritePendingEntries"/> 或
+    /// <see cref="WriteSnapshot"/> 每一个州,坚持结果,然后将这种方法称为每个州。
+    /// 抓取后拍摄属于下个写入, 所以执行只承认它所记录的更改
+    /// 写作此。 记录任何事物的文字, 没有任何存在, 也不打电话来。
     /// </remarks>
     void OnWriteCompleted() { }
 }

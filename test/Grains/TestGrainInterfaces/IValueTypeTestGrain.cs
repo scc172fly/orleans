@@ -108,8 +108,8 @@ namespace UnitTests.GrainInterfaces
             return stringIntDict[name];
         }
 
-        // This class is not actually used anywhere. It is here to test that the serializer generator properly handles
-        // nested generic classes. If it doesn't, then the generated serializer for this class will fail to compile.
+        // 此类在任何地方都没有实际使用。 这是在这里测试序列生成器是否正确操作
+        // 嵌套通用类。 如果它不这样做, 那么生成的本类序列器将无法编译 。
         [Serializable]
         [GenerateSerializer]
         public class NestedGeneric<T>
@@ -155,9 +155,9 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Grain interface for testing that collection expressions returned from grain methods
-    /// serialize and deserialize correctly when the declared return type is a collection interface.
-    /// Covers the scenario fixed by the interface collection codecs (issue #8934 / PR #10104).
+    /// Grain 用于测试收藏表达式返回 grain 方法
+    /// 当申报的返回类型是一个收藏界面时, 序列化和取消正序化 。
+    /// 涵盖由界面收集编码(问题#8934/PR#10104)确定的情景。
     /// </summary>
     public interface ICollectionExpressionGrain : IGrainWithIntegerKey
     {

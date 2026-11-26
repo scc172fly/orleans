@@ -4,9 +4,9 @@ using Xunit;
 namespace UnitTests.General;
 
 /// <summary>
-/// Tests for the CounterAggregatorGroup, which is part of Orleans' instrumentation and metrics infrastructure.
-/// This component aggregates counter values from multiple sources and is used throughout Orleans for collecting
-/// performance metrics such as message counts, activation counts, and other operational statistics.
+/// CounterAggregatorGroup测试,这是 Orleans仪器和测量基础设施的一部分。
+/// 本构成部分汇总多个来源的对数值,在整个 Orleans 中用于收集
+/// 信息计数、启动计数和其他业务统计等业绩计量。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -20,8 +20,8 @@ public class CounterAggregatorGroupTests
     }
 
     /// <summary>
-    /// Verifies that the aggregator group caches aggregator instances to avoid creating duplicates
-    /// for the same metric name and tags combination.
+    /// 证明聚合器组缓存集合器实例以避免生成重复
+    /// 同一公号名称和标签组合。
     /// </summary>
     [Fact, TestCategory("Functional"), TestCategory("Aggregators")]
     public void ValidateAggregatorCache()
@@ -36,7 +36,7 @@ public class CounterAggregatorGroupTests
     }
 
     /// <summary>
-    /// Tests the collection mechanism that retrieves aggregated metric values from all counters in the group.
+    /// 测试从该组内所有计数器中检索总综合指标值的收集机制。
     /// </summary>
     [Fact, TestCategory("Functional"), TestCategory("Aggregators")]
     public void Collect()
@@ -58,8 +58,8 @@ public class CounterAggregatorGroupTests
     }
 
     /// <summary>
-    /// Stress test to verify thread-safety of the counter aggregator under high concurrent load.
-    /// This ensures metrics collection remains accurate in Orleans' multi-threaded runtime environment.
+    /// 压力测试,以核实同时高负荷下反聚合物的线条安全。
+    /// 这确保了在 Orleans多轨运行环境中收集指标的工作仍然准确。
     /// </summary>
     [Fact, TestCategory("Functional"), TestCategory("Aggregators")]
     public void TestMultithreadedCorrectness()

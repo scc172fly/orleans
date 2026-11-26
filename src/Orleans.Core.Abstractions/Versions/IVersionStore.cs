@@ -8,59 +8,59 @@ using Orleans.Versions.Selector;
 namespace Orleans.Versions
 {
     /// <summary>
-    /// Functionality for accessing runtime-modifiable grain interface version strategies.
+    /// 进入可调整的实时 grain 接口版本战略功能。
     /// </summary>
     public interface IVersionStore : IVersionManager
     {
         /// <summary>
-        /// Gets a value indicating whether this instance is enabled.
+        /// 获得一个值,以显示是否启用此实例。
         /// </summary>
         bool IsEnabled { get; }
 
         /// <summary>
-        /// Gets the mapping from grain interface type to grain interface version compatibility strategy.
+        /// 将映射从 grain 接口类型获取到 grain 接口版本兼容性战略。
         /// </summary>
-        /// <returns>The mapping from grain interface type to grain interface version compatibility strategy.</returns>
+        /// <returns>地图图 grain 界面类型 grain 接口版本兼容战略。</returns>
         [Alias("GetCompatibilityStrategies")]
         Task<Dictionary<GrainInterfaceType, CompatibilityStrategy>> GetCompatibilityStrategies();
 
-        /// <summary>Gets the configured compatibility strategies.</summary>
+        /// <summary>获取配置的兼容策略。</summary>
         [Alias("245EF151")]
         Task<Dictionary<GrainInterfaceType, CompatibilityStrategy>> GetCompatibilityStrategies(CancellationToken cancellationToken)
             => GetCompatibilityStrategies();
 
         /// <summary>
-        /// Gets the mapping from grain interface type to grain interface version selector strategy.
+        /// 将映射从 grain 接口类型获取到 grain 接口版本选择器战略。
         /// </summary>
-        /// <returns>The mapping from grain interface type to grain interface version selector strategy.</returns>
+        /// <returns>地图图 grain 界面类型 grain 界面版本选择器战略。</returns>
         [Alias("GetSelectorStrategies")]
         Task<Dictionary<GrainInterfaceType, VersionSelectorStrategy>> GetSelectorStrategies();
 
-        /// <summary>Gets the configured selector strategies.</summary>
+        /// <summary>获取配置的选取策略。</summary>
         [Alias("CE5EE42F")]
         Task<Dictionary<GrainInterfaceType, VersionSelectorStrategy>> GetSelectorStrategies(CancellationToken cancellationToken)
             => GetSelectorStrategies();
 
         /// <summary>
-        /// Gets the default grain interface version compatibility strategy.
+        /// 获取默认 grain 接口版本兼容性战略。
         /// </summary>
-        /// <returns>The default grain interface version compatibility strategy.</returns>
+        /// <returns>默认默认 grain 接口版本兼容战略。</returns>
         [Alias("GetCompatibilityStrategy")]
         Task<CompatibilityStrategy?> GetCompatibilityStrategy();
 
-        /// <summary>Gets the default compatibility strategy.</summary>
+        /// <summary>获得默认兼容策略。</summary>
         [Alias("294392A7")]
         Task<CompatibilityStrategy?> GetCompatibilityStrategy(CancellationToken cancellationToken)
             => GetCompatibilityStrategy();
 
         /// <summary>
-        /// Gets the default grain interface version selector strategy.
+        /// 获取默认 grain 接口版本选择器战略。
         /// </summary>
-        /// <returns>The default grain interface version selector strategy.</returns>
+        /// <returns>默认 grain 接口版本选择器战略。</returns>
         [Alias("GetSelectorStrategy")]
         Task<VersionSelectorStrategy?> GetSelectorStrategy();
 
-        /// <summary>Gets the default selector strategy.</summary>
+        /// <summary>获得默认选择器策略。</summary>
         [Alias("E9C4A2A7")]
         Task<VersionSelectorStrategy?> GetSelectorStrategy(CancellationToken cancellationToken)
             => GetSelectorStrategy();

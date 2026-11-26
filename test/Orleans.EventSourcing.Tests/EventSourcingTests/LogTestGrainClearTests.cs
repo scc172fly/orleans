@@ -9,7 +9,7 @@ using Assert = Xunit.Assert;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// Integration tests for clear-log behavior on non-Azure log test grain configurations.
+    /// 非Azure 日志测试 grain 配置的清晰行为整合测试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

@@ -4,8 +4,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Verifies <c>Race</c>, which cancels and awaits the inputs which lose, and the timeouts which <c>WaitAsync</c> and
-/// <c>WaitUntilAsync</c> build on it, for definitions and for scheduled task handles.
+/// 核证 <c>Race</c>,它取消并等待损失的投入和 <c>WaitAsync</c> 和
+/// <c>WaitUntilAsync</c> 以它为基础,定义和预定任务处理。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -36,7 +36,7 @@ public class DurableTaskRaceTests
             generic ? DurableTask.Race<string>(inputs) : DurableTask.Race((IReadOnlyList<DurableTask>)inputs),
             host.CreateContext(RootId)).AsTask();
 
-        // Each loser observes the race's reason, and the race waits for the loser which is still settling.
+        // 每一个输家都看清比赛的原因, 比赛等待那些还在解决的输家。
         Assert.Equal(RaceLostReason, await canceled.Reason.WaitAsync(WaitTimeout, TestCancellation));
         Assert.Equal(RaceLostReason, await returning.Reason.WaitAsync(WaitTimeout, TestCancellation));
         Assert.False(execution.IsCompleted);
@@ -92,7 +92,7 @@ public class DurableTaskRaceTests
         releases[1].SetResult(1);
         Assert.Equal((1, 1), (await live.WaitAsync(WaitTimeout, TestCancellation)).GetResult<(int, int)>());
 
-        // Every input is terminal when the execution replays; the recorded selection returns the same winner.
+        // 当执行重播时,每个输入都是终端;所记录的选择返回的是同一个赢家。
         releases[0].SetResult(0);
         var replay = await DurableTaskRuntimeHelper.RunAsync(definition, host.CreateContext(RootId));
 
@@ -190,7 +190,7 @@ public class DurableTaskRaceTests
             .AsTask()
             .WaitAsync(WaitTimeout, TestCancellation);
 
-        // The task observes a cancellation request without the timeout's reason, and its result is discarded.
+        // 任务观察取消请求,而不考虑超时的理由,结果被丢弃。
         Assert.Equal(DurableTaskStatus.Canceled, response.Status);
         Assert.Null(await holder.Reason.WaitAsync(WaitTimeout, TestCancellation));
         Assert.Null((await WaitForEntryAsync(host, "root/$timeout-1/0")).GetResult<string>());
@@ -238,7 +238,7 @@ public class DurableTaskRaceTests
         holder.Settle();
         var definition = DurableTask.Run(async _ => await holder.Definition.WaitAsync(FiveMinutes).WithId("pay"));
 
-        // The host cancels the first attempt while it waits, and replays it three minutes later.
+        // 东道主在等待时取消第一次尝试, 并在三分钟后重播。
         var firstContext = host.CreateContext(RootId);
         var first = DurableTaskRuntimeHelper.RunAsync(definition, firstContext).AsTask();
         await delayScheduled.Task.WaitAsync(WaitTimeout, TestCancellation);
@@ -379,7 +379,7 @@ public class DurableTaskRaceTests
         Assert.Equal($"ground {RaceLostReason}", await await root.WithId("root").ScheduleAsync(TestCancellation).WaitAsync(WaitTimeout, TestCancellation));
         Assert.Equal([TaskId.Parse("root/$race-1/$winner")], host.DecisionIds);
 
-        // Outside an execution, the first observed response wins and no selection is recorded.
+        // 在执行之外,第一个观察到的响应获胜,没有记录选择。
         var first = await host.CreateRootDefinition<string>(static _ => new(DurableTaskResponse.FromResult("first")))
             .WithId("first").ScheduleAsync(TestCancellation);
         var second = await host.CreateRootDefinition<string>(static async context =>
@@ -412,7 +412,7 @@ public class DurableTaskRaceTests
 
         Assert.Equal("0 ground paid", await await root.WithId("root").ScheduleAsync(TestCancellation).WaitAsync(WaitTimeout, TestCancellation));
 
-        // The timeout which races as input 0 runs as a child with its own execution, which names its inputs.
+        // 以输入0为竞赛的超时时间,在儿童时进行,由自己执行,标明其输入。
         Assert.Equal(
             [
                 RootId,
@@ -457,7 +457,7 @@ public class DurableTaskRaceTests
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>("tasks", () => ScheduledTask.Race(Array.Empty<ScheduledTask<int>>(), TestCancellation));
     }
 
-    /// <summary>A delay which ends canceled when the host cancels it, and doesn't elapse otherwise.</summary>
+    /// <summary>当主机取消时终止的延迟, 且不会自动过期 。</summary>
     private static async ValueTask<DurableTaskResponse> PendingDelay(CancellationToken cancellationToken)
     {
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
@@ -468,8 +468,8 @@ public class DurableTaskRaceTests
         => host.GetEntry(TaskId.Parse(id)).WaitAsync(TestCancellation).AsTask().WaitAsync(WaitTimeout, TestCancellation);
 
     /// <summary>
-    /// Defines a task which runs until its durable cancellation is requested, reports the request's reason, and once
-    /// <see cref="Settle"/> is called, returns the reason or ends canceled.
+    /// 定义一个任务,直到请求永久取消时为止,报告请求的理由,并一次
+    /// 调用<see cref="Settle"/> ,返回原因或结束取消。
     /// </summary>
     private sealed class Holder(bool returnsReason)
     {

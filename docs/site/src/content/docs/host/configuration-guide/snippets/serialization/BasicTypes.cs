@@ -52,7 +52,7 @@ public struct MyCustomStruct
 [GenerateSerializer]
 public record MyRecord(string A, string B)
 {
-    // ID 0 won't clash with A in primary constructor as they don't share identities
+    // 基本建筑商中0号身份证不会和A冲突,因为他们不共享身份
     [Id(0)]
     public required string C { get; init; }
 }

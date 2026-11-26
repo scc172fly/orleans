@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Orleans.Durable.Analyzers;
 
 /// <summary>
-/// Reports durable task definitions which never run, which run more than once, or which are posted from code without a
-/// durable outbox, and handles of scheduled children which nothing observes.
+/// 长期任务定义,这些定义从不运行、不止一次运行或没有代码发布
+/// 耐久的发信箱,以及没有任何观察力的被安排在班儿童的处理器。
 /// </summary>
 /// <remarks>
-/// A method which returns <c>DurableTask</c> creates a definition, which runs when it is awaited, scheduled, or posted.
-/// An <c>async DurableTask</c> method's definition is single-use: it runs its state machine once. <c>Post</c> stages a
-/// start in the durable outbox of the grain which runs the calling code. In a durable task body, <c>ScheduleAsync</c>
-/// starts an attached child, which the execution owns. The analysis of locals reports only definite cases: a local which
-/// any reference passes on, or which code assigns again, counts as observed.
+/// 返回 <c>DurableTask</c> 的方法创建定义,该定义在等待、计划或张贴时运行。
+/// <c>async DurableTask</c> 方法的定义是单用:它曾经运行过国家机器。 <c>Post</c> 级a
+/// 开始于运行调用代码的 grain 耐久发件箱中。在一个耐久任务机构, <c>ScheduleAsync</c>
+/// 分析当地人只报告明确的案例:
+/// 任何参考文件的转接或密码再次指定,按所观察到的编号。
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
@@ -70,7 +70,7 @@ public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>Reports a <c>Post</c> outside grains and durable task bodies, where no durable outbox can stage it.</summary>
+    /// <summary>报告a <c>Post</c> 外部 grains 以及没有持久发信箱可提供这种服务的长久任务机构。</summary>
     private static void AnalyzePost(OperationAnalysisContext context, DurableTaskSymbols symbols)
     {
         var invocation = (IInvocationOperation)context.Operation;
@@ -88,9 +88,9 @@ public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Reports <c>Detached</c> on a definition which runs as part of the execution which starts it: a <c>DurableTask</c>
-    /// factory such as <c>DurableTask.Run</c> or a combinator, or an <c>async DurableTask</c> method. Other definitions, such
-    /// as durable grain calls, start as root tasks.
+    /// 报告 <c>Detached</c> :一个 <c>DurableTask</c>
+    /// 工厂,如 <c>DurableTask.Run</c> 或组合器,或 <c>async DurableTask</c> 方法。
+    /// 长期和可持久的 grain 调用, 以根任务开头 。
     /// </summary>
     private static void AnalyzeDetached(OperationAnalysisContext context, DurableTaskSymbols symbols)
     {
@@ -115,11 +115,11 @@ public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
         || SymbolEqualityComparer.Default.Equals(method.ContainingType, symbols.DurableTask)
         || (DurableTaskSymbols.IsDurableTasksType(method.ContainingType) && method.ContainingType.Name is "DurableTaskExtensions" or "DurableSignal");
 
-    /// <summary>Returns whether a value creates a definition or configures one.</summary>
+    /// <summary>返回一个值是否创建定义或配置。</summary>
     private static bool IsDefinition(IOperation value, DurableTaskSymbols symbols) =>
         DurableTaskSymbols.Unwrap(value) is IInvocationOperation invocation && symbols.ReturnsDefinition(invocation.TargetMethod);
 
-    /// <summary>Returns the name of the method which defines a task, through any configuration calls.</summary>
+    /// <summary>通过任何配置调用返回定义任务的方法的名称。</summary>
     private static string GetDefinitionName(IOperation value) =>
         DurableTaskSymbols.GetDefinition(value, "WithId", out _) switch
         {
@@ -128,8 +128,8 @@ public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
         };
 
     /// <summary>
-    /// Returns the <c>ScheduleAsync</c> call which a value awaits when it starts a child which a durable task body owns: a
-    /// definition which isn't detached, scheduled in a durable task body.
+    /// 返回当一个长期任务机构所拥有孩子开始时, 等待的值的 <c>ScheduleAsync</c> 调用: a
+    /// 定义不是分离的, 在一个持久任务机构里安排。
     /// </summary>
     private static IInvocationOperation? GetOwnedSchedule(IOperation value, ISymbol containingSymbol, DurableTaskSymbols symbols)
     {
@@ -153,9 +153,9 @@ public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
             GetDefinitionName(DurableTaskSymbols.GetExtensionReceiver(schedule)!)));
 
     /// <summary>
-    /// Reports locals which hold a definition that never runs or the handle of an owned child which nothing observes, and
-    /// the second run of a local which holds a single-use definition: a second reference, or a reference in a loop which
-    /// doesn't create the definition.
+    /// 当地人报告,他们持有一个定义,从未经营或支配过任何没有遵守的拥有儿童,
+    /// 持有单一使用定义的当地人第二期:第二次引用,或环中提及
+    /// 并不会创造定义
     /// </summary>
     private static void AnalyzeLocals(OperationBlockAnalysisContext context, DurableTaskSymbols symbols)
     {
@@ -247,8 +247,8 @@ public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        // A local's definition never runs when the local is never assigned again and its only references initialize
-        // aliases whose definitions never run either.
+        // 当本地再也没有被指定且唯一引用初始化时, 本地的定义永远不会运行
+        // 其定义也从未起作用的别名。
         bool IsUnobserved(ILocalSymbol local, HashSet<ILocalSymbol> visited)
         {
             if (!visited.Add(local) || reassigned.Contains(local))
@@ -275,8 +275,8 @@ public sealed class DurableTaskDefinitionAnalyzer : DiagnosticAnalyzer
         reference.Parent is IPropertyReferenceOperation property && property.Instance == reference && !IsAssignmentTarget(property);
 
     /// <summary>
-    /// Returns whether a value is a single-use definition: a call to an async method in this compilation which returns
-    /// <c>DurableTask</c>, optionally configured with <c>WithId</c>, <c>Detached</c>, or <c>Shielded</c>.
+    /// 返回值是否为单一使用定义:在此汇编中号召采用同步方法,返回
+    /// <c>DurableTask</c>,可选配置为 <c>WithId</c>、 <c>Detached</c>或 <c>Shielded</c>。
     /// </summary>
     private static bool IsSingleUseDefinition(IOperation value, DurableTaskSymbols symbols) =>
         DurableTaskSymbols.GetDefinition(value, "WithId", out _) is IInvocationOperation invocation && symbols.IsDurableBody(invocation.TargetMethod);

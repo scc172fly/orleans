@@ -8,35 +8,35 @@ namespace Orleans.CodeGenerator.SyntaxGeneration;
 internal static class SyntaxFactoryUtility
 {
     /// <summary>
-    /// Returns member access syntax.
+    /// 返回成员访问语法。
     /// </summary>
     /// <param name="instance">
-    /// The instance.
+    /// 举个例子
     /// </param>
     /// <param name="member">
-    /// The member.
+    /// 成员。
     /// </param>
     /// <returns>
-    /// The resulting <see cref="MemberAccessExpressionSyntax"/>.
+    /// 结果的 <see cref="MemberAccessExpressionSyntax"/>。
     /// </returns>
     public static MemberAccessExpressionSyntax Member(this ExpressionSyntax instance, string member) => instance.Member(member.ToIdentifierName());
 
     /// <summary>
-    /// Returns member access syntax.
+    /// 返回成员访问语法。
     /// </summary>
     /// <param name="instance">
-    /// The instance.
+    /// 举个例子
     /// </param>
     /// <param name="member">
-    /// The member.
+    /// 成员。
     /// </param>
     /// <returns>
-    /// The resulting <see cref="MemberAccessExpressionSyntax"/>.
+    /// 结果的 <see cref="MemberAccessExpressionSyntax"/>。
     /// </returns>
     public static MemberAccessExpressionSyntax Member(this ExpressionSyntax instance, IdentifierNameSyntax member) => MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, instance, member);
 
     /// <summary>
-    /// Returns each type parameter's spelled constraints, in declaration order, with type parameters renamed to their generated names.
+    /// 返回每个类型参数的拼写限制,按声明顺序排列,并将类型参数重新命名为生成的名称。
     /// </summary>
     public static List<(string Name, List<string> Constraints)> GetTypeParameterConstraintTexts(List<(string Name, ITypeParameterSymbol Parameter)> typeParameters)
     {

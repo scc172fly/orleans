@@ -3,27 +3,27 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when an RPC method declares multiple cancellation token parameters.
+/// 当 RPC 方法声明多个取消符号参数时,定义报告的诊断。
 /// </summary>
 public static class MultipleCancellationTokenParametersDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string DiagnosticId = DiagnosticRuleId.MultipleCancellationTokenParameters;
 
     /// <summary>
-    /// The diagnostic title.
+    /// 诊断标题
     /// </summary>
     public const string Title = "Grain method has multiple parameters of type CancellationToken";
 
     /// <summary>
-    /// The diagnostic message format.
+    /// 诊断信息格式
     /// </summary>
     public const string MessageFormat = "The type {0} contains method {1} which has multiple CancellationToken parameters. Only a single CancellationToken parameter is supported.";
 
     /// <summary>
-    /// The diagnostic category.
+    /// 诊断类别。
     /// </summary>
     public const string Category = "Usage";
 

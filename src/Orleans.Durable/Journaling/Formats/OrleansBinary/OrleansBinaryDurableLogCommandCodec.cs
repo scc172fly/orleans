@@ -6,7 +6,7 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Binary codec for durable log journal entries.
+/// 用于耐用日志条目的二进制编码器。
 /// </summary>
 internal sealed class OrleansBinaryDurableLogCommandCodec<T>(
     IFieldCodec<T> codec,

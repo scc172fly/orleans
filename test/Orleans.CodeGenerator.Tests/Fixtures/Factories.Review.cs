@@ -93,7 +93,7 @@ public static partial class StaticFactoryContracts
         {
             var services = new ServiceCollection().AddGeneratedContext(new ConstructionContext());
 #if NATIVE_AOT_SMOKE
-            // Both value-type forward edges are statically closed before the ordinary metadata constructors allocate their callers.
+            // 两种价值类型的前端均静态关闭,然后普通元数据构建器分配其调用器。
             var nullableHolderConstructions = 0;
             var valueHolderConstructions = 0;
             services.AddSingleton<Orleans.Serialization.Cloning.IDeepCopier<OptionalCycleValue?>>(serviceProvider =>

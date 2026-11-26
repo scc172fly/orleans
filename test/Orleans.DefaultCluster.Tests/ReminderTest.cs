@@ -5,12 +5,12 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Tests for Orleans Reminders functionality.
-    /// Reminders are a durable scheduling mechanism that persist across grain
-    /// deactivations and cluster restarts. Unlike timers (which are grain-local
-    /// and transient), reminders are stored in external storage and will
-    /// reliably trigger grain methods at specified intervals, making them
-    /// ideal for periodic background tasks that must survive failures.
+    /// Orleans 提醒功能测试。
+    /// 提醒是 grain中长期存在的一个持久时间安排机制
+    /// 与计时器(时间器是 grain- 本地
+    /// 提醒将存放在外部储存中,
+    /// 每隔一定间隔可靠地触发 grain 方法,使其
+    /// 定期背景任务的理想性,必须能幸存失败。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -22,13 +22,13 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests basic reminder operations: checking existence, adding, and removing.
-        /// Verifies that:
-        /// - Non-existent reminders return false for existence checks
-        /// - Reminders can be successfully registered with a grain
-        /// - Registered reminders can be detected via existence checks
-        /// - Reminders can be removed and no longer exist afterwards
-        /// This demonstrates the fundamental CRUD operations for reminders.
+        /// 测试基本提醒操作:检查是否存在、添加和删除。
+        /// 证明:
+        /// - 不存在为核查存在而伪造的提醒回信
+        /// - 提醒可以成功注册为 grain
+        /// - 通过核查存在可发现已登记的提醒通知
+        /// - 提醒可以消除,此后不再存在
+        /// 这显示了团结和民主行动委员会的基本提醒活动。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Reminders")]
         public async Task SimpleGrainGetGrain()

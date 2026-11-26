@@ -1,7 +1,7 @@
 namespace Orleans.Services
 {
     /// <summary>
-    /// Base interface for grain services.
+    /// grain 服务的基础接口。
     /// </summary>
     public interface IGrainService : ISystemTarget
     {

@@ -9,7 +9,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 8 * * 2" # Run the preview audit weekly on Tuesday at 8:00 UTC.
+    - cron: "0 8 * * 2" # 周二世界协调时8点,
 
 permissions:
   actions: read

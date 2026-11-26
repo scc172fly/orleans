@@ -11,29 +11,29 @@ using Xunit;
 namespace UnitTests.ActivationCancellationTests;
 
 /// <summary>
-/// Tests for activation cancellation logging behavior in Orleans.
+/// Orleans中激活取消记录行为的测试。
 /// 
-/// These tests verify that:
-/// 1. When activation is cancelled gracefully (OperationCanceledException or ObjectDisposedException
-///    thrown while cancellation token is cancelled), the exception is wrapped in ActivationCancelledException
-///    and logged at WARNING level (not ERROR level).
-/// 2. When non-cancellation exceptions occur, they are still logged at ERROR level as expected.
+/// 这些测试证实:
+/// 1. 当启动被优雅地取消时(OperationCanceledException 或 ObjectDisposedException)
+///    挂起取消标记时, 取消标记时将取消, 例外部分在 ActivationCancelledException中包装
+///    记录在警告级别(而不是错误级别)。
+/// 2. 如果出现非取消性例外,仍按预期记录在紧急风险水平。
 /// 
-/// The key code being tested is in ActivationData.cs:
-/// - catch (ObjectDisposedException) when (cancellationToken.IsCancellationRequested) → ActivationCancelledException → Warning log
-/// - catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested &amp;&amp; !timeout) → ActivationCancelledException → Warning log
-/// - catch (Exception) → Error log
+/// 正在测试的关键代码在 ActivationData.cs中:
+/// - 渔获(ObjectDisposedException) 时间(cancellationToken.IsCancellationRequested) → ActivationCancelledException 警报日志
+/// - 渔获(OperationCanceledException) 时间(cancellationToken.IsCancellationRequested &amp;&amp; !timeout) → ActivationCancelledException 警报日志
+/// - 误差日志
 /// 
-/// Plan / Pseudocode (inserted as comment for traceability):
-/// 1. Add two reusable assertion helpers:
-///    - AssertLogEventExists(logs, eventId) -> asserts that any log in 'logs' has EventId == eventId.
-///    - AssertLogEventNotExists(logs, eventId) -> asserts that no log in 'logs' has EventId == eventId.
-/// 2. Keep existing behavior: ensure OperationCanceledException scenario finds info logs with the cancelled-activate EventId.
-/// 3. Additionally assert that across error logs there is NOT an event with EventId == (int)ErrorCode.Catalog_ErrorCallingActivate.
-/// 4. Helpers include clear diagnostic messages listing captured EventIds for easier debugging.
-/// 5. Place helpers as private methods on the test class so they can be reused by other tests.
+/// 计划/替代代码(插入作为可追踪性评论):
+/// 1. 增加两个可重复使用索赔帮助人:
+///    - AssertLogEventExists(logs, eventId) - > 称任何“logs”中的日志都有 EventId = eventId。
+///    - AssertLogEventNotExists(logs, eventId) - > 称“logs”中没有日志 EventId = eventId
+/// 2. 保持现有行为:确保 OperationCanceledException 假设找到与取消活动 EventId有关的信息日志。
+/// 3. 此外,还声称,跨误差日志没有发生任何事件 EventId == (int)ErrorCode.Catalog_ErrorCallingActivate.
+/// 4. 帮助者包括清晰的诊断信息,列出所捕捉到的 EventIds ,以便于调试。
+/// 5. 在试验类中将辅助人员作为私人方法放置,以便其他试验可以重新使用。
 ///
-/// The code below implements these helpers and uses them in the OperationCanceledException test.
+/// 以下代码执行这些辅助人员,并在 OperationCanceledException 测试中使用。
 /// </summary>
 [TestArea("Runtime")]
 public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixture<ActivationCancellationLoggingTests.Fixture>
@@ -43,7 +43,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
 
     public class Fixture : BaseTestClusterFixture
     {
-        // Static so it can be accessed from the configurator
+        // 静态,以便从配置器中访问
         public static InMemoryLoggerProvider SharedLoggerProvider { get; } = new();
 
         protected override void ConfigureTestCluster(TestClusterBuilder builder)
@@ -60,7 +60,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
                 {
                     options.CollectionAge = TimeSpan.FromSeconds(10);
                     options.CollectionQuantum = TimeSpan.FromSeconds(1);
-                    // Short activation timeout so we can test cancellation scenarios
+                    // 短时间激活超时,以便测试取消方案
                     options.ActivationTimeout = TimeSpan.FromSeconds(2);
                     options.DeactivationTimeout = TimeSpan.FromSeconds(2);
                 });
@@ -92,14 +92,14 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
     {
         var logs = Fixture.SharedLoggerProvider.GetLogs();
         
-        // Log all captured entries for debugging
+        // 记录所有已抓取的调试条目
         _output.WriteLine($"Total logs captured: {logs.Count}");
         foreach (var log in logs.Where(l => l.Level >= LogLevel.Warning))
         {
             _output.WriteLine($"[{log.Level}] [{log.Category}] {log.Message}");
         }
 
-        // Look for activation-related logs 
+        // 查找与激活相关的日志 
         var activationLogs = logs.Where(l => 
             l.Category.Contains("Orleans.Grain") || 
             l.Category.Contains("ActivationData") ||
@@ -113,7 +113,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
         return (errorLogs, warningLogs, infoLogs);
     }
 
-    // Reusable helper: assert that at least one log in 'logs' has the specified event id.
+    // 可重复使用助手: 声明“ logs” 中至少有一个日志有指定的事件代号 。
     private static void AssertLogEventExists(IEnumerable<LogEntry> logs, int eventId)
     {
         var ids = logs.Select(l => l.EventId.Id).ToList();
@@ -121,7 +121,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
             $"Expected an information log with EventId {eventId} but it was not found. Captured EventIds: {string.Join(',', ids)}");
     }
 
-    // Reusable helper: assert that no log in 'logs' has the specified event id.
+    // 可重复使用助手: 声明“ logs” 没有指定事件代号的日志 。
     private static void AssertLogEventNotExists(IEnumerable<LogEntry> logs, int eventId)
     {
         var ids = logs.Select(l => l.EventId.Id).ToList();
@@ -132,8 +132,8 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
     #region Cancellation Scenarios - Should NOT log ERROR
 
     /// <summary>
-    /// When OperationCanceledException is thrown because the cancellation token was observed during activation,
-    /// it should be logged at WARNING level (not ERROR) because this is intentional cancellation behavior.
+    /// 当扔出 OperationCanceledException 是因为在激活期间观察到了取消牌,
+    /// 因为它是故意取消行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -143,7 +143,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
         Fixture.SharedLoggerProvider.Clear();
         var grain = _fixture.GrainFactory.GetGrain<IActivationCancellation_ThrowsOperationCancelledGrain>(Guid.NewGuid());
 
-        // Set a delay longer than the activation timeout (2 seconds) to trigger cancellation
+        // 设定比激活超时(2秒)延长的延迟时间以触发取消
         RequestContext.Set("delay_activation_ms", 5000);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
@@ -161,16 +161,16 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
         Assert.Empty(warningLogs);
         Assert.NotEmpty(infoLogs);
 
-        // New assertion: ensure there is an info log with EventId == (int)ErrorCode.Catalog_CancelledActivate
+        // 新主张:确保有 EventId y y y y (int)ErrorCode.Catalog_CancelledActivate的信息日志
         AssertLogEventExists(infoLogs, (int)ErrorCode.Catalog_CancelledActivate);
 
-        // Also ensure across error logs there is NOT an event with EventId == (int)ErrorCode.Catalog_ErrorCallingActivate
+        // 还要确保没有发生 EventId [[int]ErrorCode.Catalog_ErrorCallingActivate的错误日志
         AssertLogEventNotExists(errorLogs, (int)ErrorCode.Catalog_ErrorCallingActivate);
     }
 
     /// <summary>
-    /// When ObjectDisposedException is thrown because services are disposed after cancellation,
-    /// it should be logged at WARNING level (not ERROR) because this is expected behavior during cancellation.
+    /// 当 ObjectDisposedException 因服务取消后处置而抛出时,
+    /// 记录在警告级别(而不是错误),因为这是取消时预期的行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -180,7 +180,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
         Fixture.SharedLoggerProvider.Clear();
         var grain = _fixture.GrainFactory.GetGrain<IActivationCancellation_ThrowsObjectDisposedGrain>(Guid.NewGuid());
 
-        // Set a delay longer than the activation timeout to trigger cancellation
+        // 设定比激活超时延长的延迟时间触发取消
         RequestContext.Set("delay_activation_ms", 5000);
 
         await Assert.ThrowsAnyAsync<ObjectDisposedException>(async () =>
@@ -198,16 +198,16 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
         Assert.NotEmpty(warningLogs);
 
 
-        // New assertion: ensure there is an info log with EventId == (int)ErrorCode.Catalog_CancelledActivate
+        // 新主张:确保有 EventId y y y y (int)ErrorCode.Catalog_CancelledActivate的信息日志
         AssertLogEventExists(warningLogs, (int)ErrorCode.Catalog_DisposedObjectAccess);
 
-        // Also ensure across error logs there is NOT an event with EventId == (int)ErrorCode.Catalog_ErrorCallingActivate
+        // 还要确保没有发生 EventId [[int]ErrorCode.Catalog_ErrorCallingActivate的错误日志
         AssertLogEventNotExists(errorLogs, (int)ErrorCode.Catalog_ErrorCallingActivate);
     }
 
     /// <summary>
-    /// When TaskCanceledException (which inherits from OperationCanceledException) is thrown during cancellation,
-    /// it should be logged at INFO level (not ERROR).
+    /// 何时 TaskCanceledException (继承人继承人继承的遗产) OperationCanceledException)在取消时被丢弃,
+    /// 应在INFO一级(而不是错误)记录。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -234,10 +234,10 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
         Assert.Empty(warningLogs);
         Assert.NotEmpty(infoLogs);
 
-        // New assertion: ensure there is an info log with EventId == (int)ErrorCode.Catalog_CancelledActivate
+        // 新主张:确保有 EventId y y y y (int)ErrorCode.Catalog_CancelledActivate的信息日志
         AssertLogEventExists(infoLogs, (int)ErrorCode.Catalog_CancelledActivate);
 
-        // Also ensure across error logs there is NOT an event with EventId == (int)ErrorCode.Catalog_ErrorCallingActivate
+        // 还要确保没有发生 EventId [[int]ErrorCode.Catalog_ErrorCallingActivate的错误日志
         AssertLogEventNotExists(errorLogs, (int)ErrorCode.Catalog_ErrorCallingActivate);
     }
 
@@ -246,8 +246,8 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
     #region Non-Cancellation Scenarios - SHOULD log ERROR
 
     /// <summary>
-    /// When a generic exception (not related to cancellation) is thrown during activation,
-    /// it should be logged at ERROR level because this is an unexpected failure.
+    /// 当在激活期间提出一般例外(与取消无关)时,
+    /// 应在错误级别上记录,因为这是意外的失败。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -269,13 +269,13 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
 
         Assert.NotEmpty(errorLogs);
 
-        // New assertion: ensure there is an info log with EventId == (int)ErrorCode.Catalog_CancelledActivate
+        // 新主张:确保有 EventId y y y y (int)ErrorCode.Catalog_CancelledActivate的信息日志
         AssertLogEventExists(errorLogs, (int)ErrorCode.Catalog_ErrorCallingActivate);
     }
 
     /// <summary>
-    /// When ObjectDisposedException is thrown but the cancellation token was NOT cancelled,
-    /// it should be logged at ERROR level (the 'when' guard should NOT match).
+    /// 当抛出 ObjectDisposedException 时, 取消的牌子没有被注销,
+    /// 记录在错误级别(“何时”警卫不能匹配)。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -297,13 +297,13 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
 
         Assert.NotEmpty(errorLogs);
 
-        // New assertion: ensure there is an info log with EventId == (int)ErrorCode.Catalog_CancelledActivate
+        // 新主张:确保有 EventId y y y y (int)ErrorCode.Catalog_CancelledActivate的信息日志
         AssertLogEventExists(errorLogs, (int)ErrorCode.Catalog_ErrorCallingActivate);
     }
 
     /// <summary>
-    /// When OperationCanceledException is thrown but the cancellation token was NOT cancelled,
-    /// it should be logged at ERROR level (the 'when' guard should NOT match).
+    /// 当抛出 OperationCanceledException 时, 取消的牌子没有被注销,
+    /// 记录在错误级别(“何时”警卫不能匹配)。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -325,7 +325,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
 
         Assert.NotEmpty(errorLogs);
 
-        // New assertion: ensure there is an info log with EventId == (int)ErrorCode.Catalog_CancelledActivate
+        // 新主张:确保有 EventId y y y y (int)ErrorCode.Catalog_CancelledActivate的信息日志
         AssertLogEventExists(errorLogs, (int)ErrorCode.Catalog_ErrorCallingActivate);
     }
 
@@ -334,7 +334,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
     #region Baseline Tests - Normal Operation
 
     /// <summary>
-    /// Baseline test: Successful activation should not log any errors or warnings.
+    /// 基准测试: 成功激活时不应记录任何错误或警告 。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -354,7 +354,7 @@ public class ActivationCancellationLoggingTests : OrleansTestingBase, IClassFixt
         Assert.Empty(errorLogs);
         Assert.Empty(warningLogs);
 
-        // New assertion: ensure there is an info log with EventId == (int)ErrorCode.Catalog_CancelledActivate
+        // 新主张:确保有 EventId y y y y (int)ErrorCode.Catalog_CancelledActivate的信息日志
         AssertLogEventNotExists(infoLogs, (int)ErrorCode.Catalog_CancelledActivate);
     }
 

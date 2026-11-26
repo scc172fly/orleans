@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License.
+// 持麻省理工学院执照
 
 namespace Orleans.ShoppingCart.Grains;
 
@@ -55,7 +55,7 @@ internal class ProductGrain(
 
         if (oldCategory != product.Category)
         {
-            // If category changed, remove the product from the old inventory grain.
+            // 如果类别发生变化,从旧清单 grain中删除产品。
             var oldInventoryGrain = GrainFactory.GetGrain<IInventoryGrain>(oldCategory.ToString());
             await oldInventoryGrain.RemoveProductAsync(product.Id);
         }

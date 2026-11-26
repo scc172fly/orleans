@@ -1,6 +1,6 @@
 <Project>
-  <!-- The frontend is built with `npm run build` and committed under dist/. CI rebuilds it and verifies that
-       the committed files match, so ordinary .NET builds embed the assets without Node.js or npm. -->
+  <!-- 前端是用 `npm run build` 建造的,在DET/DVT下投入。 CI重建它并核实
+       承诺的文件匹配, 因此普通 .NET 建立不设 Node.js 或 npm 嵌入资产。 -->
   <PropertyGroup>
     <DashboardFrontendOutput>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'Orleans.Dashboard.App', 'dist'))</DashboardFrontendOutput>
   </PropertyGroup>

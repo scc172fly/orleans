@@ -1,7 +1,7 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Identifies a state.
+/// 确定一个州。
 /// </summary>
-/// <param name="Value">The underlying identity value.</param>
+/// <param name="Value">基本身份值。</param>
 public readonly record struct JournalStreamId(uint Value);

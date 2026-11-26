@@ -5,9 +5,9 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// Tests for the AliasClashAttributeAnalyzer which ensures that alias attributes don't have conflicting values.
-/// Orleans uses aliases for type identification in serialization and RPC, so duplicate aliases would cause 
-/// runtime conflicts. This analyzer catches these issues at compile time.
+/// 测试 AliasClashAttributeAnalyzer ,确保别名属性没有冲突值。
+/// Orleans 使用别名进行序列和RPC中的类别识别,因此重复的别名将导致 
+/// 运行时冲突。 该分析器在编译时间捕捉这些问题 。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -33,7 +33,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when two enums have the same alias attribute value.
+    /// 证明分析器检测到两个昆虫具有相同的别名属性值。
     /// </summary>
     [Fact]
     public Task Enum_ShouldTriggerDiagnostic()
@@ -50,7 +50,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when two records have the same alias attribute value.
+    /// 证明分析器检测到两个记录具有相同的别名属性值。
     /// </summary>
     [Fact]
     public Task Record_ShouldTriggerDiagnostic()
@@ -67,7 +67,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when two record structs have the same alias attribute value.
+    /// 证明分析器检测到两个记录支架具有相同的别名属性值时。
     /// </summary>
     [Fact]
     public Task RecordStruct_ShouldTriggerDiagnostic()
@@ -84,7 +84,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when two classes have the same alias attribute value.
+    /// 证明分析器检测到两个类别具有相同的别名属性值。
     /// </summary>
     [Fact]
     public Task Class_ShouldTriggerDiagnostic()
@@ -108,7 +108,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when two structs have the same alias attribute value.
+    /// 证明分析器检测到两个支架的化名属性值相同时。
     /// </summary>
     [Fact]
     public Task Struct_ShouldTriggerDiagnostic()
@@ -135,8 +135,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when two grain interfaces have the same alias attribute value.
-    /// Tests various grain interface types (IGrain, IGrainWithIntegerKey, etc.).
+    /// 证明分析器检测到两个 grain 接口具有相同别名属性值时, 即为同一 。
+    /// 测试各种 grain 接口类型(IGrain, IGrainWithIntegerKey等)。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -154,8 +154,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer does NOT trigger for non-grain interfaces with the same alias,
-    /// as aliases are only meaningful for grain interfaces in Orleans.
+    /// 证明分析器不触发与同一别名的非grain 接口,
+    /// 化名仅对 grain 接口 Orleans.
     /// </summary>
     [Fact]
     public Task NonGrainInterface_ShouldNotTriggerDiagnostic()
@@ -172,8 +172,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when two methods in the same grain interface have the same alias.
-    /// Method aliases must be unique within an interface for proper RPC dispatch.
+    /// 证明分析器检测到同一 grain 接口中两种方法有相同的别名时。
+    /// 方法别名必须是接口内唯一的, 以便进行适当的 RPC 发送 。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -191,7 +191,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer allows different aliases for different methods in the same grain interface.
+    /// 证明分析器允许在同一 grain 接口中不同方法的不同别名。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -209,8 +209,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// Verifies that the analyzer allows the same method alias in different grain interfaces,
-    /// as method aliases only need to be unique within each interface.
+    /// 证明分析器允许在不同 grain 接口中使用相同方法别名,
+    /// 方法别名只需在每个界面中独有即可。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]

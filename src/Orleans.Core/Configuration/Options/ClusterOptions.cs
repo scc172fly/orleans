@@ -4,53 +4,53 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures the Orleans cluster.
+    /// 配置 Orleans 组。
     /// </summary>
     public class ClusterOptions
     {
         /// <summary>
-        /// The default value of <see cref="ClusterId"/>.
+        /// 默认值 <see cref="ClusterId"/>。
         /// </summary>
         public const string DefaultClusterId = "default";
 
         /// <summary>
-        /// The default value of <see cref="ServiceId"/>.
+        /// 默认值 <see cref="ServiceId"/>。
         /// </summary>
         public const string DefaultServiceId = "default";
 
         /// <summary>
-        /// Default cluster id for development clusters.
+        /// 开发组的默认群集 ID。
         /// </summary>
         internal const string DevelopmentClusterId = "dev";
 
         /// <summary>
-        /// Default service id for development clusters.
+        /// 开发组群的默认服务 ID 。
         /// </summary>
         internal const string DevelopmentServiceId = "dev";
 
         /// <summary>
-        /// Gets or sets the cluster identity. This used to be called DeploymentId before Orleans 2.0 name.
+        /// 获取或设置集集身份。这曾经被称为 DeploymentId 之前 Orleans 2.0 名。
         /// </summary>
         public string ClusterId { get; set; } = DefaultClusterId;
 
         /// <summary>
-        /// Gets or sets a unique identifier for this service, which should survive deployment and redeployment, where as <see cref="ClusterId"/> might not.
+        /// 获取或设置此项服务的独特标识符,在 <see cref="ClusterId"/> 可能无法提供的情况下,该标识符应能在部署和重新部署后幸存。
         /// </summary>
         public string ServiceId { get; set; } = DefaultServiceId;
     }
 
     /// <summary>
-    /// Validator for <see cref="ClusterOptions"/>
+    /// <see cref="ClusterOptions"/>的校验符
     /// </summary>
     public class ClusterOptionsValidator : IConfigurationValidator
     {
         private readonly ClusterOptions options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterOptionsValidator"/> class.
+        /// 初始化 <see cref="ClusterOptionsValidator"/> 类的新实例。
         /// </summary>
         /// <param name="options">
-        /// The options.
+        /// 选项。
         /// </param>
         public ClusterOptionsValidator(IOptions<ClusterOptions> options)
         {

@@ -52,7 +52,7 @@ namespace UnitTests.StorageTests
             Assert.True(jsonOptions.WriteIndented);
             Assert.Contains(jsonOptions.Converters, converter => converter is MoneyConverter);
 
-            // Orleans' own converters are still registered alongside the user's converters.
+            // Orleans' 自己的转换器仍然与用户的转换器同时注册。
             Assert.Contains(jsonOptions.Converters, converter => converter is GrainReferenceConverter);
 
             var serialized = serializer.Serialize(new Money(12.5m));

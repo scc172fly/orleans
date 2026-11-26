@@ -7,7 +7,7 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Identifies a system target.
+    /// 确定系统目标。
     /// </summary>
     [Immutable]
     public readonly struct SystemTargetGrainId : IEquatable<SystemTargetGrainId>, IComparable<SystemTargetGrainId>, ISpanFormattable
@@ -16,31 +16,31 @@ namespace Orleans.Runtime
         private readonly GrainId _grainId;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SystemTargetGrainId"/> struct.
+        /// 初始化 <see cref="SystemTargetGrainId"/> 结构的新实例。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         private SystemTargetGrainId(GrainId grainId) => _grainId = grainId;
 
         /// <summary>
-        /// Gets the underlying identity.
+        /// 获得基本身份。
         /// </summary>
         public GrainId GrainId => _grainId;
 
         /// <summary>
-        /// Creates a new <see cref="SystemTargetGrainId"/> instance.
+        /// 创建新的 <see cref="SystemTargetGrainId"/> 实例。
         /// </summary>
         /// <param name="kind">
-        /// The grain type.
+        /// 类型 grain 。
         /// </param>
         /// <param name="address">
-        /// The server which the system target exists on.
+        /// 系统目标所在的服务器 。
         /// </param>
         /// <returns>
         /// A <see cref="SystemTargetGrainId"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
         public static SystemTargetGrainId Create(GrainType kind, SiloAddress address)
         {
             ArgumentNullException.ThrowIfNull(address);
@@ -48,21 +48,21 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a new <see cref="SystemTargetGrainId"/> instance.
+        /// 创建新的 <see cref="SystemTargetGrainId"/> 实例。
         /// </summary>
         /// <param name="kind">
-        /// The grain type.
+        /// 类型 grain 。
         /// </param>
         /// <param name="address">
-        /// The server which the system target exists on.
+        /// 系统目标所在的服务器 。
         /// </param>
         /// <param name="extraIdentifier">
-        /// An optional key extension.
+        /// 可选按键扩展 。
         /// </param>
         /// <returns>
         /// A <see cref="SystemTargetGrainId"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
         public static SystemTargetGrainId Create(GrainType kind, SiloAddress address, string? extraIdentifier)
         {
             ArgumentNullException.ThrowIfNull(address);
@@ -81,27 +81,27 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns <see langword="true"/> if the provided instance represents a system target, <see langword="false"/> if otherwise.
+        /// 返回 <see langword="true"/> 如果所提供的实例代表系统目标, <see langword="false"/> 否则。
         /// </summary>
         /// <param name="id">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> if the value is a system target grain id, <see langword="false"/> otherwise.
+        /// <see langword="true"/> 如果值是系统目标,则值 grain id, <see langword="false"/> 否则。
         /// </returns>
         public static bool IsSystemTargetGrainId(in GrainId id) => id.Type.AsSpan().StartsWith(GrainTypePrefix.SystemTargetPrefixBytes.Span);
 
         /// <summary>
-        /// Converts the provided <see cref="GrainId"/> to a <see cref="SystemTargetGrainId"/>. A return value indicates whether the operation succeeded.
+        /// 将提供的 <see cref="GrainId"/> 转换为 <see cref="SystemTargetGrainId"/>。返回值表示操作是否成功。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <param name="systemTargetId">
-        /// The resulting system target id.
+        /// 由此产生的系统目标识别码。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> if the value is a system target grain id, <see langword="false"/> otherwise.
+        /// <see langword="true"/> 如果值是系统目标,则值 grain id, <see langword="false"/> 否则。
         /// </returns>
         public static bool TryParse(GrainId grainId, out SystemTargetGrainId systemTargetId)
         {
@@ -116,15 +116,15 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns a new <see cref="SystemTargetGrainId"/> targeting the provided address.
+        /// 返回针对所提供的地址的新 <see cref="SystemTargetGrainId"/> 。
         /// </summary>
         /// <param name="siloAddress">
-        /// The silo address.
+        /// silo 地址。
         /// </param>
         /// <returns>
-        /// A new <see cref="SystemTargetGrainId"/> targeting the provided address.
+        /// 针对所提供的地址的一个新的 <see cref="SystemTargetGrainId"/> 。
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="siloAddress"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="siloAddress"/> 是 <see langword="null"/>.</exception>
         public SystemTargetGrainId WithSiloAddress(SiloAddress siloAddress)
         {
             ArgumentNullException.ThrowIfNull(siloAddress);
@@ -145,10 +145,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the <see cref="SiloAddress"/> of the system target.
+        /// 获得系统目标的 <see cref="SiloAddress"/> 。
         /// </summary>
         /// <returns>
-        /// The silo address corresponding to this system target id.
+        /// silo 地址与这个系统的目标代号相对应。
         /// </returns>
         public SiloAddress GetSiloAddress()
         {
@@ -162,19 +162,19 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a <see cref="GrainId"/> for a grain service.
+        /// 创建 <see cref="GrainId"/> a 的a grain 服务。
         /// </summary>
         /// <param name="typeCode">
-        /// The type code.
+        /// 类型代码。
         /// </param>
         /// <param name="grainSystemId">
-        /// The system id, or <see langword="null"/> to omit the system id suffix.
+        /// 系统 ID , 或 <see langword="null"/> 省略系统 id 后缀 。
         /// </param>
         /// <param name="address">
-        /// The silo address.
+        /// silo 地址。
         /// </param>
-        /// <returns>A grain id for a grain service instance.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> is <see langword="null"/>.</exception>
+        /// <returns>A grain 服务实例的 grain id。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
         public static GrainId CreateGrainServiceGrainId(int typeCode, string grainSystemId, SiloAddress address)
         {
             ArgumentNullException.ThrowIfNull(address);
@@ -182,15 +182,15 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a <see cref="GrainId"/> for a grain service.
+        /// 创建 <see cref="GrainId"/> a 的a grain 服务。
         /// </summary>
         /// <param name="typeCode">
-        /// The type code.
+        /// 类型代码。
         /// </param>
         /// <param name="grainSystemId">
-        /// The system id.
+        /// 系统识别码
         /// </param>
-        /// <returns>A grain id for a grain service instance.</returns>
+        /// <returns>A grain 服务实例的 grain id。</returns>
         internal static GrainType CreateGrainServiceGrainType(int typeCode, string? grainSystemId)
         {
             var extraLen = grainSystemId is null ? 0 : Encoding.UTF8.GetByteCount(grainSystemId);
@@ -203,26 +203,26 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a <see cref="GrainId"/> for a grain service.
+        /// 创建 <see cref="GrainId"/> a 的a grain 服务。
         /// </summary>
         /// <param name="grainType">
-        /// The grain type.
+        /// 类型 grain 。
         /// </param>
         /// <param name="address">
-        /// The silo address.
+        /// silo 地址。
         /// </param>
-        /// <returns>A grain id for a grain service instance.</returns>
+        /// <returns>A grain 服务实例的 grain id。</returns>
         internal static GrainId CreateGrainServiceGrainId(GrainType grainType, SiloAddress address)
             => new GrainId(grainType, new IdSpan(address.ToUtf8String()));
 
         /// <summary>
-        /// Creates a system target <see cref="GrainType"/> with the provided name.
+        /// 创建带有提供名称的系统目标 <see cref="GrainType"/> 。
         /// </summary>
         /// <param name="name">
-        /// The system target grain type name.
+        /// 系统目标 grain 类型名称。
         /// </param>
         /// <returns>
-        /// The grain type.
+        /// 类型 grain 。
         /// </returns>
         public static GrainType CreateGrainType(string name) => GrainType.Create($"{GrainTypePrefix.SystemTargetPrefix}{name}");
 
@@ -247,51 +247,51 @@ namespace Orleans.Runtime
         public int CompareTo(SystemTargetGrainId other) => _grainId.CompareTo(other._grainId);
 
         /// <summary>
-        /// Compares the provided operands for equality.
+        /// 与所提供的平等目标相比较。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
         public static bool operator ==(SystemTargetGrainId left, SystemTargetGrainId right) => left.Equals(right);
 
         /// <summary>
-        /// Compares the provided operands for inequality.
+        /// 比较所提供的不平等域。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are not equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
         public static bool operator !=(SystemTargetGrainId left, SystemTargetGrainId right) => !(left == right);
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is less than the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 如果左边的手术功率低于右边的手术功率,那末, <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is less than the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左边的手术功率低于右边的手术功率,那末, <see langword="false"/>.</returns>
         public static bool operator <(SystemTargetGrainId left, SystemTargetGrainId right) => left.CompareTo(right) < 0;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is less than or equal to the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> ,如果左操作小于或等于右操作,否则 <see langword="false"/>。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is less than or equal to the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形操作小于或等于右形操作,否则 <see langword="false"/>。</returns>
         public static bool operator <=(SystemTargetGrainId left, SystemTargetGrainId right) => left.CompareTo(right) <= 0;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is greater than the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 倘若左边的手术胜过右边的手术,否则 <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is greater than the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形大于右形,否则 <see langword="false"/>。</returns>
         public static bool operator >(SystemTargetGrainId left, SystemTargetGrainId right) => left.CompareTo(right) > 0;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is greater than or equal to the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 倘若左边的手术功过右的或等量,否则 <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is greater than or equal to the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形操作大于或等于右形操作,否则 <see langword="false"/>。</returns>
         public static bool operator >=(SystemTargetGrainId left, SystemTargetGrainId right) => left.CompareTo(right) >= 0;
     }
 }

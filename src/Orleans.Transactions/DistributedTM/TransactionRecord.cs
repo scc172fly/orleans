@@ -6,51 +6,51 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Each participant plays a particular role in the commit protocol
+    /// 每一参与方在承诺议定书中发挥特殊作用
     /// </summary>
     internal enum CommitRole
     {
-        NotYetDetermined,  // role is known only when prepare message is received from TA
-        ReadOnly,          // this participant has not written
-        RemoteCommit,      // this participant has written, but is not the TM
-        LocalCommit,       // this participant has written, and is the TM
+        NotYetDetermined,  // 只有在从TA收到预写信息时才知道自己的角色
+        ReadOnly,          // 本参与人未写
+        RemoteCommit,      // 以物配主者已写过,但非他所意欲的。
+        LocalCommit,       // 以物配主者曾写作,故是TM
     }
 
     /// <summary>
-    /// Record that is kept for each transaction at each participant
+    /// 每一参与人保存每项交易的记录
     /// </summary>
-    /// <typeparam name="TState">The type of state</typeparam>
+    /// <typeparam name="TState">国家类型</typeparam>
     internal class TransactionRecord<TState>
     {
         public TransactionRecord()
         {
         }
 
-        // a unique identifier for this transaction
+        // 此交易的一个独有标识符
         public Guid TransactionId;
 
-        // the time at which this transaction was started on the TA
+        // 交易开始于TA时
         public DateTime Priority;
 
-        // the deadline for a queued transaction to acquire the lock
+        // 获得锁定的队列交易的截止时间
         public DateTime Deadline;
 
-        // the minimum time this participant must retain the lock after acquiring it
+        // 获得锁后该参与者必须保留锁的最小时间
         public TimeSpan LockTimeout;
 
-        // the transaction timestamp as computed by the algorithm
+        // 算法计算的交易时间戳
         public DateTime Timestamp;
 
-        // the number of reads and writes that this transaction has performed on this transactional participant
+        // 读数和写数,即交易是该交易参与者完成的
         public int NumberReads;
         public int NumberWrites;
 
-        // the state for this transaction, and the sequence number of this state
+        // 交易的状态和顺序号
         public TState State = default!;
         public long SequenceNumber;
         public bool HasCopiedState;
 
-        // indicate that this transaction holds an exclusive lock
+        // 表明这一交易持有独家锁
         public bool IsExclusiveLock;
 
         public void AddRead()
@@ -64,18 +64,18 @@ namespace Orleans.Transactions
 
         public CommitRole Role;
 
-        // used for readonly and local commit
+        // 用于只读和本地承诺
         public TaskCompletionSource<TransactionalStatus> PromiseForTA = null!;
 
-        // used for local and remote commit
+        // 用于本地和远程使用
         public ParticipantId TransactionManager;
 
-        // used for local commit
+        // 用于本地承诺
         public List<ParticipantId> WriteParticipants = null!;
         public int WaitCount;
         public DateTime WaitingSince;
 
-        // used for remote commit
+        // 用于远程连接
         public DateTime? LastSent;
         public bool IsRestoredRemoteCommit;
         public int RecoveryPingCount;
@@ -114,7 +114,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Indicates whether a transaction record is ready to commit
+        /// 表明交易记录是否准备进行
         /// </summary>
         public bool ReadyToCommit
         {
@@ -126,12 +126,12 @@ namespace Orleans.Transactions
                         return true;
 
                     case CommitRole.LocalCommit:
-                        return WaitCount == 0; // received all "Prepared" messages
+                        return WaitCount == 0; // 收到全部“ 准备” 信件
 
                     case CommitRole.RemoteCommit:
                         return
-                            (ConfirmationResponsePromise != null)  // TM has sent confirm and is waiting for response
-                         || (NumberWrites == 0 && LastSent.HasValue);  // this participant did not write and finished prepare
+                            (ConfirmationResponsePromise != null)  // TM已经发出确认,正在等待答复
+                         || (NumberWrites == 0 && LastSent.HasValue);  // 本与会者未写作并完成准备工作
 
                     default:
                         throw new NotSupportedException($"{Role} is not a supported CommitRole.");
@@ -174,7 +174,7 @@ namespace Orleans.Transactions
             }
         }
 
-        // formatted for debugging commit queue contents
+        // 用于调试 $% 1 格式化
         public override string ToString()
         {
             switch (Role)

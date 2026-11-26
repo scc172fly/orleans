@@ -8,8 +8,8 @@ using Orleans.Caching;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// Classifies silos which remain absent after a fresh membership refresh as dead,
-/// and leaves their status unknown when validation fails.
+/// 分类 silos 死后再重新成为会员,却仍缺席
+/// 并让身份不明 当验证失败时
 /// </summary>
 internal sealed partial class UnknownSiloStatusCache
 {
@@ -129,8 +129,8 @@ internal sealed partial class UnknownSiloStatusCache
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // The started generation is the freshness boundary. Calls which observe the same generation can
-        // share the next read; calls made after that read starts require the queued generation.
+        // 开始的一代是新鲜度边界。 观察同一代人的电话可以
+        // 共享下一读; 读开始后拨打的电话需要排队一代。
         var requiredGeneration = Volatile.Read(ref _startedRefreshGeneration) + 1;
 
         lock (_refreshLock)
@@ -177,7 +177,7 @@ internal sealed partial class UnknownSiloStatusCache
     {
         try
         {
-            // Caller cancellation only cancels that caller's wait. Membership shutdown owns the shared refresh.
+            // 取消呼叫只取消该呼叫人的等待。 会员关闭拥有共享的更新 。
             await _membershipManager.Refresh(
                 targetVersion: null,
                 cancellationToken: CancellationToken.None,

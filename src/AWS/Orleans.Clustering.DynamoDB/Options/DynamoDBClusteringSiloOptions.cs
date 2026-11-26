@@ -1,12 +1,12 @@
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures the DynamoDB connection used by a silo for clustering.
+    /// 配置 DynamoDB 用于 silo 组群。
     /// </summary>
     public class DynamoDBClusteringSiloOptions
     {
         /// <summary>
-        /// Connection string for DynamoDB Storage
+        /// DynamoDB 存储的连接字符串
         /// </summary>
         [RedactConnectionString]
         public string ConnectionString { get; set; } = null!;

@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 namespace Orleans.Serialization.Session
 {
     /// <summary>
-    /// A collection of objects which are referenced while serializing, deserializing, or copying.
+    /// 一组在序列、机密失效或复制时被引用的物体。
     /// </summary>
     public sealed class ReferencedObjectCollection
     {
@@ -30,9 +30,9 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// Gets or sets the reference to object count.
+        /// 获取或设置对象计数的引用。
         /// </summary>
-        /// <value>The reference to object count.</value>
+        /// <value>对象计数的引用。</value>
         internal int ReferenceToObjectCount;
         private readonly ReferencePair[] _referenceToObject = new ReferencePair[64];
 
@@ -44,10 +44,10 @@ namespace Orleans.Serialization.Session
         private uint _currentReferenceId;
 
         /// <summary>
-        /// Tries to get the referenced object with the specified id.
+        /// 尝试用指定的代号获取引用对象。
         /// </summary>
-        /// <param name="reference">The reference.</param>
-        /// <returns>The referenced object with the specified id if found, <see langword="null" /> otherwise.</returns>
+        /// <param name="reference">参考。</param>
+        /// <returns>引用对象,如果找到指定代号, <see langword="null" /> 否则。</returns>
         public object? TryGetReferencedObject(uint reference)
         {
             var refs = _referenceToObject.AsSpan(0, ReferenceToObjectCount);
@@ -64,7 +64,7 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// Marks a value field.
+        /// 标记一个值字段。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void MarkValueField() => ++_currentReferenceId;
@@ -72,18 +72,18 @@ namespace Orleans.Serialization.Session
         internal uint CreateRecordPlaceholder() => ++_currentReferenceId;
 
         /// <summary>
-        /// Gets or adds a reference.
+        /// 获取或添加引用。
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="reference">The reference.</param>
-        /// <returns><see langword="true" /> if a reference already existed, <see langword="false" /> otherwise.</returns>
+        /// <param name="value">数值。</param>
+        /// <param name="reference">参考。</param>
+        /// <returns><see langword="true" /> 如果已有参考文献, <see langword="false" /> 否则。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool GetOrAddReference(object? value, out uint reference)
         {
-            // Unconditionally bump the reference counter since a call to this method signifies a potential reference.
+            // 无条件地顶撞参考柜台,因为呼吁采用这种方法就意味着可能提及。
             var nextReference = ++_currentReferenceId;
 
-            // Null is always at reference 0
+            // 无效总是在参考 0
             if (value is null)
             {
                 reference = 0;
@@ -128,7 +128,7 @@ namespace Orleans.Serialization.Session
 #endif
             }
 
-            // Add the reference.
+            // 添加引用。
             var objectsArray = _objectToReference;
             var objectsCount = _objectToReferenceCount;
             if ((uint)objectsCount < (uint)objectsArray.Length)
@@ -147,10 +147,10 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// Gets the index of the reference, or <c>-1</c> if the object has not been encountered before.
+        /// 获取引用的索引,或者如果该对象以前未曾遇到过,则获取 <c>-1</c> 。
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The index of the reference, or <c>-1</c> if the object has not been encountered before.</returns>
+        /// <param name="value">数值。</param>
+        /// <returns>引用索引,或 <c>-1</c> 如果该对象以前未曾遇到,则该对象在此前未曾遇到过。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetReferenceIndex(object? value)
         {
@@ -197,7 +197,7 @@ namespace Orleans.Serialization.Session
                 ref var refValue = ref CollectionsMarshal.GetValueRefOrAddDefault(overflow, reference, out var exists);
                 if (exists && value is not UnknownFieldMarker && refValue is not UnknownFieldMarker)
                 {
-                    // Unknown field markers can be replaced once the type is known.
+                    // 一旦知道类型, 未知的字段标记即可替换 。
                     ThrowReferenceExistsException(reference);
                 }
 
@@ -205,7 +205,7 @@ namespace Orleans.Serialization.Session
 #else
                 if (overflow.TryGetValue(reference, out var existing) && value is not UnknownFieldMarker && existing is not UnknownFieldMarker)
                 {
-                    // Unknown field markers can be replaced once the type is known.
+                    // 一旦知道类型, 未知的字段标记即可替换 。
                     ThrowReferenceExistsException(reference);
                 }
 
@@ -221,7 +221,7 @@ namespace Orleans.Serialization.Session
                     {
                         if (value is not UnknownFieldMarker && refs[i].Object is not UnknownFieldMarker)
                         {
-                            // Unknown field markers can be replaced once the type is known.
+                            // 一旦知道类型, 未知的字段标记即可替换 。
                             ThrowReferenceExistsException(reference);
                         }
                         refs[i].Object = value;
@@ -258,17 +258,17 @@ namespace Orleans.Serialization.Session
         private static void ThrowReferenceExistsException(uint reference) => throw new InvalidOperationException($"Reference {reference} already exists");
 
         /// <summary>
-        /// Records a reference field.
+        /// 记录一个参考字段。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RecordReferenceField(object? value) => RecordReferenceField(value, ++_currentReferenceId);
 
         /// <summary>
-        /// Records a reference field with the specified identifier.
+        /// 记录带有指定标识符的引用字段。
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="referenceId">The reference identifier.</param>
+        /// <param name="value">数值。</param>
+        /// <param name="referenceId">参考标识符。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RecordReferenceField(object? value, uint referenceId)
         {
@@ -281,25 +281,25 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// Copies the reference table.
+        /// 参考表副本。
         /// </summary>
-        /// <returns>A copy of the reference table.</returns>
+        /// <returns>参考表副本。</returns>
         public Dictionary<uint, object> CopyReferenceTable() => _referenceToObject.Take(ReferenceToObjectCount).ToDictionary(r => r.Id, r => r.Object);
 
         /// <summary>
-        /// Copies the identifier table.
+        /// 复制识别表。
         /// </summary>
-        /// <returns>A copy of the identifier table.</returns>
+        /// <returns>识别表副本。</returns>
         public Dictionary<object, uint> CopyIdTable() => _objectToReference.Take(_objectToReferenceCount).ToDictionary(r => r.Object, r => r.Id);
 
         /// <summary>
-        /// Gets or sets the current reference identifier.
+        /// 获取或设置当前引用标识符。
         /// </summary>
-        /// <value>The current reference identifier.</value>
+        /// <value>当前参考标识符。</value>
         public uint CurrentReferenceId { get => _currentReferenceId; set => _currentReferenceId = value; }
 
         /// <summary>
-        /// Resets this instance.
+        /// 重设此实例 。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()

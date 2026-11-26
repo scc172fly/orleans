@@ -4,10 +4,10 @@ using Orleans.Runtime;
 
 namespace DurableWorkflows;
 
-// Each workflow method is a durable task. Callers schedule it under a root ID, such as "approval-{id}", and every child
-// which it awaits with WithId has a stable ID beneath that root. After a deactivation or a silo failure, the runtime
-// replays the method from the start: completed children return their recorded results, so the workflow resumes where
-// it stopped.
+// 每种工作流程方法都是一项持久的任务。 呼叫者将它排在根身份识别线下, 如“ 批准- {id} ” 和每个孩子
+// 等待那等待它等待的, WithId 根根底下有一个稳定的ID。 silo 失败, 运行时间
+// 从一开始就重放方法:完成儿童返回记录的结果,所以工作流程在以下地点恢复
+// 停止了,它停下来。
 public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableGrain, IWorkflowGrain
 {
     private readonly Guid _activationId = Guid.NewGuid();
@@ -27,8 +27,8 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         return new(workflowId, stored.Output);
     }
 
-    // Runs one activity per item concurrently, as the children branches/0, branches/1, and so on, and returns their
-    // results in item order once every branch has completed.
+    // 以儿童分会/0, 分会/1等形式同时每个项目运行一个活动, 然后返回
+    // 每一事务组完成项目顺序的结果。
     public async DurableTask<FanOutWorkflowResult> RunFanOutAsync(string[] items)
     {
         ArgumentNullException.ThrowIfNull(items);
@@ -41,8 +41,8 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         return new(workflowId, branches);
     }
 
-    // Waits for a reviewer's decision until the request's timeout elapses. The deadline derives from the workflow's
-    // durable clock, so a replay waits for the same deadline, and the task records the first decision it receives.
+    // 等待审查者的决定直至请求超时结束。截止时间来自工作流程
+    // 耐久时钟,所以重播等待相同的最后期限,任务记录收到的第一项决定。
     public async DurableTask<ApprovalWorkflowResult> RunApprovalAsync(ApprovalRequest request)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Subject);
@@ -57,8 +57,8 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         return new(WorkflowId, request.Subject, decision.Approved, decision.Reason, runtime.SiloAddress, runtime.ActivationId);
     }
 
-    // Reserves stock and holds it for the hold period. A cancellation request during the period releases the
-    // reservation and records the request's reason; the runtime persists the request, so a replay takes the same path.
+    // 在此期间提出的取消请求释放了
+    // 保留并记录请求的理由;运行时间一直持续,因此重播也遵循同样的路径。
     public async DurableTask<CancellationWorkflowResult> RunCancellationAsync(TimeSpan holdPeriod)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(holdPeriod, TimeSpan.Zero);
@@ -77,7 +77,7 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         {
             if (reservation.Status is DurableTaskStatus.CompletedSuccessfully)
             {
-                // A shielded child runs to completion although the workflow was canceled.
+                // 保护儿童运行到完成, 尽管工作流程被取消了 。
                 await inventory.ReleaseAsync($"{workflowId}:release").WithId("release").Shielded();
             }
 
@@ -85,10 +85,10 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         }
     }
 
-    // Reserves stock and charges payment concurrently, then ships. When a step fails, the saga undoes exactly the steps
-    // which succeeded. Each participant applies an operation ID once, so a replay or a repeated saga changes nothing.
-    // The workflow grain is the order's grain: the request names the order which the grain's key identifies, so the saga
-    // and its participants' effects are retained under the same order.
+    // 保留库存和收费同时支付,然后是船舶。当一个步骤失败时,那堆子将完全推翻这些步骤
+    // 。每个参与者使用操作编号一次,所以重放或重复的剧目不会改变任何变化。
+    // 工作流程 grain 是顺序的 grain:请求中列出 grain键所识别的顺序,所以是长
+    // 其作用按同一顺序保留。
     public async DurableTask<OrderWorkflowResult> RunOrderSagaAsync(OrderRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -101,13 +101,13 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         var inventory = GrainFactory.GetGrain<IInventoryGrain>(orderId);
         var payment = GrainFactory.GetGrain<IPaymentGrain>(orderId);
 
-        // WhenAllCompleted waits for both steps and returns their handles, each with its own outcome.
+        // WhenAllCompleted 等待两步后返回他们的手柄,
         var prepared = await DurableTask.WhenAllCompleted(
             [inventory.ReserveAsync($"{orderId}:reserve"), payment.ChargeAsync($"{orderId}:charge")])
             .WithId("prepare");
         var (reserve, charge) = (prepared[0], prepared[1]);
 
-        // The result names the step which failed; each step's task retains its exception for diagnostics.
+        // 结果命名失败的步骤;每个步骤的任务保留诊断的例外。
         var failedStep = reserve.Exception is not null ? "reserve" : charge.Exception is not null ? "charge" : null;
         if (failedStep is null)
         {

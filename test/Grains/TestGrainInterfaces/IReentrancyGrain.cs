@@ -22,7 +22,7 @@ namespace UnitTests.GrainInterfaces
 
     public interface IMayInterleaveStaticPredicateGrain : IGrainWithIntegerKey
     {
-        Task<string> One(string arg); // this interleaves only when arg == "reentrant"
+        Task<string> One(string arg); // 只有当arg = "resentrant" 时, 此间断才切换
 
         Task<string> Two();
         Task<string> TwoReentrant();
@@ -37,7 +37,7 @@ namespace UnitTests.GrainInterfaces
 
     public interface IMayInterleaveInstancedPredicateGrain : IGrainWithIntegerKey
     {
-        Task<string> One(string arg); // this interleaves only when arg == "reentrant"
+        Task<string> One(string arg); // 只有当arg = "resentrant" 时, 此间断才切换
 
         Task<string> Two();
         Task<string> TwoReentrant();

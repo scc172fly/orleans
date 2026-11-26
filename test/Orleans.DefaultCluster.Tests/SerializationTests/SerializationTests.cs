@@ -5,7 +5,7 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Tests deep copy and serialization round-trip for complex types including value types and types with custom activators.
+    /// 测试复杂类型,包括价值类型和与定制活性者进行的价值类型和类型的深度复制和序列化圆环行程。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

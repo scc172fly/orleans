@@ -9,7 +9,7 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Runs transaction commit service scenarios which fail or throw while committing.
+    /// 运行交易时承诺在实施过程中失败或丢弃的服务情景。
     /// </summary>
     public abstract class TocFaultTransactionTestRunner : TransactionTestRunnerBase
     {
@@ -17,19 +17,19 @@ namespace Orleans.Transactions.TestKit
         private static readonly TimeSpan VerificationRetryDelay = TimeSpan.FromMilliseconds(100);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TocFaultTransactionTestRunner"/> class.
+        /// 初始化 <see cref="TocFaultTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to access test grains.</param>
-        /// <param name="output">The callback used to write test output.</param>
+        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="output">用于写入测试输出的回调。</param>
         protected TocFaultTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
         : base(grainFactory, output) { }
 
         /// <summary>
-        /// Verifies that a commit service failure aborts a multi-grain transaction and preserves the prior committed state.
+        /// 证明一次承诺服务中断会中止多grain 交易并保留先前承诺状态。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <param name="grainCount">The number of grains participating in the transaction.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <param name="grainCount">编号数 grains 参与交易。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task MultiGrainWriteTransactionWithCommitFailure(string grainStates, int grainCount)
         {
             const int expected = 5;
@@ -56,15 +56,15 @@ namespace Orleans.Transactions.TestKit
                 }
             }
 
-            // TODO : Add verification that commit service receive call with proper args.
+            // TODO:添加进行服务确认的核查,接收有适当参数的呼叫。
         }
 
         /// <summary>
-        /// Verifies that a commit service exception reports an in-doubt outcome while preserving the prior committed state.
+        /// 证明承诺服务例外情况报告为怀疑的结果,同时保留先前承诺状态。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <param name="grainCount">The number of grains participating in the transaction.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <param name="grainCount">编号数 grains 参与交易。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task MultiGrainWriteTransactionWithCommitException(string grainStates, int grainCount)
         {
             const int expected = 5;
@@ -91,7 +91,7 @@ namespace Orleans.Transactions.TestKit
                 }
             }
 
-            // TODO : Add verification that commit service receive call with proper args.
+            // TODO:添加进行服务确认的核查,接收有适当参数的呼叫。
         }
 
         private async Task<int[]> GetWithTransientFailureRetry(ITransactionTestGrain grain)
@@ -104,8 +104,8 @@ namespace Orleans.Transactions.TestKit
                 {
                     return await grain.Get();
                 }
-                // The commit result can arrive before cancellation reaches every participant. A verification read
-                // which overlaps that cleanup is intentionally aborted and is safe to retry.
+                // 承诺结果可在注销通知每个参与者之前到达。
+                // 重叠的清理被故意中止,且可以安全重试。
                 catch (OrleansTransactionTransientFailureException exception)
                     when (Stopwatch.GetElapsedTime(retryStart) < VerificationRetryTimeout)
                 {

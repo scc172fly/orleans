@@ -10,9 +10,9 @@ using Xunit;
 namespace NonSilo.Tests.Serialization;
 
 /// <summary>
-/// Tests for <see cref="OrleansJsonSerializationBinder"/>, which enforces the Orleans type allow-list when
-/// resolving types named in a JSON payload via <see cref="TypeNameHandling"/>. This prevents arbitrary CLR
-/// types from being constructed during deserialization of persisted or streamed grain state.
+/// 试验 <see cref="OrleansJsonSerializationBinder"/>执行 Orleans 类型 选项
+/// 用于在 JSON 有效载荷通过 <see cref="TypeNameHandling"/>防止任意的氯(LR)
+/// 类型在持续或流化状态 grain 的消毒过程中从构建中开始。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

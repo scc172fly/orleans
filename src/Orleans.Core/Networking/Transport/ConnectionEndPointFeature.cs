@@ -3,17 +3,17 @@ using System.Net;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// Exposes local and remote endpoints for a <see cref="MessageTransport"/>.
+/// 以 <see cref="MessageTransport"/>的本地和远程端点进行展览。
 /// </summary>
 public interface IConnectionEndPointFeature
 {
     /// <summary>
-    /// Gets or sets the local endpoint.
+    /// 获取或设置本地端点 。
     /// </summary>
     EndPoint? LocalEndPoint { get; set; }
 
     /// <summary>
-    /// Gets or sets the remote endpoint.
+    /// 获取或设置远程端点。
     /// </summary>
     EndPoint? RemoteEndPoint { get; set; }
 }

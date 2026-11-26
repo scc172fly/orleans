@@ -3,26 +3,26 @@ using System.Text.Json;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>Identifies an HTTP operation which a durable task started with <see cref="IDurableHttpClient.StartOperationAsync"/>.</summary>
+/// <summary>确定一项HTTP操作,该操作是长期任务,始于 <see cref="IDurableHttpClient.StartOperationAsync"/>.</summary>
 /// <param name="Location">
-/// The URL which reports the operation: its status monitor, or the <c>Location</c> of a server which answers
-/// <c>202 Accepted</c> until it returns the result. It is <see langword="null"/> for an operation which the start
-/// response completed without one.
+/// 报告操作的 URL 报告运行 : 其状态监视器, 或一个应答服务器的 <c>Location</c>
+/// <c>202 Accepted</c> 直到它返回结果。它是 <see langword="null"/> 启动时的操作
+/// 答复完成后没有回复。
 /// </param>
 /// <param name="IsStatusMonitor">
-/// Whether <paramref name="Location"/> is a status monitor, which <c>Operation-Location</c> or <c>Azure-AsyncOperation</c>
-/// names and which reports the operation's <c>status</c>, <c>result</c>, and <c>error</c>.
+/// <paramref name="Location"/> 是状态监测器,它 <c>Operation-Location</c> 还是 <c>Azure-AsyncOperation</c>
+/// 并报告操作 <c>status</c>、 <c>result</c>和 <c>error</c>的名称。
 /// </param>
-/// <param name="Response">The response which started the operation.</param>
+/// <param name="Response">启动操作的响应。</param>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Http.DurableHttpOperation")]
 public sealed record DurableHttpOperation(Uri? Location, bool IsStatusMonitor, DurableHttpResponse Response)
 {
-    /// <summary>Gets whether the start response completed the operation, with its result or its failure.</summary>
+    /// <summary>了解启动响应是否完成操作,结果或失败。</summary>
     /// <remarks>
-    /// A <c>202 Accepted</c> response reports a running operation, as does any response with a status monitor other than
-    /// <c>200 OK</c>, <c>204 No Content</c>, and <c>424 Failed Dependency</c>, such as an Azure <c>201 Created</c>
-    /// response whose resource the operation still provisions.
+    /// A <c>202 Accepted</c> 答复报告正在运行,除情况监测器之外,任何有状况监测器的答复也报告正在进行中。
+    /// <c>200 OK</c>、 <c>204 No Content</c>和 <c>424 Failed Dependency</c>,如 Azure <c>201 Created</c>
+    /// 业务仍然提供的资源。
     /// </remarks>
     public bool IsCompleted => Response.StatusCode switch
     {
@@ -31,10 +31,10 @@ public sealed record DurableHttpOperation(Uri? Location, bool IsStatusMonitor, D
         _ => !IsStatusMonitor,
     };
 
-    /// <summary>Reads the operation which a start response identifies.</summary>
+    /// <summary>读取启动响应所识别的操作。</summary>
     internal static DurableHttpOperation FromStart(DurableHttpResponse response)
     {
-        // 424 Failed Dependency reports an operation which failed or was canceled with its status monitor.
+        // 424 依赖关系报告一项行动因状态监测器故障或被取消而失败。
         if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.FailedDependency)
         {
             throw response.CreateException();
@@ -55,8 +55,8 @@ public sealed record DurableHttpOperation(Uri? Location, bool IsStatusMonitor, D
             return new(Location: null, IsStatusMonitor: false, response);
         }
 
-        // A Location header names the operation only in a 202 Accepted response; in a 201 Created response it names the
-        // created resource.
+        // 地点标题仅以202个接受方答复中的名称命名业务;在201个创建方答复中,它指定
+        // 创建的资源 。
         return new(
             Locate(response, "Location") ?? throw new HttpRequestException(
                 $"'{response.RequestUri}' accepted the request without an Operation-Location, Azure-AsyncOperation, or Location header which locates its operation.",
@@ -72,94 +72,94 @@ public sealed record DurableHttpOperation(Uri? Location, bool IsStatusMonitor, D
     }
 }
 
-/// <summary>Selects how <see cref="IDurableHttpClient.WaitForOperationAsync{TResult}"/> observes a running operation.</summary>
+/// <summary>选择 <see cref="IDurableHttpClient.WaitForOperationAsync{TResult}"/> 如何观察运行中的操作。</summary>
 public enum DurableHttpWaitMode
 {
     /// <summary>
-    /// Polls the operation, with a durable delay before each poll. Each poll records a delay and a step, and no request
-    /// stays open between polls, which suits operations of any duration.
+    /// 每一次民意调查都记录了一次拖延和一步,没有要求
+    /// 民意调查之间保持开放,适合任何期限的业务。
     /// </summary>
     Poll,
 
     /// <summary>
-    /// Reads the server-sent events of the operation's status monitor, at <c>{status monitor}/events</c>, within one step
-    /// which reconnects until the operation is terminal. The task records one step and learns the outcome as soon as the
-    /// server reports it, while a request stays open for the operation's duration. An operation without a status monitor
-    /// is polled.
+    /// 读取操作状态监视器上的服务器发送事件 <c>{status monitor}/events</c>,在一步骤内
+    /// 任务记录一步, 并尽快了解结果
+    /// 服务器报告, 而请求在操作持续期间保持打开。 没有状态监视器的操作
+    /// 被民意测验。
     /// </summary>
     Events,
 }
 
-/// <summary>Configures how a durable task waits for an HTTP operation.</summary>
+/// <summary>配置耐久任务如何等待 HTTP 操作。</summary>
 public sealed record DurableHttpOperationOptions
 {
     internal static DurableHttpOperationOptions Default { get; } = new();
 
-    /// <summary>Gets how the task observes the running operation. The default is <see cref="DurableHttpWaitMode.Poll"/>.</summary>
+    /// <summary>获取任务如何观察运行中的操作。 默认值为 <see cref="DurableHttpWaitMode.Poll"/>。</summary>
     public DurableHttpWaitMode Mode { get; init; }
 
     /// <summary>
-    /// Gets the shortest interval between polls of a running operation, which applies when a response doesn't advertise
-    /// a longer one with <c>Retry-After</c>. The default is five seconds.
+    /// 获得运行中操作的民意测验间隔间最短的时间间隔, 当响应不公布时使用这一间隔间隔间隔
+    /// 以 <c>Retry-After</c>后再加一个较长的。默认为5秒。
     /// </summary>
     public TimeSpan PollInterval { get; init; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// Gets the longest interval between polls, which bounds a response's <c>Retry-After</c>. The default is one minute,
-    /// and an interval shorter than <see cref="PollInterval"/> applies as <see cref="PollInterval"/>.
+    /// 获得两次投票之间最长的间隔, 从而将响应限制在 <c>Retry-After</c>。默认为一分钟,
+    /// 短于 <see cref="PollInterval"/> 的间隔作为 <see cref="PollInterval"/>适用。
     /// </summary>
     public TimeSpan MaxPollInterval { get; init; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Gets the wait which each poll requests with a <c>Prefer: wait</c> header, so a server which long-polls answers once
-    /// the operation completes; <see cref="TimeSpan.Zero"/>, the default, requests none.
+    /// 获得每次民意测验都用 <c>Prefer: wait</c> 页头,所以是一个服务器,长号回答一次
+    /// 操作完成; <see cref="TimeSpan.Zero"/>,默认,无要求。
     /// </summary>
     public TimeSpan Wait { get; init; }
 }
 
-/// <summary>Configures an <see cref="IDurableHttpClient"/>.</summary>
+/// <summary>配置 <see cref="IDurableHttpClient"/>。</summary>
 public sealed class DurableHttpClientOptions
 {
-    /// <summary>The options which read responses for callers which don't pass their own; no caller configures them.</summary>
+    /// <summary>选项读取对未通过自传的呼叫者的答复;没有调用者配置这些响应。</summary>
     internal static JsonSerializerOptions WebSerializerOptions { get; } = new Microsoft.AspNetCore.Http.Json.JsonOptions().SerializerOptions;
 
     /// <summary>
-    /// Gets or sets the options which serialize request values and deserialize results. The default is a new instance of
-    /// ASP.NET Core's Minimal API JSON options for each client: <see cref="JsonSerializerDefaults.Web"/>, which serialize
-    /// by reflection where the application allows it.
+    /// 获取或设置将请求值序列化和取消结果的选项。默认值是
+    /// ASP.NET 核心最小 API JSON 选项,用于每个客户端: <see cref="JsonSerializerDefaults.Web"/>,并按序
+    /// 应用允许时, 反射。
     /// </summary>
     /// <remarks>
-    /// The client resolves each type's contract from the options' <see cref="JsonSerializerOptions.TypeInfoResolver"/>. A
-    /// trimmed or NativeAOT application sets options whose resolver, such as a source-generated
-    /// <see cref="System.Text.Json.Serialization.JsonSerializerContext"/>, handles its request and result types.
+    /// 客户从选项 <see cref="JsonSerializerOptions.TypeInfoResolver"/>中解决每种类型的合同。
+    /// 或 NativeAOT 应用程序设置了选项,其解决者可使用选项,例如源生成的
+    /// <see cref="System.Text.Json.Serialization.JsonSerializerContext"/>,处理其请求和结果类型。
     /// </remarks>
     public JsonSerializerOptions SerializerOptions { get; set; } = new Microsoft.AspNetCore.Http.Json.JsonOptions().SerializerOptions;
 
     /// <summary>
-    /// Gets or sets the largest response content, in bytes, which a step reads and records. The default is one mebibyte.
+    /// 获取或设置最大响应内容, 以字节表示, 一步读取并记录。 默认为一度中位节 。
     /// </summary>
     /// <remarks>
-    /// A task records each response, so the limit keeps a response from exceeding what its journal stores in one entry. A
-    /// larger response fails its step with an <see cref="HttpRequestException"/>, which the task records like any failure.
+    /// 任务记录每个回复, 所以限制可以防止响应超过其日记存储在一个条目中的内容。 A
+    /// 较大的反应失败了 <see cref="HttpRequestException"/>,任务记录 喜欢任何失败。
     /// </remarks>
     public long MaxResponseContentLength { get; set; } = 1024 * 1024;
 
     /// <summary>
-    /// Gets or sets the function which decides whether the client follows the URL which a start response locates its
-    /// operation at, given the start request's URL and the operation's location.
+    /// 获取或设置函数,以决定客户是否遵循启动响应定位的 URL 用户是否遵循启动响应
+    /// ,根据启动请求的 URL 和操作的位置,在操作中进行。
     /// </summary>
     /// <remarks>
-    /// The client sends its polls, cancellations, and signals, with its handlers' credentials, to the operation's location.
-    /// The default follows locations of the start request's origin, its scheme, host, and port, only, so a server can't
-    /// direct those requests at another one. A location which the function declines fails the start with an
+    /// 客户通过自己的主管人员的资格证明,向业务所在地发送民意测验、取消和信号。
+    /// 默认的跟随启动请求源、 其方案、 主机和端口的位置, 仅此选项, 服务器无法
+    /// 函数衰落的位置以
     /// <see cref="HttpRequestException"/>.
     /// </remarks>
     public Func<Uri, Uri, bool> FollowOperationLocation { get; set; } = IsSameOrigin;
 
-    /// <summary>Returns whether <paramref name="location"/> has the scheme, host, and port of <paramref name="requestUri"/>.</summary>
-    /// <param name="requestUri">The URL of the request which started the operation.</param>
-    /// <param name="location">The operation's location.</param>
-    /// <returns><see langword="true"/> when both URLs have one origin.</returns>
+    /// <summary>返回是否 <paramref name="location"/> 计划、主机和港口 <paramref name="requestUri"/>.</summary>
+    /// <param name="requestUri">启动操作的请求的 URL。</param>
+    /// <param name="location">操作地点。</param>
+    /// <returns><see langword="true"/> 当两个 URL 都有一个来源时 。</returns>
     public static bool IsSameOrigin(Uri requestUri, Uri location)
     {
         ArgumentNullException.ThrowIfNull(requestUri);
@@ -168,7 +168,7 @@ public sealed class DurableHttpClientOptions
     }
 }
 
-/// <summary>Represents an HTTP operation which failed or was canceled.</summary>
+/// <summary>表示 HTTP 操作失败或被取消。</summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Http.DurableHttpOperationException")]
 public sealed class DurableHttpOperationException : Exception
@@ -177,10 +177,10 @@ public sealed class DurableHttpOperationException : Exception
     {
     }
 
-    /// <summary>Initializes an exception for an operation which ended with <paramref name="status"/>.</summary>
-    /// <param name="status">The operation's terminal status, <see cref="DurableOperationStatus.Failed"/> or <see cref="DurableOperationStatus.Canceled"/>.</param>
-    /// <param name="code">The error code which the operation reported, if any.</param>
-    /// <param name="message">The error message which the operation reported, if any.</param>
+    /// <summary>开始对以 <paramref name="status"/>结束的行动作例外处理。</summary>
+    /// <param name="status">业务的终点状态 <see cref="DurableOperationStatus.Failed"/> 或 <see cref="DurableOperationStatus.Canceled"/>.</param>
+    /// <param name="code">操作报告的任何错误代码。</param>
+    /// <param name="message">操作报告的任何错误信息。</param>
     public DurableHttpOperationException(DurableOperationStatus status, string? code, string? message)
         : base(string.IsNullOrEmpty(message) ? $"The operation ended as {status}." : message)
     {
@@ -188,11 +188,11 @@ public sealed class DurableHttpOperationException : Exception
         Code = code;
     }
 
-    /// <summary>Gets the operation's terminal status.</summary>
+    /// <summary>获得操作终端状态。</summary>
     [Id(0)]
     public DurableOperationStatus Status { get; private set; }
 
-    /// <summary>Gets the error code which the operation reported, if any.</summary>
+    /// <summary>获取操作报告的任何错误代码。</summary>
     [Id(1)]
     public string? Code { get; private set; }
 }

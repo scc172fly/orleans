@@ -1,57 +1,57 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Possible statuses of a silo.
+    /// 可能状况的 silo.
     /// </summary>
     [GenerateSerializer]
     public enum SiloStatus
     {
         /// <summary>
-        /// No known status.
+        /// 未知状态 。
         /// </summary>
         None = 0,
 
         /// <summary>
-        /// This silo was just created, but not started yet.
+        /// 此 silo 刚刚创建, 但还没有启动 。
         /// </summary>
         Created = 1,
 
         /// <summary>
-        /// This silo has just started, but not ready yet. It is attempting to join the cluster.
+        /// 今 silo 刚刚开始,但还没有准备好。它正试图加入这一组。
         /// </summary>
         Joining = 2,
 
         /// <summary>
-        /// This silo is alive and functional.
+        /// 这个 silo 是活的,功能正常。
         /// </summary>
         Active = 3,
 
         /// <summary>
-        /// This silo is shutting itself down.
+        /// 今 silo 自己关闭了
         /// </summary>
         ShuttingDown = 4,
 
         /// <summary>
-        /// This silo is stopping itself down.
+        /// 今 silo 自己也停止了下来
         /// </summary>
         Stopping = 5,
 
         /// <summary>
-        /// This silo is deactivated/considered to be dead.
+        /// 这 silo 已被解除了作用/被认为已死亡。
         /// </summary>
         Dead = 6
     }
 
     /// <summary>
-    /// Extensions for <see cref="SiloStatus"/>.
+    /// <see cref="SiloStatus"/>的扩展期。
     /// </summary>
     public static class SiloStatusExtensions
     {
         /// <summary>
-        /// Return true if this silo is currently terminating: ShuttingDown, Stopping or Dead.
+        /// 如果此 silo 正在终止 ShuttingDown、 停止或死亡, 请返回真实的 。
         /// </summary>
-        /// <param name="siloStatus">The silo status.</param>
-        /// <returns><c>true</c> if the specified silo status is terminating; otherwise, <c>false</c>.</returns>
+        /// <param name="siloStatus"> silo 状态。</param>
+        /// <returns><c>true</c> 如果指定 silo 状态终止;否则, <c>false</c>.</returns>
         public static bool IsTerminating(this SiloStatus siloStatus)
         {
             return siloStatus == SiloStatus.ShuttingDown || siloStatus == SiloStatus.Stopping || siloStatus == SiloStatus.Dead;

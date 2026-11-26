@@ -177,7 +177,7 @@ app {
     }
 
     .sidebar .collapse {
-        /* Never collapse the sidebar for wide screens */
+        /* 永远不要为宽屏幕而折叠侧边栏 */
         display: block;
     }
 }

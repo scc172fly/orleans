@@ -1,92 +1,106 @@
 ---
-title: Customize persistent-stream data formats
-description: Configure an Orleans persistent-stream data adapter for a versioned queue-message contract.
+title: "自定义持久性流数据格式"
+description: "为版本的队列消息合同配置 Orleans 持久性流数据适配器。"
 ms.date: 08/18/2026
 ms.topic: how-to
 ---
 
-# Customize persistent-stream data formats
+<a id="customize-persistent-stream-data-formats"></a>
 
-A persistent-stream data adapter translates between Orleans event batches and a provider's native queue messages. It owns the wire contract: stream identity, event type and payload encoding, schema version, and any request-context values which cross the transport boundary. The provider's queue adapter continues to own transport access, partition assignment, receive acknowledgement, caching, and recovery.
+# 自定义持久性流数据格式
 
-Use a data adapter when the transport remains the same and the application needs a versioned payload format, needs to consume messages produced outside Orleans, or needs to publish messages which an external consumer can decode. Use a [custom queue adapter](custom-queue-adapter.md) when Orleans also needs a new transport or different queue semantics.
+持续流数据适配器翻译 Orleans 事件批次和提供者本地队列信息之间。 它拥有电线合同:流身份、事件类型和有效载荷编码、系统版本以及跨越运输边界的任何请求-文本值。 供应商的队列适配器继续拥有交通接入、分割分配、接收识别、缓存和回收等功能。
 
-## Choose the provider extension point
+当运输保持不变,应用程序需要版本有效载荷格式时,使用数据调整器,需要用在外部生成的信息 Orleans,或者需要发布外部消费者可以解码的信息。 [自定义队列适配器](custom-queue-adapter.md) 何时 Orleans 还需要新的运输工具或不同的队列语义。
 
-The built-in providers expose these data-adapter extension points:
+<a id="choose-the-provider-extension-point"></a>
 
-| Provider | Data-adapter contract | Registration | Runtime outcome |
+## 选择提供者扩展点
+
+内置提供商揭露了这些数据适应的扩展点:
+
+| 提供商 | 数据适应合同 | 登记登记 | 运行时间结果 |
 |---|---|---|---|
-| Azure Queue Storage | <xref:Orleans.Streams.IQueueDataAdapter`2> with `string` queue messages and <xref:Orleans.Streams.IBatchContainer> batches | <xref:Orleans.Hosting.AzureQueueStreamConfiguratorExtensions.ConfigureQueueDataAdapter*> | Replaces encoding and decoding while retaining Azure Queue mapping, visibility, deletion, and non-rewindable delivery |
-| Azure Event Hubs | <xref:Orleans.Streaming.EventHubs.IEventHubDataAdapter> | <xref:Orleans.Hosting.EventHubStreamConfiguratorExtensions.UseDataAdapter*> | Replaces wire-format, stream-mapping, and cache conversion behavior while retaining Event Hubs partition reading, checkpointing, and rewindable delivery |
-| Amazon SQS | <xref:Orleans.Streaming.SQS.Streams.ISQSDataAdapter> | <xref:Orleans.Hosting.SiloSqsStreamConfigurator.UseDataAdapter*> and <xref:Orleans.Hosting.ClusterClientSqsStreamConfigurator.UseDataAdapter*> | Replaces the message body, application attributes, and batch decoding while retaining SQS queue mapping, FIFO transport fields, deletion, and non-rewindable delivery |
+| Azure 队列存储 | <xref:Orleans.Streams.IQueueDataAdapter`2> 与 `string` 队列信件和 <xref:Orleans.Streams.IBatchContainer> 批次 | <xref:Orleans.Hosting.AzureQueueStreamConfiguratorExtensions.ConfigureQueueDataAdapter*> | 替换编码和解码,同时保留 Azure 队列绘图、可见度、删除和非可逆交付 |
+| Azure 活动枢纽 | <xref:Orleans.Streaming.EventHubs.IEventHubDataAdapter> | <xref:Orleans.Hosting.EventHubStreamConfiguratorExtensions.UseDataAdapter*> | 替换电线格式、流图和缓存转换行为,同时保留事件枢纽分隔读取、检查站和可倒送 |
+| 亚马逊 SQS | <xref:Orleans.Streaming.SQS.Streams.ISQSDataAdapter> | <xref:Orleans.Hosting.SiloSqsStreamConfigurator.UseDataAdapter*> 和 <xref:Orleans.Hosting.ClusterClientSqsStreamConfigurator.UseDataAdapter*> | 替换信件正文、应用程序属性和批次解码,同时保留 SQS 队列映图、 FFIFO 运输字段、 删除和非可回送交付 |
 
-<xref:Orleans.Streams.IQueueDataAdapter`1> defines conversion from an Orleans batch to a native queue message. <xref:Orleans.Streams.IQueueDataAdapter`2> adds conversion from a native message to the batch container delivered by Orleans. Provider-specific contracts can add the position and cache operations required by their transport.
+<xref:Orleans.Streams.IQueueDataAdapter`1> 定义了从 Orleans 批次转换成本地队列信息。 <xref:Orleans.Streams.IQueueDataAdapter`2> 将本地电文转换为 Orleans交付的批量集装箱。具体供应商的合同可以增加其运输所需的位置和缓存操作。
 
-## Define a versioned contract
+<a id="define-a-versioned-contract"></a>
 
-Define the transport contract independently of CLR assembly names and Orleans serialization internals. A durable envelope normally contains:
+## 界定已改订的合同
 
-- a schema version;
-- the stream namespace and key;
-- a stable event-type identifier;
-- one or more event payloads; and
-- an explicit set of cross-process metadata.
+定义运输合同时,不考虑CLR组装名称和 Orleans 序号内装。
 
-Assign each message to exactly one <xref:Orleans.Runtime.StreamId>. Keep the mapping from stream ID to physical partition stable so events for a stream retain the provider's ordering behavior. The adapter receives batches, so the envelope must preserve event order within each batch.
+- 一种原型版本;
+- 流行命名空间和密钥;
+- 稳定的事件类型识别符号;
+- 一个或多个事件有效载荷;以及
+- 一套明确的跨进程元数据。
 
-Treat request context as an explicit contract. The example carries a string correlation ID and leaves process-local values inside the producing application.
+将每条消息指定为一 <xref:Orleans.Runtime.StreamId>。 保持从流号到物理分区的映射稳定, 这样一条流的事件会保留提供者的订单行为。 适配器接收批次, 因此信封必须保存每批中的事件顺序 。
 
-## Implement an Azure Queue data adapter
+将请求背景作为明确的合同处理。此示例带有字符串相关标识,并在生产应用程序中留下过程-当地价值。
 
-The following adapter writes a versioned JSON envelope and reconstructs an <xref:Orleans.Streams.IBatchContainer> when Azure Queue Storage returns the message. The Azure Queue receiver supplies `sequenceId` at read time, and the batch uses it to create a receiver-local sequence token for each event.
+<a id="implement-an-azure-queue-data-adapter"></a>
+
+## 执行 Azure 队列数据适配器
+
+以下的适配器写了版本 JSON 和再 <xref:Orleans.Streams.IBatchContainer> 何时 Azure 队列存储返回消息。 Azure 收件器用品队列 `sequenceId` 批量使用它为每个事件创建接收器- 本地序列符号。
 
 :::code language="csharp" source="snippets/streaming/StreamDataAdapters.cs" id="azure_queue_data_adapter":::
 
-The batch container exposes only events compatible with the requested stream type, derives per-event tokens from the queue-message sequence, and imports the metadata defined by the wire contract:
+批量容器只披露与要求的流类型相符的事件,从队列消息序列中获取每件事件标记,并输入有线合同界定的元数据:
 
 :::code language="csharp" source="snippets/streaming/StreamDataAdapters.cs" id="azure_queue_batch_container":::
 
-Register the same adapter, queue service client, and physical queue names for the provider on every silo and Orleans client which uses it. Silos use the adapter for reads and writes; clients use it when publishing.
+在使用该软件的每个 silo 客户和 Orleans 客户中,为供应商登记相同的适配器、队列服务客户和体格队列名称。 Silos 在出版时使用该适配器读写;客户在发布时使用它。
 
 :::code language="csharp" source="snippets/streaming/StreamDataAdapters.cs" id="azure_queue_data_adapter_registration":::
 
-Configure durable `PubSubStore` grain storage alongside this registration as described in [Orleans stream providers](stream-providers.md#azure-queue-storage).
+配置耐久 `PubSubStore` grain 存储,并同时进行 [Orleans 流流提供者](stream-providers.md#azure-queue-storage)中所述的登记。
 
-## Implement an Event Hubs data adapter
+<a id="implement-an-event-hubs-data-adapter"></a>
 
-For Event Hubs, derive from <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter> when its cached-message representation and checkpoint behavior fit the application. Override:
+## 执行事件枢纽数据调整器
 
-- <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.GetStreamIdentity*> to map each `EventData` instance to a stream;
-- <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.GetBatchContainer*> to decode cached payloads for Orleans consumers;
-- <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.ToQueueMessage*> to encode events published through Orleans; and
-- <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.GetPartitionKey*> to select the physical Event Hubs partition key.
+对于事件枢纽, 源自其缓存邮件代表和检查站行为符合应用程序时的 <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter> 。 覆盖 :
 
-The adapter also participates in cache conversion and sequence positioning through <xref:Orleans.Streaming.EventHubs.IEventHubDataAdapter>. Preserve the Event Hubs offset and sequence number when constructing batch tokens so checkpoint and rewind behavior remains aligned with the partition log.
+- <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.GetStreamIdentity*> 将每个 `EventData` 实例映射成溪流;
+- <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.GetBatchContainer*> 为 Orleans 消费者解码缓存有效载荷;
+- <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.ToQueueMessage*> 编码通过 Orleans公布的事件;
+- 选择物理事件枢纽分割键的<xref:Orleans.Streaming.EventHubs.EventHubDataAdapter.GetPartitionKey*> 。
 
-Register the adapter and Event Hubs connection under the same provider name on silos and publishing clients. The silo registration also configures durable Azure Table checkpoints:
+适配器还参与通过 <xref:Orleans.Streaming.EventHubs.IEventHubDataAdapter>进行缓存转换和序列定位。在制造批量标牌时,保留事件枢纽的抵消和序列号,以便检查站和倒带行为与分区日志保持一致。
+
+在 silos 和出版客户中以同一供应商名称注册适配器和事件枢纽连接。 silo 登记还配置耐用 Azure 表格检查站:
 
 :::code language="csharp" source="snippets/streaming/StreamDataAdapters.cs" id="event_hub_data_adapter_registration":::
 
-The [custom data adapter sample](https://github.com/dotnet/orleans/tree/main/samples/Streaming/CustomDataAdapter) demonstrates a read-side Event Hubs adapter for JSON messages from an external producer. See [Integrate external stream producers and consumers](external-streams.md) for the end-to-end interoperability workflow.
+[自定义数据调整器样本](https://github.com/dotnet/orleans/tree/main/samples/Streaming/CustomDataAdapter) 演示外部制片人发来的 JSON 信息读边活动枢纽调整器。端至端互操作性工作流程见 [整合外部流的生产者和消费者](external-streams.md) 。
 
-## Implement an Amazon SQS data adapter
+<a id="implement-an-amazon-sqs-data-adapter"></a>
 
-Implement <xref:Orleans.Streaming.SQS.Streams.ISQSDataAdapter> to convert between `Amazon.SQS.Model.Message` and <xref:Orleans.Streams.IBatchContainer>. The outbound conversion supplies the message body and application-defined message attributes. The provider assigns the physical queue and, in FIFO mode, the message group and deduplication ID. The inbound conversion receives the SQS message together with a receiver-local sequence number.
+## 安装一个亚马逊 SQS 数据适配器
 
-Register the same adapter under the same provider name on every silo and publishing client. Configure <xref:Orleans.Configuration.SqsOptions.ReceiveMessageAttributes> and <xref:Orleans.Configuration.SqsOptions.ReceiveMessageSystemAttributes> for every attribute required by the decoder. See [Stream with Amazon SQS](sqs-streaming.md#use-an-application-wire-format) for compiled registration and operational guidance.
+执行 <xref:Orleans.Streaming.SQS.Streams.ISQSDataAdapter> 转换 `Amazon.SQS.Model.Message` 和 <xref:Orleans.Streams.IBatchContainer>。外向转换提供信息正文和应用程序定义的邮件属性。提供者指定了队列,在 FIFO 模式下,则指定了信件组和重复编号。入门转换将接收 SQS 消息和一个接收器-本地序列号。
 
-## Evolve the wire contract
+在每个 silo 和出版客户端中以相同的供应商名称注册同一适配器。对编码器要求的每个属性配置 <xref:Orleans.Configuration.SqsOptions.ReceiveMessageAttributes> 和 <xref:Orleans.Configuration.SqsOptions.ReceiveMessageSystemAttributes> 。汇编登记和业务指导请见 [亚马逊流](sqs-streaming.md#use-an-application-wire-format) 。
 
-Use an expand-and-contract rollout:
+<a id="evolve-the-wire-contract"></a>
 
-1. Deploy readers which accept the current and next schema versions.
-1. Change writers to emit the next version.
-1. Keep the old reader until the queue or event-log retention window no longer contains the old version.
-1. Remove the old version after verifying queue depth, oldest-message age, and checkpoint position.
+## 推进电线合同
 
-Keep provider name, stream identity encoding, partition mapping, queue mode, and sequence interpretation stable during a payload-only migration. A change to any of those values is a stream-topology or recovery migration and needs a separate cutover plan.
+使用扩大和合同推出:
 
-Conversion failures surface as stream-delivery failures. Throw a descriptive exception for malformed payloads, unsupported versions, and missing routing metadata so the provider retains or replays the source message according to its delivery semantics. Monitor conversion failures and quarantine poison messages through the transport's operational process before they exhaust retention or block partition progress.
+1. 部署接受当前版本和下一版剧本的读者。
+1. 更改作者以发布下一版本 。
+1. 保留旧的读取器, 直到队列或事件记录保存窗口不再包含旧版本 。
+1. 在核查队列深度、最古老的讯息年代和检查站位置后删除旧版本。
 
-Test both conversion directions with retained messages from every deployed schema version. Include heterogeneous batches, request context, duplicate delivery, malformed envelopes, unknown versions, rolling upgrades, and replay from an older Event Hubs checkpoint.
+保持服务商名、 流身份编码、 分区映射、 队列模式和序列解释稳定, 在只使用有效载荷的迁移中保持稳定。 对任何这些值的变化是流式或恢复式迁移,需要单独的切换计划。
+
+转换失败表面作为流流交付失败。 对错误的有效载荷、无支持版本和缺失的路径元数据进行描述性例外,以便供应商根据其发送语义保留或重播源信息。 在运输作业过程中监测转换失败和隔离毒物信息,然后它们用尽留存或阻隔分块的进展。
+
+测试两个转换方向, 使用每个部署的系统版本的留存信息。 包括不同批次、 请求背景、 重复交付、 错误包装、 未知版本、 滚动升级以及旧事件枢纽检查站的重播 。

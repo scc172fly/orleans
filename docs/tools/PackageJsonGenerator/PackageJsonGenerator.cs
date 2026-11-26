@@ -1,5 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// 根据一项或多项协定获得 .NET 基金会许可证。
+// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -41,7 +41,7 @@ public static class PackageJsonGenerator
 
         var assemblySymbol = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(inputReference)!;
 
-        // Collect all public types from the assembly
+        // 从集会中收集所有公开类型的集合
         var types = new List<INamedTypeSymbol>();
         CollectTypes(assemblySymbol.GlobalNamespace, types, assemblySymbol);
 
@@ -60,7 +60,7 @@ public static class PackageJsonGenerator
             ? targetFrameworkOverride
             : "net10.0";
 
-        // Resolve source link info from assembly metadata or CLI overrides
+        // 解析源链接信息来自组装元数据或 CLI 覆盖
         var sourceRepo = sourceRepoOverride;
         var sourceCommit = sourceCommitOverride;
 
@@ -80,7 +80,7 @@ public static class PackageJsonGenerator
                         sourceCommit = value;
                 }
 
-                // Fallback: extract commit from InformationalVersion (e.g. "1.2.3+abc123def")
+                // 后退: 从 InformationalVersion (e.g. "1.2.3+abc123def") 提取承诺
                 if (string.IsNullOrEmpty(sourceCommit)
                     && attr.AttributeClass?.ToDisplayString() == "System.Reflection.AssemblyInformationalVersionAttribute"
                     && attr.ConstructorArguments.Length == 1)
@@ -101,11 +101,11 @@ public static class PackageJsonGenerator
         sourceRepo = NormalizeSourceRepository(sourceRepo);
         var trackedSourceFiles = LoadSourceFileManifest(sourceFileManifestOverride);
 
-        // Build canonical models
+        // 构建金库模型
         var modelBuilder = new CanonicalModelBuilder(compilation);
         var typeModels = modelBuilder.BuildTypes(types.ToImmutableArray());
 
-        // Enrich with PDB source info (file paths + line ranges)
+        // 以 PDB 源信息( 文件路径+行区域) 加入 pDB 来源信息丰富
         using (var pdbReader = new PdbSourceReader(inputAssembly))
         {
             if (pdbReader.HasPdb)
@@ -117,10 +117,10 @@ public static class PackageJsonGenerator
                         IsSourceFileAvailable(typeSource.File, sourceRootOverride, trackedSourceFiles))
                     {
                         typeModel.SourceFile = typeSource.File;
-                        // Use only the start line as a single-line anchor. The PDB
-                        // aggregate range spans method implementations, not the type
-                        // declaration. A start-line anchor locates the class (especially
-                        // in multi-type files) without suggesting a misleading range.
+                        // 仅使用起始行作为单线锁定。 PDB
+                        // 方法的实施,而不是类型
+                        // 声明。启动线锚锁定将定位类(特别是
+                        // ),但并未暗示误导范围。
                         typeModel.SourceLines = $"{typeSource.StartLine}-{typeSource.StartLine}";
                     }
 
@@ -141,8 +141,8 @@ public static class PackageJsonGenerator
                 }
             }
 
-            // Fallback: infer source file paths for types that had no PDB sequence points
-            // (interfaces without default methods, enums, delegates, const-only classes)
+            // 后背: 没有 PDB 序列点的类型的源文件路径推推
+            // (面部无默认方法、 设置、 代表、 仅含Const类)
             foreach (var typeModel in typeModels)
             {
                 if (typeModel.SourceFile is null)
@@ -157,12 +157,12 @@ public static class PackageJsonGenerator
             }
         }
 
-        // PDB-based type line info often points at the first method body rather than
-        // the type declaration. Fetch the source file and resolve declaration lines
-        // for all types when source information is available.
+        // 基于PDB的型号信息在第一个方法体中往往指向基于 PDB 的类型线信息,而不是
+        // 类型声明。获取源文件并解决声明线
+        // 具备源信息的所有类型。
         AdjustSourceLinesForTypeDeclarations(typeModels, sourceRootOverride);
 
-        // Emit JSON schema
+        // 以 EMit JSON 计划
         var schemaJson = SchemaEmitter.EmitAssemblySchema(
             assemblyName,
             assemblyVersion,
@@ -171,7 +171,7 @@ public static class PackageJsonGenerator
             sourceRepo,
             sourceCommit);
 
-        // Ensure output directory exists
+        // 确保输出目录存在
         var outputDir = Path.GetDirectoryName(outputFile);
         if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
         {
@@ -269,7 +269,7 @@ public static class PackageJsonGenerator
         {
             types.Add(type);
 
-            // Also collect public nested types
+            // 收集公共巢式
             foreach (var nestedType in type.GetTypeMembers())
             {
                 CollectTypeAndNested(nestedType, types);
@@ -278,10 +278,10 @@ public static class PackageJsonGenerator
     }
 
     /// <summary>
-    /// For source files that contain multiple types, fetches the actual source text
-    /// from the repository and finds the exact type declaration line. PDB sequence
-    /// points only cover method bodies, so the aggregated StartLine can overshoot
-    /// the real <c>class</c>/<c>interface</c>/<c>struct</c>/etc. keyword by several lines.
+    /// 对于含有多种类型源文件的源文件,获取实际源文本
+    /// 从存储器中找到确切类型声明行。 PDB 序列
+    /// 点只覆盖方法体,所以合计 StartLine 能够超击
+    /// 实际 <c>class</c>/<c>interface</c>/<c>struct</c>/etc.关键字,用几行表示。
     /// </summary>
     private static void AdjustSourceLinesForTypeDeclarations(
         List<CanonicalType> typeModels,
@@ -298,7 +298,7 @@ public static class PackageJsonGenerator
 
         if (sourceFiles.Count == 0) return;
 
-        // Cache source files so each file is read at most once.
+        // 缓存源文件, 所以每个文件最多一次读取 。
         var sourceCache = new Dictionary<string, string[]?>();
 
         foreach (var group in sourceFiles)
@@ -306,8 +306,8 @@ public static class PackageJsonGenerator
             var lines = GetSourceLines(sourceCache, sourceRoot, group.Key);
             if (lines is null)
             {
-                // Source unavailable — keep any existing PDB-based values rather than
-                // inventing a new line anchor.
+                // 来源不可用——保留任何现有的基于PDB的数值,而不是
+                // 发明一个新的线锚
                 foreach (var typeModel in group)
                 {
                     if (typeModel.SourceLines is null)
@@ -322,7 +322,7 @@ public static class PackageJsonGenerator
             {
                 var simpleName = PdbSourceReader.NormalizeGenericName(typeModel.Name);
 
-                // For nested types like "Outer.Inner", use just the inner name
+                // 对于 "Outer.Inner" 等嵌套类型,只使用内部名称
                 var dotIdx = simpleName.LastIndexOf('.');
                 if (dotIdx >= 0) simpleName = simpleName[(dotIdx + 1)..];
 
@@ -334,8 +334,8 @@ public static class PackageJsonGenerator
                 }
                 else if (typeModel.SourceLines is not null)
                 {
-                    // Regex found no match — drop the PDB-based line so the link
-                    // points to the source file itself rather than a wrong line.
+                    // Regex 找不到匹配的 Regex—— 放下基于 PDB 的行, 链接
+                    // 点到源文件本身,而不是错误的行。
                     typeModel.SourceLines = null;
                 }
             }
@@ -343,8 +343,8 @@ public static class PackageJsonGenerator
     }
 
     /// <summary>
-    /// Returns the source lines for the given file, reading from the repository on first
-    /// access and caching for subsequent lookups.
+    /// 返回给定文件的源行,从第一个存储库读取
+    /// 访问权限和随后的检查缓存。
     /// </summary>
     private static string[]? GetSourceLines(
         Dictionary<string, string[]?> cache,
@@ -414,9 +414,9 @@ public static class PackageJsonGenerator
     }
 
     /// <summary>
-    /// Scans source lines for a type declaration matching <paramref name="typeName"/>.
-    /// When multiple matches exist (e.g. a nested type reusing a common name),
-    /// the match closest to <paramref name="pdbHintLine"/> wins.
+    /// 扫描匹配 <paramref name="typeName"/>类型声明的源线。
+    /// 当多重匹配存在时(e.g. 使用共同名称的嵌套类型),
+    /// 最接近 <paramref name="pdbHintLine"/> 的胜算。
     /// </summary>
     internal static int FindTypeDeclarationLine(string[] lines, string typeName, int pdbHintLine)
     {
@@ -432,7 +432,7 @@ public static class PackageJsonGenerator
         {
             var trimmed = lines[i].TrimStart();
 
-            // Skip comment lines
+            // 跳过注释行
             if (trimmed.StartsWith("//", StringComparison.Ordinal)
                 || trimmed.StartsWith("/*", StringComparison.Ordinal)
                 || trimmed.StartsWith("*", StringComparison.Ordinal))

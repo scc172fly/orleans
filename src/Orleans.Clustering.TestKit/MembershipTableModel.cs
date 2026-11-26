@@ -117,7 +117,7 @@ internal static class MembershipModel
         };
     }
 
-    // This transition never reads provider output or provider tokens.
+    // 这种过渡从来不读供应商产出或供应商象征性品。
     internal static void Apply(MembershipRequest request, MembershipModelState next, int cleanupVersionDelta = 0)
     {
         ClusteringTestKitDiagnostics.Require(!next.Deleted, "model history ended at DeleteCluster");
@@ -151,7 +151,7 @@ internal static class MembershipModel
                 next.Rows[request.Key].HeartbeatVersion = next.Version;
                 break;
             case MembershipOperationKind.CleanupDead:
-                // All generated timestamps precede CleanupCutoff, including owner writes and stale full-row payloads.
+                // 所有生成的时间戳都先于 CleanupCutoff,包括所有人写作和全行有效载荷。
                 var removed = next.Rows.Where(p => p.Value.Status == (int)SiloStatus.Dead).ToArray();
                 ClusteringTestKitDiagnostics.Require(cleanupVersionDelta >= 0 && cleanupVersionDelta <= removed.Length,
                     $"model cleanup version: expected delta in [0,{removed.Length}], observed={cleanupVersionDelta}");
@@ -369,7 +369,7 @@ internal sealed class MembershipModelExecutionContext
                     break;
                 case MembershipOperationKind.ReadPresentRow:
                 case MembershipOperationKind.ReadAbsentRow:
-                    // Retain generated operation identities while selecting from one full snapshot.
+                    // 保留生成的操作身份, 同时从完整快照中选择 。
                     var snapshot = await writer.ReadAllAsync(_ct);
                     var selected = snapshot.TryGet(input.SiloAddress);
                     MembershipTableTestRunner.Equal(before.Select(input.SiloAddress),
@@ -445,7 +445,7 @@ internal sealed class MembershipModelExecutionContext
             {
                 MembershipTableTestRunner.AssertCleanup(before, after, MembershipModel.CleanupCutoff);
                 cleanupVersionDelta = after.Version - before.Version;
-                // Select a bounded legal outcome only after validating all row changes and tokens.
+                // 仅在验证所有行更改和标牌之后,才选择有约束的法律结果。
                 next = MembershipModel.CopyState(_model);
                 MembershipModel.Apply(request, next, cleanupVersionDelta);
                 if (cleanupVersionDelta > 0) _previousTable = before.Next();

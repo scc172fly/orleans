@@ -10,8 +10,8 @@ using Xunit;
 namespace Tester.AdoNet.Persistence
 {
     /// <summary>
-    /// Tests for Orleans grain state persistence functionality using PostgreSQL
-    /// with the delete-state-on-clear option enabled.
+    /// 试验 Orleans grain 使用状态持久性功能 PostgreSQL
+    /// 启用了删除状态为清空选项。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("PostgreSql")]
     [TestSuite("Functional")]

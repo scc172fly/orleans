@@ -14,8 +14,8 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests specifically for verifying trace context propagation between client and grain server.
-    /// These tests expose issues where the server-side span starts a new trace instead of continuing the client's trace.
+    /// 用于核查客户端和 grain 服务器之间跟踪背景传播的测试。
+    /// 这些测试暴露了服务器侧的间隔开始新追踪而不是继续客户跟踪的问题。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -50,9 +50,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// CRITICAL TEST: Verifies that the server-side grain call activity has the same TraceId as the client.
-        /// This test fails if trace context propagation is broken - the server will start a new trace instead
-        /// of continuing the client's trace.
+        /// 捷克测试:证明服务器端 grain 调用活动与客户端具有相同的 TraceId 。
+        /// 如果跟踪背景传播中断, 此测试失败 - 服务器将启动新的追踪
+        /// 继续追踪客户
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -60,7 +60,7 @@ namespace UnitTests.General
         {
             Started.Clear();
 
-            // Start a parent activity on the client side
+            // 启动客户端的父活动
             using var clientActivity = ActivitySources.ApplicationGrainSource.StartActivity("client-parent-activity");
             clientActivity?.Start();
 
@@ -75,7 +75,7 @@ namespace UnitTests.General
             {
                 var grain = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(Random.Shared.Next());
 
-                // This call should propagate the trace context to the server
+                // 此呼叫应该向服务器传播跟踪上下文
                 var serverTraceInfo = await grain.GetTraceContextInfo();
 
                 _output.WriteLine($"Server HasActivity: {serverTraceInfo.HasActivity}");
@@ -88,11 +88,11 @@ namespace UnitTests.General
                 _output.WriteLine($"Server IsRemote: {serverTraceInfo.IsRemote}");
                 _output.WriteLine($"Server TraceParentFromRequestContext: {serverTraceInfo.TraceParentFromRequestContext}");
 
-                // CRITICAL ASSERTION: Server must have an activity
+                // 服务器必须有一个活动
                 Assert.True(serverTraceInfo.HasActivity, "Server-side grain call should have an Activity.Current");
 
-                // CRITICAL ASSERTION: Server TraceId must match client TraceId
-                // If this fails, trace context propagation is broken!
+                // 捷克要求:服务器 TraceId 必须匹配客户端 TraceId
+                // 如果失败, 跟踪环境传播会中断!
                 Assert.Equal(clientTraceId, serverTraceInfo.TraceId);
             }
             finally
@@ -127,8 +127,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that the server-side activity is a Server kind and has a remote parent.
-        /// This confirms proper W3C trace context handling.
+        /// 证明服务器侧边活动是服务器类型,且有远程父/母。
+        /// 这证实了适当的W3C跟踪背景处理。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -151,10 +151,10 @@ namespace UnitTests.General
 
                 Assert.True(serverTraceInfo.HasActivity, "Server-side grain call should have an Activity.Current");
 
-                // Server-side activity should be of kind Server
+                // 服务器边活动应该是类服务器
                 Assert.Equal(ActivityKind.Server, serverTraceInfo.Kind);
 
-                // Server-side activity should have a remote parent (propagated from client)
+                // 服务器边活动应有一个远程父母(从客户中传播)
                 Assert.True(serverTraceInfo.IsRemote, "Server-side activity should have HasRemoteParent=true");
             }
             finally
@@ -165,8 +165,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies trace context propagation across nested grain-to-grain calls.
-        /// All calls in the chain should share the same TraceId.
+        /// 验证嵌套 grain- - -grain 呼叫之间的跟踪环境传播。
+        /// 连锁店里的所有电话都应共享相同的 TraceId。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -190,11 +190,11 @@ namespace UnitTests.General
                 _output.WriteLine($"First Grain TraceId: {localInfo.TraceId}");
                 _output.WriteLine($"Nested Grain TraceId: {nestedInfo.TraceId}");
 
-                // Both grains should have activities
+                // 两者 grains 都应有活动
                 Assert.True(localInfo.HasActivity, "First grain should have an Activity.Current");
                 Assert.True(nestedInfo.HasActivity, "Nested grain should have an Activity.Current");
 
-                // CRITICAL: All calls should share the same TraceId
+                // 所有电话应共享相同的 TraceId
                 Assert.Equal(clientTraceId, localInfo.TraceId);
                 Assert.Equal(clientTraceId, nestedInfo.TraceId);
             }
@@ -206,8 +206,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that traceparent header is properly set in RequestContext when making grain calls.
-        /// This tests the outgoing filter's injection of trace context.
+        /// 证明跟踪源头设置适当 RequestContext 制时 grain 电话
+        /// 测试外向过滤器注入跟踪环境。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -230,11 +230,11 @@ namespace UnitTests.General
 
                 _output.WriteLine($"Server TraceParentFromRequestContext: {serverTraceInfo.TraceParentFromRequestContext}");
 
-                // traceparent header should be present in RequestContext
+                // RequestContext中应显示原始线性页眉
                 Assert.NotNull(serverTraceInfo.TraceParentFromRequestContext);
                 Assert.NotEmpty(serverTraceInfo.TraceParentFromRequestContext);
 
-                // traceparent should contain the client's TraceId
+                // 微光应包含客户端 TraceId
                 Assert.Contains(clientTraceId, serverTraceInfo.TraceParentFromRequestContext);
             }
             finally
@@ -245,8 +245,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that the client-side outgoing span and server-side incoming span are properly linked.
-        /// The server span's parent should be the client's outgoing span.
+        /// 证明客户-端外向和服务器-端进出的间隔有适当的连接。
+        /// 服务器的间隔应该为客户端的外延间隔 。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -268,14 +268,14 @@ namespace UnitTests.General
                 var grain = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(Random.Shared.Next());
                 _ = await grain.GetTraceContextInfo();
 
-                // Find the client-side outgoing span (should be a child of our test activity)
+                // 寻找客户端的外延(应该是我们测试活动的孩子)
                 var clientOutgoingSpan = Started
                     .Where(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName
                                && a.Kind == ActivityKind.Client
                                && a.OperationName.Contains("GetTraceContextInfo"))
                     .FirstOrDefault();
 
-                // Find the server-side incoming span
+                // 查找服务器端的接收间隔
                 var serverIncomingSpan = Started
                     .Where(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName
                                && a.Kind == ActivityKind.Server
@@ -288,14 +288,14 @@ namespace UnitTests.General
                 Assert.NotNull(clientOutgoingSpan);
                 Assert.NotNull(serverIncomingSpan);
 
-                // Both should share the same TraceId
+                // 两者应同共享 TraceId
                 Assert.Equal(clientTraceId, clientOutgoingSpan.TraceId.ToString());
                 Assert.Equal(clientTraceId, serverIncomingSpan.TraceId.ToString());
 
-                // Client outgoing span should be parented to our test activity
+                // 客户的外延时间应定位于测试活动
                 Assert.Equal(clientParentActivity.SpanId.ToString(), clientOutgoingSpan.ParentSpanId.ToString());
 
-                // Server span's parent should be the client outgoing span
+                // 服务器的连接源父应该是客户端的发送间隔
                 Assert.Equal(clientOutgoingSpan.SpanId.ToString(), serverIncomingSpan.ParentSpanId.ToString());
             }
             finally
@@ -306,8 +306,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that trace context is properly propagated even when the client has no active activity.
-        /// The server should still create its own trace in this case.
+        /// 证明即使客户没有积极活动,也适当传播跟踪背景。
+        /// 服务器仍应在此情况下建立自己的跟踪 。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -315,7 +315,7 @@ namespace UnitTests.General
         {
             Started.Clear();
 
-            // Ensure no activity is current on the client
+            // 确保客户没有当前活动
             var previousActivity = Activity.Current;
             Activity.Current = null;
 
@@ -327,7 +327,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Server HasActivity: {serverTraceInfo.HasActivity}");
                 _output.WriteLine($"Server TraceId: {serverTraceInfo.TraceId}");
 
-                // Server should still create an activity (starting a new trace)
+                // 服务器仍然应该创建一个活动( 开始新追踪)
                 Assert.True(serverTraceInfo.HasActivity, "Server should create an activity even when client has none");
                 Assert.NotNull(serverTraceInfo.TraceId);
                 Assert.NotEmpty(serverTraceInfo.TraceId);
@@ -340,8 +340,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that multiple concurrent grain calls from the same client activity
-        /// all share the same TraceId.
+        /// 证明同一客户活动同时发出多个 grain 电话
+        /// 全部共享相同 TraceId。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -381,8 +381,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// EDGE CASE: Tests trace context propagation when the traceparent header contains an unexpected format.
-        /// The server should handle malformed headers gracefully and still create an activity.
+        /// EDGE CASE:当跟踪对象头含有出乎意料的格式时,测试跟踪环境传播。
+        /// 服务器应优雅地处理格式错误的页眉,并仍然创建活动。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -390,7 +390,7 @@ namespace UnitTests.General
         {
             Started.Clear();
 
-            // Manually set an invalid traceparent in RequestContext
+            // 手动在 RequestContext中设置无效的跟踪环境
             RequestContext.Set("traceparent", "invalid-traceparent-value");
 
             try
@@ -402,7 +402,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Server TraceId: {serverTraceInfo.TraceId}");
                 _output.WriteLine($"Server TraceParentFromRequestContext: {serverTraceInfo.TraceParentFromRequestContext}");
 
-                // Server should still have an activity (creating a new trace)
+                // 服务器仍应有一个活动( 创建新追踪)
                 Assert.True(serverTraceInfo.HasActivity, "Server should create an activity even with malformed traceparent");
                 Assert.NotNull(serverTraceInfo.TraceId);
             }
@@ -414,8 +414,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that the traceparent in RequestContext reflects the client's outgoing span,
-        /// not the original parent activity. This verifies proper span creation on the client side.
+        /// 测试在 RequestContext 中的痕量显示客户的外延间隔,
+        /// 而不是原始父活动。 这将验证客户端的创建范围 。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -443,15 +443,15 @@ namespace UnitTests.General
 
                 Assert.NotNull(serverTraceInfo.TraceParentFromRequestContext);
 
-                // The traceparent should contain the TraceId
+                // 跟踪应包含 TraceId
                 Assert.Contains(clientTraceId, serverTraceInfo.TraceParentFromRequestContext);
 
-                // The server's parent span ID should NOT be the original client parent span ID
-                // It should be the span ID of the client's outgoing call span
-                // (This is because the client creates a new span for the outgoing call)
+                // 服务器的父对父的 ID 不应该是原始客户端的父对母的 ID
+                // 应该是客户外拨电话的
+                // (这是因为客户端为发送呼叫创建了新范围)
                 Assert.NotEqual(clientParentSpanId, serverTraceInfo.ParentSpanId);
 
-                // Find the client outgoing span
+                // 查找客户端的外延
                 var clientOutgoingSpan = Started
                     .FirstOrDefault(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName
                                         && a.Kind == ActivityKind.Client
@@ -459,10 +459,10 @@ namespace UnitTests.General
 
                 Assert.NotNull(clientOutgoingSpan);
 
-                // The server's parent span ID should match the client outgoing span ID
+                // 服务器的父对父跨年身份识别码应与客户端的离线身份识别码匹配
                 Assert.Equal(clientOutgoingSpan.SpanId.ToString(), serverTraceInfo.ParentSpanId);
 
-                // The traceparent should contain the client outgoing span ID
+                // 跟踪身份应该包含客户端的外向跨号ID
                 Assert.Contains(clientOutgoingSpan.SpanId.ToString(), serverTraceInfo.TraceParentFromRequestContext);
             }
             finally
@@ -473,8 +473,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests trace context propagation when making calls from within a grain's OnActivateAsync.
-        /// This is a common edge case where activation might not have a proper trace context.
+        /// 在 grain OnActivateAsync内调用时,测试跟踪背景传播情况。
+        /// 这是一个常见的边缘情况,启动可能没有适当的跟踪环境。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -492,23 +492,23 @@ namespace UnitTests.General
 
             try
             {
-                // Make a call that triggers activation
+                // 发出触发启动的电话
                 var grain = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(Random.Shared.Next());
                 var serverTraceInfo = await grain.GetTraceContextInfo();
 
                 _output.WriteLine($"Server TraceId (during activation): {serverTraceInfo.TraceId}");
 
-                // Verify the trace ID matches
+                // 校验跟踪ID匹配
                 Assert.Equal(clientTraceId, serverTraceInfo.TraceId);
 
-                // Find the activation span
+                // 查找激活的间隔
                 var activationSpan = Started
                     .FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
 
                 if (activationSpan is not null)
                 {
                     _output.WriteLine($"Activation Span TraceId: {activationSpan.TraceId}");
-                    // The activation span should also share the same trace ID
+                    // 激活的间隔期也应共享相同的跟踪识别码
                     Assert.Equal(clientTraceId, activationSpan.TraceId.ToString());
                 }
             }
@@ -520,7 +520,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that tracestate header is properly propagated along with traceparent.
+        /// 微量国家头的测试 与微量生物一起被适当传播
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -533,7 +533,7 @@ namespace UnitTests.General
 
             Assert.NotNull(clientActivity);
 
-            // Set a tracestate on the client activity
+            // 设置客户活动跟踪状态
             clientActivity.TraceStateString = "vendor1=value1,vendor2=value2";
 
             try
@@ -541,7 +541,7 @@ namespace UnitTests.General
                 var grain = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(Random.Shared.Next());
                 var serverTraceInfo = await grain.GetTraceContextInfo();
 
-                // Find the server span
+                // 查找服务器的横跨
                 var serverSpan = Started
                     .FirstOrDefault(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName
                                         && a.Kind == ActivityKind.Server
@@ -549,8 +549,8 @@ namespace UnitTests.General
 
                 _output.WriteLine($"Server Span TraceState: {serverSpan?.TraceStateString ?? "(null)"}");
 
-                // The tracestate should be propagated to the server
-                // Note: This test may need adjustment based on how Orleans handles tracestate
+                // 跟踪状态应该向服务器传播
+                // 注:这项试验可能需要根据 Orleans 处理追踪状态的方法进行调整。
                 if (serverSpan is not null && !string.IsNullOrEmpty(serverSpan.TraceStateString))
                 {
                     Assert.Contains("vendor1", serverSpan.TraceStateString);
@@ -564,24 +564,24 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// CRITICAL TEST: Verifies that when a grain call triggers activation, the activation span
-        /// shares the same TraceId as the grain call and is properly linked in the trace.
+        /// 捷克试验:证明当 grain 调用触发器激活时,启动时间
+        /// 相同股份 TraceId 以当为 grain 并且将电线与追踪中的适当连接。
         /// 
-        /// This test reproduces the production issue where the activation span starts a new trace
-        /// instead of being part of the incoming grain call's trace.
+        /// 此测试复制了激活周期开始新追踪的生产问题
+        /// 而不是作为来电 grain 追踪的一部分。
         /// 
-        /// Expected trace structure:
+        /// 预期跟踪结构:
         ///   client-parent-activity
-        ///     └── ITraceContextPropagationGrain/GetTraceContextInfo (Client, outgoing)
-        ///           └── ITraceContextPropagationGrain/GetTraceContextInfo (Server, incoming) 
-        ///                 └── activate grain (should be linked to this trace!)
-        ///                       ├── register directory entry
-        ///                       └── execute OnActivateAsync
+        ///     └── ITraceContextPropagationGrain/GetTraceContextInfo (日报、 发送)
+        ///           * { ITraceContextPropagationGrain/GetTraceContextInfo (服务员,新来) 
+        ///                 激活 grain (应该与此追踪连接 !)
+        ///                       注册目录条目
+        ///                       执行 OnActivateAsync
         /// 
-        /// Bug scenario (what we're testing for):
-        ///   activate grain (NEW TRACE - disconnected from client!)  <-- THIS IS THE BUG
-        ///     ├── register directory entry
-        ///     └── execute OnActivateAsync
+        /// 错误假设( 我们正在测试的是) :
+        ///   启动 grain (NEWTRACE - 与客户端断开!) &lt; -- 这是BUG
+        ///     注册目录条目
+        ///     执行 OnActivateAsync
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -599,16 +599,16 @@ namespace UnitTests.General
 
             try
             {
-                // Use a unique grain ID to ensure we trigger a new activation
+                // 使用独一 grain ID,以确保我们触发新的激活
                 var uniqueGrainId = Random.Shared.Next();
                 var grain = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(uniqueGrainId);
 
-                // This call will trigger activation since it's a new grain
+                // 电话会触发启动, 因为这是一个新的 grain
                 var serverTraceInfo = await grain.GetTraceContextInfo();
 
                 _output.WriteLine($"Server TraceId: {serverTraceInfo.TraceId}");
 
-                // Find the activation span
+                // 查找激活的间隔
                 var activationSpan = Started
                     .FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
 
@@ -620,21 +620,21 @@ namespace UnitTests.General
                     _output.WriteLine($"Activation Span ParentId: {activationSpan.ParentId}");
                 }
 
-                // CRITICAL ASSERTION: Activation span must exist
+                // 化学方面:必须存在激活范围
                 Assert.NotNull(activationSpan);
 
-                // CRITICAL ASSERTION: Activation span must share the same TraceId as the client
-                // If this fails, the activation is starting a new trace instead of being part
-                // of the incoming grain call's trace!
+                // 切片:启动期必须与客户共享相同的 TraceId
+                // 如果失败, 启动将开始新的追踪, 而不是作为其中的一部分
+                // 收到时 grain 电话追踪!
                 Assert.Equal(clientTraceId, activationSpan.TraceId.ToString());
 
-                // CRITICAL ASSERTION: Activation span should have a parent (not be a root span)
-                // In the bug scenario, the activation span has no parent and starts a new trace
+                // 活动周期应有一个父(不是根间隔)
+                // 在错误情况下, 激活的间隔没有父/ 父, 并开始新追踪
                 Assert.False(
                     string.IsNullOrEmpty(activationSpan.ParentId),
                     "Activation span should have a parent! If this fails, the activation is starting a new trace.");
 
-                // Verify the grain call span also shares the same trace ID
+                // 校验 grain 调用间隔也共享相同的跟踪 ID
                 Assert.Equal(clientTraceId, serverTraceInfo.TraceId);
             }
             finally
@@ -645,13 +645,13 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that when activation is triggered by a grain call, the entire trace hierarchy is correct:
-        /// 1. Client outgoing span
-        /// 2. Server incoming grain call span (parented to client outgoing)
-        /// 3. Activation span (should share trace context with the grain call)
-        /// 4. OnActivateAsync span (parented to activation span)
+        /// 证明当启动由 grain 呼叫触发时,整个跟踪等级是正确的:
+        /// 1. 客户外向
+        /// 2. 服务器接收 grain 呼叫(由客户向外发送)
+        /// 3. 启动范围(应与 grain 调用共享跟踪背景)
+        /// 4. OnActivateAsync 跨度(以启动频度为活化)
         /// 
-        /// This test checks the full hierarchy to ensure no span is disconnected.
+        /// 测试检查整个等级以确保没有间断 。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -672,13 +672,13 @@ namespace UnitTests.General
 
             try
             {
-                // Use a grain type that has OnActivateAsync to ensure we get all spans
+                // 使用 a grain 类型类型 OnActivateAsync 以确保我们得到所有
                 var grain = _fixture.GrainFactory.GetGrain<IFilteredActivityGrain>(Random.Shared.Next());
                 _ = await grain.GetActivityId();
 
                 _output.WriteLine($"\n=== SPAN ANALYSIS ===");
 
-                // 1. Find client outgoing span
+                // 1. 确定客户的离职期
                 var clientOutgoingSpan = Started
                     .FirstOrDefault(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName
                                         && a.Kind == ActivityKind.Client
@@ -697,7 +697,7 @@ namespace UnitTests.General
                     _output.WriteLine($"   NOT FOUND!");
                 }
 
-                // 2. Find server incoming span
+                // 2. 查找服务器的连接
                 var serverIncomingSpan = Started
                     .FirstOrDefault(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName
                                         && a.Kind == ActivityKind.Server
@@ -716,7 +716,7 @@ namespace UnitTests.General
                     _output.WriteLine($"   NOT FOUND!");
                 }
 
-                // 3. Find activation span
+                // 3. 查找启动范围
                 var activationSpan = Started
                     .FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
 
@@ -733,7 +733,7 @@ namespace UnitTests.General
                     _output.WriteLine($"   NOT FOUND!");
                 }
 
-                // 4. Find OnActivateAsync span
+                // 4. 查找 OnActivateAsync 范围
                 var onActivateSpan = Started
                     .FirstOrDefault(a => a.OperationName == ActivityNames.OnActivate);
 
@@ -750,10 +750,10 @@ namespace UnitTests.General
                     _output.WriteLine($"   NOT FOUND (grain may not implement IGrainBase)");
                 }
 
-                // ASSERTIONS
+                // 款 备 款
                 _output.WriteLine($"\n=== ASSERTIONS ===");
 
-                // All spans should share the same TraceId
+                // 所有宽度应共享相同的 TraceId
                 Assert.NotNull(clientOutgoingSpan);
                 Assert.NotNull(serverIncomingSpan);
                 Assert.NotNull(activationSpan);
@@ -766,19 +766,19 @@ namespace UnitTests.General
                 Assert.Equal(clientTraceId, serverIncomingSpan.TraceId.ToString());
                 _output.WriteLine($"  ✓ Server incoming span has correct TraceId");
 
-                // THIS IS THE CRITICAL CHECK - activation span must share the trace ID!
+                // 这是化学检测 - 启动间隔必须共享追踪身份!
                 Assert.Equal(clientTraceId, activationSpan.TraceId.ToString());
                 _output.WriteLine($"  ✓ Activation span has correct TraceId");
 
-                // Client outgoing span should be parented to our test activity
+                // 客户的外延时间应定位于测试活动
                 Assert.Equal(clientSpanId, clientOutgoingSpan.ParentSpanId.ToString());
                 _output.WriteLine($"  ✓ Client outgoing span is parented to test activity");
 
-                // Server incoming span should be parented to client outgoing span
+                // 服务器的输入频度应该与客户端的用户外传频度相连接
                 Assert.Equal(clientOutgoingSpan.SpanId.ToString(), serverIncomingSpan.ParentSpanId.ToString());
                 _output.WriteLine($"  ✓ Server incoming span is parented to client outgoing span");
 
-                // Activation span should have a parent (not be a root span)
+                // 激活周期应有父(不是根间隔)
                 Assert.False(
                     string.IsNullOrEmpty(activationSpan.ParentId),
                     "Activation span should not be a root span! This indicates broken trace context propagation.");
@@ -803,9 +803,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Diagnostic test that checks if the traceparent is properly present in the message's
-        /// RequestContextData when it reaches the server. This helps diagnose production issues
-        /// where trace context might not be propagating.
+        /// 检查信息中是否正确存在跟踪者
+        /// RequestContextData 当它到达服务器时。这有助于诊断生产问题
+        /// 其跟踪环境可能不会传播。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -834,7 +834,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Server Activity ParentSpanId: {serverTraceInfo.ParentSpanId ?? "(NULL!)"}");
                 _output.WriteLine($"Server Activity HasRemoteParent: {serverTraceInfo.IsRemote}");
 
-                // DIAGNOSTIC ASSERTIONS
+                // 展望
                 if (string.IsNullOrEmpty(serverTraceInfo.TraceParentFromRequestContext))
                 {
                     _output.WriteLine("\n⚠️ WARNING: traceparent is NOT present in RequestContext!");
@@ -845,7 +845,7 @@ namespace UnitTests.General
                 {
                     _output.WriteLine($"\n✓ traceparent IS present in RequestContext");
 
-                    // Parse and validate the traceparent format
+                    // 分析并验证跟踪格式
                     var parts = serverTraceInfo.TraceParentFromRequestContext.Split('-');
                     if (parts.Length >= 3)
                     {
@@ -862,7 +862,7 @@ namespace UnitTests.General
                     }
                 }
 
-                // The traceparent should be present
+                // 追踪者应该在场
                 Assert.NotNull(serverTraceInfo.TraceParentFromRequestContext);
                 Assert.NotEmpty(serverTraceInfo.TraceParentFromRequestContext);
                 Assert.Contains(clientTraceId, serverTraceInfo.TraceParentFromRequestContext);
@@ -875,16 +875,16 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// CRITICAL TEST: Simulates a scenario where the calling code has no active Activity.
-        /// In this case, the ActivityPropagationOutgoingGrainCallFilter's StartActivity will return null
-        /// (because there's no parent activity and potentially no listener), and no traceparent will be injected.
+        /// 刻度测试: 模拟调用代码没有活动的设想。
+        /// 在这种情况下, ActivityPropagationOutgoingGrainCallFilter的 StartActivity 将无效返回
+        /// (因为没有家长活动 也可能没有听众) 也没有给跟踪者注射
         /// 
-        /// This test verifies that when a grain call is made without an active Activity,
-        /// the activation span will NOT have a parent and will start a new trace.
+        /// 此测试可核实当 grain 呼叫没有活动时,
+        /// 激活的间隔将没有父行, 并将开始新的跟踪 。
         /// 
-        /// This reproduces the production issue where:
-        /// - `activate grain` span has empty parentSpanId
-        /// - The trace appears disconnected from the originating call
+        /// 由此再现了生产问题,其内容如下:
+        /// - `activate grain` 宽度为空 parentSpanId
+        /// - 痕迹似乎与原发电话断开
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -892,7 +892,7 @@ namespace UnitTests.General
         {
             Started.Clear();
 
-            // Ensure no Activity is current
+            // 确保当前活动为当前活动
             var previousActivity = Activity.Current;
             Activity.Current = null;
 
@@ -909,7 +909,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Server HasActivity: {serverTraceInfo.HasActivity}");
                 _output.WriteLine($"Server TraceId: {serverTraceInfo.TraceId}");
 
-                // Find the activation span
+                // 查找激活的间隔
                 var activationSpan = Started
                     .FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
 
@@ -920,8 +920,8 @@ namespace UnitTests.General
                     _output.WriteLine($"Activation Span ParentId: {activationSpan.ParentId ?? "(NULL - ROOT SPAN!)"}");
                     _output.WriteLine($"Activation Span ParentSpanId: {activationSpan.ParentSpanId}");
 
-                    // When there's no caller activity, the activation span should have no parent
-                    // This is the scenario that matches the production trace
+                    // 当没有电线活动时, 激活的间隔应该没有父权
+                    // 这是与生产跟踪匹配的假设
                     if (string.IsNullOrEmpty(activationSpan.ParentId))
                     {
                         _output.WriteLine("\n⚠️ EXPECTED BEHAVIOR: Activation span is a ROOT span (no parent)");
@@ -933,8 +933,8 @@ namespace UnitTests.General
                     _output.WriteLine("Activation span NOT FOUND");
                 }
 
-                // Document the expected behavior: without a caller activity, traceparent won't be in RequestContext
-                // and the activation will start a new trace
+                // 记录预期的行为:没有电话活动,追踪者就不会在 RequestContext
+                // 激活将开始一个新的追踪
                 if (string.IsNullOrEmpty(serverTraceInfo.TraceParentFromRequestContext))
                 {
                     _output.WriteLine("\n✓ CONFIRMED: traceparent is NOT in RequestContext when caller has no Activity");
@@ -949,12 +949,12 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests what happens when a grain call is made from within another grain that has no activity context.
-        /// This simulates scenarios like:
-        /// - Grain timers triggering calls
-        /// - Reminder callbacks making grain calls
-        /// - Stream subscription handlers
-        /// - Background processing in grains
+        /// 测试当 grain 由他人内部打电话 grain 并且没有活动背景。
+        /// 模拟假想方案, 如:
+        /// - Grain 触发电话的计时器
+        /// - 提醒回调, 发出 grain 呼叫
+        /// - 溪流订阅处理器
+        /// - 处理背景 grains
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -962,14 +962,14 @@ namespace UnitTests.General
         {
             Started.Clear();
 
-            // First, activate a grain that will make a nested call
-            // We start with an activity to ensure the first grain is activated with proper context
+            // 首先, 激活一个 grain , 这将发出嵌套呼叫
+            // 我们首先从一项活动开始,以确保第一个 grain 在适当的背景下启动
             using var clientActivity = ActivitySources.ApplicationGrainSource.StartActivity("setup-activity");
             clientActivity?.Start();
 
             var callerGrain = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(Random.Shared.Next());
 
-            // First call to ensure the grain is activated
+            // 第一次呼叫以确保启动 grain
             _ = await callerGrain.GetTraceContextInfo();
 
             clientActivity?.Stop();
@@ -980,19 +980,19 @@ namespace UnitTests.General
 
             try
             {
-                // Now make another call - the grain is already activated
-                // But if this call triggers a nested call within the grain, 
-                // and there's no Activity.Current, the nested call won't have trace context
+                // 现在再拨- grain 已经启动
+                // 但如果这电话触发了 grain, 
+                // 并且没有 Activity.Current,嵌套呼叫不会有跟踪上下文
                 var result = await callerGrain.GetNestedTraceContextInfo();
 
                 _output.WriteLine($"Caller grain TraceId: {result.Local.TraceId}");
                 _output.WriteLine($"Nested grain TraceId: {result.Nested.TraceId}");
 
-                // Both should have activities (server creates one even without traceparent)
+                // 两者都应该有活动(服务器即使没有追踪,也要创造一个)
                 Assert.True(result.Local.HasActivity);
                 Assert.True(result.Nested.HasActivity);
 
-                // But they should share the same trace because grain-to-grain calls preserve context
+                // 但它们应该有相同的追踪,因为 grain-至grain 调用保持上下文
                 Assert.Equal(result.Local.TraceId, result.Nested.TraceId);
             }
             finally
@@ -1002,34 +1002,34 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// CRITICAL TEST: This test reproduces the exact production issue where:
-        /// - OpenTelemetry is configured to listen to Microsoft.Orleans.Lifecycle (for activation spans)
-        /// - But NOT listening to Microsoft.Orleans.Application (for grain call spans)
+        /// 捷克试验:本试验重复了下列地点的确切生产问题:
+        /// - OpenTelemetry 配置为听 Microsoft.Orleans.Lifecycle (用于激活频段)
+        /// - 但不听 Microsoft.Orleans.Application grain 的呼号
         /// 
-        /// When this happens:
-        /// 1. Client makes a grain call
-        /// 2. ActivityPropagationOutgoingGrainCallFilter tries to start an activity on ApplicationGrainSource
-        /// 3. StartActivity returns NULL because there's no listener for that source
-        /// 4. No traceparent is injected into RequestContext
-        /// 5. Server receives message with no traceparent
-        /// 6. Catalog.GetOrCreateActivation starts activation span with no parent
-        /// 7. The activation span becomes a ROOT span (disconnected from the original trace)
+        /// 当发生这种情况时:
+        /// 1. 客户发出 grain 呼叫
+        /// 2. ActivityPropagationOutgoingGrainCallFilter 试图启动 ApplicationGrainSource上的活动
+        /// 3. StartActivity 返回 NULLL, 因为没有该源的听众
+        /// 4. 没有向任何机构注入痕量父母 RequestContext
+        /// 5. 服务器接收没有跟踪信息的信息
+        /// 6. Catalog.GetOrCreateActivation 启动时间没有父(母)
+        /// 7. 启动波段成为ROOT(与原始跟踪脱钩)的波段。
         /// 
-        /// Expected trace in production (BUG):
-        ///   activate grain (NO PARENT - starts new trace!)
-        ///     ├── register directory entry
-        ///     └── execute OnActivateAsync
+        /// 生产中的预期痕量(BUG):
+        ///   激活 grain (无parent - 开始新追踪!)
+        ///     注册目录条目
+        ///     执行 OnActivateAsync
         /// 
-        /// This test verifies that if Application source isn't being sampled,
-        /// the activation span will have no parent.
+        /// 如果应用软件源没有被采样的话
+        /// 激活间隔将没有父/母。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
         public async Task ActivationSpanHasNoParentWhenApplicationSourceNotSampled()
         {
-            // This test documents the expected behavior when only Lifecycle source is sampled
-            // In our test fixture, we DO sample Application source, so this test verifies correct behavior
-            // In production, if Application source is NOT sampled, the activation will be a root span
+            // 此测试记录了在仅取样生命周期来源时预期的行为
+            // 在测试固定装置中 我们做抽样 试样应用源 所以这个测试验证正确的行为
+            // 生产过程中,如果应用程序源没有取样,激活将是一个根宽
 
             Started.Clear();
 
@@ -1057,7 +1057,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Server has traceparent in RequestContext: {!string.IsNullOrEmpty(serverTraceInfo.TraceParentFromRequestContext)}");
                 _output.WriteLine($"Server TraceParent: {serverTraceInfo.TraceParentFromRequestContext ?? "(NULL)"}");
 
-                // Find spans by source
+                // 按源查找范围
                 var applicationSpans = Started.Where(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName).ToList();
                 var lifecycleSpans = Started.Where(a => a.Source.Name == ActivitySources.LifecycleActivitySourceName).ToList();
 
@@ -1073,7 +1073,7 @@ namespace UnitTests.General
                     _output.WriteLine($"  - {span.OperationName} (ParentId: {span.ParentId ?? "NULL - ROOT"})");
                 }
 
-                // Find the client outgoing span
+                // 查找客户端的外延
                 var clientOutgoingSpan = Started
                     .FirstOrDefault(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName
                                         && a.Kind == ActivityKind.Client);
@@ -1086,7 +1086,7 @@ namespace UnitTests.General
                     _output.WriteLine("the activation span will have no parent.");
                 }
 
-                // In our test environment, Application source IS sampled, so we should have spans
+                // 在我们的测试环境中,应用源IS样本样本, 所以我们应该有宽度
                 Assert.NotNull(clientActivity);
                 Assert.True(applicationSpans.Count > 0,
                     "Application source spans should exist. In production, verify Microsoft.Orleans.Application is in your TracerProvider sources.");
@@ -1099,8 +1099,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Diagnostic test that checks if all Orleans ActivitySources are being properly sampled.
-        /// Run this to verify your OpenTelemetry configuration includes all necessary sources.
+        /// 检测是否对所有 Orleans ActivitySources 进行适当取样的诊断测试。
+        /// 运行此选项以校验您的 OpenTelemetry 配置包括所有必要的来源。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -1110,7 +1110,7 @@ namespace UnitTests.General
 
             _output.WriteLine("=== Checking ActivitySource Sampling ===\n");
 
-            // Test each Orleans ActivitySource
+            // 每种 Orleans ActivitySource
             var sourcesToTest = new[]
             {
                 (ActivitySources.ApplicationGrainSource, "Microsoft.Orleans.Application"),
@@ -1136,7 +1136,7 @@ namespace UnitTests.General
             _output.WriteLine("  - traceparent won't be injected into messages");
             _output.WriteLine("  - Activation spans will start new traces (no parent)");
 
-            // Make an actual grain call to verify end-to-end
+            // 实际拨打 grain ,以核实终端到终端
             _output.WriteLine("\n=== End-to-End Test ===");
             using var clientActivity = ActivitySources.ApplicationGrainSource.StartActivity("e2e-test");
             if (clientActivity is null)
@@ -1168,14 +1168,14 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// CRITICAL TEST: Simulates a call from an ASP.NET HTTP request handler.
-        /// In production, grain calls often originate from HTTP endpoints where:
-        /// 1. ASP.NET creates an HTTP activity (e.g., "GET /api/users/{id}")
-        /// 2. The controller calls a grain
-        /// 3. Orleans should propagate the HTTP trace context to the grain
+        /// 刻录器测试: 模拟 ASP.NET HTTP请求处理程序的呼叫 。
+        /// 在生产过程中, grain 电话经常来自HTTP终点点,其:
+        /// 1. ASP.NET 创建 HTTP活动(e.g. "GET/api/user/{id}")
+        /// 2. 控制器调用 grain
+        /// 3. Orleans 应把HTTP跟踪上下文传播到 grain
         /// 
-        /// This test verifies that if Activity.Current exists (from HTTP/ASP.NET),
-        /// Orleans properly propagates it to the grain call and activation spans.
+        /// 本测试核实如果存在 Activity.Current (来自HTTP/ASP.NET),
+        /// Orleans 将它适当传播到 grain 调用和激活的间隔。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -1183,7 +1183,7 @@ namespace UnitTests.General
         {
             Started.Clear();
 
-            // Simulate an ASP.NET HTTP activity (different source than Orleans)
+            // 模拟 ASP.NET HTTP 活动(源数不同于 Orleans)
             using var httpActivitySource = new ActivitySource("Microsoft.AspNetCore", "1.0.0");
             var httpListener = new ActivityListener
             {
@@ -1213,7 +1213,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Server TraceParent: {serverTraceInfo.TraceParentFromRequestContext ?? "(NULL)"}");
                 _output.WriteLine($"Server HasActivity: {serverTraceInfo.HasActivity}");
 
-                // Find the activation span
+                // 查找激活的间隔
                 var activationSpan = Started
                     .FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
 
@@ -1224,10 +1224,10 @@ namespace UnitTests.General
                     _output.WriteLine($"ParentId: {activationSpan.ParentId ?? "(NULL - ROOT!)"}");
                 }
 
-                // Server should have the same TraceId as the HTTP activity
+                // 服务器应与 HTTP 活动具有相同的 TraceId
                 Assert.Equal(httpTraceId, serverTraceInfo.TraceId);
 
-                // Activation span should also share the same TraceId
+                // 激活周期也应相同 TraceId
                 if (activationSpan is not null)
                 {
                     Assert.Equal(httpTraceId, activationSpan.TraceId.ToString());
@@ -1243,17 +1243,17 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// DIAGNOSTIC TEST: Forces grain activation on a specific (different) silo to test cross-silo
-        /// trace context propagation. This simulates production scenarios where the placement
-        /// director places the grain on a different silo than the one receiving the initial call.
+        /// 化学试验:力量 grain 特定(不同)上激活 silo 测试交叉silo
+        /// 模拟生产情景,将
+        /// 主任将 grain 放在与接收初始调用者不同的 silo 上。
         /// 
-        /// In production with AddDistributedGrainDirectory():
-        /// 1. Client sends call to Silo A
-        /// 2. Placement decides grain should be on Silo B
-        /// 3. Message is forwarded to Silo B
-        /// 4. Silo B creates the activation
+        /// 与 AddDistributedGrainDirectory():
+        /// 1. 客户向 Silo A发出呼叫
+        /// 2. 决定 grain 应放在 Silo B
+        /// 3. 电文转发给 Silo B
+        /// 4. Silo B 产生激活
         /// 
-        /// The question: Is trace context preserved through this forwarding?
+        /// 问题:是否通过这一转发保存了追踪背景?
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -1270,7 +1270,7 @@ namespace UnitTests.General
             _output.WriteLine("=== TEST: Cross-silo grain activation ===");
             _output.WriteLine($"Client TraceId: {clientTraceId}");
 
-            // Get the silos
+            // 获取 silos
             var silos = _fixture.HostedCluster.GetActiveSilos().ToList();
             _output.WriteLine($"Active silos: {silos.Count}");
             foreach (var silo in silos)
@@ -1286,12 +1286,12 @@ namespace UnitTests.General
 
             try
             {
-                // Use placement hint to force grain onto a specific silo
-                var targetSilo = silos[1].SiloAddress; // Use second silo
+                // 使用布置提示将 grain 强制到特定 silo
+                var targetSilo = silos[1].SiloAddress; // 第二次使用 silo
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetSilo);
                 _output.WriteLine($"Placement hint set to: {targetSilo}");
 
-                // This grain uses RandomPlacement, so the hint should work
+                // 此 grain 使用 RandomPlacement, 所以提示应该有效
                 var grain = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(Random.Shared.Next());
                 var serverTraceInfo = await grain.GetTraceContextInfo();
 
@@ -1300,7 +1300,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Server TraceParent: {serverTraceInfo.TraceParentFromRequestContext ?? "(NULL!)"}");
                 _output.WriteLine($"Server HasActivity: {serverTraceInfo.HasActivity}");
 
-                // Find the activation span
+                // 查找激活的间隔
                 var activationSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
                 if (activationSpan is not null)
                 {
@@ -1310,7 +1310,7 @@ namespace UnitTests.General
                     _output.WriteLine($"  HasRemoteParent: {activationSpan.HasRemoteParent}");
                 }
 
-                // CRITICAL: Even with cross-silo placement, trace should be preserved
+                // 即使交叉silo 位置,也应保留追踪
                 Assert.Equal(clientTraceId, serverTraceInfo.TraceId);
 
                 if (activationSpan is not null)
@@ -1329,8 +1329,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// DIAGNOSTIC TEST: Tests trace context when a grain-to-grain call crosses silo boundaries.
-        /// This is common in production where Grain A on Silo 1 calls Grain B on Silo 2.
+        /// DIGNOST: grain- -grain 调用时的 silo 边界线的跟踪环境试验。
+        /// 在生产中, Grain A在 Silo 1调用 Grain B调用 Silo 2时,这是常见的。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -1356,13 +1356,13 @@ namespace UnitTests.General
 
             try
             {
-                // Place first grain on silo 1
+                // 位址 第一 grain 日期 时 silo 1
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, silos[0].SiloAddress);
                 var grain1 = _fixture.GrainFactory.GetGrain<ITraceContextPropagationGrain>(Random.Shared.Next());
-                _ = await grain1.GetTraceContextInfo(); // Activate on silo 1
+                _ = await grain1.GetTraceContextInfo(); // silo 1 上激活
                 RequestContext.Clear();
 
-                // Now make a nested call - the nested grain should go to silo 2
+                // 现在做一个嵌套呼叫 - 嵌巢 grain 应该转到 silo 2
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, silos[1].SiloAddress);
                 var (local, nested) = await grain1.GetNestedTraceContextInfo();
                 RequestContext.Clear();
@@ -1372,7 +1372,7 @@ namespace UnitTests.General
                 _output.WriteLine($"Nested grain TraceId: {nested.TraceId}");
                 _output.WriteLine($"Nested grain HasRemoteParent: {nested.IsRemote}");
 
-                // Both should share same trace ID
+                // 两者应具有相同的跟踪身份
                 Assert.Equal(clientTraceId, local.TraceId);
                 Assert.Equal(clientTraceId, nested.TraceId);
             }
@@ -1418,26 +1418,26 @@ namespace UnitTests.General
 
 
     /// <summary>
-    /// Test grain interface for verifying trace context propagation from client to grain.
-    /// Returns detailed trace information to verify the server received the correct trace context.
+    /// 测试测试 grain 用于核查从客户到 grain.
+    /// 返回详细的跟踪信息以验证服务器是否收到正确的跟踪上下文。
     /// </summary>
     public interface ITraceContextPropagationGrain : IGrainWithIntegerKey
     {
         /// <summary>
-        /// Returns detailed trace information from the server-side Activity.Current.
-        /// This allows the test to verify that trace context was properly propagated.
+        /// 从服务器侧端返回详细跟踪信息 Activity.Current。
+        /// 这样,测试就可以核实跟踪环境是否得到适当传播。
         /// </summary>
         Task<TraceContextInfo> GetTraceContextInfo();
 
         /// <summary>
-        /// Makes a call to another grain and returns both the local and nested trace context.
-        /// Used to verify trace context propagation across grain-to-grain calls.
+        /// 呼叫另一个 grain ,返回本地和嵌套的跟踪环境。
+        /// 用于核实在 grain-至grain 调用中进行跟踪背景传播。
         /// </summary>
         Task<(TraceContextInfo Local, TraceContextInfo Nested)> GetNestedTraceContextInfo();
     }
 
     /// <summary>
-    /// Detailed trace context information returned from grain calls.
+    /// grain 电话中返回的详细跟踪背景信息。
     /// </summary>
     [GenerateSerializer]
     public class TraceContextInfo
@@ -1474,7 +1474,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation for verifying trace context propagation.
+    /// 测试 grain 实施,以核查跟踪背景传播。
     /// </summary>
     public class TraceContextPropagationGrain : Grain, ITraceContextPropagationGrain
     {

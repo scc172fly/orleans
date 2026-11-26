@@ -130,7 +130,7 @@ var podIp = IPAddress.Parse(
 builder.Host.UseOrleans(siloBuilder =>
 {
     siloBuilder
-        // Configure one production clustering provider here.
+        // 配置一个生产组群供应商在此。
         .Configure<ClusterOptions>(options =>
         {
             options.ServiceId = builder.Configuration["ORLEANS_SERVICE_ID"]
@@ -153,7 +153,7 @@ builder.Services.Configure<HostOptions>(options =>
 
 var app = builder.Build();
 
-// Map application-owned startup, readiness, and liveness endpoints.
+// 地图应用程序自有启动、准备状态和活度终点。
 
 app.Run();
             // </configure_kubernetes_silo>

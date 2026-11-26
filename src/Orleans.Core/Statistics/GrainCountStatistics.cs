@@ -7,7 +7,7 @@ using System.Threading;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Centralized statistics on per-grain-type activation counts.
+/// 每grain- 类型启动计数的集中统计数据。
 /// </summary>
 internal class GrainCountStatistics(CatalogInstruments instruments)
 {

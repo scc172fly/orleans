@@ -1,10 +1,10 @@
 <Project>
-  <!-- Set InformationVersion here, since $(Version) is already set at this point. -->
+  <!-- 在此设定 InformationVersion , 因为$( Verion) 已经在此点设定 。 -->
   <PropertyGroup>
     <InformationalVersion>$(Version). Commit Hash: $(GitHeadSha)</InformationalVersion>
   </PropertyGroup>
 
-  <!-- Roslyn authoring projects enable extended analyzer rules in their project files. -->
+  <!-- Roslyn 作者项目使得其项目档案中能够有扩展分析器规则。 -->
   <ItemGroup Condition="'$(EnforceExtendedAnalyzerRules)' != 'true'">
     <EditorConfigFiles Include="$(MSBuildThisFileDirectory)eng\roslyn-non-authoring.globalconfig" />
   </ItemGroup>
@@ -15,7 +15,7 @@
     Project="$(MSBuildThisFileDirectory)src/Orleans.Core/build/Microsoft.Orleans.Core.targets" />
 
   <ItemGroup>
-    <!-- Packable projects retain analyzer dependencies while keeping their assemblies out of copy-local outputs. -->
+    <!-- 可包装项目保留分析员的依附性,同时不将其集会列入当地产出。 -->
     <ProjectReference
       Include="$(SourceRoot)src/Orleans.CodeGenerator/Orleans.CodeGenerator.csproj"
       OutputItemType="Analyzer"

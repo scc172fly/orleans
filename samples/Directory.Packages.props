@@ -1,8 +1,8 @@
 <Project>
   <!--
-    Each sample owns its package versions so that its folder can be copied out of the repository
-    and built as-is. This file only stops the search from reaching the repository-wide versions,
-    so a sample which is missing its own Directory.Packages.props fails during restore.
+    每个样本都有其包件版本的自有版本,以便其文件夹可以从存储库复制出来
+    并按原样构建。 此文件只能阻止搜索到达全仓库版本,
+    因此,在恢复过程中缺少自己 Directory.Packages.props 的样本失败。
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

@@ -5,7 +5,7 @@ using Xunit;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// Deploys the built-in in-memory (grain-based) reminder provider in an in-process cluster.
+/// 部署内置的记忆( 内部) (O)grain提醒在程序内集群中的提供者。
 /// </summary>
 public sealed class InMemoryReminderTableFixture : ReminderTableTestFixture, IAsyncLifetime
 {
@@ -21,12 +21,12 @@ public sealed class InMemoryReminderTableFixture : ReminderTableTestFixture, IAs
 }
 
 /// <summary>
-/// Runs the shared direct conformance suite against the built-in in-memory reminder provider.
+/// 运行共享的直接兼容套件,与内置的记忆提醒提供商相对应。
 /// </summary>
 /// <remarks>
-/// This is the only built-in reminder provider which can be exercised without an external service, so it is the
-/// reference integration for the TestKit. Other built-in providers adopt the same suite through their own
-/// fixtures once their backing service is available.
+/// 这是唯一一个内置提醒提供人,无需外部服务即可使用,因此,它就是
+/// 和《京都议定书》 TestKit。其他内置提供商通过自己的服务来采用相同的套件套件
+/// 一旦它们有后援服务,就立即提供固定装置。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]

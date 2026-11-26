@@ -13,7 +13,7 @@ using Xunit;
 namespace ServiceBus.Tests.CheckpointerTests;
 
 /// <summary>
-/// Tests for EventHub delivery-based checkpointing via pulling-agent progress snapshots.
+/// 通过拉动剂推进快照进行 EventHub 交付检查站测试。
 /// </summary>
 [TestProvider("EventHub")]
 [TestArea("Streaming")]
@@ -21,7 +21,7 @@ namespace ServiceBus.Tests.CheckpointerTests;
 public class EventHubCheckpointerTests
 {
     /// <summary>
-    /// A test checkpointer that records all updates for verification.
+    /// 记录所有更新的测试检查站
     /// </summary>
     private class TestCheckpointer : IStreamQueueCheckpointer<string>
     {
@@ -289,7 +289,7 @@ public class EventHubCheckpointerTests
         public Task<IEnumerable<EventData>> ReceiveAsync(int maxCount, TimeSpan waitTime)
         {
             ReceiveCount++;
-            // Simulate a receiver binary compiled before the return value was annotated as non-null.
+            // 在返回值被附加非无效值前编译的接收器二进制模拟。
             return Task.FromResult<IEnumerable<EventData>>(null!);
         }
 
@@ -665,7 +665,7 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // Single subscription with a known processed offset.
+        // 单订,有已知处理过的冲销。
         UpdateDeliveryProgress(receiver, MakeToken(100));
 
         Assert.Equal("100", checkpointer.LastOffset);
@@ -695,7 +695,7 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // The pulling agent passes the lowest subscription offset as the watermark.
+        // 拖车代理商通过最低订费的分数,即水印。
         UpdateDeliveryProgress(receiver, MakeToken(95));
 
         Assert.Equal("95", checkpointer.LastOffset);
@@ -708,11 +708,11 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // Two subscriptions, one slow.
+        // 两个订书,一个慢点
         UpdateDeliveryProgress(receiver, MakeToken(50));
         Assert.Equal("50", checkpointer.LastOffset);
 
-        // After the slow subscription is removed, watermark advances.
+        // 取消缓慢的订阅后,水印会向前推进。
         UpdateDeliveryProgress(receiver, MakeToken(200));
         Assert.Equal("200", checkpointer.LastOffset);
     }
@@ -724,15 +724,15 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // Three subscriptions at different positions: the pulling agent passes the lowest token.
+        // 三个用户在不同的位置订阅:拉动器通过最低标记。
         UpdateDeliveryProgress(receiver, MakeToken(50));
         Assert.Equal("50", checkpointer.LastOffset);
 
-        // Slowest catches up.
+        // 慢速赶上。
         UpdateDeliveryProgress(receiver, MakeToken(80));
         Assert.Equal("80", checkpointer.LastOffset);
 
-        // All converge.
+        // 全体集合
         UpdateDeliveryProgress(receiver, MakeToken(120));
         Assert.Equal("120", checkpointer.LastOffset);
     }
@@ -747,8 +747,8 @@ public class EventHubCheckpointerTests
         UpdateDeliveryProgress(receiver, MakeToken(200));
         Assert.Equal("200", checkpointer.LastOffset);
 
-        // A newly registered subscriber can request replay from an older token,
-        // but the checkpoint only advances and must not move backwards.
+        // 新注册的订阅者可以要求重播旧牌,
+        // 但检查站只向前推进,不能倒退。
         UpdateDeliveryProgress(receiver, MakeToken(50));
         Assert.Equal("200", checkpointer.LastOffset);
     }
@@ -771,7 +771,7 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // No subscription progress is available; cache purge checkpointing is handled directly by the cache.
+        // 无法取得订阅进度;缓冲清除检查站由缓冲直接处理。
         UpdateDeliveryProgressWithNoSubscriptions(receiver);
 
         Assert.Null(checkpointer.LastOffset);

@@ -1,6 +1,6 @@
-/* Custom purple skin for Orleans Dashboard (compatible with AdminLTE v3) */
+/* 自定义 Orleans Dashboard 的紫色皮肤( 与 AdminLTE v3 相容) */
 
-/* Sidebar styling */
+/* 侧边条形 */
 .skin-purple .main-sidebar,
 .skin-purple .sidebar {
   background-color: #222d32;
@@ -27,7 +27,7 @@
   color: inherit;
 }
 
-/* Info box styling for purple theme */
+/* 紫色主题的信息框样式 */
 .skin-purple .info-box {
   box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
   margin-bottom: 1rem;
@@ -45,18 +45,18 @@
   color: #fff;
 }
 
-/* Panel/Box styling */
+/* 专门小组/框型 */
 .skin-purple .box,
 .skin-purple .card {
   box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
 }
 
-/* Ensure proper spacing */
+/* 确保适当的间距 */
 .skin-purple .content-wrapper {
   min-height: 100vh;
 }
 
-/* Fix for sidebar menu items */
+/* 侧边栏菜单项的固定 */
 .skin-purple .sidebar-menu > li.header {
   color: #4b646f;
   background: #1a2226;

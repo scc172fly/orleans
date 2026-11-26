@@ -43,7 +43,7 @@ namespace DistributedTests.Client.LoadGeneratorScenario
         {
             Console.WriteLine($"AzureTableUri: {clientParams.AzureTableUri}");
 
-            // Register the measurements. n0 -> format as natural number
+            // 登记测量结果。 n0 - > 格式为自然编号
             BenchmarksEventSource.Register("requests", Operations.Sum, Operations.Sum, "Requests", "Number of requests completed", "n0");
             BenchmarksEventSource.Register("failures", Operations.Sum, Operations.Sum, "Failures", "Number of failures", "n0");
             BenchmarksEventSource.Register("rps", Operations.Sum, Operations.Median, "Median RPS", "Rate per second", "n0");
@@ -56,7 +56,7 @@ namespace DistributedTests.Client.LoadGeneratorScenario
 
             _logger.LogInformation("Connecting to cluster...");
             await host.StartAsync(cancellationToken);
-            // The Orleans client is always registered by UseOrleansClient above.
+            // Orleans 客户端始终按以上 UseOrleansClient 登记。
             var client = host.Services.GetService<IClusterClient>()!;
 
             var generator = new ConcurrentLoadGenerator<T>(

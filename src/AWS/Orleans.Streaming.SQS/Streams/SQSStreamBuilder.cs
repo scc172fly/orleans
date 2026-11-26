@@ -8,15 +8,15 @@ using OrleansAWSUtils.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Configures an Amazon SQS-backed persistent stream provider on an Orleans silo.
+    /// 配置 Orleans silo上的 Amazon SQS 支持的持久性流提供者。
     /// </summary>
     public class SiloSqsStreamConfigurator : SiloPersistentStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SiloSqsStreamConfigurator"/> class.
+        /// 初始化 <see cref="SiloSqsStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="configureServicesDelegate">The delegate used to configure silo services.</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="configureServicesDelegate">代表用于配置 silo 服务。</param>
         public SiloSqsStreamConfigurator(string name, Action<Action<IServiceCollection>> configureServicesDelegate)
             : base(name, configureServicesDelegate, SQSAdapterFactory.Create)
         {
@@ -29,10 +29,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the SQS options for the stream provider.
+        /// 配置流提供商的 SQS 选项。
         /// </summary>
-        /// <param name="configureOptions">The delegate used to configure the named <see cref="SqsOptions"/>.</param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <param name="configureOptions">用于配置所命名的 <see cref="SqsOptions"/>的代表。</param>
+        /// <returns>流体提供者配置器。</returns>
         public SiloSqsStreamConfigurator ConfigureSqs(Action<OptionsBuilder<SqsOptions>> configureOptions)
         {
             this.Configure(configureOptions);
@@ -40,10 +40,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the number of stream batches retained in each receiver cache.
+        /// 配置每个接收器缓存中保留的小批次数量 。
         /// </summary>
-        /// <param name="cacheSize">The number of stream batches retained in each receiver cache.</param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <param name="cacheSize">每个接收器缓存中保留流批次的数量。</param>
+        /// <returns>流体提供者配置器。</returns>
         public SiloSqsStreamConfigurator ConfigureCache(int cacheSize = SimpleQueueCacheOptions.DEFAULT_CACHE_SIZE)
         {
             this.Configure<SimpleQueueCacheOptions>(ob => ob.Configure(options => options.CacheSize = cacheSize));
@@ -51,10 +51,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the number of SQS queues used to partition streams.
+        /// 配置用于分区流的 SQS 队列数量。
         /// </summary>
-        /// <param name="numOfparitions">The number of SQS queues.</param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <param name="numOfparitions">SQS 队列数。</param>
+        /// <returns>流体提供者配置器。</returns>
         public SiloSqsStreamConfigurator ConfigurePartitioning(int numOfparitions = HashRingStreamQueueMapperOptions.DEFAULT_NUM_QUEUES)
         {
             this.Configure<HashRingStreamQueueMapperOptions>(ob => ob.Configure(options => options.TotalQueueCount = numOfparitions));
@@ -62,12 +62,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the data adapter used to convert between Orleans stream batches and SQS messages.
+        /// 配置用于在 Orleans 流批次和 SQS 信件之间转换数据适配器。
         /// </summary>
         /// <param name="factory">
-        /// The factory invoked with the service provider and stream provider name to create the data adapter.
+        /// 工厂与服务提供商和流供应商名称一起援引创建数据适配器。
         /// </param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <returns>流体提供者配置器。</returns>
         public SiloSqsStreamConfigurator UseDataAdapter(Func<IServiceProvider, string, ISQSDataAdapter> factory)
         {
             this.ConfigureComponent(factory);
@@ -76,15 +76,15 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Configures an Amazon SQS-backed persistent stream provider on an Orleans client.
+    /// 配置一个 Orleans 客户端上的 Amazon SQS 支持的持久性流提供者。
     /// </summary>
     public class ClusterClientSqsStreamConfigurator : ClusterClientPersistentStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterClientSqsStreamConfigurator"/> class.
+        /// 初始化 <see cref="ClusterClientSqsStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="builder">The client builder.</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="builder">客户端构建器。</param>
         public ClusterClientSqsStreamConfigurator(string name, IClientBuilder builder)
             : base(name, builder, SQSAdapterFactory.Create)
         {
@@ -97,10 +97,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the SQS options for the stream provider.
+        /// 配置流提供商的 SQS 选项。
         /// </summary>
-        /// <param name="configureOptions">The delegate used to configure the named <see cref="SqsOptions"/>.</param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <param name="configureOptions">用于配置所命名的 <see cref="SqsOptions"/>的代表。</param>
+        /// <returns>流体提供者配置器。</returns>
         public ClusterClientSqsStreamConfigurator ConfigureSqs(Action<OptionsBuilder<SqsOptions>> configureOptions)
         {
             this.Configure(configureOptions);
@@ -109,10 +109,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the number of SQS queues used to partition streams.
+        /// 配置用于分区流的 SQS 队列数量。
         /// </summary>
-        /// <param name="numOfparitions">The number of SQS queues.</param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <param name="numOfparitions">SQS 队列数。</param>
+        /// <returns>流体提供者配置器。</returns>
         public ClusterClientSqsStreamConfigurator ConfigurePartitioning(int numOfparitions = HashRingStreamQueueMapperOptions.DEFAULT_NUM_QUEUES)
         {
             this.Configure<HashRingStreamQueueMapperOptions>(ob => ob.Configure(options => options.TotalQueueCount = numOfparitions));
@@ -120,12 +120,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the data adapter used to convert between Orleans stream batches and SQS messages.
+        /// 配置用于在 Orleans 流批次和 SQS 信件之间转换数据适配器。
         /// </summary>
         /// <param name="factory">
-        /// The factory invoked with the service provider and stream provider name to create the data adapter.
+        /// 工厂与服务提供商和流供应商名称一起援引创建数据适配器。
         /// </param>
-        /// <returns>The stream provider configurator.</returns>
+        /// <returns>流体提供者配置器。</returns>
         public ClusterClientSqsStreamConfigurator UseDataAdapter(Func<IServiceProvider, string, ISQSDataAdapter> factory)
         {
             this.ConfigureComponent(factory);

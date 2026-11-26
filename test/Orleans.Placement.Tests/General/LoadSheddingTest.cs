@@ -13,9 +13,9 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests for load shedding functionality when the gateway is overloaded.
+    /// 当网关超载时, 测试负荷切换功能 。
     /// </summary>
-    // if we parallelize tests, each test should run in isolation 
+    // 如果我们同时进行测试, 每一次测试都应该单独运行 
     [TestSuite("Functional")]
     [TestProvider("None")]
     [TestArea("Placement")]
@@ -57,7 +57,7 @@ namespace UnitTests.General
                 ISimpleGrain grain = this.fixture.GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.Next(), SimpleGrain.SimpleGrainNamePrefix);
                 LatchIsOverloaded(true);
 
-                // Do not accept message in overloaded state
+                // 接收信件时超载状态
                 await Assert.ThrowsAsync<GatewayTooBusyException>(() => grain.SetA(5));
             }
             finally
@@ -82,14 +82,14 @@ namespace UnitTests.General
 
                 LatchIsOverloaded(true);
 
-                // Do not accept message in overloaded state
+                // 接收信件时超载状态
                 await Assert.ThrowsAsync<GatewayTooBusyException>(() => grain.SetA(2));
 
                 this.fixture.Logger.LogInformation("Second set was shed");
 
                 LatchIsOverloaded(false);
 
-                // Simple request after overload is cleared should succeed
+                // 超载清除后简单请求成功
                 await grain.SetA(4);
                 this.fixture.Logger.LogInformation("Third set succeeded");
             }

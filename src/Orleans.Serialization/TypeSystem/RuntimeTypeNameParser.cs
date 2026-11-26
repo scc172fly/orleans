@@ -5,7 +5,7 @@ using System.Text;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// Utility class for parsing type names, as formatted by <see cref="RuntimeTypeNameFormatter"/>.
+/// 用于分析类型名称的实用类,以 <see cref="RuntimeTypeNameFormatter"/>格式格式格式。
 /// </summary>
 public static class RuntimeTypeNameParser
 {
@@ -28,17 +28,17 @@ public static class RuntimeTypeNameParser
     internal static ReadOnlySpan<char> TypeNameDelimiters => "[]*&,`+";
 
     /// <summary>
-    /// Parse the provided value as a type name.
+    /// 将提供的值作为类型名称分析 。
     /// </summary>
-    /// <param name="input">The input.</param>
-    /// <returns>A parsed type specification.</returns>
+    /// <param name="input">输入。</param>
+    /// <returns>解析型号规格。</returns>
     public static TypeSpec Parse(string input) => Parse(input.AsSpan());
 
     /// <summary>
-    /// Parse the provided value as a type name.
+    /// 将提供的值作为类型名称分析 。
     /// </summary>
-    /// <param name="input">The input.</param>
-    /// <returns>A parsed type specification.</returns>
+    /// <param name="input">输入。</param>
+    /// <returns>解析型号规格。</returns>
     public static TypeSpec Parse(ReadOnlySpan<char> input) => ParseInternal(ref input);
 
     private static TypeSpec ParseInternal(ref ReadOnlySpan<char> input)
@@ -58,7 +58,7 @@ public static class RuntimeTypeNameParser
 
         TypeSpec coreType = null!;
 
-        // Read tuple
+        // 读取图字
         if (input.TryPeek(out c) && c == CompoundAliasStartIndicator)
         {
             input.ConsumeCharacter(CompoundAliasStartIndicator);
@@ -112,7 +112,7 @@ public static class RuntimeTypeNameParser
         }
         else
         {
-            // Read namespace and class name, including generic arity, which is a part of the class name.
+            // 读取命名空间和类名,包括通用性,这是类名的一部分。
             NamedTypeSpec? named = null;
             while (true)
             {
@@ -122,7 +122,7 @@ public static class RuntimeTypeNameParser
 
                 if (input.TryPeek(out c) && c == NestedTypeIndicator)
                 {
-                    // Consume the nested type indicator, then loop to parse the nested type.
+                    // 折叠嵌套类型指示器, 然后循环分析嵌套类型 。
                     input.ConsumeCharacter(NestedTypeIndicator);
                     continue;
                 }
@@ -133,7 +133,7 @@ public static class RuntimeTypeNameParser
             coreType = named!;
         }
 
-        // Parse generic type parameters
+        // 分析通用类型参数
         if (input.TotalGenericArity > 0 && input.TryPeek(out c, out var d) && c == ArrayStartIndicator && d == ArrayStartIndicator)
         {
             input.ConsumeCharacter(ArrayStartIndicator);
@@ -145,7 +145,7 @@ public static class RuntimeTypeNameParser
                     input.ConsumeCharacter(ParameterSeparator);
                 }
 
-                // Parse the argument type
+                // 分析参数类型
                 input.ConsumeCharacter(ArrayStartIndicator);
                 var remaining = input.Remaining;
                 arguments[i] = ParseInternal(ref remaining);
@@ -159,11 +159,11 @@ public static class RuntimeTypeNameParser
         }
         else
         {
-            // This is not a constructed generic type
+            // 这不是构建的通用类型
             result = coreType;
         }
 
-        // Parse modifiers
+        // 解析修饰器
         bool hadModifier;
         do
         {
@@ -194,7 +194,7 @@ public static class RuntimeTypeNameParser
             }
         } while (hadModifier);
 
-        // Extract the assembly, if specified.
+        // 如果指定的话, 提取组件 。
         if (input.TryPeek(out c) && c == AssemblyIndicator)
         {
             input.ConsumeCharacter(AssemblyIndicator);
@@ -226,8 +226,8 @@ public static class RuntimeTypeNameParser
 
         if (genericArityStart >= 0)
         {
-            // The generic arity is additive, so that a generic class nested in a generic class has an arity
-            // equal to the sum of specified arity values. For example, "C`1+N`2" has an arity of 3.
+            // 通用性是添加性的,因此,在普通类中嵌套的通用类具有异性
+            // 等于指定正数值的和。例如,“C`1+N`2”的乘积为3。
             var aritySlice = s.Input[genericArityStart..s.Index];
 #if NETCOREAPP3_1_OR_GREATER
             var arity = int.Parse(aritySlice);
@@ -240,7 +240,7 @@ public static class RuntimeTypeNameParser
                 ThrowGenericArityTooLarge(s.TotalGenericArity);
             }
 
-            // Include the generic arity in the type name.
+            // 类型名称中包含通用的对数。
             typeName = s.Input[start..s.Index];
         }
 
@@ -288,7 +288,7 @@ public static class RuntimeTypeNameParser
     {
         char c;
 
-        // Read literal value
+        // 读数字数
         if (input.TryPeek(out c))
         {
             if (c == LiteralDelimiter)
@@ -300,7 +300,7 @@ public static class RuntimeTypeNameParser
             }
             else if (c == ArrayStartIndicator)
             {
-                // Parse the argument type
+                // 分析参数类型
                 input.ConsumeCharacter(ArrayStartIndicator);
                 var remaining = input.Remaining;
                 var result = ParseInternal(ref remaining);

@@ -1,73 +1,85 @@
 ---
-title: Broadcast channels
-description: Configure and use Orleans broadcast channels with correct identity and delivery semantics.
+title: "广播频道"
+description: "配置和使用 Orleans 广播频道,具有正确的身份和发送语义。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# Broadcast channels
+<a id="broadcast-channels"></a>
 
-Broadcast channels, provided by the [`Microsoft.Orleans.BroadcastChannel`](https://www.nuget.org/packages/Microsoft.Orleans.BroadcastChannel) package, provide nonpersistent, implicit fan-out to grains. They don't use a queue, retain history, retry from a log, or maintain explicit subscriptions. Use them for best-effort notifications where loss is acceptable; use [Orleans streams](index.md) when events or subscriptions need durability or replay.
+# 广播频道
 
-## Identity and routing
+由 [`Microsoft.Orleans.BroadcastChannel`](https://www.nuget.org/packages/Microsoft.Orleans.BroadcastChannel) 软件包提供的广播频道向 grains提供非持久性、隐含的扇门。它们不使用队列,保留历史,从日志中重试或保持明确的订阅。在损失可以接受的情况下,使用它们进行最佳努力通知;当事件或订阅需要耐久性或重播时使用 [Orleans 流流](index.md) 。
 
-A broadcast writer is selected by a configured **provider name** and a <xref:Orleans.BroadcastChannel.ChannelId>. <xref:Orleans.BroadcastChannel.ChannelId.Create*> creates an identifier whose namespace and key have two distinct routing roles:
+<a id="identity-and-routing"></a>
 
-- The **namespace** is matched against <xref:Orleans.ImplicitChannelSubscriptionAttribute> declarations to select subscriber grain types.
-- The **key** maps to the primary key of one subscriber grain identity for each matching grain type.
+## 身份和路由
 
-Publishing doesn't enumerate all current activations. It addresses the matching virtual grain identities, activating them when necessary. <xref:Orleans.BroadcastChannel.DefaultChannelIdMapper> interprets the channel key for each matching grain type: it uses raw text for a string-keyed grain, parses GUID text for a GUID-keyed grain, and parses decimal text for an integer-keyed grain. The <xref:Orleans.BroadcastChannel.ChannelId.Create*> overload that accepts a <xref:System.Guid> formats a GUID key; use a decimal string for an integer key. Custom <xref:Orleans.BroadcastChannel.IChannelIdMapper> implementations can change that mapping.
+广播作家由配置的 **提供者名称** 和 <xref:Orleans.BroadcastChannel.ChannelId>选择。 <xref:Orleans.BroadcastChannel.ChannelId.Create*> 创建了一个识别符,其命名空间和键子有两个不同的路由作用:
 
-The provider name and channel namespace are independent. They can use the same string by convention, but provider registration doesn't make that string the channel namespace.
+- 下 **命名空间** 匹配 <xref:Orleans.ImplicitChannelSubscriptionAttribute> 选择订阅者时的语句 grain 类型。
+- 下 **键键** 地图的图中,一个用户主键 grain 每项匹配的标识 grain 类型。
 
-## Configure silos and clients
+出版并不列出所有当前激活的列表。 它处理匹配虚拟 grain 身份,必要时激活 <xref:Orleans.BroadcastChannel.DefaultChannelIdMapper> 每次匹配的频道密钥解释 grain 类型:它使用字符串键的原始文字 grain,为以图形界面为键的用户界面 grain,然后对整键键的文字进行小数分析。 grain. The <xref:Orleans.BroadcastChannel.ChannelId.Create*> 超载,可接受 <xref:System.Guid> 格式化 GUID 键; 对整数键使用小数字符串。 自定义 <xref:Orleans.BroadcastChannel.IChannelIdMapper> 实施可以改变这一绘图。
 
-Register a named broadcast provider on every silo with <xref:Orleans.Hosting.ChannelHostingExtensions.AddBroadcastChannel*>:
+提供方名称和频道命名空间是独立的。 它们可以按常规使用相同的字符串, 但供应商注册并不能使该字符串成为频道命名空间 。
+
+<a id="configure-silos-and-clients"></a>
+
+## 配置 silos 和客户端
+
+a 在每个 silo 和 <xref:Orleans.Hosting.ChannelHostingExtensions.AddBroadcastChannel*>上都有有名广播供应商的登记册:
 
 :::code language="csharp" source="./snippets/broadcastchannel/BroadcastChannel.Silo/Program.cs" id="broadcast_channel_silo_program":::
 
-An Orleans client that publishes must register the same provider name and compatible options:
+发布客户端的 Orleans 客户端必须注册同一供应商名称和兼容选项:
 
 :::code language="csharp" source="./snippets/broadcastchannel/BroadcastChannel.Client/Program.cs" id="broadcast_channel_client_program":::
 
 <xref:Orleans.BroadcastChannel.BroadcastChannelOptions.FireAndForgetDelivery> defaults to `true`. In that mode, <xref:Orleans.BroadcastChannel.IBroadcastChannelWriter`1.Publish*> starts subscriber calls and returns without awaiting them; subscriber exceptions are logged and aren't returned to the publisher. Setting it to `false` awaits all subscriber callbacks and propagates failures as an aggregate exception. Neither mode adds persistence, retry, replay, or exactly-once processing.
 
-## Define a subscriber grain
+<a id="define-a-subscriber-grain"></a>
+
+## 定义订阅者 grain
 
 <a id="define-a-consumer-grain"></a>
 
-Mark the grain class with an implicit channel subscription and implement <xref:Orleans.BroadcastChannel.IOnBroadcastChannelSubscribed>. Attach a callback when Orleans supplies the channel subscription:
+以隐含频道订阅方式标记 grain 类并安装 <xref:Orleans.BroadcastChannel.IOnBroadcastChannelSubscribed>。在 Orleans 提供频道订阅时,附加回调:
 
 :::code language="csharp" source="./snippets/broadcastchannel/BroadcastChannel.Silo/LiveStockGrain.cs" id="broadcast_channel_live_stock_grain":::
 
-The parameterless attribute matches all nonempty channel namespaces. Pass a namespace to match exactly, use <xref:Orleans.RegexImplicitChannelSubscriptionAttribute> for a pattern, or provide a custom namespace predicate.
+无参数属性符合所有非空通道命名空间。 通过一个匹配的命名空间, 使用 <xref:Orleans.RegexImplicitChannelSubscriptionAttribute> 来显示模式, 或者提供自定义的名称空间前置 。
 
-<xref:Orleans.BroadcastChannel.IBroadcastChannelSubscription.Attach*> selects the payload type and supplies item and error callbacks. Channel subscriptions are implicit metadata bindings, so there is no explicit subscribe or unsubscribe operation.
+<xref:Orleans.BroadcastChannel.IBroadcastChannelSubscription.Attach*> 选择有效载荷类型和供应项目以及错误回调。频道订阅是隐含的元数据绑定,因此没有明确的订阅或不订阅操作。
 
-## Publish
+<a id="publish"></a>
+
+## 出版
 
 <a id="publish-messages-to-a-broadcast-channel"></a>
 
-Resolve <xref:Orleans.BroadcastChannel.IBroadcastChannelProvider> by provider name, construct a channel ID, get a typed writer, and publish:
+以提供者姓名解决 <xref:Orleans.BroadcastChannel.IBroadcastChannelProvider> ,构建频道ID,获得打字作家并公布:
 
 :::code language="csharp" source="./snippets/broadcastchannel/BroadcastChannel.Silo/Services/StockWorker.cs" id="broadcast_channel_stock_worker":::
 
-In this sample, the channel namespace is `live-stock-ticker` and the key is <xref:System.Guid.Empty>, so each matching GUID-keyed subscriber grain type receives the message at that grain identity. Use a customer, tenant, device, or other domain key to target the corresponding identity instead.
+在此样本中, 频道命名空间是 `live-stock-ticker` , 密钥是 <xref:System.Guid.Empty>, 所以每个匹配的 GUID 键紧用户类型 grain 都会在 grain 身份上接收信件。 使用客户、 租户、 设备或其他域名密钥来瞄准相应的身份 。
 
-## Broadcast channels compared with streams
+<a id="broadcast-channels-compared-with-streams"></a>
+
+## 与流比的广播频道
 
 <a id="broadcast-channels-vs-streams"></a>
 <a id="when-to-use-broadcast-channels"></a>
 <a id="when-to-use-streams"></a>
 
-| Capability | Broadcast channel | Orleans stream |
+| 能力 | 广播频道 | Orleans 流流 |
 |---|---|---|
-| Fan-out | One grain identity per matching subscriber grain type | Every explicit and implicit subscription |
-| Subscription model | Implicit grain metadata only | Explicit and implicit |
-| Event persistence | None | Provider-dependent |
-| Subscription persistence | None required | Explicit records depend on `PubSubStore` |
-| Replay | No | Provider-dependent |
-| Publisher completion | Fire-and-forget by default; optionally awaits callbacks | Provider acceptance, not general consumer completion |
-| External broker integration | No | Available through stream providers |
+| Fan-out | 一个 grain 匹配的用户每个身份 grain 类型类型 | 每项明示和默示的订阅 |
+| 订阅模式 | 仅隐含 grain 元数据 | 明示和默示 |
+| 事件持续 | 无无无无 | Provider-dependent |
+| 订阅的持久性 | 无需 | 明确记录取决于 `PubSubStore` |
+| 重放播放 | 无 | Provider-dependent |
+| 出版出版完成完成 | 默认的火和火; 可选择等待回召 | 接受供货商,而不是消费者完成一般消费 |
+| 外部经纪人的一体化 | 无 | 通过流源供应商提供 |
 
-See [Choose an Orleans messaging abstraction](streams-why.md) for selection guidance.
+选择指南见 [选择 Orleans 短信抽象](streams-why.md) 。

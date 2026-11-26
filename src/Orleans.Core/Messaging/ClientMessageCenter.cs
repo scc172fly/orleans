@@ -13,36 +13,36 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Messaging
 {
     // <summary>
-    // This class is used on the client only.
-    // It provides the client counterpart to the Gateway and GatewayAcceptor classes on the silo side.
+    // 此类仅用于客户端 。
+    // 它提供与网关和 GatewayAcceptor 课上的 silo 侧面。
     //
-    // There is one ClientMessageCenter instance per OutsideRuntimeClient. There can be multiple ClientMessageCenter instances
-    // in a single process, but because RuntimeClient keeps a static pointer to a single OutsideRuntimeClient instance, this is not
-    // generally done in practice.
+    // 有一个 ClientMessageCenter 实例/百分比 OutsideRuntimeClient。可以有多个 ClientMessageCenter 数 例
+    // 在单一个进程中,但由于 RuntimeClient 将静态指示器保留在单一的 OutsideRuntimeClient 实例上,这并非
+    // 通常在实践中采取。
     //
-    // Each ClientMessageCenter keeps a collection of GatewayConnection instances. Each of these represents a bidirectional connection
-    // to a single gateway endpoint. Requests are assigned to a specific connection based on the target grain ID, so that requests to
-    // the same grain will go to the same gateway, in sending order. To do this efficiently and scalably, we bucket grains together
-    // based on their hash code mod a reasonably large number (currently 8192).
+    // 每个 ClientMessageCenter 都保留一个 GatewayConnection 例集。每个例代表双向连接
+    // 指定一个特定连接,根据目标 grain ID进行,以便请求
+    // 同样的 grain 将按顺序前往同一网关。为了高效和可变地做到这一点,我们一起用桶子打水 grains
+    // 以其散列码模式为基础,数量相当大(目前为8192)。
     //
-    // When the first message is sent to a bucket, we assign a gateway to that bucket, selecting in round-robin fashion from the known
-    // gateways. If this is the first message to be sent to the gateway, we will create a new connection for it and assign the bucket to
-    // the new connection. Either way, all messages to grains in that bucket will be sent to the assigned connection as long as the
-    // connection is live.
+    // 当第一个信息被发送到一个桶, 我们为那个桶指定了一条通道, 以圆环方式从已知的
+    // 网关。 如果这是第一个发送到网关的信息, 我们将为此创建新连接并指定桶
+    // 新建连接。 不论哪种方式, 所有信件都到 grains 将发送到指定的连接处 只要
+    // 即为实时连接。
     //
-    // Connections stay live as long as possible. If a socket error or other communications error occurs, then the client will try to
-    // reconnect twice before giving up on the gateway. If the connection cannot be re-established, then the gateway is deemed (temporarily)
-    // dead, and any buckets assigned to the connection are unassigned (so that the next message sent will cause a new gateway to be selected).
-    // There is no assumption that this death is permanent; the system will try to reuse the gateway every 5 minutes.
+    // 连接尽可能长的时间保持连接。 如果发生套接字错误或其他通讯错误, 那么客户端将尝试
+    // 在放弃网关前两次重新连接。 如果无法重设连接, 则视为网关( 暂时)
+    // 已经死, 指定连接的任何桶没有被指派( 这样下一条消息将会导致选择一个新的网关) 。
+    // 无法假定死亡是永久性的;该系统将试图每5分钟再利用网关。
     //
-    // The list of known gateways is managed by the GatewayManager class. See comments there for details.
+    // 已知网关列表由 GatewayManager 类管理。详情请见该页面的评论。
     // </summary>
     internal partial class ClientMessageCenter : IMessageCenter, IDisposable
     {
         private readonly Lock grainBucketUpdateLock = new();
 
-        internal static readonly TimeSpan MINIMUM_INTERCONNECT_DELAY = TimeSpan.FromMilliseconds(100);   // wait one tenth of a second between connect attempts
-        internal const int CONNECT_RETRY_COUNT = 2;                                                      // Retry twice before giving up on a gateway server
+        internal static readonly TimeSpan MINIMUM_INTERCONNECT_DELAY = TimeSpan.FromMilliseconds(100);   // 等待连接尝试之间一秒之十分之一
+        internal const int CONNECT_RETRY_COUNT = 2;                                                      // 在放弃网关服务器前重试两次
 
         internal ClientGrainId ClientId => _localClientDetails.ClientId;
         public IRuntimeClient RuntimeClient { get; }
@@ -51,11 +51,11 @@ namespace Orleans.Messaging
         private readonly GatewayManager gatewayManager;
         private Action<Message>? messageHandler;
         private int numMessages;
-        // The grainBuckets array is used to select the connection to use when sending an ordered message to a grain.
-        // Requests are bucketed by GrainID, so that all requests to a grain get routed through the same bucket.
-        // Each bucket holds a (possibly null) weak reference to a GatewayConnection object. That connection instance is used
-        // if the WeakReference is non-null, is alive, and points to a live gateway connection. If any of these conditions is
-        // false, then a new gateway is selected using the gateway manager, and a new connection established if necessary.
+        // grainBuckets 数组用于选择向 grain发送订购的信件时所使用的连接。
+        // 请求由 GrainID打包,以便所有对 grain 的请求都通过同一个桶。
+        // 每一桶都有一个(可能无效的)弱的提法,指 GatewayConnection 对象。该连接实例被使用
+        // 如果 WeakReference 是不中核,是活的,指向连接的网关。如果其中任何条件
+        // 假的, 然后使用网关管理器选择一个新的网关, 必要时建立新连接 。
         private readonly WeakReference<ClientOutboundConnection>?[] grainBuckets;
         private readonly ILogger logger;
         public SiloAddress MyAddress => _localClientDetails.ClientAddress;
@@ -122,13 +122,13 @@ namespace Orleans.Messaging
                     var completedTask = await Task.WhenAny(pendingTasks).WaitAsync(cancellationToken);
                     pendingTasks.Remove(completedTask);
 
-                    // If at least one gateway connection has been established, break out of the loop and continue startup.
+                    // 如果至少已建立一个网关连接, 则从循环中解开并继续启动 。
                     if (completedTask.IsCompletedSuccessfully)
                     {
                         break;
                     }
 
-                    // If there are no more gateways, observe the most recent exception and bail out.
+                    // 如果没有更多的通道, 遵守最新的例外并拯救。
                     if (pendingTasks.Count == 0)
                     {
                         await completedTask;
@@ -200,7 +200,7 @@ namespace Orleans.Messaging
                     {
                         var connection = await task;
 
-                        // If the connection returned is null then the message was already rejected due to a failure.
+                        // 如果返回的连接为无效,则电文因失败已被否决。
                         if (connection is null) return;
 
                         connection.Send(message);
@@ -231,7 +231,7 @@ namespace Orleans.Messaging
 
         private ValueTask<Connection?> GetGatewayConnection(Message msg)
         {
-            // If there's a specific gateway specified, use it
+            // 如果有指定特定网关,请使用
             if (msg.TargetSilo != null && gatewayManager.IsGatewayAvailable(msg.TargetSilo))
             {
                 var siloAddress = SiloAddress.New(msg.TargetSilo.Endpoint, 0);
@@ -241,15 +241,15 @@ namespace Orleans.Messaging
                 return ConnectAsync(msg.TargetSilo, connectionTask, msg, directGatewayMessage: true);
             }
 
-            // For untargeted messages to system targets, and for unordered messages, pick a next connection in round robin fashion.
+            // 对于非目标信息到系统目标,对于无顺序的信息,则选择下一个连接,以轮行抢劫方式。
             if (msg.TargetGrain.IsSystemTarget() || msg.IsUnordered)
             {
-                // Get the cached list of live gateways.
-                // Pick a next gateway name in a round robin fashion.
-                // See if we have a live connection to it.
-                // If Yes, use it.
-                // If not, create a new GatewayConnection and start it.
-                // If start fails, we will mark this connection as dead and remove it from the GetCachedLiveGatewayNames.
+                // 获取已隐藏的网络网关列表 。
+                // 下一个网关名 以轮渡方式选
+                // 看看我们是否和它有真人联系
+                // 如果有,请使用它。
+                // 如果不是,请创建新的 GatewayConnection 并启动它。
+                // 如果启动失败, 我们将标记此连接为已死, 并把它从 GetCachedLiveGatewayNames中删除 。
                 int msgNumber = Interlocked.Increment(ref numMessages);
                 var gatewayAddresses = gatewayManager.GetLiveGateways();
                 int numGateways = gatewayAddresses.Count;
@@ -268,14 +268,14 @@ namespace Orleans.Messaging
                 return ConnectAsync(gatewayAddress, connectionTask, msg, directGatewayMessage: false);
             }
 
-            // Otherwise, use the buckets to ensure ordering.
+            // 否则,用桶子确保订购。
             var index = GetHashCodeModulo(msg.TargetGrain.GetHashCode(), (uint)grainBuckets.Length);
 
-            // Repeated from above, at the declaration of the grainBuckets array:
-            // Requests are bucketed by GrainID, so that all requests to a grain get routed through the same bucket.
-            // Each bucket holds a (possibly null) weak reference to a GatewayConnection object. That connection instance is used
-            // if the WeakReference is non-null, is alive, and points to a live gateway connection. If any of these conditions is
-            // false, then a new gateway is selected using the gateway manager, and a new connection established if necessary.
+            // 从上方 grainBuckets 阵列的声明中重复:
+            // 请求由 GrainID打包,以便所有对 grain 的请求都通过同一个桶。
+            // 每一桶都有一个(可能无效的)弱的提法,指 GatewayConnection 对象。该连接实例被使用
+            // 如果 WeakReference 是不中核,是活的,指向连接的网关。如果其中任何条件
+            // 假的, 然后使用网关管理器选择一个新的网关, 必要时建立新连接 。
             WeakReference<ClientOutboundConnection>? weakRef = grainBuckets[index];
 
             if (weakRef != null
@@ -347,7 +347,7 @@ namespace Orleans.Messaging
             static uint GetHashCodeModulo(int key, uint umod)
             {
                 int mod = (int)umod;
-                key = ((key % mod) + mod) % mod; // key should be positive now. So assert with checked.
+                key = ((key % mod) + mod) % mod; // 键应该为正。所以要用选中的来表示正确 。
                 return checked((uint)key);
             }
         }

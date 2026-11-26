@@ -7,7 +7,7 @@ using Xunit;
 namespace DefaultCluster.Tests.SchedulerTests
 {
     /// <summary>
-    /// Tests Orleans scheduler behavior with long-running grain operations to ensure they don't cause timeouts or queue blocking.
+    /// 测试 Orleans 排程器行为,进行长运行 grain 操作,以确保不会造成超时或队列阻塞。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -24,8 +24,8 @@ namespace DefaultCluster.Tests.SchedulerTests
         [Fact, TestCategory("Functional"), TestCategory("Scheduler")]
         public async Task Sched_LongTurnTest()
         {
-            // With two silos, there should be 16 threads.
-            // We'll create way more grains than that to make sure we swamp the thread pools
+            // 有了两根 silos,应该有16根线。
+            // 我们能创造出比这更多的 grains 来确保我们把水池淹没
             var grains = new List<IErrorGrain>();
             var grainFullName = typeof(ErrorGrain).FullName;
             for (int i = 0; i < 100; i++)
@@ -33,12 +33,12 @@ namespace DefaultCluster.Tests.SchedulerTests
                 grains.Add(this.GrainFactory.GetGrain<IErrorGrain>(GetRandomGrainId(), grainFullName));
             }
 
-            // Send a bunch of do-nothing requests just to get the grains activated
+            // 发送一堆无做请求, 只需启动 grains
             var promises = grains.Select(grain => grain.Dispose());
             await Task.WhenAll(promises);
 
 
-            // Now start a timer, and then queue up a bunch of long (sleeping) requests
+            // 现在开始一个计时器, 然后排队 排成一堆长( 睡) 的要求
             var timer = new Stopwatch();
             timer.Start();
 

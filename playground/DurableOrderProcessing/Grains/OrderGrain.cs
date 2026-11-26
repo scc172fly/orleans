@@ -11,30 +11,30 @@ public interface IOrderGrain : IGrainWithGuidKey
 {
     Task<OrderDetails?> GetAsync();
 
-    // Streams the order's committed history from its submission, and ends once the order ships or is cancelled.
+    // 将命令的从提交时起就流传到历史中,一旦命令船舶或取消,即告终止。
     IAsyncEnumerable<OrderDetails> WatchAsync(CancellationToken cancellationToken);
 
-    // The order workflow, which POST /api/orders starts as the operation orders/{orderId}.
+    // 命令工作流程,即POST/api/ords以操作命令({orderId}开始的流程。
     DurableTask<OrderResult> PlaceOrderAsync(PlaceOrder request);
 }
 
-// The order process manager, following eShop's ordering flow:
-// Submitted -> (grace period) -> AwaitingValidation -> StockConfirmed -> Paid -> Shipped,
-// or Cancelled when the basket is empty, stock is rejected, payment is declined or times out, or the buyer cancels
-// before the order is paid.
-// PlaceOrder is one durable task. After a deactivation, the runtime replays it from the start: completed child tasks
-// return their recorded results, so the workflow resumes where it stopped. The order's state is its history: the
-// workflow keeps the current snapshot in a local variable, computes each transition from the request, recorded results,
-// and logical time, and appends the new snapshot to the history log in a recorded effect, DurableTask.RunInline. Each
-// effect and each buyer update is named for its transition, so a replay finds its record although the cancellation and
-// failure paths run different operations, and returns the recorded entry's sequence without appending it
-// again. The buyer cancels the order by cancelling its operation until it is paid, and ships it by sending the
-// operation's shipped signal.
+// 命令处理管理器, 在 eShop的订单流后 :
+// 提交 - > (宽限期) - > AwaitingValidation - > StockConfirmed - > 已支付 - > 已装运,
+// 或当篮子空空、库存被拒、付款被拒绝或退出或买方取消时取消
+// 在命令支付之前
+// PlaceOrder 是一个耐久的任务。 停止后, 运行时间会从开始重弹: 完成儿童任务
+// 命令状态是它的历史:
+// 工作流程将当前快照保存在本地变量中, 从请求中计算每次过渡, 记录结果,
+// 和逻辑时间,并将新的快照附加到历史日志中,以记录效果 DurableTask.RunInline。
+// 并指定每买方更新效果, 以其过渡为名称, 因此重放会发现记录, 尽管取消和
+// 失败路径运行不同的操作,返回被记录的条目的序列而不附加
+// 买方再次取消订单,在支付之前取消其经营,并发送
+// 操作的发运信号
 public sealed class OrderGrain : DurableGrain, IOrderGrain
 {
     public const string PaymentsClient = "payments";
 
-    // A paid order's workflow waits for this signal, which POST /api/orders/operations/{orderId}/signals/shipped sends.
+    // 支付订单的工作流程等待这一信号,即POST/api/命令/操作/{orderId}/信号/发货发送的信号。
     public static readonly DurableSignal<Shipment> Shipped = new("shipped");
 
     private readonly OrderingOptions _options;
@@ -54,8 +54,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
 
     public Task<OrderDetails?> GetAsync() => Task.FromResult(Latest);
 
-    // Reads the history on the activation, so a watcher observes each snapshot once it commits. The enumeration's calls
-    // interleave with the order's other calls, so a watcher doesn't delay the workflow.
+    // 读取激活的历史, 所以观察者观察每个快照一旦发生。
+    // 与订单的其他电话互连 所以观察者不会延迟工作流程
     public async IAsyncEnumerable<OrderDetails> WatchAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await foreach (var change in _history.ReadAsync(cancellationToken: cancellationToken))
@@ -78,8 +78,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
 
     public async DurableTask<OrderResult> PlaceOrderAsync(PlaceOrder request)
     {
-        // Takes the basket's items. The basket runs the call once for this task, so a retry or a replay reads the same
-        // lines, and an order which a retried checkout reaches again takes no further items.
+        // 篮子的物品。篮子运行了一次 要求完成这项任务, 所以重试或重放读取相同
+        // 线条,以及重新审阅的退票到达的命令不再需要其他项目。
         var lines = await GrainFactory.GetGrain<IBasketGrain>(request.BuyerId).CheckoutAsync(OrderId).WithId("checkout");
         if (lines.Length == 0)
         {
@@ -90,9 +90,9 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         DurableTask.RunInline("submitted", () => _history.Append(order));
         Record(order.Order, "submitted");
 
-        // Until the order is paid, cancelling its operation cancels this task. The next durable operation observes the
-        // cancellation and throws OperationCanceledException, and the workflow releases the lines which validation may
-        // have reserved.
+        // 直至命令被支付之前,取消其运作将取消这一任务。
+        // 并丢弃 OperationCanceledException,工作流程释放了审定可能使用的行
+        // 已经保留了。
         OrderLine[] reservable = [];
         try
         {
@@ -102,8 +102,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             DurableTask.RunInline("validating", () => _history.Append(order));
             Record(order.Order, "validating");
 
-            // Reserves every line concurrently, as the children reserve/0, reserve/1, and so on. WhenAll waits for every
-            // reservation, including after a cancellation, so each line's reservation is settled when it returns or throws.
+            // 保留每一行,作为儿童储备/0、储备/1等。 WhenAll 等待时间
+            // 保留,包括取消后的保留,因此每一行的保留在返回或抛出时即予解决。
             var confirmed = await lines.Select(line => Catalog(line.ProductId).ReserveAsync(OrderId, line.Units)).WhenAll().WithId("reserve");
             order = order.RecordStock(confirmed);
             if (Array.IndexOf(confirmed, false) is var rejected and >= 0)
@@ -114,8 +114,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             DurableTask.RunInline("stock-confirmed", () => _history.Append(order));
             Record(order.Order, "stock-confirmed");
 
-            // Reservations which completed return normally after a cancellation, so the workflow checks for one before it
-            // authorizes the payment. The recorded decision keeps a replay on the path which the first run took.
+            // 通常在取消后完成返回的保留意见保留,因此工作流程要检查之前的
+            // 授权付款。所记录的决定在第一次运行的路径上保留重播。
             if (DurableTask.RunInline("cancellation-check", () => DurableTask.Current.IsTaskCancellationRequested))
             {
                 throw new OperationCanceledException();
@@ -126,15 +126,15 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             return await CancelOrderAsync(order, reservable, DurableTask.Current.TaskCancellationReason);
         }
 
-        // Authorizes the payment at the gateway, and polls the authorization, as await-payment/0, until it completes or
-        // its timeout, await-payment/1, elapses. A cancellation, a timeout, or a failure of these steps abandons the
-        // payment, which the workflow voids, since the authorization request may have reached the gateway.
+        // 授权在网关支付,并调查核准额,作为等待付款/0,直至完成或
+        // 取消、暂停或这些步骤的失败都放弃了
+        // 支付,因为批准申请可能到达网关,工作流程将取消支付。
         DurableHttpOperation? authorization = null;
         PaymentResult? payment = null;
         string? failure = null;
         try
         {
-            // The start is shielded, so a cancellation lets it finish and the workflow learns the authorization to void.
+            // 启动被屏蔽, 所以取消会让它完成, 而工作流程会学习无效授权 。
             authorization = await _payments.StartOperationAsync(() => CreateAuthorizationRequest(order, DurableTask.Current.Incarnation)).WithId("authorize-payment").Shielded();
             payment = await _payments.WaitForOperationAsync<PaymentResult>(authorization, new() { PollInterval = _options.PaymentPollInterval })
                 .WaitAsync(_options.PaymentTimeout)
@@ -150,9 +150,9 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Any other failure, such as an unreachable gateway, a resilience handler's timeout or open circuit, or a
-            // response which doesn't decode, fails the payment. A canceled attempt propagates, so the next attempt replays
-            // the workflow.
+            // 任何其他故障,如无法进入的网关、复原力处理器超时或开路线路,或
+            // 取消的尝试会传播,所以下一次尝试重放
+            // 工作流程。
             failure = "Payment authorization failed.";
         }
 
@@ -172,8 +172,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         DurableTask.RunInline("paid", () => _history.Append(order));
         Record(order.Order, "paid");
 
-        // A paid order ships: the commit and the wait for its shipment are shielded, so a cancellation doesn't reach them.
-        // The wait returns at once for a shipment which arrived earlier.
+        // 定船,行军和等待发运的船 都蒙蔽了屏蔽,所以取消不会到达他们手中
+        // 等待货物的返回时间是较早之前运到的。
         await lines.Select(line => Catalog(line.ProductId).CommitAsync(OrderId)).WhenAll().WithId("commit").Shielded();
         await Shipped.WaitAsync().Shielded();
         order = order.MarkShipped();
@@ -182,11 +182,11 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         return Result(order);
     }
 
-    // Voids the order's authorization at the gateway, including one which completed after the order stopped waiting. An
-    // order which didn't learn its authorization's location, such as when the start's response was lost, sends the
-    // authorization request again with its key, which the gateway answers with the authorization which it recorded, or
-    // records one, and voids that. The requests are shielded, so they run although the order is cancelled. A void which
-    // fails leaves the authorization to expire at the gateway, and the order is cancelled regardless.
+    // 命令在网关上公布,包括命令停止等待后完成的授权。
+    // 命令中未得知授权方的 批准位置,例如当启动响应丢失时,发送
+    // 键盘再次请求授权,网关以其记录的授权进行回复,或
+    // 并且将一个记录下来,而那(记录其中的律例)无效。请求是被遮蔽的,所以他们可以运行,尽管命令被撤销。
+    // 无法在网关上让授权到期,命令将被取消。
     private async Task VoidPaymentAsync(OrderDetails order, DurableHttpOperation? authorization, string reason)
     {
         try
@@ -202,10 +202,10 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         }
     }
 
-    // Creates the order's authorization request. Its Idempotency-Key names the order and the workflow's run, so every
-    // request for the run's authorization, including the one which voids an authorization whose location the order
-    // didn't learn, reaches the same authorization, and a later run of the order's workflow ID, after its retention
-    // ended, authorizes anew. Each step of the workflow reports the workflow's incarnation.
+    // 创建命令授权请求。 它的“ 电子资产- Key ” 指定命令和工作流程运行, 所以每个
+    // 申请竞选许可,包括吊销命令所在地点授权的许可
+    // 保留了之后 命令工作流程的身份证
+    // 工作流程的每个步骤都报告工作流程的化身。
     private HttpRequestMessage CreateAuthorizationRequest(OrderDetails order, Guid incarnation)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "authorizations")
@@ -216,9 +216,9 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         return request;
     }
 
-    // Releases the lines' reservations concurrently, then records the cancellation. Releasing is idempotent and returns
-    // whether the line held a reservation, so the workflow releases each line without tracking which reservations ran.
-    // The release is shielded, so the cancellation which ended the workflow lets this compensation run to completion.
+    // 解脱线条同时释放保留, 然后记录取消。 解除是无能的返回
+    // 这条线是否保留,因此工作流程释放每一条线,而不跟踪保留是哪一条。
+    // 解封后会保护好, 所以结束工作流程的取消会让补偿工作顺利完成。
     private async Task<OrderResult> CancelOrderAsync(OrderDetails order, OrderLine[] lines, string? reason)
     {
         var released = await lines.Select(line => Catalog(line.ProductId).ReleaseAsync(OrderId)).WhenAll()
@@ -230,10 +230,10 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         return Result(order);
     }
 
-    // Posts the buyer's projection update as a detached task, whose root ID derives from the workflow's ID and the
-    // update's name, so the workflow continues without waiting for the buyer and the update runs independently of the
-    // workflow. The update commits with the workflow's next journal write, after the snapshot which the workflow records
-    // in the order's history. Updates arrive in any order; the buyer keeps the summary with the highest version.
+    // 将买方预测更新作为单独任务,其根ID来自工作流程的ID和
+    // 更新的名称, 因此工作流程会继续而不等待买家, 更新运行独立于
+    // 工作流程。更新承诺在工作流程记录快照后,以工作流程下一期日记写方式进行
+    // 更新以任何订单方式送达;买方将摘要保存在最高版本。
     private void Record(OrderState order, string transition) =>
         _ = GrainFactory.GetGrain<IBuyerGrain>(order.BuyerId).RecordOrderAsync(order.ToSummary())
             .WithId($"record-{transition}")

@@ -1,94 +1,110 @@
 ---
-title: Choose a deployment target
-description: Compare supported Orleans hosting topologies, networking models, scaling controls, and operational responsibilities.
+title: "选择部署目标"
+description: "比较所支持的 Orleans 主机类型、网络模式、比例控制和业务责任。"
 ms.date: 08/21/2026
 ms.topic: concept-article
 ms.custom: devops
 ---
 
-# Choose a deployment target
+<a id="choose-a-deployment-target"></a>
 
-Orleans runs on platforms that give each silo a unique, directly reachable TCP endpoint and coordinate process lifecycle with the .NET host. Choose the platform whose supported networking model, scaling controls, failure-domain placement, and operational ownership match the application.
+# 选择部署目标
 
-Use the [platform requirements](platform-guides.md) as an acceptance gate against the application's availability objective. Then use these matrices to select a maintained deployment guide.
+Orleans 运行在平台上,每个平台都给 silo 提供一个独特、可直接获取的 TCP 终端,并与 .NET 主机协调流程生命周期。选择支持网络模式、缩放控制、故障域定位和操作所有权的平台与应用程序匹配。
 
-## Target matrix
+使用 [所需平台](platform-guides.md) 作为接受大门, 以对抗应用程序的可用性目标。 然后用这些矩阵选择一个保存的部署指南 。
 
-| Target | Supported Orleans topology | Endpoint identity and client reachability | Scaling and failure domains | Operational ownership | Common provider choices |
+<a id="target-matrix"></a>
+
+## 目标矩阵
+
+| 具体目标具体目标 | 支持的 Orleans 地表学 | 最终点身份和客户可接触性 | 缩放和失败域 | 业务所有权 | 共同提供选择 |
 | --- | --- | --- | --- | --- | --- |
-| [Azure Kubernetes Service (AKS)](azure-kubernetes-service.md) | One silo per pod in a `Deployment`; separate in-cluster clients or cohosted application endpoints | Silos advertise pod IPs. In-cluster clients reach pod gateway endpoints directly. Azure CNI Pod Subnet extends direct pod routing to connected networks when external Orleans clients require it. | Horizontal pod scaling, node-pool autoscaling, availability zones, topology spread, disruption budgets, and controlled rolling replacement | Azure operates the control plane; the application team owns workload manifests, capacity, providers, upgrades, and recovery | Azure Table Storage or ADO.NET for clustering; application-selected durable storage, reminders, and streams |
-| [Kubernetes](kubernetes.md) | One silo per pod with explicit pod name and pod IP configuration | Silos advertise pod IPs. Clients run on a network that can route to every advertised gateway pod IP. | Deployment replicas, cluster-specific node scaling, topology spread, disruption budgets, and rolling updates | Shared between the Kubernetes operator and application team | A highly available provider already operated near the cluster |
-| [Azure Container Apps](deploy-to-azure-container-apps.md) | One silo replica per Container App, with multiple silo apps in one internal environment | Every silo app receives a unique TCP silo and gateway port pair on the environment's private static IP | Scale by adding or removing one-replica silo apps. Replacement apps provide controlled rollout. This topology provides app-resource and process redundancy without a documented cross-zone placement guarantee. Use AKS when zonal placement is part of the availability objective. | Azure operates hosts and the environment; the application team owns the bounded app topology, port allocation, and replacement workflow | Azure Table Storage for clustering and optional grain state; other Azure data services where supported by the application |
-| [Azure App Service](azure-app-service.md) | One cohosted silo per App Service worker | Each worker advertises `WEBSITE_PRIVATE_IP` and its allocated private port. Trusted application clients use validated private gateway mappings when enabled. | App Service distributes multiple workers across fault domains. Supported Premium plans can enable zone redundancy. Deployment slots provide compatible release rollout. | Azure operates workers and the front end; the application team validates private endpoint behavior, slot compatibility, zone configuration, and capacity | Azure Table Storage for clustering and grain state in the maintained sample |
-| [Service Fabric](service-fabric.md) | One silo per unpartitioned stateless Reliable Service instance | Each instance advertises its node address and runtime-allocated silo and gateway ports | Stateless instance count, fault domains, update domains, monitored rolling upgrades, and application health policies | Service Fabric manages placement and lifecycle; the application owns the Reliable Service integration and Orleans providers | Azure Table Storage in the compiled example; another supported external provider when appropriate |
+| [Azure Kubernetes 服务(阿卡西)](azure-kubernetes-service.md) | 一个 silo 以每个播客 `Deployment`; 单独在集群内客户或共同托管应用程序端点 | Silos 广告广告舱IP。集群客户直接到达舱门端点。 Azure CNI Pod 子网将直接舱道线路延伸到外部 Orleans 客户需要时的连接网络。 | 水平舱舱、节点资源自动计算、可用区、分布地、扰乱预算以及控制滚动替换 | Azure 操作控制机;应用小组拥有工作量清单、能力、提供者、升级和回收 | Azure 表格储存或用于集群的 ADO.NET ;应用程序选择的耐久存储、提醒和流 |
+| [Kubernetes](kubernetes.md) | 每个有明确播客名称和IP配置的 silo | Silos 客户在网络上运行,可以连接到每个广告的网关IP | 部署复制品、针对具体群组的节点规模、地形分布、扰乱预算和滚动更新 | Kubernetes 操作员与应用团队共享 | 已经在该组群附近运营的一家高度可用供应商 |
+| [Azure 集装箱套件](deploy-to-azure-container-apps.md) | 每个集装箱应用软件复制一个 silo 复制件,在一个内部环境中使用多个 silo 应用程序 | 每一 silo 接收一个唯一的 TCP silo 和网关端对接端端口环境的私人静态 IP | 使用一个复制的 silo 应用程序来缩放。替换应用程序提供控制推出。 该表层学提供了应用程序资源和流程冗余, 没有文件记录的跨区安插保证。 当地区安插是可用目标的一部分时使用 AKS 。 | Azure 运行主机和环境;应用团队拥有封闭式应用程序地形、港口分配和替换工作流程 | Azure 用于聚合和任择 grain 状态的表格存储;得到应用程序支持的其他 Azure 数据服务 |
+| [Azure 服务处](azure-app-service.md) | 每个服务处工作人员一个共同主办 silo | 每一位工人都登广告 `WEBSITE_PRIVATE_IP` 及其分配的私人港口。 受信任的应用客户一旦启用,就使用经验证的私人网关图。 | 应用程序服务将多个工人分布于故障领域。支持的预留计划可以使区冗余成为可能。部署空档提供兼容的释放推出。 | Azure 操作工人和前端;应用小组验证私人端点行为、空档兼容性、区配置和能力 | Azure 用于组集和保留样品 grain 状态的表格储存 |
+| [服务制造](service-fabric.md) | 每一个无处所的无国籍可靠服务机构案例 silo | 每个案例都广告宣传节点地址和运行时间分配 silo 及网关港口 | 无国籍案例数、断层域、更新域、监测滚动升级和应用卫生政策 | 服务结构管理安置和生命周期;应用程序拥有可靠服务整合和 Orleans 供应商 | Azure 汇编示例中的表格存储;另一个支持的外部提供者酌情 |
 
-## Compare lifecycle and release mechanisms
+<a id="compare-lifecycle-and-release-mechanisms"></a>
 
-| Target | Health and termination mechanism | Upgrade and rollback mechanism |
+## 比较生命周期和释放机制
+
+| 具体目标具体目标 | 健康和终止健康和终止机制 | 升级和回推机制 |
 | --- | --- | --- |
-| AKS | Application-owned startup, readiness, and liveness probes; Kubernetes pod termination grace period; PDB-governed voluntary eviction | Deployment rolling update plus node-pool surge and drain controls; isolated AKS cluster and Orleans cluster ID for incompatible changes |
-| Kubernetes | Application-owned probes, orchestrator termination grace period, and disruption policy | Deployment or controller rollout with bounded unavailable and surge capacity; separate cluster identity for incompatible changes |
-| Azure Container Apps | Explicit startup, readiness, and liveness probes plus container termination grace period | Replacement one-replica silo apps with new port pairs; isolated app set and cluster ID for incompatible changes |
-| Azure App Service | App Service Health check, startup and slot warm-up, application readiness, and bounded host shutdown | Staging-slot warm-up and swap for compatible changes; separate app and cluster ID for incompatible changes |
-| Service Fabric | Communication-listener lifecycle plus application-authored Service Fabric health reports and close timeout | Monitored rolling upgrade by update domain; separately named application and cluster ID for incompatible changes |
+| AKS突击步枪 | 应用程序自有的启动、准备状态和活性探测; Kubernetes 舱舱终止宽限期;受数据库管理的自愿驱逐 | 部署滚式更新部署、滚动更新以及节点池激增和排水控制;因变化不相容而孤立的AKS突击突击队群组和 Orleans 群组识别 |
+| Kubernetes | 应用自有探测器、管弦乐队终止的宽限期和干扰政策 | 部署或主计长或启动,有约束的无法和快速增援能力;因不相容变动而单独采用群组身份 |
+| Azure 集装箱套件 | 明确启动、准备和活性探测,加上集装箱终止宽限期 | 用新端口对配对替换一个复制件 silo 应用程序; 独立应用程序集和组群编号, 用于不兼容的更改 |
+| Azure 服务处 | App 服务健康检查、启动和空档暖热、申请准备就绪以及封闭主机关闭 | 调制点滚热和互换兼容的更改;不兼容的更改,单独应用和群集编号 |
+| 服务制造 | 通信员生命周期及应用程序用户用户服务 | 通过更新域监测滚动升级升级;单独命名应用程序和组号ID,以显示不兼容的更改 |
 
-## Qualify another platform
+<a id="qualify-another-platform"></a>
 
-The maintained target guides above provide complete platform-specific operations guidance. Use these supporting guides to qualify another hosting system:
+## 给另一个平台资格
 
-| Platform shape | Networking guidance | Qualification path |
+以上保存的目标指南提供完整的具体平台业务指导。
+
+| 平台形状 | 联网指导 | 资格路径 |
 | --- | --- | --- |
-| Container orchestrator or service | [Run containers across multiple hosts](containers.md) | Prove direct per-container addressing or unique host-port mapping, then complete every [platform requirement](platform-guides.md) for the selected orchestrator. |
-| Virtual machines or bare-metal hosts | Stable private host addresses and unique silo and gateway ports | Complete the [platform requirements](platform-guides.md) with the infrastructure team's process supervision, failure-domain placement, patching, scaling, and replacement automation. |
+| 集装箱管弦或服务 | [跨越多个主机的集装箱](containers.md) | 直接证明每个集装箱的地址或独特的主机-港口映射,然后完成选定管弦演奏者的每一 [平台需求](platform-guides.md) 。 |
+| 虚拟机器或光金属主机 | 稳定的私人主机地址和独有 silo 和网关 | 完成 [所需平台](platform-guides.md) ,由基础设施小组的程序监督、故障域定位、补丁、缩放和替换自动化。 |
 
-## Choose the networking model first
+<a id="choose-the-networking-model-first"></a>
 
-Orleans membership identifies a specific silo endpoint. The selected platform therefore needs one of these models:
+## 首先选择网络模式
 
-- **Direct workload addressing** gives each pod, task, container, or process a private address which every silo can route to. Kubernetes with routable pod networking and Amazon ECS with `awsvpc` task networking use this model.
-- **Explicit endpoint mapping** gives each silo a private host or platform address plus unique published silo and gateway ports. Azure Container Apps, Azure App Service, and host-port container deployments use this model.
-- **Stable host addressing** gives each virtual machine or physical host a private address. Each silo on that host advertises a unique port pair.
+Orleans 成员确定一个具体的 silo 终点。 因此,选定的平台需要其中的一个模式:
 
-HTTP ingress, reverse proxies, and shared service virtual IPs route application traffic. Orleans transport connections continue to use the individual endpoints stored in membership. See [Topology, networking, and clustering](networking.md) for the runtime boundary.
+- **直接工作量** 每个播客、任务、容器或处理的私人地址 silo 中选择的路径。 Kubernetes 与非洲和亚马孙的 `awsvpc` 利用这一模式建立任务网络。
+- **明确终点绘图** 为每个 silo 提供一个私人主机或平台地址,加上唯一已公布的 silo 和网关港口。 Azure 集装箱应用程序、 Azure 应用程序服务以及东道国集装箱部署使用这一模式。
+- **稳定主机地址** 向每个虚拟机器或物理主机提供私人地址。东道方的每一个 silo 都广告一个独特的端口对。
 
-## Match client placement to the target
+HTTP 入侵、反向代理和共享服务虚拟IPS路线应用通信。 Orleans 运输连接继续使用以成员身份储存的单个端点。运行时边界见 [地形学、联网和集群](networking.md) 。
 
-An Orleans client discovers gateway endpoints from the clustering provider and connects to those endpoints directly.
+<a id="match-client-placement-to-the-target"></a>
 
-- In-cluster clients fit pod-overlay networks because they can route to every gateway pod IP.
-- Clients in connected virtual networks require a target whose advertised gateway addresses are routed to those networks.
-- Public callers use an authenticated application API. Keep silo and gateway ports on trusted private networks.
-- Cohosted clients use the local silo while application HTTP or gRPC ingress remains a separate platform path.
+## 将客户定位匹配到目标
 
-Document the client networks and test every advertised gateway from each one before launch.
+Orleans 客户端从集群提供商那里发现网关端点,并直接连接到这些端点。
 
-## Match scaling to Orleans capacity
+- 集群客户安装了舱位服务网络,因为他们可以前往每个网关舱位IP。
+- 连接的虚拟网络中的客户需要有一个目标,其公布的网关地址被传送到这些网络。
+- 公共呼叫员使用经认证的应用软件 API。在信任的私人网络上保持 silo 和网关。
+- 共同托管客户使用本地 silo ,而应用 HTTP或 gRPC 入侵程序仍然是单独的平台路径。
 
-The platform changes process or node count. Orleans membership incorporates new silos, placement uses the available silos, and activations recover after a silo leaves.
+记录客户网络,在启动前测试每个广告网关。
 
-Set scaling policy from measured application signals:
+<a id="match-scaling-to-orleans-capacity"></a>
 
-- Keep a tested minimum silo count and enough capacity to lose one failure domain.
-- Scale out early enough for new silos to start, join membership, and absorb activations.
-- Scale in one bounded set of silos at a time after readiness is removed and graceful host shutdown begins.
-- Coordinate pod or process autoscaling with node, plan, or host capacity.
-- Load-test scale-out, scale-in, restart, provider degradation, and rolling replacement.
+## 匹配 Orleans 能力
 
-See [Capacity planning and scaling](capacity-planning.md) and [Graceful shutdown and upgrades](upgrades.md).
+平台更改进程或节点计数。 Orleans 成员包括新的 silos、职位安排使用可用的 silos,以及在 silo 休假后恢复的启动。
 
-## Production coverage for every target
+根据测量的应用信号制定比例政策:
 
-Complete these outcomes in the selected target guide and record environment-specific values in the deployment runbook.
+- 保持测试的最低 silo 计数,并有足够的能力丢失一个失败域。
+- 提前进行升级,以便新的 silos 能够启动、加入成员行列和吸收激活。
+- 在一个封闭的 silos 组内,在准备状态取消和优雅的主机关闭开始后进行缩放。
+- 坐标舱或程序自动调整, 并配有节点、 计划或主机能力 。
+- 装入测试缩放、 缩放、 重新启动、 供应商退化和滚动替换 。
 
-| Concern | Required outcome |
+见 [能力规划和规模](capacity-planning.md) 和 [优优优停机和升级](upgrades.md)。
+
+<a id="production-coverage-for-every-target"></a>
+
+## 每一目标的生产覆盖率
+
+在选定的目标指南中完成这些成果,并在部署运行手册中记录环境特有价值。
+
+| 关注问题 | 规定成果 |
 | --- | --- |
-| Topology and networking | Every silo has a unique advertised endpoint, every silo can reach every silo endpoint, and every client can reach every advertised gateway endpoint. |
-| Dependencies and data | Production clustering, grain storage, reminders, streams, and external dependencies have explicit availability, durability, quota, backup, and recovery decisions. |
-| Identity and secrets | Runtime and deployment identities have separate least-privilege permissions. Credentials and certificates use managed delivery, rotation, and expiry monitoring. |
-| Health and lifecycle | Startup, readiness, liveness, dependency health, graceful shutdown, and the platform termination deadline have distinct measured behavior. |
-| Scaling and resilience | Minimum capacity, autoscaling boundaries, failure-domain distribution, disruption policy, and recovery after one failure domain are load-tested. |
-| Upgrades and rollback | Compatible releases use bounded rolling replacement. Incompatible releases use isolated cluster IDs and an explicit state and traffic migration plan. |
-| Observability and incidents | Central logs, metrics, traces, deployment identity, membership evidence, alerts, dashboards, and incident commands support diagnosis under load. |
-| Infrastructure delivery | Infrastructure and workload configuration are versioned, reviewed, reproducible, and validated before production traffic. |
+| 地形学和联网 | 每个 silo 都有独特的广告端点,每个 silo 都能达到每一个 silo 端点,每个客户都可以到达每一个广告端点。 |
+| 依赖和数据 | 生产集群、 grain 储存、提醒、流和外部依赖性都有明确的可用性、持久性、配额、备份和回收决定。 |
+| 身份和机密 | 运行和部署身份有不同的最不受限制的许可,证书和证明使用管理下的交付、轮换和到期监测。 |
+| 健康和生命周期 | 启动、准备、存活、依赖性健康、优雅的关闭和平台终止期限都有不同的衡量行为。 |
+| 规模和复原力 | 最低能力、边界自动扩大、故障域分布、中断政策和一次故障后恢复都经过负荷测试。 |
+| 升级和回调 | 互不兼容的释放使用有约束性的滚动替代,不兼容的排放使用孤立的集束识别码和明确的州与交通迁移计划。 |
+| 观察和事件 | 中央日志、指标、跟踪、部署身份、成员证据、警报、仪表板和事件指令支持诊断都处于负荷状态。 |
+| 基础设施交付 | 基础设施和工作量配置在生产量流通之前进行编译、审查、复制和验证。 |
 
-Use the [production-readiness checklist](production-readiness.md) for the full review and [Troubleshoot deployments](troubleshooting-deployments.md) for incident evidence.
+使用 [生产准备状态清单](production-readiness.md) 进行全面审查,使用 [故障解决部署](troubleshooting-deployments.md) 提供事故证据。

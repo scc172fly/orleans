@@ -22,7 +22,7 @@ using Polly.Timeout;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// Central point for placement decisions.
+    /// 安置决定的中心点。
     /// </summary>
     internal partial class PlacementService : IPlacementContext, ILifecycleParticipant<ISiloLifecycle>, PlacementService.ITestAccessor
     {
@@ -49,7 +49,7 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// Create a <see cref="PlacementService"/> instance.
+        /// 创建 <see cref="PlacementService"/> 实例。
         /// </summary>
         public PlacementService(
             IOptionsMonitor<SiloMessagingOptions> siloMessagingOptions,
@@ -137,7 +137,7 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// Gets or places an activation.
+        /// 启动或设置激活。
         /// </summary>
         public Task AddressMessage(Message message)
         {
@@ -171,8 +171,8 @@ namespace Orleans.Runtime.Placement
             ThrowIfStopping();
 
             var grainType = target.GrainIdentity.Type;
-            // For test only: if we have silos that are not yet in the Cluster TypeMap, we assume that they are compatible
-            // with the current silo
+            // 仅用于测试:如果我们有 silos 尚未列入组群 TypeMap,我们假定它们相容
+            // 与当前 silo结合
             SiloAddress[] compatibleSilos;
             if (_assumeHomogeneousSilosForTesting)
             {
@@ -185,9 +185,9 @@ namespace Orleans.Runtime.Placement
                 var filters = _filterStrategyResolver.GetPlacementFilterStrategies(grainType);
                 if (filters.Length > 0)
                 {
-                    // Capture the parent activity context now so each filter span is parented to the
-                    // current activity (e.g. PlaceGrain) rather than to sibling filter spans that may
-                    // be active during deferred enumeration.
+                    // 获取父活动环境, 所以每个过滤范围都以
+                    // 当前活动 (e.g. PlaceGrain) 而不是用来为可能
+                    // 推迟计数期间活动。
                     var parentActivityContext = Activity.Current?.Context;
 
                     IEnumerable<SiloAddress> filteredSilos = compatibleSilos;
@@ -254,7 +254,7 @@ namespace Orleans.Runtime.Placement
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool CachedAddressIsValid(Message message, GrainAddress cachedAddress)
         {
-            // Verify that the result from the cache has not been invalidated by the message being addressed.
+            // 验证缓存的结果是否已被信件所处理而无效 。
             if (message.CacheInvalidationHeader is { } cacheUpdates)
             {
                 lock (cacheUpdates)
@@ -273,7 +273,7 @@ namespace Orleans.Runtime.Placement
 
                 foreach (var update in cacheUpdates)
                 {
-                    // Invalidate/update cache entries while we are examining them.
+                    // 正在检查时, 无效/ 更新缓存条目 。
                     var invalidAddress = update.InvalidGrainAddress;
                     var validAddress = update.ValidGrainAddress;
                     _grainLocator.UpdateCache(update);
@@ -293,12 +293,12 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// Places a grain without considering the grain's existing location, if any.
+        /// 位于 grain 位置,而不考虑 grain现有地点(如果有的话)。
         /// </summary>
-        /// <param name="grainId">The grain id of the grain being placed.</param>
-        /// <param name="requestContextData">The request context, which will be available to the placement strategy.</param>
-        /// <param name="placementStrategy">The placement strategy to use.</param>
-        /// <returns>A location for the new activation.</returns>
+        /// <param name="grainId">下 grain 缩写 grain 被放置。</param>
+        /// <param name="requestContextData">申请背景,将提供给安置战略。</param>
+        /// <param name="placementStrategy">使用安置策略。</param>
+        /// <returns>新激活的地点。</returns>
         public async Task<SiloAddress> PlaceGrainAsync(GrainId grainId, Dictionary<string, object>? requestContextData, PlacementStrategy placementStrategy)
         {
             using var _ = TryRestoreActivityContext(requestContextData, ActivityNames.PlaceGrain);
@@ -400,7 +400,7 @@ namespace Orleans.Runtime.Placement
                     {
                         try
                         {
-                            // Start processing new requests
+                            // 开始处理新请求
                             var messages = GetMessages();
                             if (messages is not null)
                             {
@@ -417,20 +417,20 @@ namespace Orleans.Runtime.Placement
                                         workItem.Messages.Add(message);
                                         if (workItem.Result is null)
                                         {
-                                            // Note that the first message is used as the target to place the message,
-                                            // so if subsequent messages do not agree with the first message's interface
-                                            // type or version, then they may be sent to an incompatible silo, which is
-                                            // fine since the remote silo will handle that incompatibility.
+                                            // 请注意,第一条电文被用作发送电文的目标,
+                                            // 如果后续信息与第一封电文的接口不一致,则可以
+                                            // 类型或版本,然后它们可发送到不兼容的 silo,即
+                                            // 由远程 silo 处理不兼容的问题,因此被罚款。
                                             workItem.Result = GetOrPlaceActivationAsync(message.Message);
 
-                                            // Wake up this processing loop when the task completes
+                                            // 当任务完成时提醒此处理循环
                                             workItem.Result.GetAwaiter().UnsafeOnCompleted(signalWaiter);
                                         }
                                     }
                                 }
                             }
 
-                            // Complete processing any completed request
+                            // 完成处理任何已完成的请求
                             foreach (var pair in _inProgress)
                             {
                                 var workItem = pair.Value;
@@ -592,7 +592,7 @@ namespace Orleans.Runtime.Placement
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Restore activity context on every attempt so retried lookups remain children of the request.
+                // 每次尝试都恢复活动环境,因此重新调查后的调查仍然是请求中的儿童。
                 using var restoredActivity = TryRestoreActivityContext(firstMessage.RequestContextData, ActivityNames.PlaceGrain);
                 var lookup = _placementService._grainLocator.Lookup(targetGrain);
                 var result = lookup.IsCompletedSuccessfully
@@ -608,7 +608,7 @@ namespace Orleans.Runtime.Placement
                 var director = _placementService._directorResolver.GetPlacementDirector(strategy);
                 var siloAddress = await director.OnAddActivation(strategy, target, _placementService).WaitAsync(cancellationToken);
 
-                // Give the grain locator one last chance to tell us that the grain has already been placed
+                // 给 grain 定位器最后一次机会告诉我们 grain 已经放置
                 if (_placementService._grainLocator.TryLookupInCache(targetGrain, out result) && _placementService.CachedAddressIsValid(firstMessage, result))
                 {
                     return result.SiloAddress!;
@@ -626,7 +626,7 @@ namespace Orleans.Runtime.Placement
             private static partial void LogMessageExpiredDuringPlacement(ILogger logger, GrainId grainId);
 
             /// <summary>
-            /// Context passed to the resilience pipeline to avoid allocations.
+            /// 环境转至复原力管道,以避免分配。
             /// </summary>
             private readonly struct PlacementContext(Message firstMessage, PlacementTarget target)
             {
@@ -643,9 +643,9 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// Wraps a filter's output enumerable so that an Activity span is created when the
-        /// sequence is actually enumerated, not when the filter is composed. This avoids
-        /// per-filter array materialization while still giving accurate span timings.
+        /// 将过滤器的输出以数字方式进行折行,以便当
+        /// 实际列出序列,而不是当过滤器组成时。此选项避免
+        /// 每一过滤器阵列实现,同时仍然提供准确的间隔时间。
         /// </summary>
         private IEnumerable<SiloAddress> InstrumentFilteredSilos(
             IEnumerable<SiloAddress> silos,
@@ -668,7 +668,7 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// Attempts to restore the parent activity context from request context data.
+        /// 试图从请求的上下文数据中恢复父活动背景。
         /// </summary>
         private static Activity? TryRestoreActivityContext(Dictionary<string, object>? requestContextData, string operationName)
         {
@@ -681,7 +681,7 @@ namespace Orleans.Runtime.Placement
 
             if (activityContext is { } parentContext)
             {
-                // Start the activity from the Catalog's ActivitySource to properly associate it with activation tracing
+                // 从目录 ActivitySource 开始活动, 以适当将其与激活跟踪连接
                 return ActivitySources.LifecycleGrainSource.StartActivity(operationName, ActivityKind.Internal, parentContext);
             }
 

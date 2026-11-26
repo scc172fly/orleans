@@ -11,26 +11,26 @@ using Orleans.Providers;
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// Base class for all grains that use log-consistency for managing  the state.
-    /// It is the equivalent of <see cref="Grain{T}"/> for grains using log-consistency.
-    /// (SiloAssemblyLoader uses it to extract type)
+    /// 用于管理状态时使用日志一致性的所有 grains 基级。
+    /// 等于 <see cref="Grain{T}"/> 用于 grains 使用对数一致性。
+    /// (SiloAssemblyLoader 使用它提取类型)
     /// </summary>
-    /// <typeparam name="TView">The type of the view</typeparam>
+    /// <typeparam name="TView">视图类型</typeparam>
     public abstract class LogConsistentGrain<TView> : Grain, ILifecycleParticipant<IGrainLifecycle>
     {
         /// <summary>
-        /// called right after grain construction to install the log view adaptor
+        /// 在 grain 建造后立即调用安装日志视图适配器
         /// </summary>
-        /// <param name="factory"> The adaptor factory to use </param>
-        /// <param name="state"> The initial state of the view </param>
-        /// <param name="grainTypeName"> The type name of the grain </param>
-        /// <param name="grainStorage"> The grain storage, if needed </param>
-        /// <param name="services"> Protocol services </param>
+        /// <param name="factory"> 调适工厂使用 </param>
+        /// <param name="state"> 视图的初始状态 </param>
+        /// <param name="grainTypeName"> grain </param>的名称类型
+        /// <param name="grainStorage"> grain 储存,必要时储存 </param>
+        /// <param name="services"> 礼宾服务 </param>
         protected abstract void InstallAdaptor(ILogViewAdaptorFactory factory, object state, string grainTypeName, IGrainStorage? grainStorage, ILogConsistencyProtocolServices services);
 
         /// <summary>
-        /// Gets the default adaptor factory to use, or null if there is no default
-        /// (in which case user MUST configure a consistency provider)
+        /// 获取默认调整器厂用,如果没有默认使用则为无效
+        /// (在这种情况下用户必须配置一个一致性提供商)
         /// </summary>
         protected abstract ILogViewAdaptorFactory? DefaultAdaptorFactory { get; }
 
@@ -81,7 +81,7 @@ namespace Orleans.EventSourcing
             ILogViewAdaptorFactory factory,
             IGrainStorage? grainStorage)
         {
-            // encapsulate runtime services used by consistency adaptors
+            // 一致性适配器使用的装封运行时间服务
             ILogConsistencyProtocolServices svc = protocolServicesFactory(grainContext);
 
             TView state = (TView)Activator.CreateInstance(typeof(TView))!;
@@ -102,7 +102,7 @@ namespace Orleans.EventSourcing
                 throw new BadProviderConfigException(errMsg);
             }
 
-            // use default if none found
+            // 如果找不到默认值, 则使用默认值
             defaultFactory = defaultFactory ?? this.DefaultAdaptorFactory;
             if (defaultFactory == null)
             {

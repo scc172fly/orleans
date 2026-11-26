@@ -58,7 +58,7 @@ namespace UnitTests.Grains
 
         public Task StartLocalGrains(List<Guid> keys)
         {
-            // we call Nop() on the grain references to ensure that they're instantiated before the promise is delivered.
+            // 我们用 grain 引用方式呼叫Nop (),以确保在承诺兑现之前即刻执行。
             var grains = keys.Select(i => GrainFactory.GetGrain<IStatelessWorkerPlacementTestGrain>(i));
             var promises = grains.Select(g => g.Nop());
             return Task.WhenAll(promises);
@@ -66,7 +66,7 @@ namespace UnitTests.Grains
 
         public async Task<Guid> StartPreferLocalGrain(Guid key)
         {
-            // we call Nop() on the grain references to ensure that they're instantiated before the promise is delivered.
+            // 我们用 grain 引用方式呼叫Nop (),以确保在承诺兑现之前即刻执行。
             await GrainFactory.GetGrain<IPreferLocalPlacementTestGrain>(key).Nop();
             return key;
         }
@@ -86,7 +86,7 @@ namespace UnitTests.Grains
 
         private static async Task PropagateStatisticsToCluster(IGrainFactory grainFactory)
         {
-            // force the latched statistics to propagate throughout the cluster.
+            // 迫使被拉动的统计数据在整个组群中传播。
             var managementGrain = grainFactory.GetGrain<IManagementGrain>(0);
             var hosts = await managementGrain.GetHosts(true);
             var keys = hosts.Select(kvp => kvp.Key).ToArray();
@@ -258,7 +258,7 @@ namespace UnitTests.Grains
     }
 
     //----------------------------------------------------------//
-    // Grains for LocalContent grain case, when grain is activated on every silo by bootstrap provider.
+    // Grains 用于 LocalContent grain 情况,当 grain 启动于每个 silo 由靴子陷阱提供者。
 
     [PreferLocalPlacement]
     public class LocalContentGrain : Grain, ILocalContentGrain
@@ -275,8 +275,8 @@ namespace UnitTests.Grains
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation("OnActivateAsync");
-            DelayDeactivation(TimeSpan.MaxValue);   // make sure this activation is not collected.
-            cachedContent = RuntimeIdentity;        // store your silo identity as a local cached content in this grain.
+            DelayDeactivation(TimeSpan.MaxValue);   // 确保此激活不被收集 。
+            cachedContent = RuntimeIdentity;        // 存储 silo 此处的本地缓存内容身份 grain.
             InstanceIdForThisSilo = this.AsReference<ILocalContentGrain>();
             return Task.FromResult(0);
         }

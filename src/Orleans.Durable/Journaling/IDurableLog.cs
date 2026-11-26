@@ -4,188 +4,188 @@ using System.Globalization;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Represents an append-only, observable log whose entries are recorded in a journal.
+/// 仅代表一个仅附加的可观测日志,其条目记录在日记中。
 /// </summary>
-/// <typeparam name="T">The type of entries in the log.</typeparam>
+/// <typeparam name="T">日志中条目的类型。</typeparam>
 /// <remarks>
 /// <para>
-/// Each appended entry receives the next value of a durable, monotonically increasing sequence number.
-/// Sequence numbers are never reused within a history: <see cref="TrimBefore"/> discards old entries while preserving the
-/// sequence, and <see cref="Clear"/> replaces the log's entries after consuming one sequence number.
-/// Enumeration yields the retained entries in sequence order.
+/// 每个附加条目的下一个值为耐久、单质增长序列号。
+/// 序列号在历史中从未再使用: <see cref="TrimBefore"/> 丢弃旧条目,同时保存
+/// 序列,并且 <see cref="Clear"/> 在消耗一个序列编号后替换日志的条目。
+/// 数字按顺序排列保留条目。
 /// </para>
 /// <para>
-/// <see cref="Epoch"/> identifies the history. Deleting the journal ends the history and restarts the sequence, and the
-/// next change begins a history with a new epoch. A reader position is therefore an epoch and a sequence number.
+/// <see cref="Epoch"/> 识别历史。删除日记结束历史并重新启动序列,然后
+/// 下一个变化将以新时代开始历史。 因此, 阅读器位置是一个时代和一个序列编号 。
 /// </para>
 /// <para>
-/// A draft streams volatile content to readers which include drafts before its durable entries exist. Use drafts for
-/// incremental output, such as model responses, whose final form is committed as one or more entries.
+/// 向读者流出挥发性内容的草稿,其中包括在耐用条目存在之前的草稿。
+/// 增量产出,例如示范答复,其最终形式作为一个或多个条目承诺。
 /// </para>
 /// <para>
-/// <see cref="Seal"/> durably ends the log, so that readers' streams end after its final entry.
+/// <see cref="Seal"/> 长期结束日志, 这样读者的流在最后输入后结束 。
 /// </para>
 /// <para>
-/// The log takes ownership of the entries and draft items passed to it, and the journal records each entry when it is appended.
-/// To change an entry's content, append a new entry.
+/// 日志取得条目的所有权和传递给它的项目的草稿,日记记录附在后面的每个条目。
+/// 要更改条目的内容,请附加新的条目。
 /// </para>
 /// </remarks>
 public interface IDurableLog<T> : IReadOnlyCollection<T>
 {
     /// <summary>
-    /// Gets the identifier of the log's history, or zero when the log has no history.
+    /// 获取日志历史的识别符号,或者当日志没有历史时为零。
     /// </summary>
     /// <remarks>
-    /// The first change after the log is created, or after its journal is deleted, begins a history with a new random
-    /// positive epoch. The epoch is journaled with the history, so it identifies the history in every activation.
+    /// 日志创建后, 或日记日记被删除后, 以新的随机开始历史
+    /// 阳性时代。 这个时代与历史同步, 所以它在每个激活中都识别历史 。
     /// </remarks>
     long Epoch { get; }
 
     /// <summary>
-    /// Gets the sequence number of the first retained entry.
+    /// 获取第一个保留条目的序列编号。
     /// </summary>
     long FirstSequence { get; }
 
     /// <summary>
-    /// Gets the sequence number which the next appended entry receives.
+    /// 获取下一个附加条目收到的序列号。
     /// </summary>
     long NextSequence { get; }
 
     /// <summary>
-    /// Gets the sequence number after the last committed entry. Entries with lower sequence numbers are durable.
+    /// 获取上次承诺条目之后的序列编号。序列号较低的条目是耐久的。
     /// </summary>
     long CommittedSequence { get; }
 
     /// <summary>
-    /// Gets a value indicating whether <see cref="Seal"/> has ended the log.
+    /// 获得一个值,以显示 <see cref="Seal"/> 是否结束了日志。
     /// </summary>
     bool IsSealed { get; }
 
     /// <summary>
-    /// Gets the retained entry with the specified sequence number.
+    /// 获取保留条目的指定序列号。
     /// </summary>
-    /// <param name="sequence">The entry's sequence number.</param>
-    /// <returns>The entry.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">The log does not retain an entry with <paramref name="sequence"/>.</exception>
+    /// <param name="sequence">条目序列号。</param>
+    /// <returns>条目。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">日志不保留 <paramref name="sequence"/>的条目。</exception>
     T this[long sequence] { get; }
 
     /// <summary>
-    /// Attempts to get the retained entry with the specified sequence number.
+    /// 尝试获取保留条目,并使用指定的序列号。
     /// </summary>
-    /// <param name="sequence">The entry's sequence number.</param>
-    /// <param name="item">The entry, if retained.</param>
-    /// <returns><see langword="true"/> if the log retains an entry with <paramref name="sequence"/>; otherwise, <see langword="false"/>.</returns>
+    /// <param name="sequence">条目序列号。</param>
+    /// <param name="item">如果保留,则保留条目。</param>
+    /// <returns><see langword="true"/> ,如果日志保留了 <paramref name="sequence"/>条目;否则, <see langword="false"/>。</returns>
     bool TryGet(long sequence, [MaybeNullWhen(false)] out T item);
 
     /// <summary>
-    /// Appends an entry to the log.
+    /// 将条目添加到日志中。
     /// </summary>
-    /// <param name="item">The entry.</param>
-    /// <returns>The entry's sequence number.</returns>
-    /// <exception cref="InvalidOperationException">The log is sealed.</exception>
+    /// <param name="item">条目。</param>
+    /// <returns>条目序列号。</returns>
+    /// <exception cref="InvalidOperationException">日志已密封。</exception>
     long Append(T item);
 
     /// <summary>
-    /// Discards entries with sequence numbers lower than <paramref name="sequence"/>.
+    /// 丢弃序列号低于 <paramref name="sequence"/>的条目。
     /// </summary>
-    /// <param name="sequence">The sequence number of the first entry to retain.</param>
+    /// <param name="sequence">要保留的第一个条目的序列号 。</param>
     /// <remarks>
-    /// Trimming bounds retention and preserves <see cref="NextSequence"/>; the retained entries remain valid. Every active
-    /// reader receives <see cref="LogEventKind.Trimmed"/> with the new <see cref="FirstSequence"/> once the trim is durable,
-    /// and a reader positioned before it continues from it. A sealed log can be trimmed.
+    /// triming 边框保留和保存 <see cref="NextSequence"/>;留存条目仍然有效。
+    /// 接收读者 <see cref="LogEventKind.Trimmed"/> 与新 <see cref="FirstSequence"/> 一旦修饰持久,
+    /// 并有一个读者,在它继续之前,可以修补密封的日志。
     /// </remarks>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="sequence"/> is negative or greater than <see cref="NextSequence"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="sequence"/> 为负值或大于 <see cref="NextSequence"/>。</exception>
     void TrimBefore(long sequence);
 
     /// <summary>
-    /// Discards every entry, such as to replace the discarded entries with a compacted summary.
+    /// 丢弃每个条目, 例如用压缩摘要替换废弃的条目 。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Clearing consumes one sequence number and preserves <see cref="Epoch"/>: afterwards, <see cref="FirstSequence"/> and
-    /// <see cref="NextSequence"/> equal the previous <see cref="NextSequence"/> plus one. A reader positioned at or before the
-    /// cleared sequence number has observed entries which the clear replaced. It receives <see cref="LogEventKind.Reset"/>,
-    /// including when it resumes in a later activation, and a reader positioned after it does not. Readers receive the event
-    /// once the clear is durable.
+    /// 清除工作消耗一个序列号并保存 <see cref="Epoch"/>:随后, <see cref="FirstSequence"/> 和
+    /// <see cref="NextSequence"/> 等于上一个 <see cref="NextSequence"/> 加1。
+    /// 清除序列号已观察到被替换的清晰条目。它收到 <see cref="LogEventKind.Reset"/>,
+    /// 包括当它恢复后再激活时, 而一个读者在它不恢复后的位置就定位。 读者会接收事件
+    /// 明理是持久的。
     /// </para>
     /// <para>
-    /// Use <see cref="TrimBefore"/> instead to discard old entries whose successors remain valid. Open drafts remain open.
+    /// 使用 <see cref="TrimBefore"/> 代替丢弃继承人仍然有效的旧条目。 开放式草稿仍然开放 。
     /// </para>
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The log is sealed.</exception>
+    /// <exception cref="InvalidOperationException">日志已密封。</exception>
     void Clear();
 
     /// <summary>
-    /// Durably ends the log.
+    /// 极有可能结束日志
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Once the seal is durable, each reader receives the remaining entries and then <see cref="LogEventKind.Sealed"/>, and
-    /// its stream ends. A reader which begins reading a sealed log receives its retained entries and then
-    /// <see cref="LogEventKind.Sealed"/>. A stream which ends because the activation stopped ends without the event.
+    /// 一旦封条具有耐久性,每个读者将接收其余条目,然后 <see cref="LogEventKind.Sealed"/>,
+    /// 开始读取密封日志的读者会接收其保留条目,然后
+    /// <see cref="LogEventKind.Sealed"/>. 一条流,该流因启动停止而终止,没有事件结束。
     /// </para>
     /// <para>
-    /// Sealing abandons open drafts with <see cref="LogDraftAbandonReason.Sealed"/>. A sealed log rejects <see cref="Append"/>,
-    /// <see cref="Clear"/>, and <see cref="BeginDraft"/>, and can still be trimmed. Sealing a sealed log has no effect.
-    /// Only deleting the journal unseals the log.
+    /// 密封丢弃 <see cref="LogDraftAbandonReason.Sealed"/>打开的草稿。密封日志拒绝 <see cref="Append"/>,
+    /// <see cref="Clear"/>和 <see cref="BeginDraft"/>,仍然可以剪裁。密封的日志封存没有效果。
+    /// 只删除日记, 解封日志 。
     /// </para>
     /// </remarks>
     void Seal();
 
     /// <summary>
-    /// Opens a draft which streams volatile items to readers which include drafts.
+    /// 打开将挥发性项目流到读者的草稿,其中包括草案。
     /// </summary>
-    /// <returns>The open draft. Dispose it to abandon the draft unless it was closed.</returns>
-    /// <exception cref="InvalidOperationException">The log is sealed.</exception>
+    /// <returns>公开草案,放弃该草案,除非它关闭。</returns>
+    /// <exception cref="InvalidOperationException">日志已密封。</exception>
     IDurableLogDraft<T> BeginDraft();
 
     /// <summary>
-    /// Reads the log's committed entries from a position, then waits for new entries.
+    /// 从位置读取日志的承付条目,然后等待新条目。
     /// </summary>
-    /// <param name="fromSequence">The sequence number of the first entry to read.</param>
+    /// <param name="fromSequence">第一个条目的序列编号为 。</param>
     /// <param name="epoch">
-    /// The epoch of the history which <paramref name="fromSequence"/> belongs to, from <see cref="LogEvent{T}.Epoch"/>, or zero
-    /// to read the current history. When the epoch differs from <see cref="Epoch"/>, the stream begins with
+    /// <paramref name="fromSequence"/> 属于历史的时代, 从 <see cref="LogEvent{T}.Epoch"/>或零
+    /// 以读取当前历史。当时代与 <see cref="Epoch"/>不同时,流开始于
     /// <see cref="LogEventKind.Reset"/>.
     /// </param>
     /// <param name="includeDrafts">
-    /// Whether the stream also delivers draft events: <see cref="LogEventKind.DraftItem"/>, <see cref="LogEventKind.DraftCommitted"/>,
-    /// and <see cref="LogEventKind.DraftAbandoned"/>.
+    /// 流体是否也提供事件草案: <see cref="LogEventKind.DraftItem"/>、 <see cref="LogEventKind.DraftCommitted"/>、
+    /// 和 <see cref="LogEventKind.DraftAbandoned"/>。
     /// </param>
     /// <param name="resumeDraftId">
-    /// The draft a reconnecting reader which includes drafts was viewing. When the draft is still open,
-    /// the stream repeats its items from the beginning. When it committed, the stream reports
-    /// <see cref="LogEventKind.DraftCommitted"/> with the entries which replaced it, in any activation, while the log retains
-    /// the first of those entries. When it closed in this activation without committing, the stream reports
-    /// <see cref="LogEventKind.DraftAbandoned"/> with its <see cref="LogDraftAbandonReason"/>. Otherwise, the stream reports
-    /// <see cref="LogDraftAbandonReason.PreviousActivation"/> for a draft opened by another activation and
-    /// <see cref="LogDraftAbandonReason.Unknown"/> for a draft of this activation.
+    /// 草案是重新连接的读者,其中包括正在查看的草稿。
+    /// 数据流从开始重复其项目。当它承诺时,报告数据流
+    /// <see cref="LogEventKind.DraftCommitted"/> ,加上替换条目的条目,在任何激活中,在任何激活时,记录保留
+    /// 。 当它关闭此激活时不承诺关闭时, 流报告
+    /// <see cref="LogEventKind.DraftAbandoned"/> 其与本 <see cref="LogDraftAbandonReason"/>否则,各流报告
+    /// <see cref="LogDraftAbandonReason.PreviousActivation"/> ,用于在另一启动下打开的草案
+    /// 用于此激活的草稿<see cref="LogDraftAbandonReason.Unknown"/> 。
     /// </param>
-    /// <param name="cancellationToken">The token which ends the read.</param>
+    /// <param name="cancellationToken">结束读的符号。</param>
     /// <returns>
-    /// A stream of committed entries in sequence order. Each entry is delivered once the journal write which contains it is
-    /// acknowledged. When <paramref name="includeDrafts"/> is <see langword="true"/>, the stream also delivers draft items as
-    /// they are written, and reports a committed draft once the entries which replaced it are durable.
+    /// 以序列顺序排列的一串承诺条目。每条条目在包含该条目的日记写后即交付
+    /// 当 <paramref name="includeDrafts"/> 是 <see langword="true"/>时,流中还提供项目草案
+    /// 它们是书面的,一旦取代这些文字的条目具有持久性,则报告一份承诺的草案。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// Readers re-read retained entries from their position rather than buffering them, so a slow reader retains no entries.
-    /// The stream begins with <see cref="LogEventKind.Reset"/> when <paramref name="epoch"/> names another history, when
-    /// <paramref name="fromSequence"/> is at or before a cleared sequence number, or when it follows <see cref="NextSequence"/>,
-    /// and with <see cref="LogEventKind.Trimmed"/> when it precedes <see cref="FirstSequence"/>. Either way, it continues from
-    /// the first retained entry. After it delivers every entry which was committed when the read began, the stream delivers
-    /// <see cref="LogEventKind.CaughtUp"/> once.
+    /// 读者重新阅读从位置上保留的条目,而不是缓冲它们,因此一个缓慢的读者不保留条目。
+    /// 流流以 <see cref="LogEventKind.Reset"/> 开始,当 <paramref name="epoch"/> 指定另一个历史历史时,当
+    /// <paramref name="fromSequence"/> 位于或高于清除的序列号,或与 <see cref="NextSequence"/>相继时,
+    /// 和 <see cref="LogEventKind.Trimmed"/> 在那日, <see cref="FirstSequence"/>. Either way, it continues from
+    /// 第一个保留条目。 它发送了当读开始时所执行的每一条目后, 流会传送
+    /// 一次<see cref="LogEventKind.CaughtUp"/> 。
     /// </para>
     /// <para>
-    /// To resume after a disconnection, pass the epoch of the latest event and the sequence after the last entry the reader
-    /// received. Enumerate the stream in the owning activation's execution context.
+    /// 断开后要恢复, 传递最新事件的时代和最后条目之后的序列, 读者
+    /// 。在自控激活执行背景下,接收到的流数。
     /// </para>
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="fromSequence"/> or <paramref name="epoch"/> is negative.
+    /// <paramref name="fromSequence"/> 或 <paramref name="epoch"/> 为负值。
     /// </exception>
     /// <exception cref="InvalidOperationException">
-    /// Enumeration began before the owning manager recovered its state, or after a failed journal operation stopped it.
+    /// 数字在拥有权经理恢复状态之前开始计算,或在日记操作失败后停止计算。
     /// </exception>
     IAsyncEnumerable<LogEvent<T>> ReadAsync(
         long fromSequence = 0,
@@ -196,92 +196,92 @@ public interface IDurableLog<T> : IReadOnlyCollection<T>
 }
 
 /// <summary>
-/// Streams volatile items to the readers of an <see cref="IDurableLog{T}"/> which include drafts, until the draft commits
-/// durable entries or is abandoned.
+/// 向读者提供流流波动性物品 <see cref="IDurableLog{T}"/> 包括草案在内的草案,直至草案作出承诺
+/// 耐久条目或废弃条目。
 /// </summary>
-/// <typeparam name="T">The type of items and entries.</typeparam>
+/// <typeparam name="T">项目和条目的类型。</typeparam>
 /// <remarks>
 /// <para>
-/// The draft holds its items in memory only while it is open. Closing the draft releases them, so a reader which has not
-/// read every item when the draft closes receives the draft's outcome next and never receives the remaining items. The
-/// committed entries carry the draft's final content.
+/// 草案开放时才保留其项目。
+/// 草案结束后的每一项目在下一个收到草案结果时都读,而从未收到其余的项目。
+/// 承诺条目包含草案的最终内容。
 /// </para>
 /// <para>
-/// The draft closes when its owner commits, abandons, or disposes it, and when the log closes it because the log's journal
-/// was deleted or the log was sealed. Disposing an open draft abandons it. Use the draft in the owning activation's execution context and check
-/// <see cref="IsOpen"/> before committing a draft which the log may have closed.
+/// 草稿在所有人实施、遗弃或处置时,以及当日志因日志日记而关闭时,草稿将关闭
+/// 保存未打开的草稿时放弃它。 在自定义激活执行背景中使用草稿并检查
+/// 在承诺日志可能已经关闭的草稿之前,先<see cref="IsOpen"/> 。
 /// </para>
 /// </remarks>
 public interface IDurableLogDraft<T> : IDisposable
 {
     /// <summary>
-    /// Gets the draft's identifier.
+    /// 拿到了草稿的识别资料
     /// </summary>
     LogDraftId Id { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the draft is open.
+    /// 获得显示草稿是否打开的值 。
     /// </summary>
     /// <remarks>
-    /// The value becomes <see langword="false"/> when the draft is committed, abandoned, or disposed, and when the log closes it.
-    /// <see cref="Write"/> and <see cref="Commit"/> throw <see cref="InvalidOperationException"/> for a closed draft.
+    /// 当草案被承诺、废弃或处置时,当日志关闭时,该数值即为 <see langword="false"/> 。
+    /// <see cref="Write"/> 和 <see cref="Commit"/> 投出 <see cref="InvalidOperationException"/> ,以备完成草稿。
     /// </remarks>
     bool IsOpen { get; }
 
     /// <summary>
-    /// Gets the number of items written to the open draft.
+    /// 获取打开草稿中写入的项目数。
     /// </summary>
     int Count { get; }
 
     /// <summary>
-    /// Writes a volatile item and delivers it to readers which include drafts.
+    /// 写入一个波动的项目, 并传送给读者, 包括草稿。
     /// </summary>
-    /// <param name="item">The item.</param>
-    /// <exception cref="InvalidOperationException">The draft is closed. The message states why.</exception>
+    /// <param name="item">这个项目</param>
+    /// <exception cref="InvalidOperationException">草稿已经关闭,信息说明了原因</exception>
     void Write(T item);
 
     /// <summary>
-    /// Closes the draft and appends the durable entries which replace its items.
+    /// 关闭草稿并附加替换其项目的耐久条目。
     /// </summary>
-    /// <param name="entries">The entries, in order. Pass none to close the draft cleanly without appending entries.</param>
+    /// <param name="entries">条目按顺序排列。通过 否 , 无法在不附加条目的情况下干净地关闭草稿 。</param>
     /// <returns>
-    /// The sequence number of the first entry. When <paramref name="entries"/> is empty, the sequence number which the next
-    /// appended entry receives.
+    /// 第一个条目的序列编号。当 <paramref name="entries"/> 是空时,下一个序列号
+    /// 收到所附条目。
     /// </returns>
     /// <remarks>
-    /// The entries are appended as one journal entry, so one journal write makes all of them durable. Readers receive
-    /// <see cref="LogEventKind.DraftCommitted"/> with the committed range, then the entries. If an entry cannot be encoded,
-    /// the exception propagates, no entry is appended, and the draft remains open.
+    /// 条目作为一份日记条目附后,因此一份日记的写作可以使所有条目都持久。读者会收到这些条目。
+    /// 与承诺范围<see cref="LogEventKind.DraftCommitted"/> 相伴的条目,然后是条目。如果一个条目无法编码,
+    /// 例外宣传,不附加条目,草案仍然开放。
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The draft is closed. The message states why.</exception>
+    /// <exception cref="InvalidOperationException">草稿已经关闭,信息说明了原因</exception>
     long Commit(params ReadOnlySpan<T> entries);
 
     /// <summary>
-    /// Closes the draft without entries and reports <see cref="LogEventKind.DraftAbandoned"/> with
+    /// 关闭没有条目的草稿和报告 <see cref="LogEventKind.DraftAbandoned"/>
     /// <see cref="LogDraftAbandonReason.Abandoned"/>.
     /// </summary>
-    /// <param name="message">A description of the failure reported to readers in <see cref="LogEvent{T}.Message"/>.</param>
-    /// <remarks>Abandoning a closed draft has no effect. Use <see cref="Commit"/> with no entries to close a draft without a failure.</remarks>
+    /// <param name="message">描述未在英文、 <see cref="LogEvent{T}.Message"/>.</param>
+    /// <remarks>放弃已完成的草案没有效果。使用无条目的 <see cref="Commit"/> 来不失败地关闭草稿。</remarks>
     void Abandon(string? message = null);
 }
 
 /// <summary>
-/// Identifies a draft of an <see cref="IDurableLog{T}"/>.
+/// 确定草案的草案 <see cref="IDurableLog{T}"/>.
 /// </summary>
 /// <remarks>
-/// <see cref="InstanceId"/> identifies the log instance, and therefore the activation, which opened the draft. A reader which
-/// reconnects to a new activation can therefore learn that the draft's volatile content was lost unless the draft committed.
+/// <see cref="InstanceId"/> 识别日志实例,从而确定打开草稿的激活。
+/// 因此,与新激活重新连接后可以了解到,除非草案承诺实施,否则草案的波动性内容已经丧失。
 /// </remarks>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Journaling.LogDraftId")]
 public readonly record struct LogDraftId
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="LogDraftId"/> struct.
+    /// 初始化 <see cref="LogDraftId"/> 结构的新实例。
     /// </summary>
-    /// <param name="instanceId">The identifier of the log instance which opened the draft.</param>
-    /// <param name="number">The draft's number within that instance. It is not negative.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="number"/> is negative.</exception>
+    /// <param name="instanceId">打开草稿的日志实例标识符。</param>
+    /// <param name="number">草案的编号在此实例中。 它不是负数。</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="number"/> 为负。</exception>
     public LogDraftId(Guid instanceId, long number)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(number);
@@ -290,29 +290,29 @@ public readonly record struct LogDraftId
     }
 
     /// <summary>
-    /// Gets the identifier of the log instance, and therefore the activation, which opened the draft.
+    /// 获取日志实例的标识符, 从而获得打开草稿的激活 。
     /// </summary>
     [Id(0)]
     public Guid InstanceId { get; }
 
     /// <summary>
-    /// Gets the draft's number within its log instance.
+    /// 将草稿的编号放到日志实例中。
     /// </summary>
     [Id(1)]
     public long Number { get; }
 
     /// <summary>
-    /// Formats the identifier as <c>{InstanceId:N}.{Number}</c>.
+    /// 将识别符号格式为 <c>{InstanceId:N}.{Number}</c>。
     /// </summary>
-    /// <returns>The formatted identifier.</returns>
+    /// <returns>格式化标识符。</returns>
     public override string ToString() => string.Create(CultureInfo.InvariantCulture, $"{InstanceId:N}.{Number}");
 
     /// <summary>
-    /// Parses an identifier formatted by <see cref="ToString"/>.
+    /// 分析 <see cref="ToString"/>格式的标识符。
     /// </summary>
-    /// <param name="value">The formatted identifier.</param>
-    /// <param name="result">The parsed identifier.</param>
-    /// <returns><see langword="true"/> if <paramref name="value"/> is a valid identifier; otherwise, <see langword="false"/>.</returns>
+    /// <param name="value">格式化标识符。</param>
+    /// <param name="result">解析标识符。</param>
+    /// <returns><see langword="true"/> 如果 <paramref name="value"/> 是一个有效的标识符; 否则, <see langword="false"/>.</returns>
     public static bool TryParse(ReadOnlySpan<char> value, out LogDraftId result)
     {
         var separator = value.IndexOf('.');
@@ -330,170 +330,170 @@ public readonly record struct LogDraftId
 }
 
 /// <summary>
-/// Identifies the kind of a <see cref="LogEvent{T}"/>.
+/// 标出一种 <see cref="LogEvent{T}"/>。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Journaling.LogEventKind")]
 public enum LogEventKind : byte
 {
     /// <summary>
-    /// <see cref="LogEvent{T}.Item"/> is the entry with sequence number <see cref="LogEvent{T}.Sequence"/>.
+    /// <see cref="LogEvent{T}.Item"/> 是序列号为 <see cref="LogEvent{T}.Sequence"/>的条目。
     /// </summary>
     Entry = 0,
 
     /// <summary>
-    /// The entries which the reader observed were replaced, because <see cref="IDurableLog{T}.Clear"/> discarded them, the
-    /// journal was deleted, the reader resumed from another epoch's history, or the reader's position follows the end of the
-    /// log. Discard any entries read before this event. The stream continues from <see cref="LogEvent{T}.Sequence"/>, the
-    /// first retained entry of the history identified by <see cref="LogEvent{T}.Epoch"/>.
+    /// 读者所观察到的条目被替换,因为 <see cref="IDurableLog{T}.Clear"/> 丢弃了这些条目,
+    /// 日记被删除, 读者从另一个时代的历史中恢复到其它时代, 或者读者的立场在
+    /// 日志。丢弃此事件之前读取的任何条目。流从 <see cref="LogEvent{T}.Sequence"/>、
+    /// <see cref="LogEvent{T}.Epoch"/>所标明的历史历史的首个保留条目。
     /// </summary>
     Reset = 1,
 
     /// <summary>
-    /// <see cref="LogEvent{T}.Item"/> is the volatile item at position <see cref="LogEvent{T}.Sequence"/> of draft
-    /// <see cref="LogEvent{T}.DraftId"/>. Position zero begins the draft's content.
+    /// <see cref="LogEvent{T}.Item"/> 是草案 <see cref="LogEvent{T}.Sequence"/> 位置的挥发性项目
+    /// <see cref="LogEvent{T}.DraftId"/>. 零位开始为草案的内容。
     /// </summary>
     DraftItem = 2,
 
     /// <summary>
-    /// Draft <see cref="LogEvent{T}.DraftId"/> closed, and its content is replaced by the <see cref="LogEvent{T}.Count"/>
-    /// entries which begin at sequence number <see cref="LogEvent{T}.Sequence"/>. Discard its items. A count of zero means
-    /// that the draft closed cleanly without entries.
+    /// <see cref="LogEvent{T}.DraftId"/> 草案已关闭,其内容由 <see cref="LogEvent{T}.Count"/>取代
+    /// 以序列号 <see cref="LogEvent{T}.Sequence"/>开始的条目。丢弃其项目。零数表示
+    /// 草案干净地结束,没有条目。
     /// </summary>
     DraftCommitted = 3,
 
     /// <summary>
-    /// Draft <see cref="LogEvent{T}.DraftId"/> closed without entries for the reason in <see cref="LogEvent{T}.AbandonReason"/>.
-    /// Discard its items.
+    /// 草案草案草案草案 <see cref="LogEvent{T}.DraftId"/> 关闭条目, 以不关闭为原因 <see cref="LogEvent{T}.AbandonReason"/>.
+    /// 丢弃其项目。
     /// </summary>
     DraftAbandoned = 4,
 
     /// <summary>
-    /// <see cref="IDurableLog{T}.TrimBefore"/> discarded the entries before <see cref="LogEvent{T}.Sequence"/>, the new
-    /// first retained entry. Entries read from that sequence onward remain valid. A reader positioned before it continues from it.
+    /// <see cref="IDurableLog{T}.TrimBefore"/> 之前丢弃的条目 <see cref="LogEvent{T}.Sequence"/>,新的
+    /// 保留的第一个条目。 从该序列中读取的条目继续有效。 在它继续之前的位置上设置的读者。
     /// </summary>
     Trimmed = 5,
 
     /// <summary>
-    /// The stream has delivered every entry which was committed when the read began. <see cref="LogEvent{T}.Sequence"/> is
-    /// the reader's position. The stream delivers this event once.
+    /// 流已经传送了当读开始时所执行的每一个条目。 <see cref="LogEvent{T}.Sequence"/> 是
+    /// 流水将这次活动一次交付给读者
     /// </summary>
     CaughtUp = 6,
 
     /// <summary>
-    /// <see cref="IDurableLog{T}.Seal"/> ended the log, whose entries end before <see cref="LogEvent{T}.Sequence"/>. This is
-    /// the stream's final event.
+    /// <see cref="IDurableLog{T}.Seal"/> 结束了日志,日志的条目在 <see cref="LogEvent{T}.Sequence"/>之前结束。这是
+    /// 溪流的最后活动
     /// </summary>
     Sealed = 7,
 }
 
 /// <summary>
-/// Identifies why a draft of an <see cref="IDurableLog{T}"/> closed without entries.
+/// 说明为什么无条目关闭的 <see cref="IDurableLog{T}"/> 草案。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Journaling.LogDraftAbandonReason")]
 public enum LogDraftAbandonReason : byte
 {
     /// <summary>
-    /// The event does not describe an abandoned draft.
+    /// 事件并不描述废弃的草稿。
     /// </summary>
     None = 0,
 
     /// <summary>
-    /// The owner abandoned the draft with <see cref="IDurableLogDraft{T}.Abandon"/>.
+    /// 所有人放弃了 <see cref="IDurableLogDraft{T}.Abandon"/>的草稿。
     /// </summary>
     Abandoned = 1,
 
     /// <summary>
-    /// The owner disposed the draft without closing it.
+    /// 车主在未关闭之前处理完草稿。
     /// </summary>
     Disposed = 2,
 
     /// <summary>
-    /// The log's journal was deleted.
+    /// 日志的日记被删除了
     /// </summary>
     JournalDeleted = 3,
 
     /// <summary>
-    /// Another activation opened the draft and the log retains no commit of it. Drafts exist only in memory, so its
-    /// content is lost.
+    /// 另一启动打开了草稿, 日志保留不保留任何承诺。 草稿只存在记忆中, 所以它
+    /// 内容丢失。
     /// </summary>
     PreviousActivation = 4,
 
     /// <summary>
-    /// This activation opened the draft, or claims to, and neither retains a commit of it nor records why it closed.
+    /// 启动程序开启了草案的起草或对草案提出主张,既未保留其中的一项承诺,也未记录为何结束。
     /// </summary>
     Unknown = 5,
 
     /// <summary>
-    /// <see cref="IDurableLog{T}.Seal"/> ended the log while the draft was open.
+    /// <see cref="IDurableLog{T}.Seal"/> 在草案开放时结束了日志 。
     /// </summary>
     Sealed = 6,
 }
 
 /// <summary>
-/// Describes an entry or event read from an <see cref="IDurableLog{T}"/>.
+/// 描述从 <see cref="IDurableLog{T}"/>读取的条目或事件。
 /// </summary>
-/// <typeparam name="T">The type of entries in the log.</typeparam>
+/// <typeparam name="T">日志中条目的类型。</typeparam>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Journaling.LogEvent`1")]
 public readonly record struct LogEvent<T>
 {
     /// <summary>
-    /// Gets the kind of event.
+    /// 会有这样的事件
     /// </summary>
     [Id(0)]
     public LogEventKind Kind { get; init; }
 
     /// <summary>
-    /// Gets the entry sequence number; the first retained sequence number for <see cref="LogEventKind.Reset"/> and
-    /// <see cref="LogEventKind.Trimmed"/>; the position for <see cref="LogEventKind.CaughtUp"/> and <see cref="LogEventKind.Sealed"/>; the item's position within its draft; or the first sequence number of a
-    /// committed draft's entries.
+    /// 获取条目序列编号; <see cref="LogEventKind.Reset"/> 和
+    /// <see cref="LogEventKind.Trimmed"/>; <see cref="LogEventKind.CaughtUp"/> 和 <see cref="LogEventKind.Sealed"/>的位置;项目在其草案中的位置;或a的首序号
+    /// 指定草稿条目 。
     /// </summary>
     [Id(1)]
     public long Sequence { get; init; }
 
     /// <summary>
-    /// Gets the entry for <see cref="LogEventKind.Entry"/> or the draft item for <see cref="LogEventKind.DraftItem"/>.
+    /// 获取 <see cref="LogEventKind.Entry"/> 的条目或 <see cref="LogEventKind.DraftItem"/>的项目草案。
     /// </summary>
     [Id(2)]
     public T? Item { get; init; }
 
     /// <summary>
-    /// Gets the draft identifier for draft events.
+    /// 获取事件草案的识别符号草稿。
     /// </summary>
     [Id(3)]
     public LogDraftId? DraftId { get; init; }
 
     /// <summary>
-    /// Gets the description which the owner passed to <see cref="IDurableLogDraft{T}.Abandon"/>, for <see cref="LogEventKind.DraftAbandoned"/>.
+    /// 获取所有者传给 <see cref="IDurableLogDraft{T}.Abandon"/>的 <see cref="LogEventKind.DraftAbandoned"/>描述。
     /// </summary>
     [Id(4)]
     public string? Message { get; init; }
 
     /// <summary>
-    /// Gets the number of entries which replaced a draft, for <see cref="LogEventKind.DraftCommitted"/>.
+    /// 获取替换草稿的条目数,用于 <see cref="LogEventKind.DraftCommitted"/>。
     /// </summary>
     [Id(5)]
     public int Count { get; init; }
 
     /// <summary>
-    /// Gets why a draft closed without entries, for <see cref="LogEventKind.DraftAbandoned"/>.
+    /// 获取为什么没有条目的草稿关闭的原因, 对于 <see cref="LogEventKind.DraftAbandoned"/>。
     /// </summary>
     [Id(6)]
     public LogDraftAbandonReason AbandonReason { get; init; }
 
     /// <summary>
-    /// Gets the epoch of the history which the event belongs to. Pass it with a sequence number to resume reading.
+    /// 获取事件所属历史的时代。 以序列号传递给它, 继续读取 。
     /// </summary>
     [Id(7)]
     public long Epoch { get; init; }
 }
 
 /// <summary>
-/// Records that a draft of an <see cref="IDurableLog{T}"/> committed the entries which begin at <see cref="Sequence"/>.
+/// 记录 <see cref="IDurableLog{T}"/> 草案承诺从 <see cref="Sequence"/>开始的条目。
 /// </summary>
-/// <param name="DraftId">The draft's identifier.</param>
-/// <param name="Sequence">The sequence number of the first committed entry.</param>
-/// <param name="Count">The number of committed entries.</param>
+/// <param name="DraftId">草稿的识别特征。</param>
+/// <param name="Sequence">第一个承诺条目的序列号。</param>
+/// <param name="Count">承诺条目的数量。</param>
 public readonly record struct LogDraftCommit(LogDraftId DraftId, long Sequence, int Count);

@@ -87,7 +87,7 @@ foreach ($d in $directories)
     Write-Host ''
 }
 
-# Wait for all jobs to complete and results ready to be received
+# 等待所有工作完成并随时收到结果
 Wait-Job * | Out-Null
 
 if (-not (Receive-CompletedJobs)) { $failed = $true }

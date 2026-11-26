@@ -3,70 +3,70 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Serialization.WireProtocol
 {
     /// <summary>
-    /// A serialization tag, which is always exactly a single byte. This acts as a part of the field header for all serialized fields.
+    /// 序列标记, 它总是一个字节。 它作为所有序列字段的字段页眉的一部分 。
     /// </summary>
     /// <remarks>
-    /// The typical form for a tag byte is <c>[W W W] [S S] [F F F]</c>, where each is a bit.
-    /// W is a <see cref="WireType"/>, S is a <see cref="SchemaType"/> bit, and F is a field identifier bit.
+    /// 标签字节的典型形式是 <c>[W W W] [S S] [F F F]</c>,其中每个字节都有一点。
+    /// W 是 <see cref="WireType"/>, S 是 <see cref="SchemaType"/> 位数, F 是字段标识符位。
     /// </remarks>
     public struct Tag
     {
         /// <summary>
-        /// The wire type mask.
+        /// 铁丝网面具
         /// </summary>
-        public const byte WireTypeMask = 0b1110_0000; // The first 3 bits are dedicated to the wire type.
+        public const byte WireTypeMask = 0b1110_0000; // 前三位数是用线型的
 
         /// <summary>
-        /// The schema type mask.
+        /// 假面具
         /// </summary>
-        public const byte SchemaTypeMask = 0b0001_1000; // The next 2 bits are dedicated to the schema type specifier, if the schema type is expected.
+        public const byte SchemaTypeMask = 0b0001_1000; // 如果预计会使用化学型态, 则接下来的 2 位数将专门用于化学型态的指定符。
 
         /// <summary>
-        /// The field identifier mask.
+        /// 字段识别面具 。
         /// </summary>
-        public const byte FieldIdMask = 0b0000_0111; // The final 3 bits are used for the field id delta, if the delta is expected.
+        public const byte FieldIdMask = 0b0000_0111; // 如果预计会达到三角洲,则最后的3位数用于实地的 id 三角洲。
 
         /// <summary>
-        /// The field identifier complete mask.
+        /// 字段识别码完整掩码。
         /// </summary>
         public const byte FieldIdCompleteMask = FieldIdMask;
 
         /// <summary>
-        /// The extended wire type mask.
+        /// 长线型面具
         /// </summary>
         public const byte ExtendedWireTypeMask = 0b0001_1000;
 
         /// <summary>
-        /// The maximum embedded field identifier delta.
+        /// 最大嵌入字段识别符 delta 。
         /// </summary>
         public const int MaxEmbeddedFieldIdDelta = 6;
 
         private uint _tag;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Tag"/> struct.
+        /// 初始化 <see cref="Tag"/> 结构的新实例。
         /// </summary>
-        /// <param name="tag">The tag byte.</param>
+        /// <param name="tag">标签字节。</param>
         public Tag(byte tag) => _tag = tag;
 
         internal Tag(uint tag) => _tag = tag;
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="byte"/> to <see cref="Tag"/>.
+        /// 执行从 <see cref="byte"/> 到 <see cref="Tag"/>的隐含转换。
         /// </summary>
-        /// <param name="tag">The tag.</param>
-        /// <returns>The result of the conversion.</returns>
+        /// <param name="tag">标签。</param>
+        /// <returns>转换结果。</returns>
         public static implicit operator Tag(byte tag) => new(tag);
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Tag"/> to <see cref="byte"/>.
+        /// 执行从 <see cref="Tag"/> 到 <see cref="byte"/>的隐含转换。
         /// </summary>
-        /// <param name="tag">The tag.</param>
-        /// <returns>The result of the conversion.</returns>
+        /// <param name="tag">标签。</param>
+        /// <returns>转换结果。</returns>
         public static implicit operator byte(Tag tag) => (byte)tag._tag;
 
         /// <summary>
-        /// Gets or sets the wire type of the data following this tag.
+        /// 获取或设置此标签后的数据的线型。
         /// </summary>
         public WireType WireType
         {
@@ -76,17 +76,17 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance has an extended wire type.
+        /// 获得一个值来显示此实例是否有长线型。
         /// </summary>
-        /// <value><see langword="true" /> if this instance has an extended wire type; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果这种情况有长线型;否则, <see langword="false" />。</value>
         public readonly bool HasExtendedWireType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _tag >= (byte)WireType.Extended; //(this.tag & (byte) WireType.Extended) == (byte) WireType.Extended;
+            get => _tag >= (byte)WireType.Extended; //(this.tag ( 位数) (字节) WireType.Extended) == (byte) WireType.Extended;
         }
 
         /// <summary>
-        /// Gets or sets the extended wire type of the data following this tag.
+        /// 获取或设置此标签后的数据的扩展线类型。
         /// </summary>
         public ExtendedWireType ExtendedWireType
         {
@@ -102,7 +102,7 @@ namespace Orleans.Serialization.WireProtocol
         internal readonly bool IsEndObject => _tag == ((byte)WireType.Extended | (byte)ExtendedWireType.EndTagDelimited);
 
         /// <summary>
-        /// Gets or sets the schema type.
+        /// 设置或设置模式类型。
         /// </summary>
         public SchemaType SchemaType
         {
@@ -114,20 +114,20 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets a value indicating whether the <see cref="SchemaType" /> property is valid.
+        /// 获得一个值,以显示 <see cref="SchemaType" /> 属性是否有效。
         /// </summary>
-        /// <value><see langword="true"/> if the <see cref="SchemaType"/> is valid, <see langword="false"/> otherwise.</value>
+        /// <value><see langword="true"/> 如果 <see cref="SchemaType"/> 有效, <see langword="false"/> 否则。</value>
         public readonly bool IsSchemaTypeValid
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => !HasExtendedWireType; //(this.tag & (byte) WireType.Extended) != (byte) WireType.Extended;
+            get => !HasExtendedWireType; //(this.tag ( 位数) (字节) WireType.Extended$= (字节) WireType.Extended;
         }
 
         /// <summary>
-        /// Returns the <see cref="FieldIdDelta"/> of the field represented by this tag.
+        /// 返回此标记所代表的字段的 <see cref="FieldIdDelta"/> 。
         /// </summary>
         /// <remarks>
-        /// If <see cref="IsFieldIdValid"/> is <see langword="false"/>, this value is not a complete field id delta.
+        /// 如果 <see cref="IsFieldIdValid"/> 是 <see langword="false"/>,则该值不是一个完整的字段 id 三角洲。
         /// </remarks>
         public uint FieldIdDelta
         {
@@ -139,20 +139,20 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Invalidates <see cref="FieldIdDelta"/>.
+        /// 无效 <see cref="FieldIdDelta"/>。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetFieldIdInvalid() => _tag |= FieldIdCompleteMask;
 
         /// <summary>
-        /// Gets a value indicating whether the <see cref="FieldIdDelta"/> property is valid.
+        /// 获得一个值,以显示 <see cref="FieldIdDelta"/> 属性是否有效。
         /// </summary>
         /// <value>
-        /// <see langword="true"/> if the <see cref="FieldIdDelta"/> represents a complete id, <see langword="false"/> if more data is required.
+        /// <see langword="true"/> 如果 <see cref="FieldIdDelta"/> 表示一个完整的id, <see langword="false"/> 如果需要更多数据。
         /// </value>
         /// <remarks>
-        /// If all bits are set in the field id portion of the tag, this field id is not valid and this tag must be followed by a field id.
-        /// Therefore, field ids 0-6 can be represented without additional bytes.
+        /// 如果标记的字段 ID 部分中设置了所有位元, 此字段 id 无效, 此标签必须有一个字段 id 。
+        /// 因此,无需增加字节即可代表字段编号0-6。
         /// </remarks>
         public readonly bool IsFieldIdValid
         {
@@ -161,7 +161,7 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// Gets a value indicating whether the tag is followed by an extended field id.
+        /// 获得一个值,显示标签是否后面有一个扩展字段代号。
         /// </summary>
         public readonly bool HasExtendedFieldId
         {

@@ -5,7 +5,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// Tests for Transfer of Coordination (TOC) fault scenarios with Azure Storage.
+    /// 试验 Azure 储存的协调故障情况转移。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

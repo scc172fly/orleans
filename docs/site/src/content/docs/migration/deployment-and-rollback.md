@@ -1,73 +1,87 @@
 ---
-title: Upgrade deployment and rollback
-description: Plan a safe Orleans major-version deployment with explicit rolling-upgrade and rollback prerequisites.
+title: "升级部署和回调"
+description: "计划安全 Orleans 主要版本部署,并有明确的升级和回调先决条件。"
 ms.date: 08/02/2026
 ms.topic: how-to
 ---
 
-# Upgrade deployment and rollback
+<a id="upgrade-deployment-and-rollback"></a>
 
-## Compatibility boundary
+# 升级部署和回调
 
-Orleans 7 and later use a version-tolerant serializer, and Orleans grain versioning supports compatible application contract versions. However, the documented runtime guarantee for mixed Orleans versions is limited to one major-version family, such as Orleans 9.x patch and minor versions.
+<a id="compatibility-boundary"></a>
 
-For a major-version upgrade, use a parallel or blue-green cluster by default. Treat a mixed-major rolling upgrade as unsupported until the exact runtime versions, providers, application contracts, and traffic patterns have passed your own qualification suite.
+## 兼容边界
 
-## Rolling-upgrade prerequisites
+Orleans 7,后来使用耐版本的序列器, Orleans grain 版本支持兼容的应用合同版本,但混合 Orleans 版本文件记录的运行时间保证仅限于一个主要转换式家族,如 Orleans 9.x补丁和小版本。
 
-Before any rolling deployment, including an internally qualified cross-major deployment:
+用于大版本升级, 请默认使用平行或蓝色绿色组群。 在您通过自己的资格认证套件之前, 将混合式滚动升级视为不支持的升级, 直到准确运行时间、 供应商、 应用程序合同和交通模式都通过了 。
 
-- All silos must use the same clustering provider, cluster identity, provider configuration, and network protocol configuration.
-- Old and new binaries must share compatible grain interface method signatures. Add methods instead of changing or removing existing methods during the rollout.
-- Serialized types must retain member IDs, aliases, and shapes that both versions can read.
-- Provider schemas and stored payloads must be readable by both versions for the entire rollback window.
-- Stream providers, queue partition counts, reminder providers, grain directories, and placement policies must support the mixed topology.
-- Stateless workers and streaming agents must be considered separately because grain version selection doesn't isolate them.
-- The deployment must have automated health gates, traffic draining, state backups, and a tested abort procedure.
+<a id="rolling-upgrade-prerequisites"></a>
 
-Use the compatibility and selector strategies described in [Deploy new versions of grains](../grains/grain-versioning/deploying-new-versions-of-grains.md) for application contract changes. Those strategies don't establish runtime-major compatibility.
+## 滚升前期
 
-## Recommended parallel-cluster sequence
+在任何滚动部署之前,包括进行符合内部资格的跨主要部分部署之前:
 
-1. Build the target version from the same application contract revision used to validate old-state reads.
-1. Create a new cluster with separate membership and gateway discovery from the production cluster.
-1. Point it at cloned provider data or a staging data set and validate clustering, storage, reminders, streams, timers, filters, cancellation, and placement.
-1. Start production with no write traffic and complete smoke tests.
-1. Shift a small, observable portion of traffic.
-1. Increase traffic only after latency, failure, activation, storage, reminder, stream, and cancellation metrics are stable.
-1. Stop writes to the old cluster before any shared-state cutover that could allow concurrent activation or conflicting writes.
-1. Keep the old deployment and recovery point until the rollback window expires.
+- 所有 silos 都必须使用相同的集群提供商、集束识别、供应商配置和网络协议配置。
+- 旧的和新的二进制文件必须共享兼容的 grain 接口方法签名。在推出期间添加方法,而不是改变或删除现有方法。
+- 分级类型必须保留成员身份、别名和两种版本都能读懂的形状。
+- 供应方的模型和储存的有效载荷必须能够由两种版本在整个回滚窗口中读取。
+- 流源提供者、队列分隔计数、提醒提供者、 grain 目录和安置政策必须支持混合地貌学。
+- 无国籍工人和流体代理必须分别考虑,因为选择 grain 版本不会孤立他们。
+- 部署必须具备自动化保健大门、交通排水、州备份和测试的堕胎程序。
 
-Don't run two independent clusters against the same grain storage or reminder tables unless the provider and application have been designed for that topology.
+使用 [部署 grains新版本](../grains/grain-versioning/deploying-new-versions-of-grains.md) 中所述兼容性和选择战略来修改申请合同。这些战略并不确定运行时-主要兼容性。
 
-## Rollback prerequisites
+<a id="recommended-parallel-cluster-sequence"></a>
 
-A rollback is safe only when all of the following are true:
+## 建议的平行集群顺序
 
-- The previous runtime can read every payload and provider row written by the target runtime.
-- Database changes are backward compatible or a tested database restore is available.
-- No new grain interface method, serialized type, stream payload, or reminder state is required by queued work.
-- The previous package set, configuration, secrets, and deployment image remain available.
-- Traffic can be drained without allowing both clusters to own the same logical activations.
+1. 构建目标版本时,使用用于验证旧状态的同一应用合同修订版本来构建目标版本。
+1. 创建一个新的集群,由生产集群中分别组成和网关发现。
+1. 点燃它到克隆提供者的数据或中转数据集,并验证集群、存储、提醒、流、计时器、过滤器、取消和放置。
+1. 开始生产时没有写作流量,并完成烟雾测试。
+1. 移动交通中可观察到的小部分。
+1. 只有在延缓、故障、激活、储存、提醒、流和取消等指标稳定之后,交通量才会增加。
+1. 任何允许同时激活或冲突性地写作的共享州间隔段之前,
+1. 保留旧的部署和恢复点,直到回落窗口结束。
 
-If any condition isn't met, rollback means restoring the full pre-upgrade recovery point, not only redeploying old binaries.
+不可对相同的 grain 存储或提醒表运行两个独立的组群,除非提供者和应用是为该表层设计的。
 
-## Rollback sequence
+<a id="rollback-prerequisites"></a>
 
-1. Stop new traffic and writes to the target cluster.
-1. Drain or account for in-flight calls and queued messages.
-1. Restore provider data if the previous version can't read target-version writes.
-1. Start the previous cluster in isolation.
-1. Validate membership, reminders, streams, representative state, and client calls.
-1. Restore traffic gradually and retain target-cluster diagnostics for investigation.
+## 滚回先决条件
 
-## Deployment checklist
+只有在以下所有情况属实时,回退才安全:
 
-- [ ] Identify whether the change stays within one Orleans major family.
-- [ ] Verify grain interface and serializer compatibility in both directions.
-- [ ] Verify provider schema and payload compatibility in both directions.
-- [ ] Back up clustering, reminders, streams, and grain state where applicable.
-- [ ] Test old-state reads and rollback reads.
-- [ ] Rehearse traffic draining, cutover, and rollback.
-- [ ] Prevent two independent clusters from concurrently owning the same logical work.
-- [ ] Define objective health gates and a rollback deadline.
+- 上一个运行时间可以读取目标运行时间所写的每个有效载荷和供应商行。
+- 数据库的更改是后向兼容的,或者可以使用测试的数据库恢复。
+- 排队工作不需要新的 grain 接口方法、序列型号、流载有效载荷或提醒状态。
+- 以前的成套软件包、配置、秘密和部署图像仍然可用。
+- 交通量可以排干,而不允许两个组群拥有相同的逻辑启动。
+
+如果任何条件都不符合, 退步意味着恢复升级前的完全恢复点, 不仅仅是重新部署旧的二进制。
+
+<a id="rollback-sequence"></a>
+
+## 返回回滚序列
+
+1. 停止新的交通,并写到目标群组。
+1. 排水或记录飞行中电话和排队信息。
+1. 如果上一个版本无法读取目标版本写法, 恢复提供方数据 。
+1. 以单独方式开始上一组。
+1. 验证会员资格、提醒通知、流程、代表性州和客户来电。
+1. 逐步恢复交通,保留目标集群诊断,以便进行调查。
+
+<a id="deployment-checklist"></a>
+
+## 部署部署清单
+
+- [ ] 确定变更是否属于一个 Orleans 主要家庭。
+- [ ] 核查两个方向的 grain 接口和序列器兼容性。
+- [ ] 核查提供方的机制和有效载荷兼容性。
+- [ ] 酌情备份集束、提醒、流和 grain 状态。
+- [ ] 旧州测试读数和回滚读数
+- [ ] 排练交通排水,切口和回退
+- [ ] 防止两个独立的组群同时拥有同样的逻辑工作。
+- [ ] 确定客观的健康大门和倒退的最后期限。

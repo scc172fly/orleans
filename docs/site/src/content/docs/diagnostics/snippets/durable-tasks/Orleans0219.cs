@@ -17,7 +17,7 @@ public sealed class DispatchGrain(IEmailSender email) : DurableGrain, IDispatchG
     // <orleans0219_violation>
     public async DurableTask DispatchAsync(string customer)
     {
-        // Starts the notice and discards its handle: the notice's failure reaches no code.
+        // 启动通知并丢弃其手柄:通知的失败没有代码。
         await Notify(customer).WithId("notify").ScheduleAsync();
         await Pack().WithId("pack");
     }
@@ -27,7 +27,7 @@ public sealed class DispatchGrain(IEmailSender email) : DurableGrain, IDispatchG
     // <orleans0219_fix_await>
     public async DurableTask DispatchAndNotifyAsync(string customer)
     {
-        // The notice runs while the body packs, and the body observes its outcome before it completes.
+        // 通知在身体包装时运行,身体在完成之前观察结果。
         var notice = await Notify(customer).WithId("notify").ScheduleAsync();
         await Pack().WithId("pack");
         await notice;
@@ -49,8 +49,8 @@ public sealed class DispatchGrain(IEmailSender email) : DurableGrain, IDispatchG
     {
         await Pack().WithId("pack");
 
-        // A durable grain call, started as an independent root task, which continues after this execution completes and
-        // is deleted.
+        // 以独立根基任务开始的耐用 grain 呼叫,在完成执行后继续;
+        // 删除。
         await GrainFactory.GetGrain<ICustomerSurveys>(customer).SendSurveyAsync(customer).WithId("survey").Detached().ScheduleAsync();
     }
     // </orleans0219_fix_detached>

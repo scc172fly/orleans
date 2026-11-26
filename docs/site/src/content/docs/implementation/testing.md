@@ -1,17 +1,21 @@
 ---
-title: TestingHost architecture
-description: Understand Orleans in-process test clusters, substituted runtime services, builders, handles, and failure simulation.
+title: "TestingHost 结构架构"
+description: "理解 Orleans 在工艺测试中的组、替代运行时间服务、建筑工、把手和故障模拟。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# TestingHost architecture
+<a id="testinghost-architecture"></a>
 
-The [`Microsoft.Orleans.TestingHost`](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost/) package composes real silo and client hosts with test-oriented discovery, transport, statistics, directory, and lifecycle controls. It is an integration harness, not a mock grain runtime. Grain activation, scheduling, serialization, messaging, placement, and most provider behavior execute through the same runtime components as a hosted cluster.
+# TestingHost 结构架构
 
-This page describes the harness internals. For practical setup, fixture patterns, topology changes, and guidance on choosing mocks or a cluster, see [Test Orleans applications](../grains/testing.md).
+[`Microsoft.Orleans.TestingHost`](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost/) 套件包含真实的 silo 和客户主机, 包括测试导向的发现、 运输、 统计、 目录和生命周期控制。 它是一种集成工具, 不是模拟的 grain 运行时间 。 Grain 启动、 时间安排、 序列化、 信息、 定位以及大多数提供者的行为, 执行的时间段与主机组相同 。
 
-## Cluster object model <a name="use-the-inprocesstestcluster-recommended"></a>
+本页描述“利用内部”的图案。关于实际设置、固定模式、地形变化以及选择模型或组群的指导,请参见 [测试 Orleans 应用](../grains/testing.md)。
+
+<a id="cluster-object-model-"></a>
+
+## 聚团对象模型 <a name="use-the-inprocesstestcluster-recommended"></a>
 
 ```mermaid
 flowchart TB
@@ -34,58 +38,68 @@ flowchart TB
 
 <xref:Orleans.TestingHost.InProcessTestClusterBuilder> accumulates host, silo, and client delegates. <xref:Orleans.TestingHost.InProcessTestClusterBuilder.Build*> passes its options to an <xref:Orleans.TestingHost.InProcessTestCluster>; the cluster retains that mutable options object. <xref:Orleans.TestingHost.InProcessTestCluster.DeployAsync*> starts the configured silo hosts and initializes the client when requested. With client initialization enabled, it performs a best-effort initial membership-view check but can continue after warning that views have not stabilized. Each <xref:Orleans.TestingHost.InProcessSiloHandle> owns one Generic Host and exposes its service provider for test inspection.
 
-The processes are shared, but the hosts and dependency-injection containers are not. Static process state can still leak between silos, which is one reason production code should not use static mutable state for silo-local behavior.
+过程是共享的,但主机和依赖注射容器不是。 silos生产编码不应使用静态变异状态 silo- 当地行为
 
-API: <xref:Orleans.TestingHost.InProcessTestClusterBuilder>, <xref:Orleans.TestingHost.InProcessTestCluster>, and <xref:Orleans.TestingHost.InProcessSiloHandle>. Implementation: [builder](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestClusterBuilder.cs), [cluster](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestCluster.cs), and [silo handle](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcessSiloHandle.cs).
+API: <xref:Orleans.TestingHost.InProcessTestClusterBuilder>、 <xref:Orleans.TestingHost.InProcessTestCluster>和 <xref:Orleans.TestingHost.InProcessSiloHandle>。履行: [建筑工](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestClusterBuilder.cs)、 [组群](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestCluster.cs)和 [silo 处理器](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcessSiloHandle.cs)。
 
-## Defaults
+<a id="defaults"></a>
+
+## 默认
 
 <xref:Orleans.TestingHost.InProcessTestClusterBuilder> defaults to:
 
-| Setting | Default |
+| 设置设置设置设置 | 默认默认 |
 | --- | --- |
 | <xref:Orleans.TestingHost.InProcessTestClusterOptions.InitialSilosCount?displayProperty=nameWithType> | 2 |
-| <xref:Orleans.TestingHost.InProcessTestClusterOptions.ClusterId?displayProperty=nameWithType> | Newly generated |
-| <xref:Orleans.TestingHost.InProcessTestClusterOptions.ServiceId?displayProperty=nameWithType> | Newly generated GUID |
+| <xref:Orleans.TestingHost.InProcessTestClusterOptions.ClusterId?displayProperty=nameWithType> | 新建 |
+| <xref:Orleans.TestingHost.InProcessTestClusterOptions.ServiceId?displayProperty=nameWithType> | 新建生成的 GUID |
 | <xref:Orleans.TestingHost.InProcessTestClusterOptions.InitializeClientOnDeploy?displayProperty=nameWithType> | `true` |
-| Test-cluster membership | `true` |
-| Test-cluster grain directory | `true` |
+| 考试组成员 | `true` |
+| 测试组 grain 目录 | `true` |
 | <xref:Orleans.TestingHost.InProcessTestClusterOptions.UseDistributedGrainDirectory?displayProperty=nameWithType> | `false` |
 | <xref:Orleans.TestingHost.InProcessTestClusterOptions.GatewayPerSilo?displayProperty=nameWithType> | `true` |
 | <xref:Orleans.TestingHost.InProcessTestClusterOptions.UseRealEnvironmentStatistics?displayProperty=nameWithType> | `false` |
-| Connection transport | In-memory |
+| 连接传输 | In-memory |
 
-Simulated environment statistics make resource-based tests deterministic, but they do not reproduce operating-system CPU or memory pressure. Opt into real statistics only when the test specifically needs those signals.
+模拟环境统计使基于资源的测试具有决定性,但不会复制操作系统CPU或记忆压力。 只有当测试需要这些信号时,才选择将数据转换为真实统计数据。
 
-These defaults are defined by <xref:Orleans.TestingHost.InProcessTestClusterBuilder> and <xref:Orleans.TestingHost.InProcessTestClusterOptions>; see their [builder](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestClusterBuilder.cs) and [options](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestClusterOptions.cs) implementations.
+这些缺省由 <xref:Orleans.TestingHost.InProcessTestClusterBuilder> 和 <xref:Orleans.TestingHost.InProcessTestClusterOptions>定义;见其 [建筑工](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestClusterBuilder.cs) 和 [选项](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/InProcTestClusterOptions.cs) 履行情况。
 
-### Directory selection
+<a id="directory-selection"></a>
 
-Setting <xref:Orleans.TestingHost.InProcessTestClusterOptions.UseDistributedGrainDirectory> to `true` selects the distributed default after the silo configuration delegates run, replacing any default selected by those delegates. Named directory registrations remain available.
+### 目录选择
 
-With this option set to `false`, test membership and the enabled test grain directory select the shared in-process test directory. When that substitution is inapplicable, such as with an external membership provider, the silo keeps its configured directory. An unconfigured silo uses the runtime's distributed default.
+设置 <xref:Orleans.TestingHost.InProcessTestClusterOptions.UseDistributedGrainDirectory> 到 `true` 来选择 silo 配置代表运行后的分配默认, 替换这些代表选中的任何默认。 命名目录登记仍然可用 。
 
-To select `LegacyGrainDirectory`, set the option to `false` and call <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*> in <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureSilo*> while using external membership or disabling the test-directory substitution. Host configuration delegates run before the harness's final silo setup, so declarative providers read the configuration supplied by those delegates.
+设置此选项为 `false`, 测试会籍和启用的测试 grain 目录选择共享的流程中测试目录。 如果替换不适用, 如外部成员提供商无法使用, silo 保留其配置的目录。 未配置的 silo 使用运行时分布式默认值。
 
-## Configuration layers <a name="configure-the-test-cluster"></a>
+要选择 `LegacyGrainDirectory`选项,设定 `false` 调和 <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*> 内 <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureSilo*> 使用外部成员身份或禁用测试-指令替换。 silo 设置,由声明提供方阅读这些代表提供的配置。
 
-The builder separates three scopes:
+<a id="configuration-layers-"></a>
 
-- <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureHost*> applies to both silo and client Generic Hosts and is useful for shared configuration or keyed SDK clients.
-- <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureSilo*> receives per-silo options and an <xref:Orleans.Hosting.ISiloBuilder>.
-- <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureClient*> configures the cluster client.
+## 配置层 <a name="configure-the-test-cluster"></a>
 
-Delegates run for each relevant host. A singleton registered by a silo delegate is singleton within that silo's container, not across the cluster. A concrete instance captured by a delegate is shared because the test supplied the same object.
+建筑者将三个范围区分开来:
 
-## Dynamic topology <a name="add-and-remove-silos-during-tests"></a>
+- <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureHost*> 既适用于 silo ,也适用于客户通用主机,对共享配置或有钥匙的 SDK 客户有用。
+- <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureSilo*> 收到每silo 选项和 <xref:Orleans.Hosting.ISiloBuilder>。
+- <xref:Orleans.TestingHost.InProcessTestClusterBuilder.ConfigureClient*> 配置组客户端。
 
-<xref:Orleans.TestingHost.InProcessTestCluster.StartAdditionalSiloAsync*> and <xref:Orleans.TestingHost.InProcessTestCluster.StartSilosAsync*> create new hosts using the cluster's current options and configuration delegates. <xref:Orleans.TestingHost.InProcessTestCluster.StopSiloAsync*>, <xref:Orleans.TestingHost.InProcessTestCluster.StopSilosAsync*>, <xref:Orleans.TestingHost.InProcessTestCluster.StopAllSilosAsync*>, <xref:Orleans.TestingHost.InProcessTestCluster.WaitForLivenessToStabilizeAsync*>, and <xref:Orleans.TestingHost.InProcessTestCluster.WaitForClusterManifestToStabilizeAsync*> coordinate membership and manifest transitions for failure and elasticity tests.
+代表为每个相关东道方运行。 silo 代表注册的单吨是该 silo集装箱内的单吨,而不是整个组群,代表所捕捉的具体实例由代表分享,因为测试提供同一对象。
 
-The overloads which take `startAdditionalSiloOnNewPort` are obsolete. Tests should use the parameterless <xref:Orleans.TestingHost.InProcessTestCluster.StartAdditionalSilo*> overloads or <xref:Orleans.TestingHost.InProcessTestCluster.StartSilosAsync*>. Lower-level <xref:Orleans.TestingHost.InProcessTestCluster.StartSiloAsync*> overloads remain available when a test must supply an instance number or configuration overrides.
+<a id="dynamic-topology-"></a>
 
-Stopping a host gracefully exercises shutdown. Disposing or terminating a handle without graceful membership update is a different failure mode and should be chosen deliberately when testing failure detection.
+## 动态表层学 <a name="add-and-remove-silos-during-tests"></a>
 
-## Class-configurator test cluster and custom silo creation <a name="use-the-testcluster"></a>
+<xref:Orleans.TestingHost.InProcessTestCluster.StartAdditionalSiloAsync*> 和 <xref:Orleans.TestingHost.InProcessTestCluster.StartSilosAsync*> 利用该组目前的选项和配置代表创建新的主机。 <xref:Orleans.TestingHost.InProcessTestCluster.StopSiloAsync*>、 <xref:Orleans.TestingHost.InProcessTestCluster.StopSilosAsync*>、 <xref:Orleans.TestingHost.InProcessTestCluster.StopAllSilosAsync*>、 <xref:Orleans.TestingHost.InProcessTestCluster.WaitForLivenessToStabilizeAsync*>和 <xref:Orleans.TestingHost.InProcessTestCluster.WaitForClusterManifestToStabilizeAsync*> 协调成员构成,并显示故障和弹性测试的过渡情况。
+
+超载 `startAdditionalSiloOnNewPort` 已经过时。测试应该使用无参数 <xref:Orleans.TestingHost.InProcessTestCluster.StartAdditionalSilo*> 超载或 <xref:Orleans.TestingHost.InProcessTestCluster.StartSilosAsync*>。当测试必须提供例数或配置覆盖时,低级 <xref:Orleans.TestingHost.InProcessTestCluster.StartSiloAsync*> 超载仍然可用。
+
+停止主机优雅的操作关闭。 不光彩的成员更新就处置或终止手柄是一种不同的失败模式, 在测试失败检测时应该故意选择 。
+
+<a id="class-configurator-test-cluster-and-custom-silo-creation-"></a>
+
+## 类配置测试集集和自定义 silo 创建 <a name="use-the-testcluster"></a>
 
 <xref:Orleans.TestingHost.TestClusterBuilder> is the class-configurator-based harness. It defaults to two silos, in-memory transport, generated cluster identity, test membership, client initialization, file logging, and homogeneous-silo assumptions. It also installs `ConfigureDistributedGrainDirectory`, configuring its silos with the distributed grain directory.
 
@@ -93,21 +107,25 @@ Stopping a host gracefully exercises shutdown. Disposing or terminating a handle
 
 <xref:Orleans.TestingHost.TestCluster> supports suites built around <xref:Orleans.TestingHost.SiloHandle> and configurator types. It does not use separate application domains; its hosts run in-process unless a custom silo creation path provides different isolation.
 
-API: <xref:Orleans.TestingHost.TestClusterBuilder>, <xref:Orleans.TestingHost.TestCluster>, and <xref:Orleans.TestingHost.TestClusterOptions>. Implementation: [builder](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/TestClusterBuilder.cs), [cluster](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/TestCluster.cs), and [options](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/TestClusterOptions.cs).
+API: <xref:Orleans.TestingHost.TestClusterBuilder>、 <xref:Orleans.TestingHost.TestCluster>和 <xref:Orleans.TestingHost.TestClusterOptions>。履行: [建筑工](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/TestClusterBuilder.cs)、 [组群](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/TestCluster.cs)和 [选项](https://github.com/dotnet/orleans/blob/main/src/Orleans.TestingHost/TestClusterOptions.cs)。
 
-## Fidelity boundaries <a name="use-mocks"></a>
+<a id="fidelity-boundaries-"></a>
 
-TestingHost deliberately substitutes infrastructure. Tests must account for those boundaries:
+## 切分度边界 <a name="use-mocks"></a>
 
-- in-memory transport does not reproduce sockets, TLS, packet loss, or network buffers;
-- test membership does not prove a production membership provider's transaction behavior;
-- the test grain directory can bypass production directory edge cases;
-- simulated statistics do not reproduce load shedding;
-- one process shares thread-pool and static state; and
-- graceful stop does not model abrupt process or machine loss.
+TestingHost 故意替代基础设施。
 
-Use the smallest substitution which keeps the invariant under test real. Directory, membership, transport, and provider contract tests often need their production component explicitly enabled.
+- 模拟运输不复制插座、 TLS、 包丢失或网络缓冲;
+- 成员资格测试不能证明生产成员身份提供者的交易行为;
+- 测试 grain 目录可绕过生产目录边缘案例;
+- 模拟统计不复制负荷叠叠;
+- 一个进程共享线串库和静态状态;以及
+- 优雅的停止不模拟突然过程或机器损失。
 
-## Test architecture in the repository
+使用最小的替代方法,让变量在测试中真实存在。目录、成员资格、运输和供应商合同测试往往需要明确允许其生产成分。
 
-Repository fixtures such as `BaseInProcessTestClusterFixture` wrap cluster setup and disposal, while specialized suites configure the component being exercised. For example, [`AQStreamingTests`](https://github.com/dotnet/orleans/blob/main/test/Extensions/Orleans.Azure.Tests/Streaming/AQStreamingTests.cs) uses `ConfigureHost`, `ConfigureSilo`, and `ConfigureClient` to combine real Azure Queue adapters with an in-process Orleans cluster.
+<a id="test-architecture-in-the-repository"></a>
+
+## 存储库中的测试结构
+
+仓库定着装置,如 `BaseInProcessTestClusterFixture` 包装组合和处置,而专门套件则配置正在使用的组件。例如, [`AQStreamingTests`](https://github.com/dotnet/orleans/blob/main/test/Extensions/Orleans.Azure.Tests/Streaming/AQStreamingTests.cs) 使用 `ConfigureHost`、 `ConfigureSilo`和 `ConfigureClient` 将真实的 Azure 调适器与一个在工艺 Orleans 组组合在一起。

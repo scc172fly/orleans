@@ -29,7 +29,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         var receiver = Cluster.Client.GetGrain<IJsonMessagingGrain>(Guid.NewGuid());
         var messageId = MessageId.Create("json", Guid.NewGuid().ToString("N"));
 
-        // The sender deactivates after committing the send, so delivery runs from the outbox recovered from the JSON journal.
+        // 发送发送后失效,所以从 JSON 日记中回收的发件箱发送送货。
         await sender.SendAndDeactivateAsync(receiver.GetGrainId(), messageId, 42);
         Assert.Equal(new[] { 42 }, await Probe.WaitAsync(receiver.GetGrainId(), 1, Token));
         Assert.True(Cluster.TryGetGrainContext(receiver.GetGrainId(), out var receiverContext));
@@ -81,7 +81,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         await receiver.DeactivateAsync();
         await receiverContext.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
 
-        // Redelivery replays the JSON journal; pending-command equivalence requires the recovered DeliverAt.
+        // 再发送重播 JSON 日记;待决命令等同要求回收的 DeliverAt。
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await extension.DeliverAsync(scheduled, Token));
         var conflicting = type.Create(messageId, receiver.GetGrainId(), 7, deliverAt.AddSeconds(1)).ToInboxMessage(scheduled.SentAt);
         await Assert.ThrowsAsync<InvalidOperationException>(() => extension.DeliverAsync(conflicting, Token).AsTask());
@@ -102,7 +102,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         var immediateId = MessageId.Create("json", "self", Guid.NewGuid().ToString("N"));
         var deliverAt = new DateTimeOffset(DateTime.UtcNow.AddDays(1).Ticks, TimeSpan.Zero);
 
-        // Each send commits the acceptance in the grain's own inbox; the outbox never holds the message.
+        // 每个发送单位在 grain自己的收件箱中承诺接受;发件箱永远不持有信件。
         await grain.SendAsync(grain.GetGrainId(), scheduledId, 7, deliverAt);
         await grain.SendAsync(grain.GetGrainId(), immediateId, 8);
         Assert.Equal(0, await grain.GetOutboxCountAsync());
@@ -112,7 +112,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         await grain.DeactivateAsync();
         await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
 
-        // The next activation recovers the pending scheduled message and the completion record from the JSON journal.
+        // 下一次激活从 JSON 日记本上收回待发的预定信件和完成记录。
         Assert.Equal(0, await grain.GetOutboxCountAsync());
         Assert.True(Cluster.TryGetGrainContext(grain.GetGrainId(), out var recoveredContext));
         Assert.NotSame(context, recoveredContext);

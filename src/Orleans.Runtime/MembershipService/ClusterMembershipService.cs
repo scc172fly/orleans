@@ -92,7 +92,7 @@ namespace Orleans.Runtime
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                // Ignore and continue shutting down.
+                // 忽略并继续关闭
             }
             catch (Exception exception) when (this.fatalErrorHandler.IsUnexpected(exception))
             {

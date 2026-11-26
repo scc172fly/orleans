@@ -6,12 +6,12 @@ using System;
 namespace Orleans.Persistence
 {
     /// <summary>
-    /// Factory used to create instances of Redis grain storage.
+    /// 用于创建 Redis grain 储存实例的工厂。
     /// </summary>
     public static class RedisGrainStorageFactory
     {
         /// <summary>
-        /// Creates a grain storage instance.
+        /// 创建 grain 存储实例。
         /// </summary>
         public static RedisGrainStorage Create(IServiceProvider services, string name)
         {

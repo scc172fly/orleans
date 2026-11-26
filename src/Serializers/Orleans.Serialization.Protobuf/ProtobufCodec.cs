@@ -16,13 +16,13 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// Provides serialization and deep-copy support for Protocol Buffers message types selected for the Protobuf codec.
+/// 为为Protobuf编码器选定的《议定书》缓冲电文类型提供序列和深读支持。
 /// </summary>
 [Alias(WellKnownAlias)]
 public sealed class ProtobufCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
 {
     /// <summary>
-    /// The well-known alias used to select the Protobuf codec and copier.
+    /// 用来选择Protobuf代码和复印机的著名化名。
     /// </summary>
     public const string WellKnownAlias = "protobuf";
 
@@ -35,10 +35,10 @@ public sealed class ProtobufCodec : IGeneralizedCodec, IGeneralizedCopier, IType
     private readonly ICopierSelector[] _copyableTypeSelectors;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ProtobufCodec"/> class.
+    /// 初始化 <see cref="ProtobufCodec"/> 类的新实例。
     /// </summary>
-    /// <param name="serializableTypeSelectors">Filters used to indicate which types should be serialized by this codec.</param>
-    /// <param name="copyableTypeSelectors">Filters used to indicate which types should be copied by this codec.</param>
+    /// <param name="serializableTypeSelectors">过滤器用于表示哪些类型应该由此编码器序列。</param>
+    /// <param name="copyableTypeSelectors">过滤器用于表示该编码器应复制的类型。</param>
     public ProtobufCodec(
         IEnumerable<ICodecSelector> serializableTypeSelectors,
         IEnumerable<ICopierSelector> copyableTypeSelectors)
@@ -129,7 +129,7 @@ public sealed class ProtobufCodec : IGeneralizedCodec, IGeneralizedCopier, IType
 
         if (type == MessageType)
         {
-            // While IMessage is the basis of all supported types, it isn't directly supported
+            // 虽然IMessage是所有支持类型的基础, 但并不直接支持
             return null;
         }
 
@@ -140,13 +140,13 @@ public sealed class ProtobufCodec : IGeneralizedCodec, IGeneralizedCopier, IType
     {
         if (type == MessageType)
         {
-            // Not a concrete implementation, so not directly serializable
+            // 并非具体执行,因此无法直接连号
             return false;
         }
 
         if (type == MessageGenericType)
         {
-            // Not a concrete implementation, but the generic type does give the concrete type
+            // 并非具体实施,但通用类型确实提供了具体类型
             type = type.GenericTypeArguments[0];
         }
 
@@ -253,7 +253,7 @@ public sealed class ProtobufCodec : IGeneralizedCodec, IGeneralizedCopier, IType
 
         writer.WriteFieldHeader(fieldIdDelta, expectedType, SelfType, WireType.TagDelimited);
 
-        // Write the type name
+        // 写入类型名称
         ReferenceCodec.MarkValueField(writer.Session);
         writer.WriteFieldHeaderExpected(0, WireType.LengthPrefixed);
         writer.Session.TypeCodec.WriteLengthPrefixed(ref writer, value.GetType());
@@ -263,7 +263,7 @@ public sealed class ProtobufCodec : IGeneralizedCodec, IGeneralizedCopier, IType
         using var buffer = new PooledBuffer();
         var spanBuffer = buffer.GetSpan(messageSize)[..messageSize];
 
-        // Write the serialized payload
+        // 编写序列式有效载荷
         protobufMessage.WriteTo(spanBuffer);
 
         ReferenceCodec.MarkValueField(writer.Session);

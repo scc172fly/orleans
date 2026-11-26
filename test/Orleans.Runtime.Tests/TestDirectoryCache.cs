@@ -47,10 +47,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Removes an entry from the cache given its key
+        /// 以密钥为条件, 从缓存中删除条目
         /// </summary>
-        /// <param name="key">key to remove</param>
-        /// <returns>True if the entry was in the cache and the removal was successful</returns>
+        /// <param name="key">要删除的密钥</param>
+        /// <returns>如果条目在缓存中且清除成功, 则正确</returns>
         public bool Remove(GrainAddress key)
         {
             var exists = InnerCache.Remove(key);

@@ -12,26 +12,26 @@ using Xunit;
 namespace Tester.Cosmos.Reminders;
 
 /// <summary>
-/// Unit tests for <see cref="FeedIteratorExtensions.ToListAsync{T}"/>. These validate the
-/// specific pagination invariant that once tripped a real production bug in
-/// <c>CosmosReminderTable.ReadRows</c>: a <see cref="FeedIterator{T}"/> can return an
-/// empty page while <see cref="FeedIterator.HasMoreResults"/> remains <c>true</c>
-/// (e.g. when the previous page exhausted the RU budget while scanning a partition
-/// with no matches). The drain helper must keep iterating past empty pages.
+/// <see cref="FeedIteratorExtensions.ToListAsync{T}"/>单位测试。这些测试验证
+/// 具体变异的细微变形, 一旦在
+/// <c>CosmosReminderTable.ReadRows</c>: <see cref="FeedIterator{T}"/> 可返回
+/// <see cref="FeedIterator.HasMoreResults"/> 仍然为 <c>true</c>时空页面
+/// (e.g.)。当上一页在扫描分区时用完RU预算时,
+/// 排水工具必须保持在空页面的重复。
 ///
-/// A live Cosmos DB (or emulator) cannot reliably reproduce this pattern in a
-/// deterministic way, so these tests drive the helper with an in-memory
-/// <see cref="FeedIterator{T}"/> subclass that plays back a scripted sequence of
-/// pages including empty ones.
+/// 实时宇宙 DB (或模拟器) 无法可靠地复制此模式
+/// 以确定性的方式, 所以这些测试驱动辅助器 用记忆驱动
+/// 播放脚本序列的<see cref="FeedIterator{T}"/> 子类
+/// 包括空页。
 /// </summary>
 public class FeedIteratorExtensionsTests
 {
     [Fact]
     public async Task ToListAsync_EmptyPageInMiddle_ContinuesIterating()
     {
-        // Simulates the pathological page layout the fix guards against: results,
-        // then an empty page while HasMoreResults is still true, then more results.
-        // A "break on first empty page" drain would drop the trailing rows.
+        // 模拟病理页面布局 修复卫兵对照: 结果,
+        // 然后是空页面,而 HasMoreResults 仍然真实,然后是更多结果。
+        // "破开第一页空纸"排水道会让后行倒下
         var iterator = new FakeFeedIterator<int>(
             new[] { 1, 2, 3 },
             Array.Empty<int>(),
@@ -45,8 +45,8 @@ public class FeedIteratorExtensionsTests
     [Fact]
     public async Task ToListAsync_LeadingEmptyPage_ContinuesIterating()
     {
-        // First page empty while HasMoreResults is still true. A break-on-empty
-        // implementation would return zero rows even though matches exist further on.
+        // 首页空空, HasMoreResults 事实依然如此。
+        // 即使有更进一步匹配,实施时将返回零行。
         var iterator = new FakeFeedIterator<int>(
             Array.Empty<int>(),
             new[] { 1, 2, 3 });
@@ -92,10 +92,10 @@ public class FeedIteratorExtensionsTests
     }
 
     /// <summary>
-    /// A <see cref="FeedIterator{T}"/> that plays back a scripted list of pages.
-    /// <see cref="HasMoreResults"/> stays <c>true</c> until every scripted page has
-    /// been consumed via <see cref="ReadNextAsync(CancellationToken)"/>, so an empty
-    /// page never terminates iteration on its own.
+    /// 播放脚本页面列表的 <see cref="FeedIterator{T}"/> 。
+    /// <see cref="HasMoreResults"/> 保持真实的 <c>true</c> ,直到每个脚本页面
+    /// 以 <see cref="ReadNextAsync(CancellationToken)"/>方式消耗,所以空
+    /// 页面不会自动终止迭代。
     /// </summary>
     private sealed class FakeFeedIterator<T> : FeedIterator<T>
     {
@@ -120,9 +120,9 @@ public class FeedIteratorExtensionsTests
     }
 
     /// <summary>
-    /// Minimal <see cref="FeedResponse{T}"/> stub exposing the members the drain
-    /// helper actually reads (<see cref="Count"/> and the enumerator). Everything
-    /// else returns a safe default so nothing throws on unrelated access.
+    /// 将成员排水沟暴露在下水道的最小 <see cref="FeedResponse{T}"/> 根管上
+    /// 帮助符实际上读取 (<see cref="Count"/> 和计算器) 。
+    /// 其它返回安全默认,所以不丢弃非关联访问。
     /// </summary>
     private sealed class FakeFeedResponse<T> : FeedResponse<T>
     {

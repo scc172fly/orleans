@@ -3,36 +3,36 @@ using Orleans.Transactions.AzureStorage;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configuration options for Azure Table Storage transactional state storage.
+    /// Azure 表格存储交易状态储存的配置选项。
     /// </summary>
     public class AzureTableTransactionalStateOptions : AzureStorageOperationOptions
     {
         /// <summary>
-        /// Gets or sets the name of the table where transactional state is stored.
+        /// 获取或设置存储交易状态的表格名称。
         /// </summary>
         public override string TableName { get; set; } = "TransactionalState";
 
         /// <summary>
-        /// Gets or sets the silo lifecycle stage at which the storage provider is initialized.
+        /// 获取或设定存储提供者初始化的 silo 生命周期阶段。
         /// </summary>
         public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
         /// <summary>
-        /// The default silo lifecycle stage at which the storage provider is initialized.
+        /// 存储提供者初始化的默认 silo 生命周期阶段。
         /// </summary>
         public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
     }
 
     /// <summary>
-    /// Configuration validator for <see cref="AzureTableTransactionalStateOptions"/>.
+    /// <see cref="AzureTableTransactionalStateOptions"/>的配置验证符 。
     /// </summary>
     public class AzureTableTransactionalStateOptionsValidator : AzureStorageOperationOptionsValidator<AzureTableTransactionalStateOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureTableTransactionalStateOptionsValidator"/> class.
+        /// 初始化 <see cref="AzureTableTransactionalStateOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The option to be validated.</param>
-        /// <param name="name">The option name to be validated.</param>
+        /// <param name="options">选项将生效。</param>
+        /// <param name="name">需要验证的选项名称。</param>
         public AzureTableTransactionalStateOptionsValidator(AzureTableTransactionalStateOptions options, string name) : base(options, name)
         {
         }

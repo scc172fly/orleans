@@ -6,16 +6,16 @@ using Orleans.Runtime.Placement;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Migration of the requests which are queued for this activation, together with the activation.
+/// 将排队的启动请求与启动一起迁移到该启动。
 /// </summary>
 internal sealed partial class ActivationData
 {
     /// <summary>
-    /// Gets whether this activation migrates because its silo is shutting down.
+    /// 是否因为它 silo 关闭。
     /// </summary>
     /// <remarks>
-    /// The silo deactivates its activations with <see cref="DeactivationReasonCode.ShuttingDown"/> when it shuts down.
-    /// An activation which is deactivating for any other reason forwards or rejects its requests.
+    /// 下 silo 使用以下 <see cref="DeactivationReasonCode.ShuttingDown"/> 当它关闭的时候,
+    /// 一项由于任何其他原因正在解除活动的激活,将它的请求发回或拒绝。
     /// </remarks>
     private bool MigratesOnRetirement()
         => DeactivationReason.ReasonCode is DeactivationReasonCode.ShuttingDown
@@ -24,9 +24,9 @@ internal sealed partial class ActivationData
             && checker.IsMigratable(GrainId.Type, ImmovableKind.Any);
 
     /// <summary>
-    /// Removes the queued requests which can migrate with this activation.
+    /// 删除此激活后可以迁移的队列请求 。
     /// </summary>
-    /// <returns>The requests, or <see langword="null"/> if there are none.</returns>
+    /// <returns>(a) 请求,或 <see langword="null"/> 如果无。</returns>
     private List<Message>? TakeRequestsForMigration()
     {
         var maxForwardCount = _shared.MessagingOptions.MaxForwardCount;
@@ -36,14 +36,14 @@ internal sealed partial class ActivationData
         {
             _waitingRequests.RemoveAll(entry =>
             {
-                // Local-only messages are not allowed to escape the activation.
-                // Migration counts as a forward, so requests which have exhausted their forwards remain queued and are rejected.
+                // 仅允许本地信息无法逃避激活 。
+                // 移徙算作向前推进,因此已用尽前方请求仍排队等待并被拒绝。
                 if (entry.Message.IsLocalOnly || entry.Message.ForwardCount >= maxForwardCount)
                 {
                     return false;
                 }
 
-                // Expired requests are dropped, as they are when received. Their callers have already timed out.
+                // 过期请求被撤销,因为收到时已经失效。
                 if (entry.Message.IsExpired)
                 {
                     (expired ??= []).Add(entry.Message);

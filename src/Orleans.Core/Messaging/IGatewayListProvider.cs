@@ -7,26 +7,26 @@ using Orleans.Runtime;
 namespace Orleans.Messaging
 {
     /// <summary>
-    /// Interface that provides Orleans gateways information.
+    /// 提供 Orleans 网关信息的接口。
     /// </summary>
     /// <remarks>
-    /// Providers implement the cancellation-aware Async methods to cancel their underlying operations.
-    /// The default implementations support existing providers by cancelling the caller's wait and
-    /// observing completion of the tokenless operation.
+    /// 供应商采用取消通知的Async方法来取消其基本业务。
+    /// 默认执行支持现有提供者, 取消调用者的等待和
+    /// 观测无价操作完成情况。
     /// </remarks>
     public interface IGatewayListProvider
     {
         /// <summary>
-        /// Initializes the provider, will be called before all other methods.
+        /// 初始化提供商, 将被召集到所有其他方法之前 。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task InitializeGatewayListProvider();
 
         /// <summary>
-        /// Initializes the provider before gateway discovery begins.
+        /// 在网关发现开始之前初始化提供者。
         /// </summary>
-        /// <param name="cancellationToken">The token used to cancel initialization.</param>
-        /// <returns>A task representing the initialization operation.</returns>
+        /// <param name="cancellationToken">取消初始化所用的标记。</param>
+        /// <returns>一项代表初始化操作的任务。</returns>
         async Task InitializeGatewayListProviderAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -36,17 +36,17 @@ namespace Orleans.Messaging
         }
 
         /// <summary>
-        /// Returns the list of gateways (silos) that can be used by a client to connect to Orleans cluster.
-        /// The Uri is in the form of: "gwy.tcp://IP:port/Generation". See Utils.ToGatewayUri and Utils.ToSiloAddress for more details about Uri format.
+        /// 返回网关列表( 返回) (n)silos客户端可以连接到 Orleans 组。
+        /// 尤里语的形式是: "gwy.tcp/IP:port/Generation. " 关于尤里格式的更多详情,见 Utils.ToGatewayUri 和 Utils.ToSiloAddress 。
         /// </summary>
-        /// <returns>The list of gateway endpoints.</returns>
+        /// <returns>网关端点列表。</returns>
         Task<IList<Uri>> GetGateways();
 
         /// <summary>
-        /// Gets the gateway endpoints which clients can use to connect to the cluster.
+        /// 获取客户可以连接到集群的网关端点。
         /// </summary>
-        /// <param name="cancellationToken">The token used to cancel gateway discovery.</param>
-        /// <returns>The list of gateway endpoints.</returns>
+        /// <param name="cancellationToken">用于取消网关发现时使用的标记。</param>
+        /// <returns>网关端点列表。</returns>
         async Task<IList<Uri>> GetGatewaysAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -56,12 +56,12 @@ namespace Orleans.Messaging
         }
 
         /// <summary>
-        /// Gets the period of time between refreshes.
+        /// 可以在休息之间得到时间间隔。
         /// </summary>
         TimeSpan MaxStaleness { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this IGatewayListProvider ever refreshes its returned information, or always returns the same gateway list.
+        /// 获得一个值,显示该 IGatewayListProvider 是否刷新了它返回的信息,还是总是返回相同的网关列表。
         /// </summary>
         [Obsolete("This attribute is no longer used and all providers are considered updatable")]
         bool IsUpdatable { get; }

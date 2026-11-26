@@ -1,16 +1,24 @@
-# Microsoft Orleans Clustering for Redis
+<a id="microsoft-orleans-clustering-for-redis"></a>
 
-## Introduction
-Microsoft Orleans Clustering for Redis provides cluster membership functionality for Microsoft Orleans using Redis. This allows Orleans silos to coordinate and form a cluster using Redis as the backing store.
+# Microsoft Orleans 分组 Redis
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 分组 Redis 提供分组成员功能 Microsoft Orleans 使用 Redis。此选项允许 Orleans silos 协调和组成一个组群,使用 Redis 做为后援商店
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Clustering.Redis
 ```
 
-## Example - Configuring Redis Membership
+<a id="example---configuring-redis-membership"></a>
+
+## 示例 - 配置 Redis 成员
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -45,7 +53,9 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-## Example - Client Configuration
+<a id="example---client-configuration"></a>
+
+## 示例 - 客户配置
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -81,13 +91,17 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-## Configuration via Microsoft.Extensions.Configuration
+<a id="configuration-via-microsoftextensionsconfiguration"></a>
 
-You can configure Orleans Redis clustering using `Microsoft.Extensions.Configuration` (such as `appsettings.json`) instead of configuring it in code. When using this approach, Orleans will automatically read the configuration from the `Orleans` section.
+## 通过 Microsoft.Extensions.Configuration配置配置
 
-> **Note**: You can use either `"ProviderType": "Redis"` or `"ProviderType": "AzureRedisCache"` - both are supported and functionally equivalent.
+您可以配置 Orleans Redis 组合 `Microsoft.Extensions.Configuration` (例如 `appsettings.json`而不是将其配置为代码。当使用此方法时, Orleans 将自动读取配置 `Orleans` 节内
 
-### Example - appsettings.json (Silo)
+> **注**:您可以使用 `"ProviderType": "Redis"` 或 `"ProviderType": "AzureRedisCache"` ----两者都得到支持,功能等同。
+
+<a id="example---appsettingsjson-silo"></a>
+
+### 示例 - appsettings.json (Silo)
 ```json
 {
   "ConnectionStrings": {
@@ -104,7 +118,9 @@ You can configure Orleans Redis clustering using `Microsoft.Extensions.Configura
 }
 ```
 
-### Example - appsettings.json (Client)
+<a id="example---appsettingsjson-client"></a>
+
+### 示例 - appsettings.json (用户)
 ```json
 {
   "ConnectionStrings": {
@@ -121,11 +137,15 @@ You can configure Orleans Redis clustering using `Microsoft.Extensions.Configura
 }
 ```
 
-### .NET Aspire Integration
+<a id="net-aspire-integration"></a>
 
-For applications using .NET Aspire, consider using the [.NET Aspire Redis integration](https://learn.microsoft.com/dotnet/aspire/caching/stackexchange-redis-integration) which provides simplified Redis configuration, automatic service discovery, health checks, and telemetry. The Aspire integration automatically configures connection strings that Orleans can consume via the configuration system.
+### .NET 委托整合
 
-#### Example - Program.cs with Aspire Redis Integration
+用于 .NET 参考,考虑使用 [.NET 委托 Redis 整合](https://learn.microsoft.com/dotnet/aspire/caching/stackexchange-redis-integration) 简化 Redis 自动服务配置、自动服务发现、健康检查和遥测。 Orleans 可以通过配置系统消耗。
+
+<a id="example---programcs-with-aspire-redis-integration"></a>
+
+#### 示例 - Program.cs 与委托 Redis 整合
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -154,7 +174,7 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-This example assumes your AppHost project has configured Redis like this:
+本示例假设您的 AppHost 项目已经像这样配置了 Redis :
 ```csharp
 // In your AppHost/Program.cs
 var builder = DistributedApplication.CreateBuilder(args);
@@ -170,16 +190,20 @@ builder.AddProject<Projects.MyOrleansApp>("orleans-app")
 builder.Build().Run();
 ```
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Configuration Guide](https://dotnet.github.io/orleans/docs/host/configuration-guide/)
-- [Orleans Clustering](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
-- [Redis Documentation](https://redis.io/documentation)
+<a id="documentation"></a>
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [配置指南](https://dotnet.github.io/orleans/docs/host/configuration-guide/)
+- [Orleans 组合](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
+- [Redis 文档](https://redis.io/documentation)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

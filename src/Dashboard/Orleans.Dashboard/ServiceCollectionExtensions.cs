@@ -26,17 +26,17 @@ using Orleans.Configuration.Internal;
 namespace Orleans.Dashboard;
 
 /// <summary>
-/// Provides extension methods for configuring and integrating the Orleans Dashboard.
+/// 提供配置和整合 Orleans 板的扩展方法。
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds Orleans Dashboard services to the silo builder.
+    /// 添加 Orleans 向 silo 建筑商
     /// </summary>
-    /// <param name="siloBuilder">The silo builder.</param>
-    /// <param name="configureOptions">Optional configuration action for <see cref="DashboardOptions"/>.</param>
-    /// <returns>The silo builder for method chaining.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> is null.</exception>
+    /// <param name="siloBuilder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于 <see cref="DashboardOptions"/>.</param>
+    /// <returns>下 silo 方法链的建筑工。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 无效。</exception>
     public static ISiloBuilder AddDashboard(this ISiloBuilder siloBuilder, Action<DashboardOptions>? configureOptions = null)
     {
         ArgumentNullException.ThrowIfNull(siloBuilder);
@@ -82,13 +82,13 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Maps Orleans Dashboard endpoints using ASP.NET Core minimal APIs.
-    /// The returned route group supports authentication, authorization, and other endpoint configuration.
+    /// 地图图地图 Orleans 使用板头端点 ASP.NET 核心最低年度宣传单。
+    /// 返回的路线组支持认证、授权和其他端点配置。
     /// </summary>
-    /// <param name="endpoints">The application's endpoint route builder.</param>
-    /// <param name="routePrefix">The optional base route for the dashboard endpoints.</param>
-    /// <returns>The dashboard route group.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> is null.</exception>
+    /// <param name="endpoints">应用程序的端点路由建设器。</param>
+    /// <param name="routePrefix">仪表板端点的可选基线。</param>
+    /// <returns>仪表板路由组。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> 无效。</exception>
     /// <example>
     /// <code>
     /// // Basic usage
@@ -97,7 +97,7 @@ public static class ServiceCollectionExtensions
     /// // With authentication
     /// app.MapOrleansDashboard().RequireAuthorization();
     ///
-    /// // With custom base path
+    /// // 使用自定义基路径
     /// app.MapOrleansDashboard(routePrefix: "/dashboard");
     /// </code>
     /// </example>
@@ -106,22 +106,22 @@ public static class ServiceCollectionExtensions
         [StringSyntax("Route")] string? routePrefix = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
-        // Create static assets provider
+        // 创建静态资产提供商
         var assets = endpoints.ServiceProvider.GetService<EmbeddedAssetProvider>()
             ?? throw new InvalidOperationException("Orleans Dashboard services have not been registered. " +
                 "Please call AddDashboard on ISiloBuilder or IClientBuilder.");
 
-        // Create a route group for all dashboard endpoints
+        // 为所有仪表板端点创建一个路径组
         var group = endpoints.MapGroup(routePrefix ?? "");
 
-        // Static assets - these match the paths referenced in the built CSS/HTML
-        // When a routePrefix is specified, redirect requests without trailing slash to include it.
-        // This ensures relative asset paths (like index.min.js) resolve correctly.
+        // 静态资产 - 这些符合在已建 CSS/HTML 中引用的路径
+        // 当指定了 routePrefix 时,将请求重定向而不留下尾巴以包括它。
+        // 这确保了相对资产路径(如 index.min.js)的解决正确。
         group.MapGet("/", (HttpContext ctx) =>
         {
             if (!string.IsNullOrEmpty(routePrefix) && ctx.Request.Path.Value?.EndsWith('/') == false)
             {
-                // Redirect to the same path with a trailing slash, preserving the query string
+                // 使用尾行斜线重定向到相同的路径, 保存查询字符串
                 var redirectUrl = $"{ctx.Request.PathBase}{ctx.Request.Path}/{ctx.Request.QueryString}";
                 return Results.Redirect(redirectUrl, permanent: true);
             }
@@ -132,13 +132,13 @@ public static class ServiceCollectionExtensions
         group.MapGet("/index.min.js", (HttpContext ctx) => assets.ServeAsset("index.min.js", ctx));
         group.MapGet("/index.css", (HttpContext ctx) => assets.ServeAsset("index.css", ctx));
 
-        // Font files - catch-all route for /fonts/ directory
+        // 字体文件 - /fonts/ 目录的全抓图路径
         group.MapGet("/fonts/{**path}", (string path, HttpContext ctx) => assets.ServeAsset($"fonts.{path}", ctx));
 
-        // Image files - catch-all route for /img/ directory
+        // 图像文件 - /img/ 目录的全抓图路径
         group.MapGet("/img/{**path}", (string path, HttpContext ctx) => assets.ServeAsset($"img.{path}", ctx));
 
-        // API endpoints
+        // API 终点
         var jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -388,7 +388,7 @@ public static class ServiceCollectionExtensions
         }
         catch
         {
-            // If reminders are not configured, return empty response
+            // 如果提醒未配置, 返回空响应
             return Results.Json(new ReminderResponse { Reminders = [], Count = 0 }, jsonOptions);
         }
     }
@@ -437,13 +437,13 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds Orleans Dashboard services to an Orleans client builder.
-    /// This allows you to host the Orleans Dashboard application on an Orleans client, so long as the silos also have the dashboard added.
+    /// 添加 Orleans 向 Orleans 客户端构建器
+    /// 允许您主机 Orleans 键 Orleans 客户端,只要 silos 还将仪表板加进。
     /// </summary>
-    /// <param name="clientBuilder">The client builder.</param>
-    /// <param name="configureOptions">Optional configuration action for <see cref="DashboardOptions"/>.</param>
-    /// <returns>The client builder for method chaining.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="clientBuilder"/> is null.</exception>
+    /// <param name="clientBuilder">客户端构建器。</param>
+    /// <param name="configureOptions">用于 <see cref="DashboardOptions"/>.</param>
+    /// <returns>用于方法链的客户端构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="clientBuilder"/> 无效。</exception>
     public static IClientBuilder AddDashboard(this IClientBuilder clientBuilder, Action<DashboardOptions>? configureOptions = null)
     {
         ArgumentNullException.ThrowIfNull(clientBuilder);

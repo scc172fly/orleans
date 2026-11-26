@@ -3,11 +3,11 @@ using Xunit;
 
 namespace Consul.Cosmos
 {
-    // Assembly collections must be defined once in each assembly
+    // 必须在每组集会中确定一次大会收藏的收藏
 
     /// <summary>
-    /// Defines a test collection for tests that require shared test environment configuration.
-    /// Provides Azure Cosmos DB specific test environment setup and resources.
+    /// 定义需要共享测试环境配置的测试集。
+    /// 提供 Azure 宇宙DB特定测试环境设置和资源。
     /// </summary>
     [CollectionDefinition(TestEnvironmentFixture.DefaultCollection)]
     public class TestEnvironmentFixtureCollection : ICollectionFixture<TestEnvironmentFixture> { }

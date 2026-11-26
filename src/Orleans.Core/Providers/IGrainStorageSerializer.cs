@@ -9,63 +9,63 @@ using Orleans.Runtime;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Common interface for grain state serializers.
+    /// grain 状态序列器的共同界面。
     /// </summary>
     public interface IGrainStorageSerializer
     {
         /// <summary>
-        /// Serializes the object input.
+        /// 将对象输入分层。
         /// </summary>
-        /// <param name="input">The object to serialize.</param>
-        /// <typeparam name="T">The input type.</typeparam>
-        /// <returns>The serialized input.</returns>
+        /// <param name="input">序列化对象。</param>
+        /// <typeparam name="T">输入类型。</typeparam>
+        /// <returns>序列输入。</returns>
         BinaryData Serialize<T>(T? input);
 
         /// <summary>
-        /// Deserializes the provided data.
+        /// 使提供的数据降序。
         /// </summary>
-        /// <param name="input">The data to deserialize.</param>
-        /// <typeparam name="T">The output type.</typeparam>
-        /// <returns>The deserialized object.</returns>
+        /// <param name="input">用于解除序列的数据。</param>
+        /// <typeparam name="T">输出类型。</typeparam>
+        /// <returns>消毒物体</returns>
         T? Deserialize<T>(BinaryData input);
     }
 
     /// <summary>
-    /// Optional stream-based serializer for grain state.
+    /// grain 状态的基于流的可选序列转换器。
     /// </summary>
     public interface IGrainStorageStreamingSerializer : IGrainStorageSerializer
     {
         /// <summary>
-        /// Serializes the object input to a stream.
+        /// 将对象输入的序列化为流。
         /// </summary>
-        /// <param name="input">The object to serialize.</param>
-        /// <param name="destination">The destination stream.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <typeparam name="T">The input type.</typeparam>
+        /// <param name="input">序列化对象。</param>
+        /// <param name="destination">目的地流。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <typeparam name="T">输入类型。</typeparam>
         ValueTask SerializeAsync<T>(T? input, Stream destination, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deserializes the provided data from a stream.
+        /// 将从流中提供的数据降序。
         /// </summary>
-        /// <param name="input">The input stream.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <typeparam name="T">The output type.</typeparam>
-        /// <returns>The deserialized object.</returns>
+        /// <param name="input">输入流。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <typeparam name="T">输出类型。</typeparam>
+        /// <returns>消毒物体</returns>
         ValueTask<T?> DeserializeAsync<T>(Stream input, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
-    /// Extensions for <see cref="IGrainStorageSerializer"/>.
+    /// <see cref="IGrainStorageSerializer"/>的扩展期。
     /// </summary>
     public static class GrainStorageSerializerExtensions
     {
         /// <summary>
-        /// Deserializes the provided data.
+        /// 使提供的数据降序。
         /// </summary>
-        /// <param name="serializer">The grain state serializer.</param>
-        /// <param name="input">The data to deserialize.</param>
-        /// <typeparam name="T">The output type.</typeparam>
-        /// <returns>The deserialized object.</returns>
+        /// <param name="serializer"> grain 状态序列器。</param>
+        /// <param name="input">用于解除序列的数据。</param>
+        /// <typeparam name="T">输出类型。</typeparam>
+        /// <returns>消毒物体</returns>
         public static T? Deserialize<T>(this IGrainStorageSerializer serializer, ReadOnlyMemory<byte> input)
         {
             ArgumentNullException.ThrowIfNull(serializer);
@@ -74,28 +74,28 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// Interface to be implemented by the storage provider options.
+    /// 由存储提供商选项实施接口。
     /// </summary>
     public interface IStorageProviderSerializerOptions
     {
         /// <summary>
-        /// Gets or sets the serializer to use for this storage provider.
+        /// 获取或设置用于此存储提供者的序列器。
         /// </summary>
         IGrainStorageSerializer GrainStorageSerializer { get; set; }
     }
 
     /// <summary>
-    /// Provides default configuration for <see cref="IStorageProviderSerializerOptions.GrainStorageSerializer"/>.
+    /// 提供 <see cref="IStorageProviderSerializerOptions.GrainStorageSerializer"/>的默认配置。
     /// </summary>
-    /// <typeparam name="TOptions">The options type.</typeparam>
+    /// <typeparam name="TOptions">选项类型。</typeparam>
     public class DefaultStorageProviderSerializerOptionsConfigurator<TOptions> : IPostConfigureOptions<TOptions> where TOptions : class, IStorageProviderSerializerOptions
     {
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultStorageProviderSerializerOptionsConfigurator{TOptions}"/> class.
+        /// 初始化 <see cref="DefaultStorageProviderSerializerOptionsConfigurator{TOptions}"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">The service provider.</param>
+        /// <param name="serviceProvider">服务供应商。</param>
         public DefaultStorageProviderSerializerOptionsConfigurator(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -108,9 +108,9 @@ namespace Orleans.Storage
 
             if (options.GrainStorageSerializer == default)
             {
-                // First, try to get a IGrainStorageSerializer that was registered with
-                // the same name as the storage provider
-                // If none is found, fallback to system wide default
+                // 首先,尝试获得一个 IGrainStorageSerializer 注册的
+                // 与存储供应商同名
+                // 如果找不到,则返回到系统范围违约
                 options.GrainStorageSerializer = name is not null
                     ? _serviceProvider.GetKeyedService<IGrainStorageSerializer>(name) ?? _serviceProvider.GetRequiredService<IGrainStorageSerializer>()
                     : _serviceProvider.GetRequiredService<IGrainStorageSerializer>();

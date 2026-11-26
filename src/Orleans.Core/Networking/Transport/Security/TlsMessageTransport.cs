@@ -10,7 +10,7 @@ using Orleans.Connections.Transport.Streams;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// <see cref="MessageTransport"/> which encrypts and decrypts all data using TLS.
+/// 使用 TLS 加密和解密所有数据的<see cref="MessageTransport"/> 。
 /// </summary>
 internal abstract partial class TlsMessageTransport : StreamMessageTransport
 {
@@ -26,7 +26,7 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     private readonly TlsConnectionFeature _tlsConnectionFeature = new();
 
     /// <summary>
-    /// Initializes a new <see cref="TlsMessageTransport"/> instance.
+    /// 初始化一个新的 <see cref="TlsMessageTransport"/> 实例。
     /// </summary>
     /// <param name="transport"></param>
     /// <param name="options"></param>
@@ -83,12 +83,12 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     public override FeatureCollection Features { get; }
 
     /// <summary>
-    /// Gets the TLS options.
+    /// 获取 TLS 选项。
     /// </summary>
     protected TlsOptions Options => _options;
 
     /// <summary>
-    /// Gets the underlying <see cref="SslStream"/>.
+    /// 获取底部 <see cref="SslStream"/>。
     /// </summary>
     protected override SslStream Stream => _sslStream;
 
@@ -97,7 +97,7 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     /// <inheritdoc/>
     public override async ValueTask CloseAsync(Exception? closeException, CancellationToken cancellationToken = default)
     {
-        // Close the inner transport first so any pending SslStream I/O unblocks promptly.
+        // 先关闭内运至的内端连接, 任何未解决 SslStream 立即解除路障。
         await _innerTransport.CloseAsync(closeException, cancellationToken).ConfigureAwait(false);
         await base.CloseAsync(closeException, cancellationToken).ConfigureAwait(false);
     }
@@ -206,10 +206,10 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     {
         await CloseAsync(null, CancellationToken.None).ConfigureAwait(false);
 
-        // SslStream disposes _networkTransportStream since leaveInnerStreamOpen: false
+        // SslStream 处理自 leaveInnerStreamOpen:假 [后 的 _网络运输系统:
         await _sslStream.DisposeAsync().ConfigureAwait(false);
 
-        // Dispose inner transport last
+        // 将内运最后
         await _innerTransport.DisposeAsync().ConfigureAwait(false);
 
         await base.DisposeAsync().ConfigureAwait(false);

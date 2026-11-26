@@ -1,22 +1,22 @@
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// Describes the remote certificate requirements for a TLS connection.
+/// 描述 TLS 连接的远程证书要求 。
 /// </summary>
 public enum RemoteCertificateMode
 {
     /// <summary>
-    /// A remote certificate is not required and will not be requested from remote endpoints.
+    /// 不需要远程证书, 也不会要求远程端点提供远程证书 。
     /// </summary>
     NoCertificate,
 
     /// <summary>
-    /// A remote certificate will be requested; however, authentication will not fail if a certificate is not provided by the remote endpoint.
+    /// 将要求远程证书; 但是, 如果远程端点没有提供证书, 认证不会失败 。
     /// </summary>
     AllowCertificate,
 
     /// <summary>
-    /// A remote certificate will be requested, and the remote endpoint must provide a valid certificate for authentication.
+    /// 将要求远程证书, 远程端点必须提供有效的认证证书 。
     /// </summary>
     RequireCertificate
 }

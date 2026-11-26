@@ -21,7 +21,7 @@ namespace UnitTests.Grains
     {
         public static string CaptureRuntimeEnvironment()
         {
-            var callStack = Utils.GetStackTrace(1); // Don't include this method in stack trace
+            var callStack = Utils.GetStackTrace(1); // 将这种方法不包含在堆叠追踪中
             return
                 $"""
                 TaskScheduler={TaskScheduler.Current}
@@ -60,7 +60,7 @@ namespace UnitTests.Grains
             Assert.Equal(0, State.Field1);
             Assert.Null(State.Field2);
             //Assert.NotNull(State.Field3, "Null Field3");
-            //Assert.AreEqual(0, State.Field3.Count, "Field3 = {0}", String.Join("'", State.Field3));
+            //Assert.AreEqual(0, State.Field3.Count,"战地3={0}" String.Join("'", State.Field3));
             Assert.NotNull(State.SortedDict);
             return Task.FromResult(true);
         }
@@ -156,7 +156,7 @@ namespace UnitTests.Grains
 
         public async Task DoWrite(int val, bool recover)
         {
-            var original = this.copier.Copy(State)!; // Grain state is non-null after activation.
+            var original = this.copier.Copy(State)!; // Grain 状态在激活后不中。
             try
             {
                 State.Field1 = val;
@@ -173,7 +173,7 @@ namespace UnitTests.Grains
 
         public async Task<int> DoRead(bool recover)
         {
-            var original = this.copier.Copy(State)!; // Grain state is non-null after activation.
+            var original = this.copier.Copy(State)!; // Grain 状态在激活后不中。
             try
             {
                 await ReadStateAsync();
@@ -231,14 +231,14 @@ namespace UnitTests.Grains
 
         public async Task<int> DoRead()
         {
-            await ReadStateAsync(); // Re-read state from store
+            await ReadStateAsync(); // 从仓库重新读取状态
             return State.Field1;
         }
 
         public async Task<int> DoReadError(bool errorBeforeRead)
         {
             if (errorBeforeRead) throw new ApplicationException("Before Read");
-            await ReadStateAsync(); // Attempt to re-read state from store
+            await ReadStateAsync(); // 试图从仓库重读状态
             throw new ApplicationException("After Read");
         }
     }
@@ -327,7 +327,7 @@ namespace UnitTests.Grains
 
         public async Task<int> DoRead()
         {
-            await ReadStateAsync(); // Re-read state from store
+            await ReadStateAsync(); // 从仓库重新读取状态
             return State.Field1;
         }
 
@@ -372,7 +372,7 @@ namespace UnitTests.Grains
 
         public async Task<T> DoRead()
         {
-            await ReadStateAsync(); // Re-read state from store
+            await ReadStateAsync(); // 从仓库重新读取状态
             return State.Field1!;
         }
 
@@ -411,7 +411,7 @@ namespace UnitTests.Grains
 
         public async Task<int> DoRead()
         {
-            await ReadStateAsync(); // Re-read state from store
+            await ReadStateAsync(); // 从仓库重新读取状态
             return State.Field1;
         }
 
@@ -444,7 +444,7 @@ namespace UnitTests.Grains
 
         public async Task<int> DoRead()
         {
-            await ReadStateAsync(); // Re-read state from store
+            await ReadStateAsync(); // 从仓库重新读取状态
             return State.Field1;
         }
 
@@ -494,7 +494,7 @@ namespace UnitTests.Grains
     }
 
     /// <summary>
-    /// Orleans grain implementation class.
+    /// Orleans grain 执行类别。
     /// </summary>
     [Orleans.Providers.StorageProvider(ProviderName = "MemoryStore")]
     //[Orleans.Providers.StorageProvider(ProviderName = "AzureStore")]
@@ -603,11 +603,11 @@ namespace UnitTests.Grains
             return base.OnActivateAsync(cancellationToken);
         }
 
-        // When reentrant grain is doing WriteStateAsync, etag violations are posssible due to concurent writes.
-        // The solution is to serialize all writes, and make sure only a single write is outstanind at any moment in time.
-        // No deadlocks are posssible with that approach, since all WriteStateAsync go to the store, which does not issue call into grains,
-        // thus cycle of calls is not posssible.
-        // Implementaton: need to use While and not if, due to the same "early check becomes later invalid" standard problem, like in conditional variables.
+        // 当重新注入 grain 正在做 WriteStateAsync并可以将违法事件视为非法,
+        // 解决问题的办法是将所有写作都按序排列, 确保任何时间都只写出一个字。
+        // 这种做法不可能出现僵局,因为所有 WriteStateAsync 都去商店,商店不发 grains的电话,
+        // 因此,不可能进行循环通话。
+        // 执行器: 需要使用“ 时间 ” 而不是由于相同的“ 早期检查后失效” 标准问题, 如有条件变量中的问题。
         private async Task PerformSerializedStateUpdate()
         {
             while (outstandingWriteStateOperation != null)
@@ -724,7 +724,7 @@ namespace UnitTests.Grains
 
             if (doStart)
             {
-                wrapper.Start(); // THIS IS THE KEY STEP!
+                wrapper.Start(); // 这是关键步骤!
             }
 
             await wrapper.Unwrap();
@@ -773,7 +773,7 @@ namespace UnitTests.Grains
         private const int Multiple = 100;
         private ILogger logger = null!;
         private bool executing;
-        private const int LEVEL = 2; // level 2 is enough to repro the problem.
+        private const int LEVEL = 2; // 2级足以纠正问题。
 
         private static int _counter = 1;
         private int _id;
@@ -782,7 +782,7 @@ namespace UnitTests.Grains
         {
             _id = _counter++;
             var loggerFactory = this.ServiceProvider?.GetService<ILoggerFactory>();
-            //if grain created outside a cluster
+            //如果在组群之外创建 grain
             if (loggerFactory == null)
                 loggerFactory = NullLoggerFactory.Instance;
             logger = loggerFactory.CreateLogger($"NonReentrantStressGrainWithoutState-{_id}");
@@ -894,10 +894,10 @@ namespace UnitTests.Grains
             }
 
             CheckRuntimeEnvironment();
-            //#if DEBUG
-            //            // HACK for testing
+            //#如果达布
+            //            /用于测试的防弹衣
             //            Logger.SetTraceLevelOverrides(overridesOff.ToList());
-            //#endif
+            //# 结束
         }
 
         public async Task Task_Delay(bool doStart)
@@ -913,7 +913,7 @@ namespace UnitTests.Grains
 
             if (doStart)
             {
-                wrapper.Start(); // THIS IS THE KEY STEP!
+                wrapper.Start(); // 这是关键步骤!
             }
 
             await wrapper.Unwrap();
@@ -975,7 +975,7 @@ namespace UnitTests.Grains
         }
     }
 
-    public interface IBaseStateData // Note: I am deliberately not using IGrainState here.
+    public interface IBaseStateData // 注:我故意不使用 IGrainState 。
     {
         int Field1 { get; set; }
     }

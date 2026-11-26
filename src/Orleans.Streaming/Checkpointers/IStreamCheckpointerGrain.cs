@@ -5,25 +5,25 @@ using Orleans.Metadata;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Stores a persistent stream queue checkpoint.
+    /// 储存一个长串排队检查站。
     /// </summary>
     [DefaultGrainType("stream.checkpoint")]
     public interface IStreamCheckpointerGrain : IGrainWithStringKey
     {
         /// <summary>
-        /// Loads the checkpoint.
+        /// 装满了检查站
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The checkpoint.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>检查站。</returns>
         ValueTask<string> Load(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Updates the checkpoint if the persisted value matches the expected value.
+        /// 如果持续值与预期值相符,则更新检查站。
         /// </summary>
-        /// <param name="offset">The offset.</param>
-        /// <param name="expectedCheckpoint">The expected persisted checkpoint.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The persisted checkpoint after the update attempt.</returns>
+        /// <param name="offset">转自</param>
+        /// <param name="expectedCheckpoint">预期的检查站将长期存在。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>更新工作结束后,检查站一直维持。</returns>
         ValueTask<string> Update(
             string offset,
             string expectedCheckpoint,

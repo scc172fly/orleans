@@ -4,18 +4,18 @@ using System.Collections.Generic;
 namespace Orleans
 {
     /// <summary>
-    /// Represents a reason for initiating grain deactivation.
+    /// 表示启动 grain 停用的理由。
     /// </summary>
     public readonly struct DeactivationReason : IEquatable<DeactivationReason>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeactivationReason"/> struct.
+        /// 初始化 <see cref="DeactivationReason"/> 结构的新实例。
         /// </summary>
         /// <param name="code">
-        /// The code identifying the deactivation reason.
+        /// 识别解除功能原因的代码
         /// </param>
         /// <param name="text">
-        /// A descriptive reason for the deactivation.
+        /// 解除作用的描述性理由。
         /// </param>
         public DeactivationReason(DeactivationReasonCode code, string text)
         {
@@ -25,16 +25,16 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeactivationReason"/> struct.
+        /// 初始化 <see cref="DeactivationReason"/> 结构的新实例。
         /// </summary>
         /// <param name="code">
-        /// The code identifying the deactivation reason.
+        /// 识别解除功能原因的代码
         /// </param>
         /// <param name="exception">
-        /// The exception which resulted in deactivation.
+        /// 导致解除功能的例外
         /// </param>
         /// <param name="text">
-        /// A descriptive reason for the deactivation.
+        /// 解除作用的描述性理由。
         /// </param>
         public DeactivationReason(DeactivationReasonCode code, Exception? exception, string text)
         {
@@ -44,17 +44,17 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the descriptive reason for the deactivation.
+        /// 获得解除作用的描述性理由。
         /// </summary>
         public string Description { get; }
 
         /// <summary>
-        /// Gets the reason for deactivation.
+        /// 获得停止运行的理由。
         /// </summary>
         public DeactivationReasonCode ReasonCode { get; }
 
         /// <summary>
-        /// Gets the exception which resulted in deactivation.
+        /// 获得导致停用的特殊情形。
         /// </summary>
         public Exception? Exception { get; }
 
@@ -71,12 +71,12 @@ namespace Orleans
         public override int GetHashCode() => HashCode.Combine(ReasonCode, Description, Exception);
 
         /// <summary>
-        /// Determines whether two deactivation reasons are equal.
+        /// 确定两个停止作用的理由是否相等。
         /// </summary>
         public static bool operator ==(DeactivationReason left, DeactivationReason right) => left.Equals(right);
 
         /// <summary>
-        /// Determines whether two deactivation reasons are unequal.
+        /// 确定两个解除功能的理由是否不平等。
         /// </summary>
         public static bool operator !=(DeactivationReason left, DeactivationReason right) => !left.Equals(right);
 

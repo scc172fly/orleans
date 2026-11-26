@@ -16,45 +16,45 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime.GrainDirectory;
 
 /*
-The grain directory in Orleans is a key-value store where the key is a grain identifier and the value is a registration entry which points to an active silo which (potentially)
-hosts the grain.
+下 grain 目录 Orleans 键是一个关键值仓库,该关键值是 grain 和值的标识符,是显示活动 silo (可能)
+主机 grain。
 
-The directory is partitioned using a consistent hash ring with ranges being assigned to the active silos in the cluster. Grain identifiers are hashed to find the silo which is
-owns the section of the ring corresponding to its hash. Each active silo owns a pre-configured number of ranges, defaulting to 30 ranges per silo. This is similar to the scheme
-used by Amazon Dynamo (see https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf) and Apache Cassandra (see
+目录使用一个一致的散列环分割,将区域分配到集组中活动 silos 。 Grain 识别符号被散置以寻找 silo ,即
+拥有与散列相对应的环段。每个活动单位 silo 拥有预先配置的幅度数,默认为每 silo30个范围。这与方案类似。
+亚马逊迪纳摩(见 https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)和阿帕奇·卡桑德拉(见
 https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/architecture/archDataDistributeVnodesUsing.html), where multiple "virtual nodes" (ranges) are created for each node
-(host). The size of a partition is determined by the distance between its hash and the hash of the next partition. Range ownership is determined by cluster membership
-configuration. Cluster membership configurations are called "views" and each view has a monotonically increasing version number. As silos join and leave the cluster, successive
-views are created, resulting in changes to range ownership. This is known as a view change. Directory partitions have two modes of operation: normal operation and view change.
-During normal operation, directory partitions process requests locally without coordination with other hosts. During a view changes, hosts coordinate with each other to transfer
-ownership of directory ranges. Once this transfer is complete, normal operation resumes. The two-phase design of the directory follows the Virtual Synchrony methodology (see
+分区的大小取决于其散列和下一个分割的散列之间的距离。
+组合组合。分组成员配置被称为“视图”,每个视图都有单逐个增加版本数。随着 silos 加入和离开该组,连续
+创建了视图, 从而导致区域所有权的更改。 这被称为视图变更。 目录分区有两种操作模式: 正常操作和查看变化 。
+在正常操作期间,目录分区处理程序在本地请求时没有与其他主机协调。在视图更改时,主机相互协调以传输
+目录所有目录区域。 一旦完成此传输, 正常操作将恢复。 该目录的两阶段设计遵循虚拟同步方法( 参见
 https://www.microsoft.com/en-us/research/publication/virtually-synchronous-methodology-for-dynamic-service-replication/) and has some similarities to Vertical Paxos (see
 https://www.microsoft.com/en-us/research/publication/vertical-paxos-and-primary-backup-replication/). Both proceed in two phases: a normal operation phase where a fixed set of
-processes handle requests without failures, and a view change phase where state and control are transferred between views during membership changes.
+处理申请过程时没有失败,以及观察改变阶段,在成员变动期间,国家和控制权在不同观点之间转移。
 
-When a view change occurs, a partition can either grow or shrink. If a new silo has joined the cluster, then the partition may shrink to make room for the new silo's partition. If
-a silo has left the cluster, then the partition may grow to take over the leaving silo's partition. When a partition shrinks, the previous owner seals the lost range and creates a
-snapshot containing the directory entries in that range. The new range owner (whose partition has grown, potentially from zero) requests the snapshot from the previous owner and
-applies it locally. Once the snapshot has been applied, the new owner can begin servicing requests. The new owner acknowledges the transfer to the previous owner so the previous
-owner can delete the snapshot. The previous owner also deletes the snapshot if it sees that the snapshot transfer has been abandoned.
+当视图发生变化时,分割段既可以生长也可以缩小。如果是新 silo 加入了该组,然后分割可能会缩小,为新的组合 silo分区分割区。如果
+a silo 已经离开数据组, 然后分割段可能会增长以接管左 silo的分区。 当分割段缩缩时, 以前的所有人封存丢失的范围并创建
+包含此范围内目录条目的快照。 新范围所有人( 其分区已经增长, 可能从零开始) 要求向上一个所有者及新区域所有人提供快照
+使用快照后,新所有人可以开始服务请求。新的所有人承认将转让给前所有人,因此上一个
+所有人可以删除快照。 如果前一位所有人看到快照传输已被废弃, 也可以删除快照 。
 
-When a host crashes without first handing off its directory partitions, the hosts which subsequently own the partitions previously owned by the crashed silo must perform recovery.
-Recovery involves asking every active silo in the cluster for the grain registrations they own. Registrations for evicted silos do not need to be recovered, since registrations are
-only valid for active silos. The recovery procedure ensures that there is no data loss and that the directory remains consistent (no duplicate grain activations).
+当主机在未先卸载目录分区的情况下发生碰撞时, 其后拥有崩溃 silo 先前所属分区的东道方必须执行恢复 。
+恢复涉及要求每个积极的人 silo 一组内 grain 驱逐登记 silos 无需追回,因为登记
+仅对活动有效 silos.回收程序确保数据没有损失,目录保持前后一致(无重复) grain ) (激活)。
 
-Cluster membership guarantees monotonicity, but it does not guarantee that all silos see all membership views: it is possible for silos to skip intermediate membership view, for
-example if membership changes rapidly. When this happens, snapshot transfers are abandoned and recovery must be performed instead of the normal partition-to-partition hand-over,
-since the silo does not know with certainty which partition was the previous owner. A future improvement to cluster membership may reduce or eliminate this scenario by ensuring
-that all views are seen by all silos.
+集群成员的组成可保证一意一行,但不能保证所有 silos 参看所有成员的意见:可以 silos 中位会籍观点
+成员数目迅速变化的,则必须放弃即时转移,恢复工作,而不是通常的分划至分划交接,
+至2011年 silo 今后改进分组成员制,可通过确保:
+所有人能看见所有的观点 silos.
 
-Directory partitions (implemented in GrainDirectoryPartition) use versioned range locks to prevent invalid access to ranges during view changes. Range locks are created during
-view change and are released when the view change is complete. These locks are analogous to the 'wedges' used in the Virtual Synchrony methodology. It is possible for a range to
-be split among multiple silos during a view change. This adds some complexity to the view change procedure since each partition must potentially coordinate with multiple other
-partitions to complete the view change.
+目录分区( 在 GrainDirectoryPartition中执行)目录分区使用版本的域锁定,以防止在视图更改时无法对区域进行无效访问。
+视图更改完成后, 将打开修改视图视图并发布。 这些锁定类似于虚拟同步方法中使用的“ wedge” 。
+分为多个 silos 查看更改期间的视图变化。 这增加了视图修改程序的一些复杂性, 因为每个分割区必须有可能与多个其它分隔区协调
+完成视图更改的分区。
 
-All requests to a directory partition include the view number of the caller, and all responses from the directory include the view number of the directory partition. When the
-directory partition sees a view number higher than its own, it refreshes its view and initiates view change. Similarly, when a caller sees a response with a higher view number
-than its own, it refreshes its view and retries the request if necessary. This ensures that all requests are processed by the correct owner of the directory partition.
+对目录分区的所有请求都包含呼叫器的视图编号,而目录中的所有回复包括目录分区的查看编号。当目录分区被调用时,
+显示比它本身高的目录分区, 它会刷新它的视图并启动视图修改。 同样, 当调用者看到一个带有更高查看编号的答复时
+用户可更新视图,必要时重试请求,以确保所有请求都由目录分区的正确所有人处理。
 */
 internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDirectory, IGrainDirectoryClient, ILifecycleParticipant<ISiloLifecycle>, DistributedGrainDirectory.ITestHooks
 {
@@ -73,13 +73,13 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
     internal ClusterMembershipSnapshot ClusterMembershipSnapshot => _membershipService.CurrentView.ClusterMembershipSnapshot;
     internal ClusterMembershipSnapshot LatestClusterMembershipSnapshot => _membershipService.ClusterMembershipService.CurrentSnapshot;
 
-    // The recovery membership value is used to avoid a race between concurrent registration & recovery operations which could lead to lost registrations.
-    // This could occur when a new activation is created and begins registering itself with a host which crashes. Concurrently, the new owner initiates
-    // recovery and asks all silos for their activations. When this silo processes this request, it will have the activation in its internal
-    // 'ActivationDirectory' even though these activations may not yet have completed registration. Therefore, multiple silos may return an entry for the same
-    // grain. By ensuring that any registration occurred at a version at least as high as the recovery version, we avoid this issue. This could be made more
-    // precise by also tracking the sets of ranges which need to be recovered, but that complicates things somewhat since it would require tracking the ranges
-    // for each recovery version.
+    // 回收成员价值被用来避免同时登记和回收作业之间的竞争,这可能导致登记丢失。
+    // 发生这种情况时,新启动程序创建后开始向崩溃的宿主注册。
+    // 并询问所有 silos 激活。当此 silo 处理该请求时,它将在内部启动
+    // 'ActivationDirectory即便这些引爆装置可能尚未完成登记。 silos 同一条目可返回
+    // grain.通过确保任何登记至少以与回收版本相同的一个版本进行,我们避免了这一问题。
+    // 精确跟踪需要回收的成套范围,从而准确追踪这些范围的各组情况,但这样做会使事情有些复杂化,因为需要跟踪范围
+    // 每个回收版本。
     private long _recoveryMembershipVersion;
     internal long RecoveryMembershipVersion => Volatile.Read(ref _recoveryMembershipVersion);
     private Task _runTask = Task.CompletedTask;
@@ -267,7 +267,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
                 && attempts < MaxAttempts
                 && !cancellationToken.IsCancellationRequested)
             {
-                // This likely indicates that the target silo has been declared dead.
+                // 这很可能表明目标 silo 已被宣布死亡。
                 ++attempts;
                 var latestClusterMembership = LatestClusterMembershipSnapshot;
                 if (!CanInvokeClusterMember(latestClusterMembership, owner))
@@ -283,8 +283,8 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
             if (invokeResult.RetryAfterDelay > TimeSpan.Zero)
             {
-                // A safety lease hold is active for this grain or range.
-                // Arm the delay before notifying observers so the event can be used as a synchronization barrier.
+                // 安全租赁持有对于此 grain 或范围是有效的。
+                // 装上延迟的装置,然后通知观察员,以便该事件可以用作同步屏障。
                 var retryDelay = Task.Delay(invokeResult.RetryAfterDelay, _timeProvider, cancellationToken);
                 GrainDirectoryEvents.EmitOperationDelayedByLeaseHold(Silo, grainId, operation, invokeResult.RetryAfterDelay);
                 await retryDelay;
@@ -293,15 +293,15 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
             if (initialRecoveryMembershipVersion != _recoveryMembershipVersion)
             {
-                // If the recovery version changed, perform a view refresh and re-issue the operation.
-                // See the comment on the declaration of '_recoveryMembershipVersionValue' for more details.
+                // 如果回收版本发生更改,请进行查看更新并重新发布操作。
+                // 详情见“回收成员VersionValue”声明的评论。
                 continue;
             }
 
             if (!invokeResult.TryGetResult(view.Version, out var result))
             {
-                // The remote replica has a newer view of membership and is no longer the owner of the grain specified in the request.
-                // Refresh membership and re-evaluate.
+                // 远程复制对成员资格有较新的了解,不再拥有请求书中指明的 grain 。
+                // 重新确定成员并重新评估。
                 view = await _membershipService.RefreshViewAsync(invokeResult.Version, cancellationToken);
                 continue;
             }
@@ -326,8 +326,8 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
                 return (view, owner, partitionReference);
             }
 
-            // Cluster membership advances before the directory's asynchronous view. If the latest cluster view
-            // still has an active member, this empty directory view is stale; otherwise it is terminal, as on shutdown.
+            // 群集会成员在目录非同步视图之前提前。 如果最近的群集会
+            // 仍然有一个活跃的成员, 这个空目录视图是静止的; 否则它就是终端, 如关闭时一样 。
             if (view.Members.Length == 0
                 && view.Version.Value > 0
                 && !HasActiveMembers(LatestClusterMembershipSnapshot))
@@ -390,7 +390,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
         var recoveryMembershipVersion = _recoveryMembershipVersion;
         if (recoveryMembershipVersion < membershipVersion.Value)
         {
-            // Ensure that the value is immediately visible to any thread registering an activation.
+            // 确保该值在登记激活的任何线索中立即可见。
             Interlocked.CompareExchange(ref _recoveryMembershipVersion, membershipVersion.Value, recoveryMembershipVersion);
         }
 
@@ -460,7 +460,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
     {
         _grainDirectoryResolver = _serviceProvider.GetRequiredService<GrainDirectoryResolver>();
 
-        // Legacy remote endpoints serve the default directory during rolling upgrades.
+        // 遗留远程端点在滚动升级期间为默认目录服务。
         if (_grainDirectoryResolver.DefaultGrainDirectory == this)
         {
             DistributedRemoteGrainDirectory.Create(this, _membershipService, _serviceProvider.GetRequiredService<SystemTargetShared>());
@@ -468,7 +468,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
         observer.Subscribe(nameof(DistributedGrainDirectory), ServiceLifecycleStage.RuntimeInitialize, OnRuntimeInitializeStart, OnRuntimeInitializeStop);
 
-        // Keep the directory available until shutdown-triggered grain migrations have completed.
+        // 将目录保持可用到关闭触发时 grain 移民已经完成。
         observer.Subscribe(nameof(DistributedGrainDirectory), ServiceLifecycleStage.GrainDirectoryShutdown, NoOpStart, OnShuttingDown);
 
         static Task NoOpStart(CancellationToken _) => Task.CompletedTask;
@@ -496,7 +496,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
             if (_runTask is { } task)
             {
-                // Try to wait for hand-off to complete.
+                // 尝试等待交接完成 。
                 await this.RunOrQueueTask(async () => await task.WaitAsync(cancellationToken).SuppressThrowing());
             }
 
@@ -519,7 +519,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
     private async Task ProcessMembershipUpdates()
     {
-        // Ensure all child tasks are completed before exiting, tracking them here.
+        // 确保所有儿童任务在离开之前完成,并在此跟踪。
         List<Task> tasks = [];
         ClusterMembershipSnapshot? previousUpdate = null;
         while (!_stoppedCts.IsCancellationRequested)
@@ -607,13 +607,13 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
     {
         Debug.Assert(_deadSiloLeaseDuration > TimeSpan.Zero);
 
-        // We request cleanups periodically to not let expired leases linger in the directory for too long.
-        // We do it here as opposed to in the partitions to avoid having 30 (by default, maybe more) timers.
+        // 我们要求定期清理,以免过期租约留在目录中太久。
+        // 我们在这里这样做,而不是在分区中这样做,以避免有30个计时器(默认情况下,也许更多)。
         var period = 1.1 * _deadSiloLeaseDuration;
 
         if (period < TimeSpan.FromMinutes(1))
         {
-            // We create a lower-bound to avoid creating too much overhead in the partitions.
+            // 我们创建了一个低管区 以避免在隔断区造成太多的间接成本
             period = TimeSpan.FromMinutes(1);
         }
 
@@ -631,7 +631,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
         }
         catch (OperationCanceledException) when (_stoppedCts.IsCancellationRequested)
         {
-            // Ignore
+            // 忽略忽略
         }
     }
 

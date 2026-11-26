@@ -1,15 +1,15 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// 根据一项或多项协定获得 .NET 基金会许可证。
+// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
 
 using System.Buffers.Binary;
 
-// Implemented from the specification at
+// 执行从
 // https://github.com/Cyan4973/xxHash/blob/f9155bd4c57e2270a4ffbb176485e5d713de1c9b/doc/xxhash_spec.md
 
 namespace Orleans.CodeGenerator.Hashing;
 
 /// <summary>
-///   Provides an implementation of the XxHash32 algorithm.
+///   提供 XxHash32 算法的实施。
 /// </summary>
 internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
 {
@@ -22,11 +22,11 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     private int _length;
 
     /// <summary>
-    ///   Initializes a new instance of the <see cref="XxHash32"/> class.
+    ///   初始化 <see cref="XxHash32"/> 类的新实例。
     /// </summary>
     /// <remarks>
-    ///   The XxHash32 algorithm supports an optional seed value.
-    ///   Instances created with this constructor use the default seed, zero.
+    ///   XxHash32 算法支持可选种子值。
+    ///   由此构建器创建的实例使用默认种子, 零。
     /// </remarks>
     public XxHash32()
         : this(0)
@@ -34,11 +34,11 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Initializes a new instance of the <see cref="XxHash32"/> class with
-    ///   a specified seed.
+    ///   初始化 <see cref="XxHash32"/> 类的新实例
+    ///   指定的种子。
     /// </summary>
     /// <param name="seed">
-    ///   The hash seed value for computations from this instance.
+    ///   用于计算此实例的散列种子值 。
     /// </param>
     public XxHash32(int seed)
         : base(HashSize)
@@ -48,7 +48,7 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Resets the hash computation to the initial state.
+    ///   将散列计算重置到初始状态。
     /// </summary>
     public override void Reset()
     {
@@ -57,15 +57,15 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Appends the contents of <paramref name="source"/> to the data already
-    ///   processed for the current hash computation.
+    ///   将 <paramref name="source"/> 的内容附加到已经的数据中
+    ///   用于当前散列计算处理。
     /// </summary>
-    /// <param name="source">The data to process.</param>
+    /// <param name="source">要处理的数据 。</param>
     public override void Append(ReadOnlySpan<byte> source)
     {
-        // Every time we've read 16 bytes, process the stripe.
-        // Data that isn't perfectly mod-16 gets stored in a holdback
-        // buffer.
+        // 每次我们读16字节 处理条纹
+        // 数据不是完全的MT -16 被储存在一个缓存状态
+        // 缓冲。
 
         int held = _length & 0x0F;
 
@@ -105,8 +105,8 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Writes the computed hash value to <paramref name="destination"/>
-    ///   without modifying accumulated state.
+    ///   将计算成散列值写入 <paramref name="destination"/>
+    ///   但不修改累积状态。
     /// </summary>
     protected override void GetCurrentHashCore(Span<byte> destination)
     {
@@ -123,12 +123,12 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Computes the XxHash32 hash of the provided data.
+    ///   计算所提供数据的 XxHash32 散列。
     /// </summary>
-    /// <param name="source">The data to hash.</param>
-    /// <returns>The XxHash32 hash of the provided data.</returns>
+    /// <param name="source">类组数据。</param>
+    /// <returns>下 XxHash32 提供的数据的散数。</returns>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="source"/> is <see langword="null"/>.
+    ///   <paramref name="source"/> 是 <see langword="null"/>。
     /// </exception>
     public static byte[] Hash(byte[] source)
     {
@@ -141,13 +141,13 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Computes the XxHash32 hash of the provided data using the provided seed.
+    ///   使用所提供的种子计算所提供数据的 XxHash32 散列。
     /// </summary>
-    /// <param name="source">The data to hash.</param>
-    /// <param name="seed">The seed value for this hash computation.</param>
-    /// <returns>The XxHash32 hash of the provided data.</returns>
+    /// <param name="source">类组数据。</param>
+    /// <param name="seed">用于计算散列的种子值。</param>
+    /// <returns>下 XxHash32 提供的数据的散数。</returns>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="source"/> is <see langword="null"/>.
+    ///   <paramref name="source"/> 是 <see langword="null"/>。
     /// </exception>
     public static byte[] Hash(byte[] source, int seed)
     {
@@ -160,11 +160,11 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Computes the XxHash32 hash of the provided data.
+    ///   计算所提供数据的 XxHash32 散列。
     /// </summary>
-    /// <param name="source">The data to hash.</param>
-    /// <param name="seed">The seed value for this hash computation. The default is zero.</param>
-    /// <returns>The XxHash32 hash of the provided data.</returns>
+    /// <param name="source">类组数据。</param>
+    /// <param name="seed">此散列计算所用的种子值。 默认值为零 。</param>
+    /// <returns>下 XxHash32 提供的数据的散数。</returns>
     public static byte[] Hash(ReadOnlySpan<byte> source, int seed = 0)
     {
         byte[] ret = new byte[HashSize];
@@ -173,17 +173,17 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Attempts to compute the XxHash32 hash of the provided data into the provided destination.
+    ///   试图将所提供的数据 XxHash32 散列计算成提供的目标。
     /// </summary>
-    /// <param name="source">The data to hash.</param>
-    /// <param name="destination">The buffer that receives the computed hash value.</param>
+    /// <param name="source">类组数据。</param>
+    /// <param name="destination">接收计算散列值的缓冲。</param>
     /// <param name="bytesWritten">
-    ///   On success, receives the number of bytes written to <paramref name="destination"/>.
+    ///   成功时, 收到写到 <paramref name="destination"/>的字节数 。
     /// </param>
-    /// <param name="seed">The seed value for this hash computation. The default is zero.</param>
+    /// <param name="seed">此散列计算所用的种子值。 默认值为零 。</param>
     /// <returns>
-    ///   <see langword="true"/> if <paramref name="destination"/> is long enough to receive
-    ///   the computed hash value (4 bytes); otherwise, <see langword="false"/>.
+    ///   <see langword="true"/> 如果 <paramref name="destination"/> 足够长的时间来接收
+    ///   计算散列值(4字节);否则, <see langword="false"/>。
     /// </returns>
     public static bool TryHash(ReadOnlySpan<byte> source, Span<byte> destination, out int bytesWritten, int seed = 0)
     {
@@ -198,13 +198,13 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   Computes the XxHash32 hash of the provided data into the provided destination.
+    ///   将所提供的数据 XxHash32 散列计算成所提供目的地。
     /// </summary>
-    /// <param name="source">The data to hash.</param>
-    /// <param name="destination">The buffer that receives the computed hash value.</param>
-    /// <param name="seed">The seed value for this hash computation. The default is zero.</param>
+    /// <param name="source">类组数据。</param>
+    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="seed">此散列计算所用的种子值。 默认值为零 。</param>
     /// <returns>
-    ///   The number of bytes written to <paramref name="destination"/>.
+    ///   写入 <paramref name="destination"/>的字节数。
     /// </returns>
     public static int Hash(ReadOnlySpan<byte> source, Span<byte> destination, int seed = 0)
     {

@@ -9,9 +9,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for arrays of rank 1.
+    /// 1级数组的序列器
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ArrayCodec<T> : IFieldCodec<T[]>
     {
@@ -19,9 +19,9 @@ namespace Orleans.Serialization.Codecs
         private readonly Type CodecElementType = typeof(T);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArrayCodec{T}"/> class.
+        /// 初始化 <see cref="ArrayCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">The field codec.</param>
+        /// <param name="fieldCodec">字段编码。</param>
         public ArrayCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -122,18 +122,18 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for arrays of rank 1.
+    /// 1级阵列的复印机
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class ArrayCopier<T> : IDeepCopier<T[]>
     {
         private readonly IDeepCopier<T> _elementCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArrayCopier{T}"/> class.
+        /// 初始化 <see cref="ArrayCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">The element copier.</param>
+        /// <param name="elementCopier">元素复印机。</param>
         public ArrayCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);
@@ -163,9 +163,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="ReadOnlyMemory{T}"/>.
+    /// <see cref="ReadOnlyMemory{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ReadOnlyMemoryCodec<T> : IFieldCodec<ReadOnlyMemory<T>>
     {
@@ -174,9 +174,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T> _fieldCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReadOnlyMemoryCodec{T}"/> class.
+        /// 初始化 <see cref="ReadOnlyMemoryCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">The field codec.</param>
+        /// <param name="fieldCodec">字段编码。</param>
         public ReadOnlyMemoryCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -272,18 +272,18 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="ReadOnlyMemory{T}"/>.
+    /// <see cref="ReadOnlyMemory{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class ReadOnlyMemoryCopier<T> : IDeepCopier<ReadOnlyMemory<T>>
     {
         private readonly IDeepCopier<T> _elementCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReadOnlyMemoryCopier{T}"/> class.
+        /// 初始化 <see cref="ReadOnlyMemoryCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">The element copier.</param>
+        /// <param name="elementCopier">元素复印机。</param>
         public ReadOnlyMemoryCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);
@@ -302,9 +302,9 @@ namespace Orleans.Serialization.Codecs
             var inputSpan = input.Span;
             var result = new T[inputSpan.Length];
 
-            // Note that there is a possibility for unbounded recursion if the underlying object in the input is
-            // able to take part in a cyclic reference. If we could get that object then we could prevent that cycle.
-            // It is also possible that an IMemoryOwner<T> is the backing object, in which case this will not work.
+            // 请注意,如果输入中的基本物体是
+            // 能够参与循环参考。如果我们能拿到那个物体,我们就能防止这个周期。
+            // 也有可能 IMemoryOwner<T> 是支持对象,在这种情况下,这样做行不通。
             if (MemoryMarshal.TryGetArray(input, out var segment) && segment.Array!.Length == result.Length)
             {
                 if (context.TryGetCopy(segment.Array!, out T[]? existing))
@@ -323,9 +323,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Memory{T}"/>.
+    /// <see cref="Memory{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class MemoryCodec<T> : IFieldCodec<Memory<T>>
     {
@@ -334,9 +334,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T> _fieldCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryCodec{T}"/> class.
+        /// 初始化 <see cref="MemoryCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">The field codec.</param>
+        /// <param name="fieldCodec">字段编码。</param>
         public MemoryCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -432,18 +432,18 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Memory{T}"/>.
+    /// <see cref="Memory{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class MemoryCopier<T> : IDeepCopier<Memory<T>>
     {
         private readonly IDeepCopier<T> _elementCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryCopier{T}"/> class.
+        /// 初始化 <see cref="MemoryCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">The element copier.</param>
+        /// <param name="elementCopier">元素复印机。</param>
         public MemoryCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);
@@ -462,9 +462,9 @@ namespace Orleans.Serialization.Codecs
             var inputSpan = input.Span;
             var result = new T[inputSpan.Length];
 
-            // Note that there is a possibility for unbounded recursion if the underlying object in the input is
-            // able to take part in a cyclic reference. If we could get that object then we could prevent that cycle.
-            // It is also possible that an IMemoryOwner<T> is the backing object, in which case this will not work.
+            // 请注意,如果输入中的基本物体是
+            // 能够参与循环参考。如果我们能拿到那个物体,我们就能防止这个周期。
+            // 也有可能 IMemoryOwner<T> 是支持对象,在这种情况下,这样做行不通。
             if (MemoryMarshal.TryGetArray<T>(input, out var segment) && segment.Array!.Length == result.Length)
             {
                 if (context.TryGetCopy(segment.Array!, out T[]? existing))
@@ -483,9 +483,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="ArraySegment{T}"/>.
+    /// <see cref="ArraySegment{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ArraySegmentCodec<T> : IFieldCodec<ArraySegment<T>>
     {
@@ -494,9 +494,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T> _fieldCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArraySegmentCodec{T}"/> class.
+        /// 初始化 <see cref="ArraySegmentCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">The field codec.</param>
+        /// <param name="fieldCodec">字段编码。</param>
         public ArraySegmentCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -595,18 +595,18 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="ArraySegment{T}"/>.
+    /// <see cref="ArraySegment{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class ArraySegmentCopier<T> : IDeepCopier<ArraySegment<T>>
     {
         private readonly IDeepCopier<T> _elementCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArraySegmentCopier{T}"/> class.
+        /// 初始化 <see cref="ArraySegmentCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">The element copier.</param>
+        /// <param name="elementCopier">元素复印机。</param>
         public ArraySegmentCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);

@@ -8,7 +8,7 @@ using Orleans.Runtime;
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// Identifies a Channel within a provider
+    /// 指定提供商内部的频道
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public readonly struct ChannelId : IEquatable<ChannelId>, IComparable<ChannelId>, ISerializable, ISpanFormattable
@@ -23,21 +23,21 @@ namespace Orleans.BroadcastChannel
         private readonly int hash;
 
         /// <summary>
-        /// Gets the full key.
+        /// 拿到了全部钥匙
         /// </summary>
-        /// <value>The full key.</value>
+        /// <value>整键。</value>
         public ReadOnlyMemory<byte> FullKey => fullKey;
 
         /// <summary>
-        /// Gets the namespace.
+        /// 获得命名空间。
         /// </summary>
-        /// <value>The namespace.</value>
+        /// <value>命名空间。</value>
         public ReadOnlyMemory<byte> Namespace => fullKey.AsMemory(0, this.keyIndex);
 
         /// <summary>
-        /// Gets the key.
+        /// 拿到钥匙
         /// </summary>
-        /// <value>The key.</value>
+        /// <value>密钥。</value>
         public ReadOnlyMemory<byte> Key => fullKey.AsMemory(this.keyIndex);
 
         private ChannelId(byte[] fullKey, ushort keyIndex, int hash)
@@ -60,10 +60,10 @@ namespace Orleans.BroadcastChannel
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChannelId"/> struct.
+        /// 初始化 <see cref="ChannelId"/> 结构的新实例。
         /// </summary>
-        /// <param name="ns">The namespace.</param>
-        /// <param name="key">The key.</param>
+        /// <param name="ns">命名空间。</param>
+        /// <param name="key">密钥。</param>
         public static ChannelId Create(ReadOnlySpan<byte> ns, ReadOnlySpan<byte> key)
         {
             if (key.IsEmpty)
@@ -83,10 +83,10 @@ namespace Orleans.BroadcastChannel
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChannelId"/> struct.
+        /// 初始化 <see cref="ChannelId"/> 结构的新实例。
         /// </summary>
-        /// <param name="ns">The namespace.</param>
-        /// <param name="key">The key.</param>
+        /// <param name="ns">命名空间。</param>
+        /// <param name="key">密钥。</param>
         public static ChannelId Create(string ns, Guid key)
         {
             if (ns is null)
@@ -108,10 +108,10 @@ namespace Orleans.BroadcastChannel
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChannelId"/> struct.
+        /// 初始化 <see cref="ChannelId"/> 结构的新实例。
         /// </summary>
-        /// <param name="ns">The namespace.</param>
-        /// <param name="key">The key.</param>
+        /// <param name="ns">命名空间。</param>
+        /// <param name="key">密钥。</param>
         public static ChannelId Create(string ns, string key)
         {
             ArgumentNullException.ThrowIfNull(key);
@@ -137,19 +137,19 @@ namespace Orleans.BroadcastChannel
         public override bool Equals(object? obj) => obj is ChannelId other ? this.Equals(other) : false;
 
         /// <summary>
-        /// Compares two <see cref="ChannelId"/> instances for equality.
+        /// 比较了两个 <see cref="ChannelId"/> 平等实例。
         /// </summary>
-        /// <param name="s1">The first stream identity.</param>
-        /// <param name="s2">The second stream identity.</param>
-        /// <returns>The result of the operator.</returns>
+        /// <param name="s1">第一个流身份。</param>
+        /// <param name="s2">第二个流身份。</param>
+        /// <returns>操作员的结果。</returns>
         public static bool operator ==(ChannelId s1, ChannelId s2) => s1.Equals(s2);
 
         /// <summary>
-        /// Compares two <see cref="ChannelId"/> instances for equality.
+        /// 比较了两个 <see cref="ChannelId"/> 平等实例。
         /// </summary>
-        /// <param name="s1">The first stream identity.</param>
-        /// <param name="s2">The second stream identity.</param>
-        /// <returns>The result of the operator.</returns>
+        /// <param name="s1">第一个流身份。</param>
+        /// <param name="s2">第二个流身份。</param>
+        /// <returns>操作员的结果。</returns>
         public static bool operator !=(ChannelId s1, ChannelId s2) => !s2.Equals(s1);
 
         /// <inheritdoc/>
@@ -198,15 +198,15 @@ namespace Orleans.BroadcastChannel
         internal uint GetKeyIndex() => keyIndex;
 
         /// <summary>
-        /// Returns the <see cref="Key"/> component of this instance as a string.
+        /// 返回此实例的 <see cref="Key"/> 组件,作为字符串。
         /// </summary>
-        /// <returns>The key component of this instance.</returns>
+        /// <returns>此实例的关键组成部分。</returns>
         public string GetKeyAsString() => Encoding.UTF8.GetString(fullKey, keyIndex, fullKey.Length - keyIndex);
 
         /// <summary>
-        /// Returns the <see cref="Namespace"/> component of this instance as a string.
+        /// 返回此实例的 <see cref="Namespace"/> 组件,作为字符串。
         /// </summary>
-        /// <returns>The namespace component of this instance.</returns>
+        /// <returns>此实例的命名空间组件。</returns>
         public string? GetNamespace() => keyIndex == 0 ? null : Encoding.UTF8.GetString(fullKey, 0, keyIndex);
 
         internal IdSpan GetKeyIdSpan() => keyIndex == 0 ? IdSpan.UnsafeCreate(fullKey, hash) : new(fullKey.AsSpan(keyIndex).ToArray());

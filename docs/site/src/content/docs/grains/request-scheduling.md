@@ -1,95 +1,117 @@
 ---
-title: Grain request scheduling
-description: Understand Orleans turn-based execution, interleaving, and reentrancy.
+title: "Grain 请求申请时间安排"
+description: "理解 Orleans 转手执行,中继和再生"
 ms.date: 10/15/2026
 ms.topic: concept-article
 ---
 
-# Grain request scheduling
+<a id="grain-request-scheduling"></a>
 
-Each grain activation executes one turn at a time. Orleans runs a request until it completes or reaches an incomplete `await`, then later schedules its continuation as another turn. Two turns never execute in parallel on the same activation.
+# Grain 请求申请时间安排
 
-By default, an activation doesn't start a different request while the current request is incomplete. This non-reentrant model makes mutable grain state easier to reason about:
+每个启动 grain 一次执行一个转折。 Orleans 将请求运行到完成或达到不完整的 `await`,然后将继续时间安排在另一个转弯上。两个转弯从不同时执行同一激活。
+
+默认情况下, 当当前请求不完整时激活不会启动不同的请求。 这种非输入模式使得变异 grain 状态更容易解释:
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="serialized_counter_grain":::
-Although the method yields at `await`, another request doesn't observe or change `_value` before this request completes.
+虽然方法在 `await`时的产量,但在该请求完成之前,另一项请求没有观察到或改变 `_value` 。
 
-## Avoid blocking
+<a id="avoid-blocking"></a>
 
-Never synchronously block on incomplete tasks from grain code. `.Result`, `.Wait()`, `WaitAll`, and `GetAwaiter().GetResult()` can deadlock an activation and consume thread-pool threads. Use `await`.
+## 避免屏蔽
 
-Normal `await` resumes grain code on the activation scheduler. Don't use `ConfigureAwait(false)` in grain methods because the continuation can escape the grain scheduler. General-purpose libraries can use it internally; grain code returns to the grain scheduler when it awaits the library normally.
+永远不要同步地阻断从 grain 代码中输入的不完整任务。 `.Result`、 `.Wait()`、 `WaitAll`和 `GetAwaiter().GetResult()` 可以使激活陷入僵局,并消耗线串线索。使用 `await`。
 
-## Interleaving and reentrancy
+普通普通 `await` 恢复 grain 激活调度器上的代码。 不要使用 `ConfigureAwait(false)` 内 grain 方法,因为继续可以避免 grain 普通目的图书馆可在内部使用; grain 返回到 grain 当它通常等待图书馆时, 排程器 。
 
-Interleaving lets Orleans start or resume another request while an earlier request is incomplete. The activation is still single-threaded, but turns from different requests can alternate. Re-check assumptions about mutable state after every `await`.
+<a id="interleaving-and-reentrancy"></a>
 
-| Mechanism | Scope |
+## 间断和再留空
+
+插入 Orleans 允许在先前的请求不完整时开始或恢复另一项请求。激活仍为单行,但从不同的请求中转转可以换行。每 `await`后重新检查关于变异状态的假设。
+
+| 机制机制机制 | 范围范围范围 |
 |---|---|
-| <xref:Orleans.Concurrency.ReentrantAttribute> | All requests to the grain class can interleave. |
-| <xref:Orleans.Concurrency.AlwaysInterleaveAttribute> | The marked interface method can interleave with any request. |
-| <xref:Orleans.Concurrency.ReadOnlyAttribute> | Marked read-only methods can interleave with other read-only methods. |
-| <xref:Orleans.Concurrency.MayInterleaveAttribute> | A predicate inspects each request. |
-| <xref:Orleans.Runtime.RequestContext.AllowCallChainReentrancy> | A scoped call chain can call back into an activation already in that chain. |
+| <xref:Orleans.Concurrency.ReentrantAttribute> | 所有申请 grain 级的申请均可中断。 |
+| <xref:Orleans.Concurrency.AlwaysInterleaveAttribute> | 标记的接口方法可以与任何请求发生间断。 |
+| <xref:Orleans.Concurrency.ReadOnlyAttribute> | 标记的只读方法可以与其他只读的方法相互交叉。 |
+| <xref:Orleans.Concurrency.MayInterleaveAttribute> | 每项请求都有一个上游检查。 |
+| <xref:Orleans.Runtime.RequestContext.AllowCallChainReentrancy> | 范围明确的呼叫链可以重新激活 已经进入了该链条 |
 
-Use the narrowest mechanism that solves the problem. Reentrancy can improve throughput for I/O-heavy grains and prevent cyclic call deadlocks, but it also allows state to change between turns.
+使用最狭窄的机制解决问题。 耐力可以改善I/ O- Heavy grains 的吞吐量,防止周期性呼叫僵局,但也允许国家改变两轮之间的交替。
 
-### Reentrant grains
+<a id="reentrant-grains"></a>
+
+### 重新ENTRant grains
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="reentrant_catalog_grain":::
-Code in different requests doesn't run simultaneously, but multiple incomplete calls can make progress by alternating turns.
+不同的请求代码并非同时运行, 但多个不完整的电话可以通过交替转动来取得进展。
 
-### Method-level interleaving
+<a id="method-level-interleaving"></a>
+
+### 方法层次间距
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="interleaving_method_attributes":::
-`ReadOnly` is a scheduling promise. Active read-only requests can interleave with one another and collectively exclude writable requests until every read-only request completes, unless another interleaving policy permits overlap. Keep grain state unchanged from a read-only method.
+`ReadOnly` 是一个列表承诺。主动的只读请求可以相互串连,在每次只读的请求完成之前,集体排除可写请求,除非另一项政策允许重叠。保持 grain 与只读方法的状态不变。
 
-### Predicate-based interleaving
+<a id="predicate-based-interleaving"></a>
 
-`MayInterleave` names a predicate that accepts <xref:Orleans.Serialization.Invocation.IInvokable>. Use its accessor methods; there is no `Arguments` property:
+### 基于预发性连接
+
+`MayInterleave` 指接受 <xref:Orleans.Serialization.Invocation.IInvokable>的上游。使用其访问器方法;不存在 `Arguments` 属性:
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="may_interleave_grain":::
-Keep predicates deterministic, fast, and side-effect free.
+保持上游的确定性,快速和副作用自由。
 
-### Call-chain reentrancy
+<a id="call-chain-reentrancy"></a>
 
-Use call-chain reentrancy when a known call path must call back into the initiating activation:
+### 呼叫链回转
+
+当已知的呼叫路径必须回拨启动激活时使用呼叫链中继器 :
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="call_chain_reentrancy":::
-The scope permits callbacks associated with that call chain until it is disposed. It is narrower than marking the entire grain reentrant.
+范围允许在处置之前与该呼叫链相关的回调,但比标记整个 grain 重新输入线窄。
 
-## Timers and external work
+<a id="timers-and-external-work"></a>
 
-Grain timer callbacks participate in scheduling. Callbacks don't interleave by default; configure `GrainTimerCreationOptions.Interleave` when intentional.
+## 计时器和外部工作
 
-To run work from another thread under the activation's scheduling, see [Run background work as a grain request](#run-background-work-as-a-grain-request).
+Grain 计时器回调会参与日程安排。回调不会默认中断; 当故意时配置 `GrainTimerCreationOptions.Interleave` 。
 
-Use <xref:System.Threading.Tasks.Task.Run*> only to isolate unavoidable synchronous blocking or CPU work from the Orleans scheduler. Don't access grain state from the thread-pool delegate. Await it and update grain state after execution resumes on the activation scheduler. See [External tasks and grains](external-tasks-and-grains.md).
+要在激活的日程安排下从另一线索运行工作,请见 [将背景工作作为 grain 请求运行](#run-background-work-as-a-grain-request)。
 
-## Run background work as a grain request
+仅使用 <xref:System.Threading.Tasks.Task.Run*> 来从 Orleans 排程器中分离出不可避免的同步阻塞或 CPU 工作。 不要从线状资源库代表处访问 grain 状态。在激活调度器上恢复执行后,等待并更新 grain 状态。 见 [外部任务和 grains](external-tasks-and-grains.md)。
 
-<xref:Orleans.GrainBaseExtensions.RunRequestAsync*> runs a callback as a request on the activation. Call it from any thread, such as a stream, messaging, or library callback, to apply results to grain state under the same scheduling as grain calls:
+<a id="run-background-work-as-a-grain-request"></a>
+
+## 将背景工作作为 grain 请求运行
+
+<xref:Orleans.GrainBaseExtensions.RunRequestAsync*> 激活时作为请求再回调。从任何线索,例如流、信息或图书馆回调中调用它来应用结果 grain 与表上所列日期相同 grain 电话:
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="run_request_from_callback":::
-With the default <xref:Orleans.Runtime.LocalRequestOptions>, the request:
+默认 <xref:Orleans.Runtime.LocalRequestOptions>,请求:
 
-- Follows the grain's reentrancy rules and queues behind the current request on a non-reentrant grain.
-- Passes through incoming grain call filters, which observe it as `IGrainRequestInvoker.RunRequestAsync` with no arguments.
-- Starts a new call chain. <xref:Orleans.Runtime.RequestContext> values from the calling thread don't flow into the callback.
-- Restarts the activation's idle collection period.
-- Bypasses <xref:Orleans.Configuration.SiloMessagingOptions.MaxEnqueuedRequestsHardLimit>.
+- 跟随 grain重新恢复规则及当前对未恢复请求的后排 grain.
+- 通过 grain 呼叫过滤器,这些过滤器将它视为没有参数的 `IGrainRequestInvoker.RunRequestAsync` 。
+- 启动一个新的呼叫链。调用线上的 <xref:Orleans.Runtime.RequestContext> 值不会流入回拨中。
+- 恢复激活的闲置收集期
+- 绕过 <xref:Orleans.Configuration.SiloMessagingOptions.MaxEnqueuedRequestsHardLimit>。
 
-The callback can be synchronous, as in this example, or return a `Task` or `Task<TResult>`. The returned task completes with the callback's result or exception. The callback receives the cancellation token passed to `RunRequestAsync`, and cancelling it while the request is queued cancels the request. If the activation deactivates before the request runs, the task faults with <xref:Orleans.Runtime.OrleansMessageRejectionException>.
+回调可以同步,如此示例中那样,或者返回一个 `Task` 或 `Task<TResult>`。返回的任务随着回调的结果或例外而完成。回调收到传递到 `RunRequestAsync`的取消牌,并在请求被排队时取消。如果在请求运行之前启动停止操作,任务与 <xref:Orleans.Runtime.OrleansMessageRejectionException>有错。
 
-Pass the grain and other values through the `state` argument and use a `static` lambda, so the call doesn't allocate a closure. On a non-reentrant grain, awaiting the returned task from another request on the same activation deadlocks, because the queued request waits for the current one to complete.
+过 grain 其他数值的数值,以及 `state` 参数,并使用 a `static` 羊羔,所以电话不能分配结束时间 grain,等待着在相同的启动僵局上提出的另一项请求的返回任务,因为排队的请求等待当前完成。
 
-### Configure the request
+<a id="configure-the-request"></a>
 
-Pass <xref:Orleans.Runtime.LocalRequestOptions> to change how the request is scheduled. Set <xref:Orleans.Runtime.LocalRequestOptions.KeepAlive> to `false` for frequent background work that shouldn't keep an otherwise idle activation in memory. Set <xref:Orleans.Runtime.LocalRequestOptions.Interleave> to `true` to run the request between the turns of other requests, as with an `[AlwaysInterleave]` method:
+### 配置请求
+
+传送 <xref:Orleans.Runtime.LocalRequestOptions> 以更改请求的日程安排。 将常用背景工作设为 <xref:Orleans.Runtime.LocalRequestOptions.KeepAlive> `false` , 以免在内存中保持一个否则闲置的激活。 设置 <xref:Orleans.Runtime.LocalRequestOptions.Interleave> 到 `true` , 以便与其他 `[AlwaysInterleave]` 方法一样, 在其它请求的交替之间运行请求 :
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="run_request_options":::
-### Deliver a custom request
+<a id="deliver-a-custom-request"></a>
 
-<xref:Orleans.Runtime.IGrainContext.ReceiveLocalRequest*> delivers an <xref:Orleans.Runtime.ILocalRequest> to the activation with the same scheduling as `RunRequestAsync`. Call filters, logs, and traces observe the request's own interface name, method name, and arguments, so a custom request can describe the work to them. The activation passes the request's response to <xref:Orleans.Runtime.ILocalRequest.Complete*>, or an exception if the activation rejects the request. The request reports that outcome, including any failure, to its observers:
+### 提交海关请求
+
+<xref:Orleans.Runtime.IGrainContext.ReceiveLocalRequest*> 向激活发送了 <xref:Orleans.Runtime.ILocalRequest> ,与 `RunRequestAsync`相同的时间表。调用过滤器、日志和跟踪观察请求方自己的界面名称、方法名称和参数,因此自定义的请求可以描述工作内容。启动请求传递请求方对 <xref:Orleans.Runtime.ILocalRequest.Complete*>的答复,或者如果启动拒绝请求则作为例外。请求书向其观察员报告结果,包括任何失败:
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="receive_local_request":::

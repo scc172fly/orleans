@@ -94,7 +94,7 @@ namespace Orleans.Runtime.ReminderService
             var d = CollectionsMarshal.GetValueRefOrAddDefault(_reminderTable, entry.GrainId, out _) ??= new();
             ref var entryRef = ref CollectionsMarshal.GetValueRefOrAddDefault(d, entry.ReminderName, out _);
 
-            var old = entryRef; // tracing purposes only
+            var old = entryRef; // 仅用于追踪目的
             entryRef = entry;
             LogTraceUpsertedEntry(entry, old);
 

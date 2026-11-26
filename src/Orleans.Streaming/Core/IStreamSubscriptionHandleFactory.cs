@@ -3,33 +3,33 @@ using Orleans.Runtime;
 namespace Orleans.Streams.Core
 {
     /// <summary>
-    /// Functionality for creating a stream subscription handle for a particular stream and subscription.
+    /// 功能是创建特定流和订阅的流订阅处理器。
     /// </summary>
     public interface IStreamSubscriptionHandleFactory
     {
         /// <summary>
-        /// Gets the stream identifier.
+        /// 获取溪流识别码。
         /// </summary>
-        /// <value>The stream identifier.</value>
+        /// <value>流体识别符号。</value>
         StreamId StreamId { get; }
 
         /// <summary>
-        /// Gets the name of the provider.
+        /// 获取提供者的名字。
         /// </summary>
-        /// <value>The name of the provider.</value>
+        /// <value>提供者的名称。</value>
         string ProviderName { get; }
 
         /// <summary>
-        /// Gets the subscription identifier.
+        /// 获取订阅标识符。
         /// </summary>
-        /// <value>The subscription identifier.</value>
+        /// <value>订阅标识符。</value>
         GuidId SubscriptionId { get; }
 
         /// <summary>
-        /// Creates a stream subscription handle for the stream and subscription identified by this instance.
+        /// 创建此实例所指定的流和订阅的流订阅控件。
         /// </summary>
-        /// <typeparam name="T">The stream element type.</typeparam>
-        /// <returns>The new stream subscription handle.</returns>
+        /// <typeparam name="T">流体元素类型。</typeparam>
+        /// <returns>新流订阅控点。</returns>
         StreamSubscriptionHandle<T> Create<T>();
     }
 }

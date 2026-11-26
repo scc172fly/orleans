@@ -21,8 +21,8 @@ public sealed class OutboxDeliveryBehaviorTests : MessagingBehaviorTestBase
     [Fact]
     public async Task HandlerFailureAfterAnOutboxSend_DiscardsTheSendThroughRecovery()
     {
-        // A handler which ends without an outcome fails the activation, so recovery from the journal discards its send.
-        // Each recovery charges the interrupted attempt, and the second dead-letters the message.
+        // 处理器在无结果的情况下结束, 启动失败, 所以从日记回收后会丢弃寄出 。
+        // 每一次追偿都收费中断的尝试, 而第二封则用死字字母来写信息。
         var receiver = NewGrain();
         var target = NewGrain();
         var activationId = (await receiver.GetSnapshotAsync()).ActivationId;

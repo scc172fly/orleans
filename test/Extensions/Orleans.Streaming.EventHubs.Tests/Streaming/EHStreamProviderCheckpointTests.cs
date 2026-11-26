@@ -18,7 +18,7 @@ using Tester.AzureUtils;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// Tests for EventHub stream provider checkpoint and recovery functionality after agent restarts or silo failures.
+    /// 试验 EventHub 代理机构重新启动后或 silo 失败。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -163,7 +163,7 @@ namespace ServiceBus.Tests.StreamingTests
             var report = await reporter.GetReport(StreamProviderName, streamNamespace, cancellationToken);
             if (assertIsTrue)
             {
-                // one stream per queue
+                // 每个队列一串
                 Assert.Equal(streamCount, report.Count);
                 foreach (int eventsPerStream in report.Values)
                 {
@@ -195,13 +195,13 @@ namespace ServiceBus.Tests.StreamingTests
 
             for (int i = 0; i < eventsInStream - 1; i++)
             {
-                // send event on each stream
+                // 每个溪流上的事件
                 for (int j = 0; j < streamGuids.Count; j++)
                 {
                     await producers[j].OnNextAsync(new GeneratedEvent { EventType = GeneratedEvent.GeneratedEventType.Fill, Payload = new int[payloadSize] });
                 }
             }
-            // send end events
+            // 发送结束事件
             for (int j = 0; j < streamGuids.Count; j++)
             {
                 await producers[j].OnNextAsync(new GeneratedEvent { EventType = GeneratedEvent.GeneratedEventType.Report, Payload = new int[payloadSize] });

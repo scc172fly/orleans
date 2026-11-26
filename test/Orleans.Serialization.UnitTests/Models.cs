@@ -467,7 +467,7 @@ namespace Orleans.Serialization.UnitTests
 
             var value = System.Text.Json.JsonSerializer.Deserialize<TValue>(ref reader, options);
             var factory = StronglyTypedIdHelper.GetFactory<TValue>(typeToConvert);
-            // A non-null token and the notnull TValue contract guarantee a value for this converter.
+            // 非null 标牌和Notull TValue 合同保证该转换器的价值。
             return (TStronglyTypedId)factory(value!);
         }
 

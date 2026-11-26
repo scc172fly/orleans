@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// Tests for SQL Server ADO.NET client stream functionality.
+/// 测试 SQL 服务器 ADO.NET 客户端流功能。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -22,7 +22,7 @@ public class SqlServerAdoNetClientStreamTests(ITestOutputHelper output) : AdoNet
 }
 
 /// <summary>
-/// Tests for MySQL ADO.NET client stream functionality.
+/// MySQL ADO.NET 客户端流功能测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -36,7 +36,7 @@ public class MySqlAdoNetClientStreamTests : AdoNetClientStreamTests
 }
 
 /// <summary>
-/// Tests for PostgreSQL ADO.NET client stream functionality.
+/// PostgreSQL ADO.NET 客户端流功能测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -46,7 +46,7 @@ public class PostgreSqlAdoNetClientStreamTests(ITestOutputHelper output) : AdoNe
 }
 
 /// <summary>
-/// Base class for ADO.NET client stream tests.
+/// ADO.NET 客户端流测试的基准类 。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestSuite("Functional")]
@@ -71,7 +71,7 @@ public abstract class AdoNetClientStreamTests : TestClusterPerTest
 
     public override async ValueTask InitializeAsync()
     {
-        // set up the adonet environment before the base initializes
+        // 在基初始化前设置 adonet 环境
         _testing = await RelationalStorageForTesting.SetupInstance(
             _invariant,
             TestDatabaseName,
@@ -79,7 +79,7 @@ public abstract class AdoNetClientStreamTests : TestClusterPerTest
 
         Assert.SkipWhen(IsNullOrEmpty(_testing.CurrentConnectionString), $"Database '{TestDatabaseName}' not initialized");
 
-        // base initialization must only happen after the above
+        // 初始化必须在上述时间之后才开始
         await base.InitializeAsync();
         if (!PreconditionsMet)
         {

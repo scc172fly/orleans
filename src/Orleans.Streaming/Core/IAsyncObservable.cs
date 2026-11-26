@@ -4,36 +4,36 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// This interface generalizes the standard .NET IObserveable interface to allow asynchronous consumption of items.
-    /// Asynchronous here means that the consumer can process items asynchronously and signal item completion to the 
-    /// producer by completing the returned Task.
+    /// 此界面对标准 .NET IO可观测接口进行通用,以便允许物品的同步消耗。
+    /// 这里的不同步性意味着消费者可以不同步地处理物品,并信号完成物品 
+    /// 制片人完成返回的任务。
     /// <para>
-    /// Note that this interface is invoked (used) by item consumers and implemented by item producers.
-    /// This means that the producer endpoint of a stream implements this interface.
+    /// 请注意,该接口被物品消费者所援引(使用),并由物品生产者加以实施。
+    /// 这意味着流的生产者端点执行此接口 。
     /// </para>
     /// </summary>
-    /// <typeparam name="T">The type of object produced by the observable.</typeparam>
+    /// <typeparam name="T">可见观测到的物体类型。</typeparam>
     public interface IAsyncObservable<T>
     {
         /// <summary>
-        /// Subscribe a consumer to this observable.
+        /// 将消费者加入这一可见的商品。
         /// </summary>
-        /// <param name="observer">The asynchronous observer to subscribe.</param>
-        /// <returns>A promise for a StreamSubscriptionHandle that represents the subscription.
-        /// The consumer may unsubscribe by using this handle.
-        /// The subscription remains active for as long as it is not explicitly unsubscribed.
+        /// <param name="observer">无法同步的订阅观察员 。</param>
+        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
+        /// 消费者可以使用此把手取消订阅。
+        /// 只要不是明确未订阅,订阅活动就一直有效。
         /// </returns>
         Task<StreamSubscriptionHandle<T>> SubscribeAsync(IAsyncObserver<T> observer);
 
         /// <summary>
-        /// Subscribe a consumer to this observable.
+        /// 将消费者加入这一可见的商品。
         /// </summary>
-        /// <param name="observer">The asynchronous observer to subscribe.</param>
-        /// <param name="token">The stream sequence to be used as an offset to start the subscription from.</param>
-        /// <param name="filterData">Data object that will be passed in to the filter.</param>
-        /// <returns>A promise for a StreamSubscriptionHandle that represents the subscription.
-        /// The consumer may unsubscribe by using this handle.
-        /// The subscription remains active for as long as it is not explicitly unsubscribed.
+        /// <param name="observer">无法同步的订阅观察员 。</param>
+        /// <param name="token">用于抵消启动订阅的流序序列。</param>
+        /// <param name="filterData">数据对象将传递到过滤器。</param>
+        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
+        /// 消费者可以使用此把手取消订阅。
+        /// 只要不是明确未订阅,订阅活动就一直有效。
         /// </returns>
         Task<StreamSubscriptionHandle<T>> SubscribeAsync(IAsyncObserver<T> observer, StreamSequenceToken? token, string? filterData = null);
     }

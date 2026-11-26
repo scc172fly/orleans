@@ -9,11 +9,11 @@ using System.Net.Sockets;
 namespace Orleans.Runtime.Configuration
 {
     /// <summary>
-    /// Utilities class for working with configuration.
+    /// 配置工作水电类。
     /// </summary>
     public static class ConfigUtilities
     {
-        // Time spans are entered as a string of decimal digits, optionally followed by a unit string: "ms", "s", "m", "hr"
+        // 时间间隔以小数位数输入,然后是单位字符串: "ms"、 "s"、 "m"、 "hr"
         internal static TimeSpan ParseTimeSpan(string input, string errorMessage)
         {
             long unitSize;
@@ -42,7 +42,7 @@ namespace Orleans.Runtime.Configuration
             }
             else
             {
-                unitSize = 1000 * 10000; // Default is seconds
+                unitSize = 1000 * 10000; // 默认秒为秒
                 numberInput = trimmedInput;
             }
             decimal rawTimeSpan;
@@ -70,28 +70,28 @@ namespace Orleans.Runtime.Configuration
         {
             var loopback = family == AddressFamily.InterNetwork ? IPAddress.Loopback : IPAddress.IPv6Loopback;
 
-            // if the address is an empty string, just enumerate all ip addresses available
-            // on this node
+            // 如果地址是空字符串,请列出所有可用的ip地址
+            // 上此节点
             if (string.IsNullOrEmpty(addrOrHost))
             {
                 return ResolveIPAddressOrDefault(subnet, family);
             }
             else
             {
-                // Fix StreamFilteringTests_SMS tests
+                // 固定 StreamFilteringTests_SMS 测试
                 if (addrOrHost.Equals("loopback", StringComparison.OrdinalIgnoreCase))
                 {
                     return loopback;
                 }
 
-                // check if addrOrHost is a valid IP address including loopback (127.0.0.0/8, ::1) and any (0.0.0.0/0, ::) addresses
+                // 检查 addrOrHost 是否为有效的 IP 地址，包括环回地址（127.0.0.0/8、::1）和任意地址（0.0.0.0/0、::）。
                 if (IPAddress.TryParse(addrOrHost, out var address))
                 {
                     return address;
                 }
 
-                // Get IP address from DNS. If addrOrHost is localhost will 
-                // return loopback IPv4 address (or IPv4 and IPv6 addresses if OS is supported IPv6)
+                // 从 DNS 获取IP 地址。 如果 addrOrHost 是本地主机, 将会 
+                // 返回回回回回回回回回回回回回回回回回回回IPv4 地址(或如果支持 OS IPv6 的 IPv4 和 IPv6 地址)
                 var nodeIps = Dns.GetHostAddresses(addrOrHost);
                 return PickIPAddress(nodeIps, subnet, family);
             }
@@ -102,8 +102,8 @@ namespace Orleans.Runtime.Configuration
             var candidates = new List<IPAddress>();
             foreach (var nodeIp in nodeIps.Where(x => x.AddressFamily == family))
             {
-                // If the subnet does not match - we can't resolve this address.
-                // If subnet is not specified - pick smallest address deterministically.
+                // 如果子网不匹配, 我们无法解决这个地址。
+                // 如果子网没有指定, 请选择最小地址 。
                 if (subnet == null)
                 {
                     candidates.Add(nodeIp);
@@ -132,13 +132,13 @@ namespace Orleans.Runtime.Configuration
                 }
                 else
                 {
-                    if (CompareIPAddresses(addr, chosen)) // pick smallest address deterministically
+                    if (CompareIPAddresses(addr, chosen)) // 以确定的方式选择最小地址
                         chosen = addr;
                 }
             }
             return chosen;
 
-            // returns true if lhs is "less" (in some repeatable sense) than rhs
+            // lhs 值为“小”(以某种可重复的意义上)时返回 true
             static bool CompareIPAddresses(IPAddress lhs, IPAddress rhs)
             {
                 byte[] lbytes = lhs.GetAddressBytes();
@@ -146,7 +146,7 @@ namespace Orleans.Runtime.Configuration
 
                 if (lbytes.Length != rbytes.Length) return lbytes.Length < rbytes.Length;
 
-                // compare starting from most significant octet.
+                // 从最重要的ottet开始比较。
                 // 10.68.20.21 < 10.98.05.04
                 for (int i = 0; i < lbytes.Length; i++)
                 {
@@ -155,49 +155,49 @@ namespace Orleans.Runtime.Configuration
                         return lbytes[i] < rbytes[i];
                     }
                 }
-                // They're equal
+                // 等同他们
                 return false;
             }
         }
 
         /// <summary>
-        /// Gets the address of the local server.
-        /// If there are multiple addresses in the correct family in the server's DNS record, the first will be returned.
+        /// 获取本地服务器的地址 。
+        /// 如果服务器 DNS 记录中正确家族中有多个地址,第一个地址将被返回。
         /// </summary>
-        /// <returns>The server's IPv4 address.</returns>
+        /// <returns>服务器的 IPv4 地址。</returns>
         internal static IPAddress GetLocalIPAddress(AddressFamily family = AddressFamily.InterNetwork, string? interfaceName = null)
         {
             var loopback = (family == AddressFamily.InterNetwork) ? IPAddress.Loopback : IPAddress.IPv6Loopback;
-            // get list of all network interfaces
+            // 获取所有网络界面列表
             NetworkInterface[] netInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
             var candidates = new List<IPAddress>();
-            // loop through interfaces
+            // 通过界面循环
             for (int i = 0; i < netInterfaces.Length; i++)
             {
                 NetworkInterface netInterface = netInterfaces[i];
 
                 if (netInterface.OperationalStatus != OperationalStatus.Up)
                 {
-                    // Skip network interfaces that are not operational
+                    // 跳过不运行的网络界面
                     continue;
                 }
                 if (!string.IsNullOrWhiteSpace(interfaceName) &&
                     !netInterface.Name.StartsWith(interfaceName, StringComparison.Ordinal)) continue;
 
                 bool isLoopbackInterface = (netInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback);
-                // get list of all unicast IPs from current interface
+                // 从当前接口获取全部 unccast IP 列表
                 UnicastIPAddressInformationCollection ipAddresses = netInterface.GetIPProperties().UnicastAddresses;
 
-                // loop through IP address collection
+                // 通过 IP 地址收藏循环
                 foreach (UnicastIPAddressInformation ip in ipAddresses)
                 {
-                    if (ip.Address.AddressFamily == family) // Picking the first address of the requested family for now. Will need to revisit later
+                    if (ip.Address.AddressFamily == family) // 选择目前所请求家庭的第一个地址。
                     {
-                        //don't pick loopback address, unless we were asked for a loopback interface
+                        //除非有人要求我们有一个回回回界面
                         if (!(isLoopbackInterface && ip.Address.Equals(loopback)))
                         {
-                            candidates.Add(ip.Address); // collect all candidates.
+                            candidates.Add(ip.Address); // 收集所有候选人。
                         }
                     }
                 }
@@ -226,30 +226,30 @@ namespace Orleans.Runtime.Configuration
         }
 
         /// <summary>
-        /// Prints the DataConnectionString,
-        /// without disclosing any credential info
-        /// such as the Azure Storage AccountKey, SqlServer password or AWS SecretKey.
+        /// 打印 DataConnectionString,
+        /// 无需披露任何证书资料
+        /// 例如 Azure 存储 AccountKey、 SqlServer 密码或AWS SecretKey。
         /// </summary>
-        /// <param name="connectionString">The connection string to print.</param>
-        /// <returns>The string representation of the DataConnectionString with account credential info redacted.</returns>
+        /// <param name="connectionString">打印的连接字符串。</param>
+        /// <returns>字符串表示 DataConnectionString 账户的证书信息已编辑。</returns>
         public static string RedactConnectionStringInfo(string? connectionString)
         {
             string[] secretKeys =
             {
-                "AccountKey=",                              // Azure Storage
-                "SharedAccessSignature=",                   // Many Azure services
+                "AccountKey=",                              // Azure 储存
+                "SharedAccessSignature=",                   // 许多 Azure 服务
                 "SharedAccessKey=", "SharedSecretValue=",   // ServiceBus
                 "Password=",                                // SQL
                 "SecretKey=", "SessionToken=",              // DynamoDb
             };
             var mark = "<--SNIP-->";
             if (string.IsNullOrEmpty(connectionString)) return "null";
-            //if connection string format doesn't contain any secretKey, then return just <--SNIP-->
+            //如果连接字符串格式不包含任何 secretKey,则返回仅 <- SNIP-->
             if (!Array.Exists(secretKeys, key => connectionString.Contains(key, StringComparison.Ordinal))) return mark;
 
             string connectionInfo = connectionString;
 
-            // Remove any secret keys from connection string info written to log files
+            // 从已写入日志文件的连接字符串信息中删除任何密钥
             foreach (var secretKey in secretKeys)
             {
                 int keyPos = connectionInfo.IndexOf(secretKey, StringComparison.OrdinalIgnoreCase);

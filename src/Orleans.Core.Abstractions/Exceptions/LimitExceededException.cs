@@ -4,19 +4,19 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Signifies that a grain is in an overloaded state where some runtime limit setting is currently being exceeded,
-    /// and so that grain is unable to currently accept the message being sent.
+    /// 表示 grain 处于超载状态,目前超过某些运行时限规定,
+    /// 因而, grain 无法接收正在发送的信件。
     /// </summary>
     /// <remarks>
-    /// This situation is often a transient condition.
-    /// The message is likely to be accepted by this grain if it is retransmitted at a later time.
+    /// 这种情况往往是暂时性的。
+    /// 如果该电文在稍后时间再次发送,本 grain 可能接受。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public sealed class LimitExceededException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LimitExceededException"/> class.
+        /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         public LimitExceededException()
             : base("Limit exceeded")
@@ -24,10 +24,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LimitExceededException"/> class.
+        /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         public LimitExceededException(string message)
             : base(message)
@@ -35,13 +35,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LimitExceededException"/> class.
+        /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         /// <param name="innerException">
-        /// The inner exception.
+        /// 内在的例外
         /// </param>
         public LimitExceededException(string message, Exception innerException)
             : base(message, innerException)
@@ -49,19 +49,19 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LimitExceededException"/> class.
+        /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="limitName">
-        /// The limit name.
+        /// 限号
         /// </param>
         /// <param name="current">
-        /// The current value.
+        /// 现值。
         /// </param>
         /// <param name="threshold">
-        /// The threshold value.
+        /// 门槛值。
         /// </param>
         /// <param name="extraInfo">
-        /// Extra, descriptive information.
+        /// 额外,描述性信息。
         /// </param>
         public LimitExceededException(string limitName, int current, int threshold, object extraInfo)
             : base($"Limit exceeded {limitName} Current={current} Threshold={threshold} {extraInfo}")
@@ -69,13 +69,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LimitExceededException"/> class.
+        /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// The serialization info.
+        /// 序列信息
         /// </param>
         /// <param name="context">
-        /// The context.
+        /// 背景。
         /// </param>
         [Obsolete]
         private LimitExceededException(SerializationInfo info, StreamingContext context)

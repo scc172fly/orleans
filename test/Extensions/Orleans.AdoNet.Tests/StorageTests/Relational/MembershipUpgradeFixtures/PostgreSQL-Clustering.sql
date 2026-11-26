@@ -1,4 +1,4 @@
--- For each deployment, there will be only one (active) membership version table version column which will be updated periodically.
+-- 每次部署将只有一个(现役)成员表格版本一栏,定期更新。
 CREATE TABLE OrleansMembershipVersionTable
 (
     DeploymentId varchar(150) NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE OrleansMembershipVersionTable
     CONSTRAINT PK_OrleansMembershipVersionTable_DeploymentId PRIMARY KEY(DeploymentId)
 );
 
--- Every silo instance has a row in the membership table.
+-- 每一 silo 例在会籍表有行。
 CREATE TABLE OrleansMembershipTable
 (
     DeploymentId varchar(150) NOT NULL,
@@ -36,8 +36,8 @@ CREATE FUNCTION update_i_am_alive_time(
   RETURNS void AS
 $func$
 BEGIN
-    -- This is expected to never fail by Orleans, so return value
-    -- is not needed nor is it checked.
+    -- 预计这永远不会失败 Orleans, 所以返回值
+    -- 不需要也无需检查。
     UPDATE OrleansMembershipTable as d
     SET
         IAmAliveTime = i_am_alive_time

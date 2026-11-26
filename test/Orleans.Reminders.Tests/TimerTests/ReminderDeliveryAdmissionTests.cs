@@ -38,7 +38,7 @@ public class ReminderDeliveryAdmissionTests
         await test.Clock.AdvanceAsync(TimeSpan.FromSeconds(1), cancellation.Token);
         await test.Admitted.Entered.Task.WaitAsync(cancellation.Token);
 
-        // Repeated startup preserves the run which owns the admitted delivery.
+        // 重复启动保留了拥有承认交货的运行。
         await test.QueueAsync(test.Service.Start).WaitAsync(cancellation.Token);
         var stop = await test.BeginStopAsync(CancellationToken.None, cancellation.Token);
         var repeatedStop = await test.BeginStopAsync(CancellationToken.None, cancellation.Token);

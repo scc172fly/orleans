@@ -12,7 +12,7 @@ using Orleans.Transactions.DynamoDB.TransactionalState;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extensions for registering DynamoDB transactional state services.
+/// 登记 DynamoDB 交易性国家服务的扩展。
 /// </summary>
 public static class DynamoDBTransactionServiceCollectionExtensions
 {

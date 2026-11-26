@@ -7,7 +7,7 @@ using System.Linq;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// Provides a fixed-capacity buffer writer for serialization tests.
+    /// 提供固定容量缓冲作家进行序列测试。
     /// </summary>
     [ExcludeFromCodeCoverage]
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This mutable writer owns an aliased buffer and cursor position rather than representing a comparable value.")]
@@ -17,9 +17,9 @@ namespace Orleans.Serialization.TestKit
         private int _written;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestBufferWriterStruct"/> struct.
+        /// 初始化 <see cref="TestBufferWriterStruct"/> 结构的新实例。
         /// </summary>
-        /// <param name="buffer">The buffer to write to.</param>
+        /// <param name="buffer">写给的缓冲。</param>
         public TestBufferWriterStruct(byte[] buffer)
         {
             _buffer = buffer;
@@ -30,18 +30,18 @@ namespace Orleans.Serialization.TestKit
         public void Advance(int bytes) => _written += bytes;
 
         /// <summary>
-        /// Gets the unwritten portion of the fixed output buffer.
+        /// 获取固定输出缓冲符的未写部分。
         /// </summary>
-        /// <param name="sizeHint">The requested minimum size. This fixed-buffer implementation does not allocate additional capacity.</param>
-        /// <returns>The memory available for writing.</returns>
+        /// <param name="sizeHint">要求的最低尺寸。 这种固定缓冲执行不分配额外能力 。</param>
+        /// <returns>可供写入的内存。</returns>
         [Pure]
         public readonly Memory<byte> GetMemory(int sizeHint = 0) => _buffer.AsMemory()[_written..];
 
         /// <summary>
-        /// Gets the unwritten portion of the fixed output buffer.
+        /// 获取固定输出缓冲符的未写部分。
         /// </summary>
-        /// <param name="sizeHint">The requested minimum size. This fixed-buffer implementation does not allocate additional capacity.</param>
-        /// <returns>The span available for writing.</returns>
+        /// <param name="sizeHint">要求的最低尺寸。 这种固定缓冲执行不分配额外能力 。</param>
+        /// <returns>可用于撰写的间隔。</returns>
         [Pure]
         public readonly Span<byte> GetSpan(int sizeHint) => _buffer.AsSpan()[_written..];
 

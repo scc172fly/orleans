@@ -19,13 +19,13 @@ public interface IConversationGrain : IGrainWithStringKey
 {
     ValueTask<long> Ask(string question, CancellationToken cancellationToken);
 
-    // Ends the conversation. Every watch ends after the final entry.
+    // 谈话结束,每只手表在最后进入后都结束了
     ValueTask End(CancellationToken cancellationToken);
 
-    // Committed history from a position. An epoch of zero reads the current history.
+    // 历史从一个位置上诞生,零时代是当前历史的代号。
     IAsyncEnumerable<LogEvent<string>> WatchAsync(long epoch, long nextSequence, CancellationToken cancellationToken = default);
 
-    // Committed history and streaming drafts.
+    // 历史和流传的草案。
     IAsyncEnumerable<LogEvent<string>> WatchLiveAsync(
         long epoch, long nextSequence, LogDraftId? draftId, CancellationToken cancellationToken = default);
 
@@ -47,7 +47,7 @@ public sealed class ConversationGrain(
         _status.Value = "responding";
         await stateManager.WriteStateAsync(cancellationToken);
 
-        // Readers which include drafts receive each token while the response is generated.
+        // 包括草稿在内的读者在生成回复时收到每个象征性的信号。
         using var draft = _messages.BeginDraft();
         var response = new StringBuilder();
         try
@@ -66,7 +66,7 @@ public sealed class ConversationGrain(
             throw;
         }
 
-        // The committed entry replaces the draft's tokens.
+        // 承诺条目替换草稿的标记 。
         var sequence = draft.Commit(response.ToString());
         _status.Value = "idle";
         await stateManager.WriteStateAsync(cancellationToken);
@@ -97,7 +97,7 @@ public static class ConversationClient
     // <conversation_client>
     public static async Task RenderAsync(IConversationGrain conversation, CancellationToken cancellationToken)
     {
-        // Every entry is durable, so the epoch and the position after the latest entry are a valid resume point.
+        // 每个条目都是耐久的,因此最近一个条目后的时代和位置是一个有效的恢复点。
         var epoch = 0L;
         var nextSequence = 0L;
         var history = new SortedList<long, string>();
@@ -116,7 +116,7 @@ public static class ConversationClient
                     Console.WriteLine($"Loaded {history.Count} messages.");
                     break;
                 case LogEventKind.Trimmed:
-                    // Older entries were pruned. Later entries remain valid.
+                    // 旧条目被剪切。 后来的条目仍然有效 。
                     while (history.Count > 0 && history.Keys[0] < logEvent.Sequence)
                     {
                         history.RemoveAt(0);
@@ -125,7 +125,7 @@ public static class ConversationClient
                     nextSequence = Math.Max(nextSequence, logEvent.Sequence);
                     break;
                 case LogEventKind.Reset:
-                    // The entries were replaced, for example by a compacted summary or by deleting the journal.
+                    // 条目被替换,例如用压缩摘要或删除日记。
                     history.Clear();
                     nextSequence = logEvent.Sequence;
                     break;
@@ -136,7 +136,7 @@ public static class ConversationClient
                     draft.Append(logEvent.Item);
                     break;
                 case LogEventKind.DraftCommitted:
-                    // The draft's tokens are superseded by the entries in [Sequence, Sequence + Count).
+                    // 草稿的标记被[序列、序列+计数]中的条目取代。
                     drafts.Remove(logEvent.DraftId!.Value);
                     break;
                 case LogEventKind.DraftAbandoned:
@@ -172,8 +172,8 @@ public static class ConversationGrainTests
         var builder = new InProcessTestClusterBuilder(initialSilosCount: 1);
         builder.ConfigureSilo((options, siloBuilder) =>
         {
-            // Real journaled state managers, with journals held in silo memory. Reflection-based JSON metadata
-            // suits tests; production silos register source-generated metadata.
+            // 实际出版的国家管理人员,期刊在 silo 反射 JSON 元元元元元数据
+            // 套装测试;生产 silos 登记源生成元数据。
             siloBuilder.AddJournaling()
                 .UseJsonJournalFormat(new DefaultJsonTypeInfoResolver())
                 .AddVolatileJournalStorage();
@@ -185,7 +185,7 @@ public static class ConversationGrainTests
         var conversation = cluster.Client.GetGrain<IConversationGrain>("test");
         var sequence = await conversation.Ask("Hi", CancellationToken.None);
 
-        // A new activation recovers the conversation from the journal.
+        // 新的激活程序从日记上恢复了谈话。
         await cluster.DeactivateAsync(conversation);
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var history = new List<string>();

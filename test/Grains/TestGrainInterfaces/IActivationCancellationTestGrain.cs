@@ -1,60 +1,60 @@
 namespace UnitTests.GrainInterfaces;
 
 /// <summary>
-/// Interface for testing activation cancellation scenarios.
-/// These grains are used to verify the proper handling of cancellation during grain activation.
+/// 测试激活取消情景的接口。
+/// 这些 grains 用于核实在启动 grain 期间对取消的适当处理。
 /// </summary>
 public interface IActivationCancellationTestGrain : IGrainWithGuidKey
 {
     /// <summary>
-    /// A simple method to test that the grain is activated and working.
+    /// 一种简单的方法,用于测试 grain 是否被激活和起作用。
     /// </summary>
     Task<string> GetActivationId();
 
     /// <summary>
-    /// Checks if the activation was successful.
+    /// 检查激活是否成功 。
     /// </summary>
     Task<bool> IsActivated();
 }
 
 /// <summary>
-/// Grain that throws OperationCanceledException during OnActivateAsync when the cancellation token is triggered.
-/// This simulates code that properly observes the cancellation token.
+/// Grain 投 OperationCanceledException 期间 OnActivateAsync 当取消标记被触发时 。
+/// 此模拟代码, 以正确观察取消符号 。
 /// </summary>
 public interface IActivationCancellation_ThrowsOperationCancelledGrain : IActivationCancellationTestGrain;
 
 /// <summary>
-/// Grain that throws ObjectDisposedException during OnActivateAsync when trying to access disposed services.
-/// This simulates code that doesn't observe the cancellation token but tries to access services that have been disposed.
+/// Grain 投 ObjectDisposedException 期间 OnActivateAsync 试图获取处置服务时。
+/// 此模拟代码不观察取消的代号, 却试图访问已处理的服务 。
 /// </summary>
 public interface IActivationCancellation_ThrowsObjectDisposedGrain : IActivationCancellationTestGrain;
 
 /// <summary>
-/// Grain that throws a generic exception during OnActivateAsync (not related to cancellation).
-/// This is used to verify that non-cancellation exceptions are still handled properly.
+/// Grain 中丢弃通用例外 OnActivateAsync (与取消无关)。
+/// 用于核实是否仍然妥善处理非取消性例外。
 /// </summary>
 public interface IActivationCancellation_ThrowsGenericExceptionGrain : IActivationCancellationTestGrain;
 
 /// <summary>
-/// Grain that activates successfully without any issues.
-/// This is a baseline to verify normal activation continues to work.
+/// 顺利启动的Grain , 没有问题 。
+/// 这是核查正常启动的基线,仍在运作。
 /// </summary>
 public interface IActivationCancellation_SuccessfulActivationGrain : IActivationCancellationTestGrain;
 
 /// <summary>
-/// Grain that throws TaskCanceledException during OnActivateAsync.
-/// TaskCanceledException inherits from OperationCanceledException and should be handled the same way.
+/// Grain 投 TaskCanceledException 期间 OnActivateAsync.
+/// TaskCanceledException 继承的 OperationCanceledException 并且应该以同样的方式处理
 /// </summary>
 public interface IActivationCancellation_ThrowsTaskCancelledGrain : IActivationCancellationTestGrain;
 
 /// <summary>
-/// Grain that throws ObjectDisposedException unconditionally (not due to cancellation).
-/// This tests that ObjectDisposedException thrown for other reasons is NOT treated as cancellation.
+/// Grain 投 ObjectDisposedException (不是由于取消)
+/// 出于其他原因投掷的 ObjectDisposedException 试验不被视为取消。
 /// </summary>
 public interface IActivationCancellation_ThrowsObjectDisposedUnconditionallyGrain : IActivationCancellationTestGrain;
 
 /// <summary>
-/// Grain that throws OperationCanceledException unconditionally (not due to cancellation).
-/// This tests that OperationCanceledException thrown for other reasons is NOT treated as cancellation.
+/// Grain 投 OperationCanceledException (不是由于取消)
+/// 出于其他原因投掷的 OperationCanceledException 试验不被视为取消。
 /// </summary>
 public interface IActivationCancellation_ThrowsOperationCancelledUnconditionallyGrain : IActivationCancellationTestGrain;

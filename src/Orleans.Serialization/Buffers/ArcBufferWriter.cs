@@ -18,45 +18,45 @@ using Orleans.Serialization.Utilities;
 namespace Orleans.Serialization.Buffers;
 
 /// <summary>
-/// A <see cref="IBufferWriter{T}"/> implementation implemented using pooled arrays which is specialized for creating <see cref="ReadOnlySequence{T}"/> instances.
+/// <see cref="IBufferWriter{T}"/> 实施使用专门用来创建 <see cref="ReadOnlySequence{T}"/> 实例的集合阵列。
 /// </summary>
 /// <remarks>
-/// As with <see cref="ArrayPool{T}.Shared"/>, backing buffers can contain data from earlier uses and
-/// are returned without clearing. Callers must initialize every byte before advancing the writer
-/// and read only the written region of a buffer.
-/// Fixed-size pinned pages are reused and evicted every 10 seconds according to recent pool activity.
-/// Larger arrays return to <see cref="ArrayPool{T}.Shared"/> when their last owner releases them.
+/// 与 <see cref="ArrayPool{T}.Shared"/>一样,后背缓冲带可包含先前用途和
+/// 不经清除返回后被返回。调用者必须在推进写作器之前先初始化每个字节
+/// 仅读取缓冲文字区域。
+/// 根据最近的池活动,固定页数被重新使用和每10秒钟将页面拆迁一次。
+/// 当上一个拥有者释放时,较大的阵列返回 <see cref="ArrayPool{T}.Shared"/> 。
 /// </remarks>
 [StructLayout(LayoutKind.Auto)]
 [Immutable]
 public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
 {
-    // The first page. This is the page which consumers will consume from.
-    // This may be equal to the current page, or it may be a previous page.
+    // 第一页。 这是消费者消费的页面 。
+    // 这可以等于当前页,也可以等于上页。
     private ArcBufferPage _readPage;
 
-    // The current page. This is the page which will be written to when the next write occurs.
+    // 当前页面。 这是下个写入时要写入的页面 。
     private ArcBufferPage _writePage;
 
-    // The current page. This is the last page which was allocated. In the linked list formed by the pages, _first <= _current <= _tail.
+    // 当前页面。 这是所分配的最后一页 。 在由页面组成的链接列表中, _ first _\ _ put {% {} _ tild 。
     private ArcBufferPage _tail;
 
-    // The offset into the first page which has been consumed already. When this reaches the end of the page, the page can be unpinned.
+    // 已经消耗的第一张页的偏移值。 当此页到达页面末尾时, 可以将页面拆开 。
     private int _readIndex;
 
-    // The total length of the buffer.
+    // 缓冲总长度 。
     private int _totalLength;
 
-    // Pinned pages can be read and disposed but not mutated.
+    // 皮条页可以读和处理,但不得变换。
     private bool _hasPinnedPages;
 
     /// <summary>
-    /// Gets the minimum page size.
+    /// 获得最小页码大小 。
     /// </summary>
     public const int MinimumPageSize = ArcBufferPagePool.MinimumPageSize;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArcBufferWriter"/> struct.
+    /// 初始化 <see cref="ArcBufferWriter"/> 结构的新实例。
     /// </summary>
     public ArcBufferWriter()
     {
@@ -66,42 +66,42 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Gets the number of unconsumed bytes.
+    /// 获取未消耗字节数 。
     /// </summary>
     public int UnconsumedLength => _totalLength - _readIndex;
 
     /// <summary>
-    /// Gets the number of unconsumed bytes (alias for UnconsumedLength).
+    /// 获取未消耗的字节数( 用于 UnconsumedLength).
     /// </summary>
     public int Length => UnconsumedLength;
 
     /// <summary>
-    /// Gets a reader over the unconsumed bytes.
+    /// 获得一个读者对未消耗字节的读取。
     /// </summary>
     public ArcBufferReader Reader => new(this);
 
     /// <summary>
-    /// Adds additional buffers to the destination list until the list has reached its capacity.
+    /// 在目的地列表达到其容量之前添加额外的缓冲文件。
     /// </summary>
-    /// <param name="buffers">The destination to add buffers to.</param>
+    /// <param name="buffers">添加缓冲的目的地。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ReplenishBuffers(List<ArraySegment<byte>> buffers)
     {
         ThrowIfPinnedPages();
 
-        // Skip half-full pages in an attempt to minimize the number of buffers added to the destination
-        // at the expense of under-utilized memory. This could be tweaked up to increase page utilization.
+        // 跳过半满页的页面,以尽量减少添加到目的地的缓冲量
+        // 这样做可以调整,以增加页数利用率。
         const int MinimumUsablePageSize = MinimumPageSize / 2;
 
         while (buffers.Count < buffers.Capacity)
         {
-            // Only use the current page if it is greater than the minimum "usable" page size.
+            // 仅在当前页面超过最小“可用”页面大小时使用此页面。
             if (_tail.WriteCapacity > MinimumUsablePageSize)
             {
                 buffers.Add(_tail.WritableArraySegment);
             }
 
-            // Allocate a new page.
+            // 分配新页面。
             AllocatePage(0);
         }
     }
@@ -111,9 +111,9 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     void IBufferWriter<byte>.Advance(int count) => AdvanceWriter(count);
 
     /// <summary>
-    /// Advances the writer by the specified number of bytes.
+    /// 以指定的字节数将写作器预发。
     /// </summary>
-    /// <param name="count">The numbers of bytes to advance the writer by.</param>
+    /// <param name="count">用于推进作家的字节数。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AdvanceWriter(int count)
     {
@@ -138,7 +138,7 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Resets this instance, returning all memory.
+    /// 重设此实例, 返回全部内存 。
     /// </summary>
     public void Reset() => Reset(0);
 
@@ -195,10 +195,10 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Attempts to read the provided number of bytes from the buffer.
+    /// 试图读取缓冲区内提供的字节数。
     /// </summary>
-    /// <param name="destination">The destination, which may be used to hold the requested data if the data needs to be copied.</param>
-    /// <returns>A span of either zero length, if the data is unavailable, or at least the requested length if the data is available.</returns>
+    /// <param name="destination">目的地,如果数据需要复制,可用以保存所请求的数据。</param>
+    /// <returns>如果数据不存在,则以零长度为空格,如果有数据可用,至少是要求的长度。</returns>
     public ReadOnlySpan<byte> Peek(scoped in Span<byte> destination)
     {
         if (destination.Length > UnconsumedLength)
@@ -206,20 +206,20 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
             return [];
         }
 
-        // Single span.
+        // 单间距
         var firstSpan = _readPage.AsSpan(_readIndex, Math.Min(_readPage.Length - _readIndex, UnconsumedLength));
         if (firstSpan.Length >= destination.Length)
         {
             return firstSpan;
         }
 
-        // Multiple spans. Create a slice without pinning it, since we would be immediately unpinning it.
+        // 多长的跨度。 创建一块切片, 不钉它, 因为我们会立即打开它。
         Peek(destination);
         return destination;
     }
 
-    /// <summary>Copies the contents of this writer to a span.</summary>
-    /// <remarks>This method does not advance the read cursor.</remarks>
+    /// <summary>将此作家的内容复制到一个字符串。</summary>
+    /// <remarks>此方法不推进读取光标。</remarks>
     public int Peek(Span<byte> output)
     {
         var bytesCopied = 0;
@@ -243,9 +243,9 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Writes the provided sequence to this buffer.
+    /// 将提供的序列写入此缓冲。
     /// </summary>
-    /// <param name="input">The data to write.</param>
+    /// <param name="input">要写入的数据。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ReadOnlySequence<byte> input)
     {
@@ -258,9 +258,9 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Writes the provided value to this buffer.
+    /// 将提供的值写入此缓冲。
     /// </summary>
-    /// <param name="value">The data to write.</param>
+    /// <param name="value">要写入的数据。</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ReadOnlySpan<byte> value)
     {
@@ -268,7 +268,7 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
 
         var destination = GetSpan();
 
-        // Fast path, try copying to the available memory directly
+        // 快路径, 尝试直接复制到可用内存
         if (value.Length <= destination.Length)
         {
             value.CopyTo(destination);
@@ -300,7 +300,7 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Overwrites bytes which have already been written without changing the reader or writer positions.
+    /// 覆盖已经写入但不会改变读者或写入位置的字节。
     /// </summary>
     public void WriteAt(int offset, ReadOnlySpan<byte> value)
     {
@@ -328,7 +328,7 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Truncates this buffer to the specified unconsumed length.
+    /// 将此缓冲线切换到指定的未消耗长度。
     /// </summary>
     public void Truncate(int length)
     {
@@ -363,9 +363,9 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Appends the pages referenced by <paramref name="input"/> by pinning them.
+    /// 以插针方式附加 <paramref name="input"/> 所引用的页面。
     /// </summary>
-    /// <exception cref="ObjectDisposedException">The writer has been disposed.</exception>
+    /// <exception cref="ObjectDisposedException">作家已处理。</exception>
     public void AppendPinned(ArcBuffer input)
     {
         if (input.Length == 0)
@@ -430,7 +430,7 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
             return false;
         }
 
-        // Owned buffers end at the write page's written length; pinned slices can end partway through a page.
+        // 拥有的缓冲文件以写入页面书面长度结束; 折叠片可结束一个页的半径。
         if (!_hasPinnedPages)
         {
             var writePageOffset = offset - (length - _writePage.Length);
@@ -467,7 +467,7 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Unpins all pages.
+    /// 解开所有页面 。
     /// </summary>
     private void UnpinAll()
     {
@@ -481,11 +481,11 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Returns a slice of the provided length without marking the data referred to it as consumed.
+    /// 返回提供长度的片段,但不标明所称消耗的数据。
     /// </summary>
-    /// <param name="count">The number of bytes to consume.</param>
-    /// <returns>A slice of unconsumed data.</returns>
-    /// <exception cref="ObjectDisposedException">The writer has been disposed.</exception>
+    /// <param name="count">要消耗的字节数。</param>
+    /// <returns>一片未消耗的数据</returns>
+    /// <exception cref="ObjectDisposedException">作家已处理。</exception>
     public ArcBuffer PeekSlice(int count)
     {
         ThrowIfDisposed();
@@ -506,25 +506,25 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
-    /// Consumes a slice of the provided length.
+    /// 消耗了规定长度的一小部分。
     /// </summary>
-    /// <param name="count">The number of bytes to consume.</param>
-    /// <returns>A buffer representing the consumed data.</returns>
+    /// <param name="count">要消耗的字节数。</param>
+    /// <returns>代表消耗数据的缓冲符。</returns>
     public ArcBuffer ConsumeSlice(int count)
     {
         var result = PeekSlice(count);
 
-        // Advance the cursor so that subsequent slice calls will return the next slice.
+        // 向光标前进,以便随后的切片呼叫返回下一个切片。
         AdvanceReader(count);
 
         return result;
     }
 
     /// <summary>
-    /// Advances the reader by the specified number of bytes.
+    /// 以指定的字节数向读者预发。
     /// </summary>
-    /// <param name="count">The number of bytes to advance the reader.</param>
-    /// <exception cref="ObjectDisposedException">The writer has been disposed.</exception>
+    /// <param name="count">预发读者的字节数。</param>
+    /// <exception cref="ObjectDisposedException">作家已处理。</exception>
     public void AdvanceReader(int count)
     {
         ThrowIfDisposed();
@@ -538,19 +538,19 @@ public sealed class ArcBufferWriter : IBufferWriter<byte>, IDisposable
 
         _readIndex += count;
 
-        // If this call would consume the entire first page and the page is not the current write page, unpin it.
+        // 如果此电话会消耗整个第一页, 而该页面不是当前写入的页面, 请打开它 。
         while (_readIndex >= _readPage.Length && _writePage != _readPage)
         {
-            // Advance the consumed length.
+            // 推进消耗的长度。
             var current = _readPage;
             _readIndex -= current.Length;
             _totalLength -= current.Length;
 
-            // Advance to the next page
+            // 向下一页预发
             Debug.Assert(current.Next is not null);
             _readPage = current.Next!;
 
-            // Unpin the page.
+            // 解开页面
             current.Unpin(current.Version);
         }
 
@@ -613,7 +613,7 @@ internal sealed class ArcBufferPagePool
             return block;
         }
 
-        // A miss indicates growing demand. Weight it twice to avoid evicting pages during allocation bursts.
+        // 误差表示需求增加。 重两倍以避免在分配周期性断裂期间将网页拆迁。
         Interlocked.Add(ref _rentCount, 2);
         return new ArcBufferPage(size);
     }
@@ -640,8 +640,8 @@ internal sealed class ArcBufferPagePool
             var rents = Interlocked.Exchange(ref _rentCount, 0);
             var returns = Interlocked.Exchange(ref _returnCount, 0);
             var count = _pages.Count;
-            // Match Kestrel's gradual eviction: protect growing demand, trim steadily used excess slowly,
-            // and reclaim idle capacity faster. Counts are approximate when rent/return races with this tick.
+            // 保护不断增长的需求, 逐步使用超量缓慢,
+            // 并更快地恢复闲置能力。 使用此选项计算租金/ 返回赛跑时, 算得差不多 。
             var releaseCount = 0;
             if (rents == 0 && returns == 0)
             {
@@ -675,7 +675,7 @@ internal sealed class ArcBufferPagePool
 
     private static Timer CreateEvictionTimer()
     {
-        // The process-wide timer must not retain the execution context of the first buffer user.
+        // 整个过程的定时器不得保留第一个缓冲用户的执行环境。
         if (ExecutionContext.IsFlowSuppressed())
         {
             return CreateTimer();
@@ -691,16 +691,16 @@ internal sealed class ArcBufferPagePool
 }
 
 /// <summary>
-/// A page of data.
+/// 数据页。
 /// </summary>
 public sealed class ArcBufferPage
 {
-    // The current version of the page. Each time the page is return to the pool, the version is incremented.
-    // This helps to ensure that the page is not consumed after it has been returned to the pool.
-    // This is a guard against certain programming bugs.
+    // 页面当前版本。 每次页面返回集合时,都会加插。
+    // 这有助于确保页面在返回池子后不消耗。
+    // 这是防范某些程序错误的戒备
     private int _version;
 
-    // The current reference count. This is used to ensure that a page is not returned to the pool while it is still in use.
+    // 当前引用计数 。 此选项用于确保页面在使用中不会返回到集合中 。
     private int _refCount;
 
     internal ArcBufferPage()
@@ -717,9 +717,9 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Resizes the backing array to accommodate a large segment.
+    /// 调整后台阵列大小以容纳大段。
     /// </summary>
-    /// <param name="length">The minimum required length, in bytes.</param>
+    /// <param name="length">最低所需长度,以字节计。</param>
     public void ResizeLargeSegment(int length)
     {
         Debug.Assert(length > ArcBufferPagePool.MinimumPageSize);
@@ -744,18 +744,18 @@ public sealed class ArcBufferPage
         }
         else
         {
-            // Round up to a power of two.
+            // 集中到两个力量
             length = (int)BitOperations.RoundUpToPowerOf2((uint)length);
 
             if (Array is not null)
             {
-                // The segment has an appropriate size already.
+                // 段的大小已经适当。
                 if (Array.Length == length)
                 {
                     return;
                 }
 
-                // The segment is being resized.
+                // 正在调整该段的大小。
                 ArrayPool<byte>.Shared.Return(Array);
             }
 
@@ -774,80 +774,80 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Gets the array underpinning the page.
+    /// 获取页面的矩阵。
     /// </summary>
     public byte[] Array { get; private set; }
 
     /// <summary>
-    /// Gets the number of bytes which have been written to the page.
+    /// 获取已写入页面的字节数 。
     /// </summary>
     public int Length { get; private set; }
 
     /// <summary>
-    /// A <see cref="ReadOnlySpan{T}"/> containing the readable bytes from this page.
+    /// A <see cref="ReadOnlySpan{T}"/> 包含本页可读字节。
     /// </summary>
     public ReadOnlySpan<byte> ReadableSpan => Array.AsSpan(0, Length);
 
     /// <summary>
-    /// A <see cref="ReadOnlyMemory{T}"/> containing the readable bytes from this page.
+    /// A <see cref="ReadOnlyMemory{T}"/> 包含本页可读字节。
     /// </summary>
     public ReadOnlyMemory<byte> ReadableMemory => AsMemory(0, Length);
 
     /// <summary>
-    /// An <see cref="ArraySegment{T}"/> containing the readable bytes from this page.
+    /// 包含此页可读字节的 <see cref="ArraySegment{T}"/> 。
     /// </summary>
     public ArraySegment<byte> ReadableArraySegment => new(Array, 0, Length);
 
     /// <summary>
-    /// An <see cref="ArraySegment{T}"/> containing the writable bytes from this page.
+    /// 包含本页可写字节的 <see cref="ArraySegment{T}"/> 。
     /// </summary>
     public ArraySegment<byte> WritableArraySegment => new(Array, Length, Array.Length - Length);
 
     /// <summary>
-    /// Gets the next node.
+    /// 获得下一个节点。
     /// </summary>
     public ArcBufferPage? Next { get; private set; }
 
     /// <summary>
-    /// Gets the current page version.
+    /// 获取当前页面版本。
     /// </summary>
     public int Version => _version;
 
     /// <summary>
-    /// Gets a value indicating whether this page is valid.
+    /// 获得一个值,以显示该页面是否有效。
     /// </summary>
     public bool IsValid => Array is { Length: > 0 };
 
     /// <summary>
-    /// Gets a value indicating whether this page is equal to the minimum page size.
+    /// 获得一个值,以显示该页面是否等于最小页码。
     /// </summary>
     public bool IsMinimumSize => Array.Length == ArcBufferPagePool.MinimumPageSize;
 
     /// <summary>
-    /// Gets the number of bytes in the page which are available for writing.
+    /// 获取页面中可用于写入的字节数。
     /// </summary>
     public int WriteCapacity => Array.Length - Length;
 
     /// <summary>
-    /// Gets the writable memory in the page.
+    /// 页面中包含可写内存。
     /// </summary>
     public Memory<byte> WritableMemory => AsMemory(Length);
 
     /// <summary>
-    /// Gets a span representing the writable memory in the page.
+    /// 获得一个代表页面中可写内存的宽度。
     /// </summary>
     public Span<byte> WritableSpan => AsSpan(Length);
 
     /// <summary>
-    /// Gets the current page reference count.
+    /// 获取当前页面参考编号。
     /// </summary>
     internal int ReferenceCount => _refCount;
 
     /// <summary>
-    /// Creates a new memory region over the portion of the target page beginning at a specified position.
+    /// 在目标页面中从指定位置开始的部分上创建新的内存区域。
     /// </summary>
-    /// <param name="offset">The offset into the array to return memory from.</param>
-    /// <returns>The memory region.</returns>
+    /// <param name="offset">将数组中的偏移值转换为返回内存。</param>
+    /// <returns>内存区域。</returns>
     public Memory<byte> AsMemory(int offset)
     {
 #if NET6_0_OR_GREATER
@@ -861,11 +861,11 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Creates a new memory region over the portion of the target page beginning at a specified position with a specified length.
+    /// 在目标页面中从指定位置开始的部分创建新的内存区域,该位置有指定的长度。
     /// </summary>
-    /// <param name="offset">The offset into the array that the memory region starts from.</param>
-    /// <param name="length">The length of the memory region.</param>
-    /// <returns>The memory region.</returns>
+    /// <param name="offset">内存区域从数组中开始的偏移。</param>
+    /// <param name="length">内存区域的长度。</param>
+    /// <returns>内存区域。</returns>
     public Memory<byte> AsMemory(int offset, int length)
     {
 #if NET6_0_OR_GREATER
@@ -879,32 +879,32 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Returns an array segment pointing to the underlying array, starting from the provided offset, and having the provided length.
+    /// 返回一个直指底部数组的数组段,从提供的偏移开始,并具有所提供的长度。
     /// </summary>
-    /// <param name="offset">The offset into the array that the array segment starts from.</param>
-    /// <param name="length">The length of the array segment.</param>
-    /// <returns>The array segment.</returns>
+    /// <param name="offset">数组段起始数组的偏移。</param>
+    /// <param name="length">数组段的长度。</param>
+    /// <returns>数组段。</returns>
     public ArraySegment<byte> AsArraySegment(int offset, int length) => new(Array, offset, length);
 
     /// <summary>
-    /// Gets a span pointing to the underlying array, starting from the provided offset.
+    /// 从提供的偏移开始, 以底部数组为指向的宽度。
     /// </summary>
-    /// <param name="offset">The offset.</param>
-    /// <returns>The span.</returns>
+    /// <param name="offset">转自</param>
+    /// <returns>宽度</returns>
     public Span<byte> AsSpan(int offset) => Array.AsSpan(offset);
 
     /// <summary>
-    /// Gets a span pointing to the underlying array, starting from the provided offset.
+    /// 从提供的偏移开始, 以底部数组为指向的宽度。
     /// </summary>
-    /// <param name="offset">The offset.</param>
-    /// <param name="length">The length.</param>
-    /// <returns>The span.</returns>
+    /// <param name="offset">转自</param>
+    /// <param name="length">长度。</param>
+    /// <returns>宽度</returns>
     public Span<byte> AsSpan(int offset, int length) => Array.AsSpan(offset, length);
 
     /// <summary>
-    /// Increases the number of bytes written to the page by the provided amount.
+    /// 将页面上写入的字节数增加提供的数额。
     /// </summary>
-    /// <param name="bytes">The number of bytes to increase the length of this page by.</param>
+    /// <param name="bytes">将本页长度增加的字节数。</param>
     public void Advance(int bytes)
     {
         Length += bytes;
@@ -912,10 +912,10 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Sets the next page in the sequence.
+    /// 设置序列中的下一页。
     /// </summary>
-    /// <param name="next">The next page in the sequence.</param>
-    /// <param name="token">The token, which must match the page's <see cref="Version"/> for this operation to be allowed.</param>
+    /// <param name="next">序列中的下一页。</param>
+    /// <param name="token">标记, 此操作要被允许, 必须与页面的 <see cref="Version"/> 匹配。</param>
     public void SetNext(ArcBufferPage next, int token)
     {
         Debug.Assert(Next is null);
@@ -937,9 +937,9 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Pins this page to prevent it from being returned to the page pool.
+    /// 防止将它送回到页面池。
     /// </summary>
-    /// <param name="token">The token, which must match the page's <see cref="Version"/> for this operation to be allowed.</param>
+    /// <param name="token">标记, 此操作要被允许, 必须与页面的 <see cref="Version"/> 匹配。</param>
     public void Pin(int token)
     {
         if (token != _version)
@@ -951,9 +951,9 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Unpins this page, allowing it to be returned to the page pool.
+    /// 将此页面解开, 允许将其返回到页面池中 。
     /// </summary>
-    /// <param name="token">The token, which must match the page's <see cref="Version"/> for this operation to be allowed.</param>
+    /// <param name="token">标记, 此操作要被允许, 必须与页面的 <see cref="Version"/> 匹配。</param>
     public void Unpin(int token)
     {
         CheckValidity(token);
@@ -973,9 +973,9 @@ public sealed class ArcBufferPage
     }
 
     /// <summary>
-    /// Throws if the provided <paramref name="token"/> does not match the page's <see cref="Version"/>.
+    /// 如果提供的 <paramref name="token"/> 与页面的 <see cref="Version"/>不符,则投递。
     /// </summary>
-    /// <param name="token">The token, which must match the page's <see cref="Version"/>.</param>
+    /// <param name="token">标记, 必须与页面 <see cref="Version"/>相匹配。</param>
     public void CheckValidity(int token)
     {
         if (token != _version)
@@ -997,13 +997,13 @@ public sealed class ArcBufferPage
 }
 
 /// <summary>
-/// Provides reader access to an <see cref="ArcBufferWriter"/>.
+/// 提供读者访问 <see cref="ArcBufferWriter"/>的机会。
 /// </summary>
-/// <param name="writer">The writer.</param>
+/// <param name="writer">作家。</param>
 public readonly struct ArcBufferReader(ArcBufferWriter writer)
 {
     /// <summary>
-    /// Gets the number of unconsumed bytes.
+    /// 获取未消耗字节数 。
     /// </summary>
     public int Length
     {
@@ -1012,15 +1012,15 @@ public readonly struct ArcBufferReader(ArcBufferWriter writer)
     }
 
     /// <summary>
-    /// Attempts to read the provided number of bytes from the buffer.
+    /// 试图读取缓冲区内提供的字节数。
     /// </summary>
-    /// <param name="destination">The destination, which may be used to hold the requested data if the data needs to be copied.</param>
-    /// <returns>A span of either zero length, if the data is unavailable, or the requested length if the data is available.</returns>
+    /// <param name="destination">目的地,如果数据需要复制,可用以保存所请求的数据。</param>
+    /// <returns>如果数据不可用,则长度为零,如果数据可用,则长度为零;如果数据可用,则长度为要求的长度。</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> Peek(scoped in Span<byte> destination) => writer.Peek(in destination);
 
     /// <summary>
-    /// Peeks at a byte at the specified offset into the unread data.
+    /// 以指定偏移点的一个字节的坡脚进入未读数据中。
     /// </summary>
     public byte Peek(long offset)
     {
@@ -1033,23 +1033,23 @@ public readonly struct ArcBufferReader(ArcBufferWriter writer)
     }
 
     /// <summary>
-    /// Returns a slice of the provided length without marking the data referred to it as consumed.
+    /// 返回提供长度的片段,但不标明所称消耗的数据。
     /// </summary>
-    /// <param name="count">The number of bytes to consume.</param>
-    /// <returns>A slice of unconsumed data.</returns>
+    /// <param name="count">要消耗的字节数。</param>
+    /// <returns>一片未消耗的数据</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ArcBuffer PeekSlice(int count) => writer.PeekSlice(count);
 
     /// <summary>
-    /// Consumes a slice of the provided length.
+    /// 消耗了规定长度的一小部分。
     /// </summary>
-    /// <param name="count">The number of bytes to consume.</param>
-    /// <returns>A buffer representing the consumed data.</returns>
+    /// <param name="count">要消耗的字节数。</param>
+    /// <returns>代表消耗数据的缓冲符。</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ArcBuffer ConsumeSlice(int count) => writer.ConsumeSlice(count);
 
     /// <summary>
-    /// Reads through the next occurrence of <paramref name="delimiter"/>.
+    /// 读取到下次发生 <paramref name="delimiter"/>时的状态。
     /// </summary>
     public bool TryReadTo(out ArcBuffer slice, byte delimiter, bool advancePastDelimiter = true)
     {
@@ -1070,7 +1070,7 @@ public readonly struct ArcBufferReader(ArcBufferWriter writer)
     }
 
     /// <summary>
-    /// Checks whether the next bytes match <paramref name="next"/>.
+    /// 检查下个字节是否匹配 <paramref name="next"/>。
     /// </summary>
     public bool IsNext(ReadOnlySpan<byte> next, bool advancePast = false)
     {
@@ -1096,7 +1096,7 @@ public readonly struct ArcBufferReader(ArcBufferWriter writer)
     }
 
     /// <summary>
-    /// Consumes the amount of data present in the span.
+    /// 计算跨度内的数据数量。
     /// </summary>
     /// <param name="output"></param>
     public void Consume(Span<byte> output)
@@ -1117,34 +1117,34 @@ public readonly struct ArcBufferReader(ArcBufferWriter writer)
 }
 
 /// <summary>
-/// Represents a reference-counted slice of raw bytes from an <see cref="ArcBufferWriter"/>.
+/// 表示从 <see cref="ArcBufferWriter"/>中取出的一个参考点算的粗字节片。
 /// </summary>
 /// <remarks>
-/// An owned slice must be disposed when no longer needed. Copying this struct creates a borrowed view
-/// whose lifetime is bounded by the owner. Use <see cref="Slice(int)"/> to obtain an independent owner.
-/// Acquire independent ownership before handing a buffer to another concurrent owner.
-/// Each owner keeps its own struct copy and disposes it exactly once; the pages remain pinned until all owners release them.
-/// Referenced bytes must remain unchanged while a slice is in use.
-/// The default value is a valid, owner-free empty buffer.
+/// 无需处置时必须处理自有切片。 复制此支架可创建借出视图
+/// 使用 <see cref="Slice(int)"/> 获得独立所有人。
+/// 在向另一个同时拥有者发放缓冲之前,获得独立所有权。
+/// 每个业主都有自己的结构副本,并准确处理一次;各页一直固定,直到所有业主都放行。
+/// 引用的字节必须在使用切片时保持不变。
+/// 默认值是一个有效的无自有空缓冲。
 /// </remarks>
 public struct ArcBuffer : IDisposable
 {
     /// <summary>
-    /// Creates a borrowed view over a valid, pinned page chain.
+    /// 创建对有效、 被钉定的页面链的借阅视图。
     /// </summary>
-    /// <param name="first">The first page, or <see langword="null"/> for an owner-free empty buffer.</param>
-    /// <param name="token">The current token of <paramref name="first"/>.</param>
-    /// <param name="offset">The offset within <paramref name="first"/> at which the view begins.</param>
-    /// <param name="length">The number of bytes covered by the view.</param>
+    /// <param name="first">第一个页面,或无自有空缓冲的 <see langword="null"/> 。</param>
+    /// <param name="token">当前 <paramref name="first"/>的标识。</param>
+    /// <param name="offset">抵销数 <paramref name="first"/> 开始于此视图的起点 。</param>
+    /// <param name="length">视图覆盖的字节数。</param>
     /// <remarks>
-    /// The owning buffer must keep the referenced pages pinned and their bytes unchanged while this view is in use.
-    /// Call <see cref="Pin"/> to acquire independent ownership.
+    /// 使用该视图时, 拥有的缓冲器必须保持引用页固定不变, 字节不变 。
+    /// 要求 <see cref="Pin"/> 获得独立所有权。
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// The offset is outside the first page, the length is negative or exceeds the linked pages,
-    /// or an owner-free buffer has a nonzero offset or length.
+    /// 下页首页外的加号是负或超过链接页。
+    /// 或无自有缓冲带的长度为非零抵消或零误。
     /// </exception>
-    /// <exception cref="InvalidOperationException">The page token or reference count is invalid.</exception>
+    /// <exception cref="InvalidOperationException">页面符号或引用编号无效。</exception>
     public ArcBuffer(ArcBufferPage? first, int token, int offset, int length)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
@@ -1173,7 +1173,7 @@ public struct ArcBuffer : IDisposable
         Length = length;
     }
 
-    // Writer and slice operations establish the bounds and keep the referenced pages pinned.
+    // 作家和切片操作设置界限,并固定参考页。
     internal ArcBuffer(ArcBufferPage first, int offset, int length)
     {
         Debug.Assert(offset >= 0 && offset <= first.Length);
@@ -1185,32 +1185,32 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Gets the token of the first page pointed to by this slice.
+    /// 获得此片段指向的第一页的标记。
     /// </summary>
     private int _firstPageToken;
 
     /// <summary>
-    /// Gets the first page, or <see langword="null"/> for an owner-free empty buffer.
+    /// 获取第一个页面,或者无自有空缓冲的 <see langword="null"/> 。
     /// </summary>
     public readonly ArcBufferPage? First;
 
     /// <summary>
-    /// Gets the offset into the first page at which this slice begins.
+    /// 将偏移移到此切片起始的第一页。
     /// </summary>
     public readonly int Offset;
 
     /// <summary>
-    /// Gets the length of this sequence.
+    /// 获取此序列的长度 。
     /// </summary>
     public readonly int Length;
 
-    /// <summary>Gets an empty buffer which owns no pages.</summary>
+    /// <summary>获得一个空的没有页面的缓冲。</summary>
     public static ArcBuffer Empty => default;
 
-    /// <summary>Gets whether this buffer contains no bytes.</summary>
+    /// <summary>获取是否此缓冲包含无字节。</summary>
     public readonly bool IsEmpty => Length == 0;
 
-    /// <summary>Copies the contents of this writer to a span.</summary>
+    /// <summary>将此作家的内容复制到一个字符串。</summary>
     public readonly int CopyTo(Span<byte> output)
     {
         CheckValidity();
@@ -1226,7 +1226,7 @@ public struct ArcBuffer : IDisposable
         return copied;
     }
 
-    /// <summary>Copies the contents of this writer to a pooled buffer.</summary>
+    /// <summary>将此作家的内容复制到集合缓冲。</summary>
     public readonly void CopyTo(ArcBufferWriter output)
     {
         CheckValidity();
@@ -1236,7 +1236,7 @@ public struct ArcBuffer : IDisposable
         }
     }
 
-    /// <summary>Copies the contents of this writer to a buffer writer.</summary>
+    /// <summary>将此作家的内容复制到缓冲作者。</summary>
     public readonly void CopyTo<TBufferWriter>(ref TBufferWriter output) where TBufferWriter : IBufferWriter<byte>
     {
         CheckValidity();
@@ -1251,7 +1251,7 @@ public struct ArcBuffer : IDisposable
     {
         var destination = writer.GetSpan();
 
-        // Fast path, try copying to the available memory directly
+        // 快路径, 尝试直接复制到可用内存
         if (value.Length <= destination.Length)
         {
             value.CopyTo(destination);
@@ -1292,7 +1292,7 @@ public struct ArcBuffer : IDisposable
     private static void ThrowInsufficientSpaceException() => throw new InvalidOperationException("Insufficient capacity in provided buffer");
 
     /// <summary>
-    /// Returns a new <see cref="ReadOnlySequence{T}"/> which must not be accessed after disposing this instance.
+    /// 返回新的 <see cref="ReadOnlySequence{T}"/> ,在处理此实例后不得访问。
     /// </summary>
     public readonly ReadOnlySequence<byte> AsReadOnlySequence()
     {
@@ -1325,9 +1325,9 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Returns the data which has been written as an array.
+    /// 返回以数组形式写入的数据。
     /// </summary>
-    /// <returns>The data which has been written.</returns>
+    /// <returns>已经写入的数据 。</returns>
     public readonly byte[] ToArray()
     {
         CheckValidity();
@@ -1337,7 +1337,7 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Throws if the buffer is no longer valid.
+    /// 如果缓冲符不再有效, 则丢弃 。
     /// </summary>
     internal readonly void CheckValidity()
     {
@@ -1352,18 +1352,18 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Creates a pinned slice from the specified offset to the end of this buffer.
+    /// 从指定的偏移到此缓冲的结尾,创建一个切片。
     /// </summary>
-    /// <param name="offset">The zero-based offset at which the slice begins.</param>
-    /// <returns>A pinned slice which must be disposed when it is no longer needed.</returns>
+    /// <param name="offset">切片开始时的零基偏移。</param>
+    /// <returns>一块在不再需要时必须处置的切片。</returns>
     public readonly ArcBuffer Slice(int offset) => Slice(offset, Length - offset);
 
     /// <summary>
-    /// Creates a pinned slice of the specified length.
+    /// 创建指定长度的片段。
     /// </summary>
-    /// <param name="offset">The zero-based offset at which the slice begins.</param>
-    /// <param name="length">The length of the slice.</param>
-    /// <returns>A pinned slice which must be disposed when it is no longer needed.</returns>
+    /// <param name="offset">切片开始时的零基偏移。</param>
+    /// <param name="length">切片的长度。</param>
+    /// <returns>一块在不再需要时必须处置的切片。</returns>
     public readonly ArcBuffer Slice(int offset, int length)
     {
         var result = UnsafeSlice(offset, length);
@@ -1372,11 +1372,11 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Creates a slice whose lifetime is bounded by this buffer.
+    /// 创建一块被此缓冲圈所连接的切片。
     /// </summary>
-    /// <param name="offset">The zero-based offset at which the slice begins.</param>
-    /// <param name="length">The length of the slice.</param>
-    /// <returns>An unpinned slice which remains valid while this buffer keeps the referenced pages pinned.</returns>
+    /// <param name="offset">切片开始时的零基偏移。</param>
+    /// <param name="length">切片的长度。</param>
+    /// <returns>一个未喷漆切片, 此缓冲将引用页固定住, 其有效性保持不变 。</returns>
     public readonly ArcBuffer UnsafeSlice(int offset, int length)
     {
 #if NET6_0_OR_GREATER
@@ -1410,11 +1410,11 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Pins this slice, preventing the referenced pages from being returned to the pool.
+    /// 防止参考页被送回池子
     /// </summary>
     /// <remarks>
-    /// Each call acquires an additional owner pin. Give each owner its own struct copy before handoff
-    /// and balance each acquired pin with one <see cref="Unpin"/> or <see cref="Dispose"/>.
+    /// 每通电话都另购一个自有别针。在交接前给每个自有副本
+    /// 每种物的平衡,各取一个 <see cref="Unpin"/> 或 <see cref="Dispose"/>。
     /// </remarks>
     public readonly void Pin()
     {
@@ -1441,7 +1441,7 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Unpins this slice, allowing the referenced pages to be returned to the pool.
+    /// 解开这个切片, 允许引用的页面返回到池中 。
     /// </summary>
     public void Unpin()
     {
@@ -1474,21 +1474,21 @@ public struct ArcBuffer : IDisposable
     public void Dispose() => Unpin();
 
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the span segments referenced by this instance.
+    /// 返回一个可以用来计算此例引用的宽段的点数。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     public readonly SpanEnumerator GetEnumerator() => new(this);
 
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the pages referenced by this instance.
+    /// 返回一个可以用来计算此例引用的页面的数值。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     internal readonly PageEnumerator Pages => new(this);
 
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the pages referenced by this instance.
+    /// 返回一个可以用来计算此例引用的页面的数值。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     internal readonly PageSegmentEnumerator PageSegments
     {
         get
@@ -1499,66 +1499,66 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the span segments referenced by this instance.
+    /// 返回一个可以用来计算此例引用的宽段的点数。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     public readonly SpanEnumerator SpanSegments => new(this);
 
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the memory segments referenced by this instance.
+    /// 返回一个可以用来计算此实例引用的内存段的数值。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     public readonly MemoryEnumerator MemorySegments => new(this);
 
     /// <summary>
-    /// Returns an enumerator which can be used to enumerate the array segments referenced by this instance.
+    /// 返回一个可以用来计算此实例引用的数组段的量子。
     /// </summary>
-    /// <returns>An enumerator for the data contained in this instance.</returns>
+    /// <returns>用于此例中所含数据的计算器。</returns>
     public readonly ArraySegmentEnumerator ArraySegments => new(this);
 
     /// <summary>
-    /// Defines a region of data within a page.
+    /// 定义页面中的数据区域。
     /// </summary>
     public readonly struct PageSegment(ArcBufferPage page, int offset, int length)
     {
         /// <summary>
-        /// Gets the page which this segment refers to.
+        /// 获取此段所指页。
         /// </summary>
         public readonly ArcBufferPage Page = page;
 
         /// <summary>
-        /// Gets the offset into the page at which this region begins.
+        /// 将偏移移到此区域起始的页面中。
         /// </summary>
         public readonly int Offset = offset;
 
         /// <summary>
-        /// Gets the length of this region.
+        /// 得到这个区域的时间长度。
         /// </summary>
         public readonly int Length = length;
 
         /// <summary>
-        /// Gets a <see cref="ReadOnlySpan{T}"/> representation of this region.
+        /// 获得该地区 <see cref="ReadOnlySpan{T}"/> 的代表。
         /// </summary>
         public readonly ReadOnlySpan<byte> Span => Page.AsSpan(Offset, Length);
 
         /// <summary>
-        /// Gets a <see cref="ReadOnlyMemory{T}"/> representation of this region.
+        /// 获得该地区 <see cref="ReadOnlyMemory{T}"/> 的代表。
         /// </summary>
         public readonly ReadOnlyMemory<byte> Memory => Page.AsMemory(Offset, Length);
 
         /// <summary>
-        /// Gets an <see cref="ArraySegment{T}"/> representation of this region.
+        /// 获得该地区 <see cref="ArraySegment{T}"/> 的代表。
         /// </summary>
         public readonly ArraySegment<byte> ArraySegment => Page.AsArraySegment(Offset, Length);
     }
 
     /// <summary>
-    /// Enumerates over page segments in a <see cref="ArcBuffer"/>.
+    /// 在 <see cref="ArcBuffer"/>中页面段上的数字。
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="PageSegmentEnumerator"/> type.
+    /// 初始化 <see cref="PageSegmentEnumerator"/> 类型的新实例。
     /// </remarks>
-    /// <param name="slice">The buffer to enumerate.</param>
+    /// <param name="slice">缓冲点要加。</param>
     internal struct PageSegmentEnumerator(ArcBuffer slice) : IEnumerable<PageSegment>, IEnumerator<PageSegment>
     {
         internal readonly ArcBuffer Slice = slice;
@@ -1570,13 +1570,13 @@ public struct ArcBuffer : IDisposable
         internal readonly int Length => Slice.Length;
 
         /// <summary>
-        /// Gets this instance as an enumerator.
+        /// 获取此实例作为点数器 。
         /// </summary>
-        /// <returns>This instance.</returns>
+        /// <returns>此实例。</returns>
         public readonly PageSegmentEnumerator GetEnumerator() => this;
 
         /// <summary>
-        /// Gets the element in the collection at the current position of the enumerator.
+        /// 将收藏中的元素移到当前点的分子位置。
         /// </summary>
         public PageSegment Current { get; private set; }
 
@@ -1584,14 +1584,14 @@ public struct ArcBuffer : IDisposable
         readonly object? IEnumerator.Current => Current;
 
         /// <summary>
-        /// Gets a value indicating whether enumeration has completed.
+        /// 获得一个数值,显示是否已完成查点。
         /// </summary>
         public readonly bool IsCompleted => _page is null || _position == Length;
 
         /// <summary>
-        /// Advances the enumerator to the next element of the collection.
+        /// 将分子推进到收藏的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             if (_position == 0 && (Length == 0 || _page == First)) Slice.CheckValidity();
@@ -1642,24 +1642,24 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Enumerates over pages in a <see cref="ArcBuffer"/>.
+    /// 在 <see cref="ArcBuffer"/>中从页面上列出数字。
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="PageEnumerator"/> type.
+    /// 初始化 <see cref="PageEnumerator"/> 类型的新实例。
     /// </remarks>
-    /// <param name="slice">The slice to enumerate.</param>
+    /// <param name="slice">切片要加。</param>
     internal struct PageEnumerator(ArcBuffer slice) : IEnumerable<ArcBufferPage>, IEnumerator<ArcBufferPage?>
     {
         private PageSegmentEnumerator _enumerator = slice.PageSegments;
 
         /// <summary>
-        /// Gets this instance as an enumerator.
+        /// 获取此实例作为点数器 。
         /// </summary>
-        /// <returns>This instance.</returns>
+        /// <returns>此实例。</returns>
         public readonly PageEnumerator GetEnumerator() => this;
 
         /// <summary>
-        /// Gets the element in the collection at the current position of the enumerator.
+        /// 将收藏中的元素移到当前点的分子位置。
         /// </summary>
         public ArcBufferPage? Current { get; private set; }
 
@@ -1667,9 +1667,9 @@ public struct ArcBuffer : IDisposable
         readonly object? IEnumerator.Current => Current;
 
         /// <summary>
-        /// Advances the enumerator to the next element of the collection.
+        /// 将分子推进到收藏的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             if (_enumerator.MoveNext())
@@ -1700,31 +1700,31 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Enumerates over spans of bytes in a <see cref="ArcBuffer"/>.
+    /// 在 <see cref="ArcBuffer"/>中横跨字节的数值。
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="SpanEnumerator"/> type.
+    /// 初始化 <see cref="SpanEnumerator"/> 类型的新实例。
     /// </remarks>
-    /// <param name="slice">The slice to enumerate.</param>
+    /// <param name="slice">切片要加。</param>
     public ref struct SpanEnumerator(ArcBuffer slice)
     {
         private PageSegmentEnumerator _enumerator = slice.PageSegments;
 
         /// <summary>
-        /// Gets this instance as an enumerator.
+        /// 获取此实例作为点数器 。
         /// </summary>
-        /// <returns>This instance.</returns>
+        /// <returns>此实例。</returns>
         public readonly SpanEnumerator GetEnumerator() => this;
 
         /// <summary>
-        /// Gets the element in the collection at the current position of the enumerator.
+        /// 将收藏中的元素移到当前点的分子位置。
         /// </summary>
         public ReadOnlySpan<byte> Current { get; private set; }
 
         /// <summary>
-        /// Advances the enumerator to the next element of the collection.
+        /// 将分子推进到收藏的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             if (_enumerator.MoveNext())
@@ -1739,24 +1739,24 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Enumerates over sequences of bytes in a <see cref="ArcBuffer"/>.
+    /// 在 <see cref="ArcBuffer"/>中,对字节序列的数。
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="MemoryEnumerator"/> type.
+    /// 初始化 <see cref="MemoryEnumerator"/> 类型的新实例。
     /// </remarks>
-    /// <param name="slice">The slice to enumerate.</param>
+    /// <param name="slice">切片要加。</param>
     public struct MemoryEnumerator(ArcBuffer slice) : IEnumerable<ReadOnlyMemory<byte>>, IEnumerator<ReadOnlyMemory<byte>>
     {
         private PageSegmentEnumerator _enumerator = slice.PageSegments;
 
         /// <summary>
-        /// Gets this instance as an enumerator.
+        /// 获取此实例作为点数器 。
         /// </summary>
-        /// <returns>This instance.</returns>
+        /// <returns>此实例。</returns>
         public readonly MemoryEnumerator GetEnumerator() => this;
 
         /// <summary>
-        /// Gets the element in the collection at the current position of the enumerator.
+        /// 将收藏中的元素移到当前点的分子位置。
         /// </summary>
         public ReadOnlyMemory<byte> Current { get; private set; }
 
@@ -1764,9 +1764,9 @@ public struct ArcBuffer : IDisposable
         readonly object? IEnumerator.Current => Current;
 
         /// <summary>
-        /// Advances the enumerator to the next element of the collection.
+        /// 将分子推进到收藏的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             if (_enumerator.MoveNext())
@@ -1797,24 +1797,24 @@ public struct ArcBuffer : IDisposable
     }
 
     /// <summary>
-    /// Enumerates over array segments in a <see cref="ArcBuffer"/>.
+    /// 在 <see cref="ArcBuffer"/>中,在数组区段上进行点数。
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="ArraySegmentEnumerator"/> type.
+    /// 初始化 <see cref="ArraySegmentEnumerator"/> 类型的新实例。
     /// </remarks>
-    /// <param name="slice">The slice to enumerate.</param>
+    /// <param name="slice">切片要加。</param>
     public struct ArraySegmentEnumerator(ArcBuffer slice) : IEnumerable<ArraySegment<byte>>, IEnumerator<ArraySegment<byte>>
     {
         private PageSegmentEnumerator _enumerator = slice.PageSegments;
 
         /// <summary>
-        /// Gets this instance as an enumerator.
+        /// 获取此实例作为点数器 。
         /// </summary>
-        /// <returns>This instance.</returns>
+        /// <returns>此实例。</returns>
         public readonly ArraySegmentEnumerator GetEnumerator() => this;
 
         /// <summary>
-        /// Gets the element in the collection at the current position of the enumerator.
+        /// 将收藏中的元素移到当前点的分子位置。
         /// </summary>
         public ArraySegment<byte> Current { get; private set; }
 
@@ -1822,14 +1822,14 @@ public struct ArcBuffer : IDisposable
         readonly object? IEnumerator.Current => Current;
 
         /// <summary>
-        /// Gets a value indicating whether enumeration has completed.
+        /// 获得一个数值,显示是否已完成查点。
         /// </summary>
         public readonly bool IsCompleted => _enumerator.IsCompleted;
 
         /// <summary>
-        /// Advances the enumerator to the next element of the collection.
+        /// 将分子推进到收藏的下一个元素。
         /// </summary>
-        /// <returns><see langword="true"/> if the enumerator was successfully advanced to the next element; <see langword="false"/> if the enumerator has passed the end of the collection.</returns>
+        /// <returns><see langword="true"/> 如果该分子成功地被推进到下一个元素; <see langword="false"/> 如果该分子已经超过收藏的终点。</returns>
         public bool MoveNext()
         {
             if (_enumerator.MoveNext())

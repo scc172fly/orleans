@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="object"/>.
+    /// <see cref="object"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class ObjectCodec : IFieldCodec<object>
@@ -19,12 +19,12 @@ namespace Orleans.Serialization.Codecs
         object IFieldCodec<object>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field)!;
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static object? ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -57,13 +57,13 @@ namespace Orleans.Serialization.Codecs
         void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <summary>
-        /// Writes a field.
+        /// 写一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="expectedType">The expected type.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="expectedType">预想的类型。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object? value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -78,19 +78,19 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field.
+        /// 写一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, object? value) where TBufferWriter : IBufferWriter<byte>
             => WriteField(ref writer, fieldIdDelta, null!, value);
 
         void IFieldCodec.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object? value)
         {
-            // only the untyped writer will need to support actual object type values
+            // 只需要未输入的写器来支持实际对象类型值
             if (value is null || value.GetType() == typeof(object))
             {
                 if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value!))
@@ -109,17 +109,17 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="object"/>.
+    /// <see cref="object"/>的复印机。
     /// </summary>
     [RegisterCopier]
     public sealed class ObjectCopier : IDeepCopier<object>
     {
         /// <summary>
-        /// Creates a deep copy of the provided input.
+        /// 创建所提供输入的深度副本。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="context">The context.</param>
-        /// <returns>A copy of <paramref name="input" />.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="context">上下文。</param>
+        /// <returns>一份 <paramref name="input" />.</returns>
         [return: NotNullIfNotNull(nameof(input))]
         public static object? DeepCopy(object? input, CopyContext context)
         {

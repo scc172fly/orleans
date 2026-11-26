@@ -1,10 +1,10 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// The spelled declaration of a generated invokable, planned while its proxy discovers the invokable.
+/// 被设计出来的可引用的口号 其代理发现不可引用的
 /// </summary>
 /// <remarks>
-/// A cancellable invokable has both cancellation fields. <see cref="Arguments"/> lists every method parameter, including cancellation tokens.
+/// 可删除的可引用文件有两个取消字段。 <see cref="Arguments"/> 列出每个方法参数,包括取消标记。
 /// </remarks>
 internal sealed record InvokableEmissionPlan(
     string ClassName,
@@ -38,7 +38,7 @@ internal sealed record InvokableEmissionPlan(
     string InvokeArguments,
     bool OptOutOfGrainCancellationTokenScan)
 {
-    /// <summary>The metadata name of the generated type within <paramref name="generatedNamespace"/>.</summary>
+    /// <summary>生成类型在 <paramref name="generatedNamespace"/>.</summary>
     public string GetMetadataName(string generatedNamespace)
     {
         var name = string.IsNullOrEmpty(generatedNamespace) ? ClassName : $"{generatedNamespace}.{ClassName}";

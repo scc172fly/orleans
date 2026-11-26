@@ -3,7 +3,7 @@ using System.Xml.Linq;
 namespace TestGrains
 {
     /// <summary>
-    /// all chat events implement this interface, to define how each event changes the XML document
+    /// 所有聊天事件的聊天事件都执行此界面, 以定义每个事件如何修改 XML 文档
     /// </summary>
     public interface IChatEvent
     {

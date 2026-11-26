@@ -1,12 +1,12 @@
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Orleans ServiceBus error codes
+    /// Orleans ServiceBus 错误代码
     /// </summary>
     internal enum OrleansEventHubErrorCode
     {
         /// <summary>
-        /// Start of orlean servicebus error codes
+        /// 开始 Olean 服务客车错误代码
         /// </summary>
         ServiceBus = 1 << 16,
 

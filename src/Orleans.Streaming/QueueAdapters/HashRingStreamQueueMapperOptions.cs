@@ -3,18 +3,18 @@ using Orleans.Streams;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for <see cref="HashRingBasedStreamQueueMapper"/>.
+    /// <see cref="HashRingBasedStreamQueueMapper"/>选项。
     /// </summary>
     public class HashRingStreamQueueMapperOptions
     {
         /// <summary>
-        /// Gets or sets the total queue count.
+        /// 获取或设置队列总数 。
         /// </summary>
-        /// <value>The total queue count.</value>
+        /// <value>队列总数。</value>
         public int TotalQueueCount { get; set; } = DEFAULT_NUM_QUEUES;
 
         /// <summary>
-        /// The default number queues, which should be a power of two.
+        /// 默认的数队列, 应该是两个的功率 。
         /// </summary>
         public const int DEFAULT_NUM_QUEUES = 8;
     }

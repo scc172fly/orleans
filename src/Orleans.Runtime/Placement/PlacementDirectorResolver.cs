@@ -4,26 +4,26 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// Responsible for resolving an <see cref="IPlacementDirector"/> for a <see cref="PlacementStrategy"/>.
+    /// 负责解决 <see cref="IPlacementDirector"/> a 的a <see cref="PlacementStrategy"/>.
     /// </summary>
     public sealed class PlacementDirectorResolver
     {
         private readonly IServiceProvider _services;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlacementDirectorResolver"/> class.
+        /// 初始化 <see cref="PlacementDirectorResolver"/> 类的新实例。
         /// </summary>
-        /// <param name="services">The service provider used to resolve placement directors.</param>
+        /// <param name="services">用来解决安置主任问题的服务供应商。</param>
         public PlacementDirectorResolver(IServiceProvider services)
         {
             _services = services;
         }
 
         /// <summary>
-        /// Gets the placement director associated with the provided placement strategy.
+        /// 与提供的职位安排策略相关的职位安排主任也得到联系。
         /// </summary>
-        /// <param name="placementStrategy">The placement strategy.</param>
-        /// <returns>The placement director associated with <paramref name="placementStrategy"/>.</returns>
+        /// <param name="placementStrategy">安置战略。</param>
+        /// <returns>与 <paramref name="placementStrategy"/>.</returns>
         public IPlacementDirector GetPlacementDirector(PlacementStrategy placementStrategy) => _services.GetRequiredKeyedService<IPlacementDirector>(placementStrategy.GetType());
     }
 }

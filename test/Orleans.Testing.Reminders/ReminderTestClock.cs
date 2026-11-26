@@ -9,12 +9,12 @@ using Orleans.TestingHost;
 namespace Orleans.Testing.Reminders;
 
 /// <summary>
-/// Provides deterministic time control for reminder tests running in an <see cref="InProcessTestCluster"/>.
+/// 为在 <see cref="InProcessTestCluster"/>运行的提醒测试提供确定时间控制。
 /// </summary>
 /// <remarks>
-/// Attach an instance to an <see cref="InProcessTestClusterBuilder"/> before building the cluster.
-/// The attached clock replaces the reminder subsystem's keyed <see cref="TimeProvider"/> and tunes
-/// <see cref="ReminderOptions"/> for deterministic reminder scheduling without affecting unrelated silo timers.
+/// 在构建数据组之前,将实例附加到 <see cref="InProcessTestClusterBuilder"/> 。
+/// 随附时钟替换提醒子系统的关键键 <see cref="TimeProvider"/> 和调
+/// 确定性提醒时间安排的<see cref="ReminderOptions"/> ,不影响无关的 silo 计时器。
 /// </remarks>
 public sealed class ReminderTestClock : IDisposable
 {
@@ -38,39 +38,39 @@ public sealed class ReminderTestClock : IDisposable
     internal FakeTimeProvider TimeProvider { get; }
 
     /// <summary>
-    /// Gets the diagnostic observer attached before the cluster is built, so reminder-service startup events are
-    /// available to deterministic lifecycle tests.
+    /// 获得在集群组建立前附的诊断观察家,因此提醒服务启动活动
+    /// 可用于确定性生命周期测试。
     /// </summary>
     public ReminderDiagnosticObserver DiagnosticObserver { get; }
 
     /// <summary>
-    /// Gets the current reminder clock time.
+    /// 获取当前提醒时钟的时间 。
     /// </summary>
     public DateTimeOffset UtcNow => TimeProvider.GetUtcNow();
 
     /// <summary>
-    /// Gets the minimum reminder period configured for clusters using this clock.
+    /// 获得使用此时钟配置的集群最小提醒时间段 。
     /// </summary>
     public TimeSpan MinimumReminderPeriod { get; }
 
     /// <summary>
-    /// Gets the reminder table refresh period configured for clusters using this clock.
+    /// 获取使用此时钟配置的提醒表更新周期。
     /// </summary>
     public TimeSpan RefreshReminderListPeriod { get; }
 
     /// <summary>
-    /// Gets the reminder service initialization timeout configured for clusters using this clock.
+    /// 获取使用此时钟配置的提醒服务初始化超时,用于集组。
     /// </summary>
     public TimeSpan InitializationTimeout { get; }
 
     /// <summary>
-    /// Attaches a deterministic reminder clock to the provided <see cref="InProcessTestClusterBuilder"/>.
+    /// 在所提供的 <see cref="InProcessTestClusterBuilder"/>上附上确定性提醒时钟。
     /// </summary>
-    /// <param name="builder">The test cluster builder.</param>
-    /// <param name="minimumReminderPeriod">An optional minimum reminder period override.</param>
-    /// <param name="refreshReminderListPeriod">An optional reminder list refresh period override.</param>
-    /// <param name="initializationTimeout">An optional reminder initialization timeout override.</param>
-    /// <returns>The attached reminder test clock.</returns>
+    /// <param name="builder">测试组群构建器。</param>
+    /// <param name="minimumReminderPeriod">可选择的最低提醒时间过重 。</param>
+    /// <param name="refreshReminderListPeriod">提醒列表的复新期替换。</param>
+    /// <param name="initializationTimeout">提醒启动超时覆盖选项。</param>
+    /// <returns>所附的提醒测试钟。</returns>
     public static ReminderTestClock Attach(
         InProcessTestClusterBuilder builder,
         TimeSpan? minimumReminderPeriod = null,
@@ -101,10 +101,10 @@ public sealed class ReminderTestClock : IDisposable
     }
 
     /// <summary>
-    /// Advances the cluster reminder clock by the specified amount.
+    /// 以指定数额将集束提醒时钟提前。
     /// </summary>
-    /// <param name="amount">The amount of time to advance.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="amount">预发时间的长度 。</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public async Task AdvanceAsync(TimeSpan amount, CancellationToken cancellationToken = default)
     {
         if (amount < TimeSpan.Zero)
@@ -127,10 +127,10 @@ public sealed class ReminderTestClock : IDisposable
     }
 
     /// <summary>
-    /// Prevents concurrent clock advances until the returned handle is disposed.
+    /// 防止同时时预付,直到处理回转的把手。
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>An async-disposable handle which resumes clock advances when disposed.</returns>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>一个可自动处理的处理器, 可在处置时恢复钟速预发款。</returns>
     public async Task<IAsyncDisposable> FreezeAsync(CancellationToken cancellationToken = default)
     {
         await _advanceLock.WaitAsync(cancellationToken);

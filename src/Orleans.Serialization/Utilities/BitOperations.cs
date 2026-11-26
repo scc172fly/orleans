@@ -7,9 +7,9 @@ namespace Orleans.Serialization.Utilities
 #if NETCOREAPP3_1_OR_GREATER
 #else
     /// <summary>
-    /// BitOperations polyfill.
+    /// BitOperations 复方填充。
     /// </summary>
-    // Extracted from https://github.com/dotnet/runtime/blob/e13871cb275b9f53fa82285b2a81ada28a859b50/src/libraries/System.Private.CoreLib/src/System/Numerics/BitOperations.cs
+    // 摘自 https://github.com/dotnet/runtime/blob/e13871cb275b9f53fa82285b2a81ada28a859b50/src/libraries/System.Private.CoreLib/src/System/Numerics/BitOperations.cs
     internal static class BitOperations
     {
         private static ReadOnlySpan<byte> TrailingZeroCountDeBruijn => new byte[32]
@@ -29,26 +29,26 @@ namespace Orleans.Serialization.Utilities
         };
 
         /// <summary>
-        /// Returns the integer (floor) log of the specified value, base 2.
-        /// Note that by convention, input value 0 returns 0 since log(0) is undefined.
+        /// 返回指定值的整数(底)日志,基数2。
+        /// 请注意,根据常规,输入值 0 返回 0, 因为对日志( 0) 未定义 。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int Log2(uint value)
         {
-            // The 0->0 contract is fulfilled by setting the LSB to 1.
-            // Log(1) is 0, and setting the LSB for values > 1 does not change the log2 result.
+            // 履行0->0合同的办法是将LSB设为1。
+            // 日志(1)为0,而设定值 > 1的 LSB 不改变对日志结果。
             value |= 1;
 
-            // Fallback contract is 0->0
+            // 后退合同为0- >0
             return Log2SoftwareFallback(value);
         }
 
         /// <summary>
-        /// Returns the integer (floor) log of the specified value, base 2.
-        /// Note that by convention, input value 0 returns 0 since log(0) is undefined.
+        /// 返回指定值的整数(底)日志,基数2。
+        /// 请注意,根据常规,输入值 0 返回 0, 因为对日志( 0) 未定义 。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int Log2(ulong value)
         {
@@ -65,58 +65,58 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// Returns the integer (floor) log of the specified value, base 2.
-        /// Note that by convention, input value 0 returns 0 since Log(0) is undefined.
-        /// Does not directly use any hardware intrinsics, nor does it incur branching.
+        /// 返回指定值的整数(底)日志,基数2。
+        /// 请注意,根据常规,输入值 0 返回 0, 因为日志( 0) 未定义 。
+        /// 不直接使用任何硬件的内在特性,也不产生分支。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         private static int Log2SoftwareFallback(uint value)
         {
-            // No AggressiveInlining due to large method size
-            // Has conventional contract 0->0 (Log(0) is undefined)
+            // 无 AggressiveInlining 由于方法大小大
+            // 合同为0- >0(记录(0)未定义)
 
-            // Fill trailing zeros with ones, eg 00010010 becomes 00011111
+            // 填充末端零, 以一个填充零, eg00010010 变成00011111
             value |= value >> 01;
             value |= value >> 02;
             value |= value >> 04;
             value |= value >> 08;
             value |= value >> 16;
 
-            // uint.MaxValue >> 27 is always in range [0 - 31] so we use Unsafe.AddByteOffset to avoid bounds check
+            // uint.MaxValue 27总是在范围[0 -31],所以我们使用 Unsafe.AddByteOffset 避免边框检查
             return Unsafe.AddByteOffset(
-                // Using deBruijn sequence, k=2, n=5 (2^5=32) : 0b_0000_0111_1100_0100_1010_1100_1101_1101u
+                // 使用 deBruijn sequence, k=2, n=5 (2^5=32) : 0b_0000_0111_1100_0100_1010_1100_1101_1101u
                 ref MemoryMarshal.GetReference(Log2DeBruijn),
-                // uint|long -> IntPtr cast on 32-bit platforms does expensive overflow checks not needed here
+                // 昆特隆 ->32位平台上 IntPtr 的投影使用昂贵的溢出检查,此处不需要
                 (IntPtr)(int)((value * 0x07C4ACDDu) >> 27));
         }
 
         /// <summary>
-        /// Count the number of trailing zero bits in an integer value.
-        /// Similar in behavior to the x86 instruction TZCNT.
+        /// 以整数值计算末端零位数。
+        /// 类似x86指令TZCNT的行为。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(uint value)
         {
-            // Unguarded fallback contract is 0->0, BSF contract is 0->undefined
+            // 无担保的后退合同为0->0, BSF合同为0>未定义
             if (value == 0)
             {
                 return 32;
             }
 
-            // uint.MaxValue >> 27 is always in range [0 - 31] so we use Unsafe.AddByteOffset to avoid bounds check
+            // uint.MaxValue 27总是在范围[0 -31],所以我们使用 Unsafe.AddByteOffset 避免边框检查
             return Unsafe.AddByteOffset(
-                // Using deBruijn sequence, k=2, n=5 (2^5=32) : 0b_0000_0111_0111_1100_1011_0101_0011_0001u
+                // 使用 deBruijn 序列, k=2, n=5 (2°5=32) : 0b_ 0000_ 011_0111_ 1100_ 1011_ 0101_ 0011_0001u
                 ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn),
-                // uint|long -> IntPtr cast on 32-bit platforms does expensive overflow checks not needed here
-                (IntPtr)(int)(((value & (uint)-(int)value) * 0x077CB531u) >> 27)); // Multi-cast mitigates redundant conv.u8
+                // 昆特隆 ->32位平台上 IntPtr 的投影使用昂贵的溢出检查,此处不需要
+                (IntPtr)(int)(((value & (uint)-(int)value) * 0x077CB531u) >> 27)); // 多播减轻冗余 conv.u8
         }
 
         /// <summary>
-        /// Count the number of trailing zero bits in a mask.
-        /// Similar in behavior to the x86 instruction TZCNT.
+        /// 计算面具中末端零位数。
+        /// 类似x86指令TZCNT的行为。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(ulong value)
         {
@@ -130,16 +130,16 @@ namespace Orleans.Serialization.Utilities
             return TrailingZeroCount(lo);
         }
 
-        /// <summary>Round the given integral value up to a power of 2.</summary>
-        /// <param name="value">The value.</param>
+        /// <summary>将给定整体值四舍五入至2.</summary>
+        /// <param name="value">数值。</param>
         /// <returns>
-        /// The smallest power of 2 which is greater than or equal to <paramref name="value"/>.
-        /// If <paramref name="value"/> is 0 or the result overflows, returns 0.
+        /// 2个最小功率大于或等于 <paramref name="value"/>。
+        /// 如果 <paramref name="value"/> 是 0 或结果溢出,返回 0。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint RoundUpToPowerOf2(uint value)
         {
-            // Based on https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+            // 基于 https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
             --value;
             value |= value >> 1;
             value |= value >> 2;

@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Identifies a grain constructor parameter as a transaction committer facet.
+    /// 将 grain 构建参数指定为交易承诺方面板。
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
     public class TransactionCommitterAttribute : Attribute, IFacetMetadata, ITransactionCommitterConfiguration
@@ -15,10 +15,10 @@ namespace Orleans.Transactions.Abstractions
         public string? StorageName { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionCommitterAttribute"/> class.
+        /// 初始化 <see cref="TransactionCommitterAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceName">The name of the service which receives committed operations.</param>
-        /// <param name="storageName">The name of the storage provider used by the transaction committer.</param>
+        /// <param name="serviceName">接受已承诺行动的机构的名称。</param>
+        /// <param name="storageName">交易承诺方使用的存储提供者的名称。</param>
         public TransactionCommitterAttribute(string serviceName, string? storageName = null)
         {
             this.ServiceName = serviceName;

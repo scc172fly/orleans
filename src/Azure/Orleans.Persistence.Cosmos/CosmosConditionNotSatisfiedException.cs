@@ -4,7 +4,7 @@ using Orleans.Storage;
 namespace Orleans.Persistence.Cosmos;
 
 /// <summary>
-/// Exception thrown when a storage provider detects an Etag inconsistency when attempting to perform a WriteStateAsync operation.
+/// 当储存提供者在试图进行 WriteStateAsync 操作时发现Etag不一致时,就提出例外。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
@@ -13,7 +13,7 @@ public class CosmosConditionNotSatisfiedException : InconsistentStateException
     private const string DefaultMessageFormat = "Cosmos DB condition not satisfied. GrainType: {0}, GrainId: {1}, TableName: {2}, StoredETag: {3}, CurrentETag: {4}";
 
     /// <summary>
-    /// Exception thrown when a Cosmos DB exception is thrown due to update conditions not being satisfied.
+    /// 宇宙DB例外因不符合更新条件而被抛出例外。
     /// </summary>
     public CosmosConditionNotSatisfiedException(
         string errorMsg,
@@ -30,7 +30,7 @@ public class CosmosConditionNotSatisfiedException : InconsistentStateException
     }
 
     /// <summary>
-    /// Exception thrown when a Cosmos DB exception is thrown due to update conditions not being satisfied.
+    /// 宇宙DB例外因不符合更新条件而被抛出例外。
     /// </summary>
     public CosmosConditionNotSatisfiedException(
         string grainType,
@@ -43,32 +43,32 @@ public class CosmosConditionNotSatisfiedException : InconsistentStateException
     }
 
     /// <summary>
-    /// Gets the id of the affected grain.
+    /// 获取受影响者的代号 grain。
     /// </summary>
     [Id(0)]
     public string GrainId { get; } = default!;
 
     /// <summary>
-    /// Gets the grain type of the affected grain.
+    /// 获取受影响者的 grain 类型 grain。
     /// </summary>
     [Id(1)]
     public string GrainType { get; } = default!;
 
     /// <summary>
-    /// Gets the collection name
+    /// 获取收藏名称
     /// </summary>
     [Id(2)]
     public string Collection { get; } = default!;
 
     /// <summary>
-    /// Exception thrown when a Cosmos DB exception is thrown due to update conditions not being satisfied.
+    /// 宇宙DB例外因不符合更新条件而被抛出例外。
     /// </summary>
     public CosmosConditionNotSatisfiedException()
     {
     }
 
     /// <summary>
-    /// Exception thrown when a Cosmos DB exception is thrown due to update conditions not being satisfied.
+    /// 宇宙DB例外因不符合更新条件而被抛出例外。
     /// </summary>
     public CosmosConditionNotSatisfiedException(string msg)
         : base(msg)
@@ -76,7 +76,7 @@ public class CosmosConditionNotSatisfiedException : InconsistentStateException
     }
 
     /// <summary>
-    /// Exception thrown when a Cosmos DB exception is thrown due to update conditions not being satisfied.
+    /// 宇宙DB例外因不符合更新条件而被抛出例外。
     /// </summary>
     public CosmosConditionNotSatisfiedException(string msg, Exception exc)
         : base(msg, exc)
@@ -91,7 +91,7 @@ public class CosmosConditionNotSatisfiedException : InconsistentStateException
         string? currentEtag) => string.Format(DefaultMessageFormat, grainType, grainId, collection, storedEtag, currentEtag);
 
     /// <summary>
-    /// Exception thrown when a Cosmos DB exception is thrown due to update conditions not being satisfied.
+    /// 宇宙DB例外因不符合更新条件而被抛出例外。
     /// </summary>
     [Obsolete]
     protected CosmosConditionNotSatisfiedException(SerializationInfo info, StreamingContext context)

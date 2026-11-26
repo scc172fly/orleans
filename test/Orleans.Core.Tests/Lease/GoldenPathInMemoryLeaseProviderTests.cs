@@ -6,7 +6,7 @@ using TestExtensions.Runners;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Tests for the in-memory lease provider implementation following the golden path test patterns.
+    /// 采用金路测试模式进行租赁供应商实施模拟测试。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Lease")]
     [TestSuite("BVT")]

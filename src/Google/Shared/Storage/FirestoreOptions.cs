@@ -9,26 +9,26 @@ namespace Orleans.Reminders.Firestore;
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.Firestore;
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 
 /// <summary>
-/// Google Cloud Firestore options
+/// Google 云烟火炉备选方案
 /// </summary>
 public class FirestoreOptions
 {
     /// <summary>
-    /// The Google Cloud project id.
+    /// 谷歌云项目id。
     /// </summary>
     public string ProjectId { get; set; } = default!;
 
     /// <summary>
-    /// The Firestore emulator host. Leave unset to use Google Cloud Firestore.
+    /// 火炉模拟主机。 请使用 Google Cloud Firshstore , 保留未设定的位置 。
     /// </summary>
     public string? EmulatorHost { get; set; }
 
     /// <summary>
-    /// The Google Cloud Firestore root collection name.
+    /// 谷歌云火炉根收集名称。
     /// </summary>
     public string RootCollectionName { get; set; } = "Orleans";
 

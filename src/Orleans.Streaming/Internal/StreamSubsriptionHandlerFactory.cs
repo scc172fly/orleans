@@ -5,7 +5,7 @@ using Orleans.Streams.Core;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Factory for creating <see cref="StreamSubscriptionHandle{T}"/> instances.
+    /// 创建 <see cref="StreamSubscriptionHandle{T}"/> 实例的工厂。
     /// </summary>
     public class StreamSubscriptionHandlerFactory : IStreamSubscriptionHandleFactory
     {
@@ -21,19 +21,19 @@ namespace Orleans.Streams
         public GuidId SubscriptionId { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamSubscriptionHandlerFactory"/> class.
+        /// 初始化 <see cref="StreamSubscriptionHandlerFactory"/> 类的新实例。
         /// </summary>        
         /// <param name="streamProvider">
-        /// The stream provider.
+        /// 溪流供应商
         /// </param>
         /// <param name="streamId">
-        /// The stream identity.
+        /// 溪流身份
         /// </param>
         /// <param name="providerName">
-        /// The stream provider name.
+        /// 流源提供者名称 。
         /// </param>
         /// <param name="subscriptionId">
-        /// The subscription identity.
+        /// 订阅身份。
         /// </param>
         public StreamSubscriptionHandlerFactory(IStreamProvider streamProvider, StreamId streamId, string providerName, GuidId subscriptionId)
         {
@@ -47,7 +47,7 @@ namespace Orleans.Streams
         public StreamSubscriptionHandle<T> Create<T>()
         {
             var stream = this.streamProvider.GetStream<T>(StreamId) as StreamImpl<T>;
-            // Orleans.Streaming providers create stream handles from StreamImpl<T> instances.
+            // Orleans.Streaming 提供者从 StreamImpl<T> 实例创建流控控。
             return new StreamSubscriptionHandleImpl<T>(SubscriptionId, stream!);
         }
     }

@@ -7,10 +7,10 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     private RelationalOrleansQueries? _queries;
 
     /// <summary>
-    /// Looks up a grain activation.
+    /// 检查一个 grain 激活。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <returns>The grain address if found or null if not found.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <returns>下 grain 找到地址后, 找不到地址或地址无效 。</returns>
     public async Task<GrainAddress?> Lookup(GrainId grainId)
     {
         try
@@ -31,10 +31,10 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// Registers a new grain activation.
+    /// 注册新的 grain 激活。
     /// </summary>
-    /// <param name="address">The grain address.</param>
-    /// <returns>The new or current grain address.</returns>
+    /// <param name="address"> grain 地址。</param>
+    /// <returns>新的或当前的 grain 地址。</returns>
     public async Task<GrainAddress?> Register(GrainAddress address)
     {
         ArgumentNullException.ThrowIfNull(address);
@@ -44,7 +44,7 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
         {
             var queries = await GetQueriesAsync();
 
-            // this call is expected to register a new entry or return the existing one if found in a thread safe manner
+            // 如果以线索安全方式找到,预计此呼叫将登记新条目或返回现有条目
             var entry = await queries
                 .RegisterGrainActivationAsync(_clusterId, name, address.GrainId.ToString(), address.SiloAddress.ToParsableString(), address.ActivationId.ToParsableString())
                 .WaitAsync(lifetime.ApplicationStopping);
@@ -61,9 +61,9 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// Unregister an existing grain activation.
+    /// 解除已有的 grain 激活的登记。
     /// </summary>
-    /// <param name="address">The grain address.</param>
+    /// <param name="address"> grain 地址。</param>
     public async Task Unregister(GrainAddress address)
     {
         ArgumentNullException.ThrowIfNull(address);
@@ -90,9 +90,9 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// Unregisters all grain activations in the specified set of silos.
+    /// 全部不登记者 grain 指定集中的激活 silos.
     /// </summary>
-    /// <param name="siloAddresses">The set of silos.</param>
+    /// <param name="siloAddresses">集 silos.</param>
     public async Task UnregisterSilos(List<SiloAddress> siloAddresses)
     {
         ArgumentNullException.ThrowIfNull(siloAddresses);
@@ -125,32 +125,32 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// Unfortunate implementation detail to account for lack of async lifetime.
-    /// Ideally this concern will be moved upstream so this won't be needed.
+    /// 不幸地执行细节,以说明缺乏同步寿命。
+    /// 理想的情况是,这种关注将上移到上游,这样就不需要了。
     /// </summary>
     private readonly SemaphoreSlim _semaphore = new(1);
 
     /// <summary>
-    /// Ensures queries are loaded only once while allowing for recovery if the load fails.
+    /// 确保只装入一次查询, 并允许在负载失败时恢复 。
     /// </summary>
     private ValueTask<RelationalOrleansQueries> GetQueriesAsync()
     {
-        // attempt fast path
+        // 尝试快速路径
         return _queries is not null ? new(_queries) : new(CoreAsync());
 
-        // slow path
+        // 慢速路径
         async Task<RelationalOrleansQueries> CoreAsync()
         {
             await _semaphore.WaitAsync(lifetime.ApplicationStopping);
             try
             {
-                // attempt fast path again
+                // 重新尝试快速路径
                 if (_queries is not null)
                 {
                     return _queries;
                 }
 
-                // slow path - the member variable will only be set if the call succeeds
+                // 慢慢路径路路路 - 只有在调用成功时才会设定成员变量
                 return _queries = await RelationalOrleansQueries
                     .CreateInstance(options.Invariant, options.ConnectionString, options.DataSource)
                     .WaitAsync(lifetime.ApplicationStopping);

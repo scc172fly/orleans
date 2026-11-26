@@ -5,31 +5,31 @@ using Azure.Data.Tables;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Options for configuring the Azure Table journal storage provider.
+/// 配置 Azure 表日记账存储提供者的选项。
 /// </summary>
 public sealed class AzureTableJournalStorageOptions
 {
     /// <summary>
-    /// Table name where journal data is stored.
+    /// 存储日记数据表名称。
     /// </summary>
     public string TableName { get; set; } = DEFAULT_TABLE_NAME;
 
     /// <summary>
-    /// The default table name for journal data.
+    /// 日记数据的默认表格名称。
     /// </summary>
     public const string DEFAULT_TABLE_NAME = "journal";
 
     /// <summary>
-    /// Gets or sets the delegate used to generate the table partition key for a journal.
+    /// 获取或设置用于生成日记时钟表格分区密钥的代表。
     /// </summary>
     /// <remarks>
-    /// The returned value must be a valid Azure Table partition key. The default mapping accepts only
-    /// printable ASCII characters (U+0020 through U+007E) in <see cref="JournalId.Value"/> and encodes each
-    /// byte as two uppercase hexadecimal digits, preserving ordinal ordering and raw prefixes.
-    /// The 1,024-character partition-key limit permits journal ids of at most 512 characters.
-    /// Custom mappings are not subject to the default mapping's journal-id restrictions and use canonical
-    /// journal-id property filters for catalog queries, which can require a full table scan instead of
-    /// an indexed partition-key range. Catalog bounds need not satisfy the stored journal-id restrictions.
+    /// 返回的值必须是有效的 Azure 表格分区密钥。默认映射只接受
+    /// <see cref="JournalId.Value"/> 中可打印 ASCII 字符(U+0020至 U+0007E),并编码
+    /// 字节作为两个大写十六进制数字, 保存正则顺序和原始前缀。
+    /// 最多512个字符的1 024个字码分隔键允许使用日记代号。
+    /// 自定义绘图不受默认制图日记识别限制和使用卡通
+    /// 用于目录查询的日记属性过滤器,这需要全表扫描而不是
+    /// 索引化分区密钥区域。目录界限不需要满足存储的日记号限制。
     /// </remarks>
     public Func<JournalId, string> GetPartitionKey { get; set; } = DefaultGetPartitionKey;
 
@@ -39,12 +39,12 @@ public sealed class AzureTableJournalStorageOptions
     internal bool UsesDefaultPartitionKey => GetPartitionKey == DefaultGetPartitionKey;
 
     /// <summary>
-    /// Options to be used when configuring the table storage client, or <see langword="null"/> to use the default options.
+    /// 配置表格存储客户端时,或使用默认选项时使用的选项,或者 <see langword="null"/> 。
     /// </summary>
     public TableClientOptions? ClientOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets the client used to access the Azure Table Service.
+    /// 获取或设置用于访问 Azure 表服务的客户端。
     /// </summary>
     public TableServiceClient? TableServiceClient
     {
@@ -58,74 +58,74 @@ public sealed class AzureTableJournalStorageOptions
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether rows belonging to the previous journal generation are deleted
-    /// after a replace operation publishes a new generation. Defaults to true.
+    /// 获取或设置值,以显示是否删除属于前一个日记生成的行
+    /// 替换操作后发布新一代。 默认为真 。
     /// </summary>
     public bool DeleteOldGenerations { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the number of data rows written since the last replace operation at which
-    /// <see cref="IJournalStorage.IsCompactionRequested"/> becomes true. Defaults to 10,000.
+    /// 获取或设置自上次替换操作以来写入的数据行数
+    /// <see cref="IJournalStorage.IsCompactionRequested"/> 成为事实。默认为10,000。
     /// </summary>
     public long CompactionRowCountThreshold { get; set; } = DEFAULT_COMPACTION_ROW_COUNT_THRESHOLD;
 
     /// <summary>
-    /// The default number of journal rows which requests compaction.
+    /// 需要压缩的日记行默认数 。
     /// </summary>
     public const long DEFAULT_COMPACTION_ROW_COUNT_THRESHOLD = 10_000;
 
     /// <summary>
-    /// Gets or sets the number of journal bytes written since the last replace operation at which
-    /// <see cref="IJournalStorage.IsCompactionRequested"/> becomes true. Defaults to 32 MiB.
+    /// 获取或设置自上次替换操作以来所写的日记字节数
+    /// <see cref="IJournalStorage.IsCompactionRequested"/> 成为真。默认为 32 MiB。
     /// </summary>
     public long CompactionSizeThreshold { get; set; } = DEFAULT_COMPACTION_SIZE_THRESHOLD;
 
     /// <summary>
-    /// The default number of journal bytes which requests compaction.
+    /// 需要压缩的日记位数默认值。
     /// </summary>
     public const long DEFAULT_COMPACTION_SIZE_THRESHOLD = 32L * 1024 * 1024;
 
     /// <summary>
-    /// Gets or sets the maximum number of times a journaling Append, Replace, or Delete operation
-    /// will refresh its cached header ETag and retry in place after observing a metadata-only ETag
-    /// conflict (for example, a concurrent caller-owned metadata update).
-    /// When the cap is exceeded the storage layer falls back to throwing
-    /// <see cref="Orleans.Storage.InconsistentStateException"/> and the journaling layer recovers
-    /// before retrying. Defaults to 5.
+    /// 获取或设定日记附加、替换或删除操作的最大次数
+    /// 将更新其缓存头头目录ETag, 并在观测仅元数据ETag后重试
+    /// 冲突(例如,同时使用自有的调用元数据更新)。
+    /// 当上限超过上限时,存储层会回落到抛掷
+    /// <see cref="Orleans.Storage.InconsistentStateException"/> 和日记层恢复
+    /// 重试前的默认值为 5。
     /// </summary>
     public int MaxMetadataOnlyConflictRetries { get; set; } = DEFAULT_MAX_METADATA_ONLY_CONFLICT_RETRIES;
 
     /// <summary>
-    /// The default maximum number of metadata-only conflict retries.
+    /// 仅使用元数据冲突重试的默认最大值。
     /// </summary>
     public const int DEFAULT_MAX_METADATA_ONLY_CONFLICT_RETRIES = 5;
 
     /// <summary>
-    /// Gets or sets the initial delay applied before re-trying after a metadata-only ETag conflict.
-    /// Subsequent attempts double the delay (capped at <see cref="MetadataOnlyConflictMaxBackoff"/>).
-    /// Set to <see cref="TimeSpan.Zero"/> to retry immediately without backoff. Defaults to 10 ms.
+    /// 获取或设置在只使用元数据ETag冲突后重新尝试前应用的初始延迟。
+    /// 随后的尝试将延误增加一倍(最高为 <see cref="MetadataOnlyConflictMaxBackoff"/>)。
+    /// 设为 <see cref="TimeSpan.Zero"/> , 将立即重试而不回落。 默认为 10 毫秒 。
     /// </summary>
     public TimeSpan MetadataOnlyConflictInitialBackoff { get; set; } = DEFAULT_METADATA_ONLY_CONFLICT_INITIAL_BACKOFF;
 
     /// <summary>
-    /// The default initial delay for metadata-only conflict retries.
+    /// 仅使用元数据冲突重试的默认初始延迟 。
     /// </summary>
     public static readonly TimeSpan DEFAULT_METADATA_ONLY_CONFLICT_INITIAL_BACKOFF = TimeSpan.FromMilliseconds(10);
 
     /// <summary>
-    /// Gets or sets the upper bound on the per-attempt backoff used by metadata-only conflict
-    /// retries. The exponential schedule starts at <see cref="MetadataOnlyConflictInitialBackoff"/>
-    /// and never exceeds this value. Defaults to 200 ms.
+    /// 获取或设定仅用于元数据冲突的每次尝试回卸的上限
+    /// 重试。指数时间表从 <see cref="MetadataOnlyConflictInitialBackoff"/>开始
+    /// 且从未超过此值。默认为 200 ms。
     /// </summary>
     public TimeSpan MetadataOnlyConflictMaxBackoff { get; set; } = DEFAULT_METADATA_ONLY_CONFLICT_MAX_BACKOFF;
 
     /// <summary>
-    /// The default maximum delay between metadata-only conflict retries.
+    /// 仅使用元数据冲突重试的默认最大延迟 。
     /// </summary>
     public static readonly TimeSpan DEFAULT_METADATA_ONLY_CONFLICT_MAX_BACKOFF = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
-    /// The optional delegate used to create a <see cref="TableServiceClient"/> instance.
+    /// 用于创建 <see cref="TableServiceClient"/> 实例的可选代表 。
     /// </summary>
     internal Func<CancellationToken, Task<TableServiceClient>>? CreateClient { get; private set; }
 
@@ -232,7 +232,7 @@ public sealed class AzureTableJournalStorageOptions
         => character is >= 'A' and <= 'Z' or >= 'a' and <= 'z';
 
     /// <summary>
-    /// Configures the <see cref="TableServiceClient"/> using a connection string.
+    /// 使用连接字符串配置 <see cref="TableServiceClient"/> 。
     /// </summary>
     public void ConfigureTableServiceClient(string connectionString)
     {
@@ -241,7 +241,7 @@ public sealed class AzureTableJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI.
+    /// 使用验证的服务 URI 配置 <see cref="TableServiceClient"/> 。
     /// </summary>
     public void ConfigureTableServiceClient(Uri serviceUri)
     {
@@ -250,7 +250,7 @@ public sealed class AzureTableJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="TableServiceClient"/> using the provided callback.
+    /// 使用所提供的回调配置 <see cref="TableServiceClient"/> 。
     /// </summary>
     public void ConfigureTableServiceClient(Func<CancellationToken, Task<TableServiceClient>> createClientCallback)
     {
@@ -258,7 +258,7 @@ public sealed class AzureTableJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI and a <see cref="TokenCredential"/>.
+    /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="TokenCredential"/>.
     /// </summary>
     public void ConfigureTableServiceClient(Uri serviceUri, TokenCredential tokenCredential)
     {
@@ -268,7 +268,7 @@ public sealed class AzureTableJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI and a <see cref="AzureSasCredential"/>.
+    /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="AzureSasCredential"/>.
     /// </summary>
     public void ConfigureTableServiceClient(Uri serviceUri, AzureSasCredential azureSasCredential)
     {
@@ -278,7 +278,7 @@ public sealed class AzureTableJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI and a <see cref="TableSharedKeyCredential"/>.
+    /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="TableSharedKeyCredential"/>.
     /// </summary>
     public void ConfigureTableServiceClient(Uri serviceUri, TableSharedKeyCredential sharedKeyCredential)
     {

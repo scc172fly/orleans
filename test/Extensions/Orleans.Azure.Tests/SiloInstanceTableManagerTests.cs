@@ -13,7 +13,7 @@ using Orleans.Clustering.AzureStorage;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// Tests for operation of Orleans SiloInstanceManager using AzureStore - Requires access to external Azure storage
+    /// 试验试验的试验 Orleans SiloInstanceManager 使用 AzureStore - 需要外部进入 Azure 储存
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage")]
     [TestSuite("Functional")]
@@ -61,7 +61,7 @@ namespace Tester.AzureUtils
                 .GetResult();
         }
 
-        // Use TestCleanup to run code after each test has run
+        // 每次测试运行后使用 TestCleanup 运行代码
         public void Dispose()
         {
             if (manager != null && SiloInstanceTableTestConstants.DeleteEntriesAfterTest)
@@ -115,14 +115,14 @@ namespace Tester.AzureUtils
         [Fact, TestCategory("Functional")]
         public async Task SiloInstanceTable_Op_CleanDeadSiloInstance()
         {
-            // Register a silo entry
+            // 登记 a silo 条目
             await manager.TryCreateTableVersionEntryAsync(TestContext.Current.CancellationToken);
             this.generation = 0;
             await RegisterSiloInstance();
-            // and mark it as dead
+            // 并标记它为死
             await manager.UnregisterSiloInstance(myEntry);
 
-            // Create new active entries
+            // 创建新活动条目
             for (int i = 1; i < 5; i++)
             {
                 this.generation = i;
@@ -183,8 +183,8 @@ namespace Tester.AzureUtils
             SiloInstanceTableEntry siloEntry = data.Entity;
             string eTag = data.ETag;
 
-            Assert.NotNull(eTag); // ETag should not be null
-            Assert.NotNull(siloEntry); // SiloInstanceTableEntry should not be null
+            Assert.NotNull(eTag); // ETag不应无效
+            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应无效
 
             Assert.Equal(SiloInstanceTableTestConstants.INSTANCE_STATUS_CREATED, siloEntry.Status);
 
@@ -200,13 +200,13 @@ namespace Tester.AzureUtils
             await manager.ActivateSiloInstance(myEntry);
 
             var data = await FindSiloEntry(siloAddress);
-            Assert.NotNull(data.Entity); // Data returned should not be null
+            Assert.NotNull(data.Entity); // 返回的数据不应为无效数据
 
             SiloInstanceTableEntry siloEntry = data.Entity;
             string eTag = data.ETag;
 
-            Assert.NotNull(eTag); // ETag should not be null
-            Assert.NotNull(siloEntry); // SiloInstanceTableEntry should not be null
+            Assert.NotNull(eTag); // ETag不应无效
+            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应无效
 
             Assert.Equal(SiloInstanceTableTestConstants.INSTANCE_STATUS_ACTIVE, siloEntry.Status);
 
@@ -224,8 +224,8 @@ namespace Tester.AzureUtils
             SiloInstanceTableEntry siloEntry = data.Entity;
             string eTag = data.ETag;
 
-            Assert.NotNull(eTag); // ETag should not be null
-            Assert.NotNull(siloEntry); // SiloInstanceTableEntry should not be null
+            Assert.NotNull(eTag); // ETag不应无效
+            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应无效
 
             Assert.Equal(SiloInstanceTableTestConstants.INSTANCE_STATUS_DEAD, siloEntry.Status);
 
@@ -239,16 +239,16 @@ namespace Tester.AzureUtils
             await RegisterSiloInstance();
 
             var gateways = await manager.FindAllGatewayProxyEndpoints(TestContext.Current.CancellationToken);
-            Assert.Empty(gateways);  // "Number of gateways before Silo.Activate"
+            Assert.Empty(gateways);  // " Silo.Activate之前的网关数量 "
 
             await manager.ActivateSiloInstance(myEntry);
 
             gateways = await manager.FindAllGatewayProxyEndpoints(TestContext.Current.CancellationToken);
-            Assert.Single(gateways);  // "Number of gateways after Silo.Activate"
+            Assert.Single(gateways);  // " Silo.Activate之后的网关数量 "
 
             Uri myGateway = gateways.First();
-            Assert.Equal(myEntry.Address, myGateway.Host.ToString());  // "Gateway address"
-            Assert.Equal(myEntry.ProxyPort, myGateway.Port.ToString(CultureInfo.InvariantCulture));  // "Gateway port"
+            Assert.Equal(myEntry.Address, myGateway.Host.ToString());  // "地盘地址"
+            Assert.Equal(myEntry.ProxyPort, myGateway.Port.ToString(CultureInfo.InvariantCulture));  // "码头"
         }
 
         [Fact, TestCategory("Functional")]

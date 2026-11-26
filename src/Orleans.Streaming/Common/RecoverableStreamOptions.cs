@@ -4,56 +4,56 @@ using Orleans.Streams;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configuration options for stream cache eviction.
+    /// 流缓存驱逐配置选项 。
     /// </summary>
     public class StreamCacheEvictionOptions
     {
         /// <summary>
-        /// Gets or sets the minimum time a message will stay in cache before it is available for time based purge.
+        /// 获取或设定信件在时间化清洗前会留在缓存的最小时间 。
         /// </summary>
         public TimeSpan DataMinTimeInCache { get; set; } = DefaultDataMinTimeInCache;
 
         /// <summary>
-        /// The default value for <see cref="DataMinTimeInCache"/>.
+        /// <see cref="DataMinTimeInCache"/>的默认值。
         /// </summary>
         public static readonly TimeSpan DefaultDataMinTimeInCache = TimeSpan.FromMinutes(5);
 
         /// <summary>
-        /// Gets or sets the difference in time between the newest and oldest messages in the cache.  Any messages older than this will be purged from the cache.
+        /// 获取或设置缓存中最新和最老信件的时间差。 任何比此旧的信件将从缓存中删除 。
         /// </summary>
         public TimeSpan DataMaxAgeInCache { get; set; } = DefaultDataMaxAgeInCache;
 
         /// <summary>
-        /// The default value for <see cref="DataMaxAgeInCache"/>
+        /// <see cref="DataMaxAgeInCache"/>的默认值
         /// </summary>
         public static readonly TimeSpan DefaultDataMaxAgeInCache = TimeSpan.FromMinutes(30);
 
         /// <summary>
-        /// Gets or sets the minimum time that message metadata (<see cref="StreamSequenceToken"/>) will stay in cache before it is available for time based purge.
-        /// Used to avoid cache miss if the full message was purged.
-        /// Set to <see langword="null"/> to disable this tracking.
+        /// 获取或设定信件元数据(<see cref="StreamSequenceToken"/>)在可以用于基于时间的清除之前将留在缓存中的最短时间 。
+        /// 如果全部信件被清除, 用于避免缓存误差 。
+        /// 设定为 <see langword="null"/> 以禁用此跟踪 。
         /// </summary>
         public TimeSpan? MetadataMinTimeInCache { get; set; } = DefaultMetadataMinTimeInCache;
 
         /// <summary>
-        /// The default value for <see cref="MetadataMinTimeInCache"/>.
+        /// <see cref="MetadataMinTimeInCache"/>的默认值。
         /// </summary>
         public static readonly TimeSpan DefaultMetadataMinTimeInCache = DefaultDataMinTimeInCache.Multiply(2);
     }
 
     /// <summary>
-    /// Configuration options for stream statistics.
+    /// 流数据配置选项。
     /// </summary>
     public class StreamStatisticOptions
     {
         /// <summary>
-        /// Gets or sets the statistic monitor write interval.
-        /// Statistics generation is triggered by activity. Interval will be ignored when streams are inactive.
+        /// 获取或设置统计监视器的写时间隔。
+        /// 生成统计数据是由活动引发的。 当流不活跃时, 间隔将被忽略 。
         /// </summary>
         public TimeSpan StatisticMonitorWriteInterval { get; set; } = DefaultStatisticMonitorWriteInterval;
 
         /// <summary>
-        /// The default value for <see cref="StatisticMonitorWriteInterval"/>.
+        /// <see cref="StatisticMonitorWriteInterval"/>的默认值。
         /// </summary>
         public static readonly TimeSpan DefaultStatisticMonitorWriteInterval = TimeSpan.FromMinutes(5);
     }

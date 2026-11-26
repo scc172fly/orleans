@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Persistence tests for SQL Server with the delete-state-on-clear option enabled.
+    /// 启用删除状态对清选项的 SQL 服务器持久性测试。
     /// </summary>
     [TestCategory("AdoNet"), TestCategory("SqlServer"), TestCategory("Persistence")]
     [TestSuite("Functional")]

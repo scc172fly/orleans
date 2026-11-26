@@ -1,63 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
-    Microsoft ResX Schema 
+    Microsoft ResX 气相 
     
-    Version 2.0
+    2. 0版
     
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
+    此格式的首要目标是允许简单的 XML 格式 
+    人类的创造和分裂 
+    各种数据类型通过 TypeConverter 类进行 
+    与数据类型相关联。
     
-    Example:
+    示例:
     
-    ... ado.net/XML headers & schema ...
+    ... ado.net/XML信头和计划...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
     <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
     <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Name1"><value>这是我的长字符串</value><comment>这是一份注释</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">蓝色</data>
     <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
+        <value>[基准64米编码的序列 .NET 框架对象]</value>
     </data>
     <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
+        <value>[基准64 MIME编码字符串,代表 .NET 框架对象的字节数组形式]</value>
+        <comment>这是一份注释</comment>
     </data>
                 
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
+    任何数行的“ 排头” 包含简单 
+    名称/价值对。
     
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
+    每个数据行包含一个名称和值。该行还包含 
+    类型对应于支持的 .NET 类 
+    通过 TypeConverter 结构转换文字/数值。 
+    无法支持的分类被序列化并存储在 
+    MIME类型设置 。
     
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
+    MIME类型用于序列化物体,并告诉 
+    ResXResourceReader 如何使对象的分解。 这目前不是 
+    可扩展。 对于给定的 MIME 类型, 数值必须相应设定:
     
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
+    注 - 应用程序/x-microsoft.net.object.binary.base64 是格式 
+    和 ResXResourceWriter 将产生,但读者可以 
+    读取以下所列任何格式。
     
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    mime类型: 应用程序/ x -microsoft.net.object.binary.base64
+    值:对象必须用 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
+            ,然后编码为64码
     
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    mime类型: 应用程序/ x -microsoft.net.object.soap.base64
+    值:对象必须用 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
+            ,然后编码为64码
 
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
+    mime类型: 应用程序/ x -microsoft.net.object.bytearray.base64
+    值:对象必须序列成字节数组 
+            :使用 System.ComponentModel.TypeConverter
+            ,然后编码为64码
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -213,7 +213,7 @@
   <data name="ConfigureAwaitCodeFixTitle" xml:space="preserve">
     <value>Use ConfigureAwait with ContinueOnCapturedContext</value>
   </data>
-  <!-- Grain Interface Version Analyzer (ORLEANS0016-0021) -->
+  <!-- Grain 接口版本分析器 (ORLEANS0016-0021) -->
   <data name="GrainInterfaceNotDeclaredTitle" xml:space="preserve">
     <value>Grain interface is not active in OrleansContracts.txt</value>
   </data>

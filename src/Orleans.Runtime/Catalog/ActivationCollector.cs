@@ -17,7 +17,7 @@ using Orleans.Statistics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Identifies activations that have been idle long enough to be deactivated.
+    /// 识别了闲置时间已足够长的引爆装置,以便解除其作用。
     /// </summary>
     internal partial class ActivationCollector : IActivationWorkingSetObserver, ILifecycleParticipant<ISiloLifecycle>, IDisposable
     {
@@ -31,7 +31,7 @@ namespace Orleans.Runtime
         private readonly ILogger logger;
         private int collectionNumber;
 
-        // internal for testing
+        // 内部测试
         internal int _activationCount;
 
         private readonly PeriodicTimer _collectionTimer;
@@ -44,13 +44,13 @@ namespace Orleans.Runtime
         private Task? _memBasedDeactivationLoopTask;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActivationCollector"/> class.
+        /// 初始化 <see cref="ActivationCollector"/> 类的新实例。
         /// </summary>
-        /// <param name="timeProvider">The time provider.</param>
-        /// <param name="options">The activation collection options.</param>
-        /// <param name="logger">The logger.</param>
-        /// <param name="environmentStatisticsProvider">The provider used to monitor memory pressure.</param>
-        /// <param name="catalogInstruments">The catalog telemetry instruments.</param>
+        /// <param name="timeProvider">时间提供者。</param>
+        /// <param name="options">激活收集选项。</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="environmentStatisticsProvider">用于监测内存压力的供应商。</param>
+        /// <param name="catalogInstruments">星表遥测仪器</param>
         public ActivationCollector(
             [FromKeyedServices(TimeProviderNames.ActivationManagement)] TimeProvider timeProvider,
             IOptions<GrainCollectionOptions> options,
@@ -74,15 +74,15 @@ namespace Orleans.Runtime
             }
         }
 
-        // Return the number of activations that were used (touched) in the last recencyPeriod.
+        // 返回上次 recencyPeriod中所使用的(触摸过的)激活次数。
         public int GetNumRecentlyUsed(TimeSpan recencyPeriod)
         {
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             int sum = 0;
             foreach (var bucket in buckets)
             {
-                // Ticket is the date time when this bucket should be collected (last touched time plus age limit)
-                // For now we take the shortest age limit as an approximation of the per-type age limit.
+                // 票是该桶应收水的日期(最后一次触摸时间加年龄限制)
+                // 目前,我们以最短年龄限制作为每类年龄限制的近似值。
                 DateTime ticket = bucket.Key;
                 var timeTillCollection = ticket - now;
                 var timeSinceLastUsed = shortestAgeLimit - timeTillCollection;
@@ -96,25 +96,25 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Collects all eligible grain activations which have been idle for at least <paramref name="ageLimit"/>.
+        /// 收集所有符合资格的 grain 至少闲置到 <paramref name="ageLimit"/>.
         /// </summary>
-        /// <param name="ageLimit">The age limit.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <param name="ageLimit">年龄限制。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         public Task CollectActivations(TimeSpan ageLimit, CancellationToken cancellationToken) => CollectActivationsImpl(false, ageLimit, cancellationToken);
 
         internal Task CollectStaleActivations(CancellationToken cancellationToken) => CollectActivationsImpl(scanStale: true, ageLimit: default, cancellationToken: cancellationToken);
 
         /// <summary>
-        /// Schedules the provided grain context for collection if it becomes idle for the specified duration.
+        /// 如果收藏在指定期限内闲置,则计划为收藏设定 grain 上下文。
         /// </summary>
         /// <param name="item">
-        /// The grain context.
+        /// grain 上下文。
         /// </param>
         /// <param name="timeout">
-        /// The current idle collection time for the grain.
+        /// 当前 grain的闲置收藏时间 。
         /// </param>
-        /// <param name="now">The current time, used to calculate when the grain becomes eligible for collection.</param>
+        /// <param name="now">当前时间, 用于计算 grain 何时有资格被收集。</param>
         public void ScheduleCollection(ICollectibleGrainContext item, TimeSpan timeout, DateTime now)
         {
             if (item.IsExemptFromCollection)
@@ -130,10 +130,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Tries the cancel idle activation collection.
+        /// 尝试取消闲置激活收藏 。
         /// </summary>
-        /// <param name="item">The grain context.</param>
-        /// <returns><see langword="true"/> if collection was canceled, <see langword="false"/> otherwise.</returns>
+        /// <param name="item"> grain 上下文。</param>
+        /// <returns><see langword="true"/> 如果收藏被取消,则 <see langword="false"/> 否则。</returns>
         public bool TryCancelCollection(ICollectibleGrainContext? item)
         {
             if (item is null) return false;
@@ -143,10 +143,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Tries the reschedule collection.
+        /// 重订时间收藏
         /// </summary>
-        /// <param name="item">The grain context.</param>
-        /// <returns><see langword="true"/> if collection was rescheduled, <see langword="false"/> otherwise.</returns>
+        /// <param name="item"> grain 上下文。</param>
+        /// <returns><see langword="true"/> 如果收藏被重新命名, <see langword="false"/> 否则。</returns>
         public bool TryRescheduleCollection(ICollectibleGrainContext item)
         {
             if (item.IsExemptFromCollection) return false;
@@ -362,7 +362,7 @@ namespace Orleans.Runtime
             }
         }
 
-        // Internal for testing. It's expected that when this returns true, activation shedding will occur.
+        // 内部测试。 当它返回真实时, 启动停止会发生 。
         internal bool IsMemoryOverloaded(out int surplusActivationCount)
         {
             var activationCount = _activationCount;
@@ -378,12 +378,12 @@ namespace Orleans.Runtime
             var usage = stats.NormalizedMemoryUsage;
             if (usage <= limit)
             {
-                // High memory pressure is not detected, so we do not need to deactivate any activations.
+                // 高内存压力没有检测到 所以我们不需要解除任何引爆装置
                 surplusActivationCount = 0;
                 return false;
             }
 
-            // Calculate the surplus activations based the memory usage target.
+            // 计算剩余激活的剩余启动量, 以内存使用目标为基础 。
             var target = _grainCollectionOptions.MemoryUsageTargetPercentage / 100f;
             surplusActivationCount = (int)Math.Max(0, activationCount - Math.Floor(activationCount * target / usage));
             if (surplusActivationCount <= 0)
@@ -398,17 +398,17 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Deactivates up to <paramref name="count"/> activations in due-time order.
+        /// 最多可按适当时间顺序关闭 <paramref name="count"/> 启动。
         /// </summary>
-        /// <param name="count">The number of activations to deactivate.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task representing the deactivation operation.</returns>
-        /// <remarks>Internal for testing.</remarks>
+        /// <param name="count">启动停止作用的激活次数。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>代表解除功能的任务。</returns>
+        /// <remarks>内部测试。</remarks>
         internal async Task DeactivateInDueTimeOrder(int count, CancellationToken cancellationToken)
         {
             var watch = ValueStopwatch.StartNew();
             var number = Interlocked.Increment(ref collectionNumber);
-            long memBefore = GC.GetTotalMemory(false) / (1024 * 1024); // MB
+            long memBefore = GC.GetTotalMemory(false) / (1024 * 1024); // 甲基溴 甲基溴
             LogBeforeCollection(number, memBefore, _activationCount, this);
 
             var candidates = new List<ICollectibleGrainContext>(count);
@@ -416,7 +416,7 @@ namespace Orleans.Runtime
                 DeactivationReasonCode.HighMemoryPressure,
                 $"Process memory utilization exceeded the configured limit of '{_grainCollectionOptions.MemoryUsageLimitPercentage}'. Detected memory usage is {memBefore} MB.");
 
-            // snapshot to avoid concurrency collection modification issues
+            // 避免同货币汇收款的变更问题的简记
             var bucketSnapshot = buckets.ToArray();
             Array.Sort(bucketSnapshot, static (left, right) => left.Key.CompareTo(right.Key));
             foreach (var bucket in bucketSnapshot)
@@ -491,10 +491,10 @@ namespace Orleans.Runtime
         private void ThrowIfTicketIsInvalid(DateTime ticket)
         {
             if (ticket.Ticks == 0) throw new ArgumentException("Empty ticket is not allowed in this context.");
-            // DateTime.MaxValue is a sentinel produced by MakeTicketFromDateTime when the
-            // rounded-up tick overflows (e.g., ScanStale rescheduling an activation whose
-            // KeepAliveUntil is DateTime.MaxValue). Its ticks aren't quantum-aligned, but
-            // it is a valid ticket and must not be rejected here.
+            // DateTime.MaxValue 是指 MakeTicketFromDateTime 在
+            // 补全滴漏(e.g., ScanStale )
+            // KeepAliveUntil 是 DateTime.MaxValue。它的斜线不与量定, 但是它没有按照数量来调整 。
+            // 这张票有效,在这里不得拒绝。
             if (ticket == DateTime.MaxValue) return;
             if (0 != ticket.Ticks % _grainCollectionOptions.CollectionQuantum.Ticks)
             {
@@ -521,8 +521,8 @@ namespace Orleans.Runtime
 
         private DateTime CalculateTicket(DateTime timestamp)
         {
-            // Round the timestamp to the next _grainCollectionOptions.CollectionQuantum. e.g. if the _grainCollectionOptions.CollectionQuantum is 1 minute and the timestamp is 3:45:22, then the ticket will be 3:46.
-            // Note that TimeStamp.Ticks and DateTime.Ticks both return a long.
+            // 时间戳周到下一个 _grainCollectionOptions.CollectionQuantum。 e.g。如果 _grainCollectionOptions.CollectionQuantum 为1分钟,时间标记为3:45:22,那么票数将为3:46。
+            // 请注意, TimeStamp.Ticks 和 DateTime.Ticks 都返回长。
             var ticketTicks = ((timestamp.Ticks - 1) / _grainCollectionOptions.CollectionQuantum.Ticks + 1) * _grainCollectionOptions.CollectionQuantum.Ticks;
             if (ticketTicks > DateTime.MaxValue.Ticks)
             {
@@ -634,8 +634,8 @@ namespace Orleans.Runtime
 
         void IActivationWorkingSetObserver.OnActive(IActivationWorkingSetMember member)
         {
-            // We do not need to do anything when a grain becomes active, since we can lazily handle it when scanning its bucket instead.
-            // This reduces the amount of unnecessary work performed.
+            // 当一个 grain 活动开始时,我们不需要做任何事情,因为我们在扫描桶子时可以懒惰地处理它。
+            // 这样就减少了已进行的不必要的工作。
         }
 
         void IActivationWorkingSetObserver.OnEvicted(IActivationWorkingSetMember member)
@@ -718,7 +718,7 @@ namespace Orleans.Runtime
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-                    // most probably shutdown
+                    // 很可能是关闭
                 }
                 catch (Exception exception)
                 {
@@ -742,12 +742,12 @@ namespace Orleans.Runtime
                     {
                         var currentGen2GcCount = GC.CollectionCount(2);
 
-                        // note: GC.CollectionCount(2) will return 0 if no gen2 gc happened yet and we rely on this behavior:
-                        //       high memory pressure situation cannot occur until gen2 occurred at least once
+                        // 注意: GC.CollectionCount(2) 如果还没有发生gen2 gc, 返回 0, 我们依赖此行为 :
+                        //       只有在gen2至少发生一次之前,才会出现高内存压力状况
                         if (currentGen2GcCount <= lastGen2GcCount)
                         {
-                            // No Gen2 GC since last deactivation cycle.
-                            // Wait for Gen2 GC between cycles to be sure that 
+                            // 自上次停止使用周期以来,Gen2GC没有。
+                            // 等待 Gen2 GC 在周期间间隔中确定 
                             continue;
                         }
 
@@ -761,7 +761,7 @@ namespace Orleans.Runtime
                     }
                     catch (Exception exception)
                     {
-                        // Ignore cancellation exceptions during shutdown.
+                        // 忽略关闭时取消的例外 。
                         if (exception is OperationCanceledException && cancellationToken.IsCancellationRequested)
                         {
                             break;
@@ -775,7 +775,7 @@ namespace Orleans.Runtime
             {
                 if (exception is OperationCanceledException && cancellationToken.IsCancellationRequested)
                 {
-                    // Ignore cancellation exceptions during shutdown.
+                    // 忽略关闭时取消的例外 。
                 }
                 else
                 {
@@ -824,7 +824,7 @@ namespace Orleans.Runtime
             LogDeactivateActivationsFromCollector(list.Count);
             _catalogInstruments.ActivationShutdownViaCollection();
 
-            // Snapshot tasks and diagnostic identities so completed activation contexts can be reclaimed independently.
+            // 快速任务和诊断身份,这样完成的启动环境就可以独立恢复。
             var completions = new Task[list.Count];
             var collectedActivations = ActivationCollectionEvents.IsCollectionCompletedEnabled
                 ? new ActivationCollectionEvents.CollectedActivation[list.Count]
@@ -843,7 +843,7 @@ namespace Orleans.Runtime
 
             try
             {
-                // User callbacks retain their activation until completion. Bound only this batch's wait so later collection passes can proceed.
+                // 用户回调保留激活到完成。 只有这批人等待, 才能继续收件 。
                 await deactivationTask.WaitAsync(_grainCollectionOptions.DeactivationTimeout, _timeProvider, cancellationToken);
             }
             catch (TimeoutException)
@@ -1053,7 +1053,7 @@ namespace Orleans.Runtime
                         return false;
                     }
 
-                    // Buckets close permanently before claiming, so their identity uniquely identifies this claim.
+                    // 巴克茨在索赔前永久关闭,因此他们的身份是这一索赔的唯一识别。
                     _state = CollectionRegistrationState.Claimed;
                     claim = new CollectionClaim(this, bucket);
                     return true;
@@ -1168,7 +1168,7 @@ namespace Orleans.Runtime
                 }
 
                 List<CollectionClaim>? result = null;
-                // Closure and the adder drain prevent new entries; removals are validated by TryClaim.
+                // 关闭和添加器排水管防止新的条目;清除量由 TryClaim验证。
                 foreach (var entry in items)
                 {
                     var registration = entry.Key;
@@ -1179,7 +1179,7 @@ namespace Orleans.Runtime
                     }
                 }
 
-                // A closed bucket keeps no dictionary storage after its claims have been extracted.
+                // 关闭的桶在索赔被提取后,没有保存字典储存。
                 Volatile.Write(ref _items, null);
                 return result ?? NoClaims;
             }

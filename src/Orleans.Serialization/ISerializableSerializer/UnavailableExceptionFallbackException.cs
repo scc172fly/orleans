@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Represents an exception which has a type which is unavailable during deserialization.
+    /// 代表一种例外,其类型在解除飞行时无法使用。
     /// </summary>
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     public sealed class UnavailableExceptionFallbackException : Exception
@@ -34,12 +34,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Gets the serialized properties of the exception.
+        /// 获得例外的序列属性。
         /// </summary>
         public Dictionary<string, object?> Properties { get; } = new();
 
         /// <summary>
-        /// Gets the exception type name.
+        /// 获得例外类型名称 。
         /// </summary>
         public string? ExceptionType { get; internal set; }
 

@@ -21,7 +21,7 @@ namespace UnitTests.Grains
             var streamProvider = this.GetStreamProvider("MemoryStreamProvider");
 
             var streamIdentity = this.GetImplicitStreamIdentity();
-            var stream = streamProvider.GetStream<int>(streamIdentity.Namespace!, streamIdentity.Guid); // Implicit stream identities always include a namespace.
+            var stream = streamProvider.GetStream<int>(streamIdentity.Namespace!, streamIdentity.Guid); // 隐含流特性总是包括命名空间。
             await stream.SubscribeAsync(
                 (e, t) =>
                 {

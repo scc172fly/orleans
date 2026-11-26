@@ -1,5 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// 根据一项或多项协定获得 .NET 基金会许可证。
+// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
 
 using System.Runtime.CompilerServices;
 
@@ -9,7 +9,7 @@ internal static class HexConverter
 {
     public static unsafe string ToString(ReadOnlySpan<byte> bytes)
     {
-        // Adapted from: https://github.com/dotnet/runtime/blob/f156fb9dcf121e536b93ae90bcc5e8e6d5336062/src/libraries/Common/src/System/HexConverter.cs#L196
+        // 调适自 https://github.com/dotnet/runtime/blob/f156fb9dcf121e536b93ae90bcc5e8e6d5336062/src/libraries/Common/src/System/HexConverter.cs#L196
 
         Span<char> result = bytes.Length > 16 ?
             new char[bytes.Length * 2].AsSpan() :

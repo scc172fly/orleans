@@ -7,16 +7,16 @@ using Orleans.Utilities;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents a <see cref="GrainType"/> that is parameterized using type parameters.
+    /// 表示使用类型参数参数参数参数参数的 <see cref="GrainType"/> 。
     /// </summary>
     [Immutable]
     public readonly struct GenericGrainType : IEquatable<GenericGrainType>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenericGrainType"/> struct.
+        /// 初始化 <see cref="GenericGrainType"/> 结构的新实例。
         /// </summary>
-        /// <param name="grainType">The underlying grain type.</param>
-        /// <param name="arity">The generic arity of the grain type.</param>
+        /// <param name="grainType">根本 grain 类型。</param>
+        /// <param name="arity">普遍平等的普遍性 grain 类型。</param>
         private GenericGrainType(GrainType grainType, int arity)
         {
             GrainType = grainType;
@@ -24,22 +24,22 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// The underlying grain type.
+        /// 底部 grain 类型。
         /// </summary>
         public GrainType GrainType { get; }
 
         /// <summary>
-        /// The generic arity of the grain type.
+        /// grain 类型的一般对等性。
         /// </summary>
         public int Arity { get; }
 
         /// <summary>
-        /// Returns <see langword="true" /> if this instance contains concrete type parameters.
+        /// 如果此实例包含具体类型参数, 返回 <see langword="true" /> 。
         /// </summary>
         public bool IsConstructed => TypeConverterExtensions.IsConstructed(this.GrainType.Value);
 
         /// <summary>
-        /// Returns the generic grain type corresponding to the provided value.
+        /// 返回与所提供的值相对应的通用 grain 类型。
         /// </summary>
         public static bool TryParse(GrainType grainType, out GenericGrainType result)
         {
@@ -55,7 +55,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns a non-constructed version of this instance.
+        /// 返回此实例的非构建版本。
         /// </summary>
         public GenericGrainType GetUnconstructedGrainType()
         {
@@ -64,7 +64,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns a constructed version of this instance.
+        /// 返回此实例的构建版本。
         /// </summary>
         public GenericGrainType Construct(TypeConverter formatter, params Type[] typeArguments)
         {
@@ -81,10 +81,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the type arguments using the provided type converter.
+        /// 使用所提供的类型转换器获取类型参数。
         /// </summary>
-        /// <param name="converter">The type converter</param>
-        /// <returns>The type arguments.</returns>
+        /// <param name="converter">型转换器</param>
+        /// <returns>类型参数。</returns>
         public Type[] GetArguments(TypeConverter converter)
         {
             ArgumentNullException.ThrowIfNull(converter);

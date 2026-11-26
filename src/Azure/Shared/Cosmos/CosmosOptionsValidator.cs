@@ -9,23 +9,23 @@ namespace Orleans.Streaming.Cosmos;
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.Cosmos;
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 
 /// <summary>
-/// Validates instances of <see cref="CosmosOptions"/>.
+/// 验证 <see cref="CosmosOptions"/>的事例。
 /// </summary>
-/// <typeparam name="TOptions">The options type.</typeparam>
+/// <typeparam name="TOptions">选项类型。</typeparam>
 public class CosmosOptionsValidator<TOptions> : IConfigurationValidator where TOptions : CosmosOptions
 {
     private readonly TOptions _options;
     private readonly string _name;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CosmosOptionsValidator{TOptions}"/> type.
+    /// 初始化 <see cref="CosmosOptionsValidator{TOptions}"/> 类型的新实例。
     /// </summary>
-    /// <param name="options">The instance to be validated.</param>
-    /// <param name="name">The option name to be validated.</param>
+    /// <param name="options">有待验证的实例。</param>
+    /// <param name="name">需要验证的选项名称。</param>
     public CosmosOptionsValidator(TOptions options, string name)
     {
         _options = options;

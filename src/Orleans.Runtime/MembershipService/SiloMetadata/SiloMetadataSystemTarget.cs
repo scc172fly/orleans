@@ -26,6 +26,6 @@ internal sealed class SiloMetadataSystemTarget : SystemTarget, ISiloMetadataSyst
     }
     void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
     {
-        // We don't participate in any lifecycle stages: activating this instance is all that is necessary.
+        // 我们不参与任何生命周期阶段: 启动这个实例是必需的。
     }
 }

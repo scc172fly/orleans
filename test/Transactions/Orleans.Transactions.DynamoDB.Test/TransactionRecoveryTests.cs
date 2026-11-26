@@ -10,7 +10,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for transaction recovery after silo failures with DynamoDB clustering.
+    /// 在 silo 组群出现 DynamoDB 故障后进行交易回收测试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

@@ -9,7 +9,7 @@ using TestExtensions;
 namespace ServiceBus.Tests.Streaming
 {
     /// <summary>
-    /// Tests for EventHub streaming resume functionality with configurable cache eviction and stream inactivity settings.
+    /// 测试 EventHub 流流恢复功能,可配置缓存驱逐和流不活动环境。
     /// </summary>
     [TestCategory("Functional"), TestCategory("Streaming"), TestCategory("StreamingResume")]
     [TestSuite("Functional")]

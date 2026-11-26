@@ -21,7 +21,7 @@ using Xunit;
 namespace Orleans.Core.Tests.Networking;
 
 /// <summary>
-/// Verifies that messages serialized within other messages, as requests travel with a migrating activation, read back as received messages.
+/// 证明在其他信息中按顺序排列的信息,即请求随迁移启动进行旅行时的顺序,作为收到的信息阅读。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -77,7 +77,7 @@ public sealed class MessageFramesTests : IDisposable
             Assert.InRange(firstCopy.TimeToLive!.Value, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1));
             Assert.Null(messages[1].TimeToLive);
 
-            // Each body stays serialized, as a received message's body does, until it is accessed.
+            // 每个尸体都按收到信息时的顺序排列,直到进入为止。
             Assert.IsType<MessageReadRequest>(firstCopy._bodyObject);
             Assert.Equal(["first", "second"], Assert.IsType<List<string>>(firstCopy.BodyObject));
             Assert.Equal(42, messages[1].BodyObject);
@@ -95,7 +95,7 @@ public sealed class MessageFramesTests : IDisposable
         var request = CreateRequest(1, timeToLive: null);
         request.BodyObject = CreatePooledBuffer(expected);
 
-        // Serializing the message returns its pooled buffer's storage to the pool, as sending it does, so the message which is delivered is the copy which is read back.
+        // 发送信息时, 将共享缓冲存储的存储程序按发送方式, 进行序列处理后, 发送的信息是被读回的复制件 。
         var copy = Assert.Single(RoundTrip([request]));
         try
         {
@@ -115,7 +115,7 @@ public sealed class MessageFramesTests : IDisposable
         var copy = Assert.Single(RoundTrip([request]));
         try
         {
-            // Serializing the copy again, as forwarding or migrating it again does, sends its serialized body unchanged.
+            // 复制件再次进行序列化,如同再转运或迁移一样,发送其序列式文件时没有变化。
             var again = Assert.Single(RoundTrip([copy]));
             try
             {

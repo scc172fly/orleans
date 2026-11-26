@@ -62,8 +62,8 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
         if (string.IsNullOrWhiteSpace(listingPrefix) && (!identityMapping || _options.GetObjectKeyPrefix is not null)
             || !identityMapping && _options.GetObjectKeyPrefix is null && range.Prefix is null)
         {
-            // A common prefix inferred from bounds can be whitespace, which cannot be represented
-            // as a JournalId for a custom mapper. Bounds alone also do not require a prefix mapper.
+            // 从界限中推断出的共同前缀可以是白色空间,不能代表
+            // 是一个自定义映像器的 JournalId 。光是弹道也不需要前缀映像器。
             listingPrefix = null;
         }
 
@@ -79,7 +79,7 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
         if (ordered && identityMapping && range.LowerBound is { Length: > 0 } lowerBound
             && System.Text.Ascii.IsValid(lowerBound))
         {
-            // StartAfter is exclusive: use a strictly earlier key to retain the inclusive lower bound.
+            // StartAfter 是排他性的:使用严格较早的密钥保留包容性下限。
             var marker = S3JournalStorageOptions.GetDefaultWalObjectKey(lowerBound[..^1]);
             if (string.CompareOrdinal(marker, objectKeyPrefix) > 0)
             {
@@ -108,7 +108,7 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
             _shared.Instruments.OnCatalogPage(response.S3Objects?.Count ?? 0);
 
             cancellationToken.ThrowIfCancellationRequested();
-            // AWS SDK v4 represents an empty listing page with a null collection.
+            // AWS SDK v4 代表一个空列表页面, 含有无效收藏 。
             foreach (var item in response.S3Objects ?? [])
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -119,7 +119,7 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
 
                 if (TryGetJournalId(item.Key, range, out var id))
                 {
-                    // ListObjectsV2 cannot project the complete journal metadata without a separate request.
+                    // ListObjectsV2 无法在不单独请求的情况下预测完整的日记元数据 。
                     _shared.Instruments.OnCatalogEntry();
                     yield return new JournalCatalogEntry(id);
                 }

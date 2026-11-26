@@ -6,15 +6,15 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Orleans.Durable.Analyzers;
 
 /// <summary>
-/// Reports code in durable task bodies which changes an object that grain state holds in place, such as
-/// <c>_order.Value.Lines.Add(line)</c> or <c>_state.State.Count++</c>, instead of assigning a new value through the
-/// state's API.
+/// 长期任务机构的报告代码,更改 grain 国家所维持的物体,例如
+/// <c>_order.Value.Lines.Add(line)</c> 或 <c>_state.State.Count++</c>,而不是通过
+/// 状态 API。
 /// </summary>
 /// <remarks>
-/// The analysis follows the instance chain of the changed member or the receiver of a collection mutation to a value which
-/// grain state holds, directly or through a local which a declaration initializes with one and which no code assigns
-/// again. Value types and immutable records can't be changed through that chain, and immutable collections return
-/// changed copies, so neither is reported.
+/// 分析遵循的是被改变的成员或接收者在收藏中变异到
+/// grain 国家直接或通过当地人持有,而该地方人的申报与某一申报并用申报初始化,而且没有代码指定
+/// 。价值类型和不可更改的记录无法通过该链条改变,不可更改的收藏回报
+/// 修改副本,因此没有报告。
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskStateMutationAnalyzer : DiagnosticAnalyzer
@@ -64,7 +64,7 @@ public sealed class DurableTaskStateMutationAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>Returns the object whose member or element an assignment target changes.</summary>
+    /// <summary>返回其成员或元素的指定目标更改的对象。</summary>
     private static IOperation? GetInstance(IOperation target) => target switch
     {
         IMemberReferenceOperation member => member.Instance,
@@ -72,7 +72,7 @@ public sealed class DurableTaskStateMutationAnalyzer : DiagnosticAnalyzer
         _ => null,
     };
 
-    /// <summary>Returns the grain state value which holds an object, following members, elements, and aliasing locals.</summary>
+    /// <summary>返回 grain 状态值,该数值持有对象、成员之后的物体、元素和当地化名。</summary>
     private static IOperation? GetStateValue(IOperation holder, DurableTaskSymbols symbols)
     {
         for (var current = DurableTaskSymbols.Unwrap(holder); ; current = DurableTaskSymbols.Unwrap(current))
@@ -98,7 +98,7 @@ public sealed class DurableTaskStateMutationAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>Returns the grain state value which a local holds when its declaration is its only assignment.</summary>
+    /// <summary>返回当当地人声明是其唯一任务时持有的 grain 状态值。</summary>
     private static IOperation? GetAliasedStateValue(ILocalReferenceOperation reference, DurableTaskSymbols symbols) =>
         reference.SemanticModel is { } semanticModel
         && DurableTaskSymbols.GetOnlyValue(reference.Local, semanticModel) is { } value

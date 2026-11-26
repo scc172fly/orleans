@@ -48,7 +48,7 @@ public sealed class IdealizedReminderServiceFixture : IAsyncLifetime
     }
 }
 
-/// <summary>Runs the reusable cluster-level reminder service conformance runner against the oracle.</summary>
+/// <summary>运行可重复使用的集束级提醒服务符合性运行对着神器运行。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("Reminders")]

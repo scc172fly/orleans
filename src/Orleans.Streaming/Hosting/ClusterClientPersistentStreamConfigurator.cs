@@ -8,20 +8,20 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Configuration builder for persistent streams.
+    /// 长流配置构建器 。
     /// </summary>
     public interface IPersistentStreamConfigurator : INamedServiceConfigurator { }
 
     /// <summary>
-    /// Extension methods for <see cref="IPersistentStreamConfigurator"/>.
+    /// <see cref="IPersistentStreamConfigurator"/>的推广方法。
     /// </summary>
     public static class PersistentStreamConfiguratorExtensions
     {
         /// <summary>
-        /// Configures the stream pub/sub type.
+        /// 配置流旁/子类型。
         /// </summary>
-        /// <param name="configurator">The configuration builder.</param>
-        /// <param name="pubsubType">The stream pub/sub type to use.</param>
+        /// <param name="configurator">配置构建器。</param>
+        /// <param name="pubsubType">要使用的流条阴道/子类型。</param>
         public static void ConfigureStreamPubSub(this IPersistentStreamConfigurator configurator, StreamPubSubType pubsubType = StreamPubSubOptions.DEFAULT_STREAM_PUBSUB_TYPE)
         {
             configurator.Configure<StreamPubSubOptions>(ob => ob.Configure(options => options.PubSubType = pubsubType));
@@ -29,20 +29,20 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Client-specific configuration builder for persistent stream.
+    /// 持续流客户特定配置构建器。
     /// </summary>
     public interface IClusterClientPersistentStreamConfigurator : IPersistentStreamConfigurator { }
 
     /// <summary>
-    /// Extension methods for <see cref="IClusterClientPersistentStreamConfigurator"/>.
+    /// <see cref="IClusterClientPersistentStreamConfigurator"/>的推广方法。
     /// </summary>
     public static class ClusterClientPersistentStreamConfiguratorExtensions
     {
         /// <summary>
-        /// Configures the <see cref="StreamLifecycleOptions"/>.
+        /// 配置 <see cref="StreamLifecycleOptions"/>。
         /// </summary>
-        /// <param name="configurator">The configuration builder.</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
+        /// <param name="configurator">配置构建器。</param>
+        /// <param name="configureOptions">配置代表。</param>
         public static void ConfigureLifecycle(this IClusterClientPersistentStreamConfigurator configurator, Action<OptionsBuilder<StreamLifecycleOptions>> configureOptions)
         {
             configurator.Configure(configureOptions);
@@ -50,16 +50,16 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// Client-side configuration provider for persistent streams.
+    /// 持续流的客户方配置提供者。
     /// </summary>
     public class ClusterClientPersistentStreamConfigurator : NamedServiceConfigurator, IClusterClientPersistentStreamConfigurator
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterClientPersistentStreamConfigurator"/> class.
+        /// 初始化 <see cref="ClusterClientPersistentStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="clientBuilder">The client builder.</param>
-        /// <param name="adapterFactory">The adapter factory.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="clientBuilder">客户端构建器。</param>
+        /// <param name="adapterFactory">适配厂</param>
         public ClusterClientPersistentStreamConfigurator(string name, IClientBuilder clientBuilder, Func<IServiceProvider, string, IQueueAdapterFactory> adapterFactory)
             : base(name, configureDelegate => clientBuilder.ConfigureServices(configureDelegate))
         {

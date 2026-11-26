@@ -10,10 +10,10 @@ namespace Orleans.CodeGenerator;
 internal static class ReferenceAssemblyModelExtractor
 {
     /// <summary>
-    /// Extracts reference-assembly metadata from the compilation using the provided code generation options.
-    /// This isolates reference-assembly scanning into a cacheable pipeline step so that
-    /// downstream work can be skipped when references don't change.
-    /// Type syntax is formatted on demand and shared by each type's metadata registrations.
+    /// 使用提供的代码生成选项,从汇编中提取参考集元数据。
+    /// 将参考集成扫描分离到一个可缓存的管道步骤,以便
+    /// 当引用不改变时, 下游的工作可以跳过 。
+    /// 类型语法根据需要编制格式,由每种类型的元数据登记共享。
     /// </summary>
     internal static ReferenceAssemblyModel ExtractReferenceAssemblyData(
         Compilation compilation,
@@ -22,8 +22,8 @@ internal static class ReferenceAssemblyModelExtractor
         => ExtractReferenceAssemblyData(compilation, options, cancellationToken, out _, out _);
 
     /// <summary>
-    /// Reuses successful, deduplicated source discoveries from this compilation for current-assembly
-    /// serializer and proxy metadata. Uncovered types and selected external assemblies use symbol-based discovery.
+    /// 重新利用本汇编中成功、可复制的源发现,以便当前组装
+    /// 序列和代理元数据。 未覆盖类型和选定的外部组件使用符号式发现。
     /// </summary>
     internal static ReferenceAssemblyModel ExtractReferenceAssemblyData(
         Compilation compilation,
@@ -151,8 +151,8 @@ internal static class ReferenceAssemblyModelExtractor
                         continue;
                     }
 
-                    // The metadata provider is emitted outside the aliased type, so every type it names must be accessible from generated code.
-                    // The diagnostic concerns generated metadata, so it is reported only when implementation outputs are emitted.
+                    // 元数据提供者是在别名类型之外排放的,因此它命名的每一种类型都必须能从生成的代码中获取。
+                    // 诊断问题产生了元数据,因此只有在发布执行产出时才报告。
                     if (FindInaccessibleCompoundAliasType(symbol, compoundAlias) is { } inaccessibleType)
                     {
                         implementationDiagnosticBuilder.Add(InaccessibleCompoundTypeAliasDiagnostic.CreateDiagnostic(symbol, compoundAlias, inaccessibleType, compilation));
@@ -344,13 +344,13 @@ internal static class ReferenceAssemblyModelExtractor
 
         ITypeSymbol? FindInaccessibleCompoundAliasType(INamedTypeSymbol target, AttributeData attribute)
         {
-            // Assembly accessibility includes file-local types, whose names cannot be used in the generated file.
+            // 组装可访问性包括文件本地类型,其名称不能用于生成的文件中。
             if (!compilation.IsSymbolAccessibleWithin(target, compilation.Assembly) || !CanReferenceType(target))
             {
                 return target;
             }
 
-            // TryExtractCompoundTypeAlias has already validated the shape of the arguments.
+            // TryExtractCompoundTypeAlias 已经验证了参数的形状。
             foreach (var argument in attribute.ConstructorArguments[0].Values)
             {
                 if (argument.Value is ITypeSymbol type
@@ -469,7 +469,7 @@ internal static class ReferenceAssemblyModelExtractor
     }
 
     /// <summary>
-    /// Extracts a <see cref="RegisteredCodecModel"/> from a symbol with one of the Register* attributes.
+    /// 摘录a <see cref="RegisteredCodecModel"/> 带有一个登记册的符号* 属性。
     /// </summary>
     internal static RegisteredCodecModel ExtractRegisteredCodec(INamedTypeSymbol symbol, RegisteredCodecKind kind, Compilation compilation)
     {

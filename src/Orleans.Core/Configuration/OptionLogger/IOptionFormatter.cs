@@ -3,72 +3,72 @@ using System.Collections.Generic;
 namespace Orleans
 {
     /// <summary>
-    /// format the option and give it a category and a name
+    /// 格式格式化选项,并给它一个类别和一个名称
     /// </summary>
     public interface IOptionFormatter
     {
         /// <summary>
-        /// Gets the name of the options object.
+        /// 获取选项对象的名称。
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// Formats the options object into a collection of strings.
+        /// 将选项对象格式化为字符串集合。
         /// </summary>
-        /// <returns>A collection of formatted string-value pairs corresponding the the properties on the options object.</returns>
+        /// <returns>与选项对象的属性相对应的格式字符串-价值对集合。</returns>
         IEnumerable<string> Format();
     }
 
     /// <summary>
-    /// Option formatter for a certain option type <typeparamref name="T"/>
+    /// 特定选项类型的事项的选项 <typeparamref name="T"/>
     /// </summary>
-    /// <typeparam name="T">The options type.</typeparam>
+    /// <typeparam name="T">选项类型。</typeparam>
     public interface IOptionFormatter<T> : IOptionFormatter
     {
     }
 
     /// <summary>
-    /// IOptionFormatterResolver resolve specific OptionFormatter for certain named option
+    /// IOptionFormatterResolver 对某些指定选项的具体 OptionFormatter
     /// </summary>
-    /// <typeparam name="T">The options type.</typeparam>
+    /// <typeparam name="T">选项类型。</typeparam>
     public interface IOptionFormatterResolver<T>
     {
         /// <summary>
-        /// Resolves the options formatter for the specified options type with the specified options name.
+        /// 确定指定选项名称的指定选项类型的事项选项。
         /// </summary>
-        /// <param name="name">The options name.</param>
-        /// <returns>The options type.</returns>
+        /// <param name="name">选项名称。</param>
+        /// <returns>选项类型。</returns>
         IOptionFormatter<T> Resolve(string name);
     }
 
     /// <summary>
-    /// Utility class for option formatting
+    /// 选项格式化的工具类
     /// </summary>
     public static class OptionFormattingUtilities
     {
         /// <summary>
-        /// The default format string.
+        /// 默认格式字符串。
         /// </summary>
         private const string DefaultFormatFormatting = "{0}: {1}";
 
         /// <summary>
-        /// The default format string for options types which are named.
+        /// 指定选项类型默认格式字符串。
         /// </summary>
         private const string DefaultNamedFormatting = "{0}-{1}";
 
         /// <summary>
-        /// Formats a key-value pair using default format
+        /// 使用默认格式格式格式化键值对
         /// </summary>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <param name="value">
-        /// The value.
+        /// 价值。
         /// </param>
         /// <param name="formatting">
-        /// The format string.
+        /// 格式字符串。
         /// </param>
-        /// <returns>A formatted key-value pair.</returns>
+        /// <returns>格式化的键值对 。</returns>
         public static string Format(object? key, object? value, string? formatting = null)
         {
             var valueFormat = formatting ?? DefaultFormatFormatting;
@@ -76,12 +76,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Formats the name of an options object.
+        /// 格式化选项对象的名称。
         /// </summary>
-        /// <typeparam name="TOptions">The options type.</typeparam>
-        /// <param name="name">The options name.</param>
-        /// <param name="formatting">The format string.</param>
-        /// <returns>The formatted options object name.</returns>
+        /// <typeparam name="TOptions">选项类型。</typeparam>
+        /// <param name="name">选项名称。</param>
+        /// <param name="formatting">格式字符串。</param>
+        /// <returns>格式化选项对象名称。</returns>
         public static string Name<TOptions>(string? name = null, string? formatting = null)
         {
             return name is null && formatting is null ? typeof(TOptions).FullName!

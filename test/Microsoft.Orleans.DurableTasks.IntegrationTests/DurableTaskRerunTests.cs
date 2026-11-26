@@ -6,13 +6,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Verifies that a root task ID runs again once its grain deleted its earlier run, within Messaging's deduplication
-/// window.
+/// 证明根任务ID再次运行, 其 grain 删除了它先前的运行, 在Message 的重复范围内
+/// 窗口中。
 /// </summary>
 /// <remarks>
-/// The result retention period is shorter than the deduplication window. Each run of the root has its own incarnation,
-/// which its call's wire ID covers, so Messaging delivers the later run's invocation rather than deduplicating it against
-/// the earlier run's, and the callee stores the later call under another ID.
+/// 结果保留期短于重复窗口。 根的每运行一次都有其自身的化身,
+/// 通讯传递了较后运行的 请求而不是拆卸它
+/// 前面的跑步, 和被调用者储存 后一个呼叫在另一ID下。
 /// </remarks>
 public abstract class DurableTaskRerunTests : IAsyncLifetime
 {
@@ -42,19 +42,19 @@ public abstract class DurableTaskRerunTests : IAsyncLifetime
         var callId = rootId.Child(RerunCallerGrain.CallId);
         using var events = DurableTaskEventBarriers.Collect();
 
-        // The first run calls the callee, which deletes its task once the caller accepted the completion.
+        // 第一个运行点呼叫被调用者, 即一旦被调用者接受完成后删除任务 。
         var first = await caller.RunAsync(callee.GetPrimaryKey(), 7).WithId("rerun").ScheduleAsync(cancellationToken);
         Assert.Equal(7, (await first.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<int>());
         var firstChildId = await events.WaitForCallerChildAsync(calleeId, callerId, callId);
         await events.WaitForDeletedAsync(calleeId, firstChildId);
 
-        // The first run's retention ends, well within the deduplication window, so the next schedule of the same root ID
-        // deletes it and runs the root again with the same request.
+        // 第一转的留存结束, 完全在重复窗口内, 所以下一个相同的根 ID 时间表
+        // 以相同的请求删除并再次运行根。
         _fixture.JobClock.Advance(Retention + TimeSpan.FromMinutes(1));
         var second = await caller.RunAsync(callee.GetPrimaryKey(), 7).WithId("rerun").ScheduleAsync(cancellationToken);
         await events.WaitForDeletedAsync(callerId, rootId);
 
-        // The second run's call reaches the callee as a new task, and the run completes.
+        // 第二波的呼叫到达被召唤者 作为一项新任务,运行完成
         Assert.Equal(7, (await second.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<int>());
         var secondCreated = await events.WaitForEventAsync(
             nameof(global::Orleans.Durable.Tasks.Diagnostics.DurableTaskEvents.TaskCreated),
@@ -68,14 +68,14 @@ public abstract class DurableTaskRerunTests : IAsyncLifetime
     }
 }
 
-/// <summary>Runs root re-run coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行根重新运行覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskRerunTests() : DurableTaskRerunTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs root re-run coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行根重新运行覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

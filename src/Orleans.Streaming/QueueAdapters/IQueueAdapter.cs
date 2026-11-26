@@ -5,61 +5,61 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Stream queue storage adapter.  This is an abstraction layer that hides the implementation details of the underlying queuing system.
+    /// 流队队列存储适配器。 这是一个抽象的层, 隐藏了底部排队系统的实施细节 。
     /// </summary>
     public interface IQueueAdapter
     {
         /// <summary>
-        /// Gets the name of the adapter. Primarily for logging purposes
+        /// 获取适配器的名称。 主要是用于记录目的
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// Writes a set of events to the queue as a single batch associated with the provided streamId.
+        /// 将一组事件作为与所提供 streamId相关的单批内容写入队列。
         /// </summary>
-        /// <typeparam name="T">The queue element type.</typeparam>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="events">The events.</param>
-        /// <param name="token">The token.</param>
-        /// <param name="requestContext">The request context.</param>
-        /// <returns>Task.</returns>
+        /// <typeparam name="T">队列元素类型。</typeparam>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="events">事件。</param>
+        /// <param name="token">牌子。</param>
+        /// <param name="requestContext">请求的背景。</param>
+        /// <returns>任务。</returns>
         Task QueueMessageBatchAsync<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext);
 
         /// <summary>
-        /// Creates a queue receiver for the specified queueId
+        /// 为指定的 queueId创建队列接收器
         /// </summary>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <returns>The receiver.</returns>
+        /// <param name="queueId">队列标识符。</param>
+        /// <returns>接收器。</returns>
         IQueueAdapterReceiver CreateReceiver(QueueId queueId);
 
         /// <summary>
-        /// Gets a value indicating whether this is a rewindable stream adapter - supports subscribing from previous point in time.
+        /// 获得一个值, 显示它是否是一个可倒放流适配器 - 支持从上一点点开始签名 。
         /// </summary>
-        /// <returns>True if this is a rewindable stream adapter, false otherwise.</returns>
+        /// <returns>如果这是可倒放流适配器, 则正确。</returns>
         bool IsRewindable { get; }
 
         /// <summary>
-        /// Gets the direction of this queue adapter: <see cref="StreamProviderDirection.ReadOnly"/>, <see cref="StreamProviderDirection.WriteOnly"/>, or <see cref="StreamProviderDirection.ReadWrite"/>.
+        /// 获取此队列适配器的方向 : <see cref="StreamProviderDirection.ReadOnly"/>、 <see cref="StreamProviderDirection.WriteOnly"/>或 <see cref="StreamProviderDirection.ReadWrite"/>。
         /// </summary>
-        /// <returns>The direction in which this adapter provides data.</returns>
+        /// <returns>该适配器提供数据的方向。</returns>
         StreamProviderDirection Direction { get; }
     }
 
     /// <summary>
-    /// Extension methods for <see cref="IQueueAdapter"/>
+    /// <see cref="IQueueAdapter"/>的扩展方法
     /// </summary>
     public static class QueueAdapterExtensions
     {
         /// <summary>
-        /// Writes a set of events to the queue as a single batch associated with the provided <paramref name="streamId"/>.
+        /// 将一组事件作为与所提供 <paramref name="streamId"/>相关的单批内容写入队列。
         /// </summary>
-        /// <typeparam name="T">The queue element type.</typeparam>
-        /// <param name="adapter">The adapter.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="evt">The event.</param>
-        /// <param name="token">The token.</param>
-        /// <param name="requestContext">The request context.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <typeparam name="T">队列元素类型。</typeparam>
+        /// <param name="adapter">适配器。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="evt">事件。</param>
+        /// <param name="token">牌子。</param>
+        /// <param name="requestContext">请求的背景。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         public static Task QueueMessageAsync<T>(this IQueueAdapter adapter, StreamId streamId, T evt, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
         {
             return adapter.QueueMessageBatchAsync(streamId, new[] { evt }, token, requestContext);

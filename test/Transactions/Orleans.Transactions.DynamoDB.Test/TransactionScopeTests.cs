@@ -7,7 +7,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for scoped transaction functionality with DynamoDB.
+    /// 测试 DynamoDB的范围交易功能。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

@@ -10,7 +10,7 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// Identifies an <see cref="IReminderTable"/> operation observed by <see cref="IdealizedReminderTable"/>.
+/// 指定 <see cref="IReminderTable"/> 观察的 <see cref="IdealizedReminderTable"/>.
 /// </summary>
 public enum ReminderTableOperationKind
 {
@@ -40,23 +40,23 @@ public enum ReminderTableOperationKind
 }
 
 /// <summary>
-/// Thrown by <see cref="IdealizedReminderTable"/> when the table has been marked unavailable to simulate a storage outage.
+/// 当表格标记无法模拟存储中断时被 <see cref="IdealizedReminderTable"/> 扔出 。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
 public sealed class ReminderTableUnavailableException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderTableUnavailableException"/> class.
+    /// 初始化 <see cref="ReminderTableUnavailableException"/> 类的新实例。
     /// </summary>
     public ReminderTableUnavailableException() : base("The reminder table is unavailable.")
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderTableUnavailableException"/> class.
+    /// 初始化 <see cref="ReminderTableUnavailableException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">The message.</param>
+    /// <param name="message">电文。</param>
     public ReminderTableUnavailableException(string message) : base(message)
     {
     }
@@ -68,15 +68,15 @@ public sealed class ReminderTableUnavailableException : Exception
 }
 
 /// <summary>
-/// A durable reminder record observed through <see cref="IdealizedReminderTable.Snapshot"/>.
+/// 通过 <see cref="IdealizedReminderTable.Snapshot"/>观察到的耐久提醒记录。
 /// </summary>
-/// <param name="GrainId">The grain identifier.</param>
-/// <param name="ReminderName">The reminder name.</param>
-/// <param name="StartAt">The persisted start time.</param>
-/// <param name="Period">The persisted period.</param>
-/// <param name="ETag">The current ETag.</param>
-/// <param name="PreviousETag">The ETag replaced by the most recent write, if any.</param>
-/// <param name="Version">The monotonically increasing version of this record.</param>
+/// <param name="GrainId"> grain 标识符。</param>
+/// <param name="ReminderName">提醒的名称。</param>
+/// <param name="StartAt">持续启动时间。</param>
+/// <param name="Period">持续时间。</param>
+/// <param name="ETag">当前的ETag。</param>
+/// <param name="PreviousETag">以最新文章取代了ETag。</param>
+/// <param name="Version">本记录单声道增加的版本。</param>
 public sealed record ReminderTableRecord(
     GrainId GrainId,
     string ReminderName,
@@ -87,7 +87,7 @@ public sealed record ReminderTableRecord(
     long Version)
 {
     /// <summary>
-    /// Gets the uniform hash code which determines range ownership.
+    /// 获得统一的散列代码,确定范围所有权。
     /// </summary>
     public uint UniformHashCode => GrainId.GetUniformHashCode();
 
@@ -97,7 +97,7 @@ public sealed record ReminderTableRecord(
 }
 
 /// <summary>
-/// One operation recorded by <see cref="IdealizedReminderTable"/>.
+/// 记录到 <see cref="IdealizedReminderTable"/>的一个操作。
 /// </summary>
 public sealed class ReminderTableOperation
 {
@@ -127,38 +127,38 @@ public sealed class ReminderTableOperation
         Failure = failure;
     }
 
-    /// <summary>Gets the monotonically increasing operation sequence number.</summary>
+    /// <summary>获得单声道增加的操作序列号。</summary>
     public long Sequence { get; }
 
-    /// <summary>Gets the operation kind.</summary>
+    /// <summary>获得操作类型。</summary>
     public ReminderTableOperationKind Kind { get; }
 
-    /// <summary>Gets the grain identifier, when the operation targets one.</summary>
+    /// <summary>当操作目标为一时, 获得 grain 识别符号。</summary>
     public GrainId? GrainId { get; }
 
-    /// <summary>Gets the reminder name, when the operation targets one.</summary>
+    /// <summary>当操作目标为一时, 获得提醒名称。</summary>
     public string? ReminderName { get; }
 
-    /// <summary>Gets the exclusive lower bound, for range reads.</summary>
+    /// <summary>获得排他性下限, 范围读作。</summary>
     public uint? Begin { get; }
 
-    /// <summary>Gets the inclusive upper bound, for range reads.</summary>
+    /// <summary>获得包含性的上约束,范围为。</summary>
     public uint? End { get; }
 
-    /// <summary>Gets the ETag supplied by the caller, for conditional operations.</summary>
+    /// <summary>获得电话提供ETAG,有条件操作。</summary>
     public string? SuppliedETag { get; }
 
-    /// <summary>Gets the ETag returned to the caller, for writes.</summary>
+    /// <summary>找回来电者,写作</summary>
     public string? ResultETag { get; }
 
-    /// <summary>Gets a value indicating whether the operation completed without throwing and, for
-    /// <see cref="ReminderTableOperationKind.RemoveRow"/>, removed a row.</summary>
+    /// <summary>获得一个数值,表明是否未投掷就完成了操作,并且
+    /// <see cref="ReminderTableOperationKind.RemoveRow"/>,删除一行。</summary>
     public bool Succeeded { get; }
 
-    /// <summary>Gets the number of reminders returned, for reads.</summary>
+    /// <summary>获取回送提醒函的数, 读作 。</summary>
     public int ResultCount { get; }
 
-    /// <summary>Gets the failure type name when the operation threw.</summary>
+    /// <summary>选择在任务丢弃时失败类型名称。</summary>
     public string? Failure { get; }
 
     /// <inheritdoc />
@@ -175,7 +175,7 @@ public sealed class ReminderTableOperation
 }
 
 /// <summary>
-/// An awaitable gate which blocks the next matching operation until it is released.
+/// 等待的大门 阻断下一个匹配操作 直到它被释放
 /// </summary>
 public sealed class ReminderTableOperationGate : IAsyncDisposable
 {
@@ -191,19 +191,19 @@ public sealed class ReminderTableOperationGate : IAsyncDisposable
     }
 
     /// <summary>
-    /// Gets the operation kind which this gate blocks.
+    /// 得到的操作类型 这样的门挡。
     /// </summary>
     public ReminderTableOperationKind Kind { get; }
 
     /// <summary>
-    /// Waits until a matching operation has reached the gate.
+    /// 等待匹配操作到达大门
     /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>A task which completes when the operation is blocked.</returns>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>任务在操作被阻断时完成。</returns>
     public Task WaitUntilBlockedAsync(CancellationToken cancellationToken = default) => _blocked.Task.WaitAsync(cancellationToken);
 
     /// <summary>
-    /// Releases the blocked operation.
+    /// 释放被封存的操作。
     /// </summary>
     public void Release() => _release.TrySetResult();
 

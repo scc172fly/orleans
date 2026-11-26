@@ -41,8 +41,8 @@ namespace Orleans.Runtime.GrainDirectory
                 throw new ArgumentException("Addresses cannot be an empty list or null");
             }
 
-            // validate that this request arrived correctly
-            //logger.Assert(ErrorCode.Runtime_Error_100140, silo.Matches(router.MyAddress), "destination address != my address");
+            // 验证这一请求是否正确收到
+            //logger.Assert(ErrorCode.Runtime_Error_100140, silo.Matches(router.MyAddress),“目的地地址!”=我的地址”。
 
             LogRegisterMany(addresses.Count);
 
@@ -85,15 +85,15 @@ namespace Orleans.Runtime.GrainDirectory
                 int curGen = partition.GetGrainETag(tuple.GrainId);
                 if (curGen == tuple.Version || curGen == GrainInfo.NO_ETAG)
                 {
-                    // the grain entry either does not exist in the local partition (curGen = -1) or has not been updated
+                    // grain 条目要么没有存在于本地分区(curGen = -1)中,要么尚未更新
 
                     result.Add(new(GrainAddress.GetAddress(null, tuple.GrainId, default), curGen));
                 }
                 else
                 {
-                    // the grain entry has been updated -- fetch and return its current version
+                    // grain 条目已经更新 -- -- 获取并返回当前版本
                     var lookupResult = partition.LookUpActivation(tuple.GrainId);
-                    // validate that the entry is still in the directory (i.e., it was not removed concurrently)
+                    // 验证该条目是否仍然在目录中 (i.e., 它没有同时删除)
                     if (lookupResult.Address != null)
                     {
                         result.Add(lookupResult);

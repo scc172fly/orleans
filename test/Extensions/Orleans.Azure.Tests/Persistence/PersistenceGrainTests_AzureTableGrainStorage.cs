@@ -7,7 +7,7 @@ using Orleans.TestingHost;
 namespace Tester.AzureUtils.Persistence;
 
 /// <summary>
-/// PersistenceGrainTests using AzureGrainStorage - Requires access to external Azure table storage
+/// PersistenceGrainTests 使用 AzureGrainStorage - 需要外部进入 Azure 表格存储表储存
 /// </summary>
 [TestCategory("Persistence"), TestCategory("AzureStorage")]
 [TestSuite("Functional")]

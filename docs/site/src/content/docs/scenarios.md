@@ -1,120 +1,146 @@
 ---
-title: Orleans scenarios and use cases
-description: Decide whether the Orleans virtual actor model fits an application's workload.
+title: "Orleans 设想情景和使用情况"
+description: "决定 Orleans 虚拟行为体模式是否符合申请的工作量。"
 ms.date: 08/17/2026
 ms.topic: conceptual
 ---
 
-# Orleans scenarios and use cases
+<a id="orleans-scenarios-and-use-cases"></a>
 
-Orleans supports applications with many independently addressable entities whose state and work partition by identity. A grain owns the behavior and state for one entity, and the runtime manages its activation, placement, routing, and turn-based execution.
+# Orleans 设想情景和使用情况
 
-Choose grains according to identity, state ownership, concurrency, and call patterns. Combine them with databases, queues, stream processors, and compute services according to each workload.
+Orleans 支持许多独立可处理实体的应用程序,这些实体的状态和工作分布因身份而异。 A grain 拥有一个实体的行为和国家,运行时间管理其启动、安置、路由和回合执行。
 
-## Signals that Orleans is a strong fit
+根据身份、国家所有制、货币和调用模式选择 grains 。将其与数据库、队列、流处理器合并,并根据每个工作量计算服务。
 
-Consider Orleans when several of these statements describe the application:
+<a id="signals-that-orleans-is-a-strong-fit"></a>
 
-- Domain entities have stable identities, such as a player, device, account, order, room, tenant, or session.
-- Each entity owns state or coordinates work over time.
-- Requests for one entity benefit from serialized, turn-based execution.
-- The workload contains many entities and can distribute traffic across their keys.
-- Entities need timers, reminders, streams, persistence, or calls to other entities.
-- Callers use a stable logical identity while the runtime resolves the entity's current host.
-- The application is already a distributed .NET service, or is expected to grow into one.
+## 信号 Orleans 功能强
 
-Scalability comes from grain boundaries, key distribution, call patterns, storage, and external dependencies. Partition popular entities across multiple keys to distribute their work.
+当其中若干陈述描述申请时,考虑 Orleans :
 
-## Common scenarios
+- 域实体具有稳定的身份,例如玩家、装置、账户、订单、房间、租户或会话。
+- 每个实体拥有州或协调工作。
+- 要求一个实体执行按顺序排列的转手执行,使该实体受益。
+- 工作量包含许多实体,可以将交通量分布在关键部门。
+- 各实体需要时间、提醒、流、持久性或向其他实体发出呼吁。
+- 调用者使用稳定的逻辑身份,而运行时间则解决实体目前的主机。
+- 应用程序已经是一个分布式 .NET 服务,或预计将发展成一个服务。
 
-### AI agents and conversational sessions
+缩放性来自 grain 边界、钥匙分布、呼叫模式、储存和外部依赖。
 
-An AI agent session is a natural grain identity. A session grain can own conversation state, model and tool configuration, pending work, and coordination with other agents or services. Orleans activates sessions on demand, removes idle activations, routes each request to the current activation, and processes turns one at a time by default. This provides lifecycle management and serializes concurrent session updates.
+<a id="common-scenarios"></a>
 
-Model inference and tool calls are typically asynchronous external operations. A grain can await them efficiently, use [response streaming](grains/response-streaming.md) to return generated tokens or progress during one live invocation, and use timers, reminders, or durable jobs to schedule later work. A stream provider with retention and replay capabilities, or durable storage, can retain output for reconnection and later consumption.
+## 共同设想情景
 
-After membership converges following a silo failure, a later request can reactivate the session on a healthy silo, and [grain persistence](grains/grain-persistence/index.md) restores state written to durable storage. Explicit durability points, idempotent tool calls, bounded retries, and reconciliation preserve application-level outcomes across failures.
+<a id="ai-agents-and-conversational-sessions"></a>
 
-### Fraud protection, risk, and low-latency decisioning
+### AI 代理和谈话会
 
-Fraud protection, financial services, actuarial systems, and regulated online gaming often make decisions from rapidly changing state. A grain can maintain low-latency *soft state*: reconstructible in-memory working data derived from durable records, event streams, market feeds, or model outputs. Turn-based execution keeps each entity's updates and decisions ordered.
+AI代理会话是一种自然的 grain 特性。一个会话 grain 可以拥有对话状态、模式和工具配置、待办工作以及与其他代理或服务的协调。 Orleans 可按需启动会话,取消闲置激活,将每项请求引向当前激活,并默认地一次翻转一个进程。这提供生命周期管理,并同时进行会话更新。
 
-Account, payment instrument, merchant, policy, portfolio, market, and gaming-event grains can track recent activity, risk signals, limits, exposure, and current odds. Grain calls coordinate decisions across related entities, while streams distribute changing inputs and outputs. Durable stores and event logs retain the authoritative history used to rebuild working state and support audit.
+模型推理和工具电话通常是非同步的外部操作。 grain 可以高效地等待,在一个现场使用时使用 [响应流流](grains/response-streaming.md) 将产生的标牌或进步还原,并使用计时器、提醒或耐久工作来安排日后的工作。 具有保留和重播能力的流源提供商或者有耐久存储功能的流提供者可以保留输出以进行重新连接和以后的消耗。
 
-The same pattern supports real-time pricing, auctions, inventory allocation, recommendations, and other decisions which combine an entity's current context with incoming events. Parallel compute and data platforms can produce models or large analytical results which grains apply during online decisioning.
+在 silo 失败后,成员资格会合之后,后来的请求可以恢复会议,恢复健康 silo,并且 [grain 持久性](grains/grain-persistence/index.md) 将国家恢复到持久储存。 明确的持久性点、无能工具呼叫、约束式重整以及和解保持了所有失败的应用水平结果。
 
-The [Stocks sample](https://github.com/dotnet/orleans/tree/main/samples/Stocks) demonstrates per-symbol temporary caching and periodic updates. The [Bank Account transactions sample](https://github.com/dotnet/orleans/tree/main/samples/BankAccount) demonstrates coordinated state changes across accounts.
+<a id="fraud-protection-risk-and-low-latency-decisioning"></a>
 
-### Internet of Things and digital twins
+### 欺诈保护、风险和低延迟决策
 
-Internet of Things (IoT) devices, vehicles, sensors, industrial assets, robots, buildings, and edge gateways have stable identities and evolving state. A grain per asset can maintain last-known state, apply commands in order, manage configuration, evaluate local rules, and coordinate periodic or scheduled work. Grain identity lets callers address each asset directly while Orleans resolves its current host, and persistence restores explicitly written state after reactivation.
+欺诈保护、金融服务、精算系统和受监管的在线赌博经常从迅速变化的国家作出决定。 grain 能够保持低长度 *软状态*:从耐久记录、事件流、市场反馈或模型产出中得出的可重建的模拟工作数据。
 
-Grains can consume selected telemetry events and own the stateful behavior of each asset. Brokers, time-series stores, and stream-processing systems provide high-volume ingestion, long-term retention, fleet-wide analytics, and model training for the surrounding telemetry pipeline.
+账户、支付工具、商家、政策、投资组合、市场和赌博活动 grains 能够跟踪近期的活动、风险信号、限制、暴露和当前情况。 Grain 呼吁协调相关实体之间的决策,同时流分配不断变化的投入和产出。 耐用商店和活动记录保留了重建工作状态和支持审计的权威性历史。
 
-The [GPS Tracker sample](https://github.com/dotnet/orleans/tree/main/samples/GPSTracker) models IoT devices as grains and integrates Orleans with ASP.NET Core SignalR.
+同样的模式支持实时定价、拍卖、库存分配、建议和其他决定,将实体当前背景与即将发生的事件结合起来。 平行计算和数据平台可以产生模型或大型分析结果,在网上决策中应用 grains 。
 
-### Monitoring, resource governance, and job orchestration
+[抽样库存](https://github.com/dotnet/orleans/tree/main/samples/Stocks) 显示每个符号临时缓存和定期更新。 [银行账户交易抽样](https://github.com/dotnet/orleans/tree/main/samples/BankAccount) 显示各账户协调的状态变化。
 
-Servers, services, containers, clusters, tenants, quotas, jobs, and hardware resources map naturally to grains. A resource grain can combine heartbeats, health signals, desired configuration, capacity, reservations, and remediation state. Timers detect stale health reports, reminders trigger recurring checks, and durable jobs schedule one-time follow-up actions.
+<a id="internet-of-things-and-digital-twins"></a>
 
-Job grains can own submission state, dependencies, retries, progress, and completion. Resource grains can own hardware availability and allocation. Partitioned scheduler grains match jobs to eligible resources, and external workers execute assigned work and report status through grain calls or streams. Stable grain identities let operators and automation address the same job or resource throughout its lifecycle.
+### 物与数字双胞人互联网
 
-This model supports fleet health monitoring, automated remediation, quota enforcement, workload placement, batch and build farms, and orchestration across specialized hardware. [Heterogeneous silos](host/heterogeneous-silos.md) and [placement filtering](grains/grain-placement-filtering.md) also direct Orleans grain workloads to hosts with specific capabilities.
+因特网(互联网)IoT装置、车辆、传感器、工业资产、机器人、建筑物和边缘网关具有稳定的身份,并处于不断变化的状态。 grain 每个资产可以保持已知的最后状态,按顺序应用命令,管理配置,评价当地规则,协调定期或排定的工作。 Grain 身份让打电话者直接处理每个资产, Orleans 解决了目前的宿主,而坚持在恢复活动后恢复明确书面状态。
 
-### Multiplayer and online games
+Grains 可以消耗选定的遥测事件,并拥有每个资产的真实行为。 经纪人、时间序列仓库和流处理系统为周围遥测管道提供大量摄取、长期留存、全机队范围的分析和模型培训。
 
-Players, game sessions, rooms, parties, matches, tournaments, and leaderboards have natural identities and typically own mutable state. Grains can serialize operations for each entity, coordinate interactions through grain calls, and notify connected clients through observers or streams.
+[GPS跟踪器样本](https://github.com/dotnet/orleans/tree/main/samples/GPSTracker) 模型 IoT 设备为 grains ,并将 Orleans 与 ASP.NET 核心 SignalR合并。
 
-Use Orleans for authoritative game and social state, matchmaking coordination, presence, progression, and session lifecycle. Real-time simulation, rendering, and other CPU-intensive loops can run in specialized compute services while grains coordinate durable and interactive state.
+<a id="monitoring-resource-governance-and-job-orchestration"></a>
 
-See the [Adventure game](tutorials-and-samples/adventure.md) explanation and the [Presence Service sample](https://github.com/dotnet/orleans/tree/main/samples/Presence).
+### 监测、资源治理和工作协调
 
-### Commerce, reservations, and customer services
+服务器、服务、集装箱、集群、租户、配额、职位和硬件资源图自然地向 grains。资源 grain 可以将心跳、健康信号、理想配置、能力、保留和补救状态结合起来。 计时器检测到陈旧的卫生报告,提醒催复程序,以及一次性的持久工作时间表后续行动。
 
-Shopping carts, orders, accounts, reservations, subscriptions, and customer profiles often have clear ownership boundaries and rules which must hold for one key. A grain can keep those rules with the state they protect, persist changes deliberately, and use reminders or durable jobs for later work.
+工作 grains 可以拥有提交状态、依赖性、回溯、进度和完成。资源 grains 可以拥有硬件可用性和分配。分隔调度器 grains 将职位与符合资格的资源匹配,外部工人通过 grain 电话或流执行指定的工作和报告状况。Stail grain 身份让操作者和自动化者在整个生命周期处理相同的工作或资源。
 
-Per-user grains can maintain preferences, session context, entitlements, notification state, quotas, and recent interactions for responsive personalization. Recommendation and search services can provide ranked results which the grain combines with current user and business state.
+这一模式支持车队健康监测、自动化补救、配额执行、工作量安排、批发和建设农场以及跨专业硬件的管弦。 [异异 silos](host/heterogeneous-silos.md) 和 [职位布置过滤](grains/grain-placement-filtering.md) 还将 Orleans grain 的工作量直接分配给具有特定能力的东道国。
 
-Orleans supports distributed ACID transactions for operations spanning supported transactional state across multiple entities. Idempotent commands, explicit coordination, and reconciliation support workflows whose consistency model permits independent state transitions.
+<a id="multiplayer-and-online-games"></a>
 
-See the [Shopping Cart sample](https://github.com/dotnet/orleans/tree/main/samples/ShoppingCart) and [Orleans transactions](grains/transactions.md).
+### 多人游戏和网上游戏
 
-### Collaboration, social applications, and live sessions
+玩家、游戏会议、会议室、政党、比赛、锦标赛和领头板具有自然特性,通常拥有可变状态。 Grains 可以将每个实体的业务序列化,通过 grain 电话协调互动,并通过观察员或流向相关客户通报。
 
-Rooms, channels, documents, users, social profiles, and sessions can be independently addressed and can retain behavior between client requests. Grain observers fit transient callbacks to connected clients, while Orleans streams fit multicast event flows and subscriptions whose guarantees depend on the selected provider.
+使用 Orleans 来进行权威游戏和社会状态、配对协调、存在、进步和会话周期。 实时模拟、制导和其他CPU密集型循环可以在专门计算服务中运行,而 grains 则可以协调耐久和互动状态。
 
-Brokers and storage systems provide durable message retention, competing consumers, large broadcast fan-out, and analytics over full event histories. Grains apply per-entity state and behavior to selected events and coordinate live interactions.
+见 [冒险游戏](tutorials-and-samples/adventure.md) 解释和 [存在服务抽样](https://github.com/dotnet/orleans/tree/main/samples/Presence)。
 
-The [Chat Room sample](https://github.com/dotnet/orleans/tree/main/samples/ChatRoom) combines a grain per channel with Orleans streams. The [Chirper sample](https://github.com/dotnet/orleans/tree/main/samples/Chirper) models a social network with user grains, persistence, and observers.
+<a id="commerce-reservations-and-customer-services"></a>
 
-### Per-entity orchestration
+### 商业、预订和客户服务
 
-Long-lived processes such as a bot conversation, user workflow, subscription, or scheduled campaign can map to grains when each instance has an identity and progresses independently. Grain state records progress, grain calls express coordination, and timers, reminders, or durable jobs trigger later work.
+购物车、订单、账户、预订、订阅和客户简介往往都有明确的所有权界限和规则,必须持有一个钥匙。 一个 grain 可以保持这些规则,只要它们保护国家,故意改变,并使用提醒或持久工作来做未来的工作。
 
-Orleans expresses programmatic, per-entity orchestration in grain code. Workflow engines provide visual process authoring, human approval queues, and queryable audit histories, and can integrate with grains which own domain state.
+用户 grains 可以保持偏好、届会背景、应享权利、通知状态、配额以及最近个人反应性互动。 建议和搜索服务可以提供排名结果,而 grain 与当前用户和商业状况相结合。
 
-## Choose the architecture by workload
+Orleans 支持分散的ACID交易,用于跨越多个实体之间支助的交易状态的业务。
 
-Match the primary workload to the architecture designed for its execution and state model:
+见 [购物墨盒抽样](https://github.com/dotnet/orleans/tree/main/samples/ShoppingCart) 和 [Orleans 交易](grains/transactions.md)。
 
-- **Stateless request processing or straightforward CRUD.** An ASP.NET Core service backed by a database provides request handling, coordination, and durability.
-- **A few large CPU-bound or data-parallel jobs.** Parallel compute, batch, or job-processing tools distribute substantial computation. Grain turns remain short and asynchronous.
-- **Bulk analytics, ETL, or declarative stream processing.** Databases and data-flow engines are designed for scans, joins, windows, and shared transformations across large data sets.
-- **One globally coordinated resource or a permanently hot key.** Domain partitioning distributes the work, while systems specialized for single-resource coordination manage a centralized access pattern.
-- **Shared-memory or hard real-time processing.** A local concurrent runtime provides shared-memory access, and a hard real-time platform provides deterministic scheduling and bounded latency.
-- **A work queue with competing consumers.** A competing-consumer queue assigns each item to one worker. Orleans streams deliver each item to every subscription on a logical stream.
+<a id="collaboration-social-applications-and-live-sessions"></a>
 
-Orleans commonly owns the stateful entity subsystem alongside HTTP APIs, databases, caches, brokers, compute workers, and analytics systems.
+### 协作、社会应用和直播会议
 
-## Evaluate the model against the workload
+会议室、频道、文件、用户、社会概况和会议可以独立处理,并可在客户要求之间保留行为。 Grain 观察员适合向相关客户进行临时回调,而 Orleans 流则适合多种播报活动流量和订阅,其担保取决于选定的提供者。
 
-Before committing to a design, identify candidate grain keys and test the busiest paths:
+中间商和存储系统提供耐久的信息保留、竞争的消费者、大型广播断层以及整个事件历史的分析。 Grains 对选定的活动适用每个实体的状况和行为,并协调现场互动。
 
-1. Define which entity owns each invariant and operation.
-1. Estimate the number of active keys and the traffic distribution between them.
-1. Look for hot keys, global coordinators, chatty call chains, and large messages.
-1. Decide what state must survive failure and when writes must complete.
-1. Define retry, idempotency, timeout, and recovery behavior for each external operation.
-1. Load test a representative key distribution and the production provider types.
+[聊天室样本](https://github.com/dotnet/orleans/tree/main/samples/ChatRoom) 将每个频道的 grain 与 Orleans 流合并。 [螺旋取样](https://github.com/dotnet/orleans/tree/main/samples/Chirper) 模式是一个社交网络,用户 grains、持久性和观察者都有。
 
-For the programming model's benefits and tradeoffs, see [Why Orleans](benefits.md). For design and operational guidance, see [Orleans best practices](resources/best-practices.md) and the [production-readiness checklist](deployment/production-readiness.md).
+<a id="per-entity-orchestration"></a>
+
+### 单位- 单位间管弦
+
+诸如机器人对话、用户工作流程、订阅或预定运动等长期过程,在每个情况都有其身份和独立进展时可以映射到 grains 。 Grain 州记录进展情况, grain 呼吁明确协调,以及计时器、提醒或持久工作触发以后的工作。
+
+Orleans 表达 grain 代码中的方案、每个实体的管弦。工作流程引擎提供视觉过程作者、人类审批队列和可查询的审计历史,并且可以与 grains 整合,后者拥有域状态。
+
+<a id="choose-the-architecture-by-workload"></a>
+
+## 按工作量选择架构
+
+将主要工作量与为执行这一任务而设计的架构和州模式相匹配:
+
+- **无国籍者请求处理或直接的CRUD。** A 音 A ASP.NET 由数据库支持的核心服务提供请求处理、协调和持久性。
+- **几个大型CPU约束或数据平行的工作。** 平行计算、批量或工作处理工具分布大量计算。 Grain 转动仍然短小且不同步。
+- **散装分析、ETL或宣示性流处理。** 数据库和数据流引擎的设计用于扫描、连接、窗口以及大型数据集的共享转换。
+- **一个全球协调的资源或永久热键。** 域分割分配工作,而专门用于单一资源协调的系统管理集中存取模式。
+- **共享模拟或硬实时处理。** 本地同时运行的时间提供共享模拟访问,硬实时平台提供确定性时间安排和约束性延缓时间。
+- **与竞争消费者一起工作。** 竞争式的消费者队列将每个项目指派给一名工人。 Orleans 流将每个项目发送到逻辑流上的每一个订阅对象。
+
+Orleans 通常拥有与HTTP API、数据库、藏匿处、经纪人、计算工人和分析系统一样的国有实体子系统。
+
+<a id="evaluate-the-model-against-the-workload"></a>
+
+## 对照工作量评价模式
+
+在承诺设计之前,确定候选人 grain 键并测试最繁忙的道路:
+
+1. 确定哪个实体拥有每个变量和运行。
+1. 估计活动键的数量和它们之间的交通分布。
+1. 寻找热键、全球协调员、聊天呼叫链和大信息。
+1. 决定哪个州必须生存下去 什么时候写必须完成
+1. 定义每个外部操作的重试、 剩余能力、超时和回收行为 。
+1. 测试具有代表性的钥匙分布和生产提供者类型。
+
+方案拟定模式的利弊权衡,见 [为什么 Orleans](benefits.md)。设计和操作指导见 [Orleans 最佳做法](resources/best-practices.md) 和 [生产准备状态清单](deployment/production-readiness.md)。

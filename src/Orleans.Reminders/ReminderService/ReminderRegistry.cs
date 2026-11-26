@@ -31,7 +31,7 @@ namespace Orleans.Runtime.ReminderService
             TimeSpan period,
             CancellationToken cancellationToken)
         {
-            // Perform input volatility checks 
+            // 进行输入波动检查 
             if (dueTime == Timeout.InfiniteTimeSpan)
                 throw new ArgumentOutOfRangeException(nameof(dueTime), "Cannot use InfiniteTimeSpan dueTime to create a reminder");
 

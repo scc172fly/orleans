@@ -7,35 +7,35 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// An analogue to <see cref="CancellationToken"/> which can be sent between grains.
+    /// 类比于 <see cref="CancellationToken"/> ,可在 grains之间发送。
     /// </summary>
     [Obsolete("Use CancellationToken instead.")]
     [Immutable]
     public sealed class GrainCancellationToken : IDisposable
     {
         /// <summary>
-        /// The underlying cancellation token source.
+        /// 基本取消的象征性源。
         /// </summary>
         [NonSerialized]
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
-        /// References to remote grains to which this token was passed.
+        /// 此代号被传递到的远程 grains 引用。
         /// </summary>
         [NonSerialized]
         private readonly ConcurrentDictionary<GrainId, GrainReference> _targetGrainReferences;
 
         /// <summary>
-        /// The runtime used to manage grain cancellation tokens.
+        /// 管理 grain 取消待标的运行时间。
         /// </summary>
         [NonSerialized]
         private IGrainCancellationTokenRuntime? _cancellationTokenRuntime;
 
         /// <summary>
-        /// Initializes the <see cref="T:Orleans.GrainCancellationToken"/>.
+        /// 初始化 <see cref="T:Orleans.GrainCancellationToken"/>。
         /// </summary>
         /// <param name="id">
-        /// The token id.
+        /// 象征性id。
         /// </param>
         internal GrainCancellationToken(Guid id)
         {
@@ -45,47 +45,47 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Initializes the <see cref="T:Orleans.GrainCancellationToken"/>.
+        /// 初始化 <see cref="T:Orleans.GrainCancellationToken"/>。
         /// </summary>
         /// <param name="id">
-        /// The token id.
+        /// 象征性id。
         /// </param>
         /// <param name="canceled">
-        /// Whether or not the instance is already canceled.
+        /// 是否已经取消此实例 。
         /// </param>
         /// <param name="runtime">
-        /// The runtime.
+        /// 运行时间。
         /// </param>
         internal GrainCancellationToken(Guid id, bool canceled, IGrainCancellationTokenRuntime? runtime = null) : this(id)
         {
             _cancellationTokenRuntime = runtime;
             if (canceled)
             {
-                // we Cancel _cancellationTokenSource just "to store" the cancelled state.
+                // 我们取消取消的取消Token源 , 只需“储存”取消状态。
                 _cancellationTokenSource.Cancel();
             }
         }
 
         /// <summary>
-        /// Gets the unique id of the token
+        /// 获取该代号的唯一代号
         /// </summary>
         internal Guid Id { get; private set; }
 
         /// <summary>
-        /// Gets the underlying cancellation token.
+        /// 获取基本取消标记 。
         /// </summary>
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         /// <summary>
-        /// Gets a value indicating if cancellation is requested.
+        /// 获得一个值, 显示是否请求取消 。
         /// </summary>
         internal bool IsCancellationRequested => _cancellationTokenSource.IsCancellationRequested;
 
         /// <summary>
-        /// Cancels the cancellation token.
+        /// 取消取消标记。
         /// </summary>
         /// <returns>
-        /// A <see cref="Task"/> representing the operation.
+        /// 代表行动的一个 <see cref="Task"/> 。
         /// </returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage(
             "Performance",
@@ -110,10 +110,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Subscribes the provided grain reference to cancellation notifications.
+        /// 订阅所提供的注销通知 grain 参引。
         /// </summary>
-        /// <param name="runtime">The grain cancellation runtime.</param>
-        /// <param name="grainReference">The grain reference to add.</param>
+        /// <param name="runtime">取消时间 grain 。</param>
+        /// <param name="grainReference">下 grain 添加引用。</param>
         internal void AddGrainReference(IGrainCancellationTokenRuntime runtime, GrainReference grainReference)
         {
             if (_cancellationTokenRuntime == null)

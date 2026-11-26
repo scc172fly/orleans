@@ -1,7 +1,7 @@
 namespace Orleans.Dashboard.Model;
 
 /// <summary>
-/// Describes a single observer/participant registered for a lifecycle stage.
+/// 描述在生命周期阶段登记的单一观察员/参加者。
 /// </summary>
 [GenerateSerializer]
 [Immutable]
@@ -9,39 +9,39 @@ namespace Orleans.Dashboard.Model;
 internal sealed class LifecycleObserverInfo
 {
     /// <summary>
-    /// The observer name supplied when the observer subscribed to the lifecycle.
+    /// 观察员签署生命周期时提供的观察员姓名。
     /// </summary>
     [Id(0)]
     public string Name { get; set; } = null!;
 
     /// <summary>
-    /// The type of the underlying observer (typically the concrete
-    /// <see cref="ILifecycleObserver"/> implementation, or the type that owns
-    /// the registered delegate when subscribing via delegate-based extensions).
+    /// 基本观察员的类型(通常具体指
+    /// <see cref="ILifecycleObserver"/> 履行,或拥有的类型
+    /// 登记代表通过代表制延期签署时)。
     /// </summary>
     [Id(1)]
     public string ObserverType { get; set; } = null!;
 
     /// <summary>
-    /// True when the observer has a non-default <c>OnStart</c> action.
+    /// 当观察员有不违约 <c>OnStart</c> 动作时,是真实的。
     /// </summary>
     [Id(2)]
     public bool HasOnStart { get; set; }
 
     /// <summary>
-    /// True when the observer has a non-default <c>OnStop</c> action.
+    /// 当观察员有不违约 <c>OnStop</c> 动作时,是真实的。
     /// </summary>
     [Id(3)]
     public bool HasOnStop { get; set; }
 
     /// <summary>
-    /// The fully-qualified method invoked on start (when known).
+    /// 开始时(如已知)使用的完全合格的方法。
     /// </summary>
     [Id(4)]
     public string? OnStartMethod { get; set; }
 
     /// <summary>
-    /// The fully-qualified method invoked on stop (when known).
+    /// 停止时(如已知)使用的完全合格的方法。
     /// </summary>
     [Id(5)]
     public string? OnStopMethod { get; set; }

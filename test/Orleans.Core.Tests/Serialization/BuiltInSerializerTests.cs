@@ -17,9 +17,9 @@ using Xunit;
 namespace UnitTests.Serialization
 {
     /// <summary>
-    /// Tests for Orleans' built-in serializers, which handle serialization of common .NET types and Orleans-specific types.
-    /// These serializers are crucial for grain communication, state persistence, and streaming. The tests verify that
-    /// Orleans can correctly serialize and deserialize various data structures used throughout the framework.
+    /// Orleans' 内置序列器测试,该测试处理通用 .NET 类型和 Orleans- 特定类型的序列。
+    /// 这些序列器对于 grain 通信、国家持久性和流流至关重要。
+    /// Orleans 可以正确地对整个框架使用的各种数据结构进行序列和取消其机序。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection), TestCategory("Serialization")]
     [TestArea("Serialization")]
@@ -35,8 +35,8 @@ namespace UnitTests.Serialization
         }
 
         /// <summary>
-        /// Verifies that Orleans internal types have appropriate serializers registered.
-        /// This is essential for proper functioning of Orleans' internal messaging and state management.
+        /// 证明 Orleans 内部类型已登记了适当的序列器。
+        /// 这对于 Orleans内部信息和国家管理的适当运作至关重要。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -71,7 +71,7 @@ namespace UnitTests.Serialization
         }
 
         /// <summary>
-        /// Tests that the default (non-fallback) serializer can handle complex classes.
+        /// 测试默认( 非回溯) 序列器能够处理复杂分类 。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -134,12 +134,12 @@ namespace UnitTests.Serialization
         public void Serialize_Type()
         {
 
-            // Test serialization of Type.
+            // 类型测试序列。
             var expected = typeof(int);
             var actual = (Type)OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, expected);
             Assert.Equal(expected.AssemblyQualifiedName, actual.AssemblyQualifiedName);
 
-            // Test serialization of RuntimeType.
+            // RuntimeType的测试序列化。
             expected = 8.GetType();
             actual = (Type)OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, expected);
             Assert.Equal(expected.AssemblyQualifiedName, actual.AssemblyQualifiedName);
@@ -151,7 +151,7 @@ namespace UnitTests.Serialization
         public void Serialize_ComplexStruct()
         {
 
-            // Test struct serialization.
+            // 测试结构序列化
             var expected = new SomeStruct(10) { Id = Guid.NewGuid(), PublicValue = 6, ValueWithPrivateGetter = 7 };
             expected.SetValueWithPrivateSetter(8);
             expected.SetPrivateValue(9);
@@ -172,10 +172,10 @@ namespace UnitTests.Serialization
         {
             var list = new List<int>();
             var deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, list, false);
-            Assert.IsAssignableFrom<List<int>>(deserialized);  //Empty list of integers copied as wrong type"
+            Assert.IsAssignableFrom<List<int>>(deserialized);  //空的整数列表, 以错误类型复制的整数列表 ”
             ValidateList(list, (List<int>)deserialized, "int (empty, copy)");
             deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, list);
-            Assert.IsAssignableFrom<List<int>>(deserialized); //Empty list of integers full serialization loop as wrong type
+            Assert.IsAssignableFrom<List<int>>(deserialized); //空的整数列表, 完整序列循环为错误类型
             ValidateList(list, (List<int>)deserialized, "int (empty)");
         }
 
@@ -229,7 +229,7 @@ namespace UnitTests.Serialization
             var deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, source1);
             ValidateDictionary<string, string>(source1, deserialized, "case-insensitive string/string");
             Dictionary<string, string> result1 = (deserialized as Dictionary<string, string>)!;
-            Assert.Equal(source1["Hello"], result1["hElLo"]); //Round trip for case insensitive string/string dictionary lost the custom comparer
+            Assert.Equal(source1["Hello"], result1["hElLo"]); //用于不敏感大小写字符串/字符串字典的复圆行程丢失自定义比较器
 
             Dictionary<int, DateTime> source2 = new Dictionary<int, DateTime>(new Mod5IntegerComparer());
             source2[3] = DateTime.Now;
@@ -237,7 +237,7 @@ namespace UnitTests.Serialization
             deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, source2);
             ValidateDictionary<int, DateTime>(source2, deserialized, "int/date");
             Dictionary<int, DateTime> result2 = (Dictionary<int, DateTime>)deserialized;
-            Assert.Equal<DateTime>(source2[3], result2[13]);  //Round trip for case insensitive int/DateTime dictionary lost the custom comparer"
+            Assert.Equal<DateTime>(source2[3], result2[13]);  //用于不敏感 int/DateTime 字典丢失自定义比较器的大小写整次行程"
         }
 
         [TestSuite("Functional")]
@@ -274,15 +274,15 @@ namespace UnitTests.Serialization
             source1.Add("two");
             source1.Add("three");
             var deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, source1);
-            Assert.IsAssignableFrom(source1.GetType(), deserialized); //Type is wrong after round-trip of string hash set with comparer
+            Assert.IsAssignableFrom(source1.GetType(), deserialized); //与比较器一起设置的麻散串圆形后类型错误
             var result = (deserialized as HashSet<string>)!;
-            Assert.Equal(source1.Count, result.Count); //Count is wrong after round-trip of string hash set with comparer
+            Assert.Equal(source1.Count, result.Count); //与比较器一起设置的串散列绕行后计数错误
 #pragma warning disable xUnit2017 // Do not use Contains() to check if a value exists in a collection
             foreach (var key in source1)
             {
-                Assert.True(result.Contains(key)); //key is missing after round-trip of string hash set with comparer
+                Assert.True(result.Contains(key)); //与比较器一起设置的串散列绕行后丢失
             }
-            Assert.True(result.Contains("One")); //Comparer is wrong after round-trip of string hash set with comparer
+            Assert.True(result.Contains("One")); //与比较器一起设置的串散列绕行后比较器错误
 #pragma warning restore xUnit2017 // Do not use Contains() to check if a value exists in a collection
         }
 
@@ -296,20 +296,20 @@ namespace UnitTests.Serialization
             source1.Push("two");
             source1.Push("three");
             object deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, source1);
-            Assert.IsAssignableFrom(source1.GetType(), deserialized); //Type is wrong after round-trip of string stack
+            Assert.IsAssignableFrom(source1.GetType(), deserialized); //字符串堆叠 圆曲后类型错误
             var result = (deserialized as Stack<string>)!;
-            Assert.Equal(source1.Count, result.Count); //Count is wrong after round-trip of string stack
+            Assert.Equal(source1.Count, result.Count); //字符串堆叠的圆曲次后计数错误
 
             var srcIter = source1.GetEnumerator();
             var resIter = result.GetEnumerator();
             while (srcIter.MoveNext() && resIter.MoveNext())
             {
-                Assert.Equal(srcIter.Current, resIter.Current); //Data is wrong after round-trip of string stack
+                Assert.Equal(srcIter.Current, resIter.Current); //字符串堆叠的圆曲后数据错误
             }
         }
 
         /// <summary>
-        /// Tests that the <see cref="IOnDeserialized"/> callback is invoked after deserialization.
+        /// 测试在解除空气循环后是否引用 <see cref="IOnDeserialized"/> 回调。
         /// </summary>
         /// <param name="serializerToUse"></param>
         [TestSuite("Functional")]
@@ -338,15 +338,15 @@ namespace UnitTests.Serialization
             source1.Add("two");
             source1.Add("three");
             object deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, source1);
-            Assert.IsAssignableFrom(source1.GetType(), deserialized); //Type is wrong after round-trip of string sorted set with comparer
+            Assert.IsAssignableFrom(source1.GetType(), deserialized); //与比较器排序的字符串圆行后类型错误
             var result = (SortedSet<string>)deserialized;
-            Assert.Equal(source1.Count, result.Count); //Count is wrong after round-trip of string sorted set with comparer
+            Assert.Equal(source1.Count, result.Count); //与比较器排序的字符串圆行后计数错误
 #pragma warning disable xUnit2017 // Do not use Contains() to check if a value exists in a collection
             foreach (var key in source1)
             {
-                Assert.True(result.Contains(key)); //key is missing after round-trip of string sorted set with comparer
+                Assert.True(result.Contains(key)); //键在与比较器排序的字符串圆形后丢失
             }
-            Assert.True(result.Contains("One")); //Comparer is wrong after round-trip of string sorted set with comparer
+            Assert.True(result.Contains("One")); //与比较器排序的字符串圆行后比较器错误
 #pragma warning restore xUnit2017 // Do not use Contains() to check if a value exists in a collection
         }
 
@@ -401,14 +401,14 @@ namespace UnitTests.Serialization
             source3[1][2]!.Add("and another");
             source3[2][0]!.Add("but not yet another");
             deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, source3);
-            var result = Assert.IsAssignableFrom<HashSet<string>?[][]>(deserialized); //Array of arrays of hash sets type is wrong on deserialization
-            Assert.Equal(3, result.Length); //Outer array size wrong on array of array of sets
-            Assert.Equal(2, result[0][0]!.Count); //Inner set size wrong on array of array of sets, element 0,0
-            Assert.Empty(result[0][1]!); //Inner set size wrong on array of array of sets, element 0,1
-            Assert.Single(result[1][0]!); //Inner set size wrong on array of array of sets, element 1,0
-            Assert.Null(result[1][1]); //Inner set not null on array of array of sets, element 1, 1
-            Assert.Single(result[1][2]!); //Inner set size wrong on array of array of sets, element 1,2
-            Assert.Single(result[2][0]!); //Inner set size wrong on array of array of sets, element 2,0
+            var result = Assert.IsAssignableFrom<HashSet<string>?[][]>(deserialized); //散数组阵列的阵列阵列阵列类型在解密时有误
+            Assert.Equal(3, result.Length); //外数组阵列大小错误
+            Assert.Equal(2, result[0][0]!.Count); //元素 0,0 元素数组阵列的内置大小错误
+            Assert.Empty(result[0][1]!); //元素 0 1 组合数组的阵列内部设置大小错误, 内置大小错误
+            Assert.Single(result[1][0]!); //元素 1 0 的数组阵列内设置大小错误, 元素 1
+            Assert.Null(result[1][1]); //元素 1 1 1 的数组矩阵内设置非空, 而不是空
+            Assert.Single(result[1][2]!); //元素 1, 元素 1 2 的数组阵列内部设置大小错误
+            Assert.Single(result[2][0]!); //元素 2 0 组合阵列的内置设置大小错误, 内部设置大小错误
 
             var source4 = new GrainReference[3][];
             source4[0] = new GrainReference[2];
@@ -515,26 +515,26 @@ namespace UnitTests.Serialization
             source["one"] = val;
             source["two"] = val;
             source["three"] = val2;
-            Assert.Same(source["one"], source["two"]); //Object identity lost before round trip of string/list dict!!!
+            Assert.Same(source["one"], source["two"]); //校对:Soup
 
             var deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, source);
-            var result = Assert.IsAssignableFrom<Dictionary<string, List<string>>>(deserialized); //Type is wrong after round-trip of string/list dict
-            Assert.Equal(source.Count, result.Count); //Count is wrong after round-trip of string/list dict
+            var result = Assert.IsAssignableFrom<Dictionary<string, List<string>>>(deserialized); //字符串/ 列表的剪贴曲后类型错误
+            Assert.Equal(source.Count, result.Count); //字符串/ 列表的剪贴曲后计数错误
 
             List<string>? list1;
             List<string>? list2;
             List<string>? list3;
-            Assert.True(result.TryGetValue("one", out list1)); //Key 'one' not found after round trip of string/list dict
-            Assert.True(result.TryGetValue("two", out list2)); //Key 'two' not found after round trip of string/list dict
-            Assert.True(result.TryGetValue("three", out list3)); //Key 'three' not found after round trip of string/list dict
+            Assert.True(result.TryGetValue("one", out list1)); //键“ one” 在字符串/ 列表的整次剪裁行程后找不到密钥“ one ”
+            Assert.True(result.TryGetValue("two", out list2)); //键“ 2” 在字符串/ 列表的整次剪裁行程后找不到密钥
+            Assert.True(result.TryGetValue("three", out list3)); //键“ 3” 在字符串/ 列表的弹出后回合找不到
 
             ValidateList<string>(val, list1!, "string");
             ValidateList<string>(val, list2!, "string");
             ValidateList<string>(val2, list3!, "string");
 
-            Assert.Same(list1, list2); //Object identity lost after round trip of string/list dict
-            Assert.NotSame(list2, list3); //Object identity gained after round trip of string/list dict
-            Assert.NotSame(list1, list3); //Object identity gained after round trip of string/list dict
+            Assert.Same(list1, list2); //字符串/清单单列的回转行程后丢失的对象身份
+            Assert.NotSame(list2, list3); //字符串/列表单行横跨后获得的对象身份
+            Assert.NotSame(list1, list3); //字符串/列表单行横跨后获得的对象身份
         }
 
         [TestSuite("Functional")]
@@ -544,9 +544,9 @@ namespace UnitTests.Serialization
         {
             var test1 = new Unrecognized { A = 3, B = 27 };
             var raw = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, test1, false);
-            var result = Assert.IsAssignableFrom<Unrecognized>(raw); //Type is wrong after deep copy of unrecognized
-            Assert.Equal(3, result.A);  //Property A is wrong after deep copy of unrecognized"
-            Assert.Equal(27, result.B);  //Property B is wrong after deep copy of unrecognized"
+            var result = Assert.IsAssignableFrom<Unrecognized>(raw); //未经确认的深度副本后类型错误
+            Assert.Equal(3, result.A);  //财产A在未经确认的深层副本后是错误的。
+            Assert.Equal(27, result.B);  //财产B在未经确认的深层副本后是错误的。”
 
             var test2 = new Unrecognized[3];
             for (int i = 0; i < 3; i++)
@@ -554,13 +554,13 @@ namespace UnitTests.Serialization
                 test2[i] = new Unrecognized { A = i, B = 2 * i };
             }
             raw = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, test2);
-            Assert.IsAssignableFrom<Unrecognized[]>(raw); //Type is wrong after round trip of array of unrecognized
+            Assert.IsAssignableFrom<Unrecognized[]>(raw); //类型在一系列未承认的一连回合后错
             var result2 = (Unrecognized[])raw;
-            Assert.Equal(3, result2.Length); //Array length is wrong after round trip of array of unrecognized
+            Assert.Equal(3, result2.Length); //数组未承认的回合后, 矩阵长度错错
             for (int j = 0; j < 3; j++)
             {
-                Assert.Equal(j, result2[j].A); //Property A at index " + j + "is wrong after round trip of array of unrecognized
-                Assert.Equal(2 * j, result2[j].B); //Property B at index " + j + "is wrong after round trip of array of unrecognized
+                Assert.Equal(j, result2[j].A); //以指数A " +j+ " 表示的财产在一系列未承认财产的往返旅行后出现错误
+                Assert.Equal(2 * j, result2[j].B); //以指数 " +j+ " 的B类财产在一系列未确认资产之间往返出错后出现错误
             }
         }
 
@@ -571,8 +571,8 @@ namespace UnitTests.Serialization
         {
             var test1 = new ImmutableType(3, 27);
             object? raw = environment.DeepCopier.Copy<object>(test1);
-            var copiedTest1 = Assert.IsAssignableFrom<ImmutableType>(raw); //Type is wrong after deep copy of [Immutable] type
-            Assert.Same(test1, copiedTest1); //Deep copy of [Immutable] object made a copy instead of just copying the pointer
+            var copiedTest1 = Assert.IsAssignableFrom<ImmutableType>(raw); //类型在[不可变]类型深副本后错误
+            Assert.Same(test1, copiedTest1); //[不可变]天体的深度复制件已复制, 而不是只是复制指针
 
             var test2list = new List<int>();
             for (int i = 0; i < 3; i++)
@@ -581,24 +581,24 @@ namespace UnitTests.Serialization
             }
             var test2 = new Immutable<List<int>>(test2list);
             raw = environment.DeepCopier.Copy<object>(test2);
-            var copiedTest2 = Assert.IsAssignableFrom<Immutable<List<int>>>(raw); //Type is wrong after round trip of array of Immutable<>
-            Assert.Same(test2.Value, copiedTest2.Value); //Deep copy of Immutable<> object made a copy instead of just copying the pointer
+            var copiedTest2 = Assert.IsAssignableFrom<Immutable<List<int>>>(raw); //类型在Immobable 数组的圆形后错 *
+            Assert.Same(test2.Value, copiedTest2.Value); //Immobable 对象的深度副本已复制一份, 而不是只是复制指针
 
             var test3 = new EmbeddedImmutable("test", 1, 2, 3, 4);
             raw = environment.DeepCopier.Copy<object>(test3);
-            var copiedTest3 = Assert.IsAssignableFrom<EmbeddedImmutable>(raw); //Type is wrong after deep copy of type containing an Immutable<> field
-            Assert.Same(test3.B.Value, copiedTest3.B.Value); //Deep copy of embedded [Immutable] object made a copy instead of just copying the pointer
+            var copiedTest3 = Assert.IsAssignableFrom<EmbeddedImmutable>(raw); //含有 Immobable 字段的型态深度复制后类型错误@ label
+            Assert.Same(test3.B.Value, copiedTest3.B.Value); //嵌入 [不可变] 对象的深重复制件已复制副本, 而不是只是复制指针
 
             var test4 = new ClassWithEmbeddedImmutable { Immutable = new byte[] { 1 }, Mutable = new byte[] { 2 } };
             raw = environment.DeepCopier.Copy<object>(test4);
-            var copiedTest4 = Assert.IsAssignableFrom<ClassWithEmbeddedImmutable>(raw); //Type is wrong after deep copy of type containing an Immutable<> field
-            Assert.Same(test4.Immutable, copiedTest4.Immutable); //Deep copy of embedded [Immutable] object made a copy instead of just copying the pointer
+            var copiedTest4 = Assert.IsAssignableFrom<ClassWithEmbeddedImmutable>(raw); //含有 Immobable 字段的型态深度复制后类型错误@ label
+            Assert.Same(test4.Immutable, copiedTest4.Immutable); //嵌入 [不可变] 对象的深重复制件已复制副本, 而不是只是复制指针
             Assert.NotSame(test4.Mutable, copiedTest4.Mutable);
 
             var test5 = new StructWithEmbeddedImmutable { Immutable = new byte[] { 1 }, Mutable = new byte[] { 2 } };
             raw = environment.DeepCopier.Copy<object>(test5);
-            var copiedTest5 = Assert.IsAssignableFrom<StructWithEmbeddedImmutable>(raw); //Type is wrong after deep copy of type containing an Immutable<> field
-            Assert.Same(test5.Immutable, copiedTest5.Immutable); //Deep copy of embedded [Immutable] object made a copy instead of just copying the pointer
+            var copiedTest5 = Assert.IsAssignableFrom<StructWithEmbeddedImmutable>(raw); //含有 Immobable 字段的型态深度复制后类型错误@ label
+            Assert.Same(test5.Immutable, copiedTest5.Immutable); //嵌入 [不可变] 对象的深重复制件已复制副本, 而不是只是复制指针
             Assert.NotSame(test5.Mutable, copiedTest5.Mutable);
         }
 
@@ -612,9 +612,9 @@ namespace UnitTests.Serialization
 
             object deserialized = OrleansSerializationLoop(environment.Serializer, environment.DeepCopier, input);
 
-            var grainRef = Assert.IsAssignableFrom<GrainReference>(deserialized); //GrainReference copied as wrong type
-            Assert.Equal(grainId, grainRef.GrainId); //GrainId different after copy
-            Assert.Equal(input, grainRef); //Wrong contents after round-trip of input
+            var grainRef = Assert.IsAssignableFrom<GrainReference>(deserialized); //GrainReference 复制为错误类型
+            Assert.Equal(grainId, grainRef.GrainId); //复制后不同的GrainId
+            Assert.Equal(input, grainRef); //输入回圆一回合后错误的内容
         }
 
         internal bool AreByteArraysAreEqual(byte[] array1, byte[] array2)
@@ -646,25 +646,25 @@ namespace UnitTests.Serialization
         private void ValidateDictionary<K, V>(Dictionary<K, V> source, object deserialized, string type)
             where K : notnull
         {
-            var result = Assert.IsAssignableFrom<Dictionary<K, V>>(deserialized); //Type is wrong after round-trip of dict
+            var result = Assert.IsAssignableFrom<Dictionary<K, V>>(deserialized); //弹道曲曲曲曲曲曲后类型错误
             ValidateDictionaryContent(source, result, type);
         }
 
         private void ValidateDictionaryContent<K, V>(IDictionary<K, V> source, IDictionary<K, V> result, string type)
             where K : notnull
         {
-            Assert.Equal(source.Count, result.Count);  //Count is wrong after round-trip of " + type + " dict"
+            Assert.Equal(source.Count, result.Count);  //在“+ 类型+ " dict”的圆曲后,计数错误
             foreach (var pair in source)
             {
                 Assert.True(result.ContainsKey(pair.Key), "Key " + pair.Key.ToString() + " is missing after round-trip of " + type + " dict");
-                Assert.Equal<V>(pair.Value, result[pair.Key]); //Key has wrong value after round-trip
+                Assert.Equal<V>(pair.Value, result[pair.Key]); //键在回转后有错误值
             }
         }
 
         private void ValidateReadOnlyDictionary<K, V>(ReadOnlyDictionary<K, V> source, object deserialized, string type)
             where K : notnull
         {
-            var result = Assert.IsAssignableFrom<ReadOnlyDictionary<K, V>>(deserialized); //Type is wrong after round-trip
+            var result = Assert.IsAssignableFrom<ReadOnlyDictionary<K, V>>(deserialized); //往返后类型错误
             ValidateDictionaryContent(source, result, type);
         }
 
@@ -673,18 +673,18 @@ namespace UnitTests.Serialization
         {
             Assert.IsAssignableFrom<SortedDictionary<K, V>>(deserialized);
             SortedDictionary<K, V> result = (deserialized as SortedDictionary<K, V>)!;
-            Assert.Equal(source.Count, result.Count); //Count is wrong after round-trip of " + type + " sorted dict
+            Assert.Equal(source.Count, result.Count); //在 " +类型+ " 排序的单行曲后,计数错误
             foreach (var pair in source)
             {
-                Assert.True(result.ContainsKey(pair.Key)); //Key " + pair.Key.ToString() + " is missing after round-trip of " + type + " sorted dict
-                Assert.Equal<V>(pair.Value, result[pair.Key]); //Key " + pair.Key.ToString() + " has wrong value after round-trip of " + type + " sorted dict
+                Assert.True(result.ContainsKey(pair.Key)); //键 " + pair.Key.ToString()+ " 在 " +类型+ " 排序的单行圆曲后缺失。
+                Assert.Equal<V>(pair.Value, result[pair.Key]); //" + pair.Key.ToString()+ " 键在 " +类型+ " 排序的单行圆曲后有错误值
             }
 
             var sourceKeys = source.Keys.GetEnumerator();
             var resultKeys = result.Keys.GetEnumerator();
             while (sourceKeys.MoveNext() && resultKeys.MoveNext())
             {
-                Assert.Equal<K>(sourceKeys.Current, resultKeys.Current); //Keys out of order after round-trip of " + type + " sorted dict
+                Assert.Equal<K>(sourceKeys.Current, resultKeys.Current); //" +类型+ " 排序的单行曲后键盘错序
             }
         }
 
@@ -693,24 +693,24 @@ namespace UnitTests.Serialization
         {
             Assert.IsAssignableFrom<SortedList<K, V>>(deserialized);
             SortedList<K, V> result = (deserialized as SortedList<K, V>)!;
-            Assert.Equal(source.Count, result.Count);  //Count is wrong after round-trip of " + type + " sorted list"
+            Assert.Equal(source.Count, result.Count);  //计算在“+类型+“分类列表”的圆形后错误
             foreach (var pair in source)
             {
-                Assert.True(result.ContainsKey(pair.Key)); //Key " + pair.Key.ToString() + " is missing after round-trip of " + type + " sorted list
-                Assert.Equal<V>(pair.Value, result[pair.Key]); //Key " + pair.Key.ToString() + " has wrong value after round-trip of " + type + " sorted list
+                Assert.True(result.ContainsKey(pair.Key)); //键 " + pair.Key.ToString()+ " 缺失的 " +类型+ " 排序列表轮曲后
+                Assert.Equal<V>(pair.Value, result[pair.Key]); //" + pair.Key.ToString()+ " 键在 " +类型+ " 分类列表的圆形后有错误值
             }
 
             var sourceKeys = source.Keys.GetEnumerator();
             var resultKeys = result.Keys.GetEnumerator();
             while (sourceKeys.MoveNext() && resultKeys.MoveNext())
             {
-                Assert.Equal<K>(sourceKeys.Current, resultKeys.Current); //Keys out of order after round-trip of " + type + " sorted list
+                Assert.Equal<K>(sourceKeys.Current, resultKeys.Current); //" +类型+ " 分类列表的圆形后键盘异常顺序
             }
         }
 
         private void ValidateReadOnlyCollectionList<T>(ReadOnlyCollection<T> expected, object deserialized, string type)
         {
-            Assert.IsAssignableFrom<ReadOnlyCollection<T>>(deserialized); //Type is wrong after round-trip of " + type + " array
+            Assert.IsAssignableFrom<ReadOnlyCollection<T>>(deserialized); //" +类型+ " 阵列的圆形后类型错误
             ValidateList(expected, (deserialized as IList<T>)!, type);
         }
 
@@ -719,24 +719,24 @@ namespace UnitTests.Serialization
             Assert.Equal(expected.Count, result.Count);
             for (int i = 0; i < expected.Count; i++)
             {
-                Assert.Equal<T>(expected[i], result[i]); //Item " + i + " is wrong after round trip of " + type + " list
+                Assert.Equal<T>(expected[i], result[i]); //" +i+ " 项目在 " +类型+ " 清单的往返旅行后错误
             }
         }
 
         private void ValidateArray<T>(T[] expected, object deserialized, string type)
         {
             var result = Assert.IsAssignableFrom<T[]>(deserialized);
-            Assert.Equal(expected.Length, result.Length);  //Length is wrong after round-trip of " + type + " array"
+            Assert.Equal(expected.Length, result.Length);  //"+类型+ "数组"的圆形后长度错误
             for (int i = 0; i < expected.Length; i++)
             {
-                Assert.Equal<T>(expected[i], result[i]);  //Item " + i + " is wrong after round trip of " + type + " array"
+                Assert.Equal<T>(expected[i], result[i]);  //" + i+ " 项目在 " +类型+ " 阵列 " 往返旅行后错误
             }
         }
 
         private void ValidateArrayOfArrays<T>(T[][] expected, object deserialized, string type)
         {
-            var result = Assert.IsAssignableFrom<T[][]>(deserialized);  //Type is wrong after round-trip of " + type + " array of arrays"
-            Assert.Equal(expected.Length, result.Length);  //Length is wrong after round-trip of " + type + " array of arrays"
+            var result = Assert.IsAssignableFrom<T[][]>(deserialized);  //"+ 类型+“阵列数组”的圆形后类型错误
+            Assert.Equal(expected.Length, result.Length);  //在“+类型+类型+”阵列圆形后长度错误
             for (int i = 0; i < expected.Length; i++)
             {
                 ValidateArray<T>(expected[i], result[i], "Array of " + type + "[" + i + "] ");
@@ -745,8 +745,8 @@ namespace UnitTests.Serialization
 
         private void ValidateArrayOfArrayOfArrays<T>(T[][][] expected, object deserialized, string type)
         {
-            var result = Assert.IsAssignableFrom<T[][][]>(deserialized);  //Type is wrong after round-trip of " + type + " array of arrays"
-            Assert.Equal(expected.Length, result.Length);  //Length is wrong after round-trip of " + type + " array of arrays"
+            var result = Assert.IsAssignableFrom<T[][][]>(deserialized);  //"+ 类型+“阵列数组”的圆形后类型错误
+            Assert.Equal(expected.Length, result.Length);  //在“+类型+类型+”阵列圆形后长度错误
             for (int i = 0; i < expected.Length; i++)
             {
                 ValidateArrayOfArrays<T>(expected[i], result[i], "Array of " + type + "[" + i + "][]");

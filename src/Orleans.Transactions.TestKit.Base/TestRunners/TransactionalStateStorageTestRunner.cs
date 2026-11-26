@@ -8,35 +8,35 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Verifies transactional state storage semantics for preparing, confirming, canceling, and replacing state.
+    /// 验证用于准备、确认、取消和替换状态的交易性国家储存语义。
     /// </summary>
-    /// <typeparam name="TState">The type of state persisted by the transactional storage implementation.</typeparam>
+    /// <typeparam name="TState">交易性储存实施时坚持的国家类型。</typeparam>
     public abstract class TransactionalStateStorageTestRunner<TState> : TransactionTestRunnerBase
         where TState : class, new()
     {
         /// <summary>
-        /// Creates a transactional state storage instance whose initial storage state is empty.
+        /// 创建一个交易状态存储实例,其初始存储状态为空。
         /// </summary>
         protected Func<Task<ITransactionalStateStorage<TState>>> stateStorageFactory;
 
         /// <summary>
-        /// Creates a test state value from an integer seed.
+        /// 从整数种子中创建测试状态值。
         /// </summary>
         protected Func<int, TState> stateFactory;
 
         /// <summary>
-        /// Configures equivalency comparisons for persisted state values.
+        /// 配置等效比较, 以对比持续状态值 。
         /// </summary>
         protected Func<EquivalencyOptions<TState>, EquivalencyOptions<TState>>? assertConfig;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionalStateStorageTestRunner{TState}"/> class.
+        /// 初始化 <see cref="TransactionalStateStorageTestRunner{TState}"/> 类的新实例。
         /// </summary>
-        /// <param name="stateStorageFactory">The factory which creates a storage instance with empty initial state.</param>
-        /// <param name="stateFactory">The factory which creates test state values from integer seeds.</param>
-        /// <param name="grainFactory">The grain factory used by the test runner.</param>
-        /// <param name="testOutput">The callback used to write test output.</param>
-        /// <param name="assertConfig">An optional callback which configures state equivalency comparisons.</param>
+        /// <param name="stateStorageFactory">创建初始状态空的存储实例的工厂。</param>
+        /// <param name="stateFactory">制造整数种子测试状态值的工厂。</param>
+        /// <param name="grainFactory">下 grain 测试选手使用的工厂。</param>
+        /// <param name="testOutput">用于写入测试输出的回调。</param>
+        /// <param name="assertConfig">设置状态等效比较的可选调回调。</param>
         protected TransactionalStateStorageTestRunner(Func<Task<ITransactionalStateStorage<TState>>> stateStorageFactory, Func<int, TState> stateFactory,
             IGrainFactory grainFactory, Action<string> testOutput,
             Func<EquivalencyOptions<TState>, EquivalencyOptions<TState>>? assertConfig = null)
@@ -48,16 +48,16 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that the first load returns the initial committed state, no pending states, and no ETag.
+        /// 证明第一个负荷返回初始承诺状态,没有待决状态,也没有ETag。
         /// </summary>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task FirstTime_Load_ShouldReturnEmptyLoadResponse()
         {
             var stateStorage = await this.stateStorageFactory();
             var response = await stateStorage.Load();
             var defaultStateValue = new TState();
 
-            //Assertion
+            //发货
             response.Should().NotBeNull();
             response.ETag.Should().BeNull();
             response.CommittedSequenceId.Should().Be(0);
@@ -68,21 +68,21 @@ namespace Orleans.Transactions.TestKit
         private static readonly List<PendingTransactionState<TState>> emptyPendingStates = new List<PendingTransactionState<TState>>();
 
         /// <summary>
-        /// Verifies that storing unchanged state creates an ETag and persists metadata without changing state.
+        /// 证明储存状态不变,会产生ETag元数据,并持续提供元数据,而没有变化。
         /// </summary>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task StoreWithoutChanges()
         {
             var stateStorage = await this.stateStorageFactory();
 
-            // load first time
+            // 第一次首次装入
             var loadresponse = await stateStorage.Load();
 
-            // store without any changes
+            // 保存不作任何更改
             var etag1 = await stateStorage.Store(loadresponse.ETag, loadresponse.Metadata, emptyPendingStates, null, null);
             etag1.Should().NotBeNullOrEmpty();
 
-            // load again
+            // 再次装入
             loadresponse = await stateStorage.Load();
             loadresponse.Should().NotBeNull();
             loadresponse.Metadata.Should().NotBeNull();
@@ -92,14 +92,14 @@ namespace Orleans.Transactions.TestKit
             loadresponse.CommittedSequenceId.Should().Be(0);
             loadresponse.PendingStates.Should().BeEmpty();
 
-            // update metadata, then write back
+            // 更新元数据, 然后回写
             var now = DateTime.UtcNow;
             var cr = MakeCommitRecords(2, 2);
             var metadata = new TransactionalStateMetaData() { TimeStamp = now, CommitRecords = cr };
             var etag2 = await stateStorage.Store(etag1, metadata, emptyPendingStates, null, null);
             etag2.Should().NotBeNullOrEmpty();
 
-            // load again, check content
+            // 再次装入,检查内容
             loadresponse = await stateStorage.Load();
             loadresponse.Should().NotBeNull();
             loadresponse.Metadata.Should().NotBeNull();
@@ -111,17 +111,17 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that invalid or stale ETags reject writes and preserve the previously stored value.
+        /// 证明无效或废弃的ETags拒绝书写并保存先前储存的价值。
         /// </summary>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task WrongEtags()
         {
             var stateStorage = await this.stateStorageFactory();
 
-            // load first time
+            // 第一次首次装入
             var loadresponse = await stateStorage.Load();
 
-            // store with wrong e-tag, must fail
+            // 存在错误e-tag 存储错误的 Etag , 必须失败
             Func<Task> storeWithWrongETag = () => stateStorage.Store(
                 "wrong-etag",
                 loadresponse.Metadata,
@@ -130,7 +130,7 @@ namespace Orleans.Transactions.TestKit
                 null);
             await storeWithWrongETag.Should().ThrowAsync<Exception>("the ETag does not identify the loaded version");
 
-            // load again and verify that the rejected write made no changes
+            // 再次装入并校验拒绝的写作没有更改
             loadresponse = await stateStorage.Load();
             loadresponse.Should().NotBeNull();
             loadresponse.Metadata.TimeStamp.Should().Be(default);
@@ -140,7 +140,7 @@ namespace Orleans.Transactions.TestKit
             loadresponse.PendingStates.Should().BeEmpty();
             AssertTState(loadresponse.CommittedState, new TState());
 
-            // update timestamp in metadata, then write back with correct e-tag
+            // 更新元数据的时间戳, 然后用正确的电子标签写回
             var now = DateTime.UtcNow;
             var cr = MakeCommitRecords(2, 2);
             var metadata = new TransactionalStateMetaData() { TimeStamp = now, CommitRecords = cr };
@@ -154,7 +154,7 @@ namespace Orleans.Transactions.TestKit
             storedResponse.PendingStates.Should().BeEmpty();
             AssertTState(storedResponse.CommittedState, new TState());
 
-            // update timestamp in metadata, then write back with wrong e-tag, must fail
+            // 元数据中更新时戳时针, 然后错误的e- tag 写回错误的电子标签, 必须失败
             var metadata2 = new TransactionalStateMetaData()
             {
                 TimeStamp = now.AddSeconds(1),
@@ -168,7 +168,7 @@ namespace Orleans.Transactions.TestKit
                 null);
             await storeWithStaleETag.Should().ThrowAsync<Exception>("the ETag is stale");
 
-            // load again and verify that the rejected write made no changes
+            // 再次装入并校验拒绝的写作没有更改
             loadresponse = await stateStorage.Load();
             loadresponse.Should().NotBeNull();
             loadresponse.Metadata.Should().NotBeNull();
@@ -257,10 +257,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that confirming one pending state commits it and removes it from the pending collection.
+        /// 证明确认一个待决国家已承诺实施该义务,并把它从待收缴的会费中除名。
         /// </summary>
-        /// <param name="useTwoSteps">Whether preparing and confirming are performed in separate storage writes.</param>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <param name="useTwoSteps">是否在单独的存储中进行准备和确认。</param>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task ConfirmOne(bool useTwoSteps)
         {
             var stateStorage = await this.stateStorageFactory();
@@ -296,9 +296,9 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that canceling one pending state preserves the committed state and clears the pending collection.
+        /// 证明取消一个待决州保留承诺州并清理待决收缴的物品。
         /// </summary>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task CancelOne()
         {
             var stateStorage = await this.stateStorageFactory();
@@ -326,9 +326,9 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that preparing the same sequence twice replaces the pending state with the latest value.
+        /// 证明准备同一序列两次用最新值取代待处理状态。
         /// </summary>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task ReplaceOne()
         {
             var stateStorage = await this.stateStorageFactory();
@@ -362,11 +362,11 @@ namespace Orleans.Transactions.TestKit
 
 
         /// <summary>
-        /// Verifies that one pending state can be confirmed while the following pending state is canceled.
+        /// 证明一个待决州可以确认,但以下待决州被取消。
         /// </summary>
-        /// <param name="useTwoSteps">Whether confirmation and cancellation are performed in separate storage writes.</param>
-        /// <param name="reverseOrder">Whether cancellation is stored before confirmation when using two writes.</param>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <param name="useTwoSteps">是否在单独的存储中进行确认和取消。</param>
+        /// <param name="reverseOrder">使用两个写作时,取消是否在确认前存储。</param>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task ConfirmOneAndCancelOne(bool useTwoSteps = false, bool reverseOrder = false)
         {
             var stateStorage = await this.stateStorageFactory();
@@ -413,10 +413,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that multiple sequential states can be prepared in one storage write.
+        /// 证明多个相继国可以用一个存储书写形式进行准备。
         /// </summary>
-        /// <param name="count">The number of pending states to prepare.</param>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <param name="count">有待准备的待处理州数量 。</param>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task PrepareMany(int count)
         {
             var stateStorage = await this.stateStorageFactory();
@@ -458,11 +458,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that confirming multiple pending states commits the state with the highest sequence number.
+        /// 证明多个待决国家确认该州为最高序列数。
         /// </summary>
-        /// <param name="count">The number of pending states to prepare and confirm.</param>
-        /// <param name="useTwoSteps">Whether preparing and confirming are performed in separate storage writes.</param>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <param name="count">准备和确认待决国家的数目。</param>
+        /// <param name="useTwoSteps">是否在单独的存储中进行准备和确认。</param>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task ConfirmMany(int count, bool useTwoSteps)
         {
             var stateStorage = await this.stateStorageFactory();
@@ -506,10 +506,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that canceling multiple pending states preserves the committed state and clears the pending collection.
+        /// 证明取消多个待决国家保留承诺状态并清理待决收缴。
         /// </summary>
-        /// <param name="count">The number of pending states to prepare and cancel.</param>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <param name="count">准备和取消待决州的数量</param>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task CancelMany(int count)
         {
             var stateStorage = await this.stateStorageFactory();
@@ -547,10 +547,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that replacing multiple pending sequence numbers persists the replacement states.
+        /// 证明替换多个待处理序列号的状态持续存在。
         /// </summary>
-        /// <param name="count">The number of pending states to prepare and replace.</param>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <param name="count">准备和替换待处理国家的数量。</param>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task ReplaceMany(int count)
         {
             var stateStorage = await this.stateStorageFactory();
@@ -606,9 +606,9 @@ namespace Orleans.Transactions.TestKit
 
 
         /// <summary>
-        /// Verifies a storage update which replaces pending states, adds later states, and confirms a prefix.
+        /// 核证储存更新,以取代待处理的状态,增加后来的状态并确认前缀。
         /// </summary>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task GrowingBatch()
         {
             var stateStorage = await this.stateStorageFactory();
@@ -633,10 +633,10 @@ namespace Orleans.Transactions.TestKit
             var pendingstate8 = MakePendingState(8, expectedState8, false);
 
 
-            // prepare 1,2,3a,4a
+            // 准备 1,2,3a,4a
             etag = await stateStorage.Store(etag, metadata, new List<PendingTransactionState<TState>>() { pendingstate1, pendingstate2, pendingstate3a, pendingstate4a }, null, null);
 
-            // replace 3b,4b, prepare 5, 6, 7, 8 confirm 1, 2, 3b, 4b, 5, 6
+            // 替换3b,4b,准备5,6,7,8确认1,2,3b,4b,5,6
             _ = await stateStorage.Store(etag, metadata, new List<PendingTransactionState<TState>>() { pendingstate3b, pendingstate4b, pendingstate5, pendingstate6, pendingstate7, pendingstate8 }, 6, null);
 
             loadresponse = await stateStorage.Load();
@@ -663,9 +663,9 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies a storage update which replaces and confirms a prefix while canceling later pending states.
+        /// 验证储存更新,以替换和确认前缀,同时取消以后的待处理状态。
         /// </summary>
-        /// <returns>A task which represents the storage test.</returns>
+        /// <returns>代表存储测试的任务。</returns>
         public virtual async Task ShrinkingBatch()
         {
             var stateStorage = await this.stateStorageFactory();
@@ -688,10 +688,10 @@ namespace Orleans.Transactions.TestKit
             var pendingstate4b = MakePendingState(4, expectedState4b, false);
 
 
-            // prepare 1,2,3a,4a, 5, 6, 7, 8
+            // 准备 1,2,3a,4a,5,6,7,8
             etag = await stateStorage.Store(etag, metadata, new List<PendingTransactionState<TState>>() { pendingstate1, pendingstate2, pendingstate3a, pendingstate4a, pendingstate5, pendingstate6, pendingstate7, pendingstate8 }, null, null);
 
-            // replace 3b,4b, confirm 1, 2, 3b, cancel 5, 6, 7, 8
+            // 3b,4b,确认1,2,3b,取消5,6,7,8
             _ = await stateStorage.Store(etag, metadata, new List<PendingTransactionState<TState>>() { pendingstate3b, pendingstate4b }, 3, 4);
 
             loadresponse = await stateStorage.Load();

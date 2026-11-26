@@ -76,7 +76,7 @@ internal sealed class ActivationSheddingToyHostedService(IGrainFactory grainFact
             return;
         }
 
-        // Calculate and print marginal memory usage per grain
+        // 计算和打印边存内用量 grain
         Console.WriteLine("Marginal memory usage per grain (bytes) between points:");
         for (int j = 1; j < stats.Count; j++)
         {

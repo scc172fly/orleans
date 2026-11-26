@@ -62,7 +62,7 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         var journal = JournalId.FromGrainId(receiver.GetGrainId());
         var writes = Fixture.Storage.GetSuccessfulWriteCount(journal);
 
-        // The failed attempt stages no inbox command, so the next one is the charge which recovery stages for it.
+        // 失败的尝试没有进入命令, 所以下一个是回收阶段的收费。
         var faulting = (FaultingInboxCodecFixture)Fixture;
         faulting.NextFailure = new IOException("Interrupted attempt command failed.");
         handler.Release();
@@ -72,8 +72,8 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
 
-        // The activation whose charge fails to encode fails to start, and a later one charges the attempt and replays the
-        // accepted message, which succeeds.
+        // 启动程序,其电荷未能编码 无法启动, 后一个 指控试图和重播
+        // 已接受消息, 成功的消息 。
         var completed = await Fixture.WaitForEffectCountAsync(receiver, 1);
         Assert.False(faulting.FailedSnapshot);
         Assert.Null(faulting.NextFailure);
@@ -106,7 +106,7 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
         if (snapshot)
         {
-            // The snapshot fails while the write is encoded, after the acceptance was applied, so the activation is discarded.
+            // 笔记本在接受后被编码时失败,所以放弃激活。
             Assert.Same(failure, await grain.DeactivationFailure.Task.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
             await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
             Assert.Equal(1, grain.GetSnapshotForTest().InboxCount);
@@ -119,7 +119,7 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         }
         else
         {
-            // Commands are encoded before they are applied, so a rejected acceptance leaves the activation's state unchanged.
+            // 命令在应用前就编码,所以被拒绝的接受使得激活状态保持不变。
             Assert.False(grain.DeactivationFailure.Task.IsCompleted);
             var current = await receiver.GetSnapshotAsync();
             Assert.Equal(before.ActivationId, current.ActivationId);

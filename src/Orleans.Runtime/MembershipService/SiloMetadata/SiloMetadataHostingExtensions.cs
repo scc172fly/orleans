@@ -10,21 +10,21 @@ using Orleans.Runtime.Placement.Filtering;
 namespace Orleans.Runtime.MembershipService.SiloMetadata;
 
 /// <summary>
-/// Extensions for configuring silo metadata.
+/// 配置 silo 元数据的扩展名。
 /// </summary>
 public static class SiloMetadataHostingExtensions
 {
     /// <summary>
-    /// Configures silo metadata from the builder configuration.
+    /// 配置构建器配置中的 silo 元数据。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
+    /// <param name="builder">下 silo 建筑商</param>
     /// <remarks>
-    /// Reads the <c>Orleans:Metadata</c> configuration section.
-    /// Key-value pairs can be supplied using environment variables such as:
-    /// ORLEANS__METADATA__key1=value1
+    /// 读取 <c>Orleans:Metadata</c> 配置部分。
+    /// 使用环境变量,例如:
+    /// ORLENS - 气象数据_ 键1=值1
     /// </remarks>
-    /// <returns>The provided silo builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+    /// <returns>提供的情况 silo 建筑商</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
     public static ISiloBuilder UseSiloMetadata(this ISiloBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -32,17 +32,17 @@ public static class SiloMetadataHostingExtensions
     }
 
     /// <summary>
-    /// Configures silo metadata from the provided configuration.
+    /// 配置 silo 元数据,由提供配置。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configuration">The configuration containing the silo metadata.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configuration">包含 silo 元数据的配置。</param>
     /// <remarks>
-    /// Reads the <c>Orleans:Metadata</c> configuration section.
-    /// Key-value pairs can be supplied using environment variables such as:
-    /// ORLEANS__METADATA__key1=value1
+    /// 读取 <c>Orleans:Metadata</c> 配置部分。
+    /// 使用环境变量,例如:
+    /// ORLENS - 气象数据_ 键1=值1
     /// </remarks>
-    /// <returns>The provided silo builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.</exception>
+    /// <returns>提供的情况 silo 建筑商</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> 或 <paramref name="configuration"/> 是 <see langword="null"/>。</exception>
     public static ISiloBuilder UseSiloMetadata(this ISiloBuilder builder, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -53,17 +53,17 @@ public static class SiloMetadataHostingExtensions
     }
 
     /// <summary>
-    /// Configures silo metadata from the provided configuration section.
+    /// 配置 silo 元数据,来自提供配置的配置区域。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configurationSection">The configuration section containing the silo metadata.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configurationSection">配置部分包含 silo 元数据。</param>
     /// <remarks>
-    /// Binds the provided section as a <see cref="Dictionary{TKey,TValue}"/>.
-    /// Key-value pairs can be supplied using environment variables such as:
-    /// ORLEANS__METADATA__key1=value1
+    /// 将所提供的部分作为 <see cref="Dictionary{TKey,TValue}"/>捆绑。
+    /// 使用环境变量,例如:
+    /// ORLENS - 气象数据_ 键1=值1
     /// </remarks>
-    /// <returns>The provided silo builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="builder"/> or <paramref name="configurationSection"/> is <see langword="null"/>.</exception>
+    /// <returns>提供的情况 silo 建筑商</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> 或 <paramref name="configurationSection"/> 是 <see langword="null"/>。</exception>
     public static ISiloBuilder UseSiloMetadata(this ISiloBuilder builder, IConfigurationSection configurationSection)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -74,12 +74,12 @@ public static class SiloMetadataHostingExtensions
     }
 
     /// <summary>
-    /// Configures the metadata published by the local silo.
+    /// 配置本地 silo发布的元数据。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="metadata">The metadata to publish for the local silo.</param>
-    /// <returns>The provided silo builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is <see langword="null"/>.</exception>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="metadata">本地 silo发布元数据。</param>
+    /// <returns>提供的情况 silo 建筑商</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="metadata"/> 是 <see langword="null"/>.</exception>
     public static ISiloBuilder UseSiloMetadata(this ISiloBuilder builder, Dictionary<string, string> metadata)
     {
         ArgumentNullException.ThrowIfNull(metadata);
@@ -96,7 +96,7 @@ public static class SiloMetadataHostingExtensions
             services.AddFromExisting<ILifecycleParticipant<ISiloLifecycle>, SiloMetadataCache>();
             services.AddSingleton<ISiloMetadataClient, SiloMetadataClient>();
 
-            // Placement filters
+            // 放置过滤器
             services.AddPlacementFilter<PreferredMatchSiloMetadataPlacementFilterStrategy, PreferredMatchSiloMetadataPlacementFilterDirector>(ServiceLifetime.Transient);
             services.AddPlacementFilter<RequiredMatchSiloMetadataPlacementFilterStrategy, RequiredMatchSiloMetadataPlacementFilterDirector>(ServiceLifetime.Transient);
         });

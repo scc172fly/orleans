@@ -22,8 +22,8 @@ using ReminderEvents = Orleans.Reminders.Diagnostics.ReminderEvents;
 namespace UnitTests.TimerTests;
 
 /// <summary>
-/// Base class for reminder tests providing common test operations and utilities.
-/// Uses <see cref="ReminderDiagnosticObserver"/> for event-driven waiting instead of Task.Delay.
+/// 提供共同测试业务和公用事业的提醒检测基准等级。
+/// 使用 <see cref="ReminderDiagnosticObserver"/> 代替 Task.Delay,用于由事件驱动的等待。
 /// </summary>
 public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
 {
@@ -91,8 +91,8 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
 
     protected Task ClearReminderTableAsync(CancellationToken cancellationToken)
     {
-        // ReminderTable.Clear() cannot be called from a non-Orleans thread,
-        // so proxy the call through a grain.
+        // ReminderTable.Clear() 不能从非Orleans 线调用,
+        // ,通过 grain代理调用。
         var controlProxy = GrainFactory.GetGrain<IReminderTestGrain2>(Guid.NewGuid());
         return controlProxy.EraseReminderTable().WaitAsync(cancellationToken);
     }
@@ -147,7 +147,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
         IGrainReminder r2 = await grain.StartReminder(DR).WaitAsync(cancellationToken);
         try
         {
-            // First handle should now be out of date once the second handle to the same reminder was obtained
+            // 一旦获得同一催复函的第二手,第一手现在应停止使用
             await grain.StopReminder(r1).WaitAsync(cancellationToken);
             Assert.Fail("Removed reminder1, which shouldn't be possible.");
         }
@@ -159,7 +159,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
         await grain.StopReminder(r2).WaitAsync(cancellationToken);
         log.LogInformation("Removed reminder2 successfully");
 
-        // trying to see if readreminder works
+        // 尝试查看读取器是否工作
         _ = await grain.StartReminder(DR).WaitAsync(cancellationToken);
         _ = await grain.StartReminder(DR).WaitAsync(cancellationToken);
         _ = await grain.StartReminder(DR).WaitAsync(cancellationToken);
@@ -187,7 +187,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
         }
 
         await Task.WhenAll(startReminderTasks).WaitAsync(cancellationToken);
-        // do comparison on strings
+        // 字符串比较
         List<string> registered = (from reminder in startReminderTasks select reminder.Result.ReminderName).ToList();
 
         log.LogInformation("Waited");
@@ -203,14 +203,14 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
         }
         Assert.True(fetched.Count == 0, $"More than registered reminders. Extra: {Utils.EnumerableToString(fetched)}");
 
-        // Wait for each reminder to tick twice using the observer
+        // 等待每次提醒使用观察员两次勾选
         log.LogInformation("Time tests");
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(ENDWAIT);
         var reminderNames = Enumerable.Range(0, count).Select(i => DR + "_" + i).ToArray();
         await AdvanceRemindersByTicksAsync(2, cts.Token, GetReminderIdentities([grain], reminderNames));
 
-        // Verify via grain counters
+        // 通过 grain 计数器进行核查
         foreach (var reminderName in reminderNames)
         {
             Assert.Equal(2, await grain.GetCounter(reminderName).WaitAsync(cts.Token));
@@ -311,7 +311,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
     {
         IReminderTestGrain2 g1 = this.GrainFactory.GetGrain<IReminderTestGrain2>(Guid.NewGuid());
 
-        // request a reminder that does not exist
+        // 要求发出提醒通知,但不存在
         IGrainReminder? reminder = await g1.GetReminderObject("blarg").WaitAsync(cancellationToken);
         Assert.Null(reminder);
     }
@@ -659,8 +659,8 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
     {
         const int maximumAttempts = 1_000;
 
-        // Select a key in the joined silo's range so the test always removes a real reminder owner
-        // while leaving every baseline silo available for subsequent shared-fixture tests.
+        // 在合并 silo区域选择密钥,因此测试总是删除真正的提醒所有人
+        // 将每种基准 silo 留作随后的共享粉碎测试。
         for (var attempt = 0; attempt < maximumAttempts; attempt++)
         {
             var grain = GrainFactory.GetGrain<TGrainInterface>(Guid.NewGuid());
@@ -819,7 +819,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
                 tickCount,
                 reminders.Length);
             await AdvanceReminderTimeAsync(period, cancellationToken);
-            // TickCompleted is emitted after ReceiveReminder returns, so counters are already persisted.
+            // TickCompleted 于 ReceiveReminder 返回,因此计数器已经持续。
             await observer.WaitForTickCompletedAsync(tickCompletion).WaitAsync(cancellationToken);
 
             await SynchronizeReminderSchedulesAsync(cancellationToken, reminders);
@@ -1080,7 +1080,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
             try
             {
                 await function(reminderName, period, validate).WaitAsync(TestConstants.InitTimeout, cancellationToken);
-                return; // success ... no need to retry
+                return; // 成功... 无需重试
             }
             catch (AggregateException aggEx)
             {
@@ -1095,11 +1095,11 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
             }
         }
 
-        // execute one last time and bubble up errors if any
+        // 执行最后一次执行,如果存在错错,会泡沫上出错误
         await function(reminderName, period, validate).WaitAsync(TestConstants.InitTimeout, cancellationToken);
     }
 
-    // Func<> doesnt take optional parameters, thats why we need a separate method
+    // 富士克不采取可选参数, 所以我们需要另外的方法
     protected async Task ExecuteWithRetriesStop(
         Func<string, Task> function,
         string reminderName,
@@ -1110,7 +1110,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
             try
             {
                 await function(reminderName).WaitAsync(TestConstants.InitTimeout, cancellationToken);
-                return; // success ... no need to retry
+                return; // 成功... 无需重试
             }
             catch (Exception exception)
             {
@@ -1118,7 +1118,7 @@ public class ReminderTestsBase : OrleansTestingBase, IAsyncDisposable
             }
         }
 
-        // execute one last time and bubble up errors if any
+        // 执行最后一次执行,如果存在错错,会泡沫上出错误
         await function(reminderName).WaitAsync(TestConstants.InitTimeout, cancellationToken);
     }
 

@@ -4,36 +4,36 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Coordinates transaction creation, resolution, and abortion for a silo.
+    /// 协调交易的产生、解决和堕胎 silo.
     /// </summary>
     /// <remarks>
-    /// A silo has one transaction agent.
+    /// silo 有一个交易代理。
     /// </remarks>
     public interface ITransactionAgent
     {
         /// <summary>
-        /// Starts a new transaction.
+        /// 开始新的交易。
         /// </summary>
-        /// <param name="readOnly">A value indicating whether the transaction permits read operations only.</param>
-        /// <param name="timeout">The interval after which the transaction is eligible to be aborted.</param>
-        /// <returns>The new transaction's context information.</returns>
+        /// <param name="readOnly">表明交易是否允许只读业务的价值。</param>
+        /// <param name="timeout">交易有资格中止的间隔。</param>
+        /// <returns>新的交易背景信息。</returns>
         Task<TransactionInfo> StartTransaction(bool readOnly, TimeSpan timeout);
 
         /// <summary>
-        /// Resolves a transaction by committing or aborting it.
+        /// 以实施或中止交易的方式解决一项交易。
         /// </summary>
-        /// <param name="transactionInfo">The transaction context information.</param>
+        /// <param name="transactionInfo">交易背景信息。</param>
         /// <returns>
-        /// The resolution status and the underlying exception, if one contributed to the outcome.
+        /// 如果决议地位和基本例外有助于取得结果,则其地位和基本例外。
         /// </returns>
         Task<(TransactionalStatus Status, Exception? exception)> Resolve(TransactionInfo transactionInfo);
 
         /// <summary>
-        /// Abort a transaction.
+        /// 中止交易。
         /// </summary>
-        /// <param name="transactionInfo">The transaction context information.</param>
-        /// <returns>A <see cref="Task"/> representing the abort operation.</returns>
-        /// <remarks>This operation completes without propagating transaction protocol exceptions.</remarks>
+        /// <param name="transactionInfo">交易背景信息。</param>
+        /// <returns>A <see cref="Task"/> 代表中止操作。</returns>
+        /// <remarks>此项操作在不传播交易协议例外的情况下完成。</remarks>
         Task Abort(TransactionInfo transactionInfo);
     }
 }

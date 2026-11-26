@@ -84,7 +84,7 @@ namespace Orleans.Storage
 
             lock (lockable)
             {
-                // No change to Etag
+                // 对 Etag 无更改
                 return dataTable.Remove(keyStr);
             }
         }
@@ -122,7 +122,7 @@ namespace Orleans.Storage
             {
                 if (!dataTable.TryGetValue(keyStr, out var data))
                 {
-                    data = new Dictionary<string, object?>(); // Empty data set
+                    data = new Dictionary<string, object?>(); // 空空数据集集
                     dataTable[keyStr] = data;
                 }
                 return data;

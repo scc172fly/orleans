@@ -7,7 +7,7 @@ using Orleans.Metadata;
 namespace Orleans.Runtime.Versions
 {
     /// <summary>
-    /// Functionality for querying the declared version of grain interfaces.
+    /// 查询所宣布的 grain 接口版本的职能。
     /// </summary>
     internal sealed class GrainVersionManifest
     {
@@ -19,9 +19,9 @@ namespace Orleans.Runtime.Versions
         private Cache _cache;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainVersionManifest"/> class.
+        /// 初始化 <see cref="GrainVersionManifest"/> 类的新实例。
         /// </summary>
-        /// <param name="clusterManifestProvider">The cluster manifest provider.</param>
+        /// <param name="clusterManifestProvider">集束货单提供者。</param>
         public GrainVersionManifest(IClusterManifestProvider clusterManifestProvider)
         {
             _clusterManifestProvider = clusterManifestProvider;
@@ -30,10 +30,10 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// Gets the local version for a specified grain interface type.
+        /// 获取指定 grain 接口类型的本地版本。
         /// </summary>
-        /// <param name="interfaceType">The grain interface type name.</param>
-        /// <returns>The version of the specified grain interface.</returns>
+        /// <param name="interfaceType"> grain 接口类型名称。</param>
+        /// <returns>指定 grain 接口的版本。</returns>
         public ushort GetLocalVersion(GrainInterfaceType interfaceType)
         {
             if (_localVersions.TryGetValue(interfaceType, out var result))
@@ -56,10 +56,10 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// Gets a collection of all known versions for a grain interface.
+        /// 获取 grain 接口的所有已知版本的集合。
         /// </summary>
-        /// <param name="interfaceType">The grain interface type name.</param>
-        /// <returns>All known versions for the specified grain interface.</returns>
+        /// <param name="interfaceType"> grain 接口类型名称。</param>
+        /// <returns>指定 grain 接口的所有已知版本。</returns>
         public (MajorMinorVersion Version, ushort[] Result) GetAvailableVersions(GrainInterfaceType interfaceType)
         {
             var snapshot = Capture();
@@ -67,11 +67,11 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// Gets the set of supported silos for a specified grain interface and version.
+        /// 获得支持的一组 silos 指定 grain 界面和版本。
         /// </summary>
-        /// <param name="interfaceType">The grain interface type name.</param>
-        /// <param name="version">The grain interface version.</param>
-        /// <returns>The set of silos which support the specified grain interface type and version.</returns>
+        /// <param name="interfaceType"> grain 接口类型名称。</param>
+        /// <param name="version"> grain 接口版本。</param>
+        /// <returns>集 silos 支持指定 grain 界面类型和版本。</returns>
         public (MajorMinorVersion Version, SiloAddress[] Result) GetSupportedSilos(GrainInterfaceType interfaceType, ushort version)
         {
             var snapshot = Capture();
@@ -79,10 +79,10 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// Gets the set of supported silos for the specified grain type.
+        /// 获得支持的一组 silos 指定 grain 类型。
         /// </summary>
-        /// <param name="grainType">The grain type.</param>
-        /// <returns>The silos which support the specified grain type.</returns>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <returns>下 silos 支持指定 grain 类型。</returns>
         public (MajorMinorVersion Version, SiloAddress[] Result) GetSupportedSilos(GrainType grainType)
         {
             var snapshot = Capture();
@@ -90,12 +90,12 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// Gets the set of supported silos for the specified combination of grain type, interface type, and version.
+        /// 获得支持的一组 silos 指定组合的 grain 类型、界面类型和版本。
         /// </summary>
-        /// <param name="grainType">The grain type.</param>
-        /// <param name="interfaceType">The grain interface type name.</param>
-        /// <param name="versions">The grain interface version.</param>
-        /// <returns>The set of silos which support the specified grain.</returns>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <param name="interfaceType"> grain 接口类型名称。</param>
+        /// <param name="versions"> grain 接口版本。</param>
+        /// <returns>集 silos 支持指定 grain.</returns>
         public (MajorMinorVersion Version, Dictionary<ushort, SiloAddress[]> Result) GetSupportedSilos(GrainType grainType, GrainInterfaceType interfaceType, ushort[] versions)
         {
             var snapshot = Capture();
@@ -220,7 +220,7 @@ namespace Orleans.Runtime.Versions
             {
                 var silo = entry.Key;
 
-                // Since clients are not eligible for placement, we exclude them here.
+                // 由于客户没有资格获得安置,我们在此排除他们。
                 if (silo.IsClient)
                 {
                     continue;

@@ -1,7 +1,7 @@
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// DO NOT use this class as a <code>IClassFixture</code> due to https://github.com/AArnott/Xunit.SkippableFact/issues/32
+    /// 由于 https://github.com/AArnott/Xunit.SkippableFact/issues/32，请勿将此类用作 <code>IClassFixture</code>。
     /// </summary>
     public abstract class AzureStorageBasicTests
     {

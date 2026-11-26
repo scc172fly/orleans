@@ -16,10 +16,10 @@ namespace DefaultCluster.Tests.General
     public class FooGrain : Grain, IFooGrain { }
 
     /// <summary>
-    /// Tests for Orleans grain reference functionality.
-    /// Validates grain reference equality, comparison, serialization (including JSON),
-    /// passing grain references between grains, handling null references,
-    /// and proper hash code generation for distributed systems.
+    /// Orleans grain 参考功能测试。
+    /// 验证 grain 参考平等、比较、序列化(包括 JSON),
+    /// 通过 grain 引用之间 grains处理无效引用,
+    /// 以及适当的散装系统散装代号生成。
     /// </summary>
     [TestCategory("BVT"), TestCategory("GrainReference")]
     [TestSuite("BVT")]
@@ -32,9 +32,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests that grain references produce consistent uniform hash codes.
-        /// Validates that the hash code generation is deterministic and stable,
-        /// which is crucial for consistent grain placement and routing in the cluster.
+        /// 测试 grain 参考文献是否产生一致的统一散列编码。
+        /// 证实散列代码的生成是确定性和稳定的
+        /// 这对于在组内连贯一致地 grain 安排和路线至关重要。
         /// </summary>
         [Fact]
         public void GrainReferenceComparison_ShouldProduceUniformHashCode()
@@ -43,17 +43,17 @@ namespace DefaultCluster.Tests.General
             var r = simpleGrain as GrainReference;
             Assert.NotNull(r);
 
-            // Hey there stranger. So the test failed here?
-            // It's probably because the way hash codes are generated for the GrainReference
-            // have changed. If you are sure the new code is repeatable, then it's fine to
-            // update the expected value here. Good luck, friend.
+            // 嘿,陌生人,所以测试失败了?
+            // 可能是因为哈希代码的生成方式 GrainReference
+            // 已经更改。 如果您确定新代码是可重复的, 那么可以
+            // 更新这里的预期值。 祝你好运,朋友。
             Assert.Equal(3643965955u, r.GetUniformHashCode());
         }
 
         /// <summary>
-        /// Tests grain reference equality and comparison operators.
-        /// Validates that different grain references are properly distinguished
-        /// using equality operators, Equals method, and inequality checks.
+        /// 测试 grain 参考平等和比较操作员。
+        /// 验证不同的 grain 参考文献是否作了适当区分
+        /// 利用平等操作者、平等方法和不平等检查。
         /// </summary>
         [Fact]
         public void GrainReferenceComparison_DifferentReference()
@@ -69,9 +69,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests passing grain's own reference (this) to another grain.
-        /// Validates that grains can pass references to themselves as method parameters,
-        /// enabling callback patterns and grain interconnections.
+        /// 测试通过 grain自己的引用(此)到另一个 grain。
+        /// 证明 grains 能够将参考文献作为方法参数,
+        /// 启用回调模式和 grain 互联。
         /// </summary>
         [Fact]
         public async Task GrainReference_Pass_this()
@@ -83,9 +83,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests passing grain references within nested data structures.
-        /// Validates that grain references embedded in complex objects are properly
-        /// serialized and maintain their identity when passed between grains.
+        /// 测试在嵌套数据结构中通过 grain 参考。
+        /// 验证嵌入复杂对象的 grain 引用正确
+        /// 在 grains之间通过时,他们的身份被序列并保持。
         /// </summary>
         [Fact]
         public async Task GrainReference_Pass_this_Nested()
@@ -97,9 +97,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests passing null grain references between grains.
-        /// Validates that null references are properly handled in both direct
-        /// parameter passing and when embedded in data structures.
+        /// 测试通过无效 grain 引用之间 grains.
+        /// 证明无完全引用文献均直接得到妥善处理
+        /// 参数通过时和嵌入数据结构时。
         /// </summary>
         [Fact]
         public async Task GrainReference_Pass_Null()
@@ -107,7 +107,7 @@ namespace DefaultCluster.Tests.General
             IChainedGrain g1 = this.GrainFactory.GetGrain<IChainedGrain>(GetRandomGrainId());
             IChainedGrain g2 = this.GrainFactory.GetGrain<IChainedGrain>(GetRandomGrainId());
 
-            // g1 will pass a null reference to g2
+            // g1 将会通过g2的无效引用
             await g1.PassNullNested(new ChainGrainHolder { Next = g2 });
             Assert.Null(await g2.GetNext());
             await g1.PassNull(g2);
@@ -115,9 +115,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests JSON serialization of grain references.
-        /// Validates that grain references can be serialized to JSON and deserialized
-        /// back while maintaining their identity and functionality.
+        /// 测试 JSON 序列序列 grain 参考文献。
+        /// 验证 grain 参考文献可序列化为 JSON 和解除
+        /// 保持其特性和功能。
         /// </summary>
         [Fact, TestCategory("Serialization"), TestCategory("JSON")]
         public void GrainReference_Json_Serialization()
@@ -127,9 +127,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests JSON serialization of grain references within complex objects.
-        /// Validates that grain references nested in data structures are properly
-        /// serialized/deserialized and remain functional after round-trip.
+        /// 测试 JSON 序列序列 grain 复数对象中的引用。
+        /// 验证嵌套在数据结构中的 grain 参考文献结构是否适当
+        /// 连续/分级,在往返后继续运作。
         /// </summary>
         [Fact, TestCategory("Serialization"), TestCategory("JSON")]
         public async Task GrainReference_Json_Serialization_Nested()
@@ -161,9 +161,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests JSON serialization of unresolved grain references.
-        /// Validates that grain references can be serialized even before they are
-        /// resolved (activated), maintaining lazy resolution semantics.
+        /// 测试 JSON 未决的系列问题 grain 参考文献。
+        /// 校验 grain 参考文献甚至在它们之前就可进行序列编号
+        /// 解决(激活),保持懒惰的解析语义。
         /// </summary>
         [Fact, TestCategory("Serialization"), TestCategory("JSON")]
         public void GrainReference_Json_Serialization_Unresolved()
@@ -173,20 +173,20 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests grain reference interning for system grains.
-        /// Validates that multiple requests for the same grain return the same
-        /// reference object (interning), optimizing memory usage.
-        /// Note: Currently skipped as grain reference interning is not implemented.
+        /// 测试 grain 系统内部参考查询 grains.
+        /// 验证对同一 grain 的多次请求返回相同
+        /// 参考对象(外派),优化内存使用。
+        /// 注:由于 grain 参考内插未执行,目前跳过。
         /// </summary>
         [Fact(Skip = "GrainReference interning is not currently implemented."), TestCategory("Serialization"), TestCategory("Interner")]
         public void GrainReference_Interning_Sys_StoreGrain()
         {
             var g1 = (GrainReference)this.GrainFactory.GetGrain<IMemoryStorageGrain>(0);
             var g2 = (GrainReference)this.GrainFactory.GetGrain<IMemoryStorageGrain>(0);
-            Assert.Equal(g1, g2); // Should be equal GrainReferences.
-            Assert.Same(g1, g2); // Should be same / interned GrainReference object
+            Assert.Equal(g1, g2); // 应该是相等 GrainReferences。
+            Assert.Same(g1, g2); // 对象应该是相同的 / 被困 GrainReference 对象
 
-            // Round-trip through Serializer
+            // 通过序列器的圆曲程
             var g3 = this.HostedCluster.RoundTripSerializationForTesting(g1);
             Assert.Equal(g3, g1);
             Assert.Equal(g3, g2);
@@ -196,27 +196,27 @@ namespace DefaultCluster.Tests.General
 
         private void TestGrainReferenceSerialization(int id, bool resolveBeforeSerialize)
         {
-            // Make sure grain references serialize well through .NET serializer.
+            // 确保 grain 参考文件通过 .NET 序列器进行完整序列化。
             var grain = this.GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.Next(), UnitTests.Grains.SimpleGrain.SimpleGrainNamePrefix);
 
             if (resolveBeforeSerialize)
             {
-                grain.SetA(id).Wait(); //  Resolve GR
+                grain.SetA(id).Wait(); //  决 定 决 决 决 国
             }
 
-            // Serialize + Deserialize through Json serializer
+            // 通过 Json 连载器实现 + 的串行 + 降序
             var other = NewtonsoftJsonSerializeRoundtrip(grain);
 
             if (!resolveBeforeSerialize)
             {
-                grain.SetA(id).Wait(); //  Resolve GR
+                grain.SetA(id).Wait(); //  决 定 决 决 决 国
             }
 
             Assert.IsAssignableFrom(grain.GetType(), other);
             Assert.NotNull(other);
-            Assert.Equal(grain, other);  // "Deserialized grain reference equality is preserved"
+            Assert.Equal(grain, other);  // "序列 grain 参考平等得到维护"
             int res = other.GetA().Result;
-            Assert.Equal(id, res);  // "Returned values from call to deserialized grain reference"
+            Assert.Equal(id, res);  // “从调用到解密的 grain 参考值返回数值”
         }
 
         private T? NewtonsoftJsonSerializeRoundtrip<T>(T obj)

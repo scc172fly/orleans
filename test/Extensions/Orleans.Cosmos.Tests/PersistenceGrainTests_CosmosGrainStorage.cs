@@ -9,7 +9,7 @@ using Xunit;
 namespace Tester.Cosmos.Persistence;
 
 /// <summary>
-/// PersistenceGrainTests using Cosmos DB - Requires access to Cosmos DB
+/// PersistenceGrainTests 使用宇宙 DB - 需要访问宇宙 DB
 /// </summary>
 [TestCategory("Persistence"), TestCategory("Cosmos")]
 [TestSuite("Functional")]

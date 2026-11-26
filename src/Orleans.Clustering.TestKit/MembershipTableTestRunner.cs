@@ -4,8 +4,8 @@ using static Orleans.Clustering.TestKit.MembershipTableTestData;
 
 namespace Orleans.Clustering.TestKit;
 
-/// <summary>Sealed, unconditional, individually invocable membership table guarantees.</summary>
-/// <remarks>Use a fresh initialized fixture for each method. Failed assertions and infrastructure errors propagate to the caller.</remarks>
+/// <summary>密封、无条件、个别地援引成员资格表保证。</summary>
+/// <remarks>每种方法使用一个新的初始化固定装置。错误的断言和基础设施错误会传播到呼叫者。</remarks>
 public sealed class MembershipTableTestRunner
 {
     private readonly MembershipTableTestFixture _fixture;
@@ -17,18 +17,18 @@ public sealed class MembershipTableTestRunner
     private IMembershipTable B => _fixture.Second;
     private IMembershipTable Other => _fixture.OtherCluster;
 
-    /// <summary>Creates a runner over initialized independent handles. Row count controls workload, never guarantees.</summary>
+    /// <summary>创建启动独立控件的运行者。行数控制工作量从不保证。</summary>
     public MembershipTableTestRunner(MembershipTableTestFixture fixture, int seed = 0, Action<string>? output = null, int concurrencyRowCount = 128)
         : this(fixture, seed, output, concurrencyRowCount, concurrencyRowPadding: 0)
     {
     }
 
-    /// <summary>Creates a runner over initialized independent handles with a configurable concurrent-read row payload.</summary>
-    /// <param name="fixture">The initialized fixture which owns the provider handles.</param>
-    /// <param name="seed">The deterministic test-data seed.</param>
-    /// <param name="output">Receives conformance diagnostics.</param>
-    /// <param name="concurrencyRowCount">The number of rows used by concurrent-read scenarios.</param>
-    /// <param name="concurrencyRowPadding">The number of characters appended to each concurrent-read row's host name.</param>
+    /// <summary>创建一个运行于初始化独立控点的运行器,并配置可同时读行有效载荷。</summary>
+    /// <param name="fixture">拥有提供者控股的初始化固定装置。</param>
+    /// <param name="seed">确定性测试数据种子</param>
+    /// <param name="output">接受合规诊断。</param>
+    /// <param name="concurrencyRowCount">并行阅读情景所使用的行数。</param>
+    /// <param name="concurrencyRowPadding">每一个同时读取行主机名后附的字符数。</param>
     public MembershipTableTestRunner(
         MembershipTableTestFixture fixture,
         int seed,
@@ -47,7 +47,7 @@ public sealed class MembershipTableTestRunner
         _concurrencyRowPadding = concurrencyRowPadding;
     }
 
-    /// <summary>G01: insertion and its version are one exact +1 commit, preserving the sentinel.</summary>
+    /// <summary>G01:插入及其版本是 一种精确的+1 承诺, 保存监控 。</summary>
     public Task InsertRow_CurrentTableVersion_CommitsExactlyOneVersion(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Insert(A, Entry(1), ct);
@@ -55,7 +55,7 @@ public sealed class MembershipTableTestRunner
         await SameHandles(ct);
     }, cancellationToken);
 
-    /// <summary>G02: a current-token forward update replaces exactly its intended row.</summary>
+    /// <summary>G02: 以当前点前方更新取代其原意行。</summary>
     public Task UpdateRow_CurrentTokens_CommitsExactlyOneVersion(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -78,7 +78,7 @@ public sealed class MembershipTableTestRunner
         await SameHandles(ct);
     }, cancellationToken);
 
-    /// <summary>G03: equal versions retain canonical fields and non-Dead rows while liveness varies and Dead rows compact.</summary>
+    /// <summary>G03: 等式保留金体场和非死行,而活性则不同,死排紧凑。</summary>
     public Task Reads_SameVersion_PreservesRetainedCanonicalFields(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -99,7 +99,7 @@ public sealed class MembershipTableTestRunner
         history.Observe(await Read(B, ct));
     }, cancellationToken);
 
-    /// <summary>G04: reads may skip two separately validated commits.</summary>
+    /// <summary>G04: 读作可以跳过两个单独确认的承保。</summary>
     public Task Reads_MaySkipCommittedVersions_WithoutSkippingHistoryValidation(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -114,7 +114,7 @@ public sealed class MembershipTableTestRunner
         history.Observe(observed);
     }, cancellationToken);
 
-    /// <summary>G05: legal lifecycle, terminal ledger, and a distinct successor generation.</summary>
+    /// <summary>G05:合法生命周期、终极分类账和独特的后代人。</summary>
     public Task Lifecycle_DeadRemainsTerminalAfterCompaction_SuccessorUsesNewGeneration(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         var entry = Entry(1);
@@ -142,7 +142,7 @@ public sealed class MembershipTableTestRunner
         EqualRow(MembershipEntrySnapshot.Capture(successor), final.Row(successor.SiloAddress).Entry);
     }, cancellationToken);
 
-    /// <summary>G06: owner liveness writes preserve canonical membership fields and the table version and ETag.</summary>
+    /// <summary>G06:所有者活性写道,保留了卡尼科成员区、表格版和ETag。</summary>
     public Task UpdateIAmAlive_OwnerWrites_PreserveCanonicalFieldsAndTableVersion(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -152,11 +152,11 @@ public sealed class MembershipTableTestRunner
         await SameHandles(ct);
     }, cancellationToken);
 
-    /// <summary>G07: tokens captured before an owner heartbeat commit a canonical status change exactly once.</summary>
+    /// <summary>G07: 在拥有者心跳发生一次罐头状态改变之前捕捉到的标记。</summary>
     public Task UpdateRow_TokensCapturedBeforeHeartbeat_CommitStatusChange(CancellationToken cancellationToken = default)
         => Run(ct => UpdateAfterHeartbeat(updateStatus: true, ct), cancellationToken);
 
-    /// <summary>G08: tokens captured before an owner heartbeat commit a canonical suspect-vote change exactly once.</summary>
+    /// <summary>G08: 在拥有者心跳前捕捉到的标志 完全一次发生卡通式的可疑票变。</summary>
     public Task UpdateRow_TokensCapturedBeforeHeartbeat_CommitVoteChange(CancellationToken cancellationToken = default)
         => Run(ct => UpdateAfterHeartbeat(updateStatus: false, ct), cancellationToken);
 
@@ -176,7 +176,7 @@ public sealed class MembershipTableTestRunner
         AssertCommit(before, await SameHandles(ct), payload);
     }
 
-    /// <summary>G09: distinct constructed handles share one committed backing table.</summary>
+    /// <summary>G09: 不同的构筑控点共享一个承诺支持表。</summary>
     public Task Handles_IndependentlyConstructed_ShareCommittedBackingState(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         Check(!ReferenceEquals(A, B), "two independently constructed IMembershipTable instances required");
@@ -186,7 +186,7 @@ public sealed class MembershipTableTestRunner
         Equal(second, await Read(A, ct));
     }, cancellationToken);
 
-    /// <summary>G10: stale-table insertion has no side effects.</summary>
+    /// <summary>G10:可变换插入无副作用。</summary>
     public Task InsertRow_StaleTableToken_ReturnsFalseWithoutSideEffects(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Insert(A, Entry(1), ct);
@@ -195,7 +195,7 @@ public sealed class MembershipTableTestRunner
         await Reject(() => A.InsertRowAsync(Entry(3), stale, ct), ct);
     }, cancellationToken);
 
-    /// <summary>G11: a stale table token is rejected even with freshly read target-row metadata.</summary>
+    /// <summary>G11: 即使使用新读目标行元数据, 也拒绝采用一个删除的表牌。</summary>
     public Task UpdateRow_StaleTableTokenWithCurrentRowToken_ReturnsFalseWithoutSideEffects(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -210,7 +210,7 @@ public sealed class MembershipTableTestRunner
         await Reject(() => A.UpdateRowAsync(rejected, rowEtag, stale.Next(), ct), ct);
     }, cancellationToken);
 
-    /// <summary>G12: a snapshot preceding a commit to the same row is rejected without partial effects.</summary>
+    /// <summary>G12: 在同一行承诺前的快照被拒绝,无部分效果。</summary>
     public Task UpdateRow_StaleSnapshotAfterSameRowCommit_ReturnsFalseWithoutSideEffects(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -223,7 +223,7 @@ public sealed class MembershipTableTestRunner
         await Reject(() => A.UpdateRowAsync(rejected, stale.Row(joining.SiloAddress).Etag, stale.Next(), ct), ct);
     }, cancellationToken);
 
-    /// <summary>G13: duplicate identity with a current valid candidate is rejected atomically.</summary>
+    /// <summary>G13:与当前有效候选人的重复身份被原子否决。</summary>
     public Task InsertRow_DuplicateIdentity_ReturnsFalseWithoutSideEffects(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -233,7 +233,7 @@ public sealed class MembershipTableTestRunner
         await Reject(() => A.InsertRowAsync(rejected, current.Next(), ct), ct);
     }, cancellationToken);
 
-    /// <summary>G14: a real row token cannot create a missing row through UpdateRow.</summary>
+    /// <summary>G14: 一个实行符无法在 UpdateRow中创建缺失的行。</summary>
     public Task UpdateRow_MissingIdentityWithRealToken_ReturnsFalseWithoutSideEffects(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -256,12 +256,12 @@ public sealed class MembershipTableTestRunner
         await Reject(() => A.UpdateRowAsync(dead, delayedRowEtag, compacted.Next(), ct), ct);
     }, cancellationToken);
 
-    /// <summary>Runs the full-snapshot lookup guarantee for present and absent identities.</summary>
+    /// <summary>运行完整光谱搜索保证的当前和不存在的身份。</summary>
     [Obsolete("Use ReadAll_SelectsPresentAndAbsentIdentities instead.")]
     public Task ReadRow_AndReadAll_AgreeForPresentAndAbsentIdentities(CancellationToken cancellationToken = default)
         => ReadAll_SelectsPresentAndAbsentIdentities(cancellationToken);
 
-    /// <summary>G15: full snapshots select distinct generations, other endpoints, and absent identities.</summary>
+    /// <summary>G15:完整地描述不同世代、其他终点和不存在的身份。</summary>
     public Task ReadAll_SelectsPresentAndAbsentIdentities(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -278,7 +278,7 @@ public sealed class MembershipTableTestRunner
         }
     }, cancellationToken);
 
-    /// <summary>G16: the actual retained data, entries, and nested lists remain unchanged after later writes.</summary>
+    /// <summary>G16: 实际保留的数据、条目和嵌套名单在后来写成之后保持不变。</summary>
     public Task Reads_RetainedObjectsRemainUnchangedAfterLaterWrites(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -299,7 +299,7 @@ public sealed class MembershipTableTestRunner
             "retained actual suspect-list reference changed after provider writes");
     }, cancellationToken);
 
-    /// <summary>G17: inserted caller entry and nested suspect-list aliases cannot mutate storage.</summary>
+    /// <summary>G17:插入呼叫器条目和嵌套的可疑名单别名不能变异存储。</summary>
     public Task InsertRow_MutatingInputAndSuspectList_DoesNotMutateStoredState(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Insert(A, Entry(2), ct);
@@ -309,7 +309,7 @@ public sealed class MembershipTableTestRunner
         Equal(committed, await SameHandles(ct));
     }, cancellationToken);
 
-    /// <summary>G18: updated caller entry and nested suspect-list aliases cannot mutate storage.</summary>
+    /// <summary>G18:更新的呼叫者条目和嵌套的可疑名单别名不能变异存储。</summary>
     public Task UpdateRow_MutatingInputAndSuspectList_DoesNotMutateStoredState(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -319,7 +319,7 @@ public sealed class MembershipTableTestRunner
         Equal(committed, await SameHandles(ct));
     }, cancellationToken);
 
-    /// <summary>G19: caller mutations of full snapshots and their selected rows cannot mutate storage.</summary>
+    /// <summary>G19:全速快照的调用器突变及其选定的行不能变换存储。</summary>
     public Task Reads_MutatingReturnedEntryAndSuspectList_DoesNotMutateStoredState(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -332,7 +332,7 @@ public sealed class MembershipTableTestRunner
         Equal(baseline, await SameHandles(ct));
     }, cancellationToken);
 
-    /// <summary>G20: two armed cross-row writes using one table candidate have exactly one winner.</summary>
+    /// <summary>20国:两个武装交叉行写使用一张桌子的候选人,</summary>
     public Task ConcurrentCrossRowUpdates_SharedTableVersion_HaveExactlyOneWinner(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -357,16 +357,16 @@ public sealed class MembershipTableTestRunner
         AssertCommit(before, await SameHandles(ct), results[0] ? first : second);
     }, cancellationToken);
 
-    /// <summary>G21: bounded simultaneous full reads match only complete before/after committed views.</summary>
+    /// <summary>21国集团:约束式同时全文读数仅符合承诺意见之前/之后的完整内容。</summary>
     public Task ConcurrentReadAll_ReturnsOnlyAtomicCommittedViews(CancellationToken cancellationToken = default)
         => Run(ConcurrentReads, cancellationToken);
 
-    /// <summary>Runs the concurrent full-snapshot guarantee.</summary>
+    /// <summary>运行同时的全速投射保证。</summary>
     [Obsolete("Use ConcurrentReadAll_ReturnsOnlyAtomicCommittedViews instead.")]
     public Task ConcurrentReadRow_ReturnsOnlyAtomicCommittedViews(CancellationToken cancellationToken = default)
         => ConcurrentReadAll_ReturnsOnlyAtomicCommittedViews(cancellationToken);
 
-    /// <summary>G23: repeated initialization on existing and new handles preserves nonempty state exactly.</summary>
+    /// <summary>G23:对现有和新控点的重复初始化保留了非空白状态。</summary>
     public Task InitializeMembershipTable_RepeatedWithData_PreservesCommittedState(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -385,7 +385,7 @@ public sealed class MembershipTableTestRunner
         }
     }, cancellationToken);
 
-    /// <summary>G24: shared-backend overlapping identities are isolated by cluster, not service or address.</summary>
+    /// <summary>G24: 共同后卫重叠身份按组别孤立,而不是服务或地址。</summary>
     public Task Clusters_SharedBackendWithOverlappingSiloAddresses_AreIsolated(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -419,7 +419,7 @@ public sealed class MembershipTableTestRunner
         Equal(other, ClusteringMembershipSnapshot.Capture(otherSnapshot));
     }, cancellationToken);
 
-    /// <summary>G25: eligible Dead rows compact at the same version or in atomic +1 batches; retained canonical fields are preserved.</summary>
+    /// <summary>G25: 符合资格的死囚区在同一种版本或原子+1批次中进行契约;保留金刚石场。</summary>
     public Task CleanupDefunctSiloEntries_RemovesOnlyStrictlyOldDeadRows(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         var publishedHeartbeats = new Dictionary<string, DateTime>(StringComparer.Ordinal);
@@ -461,7 +461,7 @@ public sealed class MembershipTableTestRunner
         }
     }, cancellationToken);
 
-    /// <summary>G26: native verification confirms deletion before owner disposal, while the other cluster remains intact.</summary>
+    /// <summary>G26: 本土核查确认在处置所有者之前删除,而另一组则保持不变。</summary>
     public Task DeleteMembershipTableEntries_DeletesOwnClusterAndPreservesOtherCluster(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -471,7 +471,7 @@ public sealed class MembershipTableTestRunner
         Equal(other, await Read(Other, ct));
     }, cancellationToken);
 
-    /// <summary>G27: deleting a different populated cluster never deletes the configured cluster.</summary>
+    /// <summary>G27:删除不同的人口聚集组,从不删除配置的聚集。</summary>
     public Task DeleteMembershipTableEntries_DifferentClusterId_NeverDeletesConfiguredCluster(CancellationToken cancellationToken = default) => Run(async ct =>
     {
         await Seed(ct);
@@ -578,7 +578,7 @@ public sealed class MembershipTableTestRunner
     private static bool IsEligibleForCleanup(
         MembershipEntrySnapshot entry, DateTime cutoff, IReadOnlyDictionary<string, DateTime>? publishedHeartbeats = null)
     {
-        // Controlled cleanup histories use owner publications; raw heartbeat observations may lag.
+        // 受控制的清理历史使用所有者出版物;原始心跳观察可能滞后。
         var expected = publishedHeartbeats is null ? entry : entry with { IAmAliveTime = publishedHeartbeats[entry.Identity] };
         return expected.Status == SiloStatus.Dead && expected.GetEffectiveUpdateTime() < cutoff;
     }
@@ -706,7 +706,7 @@ public sealed class MembershipTableTestRunner
         var current = ClusteringMembershipSnapshot.Capture(await A.ReadAllAsync(ct));
         Check(current.Rows.Count == 0, "concurrent-read setup requires an empty cluster");
         var expectedRows = current.Rows.ToBuilder();
-        // Each insert needs the new opaque table ETag, so setup performs a growing full read after every row.
+        // 每个插入都需要新的不透明的表格ETag, 所以设置每行后会有一个不断增长的全读 。
         for (var i = 1; i <= _concurrencyRowCount; i++)
         {
             var input = Entry(i);
@@ -805,7 +805,7 @@ public sealed class MembershipTableTestRunner
             var committed = await SameHandles(ct);
             if (cleanup) AssertCleanup(before, committed, T1);
             else AssertCommit(before, committed, target);
-            // Once the writer completes, pin down the committed table token as well as its canonical fields.
+            // 写作人完成后, 将承诺的桌子牌子 和它的金刚石田都定下来。
             foreach (var sample in observations)
             {
                 var expectedBefore = before;

@@ -6,7 +6,7 @@ using TestExtensions;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// Tests for <see cref="AdoNetBatchContainer"/>.
+/// <see cref="AdoNetBatchContainer"/>测试。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
@@ -18,15 +18,15 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
     [Fact]
     public void AdoNetBatchContainer_Constructs()
     {
-        // arrange
+        // 安排
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1) };
         var requestContext = new Dictionary<string, object> { { "MyKey", "Value" } };
 
-        // act
+        // 行为
         var container = new AdoNetBatchContainer(streamId, events, requestContext);
 
-        // assert
+        // 平面
         Assert.Equal(streamId, container.StreamId);
         Assert.Equal(events, container.Events);
         Assert.Equal(requestContext, container.RequestContext);
@@ -37,7 +37,7 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
     [Fact]
     public void AdoNetBatchContainer_FromMessage_CreatesContainer()
     {
-        // arrange
+        // 安排
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1), new OtherModel(2), new TestModel(3), new OtherModel(4) };
         var requestContext = new Dictionary<string, object> { { "MyKey", "Value" } };
@@ -46,10 +46,10 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
         var payload = serializer.SerializeToArray(temp);
         var message = new AdoNetStreamMessage("MyServiceId", "MyProviderId", "MyQueueId", 123, 234, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, payload);
 
-        // act
+        // 行为
         var container = AdoNetBatchContainer.FromMessage(serializer, message, 7);
 
-        // assert
+        // 平面
         Assert.Equal(streamId, container.StreamId);
         Assert.Equal(events, container.Events);
         Assert.Equal(requestContext, container.RequestContext);
@@ -61,16 +61,16 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
     [Fact]
     public void AdoNetBatchContainer_ToMessagePayload_CreatesPayload()
     {
-        // arrange
+        // 安排
         var serializer = fixture.Serializer.GetSerializer<AdoNetBatchContainer>();
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1), new OtherModel(2), new TestModel(3), new OtherModel(4) };
         var requestContext = new Dictionary<string, object> { { "MyKey", "Value" } };
 
-        // act
+        // 行为
         var payload = AdoNetBatchContainer.ToMessagePayload(serializer, streamId, events, requestContext);
 
-        // assert
+        // 平面
         var container = serializer.Deserialize(payload);
         Assert.NotNull(container);
         Assert.Equal(streamId, container.StreamId);
@@ -83,22 +83,22 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
     [Fact]
     public void AdoNetBatchContainer_GetEvents_ThrowsOnHalfBaked()
     {
-        // arrange
+        // 安排
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1), new OtherModel(2), new TestModel(3), new OtherModel(4) };
         var requestContext = new Dictionary<string, object> { { "MyKey", "Value" } };
 
-        // act
+        // 行为
         var container = new AdoNetBatchContainer(streamId, events, requestContext);
 
-        // assert
+        // 平面
         Assert.Throws<InvalidOperationException>(container.GetEvents<TestModel>);
     }
 
     [Fact]
     public void AdoNetBatchContainer_GetEvents_FiltersEvents()
     {
-        // arrange
+        // 安排
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1), new OtherModel(2), new TestModel(3), new OtherModel(4) };
         var requestContext = new Dictionary<string, object> { { "MyKey", "Value" } };
@@ -107,10 +107,10 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
         var payload = serializer.SerializeToArray(temp);
         var message = new AdoNetStreamMessage("MyServiceId", "MyProviderId", "MyQueueId", 123, 234, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, payload);
 
-        // act
+        // 行为
         var container = AdoNetBatchContainer.FromMessage(serializer, message, 7);
 
-        // assert
+        // 平面
         Assert.Equal([new TestModel(1), new TestModel(3)], container.GetEvents<TestModel>().Select(x => x.Item1));
         Assert.Equal([new EventSequenceTokenV2(7, 0), new EventSequenceTokenV2(7, 1)], container.GetEvents<TestModel>().Select(x => x.Item2));
         Assert.Equal([new OtherModel(2), new OtherModel(4)], container.GetEvents<OtherModel>().Select(x => x.Item1));
@@ -120,15 +120,15 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
     [Fact]
     public void AdoNetBatchContainer_ImportsRequestContext()
     {
-        // arrange
+        // 安排
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1) };
         var requestContext = new Dictionary<string, object> { { "MyKey", "Value" } };
 
-        // act
+        // 行为
         var container = new AdoNetBatchContainer(streamId, events, requestContext);
 
-        // assert
+        // 平面
         Assert.Equal(streamId, container.StreamId);
         Assert.Equal(events, container.Events);
         Assert.Equal(requestContext, container.RequestContext);
@@ -139,16 +139,16 @@ public class AdoNetBatchContainerTests(TestEnvironmentFixture fixture)
     [Fact]
     public void AdoNetBatchContainer_ToString_Renders()
     {
-        // arrange
+        // 安排
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1) };
         var requestContext = new Dictionary<string, object> { { "MyKey", "Value" } };
         var container = new AdoNetBatchContainer(streamId, events, requestContext);
 
-        // act
+        // 行为
         var result = container.ToString();
 
-        // assert
+        // 平面
         Assert.Equal($"[{nameof(AdoNetBatchContainer)}:Stream={streamId},#Items={events.Count}]", result);
     }
 

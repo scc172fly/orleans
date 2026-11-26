@@ -3,7 +3,7 @@ using Orleans.Runtime;
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    ///  A simple echo grain
+    ///  简单回声 grain
     /// </summary>
     public interface IEchoGrain : IGrainWithGuidKey
     {

@@ -4,17 +4,17 @@ using Orleans.Runtime;
 namespace Orleans.Core.Internal
 {
     /// <summary>
-    /// Provides functionality for entering and exiting sections of code within a grain during which requests bearing the same <see cref="RequestContext.ReentrancyId"/> are allowed to re-enter the grain.
+    /// 提供功能,用于输入和退出代码部分 grain 期间提出相同请求的请求 <see cref="RequestContext.ReentrancyId"/> 允许重新进入 grain.
     /// </summary>
     public interface ICallChainReentrantGrainContext
     {
         /// <summary>
-        /// Marks the beginning of a section of code within a grain during which requests bearing the same <see cref="RequestContext.ReentrancyId"/> are allowed to re-enter the grain.
+        /// 标记代码部分在 grain 期间提出相同请求的请求 <see cref="RequestContext.ReentrancyId"/> 允许重新进入 grain.
         /// </summary>
         void OnEnterReentrantSection(Guid reentrancyId);
 
         /// <summary>
-        /// Marks the end of a section of code within a grain during which requests bearing the same <see cref="RequestContext.ReentrancyId"/> are allowed to re-enter the grain.
+        /// 标记代码的结尾 grain 期间提出相同请求的请求 <see cref="RequestContext.ReentrancyId"/> 允许重新进入 grain.
         /// </summary>
         void OnExitReentrantSection(Guid reentrancyId);
     }

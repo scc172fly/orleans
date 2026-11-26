@@ -4,17 +4,17 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging.Tests.Support;
 
 /// <summary>
-/// Injects scripted faults into the outbox's call to the receiver by decorating each silo's outbox transport.
+/// 通过对每个 silo发件箱的传输方式进行装饰,将脚本错误输入发件箱呼叫接收器的调用中。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Each delivery try takes the next scripted <see cref="DeliveryFault"/>; once the script is exhausted, tries take a
-/// fault from <see cref="Repeat"/> when one is set, or else call the receiver unchanged. Faults never wait for time to
-/// pass: a timeout is reported at once, and holds wait for an explicit release or the delivery's cancellation.
+/// 每次发送尝试都使用下个脚本 <see cref="DeliveryFault"/>;一旦脚本用尽, 试取
+/// 设定一个错误时,从有缺陷的差 <see cref="Repeat"/> 起,或者不固定调用接收器。
+/// 等明确释放或取消交货。
 /// </para>
 /// <para>
-/// The injector records the receiver's own answers, including answers which a fault hides from the sender, so tests
-/// can assert what the receiver decided independently of what the sender observed.
+/// 注射器记录接收器自己的答复,包括错误隐藏给发送者的答复,所以测试
+/// 能够肯定接收者所决定的,而不管发送人观察到什么。
 /// </para>
 /// </remarks>
 public sealed class DeliveryFaultInjector
@@ -28,13 +28,13 @@ public sealed class DeliveryFaultInjector
     private readonly List<DateTimeOffset> _sentTimes = [];
     private Func<DeliveryFault>? _repeat;
 
-    /// <summary>Gets the number of delivery tries which reached the injector.</summary>
+    /// <summary>获取到达注射器的交付尝试次数。</summary>
     public int Executions => _executions.Value;
 
-    /// <summary>Gets the number of tries which called the receiver.</summary>
+    /// <summary>获得调用接收器的试次数。</summary>
     public int ReceiverCalls => _receiverCalls.Value;
 
-    /// <summary>Gets the results which the receiver answered, in completion order, whether or not the sender saw them.</summary>
+    /// <summary>获得接收者按完成顺序回答的结果,无论发送者是否看到。</summary>
     public IReadOnlyList<DeliveryResult> Answers
     {
         get
@@ -43,7 +43,7 @@ public sealed class DeliveryFaultInjector
         }
     }
 
-    /// <summary>Gets the logical send time which the sender stamped on each try, in the order the tries started.</summary>
+    /// <summary>获取发送者每次尝试都标记的逻辑发送时间, 顺序是开始尝试的时间。</summary>
     public IReadOnlyList<DateTimeOffset> SentTimes
     {
         get
@@ -52,7 +52,7 @@ public sealed class DeliveryFaultInjector
         }
     }
 
-    /// <summary>Gets failures thrown by actual receiver calls, not failures fabricated by the scripted transport.</summary>
+    /// <summary>实际接收器电话的故障,而不是脚本运输制造的故障。</summary>
     public IReadOnlyList<Exception> ReceiverFailures
     {
         get
@@ -61,42 +61,42 @@ public sealed class DeliveryFaultInjector
         }
     }
 
-    /// <summary>Returns a transport which injects this injector's faults into calls through <paramref name="inner"/>.</summary>
+    /// <summary>返回将输入器的误差通过 <paramref name="inner"/>插入呼叫的传输。</summary>
     internal IOutboxTransport Wrap(IOutboxTransport inner) => new Transport(this, inner);
 
-    /// <summary>Scripts <paramref name="faults"/> for the next delivery tries, in order.</summary>
+    /// <summary>脚本 <paramref name="faults"/> 下次交货要试一次,按顺序排列</summary>
     public void Enqueue(params DeliveryFault[] faults)
     {
         foreach (var fault in faults) _script.Enqueue(fault);
     }
 
-    /// <summary>Applies a new fault from <paramref name="create"/> to every try once the script is exhausted.</summary>
+    /// <summary>应用来自 <paramref name="create"/> 剧本用尽后每试一次</summary>
     public void Repeat(Func<DeliveryFault> create) => _repeat = create;
 
-    /// <summary>Lets tries call the receiver unchanged once the script is exhausted.</summary>
+    /// <summary>脚本用尽后,让我们尝试调用接收器时不改变。</summary>
     public void StopRepeating() => _repeat = null;
 
-    /// <summary>Discards scripted faults which no try has taken, and stops repeating.</summary>
+    /// <summary>丢弃未尝试过的脚本错误, 停止重复。</summary>
     public void Clear()
     {
         _script.Clear();
         _repeat = null;
     }
 
-    /// <summary>Waits until <paramref name="count"/> tries have reached the injector.</summary>
+    /// <summary>等待 <paramref name="count"/> 尝试到达注射器。</summary>
     public Task WaitForExecutionsAsync(int count) => _executions.WaitAsync(count);
 
-    /// <summary>Waits until <paramref name="count"/> tries have called the receiver.</summary>
+    /// <summary>等待 <paramref name="count"/> 尝试呼叫接收器。</summary>
     public Task WaitForReceiverCallsAsync(int count) => _receiverCalls.WaitAsync(count);
 
-    /// <summary>Waits until the receiver has answered <paramref name="count"/> calls, and returns all answers so far.</summary>
+    /// <summary>等待接收者回复 <paramref name="count"/> 并返回所有答案 到目前为止。</summary>
     public async Task<IReadOnlyList<DeliveryResult>> WaitForAnswersAsync(int count)
     {
         await _answerCount.WaitAsync(count);
         return Answers;
     }
 
-    // Awaits continue on the sending activation's scheduler, so every receiver call is made from the sending grain.
+    // 继续等待发送激活调度器,所以每个接收器的呼叫都是从发送 grain中发出。
     private ValueTask<DeliveryResult> DeliverAsync(IOutboxTransport inner, GrainId receiver, InboxMessage message, CancellationToken cancellationToken)
     {
         lock (_sentTimes) _sentTimes.Add(message.SentAt);
@@ -120,7 +120,7 @@ public sealed class DeliveryFaultInjector
             case DeliveryFaultKind.Answer:
                 return fault.Result;
             case DeliveryFaultKind.TimeOutInFlight:
-                // The abandoned call continues to the receiver; its answer is observable through ReceiverAnswer only.
+                // 被遗弃的电话继续接听接收者;其回答只能通过 ReceiverAnswer 看到。
                 CallReceiverAsync(inner, receiver, message, cancellationToken, fault).AsTask().Ignore();
                 throw new TimeoutException("Injected delivery timeout while the receiver call was in flight.");
             case DeliveryFaultKind.LoseResponse:
@@ -173,7 +173,7 @@ public sealed class DeliveryFaultInjector
         public ValueTask<DeliveryResult> DeliverAsync(GrainId receiver, InboxMessage message, CancellationToken cancellationToken) =>
             owner.DeliverAsync(inner, receiver, message, cancellationToken);
     }
-    /// <summary>A counter whose waiters complete once it reaches their target.</summary>
+    /// <summary>一台柜台,服务员一到达目标就完成</summary>
     private sealed class CountSignal
     {
         private readonly List<(int Target, TaskCompletionSource Signal)> _waiters = [];
@@ -217,33 +217,33 @@ public sealed class DeliveryFaultInjector
     }
 }
 
-/// <summary>The kinds of fault which <see cref="DeliveryFaultInjector"/> injects.</summary>
+/// <summary>各类错误 <see cref="DeliveryFaultInjector"/> 注射</summary>
 public enum DeliveryFaultKind
 {
-    /// <summary>The try fails with an exception, without calling the receiver.</summary>
+    /// <summary>试运行失败,但有一个例外,没有打电话给接收器。</summary>
     Throw,
 
-    /// <summary>The try times out without calling the receiver.</summary>
+    /// <summary>试算表在不呼叫接收器的情况下结束。</summary>
     TimeOut,
 
-    /// <summary>The try returns an answer without calling the receiver.</summary>
+    /// <summary>试返回一个回答, 不给接收者打电话。</summary>
     Answer,
 
-    /// <summary>The try calls the receiver and times out at once, while the call continues.</summary>
+    /// <summary>尝试同时呼叫接收器和时间,而通话继续。</summary>
     TimeOutInFlight,
 
-    /// <summary>The try calls the receiver, then hides its answer behind a timeout.</summary>
+    /// <summary>试一下会打电话给接收器 然后隐藏答案 在超时后</summary>
     LoseResponse,
 
-    /// <summary>The try waits for a release before it calls the receiver.</summary>
+    /// <summary>试一下等待解脱,然后它会拨打接收器。</summary>
     HoldBeforeCall,
 
-    /// <summary>The try calls the receiver, then waits for a release before it returns the answer.</summary>
+    /// <summary>试一下会打电话给接收器,然后等待解脱后再返回答案。</summary>
     HoldAfterCall
 }
 
 /// <summary>
-/// One single-use fault for a delivery try, and the handle through which a test observes and controls it.
+/// 试送的单一使用过失 以及测试观察和控制它的把手
 /// </summary>
 public sealed class DeliveryFault
 {
@@ -259,61 +259,61 @@ public sealed class DeliveryFault
         Result = result;
     }
 
-    /// <summary>Gets the kind of this fault.</summary>
+    /// <summary>搞到这种错</summary>
     public DeliveryFaultKind Kind { get; }
 
     internal Exception? Exception { get; }
     internal DeliveryResult Result { get; }
 
     /// <summary>
-    /// Gets the receiver's answer to the call which this fault made, or its failure. It completes only for faults which
-    /// call the receiver.
+    /// 获得接收器对这个错误造成的呼叫或失败的答应, 仅针对那些错误完成
+    /// 呼叫接收器
     /// </summary>
     public Task<DeliveryResult> ReceiverAnswer => _answer.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
-    /// <summary>Fails the try with <paramref name="exception"/>, or an <see cref="IOException"/> by default.</summary>
+    /// <summary>无法与 <paramref name="exception"/>或默认的 <see cref="IOException"/> 进行试验。</summary>
     public static DeliveryFault Throw(Exception? exception = null) =>
         new(DeliveryFaultKind.Throw, exception ?? new IOException("Injected transient delivery failure."));
 
-    /// <summary>Times the try out with a <see cref="TimeoutException"/>, without calling the receiver.</summary>
+    /// <summary>试一次 <see cref="TimeoutException"/>,不打电话接收器。</summary>
     public static DeliveryFault TimeOut() => new(DeliveryFaultKind.TimeOut);
 
-    /// <summary>Answers the try with <paramref name="result"/>, without calling the receiver.</summary>
+    /// <summary>回答试验时使用 <paramref name="result"/>,不拨打接收器。</summary>
     public static DeliveryFault Answer(DeliveryResult result) => new(DeliveryFaultKind.Answer, result: result);
 
     /// <summary>
-    /// Calls the receiver and times the try out at once, while the call continues; <see cref="ReceiverAnswer"/> reports
-    /// the abandoned call's answer.
+    /// 调用接收器并同时调用试播次数,而呼喊在继续; <see cref="ReceiverAnswer"/> 报告
+    /// 被抛弃的电话的答案。
     /// </summary>
     public static DeliveryFault TimeOutInFlight() => new(DeliveryFaultKind.TimeOutInFlight);
 
     /// <summary>
-    /// Calls the receiver and lets it decide, then fails the try with a <see cref="TimeoutException"/>, as when
-    /// the response is lost after the receiver committed.
+    /// 听机者呼唤接机者,然后由它决定,然后以一个 <see cref="TimeoutException"/>,当
+    /// 接收器承诺后,回复就会丢失。
     /// </summary>
     public static DeliveryFault LoseResponse() => new(DeliveryFaultKind.LoseResponse);
 
     /// <summary>
-    /// Holds the try before it calls the receiver until <see cref="Release"/> or <see cref="Fail"/>, or until the delivery
-    /// is canceled.
+    /// 在调用接收器直到 <see cref="Release"/> 或 <see cref="Fail"/>或交货之前,暂停试
+    /// 取消。
     /// </summary>
     public static DeliveryFault HoldBeforeCall() => new(DeliveryFaultKind.HoldBeforeCall);
 
     /// <summary>
-    /// Calls the receiver, then holds its answer until <see cref="Release"/> or <see cref="Fail"/>, or until the delivery
-    /// is canceled, which models a sender that stops after the receiver committed.
+    /// 呼叫接收器,然后保持其回答直到 <see cref="Release"/> 或 <see cref="Fail"/>,或者直到交货
+    /// 取消, 哪一个模式的发送器在接收器执行后停止运行 。
     /// </summary>
     public static DeliveryFault HoldAfterCall() => new(DeliveryFaultKind.HoldAfterCall);
 
     /// <summary>
-    /// Waits until a try takes this fault; for <see cref="DeliveryFaultKind.HoldAfterCall"/>, until the receiver answered.
+    /// 等待直到尝试过这个错误; 对于 <see cref="DeliveryFaultKind.HoldAfterCall"/>, 直到接收者回答。
     /// </summary>
     public Task WaitUntilEnteredAsync() => _entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
-    /// <summary>Releases a held try to continue.</summary>
+    /// <summary>释放一个坚持的尝试继续。</summary>
     public void Release() => _released.TrySetResult();
 
-    /// <summary>Releases a held try by failing it with <paramref name="exception"/>, without the receiver's answer.</summary>
+    /// <summary>释放一个以失败而进行 <paramref name="exception"/>的预试,但没有接收者的回答。</summary>
     public void Fail(Exception exception) => _released.TrySetException(exception);
 
     internal void OnEntered()

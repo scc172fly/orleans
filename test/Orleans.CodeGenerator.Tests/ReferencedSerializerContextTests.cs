@@ -359,7 +359,7 @@ public sealed class ReferencedSerializerContextTests
         AssertNoCompilationErrors(compilation);
         if (codecFrameworkVersion is not null)
         {
-            // Exercise independently generated codec and copier accessor strategies.
+            // 独立制作的编码和复印机存取器战略。
             var (codecCompilation, codecResult) = Generate(sourceCompilation, codecFrameworkVersion, hotReload);
             Assert.Empty(codecResult.Diagnostics);
             AssertNoCompilationErrors(codecCompilation);
@@ -382,7 +382,7 @@ public sealed class ReferencedSerializerContextTests
             return [EmitReference(compilation)];
         }
 
-        // Keep complete model metadata alongside reference-only generated implementations.
+        // 保持完整的元数据模型,同时与仅参考生成的实施项目一起运行。
         var contracts = sourceCompilation.WithAssemblyName("ReferencedContextContracts");
         var contractsReference = EmitReference(contracts);
         var implementations = CSharpCompilation.Create("ReferencedContextProducer",

@@ -47,7 +47,7 @@ public class Secrets
             if (File.Exists(filePath))
             {
                 var secrets = JsonSerializer.Deserialize<Secrets>(File.ReadAllText(filePath));
-                // Return null if secrets file exists but has empty/missing values
+                // 如果机密文件存在但有空/ 缺失值,返回无效
                 if (secrets is null ||
                     string.IsNullOrWhiteSpace(secrets.DataConnectionString) ||
                     string.IsNullOrWhiteSpace(secrets.EventHubConnectionString))

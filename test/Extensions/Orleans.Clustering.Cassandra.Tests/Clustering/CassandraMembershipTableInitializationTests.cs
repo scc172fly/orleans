@@ -518,7 +518,7 @@ public sealed class CassandraMembershipTableInitializationTests
             if (ownsSession)
             {
                 options.ConfigureClient("127.0.0.1");
-                // Keep the built-in ownership policy while replacing network creation with a controlled session.
+                // 保持内置所有权政策,同时用控制会话取代网络创建。
                 typeof(CassandraClusteringOptions)
                     .GetProperty("CreateSessionAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .SetValue(options, (Func<IServiceProvider, Task<ISession>>)CreateSession);

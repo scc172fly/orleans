@@ -15,13 +15,13 @@ internal sealed partial class RecordingDurableTaskMessageTransport
 {
     private readonly List<(int Count, TaskCompletionSource<RecordedSubscription> Waiter)> _subscriptionWaiters = [];
 
-    /// <summary>Gets every subscription and unsubscription which the runtime staged, in send order.</summary>
+    /// <summary>获取运行时间所要发送的每个订阅和取消订阅的顺序。</summary>
     public List<RecordedSubscription> Subscriptions { get; } = [];
 
-    /// <summary>Gets every completion which the runtime staged with its response in the body, in send order.</summary>
+    /// <summary>获得运行时间在身体中反应所完成的每一个完成,按顺序发送。</summary>
     public List<(RecordedSubscription Subscriber, DurableTaskResponse Response)> Responses { get; } = [];
 
-    /// <summary>Gets the subscribers which the runtime completed as not found, in send order.</summary>
+    /// <summary>获取未找到的运行时间完成的用户发送顺序。</summary>
     public List<RecordedSubscription> NotFound =>
         [.. Responses.Where(static entry => entry.Response.Exception is DurableTaskNotFoundException).Select(static entry => entry.Subscriber)];
 
@@ -51,7 +51,7 @@ internal sealed partial class RecordingDurableTaskMessageTransport
         StateChanges.Notify();
     }
 
-    /// <summary>Waits until the runtime has staged <paramref name="count"/> subscription messages, and returns the last.</summary>
+    /// <summary>等待运行时间完成 <paramref name="count"/> 订阅信件的阶段,然后返回最后一个。</summary>
     public Task<RecordedSubscription> WaitForSubscriptionAsync(int count)
     {
         if (Subscriptions.Count >= count)
@@ -65,13 +65,13 @@ internal sealed partial class RecordingDurableTaskMessageTransport
     }
 }
 
-/// <summary>A subscription, an unsubscription, or a not-found completion which the runtime staged.</summary>
+/// <summary>订阅、未订阅或未找到的完成,这是运行时阶段的阶段。</summary>
 internal sealed record RecordedSubscription(GrainId Sender, GrainId Target, TaskId TaskId, TaskId SubscriberId, bool Unsubscribe)
 {
     private static readonly RecordingOutbox Outbox = new();
     private static readonly DurableTaskMessageTransport Encoder = MessagingTestHelpers.CreateTransport(Outbox);
 
-    /// <summary>Creates the inbox message which delivers this subscription or unsubscription to its target.</summary>
+    /// <summary>创建发送此订阅或不订阅目标的收件箱消息。</summary>
     public InboxMessage ToInboxMessage() => Encode(transport =>
     {
         if (Unsubscribe)
@@ -84,7 +84,7 @@ internal sealed record RecordedSubscription(GrainId Sender, GrainId Target, Task
         }
     });
 
-    /// <summary>Creates the inbox message which delivers the not-found completion which this record describes.</summary>
+    /// <summary>创建可传递此记录描述的未找到完成的完整内容的收件箱信件。</summary>
     public InboxMessage ToNotFoundInboxMessage() =>
         Encode(transport => transport.SendResponse(
             Sender,

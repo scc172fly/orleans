@@ -1,13 +1,13 @@
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures a custom-storage log consistency provider.
+    /// 配置自定义存储日志一致性提供者 。
     /// </summary>
     public class CustomStorageLogConsistencyOptions
     {
         /// <summary>
-        /// Gets or sets the cluster identifier passed to each custom-storage adaptor.
-        /// Custom-storage adaptors accept submissions from every cluster.
+        /// 获取或设置传递到每个自定义存储适应器的集束识别码。
+        /// 自定义存储适应器接受每个组群的提交文件。
         /// </summary>
         public string? PrimaryCluster { get; set; }
     }

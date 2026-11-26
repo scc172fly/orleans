@@ -3,14 +3,14 @@ using System;
 namespace Orleans.EventSourcing.Common
 {
     /// <summary>
-    /// Describes a connection issue that occurred when communicating with primary storage.
+    /// 描述在与初级储存进行通信时出现的连接问题。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public abstract class PrimaryOperationFailed : ConnectionIssue
     {
         /// <summary>
-        /// The exception that was caught when communicating with the primary.
+        /// 与主线通信时遇到的例外
         /// </summary>
         [Id(0)]
         public Exception Exception { get; set; } = null!;
@@ -18,7 +18,7 @@ namespace Orleans.EventSourcing.Common
         /// <inheritdoc/>
         public override TimeSpan ComputeRetryDelay(TimeSpan? previous)
         {
-            // after first fail do not backoff yet... keep it at zero
+            // 第一次失败后, 尚未回落... 保持为零
             if (previous == null)
             {
                 return TimeSpan.Zero;
@@ -26,11 +26,11 @@ namespace Orleans.EventSourcing.Common
 
             var backoff = previous.Value.TotalMilliseconds;
 
-            // grows exponentially up to slowpoll interval
+            // 成倍增长到慢速间隔
             if (previous.Value.TotalMilliseconds < slowpollinterval)
                 backoff = (int)((backoff + Random.Shared.Next(5, 15)) * 1.5);
 
-            // during slowpoll, slightly randomize
+            // 慢速时, 略微随机
             if (backoff > slowpollinterval)
                 backoff = slowpollinterval + Random.Shared.Next(1, 200);
 

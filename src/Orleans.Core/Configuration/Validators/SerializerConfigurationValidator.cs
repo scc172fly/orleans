@@ -12,7 +12,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans
 {
     /// <summary>
-    /// Validates serializer configuration.
+    /// 校验序列器配置。
     /// </summary>
     public class SerializerConfigurationValidator : IConfigurationValidator
     {
@@ -21,16 +21,16 @@ namespace Orleans
         private readonly bool _enabled;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerConfigurationValidator"/> class.
+        /// 初始化 <see cref="SerializerConfigurationValidator"/> 类的新实例。
         /// </summary>
         /// <param name="codecProvider">
-        /// The codec provider.
+        /// 代码提供者
         /// </param>
         /// <param name="options">
-        /// The type manifest options.
+        /// 类型列表选项。
         /// </param>
         /// <param name="serviceProvider">
-        /// The service provider.
+        /// 服务供应商。
         /// </param>
         public SerializerConfigurationValidator(ICodecProvider codecProvider, IOptions<TypeManifestOptions> options, IServiceProvider serviceProvider)
         {
@@ -48,7 +48,7 @@ namespace Orleans
             }
             else
             {
-                // Enable in development envioronment by default.
+                // 默认启用开发破坏 。
                 var environment = serviceProvider.GetService<IHostEnvironment>();
                 _enabled = environment is not null && environment.IsDevelopment();
             }

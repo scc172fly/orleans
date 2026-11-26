@@ -6,7 +6,7 @@ using Orleans.Storage;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Randomly injects storage and state consistency failures into transactional state storage operations.
+    /// 随机输入存储和状态一致性的故障,导致国家交易性储存业务。
     /// </summary>
     public class RandomErrorInjector : ITransactionFaultInjector
     {
@@ -15,9 +15,9 @@ namespace Orleans.Transactions.TestKit
         private readonly double afterProbability;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RandomErrorInjector"/> class.
+        /// 初始化 <see cref="RandomErrorInjector"/> 类的新实例。
         /// </summary>
-        /// <param name="injectionProbability">The aggregate probability of injecting a fault during a storage operation.</param>
+        /// <param name="injectionProbability">储存操作期间注射过错的总概率。</param>
         public RandomErrorInjector(double injectionProbability)
         {
             conflictProbability = injectionProbability / 5;
@@ -52,22 +52,22 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Represents a randomly injected transactional storage failure.
+        /// 代表随机注入交易存储故障。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
         public class RandomlyInjectedStorageException : Exception
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="RandomlyInjectedStorageException"/> class.
+            /// 初始化 <see cref="RandomlyInjectedStorageException"/> 类的新实例。
             /// </summary>
             public RandomlyInjectedStorageException() : base("injected fault") { }
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="RandomlyInjectedStorageException"/> class from serialized data.
+            /// 从序列数据初始化了 <see cref="RandomlyInjectedStorageException"/> 类的新实例。
             /// </summary>
-            /// <param name="info">The serialized exception data.</param>
-            /// <param name="context">Context about the source or destination of the serialized data.</param>
+            /// <param name="info">序列的例外数据。</param>
+            /// <param name="context">序列数据的来源或目的地的背景。</param>
             [Obsolete]
             protected RandomlyInjectedStorageException(SerializationInfo info, StreamingContext context)
                 : base(info, context)
@@ -76,22 +76,22 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Represents a randomly injected transactional state consistency failure.
+        /// 代表随机注入交易状态一致性失灵。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
         public class RandomlyInjectedInconsistentStateException : InconsistentStateException
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="RandomlyInjectedInconsistentStateException"/> class.
+            /// 初始化 <see cref="RandomlyInjectedInconsistentStateException"/> 类的新实例。
             /// </summary>
             public RandomlyInjectedInconsistentStateException() : base("injected fault") { }
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="RandomlyInjectedInconsistentStateException"/> class from serialized data.
+            /// 从序列数据初始化了 <see cref="RandomlyInjectedInconsistentStateException"/> 类的新实例。
             /// </summary>
-            /// <param name="info">The serialized exception data.</param>
-            /// <param name="context">Context about the source or destination of the serialized data.</param>
+            /// <param name="info">序列的例外数据。</param>
+            /// <param name="context">序列数据的来源或目的地的背景。</param>
             [Obsolete]
             protected RandomlyInjectedInconsistentStateException(SerializationInfo info, StreamingContext context)
                 : base(info, context)

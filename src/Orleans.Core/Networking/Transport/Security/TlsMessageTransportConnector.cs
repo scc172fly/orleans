@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// Message transport factory which configures transports for TLS.
+/// 配置 TLS 传输的电文传输工厂 。
 /// </summary>
 internal sealed partial class TlsMessageTransportConnector(
     MessageTransportConnector innerTransportFactory,

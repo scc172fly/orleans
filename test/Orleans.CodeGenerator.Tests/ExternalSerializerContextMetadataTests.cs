@@ -133,7 +133,7 @@ public sealed class ExternalSerializerContextMetadataTests
         if (friend) AssertAccepted(output, result);
         else
         {
-            // C# rejects an inaccessible generic attribute argument before a context can be generated.
+            // C#在产生上下文之前,拒绝不可接受的通用属性论点。
             Assert.Empty(result.Diagnostics);
             Assert.NotEmpty(output.GetDiagnostics(TestContext.Current.CancellationToken)
                 .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));

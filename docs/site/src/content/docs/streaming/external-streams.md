@@ -1,57 +1,67 @@
 ---
-title: Integrate external stream producers and consumers
-description: Connect non-Orleans applications to Orleans streams by defining a provider-specific wire-format adapter.
+title: "整合外部流的生产者和消费者"
+description: "通过定义一个具体供应商的有线格式适配器,将非Orleans 应用程序连接到 Orleans 流。"
 ms.date: 08/18/2026
 ms.topic: how-to
 ---
 
-# Integrate external stream producers and consumers
+<a id="integrate-external-stream-producers-and-consumers"></a>
 
-An Orleans persistent-stream provider maps its transport messages to logical streams through a provider-specific wire format. An external application interoperates through that format when every participant agrees on:
+# 整合外部流的生产者和消费者
 
-- How transport messages map to an Orleans <xref:Orleans.Runtime.StreamId>.
-- How event types, payloads, and batches are encoded.
-- How partitioning, ordering, and sequence positions are represented.
-- Which metadata, such as request context, crosses the boundary.
+A 音 A Orleans 持续流供应商通过特定供应商的电线格式将其运输信息绘制成逻辑流。
 
-The provider's [data adapter](data-adapters.md) owns this boundary. Azure Event Hubs exposes the full inbound and outbound mapping required for external producers and consumers.
+- 如何将传送信息映射到 Orleans <xref:Orleans.Runtime.StreamId>。
+- 事件类型、有效载荷和批量如何编码。
+- 分区、顺序和顺序位置的表示方式。
+- 请求上下文等哪些元数据跨越边界。
 
-## Use an Event Hubs data adapter
+供应商的 [数据数据交换器](data-adapters.md) 拥有这一边界。 Azure 事件枢纽暴露了外部生产商和消费者所需的全部入境和出境地图。
 
-The built-in Azure Event Hubs provider supports a custom <xref:Orleans.Streaming.EventHubs.IEventHubDataAdapter>. Derive from <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter> when its cache representation and checkpoint behavior are suitable, then override the wire-format and stream-mapping behavior defined by the external contract.
+<a id="use-an-event-hubs-data-adapter"></a>
 
-Register the adapter with <xref:Orleans.Hosting.EventHubStreamConfiguratorExtensions.UseDataAdapter*>. Configure the same adapter for every silo and Orleans client that uses the provider. A silo needs it to read Event Hubs messages and to publish through Orleans streams; an Orleans client needs it when the client publishes.
+## 使用事件枢纽数据适配器
 
-The [custom data adapter sample](https://github.com/dotnet/orleans/tree/main/samples/Streaming/CustomDataAdapter) demonstrates an external Event Hubs producer that writes JSON and an Orleans grain that consumes the resulting stream.
+内置 Azure 事件枢纽提供商支持自定义 <xref:Orleans.Streaming.EventHubs.IEventHubDataAdapter>. Derive from <xref:Orleans.Streaming.EventHubs.EventHubDataAdapter> 当其缓存代表和检查站行为合适时,将推翻外部合同界定的电线格式和流图行为。
 
-## Accept events from an external producer
+注册适 <xref:Orleans.Hosting.EventHubStreamConfiguratorExtensions.UseDataAdapter*>。配置相同的适应器,用于每个 silo 和 Orleans 使用提供者的客户端。 A silo 需要它读取事件枢纽信息,并通过 Orleans 流; 流; 流; 和 Orleans 客户在发布时需要它。
 
-1. Define the transport contract. Include enough metadata to identify the stream namespace, stream key, event type, and schema version.
-1. Map each `EventData` instance to a <xref:Orleans.Runtime.StreamId> in `GetStreamIdentity`. The default Event Hubs adapter uses the Event Hubs partition key as the stream key and the `StreamNamespace` application property as the stream namespace.
-1. Decode the payload in the <xref:Orleans.Streams.IBatchContainer> returned by the adapter. `GetEvents<T>` must return only events compatible with the requested Orleans stream type.
-1. Register the adapter and subscribe grains or Orleans clients to the resulting stream IDs.
-1. Test malformed payloads, unknown schema versions, duplicate delivery, and replay from an older checkpoint before enabling the producer in production.
+[自定义数据调整器样本](https://github.com/dotnet/orleans/tree/main/samples/Streaming/CustomDataAdapter) 显示一个外部活动枢纽生产商,该制片人写 JSON 和 Orleans grain ,其中消耗了由此产生的流。
 
-The adapter determines logical stream identity; Event Hubs determines the physical partition, offset, enqueue time, and retention window. Keep the stream-to-partition mapping stable so that ordering and checkpoint recovery remain predictable.
+<a id="accept-events-from-an-external-producer"></a>
 
-## Publish events for an external consumer
+## 接受外部制片人的活动
 
-1. Override `ToQueueMessage<T>` to encode Orleans events in the external consumer's agreed format.
-1. Override `GetPartitionKey` when the external contract uses a different partition mapping.
-1. Preserve stream identity and schema-version metadata so consumers can route and decode the event without Orleans.
-1. Configure the external application as an ordinary Event Hubs consumer, preferably with a consumer group dedicated to that application.
+1. 定义运输合同。 包含足够的元数据以识别流命名空间、 流键、 事件类型和 schema 版本 。
+1. 每个地图图 `EventData` 等一至 <xref:Orleans.Runtime.StreamId> 内 `GetStreamIdentity`。默认的事件枢纽调整器使用事件枢纽分区键作为流键和 `StreamNamespace` 应用程序属性作为流体命名空间。
+1. 解码适配器返回的 <xref:Orleans.Streams.IBatchContainer> 中的有效载荷。 `GetEvents<T>` 必须只返回与所要求的 Orleans 流类型相容的事件。
+1. 将调整器注册并订阅 grains 或 Orleans 客户端,以获取相应的流代号。
+1. 试验无效有效载荷、未知的假肢版本、重复交付和从旧检查站重播,然后才能使生产商生产。
 
-An external consumer participates directly in Event Hubs. Its consumer group controls delivery, checkpoint, retry, and replay behavior, while Orleans pub-sub storage and subscription notifications apply to Orleans stream subscriptions.
+调整器决定逻辑流身份; 事件枢纽确定物理分隔、 偏移、 排队时间和保留窗口。 保持流到区绘图稳定, 以便定购和检查站恢复可以预测 。
 
-If an adapter is intentionally one-way, fail explicitly in the unsupported conversion method. For example, an ingest-only adapter can throw <xref:System.NotSupportedException> from `ToQueueMessage<T>` rather than emitting a message in an unintended format.
+<a id="publish-events-for-an-external-consumer"></a>
 
-## Operational requirements
+## 对外消费者出版活动
 
-- Use a dedicated Event Hubs consumer group for the Orleans provider and a different group for each independent external consumer.
-- Grant producers, consumers, and checkpoint storage only the permissions they require. Keep credentials and connection strings in protected configuration rather than event properties.
-- Version the payload contract and deploy readers before writers when adding a new format.
-- Expect duplicate delivery and make consumers idempotent. Event Hubs retention and Orleans checkpoint persistence bound replay and recovery.
-- Monitor adapter deserialization failures, Event Hubs lag, checkpoint age, cache pressure, and poison events.
-- Load-test the adapter. Payload expansion, deserialization cost, and skewed partition keys can limit throughput before grain execution does.
+1. 覆盖 `ToQueueMessage<T>` 以外部消费者商定的格式编码 Orleans 事件。
+1. 当外部合同使用不同的分区图绘制时,覆盖 `GetPartitionKey` 。
+1. 保存流特性和计划转换元数据,使消费者能够选择并解码事件,而不使用 Orleans。
+1. 将外部应用程序配置为普通事件枢纽消费者, 最好是与专门处理该应用程序的消费者团体配置。
 
-For delivery and recovery behavior after the event has entered Orleans, see [Stream delivery semantics](delivery-semantics.md) and [Operate Orleans streaming applications](streaming-operations.md).
+外部消费者直接参与事件枢纽。其消费者团体控制交付、检查、重试和重播行为,而 Orleans 公共子集存储和订阅通知适用于 Orleans 流订阅。
+
+如果适配器是故意单向的,则在无支持转换方法中明显失败。例如,只使用食用 <xref:System.NotSupportedException> 调自 `ToQueueMessage<T>` 而不是以非故意格式发布消息。
+
+<a id="operational-requirements"></a>
+
+## 所需业务费用
+
+- 为 Orleans 供应商使用专门的事件枢纽消费者小组,为每个独立的外部消费者使用不同的小组。
+- 赠款生产者、消费者和检查站仅储存他们所需要的许可。 将证书和连接字符串保留在受保护的配置中,而不是事件属性。
+- 版本有效载荷合同,并在添加新格式时在作者之前部署读者。
+- 事件枢纽保留和 Orleans 检查站坚持进行重放和恢复。
+- 监测适应器消毒故障、事件枢纽落后、检查站年龄、缓存压力和中毒事件。
+- 装入测试适配器。 有效载荷扩展、 消空成本和斜分割键可以在 grain 执行之前限制吞吐量 。
+
+关于事件进入 Orleans后交付和回收行为,见 [流流输送语义](delivery-semantics.md) 和 [运行 Orleans 流式应用程序](streaming-operations.md)。

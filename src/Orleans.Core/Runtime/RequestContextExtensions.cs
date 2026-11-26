@@ -7,14 +7,14 @@ using Orleans.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Extensions for working with <see cref="RequestContext"/>.
+    /// 与 <see cref="RequestContext"/>合作的延长期。
     /// </summary>
     public static class RequestContextExtensions
     {
         /// <summary>
-        /// Imports the specified context data into the current <see cref="RequestContext"/>, clearing all existing values.
+        /// 将指定的上下文数据导入当前 <see cref="RequestContext"/>,清除所有现有值。
         /// </summary>
-        /// <param name="contextData">The context data.</param>
+        /// <param name="contextData">上下文数据。</param>
         public static void Import(Dictionary<string, object>? contextData)
         {
             var values = contextData switch
@@ -30,10 +30,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Exports a copy of the current <see cref="RequestContext"/>.
+        /// a 出口当前 <see cref="RequestContext"/>的副本。
         /// </summary>
-        /// <param name="copier">The copier.</param>
-        /// <returns>A copy of the current request context.</returns>
+        /// <param name="copier">复印机。</param>
+        /// <returns>当前请求的背景副本 。</returns>
         public static Dictionary<string, object>? Export(DeepCopier copier)
         {
             var properties = RequestContext.CallContextData.Value;
@@ -55,7 +55,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Extracts an ActivityContext from request context data if present.
+        /// 如果有请求的上下文数据,则从该请求中提取 ActivityContext 。
         /// </summary>
         internal static ActivityContext? TryGetActivityContext(this Dictionary<string, object>? requestContextData)
         {

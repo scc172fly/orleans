@@ -3,10 +3,10 @@ using static System.String;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Validates <see cref="AdoNetGrainDirectoryOptions"/> configuration.
+/// 校验 <see cref="AdoNetGrainDirectoryOptions"/> 配置。
 /// </summary>
-/// <param name="options">The options to validate.</param>
-/// <param name="name">The name of the grain directory.</param>
+/// <param name="options">验证的选项。</param>
+/// <param name="name"> grain 目录的名称。</param>
 public class AdoNetGrainDirectoryOptionsValidator(AdoNetGrainDirectoryOptions options, string name) : IConfigurationValidator
 {
     /// <inheritdoc />

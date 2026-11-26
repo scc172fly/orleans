@@ -10,19 +10,19 @@ using Orleans.Serialization.Codecs;
 namespace Orleans.Runtime.Messaging
 {
     /// <summary>
-    /// A serializer for <see cref="SiloAddress"/> which caches values and avoids re-encoding and unnecessary allocations.
+    /// <see cref="SiloAddress"/> 的序列器,该序列器缓存值并避免重编码和不必要的分配。
     /// </summary>
     internal sealed class CachingSiloAddressCodec
     {
-        // Length prefix, hash, IPv6 address with its length prefix, port, and generation.
+        // 长度前缀、 hash、 IPv6 地址及其长度前缀、 端口和生成 。
         internal const int MaxEncodedSize = 1 + 4 + 1 + 16 + 5 + 4;
 
         internal static ConcurrentLruCache<SiloAddress, (SiloAddress Value, byte[] Encoded)> SharedCache { get; } = new(capacity: 1024);
 
-        // Purge entries which have not been accessed in over 2 minutes.
+        // 清洗条目在两分钟内尚未进入。
         private const long PurgeAfterMilliseconds = 2 * 60 * 1000;
 
-        // Scan for entries which are expired every minute
+        // 每分钟过期的条目扫描
         private const long GarbageCollectionIntervalMilliseconds = 60 * 1000;
 
         private readonly Dictionary<int, (byte[] Encoded, SiloAddress Value, long LastSeen)> _cache = new();
@@ -63,17 +63,17 @@ namespace Orleans.Runtime.Messaging
                 result = ReadSiloAddressInner(ref innerReader);
                 result.InternalSetConsistentHashCode(hashCode);
 
-                // Before adding this value to the private cache and returning it, intern it via the shared cache to hopefully reduce duplicates.
+                // 在给私人藏匿处添加这个价值并归还之前 通过共享的藏匿处进行内部实习 希望能减少重复
                 payloadArray ??= payloadSpan.ToArray();
                 (result, payloadArray) = SharedCache.GetOrAdd(result, static (key, encoded) => (key, encoded), payloadArray);
 
-                // If there is a hash collision, then the last seen entry will always win.
+                // 如果发生散列碰撞,那么最后一次看到进入就会永远赢。
                 cacheEntry.Encoded = payloadArray;
                 cacheEntry.Value = result;
                 cacheEntry.LastSeen = currentTimestamp;
             }
 
-            // Perform periodic maintenance to prevent unbounded memory leaks.
+            // 进行定期维护以防止未约束的内存泄漏。
             if (currentTimestamp - _lastGarbageCollectionTimestamp > GarbageCollectionIntervalMilliseconds)
             {
                 PurgeStaleEntries();
@@ -123,7 +123,7 @@ namespace Orleans.Runtime.Messaging
 
                 cacheEntry.LastSeen = currentTimestamp;
 
-                // Perform periodic maintenance to prevent unbounded memory leaks.
+                // 进行定期维护以防止未约束的内存泄漏。
                 if (currentTimestamp - _lastGarbageCollectionTimestamp > GarbageCollectionIntervalMilliseconds)
                 {
                     PurgeStaleEntries();
@@ -143,10 +143,10 @@ namespace Orleans.Runtime.Messaging
             writer.WriteVarUInt32((uint)payloadArray.Length);
             writer.Write(payloadArray);
 
-            // Before adding this value to the private cache, intern it via the shared cache to hopefully reduce duplicates.
+            // 在增加私人藏匿处的这个价值之前,先通过共用藏匿处进行入帐,希望减少重复。
             (_, payloadArray) = SharedCache.GetOrAdd(value, static (key, encoded) => (key, encoded), payloadArray);
 
-            // If there is a hash collision, then the last seen entry will always win.
+            // 如果发生散列碰撞,那么最后一次看到进入就会永远赢。
             cacheEntry.Encoded = payloadArray;
             cacheEntry.Value = value;
             cacheEntry.LastSeen = currentTimestamp;
@@ -156,13 +156,13 @@ namespace Orleans.Runtime.Messaging
         {
             var ep = value.Endpoint;
 
-            // IP
+            // IPIP 实施伙伴
             IPAddressCodec.WriteRaw(ref writer, ep.Address);
 
-            // Port
+            // 港口端端口
             writer.WriteVarUInt16((ushort)ep.Port);
 
-            // Generation
+            // 代 代
             writer.WriteInt32(value.Generation);
         }
     }

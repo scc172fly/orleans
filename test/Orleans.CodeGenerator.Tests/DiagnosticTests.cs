@@ -7,17 +7,17 @@ using Orleans.CodeGenerator.Diagnostics;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Tests that verify the Orleans source generator emits correct diagnostics
-/// for invalid or unsupported code patterns.
+/// 核查源产生器 Orleans 源源生成器的测试发出正确的诊断
+/// 无效或不支持的代码模式。
 /// </summary>
 public class DiagnosticTests
 {
     [Fact]
     public async Task GenerateSerializer_OnAccessibleType_ProducesOutput()
     {
-        // Verifying that accessible types produce expected output without diagnostics.
-        // The inaccessibility diagnostic (ORLEANS0107) is tested implicitly via cross-assembly
-        // scenarios in the BVT suite; it requires complex assembly setup not easily done in a unit test.
+        // 核实无障碍类型是否产生预期产出,而不进行诊断。
+        // 无法获取诊断(ORLEANS0107)通过交叉组装间接检测
+        // BVT套件中的设想情景;它要求复杂的组装装置,在单位测试中不容易完成。
         const string code = """
             using Orleans;
 
@@ -66,7 +66,7 @@ public class DiagnosticTests
 
         var compilation = await CreateCompilation(code);
 
-        // Add ReferenceAssemblyAttribute to the assembly
+        // 向组装添加 ReferenceAssemblyAttribute
         var referenceAssemblyAttribute = SyntaxFactory.Attribute(
             SyntaxFactory.ParseName("System.Runtime.CompilerServices.ReferenceAssemblyAttribute"));
         var assemblyAttr = SyntaxFactory.AttributeList(
@@ -363,10 +363,10 @@ public class DiagnosticTests
 
         var result = await RunGenerator(code);
 
-        // No Orleans attributes → no generated output and no diagnostics
+        // 无 Orleans 属性 =+++++无生成输出和诊断
         Assert.Empty(result.Diagnostics);
 
-        // May still produce metadata output; verify no serializer-specific outputs
+        // 可能仍可产生元数据输出;核查没有按序列式系统具体产出
         var serializerSources = result.GeneratedSources
             .Where(s => s.HintName.Contains("serializer", StringComparison.OrdinalIgnoreCase)
                      || s.HintName.Contains("copier", StringComparison.OrdinalIgnoreCase)

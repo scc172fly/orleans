@@ -16,10 +16,10 @@ public interface IOrderGrain : IGrainWithGuidKey
     Task<bool> ShipAsync();
 }
 
-// The order process manager, following eShop's ordering flow:
-// Submitted -> (grace period) -> AwaitingValidation -> StockConfirmed -> Paid -> Shipped,
-// or Cancelled when stock is rejected, payment is declined, or the buyer cancels before stock is confirmed.
-// Every transition changes journaled state and stages outgoing messages in one atomic journal write.
+// 命令处理管理器, 在 eShop的订单流后 :
+// 提交 - > (宽限期) - > AwaitingValidation - > StockConfirmed - > 已支付 - > 已装运,
+// 或当股票被拒、付款被拒或买方在确认存货之前取消时予以注销。
+// 每一个转型都改变 日记状态和阶段 发出的信息在一原子杂志的写作。
 public sealed class OrderGrain : DurableGrain, IOrderGrain
 {
     private readonly IOutbox _outbox;
@@ -70,7 +70,7 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             return false;
         }
 
-        // Pending reservations are released when their confirmations arrive.
+        // 待确认的保留意见在确认后予以解除。
         Cancel("Cancelled by the buyer.");
         await WriteStateAsync();
         return true;
@@ -99,7 +99,7 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         var orderDate = request.OrderDate;
         if (orderDate == default)
         {
-            // Legacy submissions carry no date. Its private intent survives a failed send and journal recovery.
+            // 其私人意图在发送和日记追偿失败后得以维持。
             if (_submissionDate.Value is not { } captured)
             {
                 captured = _timeProvider.GetUtcNow();
@@ -120,8 +120,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             request.CardLast4,
             Description: null);
 
-        // The inbox accepts this self-addressed message in the order's submission write and processes it once the grace
-        // period ends. The order date is on the Durable Jobs clock, which DeliverAt uses, and stays fixed across retries.
+        // 收件箱接受此自上信件, 以顺序提交文件写入并处理它 一旦宽度
+        // 订单日期在使用 DeliverAt 的持久工作时钟上,并固定在每轮中。
         var status = CreateStatus(order);
         var gracePeriod = _messages.GracePeriodElapsed.Create(
             new MessageId(OrderKey.CreateChildKey("grace-period")),
@@ -134,7 +134,7 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         context.Complete();
     }
 
-    // The grace period gives the buyer time to cancel before stock is reserved.
+    // 宽限期给予买方在保留存货前取消销售的时间。
     private void HandleGracePeriodElapsed(GracePeriodElapsed message, IInboxHandlerContext context)
     {
         var order = _order.Value!;
@@ -188,7 +188,7 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         }
         else if (order.Status is OrderStatus.Cancelled && result.Confirmed)
         {
-            // This confirmation arrived after cancellation.
+            // 取消后即确认。
             _outbox.Send(CreateRelease(result.ProductId));
             _stock[result.ProductId] = StockLineStatus.Released;
         }
@@ -198,8 +198,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
 
     private void HandlePaymentResult(PaymentResult result, IInboxHandlerContext context)
     {
-        // Buyers cannot cancel once stock is confirmed, so only a confirmed order awaits this result. A redelivery after
-        // the deduplication window finds the order already past it.
+        // 股票一旦确认,买方不能取消购买者,因此只有经确认的订单等待这一结果。
+        // 重复窗口发现已经过顺序的窗口。
         if (_order.Value?.Status is not OrderStatus.StockConfirmed)
         {
             context.Complete();
@@ -263,7 +263,7 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         return order with { Status = status, Version = order.Version + 1, Description = description };
     }
 
-    // Delivery order is unspecified; the buyer keeps the summary with the highest version.
+    // 交货订单未具体说明;买方将摘要保存在最高版本。
     private OutboxMessage CreateStatus(OrderState order) =>
         _messages.StatusChanged.Create(
             new MessageId(OrderKey.CreateChildKey("status").CreateChildKey(order.Version.ToString(CultureInfo.InvariantCulture))),

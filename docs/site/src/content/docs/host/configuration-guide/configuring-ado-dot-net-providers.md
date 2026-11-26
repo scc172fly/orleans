@@ -1,82 +1,94 @@
 ---
-title: Configure ADO.NET providers
-description: Configure Orleans clustering, reminders, storage, and grain directories with ADO.NET.
+title: "配置 ADO.NET 提供者"
+description: "配置 Orleans 集束、提醒、存储和 grain 目录,并配有 ADO.NET。"
 ms.date: 08/10/2026
 ms.topic: how-to
 ---
 
-# Configure ADO.NET providers
+<a id="configure-adonet-providers"></a>
 
-Orleans ADO.NET providers use a relational database for one or more runtime capabilities:
+# 配置 ADO.NET 提供者
 
-| Capability | Package | Configure on |
+Orleans ADO.NET 供应商使用关系数据库来提供一个或多个运行时间能力:
+
+| 能力 | 套包 | 配置配置 |
 |---|---|---|
-| Clustering | [`Microsoft.Orleans.Clustering.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Clustering.AdoNet) | Silos and external clients |
-| Grain storage | [`Microsoft.Orleans.Persistence.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet) | Silos |
-| Reminders | [`Microsoft.Orleans.Reminders.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.AdoNet) | Silos |
-| Grain directory | [`Microsoft.Orleans.GrainDirectory.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.AdoNet) | Silos |
-| Streaming | [`Microsoft.Orleans.Streaming.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AdoNet) | Silos and external clients |
+| 集群组合 | [`Microsoft.Orleans.Clustering.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Clustering.AdoNet) | Silos 和外部客户 |
+| Grain 储存 | [`Microsoft.Orleans.Persistence.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet) | Silos |
+| 提醒提醒 | [`Microsoft.Orleans.Reminders.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.AdoNet) | Silos |
+| Grain 目录 | [`Microsoft.Orleans.GrainDirectory.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.AdoNet) | Silos |
+| 串流 | [`Microsoft.Orleans.Streaming.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AdoNet) | Silos 和外部客户 |
 
-Install only the packages for the capabilities the application uses. Also reference the database driver package.
+只安装应用程序所用能力的软件包。 另请参考数据库驱动程序包 。
 
-## Prepare the database
+<a id="prepare-the-database"></a>
 
-Run the main script for the database first, followed by each capability script. For example, SQL Server clustering and persistence require:
+## 准备数据库
+
+首先运行数据库的主脚本, 之后是每个功能脚本。 例如, SQL 服务器组合和持久性需要:
 
 1. `src/AdoNet/Shared/SQLServer-Main.sql`
 2. `src/AdoNet/Orleans.Clustering.AdoNet/SQLServer-Clustering.sql`
 3. `src/AdoNet/Orleans.Persistence.AdoNet/SQLServer-Persistence.sql`
 
-See [ADO.NET database configuration](adonet-configuration.md) for schema script and invariant links.
+方案脚本和变量链接见 [ADO.NET 数据库配置](adonet-configuration.md) 。
 
-Apply schema changes as a controlled deployment step. Don't grant silos schema-owner permissions solely so they can create tables at runtime.
+将机率变化应用为控制部署步骤。 不要仅仅为了在运行时创建表格而给予 silos 机型拥有者许可 。
 
-The scripts create tables and the `OrleansQuery` table using the database user's
-default schema, and the provider queries refer to those objects by unqualified
-name. Orleans does not provide an option to select a schema or filegroup. If
-your production database requires a dedicated schema, filegroups, partitioning,
-or another storage layout, adapt the scripts as part of your database
-deployment and keep the resulting table names, columns, parameters, and query
-result shapes compatible with Orleans. Apply and test those changes outside the
-application startup path.
+脚本创建表格和 `OrleansQuery` 使用数据库用户
+默认默认 schma , 提供方的查询以无限制方式引用这些对象
+名称 Orleans 没有提供选择 schema 或文件组的选项。 如果
+您的生产数据库需要专门的系统、文件组、分区、
+或其它存储布局,将脚本作为数据库的一部分加以调整
+设置,并保留相应的表格名称、列、参数和查询
+与 Orleans兼容的形状。应用和测试
+应用程序启动路径。
 
-## Configure SQL Server
+<a id="configure-sql-server"></a>
 
-Use `Microsoft.Data.SqlClient` for SQL Server:
+## 配置 SQL 服务器
+
+使用 `Microsoft.Data.SqlClient` 用于 SQL 服务器 :
 
 :::code language="csharp" source="../snippets/hosting/HostingExamples.cs" id="adonet_silo":::
 
-Configure an external client with the same clustering database:
+配置一个使用相同组群数据库的外部客户端:
 
 :::code language="csharp" source="../snippets/hosting/HostingExamples.cs" id="adonet_client":::
 
 > [!IMPORTANT]
-> `System.Data.SqlClient` isn't the SQL Server invariant. Reference the `Microsoft.Data.SqlClient` package and use the `Microsoft.Data.SqlClient` invariant.
+> `System.Data.SqlClient` 不是 SQL 服务器变量。 请参考 `Microsoft.Data.SqlClient` 软件包, 并使用 `Microsoft.Data.SqlClient` 变量。
 
-## Configure another database
+<a id="configure-another-database"></a>
 
-The Orleans configuration shape is the same for PostgreSQL, MySQL/MariaDB, and Oracle. Change the driver package, invariant, connection string, and SQL scripts together:
+## 配置另一个数据库
 
-| Database | Driver package | Invariant |
+Orleans 配置形状对 PostgreSQL、 MySQL/MariaDB和甲骨文相同。将驱动程序包、变量、连接字符串和 SQL 脚本一起修改:
+
+| 数据库数据库 | 司机软件包 | 变量 |
 |---|---|---|
-| SQL Server | `Microsoft.Data.SqlClient` | `Microsoft.Data.SqlClient` |
+| SQL 服务器 | `Microsoft.Data.SqlClient` | `Microsoft.Data.SqlClient` |
 | PostgreSQL | `Npgsql` | `Npgsql` |
 | MySQL/MariaDB | `MySql.Data` | `MySql.Data.MySqlClient` |
-| Oracle | `Oracle.ManagedDataAccess.Core` | `Oracle.DataAccess.Client` |
+| 甲骨甲 | `Oracle.ManagedDataAccess.Core` | `Oracle.DataAccess.Client` |
 
-Orleans also recognizes `MySqlConnector` for the MySqlConnector driver. Verify that the selected capability has a script for the chosen database.
+Orleans 还确认 `MySqlConnector` 排排 MySqlConnector 驱动程序。验证选定能力是否为选定的数据库有脚本。
 
-## Use a data source
+<a id="use-a-data-source"></a>
 
-Each ADO.NET provider option type accepts either a connection string or a <xref:System.Data.Common.DbDataSource>. A data source is useful when the database driver needs configuration which can't be represented in a connection string, such as a periodically refreshed authentication token.
+## 使用数据源
 
-Configure exactly one connection source. Orleans rejects configurations which supply both `ConnectionString` and `DataSource`, or neither. Continue to set `Invariant` because Orleans uses it to select database-specific queries and behavior.
+每个 ADO.NET 提供者选项类型都接受连接字符串或 <xref:System.Data.Common.DbDataSource>。当数据库驱动程序需要无法在连接字符串中代表的配置时,数据源是有用的,例如定期刷新验证符。
 
-Register the data source as a singleton and resolve it through the provider's `OptionsBuilder` configuration overload. Named Orleans providers can resolve distinct keyed data sources. The dependency injection container or application owns the data source and must keep it alive for the Orleans provider's lifetime; Orleans opens and disposes individual connections but doesn't dispose the data source.
+配置一个完全连接源。 Orleans 拒绝提供 `ConnectionString` 和 `DataSource`或两者均不提供的配置。 继续设置 `Invariant` , 因为 Orleans 使用它选择特定数据库的查询和行为 。
 
-## Configure declaratively
+将数据源登记为单吨,并通过提供者的 `OptionsBuilder` 配置超载来解决这个问题。命名的 Orleans 供应商可以解决不同的关键数据源。依赖性注射容器或应用程序拥有数据源,必须在 Orleans 提供者的寿命期间保持数据源; Orleans 打开并处理个人连接,但不处置数据源。
 
-Installed ADO.NET provider packages register `AdoNet` for declarative configuration. For example:
+<a id="configure-declaratively"></a>
+
+## 公开配置
+
+已安装 ADO.NET 供应商软件包注册器 `AdoNet` 用于声明配置。 例如:
 
 ```json
 {
@@ -104,15 +116,17 @@ Installed ADO.NET provider packages register `AdoNet` for declarative configurat
 }
 ```
 
-Store connection strings in a secret provider or deployment environment, not in a committed settings file.
+将连接字符串存储在秘密提供者或部署环境中, 而不是保存在已承诺设置文件中 。
 
-## Operational guidance
+<a id="operational-guidance"></a>
 
-- Keep <xref:Orleans.Configuration.ClusterOptions.ServiceId> stable so Orleans reads the expected application rows.
-- Size connection pools for the total number of silo and client processes.
-- Encrypt connections and use least-privilege database identities.
-- Monitor database latency, throttling, deadlocks, and pool exhaustion.
-- Test database failover and rolling deployment behavior under load.
-- Back up grain state according to application recovery objectives; membership rows are transient and don't replace state backups.
+## 业务指导
+
+- 保持 <xref:Orleans.Configuration.ClusterOptions.ServiceId> 稳定,这样 Orleans 读取预期应用行。
+- 总共 silo 和客户程序所需的连接集合大小。
+- 加密连接和使用最不重要的数据库身份。
+- 监测数据库的延迟、振动、僵局和池塘耗竭。
+- 测试数据库失败和滚动部署行为正在负荷中。
+- 根据应用程序回收目标备份 grain 状态;成员行是短暂的,不替换州备份。
 
 [!INCLUDE [managed-identities](../../../includes/managed-identities.md)]

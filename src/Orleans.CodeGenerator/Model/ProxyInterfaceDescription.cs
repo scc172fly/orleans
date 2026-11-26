@@ -29,7 +29,7 @@ internal class ProxyInterfaceDescription : IEquatable<ProxyInterfaceDescription>
         Name = generationContext.GetAlias(interfaceType) ?? interfaceType.Name;
         ProxyBaseType = proxyBaseType;
 
-        // If the name is a user-defined name which specified a generic arity, strip the arity backtick now
+        // 如果名称是一个用户定义的名称,指定通用异性,则现在将该异性反向勾去
         if (Name.IndexOfAny(FilteredNameChars) >= 0)
         {
             foreach (var c in FilteredNameChars)
@@ -78,9 +78,9 @@ internal class ProxyInterfaceDescription : IEquatable<ProxyInterfaceDescription>
             {
                 if (method.MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
-                    // Explicit implementations can be ignored when generating a proxy.
-                    // Proxies must implement every method explicitly to ensure faithful reproduction of the interface behavior.
-                    // At the calling side, the explicit implementation will be called if it was not overridden by a derived type.
+                    // 生成代理时,可忽略明确的执行。
+                    // 代理人必须明确采用所有方法,确保接口行为忠实复制。
+                    // 在呼吁方,如果不是由某种衍生类型推翻,则要求明确执行。
                     continue;
                 }
 

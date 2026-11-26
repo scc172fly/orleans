@@ -3,12 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Owns journal recovery and persistence for registered state machines.
+/// 拥有日记并持续使用注册的国家机器。
 /// </summary>
 /// <remarks>
-/// The owner registers state machines and initializes the journal before using recovered state.
-/// State machine instances and their dependencies retain the lifetime assigned by their caller.
-/// Disposing this manager stops journal processing and releases its journal resources.
+/// 所有人登记国家机器,在使用回收状态之前先开始开具日记。
+/// 国家机器实例及其依赖性保留了打电话者指定的寿命。
+/// 处置该经理停止日记处理并发布其日记资源。
 /// </remarks>
 public interface IJournaledStateManager : IAsyncDisposable
 {
@@ -16,72 +16,72 @@ public interface IJournaledStateManager : IAsyncDisposable
     ValueTask IAsyncDisposable.DisposeAsync() => default;
 
     /// <summary>
-    /// Initializes the state manager by replaying its journal.
+    /// 重播国家经理的日记,从而初始化了该经理。
     /// </summary>
     /// <remarks>
-    /// A recovery failure fails the current initialization attempt and leaves this instance uninitialized.
-    /// A subsequent call retries recovery from the beginning, resetting and replaying the registered state machines.
-    /// Writes become available after initialization succeeds. A manager fenced by a persistence failure requires a new instance.
-    /// Owner shutdown which cancels recovery cancels initialization and leaves this instance stopped.
-    /// Cancelling the caller's token ends only that caller's wait while owned recovery continues.
+    /// 恢复失败未能完成当前启动尝试,使这种情况无法开始。
+    /// 之后,调用机从一开始恢复,重新设置和重播注册的国家机器。
+    /// 启动成功后可以提供书面材料。 被长期性故障围住的经理需要一个新的实例。
+    /// 取消回收的所有者关闭取消初始化, 并终止此事件 。
+    /// 取消呼叫者的象征性的结束 只有该呼叫者等待 同时继续自有恢复
     /// </remarks>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A <see cref="ValueTask"/> which represents the operation.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>A <see cref="ValueTask"/> 表示操作。</returns>
     ValueTask InitializeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Registers a state machine before initialization begins.
+    /// 启动前登记国家机器。
     /// </summary>
-    /// <param name="name">The state machine's stable identifier.</param>
-    /// <param name="stateMachine">The state machine instance to register.</param>
-    /// <exception cref="InvalidOperationException">Initialization has begun or the name is already registered.</exception>
+    /// <param name="name">州立机器的稳定识别特征</param>
+    /// <param name="stateMachine">国家机器机构要注册。</param>
+    /// <exception cref="InvalidOperationException">初始化已经开始或名称已经登记。</exception>
     void RegisterStateMachine(string name, IStateMachine stateMachine);
 
     /// <summary>
-    /// Attempts to retrieve a registered state machine.
+    /// 试图检索注册的国家机器。
     /// </summary>
-    /// <param name="name">The state machine's stable identifier.</param>
-    /// <param name="stateMachine">The registered state machine, if found.</param>
-    /// <returns><see langword="true"/> if the state machine is registered; otherwise, <see langword="false"/>.</returns>
+    /// <param name="name">州立机器的稳定识别特征</param>
+    /// <param name="stateMachine">注册的国家机器,如果发现的话。</param>
+    /// <returns><see langword="true"/> ,如果国家机器已注册;否则, <see langword="false"/>。</returns>
     bool TryGetStateMachine(string name, [NotNullWhen(true)] out IStateMachine? stateMachine);
 
     /// <summary>
-    /// Persists pending changes from the registered state machines to the journal.
+    /// 一直等待从注册的国家机器到日记的修改。
     /// </summary>
     /// <remarks>
-    /// Stage mutations only after establishing that they are safe to commit. Pending changes are shared
-    /// by all callers using this manager. Storage acknowledgement establishes durability.
-    /// A failed journal operation fences the manager; recovery requires a new manager and state machine instances.
-    /// Before capture, the manager prepares each registered state through <see cref="IStateMachine.PrepareWriteAsync"/>.
-    /// A preparation failure reports <see cref="JournaledStatePreCommitException"/> and retains pending changes
-    /// for an explicit retry.
-    /// Cancellation stops the caller's wait; an already queued write continues to its storage outcome.
+    /// 只有在确定它们可以安全承诺之后才发生突变。
+    /// 由所有使用此管理器的呼叫者来决定。 存储确认后确定耐久性 。
+    /// 日记操作失败,使经理围住;恢复需要一名新的经理和州机器。
+    /// 在捕获前,管理人员通过 <see cref="IStateMachine.PrepareWriteAsync"/>为每个登记国做好准备。
+    /// 准备故障报告 <see cref="JournaledStatePreCommitException"/> ,保留待更改
+    /// 以便他们尝试明显的再造。
+    /// 取消停止了呼叫者的等待; 已经排队的写作继续到存储结果 。
     /// </remarks>
-    /// <param name="cancellationToken">The token used to cancel the caller's wait.</param>
-    /// <returns>A task representing the write acknowledgement.</returns>
+    /// <param name="cancellationToken">取消调用者等候的标记。</param>
+    /// <returns>代表书面确认的任务。</returns>
     ValueTask WriteStateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Resets this instance, removing any persistent state.
+    /// 重设此实例, 删除任何持久性状态 。
     /// </summary>
     /// <remarks>
-    /// The caller keeps other operations quiescent through completion: deletion resets every registered state machine.
-    /// Successful storage deletion discards pending journal entries along with the state being reset.
-    /// Cancellation ends the caller's wait; an already queued deletion continues to its storage and reset outcome.
-    /// A failed deletion permanently fences the manager and requests deactivation of its owning grain.
+    /// 电话机使其他操作在完成时保持发音:删除每台注册的国家机器的重新配置。
+    /// 成功存储删除的丢弃,等待日记条目,同时重置状态。
+    /// 取消终止了呼叫者的等待; 已经排队的删除继续到存储和重置结果 。
+    /// 未能永久删除该经理的栅栏,并要求解除其自有 grain。
     /// </remarks>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A <see cref="ValueTask"/> which represents the operation.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>A <see cref="ValueTask"/> 表示操作。</returns>
     ValueTask DeleteStateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets an approximate count of bytes accumulated in the in-memory journal buffer that have
-    /// not yet been flushed to storage. Returns a negative value when the implementation does not
-    /// support sampling pending bytes.
+    /// 获得一个大约的计数, 以在模拟日记缓冲中累积的字节计数
+    /// 尚未冲洗到存储中。 当执行没有被执行时返回负值
+    /// 支持抽样待处理字节。
     /// </summary>
     /// <remarks>
-    /// This is intended for diagnostics and instrumentation; the returned value may race with
-    /// concurrent writers and should not be used for correctness decisions.
+    /// 用于诊断和仪器仪表;返回值可能与
+    /// 不应用于作出正确性决定。
     /// </remarks>
     long PendingWriteByteCount => -1;
 }

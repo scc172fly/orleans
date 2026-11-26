@@ -4,19 +4,19 @@ using Microsoft.AspNetCore.Http;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>Reads the <c>Idempotency-Key</c> and <c>Prefer</c> request headers.</summary>
+/// <summary>读取 <c>Idempotency-Key</c> 和 <c>Prefer</c> 请求信头 。</summary>
 internal static class DurableHttpRequestHeaders
 {
-    /// <summary>The longest key, in characters, which Stripe accepts.</summary>
+    /// <summary>字符中最长的键,用字符表示,条形接受。</summary>
     public const int MaxIdempotencyKeyLength = 255;
 
     /// <summary>
-    /// Reads the request's idempotency key, which is a bare value or an RFC 9651 string, and returns
-    /// <see langword="false"/> with a description when the header is present but invalid.
+    /// 读取请求请求的“应急”密钥,即一个光值或 RFC 9651 字符串,并返回
+    /// <see langword="false"/> ,其中说明信头存在但无效。
     /// </summary>
-    /// <param name="headers">The request headers.</param>
-    /// <param name="key">The key, or <see langword="null"/> when the request carries none.</param>
-    /// <param name="error">A description of an invalid header.</param>
+    /// <param name="headers">请求信头。</param>
+    /// <param name="key">键,或 <see langword="null"/> 当请求无任何要求时。</param>
+    /// <param name="error">无效信头的描述。</param>
     public static bool TryGetIdempotencyKey(IHeaderDictionary headers, out string? key, [NotNullWhen(false)] out string? error)
     {
         key = null;
@@ -58,13 +58,13 @@ internal static class DurableHttpRequestHeaders
     }
 
     /// <summary>
-    /// Returns whether <paramref name="operationId"/> is a valid operation identifier: 1 to
-    /// <see cref="MaxIdempotencyKeyLength"/> printable ASCII characters other than <c>/</c>, other than <c>.</c> and <c>..</c>.
+    /// 返回 <paramref name="operationId"/> 是否是一个有效的操作识别身份: 1 to
+    /// <see cref="MaxIdempotencyKeyLength"/> 打印 ASCII 字符以外的可 <c>/</c>,但除 <c>.</c> 和 <c>..</c>.
     /// </summary>
     /// <remarks>
-    /// An operation identifier is a URL path segment of its status monitor. ASP.NET Core leaves an escaped <c>/</c> in a
-    /// path segment escaped, and clients remove the dot segments <c>.</c> and <c>..</c> from paths, so such identifiers
-    /// wouldn't address their operations.
+    /// 操作识别标识符是状态监视器的 URL 路径路路段。 ASP.NET Core 将一个逃出 <c>/</c> 放在
+    /// 路径中逃脱了, 而客户端则从路径中删除点段 <c>.</c> 和 <c>..</c> 因此这些识别符号
+    /// 无法处理他们的行动
     /// </remarks>
     public static bool IsValidOperationId(string operationId)
     {
@@ -85,12 +85,12 @@ internal static class DurableHttpRequestHeaders
     }
 
     /// <summary>
-    /// Returns the time which the request's <c>Prefer: wait=N</c> preference asks the server to wait for a result, at most
-    /// <paramref name="maxWait"/>, or <see cref="TimeSpan.Zero"/> when the request prefers no wait.
+    /// 返回请求 <c>Prefer: wait=N</c> 优先偏爱要求服务器等待结果的时间,最多
+    /// <paramref name="maxWait"/>或 <see cref="TimeSpan.Zero"/> ,如果请求中选择不等待。
     /// </summary>
     /// <remarks>
-    /// Preferences which the server doesn't recognize or can't parse are ignored, as RFC 7240 requires.
-    /// <c>respond-async</c> asks for a response without waiting for a result, which is the default.
+    /// 服务器不承认或无法分析的优惠被忽略, RFC 7240 要求这样做。
+    /// <c>respond-async</c> 请求在等待结果的情况下作出答复,这是默认的。
     /// </remarks>
     public static TimeSpan GetWait(IHeaderDictionary headers, TimeSpan maxWait)
     {

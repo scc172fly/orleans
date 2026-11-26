@@ -8,17 +8,17 @@ using Orleans.Runtime.Hosting;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extension methods for configuring Azure Cosmos DB persistence.
+/// 配置 Azure 宇宙DB持久性的扩展方法。
 /// </summary>
 public static class HostingExtensions
 {
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置 silo 使用自定义文档id提供者将 Azure Cosmos DB 存储作为默认 grain 存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <typeparam name="TProvider">The document id or partition key provider.</typeparam>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <typeparam name="TProvider">文档代号或分割键提供者。</typeparam>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorageAsDefault<TProvider>(
         this ISiloBuilder builder,
         Action<CosmosGrainStorageOptions> configureOptions) where TProvider : class
@@ -27,13 +27,13 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 使用自定义文档ID提供者存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <typeparam name="TProvider">The document id or partition key provider.</typeparam>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <typeparam name="TProvider">文档代号或分割键提供者。</typeparam>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorage<TProvider>(
         this ISiloBuilder builder,
         string name,
@@ -47,12 +47,12 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置 silo 使用自定义文档id提供者将 Azure Cosmos DB 存储作为默认 grain 存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
-    /// <param name="customPartitionKeyProviderType">The document id or partition key provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
+    /// <param name="customPartitionKeyProviderType">文档代号或分割键提供者。</param>
     public static ISiloBuilder AddCosmosGrainStorageAsDefault(
         this ISiloBuilder builder,
         Action<CosmosGrainStorageOptions> configureOptions,
@@ -62,13 +62,13 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 使用自定义文档ID提供者存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
-    /// <param name="customPartitionKeyProviderType">The document id or partition key provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
+    /// <param name="customPartitionKeyProviderType">文档代号或分割键提供者。</param>
     public static ISiloBuilder AddCosmosGrainStorage(
         this ISiloBuilder builder,
         string name,
@@ -87,10 +87,10 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage.
+    /// 配置 silo 将 Azure 宇宙 DB 存储作为默认 grain 存储。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorageAsDefault(
         this ISiloBuilder builder,
         Action<CosmosGrainStorageOptions> configureOptions)
@@ -99,11 +99,11 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 储存。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorage(
         this ISiloBuilder builder,
         string name,
@@ -116,12 +116,12 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置 silo 使用自定义文档id提供者将 Azure Cosmos DB 存储作为默认 grain 存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <typeparam name="TProvider">The document id or partition key provider.</typeparam>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <typeparam name="TProvider">文档代号或分割键提供者。</typeparam>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorageAsDefault<TProvider>(
         this ISiloBuilder builder,
         Action<OptionsBuilder<CosmosGrainStorageOptions>>? configureOptions = null) where TProvider : class
@@ -130,13 +130,13 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 使用自定义文档ID提供者存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <typeparam name="TProvider">The document id or partition key provider.</typeparam>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <typeparam name="TProvider">文档代号或分割键提供者。</typeparam>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorage<TProvider>(
         this ISiloBuilder builder,
         string name,
@@ -150,12 +150,12 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置 silo 使用自定义文档id提供者将 Azure Cosmos DB 存储作为默认 grain 存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="customPartitionKeyProviderType">The document id or partition key provider.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="customPartitionKeyProviderType">文档代号或分割键提供者。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorageAsDefault(
         this ISiloBuilder builder,
         Type customPartitionKeyProviderType,
@@ -165,13 +165,13 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage using a custom document id provider
-    /// or a legacy partition key provider.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 使用自定义文档ID提供者存储
+    /// 或遗留分区密钥提供者。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="customPartitionKeyProviderType">The document id or partition key provider.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="customPartitionKeyProviderType">文档代号或分割键提供者。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorage(
         this ISiloBuilder builder,
         string name,
@@ -190,10 +190,10 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage.
+    /// 配置 silo 将 Azure 宇宙 DB 存储作为默认 grain 存储。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorageAsDefault(
         this ISiloBuilder builder,
         Action<OptionsBuilder<CosmosGrainStorageOptions>>? configureOptions = null)
@@ -202,11 +202,11 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 储存。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static ISiloBuilder AddCosmosGrainStorage(
         this ISiloBuilder builder,
         string name,
@@ -219,10 +219,10 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage.
+    /// 配置 silo 将 Azure 宇宙 DB 存储作为默认 grain 存储。
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static IServiceCollection AddCosmosGrainStorageAsDefault(
         this IServiceCollection services,
         Action<CosmosGrainStorageOptions> configureOptions)
@@ -231,11 +231,11 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 储存。
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static IServiceCollection AddCosmosGrainStorage(
         this IServiceCollection services,
         string name,
@@ -245,10 +245,10 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage as the default grain storage.
+    /// 配置 silo 将 Azure 宇宙 DB 存储作为默认 grain 存储。
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static IServiceCollection AddCosmosGrainStorageAsDefault(
         this IServiceCollection services,
         Action<OptionsBuilder<CosmosGrainStorageOptions>>? configureOptions = null)
@@ -257,11 +257,11 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// Configure silo to use Azure Cosmos DB storage for grain storage.
+    /// 配置配置 silo 使用 Azure 宇宙DB储存 grain 储存。
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="name">The storage provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="name">存储提供者的名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
     public static IServiceCollection AddCosmosGrainStorage(
         this IServiceCollection services,
         string name,

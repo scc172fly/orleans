@@ -28,7 +28,7 @@ namespace Orleans.Analyzers
             var unannotatedSerializableMembers = new List<MemberDeclarationSyntax>();
             foreach (var member in declaration.Members)
             {
-                // Skip members with existing [Id(x)] attributes, but record the highest value of x so that newly added attributes can begin from that value.
+                // 使用已有 [ID(x)] 属性的会籍跳过, 但记录 x 的最高值, 这样新添加的属性就可以从该值开始 。
                 if (member.TryGetAttribute(semanticModel, idAttributeSymbol, out var attribute))
                 {
                     var args = attribute.ArgumentList?.Arguments;
@@ -56,7 +56,7 @@ namespace Orleans.Analyzers
 
                 if (!member.IsInstanceMember() || !member.IsFieldOrAutoProperty() || member.HasAttribute(semanticModel, nonSerializedAttributeSymbol) || member.IsAbstract())
                 {
-                    // No need to add any attribute.
+                    // 无需添加任何属性。
                     continue;
                 }
 

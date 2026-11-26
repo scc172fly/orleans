@@ -30,7 +30,7 @@ export default defineConfig({
       },
       favicon: '/favicon.svg',
       customCss: ['./src/styles/custom.css'],
-      // The Visual Studio Code themes give types, members, locals and keywords distinct colors in C#.
+      // 视觉工作室代码主题在 C# 中给出了不同颜色的类型、成员、本地人和关键词。
       expressiveCode: {
         themes: ['dark-plus', 'light-plus'],
       },

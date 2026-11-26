@@ -15,7 +15,7 @@ public sealed class DocumentGrain : DurableGrain
     // <orleans0209_violation>
     public async DurableTask<string> SealAsync(byte[] document)
     {
-        // The hash delegate runs on the thread pool; the await resumes on the activation's scheduler.
+        // 散列代表运行在线性球池上;等待的简历在启动调度器上。
         var hash = await Task.Run(() => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(document)));
         await Archive(hash).WithId("archive");
         return hash;
@@ -26,7 +26,7 @@ public sealed class DocumentGrain : DurableGrain
     // <orleans0209_fix_inline>
     public async DurableTask<string> SealInlineAsync(byte[] document)
     {
-        // The effect records the hash, and runs on the activation's scheduler.
+        // 效果记录散列, 并运行在激活的调度器上 。
         var hash = DurableTask.RunInline("hash", () => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(document)));
         await Archive(hash).WithId("archive");
         return hash;
@@ -36,7 +36,7 @@ public sealed class DocumentGrain : DurableGrain
     // <orleans0209_fix_service>
     public async DurableTask<string> SealWithServiceAsync(byte[] document)
     {
-        // Heavy work runs in a service, such as a stateless worker grain, which the step awaits.
+        // 从事繁重的工作,例如无国籍工人 grain,该步骤等待。
         var hash = await DurableTask.Run(ct => _hasher.HashAsync(document, ct)).WithId("hash");
         await Archive(hash).WithId("archive");
         return hash;

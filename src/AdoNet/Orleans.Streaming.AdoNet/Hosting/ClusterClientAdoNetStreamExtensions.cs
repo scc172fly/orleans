@@ -1,17 +1,17 @@
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Allows configuration of individual ADO.NET streams in a cluster client.
+/// 允许组合群客户端中单个 ADO.NET 流的配置。
 /// </summary>
 public static class ClusterClientAdoNetStreamExtensions
 {
     /// <summary>
-    /// Configures the client to use an ADO.NET stream provider.
+    /// 配置客户端使用 ADO.NET 流提供商的配置。
     /// </summary>
-    /// <param name="builder">The client builder.</param>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
-    /// <returns>The same <paramref name="builder"/> instance.</returns>
+    /// <param name="builder">客户端构建器。</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
+    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
     public static IClientBuilder AddAdoNetStreams(this IClientBuilder builder, string name, Action<AdoNetStreamOptions> configureOptions)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -22,12 +22,12 @@ public static class ClusterClientAdoNetStreamExtensions
     }
 
     /// <summary>
-    /// Configures the client to use an ADO.NET stream provider.
+    /// 配置客户端使用 ADO.NET 流提供商的配置。
     /// </summary>
-    /// <param name="builder">The client builder.</param>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="configure">The delegate used to configure the provider.</param>
-    /// <returns>The same <paramref name="builder"/> instance.</returns>
+    /// <param name="builder">客户端构建器。</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="configure">用于配置提供者的代表。</param>
+    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
     public static IClientBuilder AddAdoNetStreams(this IClientBuilder builder, string name, Action<ClusterClientAdoNetStreamConfigurator> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);

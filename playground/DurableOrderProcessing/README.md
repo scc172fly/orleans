@@ -1,18 +1,22 @@
-# Durable order processing playground
+<a id="durable-order-processing-playground"></a>
 
-The [order processing playground](../OrderProcessing/README.md) rebuilt with Orleans Durable Tasks, and served over
-HTTP with `Microsoft.Orleans.Durable.Http`. Each order's workflow is one durable task on its order grain, which
-the browser starts, observes, cancels, and ships as a durable HTTP operation. Idempotency flows end to end: from the
-browser's checkout, through the order's workflow, to the simulated external payment gateway.
+# 持久秩序处理操场
+
+下 [运动场处理命令](../OrderProcessing/README.md) 重建 Orleans 长期任务,并服务于
+HTTP 和 `Microsoft.Orleans.Durable.Http`每个订单的工作流程都是其顺序上的一项持久任务 grain, 其中
+浏览器启动、观察、取消和船舶,作为耐久 HTTP 操作。
+浏览器通过订单工作流程向模拟外部支付网关检出。
 
 ```bash
 dotnet run --project playground/DurableOrderProcessing
 ```
 
-Open `http://localhost:5000` to browse the catalog, fill a basket, check out, and watch orders progress. The Orleans
-dashboard is at `/dashboard`, and `DurableOrderProcessing.http` walks through the API.
+打开 `http://localhost:5000` 以浏览目录、填满篮子、检查和观察订单进度。 Orleans
+仪表板位于 `/dashboard`, `DurableOrderProcessing.http` 穿过 API。
 
-## Flow
+<a id="flow"></a>
+
+## 流动
 
 ```mermaid
 sequenceDiagram
@@ -49,166 +53,182 @@ sequenceDiagram
     end
 ```
 
-`OrderGrain.PlaceOrderAsync` reads top to bottom as the flow above. Every arrow between grains is a durable call: a
-grain method which returns `DurableTask` or `DurableTask<T>`. The workflow awaits each call under a stable child ID from
-`WithId`, and a named `WhenAll` gives its inputs IDs beneath its own, such as `reserve/0` and `reserve/1`.
-The order's state is its history, an `IDurableLog<OrderDetails>` named `history` whose entries are full snapshots of the
-order and its stock lines. The workflow keeps the current snapshot in a local variable and computes each transition as a
-pure function of the request, recorded results, and `DurableTask.Current.UtcNow`, such as `order = order.MarkPaid()`. It
-then appends the snapshot in a recorded effect, `DurableTask.RunInline("paid", () => _history.Append(order))`, named for its
-transition: the effect appends once per transition, whichever path the workflow takes, and the entry and the effect's record commit together with the workflow's next
-journal write. A replay returns the recorded sequence without appending again, so the history holds each version once,
-in order.
+`OrderGrain.PlaceOrderAsync` 读取自上至下, 与以上流一样。 grains 之间的箭头都是耐久调用: a
+grain 返回的方法 `DurableTask` 或 `DurableTask<T>`工作流量等待每个在稳定儿童身份证下发出的
+`WithId`,并命名 `WhenAll` 输入ID在它自己的下面,例如 `reserve/0` 和 `reserve/1`.
+秩序的状态是它的历史, `IDurableLog<OrderDetails>` 命名 `history` 条目为《公约》
+流程将当前快照保留在一个本地变量中,并将每个过渡时间计算为
+请求的纯函数、记录的结果和 `DurableTask.Current.UtcNow`,例如 `order = order.MarkPaid()`。
+然后以记录效果 `DurableTask.RunInline("paid", () => _history.Append(order))`作为快照,并按其命名。
+过渡:每次转换时,效果附加一次效果附件,无论工作流程走哪条路径,条目和效果记录与下一个工作流程一起承诺
+日记写。 重放返回了录入的序列, 不附加附件, 所以历史将每个版本都保存一次,
+顺序顺序。
 
-The workflow's first step takes the basket's lines with `basket.CheckoutAsync(orderId).WithId("checkout")`: the basket
-clears itself and returns its lines, which commit with the call's result. The runtime runs the call once for the
-order's task, so a replayed or retried workflow reads the same lines. An empty basket fails the workflow, and its
-operation reports the error `Rejected: The basket is empty.`
+工作流程的第一步是用 `basket.CheckoutAsync(orderId).WithId("checkout")`篮子线:篮子
+运行时间运行一次
+命令的任务, 所以重放或重新审取的工作流程会读出相同的行。 一个空篮子会让工作流量和它的
+运行中报告错误 `Rejected: The basket is empty.`
 
-Until the order is paid, cancelling its operation cancels the workflow. The next durable operation throws
-`OperationCanceledException`, so a cancellation which arrives during validation or payment is observed too. The workflow
-voids the payment authorization at the gateway once the workflow has requested one, releases each line concurrently in a shielded `WhenAll`, and then
-appends the `Cancelled` snapshot, which carries `DurableTask.Current.TaskCancellationReason`. Reservations which completed
-return normally after a cancellation, so the workflow records whether a cancellation arrived before it authorizes the
-payment, with `DurableTask.RunInline("cancellation-check", ...)`, and a cancelled order doesn't reach the gateway. Rejected stock, declined payments,
-payment timeouts, and payments which fail run the same compensation. A paid order shields the commit of its lines and
-the wait for its `shipped` signal, `await Shipped.WaitAsync().Shielded()`, so it ships whether or not a cancellation
-arrives after payment.
+命令支付之前,取消其操作取消时会取消工作流程。下一次持久操作将启动
+`OperationCanceledException`,因此在审定或付款期间收到的注销也需遵守。
+一旦工作流程要求一个, 就会在网关上取消付款授权, 然后将每一行同时释放到一个屏蔽 `WhenAll`中, 然后
+附加 `Cancelled` 快照,该快照带有 `DurableTask.Current.TaskCancellationReason`。
+取消后通常返回,因此工作流程记录在批准取消前是否已经实现
+支付,与 `DurableTask.RunInline("cancellation-check", ...)`,和取消订单没有到达网关。拒绝的股票,拒绝的付款,
+支付期过长,付款失败的付款与赔偿相同。
+等待其 `shipped` 信号, `await Shipped.WaitAsync().Shielded()`,以便它不论是否取消都能够挂船
+付款后到达。
 
-Each catalog grain retains reservation outcomes by order ID, independently of task retention. Repeating a reservation
-returns its recorded outcome, including after release or commit, and a different quantity for that order conflicts.
-Committing or releasing removes the active reservation once, so repeated workflows preserve the product's stock totals.
+每一目录 grain 都保留保留保留结果,按顺序编号,与任务保留无关。
+返回记录的结果,包括释放或实施后的结果,以及该命令冲突的不同数量。
+承诺或释放一次就取消了主动保留,因此重复的工作流程保存产品库存总量。
 
-## Idempotency end to end
+<a id="idempotency-end-to-end"></a>
 
-Each layer names its requests, so retries at every layer reach the work which the first attempt started.
+## 结束对口
 
-| Layer | Identity | Retried by |
+每个层都列出请求, 所以每个层的重试 到达了第一次尝试开始的工作。
+
+| 层层 | 身份特征 | 由 |
 | --- | --- | --- |
-| Browser to API | A checkout's `Idempotency-Key`, which the browser generates per checkout and persists until the server acknowledges it. The key is the order's ID. | The helper, after a network failure; the buyer, by clicking again; the page, after a refresh. |
-| API to the order | The operation key `orders/@/{orderId}`: the scope, the anonymous caller's scope, and the order's ID. It is the workflow's root task ID on the order grain. | Any request with the same key, which reaches the same workflow. A request which reuses the key for other work, such as another endpoint's call, receives `422`. |
-| Workflow to grains | Child task IDs, such as `checkout`, `reserve/0`, and `release/1`, beneath the root. | Replays after a deactivation or failure, which read recorded results. |
-| Workflow to gateway | The authorization's `Idempotency-Key`, `authorize-{orderId}-{incarnation}`, which names the order and the workflow's run, `DurableTask.Current.Incarnation`, so a workflow which didn't learn its authorization's location, such as after a lost response, reaches it again to void it. Other unsafe requests, such as the void, carry a key which `IDurableHttpClient` derives from the service, the order grain, the step's task ID, and the workflow's run. | The payment client's resilience handler, which follows the key handler, and the step itself after a failure. |
-| Signals | The shipment's ID, which the browser persists per ship intent. | A repeated signal with an equal value, which succeeds; another value returns `409`. |
+| 浏览器到 API | 检查退出 `Idempotency-Key`,浏览器每次检查退出都会生成该检查,并持续到服务器确认为止。关键是订单的ID。 | 网络故障后,帮助者;买方再次点击;页面刷新后。 |
+| API 顺序顺序 | 操作密钥 `orders/@/{orderId}`:范围、匿名打电话者的范围和命令的代号。它是命令 grain上的工作流程根任务编号。 | 任何带有相同键的要求,只要达到相同的工作流程。重用其他工作(如另一个端点呼叫)的钥匙的请求,会收到 `422`。 |
+| 流向 grains 的工作流程  | 儿童任务标识,如根底以下的 `checkout`、 `reserve/0`和 `release/1`。 | 读取记录的结果后,在停用或失灵之后重播。 |
+| 向网关的工作流程 | 授权 `Idempotency-Key`、 `authorize-{orderId}-{incarnation}`, 指定了命令和工作流程运行, `DurableTask.Current.Incarnation`, 因此一个没有了解授权地点的工作流程, 如在回复失败后, 再次到达它以撤销它。 其他不安全的请求, 如空虚, 包含来自服务 `IDurableHttpClient` 的密钥, 命令 grain、 步骤任务编号以及工作流程运行 。 | 付款客户的复原力处理器,它跟随关键处理器,该步骤本身在失败后。 |
+| 信号 | 船运的身份证 浏览器按船意图维持 | 重复信号,其值相等,并成功;另一个数值返回 `409`。 |
 
-`POST /api/orders` requires its `Idempotency-Key` to be a lowercase UUID, which becomes the order's ID, so every request
-for an order names the same operation. The Nexus service `orders.v1` shares the `orders` scope, and its
-`Nexus-Request-Id` is the order's ID, so an order which a Temporal workflow places through Nexus is the same operation
-at `/api/orders/operations/{orderId}`.
+`POST /api/orders` 要求其 `Idempotency-Key` 必须是小写UUUID,成为订单的编号,因此每个请求
+命令中指定相同操作的顺序名称。 Nexus 服务 `orders.v1` 共享 `orders` 范围, 及其
+`Nexus-Request-Id` 是订单的 ID, 所以时间工作流程通过 Nexus 设置的命令就是同一个操作
+年 `/api/orders/operations/{orderId}`.
 
-The guides describe each layer in depth:
-[deriving root IDs from business identity](../../docs/site/src/content/docs/grains/durable-tasks-identity.md#derive-references-from-business-identity),
-[deriving idempotency keys from the task](../../docs/site/src/content/docs/grains/durable-tasks-idempotency.md#derive-idempotency-keys-from-the-task),
-[calling a payment API with an idempotency key](../../docs/site/src/content/docs/grains/durable-tasks-integrations.md#call-a-payment-api-with-an-idempotency-key),
-and [choosing where to retry](../../docs/site/src/content/docs/grains/durable-tasks-integrations.md#choose-where-to-retry).
+指南对每一层作了深度描述:
+[从商业身份中产生根身份](../../docs/site/src/content/docs/grains/durable-tasks-identity.md#derive-references-from-business-identity),
+[产生任务中的应急关键](../../docs/site/src/content/docs/grains/durable-tasks-idempotency.md#derive-idempotency-keys-from-the-task),
+[使用应急键调用付款 API](../../docs/site/src/content/docs/grains/durable-tasks-integrations.md#call-a-payment-api-with-an-idempotency-key),
+和 [选择要在哪里重新尝试](../../docs/site/src/content/docs/grains/durable-tasks-integrations.md#choose-where-to-retry)。
 
-### The payment gateway
+<a id="the-payment-gateway"></a>
 
-`PaymentGateway` is a simulated external service, which the order workflow calls over HTTP through the keyed
-`IDurableHttpClient` named `payments`. It honors `Idempotency-Key` as Stripe does: it records each key with its request,
-answers a retry with the first response marked `Idempotent-Replayed: true`, rejects a key reused with another body with
-`422 Unprocessable Content`, and requires a key. An authorization completes asynchronously: the gateway answers
-`202 Accepted` with an `Operation-Location` status monitor, which the workflow polls after the gateway's `Retry-After`,
-and `POST {monitor}:cancel` voids it. `GET /gateway/authorizations` lists each authorization with the number of requests
-which reached it, which the page shows. [Call an HTTP service and wait for a long-running operation](../../docs/site/src/content/docs/grains/durable-tasks-integrations.md#call-an-http-service-and-wait-for-a-long-running-operation)
-describes the pattern.
+### 付款网关
 
-| Card ending | Gateway behavior |
+`PaymentGateway` 是一个模拟的外部服务服务,订单工作流程通过键盘连接到 HTTP
+`IDurableHttpClient` 命名 `payments`。它像条形一样荣誉 `Idempotency-Key` :它记录了每个钥匙及其请求,
+重新尝试一个复答,第一个响应标记 `Idempotent-Replayed: true`,拒绝用另一个机构再使用的密钥
+`422 Unprocessable Content`,并且需要一个密钥。授权自动完成:网关答案
+`202 Accepted` 和 A 相 `Operation-Location` 状态监视器, 显示网关后的工作流量调查 `Retry-After`,
+和 `POST {monitor}:cancel` 空了它。 `GET /gateway/authorizations` 每项授权清单,以及请求数目
+所显示的。 [呼叫 HTTP 服务,等待长期操作](../../docs/site/src/content/docs/grains/durable-tasks-integrations.md#call-an-http-service-and-wait-for-a-long-running-operation)
+描述图案。
+
+| 结卡卡 | 网关行为 |
 | --- | --- |
-| `0002` | Declines the payment; the order is cancelled with `The card was declined.` |
-| `0003` | Never decides; the order's payment times out after `Ordering:PaymentTimeout`, and the workflow voids the authorization. |
-| `0004` | Drops the connection instead of its first response for a key; the resilience handler retries with the same key, and the ledger shows one authorization from two requests. |
-| `0005` | Is unavailable, answering `503 Service Unavailable`; once the resilience handler's retries fail, the order is cancelled with `Payment authorization failed.` |
-| Any other | Approves the payment after half a second. |
+| `0002` | 拒绝付款; 命令以 `The card was declined.` 取消  |
+| `0003` | 永不决定;命令的支付时间在 `Ordering:PaymentTimeout`之后到期,工作流程取消授权。 |
+| `0004` | 放弃连接,而不是对钥匙作出第一次响应;复原力处理者用同一个键进行重试,分类账显示两个请求的1项授权。 |
+| `0005` | 无法提供, 回答 `503 Service Unavailable`; 一旦复原力处理器的回调失败, 命令将用 `Payment authorization failed.` 取消  |
+| 任何其他 | 半秒钟后批准付款。 |
 
-### The browser helper
+<a id="the-browser-helper"></a>
 
-`wwwroot/js/durable-operations.js` is a dependency-free ES module, which the page imports. It persists intents and
-running operations in `sessionStorage`, so they survive refreshes of the tab:
+### 浏览器助手
 
-| Member | Behavior |
+`wwwroot/js/durable-operations.js` 是一个无依赖性ES模块,页面输入该模块。
+在 `sessionStorage`运行操作,所以他们活下来了标签的更新:
+
+| 成员成员 | 行为行为 |
 | --- | --- |
-| `new DurableOperations({ storage, prefix, retryDelays, wait })` | Creates the helper. `retryDelays` are the delays before each retry of a request which fails with a network error; `wait` is the seconds which a long poll asks the server to wait. |
-| `start(intent, build, { headers, wait })` | Starts an intent's operation. It reuses the intent's persisted key and request, or builds the request from a new key, persists it, and sends it with `Idempotency-Key`, retrying network failures. Once the server answers, it forgets the intent, and watches a running operation by its `Operation-Location`. Returns `{ key, location, operation, result, data }`. |
-| `resume()` | Sends the starts which the server hasn't acknowledged again, with their keys, such as after a refresh during a start. |
-| `observe(location, { onStatus, signal })` | Observes an operation's server-sent events until it is terminal, long-polling with `Prefer: wait` where events are unavailable, and stops watching it. |
-| `get(location, { wait })`, `cancel(location, reason)`, `signal(location, name, value)` | Read, cancel, and signal an operation. |
-| `key(intent)`, `forget(intent)` | Get or create, and forget, an intent's persisted key, such as a shipment's ID. |
-| `pending()`, `watching()` | List unacknowledged starts and running operations. |
+| `new DurableOperations({ storage, prefix, retryDelays, wait })` | 创建助手。 `retryDelays` 是指每次重试请求前的延迟,如果请求因网络错误失败; `wait` 是长时间民意测验要求服务器等待的秒。 |
+| `start(intent, build, { headers, wait })` | 启动意图操作。 它会重新使用意图的持久键和请求, 或者从新密钥构建请求, 维持并发送它 `Idempotency-Key`, 重试网络失败。 一旦服务器回答, 它就会忘记意图, 并且用它的 `Operation-Location`来监视运行中的操作 。 返回 `{ key, location, operation, result, data }`。 |
+| `resume()` | 发送服务器没有确认的启动程序, 并用他们的密钥发送, 例如在开始时进行刷新 。 |
+| `observe(location, { onStatus, signal })` | 观察操作服务器到场事件,直到它处于终端状态,在无法进行远程覆盖的情况下用 `Prefer: wait` 进行长期覆盖,停止监视。 |
+| `get(location, { wait })`, `cancel(location, reason)`, `signal(location, name, value)` | 读取、取消和信号操作。 |
+| `key(intent)`, `forget(intent)` | 获取或创造,忘记意图的 持续的关键,例如货物的身份证明。 |
+| `pending()`, `watching()` | 列出未确认的启动和运行操作 。 |
 
-### See it
+<a id="see-it"></a>
 
-- **Double click:** fill a basket and click Checkout twice. Both requests carry the checkout's key, and the Orders and
-  Payment gateway panels show one order and one authorization.
-- **Lost response:** check *Lose the checkout's first response* and check out. The server places the order, then resets
-  the connection with the `Simulate-Lost-Response` header. The helper retries with the same key and receives the same
-  order.
-- **Refresh mid-checkout:** refresh while a checkout is pending or running. The Operations panel lists the pending start,
-  which the page sends again with its key, and the running orders, which the page observes again.
-- **Network retry to the gateway:** check out with a card ending in `0004`. The Payment gateway panel shows one
-  authorization from two requests.
-- **Double ship:** click Ship twice. Both signals carry the shipment's ID, and the order ships once.
+### 看见它
 
-`test/DurableOrderProcessing.Tests` asserts these outcomes against the playground's API: concurrent and retried
-checkouts with one key place one order and authorize one payment, a payment request whose response is lost authorizes
-once, the gateway deduplicates by key, cancellation during payment voids the authorization and releases the stock, a
-paid order ships after a cancellation request, a payment which the gateway fails cancels the order, an order which
-deactivates during its grace period and after payment appends each snapshot once and authorizes once, and a Nexus
-request and a checkout with one ID reach one order.
+- **双击:** 填充篮子并点击两次检出。两个请求都包含检出键和命令
+  付款网关板显示一个订单和一个授权。
+- **错误回复:** 检查 *丢失结结关的第一个答* 并退出。服务器设置了顺序, 然后重新发送
+  与 `Simulate-Lost-Response` 页眉的连接。用同一键重新发送帮助并接收相同的
+  顺序。
+- 刷新中检出**:** 在正在或正在运行的检查时进行刷新。 操作面板列出待查的开始时间,
+  页面再次发送其密钥,并发送运行命令,该页面将再次观察这些指令。
+- **网络重试到网关:** 退出时用一张卡片以 `0004`结尾处的牌片检查。支付网关面板显示一个
+  两项请求授权。
+- **双重船:** 点击船舶两次。两个信号都携带了装运的身份证,并且订货船也一次。
 
-## Observe an order
+`test/DurableOrderProcessing.Tests` 声称这些结果与操场 API的:同时和重新审理
+以一个关键地点的结关,有一个订单并授权一次付款,一个付款请求,但答复被拒的授权
+网关一经使用钥匙重复复制,付款期间取消注销,即取消授权并释放库存,a
+取消请求后,在要求取消合同、网关未能取消取消订单的付款、命令
+宽限期和付款后停止使用装置的宽限期内和付款后,每份快照附上一次并授权一次,并附一份Nexus
+申请和一张身份证的退房单 达到一个订单
 
-The order's operation reports its status: `GET /api/orders/operations/{orderId}` returns the status monitor, and
-long-polls with `Prefer: wait=N`; `GET /api/orders/operations/{orderId}/events` streams the status as server-sent
-events until the order ships or is cancelled, which completes the operation with the order's `OrderResult`.
+<a id="observe-an-order"></a>
 
-The order's history reports each version: `IOrderGrain.WatchAsync` streams the order's committed history from its
-submission. It reads the log with `ReadAsync` in the committed mode, yields each snapshot once it is durable, and ends
-after the `Shipped` or `Cancelled` snapshot. `GET /api/orders/{orderId}/events` serves the stream as server-sent events,
-one `data:` line per snapshot. When the order deactivates, the endpoint watches the next activation and skips the
-snapshots which it has delivered, so a client receives each version once, in order. The page's order history uses
-`EventSource` on this endpoint; the catalog, basket, order list, and gateway ledger poll.
+## 遵守命令
+
+命令的运行报告其状态: `GET /api/orders/operations/{orderId}` 返回状态监视器,
+长号投放,有 `Prefer: wait=N`; `GET /api/orders/operations/{orderId}/events` 流动状态为已同意服务器
+直至命令船舶或取消,以命令 `OrderResult`完成操作。
+
+命令的历史报告每个版本: `IOrderGrain.WatchAsync` 将命令的指定历史从它所在的
+提交时,它以承诺方式读取日志 `ReadAsync` ,在可耐性之后,每张快照都显示结果,并结束
+在 `Shipped` 或 `Cancelled` 抓图之后。 `GET /api/orders/{orderId}/events` 将流作为服务器已发事件,
+单 `data:` 命令停止作用时,端点会看到下一次激活并跳过
+用户收到每个版本一次, 顺序。页面的顺序历史使用
+最终点的`EventSource` ;目录、篮子、订单清单和网关分类账民意测验。
 
 ```bash
 curl -N http://localhost:5000/api/orders/{orderId}/events
 ```
 
-## Endpoints
+<a id="endpoints"></a>
 
-- `GET /api/catalog`, `GET /api/buyers/{buyerId}/basket`, `PUT /api/buyers/{buyerId}/basket/{productId}`, and
-  `GET /api/buyers/{buyerId}/orders` serve the catalog, the basket, and the buyer's orders.
-- `POST /api/orders` checks out the buyer's basket as the order which its `Idempotency-Key` names, and returns
-  `202 Accepted` with the order's operation. An `Operation-Callback` header registers a webhook, which the silo delivers
-  to `/api/webhooks/orders` with durable retries once the order completes.
-- `GET /api/orders/operations/{orderId}`, `GET .../events`, `POST .../{orderId}:cancel`, and
-  `POST .../signals/shipped` serve the order's operation, which `WithDurableOperations("orders")` maps.
-- `GET /api/orders/{orderId}` and `GET /api/orders/{orderId}/events` serve the order's latest snapshot and its history.
-- `POST /api/orders/{orderId}/deactivate` deactivates an order, so its next activation replays the pending workflow.
-- `POST /nexus/orders.v1/place-order` places an order through the Nexus protocol.
-- `/gateway/authorizations` is the simulated payment gateway.
+## 终点
 
-## Compare with OrderProcessing
+- `GET /api/catalog`, `GET /api/buyers/{buyerId}/basket`, `PUT /api/buyers/{buyerId}/basket/{productId}`,和
+  `GET /api/buyers/{buyerId}/orders` 服务目录,篮子和买主的订单。
+- `POST /api/orders` 检查买方的篮子是其 `Idempotency-Key` 名称和回
+  `202 Accepted` 命令的操作。 `Operation-Callback` 头头上有一个 Webhook , silo 交付交付
+  至 `/api/webhooks/orders` 定单完成后,可耐久再试
+- `GET /api/orders/operations/{orderId}`, `GET .../events`, `POST .../{orderId}:cancel`,和
+  `POST .../signals/shipped` 为命令的作业服务,该作业是 `WithDurableOperations("orders")` 地图。
+- `GET /api/orders/{orderId}` 和 `GET /api/orders/{orderId}/events` 为订单的最新快照及其历史服务。
+- `POST /api/orders/{orderId}/deactivate` 撤销命令,因此下一次启动后重播尚未完成的工作流程。
+- `POST /nexus/orders.v1/place-order` 通过 Nexus 协议发布命令 。
+- `/gateway/authorizations` 是模拟付款网关。
 
-| Step | OrderProcessing (Messaging) | DurableOrderProcessing (Durable Tasks) |
+<a id="compare-with-orderprocessing"></a>
+
+## 与 OrderProcessing相比
+
+| 步步步步步步步步步步步步步步步步步步步 | OrderProcessing (沟通) | DurableOrderProcessing (可变任务) |
 | --- | --- | --- |
-| Checkout | The basket stages `SubmitOrder` in its outbox and clears itself in one journal write. | `POST /api/orders` starts `PlaceOrderAsync` as the operation which the checkout's `Idempotency-Key` names, and the workflow's first step takes the basket's lines. A retried checkout reaches the same order. |
-| Grace period | The order sends itself `GracePeriodElapsed` with `Envelope.DeliverAt`; the handler ignores it unless the order is still `Submitted`. | `await DurableTask.Delay(gracePeriod).WithId("grace-period")`. The runtime sends the same kind of scheduled self-message. |
-| Cancellation | `CancelAsync` cancels a `Submitted` or `AwaitingValidation` order; late stock confirmations release their reservations. | `POST /api/orders/operations/{orderId}:cancel` requests durable cancellation of the workflow with the buyer's reason until the order is paid. During validation, `WhenAll` waits for every reservation to settle, then throws `OperationCanceledException`, so the workflow compensates knowing that no reservation is still running. |
-| Reservation fan-out | One `ReserveStock` message per line; `StockResult` replies arrive in any order and the handler tracks each line. | `await lines.Select(...ReserveAsync...).WhenAll().WithId("reserve")` schedules one call per line concurrently, as children `reserve/0`, `reserve/1`, and so on, and returns each line's result in line order. |
-| Payment | `AuthorizePayment` and a `PaymentResult` reply, correlated by message ID. | The workflow starts an authorization at the gateway over HTTP with `IDurableHttpClient.StartOperationAsync`, keyed by its order, and polls it with `WaitForOperationAsync(...).WaitAsync(paymentTimeout).WithId("await-payment")`. A timeout or a cancellation voids the authorization. |
-| Shipment | `ShipAsync` moves a `Paid` order to `Shipped`. | `POST /api/orders/operations/{orderId}/signals/shipped` delivers the `shipped` signal, which the paid workflow awaits with a shielded wait. The task records the first shipment, so a repeated one succeeds and another one returns `409`. |
-| Compensation | The transition which cancels the order stages `ReleaseStock` for each confirmed line. | Inline and shielded, so the compensation runs to completion after the cancellation which ended the workflow: the authorization is voided, then `lines.Select(...ReleaseAsync...).WhenAll().WithId("release").Shielded()` releases the lines concurrently. |
-| Projection | `StatusChanged` messages carry a version; the buyer keeps the highest. | The workflow posts one `RecordOrderAsync` call per version as a detached task, `.WithId($"record-{transition}").Detached().Post()`, whose root ID derives from the order grain, the workflow's ID, and the transition. The update commits with the workflow's next journal write and runs independently of the workflow. The buyer keeps the highest version. |
-| Idempotency | Message IDs derived from the order ID, such as `orders/{orderId}/stock/{productId}`; each inbox processes a message ID once. | The checkout's `Idempotency-Key` names the order and its workflow, task IDs beneath it name each step, and the gateway's `Idempotency-Key` names the order's authorization, as [Idempotency end to end](#idempotency-end-to-end) describes. |
-| Recovery | The inbox and outbox resume pending messages; each handler runs from the state it finds. | The next activation replays pending tasks from the start; completed children and recorded effects return their recorded results, so the workflow resumes where it stopped and the history holds each version once. Durable Jobs wakes the order when the delay is due or a completion arrives. |
-| Observability | Order state and the dashboard. | The order's operation, with long polling and server-sent events, its history as a server-sent event stream, and the dashboard. |
-| Non-blank lines of code | Grains 414, contracts 112, host 49. | Grains 315, contracts 133, host 229, including the HTTP API, the Nexus service, and the diagnostics endpoints; the simulated gateway adds 139. |
+| 检出 | 发箱中的篮子阶段 `SubmitOrder` ,以一份日记来清除。 | `POST /api/orders` 开始 `PlaceOrderAsync` ,作为取出 `Idempotency-Key` 名称的操作,工作流程的第一步是篮子行。重新审出结果达到相同的顺序。 |
+| 宽减期 | 命令自动发出 `GracePeriodElapsed` 与 `Envelope.DeliverAt`; 处理者忽略它,除非命令仍然不变 `Submitted`. | `await DurableTask.Delay(gracePeriod).WithId("grace-period")`.运行时间发送的自发信息类型相同。 |
+| 注销 | `CancelAsync` 取消 `Submitted` 或 `AwaitingValidation` 命令;迟发的库存确认书解除了保留。 | `POST /api/orders/operations/{orderId}:cancel` 请求在支付订单之前,以买方的理由持久取消工作流程。在审定过程中, `WhenAll` 等待所有保留都解决,然后扔掉 `OperationCanceledException`,因此工作流程可以补偿知道没有保留仍在运行的情况。 |
+| 保留扇出 | 每行一条 `ReserveStock` 信息; `StockResult` 答复按任何顺序发出,处理者跟踪每行。 | `await lines.Select(...ReserveAsync...).WhenAll().WithId("reserve")` 计划同时每行打一个电话,作为儿童 `reserve/0`、 `reserve/1`等,并按线顺序返回每一行的结果。 |
+| 付款 | `AuthorizePayment` 和 `PaymentResult` 答复,由电文编号相关。 | 工作流程在HTTP的网关上启动授权,使用 `IDurableHttpClient.StartOperationAsync`,以其命令为键,用 `WaitForOperationAsync(...).WaitAsync(paymentTimeout).WithId("await-payment")`进行民意测验。暂停或取消取消授权即为无效。 |
+| 装运 | `ShipAsync` 将 `Paid` 顺序移动到 `Shipped`。 | `POST /api/orders/operations/{orderId}/signals/shipped` 发送 `shipped` 信号,支付费用的工作流程等待着一个屏蔽的等待。任务记录了第一批货物,因此一次重复成功,另一次返回 `409`。 |
+| 赔偿 | 取消每个经确认的线条的订单阶段 `ReleaseStock` 的过渡。 | 内嵌和屏蔽,因此补偿在终止工作流程的取消后持续到完成:授权无效,然后 `lines.Select(...ReleaseAsync...).WhenAll().WithId("release").Shielded()` 同时释放线条。 |
+| 投射 | `StatusChanged` 信息含有一个版本;买方保留最高文本。 | 工作流程将每个版本的 `RecordOrderAsync` 呼叫作为独立任务, `.WithId($"record-{transition}").Detached().Post()`,其根代号来自订单 grain、工作流程编号和过渡。更新承诺使用下一个工作流程日记撰写并运行而不依赖工作流程。买方保留最高版本。 |
+| 能力 | 由顺序编号(如 `orders/{orderId}/stock/{productId}`)生成的信件代号;每个收件箱一次处理一个邮件代号。 | 检出 `Idempotency-Key` 中指定了订单及其工作流程, 下方的任务标识点为每一步命名, 网关的 `Idempotency-Key` 中则列出命令的授权, 如 [结束对口](#idempotency-end-to-end) 所述 。 |
+| 恢复 | 信箱和发件箱恢复待发信件;每个处理者从它找到的状态运行。 | 下一次激活从一开始就重播未完成的任务; 已完成的子和记录的效果会返回记录的结果, 因此工作流程会恢复停止的位置, 历史会将每个版本都保留一次。 持久工作会在延迟到期或完成到达时提醒命令 。 |
+| 可观察性 | 命令状态和仪表板 | 订单的运作,包括长时间的投票和服务器发送事件、其作为服务器发送事件流的历史以及仪表板。 |
+| 非空白代码线 | Grains 414,合同112,主机49 | Grains 315,合同133,主机229,包括HTTP API、Nexus服务和诊断终点;模拟网关增加了139个。 |
 
-## Configuration
+<a id="configuration"></a>
 
-`Ordering:GracePeriod` in `appsettings.json` sets the delay before stock validation, `Ordering:PaymentTimeout` bounds
-payment authorization, and `Ordering:PaymentPollInterval` spaces polls of an authorization which advertises no
-`Retry-After`. `Payments:BaseAddress` locates the gateway, which this application serves. A changed setting applies to new
-orders; a replayed delay keeps the due time it recorded. Journals and Durable Jobs use volatile in-memory storage, and
-journaled state uses the JSON journal format with the source-generated `DurableOrderProcessingJsonContext`; durable task
-arguments and results use the Orleans serializer.
+## 配置
+
+`Ordering:GracePeriod` 内 `appsettings.json` 设定库存审定前的延误, `Ordering:PaymentTimeout` 边框
+申请批准付款授权,以及 `Ordering:PaymentPollInterval` 空间空间测量
+`Retry-After`. `Payments:BaseAddress` 定位此应用程序所服务的网关。
+命令; 重放的延迟会保持其记录的适当时间。 日志和持久工作使用不稳定的存储, 以及
+使用 JSON 源生成的日记格式 `DurableOrderProcessingJsonContext`; 持久任务
+参数和结果使用 Orleans 序列转换器。

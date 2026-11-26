@@ -9,7 +9,7 @@ using System.Text;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// Utility methods for formatting <see cref="Type"/> and <see cref="TypeInfo"/> instances in a way which can be parsed by
+/// 格式化 <see cref="Type"/> 和 <see cref="TypeInfo"/> 实例的实用方法,其格式化方式可以由
 /// <see cref="Type.GetType(string)"/>.
 /// </summary>
 public static class RuntimeTypeNameFormatter
@@ -19,11 +19,11 @@ public static class RuntimeTypeNameFormatter
     private static readonly ConcurrentDictionary<Type, string> Cache = new();
 
     /// <summary>
-    /// Returns a <see cref="string"/> form of <paramref name="type"/> which can be parsed by <see cref="Type.GetType(string)"/>.
+    /// 返回 <see cref="string"/> 形式的 <paramref name="type"/> ,该 <see cref="Type.GetType(string)"/>可以进行解析。
     /// </summary>
-    /// <param name="type">The type to format.</param>
+    /// <param name="type">格式的类型。</param>
     /// <returns>
-    /// A <see cref="string"/> form of <paramref name="type"/> which can be parsed by <see cref="Type.GetType(string)"/>.
+    /// 一种 <see cref="string"/> 形式 <paramref name="type"/> ,可以由 <see cref="Type.GetType(string)"/>加以分析。
     /// </returns>
     public static string Format(Type type)
     {
@@ -58,7 +58,7 @@ public static class RuntimeTypeNameFormatter
         {
             if (alias.Components[^1] is string str && ulong.TryParse(str, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result))
             {
-                // For numeric aliases, arbitrarily pick the one with the lowest value.
+                // 对于数字化的别名, 任意选择最低值的
                 if (candidate is null || result < candidateValue)
                 {
                     candidate = alias;
@@ -67,7 +67,7 @@ public static class RuntimeTypeNameFormatter
             }
             else
             {
-                // If the value is not numeric, then prefer this alias over any numeric ones.
+                // 如果值不是数字,则更倾向于使用这个别名而不是任何数字。
                 return alias;
             }
         }
@@ -84,13 +84,13 @@ public static class RuntimeTypeNameFormatter
             return;
         }
 
-        // Arrays, pointers, and by-ref types are all element types and need to be formatted with their own adornments.
+        // 阵列、指针和副反射类型都是元素类型,需要以其自身装饰的形式格式化。
         if (type.HasElementType)
         {
-            // Format the element type.
+            // 格式化元素类型。
             Format(builder, type.GetElementType()!, isElementType: true, allowAliases: allowAliases);
 
-            // Format this type's adornments to the element type.
+            // 格式化此类型对元素类型的装饰。
             AddArrayRank(builder, type);
             AddPointerSymbol(builder, type);
             AddByRefSymbol(builder, type);
@@ -102,8 +102,8 @@ public static class RuntimeTypeNameFormatter
             AddGenericParameters(builder, type, allowAliases);
         }
 
-        // Types which are used as elements are not formatted with their assembly name, since that is added after the
-        // element type's adornments.
+        // 用作元素的类型不使用组装名称格式化,因为此类型添加在
+        // 元素类型装饰。
         if (!isElementType)
         {
             AddAssembly(builder, type);
@@ -112,7 +112,7 @@ public static class RuntimeTypeNameFormatter
 
     private static void AddCompoundTypeAlias(StringBuilder builder, Type type, object[] components, bool allowAliases)
     {
-        // Start
+        // 开始
         builder.Append('(');
         for (var i = 0; i < components.Length; ++i)
         {
@@ -122,7 +122,7 @@ public static class RuntimeTypeNameFormatter
                 builder.Append(',');
             }
 
-            // Append the component
+            // 附加组件
             if (component is string s)
             {
                 builder.Append($"\"{s}\"");
@@ -144,7 +144,7 @@ public static class RuntimeTypeNameFormatter
             }
         }
 
-        // End
+        // 结束
         builder.Append(')');
         if (type.IsGenericType)
         {
@@ -170,26 +170,26 @@ public static class RuntimeTypeNameFormatter
 
     private static void AddClassName(StringBuilder builder, Type type)
     {
-        // Format the declaring type.
+        // 格式化声明类型。
         if (type.IsNested)
         {
             AddClassName(builder, type.DeclaringType!);
             _ = builder.Append('+');
         }
 
-        // Format the simple type name.
+        // 格式化简单类型名称。
         var name = type.Name.AsSpan();
         var index = name.IndexOfAny("`*[&");
         _ = builder.Append(index > 0 ? name[..index] : name);
 
-        // Format this type's generic arity.
+        // 格式化此类型的一般正数 。
         AddGenericArity(builder, type);
     }
 
     private static void AddGenericParameters(StringBuilder builder, Type type, bool allowAliases = true)
     {
-        // Generic type definitions (eg, List<> without parameters) and non-generic types do not include any
-        // parameters in their formatting.
+        // 通用类型定义(例如,清单* *}没有参数)和非基因类型不包括任何
+        // 格式化参数。
         if (!type.IsConstructedGenericType)
         {
             return;
@@ -218,12 +218,12 @@ public static class RuntimeTypeNameFormatter
             return;
         }
 
-        // The arity is the number of generic parameters minus the number of generic parameters in the declaring types.
+        // 均匀性是指在申报类型中通用参数数减去通用参数数。
         var baseTypeParameterCount =
             type.IsNested ? type.DeclaringType!.GetGenericArguments().Length : 0;
         var arity = type.GetGenericArguments().Length - baseTypeParameterCount;
 
-        // If all of the generic parameters are in the declaring types then this type has no parameters of its own.
+        // 如果所有通用参数都属于申报类型,则这种类型的参数本身没有。
         if (arity == 0)
         {
             return;
@@ -267,7 +267,7 @@ public static class RuntimeTypeNameFormatter
 
     private static void AddAssembly(StringBuilder builder, Type type)
     {
-        // Do not include the assembly name for the system assembly.
+        // 不包括系统组装的组装名称。
         var assembly = type.Assembly;
         if (SystemAssembly.Equals(assembly))
         {

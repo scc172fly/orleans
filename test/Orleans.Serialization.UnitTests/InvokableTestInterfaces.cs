@@ -224,16 +224,16 @@ namespace Orleans.Serialization.UnitTests
     public interface IRuntimeCodeGenGrain<T> : IMyInvokableBaseType
     {
         /// <summary>
-        /// Sets and returns the grain's state.
+        /// 设置并返回 grain状态。
         /// </summary>
-        /// <param name="value">The new state.</param>
-        /// <returns>The current state.</returns>
+        /// <param name="value">新状态。</param>
+        /// <returns>现状。</returns>
         Task<T> SetState(T value);
 
         /// <summary>
-        /// Tests that code generation correctly handles methods with reserved keyword identifiers.
+        /// 测试代码生成正确处理方法的方法是否与保留的关键字识别符号正确。
         /// </summary>
-        /// <returns>The current state's event.</returns>
+        /// <returns>当前状态事件。</returns>
         Task<@event> @static();
     }
 
@@ -246,7 +246,7 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// A class designed to test that code generation correctly handles reserved keywords.
+    /// 用于测试代码生成正确处理保留关键字的类别。
     /// </summary>
     [GenerateSerializer]
     public class @event : IEquatable<@event?>
@@ -260,31 +260,31 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// A public field.
+        /// 公共领域。
         /// </summary>
         [Id(0)]
         public Guid Id;
 
         /// <summary>
-        /// A private field.
+        /// 私人田地
         /// </summary>
         [Id(1)]
         private Guid privateId;
 
         /// <summary>
-        /// A property with a reserved keyword type and identifier.
+        /// 带有保留关键字类型和识别符号的属性。
         /// </summary>
         [Id(2)]
         public @event? @public { get; set; }
 
         /// <summary>
-        /// Gets or sets the enum.
+        /// 设置或设置大号
         /// </summary>
         [Id(3)]
         public @enum Enum { get; set; }
 
         /// <summary>
-        /// A property with a reserved keyword generic type and identifier.
+        /// 有保留关键词通用类型和识别符号的属性。
         /// </summary>
         [Id(4)]
         public List<@event>? @if { get; set; }
@@ -298,7 +298,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// Gets or sets the private id.
+        /// 获取或设置私人身份。
         /// </summary>
         // ReSharper disable once ConvertToAutoProperty
         public Guid PrivateId
@@ -356,7 +356,7 @@ namespace Orleans.Serialization.UnitTests
             }
             if (this.@if != other.@if)
             {
-                // Serialized equality inputs preserve whether the event list is present.
+                // 分级的平等投入保留了事件清单是否存在。
                 if (this.@if != null && !this.@if.SequenceEqual(other.@if!, EventComparer))
                 {
                     return false;
@@ -378,7 +378,7 @@ namespace Orleans.Serialization.UnitTests
         {
             public bool Equals(@event? x, @event? y)
             {
-                // Lists in this test declare non-null event elements.
+                // 本测试中列出的宣布非无效事件元素的清单 。
                 return x!.Equals(y);
             }
 
@@ -424,19 +424,19 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// Tests that nested classes do not fail code generation.
+    /// 嵌套类不会失败代码生成的测试 。
     /// </summary>
     public class NestedGenericGrain : INestedGenericGrain
     {
         public Task<int> Do(NestedGeneric<int> value)
         {
-            // Generated requests in this test always provide the initialized payload.
+            // 本试验中产生的请求总是提供初始有效载荷。
             return Task.FromResult(value.Payload!.Value);
         }
 
         public Task<int> Do(NestedConstructedGeneric value)
         {
-            // Generated requests in this test always provide the initialized payload.
+            // 本试验中产生的请求总是提供初始有效载荷。
             return Task.FromResult(value.Payload!.Value);
         }
     }

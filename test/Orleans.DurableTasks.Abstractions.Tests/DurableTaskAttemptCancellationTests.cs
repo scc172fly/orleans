@@ -4,8 +4,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Tests the distinction between durable task cancellation, which the task observes and records, and the cancellation of
-/// an attempt, after which the attempt's durable operations throw <see cref="DurableTaskAttemptCanceledException"/>.
+/// 测试任务观察和记录持久任务取消与注销
+/// 一次尝试,之后,该尝试的持久作业就抛出 <see cref="DurableTaskAttemptCanceledException"/>。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -352,7 +352,7 @@ public class DurableTaskAttemptCancellationTests
         var response = await DurableTaskRuntimeHelper.RunAsync(
             DurableTask.Run(_ => DurableTask.RunInline("effect", new Func<int>(() =>
             {
-                // The host stops the attempt while the effect runs, and the effect's work observes it.
+                // 效果运行时主机停止尝试,效果的工作也观察到了。
                 context.CancelAttempt(DurableTaskAttemptCancellationReason.ActivationStopping);
                 thrown = new DurableTaskAttemptCanceledException(
                     DurableTaskAttemptCancellationReason.ActivationStopping,
@@ -364,7 +364,7 @@ public class DurableTaskAttemptCancellationTests
         Assert.Same(thrown, response.Exception);
         Assert.Empty(host.Effects);
 
-        // A replay runs the effect again, because the canceled attempt recorded nothing.
+        // 重播再次运行效果, 因为取消的尝试没有记录下来。
         var replay = await DurableTaskRuntimeHelper.RunAsync(
             DurableTask.Run(_ => DurableTask.RunInline("effect", static () => 2)),
             host.CreateContext(RootId));
@@ -408,7 +408,7 @@ public class DurableTaskAttemptCancellationTests
                     return new(response.Task);
                 }
 
-                // The host stops the attempt while it handles the delay, and reports the delay as canceled.
+                // 处理延迟时主机停止尝试, 并报告延误被取消 。
                 context!.CancelAttempt(DurableTaskAttemptCancellationReason.TaskAborted);
                 return new(DurableTaskResponse.FromCanceled(hostCancellation));
             },
@@ -634,8 +634,8 @@ public class DurableTaskAttemptCancellationTests
     }
 
     /// <summary>
-    /// A host whose handle waits end when the attempt is canceled, as a host which stops the attempt's in-memory work does,
-    /// throwing the raw cancellation of the wait.
+    /// 操作程序等待尝试取消时结束的东道主, 作为停止尝试的模拟工作的主机,
+    /// 原封不动地取消等待。
     /// </summary>
     private sealed class LinkingContext : DurableTaskContext
     {
@@ -704,7 +704,7 @@ public class DurableTaskAttemptCancellationTests
         public ValueTask CancelAsync(string? reason, CancellationToken cancellationToken) => ValueTask.CompletedTask;
     }
 
-    /// <summary>A host whose child handle's wait returns the response which the test supplies, whatever the attempt's state.</summary>
+    /// <summary>儿童处理等待的宿主返回测试提供的反应, 无论尝试状态如何。</summary>
     private sealed class RespondingContext(TaskId taskId) : DurableTaskContext(taskId)
     {
         public RespondingHandle Handle { get; } = new(taskId.Child("child"));

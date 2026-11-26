@@ -11,8 +11,8 @@ using Orleans.Serialization.Invocation;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Shared, hand-written test fakes reused across the Microsoft.Orleans.DurableTasks.Tests project.
-/// Mirrors the pattern used in test/Orleans.Journaling.Tests/JournalBatchTests.cs (TestGrainContext).
+/// 共用、手写测试假冒,在 Microsoft.Orleans.DurableTasks.Tests 项目中重新使用。
+/// 镜像测试/Orleans.Journaling.Tests/JournalBatchTests.cs (TestGrainContext)中使用的模式。
 /// </summary>
 internal sealed class TestGrainContext(GrainId grainId) : IGrainContext
 {
@@ -40,8 +40,8 @@ internal sealed class TestGrainContext(GrainId grainId) : IGrainContext
 }
 
 /// <summary>
-/// Minimal fake <see cref="IGrainLifecycle"/> that records subscriptions instead of invoking them.
-/// Sufficient for testing components (e.g. lifecycle participants) that only call <c>Subscribe</c> during initialization.
+/// 最小假冒 <see cref="IGrainLifecycle"/> 记录而未引用订阅者,
+/// 足以测试部件(e.g使用寿命周期参与者) <c>Subscribe</c> 初始化期间。
 /// </summary>
 internal sealed class TestGrainLifecycle : IGrainLifecycle
 {
@@ -63,7 +63,7 @@ internal sealed class TestGrainLifecycle : IGrainLifecycle
 }
 
 /// <summary>
-/// Trivial <see cref="IGrainContextAccessor"/> fake that always returns the supplied context.
+/// 假的三维亚尔 <see cref="IGrainContextAccessor"/> ,总是返回所提供的上下文。
 /// </summary>
 internal sealed class TestGrainContextAccessor(IGrainContext context) : IGrainContextAccessor
 {
@@ -71,8 +71,8 @@ internal sealed class TestGrainContextAccessor(IGrainContext context) : IGrainCo
 }
 
 /// <summary>
-/// Runs the local requests which a substitute grain context receives on the scheduler which queued them: one at a time, in
-/// arrival order, as a non-reentrant activation does, or as soon as they arrive, as a reentrant one does.
+/// 运行替换 grain 上上一个排队的调度器所接收到的本地请求:一次一个
+/// 抵达令,如非返回启动一样,或一到达即返回。
 /// </summary>
 internal sealed class TestLocalRequestQueue(bool reentrant)
 {
@@ -80,10 +80,10 @@ internal sealed class TestLocalRequestQueue(bool reentrant)
     private readonly object _lock = new();
     private bool _running;
 
-    /// <summary>Gets the number of requests which ran.</summary>
+    /// <summary>获得运行的请求数。</summary>
     public int Completed { get; private set; }
 
-    /// <summary>Makes <paramref name="context"/>, a substitute, run its local requests through a new queue.</summary>
+    /// <summary>制造 <paramref name="context"/>,一个替代的,通过一个新的队列处理其本地请求。</summary>
     public static TestLocalRequestQueue Attach(IGrainContext context, bool reentrant = false)
     {
         var queue = new TestLocalRequestQueue(reentrant);
@@ -159,10 +159,10 @@ internal sealed class TestLocalRequestQueue(bool reentrant)
     }
 }
 
-/// <summary>Runs runtime operations which an attempt calls, from a test which drives the runtime directly.</summary>
+/// <summary>运行运行时间操作, 运行时操作中尝试呼叫, 从直接驱动运行时间的测试中运行。</summary>
 internal static class DurableTaskGrainRuntimeTestExtensions
 {
-    /// <summary>Selects a completion as an attempt of the execution which owns <paramref name="decisionId"/> does.</summary>
+    /// <summary>选择完成作为执行尝试的完成,该执行自有 <paramref name="decisionId"/> 确实如此。</summary>
     public static ValueTask<TaskId> SelectCompletionAsync(
         this global::Orleans.Durable.Tasks.Runtime.DurableTaskGrainRuntime runtime,
         TaskId decisionId,
@@ -175,9 +175,9 @@ internal static class DurableTaskGrainRuntimeTestExtensions
             cancellationToken);
 
     /// <summary>
-    /// Delivers the completion which <paramref name="sender"/> sends for the remote child <paramref name="taskId"/> of the
-    /// current run of its tree, as the inbox delivers it: addressed to the child's wire identifier, from the task which the
-    /// callee stores under the runtime's caller scope.
+    /// 完成时, <paramref name="sender"/> 发送给该天的远龄子 <paramref name="taskId"/>
+    /// 儿童在工作上的任务
+    /// 通知时间的呼叫范围下的叫卖店
     /// </summary>
     public static void AcceptResponseFromInbox(
         this global::Orleans.Durable.Tasks.Runtime.DurableTaskGrainRuntime runtime,

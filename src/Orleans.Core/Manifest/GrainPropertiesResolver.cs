@@ -6,17 +6,17 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Responsible for resolving <see cref="GrainProperties"/> for <see cref="GrainType"/> values.
+    /// 负责解决 <see cref="GrainProperties"/> 值的 <see cref="GrainType"/> 。
     /// </summary>
     public class GrainPropertiesResolver
     {
         private readonly IClusterManifestProvider _clusterManifestProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainPropertiesResolver"/> class.
+        /// 初始化 <see cref="GrainPropertiesResolver"/> 类的新实例。
         /// </summary>
         /// <param name="clusterManifestProvider">
-        /// The cluster manifest provider.
+        /// 集束货单提供者。
         /// </param>
         public GrainPropertiesResolver(IClusterManifestProvider clusterManifestProvider)
         {
@@ -24,13 +24,13 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Gets the grain properties for the provided type.
+        /// 获取所提供类型中的 grain 属性。
         /// </summary>
         /// <param name="grainType">
-        /// The grain type.
+        /// 类型 grain 。
         /// </param>
         /// <returns>
-        /// The grain properties.
+        /// grain 属性。
         /// </returns>
         public GrainProperties GetGrainProperties(GrainType grainType)
         {
@@ -44,16 +44,16 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Gets the grain properties for the provided type.
+        /// 获取所提供类型中的 grain 属性。
         /// </summary>
         /// <param name="grainType">
-        /// The grain type.
+        /// 类型 grain 。
         /// </param>
         /// <param name="properties">
-        /// The grain properties.
+        /// grain 属性。
         /// </param>
         /// <returns>
-        /// A value indicating whether grain properties could be found for the provided grain type.
+        /// 表示是否 grain 提供的属性 grain 类型。
         /// </returns>
         public bool TryGetGrainProperties(GrainType grainType, [NotNullWhen(true)] out GrainProperties? properties)
         {

@@ -10,7 +10,7 @@ using Orleans.Runtime;
 namespace Orleans.Providers.Streams.Generator
 {
     /// <summary>
-    /// Pooled cache for generator stream provider.
+    /// 发电机流供应商的集合缓存。
     /// </summary>
     public class GeneratorPooledCache : IQueueCache, ICacheDataAdapter
     {
@@ -22,13 +22,13 @@ namespace Orleans.Providers.Streams.Generator
         private FixedSizeBuffer? currentBuffer;
 
         /// <summary>
-        /// Pooled cache for generator stream provider.
+        /// 发电机流供应商的集合缓存。
         /// </summary>
-        /// <param name="bufferPool">The buffer pool.</param>
-        /// <param name="logger">The logger.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <param name="cacheMonitor">The cache monitor.</param>
-        /// <param name="monitorWriteInterval">The monitor write interval. Only triggered for active caches</param>
+        /// <param name="bufferPool">缓冲池。</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="serializer">序列器。</param>
+        /// <param name="cacheMonitor">缓存监视器。</param>
+        /// <param name="monitorWriteInterval">监视器写时间隔。 只有活动缓存触发了</param>
         public GeneratorPooledCache(IObjectPool<FixedSizeBuffer> bufferPool, ILogger logger, Serialization.Serializer serializer, ICacheMonitor? cacheMonitor, TimeSpan? monitorWriteInterval)
             : this(
                 bufferPool,
@@ -57,10 +57,10 @@ namespace Orleans.Providers.Streams.Generator
         /// <inheritdoc />
         public IBatchContainer GetBatchContainer(ref CachedMessage cachedMessage)
         {
-            //Deserialize payload
+            //降低有效载荷的序列化
             int readOffset = 0;
             ArraySegment<byte> payload = SegmentBuilder.ReadNextBytes(cachedMessage.Segment, ref readOffset);
-            // Generated batches always serialize a non-null payload.
+            // 生成的批量总是将非核有效载荷序列化。
             object payloadObject = this.serializer.Deserialize<object>(payload)!;
             return new GeneratedBatchContainer(cachedMessage.StreamId,
                 payloadObject, new EventSequenceTokenV2(cachedMessage.SequenceNumber));
@@ -85,22 +85,22 @@ namespace Orleans.Providers.Streams.Generator
             };
         }
 
-        // Placed object message payload into a segment from a buffer pool.  When this get's too big, older blocks will be purged
+        // 将对象信息有效载荷放置在缓冲池的段内。 当这个位置太大时, 旧区块将被清除
         private ArraySegment<byte> SerializeMessageIntoPooledSegment(GeneratedBatchContainer queueMessage)
         {
             byte[] serializedPayload = this.serializer.SerializeToArray(queueMessage.Payload);
 
-            // get size of namespace, offset, partitionkey, properties, and payload
+            // 命名空间、 偏移、 分割键、 属性和有效载荷的大小
             int size = SegmentBuilder.CalculateAppendSize(serializedPayload);
 
-            // get segment
+            // 获取分段
             ArraySegment<byte> segment;
             if (currentBuffer == null || !currentBuffer.TryGetSegment(size, out segment))
             {
-                // no block or block full, get new block and try again
+                // 没有块或整块, 获得新块并再次试
                 var newBuffer = bufferPool.Allocate();
-                // if this fails with a clean block, then requested size is too big; return the
-                // unused block to the pool and fail rather than leaking a block that is never committed.
+                // 如果此失败与干净块块失败, 那么请求的大小太大; 返回
+                // 现金池的未用块块,但失败了,而不是漏出一个从未承诺的块。
                 if (!newBuffer.TryGetSegment(size, out segment))
                 {
                     newBuffer.Dispose();
@@ -108,11 +108,11 @@ namespace Orleans.Providers.Streams.Generator
                     throw new ArgumentOutOfRangeException(nameof(queueMessage), errmsg);
                 }
                 currentBuffer = newBuffer;
-                //call EvictionStrategy's OnBlockAllocated method
+                //[调用 EvictionStrategy的 OnBlockAllocated 方法
                 this.evictionStrategy.OnBlockAllocated(currentBuffer);
             }
 
-            // encode namespace, offset, partitionkey, properties and payload into segment
+            // 编码名称空间、 偏移、 分割键、 属性和有效载荷等元件
             int writeOffset = 0;
             SegmentBuilder.Append(segment, ref writeOffset, serializedPayload);
 
@@ -218,7 +218,7 @@ namespace Orleans.Providers.Streams.Generator
         /// <inheritdoc />
         public bool TryPurgeFromCache(out IList<IBatchContainer> purgedItems)
         {
-            purgedItems = null!; // Return value is always false, per [MaybeNullWhen(false)] on the interface.
+            purgedItems = null!; // 返回值总是虚假的, 以接口 [MaybeNullWhen(false)] 为准。
             this.evictionStrategy.PerformPurge(DateTime.UtcNow);
             if (cache.IsEmpty)
             {

@@ -9,7 +9,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// Tests for memory stream provider behavior with batched messages when clients are dropped from the cluster.
+    /// 当客户从集中删除时, 测试存储流提供者的行为, 并分批发送信息 。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

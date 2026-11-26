@@ -1,120 +1,140 @@
 ---
-title: Capacity planning and scaling
-description: Size and scale Orleans clusters using measured workload and saturation signals.
+title: "能力规划和规模"
+description: "使用量度工作量和饱和信号的大小和规模 Orleans 组群。"
 ms.date: 08/17/2026
 ms.topic: concept-article
 ---
 
-# Capacity planning and scaling
+<a id="capacity-planning-and-scaling"></a>
 
-Orleans distributes activations and work across silos. Capacity follows the active workload: grains can be idle, CPU-intensive, memory-intensive, hot, or blocked on dependencies.
+# 能力规划和规模
 
-## Plan for scale
+Orleans 在整个 silos中分配启动和工作。能力随有效工作量变化: grains 可以是闲置、CPU密集、记忆密集、热或依赖性阻塞。
 
-Orleans distributes grain activations and request processing across silos. Applications address grain identities directly, Orleans creates activations on demand, and adding silos increases capacity for workload that partitions across activations.
+<a id="plan-for-scale"></a>
 
-The practical operating envelope is application- and environment-dependent. Determine it using representative tests of the workload, host resources, network, storage and clustering providers, external dependencies, and recovery requirements. Activation resource consumption begins with a grain identity's first use, so size the cluster from active workload and resource use.
+## 比额表计划
 
-For the mechanisms which support scale-out, see [Topology, networking, and clustering](networking.md), [Cluster membership protocol](../implementation/cluster-management.md), and [Grain directory architecture](../implementation/grain-directory.md).
+Orleans 分配号 grain 跨 silos申请地址 grain 直接身份识别 Orleans 创建需求时的激活,并添加 silos 增加工作量的能力,使所有启动活动都能够进行分割。
 
-## Establish a workload model
+实际操作封套取决于应用和环境。它使用对工作量、东道国资源、网络、储存和集群提供者、外部依赖性和恢复要求的具有代表性的测试来确定。启动资源的消耗首先从 grain 特性的首次使用开始,因此从现有工作量和资源使用中缩小群组的规模。
 
-Measure production-like mixes of:
+支持扩大规模的机制,见 [地形学、联网和集群](networking.md)、 [集群成员议定书](../implementation/cluster-management.md)和 [Grain 目录结构](../implementation/grain-directory.md)。
 
-- Calls per second and latency objectives by operation.
-- Active and total grain counts by type.
-- Grain state size, read/write frequency, and serialization cost.
-- Hot-key concentration and fan-out to other grains or services.
-- Timers, reminders, streams, and background work.
-- Payload sizes and client gateway traffic.
-- Dependency latency, throttling, and connection limits.
+<a id="establish-a-workload-model"></a>
 
-Load tests should include bursts, one-silo loss, rolling replacement, dependency slowdown, and recovery after backlog accumulation.
+## 建立工作量模式
 
-## Measure activation throughput
+测量生产型混合剂:
 
-Activation and deactivation throughput varies with provider latency, state size, application lifecycle code, contention, and silo shape. A cold call can include directory lookup and registration, placement, object construction, persistent-state reads, and application activation callbacks. Deactivation can include application callbacks, cleanup, and directory updates.
+- 每项行动每要求2个和延迟目标。
+- 和总 grain 数,按类型分列。
+- Grain 状态大小、读/写频率和序列成本。
+- 热钥匙浓度和向其他 grains 或服务推广。
+- 计时器、提醒、流和背景工作。
+- 有效载荷尺寸和客户网关流量。
+- 依赖性延缓、节奏和连接限制。
 
-Test these paths separately:
+装载试验应包括连续试验、1 -silo 损失、滚动更换、依赖性减速和积压后恢复。
 
-- **Warm steady state:** The target activations already exist.
-- **Cold-start burst:** Many previously inactive grain identities receive their first call.
-- **Sustained churn:** Activations are collected and soon needed again.
-- **Recovery:** A restart or silo loss causes concurrent reactivation and state reads.
+<a id="measure-activation-throughput"></a>
 
-Record the built-in aggregate activation and deactivation counters and latencies together with directory, storage, CPU, allocation, garbage collection, and request-latency signals. Add application instrumentation around grain lifecycle code when analysis requires rates or latencies by grain type. If churn is the bottleneck, remove unnecessary work from <xref:Orleans.Grain.OnActivateAsync*>, batch dependency access, and tune [activation collection](../host/configuration-guide/activation-collection.md) for the affected grain types. Retaining activations trades memory for fewer cold starts.
+## 措施启动量
 
-Model a storage page as a grain when it forms an independently addressed consistency boundary. A scan which immediately cold-activates many pages pays activation, messaging, and backend access for each page. Compare that design with coarser grains, bounded batches using the storage backend's range or batch APIs, or a dedicated indexing service. Bound fan-out in every design.
+激活和解除功能的通过量因供应商的延迟度、州大小、应用生命周期代码、争议和 silo 形状而异。 冷电可以包括目录搜索和登记、定位、物体构造、持久性状态读写和应用激活回调。 取消作用可以包括应用程序回拨、清理和目录更新。
 
-## Size silos
+分别测试这些路径 :
 
-Choose a repeatable CPU and memory size, then measure:
+- **热稳定状态:** 目标启动已经存在 。
+- **冷启动爆破:** 先前许多不活动过 grain 第一次被调用时,
+- **持续( 原文: )** 活动已经收集起来,很快又需要。
+- **恢复:** 重新开始或 silo 损失导致同时恢复,国家写道。
 
-- CPU saturation and scheduler delay.
-- Allocation rate, garbage collection pause time, and working set.
-- Activation count and per-activation memory.
-- Request queues, rejection or load-shedding rate, and tail latency.
-- Network connections and throughput.
-- Provider latency and throttling.
+记录内置集成启动和禁用反控器和延迟装置,以及目录、存储、CPU、分配、垃圾收集、请求时间间隔信号。 grain 分析要求使用寿命周期代码时, grain 类型中,如果胸口是瓶颈,请删除不必要的工作 <xref:Orleans.Grain.OnActivateAsync*>批量依赖性接入和调 [激活收藏](../host/configuration-guide/activation-collection.md) 受影响者的 grain 类型。保留激活,将内存交换为较少的冷启动。
 
-Leave headroom for activation redistribution and traffic after losing a host or failure domain. Choose silo sizes which balance restart and reactivation blast radius against per-process runtime, connection, and membership overhead.
+当存储页面形成独立处理的一致性边界时,它会以 grain 模式建模。一个扫描,当它形成独立的处理一致性边界时,冷控激活许多页面即可为每页支付启动、发送和后端访问费。将这一设计与粗件 grains相比,使用存储后端范围或批次 API 的捆绑批量,或者专门索引服务。在每个设计中都出现溢出效果。
 
-CPU limits can throttle a process even when node CPU appears available. Memory limits can terminate a process at the platform boundary before managed allocation reports an out-of-memory exception. Set requests from observed steady-state use and set limits with an understood platform policy and tested behavior.
+<a id="size-silos"></a>
 
-## Find the operating envelope
+## 大小 silos
 
-Use the production runtime version, host shape, network, providers, serialization settings, and representative state. A useful capacity test proceeds as follows:
+选择可重复的 CPU 和内存大小, 然后测量 :
 
-1. Define latency percentiles, completed throughput, error and timeout rates, and recovery objectives.
-1. At a fixed cluster size, increase offered load until one objective fails or a resource saturates.
-1. Repeat with larger cluster sizes and use completed throughput alongside submitted work to select the operating envelope.
-1. Repeat cold-start, hot-key, burst, scale-out, scale-in, rolling-upgrade, dependency-throttling, and silo-loss scenarios.
-1. Select an operating point below the first sustained bottleneck and reserve headroom for the required failure domain.
+- CPU饱和度和排程延迟。
+- 分配率、垃圾收集时间暂停和工作设置。
+- 激活计数和每个活动记数
+- 要求排队、拒绝或超载率和尾部延缓。
+- 网络连接和输送。
+- 提供者用时的延缓和节奏
 
-Correlate client-visible results with per-silo CPU, scheduler delay, memory, garbage collection, network, activation distribution, request queues, rejected work, and provider latency or throttling. A balanced cluster average can hide one saturated silo or storage partition. Use the [observability signals](../host/monitoring/signals.md) emitted by the deployed Orleans version.
+空格, 以便在丢失主机或失败域后激活再分配和交通。 选择 silo 大小, 以平衡于每个进程运行时间、 连接和会员管理费来恢复和重新启动爆炸半径 。
 
-## Scale out and in
+CPU 限制即使在有节点 CPU 可用时也可以加速一个过程。 内存限制可以在管理下分配报告超出模棱两可的例外之前终止平台边界的进程。 设置观察到的稳定状态使用请求,并设定有理解的平台政策和测试行为的限制。
 
-Scale out before saturation. Base scaling decisions on correlated trends in sustained CPU, scheduler delay, tail latency, activation pressure, gateway load shedding, and application queue depth.
+<a id="find-the-operating-envelope"></a>
 
-Adding a silo expands the candidate set for later resource-optimized placement decisions. Existing active grains continue running on their current silos. New activations can use the added capacity immediately after membership converges, and grains which are collected or otherwise deactivated can use it when they reactivate. The activation rebalancer can migrate eligible grains to reduce count and memory skew; the activation repartitioner instead migrates eligible grains to improve call locality. See [Grain placement and migration](../grains/grain-placement.md#scale-out-and-scale-in).
+## 找到操作信封
 
-Account for:
+使用生产运行时间版本、主机形状、网络、供应商、序列设置和代表性状态。
 
-- Time to schedule a host, start the process, join membership, and warm caches.
-- Capacity and connection impact on clustering and storage providers.
-- State-read and serialization load when many grains activate on new or remaining silos.
-- Placement constraints and grains that concentrate work.
-- The minimum number of silos required across failure domains.
+1. 界定延时百分位数、完成的输送量、错误和超时率以及回收目标。
+1. 在固定的组群规模下,增加负荷,直至一个目标失败或资源饱和。
+1. 与已提交的选定操作信封的工作一起重复较大的集束尺寸和使用已完成的输送量。
+1. 重复冷启动、热键、爆裂、扩大规模、升级、按下调整、依赖性交错和 silo-损失假设情景。
+1. 选择第一个持续瓶颈和预留的顶部以下操作点, 以用于所需的故障域 。
 
-Scale in more slowly than scale out. Select one instance at a time where possible, use [graceful shutdown](upgrades.md#graceful-shutdown-and-scale-in), and wait for cluster health to stabilize. Ordinary activations on the departing silo deactivate during shutdown. Leave enough capacity for remaining silos to handle reactivation, state loading, and redirected traffic.
+与每份silo CPU、排程器延迟、内存、垃圾收集、网络、激活分发、请求队列、拒绝工作、供应商延时或抽动。 平衡的集群平均可以隐藏一个饱和 silo 或存储分区。使用 [观测信号](../host/monitoring/signals.md) 部署的 Orleans 版本。
 
-## Handle overload
+<a id="scale-out-and-in"></a>
 
-Unlimited queues convert overload into high latency and memory pressure. Apply:
+## 缩放和在
 
-- Admission control at application ingress.
-- Bounded queues and concurrency.
-- Request deadlines that include downstream calls.
-- Client-gateway request rejection and stream queue flow control through <xref:Orleans.Configuration.LoadSheddingOptions>.
-- Per-tenant or per-key limits where one workload can starve others.
+放大后再饱和。 基级决定, 与持续CPU、排程延迟、尾部延缓、激活压力、网关负载缩放以及应用程序队列深度相关趋势有关。
 
-Set <xref:Orleans.Configuration.LoadSheddingOptions.LoadSheddingEnabled> to `true` to activate runtime load shedding. Crossing its CPU or memory threshold marks the silo overloaded, enables client-gateway request rejection, and makes resource-optimized placement favor non-overloaded candidates. Stream queue flow control uses CPU thresholds to pause reads. Configure thresholds below hard platform limits, validate rejection and recovery behavior under load, and use a hosting-platform autoscaler to adjust cluster capacity.
+添加 silo 将扩大为以后资源优化安置决定设定的候选人。 现有的活动 grains 继续运行当前 silos。 新激活可以在成员聚集后立即使用新增能力, 收集或以其他方式停止使用的 grains 在重新启动时可以使用它。 启动的再平衡器可以迁移到符合条件的状态 grains ,以减少计数和记忆折叠;启动的重新分割器则迁移到有资格的状态 grains ,以改善调用地点。 见 [Grain 安置和移徙](../grains/grain-placement.md#scale-out-and-scale-in)。
 
-Retries consume capacity. Include retry traffic in the load model and use exponential backoff with jitter, a retry budget, and an end-to-end deadline.
+账户的账户为:
 
-## Choose a tenant topology
+- 时间来安排一个主机、启动进程、加入会籍和热藏宝。
+- 能力和连接对集群和储存供应商的影响。
+- 当许多 grains 在新的或剩余的 silos上启动时,状态读取和序列化负荷。
+- 职位设置限制和集中工作的 grains 。
+- 失败域之间需要的最低 silos 数量。
 
-Choose a tenant topology from the required isolation and operational boundaries:
+缩放速度比缩放速度慢。 在可能时选择一个实例, 使用 [宽限期关闭](upgrades.md#graceful-shutdown-and-scale-in)并等待集束健康稳定。 关闭时退出的 silo 停止运行通常会激活。 留有足够的容量让剩余 silos 处理恢复、 国家装载和重置交通 。
 
-| Topology | Benefits | Costs and risks |
+<a id="handle-overload"></a>
+
+## 处理超载处理
+
+无限制队列将超载转换为高延时和内存压力。应用 :
+
+- 申请入境时的入境管制。
+- 围成两队,并合算
+- 要求规定包括下游电话在内的最后期限。
+- 客户端- 门户请求拒绝, 通过 <xref:Orleans.Configuration.LoadSheddingOptions>控制流程流。
+- 一种工作量可以使其他人挨饿的人均或按人均限额。
+
+设置 <xref:Orleans.Configuration.LoadSheddingOptions.LoadSheddingEnabled> 到 `true` 以激活运行时卸载。 越过其CPU或内存阈值标志着已超载的 silo , 允许客户- 门户请求拒绝, 并让资源优化配置有利于未加载的候选人。 流式队列流程控制使用 CPU 阈值来暂停读取 。 配置低于硬平台限制的阈值、 验证拒绝和回收行为处于负载状态, 并利用主机平台自动标定器调整集束能力 。
+
+重试消耗容量。 包括重试负载模式的流量, 并使用指数回落, 以 Qitter、 重试预算和端到端的截止时间 。
+
+<a id="choose-a-tenant-topology"></a>
+
+## 选择租户地表
+
+从所需的隔离和操作边界中选择租户地貌学:
+
+| 地形 | 福利福利福利 | 成本和风险 |
 |---|---|---|
-| Shared cluster | Pools spare capacity and reduces the number of deployments and runtime dependencies. | Tenants share failure, deployment, provider, and capacity domains. Applications enforce tenant quotas and noisy-neighbor controls through admission, concurrency, and resource policies. |
-| Cluster per tenant | Separates capacity, failures, deployments, credentials, and provider namespaces. | Adds baseline resource cost and operational work for upgrades, monitoring, recovery, and fleet-wide changes. |
-| Sharded tenant pools | Limits blast radius and fleet size while retaining some capacity pooling. | Requires tenant placement, shard-capacity management, and a tenant-migration strategy. |
+| 共享群集 | 共用备用能力,减少部署人数和运行时间依赖。 | 租户共同承担失败、部署、提供商和能力领域。 申请通过招生、货币交易和资源政策强制实行房客定额和邻居噪音控制。 |
+| 每个租户的集群 | 独立的能力、故障、部署、证明和提供方命名空间。 | 增加基线资源成本和升级、监测、恢复以及全车队变化的业务工作。 |
+| 碎化租户池 | 限制爆炸半径和车队规模,同时保留一些能力集中。 | 需要租户安置、软能力管理和租户-迁出战略。 |
 
-In a shared cluster, partition hot work by tenant and key, apply per-tenant admission and concurrency limits, and test the most skewed tenant behavior. Use separate clusters when security, data residency, independent upgrades, or fault and resource isolation require a hard boundary. A hybrid of multiple tenant pools is often preferable to assuming either one unbounded cluster or one deployment per small tenant.
+在共享集群中,租户和钥匙的热工分隔热工,适用每个租户的入住和同值货币限额,并测试最偏斜的租户行为。 当安全、数据居住权、独立升级或过失和资源隔离需要硬边界时使用单独的组群。 多租户组合往往比假设一个未约束的组群或每个小租户部署一个更可取。
 
-## Revisit the model
+<a id="revisit-the-model"></a>
 
-Review capacity after changes to grain state, placement, serializers, providers, runtime versions, host sizes, or traffic shape. Keep a tested emergency capacity procedure which preserves identity, networking, and provider limits.
+## 重新审视模型
+
+更改后审评能力 grain 状态、位置、序列器、供应商、运行时间版本、主机大小或交通状况。 保持测试的应急能力程序,以维护身份、网络和提供者的限制。

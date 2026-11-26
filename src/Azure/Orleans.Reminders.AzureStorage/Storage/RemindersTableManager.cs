@@ -13,13 +13,13 @@ namespace Orleans.Runtime.ReminderService
 {
     internal sealed class ReminderTableEntry : ITableEntity
     {
-        public string? GrainReference { get; set; }    // Part of RowKey
-        public string? ReminderName { get; set; }    // Part of RowKey
-        public string? ServiceId { get; set; }    // Part of PartitionKey
+        public string? GrainReference { get; set; }    // RowKey部分
+        public string? ReminderName { get; set; }    // RowKey部分
+        public string? ServiceId { get; set; }    // PartitionKey部分
         public string? DeploymentId { get; set; }
         public string? StartAt { get; set; }
         public string? Period { get; set; }
-        public string? GrainRefConsistentHash { get; set; }    // Part of PartitionKey
+        public string? GrainRefConsistentHash { get; set; }    // PartitionKey部分
 
         public string PartitionKey { get; set; } = null!;
         public string RowKey { get; set; } = null!;
@@ -40,13 +40,13 @@ namespace Orleans.Runtime.ReminderService
 
         public static string ConstructPartitionKey(string serviceId, uint number)
         {
-            // IMPORTANT NOTE: Other code using this return data is very sensitive to format changes,
-            //       so take great care when making any changes here!!!
+            // 注:使用此返回数据的其他代码对格式变化非常敏感,
+            //       故各位在改变时,
 
-            // this format of partition key makes sure that the comparisons in FindReminderEntries(begin, end) work correctly
-            // the idea is that when converting to string, negative numbers start with 0, and positive start with 1. Now,
-            // when comparisons will be done on strings, this will ensure that positive numbers are always greater than negative
-            // string grainHash = number < 0 ? string.Format("0{0}", number.ToString("X")) : string.Format("1{0:d16}", number);
+            // 分区键的此格式,确保 FindReminderEntries( begin, end) 中的比较工作正确
+            // 意思是当转换成字符串时,负数开始为0,正数开始为1。 现在,
+            // 当对字符串进行比较时,这将确保正数总是大于负数
+            // 字符串 grainHash = 数字 < 0? string.Format("0{0}", number.ToString("X") : string.Format("1{0:d16}","号");
 
             return AzureTableUtils.SanitizeTableProperty($"{serviceId}_{number:X8}");
         }
@@ -83,8 +83,8 @@ namespace Orleans.Runtime.ReminderService
             string query;
             if (begin < end)
             {
-                // Query between the specified lower and upper bounds.
-                // Note that the lower bound is exclusive and the upper bound is inclusive in the below query.
+                // 在指定的下界和上界之间查询。
+                // 请注意下限为排他性,上限包含在下面的查询中。
                 query = TableClient.CreateQueryFilter($"(PartitionKey gt {sBegin}) and (PartitionKey le {sEnd})");
             }
             else
@@ -92,15 +92,15 @@ namespace Orleans.Runtime.ReminderService
                 var (partitionKeyLowerBound, partitionKeyUpperBound) = ReminderTableEntry.ConstructPartitionKeyBounds(_serviceId);
                 if (begin == end)
                 {
-                    // Query the entire range
+                    // 查询整个范围
                     query = TableClient.CreateQueryFilter($"(PartitionKey gt {partitionKeyLowerBound}) and (PartitionKey lt {partitionKeyUpperBound})");
                 }
                 else
                 {
-                    // (begin > end)
-                    // Query wraps around the ends of the range, so the query is the union of two disjunct queries
-                    // Include everything outside of the (begin, end] range, which wraps around to become:
-                    // [partitionKeyLowerBound, end] OR (begin, partitionKeyUpperBound]
+                    // (在 > 结尾时)
+                    // 围绕范围末端的查询环绕区域, 因此查询是两个分离查询的结合
+                    // 包含( 开始、 结束) 范围以外的所有内容, 环绕以形成 :
+                    // [partitionKeyLowerBound或(从 partitionKeyUpperBound]
                     Debug.Assert(begin > end);
                     query = TableClient.CreateQueryFilter($"((PartitionKey gt {partitionKeyLowerBound}) and (PartitionKey le {sEnd})) or ((PartitionKey gt {sBegin}) and (PartitionKey lt {partitionKeyUpperBound}))");
                 }
@@ -141,7 +141,7 @@ namespace Orleans.Runtime.ReminderService
                 if (AzureTableUtils.EvaluateException(exc, out var httpStatusCode, out var restStatus))
                 {
                     LogTraceUpsertRowFailed(Logger, httpStatusCode, restStatus);
-                    if (AzureTableUtils.IsContentionError(httpStatusCode)) return null; // false;
+                    if (AzureTableUtils.IsContentionError(httpStatusCode)) return null; // 虚假;
                 }
                 throw;
             }
@@ -169,12 +169,12 @@ namespace Orleans.Runtime.ReminderService
         internal async Task DeleteTableEntries()
         {
             List<(ReminderTableEntry Entity, string ETag)> entries = await FindAllReminderEntries();
-            // return manager.DeleteTableEntries(entries); // this doesnt work as entries can be across partitions, which is not allowed
-            // group by grain hashcode so each query goes to different partition
+            // 返回 manager.DeleteTableEntries(条目); // 这不工作, 因为条目可以跨分割段, 不允许这样做
+            // 组组组合 grain 散列编码, 所以每个查询都转到不同的分区
             var tasks = new List<Task>();
             var groupedByHash = entries
                 .Where(tuple => tuple.Entity.ServiceId!.Equals(_serviceId, StringComparison.Ordinal))
-                .Where(tuple => tuple.Entity.DeploymentId!.Equals(_clusterId, StringComparison.Ordinal))  // delete only entries that belong to our DeploymentId.
+                .Where(tuple => tuple.Entity.DeploymentId!.Equals(_clusterId, StringComparison.Ordinal))  // 删除属于我们的条目 DeploymentId。
                 .GroupBy(x => x.Entity.GrainRefConsistentHash!).ToDictionary(g => g.Key, g => g.ToList());
 
             foreach (var entriesPerPartition in groupedByHash.Values)

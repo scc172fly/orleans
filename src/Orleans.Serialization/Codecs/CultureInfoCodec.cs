@@ -5,15 +5,15 @@ using System.Globalization;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="CultureInfo"/>.
+    /// <see cref="CultureInfo"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class CultureInfoCodec : GeneralizedReferenceTypeSurrogateCodec<CultureInfo, CultureInfoSurrogate>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CultureInfoCodec"/> class.
+        /// 初始化 <see cref="CultureInfoCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public CultureInfoCodec(IValueSerializer<CultureInfoSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -26,15 +26,15 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="CultureInfoCodec"/>.
+    /// <see cref="CultureInfoCodec"/>所使用的代金矿类型。
     /// </summary>
     [GenerateSerializer]
     public struct CultureInfoSurrogate
     {
         /// <summary>
-        /// Gets or sets the name.
+        /// 获取或设置名称。
         /// </summary>
-        /// <value>The name.</value>
+        /// <value>名称。</value>
         [Id(0)]
         public string Name;
     }

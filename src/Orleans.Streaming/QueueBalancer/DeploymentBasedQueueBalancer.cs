@@ -13,11 +13,11 @@ using Orleans.Streaming.Diagnostics;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// DeploymentBasedQueueBalancer is a stream queue balancer that uses deployment information to
-    /// help balance queue distribution.
-    /// DeploymentBasedQueueBalancer uses the deployment configuration to determine how many silos
-    /// to expect and uses a silo status oracle to determine which of the silos are available.  With
-    /// this information it tries to balance the queues using a best fit resource balancing algorithm.
+    /// DeploymentBasedQueueBalancer 是一个使用部署信息来
+    /// 帮助平衡队列分布 。
+    /// DeploymentBasedQueueBalancer 使用部署配置来确定有多少 silos
+    /// 将预期并使用 silo 状态符,以确定其中哪个 silos 可用。
+    /// 这些信息, 它试图使用最合适的资源平衡算法来平衡队列 。
     /// </summary>
     public class DeploymentBasedQueueBalancer : QueueBalancerBase, IStreamQueueBalancer
     {
@@ -26,18 +26,18 @@ namespace Orleans.Streams
         private readonly DeploymentBasedQueueBalancerOptions options;
         private readonly TimeProvider _timeProvider;
         private readonly ConcurrentDictionary<SiloAddress, bool> immatureSilos;
-        private List<QueueId> allQueues = null!; // Initialized in Initialize.
+        private List<QueueId> allQueues = null!; // 初始化时开始。
         private string _name;
         private bool isStarting;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeploymentBasedQueueBalancer"/> class.
+        /// 初始化 <see cref="DeploymentBasedQueueBalancer"/> 类的新实例。
         /// </summary>
-        /// <param name="siloStatusOracle">The silo status oracle.</param>
-        /// <param name="deploymentConfig">The deployment configuration.</param>
-        /// <param name="options">The queue balancer options.</param>
-        /// <param name="services">The service provider.</param>
-        /// <param name="logger">The logger.</param>
+        /// <param name="siloStatusOracle">下 silo 甲骨文状态</param>
+        /// <param name="deploymentConfig">部署配置。</param>
+        /// <param name="options">队列平衡器选项。</param>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="logger">日志器。</param>
         public DeploymentBasedQueueBalancer(
             ISiloStatusOracle siloStatusOracle,
             IDeploymentConfiguration deploymentConfig,
@@ -54,8 +54,8 @@ namespace Orleans.Streams
 
             isStarting = true;
 
-            // record all already active silos as already mature. 
-            // Even if they are not yet, they will be mature by the time I mature myself (after I become !isStarting).
+            // 全部记录已激活 silos , 记录为已经到期 。 
+            // 即使还没有成熟,在我成熟的时候(在长大之后),它们也会成熟。isStarting).
             immatureSilos = new ConcurrentDictionary<SiloAddress, bool>(
                 from s in siloStatusOracle.GetApproximateSiloStatuses(true).Keys
                 where !s.Equals(siloStatusOracle.SiloAddress)
@@ -63,12 +63,12 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Creates a deployment-based queue balancer.
+        /// 创建基于部署的队列平衡器。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="deploymentConfiguration">The deployment configuration.</param>
-        /// <returns>The queue balancer.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="deploymentConfiguration">部署配置。</param>
+        /// <returns>队列平衡器。</returns>
         public static IStreamQueueBalancer Create(IServiceProvider services, string name, IDeploymentConfiguration deploymentConfiguration)
         {
             var options = services.GetRequiredService<IOptionsMonitor<DeploymentBasedQueueBalancerOptions>>().Get(name);
@@ -99,9 +99,9 @@ namespace Orleans.Streams
 
         private async Task<SiloAddress> RecordImmatureSilo(SiloAddress updatedSilo)
         {
-            immatureSilos[updatedSilo] = true;      // record as immature
+            immatureSilos[updatedSilo] = true;      // 记录为不成熟
             await Task.Delay(this.options.SiloMaturityPeriod, _timeProvider);
-            immatureSilos[updatedSilo] = false;     // record as mature
+            immatureSilos[updatedSilo] = false;     // 记录已到期
             return updatedSilo;
         }
 
@@ -119,7 +119,7 @@ namespace Orleans.Streams
                 if (!useIdealDistribution)
                 {
                     HashSet<QueueId> queuesOfImmatureSilos = GetQueuesOfImmatureSilos(siloStatusOracle, immatureSilos, balancer.IdealDistribution);
-                    // filter queues that belong to immature silos
+                    // 属于不成熟的过滤队列 silos
                     myQueues.RemoveAll(queue => queuesOfImmatureSilos.Contains(queue));
                 }
                 return myQueues;
@@ -133,7 +133,7 @@ namespace Orleans.Streams
             foreach (var kvp in siloStatusOracle.GetApproximateSiloStatuses(true))
             {
                 bool immatureBit;
-                if (!(immatureSilos.TryGetValue(kvp.Key, out immatureBit) && immatureBit)) // if not immature now or any more
+                if (!(immatureSilos.TryGetValue(kvp.Key, out immatureBit) && immatureBit)) // 如果现在或将来不成熟
                 {
                     string? siloName;
                     if (siloStatusOracle.TryGetSiloName(kvp.Key, out siloName))
@@ -146,14 +146,14 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Checks to see if deployment configuration has changed, by adding or removing silos.
-        /// If so, it updates the list of all silo names and creates a new resource balancer.
-        /// This should occur rarely.
+        /// 检查以查看部署配置是否已经通过添加或删除 silos而改变。
+        /// 如果有,它更新所有 silo 名称的清单并创建一个新的资源平衡器。
+        /// 这种情况应该很少发生。
         /// </summary>
         private BestFitBalancer<string, QueueId> GetBalancer()
         {
             var allSiloNames = deploymentConfig.GetAllSiloNames();
-            // rebuild balancer with new list of instance names
+            // 使用新实例名列表的重建平衡器
             return new BestFitBalancer<string, QueueId>(allSiloNames, allQueues);
         }
 
@@ -162,7 +162,7 @@ namespace Orleans.Streams
             Dictionary<string, List<QueueId>> idealDistribution)
         {
             HashSet<QueueId> queuesOfImmatureSilos = new HashSet<QueueId>();
-            foreach (var silo in immatureSilos.Where(s => s.Value)) // take only those from immature set that have their immature status bit set
+            foreach (var silo in immatureSilos.Where(s => s.Value)) // 只选择那些不成熟的设置, 且其不成熟状态位数设定的不成熟设置
             {
                 string? siloName;
                 if (siloStatusOracle.TryGetSiloName(silo.Key, out siloName))
@@ -185,7 +185,7 @@ namespace Orleans.Streams
         private async Task SignalClusterChange(HashSet<SiloAddress> activeSilos)
         {
             List<Task<SiloAddress>> tasks = new List<Task<SiloAddress>>();
-            // look at all currently active silos not including myself
+            // 查看当前所有活动状态 silos 不包括我自己
             foreach (var silo in activeSilos)
             {
                 if (!silo.Equals(siloStatusOracle.SiloAddress) && !immatureSilos.ContainsKey(silo))
@@ -195,13 +195,13 @@ namespace Orleans.Streams
             }
             if (!isStarting)
             {
-                // notify, uncoditionaly, and deal with changes in GetMyQueues()
+                // 通知、不编码通知和处理 GetMyQueues()的变更
                 await NotifyListeners();
             }
             if (tasks.Count > 0)
             {
                 var maturedSilos = await Task.WhenAll(tasks);
-                await this.NotifyListeners(); // notify, uncoditionaly, and deal with changes it in GetMyQueues()
+                await this.NotifyListeners(); // 以 GetMyQueues() 处理更改
                 foreach (var maturedSilo in maturedSilos)
                 {
                     StreamingEvents.EmitQueueBalancerMaturityCompleted(_name, SiloAddress, maturedSilo, isLocalSilo: false, this);

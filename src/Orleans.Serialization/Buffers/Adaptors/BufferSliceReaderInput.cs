@@ -6,7 +6,7 @@ using static Orleans.Serialization.Buffers.PooledBuffer;
 namespace Orleans.Serialization.Buffers.Adaptors;
 
 /// <summary>
-/// Input type for <see cref="Reader{TInput}"/> to support <see cref="BufferSlice"/> buffers.
+/// <see cref="Reader{TInput}"/> 用于支持 <see cref="BufferSlice"/> 缓冲的输入类型。
 /// </summary>
 public struct BufferSliceReaderInput
 {
@@ -17,9 +17,9 @@ public struct BufferSliceReaderInput
     private int _position;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="BufferSliceReaderInput"/> type.
+    /// 初始化 <see cref="BufferSliceReaderInput"/> 类型的新实例。
     /// </summary>
-    /// <param name="slice">The underlying buffer.</param>
+    /// <param name="slice">底部缓冲。</param>
     public BufferSliceReaderInput(in BufferSlice slice)
     {
         _slice = slice;
@@ -50,20 +50,20 @@ public struct BufferSliceReaderInput
         {
             var segment = _segment.CommittedMemory.Span;
 
-            // Find the starting segment and the offset to copy from.
+            // 查找起始段和要复制的偏移。
             int segmentOffset;
             if (_position < Offset)
             {
                 if (_position + segment.Length <= Offset)
                 {
-                    // Start is in a subsequent segment
+                    // 启动于随后的一段
                     _position += segment.Length;
                     _segment = _segment.Next as SequenceSegment;
                     continue;
                 }
                 else
                 {
-                    // Start is in this segment
+                    // 启动于此段
                     segmentOffset = Offset - _position;
                 }
             }
@@ -111,12 +111,12 @@ public struct BufferSliceReaderInput
 }
 
 /// <summary>
-/// Input type for <see cref="Reader{TInput}"/> to support <see cref="ArcBuffer"/> buffers.
+/// <see cref="Reader{TInput}"/> 用于支持 <see cref="ArcBuffer"/> 缓冲的输入类型。
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="ArcBufferReaderInput"/> type.
+/// 初始化 <see cref="ArcBufferReaderInput"/> 类型的新实例。
 /// </remarks>
-/// <param name="slice">The underlying buffer.</param>
+/// <param name="slice">底部缓冲。</param>
 public struct ArcBufferReaderInput(in ArcBuffer slice)
 {
     private readonly ArcBuffer _slice = slice;
@@ -124,7 +124,7 @@ public struct ArcBufferReaderInput(in ArcBuffer slice)
     private int _position;
 
     internal readonly ArcBufferPage? First => _slice.First;
-    // The offset is relative to the span most recently returned by GetNext.
+    // 与最近 GetNext返回的间隔相对应。
     internal readonly ArcBuffer Slice(int offset, int length)
     {
         Debug.Assert(_page is not null);
@@ -138,7 +138,7 @@ public struct ArcBufferReaderInput(in ArcBuffer slice)
 
     internal readonly ArcBufferReaderInput ForkFrom(int position)
     {
-        // Rely on the outer buffer being pinned.
+        // 外缘缓冲板上被钉住的
         var sliced = _slice.UnsafeSlice(position, Length - position);
         return new ArcBufferReaderInput(in sliced);
     }

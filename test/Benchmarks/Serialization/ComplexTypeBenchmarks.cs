@@ -15,7 +15,7 @@ using Xunit;
 namespace Benchmarks.Serialization;
 
 /// <summary>
-/// Benchmarks Orleans serialization performance for complex object graphs with circular references.
+/// 具有通告参考资料的复杂对象图表的序列化性能基准 Orleans 。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -57,7 +57,7 @@ public class ComplexTypeBenchmarks
             BaseInt = 192,
             Int = 501,
             String = "bananas",
-            //Array = Enumerable.Range(0, 60).ToArray(),
+            //数组 = Enumerable.Range(0, 60)。ToArray(),
             //MultiDimensionalArray = new[,] {{0, 2, 4}, {1, 5, 6}}
         };
         _value.AlsoSelf = _value.BaseSelf = _value.Self = _value;
@@ -121,13 +121,13 @@ public class ComplexTypeBenchmarks
         var reader = Reader.Create(writer.Output.GetReadOnlySpan(), _session);
         var result = _structSerializer.Deserialize(ref reader);
         Buffer.Reset();
-        return result!; // The payload was serialized from _value above.
+        return result!; // 有效载荷从上方的_价值序列。
     }
 
     /*
-        [Fact]
-        [Benchmark]
-        public void OrleansMessageSerializerStructRoundTrip()
+        [真
+        [基准]
+        公共无效 OrleansMessageSerializerStructRoundTrip()
         {
             var buffer = new PooledBuffer();
             var (headerLength, bodyLength) = _messageSerializer.Write(ref buffer, _structMessage);
@@ -135,11 +135,11 @@ public class ComplexTypeBenchmarks
             var readBuffer = buffer.Slice();
             _messageSerializer.Read(in readBuffer, headerLength, bodyLength, out var result);
 
-            ((Response<SimpleStruct>)result.BodyObject).Dispose();
+            ((答复<SimpleStruct>)result.BodyObject.] 发牌();
         }
         */
 
-    //[Benchmark]
+    //[基准]
     public object OrleansClassRoundTrip()
     {
         var writer = Buffer.CreateWriter(_session);
@@ -150,13 +150,13 @@ public class ComplexTypeBenchmarks
         var reader = Reader.Create(writer.Output.GetReadOnlySpan(), _session);
         var result = _serializer.Deserialize(ref reader);
         Buffer.Reset();
-        return result!; // The payload was serialized from _value above.
+        return result!; // 有效载荷从上方的_价值序列。
     }
 
     /*
-    [Fact]
-    //[Benchmark]
-    public void OrleansMessageSerializerClassRoundTrip()
+    [真
+    //[基准]
+    公共无效 OrleansMessageSerializerClassRoundTrip()
     {
         var buffer = new PooledBuffer();
         var (headerLength, bodyLength) = _messageSerializer.Write(ref buffer, _message);
@@ -164,7 +164,7 @@ public class ComplexTypeBenchmarks
         var readBuffer = buffer.Slice();
         _messageSerializer.Read(in readBuffer, headerLength, bodyLength, out var result);
 
-        ((Response<ComplexClass>)result.BodyObject).Dispose();
+        ((答复<ComplexClass>)result.BodyObject.] 发牌();
 
         _pipe.Writer.Complete();
         _pipe.Reader.Complete();
@@ -172,7 +172,7 @@ public class ComplexTypeBenchmarks
     }
     */
 
-    //[Benchmark]
+    //[基准]
     public object OrleansSerialize()
     {
         var writer = Buffer.CreateWriter(_session);
@@ -182,15 +182,15 @@ public class ComplexTypeBenchmarks
         return _session;
     }
 
-    //[Benchmark]
+    //[基准]
     public object OrleansDeserialize()
     {
         _session.Reset();
         var reader = Reader.Create(_serializedPayload, _session);
-        return _serializer.Deserialize(ref reader)!; // The benchmark payload is initialized from a non-null value.
+        return _serializer.Deserialize(ref reader)!; // 基准有效载荷从非核值开始。
     }
 
-    //[Benchmark]
+    //[基准]
     public int OrleansReadEachByte()
     {
         var sum = 0;

@@ -180,7 +180,7 @@ public class SQSFIFOStreamTests : TestClusterPerTest
         await runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
     }
 
-    //------------------------ MANY to Many different grains ----------------------//
+    //和很多不同的人 grains ----------------------//
 
     [Fact]
     public async Task SQS_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
@@ -206,7 +206,7 @@ public class SQSFIFOStreamTests : TestClusterPerTest
         await runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
     }
 
-    //------------------------ MANY to Many Same grains ----------------------//
+    //和... 和很多相同 grains ----------------------//
     [Fact]
     public async Task SQS_09_ManySame_ManyProducerGrainsManyConsumerGrains()
     {

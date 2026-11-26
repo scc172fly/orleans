@@ -46,7 +46,7 @@ public sealed class HandlerProbe
         public Task WaitUntilEnteredAsync() => Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
         public void Release() => Continue.TrySetResult();
 
-        // A barrier that ignores cancellation holds the handler until Release, even after shutdown.
+        // 无视取消的屏障将处理者一直控制到释放,即使在关闭后。
         internal Task WaitAsync(CancellationToken cancellationToken) =>
             _observeCancellation ? Continue.Task.WaitAsync(cancellationToken) : Continue.Task;
 

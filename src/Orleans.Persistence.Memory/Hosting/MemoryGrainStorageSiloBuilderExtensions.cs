@@ -11,51 +11,51 @@ using Orleans.Storage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Silo host builder extensions
+    /// Silo 主机构建器扩展
     /// </summary>
     public static class MemoryGrainStorageSiloBuilderExtensions
     {
         /// <summary>
-        /// Configure silo to use memory grain storage as the default grain storage.
+        /// 配置 silo 将内存 grain 存储作为默认的 grain 存储。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddMemoryGrainStorageAsDefault(this ISiloBuilder builder, Action<MemoryGrainStorageOptions> configureOptions)
         {
             return builder.AddMemoryGrainStorageAsDefault(ob => ob.Configure(configureOptions));
         }
 
         /// <summary>
-        /// Configure silo to use memory grain storage.
+        /// 配置 silo 使用内存 grain 存储。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="name">The name of the storage provider. This must match with the <c>StorageName</c> property specified when injecting state into a grain.</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="name">存储提供者的名称。 这必须与 <c>StorageName</c> 输入时指定财产的特性时指定的财产 grain.</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddMemoryGrainStorage(this ISiloBuilder builder, string name, Action<MemoryGrainStorageOptions> configureOptions)
         {
             return builder.AddMemoryGrainStorage(name, ob => ob.Configure(configureOptions));
         }
 
         /// <summary>
-        /// Configure silo to use memory grain storage as the default grain storage.
+        /// 配置 silo 将内存 grain 存储作为默认的 grain 存储。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddMemoryGrainStorageAsDefault(this ISiloBuilder builder, Action<OptionsBuilder<MemoryGrainStorageOptions>>? configureOptions = null)
         {
             return builder.AddMemoryGrainStorage(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, configureOptions);
         }
 
         /// <summary>
-        /// Configure silo to use memory grain storage.
+        /// 配置 silo 使用内存 grain 存储。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="name">The name of the storage provider. This must match with the <c>StorageName</c> property specified when injecting state into a grain.</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="name">存储提供者的名称。 这必须与 <c>StorageName</c> 输入时指定财产的特性时指定的财产 grain.</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddMemoryGrainStorage(this ISiloBuilder builder, string name, Action<OptionsBuilder<MemoryGrainStorageOptions>>? configureOptions = null)
         {
             return builder

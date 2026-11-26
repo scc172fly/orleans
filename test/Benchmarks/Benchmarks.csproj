@@ -12,7 +12,7 @@
     <OrleansBuildTimeCodeGen>true</OrleansBuildTimeCodeGen>
     <GenerateProgramFile>false</GenerateProgramFile>
     <StartupObject>Benchmarks.Program</StartupObject>
-    <!-- Do not warn on errors caused by Protocol Buffers codegen, eg: "error CS8981: The type name 'pb' only contains lower-cased ascii characters. Such names may become reserved for the language." -->
+    <!-- 不要警告协议缓冲代码元引起的错误, 例如 : “ error CS8981: 类型名称“ pb” 只包含小写 Ascii 字符。 这些名称可能保留给语言 。 -->
     <NoWarn>$(NoWarn);8981</NoWarn>
   </PropertyGroup>
 
@@ -21,7 +21,7 @@
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis" />
-    <!-- Temporarily kept to resolve a conflict between Microsoft.Azure.DocumentDB.Core's dependencies -->
+    <!-- 暂时保存,以解决 Microsoft.Azure.DocumentDB.Core依赖性之间的冲突 -->
     <PackageReference Include="System.CodeDom" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="MessagePack" />

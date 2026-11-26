@@ -6,15 +6,15 @@ using Orleans.Serialization;
 
 namespace Orleans.Hosting;
 
-/// <summary>Extensions for registering typed durable message subjects.</summary>
+/// <summary>用于登记输入的耐久信息主题的扩展。</summary>
 public static class MessageTypeExtensions
 {
-    /// <summary>Registers a singleton subject binding, keyed by its ordinal subject.</summary>
-    /// <typeparam name="T">The subject's payload contract.</typeparam>
-    /// <param name="services">The service collection.</param>
-    /// <param name="subject">The exact application protocol subject.</param>
-    /// <returns>The service collection.</returns>
-    /// <exception cref="InvalidOperationException">A subject binding is already registered.</exception>
+    /// <summary>登记单吨的受约束标,以其正态标为键。</summary>
+    /// <typeparam name="T">目标的载荷合同</typeparam>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="subject">确切的应用程序协议主题。</param>
+    /// <returns>服务收藏。</returns>
+    /// <exception cref="InvalidOperationException">已经登记了约束标的。</exception>
     public static IServiceCollection AddMessageType<T>(this IServiceCollection services, string subject)
     {
         ArgumentNullException.ThrowIfNull(services);

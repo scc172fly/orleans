@@ -10,7 +10,7 @@ using Orleans.Runtime.Hosting;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> extensions.
+    /// <see cref="IServiceCollection"/> 扩展。
     /// </summary>
     public static class AzureTableGrainDirectoryServiceCollectionExtensions
     {

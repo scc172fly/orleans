@@ -94,7 +94,7 @@ public sealed class JournalCatalogRangeTests
     public void NativePrefix_BroadensBeforeFirstUnpairedSurrogateAndKeepsOrdinalBounds(
         int surrogate, string before, string after)
     {
-        // Construct malformed UTF-16 at runtime so attribute serialization preserves the intended code unit.
+        // 运行时构造错误的 UTF-16, 所以属性序列保留了预定代码单位 。
         var prefix = before + (char)surrogate + after;
         var min = new JournalId(prefix + "b");
         var max = new JournalId(prefix + "d");

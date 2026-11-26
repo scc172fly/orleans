@@ -11,38 +11,38 @@ using Orleans.Runtime;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// The entry point for standalone silo processes. See <see cref="StandaloneSiloHandle" />.
+    /// 独立 silo 进程切入点。见 <see cref="StandaloneSiloHandle" />。
     /// </summary>
     public static class StandaloneSiloHost
     {
         /// <summary>
-        /// The standard output prefix which precedes the silo address.
+        /// 在 silo 地址前的标准输出前缀。
         /// </summary>
         public const string SiloAddressLog = "#### SILO ";
 
         /// <summary>
-        /// The standard output prefix which precedes the gateway address.
+        /// 网关地址前的标准输出前缀。
         /// </summary>
         public const string GatewayAddressLog = "#### GATEWAY ";
 
         /// <summary>
-        /// The standard output message which indicates that the silo has started.
+        /// 标准输出信息,其中显示 silo 已经开始。
         /// </summary>
         public const string StartedLog = "#### STARTED";
 
         /// <summary>
-        /// The standard input command which requests that the silo shut down.
+        /// 要求关闭 silo 的标准输入命令。
         /// </summary>
         public const string ShutdownCommand = "#### SHUTDOWN";
 
         /// <summary>
-        /// Runs a standalone silo process.
+        /// 运行独立 silo 进程。
         /// </summary>
         /// <param name="args">
-        /// The command-line arguments. The first argument is the identifier of the process to monitor, and the second is the
-        /// serialized silo configuration.
+        /// 命令行参数。 第一个参数是监测程序的标识符,第二个参数是
+        /// 序列化的 silo 配置 。
         /// </param>
-        /// <returns>A task which completes when the silo has shut down.</returns>
+        /// <returns>一项任务,当它完成的时候, silo 关闭了</returns>
         public static async Task Main(string[] args)
         {
             if (args.Length < 2)
@@ -73,7 +73,7 @@ namespace Orleans.TestingHost
 
                 await host.StartAsync(cts.Token);
 
-                // This is a special marker line.
+                // 这是特别的标记线
                 var localSiloDetails = (ILocalSiloDetails)host.Services.GetService(typeof(ILocalSiloDetails))!;
                 Console.WriteLine($"{SiloAddressLog}{localSiloDetails.SiloAddress.ToParsableString()}");
                 Console.WriteLine($"{GatewayAddressLog}{localSiloDetails.GatewayAddress.ToParsableString()}");
@@ -125,7 +125,7 @@ namespace Orleans.TestingHost
                     }
                     catch
                     {
-                        // Ignore all errors.
+                        // 忽略所有错误 。
                     }
                 },
                 null,
@@ -137,7 +137,7 @@ namespace Orleans.TestingHost
 
         private static void ListenForShutdownCommand(CancellationTokenSource cts)
         {
-            // Start a thread to monitor for the shutdown command from standard input.
+            // 从标准输入开始显示关闭命令的线条监测 。
             _ = Task.Factory.StartNew(_ =>
             {
                 try
@@ -155,7 +155,7 @@ namespace Orleans.TestingHost
                 }
                 catch
                 {
-                    // Ignore all errors.
+                    // 忽略所有错误 。
                 }
             },
             null,

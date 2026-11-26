@@ -6,29 +6,29 @@ using Orleans.Durable.Messaging;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// Applies durable grain RPC messages delivered to the grain's inbox.
+/// 应用耐久 grain 向 grain收件箱里有东西
 /// </summary>
 /// <remarks>
 /// <para>
-/// As an <see cref="IInboxMessageSink"/>, it accepts invocations, subscriptions, completions, cancellations,
-/// unsubscriptions, and signals directly into task state, so the request, result, or signal payload is journaled once, in
-/// task state, and the inbox journals only the message's processed record in the same write. Each message is decoded and
-/// validated before any change is staged. An invocation whose identifier already identifies another request or caller is
-/// final, so it is dead-lettered with the <see cref="DurableTaskRejectionCodes.Conflict"/> code and the conflict's
-/// message, which the sender's outbox reports when it retires the invocation as rejected. An invocation which arrives
-/// after the grain's admission window is dead-lettered with the <see cref="DurableTaskRejectionCodes.Expired"/> code, so a
-/// cancellation or signal which preceded it is never lost to an admitted invocation. A rejected signal is
-/// dead-lettered with its rejection as the reason. Another failure, such as a message which doesn't decode, throws, so
-/// the sender's outbox retries the delivery until Messaging's <c>OutboxRetryTimeout</c>: during a rolling deployment, a
-/// retry can reach an activation which decodes it.
+/// 作为 <see cref="IInboxMessageSink"/>,它接受各种职业、订阅、完成、取消、
+/// 请求、结果或信号有效载荷在
+/// 状态,并且收件箱日记只将信件的处理记录写入同一文字。
+/// 在任何更改进行之前先行验证。 其身份识别特征已经确认另一个请求或呼叫者的援引
+/// 以 <see cref="DurableTaskRejectionCodes.Conflict"/> 代码和冲突代码命名
+/// 发送者发件人发回的发信信的发件箱在拒绝的终止援引时报告该信息。
+/// grain入门窗口后,以 <see cref="DurableTaskRejectionCodes.Expired"/> 代码编号为字母,所以
+/// 之前的取消信号或信号,如果被承认的援引从未丢失。
+/// 拒绝是它拒绝的原因。另一个失败,比如一个信息, 它不解码,就扔了,所以
+/// 发件人发件人的发件箱将发送的重新发送重新发送,直到Messages <c>OutboxRetryTimeout</c>:在滚动部署期间,a
+/// 重新尝试可以达到一个能解码的激活。
 /// </para>
 /// <para>
-/// As an <see cref="IInboxHandler"/>, it handles the delay resumes the grain schedules for itself, which the inbox holds
-/// until they are due. The handler stages the resume's changes and completes the message in one synchronous block.
+/// 作为 <see cref="IInboxHandler"/>,它处理延迟,恢复了收件箱所保存的 grain 时间表
+/// 处理者将修改恢复程序,并用同步的块完成信件。
 /// </para>
 /// <para>
-/// The runtime runs acknowledgement-dependent effects, such as starting requests, completing handles, and propagating
-/// cancellation, after the write which commits the staged changes. Neither path waits for a journal write.
+/// 运行时间产生依赖确认的效果,如启动请求、完成处理和进行宣传
+/// 取消, 在进行已启动的更改的写作后取消。 任何路径都无法等待日记的写作 。
 /// </para>
 /// </remarks>
 internal sealed class DurableTaskMessageHandler(
@@ -45,8 +45,8 @@ internal sealed class DurableTaskMessageHandler(
                 var sender = GetSender(invocation.Sender);
                 if (invocation.Request is not { } request)
                 {
-                    // A subscription carries no request and claims no caller: it adds the sender's task to the existing
-                    // task's completion destinations.
+                    // 订阅不收取任何要求,而且声称没有打电话者:它将发送人的任务与现有的
+                    // 任务完成目的地。
                     if (invocation.SubscriberId is not { } subscriberId || invocation.Detached)
                     {
                         throw new InvalidOperationException("A durable task subscription carries a subscriber and nothing else.");
@@ -56,12 +56,12 @@ internal sealed class DurableTaskMessageHandler(
                     return true;
                 }
 
-                // An attached invocation addresses the sender's child, which this grain stores under the sender's scope; a
-                // detached invocation addresses a root task.
+                // a/ 本 grain 在发送者范围内储存的发件人的孩子;a
+                // 独立职业处理根任务 。
                 var invokedId = CallerScope.Resolve(sender, invocation.TaskId);
                 if (runtime.GetInvocationAdmissionRejection(invokedId, message.SentAt) is { } expired)
                 {
-                    // A late invocation stages nothing.
+                    // 迟到的祈祷阶段 什么也没有
                     result = new DeliveryResult.DeadLettered(expired, DurableTaskRejectionCodes.Expired);
                     return true;
                 }
@@ -77,7 +77,7 @@ internal sealed class DurableTaskMessageHandler(
                 }
                 catch (DurableTaskConflictException conflict)
                 {
-                    // A conflicting invocation stages nothing.
+                    // 互相冲突的援引阶段没有发生任何变化。
                     result = new DeliveryResult.DeadLettered(conflict.Message, DurableTaskRejectionCodes.Conflict);
                 }
 
@@ -100,8 +100,8 @@ internal sealed class DurableTaskMessageHandler(
                 }
                 else
                 {
-                    // A cancellation or an abort addresses the sender's remote child, which this grain stores under the
-                    // sender's scope.
+                    // 取消或中止的地址是发件人远程子子(此 grain 仓库下
+                    // 发送方的范围。
                     var caller = GetSender(cancellation.Sender);
                     var taskId = CallerScope.Resolve(caller, cancellation.TaskId);
                     if (cancellation.AbortReason is { } abortReason)
@@ -119,8 +119,8 @@ internal sealed class DurableTaskMessageHandler(
                 var signal = messageTypes.Signal.Decode(message.Envelope);
                 _ = GetSender(signal.Sender);
 
-                // A rejected signal, such as one for a terminal task or with a conflicting value, stages nothing and is
-                // dead-lettered with the rejection as its reason. A signal which precedes its invocation is recorded.
+                // 拒绝信号, 如终端任务信号或有冲突值的被拒绝信号, 级不级, 且
+                // 拒绝是其理由,在援引之前的信号被记录下来。
                 if (runtime.StageSignalFromInbox(signal.TaskId, signal.Name, signal.Value) is { } rejection)
                 {
                     result = new DeliveryResult.DeadLettered(rejection.Message);
@@ -128,8 +128,8 @@ internal sealed class DurableTaskMessageHandler(
 
                 return true;
             default:
-                // Delay resumes are declined, so the inbox holds each one until its due time and then dispatches it to
-                // the handler.
+                // 延缓恢复被拒绝, 所以收件箱将每个收件箱一直保存到到期时间, 然后发送给
+                // 处理器
                 result = default;
                 return false;
         }

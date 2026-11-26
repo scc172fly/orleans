@@ -6,37 +6,37 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Generator
 {
     /// <summary>
-    /// Interface of generators used by the GeneratorStreamProvider.  Any method of generating events
-    ///  must conform to this interface to be used by the GeneratorStreamProvider.
+    /// GeneratorStreamProvider所使用的发电机接口。
+    ///  必须与 GeneratorStreamProvider使用的该接口相符。
     /// </summary>
     public interface IStreamGenerator
     {
         /// <summary>
-        /// Tries to get an event, if the generator is configured to generate any at this time
+        /// 如果发电机配置在当前时间生成任何事件, 尝试获取事件
         /// </summary>
-        /// <param name="utcNow">The current UTC time.</param>
-        /// <param name="maxCount">The maximum number of events to read.</param>
-        /// <param name="events">The events.</param>
-        /// <returns><see langword="true" /> if events were read, <see langword="false" /> otherwise.</returns>
+        /// <param name="utcNow">当前UTC 时间。</param>
+        /// <param name="maxCount">最多可读的事件数。</param>
+        /// <param name="events">事件。</param>
+        /// <returns><see langword="true" /> 如果事情被读取, <see langword="false" /> 否则。</returns>
         bool TryReadEvents(DateTime utcNow, int maxCount, out List<IBatchContainer> events);
 
         /// <summary>
-        /// Configures the stream generator.
+        /// 配置溪流生成器。
         /// </summary>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="generatorConfig">The generator configuration.</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="generatorConfig">发电机配置。</param>
         void Configure(IServiceProvider serviceProvider, IStreamGeneratorConfig generatorConfig);
     }
 
     /// <summary>
-    /// Interface of configuration for generators used by the GeneratorStreamProvider.  This interface covers
-    ///   the minimal set of information the stream provider needs to configure a generator to generate data.  Generators should
-    ///   add any additional configuration information needed to it's implementation of this interface.
+    /// GeneratorStreamProvider所用发电机配置接口的配置。该接口覆盖
+    ///   流源提供者配置生成数据生成器所需的最低限度信息集。
+    ///   执行此接口时, 添加所需的任何额外配置信息 。
     /// </summary>
     public interface IStreamGeneratorConfig
     {
         /// <summary>
-        /// Gets the stream generator type
+        /// 获取流源生成器类型
         /// </summary>
         Type StreamGeneratorType { get; }
     }

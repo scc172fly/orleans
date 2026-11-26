@@ -17,7 +17,7 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Simple storage provider for writing grain state data to Azure blob storage in JSON format.
+    /// 将 grain 状态数据写入 Azure blob 格式的 JSON 储存格式的简单存储提供者。
     /// </summary>
     public partial class AzureBlobGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -28,8 +28,8 @@ namespace Orleans.Storage
         private readonly AzureBlobStorageOptions options;
         private readonly IGrainStorageSerializer grainStorageSerializer;
 
-        /// <summary> Default constructor </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
+        /// <summary> 默认构建器 </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> 是 <see langword="null"/>.</exception>
         public AzureBlobGrainStorage(
             string name,
             AzureBlobStorageOptions options,
@@ -47,10 +47,10 @@ namespace Orleans.Storage
             this.logger = logger;
         }
 
-        /// <summary> Read state data function for this storage provider. </summary>
+        /// <summary> 为此存储提供者读取国家数据函数。 </summary>
         /// <see cref="IGrainStorage.ReadStateAsync{T}(string, GrainId, IGrainState{T})"/>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="grainType"/> or <paramref name="grainState"/> is <see langword="null"/>.
+        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 是 <see langword="null"/>。
         /// </exception>
         public Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => ReadStateAsync(grainType, grainId, grainState, CancellationToken.None);
@@ -108,10 +108,10 @@ namespace Orleans.Storage
 
         private static string GetBlobName(string grainType, GrainId grainId) => $"{grainType}-{grainId}.json";
 
-        /// <summary> Write state data function for this storage provider. </summary>
+        /// <summary> 为此存储提供者写入状态数据函数 。 </summary>
         /// <see cref="IGrainStorage.WriteStateAsync{T}(string, GrainId, IGrainState{T})"/>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="grainType"/> or <paramref name="grainState"/> is <see langword="null"/>.
+        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 是 <see langword="null"/>。
         /// </exception>
         public Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => WriteStateAsync(grainType, grainId, grainState, CancellationToken.None);
@@ -152,10 +152,10 @@ namespace Orleans.Storage
             }
         }
 
-        /// <summary> Clear / Delete state data function for this storage provider. </summary>
+        /// <summary> 清除/删除此存储提供者的状态数据函数。 </summary>
         /// <see cref="IGrainStorage.ClearStateAsync{T}(string, GrainId, IGrainState{T})"/>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="grainType"/> or <paramref name="grainState"/> is <see langword="null"/>.
+        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 是 <see langword="null"/>。
         /// </exception>
         public Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => ClearStateAsync(grainType, grainId, grainState, CancellationToken.None);
@@ -242,7 +242,7 @@ namespace Orleans.Storage
             }
             catch (RequestFailedException exception) when (exception.IsContainerNotFound())
             {
-                // if the container does not exist, create it, and make another attempt
+                // 如果集装箱不存在,应创造集装箱,并尝试另作试验。
                 LogTraceContainerNotFound(grainType, grainId, grainState.ETag, blob.Name, container.Name);
                 await container.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                 await WriteStateAndCreateContainerIfNotExists(grainType, grainId, grainState, contents, mimeType, blob, cancellationToken).ConfigureAwait(false);
@@ -277,7 +277,7 @@ namespace Orleans.Storage
             }
             catch (RequestFailedException exception) when (exception.IsContainerNotFound())
             {
-                // if the container does not exist, create it, and make another attempt
+                // 如果集装箱不存在,应创造集装箱,并尝试另作试验。
                 LogTraceContainerNotFound(grainType, grainId, grainState.ETag, blob.Name, container.Name);
                 await container.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                 await WriteStateBufferedStreamAndCreateContainerIfNotExists(serializer, grainType, grainId, grainState, mimeType, blob, cancellationToken).ConfigureAwait(false);
@@ -378,7 +378,7 @@ namespace Orleans.Storage
             lifecycle.Subscribe(OptionFormattingUtilities.Name<AzureBlobGrainStorage>(this.name), this.options.InitStage, Init);
         }
 
-        /// <summary> Initialization function for this storage provider. </summary>
+        /// <summary> 该存储提供者的初始化功能。 </summary>
         private async Task Init(CancellationToken ct)
         {
             var stopWatch = Stopwatch.StartNew();
@@ -405,15 +405,15 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Serialize to the configured storage format
+        /// 串行到配置的存储格式
         /// </summary>
-        /// <param name="grainState">The grain state data to be serialized</param>
+        /// <param name="grainState"> grain 国家数据将按序号</param>
         private BinaryData ConvertToStorageFormat<T>(T grainState) => this.grainStorageSerializer.Serialize(grainState);
 
         /// <summary>
-        /// Deserialize from the configured storage format
+        /// 从配置的存储格式中降序
         /// </summary>
-        /// <param name="contents">The serialized contents.</param>
+        /// <param name="contents">连环内容</param>
         private T? ConvertFromStorageFormat<T>(BinaryData contents) => this.grainStorageSerializer.Deserialize<T>(contents);
 
         private T CreateInstance<T>() => _activatorProvider.GetActivator<T>().Create();
@@ -538,16 +538,16 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// Creates configured <see cref="AzureBlobGrainStorage"/> instances.
+    /// 创建已配置 <see cref="AzureBlobGrainStorage"/> 实例。
     /// </summary>
     public static class AzureBlobGrainStorageFactory
     {
         /// <summary>
-        /// Creates an Azure Blob grain storage provider with the specified name.
+        /// 创建有指定名称的 Azure 布罗布 grain 存储提供者。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The storage provider name.</param>
-        /// <returns>The configured grain storage provider.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">存储提供者的名称。</param>
+        /// <returns>配置的 grain 存储提供者。</returns>
         public static AzureBlobGrainStorage Create(IServiceProvider services, string name)
         {
             var optionsMonitor = services.GetRequiredService<IOptionsMonitor<AzureBlobStorageOptions>>();

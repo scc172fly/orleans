@@ -1,24 +1,24 @@
 namespace Orleans;
 
 /// <summary>
-/// Interface that receives notifications about the status of the cluster connection.
+/// 接收集连接状态通知的接口。
 /// </summary>
 public interface IClusterConnectionStatusObserver
 {
     /// <summary>
-    /// Notifies this observer that the number of connected gateways has changed.
+    /// 通知这位观察家,连接网关的数量已经改变。
     /// </summary>
     /// <param name="currentNumberOfGateways">
-    /// The current number of gateways.
+    /// 目前的网关数量 。
     /// </param>
     /// <param name="previousNumberOfGateways">
-    /// The previous number of gateways.
+    /// 之前的网关数量 。
     /// </param>
-    /// <param name="connectionRecovered">Indicates whether a loss of connectivity has been resolved.</param>
+    /// <param name="connectionRecovered">表明连接丧失问题是否已经解决。</param>
     void NotifyGatewayCountChanged(int currentNumberOfGateways, int previousNumberOfGateways, bool connectionRecovered);
 
     /// <summary>
-    /// Notifies this observer that the connection to the cluster has been lost.
+    /// 通知观察员,与该组的连接已经丧失。
     /// </summary>
     void NotifyClusterConnectionLost();
 }

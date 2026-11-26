@@ -4,23 +4,23 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Uniquely identifies a stream.
+    /// 独特地识别了一条流。
     /// </summary>
     /// <remarks>
-    /// Use <see cref="StreamId"/> instead, where possible.
+    /// 在可能的情况下,使用 <see cref="StreamId"/> 代替。
     /// </remarks>
     public interface IStreamIdentity
     {
         /// <summary>
-        /// Gets the unique identifier.
+        /// 获得唯一识别符。
         /// </summary>
-        /// <value>The unique identifier.</value>
+        /// <value>唯一标识符。</value>
         Guid Guid { get; }
 
         /// <summary>
-        /// Gets the namespace.
+        /// 获得命名空间。
         /// </summary>
-        /// <value>The namespace.</value>
+        /// <value>命名空间。</value>
         string? Namespace { get; }
     }
 }

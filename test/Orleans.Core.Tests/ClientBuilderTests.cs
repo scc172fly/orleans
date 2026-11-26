@@ -10,8 +10,8 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// A no-op implementation of IGatewayListProvider used for testing client configuration
-    /// without requiring actual gateway connectivity.
+    /// 用于测试客户配置的 IGatewayListProvider 不执行操作
+    /// 不需要实际网关连接。
     /// </summary>
     public class NoOpGatewaylistProvider : IGatewayListProvider
     {
@@ -31,9 +31,9 @@ namespace NonSilo.Tests
     }
 
     /// <summary>
-    /// Tests for the Orleans ClientBuilder, which is responsible for configuring and building Orleans client instances.
-    /// These tests verify client configuration validation, service registration, and proper initialization of client components
-    /// without requiring a full Orleans cluster.
+    /// 测试 Orleans ClientBuilder负责配置和建设 Orleans 客户端实例。
+    /// 这些测试核查客户配置验证、服务登记和客户构成部分的适当启动
+    /// 不需要完整的 Orleans 组。
     /// </summary>
     [TestCategory("BVT")]
     [TestCategory("ClientBuilder")]
@@ -43,7 +43,7 @@ namespace NonSilo.Tests
     public class ClientBuilderTests
     {
         /// <summary>
-        /// Tests that a client cannot be created without specifying a ClusterId and a ServiceId.
+        /// 测试客户端在未指定 ClusterId 和 ServiceId的情况下无法创建 。
         /// </summary>
         [Fact]
         public void ClientBuilder_ClusterOptionsTest()
@@ -123,7 +123,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that a client can be created without specifying configuration.
+        /// 测试客户端是否无需指定配置即可创建。
         /// </summary>
         [Fact]
         public void ClientBuilder_NoSpecifiedConfigurationTest()
@@ -142,13 +142,13 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Verifies that the client throws an exception during startup if no grain interfaces are registered.
-        /// This ensures that clients have at least one grain interface to communicate with.
+        /// 证明客户在启动时没有注册 grain 接口,会丢弃例外。
+        /// 这确保客户至少有一个 grain 接口可以与用户沟通。
         /// </summary>
         [Fact]
         public void ClientBuilder_ThrowsDuringStartupIfNoGrainInterfacesAdded()
         {
-            // Add only an assembly with generated serializers but no grain interfaces
+            // 只添加带有生成序列器的组件, 但没有 grain 接口
             var hostBuilder = new HostBuilder()
                 .UseOrleansClient((ctx, clientBuilder) =>
                 {
@@ -167,7 +167,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that the <see cref="IClientBuilder.ConfigureServices"/> delegate works as expected.
+        /// 测试 <see cref="IClientBuilder.ConfigureServices"/> 代表的工作是否如预期的那样有效。
         /// </summary>
         [Fact]
         public void ClientBuilder_ServiceProviderTest()
@@ -205,21 +205,21 @@ namespace NonSilo.Tests
             var services = client.ServiceProvider.GetServices<MyService>()?.ToList();
             Assert.NotNull(services);
 
-            // Both services should be registered.
+            // 两种服务都应登记。
             Assert.Equal(2, services.Count);
             Assert.NotNull(services.Find(svc => svc.Id == 1));
             Assert.NotNull(services.Find(svc => svc.Id == 2));
 
-            // Service 1 should have been registered first - the pipeline order should be preserved.
+            // 第1服务处应首先登记,管道订单应予保留。
             Assert.Equal(1, registeredFirst[0]);
 
-            // The last registered service should be provided by default.
+            // 最后登记的服务应默认提供。
             Assert.Equal(2, client.ServiceProvider.GetRequiredService<MyService>().Id);
         }
 
         /// <summary>
-        /// Tests that attempting to configure both a silo and a client in the same host throws an exception.
-        /// Orleans requires separate hosts for silos and clients.
+        /// 试图在同一主机中配置 silo 和客户端的测试会排除一个例外。
+        /// Orleans 要求 silos 和客户分别提供主机。
         /// </summary>
         [Fact]
         public void ClientBuilderThrowsDuringStartupIfSiloBuildersAdded()
@@ -239,8 +239,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that attempting to configure both a silo and a client using the Host.CreateApplicationBuilder API throws an exception.
-        /// This verifies that the same restriction applies to the modern hosting API.
+        /// 试图将 silo 客户使用 Host.CreateApplicationBuilder API 抛出一个例外。
+        /// 由此可以核实同一限制是否适用于现代主机 API。
         /// </summary>
         [Fact]
         public void ClientBuilderWithHotApplicationBuilderThrowsDuringStartupIfSiloBuildersAdded()

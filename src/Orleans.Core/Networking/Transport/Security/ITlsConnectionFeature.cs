@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// Provides access to TLS connection certificate information.
+/// 提供访问 TLS 连接证书信息。
 /// </summary>
 public interface ITlsConnectionFeature
 {
     /// <summary>
-    /// Gets or sets the remote endpoint's certificate, if any.
+    /// 获取或设置远程端点证书,如果有的话。
     /// </summary>
     X509Certificate2? RemoteCertificate { get; set; }
 
     /// <summary>
-    /// Asynchronously retrieves the remote endpoint's certificate, if any.
+    /// 自动获取远程端点证书(如果有的话) 。
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The remote endpoint certificate, or <see langword="null"/> if none is available.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>远程端点证书,或 <see langword="null"/> 如果没有。</returns>
     Task<X509Certificate2?> GetRemoteCertificateAsync(CancellationToken cancellationToken);
 }

@@ -6,25 +6,25 @@ namespace Chirper.Grains;
 public record class ChirperAccountState
 {
     /// <summary>
-    /// The list of publishers who this user is following.
+    /// 用户所跟随的出版商列表 。
     /// </summary>
     [Id(0)]
     public Dictionary<string, IChirperPublisher> Subscriptions { get; init; } = new();
 
     /// <summary>
-    /// The list of subscribers who are following this user.
+    /// 跟随此用户的订阅者列表 。
     /// </summary>
     [Id(1)]
     public Dictionary<string, IChirperSubscriber> Followers { get; init; } = new();
 
     /// <summary>
-    /// Chirp messages recently received by this user.
+    /// 此用户最近收到尖锐消息 。
     /// </summary>
     [Id(2)]
     public Queue<ChirperMessage> RecentReceivedMessages { get; init; } = new();
 
     /// <summary>
-    /// Chirp messages recently published by this user.
+    /// 由此用户最近发布消息,
     /// </summary>
     [Id(3)]
     public Queue<ChirperMessage> MyPublishedMessages { get; init; } = new();

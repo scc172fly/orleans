@@ -5,19 +5,19 @@ using Xunit;
 namespace UnitTests.ConcurrencyTests
 {
     /// <summary>
-    /// Tests for Orleans grain concurrency features and read-only methods.
+    /// Orleans grain 货币货币特征和只读方法的测试。
     /// 
-    /// Orleans provides several concurrency models for grains:
-    /// - Default: Turn-based concurrency (one request at a time)
-    /// - [ReadOnly]: Methods can execute concurrently with other methods
-    /// - [AlwaysInterleave]: All methods can interleave
-    /// - [Reentrant]: Grain can process new requests while awaiting
+    /// Orleans 为 grains提供了几种同值货币模型:
+    /// - 默认:以转折为基础的货币(一次提出一个请求)
+    /// - [ReadOnly:方法可以与其他方法同时使用
+    /// - [AlwaysInterleave:所有方法都可以相互间
+    /// - [重新批准]: Grain 可在等待期间处理新的请求
     /// 
-    /// These tests focus on [ReadOnly] methods, which allow multiple read operations
-    /// to execute concurrently while maintaining data safety. This is crucial for:
-    /// - Improving throughput for read-heavy workloads
-    /// - Reducing latency when multiple clients read the same data
-    /// - Maintaining grain state consistency
+    /// 这些测试侧重于[ReadOnly]方法,允许多读操作
+    /// 保持数据安全的同时同时执行。 这对以下各点至关重要:
+    /// - 改进重读工作量的处理量
+    /// - 当多个客户阅读相同数据时减少潜伏
+    /// - 保持 grain 国家一致性
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -36,11 +36,11 @@ namespace UnitTests.ConcurrencyTests
         }
 
         /// <summary>
-        /// Tests that methods marked with [ReadOnly] can execute concurrently.
-        /// Sends 5 concurrent requests to a ReadOnly method and verifies they
-        /// all complete successfully without being serialized.
-        /// If these methods were not concurrent, they would execute sequentially,
-        /// taking much longer to complete.
+        /// 标有ReadOnly的方法可以同时执行的测试。
+        /// 将5项同时提出的请求发送 ReadOnly 方法并进行核实
+        /// 全部完整, 没有序列化, 成功完成 。
+        /// 如果这些方法不同时使用,它们将依次执行,
+        /// 完成需要更长的时间。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("ReadOnly"), TestCategory("AsynchronyPrimitives")]
         public async Task ConcurrencyTest_ReadOnly()
@@ -58,14 +58,14 @@ namespace UnitTests.ConcurrencyTests
         }
 
         /// <summary>
-        /// Stress test for concurrent execution with collection return values.
-        /// Verifies that:
-        /// - Multiple concurrent calls can safely return collections
-        /// - Orleans properly handles deep copying of return values
-        /// - No data corruption occurs under high concurrency (2000 iterations × 20 concurrent calls)
+        /// 压力测试,以同时执行与收集返回值。
+        /// 证明:
+        /// - 多个同时通话可以安全返回收藏
+        /// - Orleans 正确处理回程值的深重复制
+        /// - 在高通货率下没有发生数据腐败(2000年重复电话x20次同时通话)
         /// 
-        /// This test is important because returning mutable collections from concurrent
-        /// methods could lead to race conditions if not properly handled by the runtime.
+        /// 这个测试很重要,因为从同时返回的可变收藏
+        /// 如果在运行时间没有适当处理,方法可能导致种族条件。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("ReadOnly"), TestCategory("AsynchronyPrimitives")]
         public async Task ConcurrencyTest_ModifyReturnList()

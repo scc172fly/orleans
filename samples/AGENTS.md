@@ -1,45 +1,55 @@
-# Orleans samples guidance
+<a id="orleans-samples-guidance"></a>
 
-These rules apply recursively to everything under `samples/`. The repository-level guidance also applies.
+# Orleans 样品指导
 
-## Orchestration
+这些规则依次适用于 `samples/`下的一切。 存储处一级的指导意见也适用于所有事项。
 
-- Use [Aspire](https://aspire.dev) app hosts for new or reworked multi-process
-  samples and external dependencies. Model dependencies as resources with local
-  emulators or containers; use `aspire run` rather than manual setup scripts.
-- Wire Orleans through `Aspire.Hosting.Orleans`: `builder.AddOrleans("default")`, then `WithClustering(...)`, `WithGrainStorage(...)`, and so on, and give service projects a `WithReference(orleans)`. See `JournaledTodoList` for the canonical layout and `JournalingAzureBlobJson` for a single-service one.
-- Name the app host project `<Sample>.AppHost`, set `IsAspireHost`, and reference the `Aspire.AppHost.Sdk`. Add a `<Sample>.ServiceDefaults` project when the sample has more than one service, and call `AddServiceDefaults()` from each service.
-- Use `WaitFor(...)` for resources a service needs at startup, and `WithExternalHttpEndpoints()` for endpoints the user opens in a browser.
-- Self-contained samples such as single-process `UseLocalhostClustering()` consoles
-  can run without an app host.
-- Samples that exist to demonstrate a specific deployment target, such as those under `Deployment/`, keep the infrastructure assets that target requires.
+<a id="orchestration"></a>
 
-## Projects
+## 管弦
 
-- Every sample project targets `net10.0` and is non-packable.
-- Keep each sample copyable and independently buildable. Reference Orleans through
-  `Microsoft.Orleans.*` NuGet packages; project references stay within the sample.
-- `Build-Samples.ps1` packs `Orleans.slnx` with a unique prerelease version and builds
-  `Samples.slnx` against those packages.
-- Each sample owns a `Directory.Packages.props` with versions for every dependency.
-  The root samples file declares none; NuGet reads only the nearest file. Shared
-  samples such as `Streaming/Common` use their shared parent as the copy-out unit.
-- `PackageReference` elements must not carry `Version` or `VersionOverride`. Keep a package pinned to the same version across all samples, keep Aspire hosting and component versions aligned, and pin vulnerable transitive dependencies explicitly since `CentralPackageTransitivePinningEnabled` is on.
-- Follow `.editorconfig`; keep idiomatic teaching code and comments focused on the
-  Orleans concept being demonstrated.
+- 使用 [指定](https://aspire.dev) 应用程序主机新建或重新修改的多进程
+  以当地资源作为模型依赖性
+  模拟器或容器;使用 `aspire run` 而不是人工设置脚本。
+- 电线 Orleans 中 `Aspire.Hosting.Orleans`: `builder.AddOrleans("default")`,然后 `WithClustering(...)`, `WithGrainStorage(...)`,等等,并提供服务项目a `WithReference(orleans)`。见 `JournaledTodoList` 和 `JournalingAzureBlobJson` 单次服务者。
+- 命名应用程序主机项目 `<Sample>.AppHost`,设置 `IsAspireHost`,并引用 `Aspire.AppHost.Sdk`。当样本有不止一个服务时添加一个 `<Sample>.ServiceDefaults` 项目,并从每个服务处调用 `AddServiceDefaults()` 。
+- 启动时使用 `WaitFor(...)` 资源来满足服务需求,在浏览器中打开用户端点使用 `WithExternalHttpEndpoints()` 。
+- 自足样品,如单处理 `UseLocalhostClustering()` 控制台
+  可在没有应用程序主机的情况下运行。
+- 现有样本显示具体的部署目标,例如 `Deployment/`下的样本,保留了目标所需的基础设施资产。
 
-## Registration and documentation
+<a id="projects"></a>
 
-- `samples/Samples.slnx` must contain exactly the projects under `samples/`, grouped in a folder per sample. Add every new project, including app hosts and service defaults.
-- Add new samples to `gallery.json` following an existing entry and the schema in
-  `Validate-Samples.ps1`. Tag Aspire-orchestrated samples with `aspire`.
-- `samples/README.md` is generated. Run `pwsh ./samples/Update-Readme.ps1` after changing `gallery.json`; never hand-edit it.
-- Give each sample a `README.md` explaining what it demonstrates and how to run it. Imported samples keep their existing front matter and their original source repository and license.
+## 项目项目项目
 
-## Validation
+- 每个抽样项目的目标 `net10.0` ,都是不可包装的。
+- 保持每个样本都可复制和独立建构。 Orleans 中
+  `Microsoft.Orleans.*` NuGet 包;项目参考书留在样本中。
+- `Build-Samples.ps1` 包装 `Orleans.slnx` ,有独一的预释放版本并建造
+  `Samples.slnx` 与这些包裹相抵。
+- 每个样本都拥有一个 `Directory.Packages.props` ,每个依赖性都有版本。
+  根样本文件声明没有; NuGet 只读取最近的文件。共享
+  样本,如 `Streaming/Common` ,使用其共享母体作为副本出机单元。
+- `PackageReference` 元素不得携带 `Version` 或 `VersionOverride`。在所有样本中保持一个套件固定在同一个版本上,使主机和组件版本保持一致,并明确自 `CentralPackageTransitivePinningEnabled` 开始使用以来就存在脆弱的过境依赖性。
+- 之后 `.editorconfig`;保留专题教学守则和评论,着重
+  正在演示Orleans 概念。
 
-- Run `pwsh ./samples/Validate-Samples.ps1` for any change under `samples/`. It checks the gallery manifest, README freshness, solution membership, package version declarations, sample self-containment, and invokes `Build-Samples.ps1` to build all samples against locally packed Orleans packages.
-- For instruction-only edits, use `-NoBuild`.
-- Verify a new or changed sample still builds standalone: copy its folder outside the repository and run `dotnet build`. A sample using an Orleans package which has not been published yet is exempt until that package ships; the in-tree solution still builds it from the local package source.
-- Building a sample must not require cloud credentials. Only running a sample may.
-- Check `git diff --check` before committing.
+<a id="registration-and-documentation"></a>
+
+## 登记和文件
+
+- `samples/Samples.slnx` 必须包含在 `samples/`下的项目, 并按样本分组到文件夹中。 添加每个新项目, 包括应用程序主机和服务默认值 。
+- 在现有的条目和其中的图案之后,将新样本添加到 `gallery.json`
+  `Validate-Samples.ps1`. 标记的 `aspire`标注式标本样品。
+- `samples/README.md` 运行 `pwsh ./samples/Update-Readme.ps1` 变化后 `gallery.json`;从不手工编辑它。
+- 给每个样本都提供 `README.md` ,解释其展示的内容和如何操作。进口样品保留了现有的前端物品及其原始来源存放处和许可证。
+
+<a id="validation"></a>
+
+## 审定
+
+- 运行 `pwsh ./samples/Validate-Samples.ps1` 以查看在 `samples/`下的任何更改。 它检查画廊清单、 README 新鲜度、 解决方案成员资格、 软件包版本声明、 样本自我封存, 并引用 `Build-Samples.ps1` 来根据本地包装的 Orleans 软件包构建所有样品。
+- 用于只对指令进行编辑,请使用 `-NoBuild`。
+- 验证新的或改变的样本仍然能独立地构建:在存储库之外复制文件夹并运行 `dotnet build`。使用一个 Orleans 软件包的样本,该软件包尚未发布,但在包装船之前是免责的;树内解决方案仍然从本地的软件包源中构建。
+- 建模样本不得要求云层证书,只可运行样本。
+- 在承诺前检查 `git diff --check` 。

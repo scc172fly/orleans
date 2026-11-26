@@ -2,19 +2,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>Provides logging which reports each event of a durable task once.</summary>
+/// <summary>提供记录,报告每次持久任务事件一次。</summary>
 public static class DurableTaskLoggerExtensions
 {
     /// <summary>
-    /// Returns a logger which writes to <paramref name="logger"/> except while the calling code replays a durable task's
-    /// recorded operations.
+    /// 返回一个向 <paramref name="logger"/> 写入的对数日志,但调用代码重弹耐久任务时除外
+    /// 记录的业务。
     /// </summary>
-    /// <param name="logger">The logger to write to.</param>
-    /// <returns>A logger which skips events while <see cref="DurableTaskContext.IsReplaying"/> is <see langword="true"/>.</returns>
+    /// <param name="logger">要写入的日志器。</param>
+    /// <returns>日志, 它在 <see cref="DurableTaskContext.IsReplaying"/> 是 <see langword="true"/>时跳过事件。</returns>
     /// <remarks>
-    /// The logger reads the running task when each event is logged, so a grain caches one and uses it from durable task
-    /// bodies and ordinary methods alike; outside a durable task, it writes every event. While a task replays, it reports
-    /// that it isn't enabled, so source-generated logging methods skip formatting their messages. Scopes always begin on
+    /// 日志器读取每次事件被记录时运行的任务, 所以一个 grain 缓存一个任务并从耐久任务中使用它
+    /// 无论是机构还是普通的方法,除了持久的任务之外,它写每件事件。虽然任务重放,但它报告
+    /// 无法启用, 所以源生成的记录方法会跳过格式化信息。 范围总是从
     /// <paramref name="logger"/>.
     /// </remarks>
     public static ILogger ReplaySafe(this ILogger logger)

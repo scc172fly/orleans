@@ -4,15 +4,15 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// Represents the start of a durable task whose grain permanently rejected the invocation for a reason other than a
-/// conflict, which it reports with a rejection code of its own, or without one.
+/// 长期任务开始时,其 grain 永久拒绝援引,原因除a)和(q.03)以外:
+/// 冲突,它用自己的拒绝代码来报告,或没有拒绝代码。
 /// </summary>
 /// <remarks>
-/// The task's grain dead-lettered the invocation and stored nothing for it, so the starter's record of the task fails with
-/// this exception: awaiting the task, or a <c>ScheduleAsync</c> which awaits its acceptance, throws it, in every replay. A
-/// rejection for a conflicting task identifier fails with <see cref="DurableTaskConflictException"/> instead. A rejection
-/// with the <see cref="DurableTaskRejectionCodes.Expired"/> code leaves the outcome unknown: the grain may have run the
-/// task, and deleted it after its retention, before the late delivery arrived.
+/// 任务的任务 grain 以无遗的字母命名了祈祷, 并且没有为它保存任何资料。 所以开始任务的记录失败了
+/// 此项例外:等待任务,或 <c>ScheduleAsync</c> 等待它被接受, 扔在每场重播。
+/// 拒绝相冲突的任务标识符失败, <see cref="DurableTaskConflictException"/> 代替。
+/// 和 <see cref="DurableTaskRejectionCodes.Expired"/> 代码使结果未知: grain 可能已经运行
+/// 并在延迟交货到达之前将其删除。
 /// </remarks>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Tasks.DurableTaskRejectedException")]
@@ -22,13 +22,13 @@ public sealed class DurableTaskRejectedException : Exception
     {
     }
 
-    /// <summary>Initializes an exception for the rejected invocation of <paramref name="taskId"/> on <paramref name="target"/>.</summary>
-    /// <param name="taskId">The task which the invocation starts.</param>
-    /// <param name="target">The grain which rejected the invocation.</param>
+    /// <summary>初始化了拒绝援引 <paramref name="taskId"/> 日期 时 <paramref name="target"/>.</summary>
+    /// <param name="taskId">调用开始的任务。</param>
+    /// <param name="target">下 grain 否认祈祷者。</param>
     /// <param name="code">
-    /// The rejection code which the grain reported, or <see langword="null"/> for none.
+    /// 拒绝代码, grain 报告,或 <see langword="null"/> 无。
     /// </param>
-    /// <param name="reason">The grain's reason.</param>
+    /// <param name="reason"> grain的原因。</param>
     public DurableTaskRejectedException(TaskId taskId, GrainId target, string? code, string reason)
         : base(code is null
             ? $"Grain '{target}' rejected the invocation of durable task '{taskId}': {reason}"
@@ -39,15 +39,15 @@ public sealed class DurableTaskRejectedException : Exception
         Code = code;
     }
 
-    /// <summary>Gets the task which the invocation starts.</summary>
+    /// <summary>获得调用开始的任务。</summary>
     [Id(0)]
     public TaskId TaskId { get; private set; }
 
-    /// <summary>Gets the grain which rejected the invocation.</summary>
+    /// <summary>获取拒绝援引的 grain 。</summary>
     [Id(1)]
     public GrainId Target { get; private set; }
 
-    /// <summary>Gets the rejection code which the grain reported, or <see langword="null"/> for none.</summary>
+    /// <summary>获得拒绝代码 grain 或报告,或 <see langword="null"/> 毫无理由。</summary>
     [Id(2)]
     public string? Code { get; private set; }
 }

@@ -34,8 +34,8 @@ export default class GaugeWidget extends React.Component<GaugeWidgetProps, Gauge
     return `rgba(120, 57, 136, ${alpha})`;
     /*
         var percent = 100 * this.props.value / this.props.max;
-        if (percent > 90) return 'rgba(201,48,44,' + alpha.toString() + ')';
-        if (percent > 66) return 'rgba(236,151,31,' + alpha.toString() + ')';
+        如果(百分比 > 90) 返回“rgba( 201, 48, 44, ” + alpha.toString()+ ' );
+        如果(百分比 > 66) 返回“rgba (236,151,31,”+ alpha.toString()+ ')”;
         return 'rgba(51,122,183,' + alpha.toString() + ')';
 		*/
   }

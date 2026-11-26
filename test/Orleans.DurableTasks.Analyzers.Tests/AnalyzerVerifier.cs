@@ -13,12 +13,12 @@ using Xunit;
 namespace Orleans.Durable.Analyzers.Tests;
 
 /// <summary>
-/// Runs the durable task analyzers over source which marks each expected diagnostic as <c>{|ORLEANS0200:text|}</c>, and
-/// verifies code fixes for them.
+/// 运行耐久任务分析器, 源对每个预期诊断结果 <c>{|ORLEANS0200:text|}</c>,和
+/// 校验代码来修正它们
 /// </summary>
 /// <remarks>
-/// The source compiles against the shipped durable task abstractions, Orleans, and journaling assemblies which this test
-/// assembly references, so the analyzers bind the real overloads and an API change which disables a rule fails a test.
+/// 源代码根据所装运的耐久任务抽象 Orleans和本测试所用的日记集会汇编
+/// 组装引用, 所以分析器会绑定真正的超载和[ 修改, 从而禁用规则的 API 更改 测试失败 。
 /// </remarks>
 internal static partial class AnalyzerVerifier
 {
@@ -58,7 +58,7 @@ internal static partial class AnalyzerVerifier
         new DurableTaskStateMutationAnalyzer(),
     ];
 
-    /// <summary>Verifies that the analyzers report exactly the marked diagnostics in <paramref name="source"/>.</summary>
+    /// <summary>证明分析员准确报告 <paramref name="source"/>中标记的诊断。</summary>
     public static async Task VerifyAsync(string source)
     {
         var (text, expected) = ParseMarkers(Usings + source);
@@ -76,8 +76,8 @@ internal static partial class AnalyzerVerifier
     }
 
     /// <summary>
-    /// Verifies the marked diagnostics in <paramref name="source"/>, fixes all of those which <paramref name="fixer"/> fixes
-    /// in the document, and verifies that the result is <paramref name="fixedSource"/>, which has only its marked diagnostics.
+    /// 验证 <paramref name="source"/>中标记的诊断,修正所有 <paramref name="fixer"/> 中确定的所有诊断
+    /// 并在文件中核实结果为 <paramref name="fixedSource"/>,该结果只有标记的诊断。
     /// </summary>
     public static async Task VerifyCodeFixAsync(CodeFixProvider fixer, string source, string fixedSource)
     {
@@ -167,7 +167,7 @@ internal static partial class AnalyzerVerifier
     [GeneratedRegex(@"\{\|(?<id>ORLEANS\d{4}):(?<text>.*?)\|\}", RegexOptions.Singleline)]
     private static partial Regex MarkerPattern();
 
-    /// <summary>Supplies the diagnostics which a fix-all operation fixes.</summary>
+    /// <summary>提供诊断服务,以修复所有固定手术。</summary>
     private sealed class FixedDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics) : FixAllContext.DiagnosticProvider
     {
         public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken) =>

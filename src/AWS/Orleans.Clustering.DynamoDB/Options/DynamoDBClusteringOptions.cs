@@ -3,38 +3,38 @@ using Orleans.Clustering.DynamoDB;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures DynamoDB-backed silo membership.
+    /// 配置 DynamoDB- 支持的 silo 会籍。
     /// </summary>
     public class DynamoDBClusteringOptions : DynamoDBClientOptions
     {
         /// <summary>
-        /// Read capacity unit for DynamoDB storage
+        /// DynamoDB 储存读能力单位
         /// </summary>
         public int ReadCapacityUnits { get; set; } = DynamoDBStorage.DefaultReadCapacityUnits;
 
         /// <summary>
-        /// Write capacity unit for DynamoDB storage
+        /// DynamoDB 储存的写能力单位
         /// </summary>
         public int WriteCapacityUnits { get; set; } = DynamoDBStorage.DefaultWriteCapacityUnits;
 
         /// <summary>
-        /// Use Provisioned Throughput for tables
+        /// 表中已提供投入的用途
         /// </summary>
         public bool UseProvisionedThroughput { get; set; } = true;
 
         /// <summary>
-        /// Create the table if it doesn't exist
+        /// 如果表格不存在创建表格
         /// </summary>
         public bool CreateIfNotExists { get; set; } = true;
 
         /// <summary>
-        /// Update the table if it exists
+        /// 如果有更新表格,则更新列表
         /// </summary>
         public bool UpdateIfExists { get; set; } = true;
 
         /// <summary>
-        /// DynamoDB table name.
-        /// Defaults to 'OrleansSilos'.
+        /// DynamoDB 表格名称。
+        /// 默认值为 'OrleansSilos' 。
         /// </summary>
         public string TableName { get; set; } = "OrleansSilos";
     }

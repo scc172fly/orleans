@@ -1,42 +1,52 @@
 ---
-title: "ORLEANS0203: Change grain state after the last external await"
-description: Understand ORLEANS0203, which reports a state change which a step or a body's tail makes before an external await, and fix it by reordering or recording the change.
+title: "ORLEANS0203:在最后外部等待后更改 grain 状态"
+description: "理解 ORLEANS0203, 其中报告一个步骤或身体尾部在外部等待之前改变状态, 并通过重新排序或记录更改来修正状态。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0203: Change grain state after the last external await
+<a id="orleans0203-change-grain-state-after-the-last-external-await"></a>
 
-| Property | Value |
+# ORLEANS0203:在最后外部等待后更改 grain 状态
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-Code which runs once, such as a local step or the body's synchronous tail, changes grain state and then awaits an external operation before it returns. A change is an assignment, an increment, or a decrement of a grain state member, such as `IDurableValue<T>.Value` or a dictionary or list element, or a call which changes a collection, such as `Add`, `AddRange`, `Remove`, `Clear`, `Insert`, `RemoveAt`, `Enqueue`, `Dequeue`, `TryDequeue`, `TryAdd`, `UnionWith`, `IntersectWith`, `ExceptWith`, `SymmetricExceptWith`, `IDurableLog<T>.Append` and `TrimBefore`, the `TrySet` methods of `IDurableTaskCompletionSource<T>`, and `IPersistentState<TState>.WriteStateAsync` and `ClearStateAsync`. The following step counts a notice, then sends it:
+## 原因原因原因
+
+代码运行一次, 如本地步或身体同步尾部等, 更改 grain 状态,然后等待外部操作后再返回。更改是指任务、递增或一个 grain 成员国,例如 `IDurableValue<T>.Value` 或字典或列表元素,或更改收藏的调用,例如 `Add`, `AddRange`, `Remove`, `Clear`, `Insert`, `RemoveAt`, `Enqueue`, `Dequeue`, `TryDequeue`, `TryAdd`, `UnionWith`, `IntersectWith`, `ExceptWith`, `SymmetricExceptWith`, `IDurableLog<T>.Append` 和 `TrimBefore`, 和 `TrySet` 方法的方法和方法问题 `IDurableTaskCompletionSource<T>`,和 `IPersistentState<TState>.WriteStateAsync` 和 `ClearStateAsync`。以下步骤计为通知,然后发送:
 
 :::code source="snippets/durable-tasks/Orleans0203.cs" id="orleans0203_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-A step's result is staged in the work item which runs its final synchronous code, so the state changes which that code makes commit in the same journal write as the result. A change which precedes an external await is staged earlier. While the step awaits, other work on the grain, such as another workflow's step or an ordinary grain method, can request a journal write, and that write commits the change without the step's result.
+## 规则说明
 
-When the run then ends before the result commits, for example because the activation deactivates, the next run runs the step again: it counts the notice a second time and sends the email again. The task's record shows one notice, and the grain's state shows two.
+步骤结果在运行其最终同步代码的工作项目中进行, 因此该代码在同一日记中承诺的状态变化会因此被写入。 在外部等待之前的更改会提前进行 。 虽然该步骤正在等待, 其他关于 grain的工作, 如另一个工作流程步骤或普通 grain 方法, 可以要求写入一个日记, 而写时不会出现步骤结果, 并且该命令会自动执行修改 。
 
-For the commit model, see [Replay-safety rules](../grains/durable-tasks-replay-rules.md).
+当运行在结果发生前结束时, 例如由于激活停止操作, 下一运行再次运行该步骤: 它第二次计算通知并发送电子邮件。 任务记录显示一个通知, 而 grain状态则显示两个 。
 
-## How to fix violations
+承诺模式见 [重演安全规则](../grains/durable-tasks-replay-rules.md)。
 
-**Change state after the last external await.** The change is then part of the step's final synchronous code, and commits with its result:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**更改状态是在最后外部等待之后。** 该变化是该步骤最终同步代码的一部分,并承诺结果如下:
 
 :::code source="snippets/durable-tasks/Orleans0203.cs" id="orleans0203_fix_reorder" language="csharp":::
 
-**Record each change separately.** Split the work into a step for the external call and `DurableTask.RunInline` effects for the state changes. Each effect commits its change with its own record:
+**分别记录每个变化。** 将工作分为外部呼叫的一个步骤和状态变化的 `DurableTask.RunInline` 效应。每种效果都以自己的记录承诺更改:
 
 :::code source="snippets/durable-tasks/Orleans0203.cs" id="orleans0203_fix_split" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic for a change which is idempotent, such as setting a value which every run sets to the same result, when its commit before the external call is acceptable.
+## 何时压缩
+
+抑制对一非能力变化的诊断,例如设定每运行一次结果都设定相同结果的价值,如果在外部呼叫可接受之前就承诺了。

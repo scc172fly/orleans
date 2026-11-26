@@ -6,18 +6,18 @@ using Orleans.Serialization.Cloning;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// Copier for <see cref="RepeatedField{T}"/>.
+/// <see cref="RepeatedField{T}"/>的复印机。
 /// </summary>
-/// <typeparam name="T">The element type.</typeparam>
+/// <typeparam name="T">元素类型。</typeparam>
 [RegisterCopier]
 public sealed class RepeatedFieldCopier<T> : IDeepCopier<RepeatedField<T>>, IBaseCopier<RepeatedField<T>>
 {
     private readonly IDeepCopier<T> _copier;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RepeatedFieldCopier{T}"/> class.
+    /// 初始化 <see cref="RepeatedFieldCopier{T}"/> 类的新实例。
     /// </summary>
-    /// <param name="valueCopier">The value copier.</param>
+    /// <param name="valueCopier">价值复印机。</param>
     public RepeatedFieldCopier(IDeepCopier<T> valueCopier)
     {
         _copier = valueCopier;

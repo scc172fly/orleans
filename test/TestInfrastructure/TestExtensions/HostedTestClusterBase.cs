@@ -9,7 +9,7 @@ using Xunit;
 namespace TestExtensions
 {
     /// <summary>
-    /// Base class that ensures a silo cluster is started with the default configuration, and avoids restarting it if the previous test used the same default base.
+    /// 用于确保 silo 集以默认配置启动的基准类,如果上次测试使用相同的默认基数,则避免重新启动。
     /// </summary>
     [Collection("DefaultCluster")]
     public abstract class HostedTestClusterEnsureDefaultStarted : OrleansTestingBase

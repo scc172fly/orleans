@@ -37,7 +37,7 @@ namespace Orleans.Runtime
 
         public ValueTask<TResult?> InvokeMethodAsync<TResult>(GrainReference reference, IInvokable request, InvokeMethodOptions options)
         {
-            // TODO: Remove expensive interface type check
+            // TODO: 删除昂贵的接口类型检查
             if (this.filters.Length == 0 && request is not IOutgoingGrainCallFilter)
             {
                 SetGrainCancellationTokensTarget(this.cancellationTokenRuntime, reference, request);
@@ -53,7 +53,7 @@ namespace Orleans.Runtime
 
         public ValueTask InvokeMethodAsync(GrainReference reference, IInvokable request, InvokeMethodOptions options)
         {
-            // TODO: Remove expensive interface type check
+            // TODO: 删除昂贵的接口类型检查
             if (filters.Length == 0 && request is not IOutgoingGrainCallFilter)
             {
                 SetGrainCancellationTokensTarget(this.cancellationTokenRuntime, reference, request);
@@ -71,7 +71,7 @@ namespace Orleans.Runtime
         {
             Debug.Assert((options & InvokeMethodOptions.OneWay) != 0);
 
-            // TODO: Remove expensive interface type check
+            // TODO: 删除昂贵的接口类型检查
             if (filters.Length == 0 && request is not IOutgoingGrainCallFilter)
             {
                 SetGrainCancellationTokensTarget(this.cancellationTokenRuntime, reference, request);
@@ -111,7 +111,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Sets target grain to the found instances of type GrainCancellationToken
+        /// 将目标 grain 设为已找到的类型 GrainCancellationToken
         /// </summary>
         internal static void SetGrainCancellationTokensTarget(IGrainCancellationTokenRuntime cancellationTokenRuntime, GrainReference target, IInvokable request)
         {

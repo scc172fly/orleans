@@ -7,16 +7,16 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// Sample streaming tests demonstrating basic producer-consumer patterns in Orleans Streaming.
+    /// 抽样流测试,表明 Orleans 流的基本生产者-消费者模式。
     /// 
-    /// These tests showcase fundamental streaming scenarios:
-    /// - Producer and consumer grain communication via streams
-    /// - Different subscription ordering (consumer-first vs producer-first)
-    /// - Inline vs async consumer processing
-    /// - Message delivery guarantees and counting
+    /// 这些测试展示了基本流方案:
+    /// - 生产者和消费者通过流 grain 通信
+    /// - 不同的订户订购(消费者-先购者与生产者-先订)
+    /// - 消费者处理的内联与非同步
+    /// - 信息发送保障和计数
     /// 
-    /// These patterns form the foundation for more complex streaming applications
-    /// like real-time analytics, event processing, and pub-sub systems.
+    /// 这些模式构成了更复杂的流流应用的基础
+    /// 比如实时分析 事件处理 和酒吧子系统
     /// </summary>
     public class SampleStreamingTests
     {
@@ -35,17 +35,17 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// Tests the scenario where a consumer subscribes before the producer starts.
-        /// This verifies that:
-        /// - Consumers can subscribe to streams that don't yet have producers
-        /// - Messages are delivered once the producer starts
-        /// - No messages are lost in the handoff
+        /// 测试消费者在生产者开始之前就已订阅的设想。
+        /// 核查:
+        /// - 消费者可以选择还没有生产商的流
+        /// - 制作人一开始即发送信息
+        /// - 收手时没有丢失信息
         /// </summary>
         public async Task StreamingTests_Consumer_Producer(
             Guid streamId,
             CancellationToken cancellationToken = default)
         {
-            // consumer joins first, producer later
+            // 消费者首先加入,然后生产者加入
             var consumer = this.cluster.GrainFactory!.GetGrain<ISampleStreaming_ConsumerGrain>(Guid.NewGuid());
             await consumer.BecomeConsumer(streamId, StreamNamespace, streamProvider, cancellationToken);
 
@@ -81,17 +81,17 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// Tests the scenario where a producer starts before any consumers subscribe.
-        /// This verifies that:
-        /// - Producers can send to streams without active consumers
-        /// - Late-joining consumers receive messages (depending on provider)
-        /// - The system handles dynamic subscription scenarios
+        /// 测试生产者在任何消费者订户之前就开始购买的设想。
+        /// 核查:
+        /// - 生产者可以向没有活跃消费者的溪流发送产品
+        /// - 晚加入的消费者接收信息(取决于提供者)
+        /// - 该系统处理动态订阅方案
         /// </summary>
         public async Task StreamingTests_Producer_Consumer(
             Guid streamId,
             CancellationToken cancellationToken = default)
         {
-            // producer joins first, consumer later
+            // 生产者先加入,消费者晚加入
             var producer = this.cluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
             await producer.BecomeProducer(streamId, StreamNamespace, streamProvider, cancellationToken);
 
@@ -127,17 +127,17 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// Tests streaming with an inline consumer that processes messages synchronously.
-        /// Inline consumers:
-        /// - Process messages in the same task context as delivery
-        /// - Can provide lower latency but may impact throughput
-        /// - Are useful for simple, fast message processing
+        /// 测试与内线消费者同步处理信息。
+        /// 内线消费者:
+        /// - 与交付在同一个任务背景下处理信息
+        /// - 能够提供较低的潜潜潜,但可能影响输送量
+        /// - 可用于简单、快速的信息处理
         /// </summary>
         public async Task StreamingTests_Producer_InlineConsumer(
             Guid streamId,
             CancellationToken cancellationToken = default)
         {
-            // producer joins first, consumer later
+            // 生产者先加入,消费者晚加入
             var producer = this.cluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
             await producer.BecomeProducer(streamId, StreamNamespace, streamProvider, cancellationToken);
 
@@ -173,11 +173,11 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// Verifies that all produced messages were consumed.
-        /// This is a key validation for streaming tests to ensure:
-        /// - No messages were lost
-        /// - No duplicate deliveries occurred
-        /// - Producer and consumer are properly synchronized
+        /// 证明所有生成的信息都已被消耗。
+        /// 这是流成测试的关键验证, 以确保:
+        /// - 没有丢失信息
+        /// - 没有发生重复交付
+        /// - 生产者和消费者之间保持适当同步
         /// </summary>
         private async Task<bool> CheckCounters(ISampleStreaming_ProducerGrain producer, ISampleStreaming_ConsumerGrain consumer, bool assertIsTrue, CancellationToken cancellationToken)
         {

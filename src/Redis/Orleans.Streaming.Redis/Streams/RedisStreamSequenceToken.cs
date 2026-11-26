@@ -7,19 +7,19 @@ using Orleans.Streams;
 namespace Orleans.Streaming.Redis;
 
 /// <summary>
-/// Represents a position within a Redis stream entry and an event within that entry.
+/// 代表 Redis 流条目中的一个职位和该条目内的一个事件。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
 internal sealed class RedisStreamSequenceToken : EventSequenceTokenV2
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="RedisStreamSequenceToken"/> class.
+    /// 初始化 <see cref="RedisStreamSequenceToken"/> 类的新实例。
     /// </summary>
-    /// <param name="entryId">The Redis entry identifier.</param>
-    /// <param name="sequenceNumber">The millisecond portion of the Redis entry identifier.</param>
-    /// <param name="redisSequenceNumber">The per-millisecond Redis sequence number.</param>
-    /// <param name="eventIndex">The index of the event in the Orleans batch.</param>
+    /// <param name="entryId"> Redis 条目识别符号。</param>
+    /// <param name="sequenceNumber"> Redis 条目识别符号的毫秒部分。</param>
+    /// <param name="redisSequenceNumber">单毫米秒 Redis 序列号。</param>
+    /// <param name="eventIndex">活动的索引 Orleans 批量。</param>
     public RedisStreamSequenceToken(string entryId, long sequenceNumber, long redisSequenceNumber, int eventIndex)
         : base(sequenceNumber, eventIndex)
     {
@@ -28,21 +28,21 @@ internal sealed class RedisStreamSequenceToken : EventSequenceTokenV2
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RedisStreamSequenceToken"/> class.
+    /// 初始化 <see cref="RedisStreamSequenceToken"/> 类的新实例。
     /// </summary>
     public RedisStreamSequenceToken()
     {
     }
 
     /// <summary>
-    /// Gets the Redis entry identifier.
+    /// 获取 Redis 条目标识符。
     /// </summary>
     [Id(2)]
     [JsonProperty]
     public string EntryId { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Gets the Redis per-millisecond sequence number.
+    /// 获得每毫秒序列号 Redis 。
     /// </summary>
     [Id(3)]
     [JsonProperty]
@@ -52,10 +52,10 @@ internal sealed class RedisStreamSequenceToken : EventSequenceTokenV2
     protected override Type SequenceTokenCompatibilityDomain => typeof(RedisStreamSequenceToken);
 
     /// <summary>
-    /// Creates a token for an event within the same Redis entry.
+    /// 创建同一 Redis 项内的事件的代号。
     /// </summary>
-    /// <param name="eventIndex">The event index within the Orleans batch.</param>
-    /// <returns>A token for the specified event.</returns>
+    /// <param name="eventIndex">内天体 Orleans 批量。</param>
+    /// <returns>指定事件的一个标记。</returns>
     public override RedisStreamSequenceToken CreateSequenceTokenForEvent(int eventIndex)
         => new(EntryId, SequenceNumber, RedisSequenceNumber, eventIndex);
 

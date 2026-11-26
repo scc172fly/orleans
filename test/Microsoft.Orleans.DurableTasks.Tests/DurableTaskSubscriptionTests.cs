@@ -21,9 +21,9 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Verifies that a durable execution subscribes to the terminal result of an invoked task which it didn't invoke through
-/// GetDurableTask: the child in the subscriber's tree, the subscription and completion messages, replay, cancellation,
-/// and both sides' retention.
+/// 证明耐久处决符合它没有援引的 任务的最终结果
+/// GetDurableTask:用户树上的孩子,订阅和完成信息、重播、取消、
+/// 双方保留了下来
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -55,14 +55,14 @@ public sealed class DurableTaskSubscriptionTests
         var subscription = await subscriber.Transport.WaitForSubscriptionAsync(1);
         await subscriber.WriteAsync(TestCancellation);
 
-        // The subscription is a child of the relay, recorded with its subscription.
+        // 订阅是中继器的子嗣,以订阅方式登记。
         Assert.Equal(new RecordedSubscription(SubscriberGrain, OperationGrain, OperationId, subscriber.Runtime.GetWireId(SubscriptionChildId), Unsubscribe: false), subscription);
         Assert.StartsWith("$subscribe:", subscriber.Get(SubscriptionChildId).RequestFingerprint, StringComparison.Ordinal);
         Assert.Equal(
             $"a subscription to task 'op' on grain '{OperationGrain}'",
             (await subscriber.GetDiagnosticsAsync(TestCancellation))[SubscriptionChildId].Request);
 
-        // The operation's grain adds the subscriber to the operation's completion destinations; a redelivery changes nothing.
+        // 操作的 grain 将用户添加到运行完成目的地;再交付不会改变任何变化。
         await operation.DeliverAsync(subscription.ToInboxMessage(), TestCancellation);
         await operation.DeliverAsync(subscription.ToInboxMessage(), TestCancellation);
         Assert.Equal(new DurableTaskSubscriber(SubscriberGrain, subscription.SubscriberId), Assert.Single(operation.Subscribers(OperationId)));
@@ -78,7 +78,7 @@ public sealed class DurableTaskSubscriptionTests
         await subscriber.DeliverAsync(operation.CreateInboxMessage(completion), TestCancellation);
         Assert.Equal("done", (await subscriber.GetResponseAsync(RelayId, TestCancellation)).GetResult<string>());
 
-        // Retirement removes the subscriber. A client-scheduled operation keeps its result for its retention period.
+        // 客户计划安排的业务保留其留存期的结果。
         ((IOutboxMessageSource)operation.Runtime).OnRetired(completion.MessageId, OutboxMessageRetirement.Delivered.Instance);
         await operation.WriteAsync(TestCancellation);
         Assert.Empty(operation.Subscribers(OperationId));
@@ -105,7 +105,7 @@ public sealed class DurableTaskSubscriptionTests
         await operation.GetResponseAsync(OperationId, TestCancellation);
         await subscriber.DeliverAsync(operation.CreateInboxMessage(Assert.Single(operation.Transport.Completions)), TestCancellation);
 
-        // The handle's identifier is the subscription's record, and its target identifier and address name the observed task.
+        // 手柄的识别码是订阅记录,目标识别码和地址名称是所观察到的任务。
         Assert.Equal(
             $"{SubscriptionChildId} {OperationId} {OperationGrain} {OperationId} done",
             (await subscriber.GetResponseAsync(RelayId, TestCancellation)).GetResult<string>());
@@ -155,13 +155,13 @@ public sealed class DurableTaskSubscriptionTests
             await first.ScheduleAsync(RelayId, "relay", TestCancellation);
             var subscription = await first.Transport.WaitForSubscriptionAsync(1);
 
-            // The terminal task's completion is sent when the subscriber is added.
+            // 终端任务完成时间是用户加入时发送的。
             await operation.DeliverAsync(subscription.ToInboxMessage(), TestCancellation);
             var completion = Assert.Single(operation.Transport.Completions);
             Assert.Single(operation.Subscribers(OperationId));
             await first.DeliverAsync(operation.CreateInboxMessage(completion), TestCancellation);
 
-            // A stored task which isn't an invoked task completes the subscription as not found at once.
+            // 存储的任务不是引用的任务, 完成订阅时未同时找到的 。
             var step = await first.Transport.WaitForSubscriptionAsync(2);
             Assert.Equal(stepId, step.TaskId);
             await operation.DeliverAsync(step.ToInboxMessage(), TestCancellation);
@@ -172,7 +172,7 @@ public sealed class DurableTaskSubscriptionTests
             await first.WriteAsync(TestCancellation);
         }
 
-        // A replay observes the recorded outcomes without subscribing again.
+        // 重播观看记录的结果,不签。
         await using var replacement = await subscriberHost.ActivateAsync(TestCancellation);
         await replacement.Tasks.SignalAsync(RelayId, Continue, "go", TestCancellation);
         Assert.Equal("done|not found: op/step", (await replacement.GetResponseAsync(RelayId, TestCancellation)).GetResult<string>());
@@ -188,13 +188,13 @@ public sealed class DurableTaskSubscriptionTests
         await using var operation = await operationHost.ActivateAsync(TestCancellation);
         var missing = new RecordedSubscription(SubscriberGrain, OperationGrain, TaskId.CreateRoot("missing"), SubscriptionChildId, Unsubscribe: false);
 
-        // The grain holds no state for a subscription to a task which it doesn't hold.
+        // 下 grain 订阅一项它不持有的任务时,没有国家。
         await operation.DeliverAsync(missing.ToInboxMessage(), TestCancellation);
         Assert.Equal(missing with { Sender = OperationGrain, Target = SubscriberGrain }, Assert.Single(operation.Transport.NotFound));
         Assert.Empty(operation.Ids);
         Assert.Empty(operation.Transport.Resumes);
 
-        // A cancellation which preceded its invocation holds no task to subscribe to either.
+        // 取消之前的取消,也没有任何任务可签署。
         operation.Runtime.SignalCancellationFromInbox(OperationId, caller, reason: null);
         await operation.WriteAsync(TestCancellation);
         var early = missing with { TaskId = OperationId, SubscriberId = RelayId.Child("$child-2") };
@@ -202,7 +202,7 @@ public sealed class DurableTaskSubscriptionTests
         Assert.Equal(early with { Sender = OperationGrain, Target = SubscriberGrain }, operation.Transport.NotFound[1]);
         Assert.Empty(operation.Get(OperationId).CompletionDestinations);
 
-        // The invocation still finds the cancellation, which its caller receives.
+        // 请求仍然被撤销,而其打电话者收到取消通知。
         await operation.ScheduleFromInboxAsync(OperationId, "op", caller, TestCancellation);
         Assert.Equal(DurableTaskStatus.Canceled, Assert.Single(operation.Transport.Completions).Materialize(operation.Runtime).Response.Status);
     });
@@ -252,7 +252,7 @@ public sealed class DurableTaskSubscriptionTests
         Assert.True(CallerScope.TryParseWireId(subscription.SubscriberId, out _, out var subscriptionId));
         Assert.Equal(DurableTaskStatus.Canceled, subscriber.Get(subscriptionId).Result!.Status);
 
-        // The subscription ends; the task continues and completes without a completion for the subscriber.
+        // 订阅结束;用户的任务继续完成,但完成时间不晚。
         await operation.DeliverAsync(unsubscription.ToInboxMessage(), TestCancellation);
         Assert.Empty(operation.Subscribers(OperationId));
         await operation.Tasks.SignalAsync(OperationId, Release, "done", TestCancellation);
@@ -324,7 +324,7 @@ public sealed class DurableTaskSubscriptionTests
             Assert.Single(first.Transport.Completions);
         }
 
-        // The recovered grain materializes the pending completion from the subscriber and the stored result.
+        // 回收的 grain 实现用户未完成的完成和储存的结果。
         time.Advance(TimeSpan.FromHours(2));
         await using var replacement = await operationHost.ActivateAsync(TestCancellation);
         var messageId = DurableTaskMessageTransport.CreateMessageId(
@@ -337,7 +337,7 @@ public sealed class DurableTaskSubscriptionTests
         var body = MessagingTestHelpers.MessageTypes.Completion.Decode(message.Envelope);
         Assert.Equal((OperationId, SubscriptionChildId, "done"), (body.TaskId, body.SubscriberId, body.Response.GetResult<string>()));
 
-        // The pending completion held the task beyond its retention period; a dead letter restarts that period.
+        // 尚未完成的工作使任务超出了保留期;这一时期的一封死信重新开始。
         ((IOutboxMessageSource)replacement.Runtime).OnRetired(messageId, new OutboxMessageRetirement.DeadLettered("The outbox dead-lettered the completion."));
         await replacement.WriteAsync(TestCancellation);
         Assert.Equal([OperationId], replacement.Ids);
@@ -364,7 +364,7 @@ public sealed class DurableTaskSubscriptionTests
         Assert.Equal(subscription with { Unsubscribe = true }, await subscriber.Transport.WaitForSubscriptionAsync(2));
         Assert.IsType<DurableTaskAbortedException>(subscriber.Get(SubscriptionChildId).Result!.Exception);
 
-        // A completion which arrives for the ended subscription changes nothing.
+        // 完成最后订阅的完成后,一无改变。
         await subscriber.DeliverAsync(
             MessagingTestHelpers.MessageTypes.Completion.Create(
                 DurableTaskMessageTransport.CreateMessageId(OperationGrain, SubscriberGrain, OperationId, DurableTaskMessageTypes.CompletionSubject, subscription.SubscriberId.ToString()),
@@ -384,7 +384,7 @@ public sealed class DurableTaskSubscriptionTests
         var subscription = await subscriber.Transport.WaitForSubscriptionAsync(1);
         await subscriber.WriteAsync(TestCancellation);
 
-        // The cancellation doesn't end the shielded subscription, so the operation's result completes the relay.
+        // 取消不会结束屏蔽订阅, 所以操作的结果完成中继。
         await subscriber.Tasks.CancelAsync(RelayId, "buyer", TestCancellation);
         Assert.Single(subscriber.Transport.Subscriptions);
         Assert.Null(subscriber.Get(SubscriptionChildId).Result);
@@ -525,13 +525,13 @@ public sealed class DurableTaskSubscriptionTests
         }
     }
 
-    /// <summary>A grain identity which references can address.</summary>
+    /// <summary>A grain 能够找到引用的识别身份。</summary>
     private sealed class GrainAddress(GrainId grainId) : IGrainBase, IAddressable
     {
         public IGrainContext GrainContext { get; } = new TestGrainContext(grainId);
     }
 
-    /// <summary>Hosts one grain's journaled task state and runtime, recovering each activation from the committed journal.</summary>
+    /// <summary>托管一个 grain日记任务状态和运行时间,从承诺的日记中恢复每次激活。</summary>
     private sealed class SubscriptionHost(GrainId grainId, TimeProvider? timeProvider = null) : ISubscriptionWorkflows, IAsyncDisposable
     {
         private readonly DurableTaskJournalHarness _journal = new(DurableTaskJournalHarness.OrleansBinary, timeProvider);
@@ -606,7 +606,7 @@ public sealed class DurableTaskSubscriptionTests
 
         public bool Contains(TaskId taskId) => storage.TryGetTask(taskId, out _);
 
-        /// <summary>Gets the subscribers of a task other than its invoker.</summary>
+        /// <summary>获取任务除其引用者以外的其它任务的订阅者。</summary>
         public IReadOnlyList<DurableTaskSubscriber> Subscribers(TaskId taskId) =>
             storage.TryGetTask(taskId, out var state)
                 ? [.. state.CompletionDestinations.Where(subscriber => subscriber.TaskId != taskId)]
@@ -621,7 +621,7 @@ public sealed class DurableTaskSubscriptionTests
             await WriteAsync(cancellationToken);
         }
 
-        /// <summary>Accepts a message as the inbox does and commits the changes it staged.</summary>
+        /// <summary>接受一个信息,就像收件箱所做的那样,并进行其所要作出的修改。</summary>
         public async Task DeliverAsync(InboxMessage message, CancellationToken cancellationToken)
         {
             Assert.True(_handler.TryAccept(message, out var result));
@@ -629,7 +629,7 @@ public sealed class DurableTaskSubscriptionTests
             await WriteAsync(cancellationToken);
         }
 
-        /// <summary>Materializes a completion which this grain staged, as its outbox does for delivery.</summary>
+        /// <summary>使完成的完成成为 grain 已经准备就绪,正如其发件箱的交付一样。</summary>
         public InboxMessage CreateInboxMessage(RecordedCompletion completion)
         {
             Assert.True(((IOutboxMessageSource)runtime).TryGetMessage(completion.MessageId, out var message));
@@ -658,7 +658,7 @@ public sealed class DurableTaskSubscriptionTests
             return Assert.Single(transport.Resumes);
         }
 
-        /// <summary>Waits until the grain stages <paramref name="taskId"/>, which a running execution schedules.</summary>
+        /// <summary>等到 grain 阶段 <paramref name="taskId"/>执行时间表</summary>
         public async Task WaitUntilStoredAsync(TaskId taskId)
         {
             await StateChanges.WaitUntilAsync(() => Contains(taskId), description: $"task '{taskId}' is stored");
@@ -684,7 +684,7 @@ public sealed class DurableTaskSubscriptionTests
     }
 }
 
-/// <summary>A serializable request which runs a named workflow of the subscription test host which it targets.</summary>
+/// <summary>一份可连号请求,其中含有它所瞄准的订阅测试主机命名工作流程。</summary>
 [GenerateSerializer]
 [Alias("Microsoft.Orleans.DurableTasks.Tests.SubscriptionWorkflowRequest")]
 internal sealed class SubscriptionWorkflowRequest : IDurableTaskRequest
@@ -733,7 +733,7 @@ internal sealed class SubscriptionWorkflowRequest : IDurableTaskRequest
         (_host as ISubscriptionWorkflows ?? throw new InvalidOperationException("The request has no target.")).Workflows[Workflow]();
 }
 
-/// <summary>The named workflows of a subscription test host.</summary>
+/// <summary>订阅测试主机命名的工作流程。</summary>
 internal interface ISubscriptionWorkflows
 {
     Dictionary<string, Func<DurableTask>> Workflows { get; }

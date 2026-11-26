@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Tests for various helper classes.
+    /// 各种辅助人员课程的考试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -18,14 +18,14 @@ namespace UnitTests.StorageTests.Relational
         [Fact]
         public void AdoNetStorageProviderGrainTypeHashing()
         {
-            //This way of using the hasher is like ADO.NET Storage provider would use it. This tests
-            //the hasher is thread safe.
+            //使用这种方法 使用草草地就像 ADO.NET 储存供应商会使用它。
+            //该哈希器是线程安全的。
             var adonetDefaultHasher = new StorageHasherPicker(new[] { new OrleansDefaultHasher() });
             const int TestGrainHash = -201809205;
             var grainType = "Grains.PersonGrain";
             Parallel.For(0, 1000000, i =>
             {
-                //These parameters can be null in this test.
+                //本次测试中这些参数可以是空的 。
                 var hasher = adonetDefaultHasher.PickHasher<object>(null!, null!, null!, default, null!, null!);
                 Assert.NotNull(hasher);
                 int grainTypeHash = hasher.Hash(Encoding.UTF8.GetBytes(grainType));
@@ -61,8 +61,8 @@ namespace UnitTests.StorageTests.Relational
             const string ExtensionKey = "ExtensionKey";
             var longGrainIdWitExtensionAsString = new AdoGrainKey(LongGrainId, ExtensionKey).ToString();
 
-            //AdoGrainKey helper class splits the grain key and extension key using character '#'.
-            //The key and its extension are the two distinct elements.
+            //AdoGrainKey 辅助类使用字符“#”分割 grain 键和扩展键。
+            //关键及其延伸是两个不同的要素。
             var grainKeys = longGrainIdWitExtensionAsString.Split(new[] { "#" }, StringSplitOptions.RemoveEmptyEntries);
             Assert.Equal(2, grainKeys.Length);
 

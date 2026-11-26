@@ -14,7 +14,7 @@ public sealed class TicketGrain : DurableGrain
         var reference = Guid.Empty;
         DurableTask.RunInline("allocate", () =>
         {
-            // A replay returns the recorded result without running the effect, so these assignments don't happen.
+            // 重放返回所记录的结果,而不运行效果,所以这些任务不会发生。
             number = ++_lastNumber.Value;
             reference = Guid.NewGuid();
         });
@@ -28,7 +28,7 @@ public sealed class TicketGrain : DurableGrain
     // <orleans0204_fix>
     public async DurableTask<string> IssueOnceAsync()
     {
-        // The effect returns its outputs, so every replay receives the recorded values.
+        // 效果返回其输出, 所以每个重播都接收记录值。
         var (number, reference) = DurableTask.RunInline("allocate", () => (++_lastNumber.Value, Guid.NewGuid()));
 
         await Print(number, reference).WithId("print");

@@ -5,10 +5,10 @@ namespace UnitTests.GrainInterfaces
 {
     public interface ITestGrain : IGrainWithIntegerKey
     {
-        // duplicate to verify identity
+        // 重复来核查身份
         Task<long> GetKey();
 
-        // separate label that can be set
+        // 能够设置的单独标签
         Task<string> GetLabel();
 
         Task SetLabel(string label);
@@ -38,10 +38,10 @@ namespace UnitTests.GrainInterfaces
 
     public interface IGuidTestGrain : IGrainWithGuidKey
     {
-        // duplicate to verify identity
+        // 重复来核查身份
         Task<Guid> GetKey();
 
-        // separate label that can be set
+        // 能够设置的单独标签
         Task<string> GetLabel();
 
         Task SetLabel(string label);

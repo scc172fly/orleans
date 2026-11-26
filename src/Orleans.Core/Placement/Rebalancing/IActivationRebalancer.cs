@@ -5,17 +5,17 @@ using System.Threading.Tasks;
 namespace Orleans.Placement.Rebalancing;
 
 /// <summary>
-/// A gateway to interface with the activation rebalancer.
+/// 连接激活再平衡器的通道
 /// </summary>
-/// <remarks>This is available only on the silo.</remarks>
+/// <remarks>仅可在以下时间提供: silo.</remarks>
 public interface IActivationRebalancer
 {
     /// <summary>
-    /// Returns the rebalancing report.
-    /// <para>The report can lag behind if you choose a session cycle period less than <see cref="IActivationRebalancerMonitor.WorkerReportPeriod"/>.</para>
+    /// 返回再平衡报告。
+    /// <para>如果选择一个低于 <see cref="IActivationRebalancerMonitor.WorkerReportPeriod"/>的周期周期,报告可能会落后。</para>
     /// </summary>
-    /// <param name="force">If set to <see langword="true"/> returns the most current report.</param>
-    /// <remarks>Using <paramref name="force"/> incurs an asynchronous operation.</remarks>
+    /// <param name="force">如果设置为 <see langword="true"/> 返回最新报告。</param>
+    /// <remarks>使用 <paramref name="force"/> 进行无同步操作。</remarks>
     ValueTask<RebalancingReport> GetRebalancingReport(bool force = false);
 
     /// <inheritdoc cref="IActivationRebalancerWorker.ResumeRebalancing"/>
@@ -25,14 +25,14 @@ public interface IActivationRebalancer
     Task SuspendRebalancing(TimeSpan? duration = null);
 
     /// <summary>
-    /// Subscribe to activation rebalancer reports.
+    /// 订阅激活再平衡报告
     /// </summary>
-    /// <param name="listener">The component that will be notified.</param>
+    /// <param name="listener">将通知的构成部分。</param>
     void SubscribeToReports(IActivationRebalancerReportListener listener);
 
     /// <summary>
-    /// Unsubscribe from activation rebalancer reports.
+    /// 取消从激活再平衡报告上退缩 。
     /// </summary>
-    /// <param name="listener">The already subscribed component.</param>
+    /// <param name="listener">已经订阅的组件。</param>
     void UnsubscribeFromReports(IActivationRebalancerReportListener listener);
 }

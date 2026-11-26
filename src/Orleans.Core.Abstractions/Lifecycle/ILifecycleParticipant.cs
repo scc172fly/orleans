@@ -2,20 +2,20 @@
 namespace Orleans
 {
     /// <summary>
-    /// Provides hook to take part in lifecycle.
-    /// Also may act as a signal interface indicating that an object can take part in lifecycle.
+    /// 提供钩子来参与生命周期。
+    /// 也可以充当信号界面,表明物体可以参与生命周期。
     /// </summary>
     /// <typeparam name="TLifecycleObservable">
-    /// The type of lifecycle being observed.
+    /// 所观测到的生命周期类型。
     /// </typeparam>
     public interface ILifecycleParticipant<TLifecycleObservable>
         where TLifecycleObservable : ILifecycleObservable
     {
         /// <summary>
-        /// Adds the provided observer as a participant in the lifecycle.
+        /// 加上作为生命周期参与者的被派观察员。
         /// </summary>
         /// <param name="lifecycle">
-        /// The observer.
+        /// 观察员
         /// </param>
         void Participate(TLifecycleObservable lifecycle);
     }

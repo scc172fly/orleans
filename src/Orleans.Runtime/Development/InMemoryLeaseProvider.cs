@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime.Development
 {
     /// <summary>
-    /// In memory lease provider for development and test use.
-    /// This provider stores lease information in memory an can be lost if grain
-    /// becomes inactive or if silo crashes.  This implementation is only intended
-    /// for test or local development purposes - NOT FOR PRODUCTION USE.
+    /// 用于开发和测试使用的记忆租赁供应商。
+    /// 该供应商在存储租赁信息时将信息存储租赁,如果 grain
+    /// 成为不活动或 silo 崩溃。执行仅是有意
+    /// 用于试验或地方发展目的 -- -- 不生产用途。
     /// </summary>
     public class InMemoryLeaseProvider : ILeaseProvider
     {
         private readonly IDevelopmentLeaseProviderGrain leaseProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InMemoryLeaseProvider"/> class.
+        /// 初始化 <see cref="InMemoryLeaseProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory.</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
         public InMemoryLeaseProvider(IGrainFactory grainFactory)
         {
             this.leaseProvider = GetLeaseProviderGrain(grainFactory);
@@ -67,7 +67,7 @@ namespace Orleans.Runtime.Development
     internal interface IDevelopmentLeaseProviderGrain : ILeaseProvider, IGrainWithIntegerKey
     {
         /// <summary>
-        /// Forgets about all leases.  Used to simulate loss of this grain or to force rebalance of queues
+        /// 忘记所有租赁。 用于模拟丢失此 grain 或强制重新平衡队列
         /// </summary>
         /// <returns></returns>
         [Alias("847FCE12")]
@@ -75,9 +75,9 @@ namespace Orleans.Runtime.Development
     }
 
     /// <summary>
-    /// Grain that stores lease information in memory.
-    /// TODO: Consider making this a stateful grain, as a production viable implementation of lease provider that works with storage
-    /// providers.
+    /// 存储信息以保存记忆的Grain 。
+    /// 考虑让这个故事成为 grain将储存作为可行的生产方式,对与储存有关的租赁提供商实施
+    /// 提供商。
     /// </summary>
     internal class DevelopmentLeaseProviderGrain : Grain, IDevelopmentLeaseProviderGrain
     {
@@ -133,12 +133,12 @@ namespace Orleans.Runtime.Development
         private AcquireLeaseResult Renew(string category, AcquiredLease acquiredLease)
         {
             DateTime now = DateTime.UtcNow;
-            // if lease exists, and we have the right token, and lease has not expired, renew.
+            // 如果租约存在,我们有合适的标志 租赁期没有到期,续签
             if (!this.leases.TryGetValue(Tuple.Create(category, acquiredLease.ResourceKey), out Lease? lease) || lease.Token != acquiredLease.Token)
             {
                 return new AcquireLeaseResult(new AcquiredLease(acquiredLease.ResourceKey), ResponseCode.InvalidToken, new OrleansException("Invalid token provided, caller is not the owner."));
             }
-            // we don't care if lease has expired or not as long as owner has not changed.
+            // 我们不在乎租赁是否到期 只要业主没有改变
             lease.ExpiredUtc = now + acquiredLease.Duration;
             return new AcquireLeaseResult(new AcquiredLease(acquiredLease.ResourceKey, acquiredLease.Duration, lease.Token, now), ResponseCode.OK, null);
         }

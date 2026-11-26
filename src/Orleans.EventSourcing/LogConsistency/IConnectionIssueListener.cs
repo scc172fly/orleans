@@ -1,19 +1,19 @@
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// An interface that is implemented by log-consistent grains using virtual protected methods
-    /// that can be overridden by users, in order to monitor the connection issues.
+    /// 使用虚拟保护方法以对数一致 grains 实施的接口
+    /// 用户可以取代这些功能,以便监测连接问题。
     /// </summary>
     public interface IConnectionIssueListener
     {
         /// <summary>
-        /// Called when running into some sort of connection trouble.
-        /// The called code can modify the retry delay if desired, to change the default.
+        /// 遇到某种连接问题时打电话来
+        /// 调用的代码可以修改重试延迟, 如果需要的话, 以更改默认值 。
         /// </summary>
         void OnConnectionIssue(ConnectionIssue connectionIssue);
 
         /// <summary>
-        /// Called when a previously reported connection issue has been resolved.
+        /// 当先前报告的连接问题得到解决时,即被调用。
         /// </summary>
         void OnConnectionIssueResolved(ConnectionIssue connectionIssue);
     }

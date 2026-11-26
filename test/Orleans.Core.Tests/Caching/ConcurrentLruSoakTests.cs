@@ -8,10 +8,10 @@ using Xunit;
 namespace NonSilo.Tests.Caching;
 
 /// <summary>
-/// Stress tests for the ConcurrentLruCache to verify thread-safety and consistency under high concurrent load.
-/// These "soak tests" run intensive multi-threaded operations to detect race conditions, deadlocks, and data corruption
-/// that might not be caught by regular unit tests. The cache must maintain consistency of its multi-generation structure
-/// even under extreme concurrent access patterns.
+/// 压力测试 ConcurrentLruCache 用于在高同时载荷下核查线条安全和一致性。
+/// 发现种族状况、僵局和数据腐败
+/// 暗藏处必须保持多代结构的一致性。
+/// 即使在极端同时进入模式下也是如此。
 /// </summary>
 [TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -35,8 +35,8 @@ public sealed class ConcurrentLruCacheSoakTests
     }
 
     /// <summary>
-    /// Tests concurrent GetOrAdd operations to ensure the cache maintains consistency under heavy read/write load.
-    /// Verifies that the cache size remains within bounds and internal structures remain valid.
+    /// 测试同时进行的 GetOrAdd 操作,以确保缓存在重读/写负载下保持一致性。
+    /// 证明缓存规模仍在限制之内,内部结构仍然有效。
     /// </summary>
     [Fact]
     public async Task WhenSoakConcurrentGetCacheEndsInConsistentState()
@@ -54,7 +54,7 @@ public sealed class ConcurrentLruCacheSoakTests
             testOutputHelper.WriteLine($"{lru.HotCount} {lru.WarmCount} {lru.ColdCount}");
             testOutputHelper.WriteLine(string.Join(" ", lru.Keys));
 
-            // allow +/- 1 variance for capacity
+            // 允许+/- 1 能力差异
             lru.Count.Should().BeInRange(7, 10);
             RunIntegrityCheck();
         }
@@ -69,7 +69,7 @@ public sealed class ConcurrentLruCacheSoakTests
             {
                 for (var i = 0; i < 100000; i++)
                 {
-                    // use the arg overload
+                    // 使用参数超载
                     lru.GetOrAdd(i + 1, (i, s) => i.ToString(), "Foo");
                 }
             });
@@ -77,7 +77,7 @@ public sealed class ConcurrentLruCacheSoakTests
             testOutputHelper.WriteLine($"{lru.HotCount} {lru.WarmCount} {lru.ColdCount}");
             testOutputHelper.WriteLine(string.Join(" ", lru.Keys));
 
-            // allow +/- 1 variance for capacity
+            // 允许+/- 1 能力差异
             lru.Count.Should().BeInRange(7, 10);
             RunIntegrityCheck();
         }
@@ -242,7 +242,7 @@ public sealed class ConcurrentLruCacheSoakTests
         {
             for (var i = 0; i < 100000; i++)
             {
-                // clear 6,250 times per 1_000_000 iters
+                // 清晰 6,250 次/千 千 乘以 1_ 000_ 000 秒
                 if (r == 0 && (i & 15) == 15)
                 {
                     lru.Clear();
@@ -266,8 +266,8 @@ public sealed class ConcurrentLruCacheSoakTests
         {
             for (var i = 0; i < 100000; i++)
             {
-                // clear 25,000 times per 1_000_000 iters
-                // capacity is 9, so we will try to clear before warmup is done
+                // 清晰为每千次1_000 公里25 000次
+                // 能力是9,所以在热热之前我们先清理
                 if (r == 0 && (i & 3) == 3)
                 {
                     lru.Clear();
@@ -283,9 +283,9 @@ public sealed class ConcurrentLruCacheSoakTests
         RunIntegrityCheck();
     }
 
-    // This test will run forever if there is a live lock.
-    // Since the cache bookkeeping has some overhead, it is harder to provoke
-    // spinning inside the reader thread compared to LruItemSoakTests.DetectTornStruct.
+    // 如果有活锁的话,这个测试将永远进行下去。
+    // 暗藏簿记有些管理费,因此更难引起
+    // 与 LruItemSoakTests.DetectTornStruct相对,在读者线内旋转。
     [Theory]
     [Repeat(10)]
     public async Task WhenValueIsBigStructNoLiveLock(int _)
@@ -336,17 +336,17 @@ public sealed class ConcurrentLruCacheSoakTests
         public static void Validate<K, V>(ConcurrentLruCache<K, V> cache) where K : notnull
         {
             ConcurrentLruCache<K, V>.ITestAccessor testAccessor = cache;
-            // queue counters must be consistent with queues
+            // 队列计数器必须与队列一致
             testAccessor.HotQueue.Count.Should().Be(cache.HotCount, "hot queue has a corrupted count");
             testAccessor.WarmQueue.Count.Should().Be(cache.WarmCount, "warm queue has a corrupted count");
             testAccessor.ColdQueue.Count.Should().Be(cache.ColdCount, "cold queue has a corrupted count");
 
-            // cache contents must be consistent with queued items
+            // 缓存内容必须与队列项目保持一致
             ValidateQueue(testAccessor.HotQueue, "hot");
             ValidateQueue(testAccessor.WarmQueue, "warm");
             ValidateQueue(testAccessor.ColdQueue, "cold");
 
-            // cache must be within capacity
+            // 缓存必须处于容量范围内
             cache.Count.Should().BeLessThanOrEqualTo(cache.Capacity + 1, "capacity out of valid range");
 
             void ValidateQueue(ConcurrentQueue<ConcurrentLruCache<K, V>.LruItem> queue, string queueName)
@@ -355,9 +355,9 @@ public sealed class ConcurrentLruCacheSoakTests
                 {
                     if (item.WasRemoved)
                     {
-                        // It is possible for the queues to contain 2 (or more) instances of the same key/item. One that was removed,
-                        // and one that was added after the other was removed.
-                        // In this case, the dictionary may contain the value only if the queues contain an entry for that key marked as WasRemoved == false.
+                        // 队列中可能包含相同键/项的2个(或更多)实例。其中1个被删除,
+                        // 并添加了后 另一被删除。
+                        // 在这种情况下,只有在队列中包含一个键的条目,并标为 WasRemoved 假的
                         if (testAccessor.Dictionary.TryGetValue(item.Key, out var value))
                         {
                             testAccessor.HotQueue.Union(testAccessor.WarmQueue).Union(testAccessor.ColdQueue)

@@ -1,7 +1,7 @@
 namespace DurableOrderProcessing;
 
-// Initial catalog, adapted from dotnet/eShop's src/Catalog.API/Setup/catalog.json.
-// Stock levels are small so that stock rejection is easy to observe.
+// 初始目录,根据dotnet/eShopsrc/Catalog.API/Setup/catalog.json改编。
+// 股票数量很少,因此很容易观察到股票拒收。
 public static class CatalogData
 {
     public static readonly CatalogItem[] Items =

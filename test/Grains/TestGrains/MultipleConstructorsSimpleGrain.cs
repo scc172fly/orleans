@@ -11,7 +11,7 @@ namespace UnitTests.Grains
         public MultipleConstructorsSimpleGrain(ILoggerFactory loggerFactory)
             : this(loggerFactory, ValueUsedByParameterlessConstructor)
         {
-            // orleans will use this constructor when DI is not configured
+            // orleans 未经配置 DI 时将使用此构建器
         }
 
         public MultipleConstructorsSimpleGrain(ILoggerFactory loggerFactory, int initialValueofA) : base(loggerFactory)

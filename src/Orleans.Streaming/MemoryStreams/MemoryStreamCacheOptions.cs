@@ -1,23 +1,23 @@
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Configures the cache for a named memory stream provider.
+/// 配置一个命名内存流提供者的缓存。
 /// </summary>
 public class MemoryStreamCacheOptions
 {
     /// <summary>
-    /// Gets or sets the maximum number of queue records requested in each dequeue operation.
+    /// 获取或设定每次取消操作中要求的队列记录的最大数量 。
     /// </summary>
     /// <remarks>
-    /// The value must be greater than zero. Each record contains one published batch of events.
-    /// Smaller values reduce the number of records serialized into a dequeue response, while larger
-    /// values amortize the cost of queue calls over more records. The limit is measured in records;
-    /// response size in bytes depends on the serialized size of those records.
+    /// 值必须大于零。 每记录包含一整批已公布的事件。
+    /// 较小值减少被序列成解排响应的记录数量,而较大
+    /// 以记录计数, 限制值;
+    /// 以字节表示的响应大小取决于这些记录按序排列的大小。
     /// </remarks>
     public int MaxAddCount { get; set; } = DefaultMaxAddCount;
 
     /// <summary>
-    /// The default value of <see cref="MaxAddCount"/>.
+    /// 默认值 <see cref="MaxAddCount"/>。
     /// </summary>
     public const int DefaultMaxAddCount = 100;
 }

@@ -3,7 +3,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains;
 
 /// <summary>
-/// Grain that manages observers with cancellation support for testing purposes.
+/// 管理观察员的Grain ,为测试目的提供取消支持。
 /// </summary>
 public class ObserverWithCancellationGrain : Grain, IObserverWithCancellationGrain
 {

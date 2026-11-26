@@ -4,7 +4,7 @@ using Orleans.Runtime;
 
 namespace NonSilo.Tests.Membership;
 
-// A concrete implementation ensures interface defaults run when the inner provider is a substitute.
+// 具体实施确保当内部提供者替代时,接口默认值会运行。
 #pragma warning disable CS0618 // This fixture configures and exercises legacy-provider compatibility.
 internal sealed class LegacyMembershipTable(IMembershipTable inner) : IMembershipTable
 {

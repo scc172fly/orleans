@@ -11,7 +11,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// Tests for persistent streaming over single gateway configurations, validating system target routing behavior.
+    /// 测试单网关配置的持久性流,验证系统目标路径行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -62,12 +62,12 @@ namespace Tester.StreamingTests
 
             this.fixture.Logger.LogInformation("************************ PersistentStreamingOverSingleGatewayTest *********************************");
 
-            // generate stream Id's
+            // 生成流Id
             List<Guid> streamIds = Enumerable.Range(0, streamCount)
                 .Select(i => Guid.NewGuid())
                 .ToList();
 
-            // subscribe to all streams
+            // 订阅所有流
             foreach (Guid streamId in streamIds)
             {
                 IStreamProvider streamProvider = this.fixture.Client.GetStreamProvider(Fixture.StreamProviderName);
@@ -75,19 +75,19 @@ namespace Tester.StreamingTests
                 await stream.SubscribeAsync(OnNextAsync);
             }
 
-            // create producer grains
+            // 创建制片人 grains
             List<ISampleStreaming_ProducerGrain> producers = streamIds
                 .Select(id => this.fixture.GrainFactory.GetGrain<ISampleStreaming_ProducerGrain>(id))
                 .ToList();
 
-            // become producers
+            // 成为生产者
             await Task.WhenAll(Enumerable.Range(0, streamCount).Select(i => producers[i].BecomeProducer(
                 streamIds[i],
                 null!,
                 Fixture.StreamProviderName,
                 TestContext.Current.CancellationToken)));
 
-            // produce some events
+            // 产生一些事件
             var periodicProducingStarted = true;
             try
             {
@@ -108,7 +108,7 @@ namespace Tester.StreamingTests
 
             int[] counts = await Task.WhenAll(Enumerable.Range(0, streamCount).Select(i => producers[i].GetNumberProduced()));
 
-            // make sure all went well
+            // 保证一切顺利
             await TestingUtils.WaitUntilAsync(
                 (lastTry, cancellationToken) => CheckCounters(counts.Sum(), lastTry, cancellationToken),
                 Timeout,

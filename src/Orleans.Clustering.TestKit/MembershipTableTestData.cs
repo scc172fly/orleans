@@ -16,7 +16,7 @@ internal static class MembershipTableTestData
         ProxyPort = 22000 + index,
         HostName = $"host-{index}",
         SiloName = $"silo-{index}",
-        // Explicit defaults round-trip across providers which do not store Azure deployment metadata.
+        // 不存储 Azure 部署元数据的供应商之间明确的默认双程连接。
         RoleName = string.Empty,
         UpdateZone = 0,
         FaultZone = 0,

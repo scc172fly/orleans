@@ -4,12 +4,12 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Factory responsible for creating a message cache for an EventHub partition.
+    /// 负责为 EventHub 分区创建信件缓存的工厂 。
     /// </summary>
     public interface IEventHubQueueCacheFactory
     {
         /// <summary>
-        /// Function used to create a IEventHubQueueCache
+        /// 用于创建 IEventHubQueueCache函数
         /// </summary>
         IEventHubQueueCache CreateCache(string partition, IStreamQueueCheckpointer<string> checkpointer, ILoggerFactory loggerFactory);
     }

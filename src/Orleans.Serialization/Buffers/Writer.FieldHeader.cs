@@ -9,12 +9,12 @@ namespace Orleans.Serialization.Buffers
     public ref partial struct Writer<TBufferWriter>
     {
         /// <summary>
-        /// Writes the field header.
+        /// 写出字段信头 。
         /// </summary>
-        /// <param name="fieldId">The field identifier.</param>
-        /// <param name="expectedType">The expected type.</param>
-        /// <param name="actualType">The actual type.</param>
-        /// <param name="wireType">The wire type.</param>
+        /// <param name="fieldId">字段标识符。</param>
+        /// <param name="expectedType">预想的类型。</param>
+        /// <param name="actualType">实际类型。</param>
+        /// <param name="wireType">电线型号。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteFieldHeader(uint fieldId, Type? expectedType, Type? actualType, WireType wireType)
         {
@@ -65,10 +65,10 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes an expected field header value.
+        /// 写入预期的字段头值。
         /// </summary>
-        /// <param name="fieldId">The field identifier.</param>
-        /// <param name="wireType">The wire type of the field.</param>
+        /// <param name="fieldId">字段标识符。</param>
+        /// <param name="wireType">字段的电线类型。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteFieldHeaderExpected(uint fieldId, WireType wireType)
         {
@@ -84,22 +84,22 @@ namespace Orleans.Serialization.Buffers
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Codec for operating with the wire format.
+    /// 使用电线格式操作的代码化码。
     /// </summary>
     public static class FieldHeaderCodec
     {
         /// <summary>
-        /// Reads a field header.
+        /// 读取字段页眉。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field header.</param>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段页眉。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ReadFieldHeader<TInput>(ref this Reader<TInput> reader, scoped ref Field field)
         {
             var tag = (uint)reader.ReadByte();
             field.Tag = new(tag);
-            // If the id or schema type are required and were not encoded into the tag, read the extended header data.
+            // 如果需要id或 schema 类型,且没有将之编码到标签中,请读读扩展页头数据。
             if (tag < (byte)WireType.Extended && (tag & (Tag.FieldIdCompleteMask | Tag.SchemaTypeMask)) >= Tag.FieldIdCompleteMask)
             {
                 ReadExtendedFieldHeader(ref reader, ref field);
@@ -112,18 +112,18 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads a field header.
+        /// 读取字段页眉。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>The field header.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>字段页眉。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Field ReadFieldHeader<TInput>(ref this Reader<TInput> reader)
         {
             Unsafe.SkipInit(out Field field);
             var tag = (uint)reader.ReadByte();
             field.Tag = new(tag);
-            // If the id or schema type are required and were not encoded into the tag, read the extended header data.
+            // 如果需要id或 schema 类型,且没有将之编码到标签中,请读读扩展页头数据。
             if (tag < (byte)WireType.Extended && (tag & (Tag.FieldIdCompleteMask | Tag.SchemaTypeMask)) >= Tag.FieldIdCompleteMask)
             {
                 ReadExtendedFieldHeader(ref reader, ref field);
@@ -138,11 +138,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads an extended field header.
+        /// 读取扩展字段页眉。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ReadExtendedFieldHeader<TInput>(ref this Reader<TInput> reader, scoped ref Field field)
         {
@@ -156,7 +156,7 @@ namespace Orleans.Serialization.Codecs
                 field.FieldIdDeltaRaw = fieldId;
             }
 
-            // If schema type is valid, read the type.
+            // 如果 schema 类型有效, 请读取该类型 。
             var schemaType = field.Tag.SchemaType;
             if (schemaType != SchemaType.Expected)
             {
@@ -217,11 +217,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads a field header for diagnostic purposes.
+        /// 为诊断目的读取字段头。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>The value which was read.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>读取的值 。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static (Field Field, string Type) ReadFieldHeaderForAnalysis<TInput>(ref this Reader<TInput> reader)
         {
@@ -256,7 +256,7 @@ namespace Orleans.Serialization.Codecs
                 field.FieldIdDeltaRaw = fieldId;
             }
 
-            // If schema type is valid, read the type.
+            // 如果 schema 类型有效, 请读取该类型 。
             var schemaType = field.Tag.SchemaType;
             if (schemaType != SchemaType.Expected)
             {

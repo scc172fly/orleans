@@ -11,7 +11,7 @@ using Orleans.Storage;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Creates <see cref="IPersistentState{TState}"/> instances for grains.
+    /// 创建 <see cref="IPersistentState{TState}"/> 用于 grains.
     /// </summary>
     /// <seealso cref="Orleans.Runtime.IPersistentStateFactory" />
     public class PersistentStateFactory : IPersistentStateFactory
@@ -32,11 +32,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the storage record name for a persistent state instance.
+        /// 获得一个持久性州例的存储记录名称。
         /// </summary>
-        /// <param name="context">The grain context.</param>
-        /// <param name="cfg">The persistent state configuration.</param>
-        /// <returns>The storage record name.</returns>
+        /// <param name="context"> grain 上下文。</param>
+        /// <param name="cfg">持久性状态配置。</param>
+        /// <returns>存储记录名称。</returns>
         protected virtual string GetFullStateName(IGrainContext context, IPersistentStateConfiguration cfg)
         {
             return cfg.StateName;
@@ -75,7 +75,7 @@ namespace Orleans.Runtime
                 return Task.CompletedTask;
             }
 
-            // No need to load state if it has been loaded already via rehydration.
+            // 如果已经通过补液方式装入, 则无需装载状态 。
             if (IsStateInitialized)
             {
                 return Task.CompletedTask;

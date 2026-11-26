@@ -23,7 +23,7 @@ internal static class NativeFieldAccessChecks
             .AddSingleton<IDeepCopier<int>>(new ShallowCopier<int>())
             .BuildServiceProvider();
 
-        // Use a bounded manifest to exercise generated codecs independently of assembly discovery.
+        // 使用带框的显像器进行生成的编码器,而不与组装发现无关。
         var options = Options.Create(new TypeManifestOptions());
         var provider = new CodecProvider(services, options);
         var typeCodec = new TypeCodec(new TypeConverter([], [], [], options, new CachedTypeResolver()));

@@ -4,7 +4,7 @@ using System.Linq;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configuration for Amazon DynamoDB reminder storage.
+    /// 亚马逊 DynamoDB 提醒存储配置 。
     /// </summary>
     public static class DynamoDBReminderStorageOptionsExtensions
     {
@@ -18,11 +18,11 @@ namespace Orleans.Configuration
         private const string UpdateIfExistsPropertyName = "UpdateIfExists";
 
         /// <summary>
-        /// Configures this instance using the provided connection string.
+        /// 配置此实例, 使用提供的连接字符串 。
         /// </summary>
-        /// <param name="options">The reminder storage options.</param>
-        /// <param name="connectionString">The connection string containing storage settings.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="options"/> or <paramref name="connectionString"/> is <see langword="null"/>.</exception>
+        /// <param name="options">提醒存储选项。</param>
+        /// <param name="connectionString">包含存储设置的连接字符串。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> 或 <paramref name="connectionString"/> 是 <see langword="null"/>。</exception>
         public static void ParseConnectionString(this DynamoDBReminderStorageOptions options, string connectionString)
         {
             ArgumentNullException.ThrowIfNull(options);

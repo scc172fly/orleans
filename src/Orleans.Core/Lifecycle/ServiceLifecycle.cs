@@ -5,22 +5,22 @@ using Microsoft.Extensions.Logging;
 namespace Orleans;
 
 /// <summary>
-/// Allows consumers to observe and participate in the client/silo's lifecycle.
+/// 允许消费者观察和参与客户/silo的生命周期。
 /// </summary>
 public interface IServiceLifecycle
 {
     /// <summary>
-    /// Triggered when the client/silo has fully started and is ready to accept traffic.
+    /// 当客户端/silo 完全启动并准备接受流量时触发。
     /// </summary>
     IServiceLifecycleStage Started { get; }
 
     /// <summary>
-    /// Triggered when the client/silo is beginning the shutdown process.
+    /// 当客户端/silo 开始关闭进程时触发 。
     /// </summary>
     IServiceLifecycleStage Stopping { get; }
 
     /// <summary>
-    /// Triggered when the client/silo has completed its shutdown process.
+    /// 当客户端/silo 完成关闭程序时触发。
     /// </summary>
     IServiceLifecycleStage Stopped { get; }
 }

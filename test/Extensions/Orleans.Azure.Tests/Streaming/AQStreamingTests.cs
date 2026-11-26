@@ -134,7 +134,7 @@ namespace Tester.AzureUtils.Streaming
                 }
                 catch (Xunit.Sdk.SkipException)
                 {
-                    // ignore
+                    // 忽略忽略
                 }
 
                 await Cluster.DisposeAsync();
@@ -148,7 +148,7 @@ namespace Tester.AzureUtils.Streaming
                 }
 
                 await Cluster!.DeployAsync();
-                Runner = new SingleStreamTestRunner(Cluster, SingleStreamTestRunner.AQ_STREAM_PROVIDER_NAME); // DeployAsync initializes the client.
+                Runner = new SingleStreamTestRunner(Cluster, SingleStreamTestRunner.AQ_STREAM_PROVIDER_NAME); // DeployAsync 初始化客户端。
             }
         }
 
@@ -178,7 +178,7 @@ namespace Tester.AzureUtils.Streaming
             await _fixture.Runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
         }
 
-        //------------------------ MANY to Many different grains ----------------------//
+        //和很多不同的人 grains ----------------------//
 
         [Fact, TestCategory("Functional")]
         public async Task AQ_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
@@ -204,7 +204,7 @@ namespace Tester.AzureUtils.Streaming
             await _fixture.Runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
         }
 
-        //------------------------ MANY to Many Same grains ----------------------//
+        //和... 和很多相同 grains ----------------------//
         [Fact, TestCategory("Functional")]
         public async Task AQ_09_ManySame_ManyProducerGrainsManyConsumerGrains()
         {
@@ -254,7 +254,7 @@ namespace Tester.AzureUtils.Streaming
         [Fact, TestCategory("Functional")]
         public async Task AQ_16_MultipleStreams_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
         {
-            var multiRunner = new MultipleStreamsTestRunner(_fixture.Cluster!, SingleStreamTestRunner.AQ_STREAM_PROVIDER_NAME, 16, false); // The fixture deploys the client.
+            var multiRunner = new MultipleStreamsTestRunner(_fixture.Cluster!, SingleStreamTestRunner.AQ_STREAM_PROVIDER_NAME, 16, false); // 固定装置会部署客户
             await multiRunner.StreamTest_MultipleStreams_ManyDifferent_ManyProducerGrainsManyConsumerGrains(
                 cancellationToken: TestContext.Current.CancellationToken);
         }
@@ -262,17 +262,17 @@ namespace Tester.AzureUtils.Streaming
         [Fact, TestCategory("Functional")]
         public async Task AQ_17_MultipleStreams_1J_ManyProducerGrainsManyConsumerGrains()
         {
-            var multiRunner = new MultipleStreamsTestRunner(_fixture.Cluster!, SingleStreamTestRunner.AQ_STREAM_PROVIDER_NAME, 17, false); // The fixture deploys the client.
+            var multiRunner = new MultipleStreamsTestRunner(_fixture.Cluster!, SingleStreamTestRunner.AQ_STREAM_PROVIDER_NAME, 17, false); // 固定装置会部署客户
             await multiRunner.StreamTest_MultipleStreams_ManyDifferent_ManyProducerGrainsManyConsumerGrains(
                 _fixture.Cluster!.StartAdditionalSilo,
                 cancellationToken: TestContext.Current.CancellationToken);
         }
 
-        //[Fact, TestCategory("BVT")]
+        //[事实, TestCategory("BVT")]
         /*public async Task AQ_18_MultipleStreams_1J_1F_ManyProducerGrainsManyConsumerGrains()
         {
             var multiRunner = new MultipleStreamsTestRunner(this.InternalClient, SingleStreamTestRunner.AQ_STREAM_PROVIDER_NAME, 18, false);
-            await multiRunner.StreamTest_MultipleStreams_ManyDifferent_ManyProducerGrainsManyConsumerGrains(
+            等待等待 multiRunner.StreamTest_MultipleStreams_ManyDifferent_ManyProducerGrainsManyConsumerGrains(
                 this.HostedCluster.StartAdditionalSilo,
                 this.HostedCluster.StopSilo);
         }*/
@@ -280,21 +280,21 @@ namespace Tester.AzureUtils.Streaming
         [Fact]
         public async Task AQ_19_ConsumerImplicitlySubscribedToProducerClient()
         {
-            // todo: currently, the Azure queue queue adaptor doesn't support namespaces, so this test will fail.
+            // 待办事宜: 目前, Azure 队列调整器不支持命名空间, 因此此测试将失败 。
             await _fixture.Runner.StreamTest_19_ConsumerImplicitlySubscribedToProducerClient(TestContext.Current.CancellationToken);
         }
 
         [Fact]
         public async Task AQ_20_ConsumerImplicitlySubscribedToProducerGrain()
         {
-            // todo: currently, the Azure queue queue adaptor doesn't support namespaces, so this test will fail.
+            // 待办事宜: 目前, Azure 队列调整器不支持命名空间, 因此此测试将失败 。
             await _fixture.Runner.StreamTest_20_ConsumerImplicitlySubscribedToProducerGrain(TestContext.Current.CancellationToken);
         }
 
         [Fact(Skip = "Ignored"), TestCategory("Failures")]
         public async Task AQ_21_GenericConsumerImplicitlySubscribedToProducerGrain()
         {
-            // todo: currently, the Azure queue queue adaptor doesn't support namespaces, so this test will fail.
+            // 待办事宜: 目前, Azure 队列调整器不支持命名空间, 因此此测试将失败 。
             await _fixture.Runner.StreamTest_21_GenericConsumerImplicitlySubscribedToProducerGrain(TestContext.Current.CancellationToken);
         }
     }

@@ -8,7 +8,7 @@ using Orleans.Runtime.Utilities;
 
 namespace Orleans.Runtime.GrainDirectory;
 
-// Read-only, sorted collection of non-overlapping ranges.
+// 仅读、 分类的非重叠范围收藏 。
 [GenerateSerializer, Immutable, Alias(nameof(RingRangeCollection))]
 internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, ISpanFormattable, IEnumerable<RingRange>
 {
@@ -17,7 +17,7 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
 #if DEBUG
         Debug.Assert(!ranges.IsDefault);
 
-        // Ranges must be in sorted order and must not overlap with each other.
+        // 范围必须按分类顺序排列,不得相互重叠。
         for (var i = 1; i < ranges.Length; i++)
         {
             var prev = ranges[i - 1];
@@ -65,7 +65,7 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
     public bool IsFull => Size == RingRange.Full.Size;
 
     /// <summary>
-    /// Gets the total number of points covered by the non-overlapping ranges, from zero to 2^32.
+    /// 获取互不重叠的范围所覆盖的总点数，取值为 0 到 2^32。
     /// </summary>
     public ulong Size
     {
@@ -155,11 +155,11 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
 
     public RingRangeCollection Difference(RingRangeCollection previous)
     {
-        // Ranges in left must not overlap with each other.
-        // Ranges in right must not overlap with each other.
-        // Corresponding ranges in left and right have the same starting points.
-        // The number of ranges in both 'Ranges' or 'previous.Ranges' is either zero or the configured number of ranges,
-        // i.e., if both collections have more than zero ranges, the both have the same number of ranges.
+        // 左侧的距离不得相互重叠。
+        // 右侧的距离不得相互重叠。
+        // 左右对等的幅度具有相同的起点。
+        // “ 区域” 或“previous.Ranges” 中的区域数为零, 或所配置的区域数,
+        // i.e.,如果两个收藏的幅度都超过零,则两者的幅度相同。
         var currentLength = Ranges.IsDefault ? 0 : Ranges.Length;
         var previousLength = previous.Ranges.IsDefault ? 0 : previous.Ranges.Length;
 
@@ -177,8 +177,8 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
                 }
             }
 
-            // If the last range wrapped around but its extension does not wrap around, move it to the front.
-            // This preserves sort order.
+            // 如果最后的距离环绕着,但其扩展范围不环绕,则将其移到前面。
+            // 保存了秩序
             if (result.Count > 1 && result[^1].Start < result[^2].Start)
             {
                 var last = result[^1];

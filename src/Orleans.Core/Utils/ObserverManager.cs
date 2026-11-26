@@ -9,61 +9,61 @@ using System.Linq;
 namespace Orleans.Utilities;
 
 /// <summary>
-/// Maintains a collection of observers.
+/// 维持观察员的集合。
 /// </summary>
 /// <typeparam name="TObserver">
-/// The observer type.
+/// 观察员类型。
 /// </typeparam>
 public class ObserverManager<TObserver> : ObserverManager<IAddressable, TObserver>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ObserverManager{TObserver}"/> class.
+    /// 初始化 <see cref="ObserverManager{TObserver}"/> 类的新实例。
     /// </summary>
     /// <param name="expiration">
-    /// The expiration.
+    /// 到期
     /// </param>
-    /// <param name="log">The log.</param>
+    /// <param name="log">日志。</param>
     public ObserverManager(TimeSpan expiration, ILogger log) : base(expiration, log)
     {
     }
 }
 
 /// <summary>
-/// Maintains a collection of observers.
+/// 维持观察员的集合。
 /// </summary>
 /// <typeparam name="TIdentity">
-/// The address type, used to identify observers.
+/// 用于识别观察员的地址类型。
 /// </typeparam>
 /// <typeparam name="TObserver">
-/// The observer type.
+/// 观察员类型。
 /// </typeparam>
 public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserver> where TIdentity : notnull
 {
     /// <summary>
-    /// The observers.
+    /// 观察员。
     /// </summary>
     private Dictionary<TIdentity, ObserverEntry> _observers = [];
 
     /// <summary>
-    /// The log.
+    /// 日志。
     /// </summary>
     private readonly ILogger _log;
 
-    // The number of concurrent readers.
+    // 同时阅读者的数量 。
     private int _numReaders;
 
-    // The most recently captured read snapshot.
-    // Each time a reader is added, we capture the current _observers reference here, signaling to writers
-    // that _observers must be set to a copy before modifying.
+    // 最新拍摄的阅读快照。
+    // 每次增加读者, 我们在这里捕捉到当前 _ 观察者参考, 向作者发出信号
+    // 显示在修改前必须将观测器设为副本。
     private Dictionary<TIdentity, ObserverEntry>? _readSnapshot;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ObserverManager{TIdentity,TObserver}"/> class.
+    /// 初始化 <see cref="ObserverManager{TIdentity,TObserver}"/> 类的新实例。
     /// </summary>
     /// <param name="expiration">
-    /// The expiration.
+    /// 到期
     /// </param>
-    /// <param name="log">The log.</param>
+    /// <param name="log">日志。</param>
     public ObserverManager(TimeSpan expiration, ILogger log)
     {
         ArgumentNullException.ThrowIfNull(log);
@@ -73,27 +73,27 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// Gets or sets the delegate used to get the date and time, for expiry.
+    /// 获取或设置代表用来获得日期和时间,到期。
     /// </summary>
     public Func<DateTime> GetDateTime { get; set; }
 
     /// <summary>
-    /// Gets or sets the expiration time span, after which observers are lazily removed.
+    /// 获取或设定过期时间段, 之后观察员便被长期清除 。
     /// </summary>
     public TimeSpan ExpirationDuration { get; set; }
 
     /// <summary>
-    /// Gets the number of observers.
+    /// 获得观察者人数。
     /// </summary>
     public int Count => _observers.Count;
 
     /// <summary>
-    /// Gets a copy of the observers.
+    /// 拿到观察员的复印件
     /// </summary>
     public IReadOnlyDictionary<TIdentity, TObserver> Observers => _observers.ToDictionary(_ => _.Key, _ => _.Value.Observer);
 
     /// <summary>
-    /// Removes all observers.
+    /// 删除所有观察者 。
     /// </summary>
     public void Clear()
     {
@@ -102,20 +102,20 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// Ensures that the provided <paramref name="observer"/> is subscribed, renewing its subscription.
+    /// 确保提供 <paramref name="observer"/> 的用户订阅,并续签。
     /// </summary>
     /// <param name="id">
-    /// The observer's identity.
+    /// 观察员的身份。
     /// </param>
     /// <param name="observer">
-    /// The observer.
+    /// 观察员
     /// </param>
-    /// <exception cref="Exception">A delegate callback throws an exception.</exception>
+    /// <exception cref="Exception">代表回召会排除一个例外。</exception>
     public void Subscribe(TIdentity id, TObserver observer)
     {
         var observers = GetWritableObservers();
 
-        // Add or update the subscription.
+        // 添加或更新订阅内容。
         var now = GetDateTime();
         if (observers.TryGetValue(id, out var entry))
         {
@@ -131,10 +131,10 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// Ensures that the provided <paramref name="id"/> is unsubscribed.
+    /// 确保所提供的 <paramref name="id"/> 不予以接受。
     /// </summary>
     /// <param name="id">
-    /// The observer.
+    /// 观察员
     /// </param>
     public void Unsubscribe(TIdentity id)
     {
@@ -145,18 +145,18 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// Notifies all observers.
+    /// 通知所有观察员。
     /// </summary>
     /// <param name="notification">
-    /// The notification delegate to call on each observer.
+    /// 通知代表请每个观察员发言。
     /// </param>
     /// <param name="predicate">
-    /// The predicate used to select observers to notify.
+    /// 用于选择观察员通知的上游。
     /// </param>
     /// <returns>
-    /// A <see cref="Task"/> representing the work performed.
+    /// 代表所完成的工作的 <see cref="Task"/> 。
     /// </returns>
-    /// <exception cref="ArgumentNullException"><paramref name="notification"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="notification"/> 是 <see langword="null"/>.</exception>
     public async Task Notify(Func<TObserver, Task> notification, Func<TObserver, bool>? predicate = null)
     {
         ArgumentNullException.ThrowIfNull(notification);
@@ -170,13 +170,13 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
             {
                 if (observerEntryPair.Value.LastSeen + ExpirationDuration < now)
                 {
-                    // Expired observers will be removed.
+                    // 将取消过期观察员。
                     defunct ??= [];
                     defunct.Add(observerEntryPair.Key);
                     continue;
                 }
 
-                // Skip observers which don't match the provided predicate.
+                // 跳过与提供的上游不匹配的观察者
                 if (predicate is not null && !predicate(observerEntryPair.Value.Observer))
                 {
                     continue;
@@ -188,7 +188,7 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
                 }
                 catch (Exception)
                 {
-                    // Failing observers are considered defunct and will be removed.
+                    // 无法参加的观察员被视为已不存在,将予撤职。
                     defunct ??= [];
                     defunct.Add(observerEntryPair.Key);
                 }
@@ -199,15 +199,15 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// Notifies all observers which match the provided <paramref name="predicate"/>.
+    /// 通知所有与所提供的 <paramref name="predicate"/>相符的观察员。
     /// </summary>
     /// <param name="notification">
-    /// The notification delegate to call on each observer.
+    /// 通知代表请每个观察员发言。
     /// </param>
     /// <param name="predicate">
-    /// The predicate used to select observers to notify.
+    /// 用于选择观察员通知的上游。
     /// </param>
-    /// <exception cref="ArgumentNullException"><paramref name="notification"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="notification"/> 是 <see langword="null"/>.</exception>
     public void Notify(Action<TObserver> notification, Func<TObserver, bool>? predicate = null)
     {
         ArgumentNullException.ThrowIfNull(notification);
@@ -221,13 +221,13 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
             {
                 if (observerEntryPair.Value.LastSeen + ExpirationDuration < now)
                 {
-                    // Expired observers will be removed.
+                    // 将取消过期观察员。
                     defunct ??= [];
                     defunct.Add(observerEntryPair.Key);
                     continue;
                 }
 
-                // Skip observers which don't match the provided predicate.
+                // 跳过与提供的上游不匹配的观察者
                 if (predicate is not null && !predicate(observerEntryPair.Value.Observer))
                 {
                     continue;
@@ -239,7 +239,7 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
                 }
                 catch (Exception)
                 {
-                    // Failing observers are considered defunct and will be removed.
+                    // 无法参加的观察员被视为已不存在,将予撤职。
                     defunct ??= [];
                     defunct.Add(observerEntryPair.Key);
                 }
@@ -250,7 +250,7 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// Removed all expired observers.
+    /// 删除所有过期观察员 。
     /// </summary>
     public void ClearExpired()
     {
@@ -263,7 +263,7 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
             {
                 if (observerEntryPair.Value.LastSeen + ExpirationDuration < now)
                 {
-                    // Expired observers will be removed.
+                    // 将取消过期观察员。
                     defunct ??= [];
                     defunct.Add(observerEntryPair.Key);
                 }
@@ -275,7 +275,7 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
 
     private void RemoveDefunct(List<TIdentity>? defunct)
     {
-        // Remove defunct observers.
+        // 删除已关闭的观察者 。
         if (defunct is { Count: > 0 })
         {
             var observers = GetWritableObservers();
@@ -289,18 +289,18 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// Returns an enumerator that iterates through the collection.
+    /// 返回通过收藏重复出现的分子。
     /// </summary>
     /// <returns>
-    /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/> that can be used to iterate through the collection.
+    /// 可用于通过收藏循环的 <see cref="T:System.Collections.Generic.IEnumerator`1"/> 。
     /// </returns>
     public IEnumerator<TObserver> GetEnumerator() => new ObserverEnumerator(CreateReadSnapshot());
 
     /// <summary>
-    /// Returns an enumerator that iterates through a collection.
+    /// 返回通过收藏重复出现的分子。
     /// </summary>
     /// <returns>
-    /// An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
+    /// 可用于通过收藏循环的 <see cref="T:System.Collections.IEnumerator"/> 对象。
     /// </returns>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -322,17 +322,17 @@ public partial class ObserverManager<TIdentity, TObserver> : IEnumerable<TObserv
     }
 
     /// <summary>
-    /// An observer entry.
+    /// 观察者入境
     /// </summary>
     private sealed class ObserverEntry
     {
         /// <summary>
-        /// Gets or sets the observer.
+        /// 获取或设置观察者。
         /// </summary>
         public required TObserver Observer { get; set; }
 
         /// <summary>
-        /// Gets or sets the UTC last seen time.
+        /// 上次见识到UTC的接驳或设置。
         /// </summary>
         public DateTime LastSeen { get; set; }
     }

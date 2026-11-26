@@ -6,112 +6,112 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// Provides operational access to a grain's messaging state.
+/// 提供进入 grain信息状态的业务访问。
 /// </summary>
 public interface IMessagingDiagnostics
 {
     /// <summary>
-    /// Gets messages which failed during inbox processing.
+    /// 获取在收件箱处理过程中失败的信件 。
     /// </summary>
     IReadOnlyList<InboxDeadLetter> InboxDeadLetters { get; }
 
     /// <summary>
-    /// Gets messages which could not be delivered from the outbox.
+    /// 获取无法从发件箱发送的信件 。
     /// </summary>
     /// <remarks>
-    /// A message whose <see cref="IOutboxMessageSource"/> failed to provide it has no materialized message: its record
-    /// carries only the <see cref="Envelope.MessageId"/>, with an empty payload and a default
-    /// <see cref="OutboxMessage.ReceiverId"/>, and its reason records the source's failure.
+    /// 其电文 <see cref="IOutboxMessageSource"/> 未能提供其信息而没有实现的电文:其记录
+    /// 只携带 <see cref="Envelope.MessageId"/>,且空有效载荷和默认
+    /// <see cref="OutboxMessage.ReceiverId"/>,其原因记录了源的失败。
     /// </remarks>
     IReadOnlyList<OutboxDeadLetter> OutboxDeadLetters { get; }
 
     /// <summary>
-    /// Stages removal of an inbox dead letter.
+    /// 清除一个信箱的无名字母
     /// </summary>
-    /// <param name="messageId">The receiver-local command identity.</param>
-    /// <returns><see langword="true"/> when the dead letter existed and was removed.</returns>
+    /// <param name="messageId">接收器- 本地指挥身份。</param>
+    /// <returns><see langword="true"/> 当那封已死的字母存在并被取走的时候,</returns>
     /// <remarks>
-    /// The removal becomes durable with the grain's next journal write.
+    /// 删除后与 grain下一期日记的写法保持耐久。
     /// </remarks>
     bool RemoveInboxDeadLetter(MessageId messageId);
 
     /// <summary>
-    /// Stages removal of an outbox dead letter.
+    /// 拆掉一个发箱的死信
     /// </summary>
-    /// <param name="messageId">The message identifier.</param>
-    /// <returns><see langword="true"/> when the dead letter existed and was removed.</returns>
+    /// <param name="messageId">信件标识符。</param>
+    /// <returns><see langword="true"/> 当那封已死的字母存在并被取走的时候,</returns>
     /// <remarks>
-    /// The removal becomes durable with the grain's next journal write.
+    /// 删除后与 grain下一期日记的写法保持耐久。
     /// </remarks>
     bool RemoveOutboxDeadLetter(MessageId messageId);
 }
 
 /// <summary>
-/// Describes a message which the inbox dead-lettered.
+/// 描述一个信息, 信箱是用死字母字母写的 。
 /// </summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxDeadLetter")]
 public sealed class InboxDeadLetter
 {
     /// <summary>
-    /// Gets the message.
+    /// 得到的信息。
     /// </summary>
     /// <remarks>
-    /// The message shares the inbox's retained payload and header buffers, so treat them as immutable, as for every
-    /// published <see cref="Envelope"/>. Application diagnostic DTOs use ordinary RPC copying when returning message
-    /// buffers.
+    /// 信息共享了收件箱保留的有效载荷和信头缓冲带, 所以把它们当作不可改变的对待, 就像每个
+    /// 发表 <see cref="Envelope"/>。在返回信息时,应用诊断诊断DTO使用普通 RPC复制
+    /// 缓冲带。
     /// </remarks>
     [Id(0)]
     public required InboxMessage Message { get; init; }
 
     /// <summary>
-    /// Gets when the message was dead-lettered.
+    /// 得到的消息是死字
     /// </summary>
     [Id(1)]
     public DateTimeOffset DeadLetteredAt { get; init; }
 
     /// <summary>
-    /// Gets the terminal failure reason.
+    /// 得到终端故障的原因。
     /// </summary>
     [Id(2)]
     public required string Reason { get; init; }
 
     /// <summary>
-    /// Gets the number of attempts made.
+    /// 获得尝试的次数。
     /// </summary>
     [Id(3)]
     public int AttemptCount { get; init; }
 }
 
 /// <summary>
-/// Describes a message which the outbox dead-lettered.
+/// 描述发件箱用死字母书写的信息。
 /// </summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxDeadLetter")]
 public sealed class OutboxDeadLetter
 {
     /// <summary>
-    /// Gets the message.
+    /// 得到的信息。
     /// </summary>
     /// <remarks>
-    /// Treat the message's encoded headers as immutable. Application diagnostic DTOs use
-    /// ordinary RPC copying when returning message buffers.
+    /// 将信件编码信头的编码信头作为不可更改的。
+    /// 返回信件缓冲时复制普通 RPC 。
     /// </remarks>
     [Id(0)]
     public required OutboxMessage Message { get; init; }
 
     /// <summary>
-    /// Gets when the message was dead-lettered.
+    /// 得到的消息是死字
     /// </summary>
     [Id(1)]
     public DateTimeOffset DeadLetteredAt { get; init; }
 
     /// <summary>
-    /// Gets the terminal failure reason.
+    /// 得到终端故障的原因。
     /// </summary>
     [Id(2)]
     public required string Reason { get; init; }
 
     /// <summary>
-    /// Gets the number of attempts made.
+    /// 获得尝试的次数。
     /// </summary>
     [Id(3)]
     public int AttemptCount { get; init; }

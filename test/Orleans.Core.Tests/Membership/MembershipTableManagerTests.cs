@@ -20,7 +20,7 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// Tests for <see cref="MembershipTableManager"/>
+    /// <see cref="MembershipTableManager"/>测试
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -55,7 +55,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests <see cref="MembershipTableManager"/> behavior around silo startup for a fresh cluster.
+        /// 测试 <see cref="MembershipTableManager"/> 行为, 围绕新组群启动 silo 。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_NewCluster()
@@ -68,8 +68,8 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests <see cref="MembershipTableManager"/> behavior around silo startup when there is an
-        /// existing cluster.
+        /// 测试 <see cref="MembershipTableManager"/> 周围的行为 silo 当有
+        /// 现有组。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_ExistingCluster()
@@ -123,7 +123,7 @@ namespace NonSilo.Tests.Membership
                 this.lifecycle,
                 timeProvider: TimeProvider.System);
 
-            // Local startup status is separate from the uninitialized membership view.
+            // 当地启动地位与未初始会员身份不同。
             var initialSnapshot = manager.MembershipTableSnapshot;
             Assert.Equal(MembershipVersion.MinValue, initialSnapshot.Version);
             Assert.Empty(initialSnapshot.Entries);
@@ -136,9 +136,9 @@ namespace NonSilo.Tests.Membership
             Assert.Equal(currentEnumerator.Current.Version, manager.MembershipTableSnapshot.Version);
             Assert.Empty(membershipTable.Calls);
 
-            // All of these checks were performed before any lifecycle methods have a chance to run.
-            // This is in order to verify that a service accessing membership in its constructor will
-            // see the correct results regardless of initialization order.
+            // 所有这些检查都是在任何生命周期方法有机会运行之前进行的。
+            // 这样做是为了核查一个获得其建筑商成员资格的服务
+            // 不论启动命令为何,请见正确的结果。
             ((ILifecycleParticipant<ISiloLifecycle>)manager).Participate(this.lifecycle);
 
             await this.lifecycle.OnStart(cancellationToken);
@@ -149,13 +149,13 @@ namespace NonSilo.Tests.Membership
             Assert.Equal(nameof(IMembershipTable.InitializeMembershipTableAsync), calls[0].Method);
             Assert.Equal(nameof(IMembershipTable.ReadAllAsync), calls[1].Method);
 
-            // During initialization, a first read from the table will be performed, transitioning
-            // membership to a valid version.currentEnumerator = changes.GetAsyncEnumerator();
+            // 在初始启动期间,将进行表格的首读,转换
+            // 有效 version.currentEnumerator = changes.GetAsyncEnumerator();
             currentEnumerator = changes.GetAsyncEnumerator(cancellationToken);
             Assert.True(currentEnumerator.MoveNextAsync().Result);
             var update1 = currentEnumerator.Current;
 
-            // Transition to joining.
+            // 向加入过渡。
             this.membershipGossiper.ClearReceivedCalls();
             await manager.UpdateStatus(SiloStatus.Joining, cancellationToken);
             await this.membershipGossiper.ReceivedWithAnyArgs().GossipToRemoteSilos(default!, default!, default!, default, default);
@@ -165,7 +165,7 @@ namespace NonSilo.Tests.Membership
             Assert.Equal(this.localSiloDetails.Name, localSiloEntry.SiloName);
             Assert.Equal(this.localSiloDetails.DnsHostName, localSiloEntry.HostName);
 
-            // An update should have been issued.
+            // 更新本应已经印发。
             currentEnumerator = changes.GetAsyncEnumerator(cancellationToken);
             Assert.True(currentEnumerator.MoveNextAsync().Result);
             Assert.NotEqual(update1.Version, manager.MembershipTableSnapshot.Version);
@@ -183,8 +183,8 @@ namespace NonSilo.Tests.Membership
             Assert.Contains(calls, call => call.Method.Equals(nameof(IMembershipTable.ReadAllAsync), StringComparison.Ordinal));
 
             {
-                // Check that a timer is being requested and that after it expires a call to
-                // refresh the membership table is made.
+                // 检查是否正在请求定时器,检查在计时器过期后是否拨打
+                // 重新显示会籍表。
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(TimeSpan.FromSeconds(10));
                 var (_, completion) = timerCalls.Take(cts.Token);
@@ -199,7 +199,7 @@ namespace NonSilo.Tests.Membership
             Assert.Equal(0, timers.First().DisposedCounter);
             var stopped = this.lifecycle.OnStop(shutdownCts.Token);
 
-            // Complete any timers that were waiting.
+            // 完成等待的计时器
             while (timerCalls.TryTake(out var t))
             {
                 t.Completion.TrySetResult(false);
@@ -211,9 +211,9 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests <see cref="MembershipTableManager"/> behavior around silo startup when there is an
-        /// existing cluster and this silo has been restarted (there is an existing entry with an
-        /// older generation).
+        /// 测试 <see cref="MembershipTableManager"/> 周围的行为 silo 当有
+        /// 已经重新启动了此 silo (有一个现有条目,其中
+        /// ) (老年一代)。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_Restarted()
@@ -221,8 +221,8 @@ namespace NonSilo.Tests.Membership
             var cancellationToken = TestContext.Current.CancellationToken;
             var now = DateTimeOffset.UtcNow;
 
-            // The table includes a predecessor which is still marked as active
-            // This can happen if a node restarts quickly.
+            // 表格中包含一个仍然标为活动前
+            // 如果节点快速重新启动, 情况就会发生这种情况 。
             var predecessor = Entry(Silo("127.0.0.1:100@1"), SiloStatus.Active, now);
 
             var otherSilos = new[]
@@ -246,7 +246,7 @@ namespace NonSilo.Tests.Membership
                 this.lifecycle,
                 timeProvider: TimeProvider.System);
 
-            // Local startup status is separate from the uninitialized membership view.
+            // 当地启动地位与未初始会员身份不同。
             var snapshot = manager.MembershipTableSnapshot;
             Assert.Equal(MembershipVersion.MinValue, snapshot.Version);
             Assert.Empty(snapshot.Entries);
@@ -259,9 +259,9 @@ namespace NonSilo.Tests.Membership
             Assert.Equal(firstSnapshot.Version, manager.MembershipTableSnapshot.Version);
             Assert.Empty(membershipTable.Calls);
 
-            // All of these checks were performed before any lifecycle methods have a chance to run.
-            // This is in order to verify that a service accessing membership in its constructor will
-            // see the correct results regardless of initialization order.
+            // 所有这些检查都是在任何生命周期方法有机会运行之前进行的。
+            // 这样做是为了核查一个获得其建筑商成员资格的服务
+            // 不论启动命令为何,请见正确的结果。
             ((ILifecycleParticipant<ISiloLifecycle>)manager).Participate(this.lifecycle);
 
             await this.lifecycle.OnStart(cancellationToken);
@@ -272,12 +272,12 @@ namespace NonSilo.Tests.Membership
             Assert.Equal(nameof(IMembershipTable.InitializeMembershipTableAsync), calls[0].Method);
             Assert.Contains(calls, call => call.Method.Equals(nameof(IMembershipTable.ReadAllAsync), StringComparison.Ordinal));
 
-            // During initialization, the table is read and predecessor entries are declared dead
-            // before the table snapshot is published to other components.
+            // 在初始化期间,将阅读表格,并宣布前条目已死亡
+            // 在将表格快照发布到其他部分之前。
             Assert.True(await membershipUpdates.MoveNextAsync());
             var update1 = membershipUpdates.Current;
 
-            // Transition to joining.
+            // 向加入过渡。
             await manager.UpdateStatus(SiloStatus.Joining, cancellationToken);
             snapshot = manager.MembershipTableSnapshot;
             Assert.Equal(SiloStatus.Joining, manager.CurrentStatus);
@@ -286,8 +286,8 @@ namespace NonSilo.Tests.Membership
             Assert.True(await membershipUpdates.MoveNextAsync());
             Assert.Equal(membershipUpdates.Current.Version, manager.MembershipTableSnapshot.Version);
 
-            // The predecessor should have been marked dead during startup,
-            // before the first snapshot was published.
+            // 前任在启动时应该已经死了
+            // 第一次快照发布前
             Assert.Equal(SiloStatus.Dead, update1.GetSiloStatus(predecessor.SiloAddress));
             var latest = membershipUpdates.Current;
             Assert.Equal(SiloStatus.Dead, latest.GetSiloStatus(predecessor.SiloAddress));
@@ -307,8 +307,8 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests <see cref="MembershipTableManager"/> behavior around silo startup when there is an
-        /// existing cluster and this silo has already been superseded by a newer iteration.
+        /// 测试 <see cref="MembershipTableManager"/> 周围的行为 silo 当有
+        /// 现有组群, 而此 silo 已经被更新的迭代所取代。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_Superseded()
@@ -316,7 +316,7 @@ namespace NonSilo.Tests.Membership
             var cancellationToken = TestContext.Current.CancellationToken;
             var now = DateTimeOffset.UtcNow;
 
-            // The table includes a successor to this silo.
+            // 该表包括了该 silo的后继数据。
             var successor = Entry(Silo("127.0.0.1:100@200"), SiloStatus.Active, now);
 
             var otherSilos = new[]
@@ -344,7 +344,7 @@ namespace NonSilo.Tests.Membership
 
             await this.lifecycle.OnStart(cancellationToken);
 
-            // Silo should kill itself during the joining phase
+            // Silo 应在加入阶段自杀
             await manager.UpdateStatus(SiloStatus.Joining, cancellationToken);
 
             this.fatalErrorHandler.ReceivedWithAnyArgs().OnFatalException(default, default, default);
@@ -353,10 +353,10 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests <see cref="MembershipTableManager"/> behavior around silo startup when there is an
-        /// existing cluster and this silo has already been declared dead.
-        /// Note that this should never happen in the way tested here - the silo should not be known
-        /// to other silos before it starts up. Still, the case is covered by the manager.
+        /// 测试 <see cref="MembershipTableManager"/> 周围的行为 silo 当有
+        /// 现有组群,而这个 silo 已被宣布为已死亡。
+        /// 请注意,这种情况绝不应当以这里所检验的方式发生---- silo 不应为人所知
+        /// 其它 silos 案件还是由经理负责
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_AlreadyDeclaredDead()
@@ -388,7 +388,7 @@ namespace NonSilo.Tests.Membership
 
             await this.lifecycle.OnStart(cancellationToken);
 
-            // Silo should kill itself during the joining phase
+            // Silo 应在加入阶段自杀
             await manager.UpdateStatus(SiloStatus.Joining, cancellationToken);
 
             this.fatalErrorHandler.ReceivedWithAnyArgs().OnFatalException(default, default, default);
@@ -399,8 +399,8 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests <see cref="MembershipTableManager"/> behavior when there is an
-        /// existing cluster and this silo is declared dead some time after updating its status to joining.
+        /// 测试 <see cref="MembershipTableManager"/> 行为的行为时
+        /// 现有组群,且该 silo 在更新加入后某时宣布为已死亡。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_DeclaredDead_AfterJoining()
@@ -426,12 +426,12 @@ namespace NonSilo.Tests.Membership
             ((ILifecycleParticipant<ISiloLifecycle>)manager).Participate(this.lifecycle);
             await this.lifecycle.OnStart(cancellationToken);
 
-            // Silo should kill itself during the joining phase
+            // Silo 应在加入阶段自杀
             await manager.UpdateStatus(SiloStatus.Joining, cancellationToken);
 
             this.fatalErrorHandler.DidNotReceiveWithAnyArgs().OnFatalException(default, default, default);
 
-            // Mark the silo as dead
+            // 标记 silo 为已死
             while (true)
             {
                 var table = await membershipTable.ReadAllAsync(cancellationToken);
@@ -440,7 +440,7 @@ namespace NonSilo.Tests.Membership
                 if (await membershipTable.UpdateRowAsync(entry, row.Item2, table.Version.Next(), cancellationToken)) break;
             }
 
-            // Refresh silo status and check that it determines it's dead.
+            // 刷新 silo 状态,检查它是否确定已死亡。
             await manager.Refresh(cancellationToken: cancellationToken);
             this.fatalErrorHandler.ReceivedWithAnyArgs().OnFatalException(default, default, default);
 
@@ -805,7 +805,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Membership notifications track committed entries while local startup status remains Created until registration.
+        /// 成员通知跟踪承诺的条目,而本地启动状态则在登记前保持创建。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_NewCluster_PublishesCanonicalViewsAndPreservesLocalRouting()
@@ -928,7 +928,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Try to suspect another silo of failing but discover that this silo has failed.
+        /// 尝试怀疑另一个失败 silo , 但发现此 silo 失败了 。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_TrySuspectOrKill_ButIAmKill()
@@ -956,7 +956,7 @@ namespace NonSilo.Tests.Membership
             await manager.UpdateStatus(SiloStatus.Active, cancellationToken);
             using var membershipEvents = new DiagnosticEventCollector(MembershipEvents.ListenerName);
 
-            // Mark the silo as dead
+            // 标记 silo 为已死
             while (true)
             {
                 var table = await membershipTable.ReadAllAsync(cancellationToken);
@@ -974,7 +974,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Try to suspect another silo of failing but discover that it is already dead.
+        /// 尝试怀疑另一个失败 silo , 但发现它已经死了 。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_TrySuspectOrKill_AlreadyDead()
@@ -1011,7 +1011,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Declare a silo dead in a small, 2-silo cluster, requiring one vote ((2 + 1) / 2 = 1).
+        /// 宣布a silo 死在一小块,2 -silo 组群,需要一票((2+1)/ 2=1)。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_TrySuspectOrKill_DeclareDead_SmallCluster()
@@ -1048,9 +1048,9 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Declare a silo dead in a larger cluster, requiring 2 votes (per configuration), but where our clock is several minutes out of sync with others in the cluster.
-        /// The purpose is to check that logic is consistent across a cluster even if clocks are wildly out of sync.
-        /// This is especially relevant when it comes to vote counting.
+        /// 宣布一个 silo 死在较大组群中,需要2票(每个组合),但时钟与该组群中的其他人同步有几分钟时间。
+        /// 目的是要检查一个集群的逻辑是否一致,即使时钟完全同步不灵。
+        /// 在计票方面,这一点尤其相关。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_TrySuspectOrKill_ClocksNotSynchronized()
@@ -1082,7 +1082,7 @@ namespace NonSilo.Tests.Membership
                 siloLifecycle: this.lifecycle,
                 timeProvider: TimeProvider.System);
 
-            // Rig the local clock.
+            // 调整当地时钟
             manager.GetDateTimeUtcNow = () => now;
 
             ((ILifecycleParticipant<ISiloLifecycle>)manager).Participate(this.lifecycle);
@@ -1090,9 +1090,9 @@ namespace NonSilo.Tests.Membership
             await manager.UpdateStatus(SiloStatus.Active, cancellationToken);
             using var membershipEvents = new DiagnosticEventCollector(MembershipEvents.ListenerName);
 
-            // Add some suspect times. The time difference between them is larger than the recency window (DeathVoteExpirationTimeout),
-            // so only one of the votes will be considered fresh, even though both will be in the future from the perspective
-            // of the local silo.
+            // 添加一些可疑时间。它们之间的时间差大于静脉窗口(DeathVoteExpirationTimeout),
+            // 所以只有一票才算新鲜, 尽管从未来角度看,
+            // 当地 silo。
             var victim = otherSilos.First().SiloAddress;
             while (true)
             {
@@ -1101,35 +1101,35 @@ namespace NonSilo.Tests.Membership
                 var entry = row.Item1.Copy();
                 entry.SuspectTimes?.Clear();
 
-                // Twice the recency window into the future (from the local silo's perspective). This will be the benchmark against which
-                // other votes are compared.
-                // If the logic for counting fresh votes is faulty, this plus the vote below should have resulted in an eviction, and
-                // therefore the local silo will crash, declaring that there is a bug.
+                // 未来两次的常年窗口(从本地 silo角度),这是基准
+                // 其他票数比较。
+                // 如果计算新票的逻辑有误,加上以下的投票本应导致驱逐,
+                // 因此,当地 silo 将崩溃,宣布存在错误。
                 entry.AddSuspector(otherSilos[2].SiloAddress, now.Add(clusterMembershipOptions.DeathVoteExpirationTimeout.Multiply(2)));
 
-                // Half the recency window into the past (from the local silo's perspective) and therefore within the recency window from
-                // the local silo's perspective.
-                // If the logic for counting fresh votes is faulty, this plus the local silo's vote should be enough to evict the victim.
+                // 将半个常留窗口进入过去(从本地 silo角度),因此在
+                // 本地 silo角度。
+                // 如果计算新选票的逻辑有误,加上当地 silo的投票应足以驱逐受害者。
                 entry.AddSuspector(otherSilos[4].SiloAddress, now.Subtract(clusterMembershipOptions.DeathVoteExpirationTimeout.Divide(2)));
                 if (await membershipTable.UpdateRowAsync(entry, row.Item2, table.Version.Next(), cancellationToken)) break;
             }
 
-            // Check that:
-            //   a) Adding our vote changes nothing, since our clock is too far behind
-            //   b) The silo is not mistakenly declared dead, since the difference between the two votes is larger than DeathVoteExpirationTimeout.
+            // 检查是否:
+            //   (a) 加上我们的投票,没有改变任何变化,因为我们的时钟太落后了
+            //   (b) silo 没有被错误地宣布为死亡,因为两票之差大于 DeathVoteExpirationTimeout。
             this.fatalErrorHandler.DidNotReceiveWithAnyArgs().OnFatalException(default, default, default);
             var completion = WaitForSuspectOrKillCompletion(membershipEvents, victim, cancellationToken);
             await manager.TryToSuspectOrKill(victim, null, cancellationToken);
             Assert.True((await completion).Success);
             this.fatalErrorHandler.DidNotReceiveWithAnyArgs().OnFatalException(default, default, default);
 
-            // The victim should be alive as no second vote fell within the recency window of the latest vote.
+            // 受害人应活下来,因为没有第二次投票属于最近一次投票的静脉注射窗口。
             await manager.Refresh(cancellationToken: cancellationToken);
             Assert.Equal(SiloStatus.Active, manager.MembershipTableSnapshot.GetSiloStatus(victim));
         }
 
         /// <summary>
-        /// Declare a silo dead in a larger cluster, requiring 2 votes (per configuration).
+        /// 宣布一个 silo 在较大组群中死亡,需要2票(每个组合)。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_TrySuspectOrKill_DeclareDead_LargerCluster()
@@ -1164,7 +1164,7 @@ namespace NonSilo.Tests.Membership
             await manager.UpdateStatus(SiloStatus.Active, cancellationToken);
             using var membershipEvents = new DiagnosticEventCollector(MembershipEvents.ListenerName);
 
-            // Multiple votes from the same node should not result in the node being declared dead.
+            // 同一节点的多次投票不应导致结点被宣布死亡。
             var victim = otherSilos.First().SiloAddress;
             var completions = WaitForSuspectOrKillCompletions(
                 membershipEvents,
@@ -1177,7 +1177,7 @@ namespace NonSilo.Tests.Membership
             Assert.All(await completions, completion => Assert.True(completion.Success));
             Assert.Equal(SiloStatus.Active, manager.MembershipTableSnapshot.GetSiloStatus(victim));
 
-            // Manually remove our vote and add another silo's vote so we can be the one to kill the silo.
+            // 手动删除我们的投票,并添加另外的 silo票,这样我们就可以杀死 silo。
             while (true)
             {
                 var table = await membershipTable.ReadAllAsync(cancellationToken);
@@ -1193,7 +1193,7 @@ namespace NonSilo.Tests.Membership
             Assert.True((await completion).Success);
             Assert.Equal(SiloStatus.Dead, manager.MembershipTableSnapshot.GetSiloStatus(victim));
 
-            // One down, one to go. Now overshoot votes and kill ourselves instead (due to internal error).
+            // 一人倒下,一人倒下。现在投票数过高,自杀(因为内部错误)。
             victim = otherSilos[1].SiloAddress;
             while (true)
             {
@@ -1213,13 +1213,13 @@ namespace NonSilo.Tests.Membership
             Assert.False((await completion).Success);
             this.fatalErrorHandler.ReceivedWithAnyArgs().OnFatalException(default, default, default);
 
-            // We killed ourselves and should not have marked the other silo as dead.
+            // 我们自杀了,我们不该在另一个国家中留下标志 silo 已经死了
             await manager.Refresh(cancellationToken: cancellationToken);
             Assert.Equal(SiloStatus.Active, manager.MembershipTableSnapshot.GetSiloStatus(victim));
         }
 
         /// <summary>
-        /// Tests <see cref="MembershipTableManager"/> table refresh behavior.
+        /// 测试 <see cref="MembershipTableManager"/> 表刷新行为。
         /// </summary>
         [Fact]
         public async Task MembershipTableManager_Refresh()
@@ -1261,7 +1261,7 @@ namespace NonSilo.Tests.Membership
             ((ILifecycleParticipant<ISiloLifecycle>)manager).Participate(this.lifecycle);
             await this.lifecycle.OnStart(cancellationToken);
 
-            // Test that retries occur after an exception.
+            // 测试在例外情况后进行重试。
             (TimeSpan? DelayOverride, TaskCompletionSource<bool> Completion) timer = (default, default!);
             while (!timerCalls.TryDequeue(out timer)) await Task.Delay(1, cancellationToken);
             var counter = 0;
@@ -1269,18 +1269,18 @@ namespace NonSilo.Tests.Membership
             timer.Completion.TrySetResult(true);
             this.fatalErrorHandler.DidNotReceiveWithAnyArgs().OnFatalException(default, default, default);
 
-            // A shorter delay should be provided after a transient failure.
+            // 短暂故障后应提供较短的延误。
             while (!timerCalls.TryDequeue(out timer)) await Task.Delay(10, cancellationToken);
             membershipTable.OnReadAll = null;
             Assert.True(timer.DelayOverride.HasValue);
             timer.Completion.TrySetResult(true);
 
-            // The standard delay should be used thereafter.
+            // 其后应使用标准延误。
             while (!timerCalls.TryDequeue(out timer)) await Task.Delay(10, cancellationToken);
             Assert.False(timer.DelayOverride.HasValue);
             timer.Completion.TrySetResult(true);
 
-            // If for some reason the timer itself fails (or something else), the silo should crash
+            // 如果由于某种原因计时器本身失灵(或其他原因), silo 即应崩溃
             while (!timerCalls.TryDequeue(out timer)) await Task.Delay(10, cancellationToken);
             timer.Completion.TrySetException(new Exception("no again"));
             this.fatalErrorHandler.ReceivedWithAnyArgs().OnFatalException(default, default, default);
@@ -1789,7 +1789,7 @@ namespace NonSilo.Tests.Membership
                 .Returns(membershipTarget);
             if (backingTable is IMembershipTableSystemTarget suppliedTarget)
             {
-                // Retired-row tests inspect calls on the actual receiver substitute.
+                // 退休行测试检查员呼叫实际接收器替代物。
                 grainFactory.GetSystemTarget<IMembershipTableSystemTarget>(Constants.SystemMembershipTableType, Arg.Any<SiloAddress>())
                     .Returns(suppliedTarget);
             }
@@ -2182,8 +2182,8 @@ namespace NonSilo.Tests.Membership
 
         private static SiloAddress Silo(string value) => SiloAddress.FromParsableString(value);
 
-        // These fixtures use synthetic generation 100 rather than clock-derived identities.
-        // Retirement publication is exercised separately with a controlled clock in MembershipRetirementTests.
+        // 这些定着装置使用合成生成的100个,而不是由钟表制成的身份。
+        // 退休出版物在 MembershipRetirementTests中与控制时钟分开出版。
         private static ClusterMembershipOptions CreateMembershipOptions() => new() { SiloGenerationRetirementAge = null };
 
         private MembershipTableManager CreateMembershipTableManager(

@@ -3,7 +3,7 @@ using static Orleans.Persistence.Cosmos.CosmosIdSanitizer;
 namespace Orleans.Persistence.Cosmos;
 
 /// <summary>
-/// The default implementation of <see cref="IDocumentIdProvider"/>.
+/// <see cref="IDocumentIdProvider"/>的默认执行。
 /// </summary>
 public sealed class DefaultDocumentIdProvider : IDocumentIdProvider
 {
@@ -15,11 +15,11 @@ public sealed class DefaultDocumentIdProvider : IDocumentIdProvider
     internal bool HasCustomPartitionKeyProvider => _partitionKeyProvider is not null;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultDocumentIdProvider"/> class.
+    /// 初始化 <see cref="DefaultDocumentIdProvider"/> 类的新实例。
     /// </summary>
-    /// <param name="options">The cluster options.</param>
+    /// <param name="options">组合组合选项。</param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="options"/> is <see langword="null"/>.
+    /// <paramref name="options"/> 是 <see langword="null"/>。
     /// </exception>
     public DefaultDocumentIdProvider(IOptions<ClusterOptions> options)
     {
@@ -49,21 +49,21 @@ public sealed class DefaultDocumentIdProvider : IDocumentIdProvider
     }
 
     /// <summary>
-    /// Gets the id for the specified grain document.
+    /// 获取指定 grain 文档的代号。
     /// </summary>
-    /// <param name="grainType">The grain type.</param>
-    /// <param name="grainId">The grain id.</param>
-    /// <returns>The document id.</returns>
+    /// <param name="grainType"> grain 类型。</param>
+    /// <param name="grainId">下 grain id. 数据。</param>
+    /// <returns>文档id。</returns>
     public string GetId(string grainType, GrainId grainId) => $"{Sanitize(_options.ServiceId)}{KEY_STRING_SEPARATOR}{Sanitize(grainId.Type.ToString()!)}{SeparatorChar}{Sanitize(grainId.Key.ToString()!)}";
 
     /// <summary>
-    /// Gets the Cosmos DB partition key for the specified grain document.
+    /// 获取指定 grain 文档的宇宙 DB 分区密钥。
     /// </summary>
-    /// <param name="grainType">The grain type.</param>
-    /// <param name="grainId">The grain id.</param>
-    /// <returns>The document partition key.</returns>
+    /// <param name="grainType"> grain 类型。</param>
+    /// <param name="grainId">下 grain id. 数据。</param>
+    /// <returns>文档分区密钥。</returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="grainType"/> is <see langword="null"/>.
+    /// <paramref name="grainType"/> 是 <see langword="null"/>。
     /// </exception>
     public string GetPartitionKey(string grainType, GrainId grainId)
     {

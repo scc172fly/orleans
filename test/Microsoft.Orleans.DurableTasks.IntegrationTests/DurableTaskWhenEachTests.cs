@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>Verifies that a workflow's <c>WhenEach</c> yields the same completion order in every activation.</summary>
+/// <summary>证明工作流程 <c>WhenEach</c> 在每个激活中都产生相同的完成顺序。</summary>
 public abstract class DurableTaskWhenEachTests(string journalFormatKey) : IAsyncLifetime
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
@@ -26,21 +26,21 @@ public abstract class DurableTaskWhenEachTests(string journalFormatKey) : IAsync
         var workflow = await grain.CollectInCompletionOrderAsync(yieldKey).WithId("each").ScheduleAsync(cancellationToken);
         await started.WaitAsync(Timeout, cancellationToken);
 
-        // Input 2 completes first, then the activation is deactivated.
+        // 输入 2 先完成, 然后启动被解除 。
         await SignalAsync(grain, taskId, "2", cancellationToken);
         await _fixture.MessagingProbe.WaitForStartedAsync(yieldKey, 1).WaitAsync(Timeout, cancellationToken);
         await grain.DeactivateAsync();
 
-        // The next activation replays input 2's completion, then observes inputs 0 and 1 complete in that order.
+        // 下一次激活重播输入 2的完成, 然后按此顺序观察输入 0和1 完成 。
         await SignalAsync(grain, taskId, "0", cancellationToken);
         await _fixture.MessagingProbe.WaitForStartedAsync(yieldKey, 3).WaitAsync(Timeout, cancellationToken);
         await SignalAsync(grain, taskId, "1", cancellationToken);
 
-        // The attempt records its order once the enumeration ends.
+        // 查点结束后,企图记录其命令
         await _fixture.MessagingProbe.WaitForStartedAsync(yieldKey, 5).WaitAsync(Timeout, cancellationToken);
         await grain.DeactivateAsync();
 
-        // The last activation replays the enumeration with every input complete.
+        // 上次激活时, 以每个输入完整内容重放点数 。
         await SignalAsync(grain, taskId, "done", cancellationToken);
 
         var response = await workflow.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken);
@@ -53,14 +53,14 @@ public abstract class DurableTaskWhenEachTests(string journalFormatKey) : IAsync
         grain.SignalDurableTaskAsync(taskId, DurableTaskWhenEachGrain.Item.For(item), item, cancellationToken);
 }
 
-/// <summary>Runs <c>WhenEach</c> coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行运行 <c>WhenEach</c> 默认存储任务状态的覆盖 JSON 日记格式。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskWhenEachTests() : DurableTaskWhenEachTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs <c>WhenEach</c> coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行运行 <c>WhenEach</c> 任务状态包含在 Orleans 双进制日记格式。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -79,7 +79,7 @@ public sealed class DurableTaskWhenEachGrain(DurableTaskMessagingProbe probe) : 
 {
     public static readonly DurableSignal<string> Item = new("item");
 
-    /// <summary>Gets the order which each attempt which finished the enumeration observed, by grain key.</summary>
+    /// <summary>获得每次完成查点的尝试的顺序,按 grain 键进行。</summary>
     public static ConcurrentDictionary<Guid, ConcurrentQueue<string>> Orders { get; } = [];
 
     public async DurableTask<string> CollectInCompletionOrderAsync(Guid yieldKey)

@@ -9,14 +9,14 @@ using Orleans.Durable.Tasks;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>Runs HTTP requests and operations as steps of durable tasks with a named <see cref="HttpClient"/>.</summary>
+/// <summary>运行 HTTP 请求和业务,作为与指定 <see cref="HttpClient"/>.</summary>
 /// <remarks>
-/// The named client's handlers start with a <see cref="DurableIdempotencyKeyHandler"/>, which gives each step's unsafe
-/// requests the step's <c>Idempotency-Key</c>.
+/// 指定客户的处理器从 <see cref="DurableIdempotencyKeyHandler"/>开始,使每个步骤不安全
+/// 要求使用 <c>Idempotency-Key</c>。
 /// </remarks>
 internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string name, DurableHttpClientOptions options) : IDurableHttpClient
 {
-    /// <summary>The reconnection interval of an event stream which doesn't advertise one, as browsers' <c>EventSource</c> uses.</summary>
+    /// <summary>不作广告的事件流作为浏览器 <c>EventSource</c> 的</summary>用途而使用的重连间隔。
     private static readonly TimeSpan DefaultReconnectionInterval = TimeSpan.FromSeconds(3);
 
     private readonly DurableHttpClientOptions _options = options;
@@ -29,7 +29,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
             static async (state, cancellationToken) =>
             {
                 using var request = state.createRequest();
-                // The client buffers the response's content, up to DurableHttpClientOptions.MaxResponseContentLength.
+                // 客户端缓冲回复内容,最多不超过 DurableHttpClientOptions.MaxResponseContentLength。
                 using var response = await state.client.CreateClient().SendAsync(request, cancellationToken);
                 return await DurableHttpResponse.ReadAsync(response, cancellationToken);
             },
@@ -113,7 +113,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 }
                 catch (HttpRequestException exception) when (exception.StatusCode is null && !cancellationToken.IsCancellationRequested)
                 {
-                    // The server is unreachable, so reconnect after the interval, as an EventSource does.
+                    // 服务器无法访问服务器, 所以在间隔后重新连接, 作为 EventSource 确实如此。
                     response = null;
                 }
 
@@ -121,7 +121,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 {
                     using (response)
                     {
-                        // The server answers a reconnect after the terminal status with 204 No Content.
+                        // 服务器在终端状态后回答重连204无内容。
                         if (response.StatusCode == HttpStatusCode.NoContent)
                         {
                             yield break;
@@ -145,8 +145,8 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                             }
                         }
 
-                        // The stream ended before the operation's terminal status, such as when a proxy closed it, so
-                        // reconnect with the last event's identifier, after the interval which the server advertises.
+                        // 流在操作终端状态之前结束, 例如代理关闭时, 代理关闭时结束, 所以
+                        // 服务器广告间隔后, 与最后一个事件的身份识别符重新连接 。
                         lastEventId = parser.LastEventId is { Length: > 0 } id ? id : lastEventId;
                         reconnectionInterval = parser.ReconnectionInterval is var interval && interval > TimeSpan.Zero && interval != Timeout.InfiniteTimeSpan
                             ? interval
@@ -158,7 +158,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
             await Task.Delay(reconnectionInterval, cancellationToken);
         }
 
-        // Reads the next event, or returns false once the stream ends, including when the connection drops mid-stream.
+        // 读取下一个事件,或者在流结束时返回错误,包括连接中流下降时。
         static async ValueTask<bool> MoveNextAsync(IAsyncEnumerator<SseItem<DurableOperation?>> events, CancellationToken cancellationToken)
         {
             try
@@ -188,7 +188,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 : throw new UnreachableException("A completed start response carries its result or its failure.");
         }
 
-        // A running operation always has a location, which FromStart establishes.
+        // 运行中的操作总是有一个位置, FromStart 能够建立。
         var location = operation.Location!;
         if (options.Mode == DurableHttpWaitMode.Events && operation.IsStatusMonitor)
         {
@@ -212,7 +212,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
         var response = operation.Response;
         while (true)
         {
-            // A server which applied the poll's wait preference already waited, so the next poll follows at once.
+            // 应用民意测验的等待优先选择的服务器已经等待, 因此下一次民意测验会同时进行。
             if (response.GetHeader(DurableHttpHeaders.PreferenceApplied) is null)
             {
                 await DurableTask.Delay(GetPollDelay(response, options));
@@ -229,8 +229,8 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 return request;
             });
 
-            // A transient failure of one poll, such as 429 Too Many Requests or 503 Service Unavailable, leaves the
-            // operation as it was, so the next poll follows its Retry-After.
+            // 一次民意调查的短暂失败,如429项请求过多或503项服务无可用,使
+            // 之后的民意测验
             if (IsTransient(response.StatusCode))
             {
                 continue;
@@ -243,13 +243,13 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
         }
     }
 
-    /// <summary>Reads the result of a response which completes the operation, or returns <see langword="false"/> while it runs.</summary>
+    /// <summary>读取完成操作或返回运行期间的 <see langword="false"/> 响应的结果。</summary>
     private bool TryComplete<TResult>(DurableHttpResponse response, bool isStatusMonitorResponse, out TResult result)
     {
         result = default!;
         if (isStatusMonitorResponse && response.IsSuccessStatusCode)
         {
-            // A status monitor reports the operation in its body, whichever success status code answers a poll of it.
+            // 状况监测员报告该机构的运作,无论成功状态代码对调查做出何种答复。
             var operation = DurableOperation.Read(response.Content.Span);
             if (!operation.IsTerminal)
             {
@@ -296,9 +296,9 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
     }
 
     /// <summary>
-    /// Returns the delay before the next poll: the response's <c>Retry-After</c>, at least
-    /// <see cref="DurableHttpOperationOptions.PollInterval"/> and at most <see cref="DurableHttpOperationOptions.MaxPollInterval"/>,
-    /// so a server's short or past <c>Retry-After</c> doesn't poll faster than the task chose, and a long one doesn't stall it.
+    /// 返回下次民调前的延迟时间:至少回复 <c>Retry-After</c>
+    /// <see cref="DurableHttpOperationOptions.PollInterval"/> 和最多 <see cref="DurableHttpOperationOptions.MaxPollInterval"/>,
+    /// 服务器的短或过去 <c>Retry-After</c> 调查的速度不会比任务选择的快 很长的任务也不会拖住它
     /// </summary>
     internal static TimeSpan GetPollDelay(DurableHttpResponse response, DurableHttpOperationOptions options)
     {
@@ -309,10 +309,10 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
         return retryAfter is not { } delay || delay < options.PollInterval ? options.PollInterval : delay > max ? max : delay;
     }
 
-    /// <summary>Returns whether a poll's status reports a transient failure, after which the poll is retried.</summary>
+    /// <summary>返回民意测验是否报告暂时失败,然后重新进行调查。</summary>
     private static bool IsTransient(HttpStatusCode statusCode) => statusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests
         or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout;
 
-    /// <summary>Appends <paramref name="suffix"/> to the path of <paramref name="location"/>, keeping its query.</summary>
+    /// <summary>附录 <paramref name="suffix"/> 和 <paramref name="location"/>,保留其查询。</summary>
     private static Uri Append(Uri location, string suffix) => new(location.GetLeftPart(UriPartial.Path) + suffix + location.Query);
 }

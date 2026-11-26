@@ -1,36 +1,38 @@
 ---
-title: Orleans overview
-description: Learn how Orleans simplifies building distributed .NET applications.
+title: Orleans 概述
+description: 了解 Orleans 如何简化 .NET 分布式应用的开发。
 ms.date: 08/02/2026
 ms.topic: overview
 ---
 
 # Microsoft Orleans
 
-Orleans is a cross-platform framework for building distributed applications with .NET. It extends familiar C# concepts across a cluster so that application code can address stateful entities by identity without tracking which server currently hosts them.
+Orleans 是一个用于构建 .NET 分布式应用的跨平台框架。它将熟悉的 C# 概念扩展到整个集群，让应用代码通过标识访问有状态实体，无需追踪当前由哪台服务器托管实体。
 
-Orleans libraries target `net10.0` and `net11.0`.
+Orleans 库面向 `net10.0` 和 `net11.0`。
 
 > [!NOTE]
-> To upgrade an existing application, see the [Orleans migration guide](migration-guide.md). Version-specific upgrade history is kept in that guide rather than repeated in ordinary documentation.
+> 如需升级现有应用，请参阅 [Orleans 迁移指南](migration-guide.md)。各版本的升级记录均收录在该指南中。
 
-## The virtual actor model
+<a id="the-virtual-actor-model"></a>
 
-Orleans implements the virtual actor model. A virtual actor in Orleans is called a *grain*. Each grain has:
+## 虚拟 Actor 模型
 
-- A stable, application-defined identity.
-- Behavior implemented by a .NET class.
-- Isolated, mutable in-memory state, with optional durable state stored by a configured provider.
+Orleans 实现了虚拟 Actor 模型。Orleans 中的虚拟 Actor 称为 *Grain*。每个 Grain 都具有：
 
-Grain references are logical addresses. Callers don't create grain objects directly or locate them on a server. Instead, they request a reference by interface and key, then invoke asynchronous methods on that reference. Orleans routes each call to an existing activation or activates the grain on demand.
+- 由应用定义的稳定标识。
+- 由 .NET 类实现的行为。
+- 相互隔离、可变的内存状态。应用还可以配置提供程序来存储持久状态。
 
-This virtual lifecycle separates a grain's identity from its in-memory activation. Idle activations can be removed from memory, and a later call can activate the grain again. If durable state is configured and written by the grain, a new activation can restore that state.
+Grain 引用是逻辑地址。调用方通过接口和键获取引用，再调用该引用上的异步方法。Orleans 会将调用路由到已有的激活实例，或按需激活 Grain。
 
-For the model's design and history, see the [Orleans virtual actors research project](https://www.microsoft.com/research/project/orleans-virtual-actors/).
+这种虚拟生命周期将 Grain 的标识与其内存中的激活实例分离。空闲的激活实例可从内存中移除，后续调用可再次激活该 Grain。如果应用配置了持久状态且 Grain 已成功写入，新实例便可恢复该状态。
+
+有关模型的设计与历史，请参阅 [Orleans 虚拟 Actor 研究项目](https://www.microsoft.com/research/project/orleans-virtual-actors/)。
 
 ## Grains
 
-Grains are units of identity, isolation, placement, and execution. A grain class implements one or more grain interfaces, usually identified using one of these marker interfaces:
+Grain 是标识、隔离、放置和执行的基本单元。Grain 类实现一个或多个 Grain 接口，通常通过以下标记接口之一指定键的类型：
 
 - <xref:Orleans.IGrainWithGuidKey>
 - <xref:Orleans.IGrainWithIntegerKey>
@@ -38,52 +40,63 @@ Grains are units of identity, isolation, placement, and execution. A grain class
 - <xref:Orleans.IGrainWithGuidCompoundKey>
 - <xref:Orleans.IGrainWithIntegerCompoundKey>
 
-By default, Orleans processes requests to a grain activation one at a time. This turn-based execution model reduces the need for locks inside grain code. Reentrancy and other interleaving options are available when an application needs them, but they require the same care as other concurrent code.
+默认情况下，Orleans 会逐个处理发给同一个 Grain 激活实例的请求。这种以轮次为单位的执行模型减少了 Grain 代码加锁的需求。应用可以启用可重入或其他交错执行选项，使用时需要像处理其他并发代码一样谨慎。
 
-:::image type="content" source="media/grain-formulation.svg" lightbox="media/grain-formulation.svg" alt-text="A grain is composed of a stable identity, behavior, and state.":::
+:::image type="content" source="media/grain-formulation.svg" lightbox="media/grain-formulation.svg" alt-text="Grain 由稳定的标识、行为和状态组成。":::
 
-Orleans applications commonly model users, devices, accounts, game sessions, orders, or other independently addressable entities as grains. Good grain boundaries come from the application's domain and workload: avoid both chatty networks of tiny grains and single grains that become throughput bottlenecks.
+Orleans 应用通常用 Grain 为用户、设备、账户、游戏会话、订单及其他可独立寻址的实体建模。Grain 的边界取决于应用领域和实际负载。应避免设计大量需要频繁通信的微小 Grain，也应避免让单个 Grain 成为吞吐量瓶颈。
 
-## Silos and clusters
+<a id="silos-and-clusters"></a>
 
-A *silo* is a process that hosts the Orleans runtime and grain activations. One or more silos form a cluster. Cluster members coordinate membership, route messages, and place activations.
+## Silo 与集群
 
-:::image type="content" source="media/cluster-silo-grain-relationship.svg" lightbox="media/cluster-silo-grain-relationship.svg" alt-text="A cluster has one or more silos, and each silo hosts grain activations.":::
+*Silo* 是托管 Orleans 运行时和 Grain 激活实例的进程。一个或多个 Silo 组成集群。集群成员共同维护成员关系、路由消息并决定激活实例的放置位置。
 
-When a silo fails, calls in progress can fail and callers must handle that outcome. After the cluster detects the failure, subsequent calls can activate affected grains on healthy silos. Durable recovery depends on the application's storage configuration and on state having been written successfully.
+:::image type="content" source="media/cluster-silo-grain-relationship.svg" lightbox="media/cluster-silo-grain-relationship.svg" alt-text="集群包含一个或多个 Silo，每个 Silo 都可以托管 Grain 激活实例。":::
 
-External processes can connect using the Orleans client library. ASP.NET Core applications can also host a silo and call grains in the same process, which is the approach used in the beginner quickstart.
+Silo 发生故障时，正在进行的调用可能失败，调用方必须处理这种结果。集群检测到故障后，后续调用可在健康的 Silo 上激活受影响的 Grain。能否恢复持久状态取决于应用的存储配置，以及状态是否已成功写入。
 
-## Runtime capabilities
+外部进程可通过 Orleans 客户端库连接集群。ASP.NET Core 应用也可以在同一进程中托管 Silo 并调用 Grain，快速入门采用的就是这种方式。
 
-Orleans includes APIs and providers for common distributed application needs:
+<a id="runtime-capabilities"></a>
 
-- **Clustering and placement**: Discover silos and choose where activations run.
-- **Persistence**: Store explicitly written grain state using Azure Storage, Azure Cosmos DB, ADO.NET, DynamoDB, Redis, or custom providers.
-- **Timers, reminders, and durable jobs**: Run activation-scoped callbacks, recurring durable callbacks, or scheduled one-time work.
-- **Streams and broadcast channels**: Deliver events between producers and consumers.
-- **Transactions**: Coordinate supported persistent state across grains using distributed ACID transactions.
-- **Versioning**: Run heterogeneous clusters during staged upgrades.
-- **Observability**: Integrate with .NET logging, metrics, distributed tracing, health checks, and the Orleans Dashboard.
-- **Serialization**: Generate version-tolerant serializers and integrate with formats such as System.Text.Json, MessagePack, and Protocol Buffers.
+## 运行时功能
 
-These capabilities are composable. An application selects providers and guarantees that fit its environment; Orleans doesn't automatically replicate application state or make external storage durable.
+Orleans 提供满足常见分布式应用需求的 API 和提供程序：
 
-## Distributed ACID transactions
+- **集群与放置**：发现 Silo，并选择激活实例的运行位置。
+- **持久化**：使用 Azure Storage、Azure Cosmos DB、ADO.NET、DynamoDB、Redis 或自定义提供程序存储显式写入的 Grain 状态。
+- **计时器、提醒和持久作业**：运行激活范围内的回调、周期性持久回调或计划内的一次性工作。
+- **流与广播通道**：在生产者和消费者之间投递事件。
+- **事务**：使用分布式 ACID 事务协调多个 Grain 中受支持的持久状态。
+- **版本控制**：在分阶段升级期间运行异构集群。
+- **可观测性**：与 .NET 日志、指标、分布式跟踪、运行状况检查及 Orleans 仪表板集成。
+- **序列化**：生成能够容忍版本变化的序列化器，并与 System.Text.Json、MessagePack 和 Protocol Buffers 等格式集成。
 
-Orleans transactions coordinate supported persistent state across multiple grains using distributed [ACID](https://learn.microsoft.com/windows/win32/cossdk/acid-properties) transactions with serializable isolation. Transactional state uses dedicated APIs and storage configuration; ordinary grain persistence doesn't become transactional automatically.
+这些功能可以组合使用。应用应根据环境选择提供程序和所需保证。应用状态复制和外部存储持久性需要由应用的存储方案提供。
 
-For more information, see [Transactions](grains/transactions.md).
+<a id="distributed-acid-transactions"></a>
 
-## When to use Orleans
+## 分布式 ACID 事务
 
-Orleans is a strong fit when an application has many independently addressable entities, benefits from per-entity isolation, and needs to distribute work across processes or machines. Common examples include AI agent sessions, fraud protection and risk, IoT and digital twins, monitoring and resource orchestration, online games, collaboration, commerce, and financial services.
+Orleans 通过具有可串行化隔离级别的分布式 [ACID](https://learn.microsoft.com/windows/win32/cossdk/acid-properties) 事务，协调多个 Grain 中受支持的持久状态。事务状态需要专用 API 和存储配置，普通 Grain 持久化仅提供其原有的持久化语义。
 
-Orleans can run in a single process during development and scale to a cluster without changing grain interfaces. Production deployments still require deliberate choices for clustering, storage, retries, observability, capacity, and deployment.
+详情请参阅[事务](grains/transactions.md)。
 
-For a decision guide with concrete examples and counterexamples, see [Orleans scenarios and use cases](scenarios.md).
+<a id="when-to-use-orleans"></a>
 
-## Next step
+## 何时使用 Orleans
+
+当应用具有大量可独立寻址的实体、需要隔离每个实体，且要跨进程或机器分配工作时，Orleans 很适合这类场景。常见示例包括 AI 智能体会话、欺诈防护和风险管理、物联网与数字孪生、监控与资源编排、在线游戏、协作、商业和金融服务。
+
+Orleans 可在开发期间以单进程运行，并在无需更改 Grain 接口的情况下扩展为集群。生产部署需要根据实际环境选择集群、存储、重试、可观测性、容量及部署方案。
+
+有关包含具体示例和反例的指南，请参阅 [Orleans 应用场景](scenarios.md)。
+
+<a id="next-step"></a>
+
+## 后续步骤
 
 > [!div class="nextstepaction"]
 > [Orleans Hello World](tutorials-and-samples/hello-world.md)
+

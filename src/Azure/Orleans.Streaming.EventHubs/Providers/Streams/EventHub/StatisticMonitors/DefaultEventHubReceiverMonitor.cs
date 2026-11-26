@@ -5,15 +5,15 @@ using Orleans.Runtime;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Default EventHub receiver monitor that tracks metrics using loggers PKI support.
+    /// 默认 EventHub 接收器监测器,使用日志 PKI 支持跟踪测量。
     /// </summary>
     public class DefaultEventHubReceiverMonitor : DefaultQueueAdapterReceiverMonitor
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultEventHubReceiverMonitor"/> class.
+        /// 初始化 <see cref="DefaultEventHubReceiverMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">The Event Hub receiver metric dimensions.</param>
-        /// <param name="instruments">The Orleans runtime instruments.</param>
+        /// <param name="dimensions">事件枢纽接收器的量度尺寸。</param>
+        /// <param name="instruments">下 Orleans 运行工具。</param>
         public DefaultEventHubReceiverMonitor(EventHubReceiverMonitorDimensions dimensions, OrleansInstruments instruments)
             : base(new KeyValuePair<string, object>[] { new("Path", dimensions.EventHubPath), new("Partition", dimensions.EventHubPartition) }, instruments)
         {

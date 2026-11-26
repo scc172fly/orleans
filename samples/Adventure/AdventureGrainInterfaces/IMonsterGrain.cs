@@ -2,12 +2,12 @@ namespace AdventureGrainInterfaces;
 
 public interface IMonsterGrain : IGrainWithIntegerKey
 {
-    // Even monsters have a name
+    // 连怪物都有名字
     Task<string?> Name();
 
     Task SetInfo(MonsterInfo info);
 
-    // Monsters are located in exactly one room
+    // 怪物就在一个房间
     Task SetRoomGrain(IRoomGrain room);
 
     Task<IRoomGrain> RoomGrain();

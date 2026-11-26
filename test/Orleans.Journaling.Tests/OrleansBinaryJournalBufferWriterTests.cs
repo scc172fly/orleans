@@ -650,7 +650,7 @@ public sealed class OrleansBinaryJournalBufferWriterTests
         var consumer = new CollectingConsumer();
         var context = JournalTestReplayContext.Create(OrleansBinaryJournalFormat.JournalFormatKey, consumer.Bind(1));
 
-        // A legacy varuint zero is encoded as 0x01, which the public format dispatches as V1 framing.
+        // 遗迹的 varint 0 编码为 0x01, 公共格式发送为 V1 设置 。
         var exception = Assert.Throws<InvalidOperationException>(
             () => ((IJournalFormat)new OrleansBinaryJournalFormat(SessionPool)).Replay(reader, context));
 

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Orleans.Streams;
 
 /// <summary>
-/// Coalesces and persists stream queue checkpoints using an <see cref="IStreamCheckpointStore"/>.
+/// 使用 <see cref="IStreamCheckpointStore"/>设置的连锁商店和长长的排队检查站。
 /// </summary>
 public sealed class StreamQueueCheckpointer : IStreamQueueCheckpointer<string>
 {
@@ -19,10 +19,10 @@ public sealed class StreamQueueCheckpointer : IStreamQueueCheckpointer<string>
     private DateTime? _throttleSavesUntilUtc;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamQueueCheckpointer"/> class.
+    /// 初始化 <see cref="StreamQueueCheckpointer"/> 类的新实例。
     /// </summary>
-    /// <param name="store">The checkpoint store.</param>
-    /// <param name="options">The checkpointer options.</param>
+    /// <param name="store">检查站商店。</param>
+    /// <param name="options">检查站选项。</param>
     public StreamQueueCheckpointer(IStreamCheckpointStore store, StreamQueueCheckpointerOptions options)
     {
         ArgumentNullException.ThrowIfNull(store);

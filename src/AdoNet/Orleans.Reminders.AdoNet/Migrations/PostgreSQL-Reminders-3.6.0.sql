@@ -1,13 +1,13 @@
--- Run this migration for upgrading the PostgreSQL reminder table and routines for deployments created before 3.6.0
+-- 运行此迁移以更新 PostgreSQL 提醒表和3.6.0之前创建的部署程序
 
 BEGIN;
 
--- Change date type
+-- 更改日期类型
 
 ALTER TABLE OrleansRemindersTable
 ALTER COLUMN StartTime TYPE TIMESTAMPTZ(3) USING StartTime AT TIME ZONE 'UTC';
 
--- Recreate routines
+-- 重建常规
 
 CREATE OR REPLACE FUNCTION upsert_reminder_row(
     ServiceIdArg    OrleansRemindersTable.ServiceId%TYPE,

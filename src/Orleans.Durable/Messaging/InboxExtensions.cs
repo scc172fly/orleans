@@ -4,16 +4,16 @@ using System.Threading.Tasks;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>Registers typed subject handlers with an <see cref="IInbox"/>.</summary>
-/// <remarks>Stateful overloads store their argument directly and support static delegates.</remarks>
+/// <summary>注册输入了 <see cref="IInbox"/>的标处理器。</summary>
+/// <remarks>州级超负荷人口直接储存其论点,并支持静态代表。</remarks>
 public static class InboxExtensions
 {
-    /// <summary>Registers a synchronous subject handler.</summary>
-    /// <typeparam name="T">The body contract.</typeparam>
-    /// <param name="inbox">The inbox.</param>
-    /// <param name="messageType">The subject and serializer binding.</param>
-    /// <param name="handler">The synchronous body and context delegate.</param>
-    /// <returns>The inbox.</returns>
+    /// <summary>注册同步主题处理器。</summary>
+    /// <typeparam name="T">体力合同。</typeparam>
+    /// <param name="inbox">收件箱。</param>
+    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="handler">同步体和背景代表</param>
+    /// <returns>收件箱。</returns>
     public static IInbox Register<T>(this IInbox inbox, MessageType<T> messageType, Action<T, IInboxHandlerContext> handler)
     {
         ArgumentNullException.ThrowIfNull(inbox);
@@ -22,15 +22,15 @@ public static class InboxExtensions
         return inbox.Register(new SynchronousHandler<T>(messageType, handler));
     }
 
-    /// <summary>Registers a synchronous subject handler with an explicit argument.</summary>
-    /// <typeparam name="T">The body contract.</typeparam>
-    /// <typeparam name="TArg">The handler argument type.</typeparam>
-    /// <param name="inbox">The inbox.</param>
-    /// <param name="messageType">The subject and serializer binding.</param>
-    /// <param name="argument">The argument stored with the handler.</param>
-    /// <param name="handler">The synchronous body, argument, and context delegate.</param>
-    /// <returns>The inbox.</returns>
-    /// <remarks>Use a static delegate to pass state without a captured closure.</remarks>
+    /// <summary>注册同步主题处理器,并有明确的参数。</summary>
+    /// <typeparam name="T">体力合同。</typeparam>
+    /// <typeparam name="TArg">处理器参数类型。</typeparam>
+    /// <param name="inbox">收件箱。</param>
+    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="argument">与处理器一起存储的参数。</param>
+    /// <param name="handler">同步体、辩论和背景代表。</param>
+    /// <returns>收件箱。</returns>
+    /// <remarks>使用静态代表到通过州,而不进行记录关闭。</remarks>
     public static IInbox Register<T, TArg>(
         this IInbox inbox, MessageType<T> messageType, TArg argument, Action<T, TArg, IInboxHandlerContext> handler)
     {
@@ -40,12 +40,12 @@ public static class InboxExtensions
         return inbox.Register(new SynchronousHandler<T, TArg>(messageType, argument, handler));
     }
 
-    /// <summary>Registers a subject handler supporting asynchronous preparation.</summary>
-    /// <typeparam name="T">The body contract.</typeparam>
-    /// <param name="inbox">The inbox.</param>
-    /// <param name="messageType">The subject and serializer binding.</param>
-    /// <param name="handler">The body, context, and attempt-token delegate.</param>
-    /// <returns>The inbox.</returns>
+    /// <summary>登记一个主体处理器,支持非同步的准备工作。</summary>
+    /// <typeparam name="T">体力合同。</typeparam>
+    /// <param name="inbox">收件箱。</param>
+    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="handler">身体、背景和主动代表。</param>
+    /// <returns>收件箱。</returns>
     public static IInbox Register<T>(
         this IInbox inbox, MessageType<T> messageType, Func<T, IInboxHandlerContext, CancellationToken, ValueTask> handler)
     {
@@ -55,15 +55,15 @@ public static class InboxExtensions
         return inbox.Register(new AsynchronousHandler<T>(messageType, handler));
     }
 
-    /// <summary>Registers an asynchronous subject handler with an explicit argument.</summary>
-    /// <typeparam name="T">The body contract.</typeparam>
-    /// <typeparam name="TArg">The handler argument type.</typeparam>
-    /// <param name="inbox">The inbox.</param>
-    /// <param name="messageType">The subject and serializer binding.</param>
-    /// <param name="argument">The argument stored with the handler.</param>
-    /// <param name="handler">The body, argument, context, and attempt-token delegate.</param>
-    /// <returns>The inbox.</returns>
-    /// <remarks>Use a static delegate to pass state without a captured closure.</remarks>
+    /// <summary>登记一个非同步的主题处理器,并有明确的论点。</summary>
+    /// <typeparam name="T">体力合同。</typeparam>
+    /// <typeparam name="TArg">处理器参数类型。</typeparam>
+    /// <param name="inbox">收件箱。</param>
+    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="argument">与处理器一起存储的参数。</param>
+    /// <param name="handler">身体、论点、背景和未遂代表。</param>
+    /// <returns>收件箱。</returns>
+    /// <remarks>使用静态代表到通过州,而不进行记录关闭。</remarks>
     public static IInbox Register<T, TArg>(
         this IInbox inbox, MessageType<T> messageType, TArg argument,
         Func<T, TArg, IInboxHandlerContext, CancellationToken, ValueTask> handler)
@@ -82,7 +82,7 @@ public static class InboxExtensions
         public ValueTask HandleAsync(IInboxHandlerContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // The delegate owns the decoded body, including when cancellation arrives during decoding.
+            // 该代表拥有该代号机构,包括在解码时取消的登记。
             var body = messageType.Decode(context.Message.Envelope);
             return Invoke(body, context, cancellationToken);
         }

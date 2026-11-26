@@ -4,7 +4,7 @@ using Orleans.Diagnostics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// A grain call filter which helps to propagate activity correlation information across a call chain.
+    /// 帮助在呼叫链中传播活动相关性信息的 grain 调用过滤器。
     /// </summary>
     internal abstract class ActivityPropagationGrainCallFilter
     {
@@ -18,17 +18,17 @@ namespace Orleans.Runtime
 
             switch (interfaceTypeName)
             {
-                // Memory storage uses grains for its implementation
+                // 内存存储用 grains 实施
                 case "IMemoryStorageGrain":
                     return ActivitySources.StorageGrainSource;
 
-                // This extension is for explicit migrate/deactivate calls
+                // 此项扩展适用于明确的移徙/停止行动电话
                 case "IGrainManagementExtension":
-                // This target is for accepting migration batches
+                // 目标是接受移徙批次
                 case "IActivationMigrationManagerSystemTarget":
                     return ActivitySources.LifecycleGrainSource;
 
-                // These extensions are for async stream subscriptions
+                // 这些扩展号是用于同步流订阅的
                 case "IAsyncEnumerableGrainExtension":
                     return ActivitySources.ApplicationGrainSource;
 
@@ -49,14 +49,14 @@ namespace Orleans.Runtime
         {
             if (activity is not null)
             {
-                // RPC attributes from https://opentelemetry.io/docs/specs/semconv/rpc/
+                // https://opentelemetry.io/docs/specs/semconv/rpc/的 RPC 属性
                 activity.SetTag(ActivityTagKeys.RpcSystem, RpcSystem);
                 activity.SetTag(ActivityTagKeys.RpcService, context.InterfaceName);
                 activity.SetTag(ActivityTagKeys.RpcMethod, $"{context.InterfaceName}/{context.MethodName}");
 
                 if (activity.IsAllDataRequested)
                 {
-                    // Custom attributes
+                    // 自定义属性
                     activity.SetTag(ActivityTagKeys.RpcOrleansTargetId, context.TargetId.ToString());
                     if (context.SourceId is GrainId sourceId)
                     {
@@ -75,13 +75,13 @@ namespace Orleans.Runtime
                 {
                     activity.SetStatus(ActivityStatusCode.Error);
 
-                    // exception attributes from https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md
+                    // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md的例外属性
                     activity.SetTag(ActivityTagKeys.ExceptionType, e.GetType().FullName);
                     activity.SetTag(ActivityTagKeys.ExceptionMessage, e.Message);
 
-                    // Note that "exception.stacktrace" is the full exception detail, not just the StackTrace property.
-                    // See https://opentelemetry.io/docs/specs/semconv/attributes-registry/exception/
-                    // and https://github.com/open-telemetry/opentelemetry-specification/pull/697#discussion_r453662519
+                    // 请注意, "exception.stacktrace" 是全部例外细节,而不仅仅是 StackTrace 财产。
+                    // 见 https://opentelemetry.io/docs/specs/semconv/attributes-registry/exception/
+                    // 和 https://github.com/open-telemetry/opentelemetry-specification/pull/697#discussion_r453662519
                     activity.SetTag(ActivityTagKeys.ExceptionStacktrace, e.ToString());
                     activity.SetTag(ActivityTagKeys.ExceptionEscaped, true);
                 }
@@ -96,16 +96,16 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Propagates distributed context information to outgoing requests.
+    /// 方案向外出请求分发背景资料。
     /// </summary>
     internal class ActivityPropagationOutgoingGrainCallFilter : ActivityPropagationGrainCallFilter, IOutgoingGrainCallFilter
     {
         private readonly DistributedContextPropagator _propagator;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActivityPropagationOutgoingGrainCallFilter"/> class.
+        /// 初始化 <see cref="ActivityPropagationOutgoingGrainCallFilter"/> 类的新实例。
         /// </summary>
-        /// <param name="propagator">The context propagator.</param>
+        /// <param name="propagator">上下文宣传器。</param>
         public ActivityPropagationOutgoingGrainCallFilter(DistributedContextPropagator propagator)
         {
             _propagator = propagator;
@@ -128,16 +128,16 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Populates distributed context information from incoming requests.
+    /// 分发收到的请求的背景资料。
     /// </summary>
     internal class ActivityPropagationIncomingGrainCallFilter : ActivityPropagationGrainCallFilter, IIncomingGrainCallFilter
     {
         private readonly DistributedContextPropagator _propagator;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActivityPropagationIncomingGrainCallFilter"/> class.
+        /// 初始化 <see cref="ActivityPropagationIncomingGrainCallFilter"/> 类的新实例。
         /// </summary>
-        /// <param name="propagator">The context propagator.</param>
+        /// <param name="propagator">上下文宣传器。</param>
         public ActivityPropagationIncomingGrainCallFilter(DistributedContextPropagator propagator)
         {
             _propagator = propagator;
@@ -154,12 +154,12 @@ namespace Orleans.Runtime
             {
                 if (ActivityContext.TryParse(traceParent, traceState, isRemote: true, out ActivityContext parentContext))
                 {
-                    // traceParent is a W3CId
+                    // traceParent 是 W3CId 的 W3CId
                     activity = source.CreateActivity(context.Request.GetActivityName(), ActivityKind.Server, parentContext);
                 }
                 else
                 {
-                    // Most likely, traceParent uses ActivityIdFormat.Hierarchical
+                    // 最有可能的是 traceParent 使用 ActivityIdFormat.Hierarchical
                     activity = source.CreateActivity(context.Request.GetActivityName(), ActivityKind.Server, traceParent);
                 }
 

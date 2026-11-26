@@ -50,7 +50,7 @@ public sealed class PublicMessagingRegistrationTests
             Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
         }
 
-        // The inbox binds the messaging extension when the activation resolves it; the only keyed grain extension is the durable-jobs receiver.
+        // 信箱在激活解决后将信息扩展内容捆绑在一起;唯一的按键 grain 扩展内容是持久工作接收器。
         var extension = Assert.Single(services, descriptor => descriptor.ServiceType == typeof(IGrainExtension));
         Assert.Equal(typeof(Orleans.Durable.Jobs.DurableJob).Assembly, Assert.IsAssignableFrom<Type>(extension.ServiceKey).Assembly);
     }
@@ -139,7 +139,7 @@ public sealed class PublicMessagingRegistrationTests
         services.AddMessaging(options => options.MaxCapacity = 0);
         using var provider = services.BuildServiceProvider();
 
-        // The silo runs every configuration validator before it starts.
+        // silo 运行每个配置验证符,然后才启动。
         var failures = provider.GetServices<IConfigurationValidator>()
             .Select(validator => Record.Exception(validator.ValidateConfiguration))
             .OfType<OptionsValidationException>();
@@ -155,7 +155,7 @@ public sealed class PublicMessagingRegistrationTests
         services.AddScoped<IInbox, TestInbox>();
         services.AddMessaging();
 
-        // Inbox construction needs an activation, so substitute an uninitialized scoped instance to observe the binding.
+        // 信箱的构造需要启动, 以未初始化的范围实例来遵守约束。
         services.Replace(ServiceDescriptor.Scoped(static _ => (Inbox)RuntimeHelpers.GetUninitializedObject(typeof(Inbox))));
         await using var provider = services.BuildServiceProvider();
         await using var scope = provider.CreateAsyncScope();
@@ -171,7 +171,7 @@ public sealed class PublicMessagingRegistrationTests
         services.AddScoped(static _ => Substitute.For<IOutbox>());
         services.AddMessaging();
 
-        // Outbox construction needs an activation, so substitute an uninitialized scoped instance to observe the binding.
+        // 外箱构造需要激活, 以未启动的范围实例来遵守约束。
         services.Replace(ServiceDescriptor.Scoped(static _ => (Outbox)RuntimeHelpers.GetUninitializedObject(typeof(Outbox))));
         await using var provider = services.BuildServiceProvider();
         await using var scope = provider.CreateAsyncScope();

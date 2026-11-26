@@ -4,18 +4,18 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Provides convenience methods for working with transactional state.
+    /// 提供与交易状态合作的便利方法。
     /// </summary>
     public static class TransactionalStateExtensions
     {
         /// <summary>
-        /// Performs an update operation, without returning any result.
+        /// 执行更新操作,不返回任何结果。
         /// </summary>
-        /// <typeparam name="TState">The transactional state type.</typeparam>
-        /// <param name="transactionalState">Transactional state to perform update upon.</param>
-        /// <param name="updateAction">An action that updates the state.</param>
-        /// <returns>A task which represents the update operation.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="transactionalState"/> or <paramref name="updateAction"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="TState">交易状态类型。</typeparam>
+        /// <param name="transactionalState">进行更新的交易状态。</param>
+        /// <param name="updateAction">更新状态的行动。</param>
+        /// <returns>代表更新操作的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="transactionalState"/> 或 <paramref name="updateAction"/> 是 <see langword="null"/>。</exception>
         public static Task PerformUpdate<TState>(this ITransactionalState<TState> transactionalState, Action<TState> updateAction)
             where TState : class, new()
         {

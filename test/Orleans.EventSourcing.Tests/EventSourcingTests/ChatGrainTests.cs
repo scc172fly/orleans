@@ -7,7 +7,7 @@ using TestGrains;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// Tests for event-sourced chat grain functionality including post creation, editing, deletion, and truncation.
+    /// 事件源聊天的测试 grain 功能包括员额创建、编辑、删除和缩短。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

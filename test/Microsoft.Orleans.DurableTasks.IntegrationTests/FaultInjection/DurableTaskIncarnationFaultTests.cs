@@ -10,38 +10,38 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// Runs a root task ID again once its grain deleted the earlier run at the end of its result retention, well within
-/// Messaging's deduplication window, with faults injected across the later run, and checks that the later run completes
-/// with its own result while no message of the earlier run affects it.
+/// 再次运行根任务ID, 其 grain 在结果保留结尾处删除了早期运行的种子, 远在
+/// 后一运行中有缺陷的破折处 检查后一运行完成
+/// 其结果本身,而早期的讯息没有影响它。
 /// </summary>
 /// <remarks>
 /// <para>
-/// The root calls the partner, which signals the root back, waits for that signal, and races a remote gated step against
-/// a signal from the client and a long delay. Both runs send the same request and the same signal values, so only each
-/// run's incarnation, which the identities of its messages cover, keeps the later run's messages from being deduplicated
-/// against the earlier run's.
+/// 根呼唤伙伴,它发出根的信号 等待这个信号
+/// 客户端的信号和长时间延迟。 双运行都发送相同的请求和相同的信号值, 所以只有每个
+/// 运行的化身,它的信息身份 隐藏了,保持后运行的信息不被复制
+/// 和前一跑的对
 /// </para>
 /// <para>
-/// Three kinds of message from the earlier run reach the grains during the later run:
+/// 上一个运行的三种信息在后一个运行期间到达 grains :
 /// </para>
 /// <list type="bullet">
 /// <item>
-/// The earlier run's cancellation of its gated step, which lost the race, arrives once the step completed regardless and the
-/// partner deleted it, so the partner records it for an invocation which hasn't arrived yet.
+/// 早先的赛跑取消 失去比赛赛跑的门档级 之后,不管
+/// 合伙人删除了它 所以合伙人记录下来 请求尚未到场
 /// </item>
 /// <item>
-/// The resume of the earlier run's delay, which the race canceled, becomes due while the later run's delay with the same
-/// identifier and generation is pending.
+/// 比赛取消的 早赛的延迟期恢复 后赛的延误期推迟
+/// 身份识别符和生成尚未确定。
 /// </item>
 /// <item>
-/// The network delivers copies of the earlier run's invocation and completion of the gated step, and of the partner's
-/// signal, which Messaging recognizes as duplicates.
+/// 网络提供早期运行的试运行、完成门阶和伴侣的
+/// 信号,其中的通信确认为重复。
 /// </item>
 /// </list>
 /// <para>
-/// The client opens the later run's gate only once each of them was processed, so the later run's step wins its race only
-/// if none of them canceled it, completed it, or ended its delay. Its result differs from the earlier run's by the run's
-/// number, which an effect counts.
+/// 客户在每次处理后打开后跑门,所以后跑只赢得比赛
+/// 如果没有一个被他们取消,没有完成,也没有一个被他们取消,没有完成,或终止了延迟。结果与前一赛跑的不同。
+/// 数字,其中效果计数。
 /// </para>
 /// </remarks>
 public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) : IAsyncLifetime
@@ -67,10 +67,10 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
     [Fact]
     public Task LaterRunCompletesWithItsOwnResult() => RunTwiceAsync();
 
-    /// <summary>A delivery or journal fault in the later run only delays its completion.</summary>
+    /// <summary>交货或日记的过错在后期只会延误其完成。</summary>
     /// <remarks>
-    /// The partner's second invocation and the workflow's second completion are the gated step's; the workflow's first
-    /// write schedules the later run and deletes the earlier one, and the partner's first write accepts its process call.
+    /// 伙伴的第二次调试和工作流程的第二次完成是门阶梯;工作流程的第一个
+    /// 写入后一运行的时序并删除前一个运行, 伴侣的第一个写入接受其进程呼叫 。
     /// </remarks>
     [Theory]
     [InlineData(FaultPoint.DeliveryThrows, FaultRole.Partner, 1, Invoke)]
@@ -96,9 +96,9 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
         var injector = _harness.Injector;
         injector.Reset();
 
-        // The earlier run: the client's signal wins the race, and the partner holds the cancellation of the gated step,
-        // which completes once its gate opens. The network keeps copies of the step's invocation and completion, and of
-        // the partner's signal.
+        // 较早的运行:客户的信号赢得比赛, 而合伙人持有取消门阶,
+        // 网络保存该步骤的调试和完成副本,
+        // 合伙人的信号
         var heldCancellation = injector.Arm(FaultPoint.DeliveryHeldAtReceiver, partnerId, 0, Cancel);
         var cancellationDelivered = injector.Count(FaultPoint.DeliveryCompleted, partnerId, Cancel);
         InjectedFault[] copies =
@@ -122,8 +122,8 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
             _harness.Gates.Open(FaultWorkflowGrain.GetGateKey(workflowKey, 1));
             Assert.Equal("run=1;processed=20;ready=30;winner=1;outcome=1", await GetResultAsync(workflow));
 
-            // The partner deletes the step once the workflow accepted its completion, and then receives its cancellation,
-            // which it records for an invocation of the step.
+            // 一旦工作流程接受完成,该伙伴将删除该步骤,然后收到其取消通知。
+            // 记录它用来证明那一步的功过簿。
             var step = await events.WaitForCallerChildAsync(partnerId, workflowId, TaskId.CreateRoot(RootId).Child("race").Child("0"));
             await events.WaitForDeletedAsync(partnerId, step);
             heldCancellation.Release();
@@ -133,7 +133,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
 
         Assert.All(copies, copy => Assert.NotNull(copy.Duplicate));
 
-        // The earlier run's retention ends, so the next schedule of the root deletes it and runs the root again.
+        // 早期运行的保存结束, 因此下个根计划会删除它, 然后再次运行根 。
         _harness.Fixture.JobClock.Advance(Retention + TimeSpan.FromMinutes(1));
         var armed = laterRunFaults
             .Select(fault => injector.Arm(fault.Point, grains[fault.Role].GetGrainId(), fault.Occurrence, fault.Subject))
@@ -144,7 +144,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
             await ScheduleAsync(workflow, partnerKey);
             var deadline = await WaitForRaceAsync(events, workflowKey, run: 2);
 
-            // The copies of the earlier run's messages arrive while the later run's step and delay are pending.
+            // 早期运行消息的复印件已送达,而后运行步骤和延迟则有待于处理。
             foreach (var copy in copies)
             {
                 var result = await _harness.CallAsync(
@@ -153,8 +153,8 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
                 Assert.True(result is DeliveryResult.Duplicate, $"The copy of {copy} was answered {result.Value}");
             }
 
-            // The earlier run's delay was due before the later run's, which stays pending, so its resume is dispatched
-            // first. The handler applies a resume in the turn which dispatches it, so a later call observes the outcome.
+            // 较早的拖延期应在较晚的拖延期之前到期,但后期的拖延期仍未结束,因此,其恢复时间已发出
+            // 首先,处理者在发送时转而适用复发程序,因此后一电话会观察结果。
             _harness.Fixture.JobClock.Advance(FaultWorkflowGrain.RunDeadline - TimeSpan.FromMinutes(1));
             await resumes.WaitForMatchesAsync(1).WaitAsync(Timeout, CancellationToken);
             var delayStatus = (await GetTasksAsync(workflow)).GetValueOrDefault(deadline);
@@ -165,7 +165,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
 
         Assert.All(armed, fault => Assert.True(fault.HasFired, $"{fault} didn't fire."));
 
-        // The later run's delay, which the race canceled, resumes once due, so the grains then hold no messaging work.
+        // 后期的延误,比赛取消了, 恢复了到期时间, 所以 grains 就没有发短信的工作。
         _harness.Fixture.JobClock.Advance(FaultWorkflowGrain.RunDeadline);
         await _harness.SettleAsync([workflowId, partnerId], CancellationToken);
         var violations = await FaultScenario.CheckGrainAsync(_harness, "workflow", workflow, new() { ["run"] = 2 });
@@ -178,7 +178,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
             token => workflow.RunAgainAsync(partnerKey, RootId).WithId(RootId).ScheduleAsync(token),
             CancellationToken);
 
-    /// <summary>Waits until the run's gated step runs and its race's delay is recorded, and returns the delay.</summary>
+    /// <summary>等待跑步的门前步跑 比赛的延迟记录下来 然后返回延误</summary>
     private async Task<TaskId> WaitForRaceAsync(DiagnosticEventCollector events, Guid workflowKey, int run)
     {
         var workflowId = _harness.Client.GetGrain<IFaultWorkflowGrain>(workflowKey).GetGrainId();
@@ -219,14 +219,14 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
         }, CancellationToken);
 }
 
-/// <summary>Runs root re-run fault coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行根重运行错误覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskIncarnationFaultTests() : DurableTaskIncarnationFaultTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs root re-run fault coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行根重运行错误覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

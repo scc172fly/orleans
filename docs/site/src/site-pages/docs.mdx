@@ -1,6 +1,6 @@
 ---
-title: Orleans documentation
-description: Learn the Orleans programming model and build, operate, and deploy production distributed applications.
+title: "Orleans 文件编制"
+description: "学习 Orleans 编程模式,建立、操作和部署已分发的制作应用程序。"
 editUrl: false
 prev: false
 next: false
@@ -8,52 +8,54 @@ next: false
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Orleans makes distributed application development approachable by extending familiar .NET concepts across a cluster. Start with the programming model, follow a quickstart, or jump directly to the area you need.
+Orleans 使分布式应用程序开发能够通过将熟悉的 .NET 概念推广到一个组群中来进行。从编程模式开始,快速启动或直接跳转到您需要的领域。
 
 <CardGrid>
   <LinkCard
     icon="rocket"
     href="/orleans/docs/quickstarts/build-your-first-orleans-app/"
-    title="Build your first Orleans app"
-    description="Create a local silo and client, define a grain, and make your first call."
+    title="构建您的第一个 Orleans 应用程序"
+    description="创建本地 silo 和客户端,定义一个 grain,并第一次调用。"
   />
   <LinkCard
     icon="puzzle"
     href="/orleans/docs/grains/"
-    title="Understand grains"
-    description="Learn grain identity, references, lifecycle, placement, persistence, and concurrency."
+    title="理解 grains"
+    description="学习 grain 身份、参考文献、生命周期、安置、持久性和通货性。"
   />
   <LinkCard
     icon="setting"
     href="/orleans/docs/host/configuration-guide/"
-    title="Configure and host"
-    description="Configure clients and silos using the .NET generic host and dependency injection."
+    title="配置和主机"
+    description="配置客户和 silos 使用 .NET 通用宿主注射和依赖性注射。"
   />
   <LinkCard
     icon="rocket"
     href="/orleans/docs/deployment/"
-    title="Deploy Orleans"
-    description="Run Orleans on Kubernetes, Azure services, virtual machines, or your own infrastructure."
+    title="部署 Orleans"
+    description="运行运行 Orleans 日期 时 Kubernetes, Azure 服务、虚拟机器或你自己的基础设施。"
   />
   <LinkCard
     icon="random"
     href="/orleans/docs/streaming/"
-    title="Process streams"
-    description="Connect producers and consumers using Orleans' virtual stream programming model."
+    title="流程流"
+    description="使用 Orleans虚拟流编程模式连接生产者和消费者。"
   />
   <LinkCard
     icon="open-book"
     href="https://dotnet.github.io/orleans/docs/api/csharp/"
-    title="Browse the C# API"
-    description="Explore packages, types, and members generated directly from Orleans assemblies."
+    title="浏览 C# API"
+    description="探讨由 Orleans 大会直接产生的一揽子、类型和成员。"
   />
 </CardGrid>
 
-## Popular topics
+<a id="popular-topics"></a>
 
-- [Why Orleans?](/orleans/docs/benefits/)
-- [Grain persistence](/orleans/docs/grains/grain-persistence/)
-- [Timers and reminders](/orleans/docs/grains/timers-and-reminders/)
-- [Observability](/orleans/docs/host/monitoring/)
-- [Testing Orleans applications](/orleans/docs/implementation/testing/)
-- [Migration guide](/orleans/docs/migration-guide/)
+## 流行主题
+
+- [为什么 Orleans?](/orleans/docs/benefits/)
+- [Grain 持久性](/orleans/docs/grains/grain-persistence/)
+- [计时器和提醒通知](/orleans/docs/grains/timers-and-reminders/)
+- [可观察性](/orleans/docs/host/monitoring/)
+- [测试 Orleans 应用程序](/orleans/docs/implementation/testing/)
+- [移徙指南](/orleans/docs/migration-guide/)

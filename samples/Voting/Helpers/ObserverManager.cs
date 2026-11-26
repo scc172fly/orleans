@@ -22,7 +22,7 @@ public class ObserverManager<TObserver> where TObserver : notnull
             }
             catch (Exception)
             {
-                // TODO: This should probably log.
+                // 这也许应该记录下来
             }
         }
     }
@@ -35,13 +35,13 @@ public class ObserverManager<TObserver> where TObserver : notnull
         {
             if (observer.Value + _expiration < now)
             {
-                // Expired observers will be removed.
+                // 将取消过期观察员。
                 defunct ??= new List<TObserver>();
                 defunct.Add(observer.Key);
             }
         }
 
-        // Remove defunct observers.
+        // 删除已关闭的观察者 。
         if (defunct is { Count: > 0 })
         {
             foreach (var observer in defunct)

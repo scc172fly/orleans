@@ -132,11 +132,11 @@ namespace DefaultCluster.Tests
                                 throw new InvalidOperationException($"Expected an Active membership version greater than one, encountered {update.Version}.");
                             }
 
-                            // Keep the directory on a stale Joining view until it explicitly refreshes to the Active view.
+                            // 将目录保留在淡定的合并视图中,直到它明确刷新到活动视图。
                             var joiningMembers = update.Members.ToImmutableDictionary(
                                 static member => member.Key,
                                 static member => new ClusterMember(member.Key, SiloStatus.Joining, member.Value.Name));
-                            // Publish the delayed-view metadata before Refresh can release it.
+                            // 更新前公布延迟视图元数据,然后才能发布。
                             Volatile.Write(ref this.staleDirectoryVersion, staleVersion);
                             Volatile.Write(ref this.activeDirectoryVersion, update.Version.Value);
                             yield return new ClusterMembershipSnapshot(joiningMembers, new(staleVersion));
@@ -173,7 +173,7 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Ensures that startup tasks can call grains.
+        /// 确保启动任务可以调用 grains。
         /// </summary>
         [Fact]
         public async Task StartupTaskCanCallGrains()

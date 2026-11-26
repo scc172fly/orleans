@@ -13,12 +13,12 @@ using Orleans.Storage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> extensions.
+    /// <see cref="IServiceCollection"/> 扩展。
     /// </summary>
     public static class RedisGrainStorageServiceCollectionExtensions
     {
         /// <summary>
-        /// Configures Redis as the default grain storage provider.
+        /// 配置 Redis 作为默认的 grain 存储提供者 。
         /// </summary>
         public static IServiceCollection AddRedisGrainStorageAsDefault(this IServiceCollection services, Action<RedisStorageOptions> configureOptions)
         {
@@ -26,7 +26,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures Redis as a grain storage provider.
+        /// 配置 Redis 作为 grain 存储提供者的配置。
         /// </summary>
         public static IServiceCollection AddRedisGrainStorage(this IServiceCollection services, string name, Action<RedisStorageOptions> configureOptions)
         {
@@ -34,7 +34,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures Redis as the default grain storage provider.
+        /// 配置 Redis 作为默认的 grain 存储提供者 。
         /// </summary>
         public static IServiceCollection AddRedisGrainStorageAsDefault(this IServiceCollection services, Action<OptionsBuilder<RedisStorageOptions>>? configureOptions = null)
         {
@@ -42,7 +42,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures Redis as a grain storage provider.
+        /// 配置 Redis 作为 grain 存储提供者的配置。
         /// </summary>
         public static IServiceCollection AddRedisGrainStorage(this IServiceCollection services, string name,
             Action<OptionsBuilder<RedisStorageOptions>>? configureOptions = null)

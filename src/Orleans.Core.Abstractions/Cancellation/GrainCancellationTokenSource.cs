@@ -5,18 +5,18 @@ using System.Threading;
 namespace Orleans
 {
     /// <summary>
-    /// An analogue to <see cref="CancellationTokenSource"/> which can be sent between grains.
+    /// 类比于 <see cref="CancellationTokenSource"/> ,可在 grains之间发送。
     /// </summary>
     [Obsolete("Use CancellationTokenSource instead.")]
     public sealed class GrainCancellationTokenSource : IDisposable
     {
         /// <summary>
-        /// The underlying grain cancellation token.
+        /// 后台 grain 取消符符号 。
         /// </summary>
         private readonly GrainCancellationToken _grainCancellationToken;
 
         /// <summary>
-        /// Initializes the <see cref="T:Orleans.GrainCancellationTokenSource"/>.
+        /// 初始化 <see cref="T:Orleans.GrainCancellationTokenSource"/>。
         /// </summary>
         public GrainCancellationTokenSource()
         {
@@ -24,27 +24,27 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the <see cref="GrainCancellationTokenSource">CancellationToken</see>
-        /// associated with this <see cref="GrainCancellationTokenSource"/>.
+        /// 获取 <see cref="GrainCancellationTokenSource">CancellationToken</see>
+        /// 与此 <see cref="GrainCancellationTokenSource"/>相关联。
         /// </summary>
-        /// <value>The <see cref="GrainCancellationToken">CancellationToken</see>
-        /// associated with this <see cref="GrainCancellationToken"/>.</value>
+        /// <value>下 <see cref="GrainCancellationToken">CancellationToken</see>
+        /// 与此 <see cref="GrainCancellationToken"/>相关联。</value>
         public GrainCancellationToken Token
         {
             get { return _grainCancellationToken; }
         }
 
         /// <summary>
-        /// Gets a value indicating whether cancellation has been requested.
+        /// 获得一个值,显示是否请求取消。
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This property indicates whether cancellation has been requested for this token source, such as due to a call to its <see cref="Cancel()" /> method.
+        /// 表示是否请求取消该象征性源,例如由于要求使用其 <see cref="Cancel()" /> 方法而请求取消。
         /// </para>
         /// <para>
-        /// If this property returns true, it only guarantees that cancellation has been requested. It does not guarantee that every handler registered with the corresponding token has finished executing, nor that
-        /// cancellation requests have finished propagating to all registered handlers and remote targets. Additional synchronization may be required, particularly in situations where related objects are being canceled
-        /// concurrently.
+        /// 如果该属性返回为真, 它只能保证请求取消。 它不能保证每个以相应牌子注册的操作员都已完成执行, 也不能保证
+        /// 取消取消请求已完成向所有已登记处理者和远程目标的传播。 可能需要进一步同步化, 特别是在相关对象被撤销的情况下
+        /// 同时。
         /// </para>
         /// </remarks>
         public bool IsCancellationRequested
@@ -53,32 +53,32 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Communicates a request for cancellation.
+        /// 传送取消请求书。
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The associated <see cref="GrainCancellationToken" /> will be notified of the cancellation and will transition to a state where
-        /// <see cref="GrainCancellationToken.CancellationToken"><see cref="IsCancellationRequested"/></see> returns true. Any callbacks or cancelable operations registered with the
-        /// <see cref="CancellationToken" /> will be executed.
+        /// 将通知相关的 <see cref="GrainCancellationToken" /> 取消注销,并过渡至一个以下国家:
+        /// <see cref="GrainCancellationToken.CancellationToken"><see cref="IsCancellationRequested"/>[</see> 返回为真实。在
+        /// <see cref="CancellationToken" /> 将执行。
         /// </para>
         /// <para>
-        /// Cancelable operations and callbacks registered with the token should not <see langword="throw"/> exceptions. However, this overload of <see cref="Cancel"/> will aggregate any exceptions thrown into a
-        /// <see cref="AggregateException" /> , such that one callback throwing an exception will not prevent other registered callbacks from being executed.
+        /// 以象征性方式登记的可取消的操作和回回调不应有 <see langword="throw"/> 例外。然而,这种超载 <see cref="Cancel"/> 将汇总任何被投入
+        /// <see cref="AggregateException" /> ,这样一次回击扔出例外不会阻止其他已登记的回击被执行。
         /// </para>
-        /// <para>The <see cref="System.Threading.ExecutionContext" /> that was captured when each callback was registered will be reestablished when the callback is invoked.</para>
+        /// <para>每一次回调登记时所捕捉的 <see cref="System.Threading.ExecutionContext" /> ,在回调被援引时将重新恢复。</para>
         /// </remarks>
-        /// <exception cref="AggregateException">An aggregate exception containing all the exceptions thrown by the registered callbacks on the associated <see cref="GrainCancellationToken" /> .</exception>
-        /// <exception cref="ObjectDisposedException">This <see cref="GrainCancellationTokenSource" /> has been disposed.</exception>
+        /// <exception cref="AggregateException">包含相关人员被登记的回调所造成所有例外的合并例外 <see cref="GrainCancellationToken" /> .</exception>
+        /// <exception cref="ObjectDisposedException">今 <see cref="GrainCancellationTokenSource" /> 已经处理。</exception>
         public Task Cancel()
         {
             return _grainCancellationToken.Cancel();
         }
 
         /// <summary>
-        /// Releases the resources used by this <see cref="T:Orleans.Async.GrainCancellationTokenSource" />.
+        /// 释放本 <see cref="T:Orleans.Async.GrainCancellationTokenSource" />所使用的资源。
         /// </summary>
         /// <remarks>
-        /// This method is not thread-safe for any other concurrent calls.
+        /// 对于其他同时通话的电话,此方法不使用线索安全 。
         /// </remarks>
         public void Dispose()
         {

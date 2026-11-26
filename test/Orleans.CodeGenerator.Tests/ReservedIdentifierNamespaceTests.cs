@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Regression tests for https://github.com/dotnet/orleans/issues/9290: the code generator must escape
-/// assembly names which are C# reserved identifiers when using them to construct the generated metadata namespace.
+/// https://github.com/dotnet/orleans/issues/9290的回归测试:代码生成器必须逃跑
+/// 组装名称是 C# 保留识别符号, 当它们用于构建生成的元数据命名空间时 。
 /// </summary>
 public class ReservedIdentifierNamespaceTests
 {
@@ -41,8 +41,8 @@ public class ReservedIdentifierNamespaceTests
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics, cancellationToken);
         AssertNoErrors(generatorDiagnostics);
 
-        // The generated metadata source must compile without syntax errors, i.e. the namespace segment
-        // derived from the reserved-keyword assembly name must be escaped (e.g. "OrleansCodeGen.@default").
+        // 生成的元数据源必须编译, 且不出现语法错误 i.e. 命名空间段
+        // 源自保留关键词组装名称的源代码必须逃跑(e.g. "OrleansCodeGen.@default")。
         AssertNoErrors(outputCompilation.GetDiagnostics(cancellationToken));
 
         var metadataSource = driver.GetRunResult().Results

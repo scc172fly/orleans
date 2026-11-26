@@ -29,7 +29,7 @@ using Orleans.Transactions.DynamoDB;
 namespace Orleans.Transactions.DynamoDB.TransactionalState;
 
 /// <summary>
-/// Creates DynamoDB-backed transactional state storage instances.
+/// 创建 DynamoDB- 支持的交易状态存储实例。
 /// </summary>
 public partial class DynamoDBTransactionalStateStorageFactory : ITransactionalStateStorageFactory, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -41,13 +41,13 @@ public partial class DynamoDBTransactionalStateStorageFactory : ITransactionalSt
     private DynamoDBStorage storage = null!;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DynamoDBTransactionalStateStorageFactory"/> class.
+    /// 初始化 <see cref="DynamoDBTransactionalStateStorageFactory"/> 类的新实例。
     /// </summary>
-    /// <param name="name">The provider name.</param>
-    /// <param name="options">The provider options.</param>
-    /// <param name="clusterOptions">The cluster options.</param>
-    /// <param name="services">The service provider.</param>
-    /// <param name="loggerFactory">The logger factory.</param>
+    /// <param name="name">提供者名称。</param>
+    /// <param name="options">供应商选项。</param>
+    /// <param name="clusterOptions">组合组合选项。</param>
+    /// <param name="services">服务供应商。</param>
+    /// <param name="loggerFactory">伐木厂</param>
     public DynamoDBTransactionalStateStorageFactory(
         string name,
         DynamoDBTransactionalStorageOptions options,
@@ -62,11 +62,11 @@ public partial class DynamoDBTransactionalStateStorageFactory : ITransactionalSt
     }
 
     /// <summary>
-    /// Creates a transactional state storage factory.
+    /// 建立一个交易性的国家储藏厂。
     /// </summary>
-    /// <param name="services">The service provider.</param>
-    /// <param name="name">The provider name.</param>
-    /// <returns>The transactional state storage factory.</returns>
+    /// <param name="services">服务供应商。</param>
+    /// <param name="name">提供者名称。</param>
+    /// <returns>交易性国家储藏厂</returns>
     public static ITransactionalStateStorageFactory Create(IServiceProvider services, string name)
     {
         var optionsMonitor = services.GetRequiredService<IOptionsMonitor<DynamoDBTransactionalStorageOptions>>();

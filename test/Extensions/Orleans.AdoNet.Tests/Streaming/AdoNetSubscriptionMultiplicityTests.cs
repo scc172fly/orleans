@@ -10,7 +10,7 @@ using static System.String;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// Tests for SQL Server ADO.NET subscription multiplicity.
+/// SQL 服务器 ADO.NET 多重订阅测试。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -20,7 +20,7 @@ public class SqlServerAdoNetSubscriptionMultiplicityTests() : AdoNetSubscription
 }
 
 /// <summary>
-/// Tests for MySQL ADO.NET subscription multiplicity.
+/// MySQL ADO.NET 多种订阅测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -34,7 +34,7 @@ public class MySqlAdoNetSubscriptionMultiplicityTests : AdoNetSubscriptionMultip
 }
 
 /// <summary>
-/// Tests for PostgreSQL ADO.NET subscription multiplicity.
+/// PostgreSQL ADO.NET 多种订阅测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -44,7 +44,7 @@ public class PostgreSqlAdoNetSubscriptionMultiplicityTests() : AdoNetSubscriptio
 }
 
 /// <summary>
-/// Base class for ADO.NET subscription multiplicity tests.
+/// ADO.NET 多重订阅测试的基础等级。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestSuite("Functional")]
@@ -68,7 +68,7 @@ public abstract class AdoNetSubscriptionMultiplicityTests : TestClusterPerTest
 
     public override async ValueTask InitializeAsync()
     {
-        // set up the adonet environment before the base initializes
+        // 在基初始化前设置 adonet 环境
         _testing = await RelationalStorageForTesting.SetupInstance(
             _invariant,
             TestDatabaseName,
@@ -76,14 +76,14 @@ public abstract class AdoNetSubscriptionMultiplicityTests : TestClusterPerTest
 
         Assert.SkipWhen(IsNullOrEmpty(_testing.CurrentConnectionString), $"Database '{TestDatabaseName}' not initialized");
 
-        // base initialization must only happen after the above
+        // 初始化必须在上述时间之后才开始
         await base.InitializeAsync();
         if (!PreconditionsMet)
         {
             return;
         }
 
-        // the runner must only be created after base initialization
+        // 仅必须在基初始化后创建运行者
         _runner = new SubscriptionMultiplicityTestRunner(AdoNetStreamProviderName, HostedCluster);
     }
 

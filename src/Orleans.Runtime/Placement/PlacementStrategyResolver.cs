@@ -13,7 +13,7 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// Responsible for resolving an <see cref="PlacementStrategy"/> for a <see cref="GrainType"/>.
+    /// 负责解决 <see cref="PlacementStrategy"/> a 的a <see cref="GrainType"/>.
     /// </summary>
     public sealed class PlacementStrategyResolver
     {
@@ -25,7 +25,7 @@ namespace Orleans.Runtime.Placement
         private readonly IServiceProvider _services;
 
         /// <summary>
-        /// Create a <see cref="PlacementStrategyResolver"/> instance.
+        /// 创建 <see cref="PlacementStrategyResolver"/> 实例。
         /// </summary>
         public PlacementStrategyResolver(
             IServiceProvider services,
@@ -40,7 +40,7 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// Gets the placement strategy associated with the provided grain type.
+        /// 获得与提供 grain 类型相关的安置策略。
         /// </summary>
         public PlacementStrategy GetPlacementStrategy(GrainType grainType) => _resolvedStrategies.GetOrAdd(grainType, _getStrategyInternal);
 

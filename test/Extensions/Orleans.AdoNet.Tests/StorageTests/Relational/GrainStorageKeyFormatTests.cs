@@ -7,15 +7,15 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Storage key identity scenarios shared by the relational back-ends. The storage under test should use a constant
-    /// hasher so that rows are distinguished by their key columns rather than by hash values.
+    /// 存储关键身份假设情景,由关系后端共享。
+    /// 以便用关键列而不是散列值来区分行。
     /// </summary>
     internal static class GrainStorageKeyFormatTests
     {
         private const string StateName = "state";
 
         /// <summary>
-        /// Grains of different types which share a key and state name have separate state.
+        /// 具有同一密钥和国名的不同类型Grains 有单独状态。
         /// </summary>
         public static async Task GrainTypesSharingKeyAreIsolated(IGrainStorage storage)
         {
@@ -39,8 +39,8 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Grain types and state names which concatenate to the same text, differ only in letter case, or are not
-        /// valid UTF-8 have separate state.
+        /// Grain 类型和国名与同一文本相联,只在字母情况下不同,或没有
+        /// 有效的 UTF-8 有单独的状态。
         /// </summary>
         public static async Task GrainTypeAndStateNameBoundariesAreIsolated(IGrainStorage storage)
         {
@@ -64,7 +64,7 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// States with different names on one grain have separate state.
+        /// 在一个 grain 上有不同名称的国家有单独国名。
         /// </summary>
         public static async Task StateNamesOfOneGrainAreIsolated(IGrainStorage storage)
         {
@@ -74,7 +74,7 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Distinct grain keys of one grain type which parse to the same integer or GUID key have separate state.
+        /// 独特 grain 键的一键 grain 类型,如果向相同整数或图形用户界面D 键分析,则有独立的状态。
         /// </summary>
         public static async Task KeysParsingToSameValueAreIsolated(IGrainStorage storage)
         {
@@ -82,7 +82,7 @@ namespace UnitTests.StorageTests.Relational
             var guidA = Guid.NewGuid().ToString("N");
             var guidB = Guid.NewGuid().ToString("N");
 
-            // Each key appears once: clearing keeps the row, so a key cannot be written again as new state.
+            // 每个键都显示一次: 清除会保留行, 所以无法再次写入一个密钥作为新状态 。
             (string First, string Second)[] keyPairs =
             [
                 ("20235", "020235"),
@@ -94,7 +94,7 @@ namespace UnitTests.StorageTests.Relational
                 ("trailing", "trailing "),
                 ("é", "e"),
 
-                // Distinct keys with equal default-hasher hashes.
+                // 不同的键, 等同默认的杂交。
                 ("abcdeFghiJkLMNoPqrstuvwx", "AbcdefgHiJKlmnOpQRstuvwx"),
             ];
 
@@ -108,14 +108,14 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Keys of different kinds on one grain type have separate state even when their integer, GUID, and extension
-        /// parts coincide.
+        /// 一种 grain 类型上不同类型键的不同键有独立的状态,即使它们的整数、图形界面D和扩展
+        /// 部件重合。
         /// </summary>
         public static async Task KeysOfDifferentKindsAreIsolated(IGrainStorage storage)
         {
             var grainType = GrainType.Create($"key-format-kinds-{Guid.NewGuid():N}");
 
-            // A GUID whose first eight bytes are zero has the same N0/N1 decomposition as an integer key.
+            // 头八个字节为零的图形用户界面D的分解与整数键相同。
             var guidBytes = new byte[16];
             BitConverter.GetBytes(5L).CopyTo(guidBytes, 8);
             var guidMatchingInteger = new Guid(guidBytes);
@@ -126,7 +126,7 @@ namespace UnitTests.StorageTests.Relational
                 (IdSpan.Create("guid-extension"), GrainIdKeyExtensions.CreateGuidKey(Guid.Empty, "guid-extension")),
                 (GrainIdKeyExtensions.CreateIntegerKey(5), GrainIdKeyExtensions.CreateGuidKey(guidMatchingInteger)),
 
-                // Invalid UTF-8 bytes which decode to the same replacement text.
+                // 无效的 UTF-8 字节, 用来解码到相同的替换文本 。
                 (new IdSpan([0x61, 0xFF]), new IdSpan([0x61, 0xFE])),
             ];
 
@@ -140,8 +140,8 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Two grains of different types which share a key also share a row in the legacy key format, so the second
-        /// first-time write conflicts with the first.
+        /// 不同类型两种 grains ,其中共用一个键的,在遗留关键键格式中也共享一行,因此第二个
+        /// 第一次写作与第一个冲突 。
         /// </summary>
         public static async Task LegacyFormatSharesRowAcrossGrainTypes(IGrainStorage storage)
         {

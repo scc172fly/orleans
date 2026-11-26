@@ -6,32 +6,32 @@ using Orleans.Runtime;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>Reads callback registrations from requests which start operations, and starts their relays.</summary>
+/// <summary>读取启动操作和启动继电器的请求的回溯登记。</summary>
 internal sealed class DurableCallbackRegistrar(IGrainFactory grainFactory, IDataProtectionProvider dataProtection, IOptions<DurableHttpOptions> options)
 {
     private readonly IDataProtector _headers = dataProtection.CreateProtector(DurableCallback.HeaderProtectionPurpose);
 
-    /// <summary>The names, and name prefixes, of headers which deliveries set themselves or which address the connection.</summary>
+    /// <summary>交付文件本身设置或连接信头的名称和名称前缀。</summary>
     private static readonly string[] ReservedHeaders =
         ["host", "connection", "keep-alive", "te", "trailer", "transfer-encoding", "upgrade", "expect", "operation-location"];
 
     private static readonly string[] ReservedHeaderPrefixes = ["proxy-", "content-", "webhook-", "nexus-operation-"];
 
     /// <summary>
-    /// Reads the callback which the request registers with <paramref name="url"/> and the headers which start with
-    /// <paramref name="headerPrefix"/>, and returns <see langword="false"/> with a description when the application doesn't
-    /// accept it.
+    /// 读取请求登记册所使用的回调 <paramref name="url"/> 和页眉,以
+    /// <paramref name="headerPrefix"/>,当应用程序不时返回 <see langword="false"/> 并附加描述
+    /// 接受它。
     /// </summary>
     /// <remarks>
-    /// A delivery carries the registered headers as request headers, so a header which addresses the connection, such as
-    /// <c>Host</c>, which would send the delivery to another server than the URL which the application accepted, or which
-    /// the delivery sets itself, such as <c>webhook-signature</c>, isn't accepted.
+    /// 交付货物携带注册信头作为请求信头,因此,一个标有连接的页头,例如
+    /// <c>Host</c>,它将发送到另一个服务器发送发送文件,而不是应用程序所接受的或
+    /// 交付装置本身,如 <c>webhook-signature</c>等,不接受。
     /// </remarks>
-    /// <param name="context">The request.</param>
-    /// <param name="url">The callback URL, or <see langword="null"/> when the request registers none.</param>
-    /// <param name="headerPrefix">The prefix of the headers which each delivery carries, without the prefix.</param>
-    /// <param name="registration">The registration, or <see langword="null"/> when the request registers none.</param>
-    /// <param name="error">A description of a callback which the application doesn't accept.</param>
+    /// <param name="context">请求。</param>
+    /// <param name="url">回调 URL,或 <see langword="null"/> 当请求没有登记时。</param>
+    /// <param name="headerPrefix">每一交付货物携带的页眉的前缀,没有前缀。</param>
+    /// <param name="registration">登记,或 <see langword="null"/> 当请求没有登记时。</param>
+    /// <param name="error">应用程序不接受的回调描述。</param>
     public bool TryRead(
         HttpContext context,
         string? url,
@@ -80,9 +80,9 @@ internal sealed class DurableCallbackRegistrar(IGrainFactory grainFactory, IData
     }
 
     /// <summary>
-    /// Starts the relay which delivers the outcome of the operation which <paramref name="host"/> hosts to the registered
-    /// callback. A repeated registration of the receiver, such as a retried start's, reaches the same relay, which keeps
-    /// the headers of the first registration.
+    /// 启动中继,向注册的 <paramref name="host"/> 主机提供操作结果
+    /// 重复注册接收器,例如重试启动程序, 到达相同的中继, 保持
+    /// 第一次注册的页眉。
     /// </summary>
     public async ValueTask RegisterAsync(
         DurableCallbackRegistration registration,
@@ -107,13 +107,13 @@ internal sealed class DurableCallbackRegistrar(IGrainFactory grainFactory, IData
         }
         catch (DurableTaskConflictException)
         {
-            // An earlier registration of the receiver started the relay. Protected header values differ between
-            // registrations, so the relay keeps the first registration's.
+            // 接收器的登记较早时开始中继。
+            // 登记,所以继电器保留了第一个登记
         }
     }
 }
 
-/// <summary>A callback which a request registers.</summary>
-/// <param name="Url">The URL which receives the callback.</param>
-/// <param name="Headers">The headers which each delivery carries, whose values are protected.</param>
+/// <summary>请求登记册的回调。</summary>
+/// <param name="Url">收到回调的 URL。</param>
+/// <param name="Headers">每件交货的页头都受到保护,其价值得到保护。</param>
 internal sealed record DurableCallbackRegistration(Uri Url, IReadOnlyDictionary<string, string> Headers);

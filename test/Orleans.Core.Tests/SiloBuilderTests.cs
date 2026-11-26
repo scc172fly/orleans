@@ -17,8 +17,8 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// A no-op implementation of IMembershipTable used for testing silo configuration
-    /// without requiring actual membership table infrastructure.
+    /// 执行不执行 IMembershipTable 用于测试 silo 配置
+    /// 不需要实际成员结构。
     /// </summary>
     public class NoOpMembershipTable : IMembershipTable
     {
@@ -96,9 +96,9 @@ namespace NonSilo.Tests
     }
 
     /// <summary>
-    /// Tests for the Orleans SiloBuilder, which is responsible for configuring and building Orleans silo instances.
-    /// These tests verify configuration validation, service registration, and proper initialization of silo components
-    /// without requiring a full Orleans cluster. Silos are the primary hosting units for grains in Orleans.
+    /// 测试 Orleans SiloBuilder负责配置和建设 Orleans silo 实例。
+    /// 这些测试核查了 silo 组成部分的配置验证、服务登记和适当启动
+    /// 无需全额 Orleans 组。 Silos 用于 grains 内 Orleans.
     /// </summary>
     [TestCategory("BVT")]
     [TestCategory("Hosting")]
@@ -211,8 +211,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests basic silo builder configuration, verifying that a silo can be successfully built
-        /// with localhost clustering and required configuration options.
+        /// 测试基本 silo 构建器配置,核查能够成功建造 silo
+        /// 与本地主机群集和所需配置选项一起进行。
         /// </summary>
         [Fact]
         public void SiloBuilderTest()
@@ -236,7 +236,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Grain's CollectionAgeLimit must be > 0 minutes.
+        /// Grain的 CollectionAgeLimit 必须 > 0分钟。
         /// </summary>
         [Fact]
         public async Task SiloBuilder_GrainCollectionOptionsForZeroSecondsAgeLimitTest()
@@ -257,7 +257,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// ClusterMembershipOptions.NumProbedSilos must be greater than ClusterMembershipOptions.NumVotesForDeathDeclaration.
+        /// ClusterMembershipOptions.NumProbedSilos 必须大于 ClusterMembershipOptions.NumVotesForDeathDeclaration。
         /// </summary>
         [Fact]
         public async Task SiloBuilder_ClusterMembershipOptionsValidators()
@@ -443,7 +443,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Ensures <see cref="LoadSheddingValidator"/> fails when LoadSheddingLimit greater than 100.
+        /// 确保 <see cref="LoadSheddingValidator"/> 在 LoadSheddingLimit 大于100时失败。
         /// </summary>
         [Fact]
         public async Task SiloBuilder_LoadSheddingValidatorAbove100ShouldFail()
@@ -467,8 +467,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that a silo cannot start without any grain classes or interfaces registered.
-        /// This ensures silos have actual work to perform before they can be started.
+        /// 测试一个 silo 没有注册的 grain 类或接口就无法启动。
+        /// 这确保了 silos 在启动之前有实际工作需要完成。
         /// </summary>
         [Fact]
         public async Task SiloBuilderThrowsDuringStartupIfNoGrainsAdded()
@@ -476,7 +476,7 @@ namespace NonSilo.Tests
             using var host = new HostBuilder()
                 .UseOrleans((ctx, siloBuilder) =>
                 {
-                    // Add only an assembly with generated serializers but no grain interfaces or grain classes
+                    // 只添加带有生成序列器的组件, 但没有 grain 接口或 grain 类
                     siloBuilder.UseLocalhostClustering()
                     .Configure<GrainTypeOptions>(options =>
                     {
@@ -490,8 +490,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that attempting to configure both a client and a silo in the same host throws an exception.
-        /// Orleans requires separate hosts for silos and clients.
+        /// 试图在同一主机中配置客户端和 silo 的测试会排除一个例外。
+        /// Orleans 要求 silos 和客户分别提供主机。
         /// </summary>
         [Fact]
         public void SiloBuilderThrowsDuringStartupIfClientBuildersAdded()
@@ -511,8 +511,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that attempting to configure both a client and a silo using the Host.CreateApplicationBuilder API throws an exception.
-        /// This verifies that the same restriction applies to the modern hosting API.
+        /// 试图配置客户端和 silo 使用 Host.CreateApplicationBuilder API 抛出一个例外。
+        /// 由此可以核实同一限制是否适用于现代主机 API。
         /// </summary>
         [Fact]
         public void SiloBuilderWithHotApplicationBuilderThrowsDuringStartupIfClientBuildersAdded()

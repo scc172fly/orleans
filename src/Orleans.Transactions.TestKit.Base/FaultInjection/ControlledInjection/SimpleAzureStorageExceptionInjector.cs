@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Injects controlled Azure storage or generic exceptions into transactional state storage operations.
+    /// 国家交易储存业务中受控 Azure 储存或一般例外。
     /// </summary>
     public partial class SimpleAzureStorageExceptionInjector : IControlledTransactionFaultInjector, ITransactionScopedFaultInjector
     {
@@ -27,9 +27,9 @@ namespace Orleans.Transactions.TestKit
         private int genericInjectionAfterStoreCounter = 0;
         private readonly ILogger logger;
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAzureStorageExceptionInjector"/> class.
+        /// 初始化 <see cref="SimpleAzureStorageExceptionInjector"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
+        /// <param name="logger">日志器。</param>
         public SimpleAzureStorageExceptionInjector(ILogger<SimpleAzureStorageExceptionInjector> logger)
         {
             this.logger = logger;
@@ -128,63 +128,63 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// Represents an Azure storage exception injected for transaction testing.
+    /// 表示为交易测试注入的 Azure 储存例外。
     /// </summary>
     [GenerateSerializer]
     public class SimpleAzureStorageException : RequestFailedException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAzureStorageException"/> class.
+        /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The error message.</param>
+        /// <param name="message">错误消息。</param>
         public SimpleAzureStorageException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAzureStorageException"/> class.
+        /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The error message.</param>
-        /// <param name="innerException">The exception which caused this exception.</param>
+        /// <param name="message">错误消息。</param>
+        /// <param name="innerException">造成这一例外的例外。</param>
         public SimpleAzureStorageException(string message, Exception innerException) : base(message, innerException)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAzureStorageException"/> class.
+        /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="status">The HTTP status code of the response.</param>
-        /// <param name="message">The error message.</param>
+        /// <param name="status">答复的 HTTP 状态代码。</param>
+        /// <param name="message">错误消息。</param>
         public SimpleAzureStorageException(int status, string message) : base(status, message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAzureStorageException"/> class.
+        /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="status">The HTTP status code of the response.</param>
-        /// <param name="message">The error message.</param>
-        /// <param name="innerException">The exception which caused this exception.</param>
+        /// <param name="status">答复的 HTTP 状态代码。</param>
+        /// <param name="message">错误消息。</param>
+        /// <param name="innerException">造成这一例外的例外。</param>
         public SimpleAzureStorageException(int status, string message, Exception innerException) : base(status, message, innerException)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAzureStorageException"/> class.
+        /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="status">The HTTP status code of the response.</param>
-        /// <param name="message">The error message.</param>
-        /// <param name="errorCode">The service-specific error code.</param>
-        /// <param name="innerException">The exception which caused this exception.</param>
+        /// <param name="status">答复的 HTTP 状态代码。</param>
+        /// <param name="message">错误消息。</param>
+        /// <param name="errorCode">特定服务错误代码。</param>
+        /// <param name="innerException">造成这一例外的例外。</param>
         public SimpleAzureStorageException(int status, string message, string errorCode, Exception innerException) : base(status, message, errorCode, innerException)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAzureStorageException"/> class from serialized data.
+        /// 从序列数据初始化了 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialized exception data.</param>
-        /// <param name="context">Context about the source or destination of the serialized data.</param>
+        /// <param name="info">序列的例外数据。</param>
+        /// <param name="context">序列数据的来源或目的地的背景。</param>
         [Obsolete("TThe serialization constructor pattern was made obsolete in modern versions of .NET. Use the other constructors instead.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected SimpleAzureStorageException(SerializationInfo info, StreamingContext context) : base(info, context)

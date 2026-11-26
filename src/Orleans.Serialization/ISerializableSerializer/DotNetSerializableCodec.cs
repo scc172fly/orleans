@@ -14,7 +14,7 @@ using System.Security;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Serializer for types which implement the <see cref="ISerializable"/> pattern.
+    /// 用于执行 <see cref="ISerializable"/> 模式类型类型的序列器。
     /// </summary>
     [Alias("ISerializable")]
 #if NET5_0_OR_GREATER
@@ -25,7 +25,7 @@ namespace Orleans.Serialization
     public class DotNetSerializableCodec : IGeneralizedCodec
     {
         /// <summary>
-        /// The type used to identify this codec.
+        /// 用于识别此编码器的类型 。
         /// </summary>
         public static readonly Type CodecType = typeof(DotNetSerializableCodec);
         private static readonly Type SerializableType = typeof(ISerializable);
@@ -41,9 +41,9 @@ namespace Orleans.Serialization
         private readonly ValueTypeSerializerFactory _valueTypeSerializerFactory;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DotNetSerializableCodec"/> class.
+        /// 初始化 <see cref="DotNetSerializableCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="typeResolver">The type resolver.</param>
+        /// <param name="typeResolver">类型解答器。</param>
         public DotNetSerializableCodec(TypeConverter typeResolver)
         {
 #pragma warning disable SYSLIB0050 // Type or member is obsolete
@@ -108,7 +108,7 @@ namespace Orleans.Serialization
             var header = reader.ReadFieldHeader();
             if (header.FieldIdDelta == 1)
             {
-                // This is an exception type, so deserialize it as an exception.
+                // 这是一个例外类型,所以作为例外将其消除。
                 var typeName = StringCodec.ReadValue(ref reader, header);
                 if (!_typeConverter.TryParse(typeName!, out type))
                 {
@@ -131,7 +131,7 @@ namespace Orleans.Serialization
 
         private object ReadFallbackException<TInput>(ref Reader<TInput> reader, string typeName, uint placeholderReferenceId)
         {
-            // Deserialize into a fallback type for unknown exceptions. This means that missing fields will not be represented.
+            // 降为未知例外的后退类型。 这意味着缺失字段将不会被代表 。
             var result = (UnavailableExceptionFallbackException)ReadObject(ref reader, typeof(UnavailableExceptionFallbackException), placeholderReferenceId);
             result.ExceptionType = typeName;
             return result;
@@ -194,10 +194,10 @@ namespace Orleans.Serialization
             var info = new SerializationInfo(type, _formatterConverter);
 #pragma warning restore SYSLIB0050 // Type or member is obsolete
 
-            // Serialize the type name according to the value populated in the SerializationInfo.
+            // 根据 SerializationInfo中所含值对类型名称进行序列化。
             if (value is Exception)
             {
-                // For exceptions, the type is serialized as a string to facilitate safe deserialization.
+                // 对于例外情况,这种类型被按序号编号,以便于安全地消除空气流失。
                 var typeName = _typeConverter.Format(info.ObjectType);
                 StringCodec.WriteField(ref writer, 1, typeName);
             }

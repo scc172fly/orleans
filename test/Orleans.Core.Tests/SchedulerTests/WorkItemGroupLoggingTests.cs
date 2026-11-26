@@ -83,7 +83,7 @@ public class WorkItemGroupLoggingTests
         public ILogger CreateLogger(string categoryName) => this;
         public bool IsEnabled(LogLevel logLevel)
         {
-            // Wait until the final turn has acquired its logger before disposing activation services.
+            // 等到最后转弯获得其登录器后再处置激活服务。
             if (logLevel == LogLevel.Warning && FollowingTurnStarted)
             {
                 FollowingTurnChecked.TrySetResult();

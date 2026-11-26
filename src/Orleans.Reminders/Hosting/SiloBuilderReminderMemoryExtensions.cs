@@ -6,35 +6,35 @@ using Orleans.Runtime.ReminderService;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extensions to <see cref="ISiloBuilder"/> for configuring the in-memory reminder provider.
+    /// 扩展至 <see cref="ISiloBuilder"/> 用于配置记忆提醒提供者。
     /// </summary>
     public static class SiloBuilderReminderMemoryExtensions
     {
         /// <summary>
-        /// Configures reminder storage using an in-memory, non-persistent store.
+        /// 配置使用内存、非持久性存储的提醒存储器 。
         /// </summary>
         /// <remarks>
-        /// Note that this is for development and testing scenarios only and should not be used in production.
+        /// 请注意,这只用于开发和测试设想情景,不应用于生产。
         /// </remarks>
-        /// <param name="builder">The silo host builder.</param>
-        /// <returns>The provided <see cref="ISiloBuilder"/>, for chaining.</returns>
+        /// <param name="builder">下 silo 建筑主机</param>
+        /// <returns>提供的情况 <see cref="ISiloBuilder"/>用来绑链</returns>
         public static ISiloBuilder UseInMemoryReminderService(this ISiloBuilder builder)
         {
             builder.AddReminders();
 
-            // The reminder table is a reference to a singleton IReminderTableGrain.
+            // 提醒表是指单吨 IReminderTableGrain。
             builder.ConfigureServices(services => services.UseInMemoryReminderService());
             return builder;
         }
 
         /// <summary>
-        /// Configures reminder storage using an in-memory, non-persistent store.
+        /// 配置使用内存、非持久性存储的提醒存储器 。
         /// </summary>
         /// <remarks>
-        /// Note that this is for development and testing scenarios only and should not be used in production.
+        /// 请注意,这只用于开发和测试设想情景,不应用于生产。
         /// </remarks>
-        /// <param name="services">The service collection.</param>
-        /// <returns>The provided <see cref="IServiceCollection"/>, for chaining.</returns>
+        /// <param name="services">服务收藏。</param>
+        /// <returns>提供的情况 <see cref="IServiceCollection"/>用来绑链</returns>
         internal static IServiceCollection UseInMemoryReminderService(this IServiceCollection services)
         {
             services.AddSingleton<InMemoryReminderTable>();

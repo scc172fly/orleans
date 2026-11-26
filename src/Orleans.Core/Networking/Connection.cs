@@ -59,7 +59,7 @@ namespace Orleans.Runtime.Messaging
         protected abstract IMessageCenter MessageCenter { get; }
 
         /// <summary>
-        /// Gets the timeout for gracefully closing the connection.
+        /// 优雅地关闭连接的超时。
         /// </summary>
         protected abstract TimeSpan CloseConnectionTimeout { get; }
 
@@ -77,10 +77,10 @@ namespace Orleans.Runtime.Messaging
         internal void MarkMessageReceived() => Volatile.Write(ref _lastMessageReceivedTimestamp, CoarseStopwatch.GetTimestamp());
 
         /// <summary>
-        /// Start processing this connection.
+        /// 开始处理此连接 。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token for connection initialization.</param>
-        /// <returns>A <see cref="Task"/> which completes when the connection terminates and has completed processing.</returns>
+        /// <param name="cancellationToken">连接初始化的取消标记。</param>
+        /// <returns>A <see cref="Task"/> ,当连接终止并完成处理时完成。</returns>
         public async Task RunAsync(CancellationToken cancellationToken = default)
         {
             var run = Interlocked.CompareExchange(ref _runState, 1, 0) == 0;
@@ -123,10 +123,10 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Called immediately prior to transporting a message.
+        /// 发短信前刚打电话
         /// </summary>
         /// <param name="msg"></param>
-        /// <returns>Whether or not to continue transporting the message.</returns>
+        /// <returns>是否继续发送该电文。</returns>
         protected abstract bool PrepareMessageForSend(Message msg);
 
         protected abstract void RetryMessage(Message msg, Exception? ex = null);
@@ -176,7 +176,7 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Close the connection. This method should only be called by <see cref="StartClosing(Exception)"/>.
+        /// 关闭连接。 此方法只能由 <see cref="StartClosing(Exception)"/>调用 。
         /// </summary>
         private async Task CloseAsync()
         {

@@ -8,16 +8,16 @@ using Orleans.GrainReferences;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Configures <see cref="JsonSerializerOptions"/> for the System.Text.Json grain storage serializer.
+    /// 配置配置 <see cref="JsonSerializerOptions"/> 排排 System.Text.Json grain 存储序列器。
     /// </summary>
     public sealed class SystemTextJsonGrainStorageSerializerOptions
     {
         /// <summary>
-        /// Gets the serializer options used to read and write grain state.
+        /// 获取用于读写 grain 状态的序列器选项。
         /// </summary>
         /// <remarks>
-        /// Fields are included and properties with <see langword="null"/> values are omitted by default.
-        /// Orleans converters are added during options post-configuration.
+        /// 字段包含,默认省略有 <see langword="null"/> 值的属性。
+        /// Orleans 转换器在选项配置后配置期间添加。
         /// </remarks>
         public JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions()
         {
@@ -27,9 +27,9 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Adds Orleans framework type converters to <see cref="SystemTextJsonGrainStorageSerializerOptions"/>.
+    /// 将 Orleans 框架类型转换器添加到 <see cref="SystemTextJsonGrainStorageSerializerOptions"/>。
     /// </summary>
-    /// <param name="grainReferenceActivator">The activator used by the grain reference converter.</param>
+    /// <param name="grainReferenceActivator"> grain 参考转换器使用的激活器。</param>
     public sealed class SystemTextJsonSerializerOptionsConfigure(GrainReferenceActivator grainReferenceActivator) : IPostConfigureOptions<SystemTextJsonGrainStorageSerializerOptions>
     {
         /// <inheritdoc />

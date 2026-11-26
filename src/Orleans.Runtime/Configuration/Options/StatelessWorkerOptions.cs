@@ -3,40 +3,40 @@ using System;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Options that apply globally to stateless worker grains.
+/// 在全球范围内适用于无国籍工人的备选办法 grains。
 /// </summary>
 public class StatelessWorkerOptions
 {
     /// <summary>
-    /// When set to <see langword="true"/>, idle workers will be proactively deactivated by the runtime.
-    /// Otherwise if <see langword="false"/>, than the workers will be deactivated according to <see cref="GrainCollectionOptions.CollectionAge"/>.
+    /// 当设定为 <see langword="true"/>时,闲置工人将在运行时间前主动停止工作。
+    /// 否则,如果 <see langword="false"/>,超过工人的根据 <see cref="GrainCollectionOptions.CollectionAge"/>将停止工作。
     /// </summary>
-    /// <remarks>You can read more on this <see href="https://www.ledjonbehluli.com/posts/orleans_adaptive_stateless_worker/">here</see></remarks>
+    /// <remarks>您可以在此读更多有关 <see href="https://www.ledjonbehluli.com/posts/orleans_adaptive_stateless_worker/">的</see></remarks>
     public bool RemoveIdleWorkers { get; set; } = DEFAULT_REMOVE_IDLE_WORKERS;
 
     /// <summary>
-    /// The default value for <see cref="RemoveIdleWorkers"/>.
+    /// <see cref="RemoveIdleWorkers"/>的默认值。
     /// </summary>
     public const bool DEFAULT_REMOVE_IDLE_WORKERS = true;
 
     /// <summary>
-    /// The time to inspect for idle workers.
+    /// 检查闲置工人的时间。
     /// </summary>
-    /// <remarks>This setting has no effect if <see cref="RemoveIdleWorkers"/> is <see langword="false"/>.</remarks>
+    /// <remarks>如果 <see cref="RemoveIdleWorkers"/> 是 <see langword="false"/>.</remarks>
     public TimeSpan IdleWorkersInspectionPeriod { get; set; } = DEFAULT_IDLE_WORKERS_INSPECTION_PERIOD;
 
     /// <summary>
-    /// The default value for <see cref="IdleWorkersInspectionPeriod"/>.
+    /// <see cref="IdleWorkersInspectionPeriod"/>的默认值。
     /// </summary>
     public static readonly TimeSpan DEFAULT_IDLE_WORKERS_INSPECTION_PERIOD = TimeSpan.FromMilliseconds(500);
 
     /// <summary>
-    /// The minimum, consecutive number of idle cycles any given worker must exhibit before it is deemed enough to remove the worker.
+    /// 任何工人必须先展示闲置周期的最低连续数,然后才能认为该工已足以让工人离开。
     /// </summary>
     public int MinIdleCyclesBeforeRemoval { get; set; } = DEFAULT_MIN_IDLE_CYCLES_BEFORE_REMOVAL;
 
     /// <summary>
-    /// The default value for <see cref="MinIdleCyclesBeforeRemoval"/>.
+    /// <see cref="MinIdleCyclesBeforeRemoval"/>的默认值。
     /// </summary>
     public const int DEFAULT_MIN_IDLE_CYCLES_BEFORE_REMOVAL = 1;
 }

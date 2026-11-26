@@ -8,8 +8,8 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime.GrainDirectory;
 
 /// <summary>
-/// Compatibility system targets which allow distributed-directory silos to interact with local-directory silos
-/// during rolling upgrades.
+/// 兼容系统目标,允许分布式指令 silos 与本地指令 silos互动
+/// 滚动升级期间。
 /// </summary>
 internal sealed class LocalGrainDirectoryClientCompatibility : SystemTarget, IGrainDirectoryClient
 {
@@ -132,8 +132,8 @@ internal sealed class LocalGrainDirectoryPartitionCompatibility : SystemTarget, 
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // LocalGrainDirectory stores entries using the legacy single-ring ownership scheme, so this local
-        // partition cannot produce a complete snapshot for a distributed virtual partition range.
+        // LocalGrainDirectory 使用遗留的单环独环所有权计划存储条目,因此这个本地
+        // 分区不能为分布式虚拟分区范围生成完整的快照 。
         return new((GrainDirectoryPartitionSnapshot?)null);
     }
 

@@ -1,68 +1,84 @@
 ---
-title: Why Orleans
-description: Understand the benefits and tradeoffs of the Orleans virtual actor model.
+title: "为什么 Orleans"
+description: "了解 Orleans 虚拟行为体模式的好处和利弊权衡。"
 ms.date: 08/08/2026
 ms.topic: overview
 ---
 
-# Why Orleans
+<a id="why-orleans"></a>
 
-Orleans helps .NET developers build distributed, stateful applications by combining a virtual actor programming model with runtime services for placement, messaging, lifecycle, and failure detection.
+# 为什么 Orleans
 
-Its main benefit is not that distribution becomes invisible. Network calls can fail, storage must be configured, and workloads still need capacity planning. Orleans reduces the amount of application-specific infrastructure needed to address and coordinate large numbers of independent entities.
+Orleans 帮助 .NET 开发商建立分布式、有声的应用程序,将虚拟行为者编程模式与定位、信息传递、生命周期和故障检测等运行时间服务结合起来。
 
-## Stable identities instead of locations
+其主要好处不是分配变得无形。 网络电话可能失败,必须配置储存,工作量仍然需要能力规划。 Orleans 减少处理和协调大量独立实体所需的具体应用基础设施数量。
 
-Application code addresses grains by interface and key. Orleans maps that logical identity to an activation and routes calls to it. Callers don't maintain a server registry or recreate references when placement changes.
+<a id="stable-identities-instead-of-locations"></a>
 
-Because identity is independent of activation, Orleans can activate grains on demand and remove idle activations from memory. Applications can represent far more logical entities than fit in memory at once.
+## 稳定身份而不是地点
 
-The [Orleans virtual actor research](https://www.microsoft.com/research/project/orleans-virtual-actors/) compares this to virtual memory: application code can address a large logical space of grains while the runtime decides which activations are currently resident and where.
+应用程序代码通过接口和密钥地址 grains 。 Orleans 映射激活的逻辑身份和线路呼叫。调用者不保留服务器注册或当放置改变时重新创建引用。
 
-## Isolated, turn-based execution
+由于身份独立于激活, Orleans 可以按需启动 grains ,从记忆中去除闲置的激活。应用程序代表的逻辑实体远多于同时适合存储的实体。
 
-Each grain activation encapsulates its behavior and state. By default, it processes one request at a time. This makes per-entity invariants easier to reason about than shared-memory concurrency and removes the need for locks in typical grain code.
+[Orleans 虚拟行为者研究](https://www.microsoft.com/research/project/orleans-virtual-actors/) 将这一数值与虚拟内存作比较:应用程序代码可以处理一个 grains 的大逻辑空间,而运行时间决定哪些激活是当前常住和在哪里启动。
 
-The boundary is explicit: grain calls are asynchronous and may cross a process or machine. That encourages APIs which account for latency, serialization, cancellation, and failure.
+<a id="isolated-turn-based-execution"></a>
 
-## Natural partitioning
+## 孤立、按转手执行
 
-Mapping domain entities to grains partitions state and work by identity. Orleans can place those activations across a cluster and route calls without callers knowing their locations.
+每个激活 grain 都包含其行为和状态。 默认情况下, 它会一次处理一个请求。 这样每个实体的变量比共享模拟同值货币更容易理解, 并消除了对典型 grain 代码锁定的需要 。
 
-This design works best when load is spread across many grain keys. A hot grain remains a hot grain: Orleans doesn't automatically replicate an ordinary stateful grain to increase its throughput. Applications should choose grain boundaries, stateless workers, aggregation hierarchies, or other patterns appropriate to the workload.
+边界是明确的: grain 电话是无序的,可能跨越一个进程或机器。这鼓励了包含延迟、序列化、取消和故障的API。
 
-## Managed activation lifecycle
+<a id="natural-partitioning"></a>
 
-Orleans activates grains when they receive calls and can deactivate idle activations to reclaim memory. Following a silo failure, later calls can reactivate grains on healthy silos after membership converges.
+## 自然分割
 
-Activation recovery isn't the same as state replication. Volatile in-memory state is lost with the process. Durable recovery requires a configured storage provider and successful calls to the persistence APIs.
+将域实体绘图到 grains 分区,按身份状态和工作。 Orleans 可在一个集群和线路通话中放置这些启动装置,而电话人不知道它们的位置。
 
-## Composable runtime services
+当负荷分布在许多 grain 密钥上时,这一设计最有效。热 grain 仍是一个热 grain: Orleans 不会自动复制普通状态 grain 来增加其输送量。应用程序应该选择 grain 边界、无国籍工人、聚合等级或其他与工作量相适应的模式。
 
-Orleans provides consistent hosting and programming abstractions for:
+<a id="managed-activation-lifecycle"></a>
 
-- Cluster membership and client discovery.
-- Activation placement and rebalancing.
-- Grain persistence and transactions.
-- Timers, reminders, and durable jobs.
-- Streams and broadcast channels.
-- Serialization, versioning, security, and observability.
+## 管理下的激活生命周期
 
-Provider packages integrate these abstractions with infrastructure such as Azure Storage, Azure Cosmos DB, relational databases, DynamoDB, Redis, Event Hubs, SQS, NATS, Consul, Cassandra, ZooKeeper, and Kubernetes.
+Orleans 激活 grains 当他们接到电话并能够停止闲置启动以恢复记忆时,可以停止这些闲置激活。 silo 失败, 稍后的电话可以重新启动 grains 健康、健康和健康 silos 成员会聚之后。
 
-## Familiar .NET development
+激活恢复与州立复制不同。 此过程会失去多变的记忆状态。 持久恢复需要配置好的存储提供者和成功呼叫持久性API。
 
-Grain contracts are .NET interfaces with asynchronous methods, grain implementations are classes, and hosts use the .NET generic host and dependency injection. Orleans also integrates with ASP.NET Core, logging, configuration, OpenTelemetry, Aspire, and standard testing tools.
+<a id="composable-runtime-services"></a>
 
-The result is a distributed programming model that remains recognizably .NET while making location, lifecycle, and routing runtime concerns rather than application plumbing.
+## 可复合运行时服务
 
-## Tradeoffs
+Orleans 为下列目的提供一致的主机和编程抽象:
 
-Orleans is not the best fit for every workload. Consider another design when the application primarily needs:
+- 集群成员和客户发现。
+- 启动安置和重新平衡。
+- Grain 持续和交易。
+- 计时器、提醒和持久工作。
+- 流和广播频道。
+- 序列化、版本化、安保和可观察性。
 
-- Shared mutable memory across components.
-- A few large, highly parallel compute jobs.
-- Global coordination on every request.
-- Bulk data processing where entity identity provides little value.
+提供方包将这些抽象内容与基础设施(如 Azure 存储、 Azure 宇宙DB、关系数据库、 DynamoDB、 Redis、事件枢纽、SQS、NATS、领事、Cassandra、 ZooKeeper和 Kubernetes)等基础设施整合。
 
-For suitable domains, Orleans offers a productive default architecture. It doesn't remove distributed-systems tradeoffs, but it gives applications a tested foundation on which to address them.
+<a id="familiar-net-development"></a>
+
+## 熟悉 .NET 开发
+
+Grain 合同是与非同步方法的 .NET 接口, grain 实施是分类,主机使用 .NET 通用主机和依赖注射。 Orleans 还结合了 ASP.NET 核心、记录、配置、 OpenTelemetry、“信使”、标准测试工具。
+
+结果是,在确定地点、生命周期和运行时间而不是应用管道时,一个分布式方案拟订模式仍然可以识别 .NET 。
+
+<a id="tradeoffs"></a>
+
+## 权衡取舍
+
+Orleans 并非最适合于每项工作量。当应用主要需要:
+
+- 各个组成部分共有的可变内存。
+- 几个非常平行的大型计算工作
+- 根据每项要求进行全球协调。
+- 实体身份价值很小的散装数据处理。
+
+对于合适的域, Orleans 提供了一个有生产力的默认架构。 它不会去除分布式系统之间的取舍, 但给应用程序一个测试的基础, 用来解决这些问题 。

@@ -11,7 +11,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Runtime.Messaging;
 
 /// <summary>
-/// Encodes migration packages and their embedded messages, preserving lazy bodies and serialization ownership.
+/// 编码移徙包及其内含信息,保存懒惰的身体和序列所有权。
 /// </summary>
 [RegisterSerializer, RegisterCopier]
 internal sealed class MessageCodec(
@@ -22,7 +22,7 @@ internal sealed class MessageCodec(
 {
     private MessageHandlerShared? _shared;
 
-    // Resolve after codec construction: message handlers themselves depend on the codec provider.
+    // 代码构建后解析:信息处理者本身取决于编码提供商。
     private MessageHandlerShared Shared => _shared ??= services.GetRequiredService<MessageHandlerShared>();
 
     void IFieldCodec.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type? expectedType, object? value)

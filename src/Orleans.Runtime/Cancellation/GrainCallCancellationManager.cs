@@ -14,12 +14,12 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Remote interface for cancelling grain calls.
+/// 取消 grain 呼叫的远程界面 。
 /// </summary>
 internal interface IGrainCallCancellationManagerSystemTarget : ISystemTarget
 {
     /// <summary>
-    /// Cancels a collection of grain calls.
+    /// 取消集合 grain 电话。
     /// </summary>
     [Alias("AF79F3FA")]
     ValueTask CancelCallsAsync(
@@ -41,7 +41,7 @@ internal struct GrainCallCancellationRequest(GrainId targetGrainId, GrainId sour
 }
 
 /// <summary>
-/// Cancels grain calls issued to remote hosts and handles cancellation requests from other hosts.
+/// 取消发给远程主机的 grain 呼叫,并处理其他主机的取消请求。
 /// </summary>
 internal partial class GrainCallCancellationManager : SystemTarget, IGrainCallCancellationManagerSystemTarget, IGrainCallCancellationManager, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -95,14 +95,14 @@ internal partial class GrainCallCancellationManager : SystemTarget, IGrainCallCa
         foreach (var request in cancellationRequests)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // Try to directly call the cancellation method locally
+            // 尝试直接调用本地取消方法
             if (_activationDirectory.FindTarget(request.TargetGrainId) is IGrainCallCancellationExtension extension)
             {
                 extension.CancelRequestAsync(request.SourceGrainId, request.MessageId, CancellationToken.None).Ignore();
             }
             else
             {
-                // Fall back to a regular grain call.
+                // 返回到常规 grain 呼叫。
                 GrainFactory.GetGrain<IGrainCallCancellationExtension>(request.TargetGrainId)
                     .CancelRequestAsync(request.SourceGrainId, request.MessageId, CancellationToken.None)
                     .Ignore();
@@ -183,13 +183,13 @@ internal partial class GrainCallCancellationManager : SystemTarget, IGrainCallCa
             {
                 try
                 {
-                    // Collect a batch of work items.
+                    // 收集一批工作项目。
                     while (batch.Count < MaxBatchSize && reader.TryRead(out var workItem))
                     {
                         batch.Add(workItem);
                     }
 
-                    // Attempt to cancel the batch.
+                    // 试图取消批次。
                     await remote.CancelCallsAsync(batch, CancellationToken.None);
 
                     LogDebugCancelledRequests(_logger, batch.Count, targetSilo);
@@ -217,7 +217,7 @@ internal partial class GrainCallCancellationManager : SystemTarget, IGrainCallCa
         }
         finally
         {
-            // Remove ourselves and clean up.
+            // 自己去收拾干净
             RemoveWorker(targetSilo);
             LogDebugExitingCancellationWorker(_logger, targetSilo);
         }

@@ -1,30 +1,30 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Provides watch streams for durable values.
+/// 提供持久价值的观察流。
 /// </summary>
 /// <remarks>
 /// <para>
-/// A watch stream begins with the current value once it is durable, then delivers the latest value after each journal
-/// write which changes it is acknowledged, so readers observe only durable state. The stream retains only the latest value.
-/// A value which nobody watches publishes nothing.
+/// 观察流以当前值开始, 当它可以耐久时, 然后在每日记后提供最新值
+/// 写入后会确认修改, 因此读者只观察耐久状态。 流仅保留最新值 。
+/// 无人观看的价值不会公布任何信息。
 /// </para>
 /// <para>
-/// Enumerate the stream in the owning activation's execution context. The stream completes when the owning manager
-/// stops and faults when a failed journal operation stops the manager, since only a new activation can establish
-/// which changes are durable.
+/// 在自控激活的执行背景中将流数数。 当自控管理器完成时, 流会完整
+/// 当一个失败日记账操作停止管理器时, 停止停止时停止和断缺, 因为只有新激活才能建立
+/// 变化是持久的。
 /// </para>
 /// </remarks>
 public static class DurableStateWatchExtensions
 {
     /// <summary>
-    /// Watches the committed value of a durable value.
+    /// 观察持久价值的坚定价值。
     /// </summary>
-    /// <typeparam name="T">The value type.</typeparam>
-    /// <param name="value">The durable value.</param>
-    /// <param name="cancellationToken">The token which ends the watch.</param>
-    /// <returns>A stream which begins with the current committed value and delivers the latest value after each committed change.</returns>
-    /// <exception cref="NotSupportedException"><paramref name="value"/> is not a built-in durable value registered with a journaled state manager.</exception>
+    /// <typeparam name="T">值类型。</typeparam>
+    /// <param name="value">持久价值。</param>
+    /// <param name="cancellationToken">结束表的标记。</param>
+    /// <returns>以当前承诺值开始的流,在每次承诺变化后提供最新值。</returns>
+    /// <exception cref="NotSupportedException"><paramref name="value"/> 并非由已日记的国家管理人员登记在册的内在耐久价值。</exception>
     public static IAsyncEnumerable<ValueChange<T>> WatchAsync<T>(this IDurableValue<T> value, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(value);

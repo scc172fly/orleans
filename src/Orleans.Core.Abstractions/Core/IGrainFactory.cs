@@ -5,19 +5,19 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// Provides extension methods for creating grain references.
+    /// 提供创建 grain 引用的扩展方法。
     /// </summary>
     public static class GrainFactoryExtensions
     {
         /// <summary>
-        /// Returns a reference for the provided grain id which implements the specified interface type.
+        /// 返回提供执行指定接口类型的 grain id的引用。
         /// </summary>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="grainPrimaryKey">The primary key of the grain</param>
-        /// <param name="grainClassNamePrefix">An optional class name prefix used to find the runtime type of the grain.</param>
-        /// <typeparam name="TGrainInterface">The grain interface type which the returned grain reference must implement.</typeparam>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="grainPrimaryKey">关键是 grain</param>
+        /// <param name="grainClassNamePrefix">一个可选类名前缀, 用于查找 grain运行时间类型。</param>
+        /// <typeparam name="TGrainInterface">下 grain 返回的界面类型 grain 参考必须执行。</typeparam>
         /// <returns>
-        /// A reference for the provided grain id which implements the specified interface type.
+        /// 用于提供执行指定接口类型的 grain id的参考文献。
         /// </returns>
         public static TGrainInterface GetGrain<TGrainInterface>(this IGrainFactory grainFactory, IdSpan grainPrimaryKey, string grainClassNamePrefix) where TGrainInterface : IGrain
         {
@@ -26,13 +26,13 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Returns a reference for the provided grain id which implements the specified interface type.
+        /// 返回提供执行指定接口类型的 grain id的引用。
         /// </summary>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="grainPrimaryKey">The primary key of the grain</param>
-        /// <typeparam name="TGrainInterface">The grain interface type which the returned grain reference must implement.</typeparam>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="grainPrimaryKey">关键是 grain</param>
+        /// <typeparam name="TGrainInterface">下 grain 返回的界面类型 grain 参考必须执行。</typeparam>
         /// <returns>
-        /// A reference for the provided grain id which implements the specified interface type.
+        /// 用于提供执行指定接口类型的 grain id的参考文献。
         /// </returns>
         public static TGrainInterface GetGrain<TGrainInterface>(this IGrainFactory grainFactory, IdSpan grainPrimaryKey) where TGrainInterface : IGrain
         {
@@ -42,210 +42,210 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Functionality for creating references to grains.
+    /// 创建 grains引用功能。
     /// </summary>
     public interface IGrainFactory
     {
         /// <summary>
-        /// Gets a reference to a grain.
+        /// 获取引用 grain。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The interface type.</typeparam>
-        /// <param name="primaryKey">The primary key of the grain.</param>
-        /// <param name="grainClassNamePrefix">An optional class name prefix used to find the runtime type of the grain.</param>
-        /// <returns>A reference to the specified grain.</returns>
+        /// <typeparam name="TGrainInterface">接口类型。</typeparam>
+        /// <param name="primaryKey">关键是 grain.</param>
+        /// <param name="grainClassNamePrefix">一个可选类名前缀, 用于查找 grain运行时间类型。</param>
+        /// <returns>指指定的 grain。</returns>
         TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithGuidKey;
 
         /// <summary>
-        /// Gets a reference to a grain.
+        /// 获取引用 grain。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The interface type.</typeparam>
-        /// <param name="primaryKey">The primary key of the grain.</param>
-        /// <param name="grainClassNamePrefix">An optional class name prefix used to find the runtime type of the grain.</param>
-        /// <returns>A reference to the specified grain.</returns>
+        /// <typeparam name="TGrainInterface">接口类型。</typeparam>
+        /// <param name="primaryKey">关键是 grain.</param>
+        /// <param name="grainClassNamePrefix">一个可选类名前缀, 用于查找 grain运行时间类型。</param>
+        /// <returns>指指定的 grain。</returns>
         TGrainInterface GetGrain<TGrainInterface>(long primaryKey, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithIntegerKey;
 
         /// <summary>
-        /// Gets a reference to a grain.
+        /// 获取引用 grain。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The interface type.</typeparam>
-        /// <param name="primaryKey">The primary key of the grain.</param>
-        /// <param name="grainClassNamePrefix">An optional class name prefix used to find the runtime type of the grain.</param>
-        /// <returns>A reference to the specified grain.</returns>
+        /// <typeparam name="TGrainInterface">接口类型。</typeparam>
+        /// <param name="primaryKey">关键是 grain.</param>
+        /// <param name="grainClassNamePrefix">一个可选类名前缀, 用于查找 grain运行时间类型。</param>
+        /// <returns>指指定的 grain。</returns>
         TGrainInterface GetGrain<TGrainInterface>(string primaryKey, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithStringKey;
 
         /// <summary>
-        /// Gets a reference to a grain.
+        /// 获取引用 grain。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The interface type.</typeparam>
-        /// <param name="primaryKey">The primary key of the grain.</param>
-        /// <param name="keyExtension">The key extension of the grain.</param>
-        /// <param name="grainClassNamePrefix">An optional class name prefix used to find the runtime type of the grain.</param>
-        /// <returns>A reference to the specified grain.</returns>
+        /// <typeparam name="TGrainInterface">接口类型。</typeparam>
+        /// <param name="primaryKey">关键是 grain.</param>
+        /// <param name="keyExtension">关键扩展 grain.</param>
+        /// <param name="grainClassNamePrefix">一个可选类名前缀, 用于查找 grain运行时间类型。</param>
+        /// <returns>指指定的 grain。</returns>
         TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string keyExtension, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithGuidCompoundKey;
 
         /// <summary>
-        /// Gets a reference to a grain.
+        /// 获取引用 grain。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The interface type.</typeparam>
-        /// <param name="primaryKey">The primary key of the grain.</param>
-        /// <param name="keyExtension">The key extension of the grain.</param>
-        /// <param name="grainClassNamePrefix">An optional class name prefix used to find the runtime type of the grain.</param>
-        /// <returns>A reference to the specified grain.</returns>
+        /// <typeparam name="TGrainInterface">接口类型。</typeparam>
+        /// <param name="primaryKey">关键是 grain.</param>
+        /// <param name="keyExtension">关键扩展 grain.</param>
+        /// <param name="grainClassNamePrefix">一个可选类名前缀, 用于查找 grain运行时间类型。</param>
+        /// <returns>指指定的 grain。</returns>
         TGrainInterface GetGrain<TGrainInterface>(long primaryKey, string keyExtension, string? grainClassNamePrefix = null) where TGrainInterface : IGrainWithIntegerCompoundKey;
 
         /// <summary>
-        /// Creates a reference to the provided <paramref name="obj"/>.
+        /// 创建所提供 <paramref name="obj"/>的引用。
         /// </summary>
         /// <typeparam name="TGrainObserverInterface">
-        /// The specific <see cref="IGrainObserver"/> type of <paramref name="obj"/>.
+        /// 具体 <see cref="IGrainObserver"/> 类型 <paramref name="obj"/>.
         /// </typeparam>
-        /// <param name="obj">The object to create a reference to.</param>
-        /// <returns>The reference to <paramref name="obj"/>.</returns>
+        /// <param name="obj">创建引用的对象。</param>
+        /// <returns>提及 <paramref name="obj"/>.</returns>
         TGrainObserverInterface CreateObjectReference<TGrainObserverInterface>(IGrainObserver obj) where TGrainObserverInterface : IGrainObserver;
 
         /// <summary>
-        /// Deletes the provided object reference.
+        /// 删除所提供的对象参考。
         /// </summary>
         /// <typeparam name="TGrainObserverInterface">
-        /// The specific <see cref="IGrainObserver"/> type of <paramref name="obj"/>.
+        /// 具体 <see cref="IGrainObserver"/> 类型 <paramref name="obj"/>.
         /// </typeparam>
-        /// <param name="obj">The reference being deleted.</param>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <param name="obj">引用正在删除 。</param>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         void DeleteObjectReference<TGrainObserverInterface>(IGrainObserver obj) where TGrainObserverInterface : IGrainObserver;
 
         /// <summary>
-        /// Returns a reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 返回所提供接口类型的主要实施且有主要密钥的 grain 。
         /// </summary>
         /// <param name="grainInterfaceType">
-        /// The grain interface type which the returned grain reference must implement.
+        /// 下 grain 返回的界面类型 grain 参考必须执行。
         /// </param>
         /// <param name="grainPrimaryKey">
-        /// The primary key of the grain
+        /// grain主键
         /// </param>
         /// <returns>
-        /// A reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 提及 grain ,这是所提供接口类型的主要实施,并提供了主钥匙。
         /// </returns>
         IGrain GetGrain(Type grainInterfaceType, Guid grainPrimaryKey);
 
         /// <summary>
-        /// Returns a reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 返回所提供接口类型的主要实施且有主要密钥的 grain 。
         /// </summary>
         /// <param name="grainInterfaceType">
-        /// The grain interface type which the returned grain reference must implement.
+        /// 下 grain 返回的界面类型 grain 参考必须执行。
         /// </param>
         /// <param name="grainPrimaryKey">
-        /// The primary key of the grain
+        /// grain主键
         /// </param>
         /// <returns>
-        /// A reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 提及 grain ,这是所提供接口类型的主要实施,并提供了主钥匙。
         /// </returns>
         IGrain GetGrain(Type grainInterfaceType, long grainPrimaryKey);
 
         /// <summary>
-        /// Returns a reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 返回所提供接口类型的主要实施且有主要密钥的 grain 。
         /// </summary>
         /// <param name="grainInterfaceType">
-        /// The grain interface type which the returned grain reference must implement.
+        /// 下 grain 返回的界面类型 grain 参考必须执行。
         /// </param>
         /// <param name="grainPrimaryKey">
-        /// The primary key of the grain
+        /// grain主键
         /// </param>
         /// <returns>
-        /// A reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 提及 grain ,这是所提供接口类型的主要实施,并提供了主钥匙。
         /// </returns>
         IGrain GetGrain(Type grainInterfaceType, string grainPrimaryKey);
 
         /// <summary>
-        /// Returns a reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 返回所提供接口类型的主要实施且有主要密钥的 grain 。
         /// </summary>
         /// <param name="grainInterfaceType">
-        /// The grain interface type which the returned grain reference must implement.
+        /// 下 grain 返回的界面类型 grain 参考必须执行。
         /// </param>
         /// <param name="grainPrimaryKey">
-        /// The primary key of the grain
+        /// grain主键
         /// </param>
         /// <param name="keyExtension">
-        /// The grain key extension component.
+        /// grain 关键扩展组件。
         /// </param>
         /// <returns>
-        /// A reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 提及 grain ,这是所提供接口类型的主要实施,并提供了主钥匙。
         /// </returns>
         IGrain GetGrain(Type grainInterfaceType, Guid grainPrimaryKey, string keyExtension);
 
         /// <summary>
-        /// Returns a reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 返回所提供接口类型的主要实施且有主要密钥的 grain 。
         /// </summary>
         /// <param name="grainInterfaceType">
-        /// The grain interface type which the returned grain reference must implement.
+        /// 下 grain 返回的界面类型 grain 参考必须执行。
         /// </param>
         /// <param name="grainPrimaryKey">
-        /// The primary key of the grain
+        /// grain主键
         /// </param>
         /// <param name="keyExtension">
-        /// The grain key extension component.
+        /// grain 关键扩展组件。
         /// </param>
         /// <returns>
-        /// A reference to the grain which is the primary implementation of the provided interface type and has the provided primary key.
+        /// 提及 grain ,这是所提供接口类型的主要实施,并提供了主钥匙。
         /// </returns>
         IGrain GetGrain(Type grainInterfaceType, long grainPrimaryKey, string keyExtension);
 
         /// <summary>
-        /// Returns a reference to the specified grain which implements the specified interface.
+        /// 返回指定执行指定接口的 grain 引用。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <typeparam name="TGrainInterface">
-        /// The grain interface type which the returned grain reference must implement.
+        /// 下 grain 返回的界面类型 grain 参考必须执行。
         /// </typeparam>
         /// <returns>
-        /// A reference to the specified grain which implements the specified interface.
+        /// 引用执行指定接口的指定 grain 。
         /// </returns>
         TGrainInterface GetGrain<TGrainInterface>(GrainId grainId) where TGrainInterface : IAddressable;
 
         /// <summary>
-        /// Returns an untyped reference for the provided grain id.
+        /// 返回为提供 grain id 提供的未打字引用。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <returns>
-        /// An untyped reference for the provided grain id.
+        /// 提供的 grain id 的未类型引用。
         /// </returns>
         IAddressable GetGrain(GrainId grainId);
 
         /// <summary>
-        /// Returns a reference for the provided grain id which implements the specified interface type.
+        /// 返回提供执行指定接口类型的 grain id的引用。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <param name="interfaceType">
-        /// The interface type which the returned grain reference must implement.
+        /// 返回的 grain 引用必须执行的接口类型。
         /// </param>
         /// <returns>
-        /// A reference for the provided grain id which implements the specified interface type.
+        /// 用于提供执行指定接口类型的 grain id的参考文献。
         /// </returns>
         IAddressable GetGrain(GrainId grainId, GrainInterfaceType interfaceType);
 
         /// <summary>
-        /// Returns a reference for the provided grain id which implements the specified interface type.
+        /// 返回提供执行指定接口类型的 grain id的引用。
         /// </summary>
-        /// <param name="interfaceType">The grain interface type which the returned grain reference must implement.</param>
-        /// <param name="grainKey">The primary key of the grain</param>
-        /// <param name="grainClassNamePrefix">A class name prefix used to find the runtime type of the grain.</param>
+        /// <param name="interfaceType">下 grain 返回的界面类型 grain 参考必须执行。</param>
+        /// <param name="grainKey">关键是 grain</param>
+        /// <param name="grainClassNamePrefix">类名前缀用于查找 grain运行时间类型。</param>
         /// <returns>
-        /// A reference for the provided grain id which implements the specified interface type.
+        /// 用于提供执行指定接口类型的 grain id的参考文献。
         /// </returns>
         IAddressable GetGrain(Type interfaceType, IdSpan grainKey, string grainClassNamePrefix);
 
         /// <summary>
-        /// Returns a reference for the provided grain id which implements the specified interface type.
+        /// 返回提供执行指定接口类型的 grain id的引用。
         /// </summary>
-        /// <param name="interfaceType">The grain interface type which the returned grain reference must implement.</param>
-        /// <param name="grainKey">The primary key of the grain</param>
+        /// <param name="interfaceType">下 grain 返回的界面类型 grain 参考必须执行。</param>
+        /// <param name="grainKey">关键是 grain</param>
         /// <returns>
-        /// A reference for the provided grain id which implements the specified interface type.
+        /// 用于提供执行指定接口类型的 grain id的参考文献。
         /// </returns>
         IAddressable GetGrain(Type interfaceType, IdSpan grainKey);
     }

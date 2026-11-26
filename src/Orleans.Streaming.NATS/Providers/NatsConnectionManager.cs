@@ -14,7 +14,7 @@ using NATS.Client.Serializers.Json;
 namespace Orleans.Streaming.NATS;
 
 /// <summary>
-/// Owns the root and producer connections for one adapter. The provider factory owns this manager's lifetime.
+/// 一家供货厂拥有这家经理的一生
 /// </summary>
 internal sealed partial class NatsConnectionManager : IAsyncDisposable
 {
@@ -68,7 +68,7 @@ internal sealed partial class NatsConnectionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Initialize the connection to the NATS server and check if JetStream is available
+    /// 初始化连接到NATS 服务器的连接,检查是否 JetStream
     /// </summary>
     public Task Initialize(CancellationToken cancellationToken = default)
     {
@@ -136,12 +136,12 @@ internal sealed partial class NatsConnectionManager : IAsyncDisposable
             }
             catch (NatsJSApiException e) when (e.Error.ErrCode == 10065)
             {
-                // ignore, stream already exists
+                // 忽略,流流已经存在
             }
             catch (NatsJSApiException e) when (e.Error.ErrCode == 10058)
             {
-                // Stream exists with different config — attempt in-place update
-                // (safe for NumReplicas changes; NATS allows replica count upgrades)
+                // 存在不同配置的流——尝试在现场更新
+                // (安全用于 NumReplicas 更改; NATS 允许复制计数升级)
                 this.LogUpdatingExistingStream(this._options.StreamName);
 
                 await this._natsContext.UpdateStreamAsync(BuildStreamConfig(), cancellationToken);
@@ -183,7 +183,7 @@ internal sealed partial class NatsConnectionManager : IAsyncDisposable
         await Task.WhenAll(disposals).ConfigureAwait(false);
         if (_initializationTask is { } initialization)
         {
-            // Closing the connections interrupts initial-connect retries. The creating caller observes initialization failures.
+            // 关闭连接中断初始连接的重试。 创建的呼叫器会观察初始化失败 。
             await initialization.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         }
     }
@@ -221,10 +221,10 @@ internal sealed partial class NatsConnectionManager : IAsyncDisposable
     };
 
     /// <summary>
-    /// Enqueue a message to NATS JetStream stream
+    /// 向 NATS JetStream 流发送消息
     /// </summary>
-    /// <param name="message">The message</param>
-    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="message">电文</param>
+    /// <param name="cancellationToken">取消符号</param>
     public async Task EnqueueMessage(NatsStreamMessage message, CancellationToken cancellationToken = default)
     {
         if (this._natsContext is null)
@@ -257,10 +257,10 @@ internal sealed partial class NatsConnectionManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Create a NATS JetStream consumer
+    /// 创建 NATS JetStream 消费者
     /// </summary>
-    /// <param name="partition">The partition number</param>
-    /// <returns>A wrapper to a durable NATS JetStream stream consumer</returns>
+    /// <param name="partition">分区编号</param>
+    /// <returns>耐久 NATS JetStream 流消费者</returns>的包装纸
     public NatsStreamConsumer CreateConsumer(uint partition) =>
         new(this._loggerFactory,
             this._natsContext,
@@ -299,14 +299,14 @@ internal sealed partial class NatsConnectionManager : IAsyncDisposable
             }
         }
 
-        // Reserve '~' so encoded bytes and literal tokens have distinct identities.
+        // 保留区"~",所以编码的字节和字面象征有不同的身份。
         return $"~{Convert.ToHexString(value)}";
     }
 
     /// <summary>
-    /// Acknowledge messages on a subject in a NATS JetStream stream
+    /// 在 NATS JetStream 流中确认关于主题的信息
     /// </summary>
-    /// <param name="subject">The ReplyTo subject</param>
+    /// <param name="subject"> ReplyTo 主题</param>
     public async Task AcknowledgeMessages(string subject)
     {
         await this._natsConnection

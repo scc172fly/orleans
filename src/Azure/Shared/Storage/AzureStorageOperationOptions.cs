@@ -24,38 +24,38 @@ namespace Orleans.Transactions.AzureStorage
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// Configures access to an Azure Table Storage table.
+    /// 配置访问 Azure 表存储表的配置。
     /// </summary>
     public class AzureStorageOperationOptions
     {
         private TableServiceClient? _tableServiceClient;
 
         /// <summary>
-        /// Table name for Azure Storage
+        /// Azure 存储的表格名称
         /// </summary>
         public virtual string TableName { get; set; } = null!;
 
         /// <summary>
-        /// Azure Storage Policy Options
+        /// Azure 储存政策选择
         /// </summary>
         public AzureStoragePolicyOptions StoragePolicyOptions { get; } = new AzureStoragePolicyOptions();
 
         /// <summary>
-        /// Options to be used when configuring the table storage client, or <see langword="null"/> to use the default options.
+        /// 配置表格存储客户端时,或使用默认选项时使用的选项,或者 <see langword="null"/> 。
         /// </summary>
         public TableClientOptions? ClientOptions { get; set; }
 
         /// <summary>
-        /// The delegate used to create a <see cref="TableServiceClient"/> instance.
+        /// 代表用来创建 <see cref="TableServiceClient"/> 实例。
         /// </summary>
         internal Func<Task<TableServiceClient>> CreateClient { get; private set; } = null!;
 
         /// <summary>
-        /// Gets or sets the client used to access the Azure Table Service.
+        /// 获取或设置用于访问 Azure 表服务的客户端。
         /// </summary>
         [DisallowNull]
         public TableServiceClient? TableServiceClient
@@ -70,7 +70,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Configures the <see cref="TableServiceClient"/> using a connection string.
+        /// 使用连接字符串配置 <see cref="TableServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(string connectionString)
@@ -79,7 +79,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI.
+        /// 使用验证的服务 URI 配置 <see cref="TableServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri)
@@ -88,7 +88,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Configures the <see cref="TableServiceClient"/> using the provided callback.
+        /// 使用所提供的回调配置 <see cref="TableServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Func<Task<TableServiceClient>> createClientCallback)
@@ -97,7 +97,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI and a <see cref="Azure.Core.TokenCredential"/>.
+        /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.Core.TokenCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri, TokenCredential tokenCredential)
@@ -106,7 +106,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI and a <see cref="Azure.AzureSasCredential"/>.
+        /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.AzureSasCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri, AzureSasCredential azureSasCredential)
@@ -115,7 +115,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Configures the <see cref="TableServiceClient"/> using an authenticated service URI and a <see cref="TableSharedKeyCredential"/>.
+        /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="TableSharedKeyCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri, TableSharedKeyCredential sharedKeyCredential)
@@ -170,7 +170,7 @@ namespace Orleans.GrainDirectory.AzureStorage
 
         private static void ConfigureRetryOptions(RetryOptions retryOptions, AzureStoragePolicyOptions storagePolicyOptions)
         {
-            // Keep this aligned with AzureStoragePolicyOptions defaults, which mirror Azure Storage SDK retry settings.
+            // 保持此对齐与 AzureStoragePolicyOptions 默认值, 对应 Azure 存储 SDK 重试设置 。
             var delay = storagePolicyOptions.PauseBetweenOperationRetries > TimeSpan.Zero
                 ? storagePolicyOptions.PauseBetweenOperationRetries
                 : TimeSpan.FromSeconds(0.8);
@@ -207,16 +207,16 @@ namespace Orleans.GrainDirectory.AzureStorage
     }
 
     /// <summary>
-    /// Validates Azure Table Storage operation options.
+    /// 验证 Azure 表格存储操作选项。
     /// </summary>
-    /// <typeparam name="TOptions">The type of options to validate.</typeparam>
+    /// <typeparam name="TOptions">验证的选项类型。</typeparam>
     public class AzureStorageOperationOptionsValidator<TOptions> : IConfigurationValidator where TOptions : AzureStorageOperationOptions
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureStorageOperationOptionsValidator{TOptions}"/> class.
+        /// 初始化 <see cref="AzureStorageOperationOptionsValidator{TOptions}"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options to validate.</param>
-        /// <param name="name">The configured options name.</param>
+        /// <param name="options">验证的选项。</param>
+        /// <param name="name">配置的选项名称。</param>
         public AzureStorageOperationOptionsValidator(TOptions options, string? name = null)
         {
             Options = options;
@@ -224,12 +224,12 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Gets the options to validate.
+        /// 获取选项来验证 。
         /// </summary>
         public TOptions Options { get; }
 
         /// <summary>
-        /// Gets the configured options name.
+        /// 获取配置的选项名称。
         /// </summary>
         public string? Name { get; }
 

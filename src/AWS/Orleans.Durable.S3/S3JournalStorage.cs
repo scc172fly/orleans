@@ -31,7 +31,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
     private readonly IAmazonS3 _client;
     private readonly JournalId _journalId;
     private readonly string _walObjectKey;
-    // Null until read or creation, empty for an absent WAL.
+    // 读或创建前不为空, 空用于没有 WAL 。
     private string? _walETag;
     private WalProviderState _walProviderState;
 
@@ -151,8 +151,8 @@ internal sealed partial class S3JournalStorage : IJournalStorage
 
                 var walState = CreateWalState(properties);
 
-                // Metadata operations never establish or move the content precondition: they follow the WAL only from the version this
-                // instance holds.
+                // 元数据运行从未建立或移动内容的先决条件:它们只从版本中遵循WAL
+                // 情况是否有效。
                 var holdsWalVersion = WalExists
                     && IsSameLogicalWal(walState.ProviderState, _walProviderState)
                     && (walState.ProviderState.Generation is not null || string.Equals(walState.ETag, _walETag, StringComparison.Ordinal));
@@ -350,7 +350,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
             var expectedProviderState = _walProviderState;
             if (!WalExists)
             {
-                // An instance which observed the journal absent deletes nothing, unless another writer has since created it.
+                // 观察日记时不删除任何内容, 除非其他作家创建了它。
                 if (await TryLoadWalStateAsync(expectedETag: null, cancellationToken).ConfigureAwait(false) is not null)
                 {
                     throw CreateConcurrentCreationException(exception: null);
@@ -822,7 +822,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
 
         try
         {
-            // This instance observed the WAL absent, so it creates the WAL only while the WAL is still absent.
+            // 实例显示,没有WAL,所以它只是在WAL仍然不存在的情况下才创建WAL。
             var created = await CreateWalAsync(
                 checkpointName: null,
                 ifMatch: null,
@@ -832,7 +832,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
         }
         catch (AmazonS3Exception exception) when (IsObjectAlreadyExists(exception) || IsConditionalRequestConflict(exception))
         {
-            // A conditional request conflict means another writer's conditional write to the WAL is in flight.
+            // 有条件的请求冲突 意味着另一个作家的有条件写作 给WAL的正在飞行。
             throw CreateConcurrentCreationException(exception);
         }
     }

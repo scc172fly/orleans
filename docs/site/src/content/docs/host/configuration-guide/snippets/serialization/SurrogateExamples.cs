@@ -3,7 +3,7 @@ using Orleans;
 namespace Orleans.Docs.Snippets.Serialization;
 
 // <surrogate_value_type>
-// This is the foreign type, which you do not have control over.
+// 这是外国类型, 您无法控制 。
 public struct MyForeignLibraryValueType
 {
     public MyForeignLibraryValueType(int num, string str, DateTimeOffset dto)
@@ -18,8 +18,8 @@ public struct MyForeignLibraryValueType
     public DateTimeOffset DateTimeOffset { get; }
 }
 
-// This is the surrogate which will act as a stand-in for the foreign type.
-// Surrogates should use plain fields instead of properties for better performance.
+// 这是替代物, 将充当外国类型的替身。
+// 代孕国应使用平原字段而不是特性来改进性能。
 [GenerateSerializer]
 public struct MyForeignLibraryValueTypeSurrogate
 {
@@ -33,7 +33,7 @@ public struct MyForeignLibraryValueTypeSurrogate
     public DateTimeOffset DateTimeOffset;
 }
 
-// This is a converter that converts between the surrogate and the foreign type.
+// 这是在代位和外国类型之间转换的转换器。
 [RegisterConverter]
 public sealed class MyForeignLibraryValueTypeSurrogateConverter :
     IConverter<MyForeignLibraryValueType, MyForeignLibraryValueTypeSurrogate>
@@ -54,7 +54,7 @@ public sealed class MyForeignLibraryValueTypeSurrogateConverter :
 // </surrogate_value_type>
 
 // <surrogate_class_with_populator>
-// The foreign type is not sealed, allowing other types to inherit from it.
+// 外国类型不密封,允许其他类型继承。
 public class MyForeignLibraryType
 {
     public MyForeignLibraryType() { }
@@ -71,7 +71,7 @@ public class MyForeignLibraryType
     public DateTimeOffset DateTimeOffset { get; set; }
 }
 
-// The surrogate is defined as it was in the previous example.
+// 代位人的定义与上一个例子中的定义相同。
 [GenerateSerializer]
 public struct MyForeignLibraryTypeSurrogate
 {
@@ -85,7 +85,7 @@ public struct MyForeignLibraryTypeSurrogate
     public DateTimeOffset DateTimeOffset;
 }
 
-// Implement the IConverter and IPopulator interfaces on the converter.
+// 在转换器上安装 Iconverter 和 IPopulator 接口。
 [RegisterConverter]
 public sealed class MyForeignLibraryTypeSurrogateConverter :
     IConverter<MyForeignLibraryType, MyForeignLibraryTypeSurrogate>,
@@ -113,8 +113,8 @@ public sealed class MyForeignLibraryTypeSurrogateConverter :
     }
 }
 
-// Application types can inherit from the foreign type, assuming they're not sealed
-// since Orleans knows how to serialize it.
+// 申请类型可以继承外国类型的申请,但前提是这些申请类型不密封
+// 自 Orleans 知道如何对它进行序列分类以来。
 [GenerateSerializer]
 public sealed class DerivedFromMyForeignLibraryType : MyForeignLibraryType
 {

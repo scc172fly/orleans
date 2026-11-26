@@ -1,48 +1,58 @@
 ---
-title: Client configuration
-description: Configure an Orleans external client.
+title: "客户配置"
+description: "配置 Orleans 外部客户端。"
 ms.date: 08/02/2026
 ms.topic: how-to
 ---
 
-# Client configuration
+<a id="client-configuration"></a>
 
-An external client runs outside a silo process and reaches the cluster through silo gateways. Install [Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client), call <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*>, and configure the same cluster identity and clustering provider as the silos:
+# 客户配置
+
+外部客户端在 silo 进程之外运行,并通过 silo 网关到达集群。安装 [Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client),调用 <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*>,配置与 silos相同的群集身份和群集提供者:
 
 :::code language="csharp" source="../snippets/hosting/HostingExamples.cs" id="external_client":::
 
-Client settings participate in the [.NET options pattern](https://learn.microsoft.com/dotnet/core/extensions/options). The host starts the Orleans client before later registered hosted services and stops it with the rest of the application. Resolve <xref:Orleans.IClusterClient> or <xref:Orleans.IGrainFactory> from [.NET dependency injection](https://learn.microsoft.com/dotnet/core/extensions/dependency-injection); don't build a second client singleton manually or create a new client per request.
+客户参与 [.NET 选项模式](https://learn.microsoft.com/dotnet/core/extensions/options)。主机开始 Orleans 客户端在后来登记托管服务之前,先注册托管服务,然后与应用程序的其余部分停止服务。 <xref:Orleans.IClusterClient> 或 <xref:Orleans.IGrainFactory> 调自 [.NET 依赖性注射](https://learn.microsoft.com/dotnet/core/extensions/dependency-injection);不要手工创建第二个客户端单键,或者根据请求创建一个新的客户端。
 
-For ASP.NET Core and other generic-host apps, keep a single client instance for the lifetime of the process. This is the same client you inject into controllers, background workers, hosted services, and other long-lived components. The host owns startup and shutdown; do not dispose the dependency-injected singleton or replace it with a static cache.
+对于 ASP.NET 核心应用程序和其他通用主机应用程序,在程序寿命期间保留一个客户实例。 这是您输入控制器、背景工人、托管服务和其他长寿部件的同一客户。 东道方拥有启动和关闭功能; 不处置依赖性注入单吨或用静态缓存替换它 。
 
-## Orleans clustering information
+<a id="orleans-clustering-information"></a>
+
+## Orleans 群集信息
 
 - <xref:Orleans.Configuration.ClusterOptions.ServiceId> identifies the logical Orleans application and should remain stable.
 - <xref:Orleans.Configuration.ClusterOptions.ClusterId> identifies one deployment of that service. Use a different value to isolate environments or parallel deployments.
-- The client clustering provider discovers gateway-enabled silos. Its settings must point to the same membership data as the silos.
+- 客户群集提供者发现有网关功能的 silos。其设置必须指向与 silos相同的成员数据。
 
-### Clustering provider
+<a id="clustering-provider"></a>
 
-Common production [clustering packages](server-configuration.md#clustering-provider) include Azure Table Storage, ADO.NET, Redis, Azure Cosmos DB, DynamoDB, Consul, and ZooKeeper. Static and localhost clustering are intended for development. Kubernetes hosting is a silo integration, not a client clustering provider.
+### 集群集集供应商
 
-When Aspire supplies the Orleans resource, register the corresponding keyed service client and use the parameterless form:
+通用生产 [组合组合套包](server-configuration.md#clustering-provider) 包括 Azure 表格储存、 ADO.NET、 Redis、 Azure 宇宙DB、 DynamoDB、领事和 ZooKeeper。静态和本地主机集群是用于开发的。 Kubernetes 托管是一个 silo 整合,而不是客户集群提供者。
+
+当 Aspire 提供 Orleans 资源时, 请注册相应的按键服务客户端并使用无参数表单:
 
 :::code language="csharp" source="../snippets/aspire/Client/ClientProgram.cs" id="client_basic_config":::
 
-## Connection resiliency
+<a id="connection-resiliency"></a>
 
-Orleans registers a default <xref:Orleans.IClientConnectionRetryFilter>. It retries eligible initial connection failures with linear backoff, up to 15 retries. Host startup fails if the client still can't connect, the host is stopping, or the failure isn't considered retryable.
+## 连接相继性
 
-Override the policy only when the application has different startup requirements:
+Orleans 登记了一个默认 <xref:Orleans.IClientConnectionRetryFilter>。 它会重新输入符合初始连接失败条件的线性回溯, 最多15次重试。 如果客户端仍然无法连接、 主机正在停止或者失败被视为不可重试, 则主机启动失败 。
+
+仅在应用程序有不同的启动要求时才覆盖政策:
 
 :::code language="csharp" source="../snippets/hosting/HostingExamples.cs" id="client_retry":::
 
-Bound every custom retry policy and honor the cancellation token so deployments can fail fast and shutdown isn't delayed indefinitely.
+打破每一个习惯重试政策 并尊重取消的象征 这样部署可以快速失败 并且关闭不会无限期推迟
 
-Initial connection retries don't make grain calls idempotent. A call can fail after the target started processing it, so retry application operations only when their semantics tolerate duplicates. Grain references remain usable after transient connectivity failures.
+初始连接重写不会使 grain 调用无效。 目标开始处理后, 呼叫可能失败, 所以只有在它们的语义能容忍重复时才能重新尝试应用程序操作 。 Grain 引用在短暂连接故障后仍然可用 。
 
-## Gateway behavior
+<a id="gateway-behavior"></a>
 
-Configure gateway refresh and connection behavior through <xref:Orleans.Configuration.GatewayOptions> or `Orleans:Gateway`. Orleans refreshes the gateway list from the clustering provider and reconnects as gateways become unavailable. Expose gateway endpoints only to client networks that require them; silo-to-silo traffic uses a separate endpoint.
+## 网关行为
 
-For a co-hosted client, use <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*> instead. The silo's client communicates directly with the cluster and doesn't require a gateway hop.
+配置网关更新和连接行为, 通过 <xref:Orleans.Configuration.GatewayOptions> 或 `Orleans:Gateway`。 Orleans 将网关列表从集群提供者中刷新, 当网关无法使用时重新连接。 仅向客户网络提供端点, 用户网络需要这些端点; silo-silo 流量使用单独的端点 。
+
+对于联合托管的客户端, 请使用 <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*> 。 silo的客户端直接与该组直接沟通, 不需要连接跳 。

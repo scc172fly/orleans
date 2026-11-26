@@ -5,39 +5,39 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Functionality for querying and interacting with cluster membership.
+    /// 与分组成员进行查询和互动的职能。
     /// </summary>
     public interface IClusterMembershipService
     {
         /// <summary>
-        /// Gets the most recent cluster membership snapshot.
+        /// 获得最新的分组成员简况。
         /// </summary>
-        /// <value>The current snapshot.</value>
+        /// <value>当前快照。</value>
         ClusterMembershipSnapshot CurrentSnapshot { get; }
 
         /// <summary>
-        /// Gets an enumerable collection of membership updates.
+        /// 收集了大量会员最新资料
         /// </summary>
         /// <remarks>
-        /// Versions advance with canonical membership changes. Updates at the same version can
-        /// prune dead rows or advance this observer's knowledge of absent silo identities.
+        /// 版本前端,会籍会用卡通式更改。 同一版本的更新可以
+        /// 将死行删除或提高该观察员对缺失 silo 身份的知情度。
         /// </remarks>
-        /// <value>The membership updates.</value>
+        /// <value>成员最新情况。</value>
         IAsyncEnumerable<ClusterMembershipSnapshot> MembershipUpdates { get; }
 
         /// <summary>
-        /// Refreshes cluster membership if it is not at or above the specified minimum version.
+        /// 如果组群成员不达到或超过规定的最低限度版本,则更新其成员。
         /// </summary>
-        /// <param name="minimumVersion">The minimum version.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="ValueTask"/> representing the work performed.</returns>
+        /// <param name="minimumVersion">最小版本。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="ValueTask"/> 代表所完成的工作。</returns>
         ValueTask Refresh(MembershipVersion minimumVersion = default, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Unilaterally declares the specified silo defunct.
+        /// 单方面宣布指定的 silo 已失效。
         /// </summary>
-        /// <param name="siloAddress">The silo address which is being declared defunct.</param>
-        /// <returns><see langword="true"/> if the silo has been evicted, <see langword="false"/> otherwise.</returns>
+        /// <param name="siloAddress">下 silo 地址已声明失效 。</param>
+        /// <returns><see langword="true"/> 如果 silo 被逐出家园, <see langword="false"/> 否则。</returns>
         Task<bool> TryKill(SiloAddress siloAddress);
     }
 }

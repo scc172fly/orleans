@@ -4,49 +4,49 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// Caches grain directory entries.
+    /// 音箱 grain 目录条目。
     /// </summary>
     public interface IGrainDirectoryCache
     {
         /// <summary>
-        /// Adds a new entry with the given version into the cache: key (grain) --> value
-        /// The new entry will override any existing entry under the given key, 
-        /// regardless of the stored version
+        /// 将带有给定版本的新条目添加到缓存中:密钥 (grain) -- > 值
+        /// 新条目将超过给定密钥下的任何现有条目, 
+        /// 不论储存版本
         /// </summary>
-        /// <param name="value">value to add</param>
-        /// <param name="version">version for the value</param>
+        /// <param name="value">值以添加</param>
+        /// <param name="version">值版本的版本</param>
         void AddOrUpdate(GrainAddress value, int version);
 
         /// <summary>
-        /// Removes an entry from the cache given its key
+        /// 以密钥为条件, 从缓存中删除条目
         /// </summary>
-        /// <param name="key">key to remove</param>
-        /// <returns>True if the entry was in the cache and the removal was successful</returns>
+        /// <param name="key">要删除的密钥</param>
+        /// <returns>如果条目在缓存中且清除成功, 则正确</returns>
         bool Remove(GrainId key);
 
         /// <summary>
-        /// Removes an entry from the cache given its key
+        /// 以密钥为条件, 从缓存中删除条目
         /// </summary>
-        /// <param name="key">key to remove</param>
-        /// <returns>True if the entry was in the cache and the removal was successful</returns>
+        /// <param name="key">要删除的密钥</param>
+        /// <returns>如果条目在缓存中且清除成功, 则正确</returns>
         bool Remove(GrainAddress key);
 
         /// <summary>
-        /// Clear the cache, deleting all entries.
+        /// 清除缓存, 删除所有条目 。
         /// </summary>
         void Clear();
 
         /// <summary>
-        /// Looks up the cached value and version by the given key
+        /// 根据给定密钥查找缓存值和版本
         /// </summary>
-        /// <param name="key">key for the lookup</param>
-        /// <param name="result">value if the key is found, undefined otherwise</param>
-        /// <param name="version">version of cached value if the key is found, undefined otherwise</param>
-        /// <returns>true if the given key is in the cache</returns>
+        /// <param name="key">查找的密钥</param>
+        /// <param name="result">如果找到密钥,则未另定义的键值</param>
+        /// 如果找到密钥, 则未另定义的缓存值<param name="version">版本</param>
+        /// <returns>如果给定的密钥在缓存</returns>中, 则是真
         bool LookUp(GrainId key, [NotNullWhen(true)] out GrainAddress? result, out int version);
 
         /// <summary>
-        /// Returns list of key-value-version tuples stored currently in the cache.
+        /// 返回当前存储在缓存中的键值转换图盘列表 。
         /// </summary>
         IEnumerable<(GrainAddress ActivationAddress, int Version)> KeyValues { get; }
     }
@@ -54,12 +54,12 @@ namespace Orleans.Runtime.GrainDirectory
     internal static class GrainDirectoryCacheExtensions
     {
         /// <summary>
-        /// Looks up the cached value by the given key.
+        /// 查找给定密钥的缓存值 。
         /// </summary>
-        /// <param name="cache">grain directory cache to look up results from</param>
-        /// <param name="key">key for the lookup</param>
-        /// <param name="result">value if the key is found, undefined otherwise</param>
-        /// <returns>true if the given key is in the cache</returns>
+        /// <param name="cache">grain 目录缓存,以查找</param>的结果
+        /// <param name="key">查找的密钥</param>
+        /// <param name="result">如果找到密钥,则未另定义的键值</param>
+        /// <returns>如果给定的密钥在缓存</returns>中, 则是真
         public static bool LookUp(this IGrainDirectoryCache cache, GrainId key, [NotNullWhen(true)] out GrainAddress? result)
         {
             return cache.LookUp(key, out result, out _);

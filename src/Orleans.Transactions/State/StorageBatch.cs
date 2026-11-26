@@ -9,76 +9,76 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Receives transactional state changes which are accumulated into a storage batch.
+    /// 接收累积到储存批次的交易状态变化。
     /// </summary>
-    /// <typeparam name="TState">The transactional state type.</typeparam>
+    /// <typeparam name="TState">交易状态类型。</typeparam>
     public interface ITransactionalStateStorageEvents<TState> where TState : class, new()
     {
         /// <summary>
-        /// Adds or replaces a prepared state version.
+        /// 添加或替换已备好的国家版本。
         /// </summary>
-        /// <param name="sequenceNumber">The local sequence number assigned to the transaction.</param>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timestamp">The transaction commit timestamp.</param>
-        /// <param name="transactionManager">The transaction manager coordinating the transaction.</param>
-        /// <param name="state">The state produced by the transaction.</param>
+        /// <param name="sequenceNumber">交易的本地序列编号 。</param>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timestamp">交易承诺时间戳。</param>
+        /// <param name="transactionManager">交易经理协调交易。</param>
+        /// <param name="state">交易产生的国家。</param>
         void Prepare(long sequenceNumber, Guid transactionId, DateTime timestamp, ParticipantId transactionManager, TState state);
 
         /// <summary>
-        /// Records a read at the specified logical timestamp.
+        /// a 记录在指定的逻辑时间戳上读取。
         /// </summary>
-        /// <param name="timestamp">The logical timestamp of the read.</param>
+        /// <param name="timestamp">读取的逻辑时间戳。</param>
         void Read(DateTime timestamp);
 
         /// <summary>
-        /// Cancels the prepared state version with the specified sequence number and excludes that version and later prepared versions from the batch.
+        /// 取消带有指定序列号的预发状态版本,并排除该版本和后来编印的版本。
         /// </summary>
-        /// <param name="sequenceNumber">The sequence number to cancel.</param>
+        /// <param name="sequenceNumber">要取消的序列号 。</param>
         void Cancel(long sequenceNumber);
 
         /// <summary>
-        /// Confirms committed state through the specified sequence number.
+        /// 确认承诺通过指定序列号表明状态。
         /// </summary>
-        /// <param name="sequenceNumber">The confirmed sequence number.</param>
+        /// <param name="sequenceNumber">确定序列号</param>
         void Confirm(long sequenceNumber);
 
         /// <summary>
-        /// Records a committed transaction for recovery.
+        /// 记录承诺的收回交易。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timestamp">The transaction commit timestamp.</param>
-        /// <param name="writeResources">The participants which wrote during the transaction.</param>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timestamp">交易承诺时间戳。</param>
+        /// <param name="writeResources">交易期间写作的参与者。</param>
         void Commit(Guid transactionId, DateTime timestamp, List<ParticipantId> writeResources);
 
         /// <summary>
-        /// Removes the recovery record for the specified transaction.
+        /// 删除指定交易的回收记录。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
+        /// <param name="transactionId">交易识别特征。</param>
         void Collect(Guid transactionId);
     }
 
     /// <summary>
-    /// Accumulates storage events, for submitting them to storage as a batch.
+    /// 积累储存事件,因为将之分批存放。
     /// </summary>
     /// <typeparam name="TState"></typeparam>
     internal class StorageBatch<TState> : ITransactionalStateStorageEvents<TState>
         where TState : class, new()
     {
-        // watermarks for commit, prepare, abort
+        // 用于承诺、准备、中止的水印
         private long confirmUpTo;
         private long cancelAbove;
         private readonly long cancelAboveStart;
 
-        // prepare records
+        // 编制记录
         private readonly SortedDictionary<long, PendingTransactionState<TState>> prepares;
         private readonly List<Guid> committedTransactionIds;
 
-        // follow-up actions, to be executed when this batch completes
+        // 后续行动,待这批货物完成后执行
         private readonly List<Action<bool>> followUpActions;
         private readonly List<Func<Task<bool>>> storeConditions;
         private int completionInvoked;
 
-        // counters for each type of event
+        // 每种事件类型的反对数
         private int total = 0;
         private int prepare = 0;
         private int read = 0;
@@ -201,7 +201,7 @@ namespace Orleans.Transactions
 
             confirmUpTo = sequenceNumber;
 
-            // remove all redundant prepare records that are superseded by a later confirmed state
+            // 删除所有多余的备案记录, 以后确认状态取代
             while (true)
             {
                 long? first = this.prepares.Values.FirstOrDefault()?.SequenceId;

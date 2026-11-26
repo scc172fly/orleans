@@ -27,7 +27,7 @@ public interface IArchiveGrain : IGrainWithStringKey
 }
 // </durable_tasks_identity_contracts>
 
-// The tree shows the generated identifier, $child-2, which an unnamed detached task's root ID derives from.
+// 树上显示生成的识别符号,即$Child-2,这是一个未命名的单独任务根号ID的来源。
 #pragma warning disable ORLEANS0220
 // <durable_tasks_identity_tree>
 public sealed class ReportGrain(IDurableTaskManager tasks) : DurableGrain, IReportGrain
@@ -38,39 +38,39 @@ public sealed class ReportGrain(IDurableTaskManager tasks) : DurableGrain, IRepo
 
     public static string PublishTaskId(string reportId) => $"publish-{reportId}";
 
-    // The caller starts this task under the root ID "publish-{reportId}", which DurableTask.Current.Id reports.
+    // 调用者在“ 发布 - {reportId}” 根号ID下启动此项任务, 由 DurableTask.Current.Id 报告。
     public async DurableTask<PublishReceipt> PublishAsync(string[] sections)
     {
-        // publish-{reportId}/version, a named recorded effect, as WithId("version") names a step.
+        // {reportId}/version,一个有名的录音效果,作为 WithId(“转换”) ,指一个步骤。
         var version = DurableTask.RunInline("version", () => DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
-        // publish-{reportId}/$child-1, the execution's first unnamed operation.
+        // 发布 -{reportId以1美元为单位的死刑执行
         var draftId = DurableTask.RunInline(Guid.NewGuid);
 
-        // publish-{reportId}/render/0, render/1, and so on: a named combinator's inputs, in input order. Each renderer
-        // stores its call under the caller's scope, $caller/{reportGrainId}/{incarnation}/publish-{reportId}/render/{i},
-        // where {incarnation} identifies this run of publish-{reportId}.
+        // {reportId}/render/0, imecury/1 等: 命名的组合器输入, 按输入顺序排列。
+        // 将调用电话存储在调用范围下,$caller/{reportGrainId}/{incarnation}/publish-{reportId}/render/{i},
+        // 此处的{incarnation} 标明此期出版 -{reportId} 。
         await sections.Select(section => Renderer(section).RenderAsync(section)).WhenAll().WithId("render");
 
-        // publish-{reportId}/check, then check$2, check$3, and so on: one name which this run repeats.
+        // {reportId}/ check, 然后检查2美元, 3美元等等: 此运行重复的一名称 。
         foreach (var section in sections)
         {
             await Check(section, draftId).WithId("check");
         }
 
-        // publish-{reportId}/$signal:approved, the signal's record beneath the invoked task.
+        // {reportId}/$ignal: 批准, 信号记录在引用的任务之下 。
         if (!await Approved.WaitAsync())
         {
             return new(DurableTask.Current.Id, default, default, default);
         }
 
-        // A named detached task: the root "archive-{reportId}" on the archive grain. The execution records the start as
-        // publish-{reportId}/$detach:{archiveGrainId}:archive-{reportId}, which the handle's Id reports.
+        // 命名的分离任务: 根“ 存档 - {reportId档案上 grain。执行记录起始为
+        // {reportId}/ $detach:{{archiveGrainId}}: 存档{reportId}},这是处理器的 Id 报告。
         var archive = await Archive().ArchiveAsync(ReportId, (int)version).Detached($"archive-{ReportId}")
             .ScheduleAsync();
 
-        // An unnamed detached task: its root ID derives from this grain, this task, and the next unnamed operation,
-        // "{reportGrainId}/publish-{reportId}:$child-2".
+        // 一项未命名的独立任务:其根代号来自此 grain、此任务和下一个未命名的行动,
+        // "{reportGrainId/出版 -{reportId$Child -2" 钱
         var copy = Archive().ArchiveAsync($"{ReportId}-copy", (int)version).Detached().Post();
 
         return new(DurableTask.Current.Id, archive.TargetTaskId, copy.TargetTaskId, archive.Id);
@@ -93,13 +93,13 @@ internal static class ReportClient
     // <durable_tasks_identity_client>
     public static async Task<PublishReceipt> PublishAsync(IClusterClient client, string reportId, string[] sections)
     {
-        // The root ID comes from the report's identity, so a retried request reaches the same task.
+        // 根的ID来自报告的身份 所以重新审理的请求 达到同样的任务
         ScheduledTask<PublishReceipt> publish = await client.GetGrain<IReportGrain>(reportId)
             .PublishAsync(sections)
             .WithId(ReportGrain.PublishTaskId(reportId))
             .ScheduleAsync();
 
-        // Outside a durable task, a handle's Id and TargetTaskId are both the root ID.
+        // 外部的持久任务,把手的代号与 TargetTaskId 是根身份。
         Console.WriteLine($"{publish.Id} {publish.TargetTaskId}");
         return await publish;
     }
@@ -108,7 +108,7 @@ internal static class ReportClient
     // <durable_tasks_identity_lookup>
     public static async Task<DurableTaskStatus> GetArchiveStatusAsync(IClusterClient client, string reportId)
     {
-        // A named root is addressed by its grain and its name, which every party derives from the report's identity.
+        // 命名的根用其 grain 及其名称来标出,每个当事方都源于报告的身份。
         var archive = client.GetGrain<IArchiveGrain>("archive").GetDurableTask<bool>($"archive-{reportId}");
         return await archive.GetStatusAsync(new PollingOptions { PollTimeout = TimeSpan.Zero });
     }
@@ -135,25 +135,25 @@ public sealed class PublisherGrain : DurableGrain, IPublisherGrain
 
     public async DurableTask HandOffAsync(string reportId)
     {
-        // A detached task is a root on the archive grain, so its handle has an address.
+        // 独立任务是归档 grain的根, 因此它的处理有一个地址 。
         var archive = await GrainFactory.GetGrain<IArchiveGrain>("archive")
             .ArchiveAsync(reportId, version: 1)
             .Detached()
             .ScheduleAsync();
         archive.TryGetAddress(out var address);
 
-        // The synchronous tail: the address commits with this task's result.
+        // 同步尾巴: 地址与任务结果连接 。
         _archive.Value = address;
     }
 
-    // A durable task subscribes to the stored task, and the subscription is recorded for replay.
+    // 持久任务订阅存储的任务,而订阅则记录重播。
     public async DurableTask<bool> AwaitArchiveAsync()
     {
         var archive = DurableTask.RunInline("archive", () => _archive.Value);
         return archive is { } address && await GrainFactory.GetDurableTask<bool>(address).WithId("archived");
     }
 
-    // An ordinary method polls or cancels the stored task through the same address.
+    // 普通方法调查或通过同一地址取消存储的任务。
     public async Task<DurableTaskStatus?> GetArchiveStatusAsync() =>
         _archive.Value is { } address
             ? await GrainFactory.GetDurableTask<bool>(address).GetStatusAsync(new PollingOptions { PollTimeout = TimeSpan.Zero })
@@ -172,7 +172,7 @@ public sealed class PublisherGrain : DurableGrain, IPublisherGrain
 internal static class ReportApi
 {
     // <durable_tasks_identity_send>
-    // Returns the address to an HTTP caller: System.Text.Json writes {"Target":"report/q3","Id":"publish-q3"}.
+    // 返回 HTTP 呼叫器的地址: System.Text.Json 写 {"Target":"报告/q3","Id":"Publish-q3"}。
     public static async Task<DurableTaskAddress> StartPublishAsync(IClusterClient client, string reportId, string[] sections)
     {
         var publish = await client.GetGrain<IReportGrain>(reportId)
@@ -183,7 +183,7 @@ internal static class ReportApi
         return address;
     }
 
-    // A later request carries the address back, and signals, awaits, or cancels the task.
+    // 以后的请求又将地址回送,发出信号、等待或取消任务。
     public static async Task<DurableSignalResult> ApproveAsync(IClusterClient client, DurableTaskAddress publish, bool approved) =>
         await client.GetGrain(publish.Target).TrySignalDurableTaskAsync(publish.Id, ReportGrain.Approved, approved);
 

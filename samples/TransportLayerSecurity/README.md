@@ -7,52 +7,62 @@ products:
 page_type: sample
 name: "Orleans Transport Layer Security (TLS) sample"
 urlFragment: "orleans-transport-layer-security-tls"
-description: "An Orleans sample demonstrating transport layer security (TLS)."
+description: "证明运输层安全(TLS)的 Orleans 样本。"
 ---
 
-# Orleans Transport Layer Security (TLS) sample
+<a id="orleans-transport-layer-security-tls-sample"></a>
 
-This sample demonstrates a client and silo which communicate over a channel secured by mutual Transport Layer Security (mTLS).
+# Orleans 运输层安全抽样
 
-## Running the sample
+该样本显示客户和 silo 通过相互运输层安全(mTLS)保障的通道进行通信。
 
-The sample automatically creates a self-signed certificate if one doesn't exist. Simply run the sample:
+<a id="running-the-sample"></a>
+
+## 运行样本
+
+如果不存在样本, 样本会自动创建自签名证书。 只需运行此样本 :
 
 ```powershell
 .\run.cmd
 ```
 
-Or on Linux/macOS:
+或 Linux/macOS上:
 
 ```bash
 ./run.sh
 ```
 
-The sample will:
+样本将:
 
-1. Check if a certificate named `fakedomain.faketld` exists in the user's certificate store
-2. If not found, automatically create a self-signed certificate and store it
-3. Start the silo and client using TLS for all communication
+1. 检查用户证书存储中是否存在名为 `fakedomain.faketld` 的证书
+2. 如果找不到, 自动创建自签名证书并保存
+3. 启动 silo 和客户端使用 TLS 进行所有通信
 
-## Key concepts
+<a id="key-concepts"></a>
 
-The important parts of this sample are:
+## 关键概念
 
-* Automatic self-signed certificate generation for development
-* Configuring the server and client to use mutual-TLS for authenticating connections
+样本的重要部分是:
 
-### Certificate management
+* 开发自动自签名证书生成
+* 配置服务器和客户端以使用相互 TLS验证连接
 
-The `CertificateHelper` class in `TLS.Contracts` handles certificate management:
+<a id="certificate-management"></a>
+
+### 证书管理
+
+下 `CertificateHelper` 类内 `TLS.Contracts` 处理证书管理 :
 
 ```csharp
 // Automatically ensures a certificate exists (creates if missing)
 CertificateHelper.EnsureCertificateExists();
 ```
 
-### TLS configuration
+<a id="tls-configuration"></a>
 
-The `ISiloBuilder.UseTls(...)` in [`Program.cs`](./TLS.Server/Program.cs) on the server and `IClientBuilder.UseTls` on the client configure TLS:
+### TLS 配置
+
+下 `ISiloBuilder.UseTls(...)` 内 [`Program.cs`](./TLS.Server/Program.cs) 服务器上和 `IClientBuilder.UseTls` 客户端配置 TLS 时:
 
 ```csharp
 builder.UseTls(
@@ -77,39 +87,49 @@ builder.UseTls(
     })
 ```
 
-## Manual certificate management
+<a id="manual-certificate-management"></a>
 
-### Creating a certificate manually (optional)
+## 手工证书管理
 
-If you prefer to create the certificate manually using PowerShell:
+<a id="creating-a-certificate-manually-optional"></a>
+
+### 手动创建证书( 可选择)
+
+如果您选择使用 PowerShell手动创建证书:
 
 ```powershell
 $cert = New-SelfSignedCertificate -CertStoreLocation Cert:\CurrentUser\My -DnsName "fakedomain.faketld"
 ```
 
-### Removing the certificate
+<a id="removing-the-certificate"></a>
 
-To remove the self-signed certificate after running the sample:
+### 删除证书
+
+运行样本后删除自签名证书:
 
 ```powershell
 Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -like "*fakedomain.faketld*" } | Remove-Item
 ```
 
-## Sample prerequisites
+<a id="sample-prerequisites"></a>
 
-This sample is written in C# and targets .NET 10. It requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+## 抽样的前提条件
 
-## Building the sample
+本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
 
-To download and run the sample, follow these steps:
+<a id="building-the-sample"></a>
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
+## 建立样本
+
+下载和运行样本时,请遵循以下步骤:
+
+1. 下载并解开样本的平面
+2. 视觉演播室(2022年或以后):
+    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
     2. Navigate to the folder that holds the unzipped sample code, and open the solution file.
     3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. Run `.\run.cmd` (Windows) or `./run.sh` (Linux/macOS).
+3. 从命令行 :
+   1. 导航到持有未设偏移样本代码的文件夹 。
+   2. 运行 `.\run.cmd` (窗口) 或 `./run.sh` (林克斯/macOS)。
 
-***NOTE:*** Ensure that security best practices are followed when deploying your application to a production environment. Use CA-issued certificates and do not allow invalid certificates in production.
+***注:*** 确保在将您应用到生产环境中时遵循安全最佳做法。使用CA签发的证书,不允许无效的生产证书。

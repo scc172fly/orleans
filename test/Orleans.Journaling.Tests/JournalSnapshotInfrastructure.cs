@@ -8,36 +8,36 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Codec-agnostic snapshot formatting helpers used by both the binary and JSONL codec snapshot tests.
+/// 二进制和JSONL代码快照测试所使用的编码化快速格式化辅助器。
 /// </summary>
 /// <remarks>
-/// These helpers intentionally know nothing about specific command discriminators. The OrleansBinary
-/// dictionary/list/queue/set/value/state codecs use a varuint command id, but the TaskCompletionSource
-/// codec uses a single status byte. Parsing only the universal framing (entry length prefix and stream id)
-/// keeps the helper applicable to every codec family while still surfacing the per-entry boundaries
-/// reviewers need to read snapshot diffs.
+/// 这些帮手有意对特定指挥歧视者一无所知。 OrleansBinary
+/// 字典/list/queue/set/valu/ State codecs 使用 varint 命令代号,但 TaskCompletionSource
+/// 代码化使用单一状态字节。 只分割通用框架( 输入长度前缀和流代号)
+/// 保持帮助者在继续跨越每次进入边界时, 将助手保留为每个编码家庭所适用
+/// 审查人员需要阅读快照。
 /// </remarks>
 public static class JournalSnapshotFormatting
 {
     /// <summary>
-    /// Returns an uppercase, no-separator hexadecimal representation of <paramref name="bytes"/>.
+    /// 返回 <paramref name="bytes"/>的大写、无分隔符十六进制表示。
     /// </summary>
     /// <remarks>
-    /// This is the byte-level baseline used as the first line of binary snapshot files: any wire-format
-    /// drift fails CI by changing this single line.
+    /// 这是作为二进制快照文件第一行使用的字节基线: 任何线格式
+    /// 修改单行时, 无法将 CI 移动 。
     /// </remarks>
     public static string HexBaseline(ReadOnlySpan<byte> bytes) => Convert.ToHexString(bytes);
 
     /// <summary>
-    /// Renders an OrleansBinary journal segment as a snapshot-friendly multi-line view.
+    /// 重命名一个 OrleansBinary 日记段,作为方便快照多线视图。
     /// </summary>
     /// <remarks>
-    /// The output begins with a single <c>HEX: …</c> line (the byte-level baseline) followed by a
-    /// <c>DISASSEMBLY:</c> section. For each entry the disassembly emits a header line with the
-    /// universal-framing fields the OrleansBinary readers parse (entry frame version, entry body length,
-    /// and stream id) and a 16-byte-per-row hex+ASCII dump of the command payload. If the
-    /// segment is malformed the disassembly falls back to a raw dump of the unparsed tail; this lets the
-    /// helper be used safely even for adversarial inputs without throwing during snapshot generation.
+    /// 输出以单 <c>HEX: …</c> 行(字数级基准)开始,然后是
+    /// <c>DISASSEMBLY:</c> 区域。对每一条目,拆卸的拆散释放一个与
+    /// 通用设置字段 OrleansBinary 阅读器分析(输入框架版本、输入体长度,
+    /// 命令有效载荷的16字节/秒x+ASCII倾弃。如果
+    /// 将拆卸后跌回到未分割尾巴的原始倾弃处;这让
+    /// 即使在对抗性投入中,也安全地使用辅助手,在拍片时不扔掷。
     /// </remarks>
     public static string FormatBinary(ReadOnlySpan<byte> bytes)
     {
@@ -51,8 +51,8 @@ public static class JournalSnapshotFormatting
             return builder.ToString();
         }
 
-        // Copy to an array so we can re-use the byte[] from inside the loop without being constrained by
-        // span semantics across method boundaries (StringBuilder calls, hex/ASCII dump helper).
+        // 复制到数组, 这样我们就可以在不受限制的情况下从循环中重新使用字节
+        // 跨方法边界的语义(StringBuilder 呼叫,Hex/ASCII倾弃助手)
         var data = bytes.ToArray();
         using var bufferWriter = new ArcBufferWriter();
         bufferWriter.Write(data);
@@ -181,8 +181,8 @@ public static class JournalSnapshotFormatting
     }
 
     /// <summary>
-    /// Decodes one Orleans-format varint (variable-length unsigned integer). Returns <c>false</c> when
-    /// the input does not contain a complete varint.
+    /// 解码 1 Orleans-format varint (可变长无符号整数)。 <c>false</c> 何时
+    /// 输入不包含完整的正弦。
     /// </summary>
     private static bool TryDecodeVarUInt(ArcBuffer input, out ulong value, out int bytesRead)
     {
@@ -207,9 +207,9 @@ public static class JournalSnapshotFormatting
     }
 
     /// <summary>
-    /// Appends a canonical <c>OFFSET  16-byte hex  | ASCII</c> dump of <paramref name="bytes"/> to
-    /// <paramref name="builder"/>. Output uses literal <c>\n</c> so the produced text is identical on
-    /// Windows and Linux CI without depending on <see cref="Environment.NewLine"/>.
+    /// 附加一个语库 <c>OFFSET  16-byte hex  | ASCII</c> 倾 <paramref name="bytes"/> 至
+    /// <paramref name="builder"/>。输出使用字 <c>\n</c> ,因此产生的文本在
+    /// Windows 和 Linux CI 无需取决于 <see cref="Environment.NewLine"/>。
     /// </summary>
     private static void AppendHexAsciiDump(StringBuilder builder, ReadOnlySpan<byte> bytes)
     {
@@ -326,9 +326,9 @@ public static class JournalTestReplayContext
 }
 
 /// <summary>
-/// Recording <see cref="IStateMachine"/> for dictionary-codec snapshot tests. Implements both the
-/// state contract (so the journal readers will dispatch into it) and the dictionary operation handler
-/// (so the codec accepts it via <c>state is THandler</c>).
+/// 记录 <see cref="IStateMachine"/> 字典编码快照测试。
+/// 状态合同( 这样日记阅读器会发送到它) 和字典操作处理程序
+/// (因此编码器通过 <c>state is THandler</c>接受)。
 /// </summary>
 public sealed class RecordingDictionaryState<TKey, TValue> : IStateMachine, IDurableDictionaryCommandHandler<TKey, TValue>
     where TKey : notnull
@@ -365,7 +365,7 @@ public sealed class RecordingDictionaryState<TKey, TValue> : IStateMachine, IDur
 
 }
 
-/// <summary>Recording state for list-codec snapshot tests.</summary>
+/// <summary>记录列表代码快照测试的状态</summary>
 public sealed class RecordingListState<T> : IStateMachine, IDurableListCommandHandler<T>
 {
     private readonly IDurableListCommandCodec<T> _codec;
@@ -402,7 +402,7 @@ public sealed class RecordingListState<T> : IStateMachine, IDurableListCommandHa
 
 }
 
-/// <summary>Recording state for queue-codec snapshot tests.</summary>
+/// <summary>队列码快照测试的录制状态。</summary>
 public sealed class RecordingQueueState<T> : IStateMachine, IDurableQueueCommandHandler<T>
 {
     private readonly IDurableQueueCommandCodec<T> _codec;
@@ -435,7 +435,7 @@ public sealed class RecordingQueueState<T> : IStateMachine, IDurableQueueCommand
 
 }
 
-/// <summary>Recording state for set-codec snapshot tests.</summary>
+/// <summary>设定码快照测试的记录状态</summary>
 public sealed class RecordingSetState<T> : IStateMachine, IDurableSetCommandHandler<T>
 {
     private readonly IDurableSetCommandCodec<T> _codec;
@@ -468,7 +468,7 @@ public sealed class RecordingSetState<T> : IStateMachine, IDurableSetCommandHand
 
 }
 
-/// <summary>Recording state for value-codec snapshot tests.</summary>
+/// <summary>记录价值代码快照测试的状态</summary>
 public sealed class RecordingValueState<T> : IStateMachine, IDurableValueCommandHandler<T>
 {
     private readonly IDurableValueCommandCodec<T> _codec;
@@ -501,7 +501,7 @@ public sealed class RecordingValueState<T> : IStateMachine, IDurableValueCommand
 
 }
 
-/// <summary>Recording state for state-codec snapshot tests.</summary>
+/// <summary>州码快照测试的记录状态</summary>
 public sealed class RecordingStateState<T> : IStateMachine, IPersistentStateCommandHandler<T>
 {
     private readonly IPersistentStateCommandCodec<T> _codec;
@@ -534,7 +534,7 @@ public sealed class RecordingStateState<T> : IStateMachine, IPersistentStateComm
 
 }
 
-/// <summary>Recording state for task-completion-source codec snapshot tests.</summary>
+/// <summary>任务完成记录状态 代码化快照测试</summary>
 public sealed class RecordingTcsState<T> : IStateMachine, IDurableTaskCompletionSourceCommandHandler<T>
 {
     private readonly IDurableTaskCompletionSourceCommandCodec<T> _codec;

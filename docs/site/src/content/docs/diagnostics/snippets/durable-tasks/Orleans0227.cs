@@ -23,7 +23,7 @@ public sealed class EnrollmentGrain : DurableGrain, IEnrollmentGrain
         {
             var number = ++_enrolled.Value;
 
-            // The version check throws InvalidOperationException, which the effect records as its outcome.
+            // 版本检查丢弃 InvalidOperationException, 效果记录为结果 。
             if (Welcomes.IsAtLeast(1))
             {
                 _ = GrainFactory.GetGrain<IStudentMail>(student).WelcomeAsync(student, number).WithId("welcome").Detached().Post();
@@ -41,7 +41,7 @@ public sealed class EnrollmentGrain : DurableGrain, IEnrollmentGrain
     // <orleans0227_fix>
     public async DurableTask<int> EnrollAndWelcomeAsync(string student)
     {
-        // The effect returns the seat, and the body checks the version and starts the welcome.
+        // 效果返回座位,身体检查版本并开始欢迎。
         var seat = DurableTask.RunInline("seat", () => ++_enrolled.Value);
         if (Welcomes.IsAtLeast(1))
         {

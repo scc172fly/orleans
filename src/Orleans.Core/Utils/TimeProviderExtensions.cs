@@ -50,8 +50,8 @@ internal static class TimeProviderExtensions
                 return;
             }
 
-            // Task.Delay cannot represent delays beyond approximately 49.7 days. Waiting in bounded
-            // chunks preserves the absolute deadline without imposing that limit on callers.
+            // Task.Delay 的延迟时间不能超过大约49.7天。
+            // 块块保留绝对的最后期限,而不对调用者施加这一限制。
             await Task.Delay(
                 remaining > MaximumTimerDelay ? MaximumTimerDelay : remaining,
                 timeProvider,

@@ -16,7 +16,7 @@ using static Orleans.Storage.DynamoDBGrainStorage;
 namespace AWSUtils.Tests.StorageTests
 {
     /// <summary>
-    /// Tests DynamoDB storage provider functionality including read/write operations and format conversions.
+    /// 测试存储提供者的功能 DynamoDB ,包括读/写操作和格式转换。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

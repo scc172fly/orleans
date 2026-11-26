@@ -14,7 +14,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// Tests for EventHub streaming functionality with client producer/consumer scenarios and dropped client handling.
+    /// 测试 EventHub 流动功能,包括客户生产者/消费者情景和客户处理的下降。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]

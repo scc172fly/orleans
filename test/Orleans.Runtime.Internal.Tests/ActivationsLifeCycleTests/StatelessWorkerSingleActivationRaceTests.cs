@@ -15,10 +15,10 @@ using Xunit;
 namespace UnitTests.ActivationsLifeCycleTests;
 
 /// <summary>
-/// Regression tests for a race in <c>StatelessWorkerGrainContext</c> where the work loop
-/// could create a "phantom" worker on a context that had already been unregistered from
-/// the catalog, allowing more than the configured <see cref="StatelessWorkerAttribute.MaxLocalWorkers"/>
-/// activations to coexist on a single silo for the same grain id.
+/// 工作环所处 <c>StatelessWorkerGrainContext</c> 赛场回归测试
+/// 可能制造一个“幽灵”工人,
+/// 目录,允许大于配置的 <see cref="StatelessWorkerAttribute.MaxLocalWorkers"/>
+/// 激活以在单 silo 相同 grain id. 数据。
 /// </summary>
 public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActivationRaceTests.Fixture fixture)
         : IClassFixture<StatelessWorkerSingleActivationRaceTests.Fixture>
@@ -51,9 +51,9 @@ public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActiv
     private InProcessSiloHandle PrimarySilo => (InProcessSiloHandle)_fixture.HostedCluster.Primary!;
 
     /// <summary>
-    /// Deterministically verifies that once the last worker of a stateless worker context is
-    /// destroyed, the context is marked terminated, is removed from the activation directory,
-    /// and forwards a late delivery to a fresh wrapper instead of resurrecting a worker.
+    /// 确定性地核实,一旦无国籍工人中最后一名工人
+    /// 销毁,上下文标记结束,从激活目录中删除
+    /// 并发货迟到,以至于送新包装物,而不复生工人。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -90,10 +90,10 @@ public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActiv
     }
 
     /// <summary>
-    /// Deterministically exercises the original race by combining a late delivery to an
-    /// orphaned wrapper with a fresh grain call through the directory. Both operations
-    /// must use the same replacement activation so that <c>maxLocalWorkers: 1</c> is
-    /// preserved even when a terminated wrapper receives another message.
+    /// 将迟交的结合到
+    /// 带新包装的孤儿 grain 通过目录呼叫。 两种操作
+    /// 必须使用相同的替换激活, 以便 <c>maxLocalWorkers: 1</c> 是
+    /// 即使当终止的包装件收到另一则消息时, 也仍然保存 。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -143,7 +143,7 @@ public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActiv
         var messageFactory = services.GetRequiredService<MessageFactory>();
         var localSiloDetails = services.GetRequiredService<ILocalSiloDetails>();
 
-        // Local-only messages carry an ILocalRequest, which receives the outcome of the delivery.
+        // 仅当地信息含有 ILocalRequest,接收发送结果。
         var message = messageFactory.CreateMessage(request, InvokeMethodOptions.OneWay);
         message.SetInfiniteTimeToLive();
         message.IsLocalOnly = true;

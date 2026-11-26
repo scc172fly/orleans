@@ -21,23 +21,23 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Remote interface for migrating grain activations to a silo.
+/// 将 grain 启动的远程界面迁移到 silo。
 /// </summary>
 /// <remarks>
-/// Version 1 accepts queued requests with migrating grains and adds <see cref="RetargetMigratedRequests"/>.
-/// A silo sends queued requests only to silos whose manifest lists version 1 or later of this interface.
+/// 版本1接受已排队的移出 grains 的请求,并添加 <see cref="RetargetMigratedRequests"/>。
+/// A silo 仅向该接口的列表版本 1 或稍后的 silos 发送排队请求。
 /// </remarks>
 [Version(ActivationMigrationManager.MigratedRequestsVersion)]
 internal interface IActivationMigrationManagerSystemTarget : ISystemTarget
 {
     /// <summary>
-    /// Accepts migrating grains on a best-effort basis, together with the requests which were queued for them.
+    /// 接受以最佳努力方式移民 grains ,以及为他们排队的请求。
     /// </summary>
-    /// <param name="migratingGrains">The migrating grains.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="migratingGrains">移民 grains.</param>
+    /// <param name="cancellationToken">取消牌。</param>
     /// <remarks>
-    /// This silo takes ownership of the requests when it accepts the call. The activation receives them through ordinary FIFO admission.
-    /// A new activation receives the requests before it registers in the grain directory.
+    /// 该 silo 在接受电话时拥有请求的所有权,启动程序通过普通FIFO的接收程序接收。
+    /// 新的启动程序在登记到 grain 目录之前收到请求。
     /// </remarks>
     [Alias("29E9E63F")]
     ValueTask AcceptMigratingGrains(
@@ -45,10 +45,10 @@ internal interface IActivationMigrationManagerSystemTarget : ISystemTarget
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Moves pending calls on this silo to the silos which accepted their requests.
+    /// 将待决的 silo 调用电话移至接受其请求的 silos 。
     /// </summary>
-    /// <param name="routes">The calls to retarget.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="routes">重新瞄准的呼叫。</param>
+    /// <param name="cancellationToken">取消牌。</param>
     [Alias("RetargetMigratedRequests")]
     ValueTask RetargetMigratedRequests(
         [Immutable] List<MigratedRequestRoute> routes,
@@ -56,7 +56,7 @@ internal interface IActivationMigrationManagerSystemTarget : ISystemTarget
 }
 
 /// <summary>
-/// Identifies a pending call and the silo which now owns its request.
+/// 确定了待发电话和现在提出请求的 silo 。
 /// </summary>
 [GenerateSerializer, Immutable]
 internal readonly record struct MigratedRequestRoute(
@@ -68,7 +68,7 @@ internal readonly record struct MigratedRequestRoute(
 [Immutable]
 internal struct GrainMigrationPackage
 {
-    // The wire payload has one owner even when completion races with serialization.
+    // 即使在完成序列的竞赛中,电线有效载荷也只有一个所有人。
     [field: NonSerialized]
     internal ActivationMigration? Source { get; init; }
 
@@ -79,7 +79,7 @@ internal struct GrainMigrationPackage
     public MigrationContext MigrationContext { get; set; }
 
     /// <summary>
-    /// The requests which were queued for the grain when it migrated, if any.
+    /// 移民时排队的 grain 申请(如果有的话)。
     /// </summary>
     [Id(2)]
     public List<Message>? Requests { get; set; }
@@ -98,38 +98,38 @@ internal struct GrainMigrationPackage
 }
 
 /// <summary>
-/// Functionality for migrating an activation to a new location.
+/// 将启动器迁移到新地点的功能性。
 /// </summary>
 internal interface IActivationMigrationManager
 {
     /// <summary>
-    /// Starts migrating an activation to the specified target, together with the requests which were queued for it.
+    /// 开始将激活与排队申请迁移到指定目标。
     /// </summary>
-    /// <param name="target">The other silo which receives the migration.</param>
-    /// <param name="source">The address of the migrating activation.</param>
-    /// <param name="migrationContext">Information about the grain being migrated, which will be consumed by the new activation.</param>
-    /// <param name="requests">The requests which were queued for the activation, if any. The migration takes ownership of them.</param>
+    /// <param name="target">另一 silo 接受移徙。</param>
+    /// <param name="source">迁移激活的地址。</param>
+    /// <param name="migrationContext">关于正在迁移的 grain 的信息,新的激活将消耗这些信息。</param>
+    /// <param name="requests">申请启动时排队的请求(如果有的话),迁移将获得所有权。</param>
     /// <param name="cancellationToken">
-    /// A token which ends the migration if it has not been sent yet, or if the target has taken its requests and their callers are being retargeted.
-    /// Once acceptance starts, the migration awaits its result up to the system response timeout, including outgoing call filters.
+    /// 一种象征性的标志,它结束移民,如果尚未发送,或者目标已经响应其要求,而且他们的来电者正在成为目标。
+    /// 一旦接受开始,迁移将等待结果,直至系统反应超时,包括发出电话过滤器。
     /// </param>
-    /// <returns>The migration.</returns>
+    /// <returns>移徙。</returns>
     ActivationMigration StartMigration(SiloAddress target, GrainAddress source, MigrationContext migrationContext, List<Message>? requests, CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// The migration of an activation, which owns the requests which were queued for the activation.
+/// 启动程序迁移,该程序拥有被排队启动的请求。
 /// </summary>
 /// <remarks>
 /// <para>
-/// The activation transfers its queued requests when it starts the migration, and remains in the catalog until the migration completes,
-/// so that requests which reach this silo for the grain reach it. Once it leaves the catalog, it calls <see cref="Deliver"/>
-/// for that original handoff and handles its remaining queue through ordinary deactivation.
+/// 启动程序在开始迁移时, 转移其排队的申请, 并留在目录中直到迁移完成
+/// 提出此种请求的请求 silo 排排 grain 一旦它离开目录, 它就召唤 <see cref="Deliver"/>
+/// 并处理其剩余队列,通过普通的停用。
 /// </para>
 /// <para>
-/// Serialization takes ownership of the payload and releases it when writing finishes. Completion releases an unclaimed payload.
-/// Requests are rejected if the migration fails or its outcome is unknown,
-/// so their callers can retry them. Requests which the migration did not send are forwarded, followed by the later requests.
+/// 序列化取得有效载荷的所有权,并在写完后释放出来。完成后释放出一个未申报的有效载荷。
+/// 如果移民失败或结果不明,则拒绝申请;
+/// 移民没有发出申请,但随后又提出。
 /// </para>
 /// </remarks>
 internal sealed class ActivationMigration(
@@ -150,20 +150,20 @@ internal sealed class ActivationMigration(
     private enum Stage { Queued, Sent, Accepted }
 
     /// <summary>
-    /// Completes when the target has responded and, if it took the migration's requests, their callers' retargeting has completed or the activation's deadline has passed.
-    /// Faults if the migration failed, or was canceled before it was sent.
+    /// 当目标得到回应,如果接受移民的要求,其呼叫者重新瞄准目标的工作已经完成或启动的最后期限已经过时,目标即告完成。
+    /// 迁移失败或发送前取消时出现错误。
     /// </summary>
     public Task Completion => _completion.Task;
 
     internal GrainMigrationPackage Package => package with { Source = this };
 
     /// <summary>
-    /// The routes for retargeting the callers of the requests which the migration carries.
+    /// 重新确定移徙所提出要求的呼声的响应者目标路线。
     /// </summary>
     internal List<(SiloAddress CallerSilo, MigratedRequestRoute Route)>? Routes { get; } = routes;
 
     /// <summary>
-    /// An estimate of the serialized size of the package.
+    /// 估计包件的序列大小。
     /// </summary>
     internal long Size { get; } = size;
 
@@ -174,14 +174,14 @@ internal sealed class ActivationMigration(
             _cancellation = cancellationToken.UnsafeRegister(static state => ((ActivationMigration)state!).OnCanceled(), this);
             if (Completion.IsCompleted)
             {
-                // Register can invoke the callback synchronously before assigning the registration.
+                // 登记簿在指定登记之前可以同步援引回调。
                 _cancellation.Unregister();
             }
         }
     }
 
     /// <summary>
-    /// Commits the migration to being sent, unless it has been canceled or completed.
+    /// 将迁移到发送处,除非取消或完成。
     /// </summary>
     internal bool TrySend()
     {
@@ -199,7 +199,7 @@ internal sealed class ActivationMigration(
     }
 
     /// <summary>
-    /// Transfers the payload to the serializer. Completion can then proceed independently of its buffers.
+    /// 将有效载荷转移到序列器上。 然后完成可以独立于缓冲进行。
     /// </summary>
     internal void BeginSerialization()
     {
@@ -221,7 +221,7 @@ internal sealed class ActivationMigration(
     }
 
     /// <summary>
-    /// Records acceptance and completes migrations which have no pending retargets or have reached their deadline.
+    /// 记录接受和完成没有待决目标或已超过最后期限的迁移。
     /// </summary>
     internal void SetAccepted()
     {
@@ -242,9 +242,9 @@ internal sealed class ActivationMigration(
     }
 
     /// <summary>
-    /// Completes the migration after acceptance, retargeting, or failure.
+    /// 在接受、重新确定目标或失败后完成迁移。
     /// </summary>
-    /// <param name="exception">The error which prevented the migration, if any.</param>
+    /// <param name="exception">阻止移民的错误,如果有的话。</param>
     internal void Complete(Exception? exception = null)
     {
         lock (_completion)
@@ -266,7 +266,7 @@ internal sealed class ActivationMigration(
                 }
             }
 
-            // Unregister without waiting for a cancellation callback which may be waiting for this lock.
+            // 无需等待取消回电即可解除登记, 可能正在等待这个锁 。
             _cancellation.Unregister();
             if (exception is null)
             {
@@ -280,9 +280,9 @@ internal sealed class ActivationMigration(
     }
 
     /// <summary>
-    /// Rejects or forwards the migration's original requests once the activation has left the catalog.
+    /// 启动后,拒绝或转发移民的原始请求。
     /// </summary>
-    /// <remarks>The activation calls this once, after <see cref="Completion"/> has completed.</remarks>
+    /// <remarks>启动在 <see cref="Completion"/> 完成后,此时间的调用。</remarks>
     public void Deliver()
     {
         Debug.Assert(Completion.IsCompleted, "The migration delivers its requests once its outcome is known.");
@@ -294,7 +294,7 @@ internal sealed class ActivationMigration(
     {
         lock (_completion)
         {
-            // A sent migration waits for its outcome before choosing its requests' disposition.
+            // 移民的遣送者在选择其申请处置方式之前等待结果。
             if (_stage != Stage.Sent)
             {
                 Complete(_stage == Stage.Queued ? new OperationCanceledException(cancellationToken) : null);
@@ -304,12 +304,12 @@ internal sealed class ActivationMigration(
 }
 
 /// <summary>
-/// Migrates grain activations to target hosts and handles migration requests from other hosts.
+/// 向目标主机启动的 Migrates grain 激活, 并处理来自其他主机的迁移请求。
 /// </summary>
 internal sealed partial class ActivationMigrationManager : SystemTarget, IActivationMigrationManagerSystemTarget, IActivationMigrationManager, ILifecycleParticipant<ISiloLifecycle>
 {
     /// <summary>
-    /// The version of <see cref="IActivationMigrationManagerSystemTarget"/> which accepts queued requests with migrating grains.
+    /// 接受已移出的排队申请的 <see cref="IActivationMigrationManagerSystemTarget"/> 版本 grains。
     /// </summary>
     internal const ushort MigratedRequestsVersion = 1;
 
@@ -373,7 +373,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
     }
 
     /// <summary>
-    /// Gets the message center, which is resolved on first use, since it can depend on this migration manager.
+    /// 获取信息中心, 信息中心首先使用后就解决了, 因为信息中心可以依赖这个迁移管理器 。
     /// </summary>
     private MessageCenter MessageCenter => _messageCenter ??= _runtimeClient.ServiceProvider.GetRequiredService<MessageCenter>();
 
@@ -397,7 +397,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
                 var package = migratingGrains[nextPackage];
                 var requests = TakeRequests(package, Silo);
 
-                // The catalog owns the context and cleans up unadmitted requests on failure.
+                // 该目录拥有上下文,并清理未获准的失败请求。
                 nextPackage++;
                 var context = _catalog.GetOrCreateActivation(package.GrainId, requestContextData: null, package);
                 if (context is null && requests is not null)
@@ -430,10 +430,10 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
                 Activity.Current = currentActivity;
             }
 
-            // Wait for all activations to become active or reach a terminal state.
-            // This ensures that the activation has completed registration in the directory (or is abandoned) before we return.
-            // Otherwise, there could be a race where the original silo removes the activation from its catalog, receives a new message for that activation,
-            // and re-activates it before the new activation on this silo has been registered with the directory.
+            // 等待所有激活活动开始或到达终点状态。
+            // 这确保了激活工作在我们返回之前完成在目录中的登记(或被放弃)。
+            // 否则,可能会有一场竞赛,即原始 silo 从目录中删除激活,收到用于激活的新信息,
+            // 并在此 silo 上的新激活登记在目录前重新激活它。
             using var waitActivity = ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.WaitMigration);
             foreach (var activation in activations)
             {
@@ -442,7 +442,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
         }
         finally
         {
-            // Validation, cancellation, or a failed earlier package leaves the remainder owned by this invocation.
+            // 验证、取消或失败的先前软件包留下属于该援引的剩余部分。
             for (; nextPackage < migratingGrains.Count; nextPackage++)
             {
                 var package = migratingGrains[nextPackage];
@@ -461,7 +461,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
     }
 
     /// <summary>
-    /// Ensures that a package carries only requests which target its grain.
+    /// 确保一揽子计划只载有针对其 grain的要求。
     /// </summary>
     private static void ValidateRequests(GrainMigrationPackage package)
     {
@@ -473,9 +473,9 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
     }
 
     /// <summary>
-    /// Takes the requests which a package carries, which this silo now owns.
+    /// 要求一个包件所包含、而 silo 现在拥有的要求。
     /// </summary>
-    /// <returns>The requests, or <see langword="null"/> if the package carries none.</returns>
+    /// <returns>(a) 请求,或 <see langword="null"/> 如果包件没有运货,</returns>
     private static List<Message>? TakeRequests(GrainMigrationPackage package, SiloAddress silo)
     {
         if (package.Requests is not { Count: > 0 } requests)
@@ -483,7 +483,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
             return null;
         }
 
-        // Drop expired requests individually, as ordinary reception does.
+        // 与普通接待一样,个别地放弃过期申请。
         requests.RemoveAll(static request =>
         {
             if (!request.IsExpired)
@@ -497,7 +497,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
 
         foreach (var request in requests)
         {
-            // The migration counts as a forward.
+            // 移徙算作向前推进。
             request.TargetSilo = silo;
             request.ForwardCount++;
         }
@@ -521,7 +521,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
         var grainId = source.GrainId;
         var package = new GrainMigrationPackage { GrainId = grainId, MigrationContext = migrationContext };
 
-        // Bound the context without serializing its values a second time.
+        // 环绕上下文,不重复其价值第二次。
         var size = PackageFramingAllowance + migrationContext.GetMaxSerializedSize() + grainId.Type.AsSpan().Length + grainId.Key.AsSpan().Length;
         List<(SiloAddress CallerSilo, MigratedRequestRoute Route)>? routes = null;
         Exception? preparationError = null;
@@ -572,7 +572,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
         var migration = new ActivationMigration(this, source, targetSilo, package, requests, routes, size, cancellationToken);
         if (preparationError is not null)
         {
-            // Serialization has consumed values. Fail this migration and reject its requests instead of forwarding partially serialized objects.
+            // 序列化消耗了值。 如果无法进行这种迁移, 拒绝其请求, 而不是转发部分序列化的物品 。
             migration.TrySend();
             migration.Complete(preparationError);
             return migration;
@@ -588,7 +588,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
     }
 
     /// <summary>
-    /// Gets whether <paramref name="silo"/> accepts requests together with migrating grains, as silos running an earlier version do not.
+    /// 获取是否 <paramref name="silo"/> 接受与迁移 grains一起的请求,因为运行较早版本的 silos 不接受。
     /// </summary>
     private bool AcceptsMigratedRequests(SiloAddress silo)
         => _clusterManifestProvider.Current.Silos.TryGetValue(silo, out var manifest)
@@ -598,12 +598,12 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
             && version >= MigratedRequestsVersion;
 
     /// <summary>
-    /// Gets the routes for retargeting the callers of <paramref name="requests"/> to <paramref name="target"/>.
+    /// 获取重新瞄准 <paramref name="requests"/> 呼叫器到 <paramref name="target"/>的线路。
     /// </summary>
     /// <remarks>
-    /// Each request's sending silo holds its callback, unless the caller is an outside client, which tracks the call against its gateway.
-    /// Routes are taken now: a caller on this silo shares its request message with its callback, which a later migration of the same request can retarget
-    /// while this one awaits acceptance. One-way requests have no pending callback to retarget.
+    /// 每项请求的发送 silo 都保留回调,除非打电话者是外部客户,对网关的通话进行跟踪。
+    /// 现在选择路径:这个 silo 的呼叫者将请求信息与回呼相联,稍后又将同一请求迁移到另一个目标
+    /// 单向请求没有等待回击以重新瞄准目标。
     /// </remarks>
     private static List<(SiloAddress CallerSilo, MigratedRequestRoute Route)>? GetRoutes(SiloAddress target, List<Message> requests)
     {
@@ -620,13 +620,13 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
     }
 
     /// <summary>
-    /// Rejects or forwards a migration's requests once its outcome is known and its source activation has left the catalog.
+    /// 一旦知道移民的结果,其来源启动后就拒绝或转发移民请求,并离开目录。
     /// </summary>
-    /// <param name="source">The migrating activation's address.</param>
-    /// <param name="target">The migration target.</param>
-    /// <param name="carried">Whether the migration sent the requests.</param>
-    /// <param name="accepted">Whether the target accepted the requests which the migration sent.</param>
-    /// <param name="requests">The requests which were queued when the migration started.</param>
+    /// <param name="source">移民启动的地址</param>
+    /// <param name="target">移徙目标。</param>
+    /// <param name="carried">移民是否发出了申请。</param>
+    /// <param name="accepted">目标是否接受了移民发出的请求。</param>
+    /// <param name="requests">移民开始时排队处理的请求。</param>
     internal void DeliverRequests(GrainAddress source, SiloAddress target, bool carried, bool accepted, List<Message>? requests)
     {
         if (requests is not { Count: > 0 })
@@ -640,12 +640,12 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
             {
                 if (!accepted && request.Direction is Message.Directions.Request)
                 {
-                    // The target may have taken the request, and sending it may consume it, so it is rejected and its caller can retry it.
-                    // Rejection reads only routing headers, independently of an active serializer's payload.
+                    // 目标可能已经接受了请求,发送者可能会消耗请求,因此被拒绝,其打电话者可以重新使用。
+                    // 拒绝只读取路由信头, 独立于活性序列仪的有效载荷。
                     MessageCenter.SendRejectionResponse(request, Message.RejectionTypes.Transient, "The activation's migration did not deliver the request.", exception: null);
                 }
 
-                // A one-way request has no caller to reject, so it is dropped, as one-way requests are when their delivery fails.
+                // 单向请求没有拒绝的电话,因此被放弃,因为单向请求在交付失败时是单向请求。
             }
 
             return;
@@ -705,11 +705,11 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
             var reader = workItems.Reader;
             while (await reader.WaitToReadAsync())
             {
-                // The invocation owns its batch even if it times out before the transport serializes it.
+                // 即使运输在运输过程成序之前就已重复,该行业也拥有其批次。
                 var batch = new List<GrainMigrationPackage>();
                 try
                 {
-                    // Collect a batch of work items within the message size limit.
+                    // 在信件大小限制内收集批次的工作项目 。
                     long batchSize = 0;
                     while (batch.Count < MaxBatchSize
                         && reader.TryPeek(out var next)
@@ -718,7 +718,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
                     {
                         if (!workItem.TrySend())
                         {
-                            // The migration was canceled before it was sent.
+                            // 移民在被送出之前被取消了
                             continue;
                         }
 
@@ -733,7 +733,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
                     }
 
                     var acceptance = remote.AcceptMigratingGrains(batch, _shuttingDownCts.Token).AsTask();
-                    // Filters can delay callback registration, or resume after this wait has timed out.
+                    // 过滤器可以延迟回溯登记, 或者在等待过后恢复 。
                     acceptance.Ignore();
                     await acceptance.WaitAsync(_systemResponseTimeout, _runtimeClient.TimeProvider);
                     CompleteAfterRetargeting(items);
@@ -747,13 +747,13 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
                         LogErrorMigratingActivations(exception, items.Count, targetSilo);
                     }
 
-                    // The target may have taken the requests which the batch carried, so they are rejected rather than resent.
+                    // 目标可能已经接受了批次所提出的请求,因此被拒绝而不是怨恨。
                     foreach (var item in items)
                     {
                         item.Complete(exception);
                     }
 
-                    // If the silo is terminating, we should stop trying to migrate activations to it.
+                    // 如果 silo 终止,我们就应该停止试图将活性电动转移到它。
                     if (_clusterMembershipService.CurrentSnapshot.GetSiloStatus(targetSilo).IsTerminating())
                     {
                         break;
@@ -765,7 +765,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
                 }
             }
 
-            // Remove ourselves and clean up.
+            // 自己去收拾干净
             RemoveWorker(targetSilo);
         }
         finally
@@ -775,12 +775,12 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
     }
 
     /// <summary>
-    /// Completes the work items, after retargeting the callers of the requests which the target accepted.
+    /// 在重新瞄准目标接受的请求的打电话者之后,完成工作项目。
     /// </summary>
     /// <remarks>
-    /// Retargeting is best-effort. A work item whose requests were accepted completes once its callers' retargeting completes, fails, or its deadline passes,
-    /// so a retiring source normally departs after its callers follow their requests. A caller which was not retargeted fails its call when the source departs.
-    /// Other work items complete immediately, without waiting for unrelated callers. The pump continues with the next batch meanwhile.
+    /// 重新确定目标是最努力的。 一旦其调用者重新确定目标完成、失败或最后期限过后,其申请被接受的工作项目即告完成,
+    /// 如此,退休的源通常在调用者按其要求后离开。未调整目标的调用者在调用者离开时不接用。
+    /// 其他工程项目立即完成,不等待无关的呼叫者。 泵将同时与下一批连接。
     /// </remarks>
     private void CompleteAfterRetargeting(List<ActivationMigration> items)
     {
@@ -835,7 +835,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
             }
             catch (Exception exception)
             {
-                // A caller which was not retargeted, such as one running an earlier version, fails its call when the source departs.
+                // 一位没有目标的呼叫者,如运行较早版本的呼叫者,在源头离开时,未按其指令拨打。
                 LogDebugRetargetMigratedRequestsFailed(exception, items.Count);
             }
             finally
@@ -925,7 +925,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
         Task QueuedStop(CancellationToken ct) => this.RunOrQueueTask(() => StopAsync(ct));
     }
 
-    // Log value types
+    // 日志值类型
     private readonly struct SiloAddressLogValue
     {
         private readonly SiloAddress _silo;
@@ -933,7 +933,7 @@ internal sealed partial class ActivationMigrationManager : SystemTarget, IActiva
         public override string ToString() => _silo.ToStringWithHashCode();
     }
 
-    // Logger methods at end of class
+    // 类末的错格方法
     [LoggerMessage(
         Level = LogLevel.Debug,
         Message = "Monitoring cluster membership updates")]

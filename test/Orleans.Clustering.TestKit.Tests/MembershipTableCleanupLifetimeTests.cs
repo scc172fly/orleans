@@ -328,7 +328,7 @@ public sealed class MembershipTableCleanupLifetimeTests
         Assert.Equal(2, backend.Deletes);
     }
 
-    // Exercises the interface's tokenless compatibility dispatch, which cancels waits separately from operations.
+    // 运行接口无一不相容的调度, 取消该发送将和操作分开等待 。
     private sealed class LegacyTable(IdealizedMembershipTable inner, Func<Task> beforeDelete, Func<Task>? beforeInitialize = null) : IMembershipTable
     {
         public async Task InitializeMembershipTable(bool tryInitTableVersion)

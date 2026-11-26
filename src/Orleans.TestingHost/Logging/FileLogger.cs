@@ -10,7 +10,7 @@ using Orleans.Runtime;
 namespace Orleans.TestingHost.Logging
 {
     /// <summary>
-    /// The log output which all <see cref="FileLogger"/> share to log messages to 
+    /// 全部 <see cref="FileLogger"/> 共享到日志信件的日志输出 
     /// </summary>
     public class FileLoggingOutput : IDisposable
     {
@@ -22,7 +22,7 @@ namespace Orleans.TestingHost.Logging
         private StreamWriter? logOutput;
 
         /// <summary>
-        /// Initializes static members of the <see cref="FileLoggingOutput"/> class.
+        /// 初始化 <see cref="FileLoggingOutput"/> 类静态成员。
         /// </summary>
         static FileLoggingOutput()
         {
@@ -38,9 +38,9 @@ namespace Orleans.TestingHost.Logging
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileLoggingOutput"/> class.
+        /// 初始化 <see cref="FileLoggingOutput"/> 类的新实例。
         /// </summary>
-        /// <param name="fileName">Name of the log file.</param>
+        /// <param name="fileName">日志文件的名称。</param>
         public FileLoggingOutput(string fileName)
         {
             this.logFileName = fileName;
@@ -49,15 +49,15 @@ namespace Orleans.TestingHost.Logging
         }
 
         /// <summary>
-        /// Logs a message.
+        /// 记录一条消息。
         /// </summary>
-        /// <typeparam name="TState">The type of <paramref name="state"/>.</typeparam>
-        /// <param name="logLevel">The log level.</param>
-        /// <param name="eventId">The event identifier.</param>
-        /// <param name="state">The state.</param>
-        /// <param name="exception">The exception.</param>
-        /// <param name="formatter">The formatter.</param>
-        /// <param name="category">The category.</param>
+        /// <typeparam name="TState">类型 <paramref name="state"/>.</typeparam>
+        /// <param name="logLevel">日志水平。</param>
+        /// <param name="eventId">事件标识符。</param>
+        /// <param name="state">国家。</param>
+        /// <param name="exception">例外。</param>
+        /// <param name="formatter">事项的要处理。</param>
+        /// <param name="category">类别。</param>
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter, string category)
         {
@@ -117,7 +117,7 @@ namespace Orleans.TestingHost.Logging
                         this.logOutput = null;
                         _ = Instances.TryRemove(this, out _);
 
-                        // Dispose the output, which will flush all buffers.
+                        // 将输出丢弃, 这将冲洗所有缓冲 。
                         output.Dispose();
                     }
                 }
@@ -132,7 +132,7 @@ namespace Orleans.TestingHost.Logging
     }
 
     /// <summary>
-    /// File logger, which logs messages to a file.
+    /// 文件记录器, 将信件登录到文件 。
     /// </summary>
     public class FileLogger : ILogger
     {
@@ -140,10 +140,10 @@ namespace Orleans.TestingHost.Logging
         private readonly string category;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileLogger"/> class.
+        /// 初始化 <see cref="FileLogger"/> 类的新实例。
         /// </summary>
-        /// <param name="output">The output logger.</param>
-        /// <param name="category">The category.</param>
+        /// <param name="output">输出对账器。</param>
+        /// <param name="category">类别。</param>
         public FileLogger(FileLoggingOutput output, string category)
         {
             this.category = category;

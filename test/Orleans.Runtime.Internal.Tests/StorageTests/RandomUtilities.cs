@@ -4,28 +4,28 @@ using Orleans.Runtime;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Utility function to provide random values to some tests.
+    /// 工具功能为某些测试提供随机值。
     /// </summary>
     public static class RandomUtilities
     {
         /// <summary>
-        /// This type code is consistent with Orleans.Runtime.Category.Grain = 3, used also like
-        /// "public Category IdCategory { get { return GetCategory(TypeCodeData); } }".
-        /// Note that 0L would likely do also.
+        /// 此型号代码与 Orleans.Runtime.Category.Grain =3一致, 也使用类似
+        /// “公共类别 IdCategory {获得{返回 GetCategory(TypeCodeData);}}”
+        /// 请注意,0L也有可能这样做。
         /// </summary>
         public const long NormalGrainTypeCode = 3L;
 
         /// <summary>
-        /// This type code is consistent with Orleans.Runtime.Category.Grain = 6, used also like
-        /// "public Category IdCategory { get { return GetCategory(TypeCodeData); } }".
-        /// Note that 0L would likely do also.
+        /// 此型号代码与 Orleans.Runtime.Category.Grain =6一致, 也使用类似
+        /// “公共类别 IdCategory {获得{返回 GetCategory(TypeCodeData);}}”
+        /// 请注意,0L也有可能这样做。
         /// </summary>
         public const long KeyExtensionGrainTypeCode = 6L;
 
         /// <summary>
-        /// A list of random generators being used. This list is read-only after construction.
+        /// 随机生成器列表。 此列表在构建后只读取 。
         /// </summary>
-        /// <remarks>The state, basically the <see cref="Range{T}"/> object isn't used currently.</remarks>
+        /// <remarks>状态, 基本上 <see cref="Range{T}"/> 对象目前没有使用。</remarks>
         private static Dictionary<Type, object> RandomGenerators { get; } = new Dictionary<Type, object>
         {
             [typeof(Guid)] = new Func<object?, Guid>(_ => Guid.NewGuid()),
@@ -47,18 +47,18 @@ namespace UnitTests.StorageTests.Relational
         };
 
         /// <summary>
-        /// Get a random value of the given type.
+        /// 获取给定类型的一个随机值 。
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <returns>Random value of the given type.</returns>
+        /// <returns>给定类型随机值。</returns>
         /// <exception cref="ArgumentException"/>.
         public static T GetRandom<T>(Range<long>? range = null)
         {
             object? randomGenerator;
             if (RandomGenerators.TryGetValue(typeof(T), out randomGenerator))
             {
-                //If this a string type, some symbol set from which to draw the symbols needs to given
-                //and a special kind of a parameter constructed.
+                //如果此字符串类型为某个符号, 则从中设定一个符号, 用于绘制给定的符号
+                //和一种特殊参数。
                 if ((typeof(T) == typeof(string)))
                 {
                     const long SymbolsDefaultCount = 15;
@@ -73,11 +73,11 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Get random symbols.
+        /// 随机获取符号。
         /// </summary>
-        /// <param name="symbolSet">The set of symbols from which the random characters are drawn from.</param>
-        /// <param name="count">The count of random symbols.</param>
-        /// <returns>A random string.</returns>
+        /// <param name="symbolSet">随机字符的任意字符所来自的符号集。</param>
+        /// <param name="count">随机符号的计数。</param>
+        /// <returns>一个随机字符串。</returns>
         /// <exception cref="ArgumentNullException"/>.
         /// <exception cref="ArgumentOutOfRangeException"/>.
         public static string GetRandomCharacters(SymbolSet symbolSet, long count)
@@ -97,14 +97,14 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Get a random grain ID.
+        /// 随机获取 grain ID。
         /// </summary>
-        /// <typeparam name="TGrainKey">The grain key type.</typeparam>
-        /// <typeparam name="TGrainGeneric">The type of the generic part of a grain.</typeparam>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="symbolSet">symbolset to use.</param>
-        /// <param name="symbolCount">number of symbols to take from symbol set.</param>
-        /// <returns>Random value of the given type.</returns>
+        /// <typeparam name="TGrainKey"> grain 密钥类型。</typeparam>
+        /// <typeparam name="TGrainGeneric">一种 grain.</typeparam>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="symbolSet">要使用的符号集。</param>
+        /// 从符号集取的符号<param name="symbolCount">编号。</param>
+        /// <returns>给定类型随机值。</returns>
         /// <exception cref="ArgumentException"/>.
         internal static GrainId GetRandomGrainId<TGrainKey, TGrainGeneric>(SymbolSet symbolSet, long symbolCount = 15)
         {
@@ -123,16 +123,16 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Get a random grain ID.
+        /// 随机获取 grain ID。
         /// </summary>
-        /// <param name="keyExtension">The grain extension key.</param>
+        /// <param name="keyExtension"> grain 扩展密钥。</param>
         /// 
-        /// <returns>Random value of the given type.</returns>
+        /// <returns>给定类型随机值。</returns>
         /// <exception cref="ArgumentException"/>.
         internal static GrainId GetRandomGrainId<T>(bool keyExtension = false)
         {
-            //If this a string type, some symbol set from which to draw the symbols needs to given
-            //and a special kind of a parameter constructed.
+            //如果此字符串类型为某个符号, 则从中设定一个符号, 用于绘制给定的符号
+            //和一种特殊参数。
             const long SymbolsDefaultCount = 15;
             var symbolSet = new SymbolSet(SymbolSet.Latin1);
 

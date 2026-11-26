@@ -9,14 +9,14 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// Default implementation of <see cref="IProbeHealthMonitor"/> that uses Orleans' built-in
-/// ping protocol to monitor probe health.
+/// 默认执行 <see cref="IProbeHealthMonitor"/> 用途 Orleans内置
+/// 监测健康检测的 ping 协议
 /// </summary>
 /// <remarks>
-/// This implementation tracks:
+/// 执行轨道 :
 /// <list type="bullet">
-///   <item><description>Received probe requests via <see cref="ProbeRequestMonitor"/></description></item>
-///   <item><description>Received probe responses via <see cref="IClusterHealthMonitor.SiloMonitors"/></description></item>
+///   <item><description>收到查询请求 <see cref="ProbeRequestMonitor"/></description></item>
+///   <item><description>收到通过 <see cref="IClusterHealthMonitor.SiloMonitors"/></description></item>
 /// </list>
 /// </remarks>
 internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
@@ -43,8 +43,8 @@ internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
     {
         complaint = null;
 
-        // Only consider recency of the last received probe request if there is more than one other node.
-        // Otherwise, it may fail to vote another node dead in a one or two node cluster.
+        // 只有在有不止一个其他节点时,才考虑最后收到的探测请求是否属常态。
+        // 否则,它可能无法对一两个节点组中的另一个节点投下表决票。
         if (activeNodeCount <= 2)
         {
             return 0;
@@ -76,7 +76,7 @@ internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
     {
         complaint = null;
 
-        // Determine how recently the latest successful ping response was received.
+        // 确定最近收到的最新成功电话回音回复。
         var siloMonitors = _clusterHealthMonitor.SiloMonitors;
         var elapsedSinceLastResponse = default(TimeSpan?);
 
@@ -89,8 +89,8 @@ internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
             }
         }
 
-        // Only consider recency of the last successful ping if this node is monitoring more than one other node.
-        // Otherwise, it may fail to vote another node dead in a one or two node cluster.
+        // 只有在最后一个成功点对另一个节点进行不止一个监测时,才考虑最后成功点的静态性。
+        // 否则,它可能无法对一两个节点组中的另一个节点投下表决票。
         if (siloMonitors.Count <= 1)
         {
             return 0;

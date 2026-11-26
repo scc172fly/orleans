@@ -1,69 +1,69 @@
--- Apply this script for setup and repeatable upgrades after the shared Main script creates OrleansQuery.
--- Stop all silos using this database before applying it, then restart them to reload the queries.
+-- 在共享主脚本创建 OrleansQuery后应用此脚本设置和重复升级。
+-- 在应用前停止使用此数据库的所有 silos , 然后重新启动以重新装入查询 。
 --
--- The design criteria for this table are:
+-- 本表的设计标准是:
 --
--- 1. It can contain arbitrary content serialized as binary, XML or JSON. These formats
--- are supported to allow one to take advantage of in-storage processing capabilities for
--- these types if required. This should not incur extra cost on storage.
+-- 1. 含有任意内容,其序号为二进制、XML或 JSON。
+-- 支持,以便人们能够利用储存处理能力
+-- 必要时,这些类型不应产生额外的储存费用。
 --
--- 2. The table design should scale with the idea of tens or hundreds (or even more) types
--- of grains that may operate with even hundreds of thousands of grain IDs within each
--- type of a grain.
+-- 2. 表格设计的规模应达到几十或数百(甚至更多)类型的设想
+-- 联 年 月 日 月 日 月 月 日 grains 可能与甚至几十万个 grain 每一
+-- 类型 grain。
 --
--- 3. The table and its associated operations should remain stable. There should not be
--- structural reason for unexpected delays in operations. It should be possible to also
--- insert data reasonably fast without resource contention.
+-- 3. 表格及其相关业务应保持稳定。
+-- 造成业务意外延误的结构性结构原因,应有可能
+-- 以合理的快速度插入数据,不引起资源争议。
 --
--- 4. For reasons in 2. and 3., the index should be as narrow as possible so it fits well in
--- memory and should it require maintenance, isn't resource intensive. For this
--- reason the index is narrow by design (ideally non-clustered). Currently the entity
--- is recognized in the storage by the grain type and its ID, which are unique in Orleans silo.
--- The ID is the grain ID bytes (if string type UTF-8 bytes) and possible extension key as UTF-8
--- bytes concatenated with the ID and then hashed.
+-- 4. 由于2和3中的原因,指数应尽可能缩小范围,以便与
+-- 并且如果需要维护, 资源并不密集。 为此
+-- 指数因设计而缩小(估计非集群)。
+-- 以 grain 类型及其ID在储存中识别,这些 Orleans silo类型和ID是独有的。
+-- ID是 grain ID 字节(如果字符串类型UTF-8 字节)和可能的扩展密钥 UTF-8
+-- 与身份识别符号连接的字节,然后散列。
 --
--- Reason for hashing: Database engines usually limit the length of the column sizes, which
--- would artificially limit the length of IDs or types. Even when within limitations, the
--- index would be thick and consume more memory.
+-- 散列原因:数据库引擎通常限制列长度,
+-- 即使在限制范围内,也
+-- 指数会厚,消耗更多的内存。
 --
--- In the current setup the ID and the type are hashed into two INT type instances, which
--- are made a compound index. When there are no collisions, the index can quickly locate
--- the unique row. Along with the hashed index values, the NVARCHAR(nnn) values are also
--- stored and they are used to prune hash collisions down to only one result row.
+-- 在目前设置的设置中,ID和该类型被散成两个INT型式的情况,
+-- 设定复合索引。当没有碰撞时,该索引可以快速定位
+-- 与散列索引值一起, NVARCHAR(nnn) 值也
+-- 存储后,它们被用来将散列碰撞处理成仅一个结果行。
 --
--- 5. The design leads to duplication in the storage. It is reasonable to assume there will
--- a low number of services with a given service ID operational at any given time. Or that
--- compared to the number of grain IDs, there are a fairly low number of different types of
--- grain. The catch is that were these data separated to another table, it would make INSERT
--- and UPDATE operations complicated and would require joins, temporary variables and additional
--- indexes or some combinations of them to make it work. It looks like fitting strategy
--- could be to use table compression.
+-- 5. 设计设计导致储存重复,有理由认为会
+-- 具有特定服务标识的服务数量少,在任何特定时间都可运行。
+-- 与 grain ID的数量相比,不同类型身份证的数目相对较少
+-- grain. 捕获量是,如果这些数据被分离到另一个表格中,它就会使INSTERT
+-- 以及最新业务复杂,需要合并、临时变数和额外
+-- 或一些组合的指数来使其发挥作用。 它看起来像是合适的策略
+-- 可以是使用压缩表格。
 --
--- 6. For the aforementioned reasons, grain state DELETE will set NULL to the data fields
--- and updates the Version number normally. This should alleviate the need for index or
--- statistics maintenance with the loss of some bytes of storage space. The table can be scrubbed
--- in a separate maintenance operation.
+-- 6. 出于上述原因, grain 州DDELETE将设置数据字段的NULL
+-- 并通常更新版本号。这将减轻索引或索引的需要。
+-- 统计维持数据,损失一些储存空间。
+-- 单独维修操作。
 --
--- 7. In the storage operations queries the columns need to be in the exact same order
--- since the storage table operations support optionally streaming.
+-- 7. 在储存业务中,各栏的查询顺序必须完全相同
+-- 自存储表操作支持可选流以来。
 --
--- 8. The next Version wraps from 2147483647 back to 1 so a frequently written grain never overflows
--- the 32-bit Version. Orleans compares versions only for equality, so the version must change on
--- every write but does not need to increase forever. A stale version can only match again after
--- 2147483647 further writes to the same grain.
+-- 8. 下一份版本的封号从214748364747回折到1,因此经常写 grain ,从不溢出
+-- 32位数版本。 Orleans 比较版本时,只对等值进行比较,因此版本必须更改
+-- 每一个写入都不需要永久增加, 但不需要永远增加。 版本的旧文本只能在
+-- 2147483647 进一步写到同一份 grain。
 IF OBJECT_ID(N'[OrleansStorage]', 'U') IS NULL
 BEGIN
 CREATE TABLE OrleansStorage
 (
-    -- These are for the book keeping. Orleans calculates
-    -- these hashes (see RelationalStorageProvide implementation),
-    -- which are signed 32 bit integers mapped to the *Hash fields.
-    -- The mapping is done in the code. The
-    -- *String columns contain the corresponding clear name fields.
+    -- 这些是用来保存书本的 Orleans 计算
+    -- 这些人的( RelationalStorageProvide ),执行))、
+    -- 标记为32位整数,这些整数被映射到 *散列字段。
+    -- 绘图在代码中完成
+    -- *字符串列包含相应的清晰名称字段。
     --
-    -- If there are duplicates, they are resolved by using GrainIdN0,
-    -- GrainIdN1, GrainIdExtensionString and GrainTypeString fields.
-    -- It is assumed these would be rarely needed.
+    -- 如果存在重复,则使用 GrainIdN0解决,
+    -- GrainIdN1、 GrainIdExtensionString 和 GrainTypeString 字段。
+    -- 假定这些是很少需要的。
     GrainIdHash                INT NOT NULL,
     GrainIdN0                BIGINT NOT NULL,
     GrainIdN1                BIGINT NOT NULL,
@@ -72,19 +72,19 @@ CREATE TABLE OrleansStorage
     GrainIdExtensionString    NVARCHAR(512) NULL,
     ServiceId                NVARCHAR(150) NOT NULL,
 
-    -- Payload
+    -- 有效载荷
     PayloadBinary    VARBINARY(MAX) NULL,
 
-    -- Informational field, no other use.
+    -- 信息字段,没有其他用途。
     ModifiedOn DATETIME2(3) NOT NULL,
 
-    -- The version of the stored payload.
+    -- 储存的有效载荷的版本。
     Version INT NULL
 
-    -- The following would in principle be the primary key, but it would be too thick
-    -- to be indexed, so the values are hashed and only collisions will be solved
-    -- by using the fields. That is, after the indexed queries have pinpointed the right
-    -- rows down to [0, n] relevant ones, n being the number of collided value pairs.
+    -- 以下原则上是首要关键,但太厚了
+    -- 需要索引,因此数值被仓散,只有碰撞才能解决
+    -- ,即,在索引查询确定右侧
+    -- 下至 [0, n] 相关行,n 指相对相撞价值对数。
 );
 
 IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'IX_OrleansStorage' AND object_id = OBJECT_ID('OrleansStorage'))
@@ -92,13 +92,13 @@ BEGIN
 	CREATE NONCLUSTERED INDEX IX_OrleansStorage ON OrleansStorage(GrainIdHash, GrainTypeHash);
 END
 
--- This ensures lock escalation will not lock the whole table, which can potentially be enormous.
--- See more information at https://www.littlekendra.com/2016/02/04/why-rowlock-hints-can-make-queries-slower-and-blocking-worse-in-sql-server/.
+-- 这确保了锁升级不会锁定整个桌子,因为整桌可能非常庞大。
+-- 见 https://www.littlekendra.com/2016/02/04/why-rowlock-hints-can-make-queries-slower-and-blocking-worse-in-sql-server/。
 ALTER TABLE OrleansStorage SET(LOCK_ESCALATION = DISABLE);
 
--- A feature with ID is compression. If it is supported, it is used for OrleansStorage table. This is an Enterprise feature.
--- This consumes more processor cycles, but should save on space on GrainIdString, GrainTypeString and ServiceId, which
--- contain mainly the same values. Also the payloads will be compressed.
+-- 带有 ID 的特性是压缩。如果支持,它用于 OrleansStorage 表。这是一个 Enterprises 特性。
+-- 这消耗了更多的处理周期,但应该节省 GrainIdString、 GrainTypeString 和 ServiceId的空间,而
+-- 有效载荷将压缩。
 IF EXISTS (SELECT 1 FROM sys.dm_db_persisted_sku_features WHERE feature_id = 100)
 BEGIN
     ALTER TABLE OrleansStorage REBUILD PARTITION = ALL WITH(DATA_COMPRESSION = PAGE);

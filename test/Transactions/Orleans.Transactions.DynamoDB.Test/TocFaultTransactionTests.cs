@@ -5,7 +5,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for Transfer of Coordination (TOC) fault scenarios with DynamoDB.
+    /// 以 DynamoDB测试协调故障情况转移试验。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

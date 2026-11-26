@@ -9,8 +9,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Runs of one root task ID: each run has its own incarnation, which the identities of the messages which name its nodes
-/// cover, so a later run neither shares messages with an earlier run nor observes the earlier run's stale replies.
+/// 根任务 ID 运行的运行过程: 每个运行都有自己的化身, 由它来命名结点的信息的身份
+/// 之后的运行既不是用较早的运行方式分享消息, 也不观察早期运行模式的老套答复。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -22,8 +22,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var rootId = TaskId.CreateRoot("order");
         var callId = rootId.Child("call");
 
-        // The first run calls another grain and cancels the call. Its result has no retention, so the write which follows
-        // the call's outcome deletes the run's tree.
+        // 第一个运行的第一个调序调用另一个 grain , 然后取消调用。 它的结果没有保留, 所以下面的写
+        // 呼声的结果是删除了跑树
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, CreateRequest(1, CallAndCancel), cancellationToken);
         await WaitUntilAsync(() => transport.Invocations.Count == 1 && transport.Cancellations.Count == 1);
         var firstWireId = transport.Invocations[0].TaskId;
@@ -34,14 +34,14 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(cancellationToken);
         await WaitUntilAsync(() => !storage.Contains(rootId) && !storage.Contains(callId));
 
-        // The same root ID runs again, within Messaging's deduplication window, and records the call under the same ID.
+        // 同样的根码在Message的解码窗口内再次运行, 并记录在同一ID下调用。
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, CreateRequest(1, CallAndCancel), cancellationToken);
         var handle = runtime.GetScheduledTaskHandle(rootId);
         await WaitUntilAsync(() => transport.Invocations.Count == 2 && transport.Cancellations.Count == 2);
         var secondWireId = transport.Invocations[1].TaskId;
 
-        // The run's invocation and cancellation name the call by the run's own wire ID, so their message IDs differ from
-        // the first run's, and the target stores the call under another ID.
+        // 跑跑的调用和取消使用 以跑自己的电线识别码拨打的电话名 所以他们的留言身份与
+        // 第一跑的,目标 储存调用 在另一个身份。
         Assert.Equal(CallerScope.GetWireId(storage.Get(rootId).Incarnation, callId), secondWireId);
         Assert.NotEqual(firstWireId, secondWireId);
         Assert.Equal(secondWireId, transport.Cancellations[1].TaskId);
@@ -52,8 +52,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             DurableTaskMessageTransport.CreateMessageId(runtime.GrainId, RemoteTarget, secondWireId, DurableTaskMessageTypes.CancellationSubject));
         Assert.NotEqual(CallerScope.GetTaskId(runtime.GrainId, firstWireId), CallerScope.GetTaskId(runtime.GrainId, secondWireId));
 
-        // The first run's invocation retires, and a completion addressed to the first run's call arrives late. Neither
-        // reaches the second run's call.
+        // 第一跑的招工退休, 第一次跑的电话完成日期晚到。
+        // 到达第二波的呼叫
         ((IOutboxMessageSource)runtime).OnRetired(
             firstInvocationId,
             new OutboxMessageRetirement.Rejected("conflict", DurableTaskRejectionCodes.Conflict));
@@ -63,7 +63,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Null(storage.Get(callId).Result);
         Assert.Null(storage.Get(rootId).Result);
 
-        // The second run's own completion completes it.
+        // 第二波的完成完成
         runtime.AcceptResponseFromInbox(secondWireId, CallerScope.GetTaskId(runtime.GrainId, secondWireId), DurableTaskResponse.Canceled, RemoteTarget);
         await manager.WriteStateAsync(cancellationToken);
         Assert.Equal(nameof(DurableTaskStatus.Canceled), (await WaitForResponseAsync(handle)).GetResult<string>());
@@ -88,11 +88,11 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await runtime.ScheduleDelayAsync(delayId, TimeSpan.FromMinutes(5), cancellationToken);
         var stale = Assert.Single(transport.Resumes);
 
-        // The run ends, and its result has no retention, so the write which follows deletes its tree.
+        // 运行端, 结果没有保留, 所以后面的写作会删除树 。
         await runtime.AbortTaskAsync(rootId, "finished", cancellationToken);
         await WaitUntilAsync(() => !storage.Contains(rootId) && !storage.Contains(delayId));
 
-        // A later run records the same delay, with the same generation and due time, under another incarnation.
+        // 后期记录也出现同样的延迟, 同一代人和适当时间, 由另一个化身。
         storage.AddInvoked(rootId);
         await runtime.ScheduleDelayAsync(delayId, TimeSpan.FromMinutes(5), cancellationToken);
         var current = transport.Resumes[1];
@@ -103,7 +103,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             DurableTaskMessageTransport.CreateResumeMessageId(runtime.GrainId, delayId, stale.Incarnation, stale.Generation, stale.DueTime),
             DurableTaskMessageTransport.CreateResumeMessageId(runtime.GrainId, delayId, current.Incarnation, current.Generation, current.DueTime));
 
-        // The earlier run's resume changes nothing; the later run's own resume completes the delay.
+        // 早期运行恢复后,没有改变任何东西; 后一个运行的自身恢复完成延迟。
         var handler = CreateHandler(runtime);
         await HandleAsync(handler, ResumeContext(runtime, delayId, stale.Generation, stale.DueTime, stale.Incarnation));
         Assert.Null(storage.Get(delayId).Result);
@@ -121,12 +121,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var earlierWireId = CallerScope.GetWireId(Guid.NewGuid(), callId);
         var wireId = CallerScope.GetWireId(Guid.NewGuid(), callId);
 
-        // An earlier run of the caller's tree canceled its call, whose invocation never arrived, so this grain records the
-        // cancellation under the earlier run's scoped ID.
+        // 之前的一棵来电树 取消了它的电话 电话的祈祷没有到 所以这个 grain 记录
+        // 在前一运行的范围代号下取消 。
         Accept(handler, CancellationMessage(sender, runtime.GrainId, earlierWireId));
         Assert.NotNull(storage.Get(CallerScope.Resolve(sender, earlierWireId)).CancellationRequestedAt);
 
-        // The caller's later run invokes its call with the same node ID, which this grain stores under another ID.
+        // 稍后的调用者用相同的节点识别码来呼唤其呼叫,而这个 grain 在另一个身份识别码下储存。
         Accept(
             handler,
             MessagingTestHelpers.CreateInvocationMessage(
@@ -152,7 +152,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var (runtime, storage, manager, _) = CreateRuntime();
         var scopedId = CallerScope.GetTaskId(GrainId.Create("caller", "one"), CallerScope.GetWireId(Guid.NewGuid(), TaskId.Parse("starter/call")));
 
-        // Only another grain's invocation stores a task in that grain's scope.
+        // 只有另一个 grain的调试在 grain的范围中存储任务。
         await Assert.ThrowsAsync<ArgumentException>(
             async () => await ((IDurableTaskServer)runtime).ScheduleAsync(scopedId, CreateRequest(1), TestContext.Current.CancellationToken));
 

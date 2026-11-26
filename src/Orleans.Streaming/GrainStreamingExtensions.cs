@@ -7,25 +7,25 @@ using Orleans.Streams;
 namespace Orleans
 {
     /// <summary>
-    /// Extension methods for accessing stream providers from a <see cref="Grain"/> or <see cref="IGrainBase"/> implementation.
+    /// 从 <see cref="Grain"/> 或 <see cref="IGrainBase"/> 执行中访问流源提供者的扩展方法。
     /// </summary>
     public static class GrainStreamingExtensions
     {
         /// <summary>
-        /// Gets the stream provider with the specified <paramref name="name"/>.
+        /// 获取指定的 <paramref name="name"/>的流源提供商。
         /// </summary>
-        /// <param name="grain">The grain.</param>
-        /// <param name="name">The provider name.</param>
-        /// <returns>The stream provider.</returns>
+        /// <param name="grain">下 grain.</param>
+        /// <param name="name">提供者名称。</param>
+        /// <returns>流源提供者。</returns>
         public static IStreamProvider GetStreamProvider(this Grain grain, string name)
             => GetStreamProvider((IGrainBase)grain, name);
 
         /// <summary>
-        /// Gets the stream provider with the specified <paramref name="name"/>.
+        /// 获取指定的 <paramref name="name"/>的流源提供商。
         /// </summary>
-        /// <param name="grain">The grain.</param>
-        /// <param name="name">The provider name.</param>
-        /// <returns>The stream provider.</returns>
+        /// <param name="grain">下 grain.</param>
+        /// <param name="name">提供者名称。</param>
+        /// <returns>流源提供者。</returns>
         public static IStreamProvider GetStreamProvider(this IGrainBase grain, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -39,23 +39,23 @@ namespace Orleans
             }
             catch (InvalidOperationException ex)
             {
-                // We used to throw KeyNotFoundException before, keep it like this for backward compatibility
+                // 我们以前是抛 KeyNotFoundException 之前,保持这样,后向兼容性
                 throw new KeyNotFoundException($"Stream provider '{name}' not found", ex);
             }
         }
     }
 
     /// <summary>
-    /// Extension methods for accessing stream providers from a client.
+    /// 用户访问流源供应商的扩展方法。
     /// </summary>
     public static class ClientStreamingExtensions
     {
         /// <summary>
-        /// Gets the stream provider with the specified <paramref name="name"/>.
+        /// 获取指定的 <paramref name="name"/>的流源提供商。
         /// </summary>
-        /// <param name="client">The client.</param>
-        /// <param name="name">The provider name.</param>
-        /// <returns>The stream provider.</returns>
+        /// <param name="client">客户。</param>
+        /// <param name="name">提供者名称。</param>
+        /// <returns>流源提供者。</returns>
         public static IStreamProvider GetStreamProvider(this IClusterClient client, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -69,7 +69,7 @@ namespace Orleans
             }
             catch (InvalidOperationException ex)
             {
-                // We used to throw KeyNotFoundException before, keep it like this for backward compatibility
+                // 我们以前是抛 KeyNotFoundException 之前,保持这样,后向兼容性
                 throw new KeyNotFoundException($"Stream provider '{name}' not found", ex);
             }
         }

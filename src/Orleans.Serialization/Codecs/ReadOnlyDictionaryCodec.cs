@@ -7,17 +7,17 @@ using System.Collections.ObjectModel;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="ReadOnlyDictionary{TKey, TValue}"/>.
+    /// <see cref="ReadOnlyDictionary{TKey, TValue}"/>的序列器。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class ReadOnlyDictionaryCodec<TKey, TValue> : GeneralizedReferenceTypeSurrogateCodec<ReadOnlyDictionary<TKey, TValue>, ReadOnlyDictionarySurrogate<TKey, TValue>> where TKey : notnull
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReadOnlyDictionaryCodec{TKey, TValue}"/> class.
+        /// 初始化 <see cref="ReadOnlyDictionaryCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public ReadOnlyDictionaryCodec(IValueSerializer<ReadOnlyDictionarySurrogate<TKey, TValue>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -30,25 +30,25 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate for <see cref="ReadOnlyDictionary{TKey, TValue}"/>.
+    /// <see cref="ReadOnlyDictionary{TKey, TValue}"/>的代用。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [GenerateSerializer]
     public struct ReadOnlyDictionarySurrogate<TKey, TValue> where TKey : notnull
     {
         /// <summary>
-        /// Gets or sets the dictionary entries.
+        /// 获取或设置字典条目。
         /// </summary>
         [Id(0)]
         public Dictionary<TKey, TValue> Values;
     }
 
     /// <summary>
-    /// Copier for <see cref="ReadOnlyDictionary{TKey, TValue}"/>.
+    /// <see cref="ReadOnlyDictionary{TKey, TValue}"/>的复印机。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterCopier]
     public sealed class ReadOnlyDictionaryCopier<TKey, TValue> : IDeepCopier<ReadOnlyDictionary<TKey, TValue>> where TKey : notnull
     {
@@ -57,10 +57,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<TValue> _valueCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReadOnlyDictionaryCopier{TKey, TValue}"/> class.
+        /// 初始化 <see cref="ReadOnlyDictionaryCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">The key copier.</param>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="keyCopier">钥匙复印机。</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public ReadOnlyDictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = keyCopier;
@@ -84,8 +84,8 @@ namespace Orleans.Serialization.Codecs
                 return context.DeepCopy(input);
             }
 
-            // There is a possibility for infinite recursion here if any value in the input collection is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var temp = new Dictionary<TKey, TValue>(input.Count);

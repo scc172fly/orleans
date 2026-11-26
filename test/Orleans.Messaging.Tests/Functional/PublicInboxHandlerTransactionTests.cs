@@ -39,7 +39,7 @@ public sealed class PublicInboxHandlerTransactionTests : MessagingBehaviorTestBa
             Headers = new Dictionary<string, byte[]>(StringComparer.Ordinal) { ["attachment"] = [0xff, 0x80, 0x01] }
         };
         var sentAt = Fixture.JobNow;
-        // Deactivation cancels any handler the original activation starts, leaving the message to recovery.
+        // 取消激活会取消任何处理器, 初始启动程序开始, 将信件保留到恢复 。
         using (Fixture.HandlerProbe.Arm(receiver.GetGrainId(), RawPayloadTestGrain.HandlerBarrier))
         {
             DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await receiver.AcceptAndDeactivateAsync(
@@ -199,7 +199,7 @@ public sealed class PublicInboxHandlerTransactionTests : MessagingBehaviorTestBa
         Assert.Equal(0, state.OutboxCount);
         var deadLetter = Assert.Single(state.InboxDeadLetters);
         Assert.Equal(envelope.Envelope.MessageId, deadLetter.MessageId);
-        // The failed attempt fails the activation; recovery charges it, and the second failure dead-letters the message.
+        // 失败的尝试失败了激活; 回收费用, 而第二个失败 给信息写了个死字。
         Assert.Equal(2, deadLetter.AttemptCount);
         Assert.Equal(InboxTestAccess.InterruptedAttemptReason, deadLetter.Reason);
         Assert.Empty((await sink.GetSnapshotAsync()).Effects);

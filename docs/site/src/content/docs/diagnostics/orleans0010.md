@@ -1,35 +1,45 @@
 ---
-title: "ORLEANS0010: Add a stable Alias"
-description: Understand and resolve ORLEANS0010 when an Orleans type or RPC method uses a name-derived identity.
+title: "ORLEANS0010:添加一个稳定的别名"
+description: "理解和决心 ORLEANS0010 时 Orleans 类型或RPC方法使用名称衍生身份。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0010: Add a stable Alias
+<a id="orleans0010-add-a-stable-alias"></a>
 
-| Property | Value |
+# ORLEANS0010:添加一个稳定的别名
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Info |
-| Code fix | Available |
+| 类别类 | 用法 |
+| 严重性 | 信息信息 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-A grain interface, grain-interface method, or generated-serializer data type has no `[Alias]`.
+## 原因原因原因
 
-## Impact
+grain 接口、 grain- 界面方法,或生成的序列数据类型没有 `[Alias]`。
 
-Orleans falls back to a name-derived identity. Renaming the CLR type or method can break serialized data, RPC compatibility, or rolling upgrades.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Add a stable, intentionally chosen alias and preserve it across CLR renames. The code fix generates a type alias from its namespace and nesting, or a method alias from its current method name.
+Orleans 可追溯到姓名衍生身份,重命名CLR类型或方法可打破序列数据、RPC兼容性或滚动升级。
 
-Review generated aliases for overloaded methods because each overload needs a unique method identity.
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Suppress only when compatibility across renames, deployments, and persisted data is explicitly irrelevant.
+添加一个稳定、 有意选择的别名, 并保存在 CLR 重命名中。 代码修正会从名称空间和嵌套中生成一种别名, 或者用当前方法名称生成一种别名 。
+
+审查为超载方法生成了别名,因为每次超载都需要独特的方法识别。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+只有在重新命名、部署和持续数据之间相互兼容显然无关紧要时才禁止使用。
 
 ```ini
 [*.cs]

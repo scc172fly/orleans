@@ -16,7 +16,7 @@ using Xunit;
 namespace NonSilo.Tests.Directory;
 
 /// <summary>
-/// Tests for directory membership snapshot functionality including range ownership and ring coverage validation.
+/// 测试名录成员快照功能,包括范围所有权和环覆盖验证。
 /// </summary>
 [TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -61,7 +61,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void GetOwnerTest()
     {
-        // As long as the cluster has at least one member, we should be able to find an owner.
+        // 只要该组至少有一名成员,我们就应该能找到拥有者。
         Gen.Select(GenDirectoryMembershipSnapshot, Gen.UInt)
             .Sample((snapshot, hash) => Assert.Equal(snapshot.Members.Length > 0, snapshot.TryGetOwner(hash, out var owner, out _)));
     }
@@ -69,7 +69,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void MembersDoNotIntersectTest()
     {
-        // Member ranges should not intersect.
+        // 成员幅度不应相互交叉。
         GenDirectoryMembershipSnapshot.Where(s => s.Members.Length > 0)
             .Sample(snapshot =>
             {
@@ -288,7 +288,7 @@ public sealed class DirectoryMembershipSnapshotTests
             {
                 if (Interlocked.Increment(ref boundaryCalls) > 1)
                 {
-                    // Bound a regression which resubscribes to the same invalid snapshot.
+                    // 绕过回归, 重新订阅同一无效快照 。
                     timeout.Cancel();
                 }
 
@@ -407,7 +407,7 @@ public sealed class DirectoryMembershipSnapshotTests
 
             var firstDisposal = directoryMembership.DisposeAsync().AsTask();
             var secondDisposal = directoryMembership.DisposeAsync().AsTask();
-            // Observe cancellation without registering a callback: CancelAsync's no-callback path must not leak this handle.
+            // 观察取消而不登记回调: CancelAsync的不回拨路径不能泄漏此控点 。
             Assert.True(await Task.Run(() => waitHandle.WaitOne(TimeSpan.FromSeconds(10)), timeout.Token).WaitAsync(timeout.Token));
             Assert.True(subscriptionToken.IsCancellationRequested);
             Assert.Same(waitHandle, subscriptionToken.WaitHandle);
@@ -445,7 +445,7 @@ public sealed class DirectoryMembershipSnapshotTests
                 yield return new ClusterMembershipSnapshot(
                     ImmutableDictionary<SiloAddress, ClusterMember>.Empty, new MembershipVersion(1));
                 processing.SetResult();
-                // Neither phase barrier registers with the owner token.
+                // 无论是分阶段障碍登记册还是物主标志。
                 await releaseProcessing.Task;
             }
             finally
@@ -633,7 +633,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void ViewCoversRingTest()
     {
-        // The union of all member ranges should cover the entire ring.
+        // 所有成员范围的联盟应覆盖整个环。
         GenDirectoryMembershipSnapshot.Where(s => s.Members.Length > 0)
             .Sample(snapshot =>
             {
@@ -666,7 +666,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void MemberRangesCoverRingTest()
     {
-        // The union of all member ranges should cover the entire ring.
+        // 所有成员范围的联盟应覆盖整个环。
         GenDirectoryMembershipSnapshot.Where(s => s.Members.Length > 0)
             .Sample(snapshot =>
             {

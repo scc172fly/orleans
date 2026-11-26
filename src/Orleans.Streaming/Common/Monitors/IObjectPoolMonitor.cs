@@ -1,26 +1,26 @@
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Monitor track object pool related metrics
+    /// 跟踪目标跟踪池相关计量
     /// </summary>
     public interface IObjectPoolMonitor
     {
         /// <summary>
-        /// Called every time when an object is allocated.
+        /// 每次分配对象时都呼叫 。
         /// </summary>
         void TrackObjectAllocated();
 
         /// <summary>
-        /// Called every time an object was released back to the pool.
+        /// 每次一个物体被放回游泳池时都呼叫
         /// </summary>
         void TrackObjectReleased();
 
         /// <summary>
-        /// Called to report object pool status.
+        /// 被调来报告目标集合状态
         /// </summary>
-        /// <param name="totalObjects">Total size of object pool.</param>
-        /// <param name="availableObjects">Count for objects in the pool which is available for allocating.</param>
-        /// <param name="claimedObjects">Count for objects which are claimed, hence not available.</param>
+        /// <param name="totalObjects">物体池总大小。</param>
+        /// <param name="availableObjects">计算可用分配的池中对象。</param>
+        /// <param name="claimedObjects">计及索赔对象,因此无法使用。</param>
         void Report(long totalObjects, long availableObjects, long claimedObjects);
     }
 }

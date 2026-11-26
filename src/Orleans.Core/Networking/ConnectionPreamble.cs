@@ -83,16 +83,16 @@ namespace Orleans.Runtime.Messaging
                 var buffer = new ArcBufferWriter();
                 try
                 {
-                    // Reserve space for framing
+                    // 用于确定
                     var framingBytes = buffer.GetSpan(sizeof(int));
                     buffer.AdvanceWriter(sizeof(int));
 
-                    // Serialize the preamble.
+                    // 将序言分层排列。
                     using var session = serializerSessionPool.GetSession();
                     var writer = Writer.Create(buffer, session);
                     preambleSerializer.Serialize(preamble, ref writer);
 
-                    // Write framing
+                    // 写书框架
                     var length = writer.Position;
                     BinaryPrimitives.WriteInt32LittleEndian(framingBytes, length);
 

@@ -1,7 +1,7 @@
 namespace Orleans.Clustering.AzureStorage;
 
 /// <summary>
-/// Configures Azure Table Storage access for client gateway discovery.
+/// 配置 Azure 表存储访问,用于客户端网关发现。
 /// </summary>
 public class AzureStorageGatewayOptions : AzureStorageOperationOptions
 {
@@ -10,15 +10,15 @@ public class AzureStorageGatewayOptions : AzureStorageOperationOptions
 }
 
 /// <summary>
-/// Configuration validator for <see cref="AzureStorageGatewayOptions"/>.
+/// <see cref="AzureStorageGatewayOptions"/>的配置验证符 。
 /// </summary>
 public class AzureStorageGatewayOptionsValidator : AzureStorageOperationOptionsValidator<AzureStorageGatewayOptions>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="AzureStorageGatewayOptionsValidator"/> class.
+    /// 初始化 <see cref="AzureStorageGatewayOptionsValidator"/> 类的新实例。
     /// </summary>
-    /// <param name="options">The option to be validated.</param>
-    /// <param name="name">The option name to be validated.</param>
+    /// <param name="options">选项将生效。</param>
+    /// <param name="name">需要验证的选项名称。</param>
     public AzureStorageGatewayOptionsValidator(AzureStorageGatewayOptions options, string name) : base(options, name)
     {
     }

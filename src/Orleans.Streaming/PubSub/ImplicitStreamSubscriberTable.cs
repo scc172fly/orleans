@@ -93,7 +93,7 @@ namespace Orleans.Streams
                            $"Stream binding for grain type {binding.GrainType} is missing a \"{WellKnownGrainTypeProperties.StreamIdMapperKey}\" value");
                     }
 
-                    var streamIdMapper = _serviceProvider.GetKeyedService<IStreamIdMapper>(string.IsNullOrWhiteSpace(mapperName) ? DefaultStreamIdMapper.Name : mapperName)!; // A mapper is always registered under the resolved key.
+                    var streamIdMapper = _serviceProvider.GetKeyedService<IStreamIdMapper>(string.IsNullOrWhiteSpace(mapperName) ? DefaultStreamIdMapper.Name : mapperName)!; // 地图仪总是在解密键下注册。
                     var subscriber = new StreamSubscriber(binding, streamIdMapper);
                     newPredicates.Add(new StreamSubscriberPredicate(subscriber, predicate));
                 }
@@ -103,12 +103,12 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Retrieves a map of implicit subscription IDs to implicit subscriber grain IDs for the specified stream.
+        /// 获取指定流的暗含订阅者 grain ID的默认订阅标识图。
         /// </summary>
-        /// <param name="streamId">A stream ID.</param>
-        /// <returns>A dictionary mapping subscription IDs to implicitly subscribed grain IDs. The grains are expected to support the streaming consumer extension.</returns>
-        /// <exception cref="System.ArgumentException">The stream ID doesn't have an associated namespace.</exception>
-        /// <exception cref="System.InvalidOperationException">Internal invariant violation.</exception>
+        /// <param name="streamId">流号。</param>
+        /// <returns>用于暗含订阅的字典绘图订阅ID grain ID. 身份证 grains 预计这将支持消费者的扩展。</returns>
+        /// <exception cref="System.ArgumentException">流代号没有相关的命名空间。</exception>
+        /// <exception cref="System.InvalidOperationException">内部的无变不化侵犯。</exception>
         internal Dictionary<Guid, GrainId> GetImplicitSubscribers(QualifiedStreamId streamId)
         {
             var streamNamespace = streamId.GetNamespace();
@@ -146,11 +146,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Determines whether the specified grain is an implicit subscriber of a given stream.
+        /// 确定指定的 grain 是否为特定流的默认用户。
         /// </summary>
-        /// <param name="grainId">The grain identifier.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <returns>true if the grain id describes an implicit subscriber of the stream described by the stream id.</returns>
+        /// <param name="grainId"> grain 标识符。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <returns>如果真实 grain ID 表示流代号所描述的溪流的暗含用户。</returns>
         internal bool IsImplicitSubscriber(GrainId grainId, QualifiedStreamId streamId)
         {
             var streamNamespace = streamId.GetNamespace();
@@ -168,8 +168,8 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Try to get the implicit subscriptionId.
-        /// If an implicit subscription exists, return a subscription Id that is unique per grain type, grainId, namespace combination.
+        /// 尝试获取隐含 subscriptionId。
+        /// 如果存在默认订阅,则返回每个 grain 类型、 grainId名称空间组合独有的订阅编号。
         /// </summary>
         /// <param name="grainId"></param>
         /// <param name="streamId"></param>
@@ -188,7 +188,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Create a subscriptionId that is unique per grainId, grainType, namespace combination.
+        /// 创建 subscriptionId 唯一 grainId, grainType,命名空间组合。
         /// </summary>
         private Guid MakeSubscriptionGuid(GrainType grainType, QualifiedStreamId streamId)
         {
@@ -206,7 +206,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Finds all implicit subscribers for the given stream namespace.
+        /// 查找给定流命名空间的所有隐含用户。
         /// </summary>
         private static HashSet<StreamSubscriber> FindImplicitSubscribers(string streamNamespace, List<StreamSubscriberPredicate> predicates)
         {

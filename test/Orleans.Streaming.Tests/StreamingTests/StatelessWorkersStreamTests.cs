@@ -13,7 +13,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// Tests for stream subscription behavior with stateless worker grains, verifying subscription restrictions.
+    /// 与无国籍工人进行溪流订户行为测试 grains,核实订阅限制。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

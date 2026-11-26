@@ -1,36 +1,44 @@
 ---
-title: Orleans resources
-description: Find Orleans documentation, source, samples, community, and research.
+title: "Orleans 资源"
+description: "查找 Orleans 文件、来源、样本、社区和研究。"
 ms.date: 08/02/2026
 ms.topic: reference
 ---
 
-# Orleans resources
+<a id="orleans-resources"></a>
 
-## Documentation and source
+# Orleans 资源
 
-- [Orleans documentation](https://learn.microsoft.com/dotnet/orleans/)
-- [Orleans repository](https://github.com/dotnet/orleans)
-- [Orleans samples](https://github.com/dotnet/orleans/tree/main/samples)
-- [.NET API reference for Orleans](https://dotnet.github.io/orleans/docs/api/csharp/)
-- [Orleans NuGet packages](https://www.nuget.org/profiles/Orleans)
-- [Release notes](https://github.com/dotnet/orleans/releases)
-- [Migration guide](../migration-guide.md)
+<a id="documentation-and-source"></a>
 
-## Community and support
+## 文件和来源
 
-- [Orleans Discord](https://aka.ms/orleans-discord)
-- [GitHub Discussions](https://github.com/dotnet/orleans/discussions)
-- [GitHub issues](https://github.com/dotnet/orleans/issues)
-- [Contributing guide](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- [Orleans 文件编制](https://learn.microsoft.com/dotnet/orleans/)
+- [Orleans 仓库](https://github.com/dotnet/orleans)
+- [Orleans 样本](https://github.com/dotnet/orleans/tree/main/samples)
+- [.NET API 参考文献 Orleans](https://dotnet.github.io/orleans/docs/api/csharp/)
+- [Orleans NuGet 包](https://www.nuget.org/profiles/Orleans)
+- [单元说明](https://github.com/dotnet/orleans/releases)
+- [移徙指南](../migration-guide.md)
 
-Use GitHub issues for reproducible bugs and feature proposals. Use Discussions or Discord for design questions and community help.
+<a id="community-and-support"></a>
 
-## Talks and research
+## 社区与支助
 
-- [An introduction to Orleans](https://learn.microsoft.com/shows/reactor/an-introduction-to-orleans)
-- [Building real applications with Orleans](https://learn.microsoft.com/shows/on-net/building-real-applications-with-orleans)
-- [Orleans: Distributed Virtual Actors for Programmability and Scalability](https://www.microsoft.com/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/)
-- [Orleans: Virtual Actors](https://www.microsoft.com/research/project/orleans-virtual-actors/)
+- [Orleans 差异](https://aka.ms/orleans-discord)
+- [GitHub 讨论](https://github.com/dotnet/orleans/discussions)
+- [GitHub 问题](https://github.com/dotnet/orleans/issues)
+- [贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
 
-Older posts and talks can be useful historical context, but their setup instructions and APIs might no longer apply. Use the product documentation, repository samples, and API reference for implementation guidance.
+使用 GitHub 问题作为可复制的错误和功能建议,使用讨论或差异来设计问题和社区帮助。
+
+<a id="talks-and-research"></a>
+
+## 会谈和研究
+
+- [Orleans导言](https://learn.microsoft.com/shows/reactor/an-introduction-to-orleans)
+- [与 Orleans一起建立真实应用程序](https://learn.microsoft.com/shows/on-net/building-real-applications-with-orleans)
+- [Orleans:可编程性和可缩放性虚拟传播动因](https://www.microsoft.com/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/)
+- [Orleans:虚拟行为方](https://www.microsoft.com/research/project/orleans-virtual-actors/)
+
+旧的岗位和会谈可以有实用的历史背景,但其设置指示和API可能不再适用。 用产品文件、存储样本和 API 参考来指导执行。

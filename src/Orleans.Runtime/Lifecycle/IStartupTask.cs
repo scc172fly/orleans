@@ -4,15 +4,15 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Defines an action to be taken after silo startup.
+    /// 定义在启动 silo 后要采取的行动。
     /// </summary>
     public interface IStartupTask
     {
         /// <summary>
-        /// Called after the silo has started.
+        /// 启动 silo 后调用。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token which is canceled when the method must abort.</param>
-        /// <returns>A <see cref="Task"/> representing the work performed.</returns>
+        /// <param name="cancellationToken">当方法中止时取消的取消符号。</param>
+        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
         Task Execute(CancellationToken cancellationToken);
     }
 }

@@ -5,21 +5,21 @@ using Orleans.Concurrency;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Extension interface for grains that can receive durable job invocations.
+/// 能够接受持久工作职业的 grains 扩展界面。
 /// </summary>
 internal interface IDurableJobReceiverExtension : IGrainExtension
 {
     /// <summary>
-    /// Handles a durable job by either starting execution or checking the status of an execution which remains in progress.
-    /// Concurrent deliveries for the same job attempt share the active invocation. Once an invocation reaches
-    /// a terminal disposition, a later delivery starts a new invocation.
+    /// 处理一项持久的工作,要么开始执行,要么检查仍在执行中的执行状况。
+    /// 同一工作同时分娩的同工同工同工同用。
+    /// 终端处置,较晚交货开始新的援引。
     /// </summary>
-    /// <param name="context">The context containing information about the durable job.</param>
+    /// <param name="context">包含有关持久工作的信息的背景。</param>
     /// <param name="attemptCancellationToken">
-    /// A token which cooperatively requests cancellation of this execution attempt.
-    /// Attempt cancellation leaves the durable job eligible for redelivery.
+    /// 合作要求取消这一处决企图的象征。
+    /// 取消企图使持久工作有资格重新交付。
     /// </param>
-    /// <returns>A task that represents the asynchronous operation and contains the job execution result.</returns>
+    /// <returns>代表非同步操作并包含工作执行结果的任务。</returns>
     [AlwaysInterleave]
     ValueTask<DurableJobRunResult> HandleDurableJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken);
 }
@@ -132,7 +132,7 @@ internal sealed partial class DurableJobReceiverExtension : IDurableJobReceiverE
         }
         catch (OperationCanceledException) when (attemptCancellationToken.IsCancellationRequested)
         {
-            // Attempt cancellation leaves the durable job eligible for redelivery.
+            // 取消企图使持久工作有资格重新交付。
             tracker.AttemptCanceled();
             throw;
         }
@@ -151,13 +151,13 @@ internal sealed partial class DurableJobReceiverExtension : IDurableJobReceiverE
         bool newJob,
         CancellationToken attemptCancellationToken)
     {
-        // Cancellation is cooperative: only terminal task state is authoritative for job outcome.
+        // 取消是合作性的:只有最终任务国才有权决定工作结果。
         if (!state.Task.IsCompleted)
         {
             if (newJob)
             {
-                // For the first attempt, to reduce RPC, we wait for the polling interval or half the response timeout for the task to complete.
-                // This saves a back-and-forth for the common case where a job completes quickly.
+                // 第一次尝试是减少RPC, 我们等待投票间隔或一半的响应超时完成任务。
+                // 这对于工作快速完成的常见情况省下后退。
                 return LongPollGetJobStatusAsync(key, context, state, attemptCancellationToken);
             }
 

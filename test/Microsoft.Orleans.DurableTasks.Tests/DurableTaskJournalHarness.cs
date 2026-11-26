@@ -10,12 +10,12 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Hosts journaled durable task storage in a selected journal format over volatile journal storage.
+/// 主机以选定的日记格式, 编辑了持久任务存储,
 /// </summary>
 /// <remarks>
-/// Services come from <c>AddJournaling</c> and <c>AddDurableTasks</c>, so the journal codecs, JSON metadata, and
-/// Orleans serializer match a silo. Each activation creates a scope with a fresh journaled state manager for the
-/// same journal, so state written by one activation is recovered by the next.
+/// 服务来自 <c>AddJournaling</c> 和 <c>AddDurableTasks</c>,因此日记编码、 JSON 元数据以及
+/// Orleans 序列器匹配 silo。每次激活都为该台创建了范围,由新日记的国家经理负责
+/// 同一日记, 所以一个激活的状态 会在下一时间恢复
 /// </remarks>
 internal sealed class DurableTaskJournalHarness : IAsyncDisposable
 {
@@ -35,13 +35,13 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
         silo.Services.AddSingleton(timeProvider ?? TimeProvider.System);
         silo.Services.AddKeyedSingleton(JournalingTimeProviderNames.Journaling, TimeProvider.System);
 
-        // Like a silo, the other areas' keyed clocks, including the Durable Jobs clock, default to the unkeyed one.
+        // 类似 silo,其它区域的键盘钟,包括“持久工作钟”,默认为无锁的钟。
         silo.Services.AddKeyedSingleton<TimeProvider>(KeyedService.AnyKey, static (sp, _) => sp.GetRequiredService<TimeProvider>());
         silo.AddJournaling();
         silo.AddDurableTasks();
 
-        // A silo composes Durable Tasks with journaled Durable Jobs, whose registration also supplies JSON metadata for
-        // the journal manager's own stream directory and retirement tracker.
+        // 一个 silo 构成具有经期刊编辑的持久工作的长期任务,其登记也为以下目的提供 JSON 元数据:
+        // 日记经理自己的流目录和退休跟踪器
         silo.UseJournaledDurableJobs();
         silo.Services.AddSerializer(builder => builder.AddAssembly(typeof(DurableTaskJournalHarness).Assembly));
         silo.Services.Configure<JournaledStateManagerOptions>(options => options.JournalFormatKey = journalFormatKey);
@@ -51,7 +51,7 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
         _services = silo.Services.BuildServiceProvider();
     }
 
-    /// <summary>Gets the journal formats which durable task state supports.</summary>
+    /// <summary>获取耐久任务状态支持的日记格式。</summary>
     public static TheoryData<string> Formats => new() { Json, OrleansBinary };
 
     public string JournalFormatKey { get; }
@@ -62,7 +62,7 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
 
     public Serializer Serializer => _services.GetRequiredService<Serializer>();
 
-    /// <summary>Creates an activation scope and recovers its task state from the journal.</summary>
+    /// <summary>创建激活范围并从日记中恢复任务状态。</summary>
     public async Task<Activation> ActivateAsync(CancellationToken cancellationToken)
     {
         var scope = _services.CreateAsyncScope();
@@ -79,10 +79,10 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
         }
     }
 
-    /// <summary>Creates an activation scope without recovering its state, so callers can register state first.</summary>
+    /// <summary>创建启动范围,而不恢复状态,因此呼叫者可以先登记国家。</summary>
     public AsyncServiceScope CreateScope() => _services.CreateAsyncScope();
 
-    /// <summary>Returns the journal format key stamped on the stored journal.</summary>
+    /// <summary>返回存储在日记上标记的日记格式密钥。</summary>
     public async Task<string?> GetStoredJournalFormatKeyAsync(CancellationToken cancellationToken)
     {
         var metadata = await StorageProvider.CreateStorage(_journalId).GetMetadataAsync(cancellationToken);

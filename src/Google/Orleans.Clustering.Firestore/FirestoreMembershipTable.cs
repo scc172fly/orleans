@@ -97,7 +97,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             }
             catch (RpcException exception) when (exception.StatusCode is StatusCode.Aborted or StatusCode.FailedPrecondition or StatusCode.NotFound)
             {
-                // Refresh only a conflicted batch. Native transaction retries protect its new eligibility checks.
+                // 本地交易重记保护其新的资格审查。
                 await this._storage.ExecuteTransaction(async transaction =>
                 {
                     var current = await transaction.GetAllSnapshotsAsync(
@@ -143,7 +143,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             var collection = this._storage.GetCollection();
             var entries = await ExecuteWithContentionRetries(() => collection.Database.RunTransactionAsync(async transaction =>
             {
-                // The transaction binds every streamed document to one serializable snapshot.
+                // 交易将每一份流出的文件都绑在可连序的快照上。
                 var snapshot = await transaction.GetSnapshotAsync(collection, transaction.CancellationToken);
                 var versionSnapshot = snapshot.Documents.SingleOrDefault(document => document.Id == this._partitionId)
                     ?? throw new KeyNotFoundException($"Could not find cluster version entry for {this._partitionId}");
@@ -223,7 +223,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             try
             {
                 var batch = collection.Database.StartBatch();
-                // The version guards canonical changes; heartbeat writes can change the row ETag.
+                // 版本保护语句更改; 心跳写作可以改变行ETag。
                 batch.Update(siloReference, silo.GetFields(), Precondition.MustExist);
                 batch.Update(versionReference, version.GetFields(), Precondition.LastUpdated(version.ETag.Value));
                 await ExecuteWithContentionRetries(() => batch.CommitAsync(cancellationToken), cancellationToken);
@@ -308,7 +308,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             }
             catch (RpcException exception) when (exception.StatusCode == StatusCode.Aborted && attempt < MaxContentionAttempts - 1)
             {
-                // Retry a whole aborted snapshot or the same conditional batch, preserving the caller's CAS preconditions.
+                // 重试整个中止的快照或相同的有条件批次,以保留打电话者的CAS先决条件。
                 await Task.Delay(TimeSpan.FromMilliseconds(100 * (1 << attempt)), cancellationToken);
             }
         }

@@ -4,16 +4,16 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Test infrastructure for observing journaled state.
+/// 观察日记状态的测试基础设施。
 /// </summary>
 internal static class ObservationTestHelpers
 {
     /// <summary>
-    /// Runs <paramref name="body"/> on an exclusive scheduler, mirroring an activation's single-threaded scheduler.
+    /// 在独家调度器上运行 <paramref name="body"/> , 反映激活单行调度器的镜像 。
     /// </summary>
     /// <remarks>
-    /// The manager's work loop and every watch continuation inherit the scheduler, so state is accessed by one logical
-    /// thread and a continuation runs only when the test body awaits.
+    /// 经理的工作循环和每个监视器的继续运行 都继承了调度器 所以状态通过一个逻辑进入
+    /// 继续线只在试验体等待时运行。
     /// </remarks>
     public static Task RunOnActivationSchedulerAsync(Func<Task> body)
     {
@@ -36,7 +36,7 @@ internal static class ObservationTestHelpers
     }
 
     /// <summary>
-    /// Reads the next log event without its epoch. Tests which assert the epoch read <see cref="IAsyncEnumerator{T}.Current"/>.
+    /// 阅读下一个日志事件,而不使用它的时代。测试中肯定该时代的值读 <see cref="IAsyncEnumerator{T}.Current"/>。
     /// </summary>
     public static async Task<LogEvent<T>> NextAsync<T>(this IAsyncEnumerator<LogEvent<T>> enumerator)
     {
@@ -49,7 +49,7 @@ internal static class ObservationTestHelpers
 }
 
 /// <summary>
-/// Journal storage which can hold writes in flight and fail them, delegating durable data to volatile storage.
+/// 将耐久数据下放给不稳定的存储。
 /// </summary>
 internal sealed class GatedJournalStorage(VolatileJournalStorage inner) : IJournalStorage
 {
@@ -70,7 +70,7 @@ internal sealed class GatedJournalStorage(VolatileJournalStorage inner) : IJourn
     public int ReplaceCount { get; private set; }
 
     /// <summary>
-    /// Holds the next write until <see cref="Release"/> is called. <see cref="WriteStarted"/> completes when the write reaches storage.
+    /// 将下一个写作保持到 <see cref="Release"/> 被调用。 <see cref="WriteStarted"/> 当写入到达存储点时完成 。
     /// </summary>
     public void HoldNextWrite()
     {

@@ -6,7 +6,7 @@ public sealed class InvoiceGrain(IExchangeRates rates, IEmailSender email) : Dur
     // <orleans0202_violation>
     public async DurableTask<decimal> InvoiceAsync(string customer, decimal amount, string currency)
     {
-        // A replay calls the service again: it can return another rate, or fail where the first run succeeded.
+        // 重播再次调用服务: 它可以返回另一个利率, 或者在第一次运行成功时失败 。
         var rate = await rates.GetRateAsync(currency, DurableTask.Current.CancellationToken);
         var total = await Bill(amount * rate).WithId("bill");
         await DurableTask.Delay(TimeSpan.FromDays(30)).WithId("due");
@@ -18,7 +18,7 @@ public sealed class InvoiceGrain(IExchangeRates rates, IEmailSender email) : Dur
     // <orleans0202_fix_run>
     public async DurableTask<decimal> InvoiceWithRecordedRateAsync(string customer, decimal amount, string currency)
     {
-        // The step records the rate, so a replay returns it without calling the service.
+        // 步骤记录了速率, 所以重播返回它而不拨打服务。
         var rate = await DurableTask.Run(ct => rates.GetRateAsync(currency, ct)).WithId("rate");
         var total = await Bill(amount * rate).WithId("bill");
         await DurableTask.Delay(TimeSpan.FromDays(30)).WithId("due");
@@ -34,7 +34,7 @@ public sealed class InvoiceGrain(IExchangeRates rates, IEmailSender email) : Dur
         return total;
     }
 
-    // A local step: a replay returns its recorded completion without sending the email again.
+    // 本地步骤: 重放返回其记录的完成, 不发送邮件 。
     private async DurableTask NotifyAsync(string customer, decimal total) =>
         await email.SendAsync(customer, $"Your invoice for {total:C}", DurableTask.Current.CancellationToken);
     // </orleans0202_fix_step>
@@ -44,8 +44,8 @@ public sealed class InvoiceGrain(IExchangeRates rates, IEmailSender email) : Dur
     {
         var total = await Bill(amount).WithId("bill");
 
-        // No durable operation follows, so only a run which completes the task sends the email. A run which ends
-        // before the result commits sends it again.
+        // 之后没有持久操作, 所以只有完成任务的一个运行才能发送电子邮件。 结束的运行
+        // 在那日,应否再造一次。
         await email.SendAsync(customer, $"Your invoice for {total:C}", DurableTask.Current.CancellationToken);
         return total;
     }

@@ -76,7 +76,7 @@ public class CassandraContainer
                 .AddContactPoints(new IPEndPoint(IPAddress.Loopback, exposedPort))
                 .Build();
 
-            // Connect to the nodes using a keyspace
+            // 使用密钥空间连接到节点
             var session =
                 cluster.ConnectAndCreateDefaultKeyspaceIfNotExists(ReplicationStrategies
                     .CreateSimpleStrategyReplicationProperty(1));
@@ -94,7 +94,7 @@ public class CassandraContainer
                 }
                 catch
                 {
-                    // Preserve the startup failure.
+                    // 保全启动失败。
                 }
             }
 

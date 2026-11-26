@@ -10,23 +10,23 @@ using Microsoft.Extensions.Logging;
 namespace Orleans
 {
     /// <summary>
-    /// Logger for options on the client.
+    /// 客户端选项的 Loger 选项
     /// </summary>
     internal class ClientOptionsLogger : OptionsLogger, ILifecycleParticipant<IClusterClientLifecycle>
     {
         /// <summary>
-        /// Logs options as soon as possible.
+        /// 尽快作出日志选择。
         /// </summary>
         private const int ClientOptionLoggerLifeCycleRing = int.MinValue;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientOptionsLogger"/> class.
+        /// 初始化 <see cref="ClientOptionsLogger"/> 类的新实例。
         /// </summary>
         /// <param name="logger">
-        /// The logger.
+        /// 伐木工
         /// </param>
         /// <param name="services">
-        /// The services.
+        /// 服务。
         /// </param>
         public ClientOptionsLogger(ILogger<ClientOptionsLogger> logger, IServiceProvider services)
             : base(logger, services)
@@ -48,7 +48,7 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Base class for client and silo default options loggers.
+    /// 客户端和 silo 默认选项日志的基类。
     /// </summary>
     public abstract partial class OptionsLogger
     {
@@ -56,13 +56,13 @@ namespace Orleans
         private readonly IServiceProvider services;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OptionsLogger"/> class.
+        /// 初始化 <see cref="OptionsLogger"/> 类的新实例。
         /// </summary>
         /// <param name="logger">
-        /// The logger.
+        /// 伐木工
         /// </param>
         /// <param name="services">
-        /// The services.
+        /// 服务。
         /// </param>
         protected OptionsLogger(ILogger logger, IServiceProvider services)
         {
@@ -71,7 +71,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Log all options with registered formatters
+        /// 登录所有已注册格式化器的选项
         /// </summary>
         public void LogOptions()
         {
@@ -79,9 +79,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Log options using a set of formatters.
+        /// 使用一组格式化器的日志选项。
         /// </summary>
-        /// <param name="formatters">The collection of options formatters.</param>
+        /// <param name="formatters">收集选项格式化器。</param>
         public void LogOptions(IEnumerable<IOptionFormatter> formatters)
         {
             ArgumentNullException.ThrowIfNull(formatters);
@@ -93,9 +93,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Log an options using a formatter.
+        /// 使用要用事由记录一个选项。
         /// </summary>
-        /// <param name="formatter">The options formatter.</param>
+        /// <param name="formatter">事项的选项。</param>
         public void LogOption(IOptionFormatter formatter)
         {
             ArgumentNullException.ThrowIfNull(formatter);

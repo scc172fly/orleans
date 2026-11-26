@@ -6,8 +6,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Exercises durable executions which subscribe through GetDurableTask to the terminal result of tasks which they didn't
-/// invoke, on other grains and on their own grain.
+/// 执行耐久处决,通过 GetDurableTask 与任务的最终结果相符合,而他们没有这样做
+/// 援引,其他 grains 和他们自己所享受的 grain.
 /// </summary>
 public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -32,12 +32,12 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
 
         Assert.Equal("done", await GetResultAsync(relay, cancellationToken));
 
-        // The client which scheduled the operation still polls its retained result, and awaiting a reference outside a
-        // durable execution waits for it.
+        // 预定行动仍调查其保留结果的客户仍在调查,等待在一
+        // 持久执行等待它。
         Assert.Equal("done", await GetResultAsync(operation.GetDurableTask<string>("op"), cancellationToken));
         Assert.Equal("done", await operation.GetDurableTask<string>("op"));
 
-        // The relay's tree records the subscription as a child.
+        // 接力树记录了儿童订阅的纪录
         var subscription = Assert.Single(
             await GetTasksAsync(subscriber, cancellationToken),
             task => task.Key != TaskId.CreateRoot("relay"));
@@ -71,7 +71,7 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
         var subscriber = _fixture.Client.GetGrain<IDurableTaskSubscriberGrain>(Guid.NewGuid());
         var started = _fixture.MessagingProbe.WaitForStartedAsync(operationKey, 1);
 
-        // The schedule returns once the operation's grain holds the task, so the subscription which follows finds it.
+        // 任务一经操作 grain 完成,时间表即返回,随后的订阅单位会找到。
         var relay = await subscriber.ScheduleAndSubscribeAsync(operationKey, "detached-op").WithId("relay").ScheduleAsync(cancellationToken);
         await started.WaitAsync(Timeout, cancellationToken);
         await operation.SignalDurableTaskAsync("detached-op", DurableTaskSubscribedGrain.Release, "done", cancellationToken);
@@ -90,8 +90,8 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
         var relay = await subscriber.SubscribeWithDeadlineAsync(operationKey, "op").WithId("relay").ScheduleAsync(cancellationToken);
         await subscribing.WaitAsync(Timeout, cancellationToken);
 
-        // The deadline's delay is due once the Durable Jobs clock, which logical time follows, passes it, so the clock
-        // advances once the subscriber holds the delay.
+        // 等到持久工作时钟(顺时顺后顺时钟)通过,所以时间就到了
+        // 订阅者持有延迟时间后,立即预发预付款。
         await WaitForDelayAsync(subscriber, cancellationToken);
         _fixture.JobClock.Advance(TimeSpan.FromHours(2));
 
@@ -172,14 +172,14 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
     }
 }
 
-/// <summary>Runs subscription coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行订阅覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskSubscriptionTests() : DurableTaskSubscriptionTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs subscription coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行订阅覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

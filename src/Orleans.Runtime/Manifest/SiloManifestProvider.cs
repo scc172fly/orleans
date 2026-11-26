@@ -9,7 +9,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Creates a <see cref="SiloManifest"/> for this silo.
+    /// 创建 <see cref="SiloManifest"/> 为此 silo.
     /// </summary>
     internal class SiloManifestProvider
     {

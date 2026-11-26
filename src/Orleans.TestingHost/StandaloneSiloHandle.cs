@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// A silo handle and factory which spawns a separate process for each silo.
+    /// 一种 silo 处理和工厂,为每个 silo产生一个单独的过程。
     /// </summary>
     public class StandaloneSiloHandle : SiloHandle
     {
@@ -27,22 +27,22 @@ namespace Orleans.TestingHost
         private Task _runTask = null!;
 
         /// <summary>
-        /// The configuration key used to identify the process to launch.
+        /// 用于识别启动进程配置密钥 。
         /// </summary>
         public const string ExecutablePathConfigKey = "ExecutablePath";
 
-        /// <summary>Gets a reference to the silo host.</summary>
+        /// <summary>获取 silo 主机的引用。</summary>
         private Process Process { get; set; }
 
         /// <inheritdoc />
         public override bool IsActive => isActive;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StandaloneSiloHandle"/> class.
+        /// 初始化 <see cref="StandaloneSiloHandle"/> 类的新实例。
         /// </summary>
-        /// <param name="siloName">The name of the silo.</param>
-        /// <param name="configuration">The configuration to pass to the standalone silo process.</param>
-        /// <param name="executablePath">The path to the executable which hosts the silo.</param>
+        /// <param name="siloName"> silo的名称。</param>
+        /// <param name="configuration">将传递到独立 silo 进程的配置。</param>
+        /// <param name="executablePath">主机 silo的可执行文件路径。</param>
         public StandaloneSiloHandle(string siloName, IConfiguration configuration, string executablePath)
         {
             if (string.IsNullOrWhiteSpace(executablePath) || !File.Exists(executablePath))
@@ -52,7 +52,7 @@ namespace Orleans.TestingHost
 
             Name = siloName;
 
-            // If the debugger is attached to this process, give it an opportunity to attach to the remote process.
+            // 如果调试器与此进程有关,则给它一个机会附加远程进程。
             if (Debugger.IsAttached)
             {
                 configuration["AttachDebugger"] = "true";
@@ -84,7 +84,7 @@ namespace Orleans.TestingHost
                 }
                 else
                 {
-                    // Read standard output from the process for status updates.
+                    // 读取状态更新过程中的标准输出 。
                     if (!_startedEvent.Task.IsCompleted)
                     {
                         if (e.Data.StartsWith(StandaloneSiloHost.SiloAddressLog, StringComparison.Ordinal))
@@ -145,7 +145,7 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Spawns a new process to host a silo, using the executable provided in the configuration's "ExecutablePath" property as the entry point.
+        /// 启动新的程序以主机 silo,使用配置中提供的可执行文件“ExecutablePath" 财产作为入境点。
         /// </summary>
         public static async Task<SiloHandle> Create(
             string siloName,
@@ -158,9 +158,9 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Creates a delegate which spawns a silo in a new process, using the provided executable as the entry point for that silo.
+        /// 创建代表,产生 silo 在新程序中,使用所提供的可执行文件作为该程序的切入点 silo.
         /// </summary>
-        /// <param name="executablePath">The entry point for spawned silos.</param>
+        /// <param name="executablePath">产卵的切入点 silos.</param>
         public static Func<string, IConfiguration, Task<SiloHandle>> CreateDelegate(string executablePath)
         {
             return async (siloName, configuration) =>
@@ -172,9 +172,9 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Creates a delegate which spawns a silo in a new process, with the provided assembly (or its executable counterpart, if it is a library) being the entry point for that silo.
+        /// 创建一个代表,在新的过程中产生 silo ,该代表的切入点是提供组装(或可执行对应文件,如果它是图书馆的话)作为该 silo的切入点。
         /// </summary>
-        /// <param name="assembly">The entry point for spawned silos. If the provided assembly is a library (dll), then its executable sibling assembly will be invoked instead.</param>
+        /// <param name="assembly">产卵的切入点 silos。如果提供的组装是一个库(dll),则将援引其可执行的硅状组装。</param>
         public static Func<string, IConfiguration, Task<SiloHandle>> CreateForAssembly(Assembly assembly)
         {
             var executablePath = GetExecutablePath(
@@ -208,7 +208,7 @@ namespace Orleans.TestingHost
                 }
                 else
                 {
-                    // On unix-like operating systems, executables generally do not have an extension.
+                    // 在类似unix的操作系统上,可执行文件一般没有扩展名。
                     target = new FileInfo(Path.GetFileNameWithoutExtension(originalFileInfo.FullName));
                 }
             }

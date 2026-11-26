@@ -7,26 +7,26 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Tests for Orleans' support of C# record types.
+/// C# 记录类型 Orleans支持的测试。
 /// 
-/// Records are first-class citizens in Orleans serialization, with full support for:
-/// - Primary constructor parameters
-/// - Init-only properties
-/// - Record inheritance hierarchies
-/// - Abstract record base types
-/// - Complex record structures with multiple inheritance levels
+/// 记录是一流公民的 Orleans 序列化记录,充分支持:
+/// - 初级建筑参数
+/// - 仅使用 Init 属性
+/// - 记录继承等级制度
+/// - 基本类型简要记录摘要
+/// - 复杂的记录结构,具有多个继承等级
 /// 
-/// Orleans handles records efficiently by:
-/// - Generating optimized serializers that understand record semantics
-/// - Preserving value equality semantics
-/// - Supporting both positional and nominal record syntax
-/// - Handling record structs (value type records)
+/// Orleans 高效率地处理记录,具体做法是:
+/// - 产生最优化的序列器,能理解记录语义
+/// - 维护价值平等语义
+/// - 支持上下上下记录语法和名义上记录词法
+/// - 处理记录支架(价值类型记录)
 /// 
-/// This support is crucial for modern C# applications that leverage records for:
-/// - Immutable data models
-/// - Domain-driven design with value objects
-/// - Functional programming patterns
-/// - Clean API contracts
+/// 这种支持对于现代C#应用程序至关重要,因为这些应用可以将记录用于:
+/// - 数据模型不可变
+/// - 带有价值对象的域驱动设计
+/// - 职能方案拟订模式
+/// - 清洁 API 合同
 /// </summary>
 [Trait("Category", "BVT")]
 [Trait("Suite", "BVT")]
@@ -270,36 +270,36 @@ public class RecordSerializationTests
         Assert.Equal("extra", deserialized.Description);
     }
 
-    // TODO: This type should cause a build error because "Bar" is an init-only non-auto property but has an [Id(...)] attribute.
-    // It is suited for an diagnostic analyzer test, but the current implementation
-    // of the source generator does not support execution as an analyzer.
+    // TODO: 此类型应造成构建错误, 因为“ bar” 是只使用 Init 的非自动属性, 但有 [ID(...) 属性 。
+    // 适合进行诊断分析测试,但目前的实施情况
+    // 源生成器不支持作为分析器执行。
     /*
     [GenerateSerializer]
-    public record RecordWithInitOnlyManualProperty
+    公开记录 RecordWithInitOnlyManualProperty
     {
         private string _bar;
 
-        [Id(0)]
-        public string Bar
+        [日期0]
+        公共字符串栏
         {
-            get => _bar;
-            init
+            获得 _bar;
+            开进
             {
-                _bar = value;
+                _bar = 值;
                 OnSetBar(_bar);
             }
         }
 
-        public RecordWithInitOnlyManualProperty(string bar)
+        RecordWithInitOnlyManualProperty(字符串栏)
         {
             _bar = bar;
             OnSetBar(_bar);
         }
 
-        private void OnSetBar(string bar)
+        私人空 OnSetBar(字符串栏)
         {
-            // Ignore
-            _ = bar;
+            // 忽略忽略
+            _ =巴;
         }
     }
     */

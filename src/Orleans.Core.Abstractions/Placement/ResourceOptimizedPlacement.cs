@@ -1,17 +1,17 @@
 namespace Orleans.Runtime;
 
 /// <summary>
-/// A placement strategy which attempts to optimize resource distribution across the cluster.
+/// 一种安置战略,力求优化整个专题组的资源分配。
 /// </summary>
 /// <remarks>
-/// <para>It assigns weights to runtime statistics to prioritize different resources and calculates a normalized score for each silo.
-/// Following the <u>power of k-choices</u> algorithm, K silos are picked as potential targets, where K is equal to the square root of the number of silos.
-/// Out of those K silos, the one with the lowest score is chosen for placing the activation. Normalization ensures that each property contributes proportionally
-/// to the overall score. You can adjust the weights based on your specific requirements and priorities for load balancing.
-/// In addition to normalization, an <u>online adaptive</u> algorithm provides a smoothing effect (filters out high frequency components) and avoids rapid signal
-/// drops by transforming it into a polynomial-like decay process. This contributes to avoiding resource saturation on the silos and especially newly joined silos.</para>
-/// <para>Silos which are overloaded by definition of the load shedding mechanism are not considered as candidates for new placements.</para>
-/// <para><i>This placement strategy is configured by adding the <see cref="Placement.ResourceOptimizedPlacementAttribute"/> attribute to a grain.</i></para>
+/// <para>它为运行时统计分配加权数,以优先安排不同资源,并计算每个 silo的正常分。
+/// 之后 <u>k- 选择功率</u> K 算法 silos K等于数字的平方根 silos.
+/// K silos中,选择得分最低的一位来安装启动。 正常化确保每个财产按比例贡献
+/// 您可以根据您在负载平衡方面的具体要求和优先级调整加权数。
+/// 除了正常化外, <u>在线适应性</u> 算法还提供平滑效果(过滤高频部件)并避免快速信号
+/// 将它转换成多边相似的衰变进程, 从而降低其下降。 这有利于避免在 silos 上特别是新加入的 silos上的资源饱和性 。</para>
+/// <para>Silos 被界定为超负荷的卸载机制不被视为新职位的候选人。</para>
+/// <para><i>此放置策略配置方法是将 <see cref="Placement.ResourceOptimizedPlacementAttribute"/> 属性添加到一个 grain。</i></para>
 /// </remarks>
 [GenerateSerializer, Immutable, SuppressReferenceTracking]
 public sealed class ResourceOptimizedPlacement : PlacementStrategy

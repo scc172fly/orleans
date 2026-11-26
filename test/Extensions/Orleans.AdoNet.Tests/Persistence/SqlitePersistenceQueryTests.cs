@@ -275,7 +275,7 @@ public sealed class SqlitePersistenceQueryTests : IDisposable
     [InlineData("ClearStorageKey", null, "extension")]
     public void DuplicateIdentityReturnsVersionOfUpdatedRows(string queryKey, int? duplicateVersion, string? extension)
     {
-        // Put the potentially unmatched row first so LIMIT 1 would report the wrong version.
+        // 将可能无法匹配的行放在第一, 以便LIMIT 1 报告错误版本 。
         InsertRow(duplicateVersion, extension);
         InsertRow(1, extension);
 

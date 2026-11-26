@@ -46,7 +46,7 @@ namespace Orleans.Analyzers
         {
             var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
 
-            // Add the [GenerateSerializer] attribute
+            // 添加GenerateSerializer属性
             var attribute = Attribute(ParseName(Constants.GenerateSerializerAttributeSourceName))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
             editor.AddAttribute(declaration, attribute);
@@ -66,7 +66,7 @@ namespace Orleans.Analyzers
             var nextId = analysis.NextAvailableId;
             foreach (var member in analysis.UnannotatedMembers)
             {
-                // Add the [Id(x)] attribute
+                // 添加 [ID(x)]属性
                 var attribute = Attribute(ParseName(Constants.IdAttributeSourceName))
                     .AddArgumentListArguments(AttributeArgument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal((int)nextId++))))
                     .WithAdditionalAnnotations(Simplifier.Annotation);
@@ -88,10 +88,10 @@ namespace Orleans.Analyzers
 
             foreach (var member in analysis.UnannotatedMembers)
             {
-                // Add the [NonSerialized] attribute
+                // 添加NonSerialized属性
                 var attribute = AttributeList().AddAttributes(Attribute(ParseName(Constants.NonSerializedAttributeSourceName)).WithAdditionalAnnotations(Simplifier.Annotation));
 
-                // Since [NonSerialized] is a field-only attribute, add the field target specifier.
+                // 由于 [NonSerialized]是一个仅字段属性,添加字段目标标注符。
                 if (member is PropertyDeclarationSyntax)
                 {
                     attribute = attribute.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.FieldKeyword)));

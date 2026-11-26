@@ -3,13 +3,13 @@ using System;
 namespace Orleans.Versions.Selector
 {
     /// <summary>
-    /// Grain interface version selector which always selects the lowest compatible version.
+    /// Grain 接口版本选择器,总是选择最低兼容版本。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable, SuppressReferenceTracking]
     public sealed class MinimumVersion : VersionSelectorStrategy
     {
         /// <summary>
-        /// Gets the singleton instance of this class.
+        /// 获得单吨的例子 这个类。
         /// </summary>
         public static MinimumVersion Singleton { get; } = new MinimumVersion();
     }

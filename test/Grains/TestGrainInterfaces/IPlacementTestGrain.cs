@@ -44,17 +44,17 @@ namespace UnitTests.GrainInterfaces
     }
 
     //----------------------------------------------------------//
-    // Interfaces for LocalContent grain case, when grain is activated on every silo by bootstrap provider.
+    // 用于 LocalContent grain 情况,当 grain 启动于每个 silo 由靴子陷阱提供者。
 
     public interface ILocalContentGrain : IGrainWithGuidKey
     {
-        Task Init();                            // a dummy call to just activate this grain.
+        Task Init();                            // 假电话,只需激活此 grain。
         Task<object> GetContent();
     }
 
     public interface ITestContentGrain : IGrainWithIntegerKey
     {
-        Task<string> GetRuntimeInstanceId();    // just for test
+        Task<string> GetRuntimeInstanceId();    // 仅用于测试
         Task<object> FetchContentFromLocalGrain();
     }
 

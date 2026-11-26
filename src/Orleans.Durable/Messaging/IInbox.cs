@@ -1,59 +1,59 @@
 namespace Orleans.Durable.Messaging;
 
-/// <summary>Registers handlers for the messages delivered to a grain's inbox.</summary>
+/// <summary>登记发送到 grain收件箱的信件的处理器。</summary>
 /// <remarks>
 /// <para>
-/// Each message is dispatched to the first registered handler which can handle it. Handlers can be registered at any
-/// time. <see cref="InboxExtensions"/> registers typed subject handlers.
+/// 每条消息都发送给第一个注册的处理器, 并可以处理。 手持者可以在任何
+/// 时间 <see cref="InboxExtensions"/> 登记已输入主题处理器。
 /// </para>
 /// <para>
-/// A grain receives messages by resolving its inbox during construction or activation setup, typically by constructor
-/// injection, so the inbox recovers with the grain's journal.
+/// grain 接收信息的方式是,在施工或启动安装期间解决信箱的收件箱,通常是由建造者发送
+/// 注射,所以收件箱会用 grain日记本恢复。
 /// </para>
 /// <para>
-/// A handler decodes the body, performs asynchronous I/O, validates local results, and checks cancellation before
-/// the first shared business or journaled mutation. From that mutation until it returns, it executes synchronously:
-/// it applies safe-to-commit business changes, stages outgoing messages through <see cref="IOutbox.Send(OutboxMessage)"/>, and calls
-/// <see cref="IInboxHandlerContext.Complete"/> or <see cref="IInboxHandlerContext.Fail"/>. The runtime persists the
-/// outcome with those changes. Failures before a terminal operation follow the inbox retry and dead-letter policy.
+/// 操作员解码身体,执行非同步 I/O,验证本地结果,并取消检查
+/// 第一次共享业务或日记突变。 从该突变到返回, 它同步执行 :
+/// 它应用安全承诺的业务变化,通过 <see cref="IOutbox.Send(OutboxMessage)"/>发送信息,以及调用
+/// <see cref="IInboxHandlerContext.Complete"/> 或 <see cref="IInboxHandlerContext.Fail"/>。运行时间持续
+/// 终端操作之前的故障遵循了收件箱重试和死字母政策。
 /// </para>
 /// </remarks>
 public interface IInbox
 {
-    /// <summary>Registers a handler.</summary>
-    /// <param name="handler">The handler.</param>
-    /// <returns>This inbox.</returns>
+    /// <summary>注册一个处理器。</summary>
+    /// <param name="handler">处理器。</param>
+    /// <returns>这个收件箱。</returns>
     IInbox Register(IInboxHandler handler);
 
-    /// <summary>Registers a sink which accepts messages directly into application-owned journaled state.</summary>
-    /// <param name="sink">The sink.</param>
-    /// <returns>This inbox.</returns>
+    /// <summary>登记一个汇,将信息直接接收到应用程序所属日记状态。</summary>
+    /// <param name="sink">水槽</param>
+    /// <returns>这个收件箱。</returns>
     /// <remarks>
-    /// Messages are offered to sinks before inbox acceptance and handler dispatch; see <see cref="IInboxMessageSink"/>.
-    /// Register sinks during construction or activation setup, before the grain receives messages.
+    /// 信件在收信箱接收和处理器发送之前被送入汇中;见 <see cref="IInboxMessageSink"/>。
+    /// 在 grain 收到信息之前,在建造或启动安装过程中登记汇。
     /// </remarks>
     IInbox Register(IInboxMessageSink sink);
 
     /// <summary>
-    /// Registers a callback which reports durable work held outside the inbox, such as messages which an
-    /// <see cref="IInboxMessageSink"/> accepted, so the messaging wake-up reactivates the grain while that work remains.
+    /// 记录回调,报告在收件箱外开展的持久工作,例如信息
+    /// <see cref="IInboxMessageSink"/> 接受了,所以在工作进行期间,信息提醒会重新启动 grain 。
     /// </summary>
     /// <param name="getWakeupDelay">
-    /// Returns <see langword="null"/> when no work is pending; otherwise, the longest acceptable delay before a
-    /// deactivated grain is reactivated to resume the work. A delay of <see cref="System.TimeSpan.Zero"/> or less requests
-    /// a prompt wake-up.
+    /// 在无工作待处理时返回 <see langword="null"/> ;否则,在
+    /// 已停止使用 grain 恢复工作。 <see cref="System.TimeSpan.Zero"/> 或减请求
+    /// 及时醒来。
     /// </param>
-    /// <returns>This inbox.</returns>
+    /// <returns>这个收件箱。</returns>
     /// <remarks>
     /// <para>
-    /// The callback runs synchronously on the activation scheduler before each journal write and on each wake-up. A write
-    /// which leaves work pending schedules the wake-up before it is stored, so a deactivation or crash can't strand the
-    /// work. Each wake-up reschedules after the shortest reported delay, and wake-ups end once no callback reports work
-    /// and no messages are pending. Wake-ups may be early, late, or duplicated.
+    /// 调回在每期日记写和每次提醒前同步运行激活调度器。
+    /// 工作在时间安排前, 停止或崩溃无法将
+    /// 工作。每次在报告最短的延迟时间之后进行提醒后重新安排时间表,在不进行回召报告时结束提醒
+    /// 也没有留言待发。 醒过来的时间可能很早、晚或重复。
     /// </para>
     /// <para>
-    /// Hold the work in journaled state of the grain's journal and resume it when the grain activates. Register the
-    /// callback during construction or activation setup, before the grain activates.
+    /// 以 grain日记账状态保持工作,并在启动 grain 时恢复。
+    /// 在 grain 启动之前,在建设或激活安装过程中回调。
     /// </para>
     /// </remarks>
     IInbox RegisterWakeup(System.Func<System.TimeSpan?> getWakeupDelay);

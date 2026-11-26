@@ -4,62 +4,62 @@ using System.Threading.Tasks;
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// Grain interface for grains that participate in multi-cluster log-consistency protocols.
+    /// Grain 界面的接口 grains 参加多组对地统一议定书。
     /// </summary>
     public interface ILogConsistencyProtocolParticipant : IGrain
     {
         /// <summary>
-        /// Called immediately before the user-level OnActivateAsync, on same scheduler.
+        /// 直接呼叫用户级别 OnActivateAsync, 在同一排程器上。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("PreActivateProtocolParticipant")]
         Task PreActivateProtocolParticipant();
 
         /// <summary>
-        /// Called immediately before the user-level OnActivateAsync, on the same scheduler.
+        /// 直接调用在同一排程器上的用户级别 OnActivateAsync。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("0DB087C8")]
         Task PreActivateProtocolParticipant(CancellationToken cancellationToken)
             => PreActivateProtocolParticipant();
 
         /// <summary>
-        /// Called immediately after the user-level OnActivateAsync, on same scheduler.
+        /// 在同一排程器的用户级别 OnActivateAsync后立即调用。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("PostActivateProtocolParticipant")]
         Task PostActivateProtocolParticipant();
 
         /// <summary>
-        /// Called immediately after the user-level OnActivateAsync, on the same scheduler.
+        /// 在同一排程器的用户级别 OnActivateAsync后立即调用。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("22FD7D72")]
         Task PostActivateProtocolParticipant(CancellationToken cancellationToken)
             => PostActivateProtocolParticipant();
 
         /// <summary>
-        /// Called immediately after the user-level OnDeactivateAsync, on same scheduler.
+        /// 在同一排程器的用户级别 OnDeactivateAsync后立即调用。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("DeactivateProtocolParticipant")]
         Task DeactivateProtocolParticipant();
 
         /// <summary>
-        /// Called immediately after the user-level OnDeactivateAsync, on the same scheduler.
+        /// 在同一排程器的用户级别 OnDeactivateAsync后立即调用。
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("A36FC884")]
         Task DeactivateProtocolParticipant(CancellationToken cancellationToken)
             => DeactivateProtocolParticipant();
     }
 
     /// <summary>
-    /// interface to mark classes that represent protocol messages.
-    /// All such classes must be serializable.
+    /// 来标记代表协议信件的分类。
+    /// 所有这类类别都必须具有连号性。
     /// </summary>
     public interface ILogConsistencyProtocolMessage
     {

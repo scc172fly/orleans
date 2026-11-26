@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Stream namespace predicate which matches exactly one, specified
+    /// 与指定
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     internal sealed class ExactMatchStreamNamespacePredicate : IStreamNamespacePredicate
@@ -14,9 +14,9 @@ namespace Orleans.Streams
         private readonly string targetStreamNamespace;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExactMatchStreamNamespacePredicate"/> class.
+        /// 初始化 <see cref="ExactMatchStreamNamespacePredicate"/> 类的新实例。
         /// </summary>
-        /// <param name="targetStreamNamespace">The target stream namespace.</param>
+        /// <param name="targetStreamNamespace">目标流命名空间。</param>
         public ExactMatchStreamNamespacePredicate(string targetStreamNamespace)
         {
             this.targetStreamNamespace = targetStreamNamespace;

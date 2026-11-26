@@ -7,24 +7,24 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Represents a list whose mutations are recorded in a journal.
+/// 代表一份在日记中记录突变的清单。
 /// </summary>
-/// <typeparam name="T">The type of elements in the list.</typeparam>
+/// <typeparam name="T">列表中元素的类型。</typeparam>
 /// <remarks>
-/// The list takes ownership of the elements passed to it, and the journal records each mutation when it is made. To change an element, assign a new instance.
+/// 列表将获取传递给它的元素的所有权, 而日记记录在每次发生突变时。 要更改元素, 请指定一个新实例 。
 /// </remarks>
 public interface IDurableList<T> : IList<T>
 {
     /// <summary>
-    /// Adds the elements of the specified collection to the end of the list.
+    /// 将指定收藏的元素添加到列表末尾。
     /// </summary>
-    /// <param name="collection">The collection whose elements are added to the list.</param>
+    /// <param name="collection">收藏元素添加到列表中的收藏 。</param>
     void AddRange(IEnumerable<T> collection);
 
     /// <summary>
-    /// Returns a read-only wrapper for the current list.
+    /// 当前列表返回只读的折叠符。
     /// </summary>
-    /// <returns>A read-only wrapper for the current list.</returns>
+    /// <returns>当前列表的只读折叠器。</returns>
     ReadOnlyCollection<T> AsReadOnly();
 }
 
@@ -85,7 +85,7 @@ internal sealed class DurableList<T> : IDurableList<T>, IStateMachine, IDurableL
 
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer)
     {
-        // This state implementation appends journal entries as the data structure is modified, so there is no need to perform separate writing here.
+        // 此状态的实施随着数据结构的修改而附加日记条目, 因此在此无需单独写入 。
     }
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter snapshotWriter)

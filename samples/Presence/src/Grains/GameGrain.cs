@@ -4,9 +4,9 @@ using Presence.Grains.Models;
 namespace Presence.Grains;
 
 /// <summary>
-/// Represents a game in progress and holds the game's state in memory.
-/// Notifies player grains about their players joining and leaving the game.
-/// Updates subscribed observers about the progress of the game.
+/// 代表游戏正在进行中, 并保持游戏状态的记忆 。
+/// 通知玩家加入和退出游戏的玩家 grains 。
+/// 最新被订阅的观察员关于游戏进展的最新情况。
 /// </summary>
 public class GameGrain : Grain, IGameGrain
 {
@@ -23,45 +23,45 @@ public class GameGrain : Grain, IGameGrain
     private Guid GrainKey => this.GetPrimaryKey();
 
     /// <summary>
-    /// Presense grain calls this method to update the game with its latest status.
+    /// 预设 grain 调用此方法来更新游戏的最新状态 。
     /// </summary>
     public async Task UpdateGameStatusAsync(GameStatus status)
     {
         _status = status;
 
-        // Check for new players that joined since last update
+        // 检查上次更新后加入的新玩家
         foreach (var player in _status.PlayerKeys)
         {
             if (!_players.Contains(player))
             {
                 try
                 {
-                    // Here we call player grains serially, which is less efficient than a fan-out but simpler to express.
+                    // 在这里我们连号调用玩家 grains , 效率比扇子外出低, 但表达简单。
                     await GrainFactory.GetGrain<IPlayerGrain>(player).JoinGameAsync(this.AsReference<IGameGrain>());
                     _players.Add(player);
                 }
                 catch (Exception error)
                 {
-                    // Ignore exceptions while telling player grains to join the game.
-                    // Since we didn't add the player to the list, this will be tried again with next update.
+                    // 通知玩家加入游戏时忽略例外 grains 。
+                    // 既然我们没有将玩家添加到列表中, 下次更新时还会再试一次 。
                     _logger.LogWarning(error, "Failed to tell player {PlayerKey} to join game {GameKey}", player, GrainKey);
                 }
             }
         }
 
-        // Check for players that left the game since last update
+        // 检查上次更新后退出游戏的玩家
         var promises = new List<(Guid PlayerKey, Task Task)>();
         foreach (var player in _players)
         {
             if (!_status.PlayerKeys.Contains(player))
             {
-                // Here we do a fan-out with multiple calls going out in parallel. We join the promises later.
-                // More code to write but we get lower latency when calling multiple player grains.
+                // 我们在这里做一个大动作,同时发出多个电话。我们稍后加入承诺。
+                // 更多要写入的代码, 但是在调用多个玩家时, 我们得到较低的延迟度 grains。
                 promises.Add((player, GrainFactory.GetGrain<IPlayerGrain>(player).LeaveGameAsync(this.AsReference<IGameGrain>())));
             }
         }
 
-        // Joining promises
+        // 共同承诺
         foreach (var (playerKey, task) in promises)
         {
             try
@@ -75,7 +75,7 @@ public class GameGrain : Grain, IGameGrain
             }
         }
 
-        // Notify observers about the latest game score
+        // 通知观察者最新游戏分数
         List<IGameObserver> failed = null!;
         foreach (var observer in _observers)
         {
@@ -87,14 +87,14 @@ public class GameGrain : Grain, IGameGrain
             {
                 _logger.LogWarning(error, "Failed to notify observer {ObserverKey} of score for game {GameKey}. Removing observer.", observer.GetPrimaryKey(), GrainKey);
 
-                // add observer to a list of failures
-                // however defer failed list creation until necessary to avoid incurring an allocation on every call
+                // 将观察员添加到失败列表中
+                // 但是,将清单编制推迟至必要的时间,以避免每次通话都分配款项时,但未能完成
                 failed ??= new();
                 failed.Add(observer);
             }
         }
 
-        // Remove dead observers
+        // 删除死观察者
         if (failed is not null)
         {
             foreach (var observer in failed)

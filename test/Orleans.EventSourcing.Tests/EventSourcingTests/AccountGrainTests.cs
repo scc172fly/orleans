@@ -5,7 +5,7 @@ using Assert = Xunit.Assert;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// Tests for event-sourced account grain functionality including balance operations and transaction logging.
+    /// 测试事件源账户 grain 功能,包括平衡业务和交易记录。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -42,7 +42,7 @@ namespace Tester.EventSourcingTests
 
             if (hasLogStored)
             {
-                // check the transaction log
+                // 交易日志的核对
                 var log = await account.GetTransactionLog();
 
                 Assert.Equal(2, log.Count());

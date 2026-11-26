@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// Extensions for working with lifecycle observers.
+    /// 与生命周期观察员合作的扩展。
     /// </summary>
     public static class LifecycleExtensions
     {
         /// <summary>
-        /// Creates a disposable subscription to the lifecycle.
+        /// 创建可支配的生命周期订阅。
         /// </summary>
-        /// <param name="observable">The lifecycle observable.</param>
-        /// <param name="observerName">The name of the observer.</param>
-        /// <param name="stage">The stage to participate in.</param>
-        /// <param name="onStart">The delegate called when starting the specified lifecycle stage.</param>
-        /// <param name="onStop">The delegate to be called when stopping the specified lifecycle stage.</param>
-        /// <returns>A <see cref="IDisposable"/> instance which can be disposed to unsubscribe the observer from the lifecycle.</returns>
+        /// <param name="observable">生命周期可以观察到。</param>
+        /// <param name="observerName">观察员的姓名。</param>
+        /// <param name="stage">参与的阶段。</param>
+        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
+        /// <param name="onStop">停止特定生命周期阶段时,应召代表。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
         public static IDisposable Subscribe(this ILifecycleObservable observable, string observerName, int stage, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task>? onStop)
         {
             if (observable is null)
@@ -39,28 +39,28 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Creates a disposable subscription to the lifecycle.
+        /// 创建可支配的生命周期订阅。
         /// </summary>
-        /// <param name="observable">The lifecycle observable.</param>
-        /// <param name="observerName">The name of the observer.</param>
-        /// <param name="stage">The stage to participate in.</param>
-        /// <param name="onStart">The delegate called when starting the specified lifecycle stage.</param>
-        /// <returns>A <see cref="IDisposable"/> instance which can be disposed to unsubscribe the observer from the lifecycle.</returns>
+        /// <param name="observable">生命周期可以观察到。</param>
+        /// <param name="observerName">观察员的姓名。</param>
+        /// <param name="stage">参与的阶段。</param>
+        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
         public static IDisposable Subscribe(this ILifecycleObservable observable, string observerName, int stage, Func<CancellationToken, Task> onStart)
         {
             return observable.Subscribe(observerName, stage, onStart, null);
         }
 
         /// <summary>
-        /// Creates a disposable subscription to the lifecycle.
+        /// 创建可支配的生命周期订阅。
         /// </summary>
         /// <typeparam name="TObserver">
-        /// The observer type, used for diagnostics.
+        /// 用于诊断的观察类型。
         /// </typeparam>
-        /// <param name="observable">The lifecycle observable.</param>
-        /// <param name="stage">The stage to participate in.</param>
-        /// <param name="observer">The observer.</param>
-        /// <returns>A <see cref="IDisposable"/> instance which can be disposed to unsubscribe the observer from the lifecycle.</returns>
+        /// <param name="observable">生命周期可以观察到。</param>
+        /// <param name="stage">参与的阶段。</param>
+        /// <param name="observer">观察员</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
         public static IDisposable Subscribe<TObserver>(this ILifecycleObservable observable, int stage, ILifecycleObserver observer)
         {
             ArgumentNullException.ThrowIfNull(observable);
@@ -69,43 +69,43 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Creates a disposable subscription to the lifecycle.
+        /// 创建可支配的生命周期订阅。
         /// </summary>
         /// <typeparam name="TObserver">
-        /// The observer type, used for diagnostics.
+        /// 用于诊断的观察类型。
         /// </typeparam>
-        /// <param name="observable">The lifecycle observable.</param>
-        /// <param name="stage">The stage to participate in.</param>
-        /// <param name="onStart">The delegate called when starting the specified lifecycle stage.</param>
-        /// <param name="onStop">Teh delegate to be called when stopping the specified lifecycle stage.</param>
-        /// <returns>A <see cref="IDisposable"/> instance which can be disposed to unsubscribe the observer from the lifecycle.</returns>
+        /// <param name="observable">生命周期可以观察到。</param>
+        /// <param name="stage">参与的阶段。</param>
+        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
+        /// <param name="onStop">在停止特定生命周期阶段时,将调用Teh代表。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
         public static IDisposable Subscribe<TObserver>(this ILifecycleObservable observable, int stage, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop)
         {
             return observable.Subscribe(GetTypeName(typeof(TObserver)), stage, onStart, onStop);
         }
 
         /// <summary>
-        /// Creates a disposable subscription to the lifecycle.
+        /// 创建可支配的生命周期订阅。
         /// </summary>
         /// <typeparam name="TObserver">
-        /// The observer type, used for diagnostics.
+        /// 用于诊断的观察类型。
         /// </typeparam>
-        /// <param name="observable">The lifecycle observable.</param>
-        /// <param name="stage">The stage to participate in.</param>
-        /// <param name="onStart">The delegate called when starting the specified lifecycle stage.</param>
-        /// <returns>A <see cref="IDisposable"/> instance which can be disposed to unsubscribe the observer from the lifecycle.</returns>
+        /// <param name="observable">生命周期可以观察到。</param>
+        /// <param name="stage">参与的阶段。</param>
+        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
         public static IDisposable Subscribe<TObserver>(this ILifecycleObservable observable, int stage, Func<CancellationToken, Task> onStart)
         {
             return observable.Subscribe(GetTypeName(typeof(TObserver)), stage, onStart, null);
         }
 
         /// <summary>
-        /// Creates a disposable subscription to the lifecycle.
+        /// 创建可支配的生命周期订阅。
         /// </summary>
-        /// <param name="observable">The lifecycle observable.</param>
-        /// <param name="stage">The stage to participate in.</param>
-        /// <param name="observer">The observer.</param>
-        /// <returns>A <see cref="IDisposable"/> instance which can be disposed to unsubscribe the observer from the lifecycle.</returns>
+        /// <param name="observable">生命周期可以观察到。</param>
+        /// <param name="stage">参与的阶段。</param>
+        /// <param name="observer">观察员</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
         public static IDisposable Subscribe(this ILifecycleObservable observable, int stage, ILifecycleObserver observer)
         {
             ArgumentNullException.ThrowIfNull(observable);

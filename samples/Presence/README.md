@@ -7,53 +7,59 @@ products:
 page_type: sample
 name: "Orleans Gaming Presence service sample"
 urlFragment: "orleans-gaming-presence-service-sample"
-description: "An Orleans sample service demonstrating the use of the Gaming Presence service."
+description: "展示赌博服务使用情况的 Orleans 抽样服务。"
 ---
 
-# Orleans Gaming Presence service sample
+<a id="orleans-gaming-presence-service-sample"></a>
 
-This sample demonstrates a gaming presence service in which a game server (represented by the *LoadGenerator* application) sends periodic heartbeats to a cloud service (represented by the *PresenceService* application) containing the status of a game which it is hosting. Inside the service, a corresponding `PresenceGrain` is responsible for unpacking the heartbeat message and reflecting the state of the game in the `PlayerGrain` and `GameGrain` grains. The effects of this can be seen on a client application (*PlayerWatcher*), which polls the player for the current game session. Each time a new game session is returned, the client creates a new `LoggerGameObserver` which subscribes to the game grain so that status updates are pushed to it using the `IGameObserver` interface.
+# Orleans 赌博服务抽样
 
-![A visual representation of the above text](PresenceService.svg)
+本样本展示了游戏存在服务,其中游戏服务器(由 *LoadGenerator* 应用)发送周期性心心心心心向云服务发送(由 *PresenceService* 内含一个相应的 `PresenceGrain` 负责解开心跳信息,并反映游戏状态 `PlayerGrain` 和 `GameGrain` grains这一点的影响可从客户申请中看出(*PlayerWatcher*),该选项可以测量当前游戏会话的玩家。每次返回新的游戏会话时,客户端将创建一个新 `LoggerGameObserver` 订阅游戏 grain 以便使用 `IGameObserver` 接口。
 
-## Sample prerequisites
+![以上文字的直观表达](PresenceService.svg)
 
-This sample is written in C# and targets .NET 10. It requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+<a id="sample-prerequisites"></a>
 
-## Building the sample
+## 抽样的前提条件
 
-To download and run the sample, follow these steps:
+本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
+<a id="building-the-sample"></a>
+
+## 建立样本
+
+下载和运行样本时,请遵循以下步骤:
+
+1. 下载并解开样本的平面
+2. 视觉演播室(2022年或以后):
+    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
     2. Navigate to the folder that holds the unzipped sample code, and open the C# project (.csproj) file.
     3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. At the command line, type [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run).
+3. 从命令行 :
+   1. 导航到持有未设偏移样本代码的文件夹 。
+   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-To build and run the sample step-by-step on the command line, use the following commands:
+要在命令行上逐步建立和运行样本,请使用以下命令:
 
-Build the solution using the .NET CLI:
+使用 .NET CLI构建解决方案:
 
 ```dotnetcli
 dotnet build
 ```
 
-Launch the server process:
+启动服务器进程 :
 
 ```dotnetcli
 dotnet run --project ./src/PresenceService
 ```
 
-In a separate terminal window, launch the player watcher:
+在单独的终端窗口中,启动播放器监视器:
 
 ```dotnetcli
 dotnet run --project ./src/PlayerWatcher
 ```
 
-In a separate terminal window, launch the load generator:
+在单独的终端窗口中,发射载荷发电机:
 
 ```dotnetcli
 dotnet run --project ./src/LoadGenerator

@@ -3,11 +3,11 @@ using Orleans.Storage;
 namespace Orleans.EventSourcing.StateStorage
 {
     /// <summary>
-    /// A log-consistency provider that stores the latest view in primary storage, using any standard storage provider.
-    /// Supports multiple clusters connecting to the same primary storage (doing optimistic concurrency control via e-tags)
+    /// 使用任何标准的储存提供者,将最新视图存放在初级储存中,并保持对账的一致性。
+    /// 支持连接同一主存储(通过电子标签进行乐观的同价货币控制)的多个集群
     ///<para>
-    /// The log itself is transient, i.e. not actually saved to storage - only the latest view (snapshot) and some 
-    /// metadata (the log position, and write flags) are stored in the primary. 
+    /// 日志本身是短暂的, i.e。 实际上没有保存到存储中 - 只有最新的视图( snapshot) 和一些 
+    /// 元数据(日志位置和写旗)存储在主数据中。 
     /// </para>
     /// </summary>
     public class LogConsistencyProvider : ILogViewAdaptorFactory

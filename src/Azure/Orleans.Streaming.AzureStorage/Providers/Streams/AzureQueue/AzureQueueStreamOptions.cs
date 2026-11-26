@@ -12,14 +12,14 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Azure queue stream provider options.
+    /// Azure 队列流提供者选项。
     /// </summary>
     public class AzureQueueOptions
     {
         private QueueServiceClient? _queueServiceClient;
 
         /// <summary>
-        /// Options to be used when configuring the queue storage client, or <see langword="null"/> to use the default options.
+        /// 配置队列存储客户端时, 或使用默认选项时使用的选项, 或者 <see langword="null"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(QueueServiceClient)} property directly.")]
         public QueueClientOptions ClientOptions { get; set; } = new QueueClientOptions
@@ -34,26 +34,26 @@ namespace Orleans.Configuration
         };
 
         /// <summary>
-        /// The optional delegate used to create a <see cref="QueueServiceClient"/> instance.
+        /// 用于创建 <see cref="QueueServiceClient"/> 实例的可选代表 。
         /// </summary>
         internal Func<Task<QueueServiceClient>>? CreateClient { get; private set; }
 
         /// <summary>
-        /// Gets or sets the interval for which a received message remains invisible to other queue consumers.
-        /// A <see langword="null"/> value uses the Azure Queue Service default.
+        /// 获取或设置接收到的信件仍然为其他队列用户所隐蔽的间隔 。
+        /// <see langword="null"/> 值使用 Azure 队列服务默认值。
         /// </summary>
         public TimeSpan? MessageVisibilityTimeout { get; set; }
 
         /// <summary>
-        /// Gets or sets the names of the Azure queues used to partition the stream provider.
+        /// 获取或设置用于分隔流提供方的 Azure 队列的名称。
         /// </summary>
         /// <remarks>
-        /// The standard silo and client configurators generate queue names from the service and provider names when this list is not configured.
+        /// 标准 silo 和客户端配置器在不配置此列表时从服务名和提供者名中生成队列名称 。
         /// </remarks>
         public List<string> QueueNames { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the <see cref="QueueServiceClient"/> used to access the Azure Queue Service.
+        /// 设置 <see cref="QueueServiceClient"/> 访问用于 Azure 服务队
         /// </summary>
         [DisallowNull]
         public QueueServiceClient? QueueServiceClient
@@ -69,7 +69,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="QueueServiceClient"/> using a connection string.
+        /// 使用连接字符串配置 <see cref="QueueServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(QueueServiceClient)} property directly.")]
         public void ConfigureQueueServiceClient(string connectionString)
@@ -79,7 +79,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="QueueServiceClient"/> using an authenticated service URI.
+        /// 使用验证的服务 URI 配置 <see cref="QueueServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(QueueServiceClient)} property directly.")]
         public void ConfigureQueueServiceClient(Uri serviceUri)
@@ -89,7 +89,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="QueueServiceClient"/> using the provided callback.
+        /// 使用所提供的回调配置 <see cref="QueueServiceClient"/> 。
         /// </summary>
         [Obsolete($"Set the {nameof(QueueServiceClient)} property directly.")]
         public void ConfigureQueueServiceClient(Func<Task<QueueServiceClient>> createClientCallback)
@@ -98,7 +98,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="QueueServiceClient"/> using an authenticated service URI and a <see cref="Azure.Core.TokenCredential"/>.
+        /// 配置 <see cref="QueueServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.Core.TokenCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(QueueServiceClient)} property directly.")]
         public void ConfigureQueueServiceClient(Uri serviceUri, TokenCredential tokenCredential)
@@ -109,7 +109,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="QueueServiceClient"/> using an authenticated service URI and a <see cref="Azure.AzureSasCredential"/>.
+        /// 配置 <see cref="QueueServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.AzureSasCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(QueueServiceClient)} property directly.")]
         public void ConfigureQueueServiceClient(Uri serviceUri, AzureSasCredential azureSasCredential)
@@ -120,7 +120,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="QueueServiceClient"/> using an authenticated service URI and a <see cref="StorageSharedKeyCredential"/>.
+        /// 配置 <see cref="QueueServiceClient"/> 使用认证服务 URI 和 a <see cref="StorageSharedKeyCredential"/>.
         /// </summary>
         [Obsolete($"Set the {nameof(QueueServiceClient)} property directly.")]
         public void ConfigureQueueServiceClient(Uri serviceUri, StorageSharedKeyCredential sharedKeyCredential)
@@ -132,7 +132,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Validates named <see cref="AzureQueueOptions"/> instances.
+    /// 被命名为 <see cref="AzureQueueOptions"/> 实例的校验。
     /// </summary>
     public class AzureQueueOptionsValidator : IConfigurationValidator
     {
@@ -146,9 +146,9 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Validates that the Azure Queue Service client and queue names are configured.
+        /// 验证 Azure 队列服务客户端和队列名称是否配置。
         /// </summary>
-        /// <exception cref="OrleansConfigurationException">The configuration is invalid.</exception>
+        /// <exception cref="OrleansConfigurationException">配置无效。</exception>
         public void ValidateConfiguration()
         {
             if (this.options.CreateClient is null)
@@ -162,11 +162,11 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Creates a validator for the named Azure Queue stream provider options.
+        /// 为命名的 Azure 队列流提供者选项创建验证符。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <returns>The configuration validator.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <returns>配置验证符。</returns>
         public static IConfigurationValidator Create(IServiceProvider services, string name)
         {
             AzureQueueOptions aqOptions = services.GetOptionsByName<AzureQueueOptions>(name);

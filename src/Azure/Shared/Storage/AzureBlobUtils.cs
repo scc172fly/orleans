@@ -7,11 +7,11 @@ namespace Orleans.Persistence.AzureStorage
 #elif ORLEANS_STREAMING
 namespace Orleans.Streaming.AzureStorage
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// General utility functions related to Azure Blob storage.
+    /// 与 Azure 布洛布存储有关的一般功用功能。
     /// </summary>
     internal static partial class AzureBlobUtils
     {

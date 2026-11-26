@@ -6,27 +6,27 @@ using Orleans.Runtime;
 namespace Orleans.Storage;
 
 /// <summary>
-/// A factory for building container clients for blob storage using grainType and grainId
+/// 建造集装箱客户用 grainType 和 grainId储存容器的工厂
 /// </summary>
 public interface IBlobContainerFactory
 {
     /// <summary>
-    /// Gets the container which should be used for the specified grain.
+    /// 获取指定 grain所要使用的容器。
     /// </summary>
-    /// <param name="grainId">The grain id</param>
-    /// <returns>A configured blob client</returns>
+    /// <param name="grainId">下 grain id</param>
+    /// <returns>配置的布束客户端</returns>
     public BlobContainerClient GetBlobContainerClient(GrainId grainId);
 
     /// <summary>
-    /// Initialize any required dependencies using the provided client and options.
+    /// 利用所提供的客户和选择,启动任何必要的依赖关系。
     /// </summary>
-    /// <param name="client">The connected blob client</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <param name="client">连接的上衣客户端</param>
+    /// <returns>A <see cref="Task"/> 代表非同步操作。</returns>
     public Task InitializeAsync(BlobServiceClient client);
 }
 
 /// <summary>
-/// A default blob container factory that uses the default container name.
+/// 使用默认容器名称的默认泡沫集装箱工厂。
 /// </summary>
 internal class DefaultBlobContainerFactory : IBlobContainerFactory
 {
@@ -34,9 +34,9 @@ internal class DefaultBlobContainerFactory : IBlobContainerFactory
     private BlobContainerClient _defaultContainer = null!;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultBlobContainerFactory"/> class.
+    /// 初始化 <see cref="DefaultBlobContainerFactory"/> 类的新实例。
     /// </summary>
-    /// <param name="options">The blob storage options</param>
+    /// <param name="options">易泡布储存选项</param>
     public DefaultBlobContainerFactory(AzureBlobStorageOptions options)
     {
         _options = options;

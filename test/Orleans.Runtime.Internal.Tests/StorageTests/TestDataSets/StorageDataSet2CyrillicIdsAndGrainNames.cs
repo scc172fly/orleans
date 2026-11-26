@@ -4,20 +4,20 @@ using Orleans.Runtime;
 namespace UnitTests.StorageTests.Relational.TestDataSets
 {
     /// <summary>
-    /// A data set for grains with Cyrillic letters and IDs.
+    /// 带有西里尔字母和ID的 grains 数据集。
     /// </summary>
-    /// <typeparam name="TStateData">The type of <see cref="TestStateGeneric1{T}"/>.</typeparam>
+    /// <typeparam name="TStateData">类型 <see cref="TestStateGeneric1{T}"/>.</typeparam>
     internal class StorageDataSet2CyrillicIdsAndGrainNames<TStateData> : IEnumerable<object[]>
     {
         private const int NumCases = 3;
 
         /// <summary>
-        /// The symbol set this data set uses.
+        /// 符号设置此数据集的使用 。
         /// </summary>
         private static SymbolSet Symbols { get; } = new SymbolSet(SymbolSet.Cyrillic);
 
         /// <summary>
-        /// The length of random string drawn form <see cref="Symbols"/>.
+        /// 随机抽取的字符串长度窗体 <see cref="Symbols"/>。
         /// </summary>
         private const long StringLength = 15L;
 

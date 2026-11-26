@@ -10,15 +10,15 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// Provides functionality for observing a lifecycle.
+    /// 提供观察生命周期的功能。
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
-    /// <item><description>Single use, does not support multiple start/stop cycles.</description></item>
-    /// <item><description>Once started, no other observers can be subscribed.</description></item>
-    /// <item><description>OnStart starts stages in order until first failure or cancellation.</description></item>
-    /// <item><description>OnStop stops states in reverse order starting from highest started stage.</description></item>
-    /// <item><description>OnStop stops all stages regardless of errors even if canceled.</description></item>
+    /// <item><description>单用,不支持多个启动/停止周期。</description></item>
+    /// <item><description>一旦开始,就没有其他观察员可以订阅。</description></item>
+    /// <item><description>OnStart 开始阶段,直至第一次失败或取消为止。</description></item>
+    /// <item><description>OnStop 以相反顺序停止状态 从最高开始阶段开始</description></item>
+    /// <item><description>OnStop 停止所有阶段,即使错误被取消也不管其出错。</description></item>
     /// </list>
     /// </remarks>
     public abstract partial class LifecycleSubject : ILifecycleSubject
@@ -26,15 +26,15 @@ namespace Orleans
         private readonly List<OrderedObserver> subscribers = [];
 
         /// <summary>
-        /// Gets the logger used to report lifecycle activity.
+        /// 获取用于报告生命周期活动的日志。
         /// </summary>
         protected readonly ILogger Logger;
         private int? _highStage = null;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LifecycleSubject"/> class.
+        /// 初始化 <see cref="LifecycleSubject"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger used to report lifecycle activity.</param>
+        /// <param name="logger">用于报告生命周期活动的日志员</param>
         protected LifecycleSubject(ILogger logger)
         {
             ArgumentNullException.ThrowIfNull(logger);
@@ -42,18 +42,18 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the name of the specified numeric stage.
+        /// 获取指定的数字阶段的名称。
         /// </summary>
-        /// <param name="stage">The stage number.</param>
-        /// <returns>The name of the stage.</returns>
+        /// <param name="stage">阶段编号。</param>
+        /// <returns>阶段的名称。</returns>
         protected virtual string GetStageName(int stage) => stage.ToString();
 
         /// <summary>
-        /// Gets the collection of all stage numbers and their corresponding names.
+        /// 收集所有舞台编号及其相应名称。
         /// </summary>
         /// <seealso cref="ServiceLifecycleStage"/>
-        /// <param name="type">The lifecycle stage class.</param>
-        /// <returns>The collection of all stage numbers and their corresponding names.</returns>
+        /// <param name="type">生命周期阶段类。</param>
+        /// <returns>收集所有阶段编号及其相应名称。</returns>
         protected static ImmutableDictionary<int, string> GetStageNames(Type type)
         {
             try
@@ -74,7 +74,7 @@ namespace Orleans
                         }
                         catch
                         {
-                            // Ignore.
+                            // 忽略。 忽略。
                         }
                     }
                 }
@@ -88,10 +88,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Logs the observed performance of an <see cref="OnStart"/> call.
+        /// 记录 <see cref="OnStart"/> 呼叫的观察性能。
         /// </summary>
-        /// <param name="stage">The stage.</param>
-        /// <param name="elapsed">The period of time which elapsed before <see cref="OnStart"/> completed once it was initiated.</param>
+        /// <param name="stage">舞台,舞台,舞台</param>
+        /// <param name="elapsed">之前的时期 <see cref="OnStart"/> 程序启动后即完成。</param>
         protected virtual void PerfMeasureOnStart(int stage, TimeSpan elapsed)
         {
             if (Logger.IsEnabled(LogLevel.Trace))
@@ -146,16 +146,16 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Signifies that <see cref="OnStart"/> completed.
+        /// 表示已完成 <see cref="OnStart"/> 。
         /// </summary>
-        /// <param name="stage">The stage which completed.</param>
+        /// <param name="stage">完成的阶段。</param>
         protected virtual void OnStartStageCompleted(int stage) { }
 
         /// <summary>
-        /// Logs the observed performance of an <see cref="OnStop"/> call.
+        /// 记录 <see cref="OnStop"/> 呼叫的观察性能。
         /// </summary>
-        /// <param name="stage">The stage.</param>
-        /// <param name="elapsed">The period of time which elapsed before <see cref="OnStop"/> completed once it was initiated.</param>
+        /// <param name="stage">舞台,舞台,舞台</param>
+        /// <param name="elapsed">之前的时期 <see cref="OnStop"/> 程序启动后即完成。</param>
         protected virtual void PerfMeasureOnStop(int stage, TimeSpan elapsed)
         {
             if (Logger.IsEnabled(LogLevel.Trace))
@@ -168,11 +168,11 @@ namespace Orleans
         /// <inheritdoc />
         public virtual async Task OnStop(CancellationToken cancellationToken = default)
         {
-            // if not started, do nothing
+            // 如果尚未开始, 则不做任何
             if (!this._highStage.HasValue) return;
             var loggedCancellation = false;
             foreach (IGrouping<int, OrderedObserver> observerGroup in this.subscribers
-                // include up to highest started stage
+                // 包括最高开始阶段
                 .Where(orderedObserver => orderedObserver.Stage <= _highStage && orderedObserver.Observer != null)
                 .GroupBy(orderedObserver => orderedObserver.Stage)
                 .OrderByDescending(group => group.Key))
@@ -202,11 +202,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Invokes the stop callback for a lifecycle observer.
+        /// 启动停止呼叫 以观察生命周期
         /// </summary>
-        /// <param name="observer">The observer to stop.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task representing the observer's stop operation.</returns>
+        /// <param name="observer">观察员停下来。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>代表观察员停止行动的任务。</returns>
         protected virtual Task CallObserverStopAsync(ILifecycleObserver observer, CancellationToken cancellationToken)
         {
             try
@@ -220,9 +220,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Signifies that <see cref="OnStop"/> completed.
+        /// 表示已完成 <see cref="OnStop"/> 。
         /// </summary>
-        /// <param name="stage">The stage which completed.</param>
+        /// <param name="stage">完成的阶段。</param>
         protected virtual void OnStopStageCompleted(int stage) { }
 
         /// <inheritdoc />
@@ -237,25 +237,25 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Represents a <see cref="ILifecycleObservable"/>'s participation in a given lifecycle stage.
+        /// 表示 <see cref="ILifecycleObservable"/>在特定生命周期阶段的参与。
         /// </summary>
         private class OrderedObserver : IDisposable
         {
             /// <summary>
-            /// Gets the observer.
+            /// 抓住观察者
             /// </summary>
             public ILifecycleObserver? Observer { get; private set; }
 
             /// <summary>
-            /// Gets the stage which the observer is participating in.
+            /// 获得观察者参与的舞台。
             /// </summary>
             public int Stage { get; }
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="OrderedObserver"/> class.
+            /// 初始化 <see cref="OrderedObserver"/> 类的新实例。
             /// </summary>
-            /// <param name="stage">The stage which the observer is participating in.</param>
-            /// <param name="observer">The participating observer.</param>
+            /// <param name="stage">观察员正在参与的阶段。</param>
+            /// <param name="observer">与会观察员。</param>
             public OrderedObserver(int stage, ILifecycleObserver observer)
             {
                 this.Stage = stage;

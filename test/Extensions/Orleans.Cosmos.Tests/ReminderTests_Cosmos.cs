@@ -26,7 +26,7 @@ public sealed class ReminderServiceLifecycleTests_Cosmos
 }
 
 /// <summary>
-/// Tests for Orleans reminders functionality using Azure Cosmos DB as the reminder service backing store.
+/// 试验 Orleans 使用提醒提醒功能 Azure 宇宙DB作为提醒服务支持商店
 /// </summary>
 [TestProvider("Cosmos")]
 [TestArea("Reminders")]
@@ -113,7 +113,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         fixture.EnsurePreconditionsMet();
     }
 
-    // Basic tests
+    // 基本测试
 
     [TestSuite("Functional")]
     [Fact, TestCategory("Functional")]
@@ -136,7 +136,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         await Test_Reminders_Basic_ListOps(TestContext.Current.CancellationToken);
     }
 
-    // Single join tests ... multi grain, multi reminders
+    // 单单合并测试... 多个 grain、多提醒
 
     [TestSuite("Functional")]
     [Fact, TestCategory("Functional")]
@@ -156,14 +156,14 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
     [Fact, TestCategory("Functional")]
     public async Task Rem_Azure_Basic()
     {
-        // start up a test grain and get the period that it's programmed to use.
+        // 启动测试 grain ,并获得程序要使用的期间。
         IReminderTestGrain2 grain = GrainFactory.GetGrain<IReminderTestGrain2>(Guid.NewGuid());
         TimeSpan period = await grain.GetReminderPeriod(DR);
-        // start up the 'DR' reminder and wait for two ticks to pass.
+        // 启动“ DR” 提醒, 等待两个秒的通过 。
         await grain.StartReminder(DR);
         long last = await WaitForReminderCounterAsync(grain, DR, () => grain.GetCounter(DR), 2, TestContext.Current.CancellationToken);
         Assert.Equal(2, last);
-        // stop the timer and wait for a whole period.
+        // 停止计时器,等待整个时间段。
         await StopReminderAndWaitForQuiescenceAsync(grain, DR, grain.StopReminder, TestContext.Current.CancellationToken);
         await AdvanceReminderTimeAsync(period, TestContext.Current.CancellationToken);
         long curr = await grain.GetCounter(DR);
@@ -187,12 +187,12 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         Assert.Equal(last, curr);
         AssertIsInRange(curr, last, last + 1, grain, DR, sleepFor);
 
-        // start the same reminder again
+        // 重新启动相同的提醒
         await grain.StartReminder(DR);
         sleepFor = period.Multiply(2);
         curr = await WaitForReminderCounterAsync(grain, DR, () => grain.GetCounter(DR), 2, TestContext.Current.CancellationToken);
         AssertIsInRange(curr, 2, 3, grain, DR, sleepFor);
-        await StopReminderAndWaitForQuiescenceAsync(grain, DR, grain.StopReminder, TestContext.Current.CancellationToken); // cleanup
+        await StopReminderAndWaitForQuiescenceAsync(grain, DR, grain.StopReminder, TestContext.Current.CancellationToken); // 清理
     }
 
     [TestSuite("Functional")]
@@ -242,7 +242,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
 
         await PrepareForGrainFailureAsync(cts.Token, g1);
 
-        // stop the secondary silo
+        // 二级中点 silo
         await using (await PauseReminderTimeAsync(cts.Token))
         {
             var reminderOwner = GetReminderOwner(g1, DR);
@@ -274,7 +274,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         IAddressable[] grains = [g1, g2, g3, g4, g5];
         await PrepareForGrainFailureAsync(cts.Token, grains);
 
-        // stop a couple of silos
+        // 停止一对夫妇 silos
         await using (await PauseReminderTimeAsync(cts.Token))
         {
             log.LogInformation("Stopping 2 silos");
@@ -306,7 +306,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         await PrepareForGrainFailureAsync(cts.Token, grains);
 
         var siloToKill = GetReminderOwner(g1, DR);
-        // stop a silo and join a new one in parallel
+        // 停止 silo 并平行加入新的
         await using (await PauseReminderTimeAsync(cts.Token))
         {
             log.LogInformation("Stopping a silo and joining a silo");
@@ -330,7 +330,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         Task<IGrainReminder>[] tasks = { promise1, promise2 };
         await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
         //Assert.NotEqual(promise1.Result, promise2.Result);
-        // TODO: write tests where period of a reminder is changed
+        // TODO: 更改提醒时间的写测试
     }
 
     [TestSuite("Functional")]
@@ -339,7 +339,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
     {
         IReminderTestGrain2 g1 = GrainFactory.GetGrain<IReminderTestGrain2>(Guid.NewGuid());
         IReminderTestCopyGrain g2 = GrainFactory.GetGrain<IReminderTestCopyGrain>(Guid.NewGuid());
-        TimeSpan period = await g1.GetReminderPeriod(DR); // using same period
+        TimeSpan period = await g1.GetReminderPeriod(DR); // 同期
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(ENDWAIT);
 

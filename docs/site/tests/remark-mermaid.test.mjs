@@ -26,7 +26,7 @@ describe('Mermaid Markdown', () => {
     const tree = await processor.run(processor.parse('```mermaid\nflowchart LR\n  A --> B\n```'));
 
     // Expressive Code processes <pre><code> and loads its stylesheet with the page's first code block, so a
-    // <noscript> fallback in that form would leave the page's other code blocks unstyled.
+    // <noscript> 以这种形式退缩 将页面上的其他代码块的标签不刻着
     expect(tree.children[0].value).toContain('<noscript><pre class="mermaid-source">flowchart LR');
     expect(tree.children[0].value).not.toContain('<code>');
   });

@@ -8,7 +8,7 @@ using Orleans.Storage.Internal;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Implementation class for the Storage Grain used by In-memory storage provider
+    /// 内质存储供应商使用的存储 Grain 实施类别
     /// <c>Orleans.Storage.MemoryStorage</c>
     /// </summary>
     [KeepAlive]
@@ -66,8 +66,8 @@ namespace Orleans.Storage
 
             var currentETag = GetETagFromStorage<T>(grainStoreKey);
             ValidateEtag(currentETag, etag, grainStoreKey, "Delete");
-            // Do not remove it from the dictionary, just set the value to null to remember that this item
-            // was once in the store, and now is deleted
+            // 不要从字典中删除它, 只要设置为空值以记住此项目
+            // 曾经在店里,现在被删除
             _store[grainStoreKey] = null;
             return Task.CompletedTask;
         }
@@ -82,7 +82,7 @@ namespace Orleans.Storage
             string? currentETag = null;
             if (_store.TryGetValue(grainStoreKey, out var entry))
             {
-                // If the entry is null, it was removed from storage
+                // 如果条目为无效,则从存储中移除
                 currentETag = entry != null ? ((IGrainState<T>)entry).ETag : string.Empty;
             }
             return currentETag;
@@ -90,20 +90,20 @@ namespace Orleans.Storage
 
         private void ValidateEtag(string? currentETag, string? receivedEtag, string grainStoreKey, string operation)
         {
-            // if we have no current etag, we will accept the users data.
-            // This is a mitigation for when the memory storage grain is lost due to silo crash.
+            // 如果我们没有当前数据, 我们将接受用户数据 。
+            // 这是当存储 grain 因 silo 崩溃而丢失时的缓解。
             if (currentETag == null)
                 return;
 
-            // if this is our first write, and we have an empty etag, we're good
+            // 如果这是我们第一次写作, 并且我们有一个空的牌子, 我们就很好
             if (string.IsNullOrEmpty(currentETag) && receivedEtag == null)
                 return;
 
-            // if current state and new state have matching etags, or we're to ignore the ETag, we're good
+            // 如果现在的状态和新状态 都配有匹配的标签 或者我们忽略ETag,我们就很好
             if (receivedEtag == currentETag || receivedEtag == "*")
                 return;
 
-            // else we have an etag mismatch
+            // 换句话说,我们有一个不匹配的
             LogWarningEtagMismatch(operation, grainStoreKey, currentETag, receivedEtag);
             throw new MemoryStorageEtagMismatchException(currentETag, receivedEtag);
         }

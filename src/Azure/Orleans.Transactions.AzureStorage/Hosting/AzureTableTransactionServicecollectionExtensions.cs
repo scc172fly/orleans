@@ -11,7 +11,7 @@ using Orleans.Transactions.AzureStorage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extensions for registering Azure Table Storage transactional state services.
+    /// 用于登记 Azure 表格存储交易性国家服务的扩展。
     /// </summary>
     public static class AzureTableTransactionServicecollectionExtensions
     {

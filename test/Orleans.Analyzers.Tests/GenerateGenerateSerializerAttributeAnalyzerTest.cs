@@ -5,10 +5,10 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// Tests for the analyzer that suggests using [GenerateSerializer] instead of [Serializable] attribute.
-/// Orleans uses its own serialization system for efficient grain communication, and the [GenerateSerializer]
-/// attribute enables code generation for optimal serialization performance. Using the legacy [Serializable]
-/// attribute can lead to slower serialization and larger message sizes.
+/// 用于建议使用[GenerateSerializer]而不是[可序列]属性的分析器测试。
+/// Orleans 使用自己的序列系统进行高效 grain 通信和[GenerateSerializer
+/// 属性使代码生成能够用于最佳序列化性能。使用遗留 [可存储]
+/// 属性可能导致序列化速度放慢和信件大小较大。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -35,32 +35,32 @@ public class GenerateGenerateSerializerAttributeAnalyzerTest : DiagnosticAnalyze
     }
 
     /// <summary>
-    /// Verifies that the analyzer detects when a class uses [Serializable] attribute
-    /// and suggests using [GenerateSerializer] instead for better Orleans serialization performance.
+    /// 证明分析器检测到某一类使用 [可序列]属性时,分析器会检测
+    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
     /// </summary>
     [Fact]
     public Task SerializableClass()
         => VerifyGeneratedDiagnostic(@"[System.Serializable] public class D { }");
 
     /// <summary>
-    /// Verifies that the analyzer detects when a struct uses [Serializable] attribute
-    /// and suggests using [GenerateSerializer] instead for better Orleans serialization performance.
+    /// 证明分析器在构造使用[可序列]属性时能够检测到
+    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
     /// </summary>
     [Fact]
     public Task SerializableStruct()
         => VerifyGeneratedDiagnostic(@"[System.Serializable] public struct D { }");
 
     /// <summary>
-    /// Verifies that the analyzer detects when a record uses [Serializable] attribute
-    /// and suggests using [GenerateSerializer] instead for better Orleans serialization performance.
+    /// 证明分析器在记录使用[可编 属性时检测到
+    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
     /// </summary>
     [Fact]
     public Task SerializableRecord()
         => VerifyGeneratedDiagnostic(@"[System.Serializable] public record D { }");
 
     /// <summary>
-    /// Verifies that the analyzer detects when a record struct uses [Serializable] attribute
-    /// and suggests using [GenerateSerializer] instead for better Orleans serialization performance.
+    /// 证明分析器在记录结构使用[可序列]属性时能够检测到
+    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
     /// </summary>
     [Fact]
     public Task SerializableRecordStruct()

@@ -3,31 +3,31 @@ using Orleans.Durable.Journaling.Json;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Options to configure the <see cref="IJournaledStateManager"/>.
+/// 配置 <see cref="IJournaledStateManager"/>的选项。
 /// </summary>
 public sealed class JournaledStateManagerOptions
 {
     /// <summary>
-    /// Gets or sets the journal format key used to write journal data.
+    /// 获取或设置用于写入日记数据的日记格式密钥。
     /// </summary>
     public string JournalFormatKey { get; set; } = JsonLinesJournalFormat.JournalFormatKey;
 
     /// <summary>
-    /// Specifies the period of time to wait until the manager retires
-    /// a <see cref="IStateMachine"/> if it's not registered in the manager anymore.
+    /// 指定要等到管理器退休的时间间隔
+    /// a <see cref="IStateMachine"/> ,如果它不再在经理注册。
     /// </summary>
     /// <remarks>
-    /// <para>The act of retirement removes this state from the journal.</para>
-    /// <para>If the state is reintroduced (within the grace period), then it will not be removed by the manager.</para>
+    /// <para>退休行为将这个国家从日记中删除。</para>
+    /// <para>如果重新启用国家(在宽限期内),则管理人员不会删除国家。</para>
     /// <para>
-    /// This value represents the <b>minimum</b> time the fate of the state will be postponed.
-    /// The final decision can take longer - usually <see cref="RetirementGracePeriod"/> + [time until next compaction occurs].
+    /// 此值表示 <b>最低</b> 国家的命运将推迟
+    /// 最后决定需要较长的时间 -- -- 通常是 <see cref="RetirementGracePeriod"/> +[时间直到下一次压缩发生时]。
     /// </para>
     /// </remarks>
     public TimeSpan RetirementGracePeriod { get; set; } = DEFAULT_RETIREMENT_GRACE_PERIOD;
 
     /// <summary>
-    /// The default value of <see cref="RetirementGracePeriod"/>.
+    /// 默认值 <see cref="RetirementGracePeriod"/>。
     /// </summary>
     public static readonly TimeSpan DEFAULT_RETIREMENT_GRACE_PERIOD = TimeSpan.FromDays(7);
 }

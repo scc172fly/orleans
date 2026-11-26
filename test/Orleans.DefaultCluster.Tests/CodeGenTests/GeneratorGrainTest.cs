@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.CodeGenTests
 {
     /// <summary>
-    /// Summary description for GrainClientTest
+    /// GrainClientTest简 简 述
     /// </summary>
     [TestCategory("BVT"), TestCategory("CodeGen")]
     [TestSuite("BVT")]
@@ -191,10 +191,10 @@ namespace Tester.CodeGenTests
         {
             var grain = this.GrainFactory.GetGrain<IGenericGrainWithGenericMethods<int>>(Guid.NewGuid());
 
-            // The non-generic version of the method returns default(T).
+            // 方法的非generic 版本返回默认值( T)。
             Assert.Equal(0, await grain.Method(888));
 
-            // The generic version of the method returns the value provided.
+            // 方法的通用版本返回所提供的值。
             var now = DateTime.Now;
             Assert.Equal(now, await grain.Method(now));
         }
@@ -206,10 +206,10 @@ namespace Tester.CodeGenTests
 
             var grain = this.GrainFactory.GetGrain<IGrainWithGenericMethods>(Guid.NewGuid());
 
-            // Orleans references observers weakly. After SetValueOnObserver returns, only localObject.ValueTask's
-            // continuation references this test's async state machine: xUnit starts tests from a detached work item,
-            // so no rooted caller retains it, and GC.KeepAlive cannot root the state machine which holds the local.
-            // The handle keeps the observer, and through its pending continuation this test, alive until the callback runs.
+            // Orleans 引用观察员的语量微弱。在 SetValueOnObserver 返回后,仅 localObject.ValueTask
+            // 继续引用此测试的非同步状态机器: xUnit 从一个独立的工作项目开始测试,
+            // 所以没有根的呼叫者保留它, GC.KeepAlive 无法根植控制本地国家机器。
+            // 把手让观察者活着 直到回击运行
             var observerRoot = GCHandle.Alloc(localObject);
             try
             {

@@ -387,7 +387,7 @@ public sealed class SerializerContextTests(ITestOutputHelper output)
     {
         var models = string.Join(Environment.NewLine, Enumerable.Range(0, 9)
             .Select(static index => $"[Orleans.GenerateSerializer] public sealed class Payload{index} {{ }}"));
-        // Eight disjoint chains of 127 arrays plus their element types contribute exactly 1024 registrations and metadata types.
+        // 八个由127个阵列及其元素类型组成的不连锁系统, 恰恰是1024个登记和元数据类型。
         var arrays = string.Concat(Enumerable.Repeat("[]", 127));
         var roots = Enumerable.Range(0, 8).Select(index => $"Payload{index}{arrays}").ToList();
         if (exceedsLimit) roots.Add("Payload8");

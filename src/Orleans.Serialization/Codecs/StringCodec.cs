@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="string"/>.
+    /// <see cref="string"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class StringCodec : IFieldCodec<string>
@@ -19,12 +19,12 @@ namespace Orleans.Serialization.Codecs
         string IFieldCodec<string>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static string ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -41,12 +41,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads the raw string content.
+        /// 读取原始字符串内容。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="numBytes">Encoded string length in bytes.</param>
-        /// <returns>The decoded string.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="numBytes">以字节表示的编码字符串长度。</param>
+        /// <returns>解码字符串。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ReadRaw<TInput>(ref Reader<TInput> reader, uint numBytes)
         {
@@ -86,12 +86,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] string value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -107,12 +107,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes the raw string content.
+        /// 写入原始字符串内容。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="value">String to be encoded.</param>
-        /// <param name="numBytes">Encoded string length in bytes.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="value">字符串要编码</param>
+        /// <param name="numBytes">以字节表示的编码字符串长度。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteRaw<TBufferWriter>(ref Writer<TBufferWriter> writer, string value, int numBytes) where TBufferWriter : IBufferWriter<byte>
         {
@@ -123,8 +123,8 @@ namespace Orleans.Serialization.Codecs
 
             var currentSpan = writer.WritableSpan;
 
-            // If there is enough room in the current span for the encoded data,
-            // then encode directly into the output buffer.
+            // 如果当前范围内有足够的空间 用于编码数据
+            // 然后直接编码到输出缓冲。
             if (numBytes <= currentSpan.Length)
             {
                 writer.AdvanceSpan(Encoding.UTF8.GetBytes(value, currentSpan));

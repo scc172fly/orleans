@@ -28,8 +28,8 @@ namespace UnitTests.Grains
             var initialLastStreamValue = this.lastStreamValue;
             await context.Invoke();
 
-            // If the last stream value changed after the invoke, then the stream must have produced a value, double
-            // it for testing purposes.
+            // 如果在引用后最后流流值发生变化,则流必须已经产生值, 翻倍
+            // 用于测试目的。
             if (this.lastStreamValue != initialLastStreamValue)
             {
                 this.lastStreamValue *= 2;

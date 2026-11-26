@@ -1,4 +1,4 @@
-//#define USE_GENERICS
+//# 设计USE-GENERICS
 
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
@@ -12,12 +12,12 @@ namespace UnitTests.Grains
     [GenerateSerializer]
     public class StreamReliabilityTestGrainState
     {
-        // For producer and consumer
-        // -- only need to store because of how we run our unit tests against multiple providers
+        // 生产者和消费者
+        // 只需要储存 因为我们是如何对多个供应商进行单位测试的
         [Id(0)]
         public string? StreamProviderName { get; set; }
 
-        // For producer only.
+        // 仅供制片人使用。
 #if USE_GENERICS
         public IAsyncStream<T> Stream { get; set; }
 #else
@@ -28,7 +28,7 @@ namespace UnitTests.Grains
         [Id(2)]
         public bool IsProducer { get; set; }
 
-        // For consumer only.
+        // 仅供消费者使用。
 #if USE_GENERICS
         public HashSet<StreamSubscriptionHandle<T>> ConsumerSubscriptionHandles { get; set; }
 
@@ -314,34 +314,34 @@ namespace UnitTests.Grains
         }
     }
 
-    //[Serializable]
-    //public class MyStreamObserver<T> : IAsyncObserver<T>
+    //[可排
+    //公共类 MyStreamObserver<T> : IAsyncObserver<T>
     //{
-    //    internal int NumItems { get; private set; }
-    //    internal int NumErrors { get; private set; }
+    //    内部 NumItems {获得; 私有设置;}
+    //    内部 NumErrors {获得; 私有设置;}
 
     //    private readonly Logger logger;
 
-    //    internal MyStreamObserver(Logger logger)
+    //    内部 MyStreamObserver(错误日志)
     //    {
-    //        this.logger = logger;
+    //        this.logger = 日志;
     //    }
 
-    //    public Task OnNextAsync(T item, StreamSequenceToken token)
+    //    公共任务 OnNextAsync(T项目, StreamSequenceToken 符号)
     //    {
     //        NumItems++;
-    //        if (logger.IsVerbose)
+    //        (如果)logger.IsVerbose)
     //            logger.Verbose("Received OnNextAsync - Item={0} - Total Items={1} Errors={2}", item, NumItems, NumErrors);
     //        return Task.CompletedTask;
     //    }
 
-    //    public Task OnCompletedAsync()
+    //    公共任务 OnCompletedAsync()
     //    {
     //        logger.Info("Receive OnCompletedAsync - Total Items={0} Errors={1}", NumItems, NumErrors);
     //        return Task.CompletedTask;
     //    }
 
-    //    public Task OnErrorAsync(Exception ex)
+    //    公共任务 OnErrorAsync(例外ex)
     //    {
     //        NumErrors++;
     //        logger.Warn(1, "Received OnErrorAsync - Exception={0} - Total Items={1} Errors={2}", ex, NumItems, NumErrors);

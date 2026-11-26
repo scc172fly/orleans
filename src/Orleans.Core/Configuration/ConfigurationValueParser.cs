@@ -7,22 +7,22 @@ using Microsoft.Extensions.Configuration;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Parses optional typed values from configuration without reflection.
+/// 分析配置中不反射的可选输入值 。
 /// </summary>
 /// <remarks>
-/// Orleans.Core and Orleans.Runtime use this instead of <see cref="ConfigurationBinder.GetValue{T}(IConfiguration, string)"/>,
-/// which requires unreferenced code unless the configuration binding source generator is enabled. These assemblies
-/// cannot enable the generator because they bind options types with members the generator does not support.
-/// An absent or empty value leaves the caller's default in place. An invalid value, including a whitespace-only value, throws an
-/// <see cref="InvalidOperationException"/> in the style of <see cref="ConfigurationBinder"/>.
+/// Orleans.Core 和 Orleans.Runtime 使用这一方法代替 <see cref="ConfigurationBinder.GetValue{T}(IConfiguration, string)"/>,
+/// 除非配置绑定源生成器被启用, 需要未引用的代码。 这些组件会自动连接到
+/// 无法启用发电机, 因为它们与用户绑定选项类型, 且不支持生成器 。
+/// 不存在或空值的数值将调用者的默认默认值留在原位。无效的数值,包括仅使用白空空空间的数值,会丢弃
+/// <see cref="InvalidOperationException"/> 样式中的 <see cref="ConfigurationBinder"/>.
 /// </remarks>
 internal static class ConfigurationValueParser
 {
     /// <summary>
-    /// Parses the value at <paramref name="key"/> using <see cref="CultureInfo.InvariantCulture"/>.
+    /// 将数值投入 <paramref name="key"/> 使用 <see cref="CultureInfo.InvariantCulture"/>.
     /// </summary>
-    /// <returns><see langword="true"/> when the key has a value; <see langword="false"/> when it is absent or empty.</returns>
-    /// <exception cref="InvalidOperationException">The configured value is not a valid <typeparamref name="T"/>.</exception>
+    /// <returns><see langword="true"/> 当密钥有值时; <see langword="false"/> 空的或空的,</returns>
+    /// <exception cref="InvalidOperationException">配置的值不是一个有效的 <typeparamref name="T"/>。</exception>
     public static bool TryParseValue<T>(IConfiguration configuration, string key, [MaybeNullWhen(false)] out T value) where T : IParsable<T>
     {
         var text = configuration[key];
@@ -41,10 +41,10 @@ internal static class ConfigurationValueParser
     }
 
     /// <summary>
-    /// Parses the <see cref="IPEndPoint"/> value at <paramref name="key"/>.
+    /// 分析 <see cref="IPEndPoint"/> 值值 <paramref name="key"/>.
     /// </summary>
-    /// <returns><see langword="true"/> when the key has a value; <see langword="false"/> when it is absent or empty.</returns>
-    /// <exception cref="InvalidOperationException">The configured value is not a valid <see cref="IPEndPoint"/>.</exception>
+    /// <returns><see langword="true"/> 当密钥有值时; <see langword="false"/> 空的或空的,</returns>
+    /// <exception cref="InvalidOperationException">配置的值不是一个有效的 <see cref="IPEndPoint"/>。</exception>
     public static bool TryParseIPEndPoint(IConfiguration configuration, string key, [NotNullWhen(true)] out IPEndPoint? value)
     {
         var text = configuration[key];

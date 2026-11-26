@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>Tests the rule which names unnamed durable operations whose generated identifiers can shift, and its code fix.</summary>
+/// <summary>测试用于命名其生成识别符可移动的未命名持久操作的规则及其代码修正。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskIdentityRuleTests
 {

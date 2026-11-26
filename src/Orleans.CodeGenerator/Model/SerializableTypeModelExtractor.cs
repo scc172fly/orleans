@@ -9,8 +9,8 @@ namespace Orleans.CodeGenerator;
 internal static class SerializableTypeModelExtractor
 {
     /// <summary>
-    /// Extracts a <see cref="SerializableTypeModel"/> from an <see cref="ISerializableTypeDescription"/>.
-    /// Converts symbol-based descriptions into equatable value models for incremental pipeline caching.
+    /// 摘录a <see cref="SerializableTypeModel"/> 从 a 中 <see cref="ISerializableTypeDescription"/>.
+    /// 将基于符号的描述转换成可等值值模型,用于递增管道缓存。
     /// </summary>
     internal static SerializableTypeModel ExtractSerializableTypeModel(
         ISerializableTypeDescription description,
@@ -94,11 +94,11 @@ internal static class SerializableTypeModelExtractor
         var symbol = member.Symbol;
         var containingType = member.ContainingType;
 
-        // Determine getter/setter accessibility strategies
+        // 确定更方便/更便利出入的战略
         var getterStrategy = DetermineGetterStrategy(member);
         var setterStrategy = DetermineSetterStrategy(member);
 
-        // Determine if member has immutable attribute
+        // 确定成员是否具有不可更改属性
         var hasImmutableAttribute = false;
         if (symbol is IPropertySymbol prop)
         {
@@ -113,12 +113,12 @@ internal static class SerializableTypeModelExtractor
                 && a.AttributeClass.ContainingNamespace?.Name == "Orleans");
         }
 
-        // Determine if obsolete
+        // 确定是否过时
         var isObsolete = symbol.GetAttributes().Any(a =>
             a.AttributeClass?.Name == "ObsoleteAttribute"
             && a.AttributeClass.ContainingNamespace?.Name == "System");
 
-        // Backing property name
+        // 备份属性名称
         string? backingPropertyName = null;
         if (member is IFieldDescription fieldDesc)
         {
@@ -144,7 +144,7 @@ internal static class SerializableTypeModelExtractor
             setterStrategy: setterStrategy,
             isObsolete: isObsolete,
             hasImmutableAttribute: hasImmutableAttribute,
-            isShallowCopyable: false, // Will be resolved later with LibraryTypes
+            isShallowCopyable: false, // 以后将用 LibraryTypes解决
             isValueType: member.Type?.IsValueType ?? false,
             containingTypeIsValueType: containingType?.IsValueType ?? false,
             backingPropertyName: backingPropertyName);
@@ -154,7 +154,7 @@ internal static class SerializableTypeModelExtractor
     {
         if (member is IFieldDescription fieldDesc)
         {
-            // Direct access if field is accessible
+            // 如果有场地可进入,直接访问
             return AccessStrategy.Direct;
         }
 
@@ -231,7 +231,7 @@ internal static class SerializableTypeModelExtractor
             return ObjectCreationStrategy.Default;
         }
 
-        // Check if we can determine from the existing expression
+        // 检查我们是否能够从现有表达式中确定
         var expr = description.GetObjectCreationExpression();
         if (expr is Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax)
         {
@@ -392,13 +392,13 @@ internal static class SerializableTypeModelExtractor
             }
         }
 
-        // Default to true for records
+        // 记录默认为真
         if (typeSymbol.IsRecord)
         {
             return true;
         }
 
-        // Detect primary constructor via compiler-generated properties
+        // 通过编译器生成的特性检测主建构器
         var properties = typeSymbol.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
         return typeSymbol.GetMembers()
             .OfType<IMethodSymbol>()
@@ -419,7 +419,7 @@ internal static class SerializableTypeModelExtractor
 
         if (typeSymbol.IsRecord)
         {
-            // Primary constructor is declared before the copy constructor for records
+            // 初级建筑师在制版建筑师记录之前申报
             var potentialPrimaryConstructor = typeSymbol.Constructors[0];
             if (!potentialPrimaryConstructor.IsImplicitlyDeclared && !potentialPrimaryConstructor.IsCompilerGenerated())
             {
@@ -436,7 +436,7 @@ internal static class SerializableTypeModelExtractor
                 return annotatedConstructors[0].Parameters;
             }
 
-            // Fallback: detect primary constructor via compiler-generated properties
+            // 后退: 通过编译器生成的特性检测主建构器
             var properties = typeSymbol.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
             var primaryConstructor = typeSymbol.GetMembers()
                 .OfType<IMethodSymbol>()

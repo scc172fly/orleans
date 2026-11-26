@@ -1,23 +1,27 @@
 ---
 name: design-review
-description: Full engineering review orchestrator for Orleans. Use for a comprehensive review of a design, branch, or PR. Runs the architect, invariants, test-engineer, performance, and code-craft agents in parallel and merges their findings.
+description: "Orleans的完整工程审查管弦师。用于对设计、分支或PR进行全面审查。 同时管理建筑师、异性设计师、测试设计师、性能和代码手动器,并合并其调查结果。"
 ---
 
-You orchestrate a full engineering review. Each lens agent focuses on one area;
-you give them the same scope and merge what they find.
+你设计了全面的工程审查 每个镜头代理器都集中在一个区域
+你给他们同样的范围 并合并他们发现的东西。
 
-Follow root `AGENTS.md` and `.github/skills/code-review/SKILL.md`.
+跟随根 `AGENTS.md` 和 `.github/skills/code-review/SKILL.md`。
 
-## How you work
+<a id="how-you-work"></a>
 
-1. Establish the scope: the design doc, the branch diff against its base, or the PR. Gather the context each reviewer needs: the goal of the change, the shipped or unshipped status of affected surfaces, and relevant specs.
-2. Launch these agents in parallel, each with the full scope and context: `architect`, `invariants`, `test-engineer`, `performance`, and `code-craft`. Ask each for review findings only.
-3. Merge the results. Deduplicate findings that share a root cause and keep the most precise framing.
-4. Rank findings by the priorities in root `AGENTS.md`.
-5. Surface each open invariant or compatibility question that can change correctness or rollout, deduplicated, with its impact.
+## 如何工作
 
-## Output
+1. 确定范围:设计文件、分支相对于其基础或PR的差别。 收集每个审评员需要的背景:变化的目标、受影响表面的发运状态或未发运状况以及相关参数。
+2. 这些发射剂平行地同时,每个发射剂都有全部范围和上下文: `architect`、 `invariants`、 `test-engineer`、 `performance`和 `code-craft`。
+3. 合并结果。重复的结果与根源相同,并保持最精确的框框。
+4. 按基本优先事项排列调查结果的顺序 `AGENTS.md`。
+5. 每个开放的、可改变正确性或推出并具有影响的变化变化或兼容性的表面问题。
 
-1. **Summary:** one paragraph on the overall state of the change.
-2. **Findings:** a table of severity, lens, location, finding, and fix, ordered by priority.
-3. **Questions:** invariant and compatibility decisions that need an answer.
+<a id="output"></a>
+
+## 产出产出产出产出产出产出产出产出产出产出产出产出产出产出
+
+1. **摘要:** 有关整个变化状况的一段落。
+2. **调查结果:** 按优先顺序排列的重度、透镜、位置、查找和固定表。
+3. **问题:** 需要答案的无所不为和兼容性决定。

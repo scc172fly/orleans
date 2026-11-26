@@ -10,9 +10,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs;
 
 /// <summary>
-/// Serializer for <see cref="Stack{T}"/>.
+/// <see cref="Stack{T}"/>的序列器。
 /// </summary>
-/// <typeparam name="T">The element type.</typeparam>
+/// <typeparam name="T">元素类型。</typeparam>
 [RegisterSerializer]
 public sealed class StackCodec<T> : IFieldCodec<Stack<T>>
 {
@@ -21,9 +21,9 @@ public sealed class StackCodec<T> : IFieldCodec<Stack<T>>
     private readonly IFieldCodec<T> _fieldCodec;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StackCodec{T}"/> class.
+    /// 初始化 <see cref="StackCodec{T}"/> 类的新实例。
     /// </summary>
-    /// <param name="fieldCodec">The field codec.</param>
+    /// <param name="fieldCodec">字段编码。</param>
     public StackCodec(IFieldCodec<T> fieldCodec)
     {
         _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -112,9 +112,9 @@ public sealed class StackCodec<T> : IFieldCodec<Stack<T>>
 }
 
 /// <summary>
-/// Copier for <see cref="Stack{T}"/>.
+/// <see cref="Stack{T}"/>的复印机。
 /// </summary>
-/// <typeparam name="T">The element type.</typeparam>
+/// <typeparam name="T">元素类型。</typeparam>
 [RegisterCopier]
 public sealed class StackCopier<T> : IDeepCopier<Stack<T>>, IBaseCopier<Stack<T>>
 {
@@ -122,9 +122,9 @@ public sealed class StackCopier<T> : IDeepCopier<Stack<T>>, IBaseCopier<Stack<T>
     private readonly IDeepCopier<T> _copier;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StackCopier{T}"/> class.
+    /// 初始化 <see cref="StackCopier{T}"/> 类的新实例。
     /// </summary>
-    /// <param name="valueCopier">The value copier.</param>
+    /// <param name="valueCopier">价值复印机。</param>
     public StackCopier(IDeepCopier<T> valueCopier)
     {
         _copier = valueCopier;

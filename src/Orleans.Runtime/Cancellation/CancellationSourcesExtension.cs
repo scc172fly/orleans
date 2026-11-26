@@ -10,8 +10,8 @@ namespace Orleans.Runtime
 {
 #pragma warning disable CS0618 // This extension provides distributed cancellation for the legacy token.
     /// <summary>
-    /// Contains list of cancellation token source corresponding to the tokens
-    /// passed to the related grain activation.
+    /// 包含与此牌相对应的取消代号源列表
+    /// 传递到相关的 grain 激活。
     /// </summary>
     internal partial class CancellationSourcesExtension : ICancellationSourcesExtension, IDisposable
     {
@@ -23,10 +23,10 @@ namespace Orleans.Runtime
         private static readonly TimeSpan _cleanupFrequency = TimeSpan.FromMinutes(7);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CancellationSourcesExtension"/> class.
+        /// 初始化 <see cref="CancellationSourcesExtension"/> 类的新实例。
         /// </summary>
-        /// <param name="loggerFactory">The logger factory.</param>
-        /// <param name="cancellationRuntime">The cancellation runtime.</param>
+        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="cancellationRuntime">取消运行时间。</param>
         public CancellationSourcesExtension(ILoggerFactory loggerFactory, IGrainCancellationTokenRuntime cancellationRuntime)
         {
             _logger = loggerFactory.CreateLogger<CancellationSourcesExtension>();
@@ -43,7 +43,7 @@ namespace Orleans.Runtime
             {
                 LogCancellationFailed(tokenId);
 
-                // Record the cancellation anyway, in case the call which would have registered the cancellation is still pending.
+                // 无论如何记录取消,如果登记取消的电话仍未接到,则要记录取消。
                 this.RecordCancellationToken(tokenId, isCancellationRequested: true);
                 return Task.CompletedTask;
             }
@@ -54,7 +54,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Adds <see cref="CancellationToken"/> to the grain extension so that it can be canceled through remote call to the CancellationSourcesExtension.
+        /// 将 <see cref="CancellationToken"/> 添加到 grain 扩展名中,以便通过远程呼叫 CancellationSourcesExtension取消该扩展名。
         /// </summary>
         /// <param name="target"></param>
         /// <param name="request"></param>
@@ -78,7 +78,7 @@ namespace Orleans.Runtime
 
                 var cancellationExtension = (CancellationSourcesExtension)target.GetGrainExtension<ICancellationSourcesExtension>();
 
-                // Replacing the half baked GrainCancellationToken that came from the wire with locally fully created one.
+                // 取代了当地完全创建的半份烤烤 GrainCancellationToken 。
                 request.SetArgument(i, cancellationExtension.RecordCancellationToken(grainToken.Id, grainToken.IsCancellationRequested));
             }
         }

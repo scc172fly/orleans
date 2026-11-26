@@ -7,9 +7,9 @@ using Xunit;
 namespace Orleans.TestingHost.Tests
 {
     /// <summary>
-    /// Tests that an Orleans host (silo or client) faults its outstanding grain-call callbacks when it
-    /// shuts down, so in-flight calls observe a terminal result instead of hanging forever once the
-    /// host can no longer receive responses.
+    /// 测试 Orleans 主机(silo 或客户端)是否断存未结 grain- 当它
+    /// 关闭,所以飞行通话 观察一个终端结果 而不是永远吊死一次
+    /// 主机无法再接收回复 。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -19,10 +19,10 @@ namespace Orleans.TestingHost.Tests
         [Fact]
         public async Task StoppedClient_WithInFlightCall_FaultsInsteadOfHanging()
         {
-            // A client that is stopped while it has an in-flight grain call must fault the outstanding
-            // request rather than leave the caller hanging forever. During client shutdown the callback
-            // expiry timer is disposed, so unless outstanding callbacks are explicitly faulted the
-            // awaiting task never completes.
+            // 客户端在飞行 grain 呼叫时被停止的客户端必须断开未结
+            // 用户关闭回拨时, 客户端关闭回调时
+            // 处理过期失效时间计时器,除非未回的回回调被明确错开
+            // 任务从来就没有完成。
             var builder = new InProcessTestClusterBuilder(1);
             builder.ConfigureHost(hostBuilder => TestDefaultConfiguration.ConfigureHostConfiguration(hostBuilder.Configuration));
             await using var cluster = builder.Build();
@@ -31,7 +31,7 @@ namespace Orleans.TestingHost.Tests
             var key = Guid.NewGuid();
             var blocker = cluster.Client.GetGrain<IRemoteBlockerGrain>(key);
 
-            // Start (but do not await) a call to a grain that blocks and never responds.
+            // 启动( 但不要等待) 呼叫该区块的 grain , 永远不回应 。
             var pending = blocker.BlockUntilReleased();
             var followUp = RetryAfterFailure(pending, blocker);
             Assert.True(
@@ -41,10 +41,10 @@ namespace Orleans.TestingHost.Tests
                     TestContext.Current.CancellationToken),
                 "The blocking call was never entered.");
 
-            // Stop the client while the call is in-flight.
+            // 通话在飞行时停止客户
             await cluster.StopClusterClientAsync(TestContext.Current.CancellationToken);
 
-            // The pending call must fault promptly instead of hanging.
+            // 等待的电话必须迅速过错,而不是绞刑。
             var faulted = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
             Assert.True(faulted == pending, "Stopping the client should fault in-flight calls instead of hanging.");
             await Assert.ThrowsAnyAsync<Exception>(async () => await pending);

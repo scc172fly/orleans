@@ -9,11 +9,11 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Serialization.Serializers;
 
 /// <summary>
-/// Surrogate serializer for <typeparamref name="TField"/>.
+/// <typeparamref name="TField"/>的代用序列器。
 /// </summary>
-/// <typeparam name="TField">The type which the implementation of this class supports.</typeparam>
-/// <typeparam name="TSurrogate">The surrogate type serialized in place of <typeparamref name="TField"/>.</typeparam>
-/// <typeparam name="TConverter">The converter type which converts between <typeparamref name="TField"/> and <typeparamref name="TSurrogate"/>.</typeparam>
+/// <typeparam name="TField">执行此类支持的类型。</typeparam>
+/// <typeparam name="TSurrogate">代替代用类型 <typeparamref name="TField"/>.</typeparam>
+/// <typeparam name="TConverter">转换器类型在 <typeparamref name="TField"/> 和 <typeparamref name="TSurrogate"/>.</typeparam>
 public sealed class ValueTypeSurrogateCodec<TField, TSurrogate, TConverter>
     : IFieldCodec<TField>, IDeepCopier<TField>, IValueSerializer<TField>
     where TField : struct
@@ -25,11 +25,11 @@ public sealed class ValueTypeSurrogateCodec<TField, TSurrogate, TConverter>
     private readonly TConverter _converter;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ValueTypeSurrogateCodec{TField, TSurrogate, TConverter}"/> class.
+    /// 初始化 <see cref="ValueTypeSurrogateCodec{TField, TSurrogate, TConverter}"/> 类的新实例。
     /// </summary>
-    /// <param name="surrogateSerializer">The surrogate serializer.</param>
-    /// <param name="surrogateCopier">The surrogate copier.</param>
-    /// <param name="converter">The surrogate converter.</param>
+    /// <param name="surrogateSerializer">代孕序列器</param>
+    /// <param name="surrogateCopier">代孕复印机</param>
+    /// <param name="converter">代用转换器。</param>
     public ValueTypeSurrogateCodec(
         IValueSerializer<TSurrogate> surrogateSerializer,
         IDeepCopier<TSurrogate> surrogateCopier,

@@ -11,7 +11,7 @@ namespace Orleans.Runtime
     internal partial class AsyncTimer : IAsyncTimer
     {
         /// <summary>
-        /// Timers can fire up to 3 seconds late before a warning is emitted and the instance is deemed unhealthy.
+        /// 计时器可在发出警告之前提前3秒钟点火,而且情况被认为不健康。
         /// </summary>
         private static readonly TimeSpan TimerDelaySlack = TimeSpan.FromSeconds(3);
 
@@ -34,10 +34,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns a task which completes after the required delay.
+        /// 返回在规定延迟后完成的任务。
         /// </summary>
-        /// <param name="overrideDelay">An optional override to this timer's configured period.</param>
-        /// <returns><see langword="true"/> if the timer completed or <see langword="false"/> if the timer was cancelled</returns>
+        /// <param name="overrideDelay">用于此定时器配置的期间的可选覆盖。</param>
+        /// <returns><see langword="true"/> 如果计时器完成或 <see langword="false"/> 如果取消计时器</returns>
         public async Task<bool> NextTick(TimeSpan? overrideDelay = default)
         {
             var source = Volatile.Read(ref cancellation);
@@ -46,7 +46,7 @@ namespace Orleans.Runtime
             CancellationToken cancellationToken;
             lock (source)
             {
-                // Synchronize token acquisition with disposal; the token remains usable afterwards.
+                // 同步获取待发物品并进行处置;此待发物品在事后仍可用。
                 if (Volatile.Read(ref cancellation) is null) return false;
                 cancellationToken = source.Token;
             }

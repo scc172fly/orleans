@@ -20,7 +20,7 @@ namespace UnitTests.Grains
     }
 
     /// <summary>
-    /// A simple grain that allows to set two arguments and then multiply them.
+    /// 简单 grain ,它允许设置两个参数然后乘以它们。
     /// </summary>
     [StorageProvider(ProviderName = "MemoryStore")]
     public class ChainedGrain : Grain<ChainedGrainState>, IChainedGrain
@@ -42,7 +42,7 @@ namespace UnitTests.Grains
         {
             if (State.Next == null)
             {/*
-                if (Id % 10 != 0)
+                (日% 10 = 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine(String.Format("Id={0}, Next=null, X={1}", Id, X));

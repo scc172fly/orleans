@@ -4,30 +4,30 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// Represents a write operation submitted to a <see cref="MessageTransport"/>.
+/// 向 <see cref="MessageTransport"/>提交的书面作业。
 /// </summary>
 /// <remarks>
-/// Once accepted by a transport, the request and its buffers remain transport-owned until a completion callback returns.
+/// 一旦被运输接受,请求及其缓冲带仍为运输所有,直至完成回击返回。
 /// </remarks>
 public abstract class WriteRequest
 {
     /// <summary>
-    /// Gets the buffers to write.
+    /// 使缓冲带可以写。
     /// </summary>
     /// <remarks>
-    /// The contents remain valid and unchanged while the request is owned by the transport.
+    /// 请求内容在运输部门拥有时仍然有效和不变。
     /// </remarks>
     public ArcBufferReader Buffers { get; protected set; }
     internal virtual bool HasLargeMessages => false;
 
     /// <summary>
-    /// Completes the request after all buffered data has been written.
+    /// 在所有缓冲数据写入后完成请求。
     /// </summary>
     public abstract void SetResult();
 
     /// <summary>
-    /// Completes the request with an error.
+    /// 错误填写请求。
     /// </summary>
-    /// <param name="error">The error which terminated the write.</param>
+    /// <param name="error">终止写入的错误。</param>
     public abstract void SetException(Exception error);
 }

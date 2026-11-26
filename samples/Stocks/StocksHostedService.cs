@@ -25,17 +25,17 @@ public sealed class StocksHostedService : BackgroundService
                 _logger.LogInformation("Fetching stock prices");
                 var tasks = new List<Task<string>>();
 
-                // Fan out calls to each of the stock grains
+                // 向每股发号呼唤 grains
                 foreach (var symbol in _symbols)
                 {
                     var stockGrain = _client.GetGrain<IStockGrain>(symbol);
                     tasks.Add(stockGrain.GetPrice());
                 }
 
-                // Collect the results
+                // 收集结果
                 await Task.WhenAll(tasks);
 
-                // Print the results
+                // 打印结果
                 foreach (var task in tasks)
                 {
                     var price = await task;

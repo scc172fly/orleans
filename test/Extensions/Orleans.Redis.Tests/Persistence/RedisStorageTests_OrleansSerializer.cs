@@ -6,7 +6,7 @@ using Xunit;
 namespace Tester.Redis.Persistence
 {
     /// <summary>
-    /// Tests for Redis grain storage using Orleans serializer.
+    /// 试验 Redis grain 使用存储 Orleans 连环器
     /// </summary>
     [TestCategory("Redis"), TestCategory("Persistence"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

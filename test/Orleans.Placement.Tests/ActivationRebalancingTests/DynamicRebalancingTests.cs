@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.ActivationRebalancingTests;
 
 /// <summary>
-/// Tests for dynamic activation rebalancing while new activations are being created.
+/// 正在创建新的激活程序的同时,进行动态激活再平衡测试。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -69,7 +69,7 @@ public class DynamicRebalancingTests(RebalancerFixture fixture, ITestOutputHelpe
             {
                 tasks.Clear();
 
-                // add an extra 1/10 of the initial activation count for each silo
+                // 每个 silo增加一个额外的1/10启动初始数
                 AddTestActivations(tasks, Silo1, extraActivationsSilo1);
                 AddTestActivations(tasks, Silo2, extraActivationsSilo2);
                 AddTestActivations(tasks, Silo3, extraActivationsSilo3);

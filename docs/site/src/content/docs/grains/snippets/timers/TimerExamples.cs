@@ -2,7 +2,7 @@ using Orleans.Runtime;
 
 namespace Timers;
 
-// Examples for grain timer usage documentation
+// grain 定时器使用文档示例
 
 // <grain_timer_example>
 public class MyGrain : Grain, IMyGrain
@@ -11,8 +11,8 @@ public class MyGrain : Grain, IMyGrain
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        // Create a timer that fires every 10 seconds, starting 5 seconds after activation
-        // RegisterGrainTimer is an extension method on IGrainBase (which Grain implements)
+        // 创建一个定时器,每10秒点火,启动后5秒钟
+        // RegisterGrainTimer 是 IGrainBase 的扩展方法(它 Grain 实施)
         _timer = this.RegisterGrainTimer(
             static (state, ct) => state.DoWorkAsync(ct),
             this,
@@ -20,7 +20,7 @@ public class MyGrain : Grain, IMyGrain
             {
                 DueTime = TimeSpan.FromSeconds(5),
                 Period = TimeSpan.FromSeconds(10),
-                KeepAlive = true  // Prevent grain collection while timer is active
+                KeepAlive = true  // 防止在计时器激活时进行 grain 收藏
             });
 
         return Task.CompletedTask;
@@ -28,7 +28,7 @@ public class MyGrain : Grain, IMyGrain
 
     private Task DoWorkAsync(CancellationToken cancellationToken)
     {
-        // Timer callback work
+        // 计时回调工作
         return Task.CompletedTask;
     }
 }
@@ -41,7 +41,7 @@ public class MyGrainAfter : Grain, IMyGrain
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        // Use this.RegisterGrainTimer() - an extension method on IGrainBase
+        // 使用 this.RegisterGrainTimer() - IGrainBase的扩展方法
         _timer = this.RegisterGrainTimer(
             static (state, ct) => state.DoWorkAsync(ct),
             this,
@@ -49,7 +49,7 @@ public class MyGrainAfter : Grain, IMyGrain
             {
                 DueTime = TimeSpan.FromSeconds(5),
                 Period = TimeSpan.FromSeconds(10),
-                Interleave = true  // Set to true to match old behavior
+                Interleave = true  // 设置真实以匹配旧行为
             });
         
         return Task.CompletedTask;
@@ -57,7 +57,7 @@ public class MyGrainAfter : Grain, IMyGrain
 
     private Task DoWorkAsync(CancellationToken cancellationToken)
     {
-        // Timer work - check cancellationToken for graceful shutdown
+        // 计时器工作 - 检查优雅关闭的 cancellationToken
         return Task.CompletedTask;
     }
 }

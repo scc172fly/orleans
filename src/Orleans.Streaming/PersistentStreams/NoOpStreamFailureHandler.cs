@@ -4,12 +4,12 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// <see cref="IStreamFailureHandler"/> which does nothing in response to failures.
+    /// 无法应对故障的<see cref="IStreamFailureHandler"/> 。
     /// </summary>
     public class NoOpStreamDeliveryFailureHandler : IStreamFailureHandler
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NoOpStreamDeliveryFailureHandler"/> class.
+        /// 初始化 <see cref="NoOpStreamDeliveryFailureHandler"/> 类的新实例。
         /// </summary>
         public NoOpStreamDeliveryFailureHandler()
             : this(false)
@@ -17,9 +17,9 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NoOpStreamDeliveryFailureHandler"/> class.
+        /// 初始化 <see cref="NoOpStreamDeliveryFailureHandler"/> 类的新实例。
         /// </summary>
-        /// <param name="faultOnError">The value used for <see cref="ShouldFaultSubsriptionOnError"/>.</param>
+        /// <param name="faultOnError"> <see cref="ShouldFaultSubsriptionOnError"/>所用数值。</param>
         public NoOpStreamDeliveryFailureHandler(bool faultOnError)
         {
             ShouldFaultSubsriptionOnError = faultOnError;

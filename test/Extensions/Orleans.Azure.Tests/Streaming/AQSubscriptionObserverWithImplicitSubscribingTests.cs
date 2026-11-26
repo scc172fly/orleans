@@ -42,7 +42,7 @@ namespace Tester.AzureUtils.Streaming
                 }
                 catch (Xunit.Sdk.SkipException)
                 {
-                    // ignore
+                    // 忽略忽略
                 }
             }
         }

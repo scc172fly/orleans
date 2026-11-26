@@ -7,7 +7,7 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Information about available grains.
+    /// 关于可用信息 grains。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class GrainManifest : IEquatable<GrainManifest>
@@ -16,13 +16,13 @@ namespace Orleans.Metadata
         private int? _hashCode;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainManifest"/> class.
+        /// 初始化 <see cref="GrainManifest"/> 类的新实例。
         /// </summary>
         /// <param name="grains">
-        /// The grain properties.
+        /// grain 属性。
         /// </param>
         /// <param name="interfaces">
-        /// The interface properties.
+        /// 界面属性 。
         /// </param>
         public GrainManifest(
             ImmutableDictionary<GrainType, GrainProperties> grains,
@@ -43,13 +43,13 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Gets the interfaces available on this silo.
+        /// 获取此 silo上的界面。
         /// </summary>
         [Id(0)]
         public ImmutableDictionary<GrainInterfaceType, GrainInterfaceProperties> Interfaces { get; }
 
         /// <summary>
-        /// Gets the grain types available on this silo.
+        /// 得到 grain 可用类型 silo.
         /// </summary>
         [Id(1)]
         public ImmutableDictionary<GrainType, GrainProperties> Grains { get; }

@@ -1,36 +1,44 @@
 ---
 name: review-code-craft
-description: Code craft lens for Orleans — control flow, function shape, scope, signatures, conditions, naming, units, and compiler strictness. Use during code review, and when writing or refactoring code.
+description: "Orleans ——控制流程、功能形状、范围、签名、条件、命名、单位和编译严格性。在代码审查期间以及写或重构代码时使用。"
 ---
 
-# Code craft lens
+<a id="code-craft-lens"></a>
 
-Apply with root `AGENTS.md` and `.editorconfig`. This lens examines the code as
-the next engineer reads it: control flow, function shape, scope, signatures, and
-names. It covers changed code; unrelated refactoring stays out of scope.
+# 代码手滑镜
 
-## Procedure
+使用 root `AGENTS.md` 和 `.editorconfig`应用代码。此透镜将代码作为
+下一个工程师读取它:控制流、功能形状、范围、签名和
+。它覆盖了已修改的代码;不相关的再设定功能不包含范围。
 
-1. Read the change top-down as a newcomer would.
-2. Flag control flow that hides cases, functions that do more than one thing, mutable state with more than one copy, and names that misdescribe.
-3. Prefer refactors that remove code or branches to those that add structure.
-4. Keep behavior identical when refactoring, verified by existing tests.
-5. Skip formatting the build already enforces.
+<a id="procedure"></a>
 
-## Checklist
+## 程序程序程序
 
-- **Push `if`s up, `for`s down.** Callers decide which case applies and pass helpers the whole batch; the coordinating method owns state mutation while the helpers it calls compute results without side effects ([matklad](https://matklad.github.io/2023/11/15/push-ifs-up-and-fors-down.html)).
-- **Functions fit on a screen.** A function reads as one unit; one beyond about 70 lines prompts a check for mixed responsibilities.
-- **Smallest scope.** Values are computed close to their use, so nothing can invalidate a check between the check and the use; each piece of mutable state has one owner and one copy.
-- **Simple signatures.** Each extra return dimension (nullability, error result, async) adds branches to every caller, so a method returns the simplest shape its contract allows (`void` over `bool` over `int` over `int?`).
-- **Positive conditions.** Conditions read in positive form (`index < count`, not `!(index >= count)`); compound conditions whose terms need different handling are split, and each branch is handled deliberately.
-- **Explicit options.** Behavior-critical choices are visible at the call site or the configuration boundary that owns them.
-- **Precise names.** Names are precise nouns and verbs with one meaning each; abbreviations are limited to established terms (ID, ETag, GC, RPC).
-- **Units in types.** Durations use `TimeSpan`, instants use `DateTimeOffset` in new APIs and the established type in existing contracts, and raw numbers carry the unit in the name (`timeoutMs`).
-- **Grouped names.** In new code, related names share a prefix so they sort together (`LatencyMax`, `LatencyMin`), unless local conventions establish another pattern.
-- **Compiler strictness.** Code builds cleanly under warnings-as-errors and the repository's nullable settings; each null-forgiving operator or suppression relies on an invariant that is evident nearby or stated in a comment.
+1. 以新来者的身份读取自上而下的变化。
+2. 隐藏大小写、 功能做不止一件事、 变形状态与多份副本, 以及错误描述的名称的旗杆控制流 。
+3. 偏好将代码或分支删除到添加结构的反射要素。
+4. 重构时保持相同的行为, 由现有测试来验证 。
+5. 跳过构建格式化已执行的强制操作 。
 
-## Findings
+<a id="checklist"></a>
 
-Report findings ordered by severity, each with the location, the principle at
-stake, and a concrete fix.
+## 核对列表
+
+- **将 `if`s上调, `for`s下调。** 呼叫者决定适用哪个案件,并在整个批次中通过帮助;协调方法拥有状态突变,而它所呼吁的辅助者则计算结果而不产生副作用([平板](https://matklad.github.io/2023/11/15/push-ifs-up-and-fors-down.html))。
+- **功能适合屏幕上。** 函数是一个单位;超过70行的函数可以导致检查混合责任。
+- **最小范围。** 值是在接近其使用时计算,所以没有任何东西可以使检查和使用之间的核对无效;每个可变状态有一个拥有者和一个副本。
+- **简单的签名。** 每个额外的返回维度( 无效性、 错误结果、 自动同步) 都为每个呼叫者添加分支, 所以方法返回其合同允许的最简单的形状 (nellable, 错误结果、 async) 。`void` 超过 `bool` 超过 `int` 超过 `int?`).
+- **积极条件。** 条件以正数(`index < count`,而不是 `!(index >= count)`);条件复杂,其条款需要不同处理方式的复数条件被分割,每个分支均受到故意处理。
+- **明确选项。** 行为危急选择在呼叫站点或拥有这些选择的配置边界上可见。
+- **精确名称。** 名称是准确的名词和动词,每个词有一个含义;缩写限于既定术语(ID、ETag、GC、RPC)。
+- **单位类型。** 使用期限 `TimeSpan`,即时使用 `DateTimeOffset` 原号以名称(单位名称)携带单位(单位名称)(`timeoutMs`).
+- **组名。** 在新代码中,相关名称共用一个前缀,以便将它们合并(`LatencyMax`、 `LatencyMin`),除非地方公约另设模式。
+- **编纂者严格性。** 代码在警告后和存储处的无效设置下,以清洁的方式构建;每个无赦操作员或压制都依赖于附近明显存在的或评论中说明的变量。
+
+<a id="findings"></a>
+
+## 审计结果
+
+依据严重程度、每个地点、原则、
+和具体的解决办法。

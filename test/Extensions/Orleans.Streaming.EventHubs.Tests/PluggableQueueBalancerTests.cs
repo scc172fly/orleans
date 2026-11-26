@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ServiceBus.Tests
 {
     /// <summary>
-    /// Tests for pluggable queue balancer functionality with EventHub streaming provider.
+    /// 与 EventHub 流提供商测试可插入的队列平衡器功能。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming")]
     [TestSuite("BVT")]

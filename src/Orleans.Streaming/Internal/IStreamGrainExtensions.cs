@@ -6,7 +6,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Streams
 {
-    // This is the extension interface for stream consumers
+    // 这是流用户的扩展界面
     internal interface IStreamConsumerExtension : IGrainExtension
     {
         [Alias("6D8FAEB2")]
@@ -23,7 +23,7 @@ namespace Orleans.Streams
         Task<StreamHandshakeToken?> GetSequenceToken(GuidId subscriptionId, CancellationToken cancellationToken = default);
     }
 
-    // This is the extension interface for stream producers
+    // 这是流源生成器的扩展界面
     internal interface IStreamProducerExtension : IGrainExtension
     {
         [AlwaysInterleave]

@@ -5,39 +5,39 @@ namespace Orleans.Runtime
 {
 
     /// <summary>
-    /// Signifies that an operation was attempted on an invalid SchedulingContext.
+    /// 表示试图对无效的 SchedulingContext进行操作。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     internal sealed class InvalidSchedulingContextException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InvalidSchedulingContextException"/> class.
+        /// 初始化 <see cref="InvalidSchedulingContextException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         public InvalidSchedulingContextException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InvalidSchedulingContextException"/> class.
+        /// 初始化 <see cref="InvalidSchedulingContextException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         /// <param name="innerException">
-        /// The inner exception.
+        /// 内在的例外
         /// </param>
         public InvalidSchedulingContextException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InvalidSchedulingContextException"/> class.
+        /// 初始化 <see cref="InvalidSchedulingContextException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// The serialization info.
+        /// 序列信息
         /// </param>
         /// <param name="context">
-        /// The context.
+        /// 背景。
         /// </param>
         [Obsolete]
         private InvalidSchedulingContextException(SerializationInfo info, StreamingContext context) : base(info, context) { }

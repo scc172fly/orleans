@@ -25,8 +25,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => storage.Get(starterId).Result is { IsCompleted: true });
 
-        // The abstraction detaches any schedulable task, and this host starts only grain requests, whose serialized request
-        // the target recovers as a root task, so each start fails before the execution records or sends anything.
+        // 抽象解脱任何可排出的任务, 而此主机只开始 grain 请求, 其序列化请求
+        // 目标恢复为根任务, 所以在执行记录或发送任何信息之前, 每个目标开始失败 。
         Assert.Contains("durable grain calls", storage.Get(starterId).Result!.GetResult<string?>(), StringComparison.Ordinal);
         Assert.Equal(0, schedulable.ScheduleAsyncCallCount);
         Assert.Empty(transport.DetachedInvocations);

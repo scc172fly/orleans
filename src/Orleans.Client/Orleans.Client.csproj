@@ -7,7 +7,7 @@
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IncludeSymbols>false</IncludeSymbols>
     <IncludeSource>false</IncludeSource>
-    <!-- This metapackage contains dependency metadata and no API assemblies. -->
+    <!-- 这一元包装包含依赖性元数据,没有 API 集会。 -->
     <EnablePackageValidation>false</EnablePackageValidation>
     <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
     <PackageReadmeFile>README.md</PackageReadmeFile>

@@ -9,43 +9,43 @@ using System;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// EventHub settings for a specific hub
+    /// 特定中心EventHub 设置
     /// </summary>
     public class EventHubOptions
     {
         /// <summary>
-        /// Gets the delegate used to create connections to Azure Event Hub.
+        /// 获取代表用来创建与 Azure 事件枢纽的连接。
         /// </summary>
         internal CreateConnectionDelegate CreateConnection { get; private set; } = null!;
 
         /// <summary>
-        /// Event Hub consumer group.
+        /// 活动枢纽消费者团体。
         /// </summary>
         internal string ConsumerGroup { get; private set; } = null!;
 
         /// <summary>
-        /// Event Hub name.
+        /// 事件中心名称 。
         /// </summary>
         internal string EventHubName { get; private set; } = null!;
 
         /// <summary>
-        /// Connection options used when creating a connection to an Azure Event Hub.
+        /// 创建 Azure 事件枢纽连接时使用的连接选项。
         /// </summary>
         public EventHubConnectionOptions ConnectionOptions { get; set; } = new EventHubConnectionOptions { TransportType = EventHubsTransportType.AmqpTcp };
 
         /// <summary>
-        /// Creates an Azure Event Hub connection.
+        /// 创建 Azure 事件枢纽连接。
         /// </summary>
-        /// <param name="connectionOptions">The connection options.</param>
-        /// <returns>An Azure Event Hub connection.</returns>
+        /// <param name="connectionOptions">连接选项。</param>
+        /// <returns>A 音 A Azure 活动枢纽连接。</returns>
         public delegate EventHubConnection CreateConnectionDelegate(EventHubConnectionOptions connectionOptions);
 
         /// <summary>
-        /// Configures the Azure Event Hub connection using the provided connection string.
+        /// 配置 Azure 事件枢纽连接,使用提供的连接字符串。
         /// </summary>
-        /// <param name="connectionString">The Event Hub connection string.</param>
-        /// <param name="eventHubName">The Event Hub name.</param>
-        /// <param name="consumerGroup">The consumer group name.</param>
+        /// <param name="connectionString">事件枢纽连接字符串。</param>
+        /// <param name="eventHubName">活动中心名称。</param>
+        /// <param name="consumerGroup">消费者团体名称。</param>
         public void ConfigureEventHubConnection(string connectionString, string eventHubName, string consumerGroup)
         {
             EventHubName = eventHubName;
@@ -62,12 +62,12 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the Azure Event Hub connection using the provided fully-qualified namespace string and credential.
+        /// 配置 Azure 事件枢纽连接,使用所提供的完全合格的命名空间字符串和证书。
         /// </summary>
-        /// <param name="fullyQualifiedNamespace">The fully qualified Event Hubs namespace.</param>
-        /// <param name="eventHubName">The Event Hub name.</param>
-        /// <param name="consumerGroup">The consumer group name.</param>
-        /// <param name="credential">The named key credential.</param>
+        /// <param name="fullyQualifiedNamespace">完全合格的事件枢纽命名空间。</param>
+        /// <param name="eventHubName">活动中心名称。</param>
+        /// <param name="consumerGroup">消费者团体名称。</param>
+        /// <param name="credential">名号密钥证书。</param>
         public void ConfigureEventHubConnection(string fullyQualifiedNamespace, string eventHubName, string consumerGroup, AzureNamedKeyCredential credential)
         {
             EventHubName = eventHubName;
@@ -89,12 +89,12 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the Azure Event Hub connection using the provided fully-qualified namespace string and credential.
+        /// 配置 Azure 事件枢纽连接,使用所提供的完全合格的命名空间字符串和证书。
         /// </summary>
-        /// <param name="fullyQualifiedNamespace">The fully qualified Event Hubs namespace.</param>
-        /// <param name="eventHubName">The Event Hub name.</param>
-        /// <param name="consumerGroup">The consumer group name.</param>
-        /// <param name="credential">The shared access signature credential.</param>
+        /// <param name="fullyQualifiedNamespace">完全合格的事件枢纽命名空间。</param>
+        /// <param name="eventHubName">活动中心名称。</param>
+        /// <param name="consumerGroup">消费者团体名称。</param>
+        /// <param name="credential">共享存取签名证书。</param>
         public void ConfigureEventHubConnection(string fullyQualifiedNamespace, string eventHubName, string consumerGroup, AzureSasCredential credential)
         {
             EventHubName = eventHubName;
@@ -116,12 +116,12 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the Azure Event Hub connection using the provided fully-qualified namespace string and credential.
+        /// 配置 Azure 事件枢纽连接,使用所提供的完全合格的命名空间字符串和证书。
         /// </summary>
-        /// <param name="fullyQualifiedNamespace">The fully qualified Event Hubs namespace.</param>
-        /// <param name="eventHubName">The Event Hub name.</param>
-        /// <param name="consumerGroup">The consumer group name.</param>
-        /// <param name="credential">The token credential.</param>
+        /// <param name="fullyQualifiedNamespace">完全合格的事件枢纽命名空间。</param>
+        /// <param name="eventHubName">活动中心名称。</param>
+        /// <param name="consumerGroup">消费者团体名称。</param>
+        /// <param name="credential">象征性证书。</param>
         public void ConfigureEventHubConnection(string fullyQualifiedNamespace, string eventHubName, string consumerGroup, TokenCredential credential)
         {
             EventHubName = eventHubName;
@@ -141,10 +141,10 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the Azure Event Hub connection using the provided connection instance.
+        /// 配置使用提供的连接实例的 Azure 事件枢纽连接。
         /// </summary>
-        /// <param name="connection">The Event Hub connection.</param>
-        /// <param name="consumerGroup">The consumer group name.</param>
+        /// <param name="connection">事件枢纽连接。</param>
+        /// <param name="consumerGroup">消费者团体名称。</param>
         public void ConfigureEventHubConnection(EventHubConnection connection, string consumerGroup)
         {
             EventHubName = connection.EventHubName;
@@ -155,11 +155,11 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the Azure Event Hub connection using the provided delegate.
+        /// 配置使用所提供代表的 Azure 事件枢纽连接。
         /// </summary>
-        /// <param name="createConnection">The delegate used to create Event Hub connections.</param>
-        /// <param name="eventHubName">The Event Hub name.</param>
-        /// <param name="consumerGroup">The consumer group name.</param>
+        /// <param name="createConnection">该代表用来创建事件枢纽连接。</param>
+        /// <param name="eventHubName">活动中心名称。</param>
+        /// <param name="consumerGroup">消费者团体名称。</param>
         public void ConfigureEventHubConnection(CreateConnectionDelegate createConnection, string eventHubName, string consumerGroup)
         {
             EventHubName = eventHubName;
@@ -183,17 +183,17 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Validates <see cref="EventHubOptions"/>.
+    /// 验证 <see cref="EventHubOptions"/>。
     /// </summary>
     public class EventHubOptionsValidator : IConfigurationValidator
     {
         private readonly EventHubOptions options;
         private readonly string name;
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventHubOptionsValidator"/> class.
+        /// 初始化 <see cref="EventHubOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options to validate.</param>
-        /// <param name="name">The stream provider name.</param>
+        /// <param name="options">验证的选项。</param>
+        /// <param name="name">流体提供者名称。</param>
         public EventHubOptionsValidator(EventHubOptions options, string name)
         {
             this.options = options;
@@ -220,17 +220,17 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Validates that a stream queue checkpointer is configured for an Event Hubs stream provider.
+    /// 校验为事件枢纽流提供者配置的串列列检查器 。
     /// </summary>
     public class StreamCheckpointerConfigurationValidator : IConfigurationValidator
     {
         private readonly IServiceProvider services;
         private readonly string name;
         /// <summary>
-        /// Initializes a new instance of the <see cref="StreamCheckpointerConfigurationValidator"/> class.
+        /// 初始化 <see cref="StreamCheckpointerConfigurationValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
         public StreamCheckpointerConfigurationValidator(IServiceProvider services, string name)
         {
             this.services = services;
@@ -246,23 +246,23 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Configures how an Event Hubs stream provider receives events from each partition.
+    /// 配置事件枢纽流提供者如何接收每个分区的事件 。
     /// </summary>
     public class EventHubReceiverOptions
     {
         /// <summary>
-        /// Optional parameter that configures the receiver prefetch count.
+        /// 配置接收器预取数的可选参数。
         /// </summary>
         public int? PrefetchCount { get; set; }
         /// <summary>
-        /// In cases where no checkpoint is found, this indicates if service should read from the most recent data, or from the beginning of a partition.
+        /// 如果没有设立检查站,则表示服务是从最新数据或从分隔区开始算起。
         /// </summary>
         public bool StartFromNow { get; set; } = DEFAULT_START_FROM_NOW;
         private const bool DEFAULT_START_FROM_NOW = true;
     }
 
     /// <summary>
-    /// Configures cache pressure monitoring for an Event Hubs stream provider.
+    /// 配置事件枢纽流提供者的缓存压力监测 。
     /// </summary>
     public class EventHubStreamCachePressureOptions
     {
@@ -277,8 +277,8 @@ namespace Orleans.Configuration
         public TimeSpan? SlowConsumingMonitorPressureWindowSize { get; set; }
 
         /// <summary>
-        /// AveragingCachePressureMonitorFlowControlThreshold, AveragingCachePressureMonitor is turn on by default. 
-        /// User can turn it off by setting this value to null
+        /// AveragingCachePressureMonitorFlowControlThreshold, AveragingCachePressureMonitor 默认打开。 
+        /// 用户可以通过将此值设为空来关闭它
         /// </summary>
         public double? AveragingCachePressureMonitorFlowControlThreshold { get; set; } = DEFAULT_AVERAGING_CACHE_PRESSURE_MONITORING_THRESHOLD;
         internal const double DEFAULT_AVERAGING_CACHE_PRESSURE_MONITORING_THRESHOLD = 1.0 / 3.0;

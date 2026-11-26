@@ -7,23 +7,23 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Runs concurrent transaction scenarios with shared grain participants.
+    /// 运行同时发生的交易设想方案,共享 grain 参与者。
     /// </summary>
     public abstract class TransactionConcurrencyTestRunner : TransactionTestRunnerBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionConcurrencyTestRunner"/> class.
+        /// 初始化 <see cref="TransactionConcurrencyTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to access test grains.</param>
-        /// <param name="output">The callback used to write test output.</param>
+        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="output">用于写入测试输出的回调。</param>
         protected TransactionConcurrencyTestRunner(IGrainFactory grainFactory, Action<string> output)
         : base(grainFactory, output) { }
 
         /// <summary>
-        /// Verifies two concurrent transactions which share one grain.
+        /// 核证两个同时进行的交易,它们共同有一个 grain。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task SingleSharedGrainTest(string grainStates)
         {
             const int expected = 5;
@@ -49,10 +49,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies a chain of concurrent transactions in which adjacent transactions share a grain.
+        /// 验证相邻交易共有 grain的并行交易链。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task TransactionChainTest(string grainStates)
         {
             const int expected = 5;
@@ -90,10 +90,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies a tree of concurrent transactions in which one transaction joins participants from two others.
+        /// 验证了一棵同时进行的交易,其中一项交易与其他两项交易的参与者共同参与。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select test grains.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task TransactionTreeTest(string grainStates)
         {
             const int expected = 5;
@@ -127,7 +127,7 @@ namespace Orleans.Transactions.TestKit
         private async Task RunConcurrentTransactions(params Func<Task>[] transactions)
         {
             var completed = await Task.WhenAll(transactions.Select(TryRunTransaction));
-            // Preserve contention in the first attempt, then serialize retries so aborted operations can make progress.
+            // 第一次尝试时保留争议,然后按顺序排列重试,这样中止的行动就可以取得进展。
             for (var i = 0; i < transactions.Length; i++)
             {
                 while (!completed[i])

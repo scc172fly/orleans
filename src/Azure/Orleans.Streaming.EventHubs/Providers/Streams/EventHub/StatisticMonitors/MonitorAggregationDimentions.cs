@@ -2,18 +2,18 @@
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Base class for monitor aggregation dimensions, which is an information bag for the monitoring target. 
-    /// Monitors can use this information bag to build its aggregation dimensions.
+    /// 监测聚合尺寸的基础级,这是监测目标的信息袋。 
+    /// 监测器可以利用这个信息袋构建其聚合尺寸。
     /// </summary>
     public class EventHubMonitorAggregationDimensions
     {
         /// <summary>
-        /// Eventhub path
+        /// 平均路径
         /// </summary>
         public string EventHubPath { get; set; } = null!;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="ehHubPath"></param>
         public EventHubMonitorAggregationDimensions(string ehHubPath)
@@ -22,7 +22,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="dimensions"></param>
         public EventHubMonitorAggregationDimensions(EventHubMonitorAggregationDimensions dimensions)
@@ -31,7 +31,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Zero parameter constructor
+        /// 零参数构建器
         /// </summary>
         public EventHubMonitorAggregationDimensions()
         {
@@ -39,17 +39,17 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// Aggregation dimensions for EventHubReceiverMonitor
+    /// EventHubReceiverMonitor的聚合尺寸
     /// </summary>
     public class EventHubReceiverMonitorDimensions : EventHubMonitorAggregationDimensions
     {
         /// <summary>
-        /// Eventhub partition
+        /// 偶形分区
         /// </summary>
         public string EventHubPartition { get; set; } = null!;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="dimensions"></param>
         /// <param name="ehPartition"></param>
@@ -60,7 +60,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Zero parameter constructor
+        /// 零参数构建器
         /// </summary>
         public EventHubReceiverMonitorDimensions()
         {
@@ -68,17 +68,17 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// Aggregation dimensions for cache monitor used in Eventhub stream provider ecosystem
+    /// Eventhub河提供系统生态系统使用的缓存监测器的聚合尺寸
     /// </summary>
     public class EventHubCacheMonitorDimensions : EventHubReceiverMonitorDimensions
     {
         /// <summary>
-        /// Block pool this cache belongs to
+        /// 此缓存属于的块块集合
         /// </summary>
         public string BlockPoolId { get; set; } = null!;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="dimensions"></param>
         /// <param name="ehPartition"></param>
@@ -90,7 +90,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Zero parameters constructor
+        /// 零参数构建器
         /// </summary>
         public EventHubCacheMonitorDimensions()
         {
@@ -98,17 +98,17 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// Aggregation dimensions for block pool monitor used in Eventhub stream provider ecosystem
+    /// Eventhub 流提供方生态系统使用的区块池监测器的聚合尺寸
     /// </summary>
     public class EventHubBlockPoolMonitorDimensions : EventHubMonitorAggregationDimensions
     {
         /// <summary>
-        /// Block pool Id
+        /// 块池
         /// </summary>
         public string BlockPoolId { get; set; } = null!;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="dimensions"></param>
         /// <param name="blockPoolId"></param>
@@ -119,7 +119,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Zero parameter constructor
+        /// 零参数构建器
         /// </summary>
         public EventHubBlockPoolMonitorDimensions()
         {

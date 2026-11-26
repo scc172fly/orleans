@@ -6,17 +6,17 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// A <see cref="IConsistentRingStreamQueueMapper"/> and hence <see cref="IStreamQueueMapper"/> which balances queues by mapping them onto a hash ring consisting of silos.
+    /// A <see cref="IConsistentRingStreamQueueMapper"/> 因此 <see cref="IStreamQueueMapper"/> 将阵列绘制成散星环,以平衡队列的平衡, silos.
     /// </summary>
     public class HashRingBasedStreamQueueMapper : IConsistentRingStreamQueueMapper
     {
         private readonly HashRing hashRing;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HashRingBasedStreamQueueMapper"/> class.
+        /// 初始化 <see cref="HashRingBasedStreamQueueMapper"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options.</param>
-        /// <param name="queueNamePrefix">The queue name prefix.</param>
+        /// <param name="options">选项。</param>
+        /// <param name="queueNamePrefix">队列名称前缀。</param>
         public HashRingBasedStreamQueueMapper(HashRingStreamQueueMapperOptions options, string queueNamePrefix)
             : this((options ?? throw new ArgumentNullException(nameof(options))).TotalQueueCount, queueNamePrefix)
         {
@@ -70,17 +70,17 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// Queue mapper that tracks which partition was mapped to which QueueId
+    /// 将分区被映射到 QueueId的音轨的绘图器排队
     /// </summary>
     public sealed class HashRingBasedPartitionedStreamQueueMapper : HashRingBasedStreamQueueMapper
     {
         private readonly Dictionary<QueueId, string> _partitions;
 
         /// <summary>
-        /// Queue mapper that tracks which partition was mapped to which QueueId
+        /// 将分区被映射到 QueueId的音轨的绘图器排队
         /// </summary>
-        /// <param name="partitionIds">List of partitions</param>
-        /// <param name="queueNamePrefix">Prefix for QueueIds.  Must be unique per stream provider</param>
+        /// <param name="partitionIds">分区列表</param>
+        /// <param name="queueNamePrefix">用于 QueueIds。每个流端提供者必须独一</param>
         public HashRingBasedPartitionedStreamQueueMapper(IReadOnlyList<string> partitionIds, string queueNamePrefix)
             : base((partitionIds ?? throw new ArgumentNullException(nameof(partitionIds))).Count, queueNamePrefix)
         {
@@ -91,7 +91,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Gets the partition by QueueId
+        /// 以 QueueId获取分区
         /// </summary>
         /// <param name="queue"></param>
         /// <returns></returns>

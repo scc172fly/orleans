@@ -15,41 +15,41 @@ using Orleans.Serialization.Serializers;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// A common fixture to all the classes. XUnit.NET keeps this alive during the test run upon first
-    /// instantiation, so this is used to coordinate environment invariant enforcing and to cache
-    /// heavier setup.
+    /// 对所有类的共共定置件。 XUnit.NET 首先在测试运行期间保持它的生命
+    /// 用于协调环境变化不定的强制执行和缓存
+    /// 更重的设置。
     /// </summary>
     public class CommonFixture : TestEnvironmentFixture
     {
         /// <summary>
-        /// Caches storage provider for multiple uses using a unique, back-end specific key.
-        /// The value will be <em>null</em> if environment invariants have failed to hold upon
-        /// storage provider creation.
+        /// 使用独特、后端特定密钥的多个用途的蓄水池存储提供者。
+        /// 如果环境变量无法坚持, 数值将是 <em>nu</em>
+        /// 建立储存提供者。
         /// </summary>
         private Dictionary<string, IGrainStorage?> StorageProviders { get; set; } = new Dictionary<string, IGrainStorage?>();
 
         /// <summary>
-        /// This is used to lock the storage providers dictionary.
+        /// 此功能用于锁定存储提供者字典 。
         /// </summary>
         private static AsyncLock StorageLock { get; } = new AsyncLock();
 
         /// <summary>
-        /// Caches DefaultProviderRuntime for multiple uses.
+        /// 用于多种用途的电池 DefaultProviderRuntime 。
         /// </summary>
         private IProviderRuntime DefaultProviderRuntime { get; }
 
         /// <summary>
-        /// The environment contract and its invariants.
+        /// 环境合同及其各种变化。
         /// </summary>
         private TestEnvironmentInvariant Invariants { get; } = new TestEnvironmentInvariant();
 
         /// <summary>
-        /// The underlying relational storage connection if used.
+        /// 使用后的基本关系储存连接。
         /// </summary>
         public RelationalStorageForTesting? Storage { get; set; }
 
         /// <summary>
-        /// Constructor.
+        /// 构造器
         /// </summary>
         public CommonFixture()
         {
@@ -61,10 +61,10 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Returns a correct implementation of the persistence provider according to environment variables.
+        /// 根据环境变量返回对持久性提供者的正确执行。
         /// </summary>
-        /// <remarks>If the environment invariants have failed to hold upon creation of the storage provider,
-        /// a <em>null</em> value will be provided.</remarks>
+        /// <remarks>如果环境变量未能维持储存提供者的创建,
+        /// a <em>无效</em> 将提供数值。</remarks>
         public async Task<IGrainStorage?> GetStorageProvider(
             string storageInvariant,
             CancellationToken cancellationToken)
@@ -73,19 +73,19 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Returns a correct implementation of the persistence provider according to environment variables.
+        /// 根据环境变量返回对持久性提供者的正确执行。
         /// </summary>
-        /// <param name="storageInvariant">The ADO.NET invariant name for the storage provider.</param>
-        /// <param name="deleteStateOnClear">If <see langword="true"/>, the provider will delete the row from the database when clearing state.</param>
-        /// <remarks>If the environment invariants have failed to hold upon creation of the storage provider,
-        /// a <em>null</em> value will be provided.</remarks>
+        /// <param name="storageInvariant">存储提供者的 ADO.NET 变量名称。</param>
+        /// <param name="deleteStateOnClear">如果 <see langword="true"/>,在清除状态时,提供者将从数据库中删除行。</param>
+        /// <remarks>如果环境变量未能维持储存提供者的创建,
+        /// a <em>无效</em> 将提供数值。</remarks>
         public async Task<IGrainStorage?> GetStorageProvider(
             string storageInvariant,
             bool deleteStateOnClear,
             CancellationToken cancellationToken)
         {
-            //Make sure the environment invariants hold before trying to give a functioning SUT instantiation.
-            //This is done instead of the constructor to have more granularity on how the environment should be initialized.
+            //确保环境变异性在尝试给 SUT 功能即时之前保持稳健。
+            //这样做,而不是建造者在如何启动环境方面拥有更多的颗粒。
             using (await StorageLock.LockAsync())
             {
                 var cacheKey = deleteStateOnClear ? $"{storageInvariant}_DeleteOnClear" : storageInvariant;
@@ -101,7 +101,7 @@ namespace UnitTests.StorageTests.Relational
                         }
                         else
                         {
-                            // Each storage mode has its own class fixture, so it must not recreate a database used by the other mode.
+                            // 每个存储模式都有自己的类固定, 因此它不能重建用于其他模式的数据库 。
                             var storageName = deleteStateOnClear ? "OrleansStorageTestsDeleteOnClear" : "OrleansStorageTests";
                             Storage = await Invariants.EnsureStorageForTestingAsync(
                                 connectionString,
@@ -140,8 +140,8 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Creates an uncached storage provider with the given key format and a constant hasher over the database
-        /// prepared by <see cref="GetStorageProvider(string, bool, CancellationToken)"/>.
+        /// 创建一个不刻录的存储提供者, 使用给定的密钥格式和数据库上的恒定 hashher
+        /// 由 <see cref="GetStorageProvider(string, bool, CancellationToken)"/>编制。
         /// </summary>
         public async Task<AdoNetGrainStorage> CreateConstantHashStorageProviderAsync(
             string storageInvariant,
@@ -170,7 +170,7 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Creates an uncached storage provider over a database prepared by the caller.
+        /// 创建由调用器所准备的数据库的无缝存储提供者。
         /// </summary>
         public async Task<AdoNetGrainStorage> CreateStorageProviderAsync(
             string storageInvariant,

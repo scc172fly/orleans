@@ -4,7 +4,7 @@ using Orleans.Runtime;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// <see cref="IProviderRuntime"/> for clients.
+    /// 客户的<see cref="IProviderRuntime"/> 。
     /// </summary>
     /// <seealso cref="Orleans.Providers.IProviderRuntime" />
     internal class ClientProviderRuntime : IProviderRuntime
@@ -13,11 +13,11 @@ namespace Orleans.Providers
         private readonly ClientGrainContext clientContext;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientProviderRuntime"/> class.
+        /// 初始化 <see cref="ClientProviderRuntime"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="clientContext">The client context.</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="clientContext">客户背景。</param>
         public ClientProviderRuntime(
             IInternalGrainFactory grainFactory,
             IServiceProvider serviceProvider,

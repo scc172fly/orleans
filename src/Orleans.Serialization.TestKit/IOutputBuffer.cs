@@ -3,15 +3,15 @@ using System.Buffers;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// Provides access to the bytes written to an output buffer.
+    /// 提供访问写到输出缓冲的字节的机会。
     /// </summary>
     public interface IOutputBuffer
     {
         /// <summary>
-        /// Returns the written bytes as a read-only sequence.
+        /// 返回只读的顺序。
         /// </summary>
-        /// <param name="maxSegmentSize">The maximum number of bytes in each sequence segment.</param>
-        /// <returns>A read-only sequence containing the written bytes.</returns>
+        /// <param name="maxSegmentSize">每个序列段的最大字节数。</param>
+        /// <returns>包含书面字节的只读序列。</returns>
         ReadOnlySequence<byte> GetReadOnlySequence(int maxSegmentSize);
     }
 }

@@ -10,30 +10,30 @@ namespace Chirper.Grains;
 public sealed class ChirperAccount : Grain, IChirperAccount
 {
     /// <summary>
-    /// Size for the recently received message cache.
+    /// 最近收到的信件缓存的大小 。
     /// </summary>
     private const int ReceivedMessagesCacheSize = 100;
 
     /// <summary>
-    /// Size for the published message cache.
+    /// 发布信件缓存的大小 。
     /// </summary>
     private const int PublishedMessagesCacheSize = 100;
 
     /// <summary>
-    /// Max length of each chirp.
+    /// 每一声的长度最大 。
     /// </summary>
     private const int MaxChirpLength = 280;
 
     /// <summary>
-    /// Holds the transient list of viewers.
-    /// This list is not part of state and will not survive grain deactivation.
+    /// 持有临时的观众名单。
+    /// 此列表不属于状态的一部分, 且无法在 grain 解除作用后生存 。
     /// </summary>
     private readonly HashSet<IChirperViewer> _viewers = new();
     private readonly ILogger<ChirperAccount> _logger;
     private readonly IPersistentState<ChirperAccountState> _state;
 
     /// <summary>
-    /// Allows state writing to happen in the background.
+    /// 允许在背景中进行状态写入 。
     /// </summary>
     private Task? _outstandingWriteStateOperation;
 
@@ -71,13 +71,13 @@ public sealed class ChirperAccount : Grain, IChirperAccount
 
         await WriteStateAsync();
 
-        // notify viewers of new message
+        // 新信件的提醒查看器
         _logger.LogInformation("{GrainType} {GrainKey} sending new chirp message to {ViewerCount} viewers.",
             GrainType, GrainKey, _viewers.Count);
 
         _viewers.ForEach(_ => _.NewChirp(chirp));
 
-        // notify followers of a new message
+        // 新消息的后端通知
         _logger.LogInformation("{GrainType} {GrainKey} sending new chirp message to {FollowerCount} followers.",
             GrainType, GrainKey, _state.State.Followers.Count);
 
@@ -115,7 +115,7 @@ public sealed class ChirperAccount : Grain, IChirperAccount
 
         await WriteStateAsync();
 
-        // notify any viewers that a subscription has been added for this user
+        // 通知任何查看者, 该用户的订阅已被添加
         _viewers.ForEach(cv => cv.SubscriptionAdded(username));
     }
 
@@ -127,17 +127,17 @@ public sealed class ChirperAccount : Grain, IChirperAccount
             GrainKey,
             username);
 
-        // ask the publisher to remove this grain as a follower
+        // 要求出版商删除此 grain 作为跟随者
         await GrainFactory.GetGrain<IChirperPublisher>(username)
             .RemoveFollowerAsync(GrainKey);
 
-        // remove this publisher from the subscriptions list
+        // 将此出版商从订阅列表中删除
         _state.State.Subscriptions.Remove(username);
 
-        // save now
+        // 现在保存
         await WriteStateAsync();
 
-        // notify event subscribers
+        // 通知事件用户
         _viewers.ForEach(cv => cv.SubscriptionRemoved(username));
     }
 
@@ -196,15 +196,15 @@ public sealed class ChirperAccount : Grain, IChirperAccount
 
         _state.State.RecentReceivedMessages.Enqueue(chirp);
 
-        // only relevant when not using fixed queue
-        while (_state.State.RecentReceivedMessages.Count > ReceivedMessagesCacheSize) // to keep not more than the max number of messages
+        // 仅在不使用固定队列时才相关
+        while (_state.State.RecentReceivedMessages.Count > ReceivedMessagesCacheSize) // 保存不超过最多消息数
         {
             _state.State.RecentReceivedMessages.Dequeue();
         }
 
         await WriteStateAsync();
 
-        // notify any viewers that a new chirp has been received
+        // 通知任何查看者已经收到新的 chirp
         _logger.LogInformation(
             "{GrainType} {GrainKey} sending received chirp message to {ViewerCount} viewers",
             GrainType,
@@ -217,27 +217,27 @@ public sealed class ChirperAccount : Grain, IChirperAccount
     private ChirperMessage CreateNewChirpMessage(string message) =>
         new(message, DateTimeOffset.UtcNow, GrainKey);
 
-    // When reentrant grain is doing WriteStateAsync, etag violations are possible due to concurrent writes.
-    // The solution is to serialize and batch writes, and make sure only a single write is outstanding at any moment in time.
+    // 当Reentrant grain 正在做 WriteStateAsync时,由于同时写作,有可能出现侵权行为。
+    // 解决问题的方法就是进行序列化和批量写作,确保在任何时候只收到一份单封未完成的书。
     private async ValueTask WriteStateAsync()
     {
         if (_outstandingWriteStateOperation is Task currentWriteStateOperation)
         {
             try
             {
-                // await the outstanding write, but ignore it since it doesn't include our changes
+                // 等待着未完成的写作, 但忽略它, 因为其中不包括我们的更改
                 await currentWriteStateOperation;
             }
             catch
             {
-                // Ignore all errors from this in-flight write operation, since the original caller(s) of it will observe it.
+                // 忽略这个飞行中写入操作的所有错误, 因为最初的呼叫者会观察它 。
             }
             finally
             {
                 if (_outstandingWriteStateOperation == currentWriteStateOperation)
                 {
-                    // only null out the outstanding operation if it's the same one as the one we awaited, otherwise
-                    // another request might have already done so.
+                    // 唯一能取消未完成行动 条件是它和我们期待的一样 否则
+                    // 另一项请求可能已经提出。
                     _outstandingWriteStateOperation = null;
                 }
             }
@@ -245,15 +245,15 @@ public sealed class ChirperAccount : Grain, IChirperAccount
 
         if (_outstandingWriteStateOperation is null)
         {
-            // If after the initial write is completed, no other request initiated a new write operation, do it now.
+            // 如果在初始写作完成后,没有其他请求启动新的写作操作,请立即进行。
             currentWriteStateOperation = _state.WriteStateAsync();
             _outstandingWriteStateOperation = currentWriteStateOperation;
         }
         else
         {
-            // If there were many requests enqueued to persist state, there is no reason to enqueue a new write
-            // operation for each, since any write (after the initial one that we already awaited) will have cumulative
-            // changes including the one requested by our caller. Just await the new outstanding write.
+            // 如果有许多要求被排在了持续状态的呼声中,就没有理由写新书
+            // 每个操作的操作, 因为任何写作( 之前我们期待的首部) 都将累积
+            // 包括我们打电话者要求的更改。 等待新的未写 。
             currentWriteStateOperation = _outstandingWriteStateOperation;
         }
 
@@ -265,8 +265,8 @@ public sealed class ChirperAccount : Grain, IChirperAccount
         {
             if (_outstandingWriteStateOperation == currentWriteStateOperation)
             {
-                // only null out the outstanding operation if it's the same one as the one we awaited, otherwise
-                // another request might have already done so.
+                // 唯一能取消未完成行动 条件是它和我们期待的一样 否则
+                // 另一项请求可能已经提出。
                 _outstandingWriteStateOperation = null;
             }
         }

@@ -16,14 +16,14 @@ using Orleans.Streams.Filtering;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for configuring streaming on silos.
+    /// silos上的配置流的扩展方法。
     /// </summary>
     public static class StreamingServiceCollectionExtensions
     {
         /// <summary>
-        /// Add support for streaming to this silo.
+        /// 添加此流的支援 silo。
         /// </summary>
-        /// <param name="services">The services.</param>
+        /// <param name="services">服务。</param>
         public static void AddSiloStreaming(this IServiceCollection services)
         {
             if (services.Any(service => service.ServiceType.Equals(typeof(SiloStreamProviderRuntime))))
@@ -52,14 +52,14 @@ namespace Orleans.Hosting
             services.AddSingleton<IPostConfigureOptions<OrleansJsonSerializerOptions>, StreamingConverterConfigurator>();
             services.AddSingleton<IPostConfigureOptions<SystemTextJsonGrainStorageSerializerOptions>, SystemTextJsonStreamConverterConfigurator>();
 
-            // One stream directory per activation
+            // 每次激活一个流目录
             services.AddScoped<StreamDirectory>();
         }
 
         /// <summary>
-        /// Add support for streaming to this client.
+        /// 添加对此客户端流的支持 。
         /// </summary>
-        /// <param name="services">The services.</param>
+        /// <param name="services">服务。</param>
         public static void AddClientStreaming(this IServiceCollection services)
         {
             if (services.Any(service => service.ServiceType.Equals(typeof(ClientStreamingProviderRuntime))))
@@ -79,12 +79,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds a stream filter. 
+        /// 添加流过滤器。 
         /// </summary>
-        /// <typeparam name="T">The stream filter type.</typeparam>
-        /// <param name="services">The service collection.</param>
-        /// <param name="name">The stream filter name.</param>
-        /// <returns>The service collection.</returns>
+        /// <typeparam name="T">流筛选类型。</typeparam>
+        /// <param name="services">服务收藏。</param>
+        /// <param name="name">流体过滤器名称。</param>
+        /// <returns>服务收藏。</returns>
         public static IServiceCollection AddStreamFilter<T>(this IServiceCollection services, string name) where T : class, IStreamFilter
         {
             return services.AddKeyedSingleton<IStreamFilter, T>(name);

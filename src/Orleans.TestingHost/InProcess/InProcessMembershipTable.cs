@@ -10,7 +10,7 @@ using Orleans.Messaging;
 namespace Orleans.TestingHost.InProcess;
 
 /// <summary>
-/// An in-memory implementation of <see cref="IMembershipTable"/> for testing purposes.
+/// 为测试目的在模拟实施 <see cref="IMembershipTable"/> 。
 /// </summary>
 internal sealed class InProcessMembershipTable : IMembershipTable, IGatewayListProvider
 {

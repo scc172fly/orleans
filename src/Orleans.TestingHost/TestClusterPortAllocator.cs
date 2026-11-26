@@ -14,7 +14,7 @@ using System.Threading;
 namespace Orleans.TestingHost;
 
 /// <summary>
-/// Default <see cref="ITestClusterPortAllocator"/> implementation, which tries to allocate unused ports.
+/// 默认 <see cref="ITestClusterPortAllocator"/> 执行, 试图分配未使用的端口 。
 /// </summary>
 public class TestClusterPortAllocator : ITestClusterPortAllocator
 {
@@ -30,7 +30,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
     /// <inheritdoc />
     public (int, int) AllocateConsecutivePortPairs(int numPorts = 5)
     {
-        // Evaluate current system tcp connections
+        // 评估当前系统 tcp 连接
         var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
         var tcpConnInfoArray = ipGlobalProperties.GetActiveTcpListeners();
 
@@ -51,7 +51,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
         int gatewayPortRangeStart,
         int gatewayPortRangeEnd)
     {
-        // These server-port ranges sit below the default dynamic client-port ranges on supported operating systems.
+        // 这些服务器-门户网站区域位于支持操作系统的默认动态客户端-门户网站范围之下。
         var siloPort = GetAvailableConsecutiveServerPorts(tcpConnInfoArray, siloPortRangeStart, siloPortRangeEnd, numPorts);
         try
         {
@@ -73,9 +73,9 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
     }
 
     /// <summary>
-    /// Releases unmanaged and - optionally - managed resources.
+    /// 释放未经管理和任选管理的资源。
     /// </summary>
-    /// <param name="disposing"><see langword="true" /> to release both managed and unmanaged resources; <see langword="false" /> to release only unmanaged resources.</param>
+    /// <param name="disposing"><see langword="true" /> 释放管理下和未管理的资源; <see langword="false" /> 释放仅释放未管理的资源。</param>
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
@@ -101,7 +101,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
     }
 
     /// <summary>
-    /// Finalizes an instance of the <see cref="TestClusterPortAllocator"/> class.
+    /// 最后确定了 <see cref="TestClusterPortAllocator"/> 类的例数。
     /// </summary>
     ~TestClusterPortAllocator()
     {
@@ -141,11 +141,11 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
         for (var attempts = 0; attempts < MaxAttempts; attempts++)
         {
-            // Use aligned buckets so parallel allocators probe disjoint consecutive ranges.
+            // 使用对齐的桶子,平行的分配器探测连续距离断开。
             var basePort = firstBasePort + Random.Shared.Next(bucketCount) * consecutivePortsToCheck;
             var endPort = basePort + consecutivePortsToCheck;
 
-            // make sure none of the ports in the sub range are in use
+            // 确保该子范围内的任何港口均不使用
             var activeListener = tcpConnInfoArray.FirstOrDefault(endpoint => endpoint.Port >= basePort && endpoint.Port < endPort);
             if (activeListener is not null)
             {
@@ -221,7 +221,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
             if (allocations.Count == 0)
             {
-                // Try a different range.
+                // 尝试不同的范围。
                 continue;
             }
 
@@ -369,7 +369,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
                             if (acquired)
                             {
-                                // Acquired
+                                // 获得
                                 _mutexes[name] = mutex;
                                 mutex = null;
                                 result[0] = MutexAcquisitionResult.Acquired;
@@ -416,13 +416,13 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
             try
             {
-                // Port allocation is synchronous; named mutex acquisition runs on its thread-affine worker.
+                // 港口分配同步;其上层工作人员有名获得哑巴。
                 signal.Task.WaitAsync(_acquisitionTimeout).GetAwaiter().GetResult();
             }
             catch (TimeoutException)
             {
-                // The acquisition remains queued and can complete after this caller gives up.
-                // Queue conditional cleanup behind it so only a mutex acquired by this request is released.
+                // 获取的仍排队, 可在该呼叫器放弃后完成 。
+                // 将有条件清理置于其背后,这样只有根据这项请求获得的哑巴才能被释放。
                 SignalRelease(name, acquiredByRequest);
                 throw new TimeoutException("Timed out while waiting for MutexManager to acquire mutex.");
             }

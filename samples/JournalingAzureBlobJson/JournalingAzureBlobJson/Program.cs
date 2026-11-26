@@ -248,7 +248,7 @@ public sealed class JournaledSampleGrain(IDurableStateManager stateManager) : Gr
 {
     private readonly Guid _activationId = Guid.NewGuid();
 
-    // Declare state components during construction; Orleans recovers state before grain methods run.
+    // 申报施工期间的状态部件; Orleans 回收状态在 grain 方法运行之前。
     private readonly IDurableDictionary<string, InventoryItem> _inventory =
         stateManager.GetOrAddDictionary<string, InventoryItem>("inventory");
     private readonly IDurableList<JournalEvent> _events =
@@ -310,7 +310,7 @@ public sealed class JournaledSampleGrain(IDurableStateManager stateManager) : Gr
 
         _receipt.TrySetResult(new Receipt("receipt-001", OperationCount: 24, CompletedAt: DateTimeOffset.UtcNow));
 
-        // One acknowledgement covers pending changes across all seven state components.
+        // 一项确认涵盖所有七个州组成部分有待改变的变动。
         await stateManager.WriteStateAsync(cancellationToken);
         return CreateSummary();
     }

@@ -46,7 +46,7 @@ public sealed record EffectPolicy(
     [property: Id(6)] DateTimeOffset IdempotencySafetyDeadline,
     [property: Id(7)] TimeSpan RecheckInterval);
 
-// Changing these defaults affects newly accepted effects. Existing records carry their effective policy.
+// 更改这些默认会影响新接受的效果。 现有记录具有有效的政策。
 public sealed class ExternalEffectOptions
 {
     public const string ClockName = "external-effects";
@@ -110,8 +110,8 @@ public interface IExternalEffectGrain : IGrainWithStringKey
     Task<EffectRecord> ChangePolicyAsync(EffectIdentity identity, long expectedRevision, EffectPolicy policy, string authorization);
 }
 
-// The provider journal represents a separate service's authority. Replace this gateway with the provider's HTTP SDK
-// while preserving its outcome classification, retention contract and lookup semantics.
+// 提供商日记代表了服务机构的一个单独权限。 用提供者的 HTTP SDK 替换此网关
+// 保留其成果分类、留存合同和查找语义。
 public interface IRecipeEffectProviderGrain : IGrainWithStringKey
 {
     Task<ProviderResult> DispatchAsync(string key, EffectRequest request, Guid attemptId, CancellationToken cancellationToken);

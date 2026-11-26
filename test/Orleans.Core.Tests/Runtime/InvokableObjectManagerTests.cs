@@ -117,7 +117,7 @@ public class InvokableObjectManagerTests
         a.Release.TrySetResult();
         await fixture.WaitForResponseAsync(normal);
         fixture.AssertSuccess(normal, a, "normal");
-        // Response observation precedes A's admission release; only actual stop joins the drain.
+        // A的入院释放前的反应观察;只有实际停止才进入排水沟。
         var checkpoint = fixture.StopAsync();
         fixture.AssertPending(stop, "12: independent interleaved body held");
         fixture.AssertPending(checkpoint, "12: fresh stop with interleaved body held");
@@ -138,8 +138,8 @@ public class InvokableObjectManagerTests
         fixture.Manager.Dispatch(message);
         await fixture.WaitAsync(body.Entered.Task, "11: only interleaved body entered");
 
-        // No normal invocation can mask missing interleaved ownership. If this admission
-        // is uncounted, both gates close synchronously and StopAsync is already completed.
+        // 任何正常的援引都不能掩盖缺失的跨异人所有权。
+        // 数字未计算,两个大门同步关闭, StopAsync 已经完成。
         var stop = fixture.StopAsync();
         fixture.AssertPending(stop, "11: only interleaved admission held");
         Assert.False(body.Exited.Task.IsCompleted);
@@ -159,8 +159,8 @@ public class InvokableObjectManagerTests
         fixture.Manager.Dispatch(message);
         await fixture.WaitAsync(control.CancellationSent.Task, "91: control entered with no application work");
 
-        // The application gate is empty: its asynchronous release cannot mask a missing
-        // control drain. This complements cancellation admitted DURING application drain.
+        // 应用程序大门为空: 它的无同步释放无法掩盖丢失
+        // 这样做补充了申请排水过程中所接受的取消。
         var stop = fixture.StopAsync();
         fixture.AssertPending(stop, "91: only cancellation-control admission held");
         Assert.False(control.Exited.Task.IsCompleted);
@@ -284,7 +284,7 @@ public class InvokableObjectManagerTests
         var checkpoint = fixture.StopAsync();
         if (holdControlAfterCancellation)
         {
-            // This is a held-control checkpoint, not private application-gate release evidence.
+            // 这是一个控制性检查站,不是私人申请-门释放证据。
             Assert.Equal(1, control.InvocationCount);
             Assert.False(control.Exited.Task.IsCompleted);
             fixture.AssertPending(checkpoint, "91: control held after 11 canceled and responded");
@@ -364,8 +364,8 @@ public class InvokableObjectManagerTests
         a.Release.TrySetResult();
         await fixture.WaitAsync(c.Entered.Task, "13: Entered after 11 released its queue admission");
 
-        // The sequential pump cannot enter C until A's ProcessMessageAsync has disposed its token.
-        // A fresh stop detects double-release of B even if an older async wrapper has not resumed.
+        // 连续泵在 A ProcessMessageAsync 处理其牌子之前不能输入 C 。
+        // 新的停止检测发现B的双释放,即使旧的散装包装纸没有恢复。
         var checkpoint = fixture.StopAsync();
         fixture.AssertPending(checkpoint, "13 held, canceled 12 owns no admission");
         fixture.AssertPending(stop, "13 held after direct queued cancellation");
@@ -521,8 +521,8 @@ public class InvokableObjectManagerTests
                 throw new InvalidOperationException($"Unexpected response id {request.Id}, expected {message.Id}.");
             }
 
-            // SendResponse is synchronous, but this callback runs on the manager's worker,
-            // never on the orchestrator. Its actual worker lifetime is joined by manager drain.
+            // SendResponse 是同步的, 但这个回调运行 经理的工人,
+            // 实际工人寿命与经理的下水道相伴
             responseEntered.TrySetResult();
             try
             {
@@ -558,7 +558,7 @@ public class InvokableObjectManagerTests
         finally
         {
             responseRelease.TrySetResult();
-            // The await-using finally below joins every actual drain before disposing DI.
+            // 等待使用的最后时间最后是处理DI之前的每一个实际排水沟。
         }
     }
 
@@ -647,7 +647,7 @@ public class InvokableObjectManagerTests
 
         internal Task StopAsync()
         {
-            // Intentionally invoke directly: application admission closes before this returns.
+            // 有意直接援引:申请入境在返回之前终止。
             var stop = Manager.StopAsync();
             _stops.Add(stop);
             return stop;
@@ -730,7 +730,7 @@ public class InvokableObjectManagerTests
 
         async ValueTask IAsyncDisposable.DisposeAsync()
         {
-            // await using supplies a finally in every test. Runner cancellation cannot bypass cleanup.
+            // 每一次测试都等待物资的利用。 运行器无法绕过清理 。
             foreach (var request in _requests.Values)
             {
                 request.ReleaseForCleanup();
@@ -751,7 +751,7 @@ public class InvokableObjectManagerTests
             }
 
             await _services.DisposeAsync();
-            // Retain the marker through drain; no forced collection or GC-timing assertion.
+            // 标记通过排水保持;没有强迫收集或GC-timping主张。
             GC.KeepAlive(Observer);
         }
 

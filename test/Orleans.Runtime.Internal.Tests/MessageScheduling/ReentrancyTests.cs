@@ -19,7 +19,7 @@ namespace UnitTests
     }
 
     /// <summary>
-    /// Tests for grain reentrancy, MayInterleave predicates, and fan-out scenarios.
+    /// 测试 grain 再生性、 MayInterleave 前提和断裂情景。
     /// </summary>
     [TestArea("Runtime")]
     public class ReentrancyTests : OrleansTestingBase, IClassFixture<ReentrancyTests.Fixture>
@@ -41,7 +41,7 @@ namespace UnitTests
             this.fixture = fixture;
         }
 
-        // See https://github.com/dotnet/orleans/pull/5086
+        // 见 https://github.com/dotnet/orleans/pull/5086
         [TestSuite("Functional")]
         [TestProvider("None")]
         [TestArea("Runtime")]
@@ -62,7 +62,7 @@ namespace UnitTests
             var reentrant = this.fixture.GrainFactory.GetGrain<IReentrantGrain>(GetRandomGrainId());
             await reentrant.SetSelf(reentrant);
 
-            // Should reenter
+            // 重新进入
             await reentrant.Two().WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
             this.fixture.Logger.LogInformation("Reentrancy ReentrantGrain Test finished OK.");
         }
@@ -77,7 +77,7 @@ namespace UnitTests
             var grain = this.fixture.GrainFactory.GetGrain<IMayInterleaveStaticPredicateGrain>(GetRandomGrainId());
             await grain.SetSelf(grain);
 
-            // Should reenter since predicate should return true.
+            // 应该重新进入,因为上游应该恢复真实。
             await grain.TwoReentrant().WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
             this.fixture.Logger.LogInformation("Reentrancy NonReentrantGrain_WithMayInterleaveStaticPredicate_WhenPredicateReturnsTrue Test finished OK.");
         }
@@ -91,15 +91,15 @@ namespace UnitTests
         public async Task MayInterleavePredicate_AllowsInterleaving(bool mayInterleaveFirst)
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            // Create a unique grain per run
+            // 每运行创建一个独 grain
             var grainKey = $"grain-{mayInterleaveFirst}";
             var grain = this.fixture.GrainFactory.GetGrain<ICallOrderingGrain>(grainKey);
 
             Task first = mayInterleaveFirst ? grain.MethodA() : grain.MethodB();
-            await Task.Delay(250, cancellationToken); // Stagger second call
+            await Task.Delay(250, cancellationToken); // 弹重第二次调用
             Task second = mayInterleaveFirst ? grain.MethodB() : grain.MethodA();
 
-            await Task.Delay(500, cancellationToken); // Let both methods reach entry point
+            await Task.Delay(500, cancellationToken); // 让两种方法都达到切入点
 
             await grain.Unblock();
             await Task.WhenAll(first, second);
@@ -151,7 +151,7 @@ namespace UnitTests
             var grain = this.fixture.GrainFactory.GetGrain<IMayInterleaveInstancedPredicateGrain>(GetRandomGrainId());
             await grain.SetSelf(grain);
 
-            // Grain should reenter when MayInterleave predicate returns true
+            // Grain 上游 MayInterleave 返回真实时应重新进入
             await grain.TwoReentrant().WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
             this.fixture.Logger.LogInformation("Reentrancy NonReentrantGrain_WithMayInterleaveInstancedPredicate_WhenPredicateReturnsTrue Test finished OK.");
         }
@@ -201,7 +201,7 @@ namespace UnitTests
             this.fixture.Logger.LogInformation("ReentrancyTest_Deadlock_1 OK - no deadlock.");
         }
 
-        // TODO: [Fact, TestCategory("Functional"), TestCategory("Tasks"), TestCategory("Reentrancy")]
+        // 托多: [事实, TestCategory("功能"), TestCategory(“任务”), TestCategory(“Reentrancy')]
         [TestSuite("Functional")]
         [TestProvider("None")]
         [TestArea("Runtime")]
@@ -264,7 +264,7 @@ namespace UnitTests
             await Do_FanOut_Task_Join(0, false, true);
         }
 
-        // TODO: [Fact, TestCategory("BVT"), TestCategory("Tasks"), TestCategory("Reentrancy")]
+        // 托多: [事实, TestCategory(“BVT”), TestCategory(“任务”), TestCategory(“Reentrancy”)
         [TestSuite("Functional")]
         [TestProvider("None")]
         [TestArea("Runtime")]
@@ -305,7 +305,7 @@ namespace UnitTests
         [TestProvider("None")]
         [TestArea("Runtime")]
         [TestCategory("MultithreadingFailures")]
-        // TODO: [TestCategory("Functional")]
+        // 托多: [TestCategory(“功能”)
         [TestSuite("Functional")]
         [TestProvider("None")]
         [Fact(Skip = "Ignore"), TestCategory("Tasks"), TestCategory("Reentrancy")]
@@ -358,7 +358,7 @@ namespace UnitTests
             await Do_FanOut_Stress(numLoops, blockSize, timeout, true, true, TestContext.Current.CancellationToken);
         }
 
-        // ---------- Utility methods ----------
+        // 实用方法...
 
         private async Task Do_FanOut_Task_Join(int offset, bool doNonReentrant, bool doCallChain)
         {

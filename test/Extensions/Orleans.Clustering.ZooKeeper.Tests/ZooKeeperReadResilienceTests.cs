@@ -43,7 +43,7 @@ public sealed class ZooKeeperReadResilienceTests : IAsyncLifetime
     {
         try
         {
-            // Fixture teardown and canceled caller waits can return before native close.
+            // 固定装置拆解和取消的电话等候 在本地人关闭之前可以返回
             await Task.WhenAll(_fixtures.Select(fixture => DrainFixtureAsync(fixture.DisposeAsync))
                 .Concat(_sessions.Select(session => session.Completion))
                 .Concat(_legacyOperations)
@@ -124,7 +124,7 @@ public sealed class ZooKeeperReadResilienceTests : IAsyncLifetime
         }
         catch (Exception exception)
         {
-            // Keep the caller stack before teardown re-observes retained operation failures.
+            // 保持调用器堆在拆卸再观测前 保留操作故障
             record(exception.ToString());
             throw;
         }

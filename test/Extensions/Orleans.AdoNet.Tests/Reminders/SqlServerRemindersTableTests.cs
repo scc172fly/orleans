@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.RemindersTest
 {
     /// <summary>
-    /// Tests for operation of Orleans Reminders Table using SQL Server
+    /// 试验试验的试验 Orleans 使用提醒表格 SQL 服务器服务器
     /// </summary>
     [TestCategory("Functional"), TestCategory("Reminders"), TestCategory("AdoNet"), TestCategory("SqlServer")]
     [TestSuite("Functional")]

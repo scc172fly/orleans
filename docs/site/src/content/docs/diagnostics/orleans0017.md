@@ -1,39 +1,49 @@
 ---
-title: "ORLEANS0017: Grain interface version mismatch"
-description: Understand and resolve ORLEANS0017 when a grain interface version differs from OrleansContracts.txt.
+title: "ORLEANS0017: Grain 接口版本错配"
+description: "理解和决心 ORLEANS0017 时 grain 介面版本不同 OrleansContracts.txt."
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
-# ORLEANS0017: Grain interface version mismatch
+<a id="orleans0017-grain-interface-version-mismatch"></a>
 
-| Property | Value |
+# ORLEANS0017: Grain 接口版本错配
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Warning |
-| Code fix | Available |
+| 类别类 | 版本 |
+| 严重性 | 警告 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-The interface's `[Version]` value differs from the version recorded in `OrleansContracts.txt`. An interface without `[Version]` has version `0`.
+## 原因原因原因
 
-## Impact
+接口的 `[Version]` 值与 `OrleansContracts.txt`中记录的版本不同。没有 `[Version]` 的界面有版本 `0`。
 
-The manifest no longer describes the numeric version used by runtime compatibility and routing decisions. A version number change also does not make an incompatible method or payload change compatible by itself.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Determine whether the source or manifest changed unintentionally. Restore the previous source version, or review the rolling-upgrade implications and apply **Update version in OrleansContracts.txt** when the new version is intentional.
+单表不再描述运行时兼容性和路由决定所用的数字版本。 版本数的更改本身也并不使不兼容的方法或有效载荷的改变相互兼容。
 
-Apply **Regenerate OrleansContracts.txt** to rebuild the complete project manifest. Run regeneration separately for each contract project and review the generated diff using the [contract compatibility guidance](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest).
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Use suppression only during a short-lived staged edit. Do not release with a source and manifest version mismatch.
+确定源或显示的无意更改是否源或表单。 恢复上一个源版本, 或者审查滚动升级的影响并应用 **更新版本在 OrleansContracts.txt** 当新版本是有意的时。
+
+应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单。为每个合同项目分别运行再生,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+仅在短时间的阶段编辑中使用抑制。 不要使用源和源代码显示版本错配释放 。
 
 ```ini
 [*.cs]
 dotnet_diagnostic.ORLEANS0017.severity = none
 ```
 
-See [Deploy new grain versions](../grains/grain-versioning/deploying-new-versions-of-grains.md).
+见 [部署新版本 grain](../grains/grain-versioning/deploying-new-versions-of-grains.md)。

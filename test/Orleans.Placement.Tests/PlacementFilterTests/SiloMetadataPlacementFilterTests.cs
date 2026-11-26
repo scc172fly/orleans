@@ -91,7 +91,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// Unique silo metadata is set up to be different for each silo, so this will require that placement happens on the calling silo.
+    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这要求在调用时进行安插 silo.
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -114,7 +114,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// Unique silo metadata is set up to be different for each silo, so this will require that placement happens on the calling silo because it is the only one that matches.
+    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这要求在调用时进行安插 silo 因为它是唯一匹配的
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -137,7 +137,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// Unique silo metadata is set up to be different for each silo, so this will still place on any of the two silos since just the matching silos (just the one) is not enough to make the minimum desired candidates.
+    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这仍然会放在其中任何一个 silos 刚刚匹配 silos 不足以让候选人达到理想的最低要求。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -171,7 +171,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// Unique silo metadata is set up to be different for each silo, so this will still place on any of the two silos since just the matching silos (just the one) is not enough to make the minimum desired candidates.
+    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这仍然会放在其中任何一个 silos 刚刚匹配 silos 不足以让候选人达到理想的最低要求。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -205,7 +205,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// Unique silo metadata is set up to be different for each silo, so this will still place on any of the two silos since just the matching silos (just the one) is not enough to make the minimum desired candidates.
+    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这仍然会放在其中任何一个 silos 刚刚匹配 silos 不足以让候选人达到理想的最低要求。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -238,7 +238,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// If no metadata key is defined then it should fall back to matching all silos
+    /// 如果没有定义元数据密钥, 则它应该返回到匹配全部 silos
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]

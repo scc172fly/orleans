@@ -33,7 +33,7 @@ internal readonly struct JournalCatalogRange
             }
         }
 
-        // Broaden only the native prefix to well-formed UTF-16; Contains retains the original ordinal range.
+        // 只扩大本地的外观, 以保持原正则范围。
         for (var index = 0; listingPrefix is not null && index < listingPrefix.Length; index++)
         {
             var character = listingPrefix[index];

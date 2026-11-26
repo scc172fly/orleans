@@ -1,48 +1,58 @@
 ---
-title: "ORLEANS0205: Await, schedule, or post durable task definitions"
-description: Understand ORLEANS0205, which reports a durable task definition which code creates and never runs, and fix it by awaiting, scheduling, or posting it.
+title: "ORLEANS0205:等待、安排或张贴耐久任务定义"
+description: "理解 ORLEANS0205,其中报告一个长期的任务定义,该定义代码创建、从未运行,并通过等待、安排或张贴来加以确定。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0205: Await, schedule, or post durable task definitions
+<a id="orleans0205-await-schedule-or-post-durable-task-definitions"></a>
 
-| Property | Value |
+# ORLEANS0205:等待、安排或张贴耐久任务定义
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Error |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 错误错误 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-Code calls a method which returns `DurableTask` or `DurableTask<TResult>`, or configures the result with `WithId`, `Detached`, or `Shielded`, and discards the value without awaiting, scheduling, or posting it:
+## 原因原因原因
+
+代码调用一种返回 `DurableTask` 或 `DurableTask<TResult>`的方法,或者以 `WithId`、 `Detached`或 `Shielded`配置结果,并且丢弃数值而不等待、排期或张贴:
 
 :::code source="snippets/durable-tasks/Orleans0205.cs" id="orleans0205_violation" language="csharp":::
 
-The C# compiler also reports CS4014 for some of these statements in `async` methods. ORLEANS0205 also covers definitions which are assigned to a discard, `_ = SendReceipt(customer);`, configurations, such as `SendReceipt(customer).WithId("receipt");`, and locals which hold a definition that no code awaits, schedules, posts, returns, or passes on, such as `var receipt = SendReceipt(customer);` followed by `return;`. A local which another local only renames or configures, such as `var named = receipt.WithId("receipt");`, counts as unused too, and a local which code assigns again isn't reported.
+C# 编译者也报告 CS4014 某些发言的 `async` 方法。 ORLEANS0205 也包括分配给弃鱼的定义, `_ = SendReceipt(customer);`,配置,例如 `SendReceipt(customer).WithId("receipt");`以及当地人的定义,即没有代码等待、计划、张贴、回信或传递,例如 `var receipt = SendReceipt(customer);` 和继 `return;`。本地的,而该本地的仅另对本地的 `var named = receipt.WithId("receipt");`,也计为未使用,而代码指定的地方则没有报告。
 
-## Rule description
+<a id="rule-description"></a>
 
-A durable task is cold: calling its method creates a definition, and configuring the definition returns a configuration of it. Neither starts the task. The task runs when the definition is awaited, scheduled with `ScheduleAsync`, or started with `Post`. A discarded definition never runs, so the receipt in the example is never sent, and no error reports it.
+## 规则说明
 
-For the ways to start a task, see [Starting and observing tasks](../grains/durable-tasks.md#starting-and-observing-tasks).
+一项持久的任务是寒冷的:调用它的方法会创建定义,而定义的配置则返回其配置。任务既不开始,也不开始。任务在等待定义时运行,时间定在 `ScheduleAsync`,或以 `Post`。废弃的定义从不运行,因此示例中的收据从未发送,也没有错误报告。
 
-## How to fix violations
+任务启动方式,见 [开始和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
 
-**Await the definition** to run the task and continue with its result:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**等待定义** 来运行任务并继续其结果:
 
 :::code source="snippets/durable-tasks/Orleans0205.cs" id="orleans0205_fix_await" language="csharp":::
 
-**Schedule it and await the handle later** to run it concurrently with other work. `ScheduleAsync` returns the task's handle once its host has accepted it:
+**排定时间,等待处理程序稍后** 与其他工作同时运行。 `ScheduleAsync` 一旦东道方接受任务处理, 即返回该任务处理:
 
 :::code source="snippets/durable-tasks/Orleans0205.cs" id="orleans0205_fix_schedule" language="csharp":::
 
-**Post it** to stage the start with the execution's next journal write, without an await. `Post` returns the handle, which the execution can await later:
+**通知它** ,以在不等待的情况下用下一期处决日记写开始。 `Post` 返回手柄,执行过程稍后可以等待:
 
 :::code source="snippets/durable-tasks/Orleans0205.cs" id="orleans0205_fix_post" language="csharp":::
 
-A durable grain call which the starter doesn't wait for runs as a detached task, `.Detached().Post()`, which runs independently of its starter.
+耐用 grain 呼叫,启动器不等待作为独立任务运行的, `.Detached().Post()`,该呼叫独立于启动器独立运行。
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic where a definition is passed to code which starts it later, through a path which the analyzer doesn't follow.
+## 何时压缩
+
+禁止通过分析器没有遵循的路径进行诊断, 从而将定义传递到代码中, 代码从稍后开始。

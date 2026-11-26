@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// A queue data structure that stores transaction records in a circular buffer, sorted by timestamps.
+    /// 以时间戳分类的循环缓冲存储交易记录的队列数据结构。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal struct CommitQueue<T>
@@ -15,7 +15,7 @@ namespace Orleans.Transactions
 
         public int Count { get; private set; }
 
-        // Indexer to provide read/write access to the file.
+        // 索引器可提供文件的读写访问权限。
         public readonly TransactionRecord<T> this[int index]
         {
             get
@@ -45,7 +45,7 @@ namespace Orleans.Transactions
 
         public void Add(TransactionRecord<T> entry)
         {
-            // ensure we have room
+            // 保证我们有空间
             if (_buffer == null)
             {
                 _buffer = new TransactionRecord<T>[DefaultCapacity];
@@ -62,7 +62,7 @@ namespace Orleans.Transactions
             if (Count > 0 && _buffer[(_pos + Count - 1) % _buffer.Length].Timestamp > entry.Timestamp)
                 throw new ArgumentException($"elements must be added in timestamp order, but {entry.Timestamp:o} is before {_buffer[(_pos + Count - 1) % _buffer.Length].Timestamp:o}", nameof(entry));
 
-            // add the element
+            // 添加元素
             _buffer[(_pos + Count) % _buffer.Length] = entry;
             Count++;
         }
@@ -87,7 +87,7 @@ namespace Orleans.Transactions
                 throw new ArgumentException("cannot remove more elements than are in the queue", nameof(howMany));
             }
 
-            // clear entries so they can ge GCd
+            // 清空条目,以便它们能够 geGCd
             for (int i = 0; i < howMany; i++)
                 _buffer[(_pos + i) % _buffer.Length] = null!;
 
@@ -101,7 +101,7 @@ namespace Orleans.Transactions
             if (howMany > 0 && (_buffer == null || howMany > Count))
                 throw new ArgumentException("cannot remove more elements than are in the queue", nameof(howMany));
 
-            // clear entries so they can ge GCd
+            // 清空条目,以便它们能够 geGCd
             for (int i = 0; i < howMany; i++)
                 _buffer[(_pos + Count - i - 1) % _buffer.Length] = null!;
 
@@ -110,7 +110,7 @@ namespace Orleans.Transactions
 
         public readonly int Find(Guid TransactionId, DateTime key)
         {
-            // do a binary search
+            // 进行二进搜索
             int left = 0;
             int right = Count;
             while (left < right)
@@ -133,7 +133,7 @@ namespace Orleans.Transactions
                 }
                 else
                 {
-                    // search to the left
+                    // 左对左
                     for (int j = mid - 1; j >= left; j--)
                     {
                         record = _buffer[(_pos + j) % _buffer.Length];
@@ -142,7 +142,7 @@ namespace Orleans.Transactions
                         if (record.Timestamp != key)
                             break;
                     }
-                    // search to the right
+                    // 右对上搜索
                     for (int j = mid + 1; j < right; j++)
                     {
                         record = _buffer[(_pos + j) % _buffer.Length];

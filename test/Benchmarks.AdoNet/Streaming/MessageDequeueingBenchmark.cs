@@ -19,7 +19,7 @@ public class SqlServerMessageDequeuingBenchmark() : MessageDequeuingBenchmark(Ad
 }
 
 /// <summary>
-/// This benchmark measures the performance of message queueing.
+/// 本基准衡量信息排队的绩效。
 /// </summary>
 [WarmupCount(1), IterationCount(3), InvocationCount(1), MarkdownExporter]
 public abstract class MessageDequeuingBenchmark(string invariant, string database)
@@ -27,7 +27,7 @@ public abstract class MessageDequeuingBenchmark(string invariant, string databas
     private const int OperationsPerInvoke = 1000;
 
     private readonly Consumer _consumer = new();
-    // BenchmarkDotNet invokes GlobalSetup before any of these fields are read.
+    // 在阅读上述任何字段之前,BenchmarkDotNet 先援引 GlobalSetup 。
     private IRelationalStorage _storage = default!;
     private RelationalOrleansQueries _queries = default!;
     private byte[] _payload = [];
@@ -35,25 +35,25 @@ public abstract class MessageDequeuingBenchmark(string invariant, string databas
     private AdoNetStreamMessageAck[] _acks = [];
 
     /// <summary>
-    /// This highlights degradation from queue concurrency.
+    /// 这突显出队列同货币的退化。
     /// </summary>
     [Params(1, 4, 8)]
     public int QueueCount { get; set; }
 
     /// <summary>
-    /// This highlights degradation from payload size.
+    /// 这突出表明有效载荷大小的降解。
     /// </summary>
     [Params(10000)]
     public int PayloadSize { get; set; }
 
     /// <summary>
-    /// This highlights variation according to batch size.
+    /// 这突出显示按批量大小分列的差异。
     /// </summary>
     [Params(1, 16, 32)]
     public int BatchSize { get; set; }
 
     /// <summary>
-    /// This highlights variation from how full the table is.
+    /// 这突出显示了表格的整数差异。
     /// </summary>
     [Params(0, 0.5, 1)]
     public double FullnessRatio { get; set; }
@@ -65,14 +65,14 @@ public abstract class MessageDequeuingBenchmark(string invariant, string databas
 
         async Task Async()
         {
-            // create an appropriate size payload
+            // 创建适当大小的有效有效载荷
             _payload = new byte[PayloadSize];
             Array.Fill<byte>(_payload, 0xFF);
 
-            // define the set queues
+            // 定义设置的队列
             _queueIds = Enumerable.Range(0, QueueCount).Select(i => $"QueueId-{i}").ToArray();
 
-            // setup the test database
+            // 设置测试数据库
             var testing = await RelationalStorageForTesting.SetupInstance(invariant, database);
             if (IsNullOrEmpty(testing.CurrentConnectionString))
             {
@@ -92,12 +92,12 @@ public abstract class MessageDequeuingBenchmark(string invariant, string databas
         {
             await _storage.ExecuteAsync("TRUNCATE TABLE OrleansStreamMessage");
 
-            // generate test data to dequeue
+            // 生成要解排的测试数据
             var count = (int)Math.Ceiling(OperationsPerInvoke * QueueCount * BatchSize * FullnessRatio);
             _acks = new AdoNetStreamMessageAck[count];
             await Parallel.ForAsync(0, count, async (i, ct) =>
             {
-                // generate messages in round robin queue order to help simulate multiple agents
+                // 以圆轮 Robin 队列顺序生成消息,以帮助模拟多个代理器
                 var queueId = _queueIds[i % _queueIds.Length];
                 var ack = await _queries.QueueStreamMessageAsync("ServiceId-0", "ProviderId-0", queueId, _payload, 1000);
 
@@ -113,12 +113,12 @@ public abstract class MessageDequeuingBenchmark(string invariant, string databas
 
         await Parallel.ForAsync(0, count, new ParallelOptions { MaxDegreeOfParallelism = QueueCount }, async (i, ct) =>
         {
-            // get a queue id in round robin order to help simulate multiple agents
+            // 获得在轮 Robin 中队列代号,以便帮助模拟多个代理器
             var queueId = _queueIds[i % _queueIds.Length];
 
-            // get messages for the queue of the ack
-            // the queue may or may not have data to dequeue depending on the fullness and batch size parameters
-            // we dequeue regardless in order to measure overhead
+            // 获取 Ack 队列的信息
+            // 和批量大小参数
+            // 不论为了测量间接费用,我们不计其税
             var messages = await _queries.GetStreamMessagesAsync("ServiceId-0", "ProviderId-0", queueId, BatchSize, 1, 1000, 1000, 1000, 1000);
 
             _consumer.Consume(messages);

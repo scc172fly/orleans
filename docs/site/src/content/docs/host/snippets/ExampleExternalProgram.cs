@@ -32,7 +32,7 @@ internal class ExampleExternalProgram
 
             IGrainFactory client = host.Services.GetRequiredService<IGrainFactory>();
 
-            // Hardcoded player ID
+            // 硬编码玩家ID
             Guid playerId = new("{2349992C-860A-4EDA-9590-000000000006}");
             IPlayerGrain player = client.GetGrain<IPlayerGrain>(playerId);
             IGameGrain? game = null;
@@ -44,7 +44,7 @@ internal class ExampleExternalProgram
                 try
                 {
                     game = await player.GetCurrentGame();
-                    if (game is null) // Wait until the player joins a game
+                    if (game is null) // 等待玩家加入游戏
                     {
                         await Task.Delay(TimeSpan.FromMilliseconds(5_000));
                     }
@@ -58,7 +58,7 @@ internal class ExampleExternalProgram
             Console.WriteLine(
                 $"Subscribing to updates for game {game.GetPrimaryKey()}...");
 
-            // Subscribe for updates
+            // 订阅更新
             var watcher = new GameObserver();
             await game.ObserveGameUpdates(
                 client.CreateObjectReference<IGameObserver>(watcher));
@@ -77,9 +77,9 @@ internal class ExampleExternalProgram
 
 // <gameobserver>
 /// <summary>
-/// Observer class that implements the observer interface.
-/// Need to pass a grain reference to an instance of
-/// this class to subscribe for updates.
+/// 执行观察员界面的观察类。
+/// 需要通过 grain 提及
+/// 此类将订阅更新。
 /// </summary>
 class GameObserver : IGameObserver
 {

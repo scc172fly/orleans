@@ -24,9 +24,9 @@ namespace Orleans.AzureUtils
 
         public string TableName { get; }
 
-        private const string INSTANCE_STATUS_CREATED = nameof(SiloStatus.Created);  //"Created";
-        private const string INSTANCE_STATUS_ACTIVE = nameof(SiloStatus.Active);    //"Active";
-        private const string INSTANCE_STATUS_DEAD = nameof(SiloStatus.Dead);        //"Dead";
+        private const string INSTANCE_STATUS_CREATED = nameof(SiloStatus.Created);  //“改良”;
+        private const string INSTANCE_STATUS_ACTIVE = nameof(SiloStatus.Active);    //“主动”;
+        private const string INSTANCE_STATUS_DEAD = nameof(SiloStatus.Dead);        //"死";
 
         private readonly AzureTableDataManager<SiloInstanceTableEntry> storage;
         private readonly IMembershipTableReadStorage membershipTableReadStorage;
@@ -130,9 +130,9 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Represent a silo instance entry in the gateway URI format.
+        /// 表示网关 URI 格式的 silo 实例条目。
         /// </summary>
-        /// <param name="gateway">The input silo instance</param>
+        /// <param name="gateway">输入 silo 实例</param>
         /// <returns></returns>
         private static Uri ConvertToGatewayUri(SiloInstanceTableEntry gateway)
         {
@@ -185,7 +185,7 @@ namespace Orleans.AzureUtils
             var sb = new StringBuilder();
             sb.Append(string.Format(CultureInfo.CurrentCulture, "Deployment {0}. Silos: ", DeploymentId));
 
-            // Loop through the results, displaying information about the entity
+            // 浏览结果,显示实体信息
             Array.Sort(entries,
                 (e1, e2) =>
                 {
@@ -232,9 +232,9 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Deletes Dead entries whose latest start, heartbeat, and suspicion times precede the cutoff,
-        /// using row etags to protect concurrent updates and preserving the membership version.
-        /// The caller schedules subsequent attempts after native contention.
+        /// 删除在截断前 最晚开始、心跳和怀疑时间的死记
+        /// 使用行名表来保护同步更新并保存会籍版本。
+        /// 打电话者在本地争论后,随后安排了尝试。
         /// </summary>
         public async Task CleanupDefunctSiloEntries(DateTimeOffset beforeDate, CancellationToken cancellationToken = default)
         {
@@ -343,9 +343,9 @@ namespace Orleans.AzureUtils
             var version = ValidateAllSiloEntries(entries);
             var opening = entries[0].Entity.RowKey == SiloInstanceTableEntry.TABLE_VERSION_ROW_MIN;
             var closing = entries[^1].Entity.RowKey == SiloInstanceTableEntry.TABLE_VERSION_ROW_MAX;
-            // Both markers absent identifies the legacy format, which uses legacy read semantics.
-            // The first membership write atomically establishes both markers with the new version.
-            // A query overlapping that write can see a partial pair, so retry partial or mismatched pairs.
+            // 两种没有标记的标志都确定了传统格式,即使用传统符号读取语义。
+            // 第一个成员以原子方式撰写新版本的两种标志。
+            // 写时的查询重叠可以看到部分对, 所以重试部分对或不匹配对。
             if (!opening && !closing)
             {
                 return true;
@@ -361,7 +361,7 @@ namespace Orleans.AzureUtils
             var after = entries[^1].Entity.MembershipVersion
                 ?? throw new InvalidOperationException("The closing boundary row does not contain a membership version.");
 
-            // Boundary-aware writes atomically advance all three versions.
+            // 边界意识组织写道,所有三个版本都以原子方式提前。
             return (string.Equals(before, after, StringComparison.Ordinal)
                 && string.Equals(before, version, StringComparison.Ordinal))
                 || IsLegacyTableVersionAhead(version, before, after);
@@ -369,8 +369,8 @@ namespace Orleans.AzureUtils
 
         private static bool IsLegacyTableVersionAhead(string? tableVersion, string beforeVersion, string afterVersion)
         {
-            // Older writers advance only VersionRow. A version ahead of both markers retains legacy
-            // read semantics, including potentially torn paginated snapshots, during rolling upgrades.
+            // 旧作家只提前 VersionRow。两个标志的版本都具有遗留性
+            // 包括可能撕破的笔记片等读义学,
             return int.TryParse(tableVersion, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTableVersion)
                 && int.TryParse(beforeVersion, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedBeforeVersion)
                 && int.TryParse(afterVersion, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedAfterVersion)
@@ -431,7 +431,7 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Insert (create new) row entry
+        /// 插入( 创建新) 行条目
         /// </summary>
         internal async Task<bool> TryCreateTableVersionEntryAsync(CancellationToken cancellationToken = default)
         {
@@ -461,12 +461,12 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Insert (create new) row entry
+        /// 插入( 创建新) 行条目
         /// </summary>
-        /// <param name="siloEntry">Silo Entry to be written</param>
-        /// <param name="tableVersionEntry">Version row to update</param>
-        /// <param name="tableVersionEtag">Version row eTag</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="siloEntry">Silo 条目待写入</param>
+        /// <param name="tableVersionEntry">更新</param>的版本行
+        /// <param name="tableVersionEtag">版本行 eTag</param>
+        /// <param name="cancellationToken">取消牌。</param>
         internal async Task<bool> InsertSiloEntryConditionally(SiloInstanceTableEntry siloEntry, SiloInstanceTableEntry tableVersionEntry, string tableVersionEtag, CancellationToken cancellationToken = default)
         {
             try
@@ -492,12 +492,12 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// Atomically replaces a membership row under the canonical table-version etag.
+        /// 原子取代卡尼科式表格转换电子标签下的一个成员行。
         /// </summary>
-        /// <param name="siloEntry">Silo Entry to be written</param>
-        /// <param name="tableVersionEntry">Version row to update</param>
-        /// <param name="versionEtag">ETag value for the version row</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="siloEntry">Silo 条目待写入</param>
+        /// <param name="tableVersionEntry">更新</param>的版本行
+        /// <param name="versionEtag">版本行</param>的ETag值
+        /// <param name="cancellationToken">取消牌。</param>
         /// <returns></returns>
         internal async Task<bool> UpdateSiloEntryConditionally(SiloInstanceTableEntry siloEntry, SiloInstanceTableEntry tableVersionEntry, string versionEtag, CancellationToken cancellationToken = default)
         {

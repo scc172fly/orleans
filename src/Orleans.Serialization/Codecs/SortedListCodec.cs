@@ -6,17 +6,17 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="SortedList{TKey, TValue}"/>.
+    /// <see cref="SortedList{TKey, TValue}"/>的序列器。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class SortedListCodec<TKey, TValue> : GeneralizedReferenceTypeSurrogateCodec<SortedList<TKey, TValue>, SortedListSurrogate<TKey, TValue>> where TKey : notnull
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SortedListCodec{TKey, TValue}"/> class.
+        /// 初始化 <see cref="SortedListCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public SortedListCodec(IValueSerializer<SortedListSurrogate<TKey, TValue>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -50,33 +50,33 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type for <see cref="SortedListCodec{TKey, TValue}"/>.
+    /// <see cref="SortedListCodec{TKey, TValue}"/>的代用类型。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [GenerateSerializer]
     public struct SortedListSurrogate<TKey, TValue> where TKey : notnull
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public List<KeyValuePair<TKey, TValue>>? Values;
 
         /// <summary>
-        /// Gets or sets the comparer.
+        /// 设置比较器或获取比对器。
         /// </summary>
-        /// <value>The comparer.</value>
+        /// <value>比较器。</value>
         [Id(1)]
         public IComparer<TKey>? Comparer;
     }
 
     /// <summary>
-    /// Copier for <see cref="SortedList{TKey, TValue}"/>.
+    /// <see cref="SortedList{TKey, TValue}"/>的复印机。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterCopier]
     public sealed class SortedListCopier<TKey, TValue> : IDeepCopier<SortedList<TKey, TValue>>, IBaseCopier<SortedList<TKey, TValue>> where TKey : notnull
     {
@@ -85,10 +85,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<TValue> _valueCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SortedListCopier{TKey, TValue}"/> class.
+        /// 初始化 <see cref="SortedListCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">The key copier.</param>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="keyCopier">钥匙复印机。</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public SortedListCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = keyCopier;

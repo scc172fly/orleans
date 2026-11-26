@@ -1,219 +1,255 @@
 ---
-title: Serialization in Orleans
-description: Learn about serialization and custom serializers in .NET Orleans.
+title: "Orleans中的序列化"
+description: "学习 .NET Orleans中的序列化和自定义序列化器。"
 ms.date: 05/23/2025
 ms.topic: overview
 uid: orleans-serialization
 ---
 
-# Serialization in Orleans
+<a id="serialization-in-orleans"></a>
 
-There are broadly two kinds of serialization used in Orleans:
+# Orleans中的序列化
 
-- **Grain call serialization**: Used to serialize objects passed to and from grains.
-- **Grain storage serialization**: Used to serialize objects to and from storage systems.
+Orleans使用两种广泛的序列:
 
-Most of this article focuses on grain call serialization via the serialization framework included in Orleans. The [Grain storage serializers](#grain-storage-serializers) section discusses grain storage serialization.
+- **Grain 调用序列号**:用于对出入 grains的物体进行序列号。
+- **Grain 储存的序列化**:用于将物品与储存系统相连接和从储存系统进行序列化。
 
-For the generated-code pipeline, runtime manifests, wire identity, and codec dispatch internals, see [Serialization and code generation internals](../../implementation/serialization.md).
+本条大部分条款侧重于: grain 通过《公约》所载 Orleans. The [存储序列器Grain](#grain-storage-serializers) 一节讨论 grain 储存序列化。
 
-## Use Orleans serialization
+生成编码管道、运行时间清单、电线识别和编码器内部发送,见 [内部的序列化和代码生成](../../implementation/serialization.md)。
 
-Orleans includes an advanced and extensible serialization framework referred to as **Orleans.Serialization**. The serialization framework included in Orleans is designed to meet the following goals:
+<a id="use-orleans-serialization"></a>
 
-- **High-performance**: The serializer is designed and optimized for performance. More details are available in [this presentation](https://www.youtube.com/watch?v=kgRag4E6b4c).
-- **High-fidelity**: The serializer faithfully represents most of .NET's type system, including support for generics, polymorphism, inheritance hierarchies, object identity, and cyclic graphs. Pointers aren't supported since they aren't portable across processes.
-- **Flexibility**: You can customize the serializer to support third-party libraries by creating [*surrogates*](#surrogates-for-serializing-foreign-types) or delegating to external serialization libraries such as **System.Text.Json**, **Newtonsoft.Json**, **MessagePack**, and **Google.Protobuf**.
-- **Version-tolerance**: The serializer allows application types to evolve over time, supporting:
-  - Adding and removing members
-  - Subclassing
-  - Numeric widening and narrowing (e.g., `int` to/from `long`, `float` to/from `double`)
-  - Renaming types
+## 使用 Orleans 序列号
 
-High-fidelity representation of types is fairly uncommon for serializers, so some points warrant further explanation:
+Orleans 包括高级和可扩展的序列化框架,称为 **Orleans.Serialization**. 纳入《公约》的 Orleans 其目的是实现下列目标:
 
-1. **Dynamic types and arbitrary polymorphism**: Orleans doesn't enforce restrictions on the types passed in grain calls and maintains the dynamic nature of the actual data type. This means, for example, if a method in a grain interface is declared to accept <xref:System.Collections.IDictionary>, but at runtime the sender passes a <xref:System.Collections.Generic.SortedDictionary`2>, the receiver indeed gets a `SortedDictionary` (even though the "static contract"/grain interface didn't specify this behavior).
+- **高性能**:序列器的设计优化是为了进行性能。更多详情见 [本介绍的本介绍](https://www.youtube.com/watch?v=kgRag4E6b4c)。
+- **高度忠诚**:序列器忠实地代表了大多数 .NET类型系统,包括支持非专利、多形态、继承等级、对象身份和周期图。指针不支持,因为它们不是跨过程的便携式。
+- **灵活性**:您可以自定义序列器,通过创建 [*替代*](#surrogates-for-serializing-foreign-types) 或委托外部序列图书馆支持第三方图书馆,例如 **System.Text.Json**、 **Newtonsoft.Json**、 **MessagePack**和 **Google.Protobuf**。
+- **版本容忍**:序列器允许申请类型随着时间变化,支持:
+  - 增加和删除成员
+  - 子分类
+  - 数字扩大和缩小(e.g., `int` 至/从 `long`、 `float` 到/从 `double`)
+  - 重命名类型
 
-1. **Maintaining object identity**: If the same object is passed multiple times in the arguments of a grain call or is indirectly pointed to more than once from the arguments, Orleans serializes it only once. On the receiver side, Orleans restores all references correctly so that two pointers to the same object still point to the same object after deserialization. Preserving object identity is important in scenarios like the following: Imagine grain A sends a dictionary with 100 entries to grain B, and 10 keys in the dictionary point to the same object, `obj`, on A's side. Without preserving object identity, B would receive a dictionary of 100 entries with those 10 keys pointing to 10 different clones of `obj`. With object identity preserved, the dictionary on B's side looks exactly like on A's side, with those 10 keys pointing to a single object `obj`. Note that because default string hash code implementations in .NET are randomized per process, the ordering of values in dictionaries and hash sets (for example) might not be preserved.
+以高度忠诚形式呈现各种类型的序列器,对于系列制片厂来说相当罕见。
 
-To support version tolerance, the serializer requires you to be explicit about which types and members are serialized. We've tried to make this as painless as possible. Mark all serializable types with <xref:Orleans.GenerateSerializerAttribute?displayProperty=nameWithType> to instruct Orleans to generate serializer code for your type. Once you've done this, you can use the included code fix to add the required <xref:Orleans.IdAttribute?displayProperty=nameWithType> to the serializable members on your types, as demonstrated here:
+1. **动态类型和任意多形态**: Orleans 不执行对在 grain 调用中传递的类型的限制,并保持实际数据类型的动态性质。这意味着,例如,如果宣布 grain 接口中的某种方法接受 <xref:System.Collections.IDictionary>,但发件人通过 <xref:System.Collections.Generic.SortedDictionary`2>时,接收者确实得到了 `SortedDictionary` (尽管“静态合同”/grain 接口没有具体说明这种行为)。
 
-:::image type="content" source="media/generate-serializer-code-fix.gif" alt-text="An animated image of the available code fix being suggested and applied on the GenerateSerializerAttribute when the containing type doesn't contain IdAttribute's on its members." lightbox="media/generate-serializer-code-fix.gif":::
+1. **维护对象身份**: 如果在 grain 调用参数中同一对象多次通过, 或者间接从参数中间接指向不止一次, Orleans 将它序列一次。 在接收方, Orleans 将所有引用都恢复正确, 以使同一对象的两点在解除音质后仍然指向同一个对象。 在以下情景中保存对象身份很重要 : 想象 grain A 发送一个字典, 包括100个条目到 grain B, 字典点中的10个密钥到同一对象, `obj`。 没有保留对象身份, B 将会收到一个100个条目的字典, 并有10个关键点指向 `obj`10个不同的克隆。 在保存对象身份时, B 边上的字典与A 侧的十个密钥看起来完全相似, 指向单一对象 `obj`。 注意由于在 .NET 的默认字符串执行代码, 每个进程可能
 
-Here is an example of a serializable type in Orleans, demonstrating how to apply the attributes.
+为了支持版本容忍度, 连载器要求您明确哪些类型和成员被序列。 我们试图尽可能让它不痛苦。 标记所有可以连续的种类 <xref:Orleans.GenerateSerializerAttribute?displayProperty=nameWithType> 指示 Orleans 生成类型序列器代码。一旦您完成此操作, 您可以使用包含的代码修正添加所需的代码 <xref:Orleans.IdAttribute?displayProperty=nameWithType> 依你们类型可连号成员名单排列的,如下文所示:
+
+:::image type="content" source="media/generate-serializer-code-fix.gif" alt-text="现有代码修正的动画图像 GenerateSerializerAttribute 当包含类型不包含 IdAttribute以其成员为主" lightbox="media/generate-serializer-code-fix.gif":::
+
+这里的例子是一个在 Orleans中可以连号的类型,说明如何应用属性。
 
 :::code language="csharp" source="snippets/serialization/BasicTypes.cs" id="basic_employee_class":::
 
-Orleans supports inheritance and serializes the individual layers in the hierarchy separately, allowing them to have distinct member IDs.
+Orleans 支持继承,并单独将等级体系中的单个层次序列排列,允许它们有不同的成员身份。
 
 :::code language="csharp" source="snippets/serialization/BasicTypes.cs" id="inheritance_publication_book":::
 
-In the preceding code, note that both `Publication` and `Book` have members with `[Id(0)]`, even though `Book` derives from `Publication`. This is the recommended practice in Orleans because member identifiers are scoped to the inheritance level, not the type as a whole. You can add and remove members from `Publication` and `Book` independently, but you cannot insert a new base class into the hierarchy once the application is deployed without special consideration.
+在前一代码中,请注意 `Publication` 和 `Book` 都有成员 `[Id(0)]`,尽管 `Book` 来自 `Publication`。这是 Orleans 的建议做法,因为成员识别符号的范围是继承等级,而不是整个类型。你可以独立地从 `Publication` 和 `Book` 增聘成员,但申请一旦未经特别考虑就部署后,你不能在等级制度中插入一个新的基级。
 
-Orleans also supports serializing types with `internal`, `private`, and `readonly` members, such as in this example type:
+Orleans 也支持与 `internal`、 `private`和 `readonly` 成员进行序列类型的排序,例如这类类型:
 
 :::code language="csharp" source="snippets/serialization/BasicTypes.cs" id="custom_struct_private_readonly":::
 
-By default, Orleans serializes your type by encoding its full name. You can override this by adding an <xref:Orleans.AliasAttribute?displayProperty=nameWithType>. Doing so results in your type being serialized using a name resilient to renaming the underlying class or moving it between assemblies. Type aliases are globally scoped, and you cannot have two aliases with the same value in an application. For generic types, the alias value must include the number of generic parameters preceded by a backtick; for example, `MyGenericType<T, U>` could have the alias <code>[Alias("mytype\`2")]</code>.
+默认 Orleans 将您的全名编码成您类型序列序列。 您可以添加 <xref:Orleans.AliasAttribute?displayProperty=nameWithType>。如果这样做的结果是,使用一个具有重新命名能力的名称来对底层类别进行重命名或在组件之间移动,从而将类型序列化。则别名是全球范围的,在应用程序中不能有两个同值的别名。对于通用类型,别名数值必须包括以反向键前的通用参数数;例如, `MyGenericType<T, U>` 可能具有别名 <code>["我类型"2"]</code>.
 
-## Serializing `record` types
+<a id="serializing-record-types"></a>
 
-Orleans assigns implicit IDs to record primary-constructor members by their parameter position. Preserve the parameter order of an already deployed type to maintain compatibility during rolling upgrades and with serialized instances in storage and streams. Primary-constructor members and ordinary members occupy separate sections of the serialized representation, so members defined in the body can reuse the same numeric IDs.
+## 串行 `record` 类型
+
+Orleans 指定隐含的ID, 以按其参数位置记录主构件成员。 保存已部署类型的参数顺序,以便在滚动升级期间保持兼容性,并与储存和流中序列式的事件保持一致。 主要构件成员和普通成员占据了序列式代表的单独部分, 因此在机构内定义的成员可以重新使用相同的数字代号。
 
 :::code language="csharp" source="snippets/serialization/BasicTypes.cs" id="record_primary_constructor":::
 
-Set <xref:Orleans.GenerateSerializerAttribute.IncludePrimaryConstructorParameters> to `false` to select serializable members using explicit <xref:Orleans.IdAttribute> annotations.
+将 <xref:Orleans.GenerateSerializerAttribute.IncludePrimaryConstructorParameters> 设为 `false` ,以便使用明确的 <xref:Orleans.IdAttribute> 说明选择可连号的成员。
 
-### Generating for record structs in referenced assemblies
+<a id="generating-for-record-structs-in-referenced-assemblies"></a>
 
-When an SDK project generates serialization code for a referenced assembly using <xref:Orleans.GenerateCodeForDeclaringAssemblyAttribute>, Orleans reads the type's compiled metadata. For a `record struct` with custom accessors, make primary-constructor membership explicit in the assembly which declares the type:
+### 生成引用集会中记录台站
+
+当SDK项目使用 <xref:Orleans.GenerateCodeForDeclaringAssemblyAttribute>生成引用组装的序列代码时, Orleans 读取该类型的汇编元数据。对于有自定义存取器的 `record struct` ,请在宣布该类型的组装中明确说明主构人成员:
 
 :::code language="csharp" source="snippets/serialization/BasicTypes.cs" id="record_struct_metadata_constructor":::
 
-`IncludePrimaryConstructorParameters = true` enables the primary-member section. `[method: ActivatorUtilitiesConstructor]` applies <xref:Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructorAttribute> to the primary constructor, selecting its parameters from metadata even when the type has other constructors. Annotate exactly one constructor. Orleans matches its parameters to properties by name and type and restores the custom init properties through their setters. These annotations also apply to mutable `record struct` types.
+`IncludePrimaryConstructorParameters = true` 启用主元数部分。 `[method: ActivatorUtilitiesConstructor]` 对主建构人应用 <xref:Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructorAttribute> , 即使类型有其他构建器, 也从元数据中选择参数。 注释精确地显示一个构建器。 Orleans 将参数与名称和类型属性匹配,并通过设置恢复定制的英寸属性。 这些说明也适用于可变 `record struct` 类型。
 
-Compile the contracts assembly with a compiler which emits the method-target attribute on the primary constructor. For compiler warning `CS0657` on `[method: ActivatorUtilitiesConstructor]`, use a current .NET SDK or apply `[ActivatorUtilitiesConstructor]` directly to an explicitly declared constructor with the same parameter names, types, and IDs.
+与一个编译器一起汇编合同组装,该编译器在主建构器上排放方法目标属性。 `CS0657` 日期 时 `[method: ActivatorUtilitiesConstructor]`,使用流 .NET SDK 或应用 `[ActivatorUtilitiesConstructor]` 直接对一个明确宣布的建筑师,且其参数名称、类型和身份识别码相同。
 
-For `ORLEANS0106` reporting "no field ids were assigned to any candidate serializable members" on an imported custom-accessor record struct, add both annotations to the declaring type and rebuild the contracts assembly. They provide the constructor identity and member inclusion information used by the generator.
+用于 `ORLEANS0106` 报告进口海关检索记录台的“未向任何可连号候选成员指定实地识别码”,在申报类型上加上说明,并重建合同组装。它们提供发电机使用的建筑师身份和成员包容信息。
 
-Keep the existing parameter order and any parameter-level `[Id(n)]` annotations when adding this metadata. This preserves the primary-member section and its field IDs, matching serialization generated from the record's source. A property-level `[Id(n)]` selects the ordinary-member section; choosing that layout for a deployed primary-constructor member changes its wire identity even when the numeric ID is unchanged.
+添加此元数据时保留现有参数顺序和任何参数级别 `[Id(n)]` 注释。 这将保存主成员部分及其字段标识, 匹配记录源产生的序列。 属性级别 `[Id(n)]` 选择普通成员部分; 选择部署的主要构件成员的版式更改其线条身份, 即使数字标识没有改变 。
 
-## MessagePack serialization
+<a id="messagepack-serialization"></a>
 
-You can use [MessagePack](https://github.com/neuecc/MessagePack-CSharp) as an external serializer for Orleans. MessagePack is a high-performance binary serialization format that produces smaller payloads than JSON while maintaining fast serialization and deserialization speeds.
+## MessagePack 序号
 
-### When to use MessagePack
+您可以使用 [MessagePack](https://github.com/neuecc/MessagePack-CSharp) 作为 Orleans的外部序列器。 MessagePack 是一种高性能二进制序列格式,在保持快速序列和解除音量速度的同时,产生比 JSON 较小的有效载荷。
 
-Consider using MessagePack when:
+<a id="when-to-use-messagepack"></a>
 
-- You need interoperability with non-.NET systems that support MessagePack
-- You have types already annotated with MessagePack attributes (`[MessagePackObject]`, `[Key]`)
-- You want smaller payload sizes compared to JSON-based serializers
-- You need a standardized binary format
+### 何时使用 MessagePack
 
-For most Orleans applications, the default Orleans serializer is recommended because it provides higher fidelity (.NET type system support), object identity preservation, and automatic serializer generation.
+考虑在下列时间使用 MessagePack :
 
-### Install the MessagePack serializer package
+- 您需要与非( ).NET 支持系统 MessagePack
+- 您已经拥有带有 MessagePack 属性(`[MessagePackObject]`, `[Key]`)的附加说明类型。
+- 您想要比 JSON- 基串录器小一些有效载荷大小
+- 您需要一个标准的二进格式
 
-Add the MessagePack serializer package to your project:
+对于大多数 Orleans 应用程序,建议采用默认的 Orleans 序列器,因为它提供更高的忠诚度(.NET 类型系统支持)、目标身份保存和自动序列生成。
+
+<a id="install-the-messagepack-serializer-package"></a>
+
+### 安装 MessagePack 序列化器软件包
+
+将 MessagePack 序列增殖器软件包添加到您的工程中:
 
 ```dotnetcli
 dotnet add package Microsoft.Orleans.Serialization.MessagePack
 ```
 
-### Configure MessagePack serialization
+<a id="configure-messagepack-serialization"></a>
 
-To configure MessagePack serialization, use the `AddMessagePackSerializer` extension method:
+### 配置 MessagePack 序列化
+
+要配置 MessagePack 序列化,请使用 `AddMessagePackSerializer` 扩展方法:
 
 :::code source="./snippets/serialization/MessagePackExamples.cs" id="messagepack_basic_config":::
 
-The `isSerializable` delegate controls which types are handled by the MessagePack serializer. Types not matching this predicate fall back to the default Orleans serializer.
+`isSerializable` 代表控制由 MessagePack 序列器处理的类型。与此前置序列器不匹配的类型可追溯到默认的 Orleans 序列器。
 
 ### MessagePackCodecOptions
 
-You can configure the MessagePack serializer using `MessagePackCodecOptions`:
+您可以配置 MessagePack 使用序列器 `MessagePackCodecOptions`:
 
-| Property | Type | Default | Description |
+| 财产 | 类型类型 | 默认默认 | 说明 |
 |----------|------|---------|-------------|
-| `SerializerOptions` | `MessagePackSerializerOptions` | `MessagePackSerializerOptions.Standard` | The MessagePack serializer options to use for serialization. |
-| `AllowDataContractAttributes` | `bool` | `false` | When `true`, allows types marked with `[DataContract]` to be serialized using MessagePack. |
-| `IsSerializableType` | `Func<Type, bool?>` | `null` | A delegate to determine if a type should be serialized by MessagePack. |
-| `IsCopyableType` | `Func<Type, bool?>` | `null` | A delegate to determine if a type should be copied by MessagePack. |
+| `SerializerOptions` | `MessagePackSerializerOptions` | `MessagePackSerializerOptions.Standard` | 用于序列化的 MessagePack 序列化器选项。 |
+| `AllowDataContractAttributes` | `bool` | `false` | 何时 `true`,允许使用 `[DataContract]` 使用 MessagePack. |
+| `IsSerializableType` | `Func<Type, bool?>` | `null` | 代表确定某一类型是否应按 MessagePack序号编号。 |
+| `IsCopyableType` | `Func<Type, bool?>` | `null` | 代表确定是否应当将某一类型复制到 MessagePack。 |
 
-### Example: Configure with options
+<a id="example-configure-with-options"></a>
+
+### 示例: 配置选项
 
 :::code source="./snippets/serialization/MessagePackExamples.cs" id="messagepack_with_options":::
 
-### Define MessagePack types
+<a id="define-messagepack-types"></a>
 
-Types serialized by MessagePack should use MessagePack attributes:
+### 定义 MessagePack 类型
+
+由 MessagePack 序列排序的类型应该使用 MessagePack 属性:
 
 :::code source="./snippets/serialization/MessagePackExamples.cs" id="messagepack_type_definition":::
 
-You can then use these types in grain interfaces:
+然后,您可以在 grain 接口中使用这些类型:
 
 :::code source="./snippets/serialization/MessagePackExamples.cs" id="messagepack_grain_interface":::
 
-### Serializer comparison
+<a id="serializer-comparison"></a>
 
-| Feature | Orleans Native | MessagePack | System.Text.Json |
+### 串级器比较
+
+| 特征 | Orleans 原生 | MessagePack | System.Text.Json |
 |---------|----------------|-------------|------------------|
-| Format | Binary | Binary | Text (JSON) |
-| .NET type fidelity | Excellent | Good | Limited |
-| Object identity | Yes | No | No |
-| Payload size | Small | Smallest | Largest |
-| Cross-platform | .NET only | Any MessagePack client | Any JSON client |
-| Version tolerance | Yes | Yes | Yes |
-| Setup required | None | Explicit attributes | Explicit attributes |
+| 格式格式格式格式格式格式格式 | 二进二进 | 二进二进 | 文本 (JSON) |
+| .NET 类型忠诚 | 好极了 | 好 | 有限 |
+| 对象身份 | 是 是 | 无 | 无 |
+| 有效负载大小 | 小 | 最小 | 最大 |
+| Cross-platform |  仅 .NET | 任何 MessagePack 客户端 | 任何 JSON 客户端 |
+| 版本容忍度 | 是 是 | 是 是 | 是 是 |
+| 需要设置 | 无无无无 | 明确的属性 | 明确的属性 |
 
-## Surrogates for serializing foreign types
+<a id="surrogates-for-serializing-foreign-types"></a>
 
-Sometimes, you might need to pass types between grains over which you don't have full control. In these cases, manually converting to and from a custom-defined type in your application code might be impractical. Orleans offers a solution for these situations: surrogate types. Surrogates are serialized in place of their target type and have functionality to convert to and from the target type. Consider the following example of a foreign type and a corresponding surrogate and converter:
+## 外国类型序列化的代理
+
+有时,您可能需要在无法完全控制的 grains 之间传递类型。在这些情况下,在应用代码中手动转换到或从定制型号可能不切实际。 Orleans 为这些情况提供了解决办法:代用类型。代用类型被序列化,可以转换成目标型号。请参考以下外国类型的例子和相应的代用和转换器:
 
 :::code source="./snippets/serialization/SurrogateExamples.cs" id="surrogate_value_type":::
 
-In the preceding code:
+在前一编码中:
 
-- `MyForeignLibraryValueType` is a type outside your control, defined in a consuming library.
-- `MyForeignLibraryValueTypeSurrogate` is a surrogate type mapping to `MyForeignLibraryValueType`.
+- `MyForeignLibraryValueType` 是一个在消费库中定义的、不受控制的类型。
+- `MyForeignLibraryValueTypeSurrogate` 是 `MyForeignLibraryValueType`的代位型号绘图。
 - <xref:Orleans.RegisterConverterAttribute> specifies that `MyForeignLibraryValueTypeSurrogateConverter` acts as a converter to map between the two types. The class implements the <xref:Orleans.IConverter`2> interface.
 
-Orleans supports serialization of types in type hierarchies (types deriving from other types). If a foreign type might appear in a type hierarchy (e.g., as the base class for one of your own types), you must additionally implement the <xref:Orleans.IPopulator`2?displayProperty=nameWithType> interface. Consider the following example:
+Orleans 支持类型等级分类中类型类型的序列化(类型来自其他类型)。如果某一外国类型可能出现在类型等级体系中(e.g.),作为您所属类型中的某个类型的基础类别,则必须额外实施 <xref:Orleans.IPopulator`2?displayProperty=nameWithType> 接口。请参考以下例子:
 
 :::code source="./snippets/serialization/SurrogateExamples.cs" id="surrogate_class_with_populator":::
 
-## Versioning rules
+<a id="versioning-rules"></a>
 
-Version tolerance is supported provided you follow a set of rules when modifying types. If you're familiar with systems like Google Protocol Buffers (Protobuf), these rules will be familiar.
+## 版本规则
 
-### Compound types (`class` & `struct`)
+版本容忍支持, 只要您在修改类型时遵守一套规则。 如果您熟悉 Google 协议缓冲(Protobuf) 等系统, 这些规则将会很熟悉 。
 
-- Inheritance is supported, but modifying the inheritance hierarchy of an object isn't supported. You cannot add, change, or remove the base class of a class.
-- With the exception of some numeric types described in the *Numerics* section below, you cannot change field types.
-- You can add or remove fields at any point in an inheritance hierarchy.
-- You cannot change field IDs.
-- Field IDs must be unique for each level in a type hierarchy but can be reused between base classes and subclasses. For example, a `Base` class can declare a field with ID `0`, and a `Sub : Base` class can declare a different field with the same ID, `0`.
+<a id="compound-types-class--struct"></a>
 
-### Numerics
+### 化合物类型 (`class` & `struct`)
 
-- You cannot change the *signedness* of a numeric field.
-  - Conversions between `int` & `uint` are invalid.
-- You can change the *width* of a numeric field.
-  - E.g., conversions from `int` to `long` or `ulong` to `ushort` are supported.
-  - Conversions narrowing the width throw an exception if the field's runtime value causes an overflow.
-  - Conversion from `ulong` to `ushort` is only supported if the runtime value is less than `ushort.MaxValue`.
-  - Conversions from `double` to `float` are only supported if the runtime value is between `float.MinValue` and `float.MaxValue`.
-  - Similarly for `decimal`, which has a narrower range than both `double` and `float`.
+- 继承是支持的, 但改变对象的继承等级却不支持。 您不能添加、 更改或删除一个类的基本等级 。
+- 除下文 *数字* 一节所述的某些数字类型外,您不能更改字段类型。
+- 您可以在继承等级的任意一点添加或删除字段。
+- 您不能更改字段 ID 。
+- 字段标识必须是类型等级中每个级别的独特, 但可以在基级和亚类之间重新使用。 例如, `Base` 类可以声明有ID `0`的字段, 而 `Sub : Base` 类可以声明同一ID `0`的不同字段。
 
-## Copiers
+<a id="numerics"></a>
 
-Orleans promotes safety by default, including safety from some classes of concurrency bugs. In particular, Orleans immediately copies objects passed in grain calls by default. Orleans.Serialization facilitates this copying. When you apply <xref:Orleans.GenerateSerializerAttribute?displayProperty=nameWithType> to a type, Orleans also generates copiers for that type. Orleans avoids copying types or individual members marked with <xref:Orleans.ImmutableAttribute>. For more details, see [Serialization of immutable types in Orleans](./serialization-immutability.md).
+### 数值
 
-## Serialization best practices
+- 您不能更改数字字段的 *签名性质* 。
+  - `int` 和 `uint` 之间的转换无效。
+- 你可以改变 *宽宽* 中的数字字段。
+  - E.g.,支持从 `int` 转换为 `long` 或 `ulong` 转换为 `ushort` 。
+  - 如果字段的运行时间值造成溢出,则缩小宽度的转换会排除例外。
+  - 从 `ulong` 转换为 `ushort` 只有在运行时值低于 `ushort.MaxValue`时才被支持。
+  - 从 `double` 转换为 `float` 只有在运行时间值在 `float.MinValue` 和 `float.MaxValue`之间时才支持。
+  - `decimal`的类似情况,其范围较窄,与 `double` 和 `float`相近。
 
-- ✅ **Do** give your types aliases using the `[Alias("my-type")]` attribute. Types with aliases can be renamed without breaking compatibility.
-- ❌ **Do not** change a `record` to a regular `class` or vice-versa. Records and classes aren't represented identically since records have primary constructor members in addition to regular members; therefore, the two aren't interchangeable.
-- ❌ **Do not** add new types to an existing type hierarchy for a serializable type. You must not add a new base class to an existing type. You can safely add a new subclass to an existing type.
-- ✅ **Do** replace usages of <xref:System.SerializableAttribute> with <xref:Orleans.GenerateSerializerAttribute> and corresponding <xref:Orleans.IdAttribute> declarations.
-- ✅ **Do** start all member IDs at zero for each type. IDs in a subclass and its base class can safely overlap. Both properties in the following example have IDs equal to `0`.
+<a id="copiers"></a>
+
+## 复印机
+
+Orleans 默认地促进安全,包括某些类同货币错误的安全。特别是, Orleans 立即复制在 grain 调用中通过的对象。 Orleans.Serialization 便利了此复制。当您对类型应用 <xref:Orleans.GenerateSerializerAttribute?displayProperty=nameWithType> 时, Orleans 也为该类型生成复印机。 Orleans 避免复制类型或以 <xref:Orleans.ImmutableAttribute>标记的单个成员。详情见 [Orleans中不可变型的序列化](./serialization-immutability.md)。
+
+<a id="serialization-best-practices"></a>
+
+## 逐步化最佳做法
+
+- **Do** 使用 `[Alias("my-type")]` 属性给您类型的别名。有别名的类别可以重新命名,不断开兼容性。
+- ❌ **不 不** 变化a `record` 至一经常 `class` 记录和分类的表示不完全相同,因为记录除了正式成员之外还有主要建筑师成员;因此两者不能互换。
+- ❌ **不 不** 将新类型添加到一个可序列类型的现有类型等级结构中。您不能对现有类型添加新的基类。您可以安全地为现有类型添加一个新的子类。
+- ✅ **do 做 Do Do** 取代用 <xref:System.SerializableAttribute> 与 <xref:Orleans.GenerateSerializerAttribute> 相应 <xref:Orleans.IdAttribute> 声明。
+- **Do** 将每个类型的成员标识以零开始。子类中的标识及其基本等级可以安全地重叠。以下示例中的两个属性的标识均等于 `0`。
 
     :::code language="csharp" source="snippets/serialization/BasicTypes.cs" id="best_practices_id_overlap":::
 
-- ✅ **Do** widen numeric member types as needed. You can widen `sbyte` to `short` to `int` to `long`.
-  - You can narrow numeric member types, but it results in a runtime exception if observed values cannot be represented correctly by the narrowed type. For example, `int.MaxValue` cannot be represented by a `short` field, so narrowing an `int` field to `short` can result in a runtime exception if such a value is encountered.
-- ❌ **Do not** change the signedness of a numeric type member. You must not change a member's type from `uint` to `int` or `int` to `uint`, for example.
+- **需要时,请** 扩大成员种类。您可以将 `sbyte` 扩大到 `short` ,将 `int` 扩大到 `long`。
+  - 您可以缩小成员类型, 但如果所观察到的值无法被缩放的类型正确代表, 则会导致运行时间例外。 例如, `int.MaxValue` 不能由 `short` 字段来表示, 所以将 `int` 字段缩小到 `short` 字段, 如果遇到此值, 可能导致运行时间例外 。
+- ❌ **不 不** 更改数字类型成员符号的符号。您不能更改成员的类型 `uint` 至 `int` 或 `int` 至 `uint`例如,
 
-## Grain storage serializers
+<a id="grain-storage-serializers"></a>
 
-Orleans includes a provider-backed persistence model for grains, accessed via the <xref:Orleans.Grain`1.State?displayName=nameWithType> property or by injecting one or more <xref:Orleans.Runtime.IPersistentState`1> values into your grain. The general-purpose <xref:Orleans.Storage.IGrainStorageSerializer> interface offers a consistent way to customize state serialization for each provider. Supported storage providers implement a pattern involving setting the <xref:Orleans.Storage.IStorageProviderSerializerOptions.GrainStorageSerializer?displayProperty=nameWithType> property on the provider's options class, for example:
+## 存储序列器Grain
+
+Orleans 包括一个由提供商支持的持久性模型 grains,通过 <xref:Orleans.Grain`1.State?displayName=nameWithType> 或通过注入一个或多个 <xref:Orleans.Runtime.IPersistentState`1> 数值中 grain普通用途 <xref:Orleans.Storage.IGrainStorageSerializer> 支持的存储供应商使用一种模式,包括设置 <xref:Orleans.Storage.IStorageProviderSerializerOptions.GrainStorageSerializer?displayProperty=nameWithType> 提供商选项类别上的属性,例如:
 
 - <xref:Orleans.Configuration.DynamoDBStorageOptions.GrainStorageSerializer?displayProperty=nameWithType>
 - <xref:Orleans.Configuration.AzureBlobStorageOptions.GrainStorageSerializer?displayProperty=nameWithType>
 - <xref:Orleans.Configuration.AzureTableStorageOptions.GrainStorageSerializer?displayProperty=nameWithType>
 - <xref:Orleans.Configuration.AdoNetGrainStorageOptions.GrainStorageSerializer>
 
-Grain storage serialization currently defaults to `Newtonsoft.Json` to serialize state. You can replace this by modifying that property at configuration time. The following example demonstrates this using [OptionsBuilder\<TOptions\>](https://learn.microsoft.com/dotnet/core/extensions/options#optionsbuilder-api):
+Grain 存储序列化目前默认为 `Newtonsoft.Json` 序列化状态。 您可以在配置时间修改该属性来替换此状态。 以下示例用 [OptionsBuilder\<TOptions\>](https://learn.microsoft.com/dotnet/core/extensions/options#optionsbuilder-api)来证明这一点:
 
 :::code language="csharp" source="snippets/serialization/GrainStorageExamples.cs" id="grain_storage_serializer_config":::
 
-For more information, see [OptionsBuilder API](https://learn.microsoft.com/dotnet/core/extensions/options#optionsbuilder-api).
+详情见 [OptionsBuilder API](https://learn.microsoft.com/dotnet/core/extensions/options#optionsbuilder-api)。

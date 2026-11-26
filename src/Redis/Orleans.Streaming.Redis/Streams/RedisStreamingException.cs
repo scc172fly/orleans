@@ -3,32 +3,32 @@ using System;
 namespace Orleans.Streaming.Redis;
 
 /// <summary>
-/// Exception thrown when Redis streaming provider operations fail.
+/// 供应方在 Redis 流动业务失败时投放的例外。
 /// </summary>
 [GenerateSerializer]
 public class RedisStreamingException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="RedisStreamingException"/>.
+    /// 初始化 <see cref="RedisStreamingException"/>新实例。
     /// </summary>
     public RedisStreamingException()
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="RedisStreamingException"/>.
+    /// 初始化 <see cref="RedisStreamingException"/>新实例。
     /// </summary>
-    /// <param name="message">The error message that explains the reason for the exception.</param>
+    /// <param name="message">解释例外原因的错误信息。</param>
     public RedisStreamingException(string message)
         : base(message)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="RedisStreamingException"/>.
+    /// 初始化 <see cref="RedisStreamingException"/>新实例。
     /// </summary>
-    /// <param name="message">The error message that explains the reason for the exception.</param>
-    /// <param name="inner">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+    /// <param name="message">解释例外原因的错误信息。</param>
+    /// <param name="inner">造成目前例外的原因,或者如果没有具体说明内部例外,则无效引用(《视觉基本》中没有任何内容)。</param>
     public RedisStreamingException(string message, Exception inner)
         : base(message, inner)
     {

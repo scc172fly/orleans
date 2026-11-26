@@ -9,27 +9,27 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// Binds the durable task runtime, and messaging, to activations of durable grain types.
+/// 将耐用任务运行时间和信息发送与耐用 grain 类型的启动相连接。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Applies to grain classes deriving from <see cref="DurableGrain"/>. Activation setup resolves the grain's inbox and
-/// outbox, which enables messaging for the grain, and runs before journal recovery, so the runtime's journal hook, inbox
-/// sink, handler, and wake-up delay, and outbox message source are registered before recovered state or recovered
-/// messages are processed.
+/// 应用 grain 所分类的, <see cref="DurableGrain"/>. 启动机制的建立解决了 grain收件箱和
+/// 输出框, 它为 grain提供消息, 并在日记恢复前运行, 所以运行时间的日记勾, 插件
+/// 发送信箱信息源在回收状态或恢复之前登记
+/// 处理信件。
 /// </para>
 /// <para>
-/// The runtime's lifecycle stage follows <see cref="GrainLifecycleStage.Activate"/>, at which messaging starts the
-/// grain's inbox and outbox, which in turn follows <see cref="GrainLifecycleStage.SetupState"/>, at which the journal
-/// recovers. The runtime therefore recovers task state once the journal, inbox, and outbox are ready, and stops before
-/// messaging and the journal stop, so the executions it drains can still commit and send. Recovered executions start once
-/// the grain's <c>OnActivateAsync</c> has completed, and running executions are signaled to abort before its
-/// <c>OnDeactivateAsync</c> runs; see <see cref="DurableTaskActivationObserver"/>.
+/// 运行周期的生命周期阶段如下: <see cref="GrainLifecycleStage.Activate"/>,即信息发
+/// grain收件箱和发件箱,然后是 <see cref="GrainLifecycleStage.SetupState"/>,该日记在其中
+/// 恢复。 因此运行时间恢复任务状态, 一旦日记、 收件箱和发件箱准备好, 并在停止前停止
+/// 恢复的处决开始一次
+/// 排 grain's <c>OnActivateAsync</c> 已经完成,执行中的处决在处决之前就已中止
+/// <c>OnDeactivateAsync</c> 运行;见 <see cref="DurableTaskActivationObserver"/>。
 /// </para>
 /// <para>
-/// Task state lives in the grain's journal, which is the source of truth for the grain's executions, so activation
-/// setup requires the grain's journaled state manager and the journal-backed task storage, and fails the activation
-/// when either is missing.
+/// 任务状态生活 grain杂志是《美国新闻杂志》的真相来源 grain处决,所以启动
+/// 设置需要 grain的日记国家管理器和日记支持的任务存储,并且无法激活
+/// 当其中之一失踪时。
 /// </para>
 /// </remarks>
 internal sealed class DurableTaskGrainTypeConfigurator(GrainClassMap grainClasses) : IConfigureGrainTypeComponents
@@ -65,10 +65,10 @@ internal sealed class DurableTaskGrainTypeConfigurator(GrainClassMap grainClasse
     }
 
     /// <summary>
-    /// Ensures that the activation whose services are <paramref name="services"/> stores its task state in its journal.
+    /// 确保服务 <paramref name="services"/> 的启动在其日记中保存其任务状态。
     /// </summary>
     /// <exception cref="InvalidOperationException">
-    /// The activation has no journaled state manager, or its task storage isn't the journal-backed storage.
+    /// 启动没有日记国家经理, 或者它的任务存储不是日记支持的存储。
     /// </exception>
     internal static void ValidateJournaledStorage(IServiceProvider services, GrainId grainId)
     {

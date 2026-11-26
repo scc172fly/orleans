@@ -1,16 +1,22 @@
-# Microsoft Orleans Streaming for Amazon SQS
+<a id="microsoft-orleans-streaming-for-amazon-sqs"></a>
 
-The `Microsoft.Orleans.Streaming.SQS` package connects Orleans persistent streams to Amazon Simple Queue Service (SQS). It supports standard and FIFO queues, configurable queue partitioning and receive behavior, and custom data adapters for application-defined wire formats.
+# Microsoft Orleans 亚马逊 SQS 的流
 
-## Install
+`Microsoft.Orleans.Streaming.SQS` 套件将 Orleans 持久性流连接到亚马逊简单队列服务(SQS) 。 它支持标准队列和 FIFO 队列、可配置队列分隔和接收行为,以及自定义数据适应器,用于应用程序定义的线条格式。
+
+<a id="install"></a>
+
+## 安安装
 
 ```shell
 dotnet add package Microsoft.Orleans.Streaming.SQS
 ```
 
-## Configure
+<a id="configure"></a>
 
-Register the same named provider on the silo and every Orleans client which publishes through it:
+## 配置配置
+
+注册处上名相同的供应商 silo 和每 Orleans 客户端通过该客户端发布:
 
 ```csharp
 siloBuilder.AddSqsStreams("Orders", options =>
@@ -26,14 +32,18 @@ clientBuilder.AddSqsStreams("Orders", options =>
 });
 ```
 
-When explicit credentials aren't present in the connection string, the provider uses the AWS SDK credential resolution chain. Prefer workload credentials such as an IAM role.
+当连接字符串中没有明确的证书时, 提供者使用 AWS SDK 的证明解析链。 优先选择工作量证书, 例如 IAM 角色 。
 
-## Documentation
+<a id="documentation"></a>
 
-See [Stream with Amazon SQS](https://dotnet.github.io/orleans/docs/streaming/sqs-streaming/) for FIFO queues, custom data adapters, delivery semantics, permissions, tuning, and operational guidance.
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
 
-## Feedback and contributing
+FIFO队列、自定义数据适配器、交付语义、许可、调试和业务指导,见 [亚马逊流](https://dotnet.github.io/orleans/docs/streaming/sqs-streaming/) 。
 
-- [Open an Orleans issue](https://github.com/dotnet/orleans/issues)
-- [Join the Orleans community on Discord](https://aka.ms/orleans-discord)
-- Review the [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+<a id="feedback-and-contributing"></a>
+
+## 反馈和捐款
+
+- [打开 Orleans 问题](https://github.com/dotnet/orleans/issues)
+- [以不和的方式加入 Orleans 社区](https://aka.ms/orleans-discord)
+- 审查 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)

@@ -17,25 +17,25 @@ using Polly;
 namespace Orleans.Runtime.Membership
 {
     /// <summary>
-    /// A Membership Table implementation using Apache Zookeeper 3.4.6 https://zookeeper.apache.org/doc/r3.4.6/
+    /// A 成员表使用阿帕奇动物园管理员3.4.6 https://zookeeper.apache.org/doc/r3.4.6/的执行情况
     /// </summary>
     /// <remarks>
-    /// A brief overview of ZK features used: The data is represented by a tree of nodes (similar to a file system). 
-    /// Every node is addressed by a path and can hold data as a byte array and has a version. When a node is created, 
-    /// its version is 0. Upon updates, the version is atomically incremented. An update can also be conditional on an 
-    /// expected current version. A transaction can hold several operations, which succeed or fail atomically.
-    /// when creating a zookeeper client, one can set a base path where all operations are relative to.
+    /// 简要概述所使用的 ZK 特征:数据由一棵节点树(类似于文件系统)代表。 
+    /// 每个节点都由路径处理,并且可以将数据作为字节数组持有并有一个版本。当节点创建时, 
+    /// 更新后,该版本将原子递增。 
+    /// 交易可以维持几个操作, 无论是从原子上成功还是失败 。
+    /// 当创建动物园管理员客户端时, 就可以设置一个所有操作都相对的基线路径 。
     /// 
-    /// In this implementation:
-    /// Every Orleans deployment has a node   /UniqueDeploymentId
-    /// Every Silo's state is saved in        /UniqueDeploymentId/IP:Port@Gen
-    /// Every Silo's IAmAlive is saved in     /UniqueDeploymentId/IP:Port@Gen/IAmAlive
-    /// IAmAlive is saved in a separate node so owner heartbeat writes preserve the membership row's version.
-    /// Membership updates atomically modify the row and deployment nodes, preserving the separate heartbeat node.
+    /// 在实施过程中:
+    /// 每次 Orleans 部署都有节点/UniqueDeploymentId
+    /// 每个 Silo状态都在 /UniqueDeploymentId/IP: Port@ Gen 中保存
+    /// 每一 Silo's IAmAlive 保存在 /UniqueDeploymentId/IP:Port@Gen/IAmAlive
+    /// IAmAlive 被保存在一个单独的节点中, 所以所有者心跳写着保存会籍行的版本。
+    /// 成员身份从原子上更新了对行和部署节点的修改,保留了单独的心跳节点。
     /// 
-    /// a node's ZK version is its ETag:
-    /// the table version is the version of /UniqueDeploymentId
-    /// the silo entry version is the version of /UniqueDeploymentId/IP:Port@Gen
+    /// 节点的 ZK 版本是它的ETag:
+    /// 表格版本是 /UniqueDeploymentId的版本
+    /// silo 条目版本是 /UniqueDeploymentId/IP:Port@Gen的版本
     /// </remarks>
     public partial class ZooKeeperBasedMembershipTable : IMembershipTable
     {
@@ -50,28 +50,28 @@ namespace Orleans.Runtime.Membership
         private readonly Action<Task>? _observeOperation;
 
         /// <summary>
-        /// The deployment connection string. for eg. "192.168.1.1,192.168.1.2/ClusterId"
+        /// “192.168.1.1、192.168.1.2/ClusterId”等的部署连接字符串。
         /// </summary>
         private readonly string deploymentConnectionString;
 
         /// <summary>
-        /// the node name for this deployment. for eg. /ClusterId
+        /// 此部署的节点名称。 例如 /ClusterId
         /// </summary>
         private readonly string clusterPath;
 
         /// <summary>
-        /// The root connection string. for eg. "192.168.1.1,192.168.1.2"
+        /// 根连接字符串。 例如“192.168.1.1, 192.168.81.2”
         /// </summary>
         private readonly string rootConnectionString;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ZooKeeperBasedMembershipTable"/> class.
+        /// 初始化 <see cref="ZooKeeperBasedMembershipTable"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="membershipTableOptions">The ZooKeeper clustering options.</param>
-        /// <param name="clusterOptions">The cluster identity options.</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="membershipTableOptions">下 ZooKeeper 组合组合选项。</param>
+        /// <param name="clusterOptions">集群识别选项。</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="logger"/>, <paramref name="membershipTableOptions"/>, or <paramref name="clusterOptions"/> is
+        /// <paramref name="logger"/>、 <paramref name="membershipTableOptions"/>或 <paramref name="clusterOptions"/> 是
         /// <see langword="null"/>.
         /// </exception>
         public ZooKeeperBasedMembershipTable(
@@ -106,9 +106,9 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Initializes the ZooKeeper based membership table.
+        /// 初始化基于 ZooKeeper 的会籍表。
         /// </summary>
-        /// <param name="tryInitPath">if set to true, we'll try to create a node named "/ClusterId"</param>
+        /// <param name="tryInitPath">如果设定为真实, 我们将尝试创建一个名为 " /ClusterId"</param>的节点
         /// <returns></returns>
         [Obsolete("Use InitializeMembershipTableAsync instead.")]
         public Task InitializeMembershipTable(bool tryInitPath) => InitializeMembershipTableAsync(tryInitPath, CancellationToken.None);
@@ -116,16 +116,16 @@ namespace Orleans.Runtime.Membership
         /// <inheritdoc />
         public async Task InitializeMembershipTableAsync(bool tryInitPath, CancellationToken cancellationToken = default)
         {
-            // even if I am not the one who created the path, 
-            // try to insert an initial path if it is not already there,
-            // so we always have the path, before this silo starts working.
-            // note that when a zookeeper connection adds /ClusterId to the connection string, the nodes are relative
+            // 假若不是我创造道路, 
+            // 尝试插入初始路径,如果它尚未存在的话;
+            // 所以我们总是有这条路, 在此之前, silo 开始工作。
+            // 注意,当一个管理员连接向连接字符串添加 /ClusterId 时,节点是相对的
             await UsingZookeeper(rootConnectionString, async zk =>
             {
                 try
                 {
                     await zk.createAsync(this.clusterPath, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                    //if we got here we know that we've just created the deployment path with version=0
+                    //如果我们到了这里 我们知道我们刚刚 创建了版本=0的部署路径
                     LogInformationCreatedNewDeploymentPath(this.clusterPath);
                 }
                 catch (KeeperException.NodeExistsException)
@@ -136,10 +136,10 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Point reads are not supported. Read a complete snapshot and select the row from that snapshot.
+        /// 点不支持读取。 读取完整快照并从该快照中选择行 。
         /// </summary>
-        /// <param name="siloAddress">The address of the silo whose membership information needs to be read.</param>
-        /// <returns>A faulted task indicating that point reads are not supported.</returns>
+        /// <param name="siloAddress">大会主席的地址 silo 需要阅读其成员资格信息。</param>
+        /// <returns>一项错误的任务,即指出该点为文字,但没有得到支持。</returns>
         [Obsolete("Use ReadAllAsync and MembershipTableData.TryGet instead.")]
         public Task<MembershipTableData> ReadRow(SiloAddress siloAddress) => ReadRowAsync(siloAddress, CancellationToken.None);
 
@@ -152,26 +152,26 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Atomically reads the full content of the Membership Table.
-        /// The returned MembershipTableData includes all MembershipEntry entry for all silos in the table and the 
-        /// TableVersion for this table. The MembershipEntries and the TableVersion have to be read atomically.
+        /// 原子读取成员表的全部内容。
+        /// 返回的 MembershipTableData 包括所有 MembershipEntry 全部条目 silos 表中和表格中的 
+        /// 本表格的TableVersion 。 MembershipEntries 和 TableVersion 必须从原子角度阅读。
         /// </summary>
-        /// <returns>The membership information for a given table: MembershipTableData consisting multiple MembershipEntry entries and
-        /// TableVersion, all read atomically.</returns>
+        /// <returns>某一表格的成员信息: MembershipTableData ,包括多个 MembershipEntry 条目和
+        /// TableVersion全部从原子上读取</returns>
         [Obsolete("Use ReadAllAsync instead.")]
         public Task<MembershipTableData> ReadAll() => ReadAllAsync(CancellationToken.None);
 
         /// <inheritdoc />
         /// <remarks>
-        /// Rows are read sequentially on an operation-owned connection.
-        /// Each membership record is read before its heartbeat.
-        /// Table and child-version checks fence the complete snapshot. Concurrent canonical
-        /// modifications restart the complete sequential pass until the fence is stable or the caller cancels the
-        /// operation.
-        /// Connection-loss failures in native reads are retried up to four times on the same session.
-        /// Before each retry, the operation waits up to the session timeout for that session's next connected event.
-        /// When the wait expires or the session becomes terminal, the retry proceeds and preserves the native outcome.
-        /// Caller cancellation stops further requests while admitted requests and client close complete.
+        /// 运行自有连接时,行会按顺序阅读。
+        /// 每一成员记录在心跳之前读取。
+        /// 表格和儿童换代检查将完整的快照围起来。
+        /// 更改整次连续传动通道的修改,直到围栏稳定或调用者取消
+        /// 运行中。
+        /// 本地读物连接损失失败在同一期最多可再作四次。
+        /// 每次重试之前,操作会等到会议超时后再进行, 以等待该会的下一个连接事件。
+        /// 当等待期结束或会话结束时,重新研究将产生并保存本地结果。
+        /// 取消呼叫者停止进一步请求,同时接受请求和客户接近完成。
         /// </remarks>
         public Task<MembershipTableData> ReadAllAsync(CancellationToken cancellationToken = default)
         {
@@ -212,8 +212,8 @@ namespace Orleans.Runtime.Membership
         {
             cancellationToken.ThrowIfCancellationRequested();
             await zk.Sync("/");
-            // Each mismatch proves that a canonical update committed during the pass. Retain this session's ordered
-            // view and let caller cancellation bound convergence instead of rejecting finite forward progress.
+            // 每一个不匹配都证明在通行证期间 承诺了一种卡风更新。
+            // 而不是拒绝有限的前进进展。
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -268,30 +268,30 @@ namespace Orleans.Runtime.Membership
             before.getVersion() == after.getVersion() && before.getCversion() == after.getCversion();
 
         /// <summary>
-        /// Atomically tries to insert (add) a new MembershipEntry for one silo and also update the TableVersion.
-        /// If operation succeeds, the following changes would be made to the table:
-        /// 1) New MembershipEntry will be added to the table.
-        /// 2) The newly added MembershipEntry will also be added with the new unique automatically generated eTag.
-        /// 3) TableVersion.Version in the table will be updated to the new TableVersion.Version.
-        /// 4) TableVersion etag in the table will be updated to the new unique automatically generated eTag.
-        /// All those changes to the table, insert of a new row and update of the table version and the associated etags, should happen atomically, or fail atomically with no side effects.
-        /// The operation should fail in each of the following conditions:
-        /// 1) A MembershipEntry for a given silo already exist in the table
-        /// 2) Update of the TableVersion failed since the given TableVersion etag (as specified by the TableVersion.VersionEtag property) did not match the TableVersion etag in the table.
+        /// 原子试图插入(添加)一个新的 MembershipEntry ,一个 silo ,并更新 TableVersion。
+        /// 如果操作成功,将对表格作如下修改:
+        /// (1) 表格中将增加新的 MembershipEntry 。
+        /// 2) 新增的 MembershipEntry 也将加上新的独有自动生成的 eTag。
+        /// 3) TableVersion.Version 表格中的表格将更新到新的 TableVersion.Version.
+        /// 4) TableVersion 表中的牌将更新到新的独有自动生成 eTag。
+        /// 所有对表格的修改,插入新行和更新表格版本及相关的标签,应原生化或原子衰落,无副作用。
+        /// 操作在下列每一条件下均应失败:
+        /// 1) A MembershipEntry 给定 silo 表格中已经存在
+        /// (2) TableVersion 更新失败,因为给定 TableVersion etag(按 TableVersion.VersionEtag 属性指定)与表中的 TableVersion etag不匹配。
         /// </summary>
-        /// <param name="entry">MembershipEntry to be inserted.</param>
-        /// <param name="tableVersion">The new TableVersion for this table, along with its etag.</param>
-        /// <returns>True if the insert operation succeeded and false otherwise.</returns>
+        /// <param name="entry">MembershipEntry 插入。</param>
+        /// <param name="tableVersion">本表格的新 TableVersion 及其表单。</param>
+        /// <returns>如果插入操作成功且以其他方式虚假, 则正确。</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="entry"/> or <paramref name="tableVersion"/> is <see langword="null"/>.
+        /// <paramref name="entry"/> 或 <paramref name="tableVersion"/> 是 <see langword="null"/>。
         /// </exception>
         [Obsolete("Use InsertRowAsync instead.")]
         public Task<bool> InsertRow(MembershipEntry entry, TableVersion tableVersion) => InsertRowAsync(entry, tableVersion, CancellationToken.None);
 
         /// <inheritdoc />
         /// <remarks>
-        /// The conditional transaction is submitted once. Connection loss propagates when its
-        /// commit outcome is unknown, preserving the caller's ability to resolve that outcome.
+        /// 有条件交易提交一次。
+        /// 承诺结果未知,保留了打电话者解决这一结果的能力。
         /// </remarks>
         public Task<bool> InsertRowAsync(MembershipEntry entry, TableVersion tableVersion, CancellationToken cancellationToken = default)
         {
@@ -331,24 +331,24 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Atomically tries to update the MembershipEntry for one silo and also update the TableVersion.
-        /// If operation succeeds, the following changes would be made to the table:
-        /// 1) The MembershipEntry for this silo will be updated to the new MembershipEntry (the old entry will be fully substituted by the new entry) 
-        /// 2) The eTag for the updated MembershipEntry will also be eTag with the new unique automatically generated eTag.
-        /// 3) TableVersion.Version in the table will be updated to the new TableVersion.Version.
-        /// 4) TableVersion etag in the table will be updated to the new unique automatically generated eTag.
-        /// All those changes to the table, update of a new row and update of the table version and the associated etags, should happen atomically, or fail atomically with no side effects.
-        /// The operation should fail in each of the following conditions:
-        /// 1) A MembershipEntry for a given silo does not exist in the table
-        /// 2) A MembershipEntry for a given silo exist in the table but its etag in the table does not match the provided etag.
-        /// 3) Update of the TableVersion failed since the given TableVersion etag (as specified by the TableVersion.VersionEtag property) did not match the TableVersion etag in the table.
+        /// 原子试图更新 MembershipEntry 一对一 silo 更新 TableVersion.
+        /// 如果操作成功,将对表格作如下修改:
+        /// (1) 与 MembershipEntry 为此 silo 将更新到新的 MembershipEntry (旧条目将被新条目完全替换) 
+        /// (2) 国家 eTag 更新的《公约》和《公约》 MembershipEntry 也将 eTag 与新独自动生成 eTag.
+        /// 3) TableVersion.Version 表格中的表格将更新到新的 TableVersion.Version.
+        /// 4) TableVersion 表中的牌将更新到新的独有自动生成 eTag。
+        /// 所有对表格的修改、新行更新以及表格版本和相关星格的更新,都应原生化地进行,否则原子衰落,无副作用。
+        /// 操作在下列每一条件下均应失败:
+        /// 1) A MembershipEntry 给定 silo 表格中不存在
+        /// 2) A MembershipEntry 给定 silo 表格中存在该表,但其表中的列表与所提供的标签不符。
+        /// 3) TableVersion 更新失败,因为给定 TableVersion etag(按 TableVersion.VersionEtag 属性指定)与表中的 TableVersion 标签不符。
         /// </summary>
-        /// <param name="entry">MembershipEntry to be updated.</param>
-        /// <param name="etag">The etag  for the given MembershipEntry.</param>
-        /// <param name="tableVersion">The new TableVersion for this table, along with its etag.</param>
-        /// <returns>True if the update operation succeeded and false otherwise.</returns>
+        /// <param name="entry">MembershipEntry 待更新。</param>
+        /// <param name="etag">给定 MembershipEntry的标签。</param>
+        /// <param name="tableVersion">本表格的新 TableVersion 及其表单。</param>
+        /// <returns>如果更新操作成功且以其他方式虚假, 则正确。</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="entry"/>, <paramref name="etag"/>, or <paramref name="tableVersion"/> is
+        /// <paramref name="entry"/>、 <paramref name="etag"/>或 <paramref name="tableVersion"/> 是
         /// <see langword="null"/>.
         /// </exception>
         [Obsolete("Use UpdateRowAsync instead.")]
@@ -356,8 +356,8 @@ namespace Orleans.Runtime.Membership
 
         /// <inheritdoc />
         /// <remarks>
-        /// The conditional transaction is submitted once. Connection loss propagates when its
-        /// commit outcome is unknown, preserving the caller's ability to resolve that outcome.
+        /// 有条件交易提交一次。
+        /// 承诺结果未知,保留了打电话者解决这一结果的能力。
         /// </remarks>
         public Task<bool> UpdateRowAsync(MembershipEntry entry, string etag, TableVersion tableVersion, CancellationToken cancellationToken = default)
         {
@@ -401,12 +401,12 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Writes the owning silo's IAmAlive timestamp to its heartbeat node using one unconditional native update.
-        /// The membership row and table version are preserved. Native storage failures propagate to the caller.
+        /// 使用无条件本地更新,将自有 silo IAmAlive 的时戳写入心跳节点。
+        /// 保存成份行和表格版本。本地存储失败会传播给呼叫者。
         /// </summary>
-        /// <param name="entry">The owning silo's membership entry containing its heartbeat timestamp.</param>
-        /// <returns>Task representing the successful execution of this operation. </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="entry"/> is <see langword="null"/>.</exception>
+        /// <param name="entry">拥有 silo加入时含有心跳时间戳。</param>
+        /// <returns>代表成功执行此操作的任务。 </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="entry"/> 是 <see langword="null"/>.</exception>
         [Obsolete("Use UpdateIAmAliveAsync instead.")]
         public Task UpdateIAmAlive(MembershipEntry entry) => UpdateIAmAliveAsync(entry, CancellationToken.None);
 
@@ -430,7 +430,7 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Deletes all table entries of the given clusterId
+        /// 删除给定 clusterId的所有表格条目
         /// </summary>
         [Obsolete("Use DeleteMembershipTableEntriesAsync instead.")]
         public Task DeleteMembershipTableEntries(string clusterId) => DeleteMembershipTableEntriesAsync(clusterId, CancellationToken.None);
@@ -443,12 +443,12 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// Reads the nodes /IP:Port@Gen and /IP:Port@Gen/IAmAlive (which together is one row)
+        /// 读取节点/IP:Port@Gen和/IP:Port@Gen/IAmAlive (一行)
         /// </summary>
-        /// <param name="zk">The zookeeper instance used for the read</param>
-        /// <param name="siloAddress">The silo address.</param>
-        /// <param name="allowMissing">Whether a missing row is represented by an empty point read.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="zk">用于读</param>的动物园看守实例
+        /// <param name="siloAddress"> silo 地址。</param>
+        /// <param name="allowMissing">缺失的行是否由空点表示, 读取。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         private static async Task<Tuple<MembershipEntry, string>?> GetRow(NativeOperations zk, SiloAddress siloAddress, bool allowMissing, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -475,7 +475,7 @@ namespace Orleans.Runtime.Membership
             return new Tuple<MembershipEntry, string>(me, rowVersion.ToString(CultureInfo.InvariantCulture));
         }
 
-        // These delegates expose the native request boundary for deterministic tests of the real operation loops.
+        // 这些代表揭露了本地要求的边界,以对实际操作环进行确定性测试。
         internal sealed class NativeOperations(
             Func<string, Task<DataResult>> getData,
             Func<string, Task<ChildrenResult>> getChildren,
@@ -507,8 +507,8 @@ namespace Orleans.Runtime.Membership
         internal static async Task<T> AwaitOperationAsync<T>(
             Task<T> operation, CancellationToken cancellationToken, Action<Task>? observeOperation = null)
         {
-            // ZooKeeperNetEx is tokenless. Keep the client alive until pending requests and
-            // asynchronous disposal finish, observing failures even if the caller stops waiting.
+            // ZooKeeperNetEx 没有任何意义。 在客户提出请求之前,保持其生命,
+            // 处理完成时, 观察失败 即使呼叫器停止等待。
             observeOperation?.Invoke(operation);
             operation.Ignore();
             return await operation.WaitAsync(cancellationToken);
@@ -530,7 +530,7 @@ namespace Orleans.Runtime.Membership
 
         private static async Task DeleteRecursive(ZooKeeper zk, string path, CancellationToken cancellationToken)
         {
-            // Unlike ZKUtil.deleteRecursiveAsync, check cancellation between requests.
+            // 异 ZKUtil.deleteRecursiveAsync,检查请求之间的取消。
             var paths = new List<string> { path };
             for (var i = 0; i < paths.Count; i++)
             {
@@ -583,9 +583,9 @@ namespace Orleans.Runtime.Membership
 
         /// <inheritdoc />
         /// <remarks>
-        /// Rows are evaluated sequentially in the order returned by ZooKeeper. A row whose
-        /// conditional delete conflicts is re-evaluated up to five total attempts before
-        /// the operation reports contention.
+        /// ZooKeeper返回的顺序依顺序对行进行排顺序评估。
+        /// 有条件删除冲突之前经过五次尝试的重新评价
+        /// 作业报告争议。
         /// </remarks>
         public Task CleanupDefunctSiloEntriesAsync(DateTimeOffset beforeDate, CancellationToken cancellationToken = default)
         {
@@ -651,7 +651,7 @@ namespace Orleans.Runtime.Membership
                 }
                 catch (KeeperException.BadVersionException)
                 {
-                    // Re-evaluate only this row: its version and heartbeat version guard eligibility.
+                    // 只重新评估这行: 其版本和心跳版本的守护资格。
                 }
                 catch (KeeperException.NoNodeException)
                 {
@@ -667,7 +667,7 @@ namespace Orleans.Runtime.Membership
                         return;
                     }
 
-                    // Atomic retirement removes both nodes; a surviving row has a missing heartbeat.
+                    // 原子退休消除了两个节点;幸存的一排人心跳缺失。
                     throw;
                 }
             }
@@ -690,8 +690,8 @@ namespace Orleans.Runtime.Membership
     }
 
     /// <summary>
-    /// Publishes ZooKeeper connection transitions for same-session read retry coordination
-    /// and logs watcher events for diagnostics.
+    /// 出版 ZooKeeper 相同相片的连接转换
+    /// 并记录观察诊断活动。
     /// </summary>
     internal partial class ZooKeeperWatcher : Watcher, IZooKeeperConnectionMonitor
     {
@@ -761,7 +761,7 @@ namespace Orleans.Runtime.Membership
         {
             lock (_connectionLock)
             {
-                // Requests admitted while connecting execute on the next connection.
+                // 请求在连接执行时被接受, 并在下一个连接中被连接 。
                 return _connected ? _connectedGeneration : _connectedGeneration + 1;
             }
         }

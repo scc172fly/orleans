@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Tester.StreamingTests.PlugableQueueBalancerTests
 {
     /// <summary>
-    /// Tests for pluggable queue balancer functionality using memory stream provider with lease-based queue balancing.
+    /// 使用内存流提供者,在租赁基础上进行队列平衡,测试可插入的队列平衡器功能。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

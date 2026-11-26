@@ -8,7 +8,7 @@ using Xunit;
 namespace AWSUtils.Tests.MembershipTests
 {
     /// <summary>
-    /// Tests DynamoDB silo instance record key generation and retrieval for membership table entries.
+    /// 测试 DynamoDB silo 实例记录会籍表条目的键生成和检索。
     /// </summary>
     [TestCategory("Membership"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]

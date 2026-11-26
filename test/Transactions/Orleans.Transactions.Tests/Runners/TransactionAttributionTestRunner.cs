@@ -15,14 +15,14 @@ namespace Orleans.Transactions.Tests
         }
 
         /// <summary>
-        /// Test all attributes that can be called from a non transactional call.  Ensure they all behave correctly.
-        /// These include:
-        /// No attribute - should have no transaction context
-        /// Suppress - should have no transaction context
-        /// CreateOrJoin - should have unique transaction context
-        /// Create - should have unique transaction context
-        /// Supported - should have no transaction context
-        /// NotAllowed - should have no transaction context
+        /// 测试所有从非交易调用中调用的属性。 请确保它们都行为正确 。
+        /// 其中包括:
+        /// 属性 - 不应有交易背景
+        /// - 不应有交易背景的禁止;
+        /// CreateOrJoin - 应当具有独特的交易背景
+        /// - 创建 - 应当具有独特的交易背景
+        /// 支持 - 不应有交易背景
+        /// NotAllowed - 不应有交易背景
         /// </summary>
         [Fact]
         public async Task AllSupportedAttributesFromOutsideTransactionTest()
@@ -43,44 +43,44 @@ namespace Orleans.Transactions.Tests
             List<string?>?[] results = await top.GetNestedTransactionIds(0, tiers);
             this.WriteResults(results);
 
-            // make sure there are 2 tiers
+            // 确定有两层
             Assert.Equal(2, results.Length);
 
-            // make sure top level call has no transactionId
+            // 确保顶级调用没有 transactionId
             List<string?>? topTransactionIds = results[0];
             Assert.NotNull(topTransactionIds);
             Assert.Single(topTransactionIds);
             Assert.Null(topTransactionIds.First());
 
-            // check sub call transactionIds, should be null, null, guid1, guid2, null, null
+            // 复选分机调用 transactionIds,应该是无效、无效、公号、guid1、guid2、null、null
             List<string?>? subcallTransactionIds = results[1];
             Assert.NotNull(subcallTransactionIds);
             Assert.Equal(6, subcallTransactionIds.Count);
 
-            Assert.Null(subcallTransactionIds[0]); // no attribute
+            Assert.Null(subcallTransactionIds[0]); // 无属性
 
-            Assert.Null(subcallTransactionIds[1]); // Suppress attribute
+            Assert.Null(subcallTransactionIds[1]); // 抑制属性
 
-            Assert.NotNull(subcallTransactionIds[2]); // CreateOrJoin attribute
+            Assert.NotNull(subcallTransactionIds[2]); // CreateOrJoin 属性
 
-            Assert.NotNull(subcallTransactionIds[3]); // Create new attribute
-            // make sure the transaction id's for the Required and RequiredNew calls differ
+            Assert.NotNull(subcallTransactionIds[3]); // 创建新属性
+            // 确保交易编号为需要的交易编号, RequiredNew 调用方式不同
             Assert.NotEqual(subcallTransactionIds[2], subcallTransactionIds[3]);
 
-            Assert.Null(subcallTransactionIds[4]); // Supported attribute
+            Assert.Null(subcallTransactionIds[4]); // 支持的属性
 
-            Assert.Null(subcallTransactionIds[5]); // NotAllowed attribute
+            Assert.Null(subcallTransactionIds[5]); // NotAllowed 属性
         }
 
         /// <summary>
-        /// Test all attributes that can be called from within a transactional call.  Ensure they all behave correctly.
-        /// These include:
-        /// No attribute - should have no transaction context
-        /// Suppress - should have no transaction context
-        /// CreateOrJoin - should have same transaction context as parent
-        /// Create - should have unique transaction context
-        /// Join - should have same transaction context as parent
-        /// Supported - should have same transaction context as parent
+        /// 测试交易调用中可以调用的所有属性。 请确保它们都行为正确 。
+        /// 其中包括:
+        /// 属性 - 不应有交易背景
+        /// - 不应有交易背景的禁止;
+        /// CreateOrJoin - 与母公司应具有相同的交易环境
+        /// - 创建 - 应当具有独特的交易背景
+        /// - 加入应具有与母公司相同的交易环境
+        /// 支持 - 应当与母公司有相同的交易环境
         /// </summary>
         [Fact]
         public async Task AllSupportedAttributesFromWithinTransactionTest()
@@ -101,38 +101,38 @@ namespace Orleans.Transactions.Tests
             List<string?>?[] results = await top.GetNestedTransactionIds(0, tiers);
             this.WriteResults(results);
 
-            // make sure there are 2 tiers
+            // 确定有两层
             Assert.Equal(2, results.Length);
 
-            // make sure top level call has transactionId
+            // 确定最高一级调用有 transactionId
             List<string?>? topTransactionIds = results[0];
             Assert.NotNull(topTransactionIds);
             string? topTransactionId = Assert.Single(topTransactionIds);
             Assert.NotNull(topTransactionId);
 
-            // check sub call transactionIds, should be null, null, guid1, guid2, where guid1 should match Id from top
+            // 选中子复选 子调 transactionIds, 应该是无效、 空、 guid1、 guid2, 此处guid1 与从上对齐 Id
             List<string?>? subcallTransactionIds = results[1];
             Assert.NotNull(subcallTransactionIds);
             Assert.Equal(6, subcallTransactionIds.Count);
 
-            Assert.Null(subcallTransactionIds[0]); // no attribute
+            Assert.Null(subcallTransactionIds[0]); // 无属性
 
-            Assert.Null(subcallTransactionIds[1]); // Suppress supported attribute
+            Assert.Null(subcallTransactionIds[1]); // 支持的后设封积属性
 
-            Assert.NotNull(subcallTransactionIds[2]); // CreateOrJoin attribute
-            // make sure required attributed transactionId matches top
+            Assert.NotNull(subcallTransactionIds[2]); // CreateOrJoin 属性
+            // 确定需要的指定属性 transactionId 匹配顶部
             Assert.Equal(subcallTransactionIds[2], topTransactionId);
 
-            Assert.NotNull(subcallTransactionIds[3]); // Create attribute
-            // make sure the transaction id's differ
+            Assert.NotNull(subcallTransactionIds[3]); // 创建属性
+            // 确保交易id 的差别
             Assert.NotEqual(subcallTransactionIds[2], subcallTransactionIds[3]);
 
-            Assert.NotNull(subcallTransactionIds[4]); // Join attribute
-            // make sure Join attributed transactionId matches top
+            Assert.NotNull(subcallTransactionIds[4]); // 附加属性
+            // 确保 JIL 属性 transactionId 匹配上
             Assert.Equal(subcallTransactionIds[4], topTransactionId);
 
-            Assert.NotNull(subcallTransactionIds[5]); // Supported attribute
-            // make sure Supported attributed transactionId matches top
+            Assert.NotNull(subcallTransactionIds[5]); // 支持的属性
+            // 确定支持的属性 transactionId 匹配顶部
             Assert.Equal(subcallTransactionIds[5], topTransactionId);
         }
 
@@ -151,24 +151,24 @@ namespace Orleans.Transactions.Tests
             List<string?>?[] results = await top.GetNestedTransactionIds(0, tiers);
             this.WriteResults(results);
 
-            // make sure there are 2 tiers
+            // 确定有两层
             Assert.Equal(2, results.Length);
 
-            // make sure top level call has transactionId
+            // 确定最高一级调用有 transactionId
             List<string?>? topTransactionIds = results[0];
             Assert.NotNull(topTransactionIds);
             string? topTransactionId = Assert.Single(topTransactionIds);
             Assert.NotNull(topTransactionId);
 
-            // check sub call transactionIds, should be null, null, guid1, guid1, where guid1 should match Id from top
+            // 选中子调用 transactionIds, 应该是无效、 空、 guid1、 guid1、 guid1, 此处guid1 与从上到下匹配 Id
             List<string?>? subcallTransactionIds = results[1];
             Assert.NotNull(subcallTransactionIds);
             Assert.Equal(2, subcallTransactionIds.Count);
             Assert.NotNull(subcallTransactionIds[0]);
             Assert.NotNull(subcallTransactionIds[1]);
-            // make sure required attributed transactionId matches parent
+            // 确定所需 transactionId 匹配父对父
             Assert.Equal(subcallTransactionIds[0], topTransactionId);
-            // make sure required attributed transactionId matches parent
+            // 确定所需 transactionId 匹配父对父
             Assert.Equal(subcallTransactionIds[1], topTransactionId);
         }
 
@@ -187,31 +187,31 @@ namespace Orleans.Transactions.Tests
             List<string?>?[] results = await top.GetNestedTransactionIds(0, tiers);
             this.WriteResults(results);
 
-            // make sure there are 2 tiers
+            // 确定有两层
             Assert.Equal(2, results.Length);
 
-            // make sure top level call has transactionId
+            // 确定最高一级调用有 transactionId
             List<string?>? topTransactionIds = results[0];
             Assert.NotNull(topTransactionIds);
             string? topTransactionId = Assert.Single(topTransactionIds);
             Assert.NotNull(topTransactionId);
 
-            // check sub call transactionIds, should be null, null, guid1, guid2, where guid1 and guid2 should be different and not match top level transactionId
+            // 复选分机调 transactionIds,应该是空、空、guid1、guid2,其中guid1和guid2应该不同,而不是顶级 transactionId
             List<string?>? subcallTransactionIds = results[1];
             Assert.NotNull(subcallTransactionIds);
             Assert.Equal(2, subcallTransactionIds.Count);
             Assert.NotNull(subcallTransactionIds[0]);
             Assert.NotNull(subcallTransactionIds[1]);
-            // make sure RequiresNew attributed transactionId does not match parents
+            // 确保给 RequiresNew 的 transactionId 分数与父母不匹配
             Assert.NotEqual(subcallTransactionIds[0], topTransactionId);
-            // make sure RequiresNew attributed transactionId does not match parents
+            // 确保给 RequiresNew 的 transactionId 分数与父母不匹配
             Assert.NotEqual(subcallTransactionIds[1], topTransactionId);
-            // make sure the transaction id's differ
+            // 确保交易id 的差别
             Assert.NotEqual(subcallTransactionIds[0], subcallTransactionIds[1]);
         }
 
         /// <summary>
-        /// Check to see that a transaction taken place in a call marked 'supported' can join the parent transaction
+        /// 检查是否在标为“ 支持” 的呼叫中进行交易, 以查看该交易是否加入母交易
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -231,29 +231,29 @@ namespace Orleans.Transactions.Tests
             List<string?>?[] results = await top.GetNestedTransactionIds(0, tiers);
             this.WriteResults(results);
 
-            // make sure there are 3 tiers
+            // 确定三层
             Assert.Equal(3, results.Length);
 
-            // make sure top level call has transactionId
+            // 确定最高一级调用有 transactionId
             List<string?>? topTransactionIds = results[0];
             Assert.NotNull(topTransactionIds);
             string? topTransactionId = Assert.Single(topTransactionIds);
             Assert.NotNull(topTransactionId);
 
-            // check first tier call transactionIds, should be a guid which matches the parent
+            // 检查第一个第一级调数 transactionIds,应该是一个与父对齐的首级
             List<string?>? tier1callTransactionIds = results[1];
             Assert.NotNull(tier1callTransactionIds);
             string? tier1callTransactionId = Assert.Single(tier1callTransactionIds);
             Assert.NotNull(tier1callTransactionId);
-            // make sure Supported attributed transactionId matchs parents
+            // 确定支持的属性 transactionId 匹配父母
             Assert.Equal(tier1callTransactionId, topTransactionId);
 
-            // check second tier call transactionIds, should be a guid which matches the parent
+            // 复选第二级调用 transactionIds,应该是一个与父对齐的首饰
             List<string?>? tier2callTransactionIds = results[2];
             Assert.NotNull(tier2callTransactionIds);
             string? tier2callTransactionId = Assert.Single(tier2callTransactionIds);
             Assert.NotNull(tier2callTransactionId);
-            // make sure CreateOrJoin attributed transactionId matchs parents
+            // 确保 CreateOrJoin 的分 transactionId 匹配父母
             Assert.Equal(tier2callTransactionId, topTransactionId);
         }
 

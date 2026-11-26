@@ -174,13 +174,13 @@ namespace Orleans
 
         public void Rehydrate(IRehydrationContext context)
         {
-            // Migration is not supported, but we need to dispose of the context if it's provided
+            // 移民得不到支持,但是如果有背景情况的话,我们需要处理它。
             (context as IDisposable)?.Dispose();
         }
 
         public void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken)
         {
-            // Migration is not supported. Do nothing: the contract is that this method attempts migration, but does not guarantee it will occur.
+            // 移民得不到支持,什么都不要做:合同是这种方式试图移徙,但不能保证移徙会发生。
         }
 
         public Task Deactivated => Task.CompletedTask;

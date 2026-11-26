@@ -6,40 +6,40 @@ using System.Threading.Tasks;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// Represents a bi-directional communication channel between two hosts.
+/// 代表两个主机之间的双向通信频道。
 /// </summary>
 public abstract class MessageTransport : IAsyncDisposable
 {
     /// <summary>
-    /// Gets the cancellation token which is canceled once the connection is closed.
+    /// 获取连接关闭后取消的取消符。
     /// </summary>
     public abstract CancellationToken Closed { get; }
 
     /// <summary>
-    /// Gets the collection of features available on the transport.
+    /// 收集运输工具上的特质。
     /// </summary>
     public abstract IFeatureCollection Features { get; }
 
     /// <summary>
-    /// Submits a read request to the channel.
+    /// 向频道提交读取请求。
     /// </summary>
-    /// <param name="request">The read request.</param>
-    /// <returns><see langword="true"/> if the read request was accepted by the channel, <see langword="false"/> if it was rejected.</returns>
+    /// <param name="request">读取请求。</param>
+    /// <returns><see langword="true"/> 如果朗读请求被频道接受, <see langword="false"/> 如果被否决的话</returns>
     public abstract bool EnqueueRead(ReadRequest request);
 
     /// <summary>
-    /// Submits a write request to the channel.
+    /// 向频道提交书面请求。
     /// </summary>
-    /// <param name="request">The write request.</param>
-    /// <returns><see langword="true"/> if the write request was accepted by the channel, <see langword="false"/> if it was rejected.</returns>
+    /// <param name="request">书面请求。</param>
+    /// <returns><see langword="true"/> 如果书面请求被频道接受, <see langword="false"/> 如果被拒绝。</returns>
     public abstract bool EnqueueWrite(WriteRequest request);
 
     /// <summary>
-    /// Closes the channel, optionally with a provided exception.
+    /// 关闭频道,可选择其中的例外。
     /// </summary>
-    /// <param name="closeException">The channel close exception, which is propagated to requests.</param>
-    /// <param name="cancellationToken">A cancellation token that can be used to force immediate shutdown.</param>
-    /// <returns>A <see cref="ValueTask"/> which completes once the channel has been closed.</returns>
+    /// <param name="closeException">频道的近乎例外,根据请求进行传播。</param>
+    /// <param name="cancellationToken">一个可用于强制立即关闭的取消标记。</param>
+    /// <returns>A <see cref="ValueTask"/> ,一旦频道关闭即可完成。</returns>
     public abstract ValueTask CloseAsync(Exception? closeException, CancellationToken cancellationToken = default);
 
     /// <inheritdoc/>
@@ -51,26 +51,26 @@ public abstract class MessageTransport : IAsyncDisposable
 }
 
 /// <summary>
-/// Creates <see cref="MessageTransport"/> instances which are connected to a specified endpoint.
+/// 创建 <see cref="MessageTransport"/> 实例,这些实例与指定的端点连接。
 /// </summary>
 public abstract class MessageTransportConnector : IAsyncDisposable
 {
     /// <summary>
-    /// Gets the collection of features available on the transport factory.
+    /// 收集运输厂的特质。
     /// </summary>
     public abstract IFeatureCollection Features { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this connector is valid for use.
+    /// 获得一个值,以显示此连接符是否有效。
     /// </summary>
     public abstract bool IsValid { get; }
 
     /// <summary>
-    /// Creates a <see cref="MessageTransport"/> connected to the specified <paramref name="endpoint"/>.
+    /// 创建 <see cref="MessageTransport"/> 连接到指定 <paramref name="endpoint"/>.
     /// </summary>
-    /// <param name="endpoint">The endpoint to connect to.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The connected message transport.</returns>
+    /// <param name="endpoint">连接到的端点。</param>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>连接信息传输</returns>
     public abstract ValueTask<MessageTransport> CreateAsync(EndPoint endpoint, CancellationToken cancellationToken = default);
 
     /// <inheritdoc/>
@@ -82,27 +82,27 @@ public abstract class MessageTransportConnector : IAsyncDisposable
 }
 
 /// <summary>
-/// Middleware which operates on <see cref="MessageTransportConnector"/> instances.
+/// 在 <see cref="MessageTransportConnector"/> 实例上操作的中继器件 。
 /// </summary>
 public interface IMessageTransportConnectorMiddleware
 {
     /// <summary>
-    /// Applies this middleware to the provided transport connector.
+    /// 将中间器件应用到所提供的运输连接器上。
     /// </summary>
-    /// <param name="transport">The transport connector.</param>
-    /// <returns>The transport factory with this middleware applied to it.</returns>
+    /// <param name="transport">运输连接器</param>
+    /// <returns>装有中间器械的运输厂</returns>
     MessageTransportConnector Apply(MessageTransportConnector transport);
 }
 
 /// <summary>
-/// Middleware which operates on <see cref="MessageTransportListener"/> instances.
+/// 在 <see cref="MessageTransportListener"/> 实例上操作的中继器件 。
 /// </summary>
 public interface IMessageTransportListenerMiddleware
 {
     /// <summary>
-    /// Applies this middleware to the provided listener.
+    /// 将此中间器件应用到提供听众的听器上 。
     /// </summary>
-    /// <param name="listener">The listener.</param>
-    /// <returns>The listener with this middleware applied to it.</returns>
+    /// <param name="listener">听众</param>
+    /// <returns>中继器件的听众应用到它。</returns>
     MessageTransportListener Apply(MessageTransportListener listener);
 }

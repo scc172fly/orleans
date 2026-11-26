@@ -6,7 +6,7 @@ using Orleans.Metadata;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// The stateless worker placement strategy allows multiple instances of a given grain to co-exist simultaneously on any host and is reserved for stateless worker grains.
+    /// 无国籍工人安置战略允许多个特定 grain 在任何东道方同时并存,并保留给无国籍工人 grains。
     /// </summary>
     [Serializable, GenerateSerializer]
     internal sealed class StatelessWorkerPlacement : PlacementStrategy
@@ -20,47 +20,47 @@ namespace Orleans.Runtime
         public override bool IsUsingGrainDirectory => false;
 
         /// <summary>
-        /// Gets the maximum number of local instances which can be simultaneously active for a given grain.
+        /// 获取给定 grain同时活动的本地例的最大数量。
         /// </summary>
         [Id(0)]
         public int MaxLocal { get; private set; }
 
         /// <summary>
-        /// When set to <see langword="true"/>, idle workers will be proactively deactivated by the runtime.
-        /// Otherwise if <see langword="false"/>, than the workers will be deactivated according to collection age.
+        /// 当设定为 <see langword="true"/>时,闲置工人将在运行时间前主动停止工作。
+        /// 否则,如果 <see langword="false"/>,工人比他们更会根据收税年龄被解除职务。
         /// </summary>
         [Id(1)]
         public bool RemoveIdleWorkers { get; private set; } = true;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatelessWorkerPlacement"/> class.
+        /// 初始化 <see cref="StatelessWorkerPlacement"/> 类的新实例。
         /// </summary>
         /// <param name="maxLocal">
-        /// The maximum number of local instances which can be simultaneously active for a given grain.
+        /// 给定 grain可同时活动的本地例数的最大数量。
         /// </param>
         internal StatelessWorkerPlacement(int maxLocal) : this(maxLocal, true)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatelessWorkerPlacement"/> class.
+        /// 初始化 <see cref="StatelessWorkerPlacement"/> 类的新实例。
         /// </summary>
         /// <param name="maxLocal">
-        /// The maximum number of local instances which can be simultaneously active for a given grain.
+        /// 给定 grain可同时活动的本地例数的最大数量。
         /// </param>
         /// <param name="removeIdleWorkers">
-        /// Whether idle workers will be proactively deactivated by the runtime instead of only being deactivated according to collection age.
+        /// 闲置工人是否在运行时主动停止工作,而不是仅仅根据收集年龄停止工作。
         /// </param>
         internal StatelessWorkerPlacement(int maxLocal, bool removeIdleWorkers)
         {
-            // If maxLocal was not specified on the StatelessWorkerAttribute,
-            // we will use the defaultMaxStatelessWorkers, which is System.Environment.ProcessorCount.
+            // 如果 maxLocal 未在 StatelessWorkerAttribute,
+            // 我们将使用 defaultMaxStatelessWorkers,即 System.Environment.ProcessorCount。
             this.MaxLocal = maxLocal > 0 ? maxLocal : DefaultMaxStatelessWorkers;
             this.RemoveIdleWorkers = removeIdleWorkers;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatelessWorkerPlacement"/> class.
+        /// 初始化 <see cref="StatelessWorkerPlacement"/> 类的新实例。
         /// </summary>
         public StatelessWorkerPlacement() : this(-1)
         {

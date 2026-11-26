@@ -1,18 +1,18 @@
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// Represents a fulfillable promise for a response to a request.
+    /// 表示应请求作出回应的可兑现承诺。
     /// </summary>
     public interface IResponseCompletionSource
     {
         /// <summary>
-        /// Sets the result.
+        /// 设置结果 。
         /// </summary>
-        /// <param name="value">The result value.</param>
+        /// <param name="value">结果值。</param>
         void Complete(Response value);
 
         /// <summary>
-        /// Sets the result to the default value.
+        /// 将结果设为默认值。
         /// </summary>
         void Complete();
     }

@@ -1,7 +1,7 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// The model that represents a message that can be confirmed.
+/// 代表一个可以确认的信息的模型。
 /// </summary>
 internal record AdoNetStreamConfirmation(
     long MessageId,

@@ -6,14 +6,14 @@ using TestGrainInterfaces;
 namespace TestGrains
 {
     /// <summary>
-    /// An example of a journaled grain implementing a chat.
-    /// The state of the grain is an XML document (System.Xml.Linq.XDocument).
+    /// 例如,一个日记 grain 进行聊天的例子。
+    /// grain 状态为 XML 文档 (System.Xml.Linq.XDocument)。
     ///
-    /// Configured to use the default storage provider.
-    /// Configured to use the LogStorage consistency provider.
+    /// 配置后使用默认的存储提供者。
+    /// 配置后使用 LogStorage 一致性提供商。
     ///
-    /// This means we persist all events; since events are replayed when a grain is loaded
-    /// we can change the XML schema later
+    /// 这意味着我们坚持所有事件; 因为当装入一个 grain 时, 事件会被重放
+    /// 以后再换XML的图案
     ///
     /// </summary>
 
@@ -21,18 +21,18 @@ namespace TestGrains
     [LogConsistencyProvider(ProviderName = "LogStorage")]
     public class ChatGrain : JournaledGrain<XDocument, IChatEvent>, IChatGrain
     {
-        // we want to ensure chats are correctly initialized when first used
-        // so we override the default activation, to insert a creation event if needed
+        // 我们希望确保聊天在首次使用时正确初始化
+        // 以在需要时插入创建事件
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            // first, wait for all events to be loaded from storage so we are caught up with the latest version
+            // 首先,等待所有事件从存储中装入, 所以我们会赶上最新的版本
             await base.OnActivateAsync(cancellationToken);
 
-            // if the chat has not been initialized, do that now
+            // 如果聊天尚未初始化, 请现在就开始
             if (Version == 0)
             {
-                // we are using a conditional event (in case creation is racing with other clusters)
-                // (conditional events commit only if the version hasn't already changed in the meantime)
+                // 我们使用有条件的事件(如果创建与其他集群赛跑)
+                // (有条件的事件只有在版本尚未改变的情况下才会发生)
                 await RaiseConditionalEvent(new CreatedEvent()
                 {
                     Timestamp = DateTime.UtcNow,
@@ -42,9 +42,9 @@ namespace TestGrains
         }
 
         /// <summary>
-        /// in order to apply events correctly to the grain state, we
-        /// must override the transition function
-        /// (because an XDocument object does not have an Apply function)
+        /// 为了正确应用事件到 grain 状态,我们
+        /// 必须超越过渡函数
+        /// (因为 XDocument 对象没有应用功能)
         /// </summary>
         protected override void TransitionState(XDocument state, IChatEvent @event)
         {

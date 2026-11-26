@@ -4,18 +4,18 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// An exception class used by the Orleans runtime for reporting errors.
+    /// 用于报告错误的 Orleans 运行时间所使用的例外类别。
     /// </summary>
     /// <remarks>
-    /// This is also the base class for any more specific exceptions
-    /// raised by the Orleans runtime.
+    /// 这也是任何更具体例外的基级
+    /// 和《公约》所提出 Orleans 运行时间。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public class OrleansException : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansException"/> class.
+        /// 初始化 <see cref="OrleansException"/> 类的新实例。
         /// </summary>
         public OrleansException()
             : base("Unexpected error.")
@@ -23,10 +23,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansException"/> class.
+        /// 初始化 <see cref="OrleansException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         public OrleansException(string message)
             : base(message)
@@ -34,13 +34,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansException"/> class.
+        /// 初始化 <see cref="OrleansException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         /// <param name="innerException">
-        /// The inner exception.
+        /// 内在的例外
         /// </param>
         public OrleansException(string message, Exception innerException)
             : base(message, innerException)
@@ -48,16 +48,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansException"/> class.
+        /// 初始化 <see cref="OrleansException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// The serialization info.
+        /// 序列信息
         /// </param>
         /// <param name="context">
-        /// The context.
+        /// 背景。
         /// </param>
-        /// <exception cref="SerializationException">The class name is <see langword="null" /> or <see cref="P:System.Exception.HResult" /> is zero (0).</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="info" /> is <see langword="null" />.</exception>
+        /// <exception cref="SerializationException">类名为 <see langword="null" /> 或 <see cref="P:System.Exception.HResult" /> 为零(0)</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info" /> 是 <see langword="null" />.</exception>
         [Obsolete]
         protected OrleansException(SerializationInfo info, StreamingContext context)
             : base(info, context)

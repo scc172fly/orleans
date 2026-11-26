@@ -15,7 +15,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// Tests implicit subscription stream recovery scenarios with generated events, including transient and non-transient error handling.
+    /// 测试用户订阅流的默认回收情景,包括生成事件,包括瞬时和非短暂错误处理。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

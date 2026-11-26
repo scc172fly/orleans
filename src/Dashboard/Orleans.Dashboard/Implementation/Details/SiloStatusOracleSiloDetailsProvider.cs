@@ -16,7 +16,7 @@ internal sealed class SiloStatusOracleSiloDetailsProvider(ISiloStatusOracle silo
                 Status = x.Value.ToString(),
                 SiloStatus = x.Value,
                 SiloAddress = x.Key.ToParsableString(),
-                SiloName = x.Key.ToParsableString() // Use the address for naming
+                SiloName = x.Key.ToParsableString() // 使用指定地址
             })
             .ToArray());
     }

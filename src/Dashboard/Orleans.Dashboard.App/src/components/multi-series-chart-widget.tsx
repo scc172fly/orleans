@@ -12,7 +12,7 @@ interface MultiSeriesChartWidgetState {
   height: number;
 }
 
-// this control is a bit of a temporary hack, until I have a multi-series chart widget
+// 此控件有点临时黑入, 直到我有一个多系列图表部件
 export default class MultiSeriesChartWidget extends React.Component<MultiSeriesChartWidgetProps, MultiSeriesChartWidgetState> {
   private containerRef: React.RefObject<HTMLDivElement>;
 
@@ -29,7 +29,7 @@ export default class MultiSeriesChartWidget extends React.Component<MultiSeriesC
   }
 
   componentDidUpdate(prevProps: MultiSeriesChartWidgetProps, prevState: MultiSeriesChartWidgetState) {
-    // Re-measure if dimensions are still 0 (e.g., after tab switch)
+    // 如果尺寸仍然为 0 ,则重新计量(e.g., 在制表符开关之后)
     if ((prevState.width === 0 && this.state.width === 0) ||
         (prevState.height === 0 && this.state.height === 0)) {
       this.getDimensions();

@@ -1,8 +1,8 @@
-/* Import custom purple skin theme */
+/* 自定义紫皮肤外光主题 */
 @import './skin-purple.css';
 
-/* Import theme system (light/dark) */
+/* 导入主题系统(光/达克) */
 @import './themes.css';
 
-/* Import custom Orleans Dashboard styles */
+/* 导入自定义 Orleans Dashboard 样式 */
 @import './custom.css';

@@ -7,17 +7,17 @@ using System.Collections.Immutable;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="ImmutableDictionary{TKey, TValue}"/>.
+    /// <see cref="ImmutableDictionary{TKey, TValue}"/>的序列器。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class ImmutableDictionaryCodec<TKey, TValue> : GeneralizedReferenceTypeSurrogateCodec<ImmutableDictionary<TKey, TValue>, ImmutableDictionarySurrogate<TKey, TValue>> where TKey : notnull
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImmutableDictionaryCodec{TKey, TValue}"/> class.
+        /// 初始化 <see cref="ImmutableDictionaryCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public ImmutableDictionaryCodec(IValueSerializer<ImmutableDictionarySurrogate<TKey, TValue>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -38,32 +38,32 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="ImmutableDictionaryCodec{TKey, TValue}"/>.
+    /// <see cref="ImmutableDictionaryCodec{TKey, TValue}"/>所使用的代金矿类型。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [GenerateSerializer]
     public struct ImmutableDictionarySurrogate<TKey, TValue> where TKey : notnull
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public Dictionary<TKey, TValue> Values;
 
         /// <summary>
-        /// Gets or sets the value comparer.
+        /// 获取或设置数值比较器。
         /// </summary>
         [Id(1)]
         public IEqualityComparer<TValue>? ValueComparer;
     }
 
     /// <summary>
-    /// Copier for <see cref="ImmutableDictionary{TKey, TValue}"/>.
+    /// <see cref="ImmutableDictionary{TKey, TValue}"/>的复印机。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterCopier]
     public sealed class ImmutableDictionaryCopier<TKey, TValue> : IDeepCopier<ImmutableDictionary<TKey, TValue>>, IOptionalDeepCopier where TKey : notnull
     {
@@ -72,10 +72,10 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<TValue> _valueCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImmutableDictionaryCopier{TKey, TValue}"/> class.
+        /// 初始化 <see cref="ImmutableDictionaryCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">The key copier.</param>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="keyCopier">钥匙复印机。</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public ImmutableDictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = OrleansGeneratedCodeHelper.UnwrapService(this, keyCopier);
@@ -99,8 +99,8 @@ namespace Orleans.Serialization.Codecs
             if (input.IsEmpty || IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input collection is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var shallowKeys = OrleansGeneratedCodeHelper.IsShallowCopyable(_keyCopier);

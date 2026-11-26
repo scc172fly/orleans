@@ -376,7 +376,7 @@ public sealed class FirestoreGrainStorageCancellationTests
             if (initialized)
             {
                 var manager = new FirestoreDataManager("Persistence", "test", options, this);
-                // Use the native SDK with the same transport seam as the Firestore membership tests.
+                // 使用本地SDK,与消防局会员资格测试一样,进行运输接缝。
                 typeof(FirestoreDataManager).GetField("_db", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .SetValue(manager, FirestoreDb.Create(options.ProjectId, Client));
                 typeof(FirestoreGrainStorage).GetField("_dataManager", BindingFlags.Instance | BindingFlags.NonPublic)!

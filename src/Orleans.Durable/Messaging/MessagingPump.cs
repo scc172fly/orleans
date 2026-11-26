@@ -10,30 +10,30 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// Drives inbox processing and outbox delivery for one activation.
+/// 驱动箱处理和发件箱交付,以一次性激活。
 /// </summary>
 /// <remarks>
-/// A single loop runs on the activation scheduler and services both queues whenever it is signaled.
-/// One durable job keeps waking the grain while either queue holds work which the activation can perform, or a callback
-/// registered with <see cref="IInbox.RegisterWakeup"/> reports work; inbox messages wait for a handler without a wake-up.
-/// Work staged with an earlier due time than the current wake-up schedules an earlier one, and the job which a newer,
-/// earlier wake-up supersedes completes when it runs.
-/// Wake-ups may be early, late, or duplicated: every pass derives the work to perform from current state.
-/// The wake-up is crash insurance for work which the live loop performs as soon as it is signaled, so work which is
-/// already due needs a wake-up within <see cref="RecheckDelay"/>, and a write schedules a job only when no tracked or
-/// scheduling job is due by then. A running job re-arms itself once per run, so a busy grain performs no job operation
-/// per write. The job retries indefinitely when an activation fails (see <see cref="GetRetryTime"/>), and every
-/// activation re-arms it from recovered state, so committed work always keeps a wake-up.
-/// Wake-up bookkeeping runs on the activation scheduler: journal writes prepare on it and serialize with job runs.
-/// The loop keeps the activation alive while a pass runs over queued work and while outbox deliveries are in flight.
-/// Work which only becomes due later relies on the durable job, so the activation can be collected while it waits.
+/// 激活调度器上有一个单一循环,只要有信号,就为两个队列提供服务。
+/// 一项持久工作一直保持唤醒 grain ,而排队则持有启动程序能够完成的工作或回调
+/// 已注册的 <see cref="IInbox.RegisterWakeup"/> 报告工作; 收件箱信息等待处理者, 不提醒 。
+/// 工作阶段比目前觉醒时间提前,工作阶段较早,新工作、新工作、新工作、
+/// 早期的觉醒在运行时完成 。
+/// 觉醒时间可能很早、较晚或重复:每一通行证都从目前状态中得出工作成果。
+/// 警醒是活环一收到信号即立即执行的工程的崩溃保险,因此工作
+/// 已经到期需要 <see cref="RecheckDelay"/>内提醒,而书面工作只有在没有跟踪或记录时才安排时间。
+/// 工作在运行中, 一次重新武装自己, 所以忙碌的 grain 就没有工作操作
+/// 工作在激活失败时无限期地重试(见 <see cref="GetRetryTime"/>),并且
+/// 激活从恢复状态重新武装它, 所以投入的工作总是保持警醒。
+/// 启动调度器上的提醒簿:日记写它准备并和工作运行序列同步。
+/// 循环让启动过程保持活力, 等待传票超编工作,
+/// 只有在以后才应完成的工作依赖持久工作,这样激活就可以在等待期间收集。
 /// </remarks>
 internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecycleObserver
 {
     internal const string JobName = "orleans.messaging.pump";
     internal static readonly TimeSpan RecheckDelay = TimeSpan.FromSeconds(1);
 
-    // The public attribute exposes the runtime's internal, sealed strategy type.
+    // 公共属性暴露了运行时间的内部密封策略类型。
     private static readonly Type StatelessWorkerPlacementType = new StatelessWorkerAttribute().PlacementStrategy.GetType();
     private readonly SingleWaiterAutoResetEvent _signal = new() { RunContinuationsAsynchronously = true };
     private readonly CancellationTokenSource _shutdown = new();
@@ -45,18 +45,18 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
     private DateTimeOffset _schedulingDueTime;
     private bool _keepingAlive;
 
-    // The job which wakes the grain next, if any, and its due time. A job run which completes clears it.
+    // 下次提醒 grain 的工作, 如果有的话, 以及它应有的时间。 完成该工作的工作会清除它 。
     private string? _wakeupJobId;
     private DateTimeOffset _wakeupDueTime;
 
-    // Advances whenever a job run completes. A schedule requested in an earlier epoch may belong to a job which has
-    // already run and completed, so it no longer guarantees a wake-up.
+    // 工作完成时,只要工作完成,就可按前一个时代要求的时间表,该时间表可以属于有以下条件的工作:
+    // 已经运行并完成, 因此它不再保证提醒。
     private int _wakeupEpoch;
     private int _schedulingEpoch;
 
     public MessagingPump(IGrainContext grainContext, IJournaledStateManager stateManager, IDurableJobHandlerRegistry jobHandlers, MessagingShared shared)
     {
-        // Messaging requires one activation per grain identity, so every activation of a stateless worker fails.
+        // 通信要求每个 grain 身份有一个激活,因此每个激活无国籍工人都失败。
         if (grainContext.GetComponent<PlacementStrategy>()?.GetType() == StatelessWorkerPlacementType)
         {
             throw new InvalidOperationException(
@@ -70,15 +70,15 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         jobHandlers.Register(this);
         grainContext.ObservableLifecycle.Subscribe(nameof(MessagingPump), GrainLifecycleStage.Activate, this);
 
-        // Wake-ups for due work fire up to RecheckDelay later, so the loop starts once activation completes and performs
-        // recovered and newly staged work without waiting for one.
+        // 等到 RecheckDelay 以后,应适当工作火力的唤醒时间,因此一旦激活完成并进行后循环即启动
+        // 回收并重新进行分阶段工作,不等待一个。
         grainContext.ObservableLifecycle.Subscribe(nameof(MessagingPump), GrainLifecycleStage.Last, _ =>
         {
             EnsureStarted();
             return Task.CompletedTask;
         }, static _ => Task.CompletedTask);
 
-        // Recovery reports depth during SetupState, so releasing it there covers activations which fail before Activate.
+        // 恢复深度报告在 SetupState期间,因此释放该深度时涵盖激活前失效的启动。
         grainContext.ObservableLifecycle.Subscribe(nameof(MessagingPump), GrainLifecycleStage.SetupState, static _ => Task.CompletedTask, _ =>
         {
             _inbox?.ReleaseDepth();
@@ -93,10 +93,10 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
 
     public MessagingShared Shared { get; }
 
-    /// <summary>Gets the metric tag for this activation's grain type.</summary>
+    /// <summary>获取此激活 grain 类型的公制标记。</summary>
     public string GrainTypeTag { get; }
 
-    /// <summary>Gets the token which is canceled when messaging stops for this activation.</summary>
+    /// <summary>获取在信息停止启动时取消的标记。</summary>
     public CancellationToken ShutdownToken => _shutdown.Token;
 
     internal void Register(Inbox inbox) => _inbox = inbox;
@@ -108,13 +108,13 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
 
     public bool CanHandle(string jobName) => string.Equals(jobName, JobName, StringComparison.Ordinal);
 
-    /// <summary>Requests a processing pass.</summary>
+    /// <summary>申请办理通行证。</summary>
     public void Signal()
     {
         if (!_shutdown.IsCancellationRequested) _signal.Signal();
     }
 
-    /// <summary>Requests a processing pass and ensures a durable wake-up for work which has become processable.</summary>
+    /// <summary>申请办理通行证,并确保为已可处理的工作持久地敲响警钟。</summary>
     public void RequestWakeup()
     {
         if (_shutdown.IsCancellationRequested) return;
@@ -122,7 +122,7 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         RepairWakeupAsync().Ignore();
     }
 
-    /// <summary>Starts the loop once activation completes, when the activation services grain calls.</summary>
+    /// <summary>启动服务启动后,激活服务 grain 电话一结束即启动循环。</summary>
     public void EnsureStarted()
     {
         if (_loop is null && !_shutdown.IsCancellationRequested)
@@ -132,13 +132,13 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
     }
 
     /// <summary>
-    /// Ensures a durable job will wake this grain no later than <paramref name="dueTime"/>, or within
-    /// <see cref="RecheckDelay"/> for work which is due sooner, on the Durable Jobs clock.
+    /// 确保持久工作将唤醒这一风险 grain 不迟于 <paramref name="dueTime"/>,或
+    /// <see cref="RecheckDelay"/> 工作时间早于 " 持久就业钟 " 。
     /// </summary>
     public async ValueTask EnsureWakeupAsync(DateTimeOffset dueTime, CancellationToken cancellationToken)
     {
-        // The live loop performs work as soon as it is due, so any tracked or scheduling wake-up within RecheckDelay
-        // covers it should the activation fail.
+        // 实时循环在工作到期后立即进行工作,因此任何跟踪或安排在 RecheckDelay内进行提醒
+        // 引爆失败时盖子会盖住它
         var earliest = MessagingTime.AddClamped(Shared.JobTimeProvider.GetUtcNow(), RecheckDelay);
         if (dueTime < earliest) dueTime = earliest;
         if (_wakeupJobId is not null && _wakeupDueTime <= dueTime) return;
@@ -173,7 +173,7 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
 
     public async ValueTask<DurableJobRunResult> ExecuteJobAsync(IJobRunContext context, CancellationToken cancellationToken)
     {
-        // A running job keeps rescheduling itself until both queues and every registered wake-up report no work.
+        // 正在运行的工作不断重新安排时间,直到排队和每个登记醒醒的单位都报告没有工作。
         var jobId = context.Job.Id;
         if (_wakeupJobId is null)
         {
@@ -186,12 +186,12 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         try
         {
             await pass.Task.WaitAsync(cancellationToken).ConfigureAwait(true);
-            // A failed pass can leave only staged removals; its job must survive the activation's failure.
+            // 失灵的通行证只能留下分阶段的清除;其工作必须能在激活失败后得以维持。
             _shutdown.Token.ThrowIfCancellationRequested();
         }
         catch
         {
-            // Durable Jobs retries the failed run (see GetRetryTime), which wakes a recovered activation.
+            // 持久工作重试失败的运行(见 GetRetryTime), 从而唤醒恢复的激活 。
             CompleteWakeup(jobId);
             throw;
         }
@@ -206,7 +206,7 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         var next = MessagingTime.AddClamped(now, delay > TimeSpan.Zero ? delay : RecheckDelay);
         if (_wakeupJobId is not null && _wakeupJobId != jobId && _wakeupDueTime <= next)
         {
-            // Another job wakes the grain first, and its run reschedules for any remaining work.
+            // 另一份工作首先唤醒 grain ,并重新安排剩余工作的运行时间表。
             CompleteWakeup(jobId);
             return DurableJobRunResult.Completed;
         }
@@ -222,7 +222,7 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         _wakeupEpoch++;
     }
 
-    // The delay until the inbox, the outbox, or a registered wake-up next holds work, or null when none does.
+    // 延迟到收件箱、发件箱或登记后醒一醒的下一个工作会停止,或者当无结果时无效。
     private TimeSpan? GetNextWakeupDelay(DateTimeOffset now) =>
         (Inbox.GetNextWakeupDelay(now), _outbox?.GetNextWakeupDelay(now)) switch
         {
@@ -238,15 +238,15 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         }
         catch (Exception exception) when (!_shutdown.IsCancellationRequested)
         {
-            // Recovery re-establishes the wake-up for remaining work.
+            // 恢复工作重新唤醒了剩余工作的警钟。
             Fail(exception, "Scheduling the messaging wake-up failed.");
         }
     }
 
     private async Task RunAsync()
     {
-        // Callers start the loop from grain calls and job executions; queue the first pass to the activation
-        // scheduler so it never runs on, and nests within, the caller's stack.
+        // 调用者从 grain 调用和工作处决开始循环; 排队第一个接通到激活
+        // 排程器,所以它从来不运行, 和巢内, 呼叫者的堆叠。
         await Task.Yield();
         var cancellationToken = _shutdown.Token;
         while (!cancellationToken.IsCancellationRequested)
@@ -265,7 +265,7 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
             }
             catch (Exception exception)
             {
-                // Expected failures are handled within the pass, so an escaping exception leaves state inconsistent with the journal.
+                // 预料的失败在通行证内处理,因此逃避的例外情况使得国家与日记不符。
                 progress = false;
                 LogPassFailed(Shared.PumpLogger, exception, GrainContext.GrainId);
                 Fail(exception, "Messaging processing pass failed.");
@@ -302,7 +302,7 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         if (_outbox is { } outbox) await outbox.StartAsync(cancellationToken).ConfigureAwait(true);
         await Inbox.StartAsync(cancellationToken).ConfigureAwait(true);
 
-        // Recovered work keeps a wake-up at its real due time, even if the job which woke this activation completes.
+        // 恢复的工作在实际时间保持了警醒,即使唤醒这一激活工作已经完成。
         var now = Shared.JobTimeProvider.GetUtcNow();
         if (GetNextWakeupDelay(now) is { } delay)
         {
@@ -311,12 +311,12 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
     }
 
     /// <summary>
-    /// Returns when Durable Jobs retries a pump job whose run failed, which it does indefinitely with backoff on the
-    /// Durable Jobs clock.
+    /// 当持久工作重试运行失败的泵工作时返回 。
+    /// 工作时钟持久。
     /// </summary>
     /// <remarks>
-    /// The job is the grain's only durable wake-up for committed work, so giving up after a bounded number of attempts
-    /// would strand that work after a long outage until an unrelated call reactivated the grain.
+    /// 工作是 grain唯一能持久地唤醒投入工作的人,因此在经过多次尝试之后放弃
+    /// 长时间停电后,如果接到无关的电话,就会重新启用 grain。
     /// </remarks>
     internal static DateTimeOffset GetRetryTime(IJobRunContext context, DateTimeOffset now, TimeSpan initialInterval) =>
         MessagingTime.AddClamped(now, MessagingTime.GetBackoff(initialInterval, context.DequeueCount));
@@ -326,7 +326,7 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         var scheduling = _scheduling;
         Stop();
 
-        // Grain calls finish before deactivation stops the lifecycle, so the loop and outbox deliveries own every remaining write.
+        // Grain 呼叫在停止使用寿命周期之前结束, 因此循环和发件箱发送拥有所有剩余文字。
         if (_loop is { } loop)
         {
             await loop.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.SuppressThrowing);
@@ -339,11 +339,11 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
 
         if (_outbox is { } outbox) await outbox.StopAsync().ConfigureAwait(true);
 
-        // The loop and the outbox's deliveries have ended, so no attempt is in progress unless messaging failed.
+        // 传送的循环和发送信箱已经结束,所以除非信息失败,否则任何尝试都不会进行。
         await Inbox.RecordCleanStopAsync().ConfigureAwait(true);
     }
 
-    /// <summary>Stops processing for this activation.</summary>
+    /// <summary>停止此激活的处理。</summary>
     internal void Stop()
     {
         if (_shutdown.IsCancellationRequested) return;
@@ -361,13 +361,13 @@ internal sealed partial class MessagingPump : IDurableJobFeatureHandler, ILifecy
         }
     }
 
-    /// <summary>Gets whether messaging failed, so the activation's uncommitted changes must not commit.</summary>
+    /// <summary>获取信件是否失败, 所以激活的未承诺更改不能执行 。</summary>
     internal bool IsFailed { get; private set; }
 
-    /// <summary>Stops messaging and deactivates the grain after an unrecoverable failure.</summary>
+    /// <summary>停止发送信息和停止使用 grain 无法恢复的故障发生后</summary>
     /// <remarks>
-    /// In-memory state may no longer match what the activation may commit, so every later journal write fails and the
-    /// next activation recovers from the journal.
+    /// 记忆状态可能不再与激活可能发生的行为匹配, 所以以后每期日记都写不出来,
+    /// 下一期启动活动从日记恢复。
     /// </remarks>
     internal void Fail(Exception exception, string description)
     {

@@ -6,18 +6,18 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Runs transaction scenarios created through <see cref="ITransactionClient"/>.
+    /// 运行通过 <see cref="ITransactionClient"/>创建的交易情景。
     /// </summary>
     public abstract class ScopedTransactionsTestRunner : TransactionTestRunnerBase
     {
         private readonly ITransactionClient _transactionClient;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ScopedTransactionsTestRunner"/> class.
+        /// 初始化 <see cref="ScopedTransactionsTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to access test grains.</param>
-        /// <param name="transactionClient">The client used to create transaction scopes.</param>
-        /// <param name="output">The callback used to write test output.</param>
+        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="transactionClient">用于创建交易范围客户端。</param>
+        /// <param name="output">用于写入测试输出的回调。</param>
         protected ScopedTransactionsTestRunner(IGrainFactory grainFactory, ITransactionClient transactionClient, Action<string> output)
             : base(grainFactory, output)
         {
@@ -25,76 +25,76 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that a grain value can be set within a newly created transaction scope.
+        /// 证明 grain 值可在新创建的交易范围内设定。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select the test grain.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task CreateTransactionScopeAndSetValue(string grainStates)
         {
-            // Arrange
+            // 排列排列
             var grain = RandomTestGrain(grainStates);
 
-            // Act
+            // 法案法
             Func<Task> act = () => grain.Set(57);
 
             await _transactionClient.RunTransaction(TransactionOption.Create, async () =>
-                // Assert
+                // 发货
                 await act.Should().NotThrowAsync(because: "No failure expected"));
         }
 
         /// <summary>
-        /// Verifies that a failure within a newly created transaction scope aborts the transaction.
+        /// 证明在新创建的交易范围内发生故障会中止交易。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select the test grain.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task CreateTransactionScopeAndSetValueWithFailure(string grainStates)
         {
-            // Arrange
+            // 排列排列
             var grain = RandomTestGrain(grainStates);
 
-            // Act
+            // 法案法
             Func<Task> act = () => _transactionClient.RunTransaction(TransactionOption.Create, () => grain.SetAndThrow(57));
 
-            // Assert
+            // 发货
             await act.Should().ThrowAsync<OrleansTransactionAbortedException>(because: "Failure expected");
         }
 
         /// <summary>
-        /// Sets and reads a grain value within one transaction scope and verifies the transactional result.
+        /// 在一个交易范围内设置并读取 grain 值,并核实交易结果。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select the test grain.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task CreateTransactionScopeAndSetValueAndAssert(string grainStates)
         {
             var result = Array.Empty<int>();
 
-            // Arrange
+            // 排列排列
             var grain = RandomTestGrain(grainStates);
 
-            // Act
+            // 法案法
             await _transactionClient.RunTransaction(TransactionOption.Create, async () =>
             {
                 await grain.Set(57);
                 result = await grain.Get();
             });
 
-            // Assert
+            // 发货
             result.Should().OnlyContain(number => number == 57);
         }
 
         /// <summary>
-        /// Verifies that an aborted nested transaction does not prevent the outer transaction from committing its value.
+        /// 证明中止的嵌套交易并不妨碍外部交易承诺其价值。
         /// </summary>
-        /// <param name="grainStates">The transaction state configuration used to select the test grain.</param>
-        /// <returns>A task which represents the test.</returns>
+        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task CreateNestedTransactionScopeAndSetValueAndInnerFailAndAssert(string grainStates)
         {
             var result = Array.Empty<int>();
 
-            // Arrange
+            // 排列排列
             var grain = RandomTestGrain(grainStates);
 
-            // Act
+            // 法案法
             await _transactionClient.RunTransaction(TransactionOption.Create, async () =>
             {
                 try
@@ -109,7 +109,7 @@ namespace Orleans.Transactions.TestKit
 
             result = await grain.Get();
 
-            // Assert
+            // 发货
             result.Should().OnlyContain(number => number == 57);
         }
     }

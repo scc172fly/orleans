@@ -5,41 +5,41 @@ using Orleans.Runtime;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// Exception thrown whenever a provider has failed to be initialized.
+    /// 供应商未能启动时,就提出例外。
     /// </summary>
     [Serializable, GenerateSerializer]
     public sealed class ProviderInitializationException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProviderInitializationException"/> class.
+        /// 初始化 <see cref="ProviderInitializationException"/> 类的新实例。
         /// </summary>
         public ProviderInitializationException()
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProviderInitializationException"/> class.
+        /// 初始化 <see cref="ProviderInitializationException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public ProviderInitializationException(string message)
             : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProviderInitializationException"/> class.
+        /// 初始化 <see cref="ProviderInitializationException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         public ProviderInitializationException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProviderInitializationException"/> class.
+        /// 初始化 <see cref="ProviderInitializationException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         private ProviderInitializationException(SerializationInfo info, StreamingContext context)
             : base(info, context)

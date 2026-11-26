@@ -8,7 +8,7 @@ using Orleans.Serialization.Session;
 
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-// Captures opaque handler output in the same journal as inbox effects. Dispatch belongs to the outbox layer.
+// 抓取与收件箱效果相同的日记中的不透明处理器输出。 调度属于发件箱层 。
 internal sealed class JournaledTestOutbox(IDurableDictionary<MessageId, OutboxMessage> messages)
     : IOutbox, ILifecycleObserver, IEnumerable<KeyValuePair<MessageId, OutboxMessage>>
 {

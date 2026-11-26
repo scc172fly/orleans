@@ -4,7 +4,7 @@ using System;
 namespace Orleans.Internal
 {
     /// <summary>
-    /// The Utils class contains a variety of utility methods for use in application and grain code.
+    /// 用户端类包含各种应用实用方法和 grain 代码。
     /// </summary>
     internal static class StandardExtensions
     {

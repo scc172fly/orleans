@@ -17,7 +17,7 @@ public sealed class ReservationGrain : DurableGrain
     // <orleans0221_violation>
     public async DurableTask<Charge> ReserveAsync(string orderKey, decimal amount)
     {
-        // A synchronous state change, which the step runs as a child execution with a journal write of its own.
+        // 同步的状态变化, 该步骤作为儿童处决运行 与日记的写作自己。
         await DurableTask.Run(_ => { _status.Value = OrderStatus.Reserved; }).WithId("reserve");
         return await DurableTask.Run(ct => _payments.ChargeAsync(orderKey, amount, ct)).WithId("charge");
     }
@@ -27,7 +27,7 @@ public sealed class ReservationGrain : DurableGrain
     // <orleans0221_fix>
     public async DurableTask<Charge> ReserveInlineAsync(string orderKey, decimal amount)
     {
-        // The effect runs in the current work item, and its record commits with the execution's next journal write.
+        // 效果运行在当前的工作项中, 其记录会随着执行的下一期日记的写而生效 。
         DurableTask.RunInline("reserve", () => { _status.Value = OrderStatus.Reserved; });
         return await DurableTask.Run(ct => _payments.ChargeAsync(orderKey, amount, ct)).WithId("charge");
     }
@@ -42,7 +42,7 @@ public sealed class ReservationGrain : DurableGrain
         }
         else
         {
-            // Executions which recorded the step replay it.
+            // 记录了步骤重播的处决
 #pragma warning disable ORLEANS0221
             await DurableTask.Run(_ => { _status.Value = OrderStatus.Reserved; }).WithId("reserve");
 #pragma warning restore ORLEANS0221

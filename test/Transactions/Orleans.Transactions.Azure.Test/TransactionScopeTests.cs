@@ -7,7 +7,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// Tests for scoped transaction functionality with Azure Storage.
+    /// 用于测试 Azure 存储的“范围交易功能”测试。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

@@ -9,24 +9,24 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extensions for configuring ADO.NET for clustering.
+    /// 组合组配置 ADO.NET 的扩展。
     /// </summary>
     public static class AdoNetHostingExtensions
     {
         /// <summary>
-        /// Configures this silo to use ADO.NET for clustering. Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 配置 silo 用于组合 ADO.NET 。您数据库配置的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>中查阅。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>.
+        /// 提供 <see cref="ISiloBuilder"/>。
         /// </returns>
         /// <remarks>
-        /// Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 关于配置数据库的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>查阅。
         /// </remarks>
         public static ISiloBuilder UseAdoNetClustering(
             this ISiloBuilder builder,
@@ -46,19 +46,19 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures this silo to use ADO.NET for clustering. Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 配置 silo 用于组合 ADO.NET 。您数据库配置的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>中查阅。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>.
+        /// 提供 <see cref="ISiloBuilder"/>。
         /// </returns>
         /// <remarks>
-        /// Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 关于配置数据库的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>查阅。
         /// </remarks>
         public static ISiloBuilder UseAdoNetClustering(
             this ISiloBuilder builder,
@@ -74,19 +74,19 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures this client to use ADO.NET for clustering. Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 配置此客户端使用 ADO.NET 组合。您数据库配置的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>中查阅。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="IClientBuilder"/>.
+        /// 提供 <see cref="IClientBuilder"/>。
         /// </returns>
         /// <remarks>
-        /// Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 关于配置数据库的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>查阅。
         /// </remarks>
         public static IClientBuilder UseAdoNetClustering(
             this IClientBuilder builder,
@@ -106,19 +106,19 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures this client to use ADO.NET for clustering. Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 配置此客户端使用 ADO.NET 组合。您数据库配置的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>中查阅。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="IClientBuilder"/>.
+        /// 提供 <see cref="IClientBuilder"/>。
         /// </returns>
         /// <remarks>
-        /// Instructions on configuring your database are available at <see href="http://aka.ms/orleans-sql-scripts"/>.
+        /// 关于配置数据库的说明可在 <see href="http://aka.ms/orleans-sql-scripts"/>查阅。
         /// </remarks>
         public static IClientBuilder UseAdoNetClustering(
             this IClientBuilder builder,

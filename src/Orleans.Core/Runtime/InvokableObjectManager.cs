@@ -67,11 +67,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Closes observer admission and drains invocation processing, including cancellation controls and response handling.
+        /// 关闭观察员的入职和排水处理,包括取消管制和应答处理。
         /// </summary>
         public async Task StopAsync()
         {
-            // Cancellation controls can release admitted work while application admission is closed.
+            // 取消管制可在申请受理关闭时解除工作。
             await _invocations.CloseAsync().ConfigureAwait(false);
             await _cancellations.CloseAsync().ConfigureAwait(false);
         }
@@ -192,7 +192,7 @@ namespace Orleans
                 var ownsAdmission = true;
                 try
                 {
-                    // Queue publication transfers admission ownership to the pump or interleaved invocation.
+                    // 将招生所有权转让给泵或间断性职业。
                     ReceiveMessage(message, ref ownsAdmission);
                 }
                 finally
@@ -209,16 +209,16 @@ namespace Orleans
                 var obj = this.LocalObject.Target;
                 if (obj is null)
                 {
-                    // Remove from the dictionary record for the garbage collected object? But now we won't be able to detect invalid dispatch IDs anymore.
+                    // 从字典记录中删除垃圾收集对象的收藏记录吗? 但现在我们无法检测无效发送 ID 。
                     LogObserverGarbageCollected(_manager.logger, this.ObserverId, message);
-                    // Try to remove. If it's not there, we don't care.
+                    // 试着移走它,如果它不在那里,我们不在乎
                     _manager.TryDeregister(this.ObserverId);
                     message.Dispose();
                     return;
                 }
 
-                // Handle AlwaysInterleave messages (like cancellation requests) immediately without queueing.
-                // These messages need to be processed right away, even if another request is currently running.
+                // 立即处理 AlwaysInterleave 信件( 如取消请求) , 不排队 。
+                // 即使目前正在处理另一项请求,这些讯息也需要立即处理。
                 if (message.IsAlwaysInterleave)
                 {
                     bool wasCancelled;
@@ -227,7 +227,7 @@ namespace Orleans
                         wasCancelled = RemovePendingCancellation((message.SendingGrain, message.Id));
                         if (!wasCancelled)
                         {
-                            // Track the running request so it can be cancelled.
+                            // 跟踪运行中的请求, 以便取消它 。
                             var task = Task.Factory.StartNew(
                                 static state =>
                                 {
@@ -279,25 +279,25 @@ namespace Orleans
 
                 if (start)
                 {
-                    // we want to ensure that the message pump operates asynchronously
-                    // with respect to the current thread. see
+                    // 我们希望确保信息泵的运行 同步
+                    // 当前线条的当前线索。 见
                     // http://channel9.msdn.com/Events/TechEd/Europe/2013/DEV-B317#fbid=aIWUq0ssW74
-                    // at position 54:45.
+                    // 位置54: 45。
                     //
-                    // according to the information posted at:
+                    // 根据以下网站公布的信息:
                     // http://stackoverflow.com/questions/12245935/is-task-factory-startnew-guaranteed-to-use-another-thread-than-the-calling-thr
-                    // this idiom is dependent upon the a TaskScheduler not implementing the
-                    // override QueueTask as task inlining (as opposed to queueing). this seems
-                    // implausible to the author, since none of the .NET schedulers do this and
-                    // it is considered bad form (the OrleansTaskScheduler does not do this).
+                    // 这个语系取决于 TaskScheduler 尚未执行
+                    // 将 QueueTask 替换为任务内衬( 而不是队列) 。 这似乎似乎 。
+                    // 提交人认为不可信,因为 .NET 排期者都没有这样做,而且
+                    // 被认为不健全的形式( OrleansTaskScheduler 不这样做)。
                     //
-                    // if, for some reason this doesn't hold true, we can guarantee what we
-                    // want by passing a placeholder continuation token into Task.StartNew()
-                    // instead. i.e.:
+                    // 如果出于某种原因,这不正确 我们可以保证
+                    // 将占位符继续符号通过 将占位符的延续符标记切换到 Task.StartNew()
+                    // i.e替换为:
                     //
                     // return Task.StartNew(() => ..., new CancellationToken());
-                    // We pass these options to Task.Factory.StartNew as they make the call identical
-                    // to Task.Run. See: https://blogs.msdn.microsoft.com/pfxteam/2011/10/24/task-run-vs-task-factory-startnew/
+                    // 我们把这些选项传给 Task.Factory.StartNew ,因为它们的调用完全相同
+                    // Task.Run。见: https://blogs.msdn.microsoft.com/pfxteam/2011/10/24/task-run-vs-task-factory-startnew/
                     _messagePumpTask = Task.Factory.StartNew(
                             HandleFunc,
                             this,
@@ -392,7 +392,7 @@ namespace Orleans
                         else
                         {
                             response = await request.Invoke();
-                            // The copier preserves the null state of its input.
+                            // 复印机保留其输入的无效状态。
                             response = _manager._responseCopier.Copy(response)!;
                         }
 
@@ -408,7 +408,7 @@ namespace Orleans
                 }
                 catch (Exception outerException)
                 {
-                    // Ignore and keep looping.
+                    // 忽略并不断循环。
                     LogErrorProcessingMessage(_manager.logger, outerException, message);
                 }
                 finally
@@ -418,7 +418,7 @@ namespace Orleans
                         _runningRequests.Remove(message);
                     }
 
-                    // Generated interface metadata is stable throughout the request's lifetime.
+                    // 生成的接口元数据在整个请求期内保持稳定。
                     _manager.GetAdmissionGate(message).Exit();
                 }
             }
@@ -467,8 +467,8 @@ namespace Orleans
                 Response deepCopy;
                 try
                 {
-                    // we're expected to notify the caller if the deep copy failed.
-                    // The copier preserves the null state of its input.
+                    // 如果深度副本失败,我们预期会通知打电话者。
+                    // 复印机保留其输入的无效状态。
                     deepCopy = _manager.deepCopier.Copy(resultObject)!;
                 }
                 catch (Exception exc2)
@@ -478,7 +478,7 @@ namespace Orleans
                     return;
                 }
 
-                // the deep-copy succeeded.
+                // 深影成功
                 _manager.runtimeClient.SendResponse(message, deepCopy);
                 return;
             }
@@ -495,8 +495,8 @@ namespace Orleans
                         Exception deepCopy;
                         try
                         {
-                            // we're expected to notify the caller if the deep copy failed.
-                            // The copier preserves the null state of its input.
+                            // 如果深度副本失败,我们预期会通知打电话者。
+                            // 复印机保留其输入的无效状态。
                             deepCopy = _manager.deepCopier.Copy(exception)!;
                         }
                         catch (Exception ex2)
@@ -506,7 +506,7 @@ namespace Orleans
                             return;
                         }
 
-                        // the deep-copy succeeded.
+                        // 深影成功
                         var response = Response.FromException(deepCopy);
                         _manager.runtimeClient.SendResponse(message, response);
                         break;
@@ -521,13 +521,13 @@ namespace Orleans
 
             public void Rehydrate(IRehydrationContext context)
             {
-                // Migration is not supported, but we need to dispose of the context if it's provided
+                // 移民得不到支持,但是如果有背景情况的话,我们需要处理它。
                 (context as IDisposable)?.Dispose();
             }
 
             public void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken)
             {
-                // Migration is not supported. Do nothing: the contract is that this method attempts migration, but does not guarantee it will occur.
+                // 移民得不到支持,什么都不要做:合同是这种方式试图移徙,但不能保证移徙会发生。
             }
 
             ValueTask IGrainCallCancellationExtension.CancelRequestAsync(
@@ -546,7 +546,7 @@ namespace Orleans
                     var key = (senderGrainId, messageId);
                     lock (Messages)
                     {
-                        // Check the running requests.
+                        // 检查运行中的请求 。
                         foreach (var runningRequest in _runningRequests.Keys)
                         {
                             if (runningRequest.Id == messageId && runningRequest.SendingGrain == senderGrainId)
@@ -558,7 +558,7 @@ namespace Orleans
 
                         if (message is null)
                         {
-                            // Check the waiting requests.
+                            // 检查等待请求
                             foreach (var waitingRequest in Messages)
                             {
                                 var waiting = waitingRequest;
@@ -567,7 +567,7 @@ namespace Orleans
                                     message = waiting;
                                     wasWaiting = true;
 
-                                    // Remove the message, since it will be rejected immediately (outside the lock) without being executed.
+                                    // 删除信件, 因为信件会立即被拒绝( 在锁外) 而不执行 。
                                     var initialCount = Messages.Count;
                                     for (var i = 0; i < initialCount; i++)
                                     {
@@ -585,8 +585,8 @@ namespace Orleans
 
                         if (!wasWaiting)
                         {
-                            // Cancellation and invocation are delivered independently. Retain cancellation
-                            // until the matching invocation is admitted or has initialized its local token.
+                            // 注销和援引独立交付。
+                            // 直到匹配的引用被接受或初始化了本地标记。
                             RetainPendingCancellation(key);
                         }
                     }
@@ -594,8 +594,8 @@ namespace Orleans
                     var didCancel = false;
                     if (message is not null)
                     {
-                        // The message never began executing, so send a canceled response immediately.
-                        // If the message did begin executing, wait for it to observe the cancellation token and respond itself.
+                        // 信件从未开始执行, 所以立即发送取消回复 。
+                        // 如果信件真的开始执行, 请等待它观察取消的标记并自答 。
                         if (wasWaiting)
                         {
                             try
@@ -615,7 +615,7 @@ namespace Orleans
                         }
                         else
                         {
-                            // Assume the request is not cancellable.
+                            // 假设请求无法撤销。
                             didCancel = true;
                         }
                     }

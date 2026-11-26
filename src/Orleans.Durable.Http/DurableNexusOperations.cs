@@ -6,8 +6,8 @@ using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>Serves durable operations with the Nexus protocol: start and cancel, addressed by operation tokens.</summary>
-/// <remarks>See <see href="https://github.com/nexus-rpc/api/blob/main/SPEC.md">the Nexus HTTP specification</see>.</remarks>
+/// <summary>用于使用 Nexus 协议的耐久操作: 启动和取消, 由运行符号处理 。</summary>
+/// <remarks>见见 <see href="https://github.com/nexus-rpc/api/blob/main/SPEC.md">Nexus HTTP 规格</see>.</remarks>
 internal sealed class DurableNexusOperations(
     DurableOperationService operations,
     DurableCallbackRegistrar callbacks,
@@ -19,8 +19,8 @@ internal sealed class DurableNexusOperations(
     private readonly JsonSerializerOptions _json = jsonOptions.Value.SerializerOptions;
 
     /// <summary>
-    /// Starts <paramref name="work"/> as the operation which the request's <c>Nexus-Request-Id</c> names, and returns its
-    /// result when it is terminal or its token while it runs.
+    /// 开始 <paramref name="work"/> 请求所请求的业务 <c>Nexus-Request-Id</c> 返回其
+    /// 当它运行时是终点或标记时,
     /// </summary>
     public async Task<IResult> StartAsync(HttpContext context, DurableTask work)
     {
@@ -88,8 +88,8 @@ internal sealed class DurableNexusOperations(
     }
 
     /// <summary>
-    /// Durably requests cancellation of the operation which the request's token names, and returns <c>202 Accepted</c>,
-    /// including for a terminal operation, which is unchanged.
+    /// 可持久地请求取消该请求的象征性名称,并返回 <c>202 Accepted</c>,
+    /// 包括终端操作,但无变化。
     /// </summary>
     public async Task<IResult> CancelAsync(HttpContext context)
     {
@@ -120,7 +120,7 @@ internal sealed class DurableNexusOperations(
     private static IResult NotFound() =>
         NexusProtocol.HandlerError(StatusCodes.Status404NotFound, "NOT_FOUND", "The operation doesn't exist, or its retention has ended.");
 
-    /// <summary>Returns an <c>UNAVAILABLE</c> handler error for a request which left its operation as it was, which the caller retries.</summary>
+    /// <summary>回返a <c>UNAVAILABLE</c> 处理器错误, 请求时将操作保留原样, 调用者重试 。</summary>
     private static IResult Unavailable() =>
         NexusProtocol.HandlerError(
             StatusCodes.Status503ServiceUnavailable,

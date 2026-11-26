@@ -102,10 +102,10 @@ namespace Orleans.Runtime.Messaging
 
         protected override bool PrepareMessageForSend(Message msg)
         {
-            // Check to make sure we're not stopped
+            // 检查以确保我们不被阻止
             if (!this.IsValid)
             {
-                // Recycle the message we've dequeued. Note that this will recycle messages that were queued up to be sent when the gateway connection is declared dead
+                // 循环我们解排的讯息。 注意, 这将回收连接被宣布为已关闭时要发送的列队信件
                 msg.TargetSilo = null;
                 this.messageCenter.SendMessage(msg);
                 return false;
@@ -149,7 +149,7 @@ namespace Orleans.Runtime.Messaging
             if (string.IsNullOrEmpty(reason)) reason = "Rejection from silo - Unknown reason.";
             var error = this.MessageFactory.CreateRejectionResponse(msg, rejectionType, reason);
 
-            // rejection msgs are always originated locally, they are never remote.
+            // 拒绝 msgs总是本地来源,
             this.OnReceivedMessage(error);
         }
 
@@ -159,7 +159,7 @@ namespace Orleans.Runtime.Messaging
             if (msg.Direction == Message.Directions.Request)
             {
                 LogDebugClientIsRejectingMessage(this.Log, msg, reason);
-                // Done retrying, send back an error instead
+                // 重试完成后, 将错误寄回
                 this.SendRejection(msg, Message.RejectionTypes.Transient, $"Client is rejecting message: {msg}. Reason = {reason}");
             }
             else

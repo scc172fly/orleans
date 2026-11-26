@@ -19,7 +19,7 @@ internal readonly struct DirectoryResult<T>
     public readonly MembershipVersion Version;
 
     /// <summary>
-    /// When greater than <see cref="TimeSpan.Zero"/>, indicates that the caller should retry after the specified delay.
+    /// 当大于 <see cref="TimeSpan.Zero"/>时,表示呼叫者应在指定延迟之后重新尝试。
     /// </summary>
     [Id(2)]
     public readonly TimeSpan RetryAfterDelay;

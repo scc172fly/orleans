@@ -55,14 +55,14 @@ spec:
       labels:
         app: votingapp
 
-        # The serviceId label is used to identify the service to Orleans
+        # serviceId 标签用于识别对 Orleans的服务
         orleans/serviceId: votingapp
 
-        # The clusterId label is used to identify an instance of a cluster to Orleans.
-        # Typically, this will be the same value as serviceId or any fixed value.
-        # In cases where you are not using rolling deployments (for example, blue/green deployments),
-        # this value can allow for distinct clusters which do not communicate directly with each others,
-        # but which still share the same storage and other resources.
+        # clusterId 标签用于识别组群到 Orleans的示例。
+        # 通常,这一数值将与 serviceId 或任何固定数值相同。
+        # 在未使用滚动部署(例如,蓝/绿色部署)的情况下,
+        # 此值允许不同组群使用, 且不直接相互沟通,
+        # 但仍拥有同样的储存和其他资源。
         orleans/clusterId: votingapp
     spec:
       containers:
@@ -99,7 +99,7 @@ spec:
           - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
             value: "120"
           - name: REDIS
-            value: "redis" # The name of the redis service
+            value: "redis" # 重新服务的名称
       terminationGracePeriodSeconds: 180
       imagePullSecrets:
         - name: dncvotingapp
@@ -110,7 +110,7 @@ spec:
       maxSurge: 1
 
 ---
-# In order to be able to access the service from outside the cluster, we will need to add a Service object
+# 为了能够从组群之外获得服务,我们需要增加一个服务对象
 apiVersion: v1
 kind: Service
 metadata:
@@ -128,7 +128,7 @@ spec:
   selector:
     app: votingapp
 
-# For RBAC-enabled clusters, the Kubernetes service account for the pods may also need to be granted the required access:
+# 对于由非洲区域局带动的集群,可能需要为这些舱位提供 Kubernetes 服务账户,以便获得所需的接入:
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1

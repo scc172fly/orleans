@@ -1,35 +1,45 @@
 ---
-title: "ORLEANS0007: Use one Orleans activation constructor"
-description: Understand the legacy ORLEANS0007 constructor-selection diagnostic.
+title: "ORLEANS0007:使用一个 Orleans 激活构建器"
+description: "了解遗产 ORLEANS0007 建筑选择诊断"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0007: Use one Orleans activation constructor
+<a id="orleans0007-use-one-orleans-activation-constructor"></a>
 
-| Property | Value |
+# ORLEANS0007:使用一个 Orleans 激活构建器
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Error |
-| Code fix | Not available |
+| 类别类 | 用法 |
+| 严重性 | 错误错误 |
+| 代码修正 | 不详 |
 
-## Cause
+<a id="cause"></a>
 
-This legacy rule represents ambiguous constructor selection for an Orleans-serialized type. Current Orleans activation uses at most one constructor selected for generated activation.
+## 原因原因原因
 
-## Impact
+此遗留规则代表了对 Orleans- 序列型号的模糊构建器选择。当前 Orleans 激活使用,大多数是被选中用于生成激活的某个构建器。
 
-Ambiguous constructor metadata prevents deterministic object activation. The older `[OrleansConstructor]` marker is obsolete and is not used by current Orleans activation.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Remove obsolete or duplicate constructor markers. When generated activation requires an explicit constructor, use one `[GeneratedActivatorConstructor]`.
+结构元数据不清晰, 无法激活确定性物体。 旧的 `[OrleansConstructor]` 标记已经过时, 当前 Orleans 激活时没有使用 。
 
-If this diagnostic appears because constructor declarations carry invalid `[GenerateSerializer]` attributes, remove those constructor-level attributes.
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Suppress only for a known compatibility or test artifact after all constructor annotations have been reviewed.
+删除陈旧或重复的构建标记。当生成启动需要清晰的构造器时,请使用一个 `[GeneratedActivatorConstructor]`。
+
+如果出现这种诊断是因为建筑申报含有无效的 `[GenerateSerializer]` 属性,则删除这些构建方层面的属性。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+只有在对所有建筑说明进行审查后,才禁止已知的兼容性或试验文物。
 
 ```ini
 [*.cs]

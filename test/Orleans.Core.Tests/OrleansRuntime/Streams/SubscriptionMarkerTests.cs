@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// Tests for subscription marker functionality including implicit and explicit subscription marking.
+    /// 订阅标记功能测试,包括隐含和明确的订阅标志。
     /// </summary>
     [TestSuite("BVT")]
     [TestSuite("Nightly")]

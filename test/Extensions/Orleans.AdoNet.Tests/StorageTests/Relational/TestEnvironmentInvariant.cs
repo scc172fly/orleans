@@ -33,23 +33,23 @@ namespace UnitTests.StorageTests.Relational
     }
 
     /// <summary>
-    /// This enforces the necessary environment invariants hold before starting to run tests.
-    /// This servers as a class or object invariant for the test environment.
+    /// 这强制规定在开始测试之前必须维持必要的环境。
+    /// 此服务器是测试环境的类或对象变量 。
     /// </summary>
     public class TestEnvironmentInvariant
     {
         /// <summary>
-        /// An environment variable to set a test settings file location.
+        /// 设置测试设置文件位置的环境变量。
         /// </summary>
         public const string EnvVariableForCustomSettingLocation = "customTestSettingsFileLocation";
 
         /// <summary>
-        /// A default custom settings file location if <see cref="EnvVariableForCustomSettingLocation"/> is not set.
+        /// 如果 <see cref="EnvVariableForCustomSettingLocation"/> 未被设置, 默认的自定义文件位置 。
         /// </summary>
         public const string FallBackCustomTestSettingsFileLocation = @"..\..\..\CustomTestSettings.json";
 
         /// <summary>
-        /// The default test settings before merging with external ones.
+        /// 与外部组合前的默认测试设置。
         /// </summary>
         public TestEnvironmentSettings DefaultSettings { get; } = new TestEnvironmentSettings
         {
@@ -75,12 +75,12 @@ namespace UnitTests.StorageTests.Relational
         };
 
         /// <summary>
-        /// The active settings after merging the default ones with the active ones.
+        /// 将默认设置与活动设置合并后的活动设置。
         /// </summary>
         public TestEnvironmentSettings ActiveSettings { get; set; }
 
         /// <summary>
-        /// The default constructor.
+        /// 默认构建器 。
         /// </summary>
         public TestEnvironmentInvariant()
         {
@@ -88,10 +88,10 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Ensures the storage with the given connection is functional and if not, tries to make it functional.
+        /// 确保与特定连接的存储功能正常,如果无法保存,则设法使其功能正常。
         /// </summary>
-        /// <param name="connection">The connection with which to ensure the storage is functional.</param>
-        /// <param name="storageName">Storage name. This is optional.</param>
+        /// <param name="connection">确保储存功能的连接。</param>
+        /// <param name="storageName">存储名称。 这是可选的 。</param>
         /// <returns></returns>
         public async Task<RelationalStorageForTesting?> EnsureStorageForTestingAsync(
             StorageConnection connection,
@@ -112,19 +112,19 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Tries to ensure the storage emulator is running before the tests start.
+        /// 尝试确保存储模拟器在测试开始前运行。
         /// </summary>
-        /// <remarks>This could perhaps have more functionality.</remarks>
+        /// <remarks>这也许可以有更多的功能。</remarks>
         public bool EnsureEmulatorStorageForTesting()
         {
             return StorageEmulator.TryStart();
         }
 
         /// <summary>
-        /// Tries to load custom settings and if one is find, tries to merge them to the given default settings.
+        /// 尝试装入自定义设置, 如果找到的话, 尝试将其合并到给定的默认设置中 。
         /// </summary>
-        /// <param name="defaultSettings">The default settings with which to merge the ones.</param>
-        /// <returns>The result settings after merge.</returns>
+        /// <param name="defaultSettings">合并这些设置的默认设置。</param>
+        /// <returns>合并后的结果设置。</returns>
         private static TestEnvironmentSettings TryLoadAndMergeWithCustomSettings(TestEnvironmentSettings defaultSettings)
         {
             string customTestSettingsFileLocation = Environment.GetEnvironmentVariable(EnvVariableForCustomSettingLocation, EnvironmentVariableTarget.User) ?? FallBackCustomTestSettingsFileLocation;
@@ -137,7 +137,7 @@ namespace UnitTests.StorageTests.Relational
             var finalSettings = JObject.FromObject(defaultSettings);
             if (File.Exists(customFileLoc))
             {
-                //TODO: Print that parsing custom values...
+                //TODO: 打印正在解析自定义值的文字...
                 var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Union };
                 var customSettingsJson = JObject.Parse(File.ReadAllText(customFileLoc));
                 customSettingsJson.Merge(finalSettings, mergeSettings);
@@ -148,15 +148,15 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Checks if a given storage is reachable.
+        /// 检查是否可到达给定的存储 。
         /// </summary>
-        /// <param name="connection">The connection to check.</param>
+        /// <param name="connection">连接要检查。</param>
         /// <returns></returns>
         private static async Task<bool> CanConnectToStorage(
             StorageConnection connection,
             CancellationToken cancellationToken)
         {
-            //How detect if a database can be connected is surprisingly tricky. Some information at
+            //如何探测数据库连接到一个数据库的可连接性是令人惊讶的难题。
             //http://stackoverflow.com/questions/3668506/efficient-sql-test-query-or-validation-query-that-will-work-across-all-or-most.
             var storage = RelationalStorage.CreateInstance(connection.StorageInvariant, connection.ConnectionString);
             var query = connection.ConnectionString != AdoNetInvariants.InvariantNameOracleDatabase ? "SELECT 1;" : "SELECT 1 FROM DUAL;";

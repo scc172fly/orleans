@@ -26,8 +26,8 @@ public sealed class MigrationGrain(ILocalDurableJobManager jobs, MigrationRun ru
             throw new InvalidOperationException("One intentional failure demonstrates retry in the original A shard.");
         }
 
-        // Overwriting the same receipt makes the sample's side effect idempotent.
-        // Receipts are independent of job journals and survive process restarts.
+        // 盖上同一张收据 样本的副作用就太无能了
+        // 收据独立于工作日记账,生存过程重新开始。
         var receipt = $"{run.Phase}|{context.Job.ShardId}|{context.DequeueCount}";
         await run.ReceiptBlob(context.Job).UploadAsync(BinaryData.FromString(receipt),
             overwrite: true, cancellationToken: attemptCancellationToken);

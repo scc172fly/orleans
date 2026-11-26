@@ -5,16 +5,16 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.TestingHost.Logging
 {
     /// <summary>
-    /// <see cref="ILoggerProvider"/> which outputs to a log file.
+    /// 将输出到日志文件的<see cref="ILoggerProvider"/> 。
     /// </summary>
     public class FileLoggerProvider : ILoggerProvider
     {
         private readonly FileLoggingOutput output;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileLoggerProvider"/> class.
+        /// 初始化 <see cref="FileLoggerProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="filePath">The log file path.</param>
+        /// <param name="filePath">日志文件路径。</param>
         public FileLoggerProvider(string filePath)
         {
             this.output = new FileLoggingOutput(filePath);
@@ -34,16 +34,16 @@ namespace Orleans.TestingHost.Logging
     }
 
     /// <summary>
-    /// Extension methods to configure ILoggingBuilder with FileLoggerProvider
+    /// 配置扩展配置方法 ILoggingBuilder 与 FileLoggerProvider
     /// </summary>
     public static class FileLoggerProviderExtensions
     {
         /// <summary>
-        /// Adds file logging with a provider owned by the logging service container.
+        /// 添加与伐木服务集装箱所属供应商的文件记录。
         /// </summary>
-        /// <param name="builder">The logging builder.</param>
-        /// <param name="filePathName">The log file path</param>
-        /// <returns>The logging builder.</returns>
+        /// <param name="builder">伐木工</param>
+        /// <param name="filePathName">日志文件路径</param>
+        /// <returns>伐木工</returns>
         public static ILoggingBuilder AddFile(
             this ILoggingBuilder builder,
             string filePathName)

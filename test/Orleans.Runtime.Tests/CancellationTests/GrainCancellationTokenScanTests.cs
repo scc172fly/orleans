@@ -6,8 +6,8 @@ using Xunit;
 namespace UnitTests.CancellationTests
 {
     /// <summary>
-    /// Tests that the runtime inspects request arguments for <see cref="GrainCancellationToken"/> instances
-    /// only when the request may have one.
+    /// 测试运行时检查要求为 <see cref="GrainCancellationToken"/> 实例进行参数
+    /// 只有在请求可能提出时才有。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

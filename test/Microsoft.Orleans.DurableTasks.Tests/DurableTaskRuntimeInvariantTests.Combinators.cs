@@ -41,7 +41,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             [DurableTaskStatus.CompletedSuccessfully, DurableTaskStatus.Canceled, DurableTaskStatus.Failed, DurableTaskStatus.Failed],
             Enumerable.Range(0, 4).Select(index => storage.Get(rootId.Child("batch").Child($"{index}")).Result!.Status));
 
-        // The combinator runs as part of the root, so it stores no task of its own.
+        // 组合器作为根部的一部分运行, 因此它没有自己的任务 。
         Assert.False(storage.Contains(rootId.Child("batch")));
     });
 
@@ -70,7 +70,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             ]).WithId("batch");
             if (Interlocked.Increment(ref attempts) == 1)
             {
-                // The first attempt stops here and is aborted, so the next activation replays it.
+                // 第一次尝试停在这里,中止了 所以下一次激活会重播
                 firstAttemptCompletedBatch.TrySetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
@@ -82,7 +82,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await firstAttemptCompletedBatch.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // A deployment adds a combinator before the named one; the named inputs keep their identifiers.
+        // 部署在指定输入之前增加一个组合器;指定输入器保留识别资料。
         addEarlierCombinator = true;
         var (replacement, _, _, _) = CreateRuntime(storage, manager);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);

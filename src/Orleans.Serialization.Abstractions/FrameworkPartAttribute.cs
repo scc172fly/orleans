@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace Orleans.Metadata;
 
 /// <summary>
-/// Specifies that an assembly does not contain application code.
+/// 指定组装不包含应用程序代码。
 /// </summary>
 [AttributeUsage(AttributeTargets.Assembly)]
 [EditorBrowsable(EditorBrowsableState.Never)]

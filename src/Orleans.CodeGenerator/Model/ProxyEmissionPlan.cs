@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// The spelled declaration of a generated proxy class. Every constructor shares <see cref="ConstructorStatements"/>.
+/// 生成代用类的拼写声明。 每个构建者共享 <see cref="ConstructorStatements"/>。
 /// </summary>
 internal sealed record ProxyEmissionPlan(
     string ClassName,
@@ -13,7 +13,7 @@ internal sealed record ProxyEmissionPlan(
     EquatableArray<string> ConstructorStatements,
     EquatableArray<ProxyMethodEmissionPlan> Methods)
 {
-    /// <summary>The metadata name of the generated type within <paramref name="generatedNamespace"/>.</summary>
+    /// <summary>生成类型在 <paramref name="generatedNamespace"/>.</summary>
     public string GetMetadataName(string generatedNamespace)
     {
         var name = string.IsNullOrEmpty(generatedNamespace) ? ClassName : $"{generatedNamespace}.{ClassName}";
@@ -21,5 +21,5 @@ internal sealed record ProxyEmissionPlan(
     }
 }
 
-/// <summary>An explicit interface implementation: its declaration line and body statements.</summary>
+/// <summary>明确的接口执行:其申报项目和机构报表。</summary>
 internal sealed record ProxyMethodEmissionPlan(string Declaration, EquatableArray<string> Statements);

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>Cooperative cancellation and administrative abort of durable tasks.</summary>
+/// <summary>合作社取消和在行政上中止持久任务。</summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
     private static readonly TimeSpan CancellationTestTimeout = TimeSpan.FromSeconds(5);
@@ -122,7 +122,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             }
         }));
 
-        // The child's attempt waits for the write which records its delay.
+        // 儿童试图等待记录其延误的书写。
         var delayWriteStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseDelayWrite = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         manager.AfterWriteStarted = async () =>
@@ -135,15 +135,15 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, request, TestContext.Current.CancellationToken);
         await delayWriteStarted.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // Code which awaits the child observes its outcome no earlier than this continuation does.
+        // 等待儿童遵守其结果的《儿童法》,其执行时间不早于这一延续期。
         var observed = runtime.GetScheduledTaskHandle(waitId).WaitAsync(TestContext.Current.CancellationToken).AsTask().ContinueWith(
             _ => rootContext!.IsTaskCancellationRequested,
             CancellationToken.None,
             TaskContinuationOptions.ExecuteSynchronously,
             TaskScheduler.Default);
 
-        // The cancellation's write waits to capture until the child's attempt, which observes the staged request, ends
-        // canceled, so one write commits both the request and the child's result.
+        // 取消的书写等待捕获 直到孩子尝试, 从而遵从分阶段请求, 结束
+        // 取消, 所以一个写作既要满足请求,又要孩子的结果。
         var gate = new PrepareGate();
         manager.RegisterStateMachine("prepare-gate", gate);
         var cancellation = ((IDurableTaskServer)runtime).CancelAsync(rootId, "buyer", TestContext.Current.CancellationToken).AsTask();
@@ -152,12 +152,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         gate.Open();
         await cancellation.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // The owner's attempt observes its task's cancellation before the outcome which that cancellation caused.
+        // 业主试图在取消合同导致结果之前观察其取消合同的任务。
         Assert.True(await observed.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken));
         Assert.Equal("compensated: buyer", (await WaitForResponseAsync(runtime, rootId)).GetResult<string>());
     });
 
-    /// <summary>Holds the preparation of writes, before they capture staged changes, until it opens.</summary>
+    /// <summary>等待写作准备,然后记录分阶段的改动,直到打开。</summary>
     private sealed class PrepareGate : IStateMachine
     {
         private readonly TaskCompletionSource _open = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -204,7 +204,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     [Fact]
     public Task CancellationReachesTheInputsOfANamedCombinator() => ActivationScheduler.RunAsync(async () =>
     {
-        // The blocked input waits without a durable wait, so its segment runs until the cancellation reaches it.
+        // 被屏蔽的输入等待着没有耐久的等待, 所以它的部分会运行到取消时 。
         var (runtime, storage, _, transport) = CreateRuntime(reentrant: true);
         var rootId = TaskId.Parse("root");
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -226,7 +226,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await transport.ResumeSent.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
         await ((IDurableTaskServer)runtime).CancelAsync(rootId, TestContext.Current.CancellationToken);
 
-        // The inputs' IDs are root/work/0 and root/work/1, beneath the combinator's operation ID rather than the root.
+        // 输入的ID是根/工作/0和根/工作/1,在组合器操作ID下面,而不是根。
         Assert.Equal("canceled", (await WaitForResponseAsync(runtime, rootId)).GetResult<string>());
         Assert.Equal(DurableTaskStatus.Canceled, storage.Get(TaskId.Parse("root/work/0")).Result!.Status);
         Assert.Equal(DurableTaskStatus.Canceled, storage.Get(TaskId.Parse("root/work/1")).Result!.Status);
@@ -313,7 +313,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             var step = await DurableTask.Run(_ => Interlocked.Increment(ref stepRuns)).WithId("step");
             if (Interlocked.Increment(ref attempts) == 1)
             {
-                // The first activation stops while the body waits, before cancellation is requested.
+                // 第一次激活停止时, 身体等待, 请求取消前 。
                 firstAttemptBlocked.TrySetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, context.CancellationToken);
             }
@@ -338,7 +338,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await firstAttemptBlocked.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // The cancellation request is durable, and the body's next attempt observes it.
+        // 取消申请是持久的,该机构的下一次尝试是遵守。
         storage.RequestCancellation(rootId, storage.Get(rootId));
         var (replacement, _, _, _) = CreateRuntime(storage, manager);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
@@ -475,7 +475,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal((treeIds[2], remoteTarget, "operator"), transport.Aborts.Select(static abort => (GetNodeId(abort.TaskId), abort.Target, abort.Reason)).Single());
         AssertAborted(await WaitForResponseAsync(runtime, rootId), "operator");
 
-        // The running attempt observes host abort, not durable cancellation, and its result is discarded.
+        // 运行中的尝试观察主机中止, 不是持久取消, 其结果被丢弃 。
         Assert.Equal((true, false), await workEnded.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken));
         await HandleAsync(CreateHandler(runtime), ResumeContext(runtime, treeIds[1], resume.Generation, resume.DueTime));
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
@@ -553,7 +553,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         Accept(CreateHandler(runtime), AbortMessage(caller, runtime.GrainId, taskId, "caller aborted"));
 
-        // The abort and the caller's completion are staged with the inbox batch, which commits them together.
+        // 中止和呼叫员的完成 与箱组一起进行
         Assert.Equal(writes, manager.WriteCount);
         var completion = Assert.Single(transport.Completions);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);

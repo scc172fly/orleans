@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Provides time from the system clock.
+    /// 提供系统时钟的时间。
     /// </summary>
     public class Clock : IClock
     {

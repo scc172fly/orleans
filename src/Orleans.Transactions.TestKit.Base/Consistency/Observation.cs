@@ -4,32 +4,32 @@ using System.Collections.Generic;
 namespace Orleans.Transactions.TestKit.Consistency
 {
     /// <summary>
-    /// Describes a transactional read observation of a grain state version.
+    /// 描述对 grain 状态版本的读数表示交易观察。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public struct Observation : IEquatable<Observation>
     {
         /// <summary>
-        /// Gets or sets the logical number of the observed grain.
+        /// 获取或设置被观察的 grain的逻辑编号。
         /// </summary>
         [Id(0)]
         public int Grain { get; set; }
 
         /// <summary>
-        /// Gets or sets the observed state version sequence number.
+        /// 获取或设置观察状态版本序列编号。
         /// </summary>
         [Id(1)]
         public int SeqNo { get; set; }
 
         /// <summary>
-        /// Gets or sets the identifier of the transaction which wrote the observed version.
+        /// 获取或设置写入观察版本的交易标识符。
         /// </summary>
         [Id(2)]
         public string WriterTx { get; set; }
 
         /// <summary>
-        /// Gets or sets the identifier of the transaction which made the observation.
+        /// 获取或设置进行观察的交易的识别符号。
         /// </summary>
         [Id(3)]
         public string ExecutingTx { get; set; }
@@ -48,12 +48,12 @@ namespace Orleans.Transactions.TestKit.Consistency
         public override readonly int GetHashCode() => HashCode.Combine(Grain, SeqNo, WriterTx, ExecutingTx);
 
         /// <summary>
-        /// Determines whether two observations are equal.
+        /// 确定两个观察是否相等。
         /// </summary>
         public static bool operator ==(Observation left, Observation right) => left.Equals(right);
 
         /// <summary>
-        /// Determines whether two observations are unequal.
+        /// 确定两种意见是否不平等。
         /// </summary>
         public static bool operator !=(Observation left, Observation right) => !left.Equals(right);
     }

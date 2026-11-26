@@ -1,152 +1,166 @@
-# Durable Jobs provider migration
+<a id="durable-jobs-provider-migration"></a>
 
-A small console sample moves new Durable Jobs from named Azure Blob provider A
-to B while existing A journals drain in place. Aspire runs Azurite with a data
-volume and invokes the **same console project in two sequential processes**.
-Inventory and verification results appear in local console output.
+# 提供持久就业的劳动力移徙
 
-## Package availability
+一个小控制台样本将新的持久工作从命名 Azure 球提供商 A 移动到
+现有 A 日记排水量已到位, 而 B 则在 B 之后。 aspire 使用数据运行 Azurite
+引用 **同一控制台项目, 在两个相继进程中**.
+库存和核查结果出现在当地控制台产出中。
 
-This sample uses named journal-provider and storage-inspector APIs which require
-packages built from sources containing this feature. Until the APIs are
-published, build the sample using the repository's local sample package feed.
-The sample build replaces the pinned package-family versions with the locally
-packed version containing the APIs.
+<a id="package-availability"></a>
 
-From the repository root, prepare that feed and build the sample projects:
+## 成套软件包的可用性
+
+本样本使用名为日记簿提供者和储存检查员的API, 需要
+使用包含此特性的源构建软件包。直到 API
+使用存储库的本地样本包反馈建立样本。
+样本结构用当地版本取代了定型包装袋-家属版本
+包含 APIs 的已包装版本 。
+
+从存储库根根中, 准备此种子并构建样本项目:
 
 ```powershell
 pwsh .\samples\Build-Samples.ps1
 ```
 
-This packs the current Orleans sources and builds the sample projects against
-those packages. After publication, the sample folder can be copied out and the
-Orleans package versions in its `Directory.Packages.props` updated together to
-the release containing the APIs.
+此包包此当前 Orleans 并参照
+后,可以复制样本文件夹并
+Orleans 软件包的包装版本 `Directory.Packages.props` 一起更新
+包含API的发布。
 
-## Run from this checkout
+<a id="run-from-this-checkout"></a>
 
-Prerequisites are the .NET SDK, Aspire CLI, and its Docker-compatible container
-runtime for Azurite. Aspire supplies the local emulator connection.
+## 从此退开运行
 
-After the local package build above, run the existing binaries with their
-resolved local packages. From the repository root:
+先决条件是 .NET SDK、Aspire CLI及其与多克兼容的容器。
+启动 Azurite 时间。 派遣提供本地模拟器连接 。
+
+以上本地包件构建后, 运行现有的二进制
+解析本地软件包。 从仓库根 :
 
 ```powershell
 dotnet run --no-build --no-restore --configuration Release --project samples\DurableJobsMigration\DurableJobsMigration.AppHost
 ```
 
-Once packages containing these APIs are published and the pins are updated,
-the copy-out workflow is `aspire run` from `DurableJobsMigration.AppHost`.
+一旦包含这些API的包件公布并更新了插页,
+复制的工作流程是 `aspire run` 调自 `DurableJobsMigration.AppHost`.
 
-In the Aspire dashboard, watch `prepare` and then `drain` console output.
-`prepare` must exit successfully before Aspire starts `drain`. A successful
-run prints `VERIFIED` and both resources exit with code zero. The AppHost remains running so its dashboard
-and storage can be inspected; stop it after verification.
+在星空仪表板上, 观察 `prepare` 时和时间 `drain` 控制台输出 。
+`prepare` 在阿西普尔开始 `drain`之前必须成功退出。 成功
+运行打印 `VERIFIED` ,并且两个资源都退出代码为零的 资源退出。 AppHost 仍然运行着, 以运行其仪表板
+储存和储存可以检查;核查后停止。
 
-Each AppHost invocation chooses a fresh run ID and independent A, B, and control
-containers. Azurite's disk-backed data volume preserves Blob contents across
-process and AppHost restarts. The prepare process exits before the drain
-process starts.
+每个 AppHost 的用途选择新运行的身份识别码,独立 A、 B 和控制
+容器中容器的 Azurite 磁盘支持的数据量保存了横团内的内容
+和 AppHost 重新启动进程。准备过程在排出前退出
+进程开始。
 
-## What is verified
+<a id="what-is-verified"></a>
 
-1. `prepare` selects A for writes and B for draining, mirroring the first
-   deployment stage in which every silo can locate both providers.
-2. It schedules an A job due in 30 seconds and another A job due 30 seconds
-   after that. Both are beyond the prepare host's five-second discovery lookahead. A complete
-   inventory must include both; B must be empty.
-3. It saves both unchanged `DurableJob` handles in a separate control Blob using
-   Orleans serialization, releases the shards on graceful host shutdown, and
-   exits. The next process recovers jobs from their journals and handles from
-   the control Blob.
-4. `drain` starts a new host with B for writes and A for draining. It reads the
-   saved handles, confirms A storage survived, creates a new B job, and verifies
-   that B now has a shard.
-5. A work recovers in the new process. Its first execution deliberately fails;
-   the retry occurs five seconds later, beyond its original five-second shard
-   window, with the **same shard ID**. B independently executes its new work.
-6. The saved future A handle is canceled after discovery loads and owns its
-   shard. This phase deliberately widens discovery and activation to two minutes
-   so the future shard is loaded and claimed before cancellation.
-7. Blob receipts prove execution occurred in the drain process, retained the
-   original shard IDs, and retried A. The sample also verifies the canceled
-   future job's receipt is absent. Its executor observes the empty queue at
-   the shard's start window and deletes the journal. The host waits for zero
-   total shards in **both** namespaces before stopping. These bounded future
-   times let the complete storage-draining demonstration finish within three minutes.
+## 核查了哪些经核实
 
-Receipts are idempotent writes keyed by job ID. They demonstrate handling
-at-least-once execution: repeated attempts overwrite the same external receipt.
-The receipt and job-journal mutations commit independently. Persisted Blob
-receipts and complete inventories establish the sample's outcome.
+1. `prepare` 选择 A 写入和 B 排水, 映射第一个
+   每个 silo 都能够找到两个提供者的部署阶段。
+2. 30秒后安排一份A工作 30秒后安排另一份A工作
+   之后,这两个都超出了准备的5秒发现主机 之前的5秒前的外观。
+   清单必须包括两者; B必须是空的。
+3. 它使用单独的控件布格将两个未改变的 `DurableJob` 控点保存在单独的控制布束中
+   Orleans 序列化,在优雅主机关闭时释放碎片,
+   下一个过程从他们的日记和处理中回收工作
+   控制布洛布。
+4. `drain` 开始一个新的主机, B 用于写作, A 用于排水。 它读取
+   保存的控点,确认存储器幸存下来,创建新的 B 工作,并核实
+   B现在有碎片
+5. 工程在新过程中恢复。第一次执行时故意失败;
+   重试在5秒后发生,超过原来的5秒钟碎片
+   窗口,使用相同的 **片断 ID**。B独立执行新工作。
+6. 未来保存的 A 把手在发现后取消, 并拥有
+   碎片。 这个阶段故意将发现和激活 扩大到2分钟
+   未来碎片被装入并声明在取消前
+7. 结团收据证明在排水过程中执行,保留
+   原始散径身份识别码,并重新检索 A。 样本还验证取消的
+   未来工作收件没有。 它的执行程序在
+   碎片的起始窗口并删除日记。主机等待零
+   总共碎片 **两者兼** 停止前要停止的命名空间。 这些密闭的未来
+   时间,让完整的储存排水演示在三分钟内完成。
 
-Each process has a three-minute timeout and fails on a missing receipt,
-unexpected routing, stalled cancellation, or inventory failure.
-Inspection errors print `UNKNOWN` and fault the run. If a very slow machine
-executes A work before the prepare process shuts down, use a new AppHost run with
-`Migration__DueDelaySeconds=90` (accepted range 10–90 seconds).
+收据是一无所有者用工作身份卡键写成的。 它们显示处理方式
+执行后至少一次:重复尝试覆盖相同的外部收据。
+接收和工作日报的突变独立进行。
+收据和完整的清单确定抽样结果。
 
-## Applying the pattern to a deployment
+每个过程有三分钟超时, 无法收到缺失的收据,
+意外路线、取消停顿或库存故障。
+检查错误打印 `UNKNOWN` 并运行出错。如果机器非常慢,
+在准备进程关闭前执行一项工作,使用新的 AppHost 运行时
+`Migration__DueDelaySeconds=90` (接受范围为10-90秒)。
 
-The named storage options, catalog, and state-manager factory share a binding.
-The default provider for grain journaling remains independent. Keep every
-physical namespace under one selected name and preserve each shard's original
-authoritative storage location through its final deletion.
+<a id="applying-the-pattern-to-a-deployment"></a>
 
-New shards use the write provider. Existing jobs retain their original provider
-for execution, retry, rescheduling, ownership, cancellation, compaction, and
-deletion. Shard IDs retain their timestamp/GUID form, and serialized handles
-retain their existing provider-independent shape. In steady state, one selected
-provider gets a direct metadata read for an uncached known ID. Migration lookup
-checks the write provider first, then draining providers as needed; failures
-remain distinct from absence.
+## 将模式应用到部署
 
-For a multi-silo migration:
+名为存储选项、目录和州管理工厂的股份都装订在一起。
+grain 日记账的默认提供者仍然独立。保持每个
+以选定名称为下方的物理命名空间,并保存每个碎片的原始
+最后删除后,将存放于权威储存地点。
 
-- Deploy both providers to **all scheduling silos**, initially with A writing
-  and B draining, before enabling B creation.
-- Restart with B writing and A draining. For a strict boundary, pause
-  application scheduling until every scheduling silo is updated and prior
-  scheduling calls finish. A rolling change can otherwise create A shards
-  until the last old writer finishes.
-- Keep A's listing, read, conditional update, write, and delete permissions.
-  Draining is a read/write workload.
-- Require successful complete A inventories after all writers cut over.
-  Resolve future-dated, owned, poisoned, and unrecognized work and cleanup
-  failures. Repeat inventories as appropriate for live storage listings.
-- Only then restart with B alone and retire A when other consumers are done.
-  To roll back, keep both selected, switch writes to A, and drain B.
+新碎片使用写作提供者。 现有工作保留原有提供者
+执行、再试、重新安排、所有权、取消、压缩和
+删除。硬化 ID 保留其时间戳/ GUID 格式,并按序处理
+以稳定状态,选定一个
+提供商直接获得一个为未知身份不明的元数据读取的元数据。
+检查写作提供者, 然后根据需要排水提供者; 失败
+与缺席不同。
 
-## Reading inventory
+对于多silo 移徙:
 
-`IDurableJobsStorageInspector.InspectAsync` reads the selected provider's full
-`jobs/shards/` namespace using read-only catalog and metadata operations. Its
-local snapshot reports:
+- 将两个供应商都部署到 **所有调度 silos**, 最初以 A 书写方式
+  和B排气,在促成B创建之前。
+- 重新开始 B 写入和 A 排水。 对于严格的边界, 请暂停
+  将申请表排到每次日程安排 silo 更新和之前
+  电话调度完成后, 滚动更改可以创建一个碎片
+  直到最后一位老作家完成
+- 保留 A 列表, 读取, 有条件更新, 写并删除权限 。
+  排水是读写工作量。
+- 要求所有作者切换完A类清单后,才能完成。
+  解决未来日期、自有、有毒和未承认的工作和清理问题
+  失灵:酌情对现场储存清单进行重复盘存。
+- 只有到那时,B公司才重新开始使用,而当其他消费者完成后,A公司退休。
+  写到A和排气管B
 
-- `ProviderName` and the caller's `IsWriteProvider` setting.
-- `ShardCount` (including unrecognized entries), `OwnedShardCount`,
-  `PoisonedShardCount`, and `UnrecognizedShardCount` as 64-bit counts.
-- Nullable `OldestShardStartTime` and `NewestShardStartTime`.
+<a id="reading-inventory"></a>
 
-Counts describe shards, each of which can contain many jobs, and owned/poisoned
-categories can overlap. Times describe recognized shard windows; retries and
-reschedules can place future attempts beyond those windows. Retirement requires
-**successful full-zero inventory plus completed cluster-wide writer cutover**.
-Establish the cutover independently from deployment evidence. Treat a failed or
-incomplete snapshot as unknown.
+## 阅读清单
 
-## Cleanup and safety
+`IDurableJobsStorageInspector.InspectAsync` 读取选定供应商的满
+`jobs/shards/` 命名空间使用只读目录和元数据操作。
+当地快照报告:
 
-The sample retains named run resources and the emulator volume for inspection.
-It prints its run-specific control container; A and B use
-`migration-a-<run-id>` and `migration-b-<run-id>`. After both phases finish and
-the inspection and receipt-retention period ends, remove only those three
-run-specific containers with your storage tooling, or remove the sample's
-dedicated emulator volume after stopping the AppHost. Preserve volumes shared with other
-workloads.
+- `ProviderName` 和打电话者的 `IsWriteProvider` 设置。
+- `ShardCount` (包括未经承认的条目), `OwnedShardCount`,
+  `PoisonedShardCount`,和 `UnrecognizedShardCount` ,以64位数计。
+- 可计量 `OldestShardStartTime` 和 `NewestShardStartTime`。
 
-For a real Azure deployment, replace emulator resources with explicitly
-approved accounts and workload identities, budget for storage operations, and
-protect operator inventory output. Apply the application's authentication and
-authorization controls to operator and mutation interfaces.
+数字描述碎片, 每个碎片都包含许多任务, 并拥有/ 投入
+类别可以重叠。Times 描述已识别的碎片窗口; 重试和
+重新安排时间表可以将今后的努力置于这些窗口之外。
+**成功完成的全零库存,加上已完成的全集群制作家切换**。
+与部署证据无关, 确定切换间隔。 请处理失败或失败
+不完整的快照,以未知。
+
+<a id="cleanup-and-safety"></a>
+
+## 清洁和安全
+
+样本保留了命名的运行资源和模拟体量供检查。
+印刷其特定控制集装箱;A和B用途
+`migration-a-<run-id>` 和 `migration-b-<run-id>`。
+检查和收货保留期结束,只删除这三种
+装有存储工具的、或清除样品的容器
+停止 AppHost后专用模拟器音量。保存与其他共享的音量
+工作量。
+
+对于实际 Azure 部署,用明确
+核定账户和工作量、储存业务预算,以及
+保护操作员库存输出。应用应用程序的认证和
+授权操作员和突变界面的控件。

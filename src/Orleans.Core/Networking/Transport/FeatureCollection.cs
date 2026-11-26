@@ -6,7 +6,7 @@ using System.Linq;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// Default implementation for <see cref="IFeatureCollection"/>.
+/// <see cref="IFeatureCollection"/>的默认执行。
 /// </summary>
 public class FeatureCollection : IFeatureCollection
 {
@@ -17,17 +17,17 @@ public class FeatureCollection : IFeatureCollection
     private volatile int _containerRevision;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FeatureCollection"/>.
+    /// 初始化 <see cref="FeatureCollection"/>新实例。
     /// </summary>
     public FeatureCollection()
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FeatureCollection"/> with the specified initial capacity.
+    /// 启动一个 <see cref="FeatureCollection"/> 新实例,并具备指定的初始能力。
     /// </summary>
-    /// <param name="initialCapacity">The initial number of elements that the collection can contain.</param>
-    /// <exception cref="System.ArgumentOutOfRangeException"><paramref name="initialCapacity"/> is less than 0</exception>
+    /// <param name="initialCapacity">收藏中可包含元素的初始数。</param>
+    /// <exception cref="System.ArgumentOutOfRangeException"><paramref name="initialCapacity"/> 小于0</exception>
     public FeatureCollection(int initialCapacity)
     {
         if (initialCapacity < 0)
@@ -39,9 +39,9 @@ public class FeatureCollection : IFeatureCollection
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FeatureCollection"/> with the specified defaults.
+    /// 初始化指定默认值的 <see cref="FeatureCollection"/> 新实例。
     /// </summary>
-    /// <param name="defaults">The feature defaults.</param>
+    /// <param name="defaults">特性默认值。</param>
     public FeatureCollection(IFeatureCollection defaults)
     {
         _defaults = defaults;
@@ -103,7 +103,7 @@ public class FeatureCollection : IFeatureCollection
 
         if (_defaults != null)
         {
-            // Don't return features masked by the wrapper.
+            // 不要把包装纸遮住的特征还回去
             foreach (var pair in _features == null ? _defaults : _defaults.Except(_features, FeatureKeyComparer))
             {
                 yield return pair;

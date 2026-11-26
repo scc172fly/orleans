@@ -1,54 +1,54 @@
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// Exposes the received message and its attempt-scoped terminal outcome.
+/// 展示了收到的信息及其尝试范围终端结果。
 /// </summary>
 public interface IInboxHandlerContext
 {
     /// <summary>
-    /// Gets the received message and its immutable application headers and payload.
+    /// 获取接收到的信息及其不可变的应用程序信头和有效载荷。
     /// </summary>
     /// <remarks>
-    /// The context keeps the message available through actual handler completion, including
-    /// after Complete or Fail removes the pending message. Keep its payload and headers unchanged while handling the command.
+    /// 上下文通过实际处理器完成,包括
+    /// 完成后或失败后删除待定信件。在处理命令时,保持有效载荷和信头不变。
     /// </remarks>
     InboxMessage Message { get; }
 
     /// <summary>
-    /// Synchronously stages inbox completion and transport deduplication for the active attempt.
+    /// 同步阶段的箱完成和运输脱转,以进行积极尝试。
     /// </summary>
     /// <remarks>
-    /// Perform fallible and asynchronous work first, then apply business mutations and stage outgoing messages before
-    /// calling Complete in the same synchronous final block. Return from the handler without further awaits. An attempt
-    /// which ends without an outcome fails the activation, which discards its staged changes, and the message runs again
-    /// after recovery from the journal.
-    /// The runtime owns the subsequent journal write and acknowledgement.
-    /// Repeated completion within the same active attempt coalesces. Completion retains its
-    /// logical outcome when cancellation arrives after the final block starts.
+    /// 先进行可失和非同步的工作,然后应用企业变异,并先分阶段发送信息
+    /// 完全在同步最后街区中拨打。 从操作器返回, 不再等待 。
+    /// 最终没有结果的结束 失败了激活, 它抛弃了它分阶段的变化, 信息再次运行
+    /// 在收到日记后。
+    /// 运行时拥有随后的日记书写作和确认。
+    /// 在同一积极尝试的联结中重复完成。
+    /// 当取消在最后块开始后到达时, 逻辑结果将自动取消 。
     /// </remarks>
     /// <exception cref="System.InvalidOperationException">
-    /// The context is retired or belongs to another activation or handler attempt.
+    /// 上下文已退休或属于另一起激活或处理者企图。
     /// </exception>
     void Complete();
 
     /// <summary>
-    /// Synchronously stages a permanent processing failure, retaining the message as a dead letter
-    /// and recording its identity for transport deduplication.
+    /// 同步处理永久处理失败,将信息保留为一纸空文
+    /// 记录其身份,以便运输脱转。
     /// </summary>
-    /// <param name="reason">The nonblank diagnostic reason for the permanent failure.</param>
+    /// <param name="reason">造成永久性故障的原因 是不空诊断</param>
     /// <remarks>
-    /// Stage any safe-to-commit business changes and outgoing messages before this operation,
-    /// then return synchronously. The runtime persists the dead letter and completion together
-    /// and owns their journal acknowledgement. The dead letter records the current attempt count.
-    /// Repeated calls with the same reason coalesce; Complete preserves an already staged dead letter.
-    /// Cancellation after staging preserves the terminal outcome.
-    /// Use an application reply and Complete for normal business rejection outcomes.
+    /// 启动之前要安全地进行业务变更和发送信息,
+    /// 时间流逝, 仍然无法完成 并一起完成
+    /// 并拥有日记确认。 死亡信件记录了当前尝试数。
+    /// 重复通话,原因相同,因为双方联手; 完整保存了已经没有用的一纸空文。
+    /// 集结后取消合同保留了最终结果
+    /// 使用申请回复和完整软件来完成正常业务拒绝结果。
     /// </remarks>
-    /// <exception cref="System.ArgumentException">The reason is blank.</exception>
-    /// <exception cref="System.ArgumentNullException">The reason is null.</exception>
+    /// <exception cref="System.ArgumentException">原因为空白。</exception>
+    /// <exception cref="System.ArgumentNullException">理由无效。</exception>
     /// <exception cref="System.InvalidOperationException">
-    /// The context is retired or belongs to another activation or attempt, or a different
-    /// terminal outcome has already been staged.
+    /// 上下文已退休或属于另一激活或企图,或属于另一个
+    /// 终端结果已经进入阶段。
     /// </exception>
     void Fail(string reason);
 }

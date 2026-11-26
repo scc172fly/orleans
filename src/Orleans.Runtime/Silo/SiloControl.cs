@@ -157,7 +157,7 @@ namespace Orleans.Runtime
                     var data = activation.Value;
                     if (data == null || data.GrainInstance == null) continue;
 
-                    // TODO: generic type expansion
+                    // TODO: 通用类型扩展
                     var grainTypeName = RuntimeTypeNameFormatter.Format(data.GrainInstance.GetType());
 
                     Dictionary<GrainId, int>? grains;
@@ -362,9 +362,9 @@ namespace Orleans.Runtime
                 [IPlacementDirector.PlacementHintKey] = target
             };
 
-            // Loop until we've migrated the desired count of activations or run out of activations to try.
-            // Note that we have a weak pseudorandom enumeration here, and lossy counting: this is not a precise
-            // or deterministic operation.
+            // 循环直到我们迁移到 所需的激活数 或者用完启动量再尝试
+            // 请注意,我们这里的伪随机性列举和计算都比较薄弱:这不是一个精确的数字。
+            // 或确定性操作。
             var remainingCount = count;
             foreach (var (grainId, grainContext) in activationDirectory)
             {
@@ -415,7 +415,7 @@ namespace Orleans.Runtime
 
         void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
         {
-            // Do nothing, just ensure that this instance is created so that it can register itself in the activation directory.
+            // 什么都不做, 只要确保创建此实例, 这样它就可以在激活目录中注册 。
         }
 
         [LoggerMessage(

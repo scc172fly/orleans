@@ -4,24 +4,24 @@ using Orleans.Runtime;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>Extensions for encoding and staging typed messages and replies.</summary>
+/// <summary>编码和播放输入信件及回复的扩展名</summary>
 public static class OutboxExtensions
 {
-    /// <summary>Encodes and synchronously stages one typed command.</summary>
-    /// <typeparam name="T">The body contract.</typeparam>
-    /// <param name="outbox">The owning grain's outbox.</param>
-    /// <param name="messageType">The subject and serializer binding.</param>
-    /// <param name="messageId">The stable application command identity.</param>
-    /// <param name="destination">The destination inbox.</param>
-    /// <param name="body">The body to encode.</param>
+    /// <summary>编码和同步的单级输入命令。</summary>
+    /// <typeparam name="T">体力合同。</typeparam>
+    /// <param name="outbox">拥有的 grain发件箱。</param>
+    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="messageId">稳定的应用程序指令身份。</param>
+    /// <param name="destination">目标收件箱。</param>
+    /// <param name="body">编码机构。</param>
     /// <param name="deliverAt">
-    /// The optional earliest time, on the Durable Jobs clock, at which the receiving inbox processes the message.
-    /// The outbox still delivers the message immediately. See <see cref="Envelope.DeliverAt"/>.
+    /// 接收箱处理信息时,
+    /// 发件箱仍然立即发送消息。见 <see cref="Envelope.DeliverAt"/>。
     /// </param>
     /// <remarks>
-    /// Serialization finishes before staging begins. Compute fallible business results first,
-    /// then send, apply the business state, and complete in one synchronous final block.
-    /// Payload and header arrays remain available through the staged message's ordinary managed references.
+    /// 开始前完成序列化。
+    /// 然后发送,应用商业状态, 在一个同步的最后一个块中完成 。
+    /// 预置信件通常管理下的引用中仍然可以使用有效装入和信头阵列。
     /// </remarks>
     public static void Send<T>(
         this IOutbox outbox, MessageType<T> messageType,
@@ -33,16 +33,16 @@ public static class OutboxExtensions
         outbox.Send(message);
     }
 
-    /// <summary>Encodes and synchronously stages one typed command to a grain reference.</summary>
-    /// <typeparam name="T">The body contract.</typeparam>
-    /// <param name="outbox">The owning grain's outbox.</param>
-    /// <param name="messageType">The subject and serializer binding.</param>
-    /// <param name="messageId">The stable application command identity.</param>
-    /// <param name="destination">The destination grain.</param>
-    /// <param name="body">The body to encode.</param>
+    /// <summary>编码和同步相接的阶段 输入命令 grain 参考。</summary>
+    /// <typeparam name="T">体力合同。</typeparam>
+    /// <param name="outbox">拥有的 grain发件箱。</param>
+    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="messageId">稳定的应用程序指令身份。</param>
+    /// <param name="destination">目的地 grain.</param>
+    /// <param name="body">编码机构。</param>
     /// <param name="deliverAt">
-    /// The optional earliest time, on the Durable Jobs clock, at which the receiving inbox processes the message.
-    /// The outbox still delivers the message immediately. See <see cref="Envelope.DeliverAt"/>.
+    /// 接收箱处理信息时,
+    /// 发件箱仍然立即发送消息。见 <see cref="Envelope.DeliverAt"/>。
     /// </param>
     public static void Send<T>(
         this IOutbox outbox, MessageType<T> messageType,
@@ -52,15 +52,15 @@ public static class OutboxExtensions
         outbox.Send(messageType, messageId, destination.GetGrainId(), body, deliverAt);
     }
 
-    /// <summary>Encodes and synchronously stages typed commands in enumeration order.</summary>
-    /// <typeparam name="T">The body contract.</typeparam>
-    /// <param name="outbox">The owning grain's outbox.</param>
-    /// <param name="messageType">The subject and serializer binding.</param>
-    /// <param name="messages">The application-defined identities, destinations, and bodies.</param>
+    /// <summary>编码和同步的相位键入命令,按查点顺序排列。</summary>
+    /// <typeparam name="T">体力合同。</typeparam>
+    /// <param name="outbox">拥有的 grain发件箱。</param>
+    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="messages">应用程序定义的身份、目的地和身体。</param>
     /// <remarks>
-    /// Enumerates once and encodes every command before staging any, so an enumeration or encoding failure stages
-    /// nothing. If staging fails, earlier messages remain staged under their original identities with their encoded
-    /// payload and headers. Persistence follows the grain's ordinary journal write.
+    /// 一次点数, 并在任何命令进行前编码每个命令, 所以计数或编码失败阶段
+    /// 无效。如果中转失败,早期信息仍以其原编码身份进行编程
+    /// 常态遵循 grain的普通日记写。
     /// </remarks>
     public static void Send<T>(
         this IOutbox outbox, MessageType<T> messageType,
@@ -81,14 +81,14 @@ public static class OutboxExtensions
         }
     }
 
-    /// <summary>Encodes and stages a reply under the received command's deterministic result child.</summary>
-    /// <typeparam name="T">The reply body contract.</typeparam>
-    /// <param name="outbox">The replying grain's outbox.</param>
-    /// <param name="messageType">The reply subject and serializer binding.</param>
-    /// <param name="context">The current received message and completion context.</param>
-    /// <param name="destination">The application-selected reply destination.</param>
-    /// <param name="body">The reply body.</param>
-    /// <remarks>The reply identity is <c>context.Message.Envelope.MessageId.Key.CreateChildKey("result")</c>.</remarks>
+    /// <summary>编码和阶段 根据收到命令的确定结果孩子的答复。</summary>
+    /// <typeparam name="T">答辩机身合同</typeparam>
+    /// <param name="outbox">答题的 grain发件箱。</param>
+    /// <param name="messageType">答复主题和序列装订。</param>
+    /// <param name="context">当前收到的信息和完成背景。</param>
+    /// <param name="destination">应用程序选择的答复对象。</param>
+    /// <param name="body">回答机构</param>
+    /// <remarks>答:身份是 <c>context.Message.Envelope.MessageId.Key.CreateChildKey("result")</c>.</remarks>
     public static void SendReply<T>(
         this IOutbox outbox, MessageType<T> messageType,
         IInboxHandlerContext context, GrainId destination, T body)
@@ -97,13 +97,13 @@ public static class OutboxExtensions
         outbox.Send(messageType, new MessageId(context.Message.Envelope.MessageId.Key.CreateChildKey("result")), destination, body);
     }
 
-    /// <summary>Encodes and stages a deterministic result reply to a grain reference.</summary>
-    /// <typeparam name="T">The reply body contract.</typeparam>
-    /// <param name="outbox">The replying grain's outbox.</param>
-    /// <param name="messageType">The reply subject and serializer binding.</param>
-    /// <param name="context">The current received message and completion context.</param>
-    /// <param name="destination">The application-selected replying grain reference.</param>
-    /// <param name="body">The reply body.</param>
+    /// <summary>编码和阶段确定结果对 grain 参考的答复。</summary>
+    /// <typeparam name="T">答辩机身合同</typeparam>
+    /// <param name="outbox">答题的 grain发件箱。</param>
+    /// <param name="messageType">答复主题和序列装订。</param>
+    /// <param name="context">当前收到的信息和完成背景。</param>
+    /// <param name="destination">应用程序选择的回复 grain 参考。</param>
+    /// <param name="body">回答机构</param>
     public static void SendReply<T>(
         this IOutbox outbox, MessageType<T> messageType,
         IInboxHandlerContext context, IAddressable destination, T body)

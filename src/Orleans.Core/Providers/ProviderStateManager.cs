@@ -72,28 +72,28 @@ namespace Orleans.Providers
     }
 
     /// <summary>
-    /// Represents an invalid provider lifecycle state or state transition.
+    /// 代表无效的供应商生命周期状态或国家过渡。
     /// </summary>
     [Serializable, GenerateSerializer]
     public sealed class ProviderStateException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProviderStateException"/> class.
+        /// 初始化 <see cref="ProviderStateException"/> 类的新实例。
         /// </summary>
         public ProviderStateException() : base("Unexpected provider state")
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProviderStateException"/> class.
+        /// 初始化 <see cref="ProviderStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
+        /// <param name="message">描述错误的电文。</param>
         public ProviderStateException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProviderStateException"/> class.
+        /// 初始化 <see cref="ProviderStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
-        /// <param name="innerException">The exception that caused the current exception.</param>
+        /// <param name="message">描述错误的电文。</param>
+        /// <param name="innerException">造成当前例外的例外。</param>
         public ProviderStateException(string message, Exception innerException) : base(message, innerException) { }
 
         [Obsolete]

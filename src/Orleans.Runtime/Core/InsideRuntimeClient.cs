@@ -23,7 +23,7 @@ using static Orleans.Internal.StandardExtensions;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Internal class for system grains to get access to runtime object
+    /// 系统 grains 内部类,以访问运行时对象
     /// </summary>
     internal sealed partial class InsideRuntimeClient : IRuntimeClient, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -138,7 +138,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates the message which queues <paramref name="request"/> on <paramref name="target"/> as a local request.
+        /// 创建队列所在的信件 <paramref name="request"/> 日期 时 <paramref name="target"/> 当地要求。
         /// </summary>
         public Message CreateLocalRequest(IGrainContext target, ILocalRequest request, LocalRequestOptions options)
             => messageFactory.CreateLocalRequest(target, request, options);
@@ -156,7 +156,7 @@ namespace Orleans.Runtime
             message.InterfaceType = target.InterfaceType;
             message.InterfaceVersion = target.InterfaceVersion;
 
-            // fill in sender
+            // 填充发件人
             if (message.SendingSilo == null)
                 message.SendingSilo = MySilo;
 
@@ -172,7 +172,7 @@ namespace Orleans.Runtime
                 message.SendingGrain = sendingActivation.GrainId;
             }
 
-            // fill in destination
+            // 填满目标
             var targetGrainId = target.GrainId;
             message.TargetGrain = targetGrainId;
             SharedCallbackData sharedData;
@@ -198,7 +198,7 @@ namespace Orleans.Runtime
             {
                 Debug.Assert(context is not null);
 
-                // Register a callback for the request.
+                // 登记回调请求。
                 callbackData = new CallbackData(sharedData, context, message);
                 if (Volatile.Read(ref _isStopping) != 0)
                 {
@@ -218,8 +218,8 @@ namespace Orleans.Runtime
                 }
             }
 
-            // Completing callbacks during shutdown can resume application code which issues follow-up
-            // calls. Reject those calls so that they cannot outlive the shutdown callback sweep.
+            // 关闭期间完成回调可以恢复发布后续程序的应用代码
+            // 拒绝这些电话,以便他们无法超过关闭回击的扫描。
             if (Volatile.Read(ref _isStopping) != 0)
             {
                 callbackData?.OnHostShutdown();
@@ -234,7 +234,7 @@ namespace Orleans.Runtime
         {
             OrleansInsideRuntimeClientEvent.Instance.SendResponse(request);
 
-            // Don't process messages that have already timed out
+            // 不要处理已经超时的消息
             if (request.IsExpired)
             {
                 this.messagingTrace.OnDropExpiredMessage(request, MessagingInstruments.Phase.Respond);
@@ -245,7 +245,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// UnRegister a callback.
+        /// UnRegister 回调。
         /// </summary>
         private void UnregisterCallback(GrainId grainId, CorrelationId correlationId)
         {
@@ -269,20 +269,20 @@ namespace Orleans.Runtime
 
 #if false
                 //// 1:
-                //// Also record sending activation address for responses only in the cache.
-                //// We don't record sending addresses for requests, since it is not clear that this silo ever wants to send messages to the grain sending this request.
-                //// However, it is sure that this silo does send messages to the sender of a reply.
-                //// In most cases it will already have its address cached, unless it had a wrong outdated address cached and now this is a fresher address.
-                //// It is anyway always safe to cache the replier address.
+                //// 记录发送启动地址 仅对缓存中的答复进行记录
+                //// 我们不记录请求的发送地址,因为不清楚这 silo 是否曾想向发送此请求的 grain 发出信息。
+                //// 然而,可以肯定的是,该 silo 确实向答复的发送者发来信息。
+                //// 在大多数情况下,它已经隐藏了地址,除非有一个错误的过时地址被藏匿,现在这是一个更新的地址。
+                //// 无论如何,藏匿可发送地址总是安全的。
                 //// 2:
-                //// after further thought decided not to do it.
-                //// It seems to better not bother caching the sender of a response at all,
-                //// and instead to take a very occasional hit of a full remote look-up instead of this small but non-zero hit on every response.
-                //if (message.Direction.Equals(Message.Directions.Response) && message.Result.Equals(Message.ResponseTypes.Success))
+                //// 经过进一步考虑决定不这样做。
+                //// 似乎最好不要随便追踪答复的发送者,
+                //// 而不是对每个反应都进行这种小但非零的打击。
+                //(如果)message.Direction.Equals(Message.Directions.Response) && message.Result.Equals(Message.ResponseTypes.Success))
                 //{
-                //    ActivationAddress sender = message.SendingAddress;
-                //    // just make sure address we are about to cache is OK and cachable.
-                //    if (sender.IsComplete && !sender.Grain.IsClient && !sender.Grain.IsSystemTargetType && !sender.Activation.IsSystemTargetType)
+                //    ActivationAddress 发送方= message.SendingAddress;
+                //    确定我们即将藏匿的地址是好的 并且可以被偷
+                //    (如果)sender.IsComplete && !sender.Grain.IsClient && !sender.Grain.IsSystemTargetType && !sender.Activation.IsSystemTargetType)
                 //    {
                 //        directory.AddCacheEntry(sender);
                 //    }
@@ -298,11 +298,11 @@ namespace Orleans.Runtime
 
         public async Task Invoke(IGrainContext target, Message message)
         {
-            // Local requests are one-way: they complete themselves on the target instead of sending a response.
+            // 当地要求是单向的:它们完成目标,而不是做出答复。
             Debug.Assert(!message.IsLocalOnly || message.Direction == Message.Directions.OneWay);
             try
             {
-                // Don't process messages that have already timed out
+                // 不要处理已经超时的消息
                 if (message.IsExpired)
                 {
                     this.messagingTrace.OnDropExpiredMessage(message, MessagingInstruments.Phase.Invoke);
@@ -335,15 +335,15 @@ namespace Orleans.Runtime
                                 {
                                     response = await invokable.Invoke();
 
-                                    // A local request is passed by reference, and so is its response.
+                                    // 当地请求以参考方式通过,其答复也以参考方式通过。
                                     if (!message.IsLocalOnly)
                                     {
-                                        // The copier preserves the null state of its input.
+                                        // 复印机保留其输入的无效状态。
                                         response = this.responseCopier.Copy(response)!;
                                     }
                                 }
 
-                                // A local request is disposed once it is completed.
+                                // 当地请求完成后即予以处理。
                                 if (!message.IsLocalOnly)
                                 {
                                     invokable.Dispose();
@@ -365,11 +365,11 @@ namespace Orleans.Runtime
                     var logLevel = message.Direction != Message.Directions.OneWay || message.IsLocalOnly ? LogLevel.Debug : LogLevel.Warning;
                     LogGrainInvokeException(this.invokeExceptionLogger, logLevel, invocationException, message);
 
-                    // If a grain allowed an inconsistent state exception to escape and the exception originated from
-                    // this activation, then deactivate it.
+                    // 如果 grain 允许不一致的国家例外情形得以逃脱,而且该例外源自
+                    // 启动后解除它
                     if (invocationException is InconsistentStateException ise && ise.IsSourceActivation)
                     {
-                        // Mark the exception so that it doesn't deactivate any other activations.
+                        // 标记例外,这样它就不会停止其他激活
                         ise.IsSourceActivation = false;
 
                         LogDeactivatingInconsistentState(this.invokeExceptionLogger, target, invocationException);
@@ -385,8 +385,8 @@ namespace Orleans.Runtime
                     }
                 }
 
-                // A local request owns its outcome, including reporting its failure, in place of a response.
-                // Completing it is the last step, so a failure before it completes the request exactly once.
+                // 当地请求应自己决定其结果,包括报告其失败情况,而不是答复。
+                // 完成是最后一步,所以在它完成请求之前失败了, 完全可以完成一次。
                 if (message.IsLocalOnly)
                 {
                     LocalRequests.Complete(message, response, this.logger);
@@ -418,7 +418,7 @@ namespace Orleans.Runtime
         {
             try
             {
-                // The copier preserves the null state of its input.
+                // 复印机保留其输入的无效状态。
                 SendResponse(message, (Response)this._deepCopier.Copy(response)!);
             }
             catch (Exception exc)
@@ -463,7 +463,7 @@ namespace Orleans.Runtime
             {
                 if (!message.TargetSilo!.Matches(this.MySilo))
                 {
-                    // gatewayed message - gateway back to sender
+                    // 网关信件 - 回发件人门户
                     LogTraceNoCallbackForRejection(this.logger, message);
                     this.MessageCenter.AddressAndSendMessage(message);
                     return;
@@ -476,18 +476,18 @@ namespace Orleans.Runtime
                     case Message.RejectionTypes.Overloaded:
                         break;
                     case Message.RejectionTypes.Unrecoverable:
-                    // Fall through & reroute
+                    // 掉落到路由和重置
                     case Message.RejectionTypes.Transient:
                         if (message.CacheInvalidationHeader is null)
                         {
-                            // Remove from local directory cache. Note that SendingGrain is the original target, since message is the rejection response.
-                            // If CacheInvalidationHeader is present, we already did this. Otherwise, we left this code for backward compatibility.
-                            // It should be retired as we move to use CacheMgmtHeader in all relevant places.
+                            // 从本地目录缓存中删除。 注意 SendingGrain 是原始目标, 因为信件是拒绝响应 。
+                            // 如果 CacheInvalidationHeader 存在, 我们已经这样做了。 否则, 我们留下这个代码 用于后向兼容 。
+                            // 在我们搬迁到所有相关地点使用 CacheMgmtHeader 时,应将其退休。
                             this.GrainLocator.InvalidateCache(message.SendingGrain);
                         }
                         break;
                     case Message.RejectionTypes.CacheInvalidation when message.HasCacheInvalidationHeader:
-                        // The message targeted an invalid (eg, defunct) activation and this response serves only to invalidate this silo's activation cache.
+                        // 信件针对无效的激活( 例如, 取消) , 此回复只会导致此 silo的激活缓存无效 。
                         message.Dispose();
                         return;
                     default:
@@ -507,8 +507,8 @@ namespace Orleans.Runtime
         {
             if (callbacks.TryRemove((message.TargetGrain, message.Id), out var callbackData))
             {
-                // IMPORTANT: we do not schedule the response callback via the scheduler, since the only thing it does
-                // is to resolve/break the resolver. The continuations/waits that are based on this resolution will be scheduled as work items.
+                // 我们没有安排通过调度器回回回响应, 因为唯一能做的就是
+                // 将根据该决议确定的延续/等待将作为工作项目安排。
                 callbackData.DoCallback(message);
             }
             else
@@ -542,8 +542,8 @@ namespace Orleans.Runtime
         {
             if (messagingOptions.CancelUnknownRequestOnStatusUpdate)
             {
-                // Cancel the call since the caller has abandoned it.
-                // Note that the target and sender arguments are swapped because this is a response to the original request.
+                // 电话取消后,电话已经放弃
+                // 请注意,目标和发送方的论据被转换,因为这是对原始请求的答复。
                 _cancellationManager.SignalCancellation(
                     message.SendingSilo,
                     targetGrainId: message.SendingGrain,
@@ -590,11 +590,11 @@ namespace Orleans.Runtime
         {
             Volatile.Write(ref _isStopping, 1);
             this.callbackTimer.Dispose();
-            // Once the silo is shutting down it can no longer receive responses, so any requests which
-            // are still outstanding will never complete. Fault them now so that in-flight grain calls
-            // observe a terminal result instead of hanging forever, which would otherwise deadlock grain
-            // deactivation and host disposal during an ungraceful shutdown. This must happen before
-            // waiting for the timer task since that wait observes the shutdown cancellation token.
+            // 一旦关闭 silo ,它就再也得不到答复了。 因此,任何请求只要
+            // 尚未解决的无法完成, 永远无法完成。 现在把它们击毁, 所以在飞行中 grain 调来电话
+            // 观察最终结果,而不是永远吊死,否则会陷入僵局 grain
+            // 关闭时解除功能并处置主机, 必须事先完成
+            // 等待计时器任务, 因为等待观察关闭取消的标记 。
             BreakOutstandingMessages();
 
             if (this.callbackTimerTask is { } task)
@@ -649,7 +649,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Moves a pending call to the silo which accepted its request, so the call survives the original silo's departure.
+        /// 将待决电话移至接受其请求的 silo ,因此该电话在原 silo离开时仍能维持。
         /// </summary>
         internal void RetargetCallback(GrainId sendingGrain, CorrelationId messageId, SiloAddress targetSilo, int forwardCount)
         {

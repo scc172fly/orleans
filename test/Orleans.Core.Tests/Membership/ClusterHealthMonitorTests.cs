@@ -24,9 +24,9 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// Tests for Orleans' cluster health monitoring system, which is responsible for detecting failed silos
-    /// and maintaining cluster membership consistency. The health monitor performs periodic probes of other silos
-    /// and uses voting mechanisms to declare silos as dead, preventing split-brain scenarios in the distributed system.
+    /// Orleans集聚健康监测系统测试,该系统负责检测失败 silos
+    /// 卫生监测员定期调查其他疾病和其他疾病 silos
+    /// 并使用投票机制宣布 silos 为死亡,防止分布式系统中出现分裂型人才情况。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -91,7 +91,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>.
+        /// <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本运行测试。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_BasicScenario()
@@ -103,7 +103,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests that when silos are stale, they are monitored by all other silos.
+        /// 测试如果 silos 是老化的,则所有其他 silos都加以监测。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_MonitorAllStaleSilos()
@@ -168,7 +168,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>, but with indirect probes disabled.
+        /// 测试 <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本操作,但间接探测中断。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_NoIndirectProbes()
@@ -180,7 +180,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>, but with indirect probes disabled.
+        /// 测试 <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本操作,但间接探测中断。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_ThreeVotesNeededToKill()
@@ -192,7 +192,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>, but with indirect probes disabled.
+        /// 测试 <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本操作,但间接探测中断。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_OneVoteNeededToKill()
@@ -204,7 +204,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>, but with EvictWhenMaxJoinAttemptTimeExceeded enabled.
+        /// 测试 <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本操作,但启用了 EvictWhenMaxJoinAttemptTimeExceeded 。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_SilosWithStaleCreatedOrJoiningState_OneVoteNeededToKill()
@@ -216,7 +216,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>, but with EvictWhenMaxJoinAttemptTimeExceeded enabled.
+        /// 测试 <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本操作,但启用了 EvictWhenMaxJoinAttemptTimeExceeded 。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_SilosWithStaleCreatedOrJoiningState_TwoVotesNeededToKill()
@@ -228,7 +228,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>, but with EvictWhenMaxJoinAttemptTimeExceeded enabled.
+        /// 测试 <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本操作,但启用了 EvictWhenMaxJoinAttemptTimeExceeded 。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_SilosWithStaleCreatedOrJoiningState_ThreeVotesNeededToKill()
@@ -240,7 +240,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests basic operation of <see cref="ClusterHealthMonitor"/> and <see cref="SiloHealthMonitor"/>, but with EvictWhenMaxJoinAttemptTimeExceeded enabled.
+        /// 测试 <see cref="ClusterHealthMonitor"/> 和 <see cref="SiloHealthMonitor"/>的基本操作,但启用了 EvictWhenMaxJoinAttemptTimeExceeded 。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_SilosWithStaleCreatedOrJoiningState_Disabled()
@@ -252,8 +252,8 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests that when an active connection has recently received messages from the target silo,
-        /// the vote to suspect/kill is suppressed even though probes are failing.
+        /// 测试当激活连接最近收到目标 silo发来的信息时,
+        /// 即使探测器失灵 也禁止投票怀疑/杀害
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_ConnectionCanary_SuppressesVoteWhenConnectionActive()
@@ -274,7 +274,7 @@ namespace NonSilo.Tests.Membership
 
             var testRig = CreateClusterHealthMonitorTestRig(clusterMembershipOptions, canaryConnectionManager);
 
-            // Set up probes to always fail.
+            // 设置探测器, 总是失败。
             var probeCalls = new ConcurrentQueue<SiloAddress>();
             this.prober.Probe(default!, default, cancellationToken).ReturnsForAnyArgs(info =>
             {
@@ -292,12 +292,12 @@ namespace NonSilo.Tests.Membership
 
             await Until(() => testRig.TestAccessor.MonitoredSilos.Count > 0, cancellationToken);
 
-            // Register a test connection and simulate recent message activity.
+            // 登记测试连接并模拟最近的电文活动。
             var testConnection = CreateTestConnection(this.loggerFactory);
             canaryConnectionManager.OnConnected(targetSilo, testConnection);
             testConnection.SimulateMessageReceived();
 
-            // Drive enough probe failures to normally trigger a vote.
+            // 启动足够的探测失败 通常会引发投票
             for (var i = 0; i < clusterMembershipOptions.NumMissedProbesLimit + 1; i++)
             {
                 if (this.timerCalls.TryDequeue(out var timer))
@@ -305,7 +305,7 @@ namespace NonSilo.Tests.Membership
                     timer.Completion.TrySetResult(true);
                 }
 
-                // Keep re-stamping the canary so it stays fresh.
+                // 继续重新印金丝雀,让它保持新鲜
                 testConnection.SimulateMessageReceived();
                 await Task.Delay(50, cancellationToken);
             }
@@ -313,7 +313,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => probeCalls.Count >= clusterMembershipOptions.NumMissedProbesLimit, cancellationToken);
             await Task.Delay(100, cancellationToken);
 
-            // The silo should NOT be dead because the canary detected active connection traffic.
+            // silo 不应死,因为金丝雀检测到主动连接流量。
             var table = await this.membershipTable.ReadAllAsync(cancellationToken);
             var entry = table.Members.SingleOrDefault(m => m.Item1.SiloAddress.Equals(targetSilo));
             Assert.NotNull(entry);
@@ -323,13 +323,13 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests that when no connections exist to a target silo, the canary does not interfere
-        /// and the silo is declared dead normally after probe failures.
+        /// 测试当目标 silo没有连接时,罐体不会干扰
+        /// 并且 silo 通常在探测失败后宣布死亡。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_ConnectionCanary_AllowsVoteWhenNoConnection()
         {
-            // With no connections in the connection manager, canary returns null -> vote proceeds.
+            // 与连接管理器没有连接, 卡纳里返回无效 - > 投票。
             await ClusterHealthMonitor_BasicScenario_Runner(
                 enableIndirectProbes: false,
                 numVotesForDeathDeclaration: 1,
@@ -337,8 +337,8 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Tests that when <see cref="ClusterMembershipOptions.EnableConnectionLivenessCheck"/> is disabled,
-        /// votes proceed normally even when an active connection exists.
+        /// 测试 <see cref="ClusterMembershipOptions.EnableConnectionLivenessCheck"/> 被禁用时
+        /// 即使存在主动连接, 也仍然正常地继续。
         /// </summary>
         [Fact]
         public async Task ClusterHealthMonitor_ConnectionCanary_DisabledByOption()
@@ -377,12 +377,12 @@ namespace NonSilo.Tests.Membership
 
             await Until(() => testRig.TestAccessor.MonitoredSilos.Count > 0, cancellationToken);
 
-            // Register a test connection and simulate recent message activity.
+            // 登记测试连接并模拟最近的电文活动。
             var testConnection = CreateTestConnection(this.loggerFactory);
             canaryConnectionManager.OnConnected(targetSilo, testConnection);
             testConnection.SimulateMessageReceived();
 
-            // Drive enough probe failures to trigger a vote.
+            // 足够驱动检测失败引发投票
             for (var i = 0; i < clusterMembershipOptions.NumMissedProbesLimit + 1; i++)
             {
                 if (this.timerCalls.TryDequeue(out var timer))
@@ -400,7 +400,7 @@ namespace NonSilo.Tests.Membership
                 return snapshot.Members.Any(m => m.Item1.SiloAddress.Equals(targetSilo) && m.Item1.Status == SiloStatus.Dead);
             }, cancellationToken);
 
-            // Despite an active connection, the silo SHOULD be dead because the option is disabled.
+            // 尽管存在积极联系,但 silo 应该已经死亡,因为选择是残疾的。
             var table = await this.membershipTable.ReadAllAsync(cancellationToken);
             var entry = table.Members.SingleOrDefault(m => m.Item1.SiloAddress.Equals(targetSilo));
             Assert.NotNull(entry);
@@ -465,7 +465,7 @@ namespace NonSilo.Tests.Membership
 
             var lastVersion = testRig.TestAccessor.ObservedVersion;
 
-            // Add the new silos
+            // 添加新的 silos
             var table = await this.membershipTable.ReadAllAsync(cancellationToken);
             foreach (var entry in otherSilos)
             {
@@ -478,7 +478,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => testRig.TestAccessor.ObservedVersion > lastVersion, cancellationToken);
             lastVersion = testRig.TestAccessor.ObservedVersion;
 
-            // No silos should be monitored by this silo until it becomes active.
+            // 无 silos 应以这种方式加以监测 silo 直到它开始活动
             Assert.Empty(testRig.TestAccessor.MonitoredSilos);
 
             await testRig.Manager.UpdateStatus(SiloStatus.Active, cancellationToken);
@@ -486,7 +486,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => testRig.TestAccessor.ObservedVersion > lastVersion, cancellationToken);
             lastVersion = testRig.TestAccessor.ObservedVersion;
 
-            // Now that this silo is active, it should be monitoring some fraction of the other active silos
+            // 由于此 silo 活动, 它应该正在监测其他活动的部分 silos
             await Until(() => testRig.TestAccessor.MonitoredSilos.Count > 0, cancellationToken);
             Assert.NotEmpty(this.timers);
             Assert.DoesNotContain(testRig.TestAccessor.MonitoredSilos, s => s.Key.Equals(this.localSilo));
@@ -495,7 +495,7 @@ namespace NonSilo.Tests.Membership
             Assert.All(testRig.TestAccessor.MonitoredSilos, m => m.Key.Equals(m.Value.TargetSiloAddress));
             Assert.Empty(probeCalls);
 
-            // Check that those silos are actually being probed periodically
+            // 检查这些 silos 是否正在实际定期被调查
             await UntilEqual(expectedNumProbedSilos, () =>
             {
                 if (this.timerCalls.TryDequeue(out var timer))
@@ -514,7 +514,7 @@ namespace NonSilo.Tests.Membership
                 Assert.Equal(0, ((SiloHealthMonitor.ITestAccessor)siloMonitor).MissedProbes);
             }
 
-            // Make the probes fail.
+            // 使探测器失效
             this.prober.Probe(default!, default, cancellationToken).ReturnsForAnyArgs(info =>
             {
                 probeCalls.Enqueue((info.ArgAt<SiloAddress>(0), info.ArgAt<int>(1), true));
@@ -532,14 +532,14 @@ namespace NonSilo.Tests.Membership
                 });
             });
 
-            // The above call to specify the probe behaviour also enqueued a value, so clear it here.
+            // 上述要求具体说明探测行为也标注了一个价值,此处明确了这一点。
             while (probeCalls.TryDequeue(out _)) ;
 
             for (var expectedMissedProbes = 1; expectedMissedProbes <= clusterMembershipOptions.NumMissedProbesLimit; expectedMissedProbes++)
             {
                 this.membershipTable.ClearCalls();
 
-                // Wait for probes to be fired
+                // 等待探测器发射
                 await UntilEqual(expectedNumProbedSilos, () =>
                 {
                     if (this.timerCalls.TryDequeue(out var timer))
@@ -570,7 +570,7 @@ namespace NonSilo.Tests.Membership
                     }, cancellationToken);
                 }
 
-                // Check that probes match the expected missed probes
+                // 检查探测器是否匹配预期的未选中探测器
                 table = await this.membershipTable.ReadAllAsync(cancellationToken);
                 foreach (var siloMonitor in monitoredSilos)
                 {
@@ -584,7 +584,7 @@ namespace NonSilo.Tests.Membership
                     }
                     else
                     {
-                        // After a certain number of failures, a vote should be added to the table.
+                        // 在出现一定数目的失败后,应在表中增加表决。
                         Assert.Contains(votes, vote => vote.Item1.Equals(localSiloDetails.SiloAddress));
                         if (clusterMembershipOptions.NumVotesForDeathDeclaration <= 2 && enableIndirectProbes || numVotesForDeathDeclaration == 1)
                         {
@@ -599,13 +599,13 @@ namespace NonSilo.Tests.Membership
                 table = await this.membershipTable.ReadAllAsync(cancellationToken);
                 Assert.Equal(expectedNumProbedSilos, table.Members.Count(m => m.Item1.Status == SiloStatus.Dead));
 
-                // There is no more to test here, since all of the monitored silos have been killed.
+                // 这里没有更多的试验了,因为所有监测的 silos 都已死亡。
                 return;
             }
 
             await testRig.Manager.Refresh(cancellationToken: cancellationToken);
 
-            // Make the probes succeed again.
+            // 让探测器再次成功
             this.prober.Probe(default!, default, cancellationToken).ReturnsForAnyArgs(info =>
             {
                 probeCalls.Enqueue((info.ArgAt<SiloAddress>(0), info.ArgAt<int>(1), false));
@@ -622,10 +622,10 @@ namespace NonSilo.Tests.Membership
                 });
             });
 
-            // The above call to specify the probe behaviour also enqueued a value, so clear it here.
+            // 上述要求具体说明探测行为也标注了一个价值,此处明确了这一点。
             while (probeCalls.TryDequeue(out _)) ;
 
-            // Wait for probes to be fired
+            // 等待探测器发射
             this.output.WriteLine($"Firing probes for silos: {string.Join(", ", testRig.TestAccessor.MonitoredSilos.Keys)}");
             var probesReceived = new HashSet<SiloAddress>();
             await UntilEqual(testRig.TestAccessor.MonitoredSilos.Count, () =>
@@ -687,7 +687,7 @@ namespace NonSilo.Tests.Membership
             var joiningSilo = "127.0.0.200:111@100";
             var createdSilo = "127.0.0.200:112@100";
 
-            // default MaxJoinAttemptTime is 5 minutes, setting it to 6 minutes ago will make sure they are flagged immediately
+            // 默认 MaxJoinAttemptTime 为5分钟,设定为6分钟前的6分钟将保证它们立即被标记
             var staleCreatedOrJoiningSilos = new[]
             {
                 Entry(Silo(joiningSilo), SiloStatus.Joining, DateTime.UtcNow.AddMinutes(-6)),
@@ -698,7 +698,7 @@ namespace NonSilo.Tests.Membership
 
             var lastVersion = testRig.TestAccessor.ObservedVersion;
 
-            // Add the new silos
+            // 添加新的 silos
             var table = await this.membershipTable.ReadAllAsync(cancellationToken);
             foreach (var entry in otherSilos)
             {
@@ -716,12 +716,12 @@ namespace NonSilo.Tests.Membership
             Assert.Equal(expected: SiloStatus.Joining, actual: joiningEntry.Item1.Status);
             Assert.Equal(expected: SiloStatus.Created, actual: createdEntry.Item1.Status);
 
-            // We are going to add numVotesForDeathDeclaration - 1 votes to the created or joining silos
+            // 我们要加上 numVotesForDeathDeclaration - 1票给创建或加入的选民 silos
             var totalRequiredVotes = clusterMembershipOptions.NumVotesForDeathDeclaration;
 
             var votesNeeded = totalRequiredVotes - 1;
 
-            // the joining and created silos should not be declared dead until the required number of votes.
+            // 加入和创建 silos 后,在获得所需票数之前不应宣布死亡。
             while (votesNeeded > 0)
             {
                 table = await this.membershipTable.ReadAllAsync(cancellationToken);
@@ -745,7 +745,7 @@ namespace NonSilo.Tests.Membership
             Assert.NotNull(joiningEntry);
             Assert.NotNull(createdEntry);
 
-            // Suspect time will be null if numVotesForDeathDeclaration == 1
+            // 如果 numVotesForDeathDeclaration =1
             if (totalRequiredVotes > 1 && evictWhenMaxJoinAttemptTimeExceeded)
             {
                 var initialJoiningSuspectTimes = joiningEntry.Item1.SuspectTimes;
@@ -756,7 +756,7 @@ namespace NonSilo.Tests.Membership
                 Assert.Equal(totalRequiredVotes - 1, initialCreatedSuspectTimes.Count);
             }
 
-            // now we start the lifecycle and let the local silo add the final vote.
+            // 现在,我们开始生命周期 让当地 silo 加入最后的投票
             await this.lifecycle.OnStart(cancellationToken);
 
             await testRig.Manager.Refresh(cancellationToken: cancellationToken);
@@ -898,7 +898,7 @@ namespace NonSilo.Tests.Membership
             TimeProvider? timeProvider = null)
         {
             timeProvider ??= TimeProvider.System;
-            // These fixtures use fixed generations unrelated to the clock.
+            // 这些固定装置使用固定世代,与时钟无关。
             clusterMembershipOptions.SiloGenerationRetirementAge = null;
             var manager = new MembershipTableManager(
                 localSiloDetails: this.localSiloDetails,
@@ -949,7 +949,7 @@ namespace NonSilo.Tests.Membership
         }
 
         /// <summary>
-        /// Creates a minimal test <see cref="Connection"/> suitable for registering with <see cref="ConnectionManager"/>.
+        /// 创建最小测试 <see cref="Connection"/> 适合登记 <see cref="ConnectionManager"/>.
         /// </summary>
         private TestConnection CreateTestConnection(ILoggerFactory loggerFactory)
         {

@@ -80,7 +80,7 @@ public class DurableTaskCancellationReasonTests
     [Fact]
     public async Task BodyOfCanceledContextObservesTheReasonFromItsStart()
     {
-        // A host replays a canceled task by requesting cancellation with the recorded reason before the body runs.
+        // 主机在正文运行前请求取消取消任务, 重放已取消的任务。
         var context = new TestHost(DateTimeOffset.UnixEpoch).CreateContext(TaskId.CreateRoot("root"));
         context.RequestTaskCancellation("recorded");
 
@@ -103,7 +103,7 @@ public class DurableTaskCancellationReasonTests
         await typed.CancelAsync(reason: null, TestCancellation);
         await scheduled.CancelAsync(TestCancellation);
 
-        // A request without a reason reaches the host as a null reason, through the host's one cancellation operation.
+        // 毫无理由的请求通过东道方的一次性取消操作将请求作为无效理由送达东道方。
         Assert.Equal(
             new (string?, CancellationToken)[] { ("buyer", wait.Token), (null, TestCancellation), (null, TestCancellation) },
             handle.Reasons);

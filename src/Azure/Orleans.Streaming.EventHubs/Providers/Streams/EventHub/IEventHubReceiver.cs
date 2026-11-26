@@ -10,27 +10,27 @@ using System.Threading.Tasks;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Abstraction on EventhubReceiver class, used to configure EventHubReceiver class in EventhubAdapterReceiver,
-    /// also used to configure EHGeneratorReceiver in EventHubAdapterReceiver for testing purpose
+    /// 摘要 EventhubReceiver 类,用于配置 EventHubReceiver 类内 EventhubAdapterReceiver,
+    /// 配置也使用 EHGeneratorReceiver 内 EventHubAdapterReceiver 用于试验目的
     /// </summary>
     public interface IEventHubReceiver
     {
         /// <summary>
-        /// Send an async message to the partition asking for more messages
+        /// 向分区发送一个自动同步消息, 请求更多信件
         /// </summary>
-        /// <param name="maxCount">Max amount of message which should be delivered in this request</param>
-        /// <param name="waitTime">Wait time of this request</param>
+        /// <param name="maxCount">请求中应发送的信件最大量</param>
+        /// <param name="waitTime">请求的等待时间</param>
         /// <returns></returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         Task<IEnumerable<EventData>> ReceiveAsync(int maxCount, TimeSpan waitTime);
 
         /// <summary>
-        /// Sends an asynchronous request for more messages from the partition.
+        /// 发送对分区中更多信件的同步请求。
         /// </summary>
-        /// <param name="maxCount">The maximum number of messages to return.</param>
-        /// <param name="waitTime">The maximum wait time.</param>
-        /// <param name="cancellationToken">The token used to cancel the operation.</param>
-        /// <returns>The received messages.</returns>
+        /// <param name="maxCount">要返回的信件的最大数量。</param>
+        /// <param name="waitTime">最长等待时间。</param>
+        /// <param name="cancellationToken">取消操作所用的标记。</param>
+        /// <returns>收到的信息。</returns>
 #pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy overload.
         Task<IEnumerable<EventData>> ReceiveAsync(
             int maxCount,
@@ -39,24 +39,24 @@ namespace Orleans.Streaming.EventHubs
 #pragma warning restore CS0618
 
         /// <summary>
-        /// Send a clean up message
+        /// 发送清理信息
         /// </summary>
         /// <returns></returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         Task CloseAsync();
 
         /// <summary>
-        /// Sends a cleanup message which can be canceled.
+        /// 发送可以取消的清理信件。
         /// </summary>
-        /// <param name="cancellationToken">The token used to cancel the operation.</param>
-        /// <returns>A task representing the operation.</returns>
+        /// <param name="cancellationToken">取消操作所用的标记。</param>
+        /// <returns>代表操作的任务。</returns>
 #pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy overload.
         Task CloseAsync(CancellationToken cancellationToken) => CloseAsync();
 #pragma warning restore CS0618
     }
 
     /// <summary>
-    /// pass through decorator class for EventHubReceiver
+    /// 通过 EventHubReceiver的装配类
     /// </summary>
     internal partial class EventHubReceiverProxy : IEventHubReceiver
     {
@@ -79,20 +79,20 @@ namespace Orleans.Streaming.EventHubs
             {
                 EventPosition eventPosition;
 
-                // If we have a starting offset, read from offset
+                // 下图
                 if (offset != EventHubConstants.StartOfStream)
                 {
                     LogInfoStartingRead(logger, options.EventHubName, partitionSettings.Partition, offset);
                     eventPosition = EventPosition.FromOffset(offset, true);
                 }
-                // else, if configured to start from now, start reading from most recent data
+                // 其它,如果配置从现在开始开始,则开始读取最新数据
                 else if (partitionSettings.ReceiverOptions.StartFromNow)
                 {
                     eventPosition = EventPosition.Latest;
                     LogInfoStartingReadLatest(logger, options.EventHubName, partitionSettings.Partition);
                 }
                 else
-                // else, start reading from begining of the partition
+                // ,从分区开始读取
                 {
                     eventPosition = EventPosition.Earliest;
                     LogInfoStartingReadBegin(logger, options.EventHubName, partitionSettings.Partition);

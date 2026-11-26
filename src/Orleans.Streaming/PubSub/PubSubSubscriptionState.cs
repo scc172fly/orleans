@@ -5,7 +5,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Represents the pub/sub registration state for a stream subscription.
+    /// 代表订阅流的酒吧/分注册国。
     /// </summary>
     [Serializable]
     [JsonObject(MemberSerialization.OptIn)]
@@ -13,26 +13,26 @@ namespace Orleans.Streams
     public sealed class PubSubSubscriptionState : IEquatable<PubSubSubscriptionState?>, System.Text.Json.Serialization.IJsonOnDeserialized
     {
         /// <summary>
-        /// Identifies the lifecycle state of a stream subscription.
+        /// 确定溪流订阅的生命周期状态。
         /// </summary>
         public enum SubscriptionStates
         {
             /// <summary>
-            /// The subscription is active.
+            /// 订阅活动进行中。
             /// </summary>
             Active,
 
             /// <summary>
-            /// The subscription is faulted.
+            /// 订阅失败了。
             /// </summary>
             Faulted,
         }
 
-        // IMPORTANT!!!!!
-        // These fields have to be public non-readonly for JSonSerialization to work!
-        // Implement ISerializable if changing any of them to readonly
+        // 重要!
+        // 这些字段必须是非公开的, 无法被读取, 以便 JSonSerialization 工作!
+        // 如果将其中任何一项修改为只读, 则执行可实现的 ISeal
         /// <summary>
-        /// The subscription identifier.
+        /// 订阅标识符 。
         /// </summary>
         [JsonProperty]
         [System.Text.Json.Serialization.JsonInclude]
@@ -41,7 +41,7 @@ namespace Orleans.Streams
         public GuidId SubscriptionId;
 
         /// <summary>
-        /// The qualified identifier of the subscribed stream.
+        /// 订阅流的合格识别码。
         /// </summary>
         [JsonProperty]
         [System.Text.Json.Serialization.JsonInclude]
@@ -50,25 +50,25 @@ namespace Orleans.Streams
         public QualifiedStreamId Stream;
 
         /// <summary>
-        /// The identifier of the grain which consumes the stream.
+        /// 消耗流的 grain 标识符。
         /// </summary>
         [JsonProperty]
         [System.Text.Json.Serialization.JsonInclude]
         [System.Text.Json.Serialization.JsonPropertyName("consumer")]
         [Id(2)]
-        public GrainId Consumer; // the field needs to be of a public type, otherwise we will not generate an Orleans serializer for that class.
+        public GrainId Consumer; // 字段需要公开类型, 否则我们不会为该类生成 Orleans 序列器。
 
         /// <summary>
-        /// The serialized filter data associated with the subscription.
+        /// 与订阅有关的序列式过滤数据。
         /// </summary>
         [JsonProperty]
         [System.Text.Json.Serialization.JsonInclude]
         [System.Text.Json.Serialization.JsonPropertyName("filterData")]
         [Id(3)]
-        public string? FilterData; // Serialized func info
+        public string? FilterData; // 串联性真菌信息
 
         /// <summary>
-        /// The lifecycle state of the subscription.
+        /// 订阅的生命周期状态。
         /// </summary>
         [JsonProperty]
         [System.Text.Json.Serialization.JsonInclude]
@@ -78,20 +78,20 @@ namespace Orleans.Streams
         public SubscriptionStates state;
 
         /// <summary>
-        /// Gets a value indicating whether the subscription is faulted.
+        /// 获得一个值,显示订阅是否错误。
         /// </summary>
         [JsonIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
         public bool IsFaulted { get { return state == SubscriptionStates.Faulted; } }
 
-        // This constructor has to be public for JSonSerialization to work!
-        // Implement ISerializable if changing it to non-public
+        // 建造者必须公开工作才能 JSonSerialization !
+        // 如果将其改为非公开,则可以实施
         /// <summary>
-        /// Initializes an active stream subscription registration.
+        /// 启动活跃流订阅登记。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <param name="streamConsumer">The identifier of the grain which consumes the stream.</param>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <param name="streamConsumer">消耗流的 grain 标识符。</param>
         public PubSubSubscriptionState(
             GuidId subscriptionId,
             QualifiedStreamId streamId,
@@ -104,13 +104,13 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Initializes a stream subscription registration.
+        /// 初始化流订阅登记。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="stream">The qualified stream identifier.</param>
-        /// <param name="consumer">The identifier of the grain which consumes the stream.</param>
-        /// <param name="filterData">The serialized filter data associated with the subscription.</param>
-        /// <param name="state">The lifecycle state of the subscription.</param>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="stream">合格的流识别符号。</param>
+        /// <param name="consumer">消耗流的 grain 标识符。</param>
+        /// <param name="filterData">与订阅有关的序列式过滤数据。</param>
+        /// <param name="state">订阅的生命周期状态。</param>
         [JsonConstructor]
         [System.Text.Json.Serialization.JsonConstructor]
         public PubSubSubscriptionState(
@@ -126,9 +126,9 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Sets the serialized filter data associated with the subscription.
+        /// 设置与订阅相关的序列过滤数据。
         /// </summary>
-        /// <param name="filterData">The serialized filter data.</param>
+        /// <param name="filterData">序列式过滤数据。</param>
         public void AddFilter(string? filterData)
         {
             this.FilterData = filterData;
@@ -138,7 +138,7 @@ namespace Orleans.Streams
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            // Note: Can't use the 'as' operator on PubSubSubscriptionState because it is a struct.
+            // 注:不能使用 PubSubSubscriptionState 上的“作为”运算符,因为它是一个支架。
             return obj is PubSubSubscriptionState && Equals((PubSubSubscriptionState)obj);
         }
 
@@ -147,15 +147,15 @@ namespace Orleans.Streams
         {
             if ((object?)other == null)
                 return false;
-            // Note: PubSubSubscriptionState is a struct, so 'other' can never be null.
+            // 注: PubSubSubscriptionState 是支架,所以“其他”永远不能无效。
             return Equals(other.SubscriptionId);
         }
 
         /// <summary>
-        /// Determines whether this subscription has the specified identifier.
+        /// 确定此订阅是否拥有指定的标识符 。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier to compare.</param>
-        /// <returns><see langword="true"/> if the identifiers are equal; otherwise, <see langword="false"/>.</returns>
+        /// <param name="subscriptionId">要比较的订阅识别码 。</param>
+        /// <returns><see langword="true"/> 如果识别符号相等;否则, <see langword="false"/>。</returns>
         public bool Equals(GuidId? subscriptionId)
         {
             if (ReferenceEquals(null, subscriptionId)) return false;
@@ -169,13 +169,13 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Compares two subscription states for equality by subscription identifier.
+        /// 与两个订阅国按订阅标识符分列的平等点比较。
         /// </summary>
-        /// <param name="left">The first subscription state.</param>
-        /// <param name="right">The second subscription state.</param>
+        /// <param name="left">第一个订阅状态。</param>
+        /// <param name="right">第二个订阅国。</param>
         /// <returns>
-        /// <see langword="true"/> if both values are <see langword="null"/> or have the same subscription identifier;
-        /// otherwise, <see langword="false"/>.
+        /// <see langword="true"/> ,如果两个数值均为 <see langword="null"/> 或具有相同的订阅标识符;
+        /// 否则, <see langword="false"/>.
         /// </returns>
         public static bool operator ==(PubSubSubscriptionState? left, PubSubSubscriptionState? right)
         {
@@ -189,11 +189,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Compares two subscription states for inequality by subscription identifier.
+        /// 与两个订阅国相比,按订阅标识符分列的不平等状况。
         /// </summary>
-        /// <param name="left">The first subscription state.</param>
-        /// <param name="right">The second subscription state.</param>
-        /// <returns><see langword="true"/> if the values are not equal; otherwise, <see langword="false"/>.</returns>
+        /// <param name="left">第一个订阅状态。</param>
+        /// <param name="right">第二个订阅国。</param>
+        /// <returns><see langword="true"/> ,如果数值不相等;否则, <see langword="false"/>。</returns>
         public static bool operator !=(PubSubSubscriptionState? left, PubSubSubscriptionState? right)
         {
             return !(left == right);
@@ -207,7 +207,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Marks the subscription as faulted.
+        /// 标记订阅为错误 。
         /// </summary>
         public void Fault()
         {

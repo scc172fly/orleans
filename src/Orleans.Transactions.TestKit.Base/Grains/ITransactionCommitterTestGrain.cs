@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Defines a grain which enlists remote commit operations in the current transaction.
+    /// 定义远程招募的 grain 在当前交易中进行操作。
     /// </summary>
     public interface ITransactionCommitterTestGrain : IGrainWithGuidKey
     {
         /// <summary>
-        /// Enlists the specified operation in the current transaction.
+        /// 将当前交易中指定的操作列入列表。
         /// </summary>
-        /// <param name="operation">The operation to invoke when the transaction commits.</param>
-        /// <returns>A task representing the enlistment.</returns>
+        /// <param name="operation">交易实施时援引的操作。</param>
+        /// <returns>代表征兵的任务</returns>
         [Transaction(TransactionOption.Join)]
         Task Commit(ITransactionCommitOperation<IRemoteCommitService> operation);
     }

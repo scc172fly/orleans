@@ -7,17 +7,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.SyntaxGeneration;
 
 /// <summary>
-/// Spells lexical C# fragments for <see cref="SourceWriter"/>.
+/// <see cref="SourceWriter"/>的拼写 C# 字元件。
 /// </summary>
 internal static class CodeText
 {
     /// <summary>
-    /// Spells a type, name, or type-argument fragment with idiomatic spacing: a space after each comma which separates
-    /// written elements (<c>Dictionary&lt;int, string&gt;</c>, but <c>G&lt;,,&gt;</c> and <c>int[,]</c>), between adjacent words,
-    /// and before a tuple element name (<c>(int[] items, int? count)</c>).
+    /// 拼写类型、名称或带有特殊间距的参数碎片类型、名称或类型:每个逗号后分隔的空格
+    /// 字元(<c>Dictionary&lt;int, string&gt;</c>,但 <c>G&lt;,,&gt;</c> 和 <c>int[,]</c>,在相邻的单词之间,
+    /// 和图普尔元素名称之前的(<c>(int[] items, int? count)</c>)。
     /// </summary>
     /// <remarks>
-    /// Type syntax holds only names, keywords, and punctuation, so token text is sufficient: no literal or trivia is significant.
+    /// type syntax 只保留姓名、关键字和标点, 所以象征性的文字就足够了: 没有字面或曲目是有意义的 。
     /// </remarks>
     public static string Type(SyntaxNode type)
     {
@@ -30,7 +30,7 @@ internal static class CodeText
     {
         if (type.ContainsDiagnostics)
         {
-            // A malformed spelling, such as an unescaped keyword namespace (#11640), keeps its text, including skipped tokens.
+            // 拼写错误, 如一个未隐藏的关键字名命名空间 (#11640) , 保留其文本, 包括跳过的标记 。
             builder.Append(type.ToFullString().Trim());
             return;
         }
@@ -40,7 +40,7 @@ internal static class CodeText
         {
             if (token.Span.IsEmpty)
             {
-                // Omitted type arguments have no text; the following comma or bracket determines spacing.
+                // 寄出类型参数没有文字;以下逗号或括号决定间距。
                 continue;
             }
 
@@ -59,18 +59,18 @@ internal static class CodeText
         static bool IsWord(SyntaxKind kind) => kind == SyntaxKind.IdentifierToken || SyntaxFacts.IsKeywordKind(kind);
     }
 
-    /// <summary>Spells an identifier, escaping C# keywords and contextual keywords as <see cref="StringExtensions.ToIdentifier"/> does.</summary>
+    /// <summary>拼写识别符号,与 <see cref="StringExtensions.ToIdentifier"/> 一样,避开 C#关键字和背景关键词。</summary>
     public static string Identifier(string identifier)
     {
         identifier = identifier.TrimStart('@');
         return SyntaxGeneration.Identifier.IsCSharpKeyword(identifier) ? "@" + identifier : identifier;
     }
 
-    /// <summary>Spells an escaped C# string literal for an arbitrary string value.</summary>
+    /// <summary>拼写一个任意字符串值的逃逸 C# 字符串字典。</summary>
     public static string StringLiteral(string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 
     /// <summary>
-    /// Quotes text without escaping it. Generated assembly names, aliases, and member names use this established spelling.
+    /// 引号文本, 无需绕过它。 生成组装名称、 别名和成员姓名使用此已确立的拼写 。
     /// </summary>
     public static string QuotedText(string value) => "\"" + value + "\"";
 
@@ -80,7 +80,7 @@ internal static class CodeText
 
     public static string Literal(long value) => value.ToString(CultureInfo.InvariantCulture) + "L";
 
-    /// <summary>Spells <c>name&lt;,,&gt;</c> for an open generic name with the given arity.</summary>
+    /// <summary>拼写 <c>name&lt;,,&gt;</c> 用于打开通用名称,且具有给定的正数。</summary>
     public static string OpenGenericArguments(int arity) => arity switch
     {
         <= 0 => string.Empty,

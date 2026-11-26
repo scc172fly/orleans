@@ -6,91 +6,91 @@ using System.Threading.Tasks;
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// Represents an object which can be invoked asynchronously.
+    /// 表示可非同步引用的对象。
     /// </summary>
     public interface IInvokable : IDisposable
     {
         /// <summary>
-        /// Gets the invocation target.
+        /// 获得召回目标。
         /// </summary>
-        /// <returns>The invocation target.</returns>
+        /// <returns>呼叫目标。</returns>
         object? GetTarget();
 
         /// <summary>
-        /// Sets the invocation target from an instance of <see cref="ITargetHolder"/>.
+        /// 设置从 <see cref="ITargetHolder"/>实例中选择的调用目标。
         /// </summary>
-        /// <param name="holder">The invocation target.</param>
+        /// <param name="holder">呼叫目标。</param>
         void SetTarget(ITargetHolder holder);
 
         /// <summary>
-        /// Invoke the object.
+        /// 启动对象 。
         /// </summary>
         ValueTask<Response> Invoke();
 
         /// <summary>
-        /// Gets the number of arguments.
+        /// 获得参数数 。
         /// </summary>
         int GetArgumentCount();
 
         /// <summary>
-        /// Gets the argument at the specified index.
+        /// 获取指定索引的参数。
         /// </summary>
-        /// <param name="index">The argument index.</param>
-        /// <returns>The argument at the specified index.</returns>
+        /// <param name="index">引证索引。</param>
+        /// <returns>指定索引的参数。</returns>
         object? GetArgument(int index);
 
         /// <summary>
-        /// Sets the argument at the specified index.
+        /// 将参数设置在指定的索引上。
         /// </summary>
-        /// <param name="index">The argument index.</param>
-        /// <param name="value">The argument value</param>
+        /// <param name="index">引证索引。</param>
+        /// <param name="value">参数值</param>
         void SetArgument(int index, object value);
 
         /// <summary>
-        /// Gets the method name.
+        /// 获得方法名称 。
         /// </summary>
         string GetMethodName();
 
         /// <summary>
-        /// Gets the full interface name.
+        /// 获得完整的界面名称。
         /// </summary>
         string GetInterfaceName();
 
         /// <summary>
-        /// Gets the activity name, which refers to both the interface name and method name.
+        /// 获取活动名称,即介面名称和方法名称。
         /// </summary>
         string GetActivityName();
 
         /// <summary>
-        /// Gets the method info object, which may be <see langword="null"/>.
+        /// 获取方法信息对象,该对象可以是 <see langword="null"/>。
         /// </summary>
         MethodInfo GetMethod();
 
         /// <summary>
-        /// Gets the interface type.
+        /// 获得接口类型。
         /// </summary>
         Type GetInterfaceType();
 
         /// <summary>
-        /// Gets the default response timeout.
+        /// 获得默认反应超时 。
         /// </summary>
         TimeSpan? GetDefaultResponseTimeout() => default;
 
         /// <summary>
-        /// Gets the cancellation token for this request. If the request does not accept a cancellation token, this will be <see cref="CancellationToken.None"/>.
+        /// 获取此请求的取消符。 如果请求不接受取消符, 则该标记为 <see cref="CancellationToken.None"/>。
         /// </summary>
-        /// <returns>The cancellation token for this request.</returns>
+        /// <returns>此请求的取消标记 。</returns>
         CancellationToken GetCancellationToken() => default;
 
         /// <summary>
-        /// Tries to cancel the invocation.
+        /// 尝试取消该援引。
         /// </summary>
-        /// <remarks>This is only valid after <see cref="SetTarget(ITargetHolder)"/> has been called, and only has an effect for requests which support cancellation.</remarks>
-        /// <returns><see langword="true"/> if cancellation was requested, otherwise <see langword="false"/>.</returns>
+        /// <remarks>只有在 <see cref="SetTarget(ITargetHolder)"/> 请求被发出,只对支持取消的请求产生影响。</remarks>
+        /// <returns><see langword="true"/> 如果请求取消,否则 <see langword="false"/>。</returns>
         bool TryCancel() => false;
 
         /// <summary>
-        /// <see langword="true"/> if this request supports cancellation; <see langword="false"/> otherwise.
+        /// <see langword="true"/> ,如果该请求支持取消; <see langword="false"/> ,则另行处理。
         /// </summary>
         bool IsCancellable => false;
     }

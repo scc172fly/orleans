@@ -228,7 +228,7 @@ public sealed class TypedMessageHelperTests
         Assert.Equal(typeof(MessageType<string>), registration.ServiceType);
         Assert.Equal(ServiceLifetime.Singleton, registration.Lifetime);
 
-        // Successful registration before adding serializers proves lazy resolution.
+        // 添加连环机之前成功注册证明是懒惰的解答。
         services.AddSerializer();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -706,8 +706,8 @@ public sealed class TypedMessageHelperTests
             calls++;
             return ValueTask.CompletedTask;
         });
-        // StringCodec.ReadRaw -> Reader.EnsureAvailable rejects the declared
-        // length exceeding remaining bytes, independently of subject routing.
+        // StringCodec.ReadRaw - > Reader.EnsureAvailable 拒绝宣布
+        // 长度超过剩余字节,不考虑主题路径。
         Assert.Throws<IndexOutOfRangeException>(() => serializer.Deserialize(envelope.Payload));
 
         await Assert.ThrowsAsync<IndexOutOfRangeException>(
@@ -858,8 +858,8 @@ public sealed class TypedMessageHelperTests
         });
 
         var dispatch = dispatcher.HandleAsync(context, cancellation.Token);
-        // Record the controlled incomplete state, then release and observe once
-        // before assertions, so even assertion failure cannot strand a dispatch.
+        // 记录受控制的不完全状态,然后释放并观察一次
+        // 在断言之前,即使声称失败也不能要求发货。
         var completedBeforeRelease = dispatch.IsCompleted;
         var completionsBeforeRelease = context.CompletionCount;
         completion.SetResult();
@@ -1206,7 +1206,7 @@ public sealed class TypedMessageHelperTests
         var context = new CountingInboxHandlerContext(envelope);
         var state = new HandlerState { Complete = complete };
         Action<string, HandlerState, IInboxHandlerContext> handler = ObserveState;
-        Assert.Null(handler.Target); // Named static method, not a captured test closure.
+        Assert.Null(handler.Target); // 命名静态方法, 不是捕获的测试结束 。
         var dispatcher = new TestInbox();
         dispatcher.Register(type, state, handler);
 
@@ -1317,7 +1317,7 @@ public sealed class TypedMessageHelperTests
 
         var outcome = dispatcher.HandleAsync(context, cancellation.Token);
 
-        Assert.Equal(state.Outcome, outcome); // No async adapter replacing the actual ValueTask.
+        Assert.Equal(state.Outcome, outcome); // 没有自动调整器替换实际 ValueTask。
         Assert.False(outcome.IsCompleted);
         Assert.Equal("deferred state", state.Body);
         Assert.Same(state, state.Argument);
@@ -1340,7 +1340,7 @@ public sealed class TypedMessageHelperTests
         }
         else
         {
-            // Cancellation after a delegate's successful work must not change its outcome.
+            // 代表成功工作后取消不得改变其结果。
             cancellation.Cancel();
             gate.SetResult();
             await outcome;
@@ -1571,8 +1571,8 @@ public sealed class TypedMessageHelperTests
             baseline.Register(type, baselineState, ObserveState);
             withStruct.Register(type, new StructHandlerState(structState, 731), ObserveStructAction);
         }
-        // Same serializer/body/context, warmed routes and session pool. No assertions,
-        // async continuations, timing, or boxed arguments inside the measured loops.
+        // 同一序列器/体积/直观、暖和路线和会场。
+        // 测量的循环内有同步延续、 时间或框框参数。
         MeasureDispatchAllocations(baseline, context, 64);
         MeasureDispatchAllocations(withStruct, context, 64);
         var referenceBytes = MeasureDispatchAllocations(baseline, context, 256);
@@ -1604,8 +1604,8 @@ public sealed class TypedMessageHelperTests
         var bindings = services.Where(descriptor => descriptor.IsKeyedService).ToArray();
         Assert.Equal(2, bindings.Length);
         Assert.All(bindings, descriptor => Assert.True(services.IndexOf(closed) < services.IndexOf(descriptor)));
-        // Factory registration succeeds before serializer infrastructure exists:
-        // it must be lazy and must use the closed contract, including struct T.
+        // 在序列器基础设施存在之前,工厂登记成功:
+        // 合同必须懒惰,必须使用封闭合同,包括T节。
         services.AddSerializer();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -1650,8 +1650,8 @@ public sealed class TypedMessageHelperTests
         Assert.Same(original, Assert.Single(services, descriptor =>
             !descriptor.IsKeyedService && descriptor.ServiceType == typeof(Serializer<T>)));
         Assert.Equal(0, factoryCalls);
-        // No untyped Serializer service is installed here. Replacing this closed
-        // custom registration with the default factory would fail resolution.
+        // 在此没有安装未输入的序列号服务。 替换此关闭的服务
+        // 默认工厂的自定义注册将无法解决。
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         Assert.Same(custom, provider.GetRequiredService<Serializer<T>>());
@@ -1868,8 +1868,8 @@ public sealed class TypedMessageHelperTests
             [AllowNull] OwnedResource value) where TBufferWriter : IBufferWriter<byte>
         {
             ArgumentNullException.ThrowIfNull(value);
-            // Manual local wire contract: the resource's name uses genuine string
-            // encoding. No global registration or generated disposal/copy behavior.
+            // 当地手工电线合同:资源名称使用真字符串
+            // 编码。没有全球登记或生成处置/复制行为。
             StringCodec.WriteField(ref writer, fieldIdDelta, value.Name);
         }
 
@@ -1946,7 +1946,7 @@ public sealed class TypedMessageHelperTests
         var exception = Assert.Throws<InvalidOperationException>(() =>
             dispatcher.HandleAsync(context, CancellationToken.None));
 
-        // Handlers match subjects exactly, so an absent subject matches no typed handler.
+        // 处理器与主题完全匹配, 所以缺少的主题与没有打字的操作器不匹配 。
         Assert.Contains("No handler is registered", exception.Message, StringComparison.Ordinal);
         Assert.Equal(0, probe.ReadCount);
         Assert.Equal(0, probe.WriteCount);
@@ -2086,7 +2086,7 @@ public sealed class TypedMessageHelperTests
         var bindingFactory = binding.KeyedImplementationFactory;
         Assert.NotNull(bindingFactory);
 
-        // Registration must be lazy: the serializer infrastructure is added later.
+        // 登记必须懒惰:连环器基础设施是稍后增加的。
         services.AddSerializer();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -2106,8 +2106,8 @@ public sealed class TypedMessageHelperTests
         factoryProvider.Received(1).GetService(typeof(Serializer<GrainId>));
         factoryProvider.DidNotReceive().GetService(typeof(Serializer));
 
-        // An existing closed serializer serves both roles without replacement or
-        // an untyped Serializer dependency, and its factory runs only once.
+        // 现有的封闭式连续机既可以发挥两种作用,又不能替换或取代
+        // 其工厂只运行过一次
         using var codecServices = CreateServices();
         var (custom, probe) = CreateProbedSerializer<GrainId>(codecServices);
         var customServices = new ServiceCollection();

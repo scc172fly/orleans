@@ -103,7 +103,7 @@ public sealed class GrainTimerTests
         tick.Complete(Response.FromException(filterFailure));
         tick.Complete(Response.FromException(downstreamRejection));
 
-        // An activation disposes its timers before it rejects their queued ticks.
+        // 激活程序在拒绝他们排队的滴答之前 将时间计数器处理掉
         timer.Dispose();
         tick.Complete(Response.FromException(new OrleansMessageRejectionException("Activation is no longer valid.")));
 

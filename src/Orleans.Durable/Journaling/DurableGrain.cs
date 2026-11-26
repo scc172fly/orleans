@@ -3,15 +3,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Provides convenience methods for grains which manage journaled durable state.
+/// 为管理日记耐用状态的 grains 提供方便方法。
 /// </summary>
 public abstract class DurableGrain : Grain, IGrainBase
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DurableGrain"/> class and resolves its state manager.
+    /// 初始化了 <see cref="DurableGrain"/> 级的新实例,解决了国家经理的问题。
     /// </summary>
     /// <remarks>
-    /// The standard state manager enrolls in the grain lifecycle during grain-bound construction.
+    /// 国家标准管理人员注册 grain 使用期间 grain- 开工
     /// </remarks>
     protected DurableGrain()
     {
@@ -19,14 +19,14 @@ public abstract class DurableGrain : Grain, IGrainBase
     }
 
     /// <summary>
-    /// Gets the journaled state manager for this grain activation.
+    /// 获取用于此 grain 激活的日记状态管理器 。
     /// </summary>
     protected IDurableStateManager StateManager { get; }
 
     /// <summary>
-    /// Writes the registered journaled state.
+    /// 写下注册日记状态。
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A <see cref="ValueTask"/> representing the write operation.</returns>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>A <see cref="ValueTask"/> 代表写作操作。</returns>
     protected ValueTask WriteStateAsync(CancellationToken cancellationToken = default) => StateManager.WriteStateAsync(cancellationToken);
 }

@@ -4,79 +4,79 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime.Diagnostics;
 
 /// <summary>
-/// Provides the diagnostic listener and event payload types for Orleans grain activation events.
+/// 为启动 Orleans grain 事件提供诊断听筒和事件有效载荷类型。
 /// </summary>
 /// <remarks>
-/// These types are public but may change between minor versions. They are intended for
-/// advanced scenarios such as simulation testing and diagnostics.
+/// 这些类型是公开的,但可能在不同版本之间发生变化。
+/// 模拟测试和诊断等先进假设情景。
 /// </remarks>
 public static class GrainLifecycleEvents
 {
     /// <summary>
-    /// The name of the diagnostic listener for grain activation events.
+    /// 启动 grain 事件的诊断倾听器名称。
     /// </summary>
     public const string ListenerName = "Orleans.GrainLifecycle";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// Gets an observable sequence of all grain lifecycle events.
+    /// 获得所有 grain 生命周期事件的可观测序列。
     /// </summary>
     public static IObservable<LifecycleEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// The base class used for lifecycle diagnostic events.
+    /// 用于生命周期诊断事件的基本等级。
     /// </summary>
     public abstract class LifecycleEvent(IGrainContext grainContext)
     {
         /// <summary>
-        /// The grain context associated with the event.
+        /// 与事件相关的 grain 上下文。
         /// </summary>
         public readonly IGrainContext GrainContext = grainContext;
     }
 
     /// <summary>
-    /// Event payload for when a grain activation is created.
+    /// 创建 grain 激活时的事件有效载荷。
     /// </summary>
-    /// <param name="grainContext">The grain context.</param>
+    /// <param name="grainContext"> grain 上下文。</param>
     public sealed class Created(IGrainContext grainContext) : LifecycleEvent(grainContext)
     {
     }
 
     /// <summary>
-    /// Event payload for when a grain activation has completed activation.
+    /// 启动 grain 后事件有效载荷完成激活时有效载荷。
     /// </summary>
-    /// <param name="grainContext">The grain context.</param>
+    /// <param name="grainContext"> grain 上下文。</param>
     public sealed class Activated(IGrainContext grainContext) : LifecycleEvent(grainContext)
     {
     }
 
     /// <summary>
-    /// Event payload for when a grain activation is about to deactivate.
+    /// 当 grain 激活即将停止时的事件有效载荷。
     /// </summary>
-    /// <param name="grainContext">The grain context.</param>
-    /// <param name="reason">The reason for deactivation.</param>
+    /// <param name="grainContext"> grain 上下文。</param>
+    /// <param name="reason">停止使用的理由。</param>
     public sealed class Deactivating(
         IGrainContext grainContext,
         DeactivationReason reason) : LifecycleEvent(grainContext)
     {
         /// <summary>
-        /// The reason for deactivation.
+        /// 停止使用的理由。
         /// </summary>
         public readonly DeactivationReason Reason = reason;
     }
 
     /// <summary>
-    /// Event payload for when a grain activation has completed deactivation.
+    /// 当 grain 激活完成解除作用时,事件有效载荷。
     /// </summary>
-    /// <param name="grainContext">The grain context.</param>
-    /// <param name="reason">The reason for deactivation.</param>
+    /// <param name="grainContext"> grain 上下文。</param>
+    /// <param name="reason">停止使用的理由。</param>
     public sealed class Deactivated(
         IGrainContext grainContext,
         DeactivationReason reason) : LifecycleEvent(grainContext)
     {
         /// <summary>
-        /// The reason for deactivation.
+        /// 停止使用的理由。
         /// </summary>
         public readonly DeactivationReason Reason = reason;
     }

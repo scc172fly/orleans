@@ -147,7 +147,7 @@ namespace UnitTests.Grains
 
             logger.LogInformation("OnActivateAsync");
 
-            // Spawn Task to run on default .NET thread pool
+            // 默认 .NET 线索库运行的自发布任务
             var task = Task.Factory.StartNew(() =>
             {
                 logger.LogInformation("Started-OnActivateAsync-SubTask");
@@ -240,8 +240,8 @@ namespace UnitTests.Grains
                         Assert.False(doingDeactivate, "Not doing Deactivate");
                         doingActivate = true;
                     });
-            // we want to use Task.ContinueWith with an async lambda, an explicitly typed variable is required to avoid
-            // writing code that doesn't do what i think it is doing.
+            // 我们希望使用 Task.ContinueWith ,用一个async slamda,需要明确输入变量以避免
+            // 写代码不做我认为它正在做的。
             async Task asyncCont()
             {
                 Assert.NotNull(TaskScheduler.Current);

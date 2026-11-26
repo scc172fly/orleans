@@ -1,110 +1,126 @@
 ---
-title: Operate a production cluster
-description: Manage configuration, routine maintenance, releases, and incidents for a production Orleans cluster.
+title: "运行生产集群"
+description: "生产 Orleans 组群的管理配置、例行维护、释放和事件。"
 ms.date: 08/19/2026
 ms.topic: how-to
 ms.custom: devops
 ---
 
-# Operate a production cluster
+<a id="operate-a-production-cluster"></a>
 
-Production operations keep an Orleans cluster within its tested capacity, compatibility, and recovery boundaries. Use this guide to establish ownership, control changes, perform routine maintenance, and create runbooks for each environment.
+# 运行生产集群
 
-## Understand the operating boundaries
+生产作业将 Orleans 组群保留在其测试能力、兼容性和回收边界内。使用该指南确定所有权、控制变化、进行例行维护并为每个环境创建运行手册。
 
-Each layer provides a distinct guarantee:
+<a id="understand-the-operating-boundaries"></a>
 
-- The hosting platform starts, supervises, probes, scales, and terminates silo and client processes.
-- The clustering provider records cluster membership and gateway information for processes that share a service ID and cluster ID.
-- Orleans detects membership changes, places activations on available silos, and routes subsequent calls after a failed or departing silo.
-- Durable providers preserve application state, reminders, stream state, and other application data according to their own consistency and availability guarantees.
-- The application defines request idempotency, authorization, dependency-degradation behavior, data compatibility, and recovery objectives.
+## 了解操作边界
 
-Record an owner and escalation path for the hosting platform, networking, clustering provider, grain storage, reminders, streams, secrets, telemetry, and application data. Provider service-level objectives and quotas form part of the Orleans service's operating envelope.
+每个层次提供一种不同的保证:
 
-## Maintain an environment record
+- 主机平台启动、监督、探测、尺度和终止 silo 和客户程序。
+- 集群提供商记录了共享服务ID和集束识别码的流程的分组成员和网关信息。
+- Orleans 检测到会籍变动,在可用 silos上安装启动器,并在故障或离开 silo后跟踪接听电话。
+- 持久供应商根据其一致性和可用性保障,维护申请状态、提醒、流程状况和其他应用数据。
+- 应用程序界定了请求的应急能力、授权、依赖性降解行为、数据兼容性和恢复目标。
 
-Keep a version-controlled record for each environment containing:
+记录主机平台、网络、集群供应商、 grain 存储、提醒、流、秘密、遥测和应用数据的所有者和升级路径。 提供方服务级目标和配额构成 Orleans 服务业务封套的一部分。
 
-- Service ID, cluster ID, region, failure domains, and provider namespaces.
-- Deployment artifact digest, Orleans package version, application version, and configuration revision.
-- Silo and client resource requests, limits, replica floors, surge capacity, and scaling thresholds.
-- Advertised silo and gateway endpoints, listening endpoints, DNS, firewall, and network-policy requirements.
-- Clustering, storage, reminder, stream, and grain-directory providers with their availability tier and quotas.
-- Credential and certificate sources, owners, rotation procedures, and expiry alerts.
-- Dashboards, alert rules, recovery objectives, backup policy, and links to tested runbooks.
+<a id="maintain-an-environment-record"></a>
 
-Export the effective configuration with secrets removed during deployment. Attach it to the deployment record so operators can compare intended values with the values used by each process. Include the configuration revision, application version, cluster ID, service ID, and silo name in logs and deployment metadata.
+## 保持环境记录
 
-## Control configuration changes
+为每个环境保留一个版本控制记录,其中含有:
 
-Treat configuration as a versioned deployment input. Promote the same reviewed artifact through test and production environments while supplying environment-specific identity, endpoints, credentials, and capacity values through the hosting platform.
+- 服务身份识别、集群身份识别、区域、故障域和提供方命名空间。
+- 部署人工工艺品摘要、 Orleans 包件版本、应用版本和配置修订。
+- Silo 和客户资源请求、限制、复制底层、激增能力以及缩放阈值。
+- 广告宣传 silo 和网关端点、收听端点、DNS、防火墙和网络政策要求。
+- 集群、储存、提醒、串流和 grain-- -- 具有可用层级和配额的指令提供者。
+- 证明和证书来源、所有人、轮换程序和到期通知。
+- 防火板、戒备规则、恢复目标、备份政策,以及同测试过的运行手册的链接。
 
-The .NET host assembles configuration before it starts Orleans. Orleans runtime services and providers consume their options during construction or startup, so replacing an instance is the consistent boundary for applying an Orleans configuration revision. Runtime reload is an option- or provider-specific contract; use it only when that component explicitly documents the resulting behavior. The deployment system coordinates the revision across the fleet, while each Orleans process validates and applies its local configuration as it starts. See the [Orleans configuration guide](../host/configuration-guide/index.md) for binding, precedence, and provider configuration.
+将有效配置导出为部署期间删除的秘密。 将其附加到部署记录中, 以便操作员能够将预定值与每个进程所使用的值进行比较。 在日志和部署元数据中包含配置修改、 应用程序版本、 集集代号、 服务 ID 和 silo 名称 。
 
-Classify each change before rollout:
+<a id="control-configuration-changes"></a>
 
-| Change | Compatibility requirement | Rollout approach |
+## 控制配置变化
+
+将配置作为版本的部署投入处理。 通过测试和生产环境促进同样的经审查的文物,同时通过主机平台提供特定环境的身份、终点、证书和能力价值。
+
+下 .NET 主机组装在启动前配置 Orleans. Orleans 运行时服务和供应商在建设或启动期间消耗其选择,因此,替换实例是适用 Orleans 配置修改。 运行时重新装入是一项特定选项或供应商的具体合同;只有在组件明确记录由此产生的行为时才使用该部件。 部署系统协调整个车队的修改, 而每个车队 Orleans 进程验证并使用启动时的本地配置。见 [Orleans 配置指南](../host/configuration-guide/index.md) 约束、优先和提供者配置。
+
+在推出前对每项更改进行分类:
+
+| 变动 | 兼容性要求 | 推出式办法 |
 | --- | --- | --- |
-| Telemetry, alert, or resource threshold | Every instance can operate while old and new values coexist | Rolling change with saturation and error monitoring |
-| Endpoint, clustering provider, service ID, or cluster ID | All participants in one cluster use a coherent identity and reachable advertised endpoints | Coordinated migration or a new cluster |
-| Grain contract or serializer | Old and new callers and implementations exchange compatible payloads | Additive change followed by a rolling upgrade |
-| Persisted-state or provider schema | Every running version can read data written during the rollout and rollback window | Expand, deploy, migrate, then contract |
-| Credential or certificate | Providers and peers accept both old and new credentials during the overlap | Add, roll, verify, then revoke |
-| Capacity or placement policy | The remaining cluster preserves redundancy and absorbs activation movement | Incremental change with a measured stabilization period |
+| 遥测、警报或资源阈值 | 每一个案例都可以运作,而新旧价值观共存 | 与饱和度和错误监测相配合的滚动变化 |
+| 终点、集群提供商、服务身份或集群身份 | 一组所有参与者使用一致的身份和可达到的广告终端点 | 协调移徙或新集群 |
+| Grain 合同或序列器 | 旧的和新的呼叫器及实施系统交换兼容的有效载荷 | 加上换换,然后是滚动升级 |
+| 持久性状态或提供商计划 | 每个运行中的版本都可以读取在展开和回滚窗口中写的数据 | 扩大、部署、移徙、然后签订合同 |
+| 证明书或证明书 | 供应商和同行在重叠期间接受新旧证书 | 添加、滚动、校验、然后撤销 |
+| 能力或职位安排政策 | 其余的组群保留冗余和吸收激活运动 | 具有所衡量稳定时期的递增变化 |
 
-## Roll out a configuration revision
+<a id="roll-out-a-configuration-revision"></a>
 
-1. Publish an immutable configuration revision with the application image, package versions, provider schema revision, and secret references that it requires.
-1. Validate configuration and provider connectivity in a production-shaped environment. Exercise both the new revision and the previous revision against data written by each version when rollback remains available.
-1. Confirm the ready-silo floor, surge capacity, shutdown budget, health gates, and rollback threshold.
-1. Remove a bounded set of instances from application traffic and use [graceful shutdown](upgrades.md#graceful-shutdown-and-scale-in).
-1. Start replacements with the new revision. Wait for startup and readiness to complete, active membership to stabilize, and the [service-level and dependency signals](health-and-observability.md#telemetry) to remain within the rollout gates.
-1. Compare the effective redacted configuration with the intended revision, then continue through the remaining failure domains.
-1. Keep the previous image and configuration revision available until every write, schema, credential, and queued-work compatibility condition for rollback has expired.
+## 推出配置修改
 
-Return to the previous image and configuration revision when a rollout crosses its rollback threshold and the previous version can still read every payload and provider record written during the rollout. A change to cluster identity, advertised endpoints, provider namespace, or an incompatible data schema uses a coordinated migration or isolated blue-green cluster instead. Use [Upgrade deployment and rollback](../migration/deployment-and-rollback.md) for the compatibility boundary and recovery sequence.
+1. 发布不可更改的配置修订版, 包括应用程序图像、 软件包版本、 供应商计划修订版以及所需的秘密引用。
+1. 在生产形状环境中验证配置和供应商连接,在出现回落时根据每个版本编写的数据进行新的修订和前一次修订。
+1. 确认即时silo 底层、激增能力、停产预算、卫生门和回落门槛。
+1. 从应用程序的流量和使用中删除一组封闭实例 [宽限期关闭](upgrades.md#graceful-shutdown-and-scale-in)。
+1. 开始用新的修订版本替换。 等待启动并准备完成, 积极成员稳定, 并且 [服务级和依赖性信号](health-and-observability.md#telemetry) 留在推出的大门内 。
+1. 将有效的修改组合与预期的修订进行比较,然后继续贯穿其余的故障域。
+1. 保持先前的图像和配置修改, 直到每个写作、 计划、 证书和队列工作兼容性条件都过期后再进行回滚。
 
-## Perform routine maintenance
+当推出的图像和配置版本跨过其滚动阈值时,仍可返回到先前的图像和配置修改,而前一个版本仍然可以读取在推出期间写下的每个有效载荷和供应商记录。 更改分组身份、广告的端点、供应商命名空间或不兼容的数据系统则使用协调迁移或孤立的蓝绿色组别代替。 使用 [升级部署和回调](../migration/deployment-and-rollback.md) 来进行兼容边界和回收序列。
 
-Use a maintenance window sized from measured shutdown, activation recovery, provider migration, and rollback times.
+<a id="perform-routine-maintenance"></a>
 
-1. Confirm current cluster health, ready-silo count, dependency health, backup status, and available surge capacity.
-1. Pause unrelated deployments and automated scale-in.
-1. Capture the deployment and effective-configuration revisions.
-1. Remove one silo or failure domain from application traffic and begin graceful host shutdown.
-1. Wait for membership to stabilize and confirm that remaining silos absorb reactivations without exceeding latency, saturation, or error thresholds.
-1. Apply the host, runtime, provider, credential, or infrastructure change.
-1. Return the instance to service after startup and readiness complete.
-1. Repeat within the tested disruption budget.
-1. Record the result, observed recovery time, and any runbook corrections.
+## 执行例行维护
 
-For provider maintenance, preserve the provider's documented quorum, availability, and backup guarantees. Schedule storage maintenance with enough Orleans capacity to absorb higher activation and state-load latency. Schedule clustering-provider maintenance with enough provider capacity for membership heartbeats, gateway discovery, and rollout churn.
+使用一个维护窗口,其大小来自测量的关闭、激活恢复、供应商迁移和回落时间。
 
-## Run regular operational exercises
+1. 确认当前群组健康、随时silo 计数、依赖性健康、后备状态和现有快速增援能力。
+1. 暂停不相关的部署和自动升级。
+1. 捕捉部署和有效配置修改。
+1. 从应用程序流量中删除一个 silo 或失败域, 并开始优雅的主机关闭 。
+1. 等待成员稳定,确认剩余的 silos 吸收恢复活动而不超过延迟、饱和或误差阈值。
+1. 应用主机、运行时间、提供者、证书或基础设施的变更。
+1. 启动和准备就绪完成后,恢复原状。
+1. 在测试的干扰预算内重复 。
+1. 记录结果、观察到的恢复时间和任何运行簿更正。
 
-Exercise the behaviors that production recovery depends on:
+用于维护供应商,保留供应商的成份、可用性和备份保证。时间表存储维护有足够的 Orleans 能力吸收更高的激活和州载潜值。计划集群提供者维护有足够的供应商能力来加入心跳、网关发现和推出。
 
-- Replace one silo while representative traffic continues.
-- Lose one tested failure domain and verify capacity headroom.
-- Restore durable application data into an isolated recovery environment.
-- Rotate credentials and certificates through their overlap period.
-- Roll a compatible version forward and back while mixed versions run.
-- Degrade each required dependency and verify admission, timeout, circuit-breaker, and alert behavior.
-- Reconcile an operation whose caller observed a timeout and whose outcome is unknown.
+<a id="run-regular-operational-exercises"></a>
 
-Record recovery time, user impact, provider load, activation rate, and operator decisions. Feed observed limits back into [capacity planning](capacity-planning.md), [health and alerting](health-and-observability.md), and the [production-readiness checklist](production-readiness.md).
+## 开展定期业务演习
 
-## Prepare runbooks
+行使生产恢复取决于以下行为:
 
-Each alert that requires operator action should link to a runbook containing:
+- 将1个 silo 替换为代表交通继续。
+- 输掉一个测试失败域名并校验能力主管
+- 将耐久应用数据恢复到孤立的复原环境中。
+- 在整个重叠期间旋转全权证书和证书。
+- 混合版本运行时, 滚动兼容的版本前后滚动 。
+- 降低每个要求的依赖度 并核实入场、超时、断路器和警报行为
+- 调和一个操作,其呼叫者观察到超时,结果不明。
 
-1. The user-visible symptom and the signals that trigger the runbook.
-1. The affected cluster, provider, deployment, and failure boundaries.
-1. Safe stabilization actions and the conditions for stopping a rollout.
-1. Commands or platform procedures with required permissions and expected results.
-1. Evidence to preserve before replacement or restart.
-1. Escalation criteria and the owner for each dependency.
-1. Recovery verification, including membership stability, dependency health, latency, errors, and data reconciliation.
+记录恢复时间、用户影响、供应商负荷、启动率和操作者决定。 Feed观察到的限制回到 [能力规划](capacity-planning.md)、 [和警告,](health-and-observability.md)和 [生产准备状态清单](production-readiness.md)。
 
-Start with runbooks for failed rollout, partial network partition, clustering-provider outage, storage degradation, overload, expired credentials, certificate rotation, backup restoration, and regional recovery. Use [Troubleshoot deployments](troubleshooting-deployments.md) for the incident workflow and evidence checklist.
+<a id="prepare-runbooks"></a>
+
+## 准备运行手册
+
+每项警报要求经营者采取行动,都应与载有下列内容的运行手册连接:
+
+1. 用户可见的症状和触发运行手册的信号
+1. 受影响的群组、提供方、部署和故障边界。
+1. 安全稳定行动和停止展开的条件。
+1. 命令或平台程序,并附有必要的许可和预期成果。
+1. 在替换或重新开始之前保存证据。
+1. 升级标准和每个受扶养人的所有人。
+1. 恢复核查,包括成员稳定、依赖性健康、长期性、错误和数据核对。
+
+启动失败的展开、 部分网络分割、 集群提供者出故障、 存储退化、超载、 过期证书、 证书轮换、 备份恢复以及区域恢复等操作手册。 请使用 [故障解决部署](troubleshooting-deployments.md) 来进行事件工作流程和证据核对 。

@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for transaction consistency behavior with DynamoDB.
+    /// 与 DynamoDB进行交易一致性行为测试。
     /// </summary>
     [TestSuite("Nightly")]
     [TestArea("Transactions")]

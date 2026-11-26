@@ -14,7 +14,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// Activator for <see cref="PendingDurableTaskResponse"/>.
+/// <see cref="PendingDurableTaskResponse"/>的激活器。
 /// </summary>
 [RegisterActivator]
 internal sealed class PendingDurableTaskResponseActivator : IActivator<PendingDurableTaskResponse>
@@ -24,7 +24,7 @@ internal sealed class PendingDurableTaskResponseActivator : IActivator<PendingDu
 }
 
 /// <summary>
-/// Activator for <see cref="SubscribedDurableTaskResponse"/>.
+/// <see cref="SubscribedDurableTaskResponse"/>的激活器。
 /// </summary>
 [RegisterActivator]
 internal sealed class SubscribedDurableTaskResponseActivator : IActivator<SubscribedDurableTaskResponse>
@@ -34,7 +34,7 @@ internal sealed class SubscribedDurableTaskResponseActivator : IActivator<Subscr
 }
 
 /// <summary>
-/// Activator for <see cref="SuccessDurableTaskResponse"/>.
+/// <see cref="SuccessDurableTaskResponse"/>的激活器。
 /// </summary>
 [RegisterActivator]
 internal sealed class SuccessDurableTaskResponseActivator : IActivator<SuccessDurableTaskResponse>
@@ -393,9 +393,9 @@ internal sealed class CanceledDurableTaskResponseCopier : IDeepCopier<CanceledDu
 }
 
 /// <summary>
-/// Serializes <see cref="DurableTaskAbortedException"/>, whose abstractions assembly has no Orleans serializers, by its
-/// reason and inner exception, so an aborted task's stored result and its completion keep the exception type, reason,
-/// and cause.
+/// 序列 <see cref="DurableTaskAbortedException"/>,其抽象组件没有 Orleans 序列器的序列号
+/// 和内置例外,所以中止的任务的存储结果 及其完成 保持例外类型,原因,
+/// 和原因。
 /// </summary>
 [RegisterConverter]
 internal sealed class DurableTaskAbortedExceptionConverter : IConverter<DurableTaskAbortedException, DurableTaskAbortedExceptionSurrogate>
@@ -407,7 +407,7 @@ internal sealed class DurableTaskAbortedExceptionConverter : IConverter<DurableT
         => new(value.Message, value.InnerException);
 }
 
-/// <remarks>Orleans copies exceptions shallowly, so the surrogate, which holds only a string and an exception, is immutable.</remarks>
+/// <remarks>Orleans 例外的复制浅度, 所以代孕人, 只能持有字符串和例外, 是永恒不变的。</remarks>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Tasks.Runtime.DurableTaskAbortedExceptionSurrogate")]
 internal readonly struct DurableTaskAbortedExceptionSurrogate(string reason, Exception? innerException)
@@ -420,10 +420,10 @@ internal readonly struct DurableTaskAbortedExceptionSurrogate(string reason, Exc
 }
 
 /// <summary>
-/// Serializes <see cref="DurableTaskAttemptCanceledException"/>, whose abstractions assembly has no Orleans serializers,
-/// by its reason, so a poll which a stopping activation fails reaches its caller with the exception's type and reason.
+/// 序列 <see cref="DurableTaskAttemptCanceledException"/>其抽象的集会没有 Orleans 序列器
+/// 其原因,所以一个民意调查 停止激活失败 到达它的呼叫者 除了类型和理由。
 /// </summary>
-/// <remarks>The attempt's token belongs to the activation which stopped, so the deserialized exception carries none.</remarks>
+/// <remarks>尝试的标记属于停止的激活,所以已解除的例外没有。</remarks>
 [RegisterConverter]
 internal sealed class DurableTaskAttemptCanceledExceptionConverter
     : IConverter<DurableTaskAttemptCanceledException, DurableTaskAttemptCanceledExceptionSurrogate>

@@ -37,8 +37,8 @@ internal static class EventSequenceTokenCompatibility
 
     private static void Normalize(ref StreamSequenceToken left, ref StreamSequenceToken right)
     {
-        // Provider-specific legacy positions are normalized only for recovery comparisons.
-        // Public token equality keeps the provider's contract, and delivered tokens keep their metadata.
+        // 仅为比较复原情况,将具体供应商的遗留职位正常化。
+        // 公共物证平等保留了供应商的合同,交付的物证保留了其元数据。
         if (left is EventSequenceToken leftProvider)
         {
             right = leftProvider.NormalizeLegacyToken(right);

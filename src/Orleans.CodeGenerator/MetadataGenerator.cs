@@ -24,7 +24,7 @@ internal class MetadataGenerator(
     private readonly string _assemblyName = assemblyName ?? "Assembly";
     private readonly bool _supportsModuleInitializers = supportsModuleInitializers;
 
-    /// <summary>The simple name of the generated metadata provider class.</summary>
+    /// <summary>生成元数据提供者类的简单名称。</summary>
     public string ClassName => "Metadata_" + SyntaxGeneration.Identifier.SanitizeIdentifierName(_assemblyName);
 
     public void WriteMetadata(SourceWriter writer)
@@ -204,7 +204,7 @@ internal class MetadataGenerator(
         }
         else
         {
-            // Every keyed node consumes an identifier, including leaves which declare no local.
+            // 每个键节点都消耗识别符号,包括宣布不当地使用的叶子。
             node = $"n{++nodeId}";
             var invocation = new StringBuilder();
             invocation.Append(tree).Append(aliases.HasValue ? ".Add(" : ".GetOrAdd(").Append(CreateCompoundAliasArgument(aliases.Key));
@@ -632,8 +632,8 @@ internal class MetadataGenerator(
     }
 
     /// <summary>
-    /// Writes a block which registers <paramref name="type"/> for <paramref name="key"/> in <paramref name="dictionary"/>,
-    /// failing when another type is already registered for the key.
+    /// 写入一个注册块 <paramref name="type"/> 用于 <paramref name="key"/> 内 <paramref name="dictionary"/>,
+    /// 当另一类型已经注册到密钥时失败 。
     /// </summary>
     internal static void WriteTypeMetadataRegistration(SourceWriter writer, string dictionary, string key, string type)
     {

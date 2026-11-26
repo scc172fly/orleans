@@ -1,4 +1,4 @@
--- For each deployment, there will be only one (active) membership version table version column which will be updated periodically.
+-- 每次部署将只有一个(现役)成员表格版本一栏,定期更新。
 IF OBJECT_ID(N'[OrleansMembershipVersionTable]', 'U') IS NULL
 CREATE TABLE OrleansMembershipVersionTable
 (
@@ -9,7 +9,7 @@ CREATE TABLE OrleansMembershipVersionTable
 	CONSTRAINT PK_OrleansMembershipVersionTable_DeploymentId PRIMARY KEY(DeploymentId)
 );
 
--- Every silo instance has a row in the membership table.
+-- 每一 silo 例在会籍表有行。
 IF OBJECT_ID(N'[OrleansMembershipTable]', 'U') IS NULL
 CREATE TABLE OrleansMembershipTable
 (

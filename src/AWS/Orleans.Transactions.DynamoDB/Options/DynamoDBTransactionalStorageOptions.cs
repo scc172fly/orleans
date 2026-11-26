@@ -16,64 +16,64 @@ using Orleans.Transactions.DynamoDB;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Configuration options for DynamoDB transactional state storage.
+/// DynamoDB 交易状态存储的配置选项。
 /// </summary>
 public class DynamoDBTransactionalStorageOptions : DynamoDBClientOptions, IStorageProviderSerializerOptions
 {
     /// <summary>
-    /// Gets or sets a unique identifier for this service, which should survive deployment and redeployment.
+    /// 获取或设置此项服务的独特识别符,该服务应能在部署和重新部署后生存。
     /// </summary>
     public string ServiceId { get; set; } = string.Empty;
 
     /// <summary>
-    /// Use Provisioned Throughput for tables
+    /// 表中已提供投入的用途
     /// </summary>
     public bool UseProvisionedThroughput { get; set; } = true;
 
     /// <summary>
-    /// Create the table if it doesn't exist
+    /// 如果表格不存在创建表格
     /// </summary>
     public bool CreateIfNotExists { get; set; } = true;
 
     /// <summary>
-    /// Update the table if it exists
+    /// 如果有更新表格,则更新列表
     /// </summary>
     public bool UpdateIfExists { get; set; } = true;
 
     /// <summary>
-    /// Read capacity unit for DynamoDB storage
+    /// DynamoDB 储存读能力单位
     /// </summary>
     public int ReadCapacityUnits { get; set; } = DynamoDBStorage.DefaultReadCapacityUnits;
 
     /// <summary>
-    /// Write capacity unit for DynamoDB storage
+    /// DynamoDB 储存的写能力单位
     /// </summary>
     public int WriteCapacityUnits { get; set; } = DynamoDBStorage.DefaultWriteCapacityUnits;
 
     /// <summary>
-    /// DynamoDB table name.
-    /// Defaults to 'OrleansTransactionalState'.
+    /// DynamoDB 表格名称。
+    /// 默认值为 'OrleansTransactionalState' 。
     /// </summary>
     public string TableName { get; set; } = "OrleansTransactionalState";
 
     /// <summary>
-    /// Stage of silo lifecycle where storage should be initialized.  Storage must be initialized prior to use.
+    /// 储存应初始化的 silo 生命周期阶段,储存必须在使用前初始化。
     /// </summary>
     public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
     /// <summary>
-    /// The default silo lifecycle stage for initializing transactional state storage.
+    /// 启动交易状态储存的默认 silo 生命周期阶段。
     /// </summary>
     public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
 
     /// <summary>
-    /// Gets or sets the serializer used to serialize grain state.
+    /// 获取或设置序列化 grain 状态的序列化器。
     /// </summary>
     public IGrainStorageSerializer GrainStorageSerializer { get; set; } = null!;
 }
 
 /// <summary>
-/// Configuration validator for DynamoDBTransactionalStorageOptions
+/// DynamoDBTransactionalStorageOptions的配置验证符
 /// </summary>
 public class DynamoDBTransactionalStorageOptionsValidator : IConfigurationValidator
 {
@@ -81,10 +81,10 @@ public class DynamoDBTransactionalStorageOptionsValidator : IConfigurationValida
     private readonly string name;
 
     /// <summary>
-    /// Constructor
+    /// 构造建构器
     /// </summary>
-    /// <param name="options">The option to be validated.</param>
-    /// <param name="name">The option name to be validated.</param>
+    /// <param name="options">选项将生效。</param>
+    /// <param name="name">需要验证的选项名称。</param>
     public DynamoDBTransactionalStorageOptionsValidator(DynamoDBTransactionalStorageOptions options, string name)
     {
         this.options = options;

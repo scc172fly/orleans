@@ -6,7 +6,7 @@ using Orleans.Utilities;
 namespace JournaledTodoList.WebApp.Grains;
 
 /// <summary>
-/// A "state" based Journaled Grain. It does not save the events, just the state.
+/// 以“状态”为基础的《日刊》 Grain。它不会保存事件,只是国家而已。
 /// </summary>
 [LogConsistencyProvider(ProviderName = Constants.StateStorageProviderName)]
 public sealed class TodoListRegistryGrain(ILogger<TodoListRegistryGrain> logger)
@@ -29,12 +29,12 @@ public sealed class TodoListRegistryGrain(ILogger<TodoListRegistryGrain> logger)
         await NotifyObservers();
     }
 
-    // Instead of having Apply methods in TodoListRegistry, we can override
-    // the TransitionState method and update the state here.
+    // 我们可不使用 TodoListRegistry中的“应用方法”,而是可以取代
+    // 排 TransitionState 方法, 并在此更新状态 。
     protected override void TransitionState(TodoListRegistry state, TodoListReference @event)
     {
-        // If there is an existing item with the same Id, replace it with the new item,
-        // ensuring the order of the items are kept.
+        // 如果现有项目使用同一编号,用新项目替换,
+        // 确保项目顺序保持不变。
         var existingList = state.TodoLists.FirstOrDefault(x => x.Id == @event.Id);
 
         if (existingList is not null)

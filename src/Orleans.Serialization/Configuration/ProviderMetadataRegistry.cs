@@ -10,7 +10,7 @@ using System.Runtime.Loader;
 namespace Orleans.Serialization.Configuration
 {
     /// <summary>
-    /// Stores configuration-driven provider metadata emitted by the Orleans source generator.
+    /// 由 Orleans 源产生器排放的储存配置驱动提供者元数据。
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class ProviderMetadataRegistry
@@ -23,9 +23,9 @@ namespace Orleans.Serialization.Configuration
 #endif
 
         /// <summary>
-        /// Registers generated provider metadata.
+        /// 登记册生成供应商元数据。
         /// </summary>
-        /// <param name="provider">The generated provider metadata.</param>
+        /// <param name="provider">生成的提供者元数据。</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static void Register(IProviderMetadataProvider provider)
         {

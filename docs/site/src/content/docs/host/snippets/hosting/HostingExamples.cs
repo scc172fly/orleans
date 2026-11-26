@@ -83,12 +83,12 @@ public static class HostingExamples
     {
         siloBuilder.Configure<EndpointOptions>(options =>
         {
-            // Addresses that other silos and clients use.
+            // 地址是其他 silos 和客户所使用的地址。
             options.AdvertisedIPAddress = IPAddress.Parse("172.16.0.42");
             options.SiloPort = 11_111;
             options.GatewayPort = 30_000;
 
-            // Sockets opened inside this process or container.
+            // 软袜在这个工艺或容器内打开。
             options.SiloListeningEndpoint =
                 new IPEndPoint(IPAddress.Any, 40_000);
             options.GatewayListeningEndpoint =
@@ -390,7 +390,7 @@ public static class HostingExamples
 
         builder.UseOrleans(siloBuilder =>
         {
-            // Configure Orleans.
+            // 配置 Orleans。
         });
 
         builder.Services.AddHostedService<GrainPingService>();
@@ -406,7 +406,7 @@ public static class HostingExamples
 
         builder.UseOrleans(siloBuilder =>
         {
-            // Configure Orleans.
+            // 配置 Orleans。
         });
 
         await builder.Build().RunAsync();
@@ -589,7 +589,7 @@ public sealed class UserSessionGrain : Grain, IUserSessionGrain
 {
     public Task ExpireAsync()
     {
-        // Ends this activation after the current turn completes.
+        // 在当前转弯完成后结束此激活 。
         this.DeactivateOnIdle();
         return Task.CompletedTask;
     }

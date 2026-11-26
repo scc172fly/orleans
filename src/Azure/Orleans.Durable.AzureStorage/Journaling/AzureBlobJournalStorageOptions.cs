@@ -6,27 +6,27 @@ using Azure.Storage.Blobs;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Options for configuring the Azure Blob journal storage provider.
+/// 配置 Azure 布束存储器选项。
 /// </summary>
 public sealed class AzureBlobJournalStorageOptions
 {
     /// <summary>
-    /// Gets or sets the name of the container where journal data is stored.
+    /// 查找或设置存储日记数据容器的名称。
     /// </summary>
     public string ContainerName { get; set; } = DEFAULT_CONTAINER_NAME;
 
     /// <summary>
-    /// The default container name for journal data.
+    /// 日记数据的默认容器名称 。
     /// </summary>
     public const string DEFAULT_CONTAINER_NAME = "state";
 
     /// <summary>
-    /// Gets or sets the delegate used to generate the write-ahead log blob name for a journal.
+    /// 获取或设置用于生成日记日志的写头对数布号的代表名称。
     /// </summary>
     /// <remarks>
-    /// The default name is <c>wal/{journalId.Value}</c>. Catalog discovery uses this layout in
-    /// <see cref="ContainerName"/>. Custom delegates which participate in catalog discovery must
-    /// produce the same name for each journal id.
+    /// 默认名称为 <c>wal/{journalId.Value}</c>。
+    /// <see cref="ContainerName"/>. 参加目录查找的海关代表必须
+    /// 每个日记id 都产生相同的名称。
     /// </remarks>
     public Func<JournalId, string> GetWalBlobName { get; set; } = DefaultGetWalBlobName;
 
@@ -34,12 +34,12 @@ public sealed class AzureBlobJournalStorageOptions
         static journalId => GetDefaultWalBlobName(journalId);
 
     /// <summary>
-    /// Gets or sets the delegate used to generate the checkpoint blob name for a journal snapshot.
+    /// 获取或设置用于生成日记快照的检查点布条名称的代表。
     /// </summary>
     /// <remarks>
-    /// The delegate receives the journal id and an opaque snapshot id generated for the checkpoint.
-    /// The snapshot id is currently formatted as a 32-character hexadecimal string using <c>Guid.ToString("N")</c>.
-    /// The returned value must be a container-relative blob name. The default value is
+    /// 代表收到日记号,并收到为检查站制作的不透明快照号。
+    /// 快速描述id目前格式化为32个字符十六进制字符串,使用 <c>Guid.ToString("N")</c>。
+    /// 返回的值必须是容器相对浮点点名称。默认值是
     /// <c>checkpoints/{journalId.Value}/{snapshotId}</c>.
     /// </remarks>
     public Func<JournalId, string, string> GetCheckpointBlobName { get; set; } = DefaultGetCheckpointBlobName;
@@ -48,12 +48,12 @@ public sealed class AzureBlobJournalStorageOptions
         static (journalId, snapshotId) => GetDefaultCheckpointBlobName(journalId, snapshotId);
 
     /// <summary>
-    /// Options to be used when configuring the blob storage client, or <see langword="null"/> to use the default options.
+    /// 当配置 blob 存储客户端时, 或者 <see langword="null"/> 使用默认选项时要使用的选项 。
     /// </summary>
     public BlobClientOptions? ClientOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets the client used to access the Azure Blob Service.
+    /// 获取或设置用于访问 Azure 球形服务的客户端。
     /// </summary>
     public BlobServiceClient? BlobServiceClient
     {
@@ -67,51 +67,51 @@ public sealed class AzureBlobJournalStorageOptions
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether obsolete checkpoint blobs are deleted after a new checkpoint is published. Defaults to true.
+    /// 获取或设置值,以显示是否在新检查站公布后删除了过时的检查点布。默认为真 。
     /// </summary>
     public bool DeleteOldCheckpoints { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the maximum number of times a journaling Append, Replace, or Delete operation
-    /// will refresh its cached WAL ETag and retry in place after observing a metadata-only ETag
-    /// conflict (for example, a concurrent caller-owned metadata update or generation bump).
-    /// When the cap is exceeded the storage layer falls back to throwing
-    /// <see cref="Orleans.Storage.InconsistentStateException"/> and the journaling layer recovers
-    /// before retrying. Defaults to 5.
+    /// 获取或设定日记附加、替换或删除操作的最大次数
+    /// 将更新其隐藏的 WAL ETag ,并在观测到仅使用元数据 ETag 后重试
+    /// 冲突(例如,同时使用自有的调用元数据更新或生成峰值)。
+    /// 当上限超过上限时,存储层会回落到抛掷
+    /// <see cref="Orleans.Storage.InconsistentStateException"/> 和日记层恢复
+    /// 重试前的默认值为 5。
     /// </summary>
     public int MaxMetadataOnlyConflictRetries { get; set; } = DEFAULT_MAX_METADATA_ONLY_CONFLICT_RETRIES;
 
     /// <summary>
-    /// The default maximum number of metadata-only conflict retries.
+    /// 仅使用元数据冲突重试的默认最大值。
     /// </summary>
     public const int DEFAULT_MAX_METADATA_ONLY_CONFLICT_RETRIES = 5;
 
     /// <summary>
-    /// Gets or sets the initial delay applied before re-trying after a metadata-only ETag conflict.
-    /// Subsequent attempts double the delay (capped at <see cref="MetadataOnlyConflictMaxBackoff"/>).
-    /// Set to <see cref="TimeSpan.Zero"/> to retry immediately without backoff. Defaults to 10 ms.
+    /// 获取或设置在只使用元数据ETag冲突后重新尝试前应用的初始延迟。
+    /// 随后的尝试将延误增加一倍(最高为 <see cref="MetadataOnlyConflictMaxBackoff"/>)。
+    /// 设为 <see cref="TimeSpan.Zero"/> , 将立即重试而不回落。 默认为 10 毫秒 。
     /// </summary>
     public TimeSpan MetadataOnlyConflictInitialBackoff { get; set; } = DEFAULT_METADATA_ONLY_CONFLICT_INITIAL_BACKOFF;
 
     /// <summary>
-    /// The default initial delay for metadata-only conflict retries.
+    /// 仅使用元数据冲突重试的默认初始延迟 。
     /// </summary>
     public static readonly TimeSpan DEFAULT_METADATA_ONLY_CONFLICT_INITIAL_BACKOFF = TimeSpan.FromMilliseconds(10);
 
     /// <summary>
-    /// Gets or sets the upper bound on the per-attempt backoff used by metadata-only conflict
-    /// retries. The exponential schedule starts at <see cref="MetadataOnlyConflictInitialBackoff"/>
-    /// and never exceeds this value. Defaults to 200 ms.
+    /// 获取或设定仅用于元数据冲突的每次尝试回卸的上限
+    /// 重试。指数时间表从 <see cref="MetadataOnlyConflictInitialBackoff"/>开始
+    /// 且从未超过此值。默认为 200 ms。
     /// </summary>
     public TimeSpan MetadataOnlyConflictMaxBackoff { get; set; } = DEFAULT_METADATA_ONLY_CONFLICT_MAX_BACKOFF;
 
     /// <summary>
-    /// The default maximum delay between metadata-only conflict retries.
+    /// 仅使用元数据冲突重试的默认最大延迟 。
     /// </summary>
     public static readonly TimeSpan DEFAULT_METADATA_ONLY_CONFLICT_MAX_BACKOFF = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
-    /// The optional delegate used to create a <see cref="BlobServiceClient"/> instance.
+    /// 用于创建 <see cref="BlobServiceClient"/> 实例的可选代表 。
     /// </summary>
     internal Func<CancellationToken, Task<BlobServiceClient>>? CreateClient { get; private set; }
 
@@ -162,13 +162,13 @@ public sealed class AzureBlobJournalStorageOptions
     }
 
     /// <summary>
-    /// A function for building container factory instances.
+    /// 用于建造集装箱工厂的功能。
     /// </summary>
     public Func<IServiceProvider, AzureBlobJournalStorageOptions, IBlobContainerFactory> BuildContainerFactory { get; set; }
         = static (provider, options) => new DefaultBlobContainerFactory(options);
 
     /// <summary>
-    /// Configures the <see cref="BlobServiceClient"/> using a connection string.
+    /// 使用连接字符串配置 <see cref="BlobServiceClient"/> 。
     /// </summary>
     public void ConfigureBlobServiceClient(string connectionString)
     {
@@ -177,7 +177,7 @@ public sealed class AzureBlobJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI.
+    /// 使用验证的服务 URI 配置 <see cref="BlobServiceClient"/> 。
     /// </summary>
     public void ConfigureBlobServiceClient(Uri serviceUri)
     {
@@ -186,7 +186,7 @@ public sealed class AzureBlobJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="BlobServiceClient"/> using the provided callback.
+    /// 使用所提供的回调配置 <see cref="BlobServiceClient"/> 。
     /// </summary>
     public void ConfigureBlobServiceClient(Func<CancellationToken, Task<BlobServiceClient>> createClientCallback)
     {
@@ -194,7 +194,7 @@ public sealed class AzureBlobJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI and a <see cref="TokenCredential"/>.
+    /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="TokenCredential"/>.
     /// </summary>
     public void ConfigureBlobServiceClient(Uri serviceUri, TokenCredential tokenCredential)
     {
@@ -204,7 +204,7 @@ public sealed class AzureBlobJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI and a <see cref="AzureSasCredential"/>.
+    /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="AzureSasCredential"/>.
     /// </summary>
     public void ConfigureBlobServiceClient(Uri serviceUri, AzureSasCredential azureSasCredential)
     {
@@ -214,7 +214,7 @@ public sealed class AzureBlobJournalStorageOptions
     }
 
     /// <summary>
-    /// Configures the <see cref="BlobServiceClient"/> using an authenticated service URI and a <see cref="StorageSharedKeyCredential"/>.
+    /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="StorageSharedKeyCredential"/>.
     /// </summary>
     public void ConfigureBlobServiceClient(Uri serviceUri, StorageSharedKeyCredential sharedKeyCredential)
     {

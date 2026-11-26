@@ -162,7 +162,7 @@ internal static class GrainDirectoryEvents
     }
 
     /// <summary>
-    /// Event payload for when a safety lease hold is created for a dead silo.
+    /// 当为死亡 silo设定安全租赁舱时,事件有效载荷。
     /// </summary>
     internal sealed class SiloLeaseHoldCreated(
         SiloAddress observerSiloAddress,
@@ -170,18 +170,18 @@ internal static class GrainDirectoryEvents
         DateTimeOffset expiration) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, RingRange.Empty)
     {
         /// <summary>
-        /// The dead silo whose activations are covered by the lease hold.
+        /// 死人 silo 其启动活动属于租赁持有范围。
         /// </summary>
         public readonly SiloAddress DeadSiloAddress = deadSiloAddress;
 
         /// <summary>
-        /// The time when the lease hold expires.
+        /// 租约到期时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
     }
 
     /// <summary>
-    /// Event payload for when a safety lease hold is created for a directory range.
+    /// 当为目录范围创建安全租赁区时, 事件有效载荷。
     /// </summary>
     internal sealed class RangeLeaseHoldCreated(
         SiloAddress observerSiloAddress,
@@ -189,13 +189,13 @@ internal static class GrainDirectoryEvents
         DateTimeOffset expiration) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, range)
     {
         /// <summary>
-        /// The time when the lease hold expires.
+        /// 租约到期时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
     }
 
     /// <summary>
-    /// Event payload for when a registration is delayed by a dead-silo lease hold.
+    /// 当登记因死亡 --silo 租赁搁置而延迟时,事件有效载荷。
     /// </summary>
     internal sealed class RegistrationBlockedBySiloLease(
         SiloAddress observerSiloAddress,
@@ -205,28 +205,28 @@ internal static class GrainDirectoryEvents
         TimeSpan retryAfter) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, RingRange.Empty)
     {
         /// <summary>
-        /// The grain whose registration was blocked.
+        /// 下 grain 登记被冻结。
         /// </summary>
         public readonly GrainId GrainId = grainId;
 
         /// <summary>
-        /// The dead silo whose lease hold blocked registration.
+        /// 死人 silo 租约冻结了登记
         /// </summary>
         public readonly SiloAddress DeadSiloAddress = deadSiloAddress;
 
         /// <summary>
-        /// The time when the lease hold expires.
+        /// 租约到期时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
 
         /// <summary>
-        /// The delay before registration should be retried.
+        /// 应重新研究登记前的延误。
         /// </summary>
         public readonly TimeSpan RetryAfter = retryAfter;
     }
 
     /// <summary>
-    /// Event payload for when a registration is delayed by a range lease hold.
+    /// 当登记因距离租赁搁置而推迟时,活动有效载荷。
     /// </summary>
     internal sealed class RegistrationBlockedByRangeLease(
         SiloAddress observerSiloAddress,
@@ -236,23 +236,23 @@ internal static class GrainDirectoryEvents
         TimeSpan retryAfter) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, range)
     {
         /// <summary>
-        /// The grain whose registration was blocked.
+        /// 下 grain 登记被冻结。
         /// </summary>
         public readonly GrainId GrainId = grainId;
 
         /// <summary>
-        /// The time when the lease hold expires.
+        /// 租约到期时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
 
         /// <summary>
-        /// The delay before registration should be retried.
+        /// 应重新研究登记前的延误。
         /// </summary>
         public readonly TimeSpan RetryAfter = retryAfter;
     }
 
     /// <summary>
-    /// Event payload for when a grain directory operation is delayed because a lease hold is active.
+    /// 当 grain 目录操作因租赁持有活动而延迟时的事件有效载荷。
     /// </summary>
     internal sealed class OperationDelayedByLeaseHold(
         SiloAddress observerSiloAddress,
@@ -261,17 +261,17 @@ internal static class GrainDirectoryEvents
         TimeSpan retryAfter) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, RingRange.Empty)
     {
         /// <summary>
-        /// The grain whose directory operation was delayed.
+        /// 目录操作被延迟的 grain 。
         /// </summary>
         public readonly GrainId GrainId = grainId;
 
         /// <summary>
-        /// The delayed directory operation.
+        /// 延迟目录操作 。
         /// </summary>
         public readonly string Operation = operation;
 
         /// <summary>
-        /// The delay before the operation should be retried.
+        /// 行动前的拖延应当重新研究。
         /// </summary>
         public readonly TimeSpan RetryAfter = retryAfter;
     }

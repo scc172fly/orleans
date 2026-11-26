@@ -4,20 +4,20 @@ using Orleans.Runtime;
 namespace UnitTests.StorageTests.Relational.TestDataSets
 {
     /// <summary>
-    /// A set of simple test data set wit and without extension keys.
+    /// 一套简单的测试数据集,机智且不使用扩展键。
     /// </summary>
-    /// <typeparam name="TGrainKey">The grain type (integer, guid or string)</typeparam>.
+    /// <typeparam name="TGrainKey"> grain 类型(整数、信头或字符串)</typeparam>。
     internal sealed class StorageDataSetPlain<TGrainKey> : IEnumerable<object[]>
     {
         private const int NumCases = 3;
 
         /// <summary>
-        /// The symbol set this data set uses.
+        /// 符号设置此数据集的使用 。
         /// </summary>
         private static SymbolSet Symbols { get; } = new SymbolSet(SymbolSet.Latin1);
 
         /// <summary>
-        /// The length of random string drawn form <see cref="Symbols"/>.
+        /// 随机抽取的字符串长度窗体 <see cref="Symbols"/>。
         /// </summary>
         private const long StringLength = 15L;
 

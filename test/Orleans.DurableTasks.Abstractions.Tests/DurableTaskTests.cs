@@ -279,7 +279,7 @@ public class DurableTaskTests
             }
             else
             {
-                // The host's cancellation of the delay ends the canceled attempt's operation.
+                // 东道方取消延迟 结束了取消尝试的操作
                 var attemptCanceled = Assert.IsType<DurableTaskAttemptCanceledException>(exception);
                 Assert.Equal(DurableTaskAttemptCancellationReason.TaskDeleted, attemptCanceled.Reason);
                 Assert.Equal(context.AttemptCancellationToken, attemptCanceled.CancellationToken);
@@ -2245,7 +2245,7 @@ public class SchedulingTests
         await waiting.Task.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
         context.RequestTaskCancellation(null);
 
-        // The input which ignores cancellation still completes, and the combinator returns both results.
+        // 忽略取消的输入仍然完整, 组合返回两个结果 。
         second.SetResult(2);
         var response = await execution.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
         Assert.Equal([1, 2], response.GetResult<IReadOnlyList<int>>());
@@ -2264,7 +2264,7 @@ public class SchedulingTests
             whenAny ? (await DurableTask.WhenAny(inputs)).Result : (await DurableTask.WhenAll(inputs)).Sum()));
         var scheduled = await root.WithId("root").ScheduleAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
-        // Every input's scheduling begins before any of it completes, so a host can commit the batch together.
+        // 输入的进度在完成之前就开始了 所以主机可以一起进行批次
         var deadline = DateTime.UtcNow.AddSeconds(10);
         while (host.ScheduleRequestCount < inputs.Length && DateTime.UtcNow < deadline)
         {
@@ -3766,10 +3766,10 @@ internal sealed class TestHost(DateTimeOffset utcNow)
     private int _scheduleRequestCount;
     public int ExecutionCount;
 
-    /// <summary>Gets the number of child scheduling requests, counted when each request begins.</summary>
+    /// <summary>获得儿童日程安排申请的数量,在每次申请开始时计算。</summary>
     public int ScheduleRequestCount => Volatile.Read(ref _scheduleRequestCount);
 
-    /// <summary>Gets a task which child scheduling waits for before it schedules.</summary>
+    /// <summary>执行儿童时间安排在计划前等待的任务。</summary>
     public Task? ScheduleGate { get; init; }
 
     public DateTimeOffset? LastDelayDueTime { get; private set; }
@@ -3784,12 +3784,12 @@ internal sealed class TestHost(DateTimeOffset utcNow)
 
     public Func<CancellationToken, ValueTask<DurableTaskResponse>>? DelayCallback { get; init; }
 
-    /// <summary>Gets or sets the logical time of the executions which the host creates from now on.</summary>
+    /// <summary>获取或设定从现在开始东道方创造的处决的逻辑时间。</summary>
     public DateTimeOffset UtcNow { get; set; } = utcNow;
 
     /// <summary>
-    /// Gets whether a handle's cancellation request reaches the execution of its task, carrying the request's reason, as
-    /// it does in a host which runs the task.
+    /// 了解手柄的撤消请求是否达到执行任务的程度,并附有请求的理由,因为
+    /// 它在运行此项任务的东道主中执行。
     /// </summary>
     public bool PropagatesCancellation { get; init; }
 
@@ -3799,7 +3799,7 @@ internal sealed class TestHost(DateTimeOffset utcNow)
 
     public bool Contains(TaskId id) => _entries.ContainsKey(id);
 
-    /// <summary>Gets the outcomes which <c>DurableTask.RunInline</c> recorded, by effect identifier.</summary>
+    /// <summary>获得的结果 <c>DurableTask.RunInline</c> 以有效识别符号记录。</summary>
     public ConcurrentDictionary<TaskId, DurableTaskResponse> Effects { get; } = new();
 
     public bool IsCancellationRequested(TaskId id) => _entries.TryGetValue(id, out var entry) && entry.CancellationRequested;
@@ -3909,10 +3909,10 @@ internal sealed class TestHost(DateTimeOffset utcNow)
 
         public bool CancellationRequested { get; private set; }
 
-        /// <summary>Gets the reason of the first cancellation request.</summary>
+        /// <summary>获取第一次取消请求的理由。</summary>
         public string? CancellationReason { get; private set; }
 
-        /// <summary>Gets or sets the context of the task's execution, once the host runs it.</summary>
+        /// <summary>一旦主机运行, 获取或设置任务执行的背景。</summary>
         public TestContext? Context { get; set; }
 
         public Exception? WaitException { get; set; }

@@ -15,8 +15,8 @@ using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 namespace Orleans.Durable.Http;
 
 /// <summary>
-/// Serves durable operations with the Azure long-running operation convention: status monitors under
-/// <c>{group}/operations/{operationId}</c>, <c>Operation-Location</c>, <c>Retry-After</c>, and <c>Prefer: wait</c>.
+/// 使用 Azure 长期作业公约的持久业务:
+/// <c>{group}/operations/{operationId}</c>、 <c>Operation-Location</c>、 <c>Retry-After</c>之后重新转调,以及 <c>Prefer: wait</c>。
 /// </summary>
 internal sealed class DurableHttpOperations(
     DurableOperationService operations,
@@ -26,13 +26,13 @@ internal sealed class DurableHttpOperations(
     IOptions<DurableHttpOptions> options,
     IOptions<HttpJsonOptions> jsonOptions)
 {
-    /// <summary>The route parameter which names an operation.</summary>
+    /// <summary>指一个操作的路线参数。</summary>
     public const string OperationIdParameter = "operationId";
 
-    /// <summary>The type of the server-sent events which carry an operation's status.</summary>
+    /// <summary>包含操作状态的服务器- 发送事件类型 。</summary>
     private const string StatusEvent = "status";
 
-    /// <summary>The type of the server-sent events which keep an event stream's connection alive, without data.</summary>
+    /// <summary>服务器- 发送事件类型, 使事件流的连接保持生命状态, 没有数据 。</summary>
     private const string PingEvent = "ping";
 
     private readonly DurableHttpOptions _options = options.Value;
@@ -41,9 +41,9 @@ internal sealed class DurableHttpOperations(
     public DurableHttpOptions Options => _options;
 
     /// <summary>
-    /// Starts <paramref name="work"/> as the operation <paramref name="operationId"/>, waits for it as the request prefers,
-    /// and returns its result or its status monitor. A request which registers a callback with an
-    /// <c>Operation-Callback</c> header receives the status monitor there once a running operation is terminal.
+    /// 开始 <paramref name="work"/> 作为操作 <paramref name="operationId"/>, 等待它, 请求所偏爱的,
+    /// 将调回
+    /// <c>Operation-Callback</c> 头在运行中的操作为终端时收到状态监视器。
     /// </summary>
     public async Task<IResult> StartAsync(HttpContext context, DurableOperationsMetadata group, DurableTask work, string operationId)
     {
@@ -99,7 +99,7 @@ internal sealed class DurableHttpOperations(
         };
     }
 
-    /// <summary>Returns the operation's status monitor once it is terminal or the request's preferred wait has elapsed.</summary>
+    /// <summary>一旦业务处于终端状态或请求首选等待时间已过, 即返回运行状态监视器。</summary>
     public Task<IResult> GetAsync(HttpContext context) => HandleAsync(context, async (operation, cancellationToken) =>
     {
         var wait = DurableHttpRequestHeaders.GetWait(context.Request.Headers, _options.MaxWait);
@@ -108,12 +108,12 @@ internal sealed class DurableHttpOperations(
     });
 
     /// <summary>
-    /// Streams the operation's status as server-sent events: its current status, then its terminal status once it is
-    /// running, after which the stream ends. Each event's identifier is its status.
+    /// 将业务作为服务器待发事件:其现状,然后是一旦处于终端状态
+    /// 运行中, 流结束之后。 每个事件的身份识别符就是状态 。
     /// </summary>
     /// <remarks>
-    /// An <c>EventSource</c> reconnects when a stream ends, carrying the last event's identifier, so a reconnect after the
-    /// terminal status receives <c>204 No Content</c>, which ends its reconnects.
+    /// A 音 A <c>EventSource</c> 当流流结束时, 带有最后一个事件标识符, 所以在
+    /// 终端状态接收 <c>204 No Content</c>, 结束其连接 。
     /// </remarks>
     public Task<IResult> WatchAsync(HttpContext context) => HandleAsync(context, async (operation, cancellationToken) =>
     {
@@ -128,9 +128,9 @@ internal sealed class DurableHttpOperations(
     });
 
     /// <summary>
-    /// Durably requests cancellation of a running operation, carrying the optional <c>reason</c> of the request's JSON body,
-    /// and returns its status monitor: <c>202 Accepted</c> for a running operation, and <c>200 OK</c> for a terminal one,
-    /// which is unchanged.
+    /// 可操作性地请求取消运行中的操作, 携带可选 <c>reason</c> 提出请求的日期 JSON 体,
+    /// 返回其状态监视器: <c>202 Accepted</c> , <c>200 OK</c> 一个终端,
+    /// 不变。
     /// </summary>
     public async Task<IResult> CancelAsync(HttpContext context)
     {
@@ -142,7 +142,7 @@ internal sealed class DurableHttpOperations(
         });
     }
 
-    /// <summary>Delivers <paramref name="signal"/> with the value of the request's JSON body to the operation's task.</summary>
+    /// <summary>交付交付 <paramref name="signal"/> 请求书的价值 JSON 操作的任务的物体。</summary>
     public async Task<IResult> SignalAsync<T>(HttpContext context, DurableSignal<T> signal)
     {
         var (value, error) = await ReadBodyAsync(context, _json.GetTypeInfo<T>(), isRequired: true);
@@ -163,13 +163,13 @@ internal sealed class DurableHttpOperations(
     }
 
     /// <summary>
-    /// Reads the request's JSON body as a Minimal API binds a <c>[FromBody]</c> parameter: a body of another content type
-    /// returns <c>415 Unsupported Media Type</c>, and a body which isn't valid JSON, or a required body which is missing or
-    /// holds <c>null</c>, returns <c>400 Bad Request</c>.
+    /// 将请求的 JSON 正文读为最小 API 绑定 <c>[FromBody]</c> 参数:另一类型内容的体
+    /// 返回 <c>415 Unsupported Media Type</c>, 和无效的体 JSON,或缺失的所需体或
+    /// 持有 <c>null</c>,返回 <c>400 Bad Request</c>。
     /// </summary>
     /// <remarks>
-    /// Whether the request has a body decides whether a value was sent, so a missing body never reads as the type's
-    /// default, such as <see langword="false"/> for a <see cref="bool"/>.
+    /// 请求是否有一个身体来决定是否发送了值, 所以缺少的遗体从不读作类型
+    /// 默认缺省,例如 <see langword="false"/> a 的a <see cref="bool"/>.
     /// </remarks>
     private static async Task<(T? Value, IResult? Error)> ReadBodyAsync<T>(HttpContext context, JsonTypeInfo<T> typeInfo, bool isRequired)
     {
@@ -203,8 +203,8 @@ internal sealed class DurableHttpOperations(
     }
 
     /// <summary>
-    /// Handles a request which names an operation with <paramref name="handler"/>, or returns <c>404 Not Found</c> for an
-    /// operation which doesn't exist, and <c>503 Service Unavailable</c> for one which the request didn't reach.
+    /// 处理一个请求, 其中指定操作名称 <paramref name="handler"/>返回 <c>404 Not Found</c> 用于 a
+    /// 操作中不存在的, <c>503 Service Unavailable</c> 请求没有达到的
     /// </summary>
     private async Task<IResult> HandleAsync(HttpContext context, Func<Operation, CancellationToken, Task<IResult>> handler)
     {
@@ -248,8 +248,8 @@ internal sealed class DurableHttpOperations(
                 break;
             }
 
-            // A heartbeat after each poll writes to the connection, so a stream which its client abandoned ends with the
-            // write, rather than polling for the operation's duration.
+            // 每一次民意调查之后的一瞬间 写到这段关联 所以一个客户抛弃的流
+            // 而不是为行动持续时间进行投票
             yield return new(status, PingEvent);
         }
 
@@ -271,8 +271,8 @@ internal sealed class DurableHttpOperations(
         DurableOperationResponses.ToOperation(operationId, response, _json, _options);
 
     /// <summary>
-    /// Returns <c>503 Service Unavailable</c> for a request which left its operation as it was, such as one which didn't
-    /// reach the operation's grains, with a <c>Retry-After</c> header, so the client sends it again.
+    /// 返回 <c>503 Service Unavailable</c> ,因为一项请求已停止运行,例如没有
+    /// 到达操作 grains,使用一个 <c>Retry-After</c> 页眉,客户端再发送一次。
     /// </summary>
     private IResult Unavailable(HttpContext context)
     {
@@ -287,8 +287,8 @@ internal sealed class DurableHttpOperations(
         context.Response.Headers.RetryAfter = ((long)Math.Ceiling(_options.RetryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
 
     /// <summary>
-    /// Returns the URL of the operation's status monitor, in the group of the request's endpoint, with the request's values
-    /// for the group's route parameters.
+    /// 返回运行状态监视器的 URL, 在请求的端点组中, 以请求的值返回
+    /// 组的路线参数。
     /// </summary>
     private string GetOperationLocation(HttpContext context, DurableOperationsMetadata group, string operationId)
     {
@@ -303,12 +303,12 @@ internal sealed class DurableHttpOperations(
         title: "The operation was not found",
         detail: "The operation doesn't exist, or its retention has ended.");
 
-    /// <summary>Identifies the operation which a request names.</summary>
-    /// <param name="Id">The operation identifier, which the request names.</param>
-    /// <param name="Key">The operation's key.</param>
+    /// <summary>标明请求方名称的操作。</summary>
+    /// <param name="Id">请求中的名称为操作识别符。</param>
+    /// <param name="Key">操作的密钥。</param>
     private readonly record struct Operation(string Id, string Key);
 
-    /// <summary>Writes operation statuses as a <c>text/event-stream</c> response.</summary>
+    /// <summary>以a. <c>text/event-stream</c> 答复。</summary>
     private sealed class DurableOperationEventsResult(IAsyncEnumerable<SseItem<DurableOperation>> events) : IResult
     {
         public async Task ExecuteAsync(HttpContext httpContext)

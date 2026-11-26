@@ -16,7 +16,7 @@ internal sealed class TcpMessageTransportListenerOptions
 }
 
 /// <summary>
-/// <see cref="MessageTransportListener"/> which listens for TCP connections.
+/// 监听 TCP 连接的<see cref="MessageTransportListener"/> 。
 /// </summary>
 internal sealed class TcpMessageTransportListener : MessageTransportListener
 {
@@ -65,7 +65,7 @@ internal sealed class TcpMessageTransportListener : MessageTransportListener
                 listenSocket.EnableFastPath(noDelay: options.NoDelay);
             }
 
-            // IPv6Any is expected to bind to both IPv6 and IPv4
+            // IPv6 任何事项都预计将与 IPv6 和 IPv4 同时绑定
             if (listenerOptions.Endpoint is IPEndPoint ip && ip.Address == IPAddress.IPv6Any)
             {
                 listenSocket.DualMode = options.DualMode;
@@ -139,22 +139,22 @@ internal sealed class TcpMessageTransportListener : MessageTransportListener
             }
             catch (OperationCanceledException)
             {
-                // Graceful termination.
+                // 优雅的终止
                 return null;
             }
             catch (ObjectDisposedException)
             {
-                // A call was made to UnbindAsync/DisposeAsync just return null which signals we're done
+                // 电话是叫 UnbindAsync/DisposeAsync 退回就完
                 return null;
             }
             catch (SocketException e) when (e.SocketErrorCode == SocketError.OperationAborted)
             {
-                // A call was made to UnbindAsync/DisposeAsync just return null which signals we're done
+                // 电话是叫 UnbindAsync/DisposeAsync 退回就完
                 return null;
             }
             catch (SocketException)
             {
-                // The connection got reset while it was in the backlog, so we try again.
+                // 连接在积压时被重置, 所以我们再试一次。
                 SocketsLog.ConnectionReset(Logger, connection: "(null)");
             }
         }

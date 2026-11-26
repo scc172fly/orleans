@@ -11,7 +11,7 @@ using Xunit;
 namespace UnitTests.Directory
 {
     /// <summary>
-    /// Tests for distributed hash table grain locator functionality including grain unregistration and batch operations.
+    /// 散装散列表 grain 定位功能的测试,包括 grain 未登记和批量操作。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Directory")]
     [TestSuite("BVT")]

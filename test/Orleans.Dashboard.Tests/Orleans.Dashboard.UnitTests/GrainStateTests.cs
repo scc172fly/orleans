@@ -36,7 +36,7 @@ namespace UnitTests
         [Fact]
         public async Task TestGetGrainsTypes()
         {
-            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // This fixture deploys the client.
+            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // 固定装置可以部署客户
             var types = await dashboardGrain.GetGrainTypes(cancellationToken: TestContext.Current.CancellationToken);
 
             Assert.Contains("TestGrains.TestStateInMemoryGrain", types.Value);
@@ -45,8 +45,8 @@ namespace UnitTests
         [Fact]
         public async Task TestWithGetStateMethod()
         {
-            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // This fixture deploys the client.
-            var stateGrain = _cluster.GrainFactory!.GetGrain<ITestStateInMemoryGrain>(123); // This fixture deploys the client.
+            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // 固定装置可以部署客户
+            var stateGrain = _cluster.GrainFactory!.GetGrain<ITestStateInMemoryGrain>(123); // 固定装置可以部署客户
 
             var immutableState = await dashboardGrain.GetGrainState(
                 "123",
@@ -63,8 +63,8 @@ namespace UnitTests
         [Fact]
         public async Task TestWithIStorageField()
         {
-            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // This fixture deploys the client.
-            var stateGrain = _cluster.GrainFactory!.GetGrain<ITestStateGrain>(123); // This fixture deploys the client.
+            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // 固定装置可以部署客户
+            var stateGrain = _cluster.GrainFactory!.GetGrain<ITestStateGrain>(123); // 固定装置可以部署客户
             await stateGrain.WriteCounterState(new CounterState
             {
                 Counter = 5,
@@ -90,7 +90,7 @@ namespace UnitTests
         [InlineData("123", "TestGrains.UnknownGrain", "Unknown grain type")]
         public async Task GetGrainState_InvalidRequest_ReturnsErrorPayload(string? id, string? grainType, string expectedError)
         {
-            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // This fixture deploys the client.
+            var dashboardGrain = _cluster.GrainFactory!.GetGrain<IDashboardGrain>(1); // 固定装置可以部署客户
 
             var immutableState = await dashboardGrain.GetGrainState(
                 id,

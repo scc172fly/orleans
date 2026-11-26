@@ -15,8 +15,8 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Failing test demonstrating missing activation tracing spans.
-    /// Expects an activation Activity to be created on first grain activation.
+    /// 测试失败, 显示缺少启动跟踪的间隔时间 。
+    /// 期望在第一次 grain 激活时启动活动。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -45,7 +45,7 @@ namespace UnitTests.General
         {
             protected override void ConfigureTestCluster(TestClusterBuilder builder)
             {
-                builder.Options.InitialSilosCount = 2; // Need 2 silos for migration tests
+                builder.Options.InitialSilosCount = 2; // 移民测试需要2 silos
                 builder.ConfigureHostConfiguration(TestDefaultConfiguration.ConfigureHostConfiguration);
                 builder.AddSiloBuilderConfigurator<SiloCfg>();
                 builder.AddClientBuilderConfigurator<ClientCfg>();
@@ -95,35 +95,35 @@ namespace UnitTests.General
             try
             {
                 var grain = _fixture.GrainFactory.GetGrain<IActivityGrain>(Random.Shared.Next());
-                // First call should force activation
+                // 第一次呼叫应该启动
                 _ = await grain.GetActivityId();
 
-                // Expect at least one activation-related activity
+                // 期望至少开展一项与激活有关的活动
                 var activationActivities = Started.Where(a => a.Source.Name == ActivitySources.LifecycleActivitySourceName).ToList();
                 Assert.True(activationActivities.Count > 0, "Expected activation tracing activity to be created, but none were observed.");
 
-                // Verify all expected spans are present and properly parented under test-parent
+                // 测试对象中应核查所有预期的间隔时间,并适当定位于测试对象
                 var testParentTraceId = parent!.TraceId.ToString();
 
-                // Find the placement span - should be parented to the grain call which is parented to test-parent
+                // 查找定位的放置跨度 - 应用定位到 grain 呼叫, 并挂给测试亲
                 var placementSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.PlaceGrain);
                 Assert.NotNull(placementSpan);
                 Assert.Equal(testParentTraceId, placementSpan.TraceId.ToString());
 
-                // Find the placement filter span - should share the same trace ID as test-parent
+                // 查找放置过滤器的宽度 - 与测试亲一样共享跟踪身份
                 var placementFilterSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.FilterPlacementCandidates);
                 Assert.Null(placementFilterSpan);
 
-                // Find the activation span - should be parented to the grain call which is parented to test-parent
+                // 查找激活的跨度 - 应该嵌入到 grain 呼叫中, 以测试父
                 var activationSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
                 Assert.NotNull(activationSpan);
                 Assert.Equal(testParentTraceId, activationSpan.TraceId.ToString());
 
-                // Find the OnActivateAsync span - should be parented to the activation span
+                // 查找 OnActivateAsync 的间隔 - 应与激活间隔相侧
                 var onActivateSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.OnActivate);
                 Assert.Null(onActivateSpan);
 
-                // Find the directory register span - should be parented to activation span
+                // 查找目录登记器的横跨 - 应该在边上定位以激活
                 var directoryRegisterSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.RegisterDirectoryEntry);
                 Assert.NotNull(directoryRegisterSpan);
                 Assert.Equal(testParentTraceId, directoryRegisterSpan.TraceId.ToString());
@@ -148,39 +148,39 @@ namespace UnitTests.General
             try
             {
                 var grain = _fixture.GrainFactory.GetGrain<IFilteredActivityGrain>(Random.Shared.Next());
-                // First call should force activation
+                // 第一次呼叫应该启动
                 _ = await grain.GetActivityId();
 
-                // Expect at least one activation-related activity
+                // 期望至少开展一项与激活有关的活动
                 var activationActivities = Started.Where(a => a.Source.Name == ActivitySources.LifecycleActivitySourceName).ToList();
                 Assert.True(activationActivities.Count > 0, "Expected activation tracing activity to be created, but none were observed.");
 
-                // Verify all expected spans are present and properly parented under test-parent
+                // 测试对象中应核查所有预期的间隔时间,并适当定位于测试对象
                 var testParentTraceId = parent!.TraceId.ToString();
 
-                // Find the placement span - should be parented to the grain call which is parented to test-parent
+                // 查找定位的放置跨度 - 应用定位到 grain 呼叫, 并挂给测试亲
                 var placementSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.PlaceGrain);
                 Assert.NotNull(placementSpan);
                 Assert.Equal(testParentTraceId, placementSpan.TraceId.ToString());
 
-                // Find the placement filter span - should share the same trace ID as test-parent
+                // 查找放置过滤器的宽度 - 与测试亲一样共享跟踪身份
                 var placementFilterSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.FilterPlacementCandidates);
                 Assert.NotNull(placementFilterSpan);
                 Assert.Equal(testParentTraceId, placementFilterSpan.TraceId.ToString());
                 Assert.Equal("TracingTestPlacementFilterStrategy", placementFilterSpan.Tags.FirstOrDefault(t => t.Key == "orleans.placement.filter.type").Value);
 
-                // Find the activation span - should be parented to the grain call which is parented to test-parent
+                // 查找激活的跨度 - 应该嵌入到 grain 呼叫中, 以测试父
                 var activationSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain);
                 Assert.NotNull(activationSpan);
                 Assert.Equal(testParentTraceId, activationSpan.TraceId.ToString());
 
-                // Find the OnActivateAsync span - should be parented to the activation span
+                // 查找 OnActivateAsync 的间隔 - 应与激活间隔相侧
                 var onActivateSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.OnActivate);
                 Assert.NotNull(onActivateSpan);
                 Assert.Equal(testParentTraceId, onActivateSpan.TraceId.ToString());
                 Assert.Equal(activationSpan.SpanId.ToString(), onActivateSpan.ParentSpanId.ToString());
 
-                // Find the directory register span - should be parented to activation span
+                // 查找目录登记器的横跨 - 应该在边上定位以激活
                 var directoryRegisterSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.RegisterDirectoryEntry);
                 Assert.NotNull(directoryRegisterSpan);
                 Assert.Equal(testParentTraceId, directoryRegisterSpan.TraceId.ToString());
@@ -205,34 +205,34 @@ namespace UnitTests.General
             try
             {
                 var grain = _fixture.GrainFactory.GetGrain<IMultiFilteredActivityGrain>(Random.Shared.Next());
-                // First call should force activation
+                // 第一次呼叫应该启动
                 _ = await grain.GetActivityId();
 
-                // Verify all expected spans are present and properly parented under test-parent
+                // 测试对象中应核查所有预期的间隔时间,并适当定位于测试对象
                 var testParentTraceId = parent!.TraceId.ToString();
                 var testParentSpanId = parent.SpanId.ToString();
 
-                // Find the placement span
+                // 查找放置范围
                 var placementSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.PlaceGrain);
                 Assert.NotNull(placementSpan);
                 Assert.Equal(testParentTraceId, placementSpan.TraceId.ToString());
 
-                // Find ALL placement filter spans - should be 2 (one for each filter)
+                // 查找所有放置位置过滤宽度 - 应该为 2( 每个筛选一个)
                 var placementFilterSpans = Started
                     .Where(a => a.OperationName == ActivityNames.FilterPlacementCandidates)
                     .OrderBy(a => a.StartTimeUtc)
                     .ToList();
                 Assert.Equal(2, placementFilterSpans.Count);
 
-                // Both filter spans should share the same trace ID as test-parent
+                // 两个过滤宽度应和测试对象共享相同的跟踪标识符
                 foreach (var filterSpan in placementFilterSpans)
                 {
                     Assert.Equal(testParentTraceId, filterSpan.TraceId.ToString());
-                    // Each filter span should be parented directly to the PlaceGrain span
+                    // 每个过滤宽度应直接嵌入到 PlaceGrain 宽度
                     Assert.Equal(placementSpan.SpanId.ToString(), filterSpan.ParentSpanId.ToString());
                 }
 
-                // Verify that both filters were executed
+                // 验证两个过滤器是否都执行
                 var filterTypes = placementFilterSpans
                     .Select(span => span.Tags.FirstOrDefault(t => t.Key == "orleans.placement.filter.type").Value)
                     .ToHashSet();
@@ -258,32 +258,32 @@ namespace UnitTests.General
             try
             {
                 var grain = _fixture.GrainFactory.GetGrain<IPersistentStateActivityGrain>(Random.Shared.Next());
-                // First call should force activation which triggers state read
+                // 第一次呼叫后, 启动触发应被改为
                 _ = await grain.GetActivityId();
 
-                // Expect at least one activation-related activity
+                // 期望至少开展一项与激活有关的活动
                 var activationActivities = Started.Where(a => a.Source.Name == ActivitySources.LifecycleActivitySourceName).ToList();
                 Assert.True(activationActivities.Count > 0, "Expected activation tracing activity to be created, but none were observed.");
 
-                // Verify all expected spans are present and properly parented under test-parent
+                // 测试对象中应核查所有预期的间隔时间,并适当定位于测试对象
                 var testParentTraceId = parent!.TraceId.ToString();
 
-                // Find the activation span - should be parented to the grain call which is parented to test-parent
+                // 查找激活的跨度 - 应该嵌入到 grain 呼叫中, 以测试父
                 var activationSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.ActivateGrain && a.Tags.First(kv => kv.Key == "orleans.grain.type").Value == "persistentstateactivity");
                 Assert.NotNull(activationSpan);
                 Assert.Equal(testParentTraceId, activationSpan.TraceId.ToString());
 
-                // Find the storage read span - should share the same trace ID as test-parent
+                // 查找存储的读跨 - 应与测试对象共享相同的跟踪身份
                 var storageReadSpan = Started.FirstOrDefault(a => a.OperationName == ActivityNames.StorageRead);
                 Assert.NotNull(storageReadSpan);
                 Assert.Equal(testParentTraceId, storageReadSpan.TraceId.ToString());
 
-                // Verify storage read span has expected tags
+                // 校验存储已读过宽度, 需要标记
                 Assert.Equal("MemoryGrainStorage", storageReadSpan.Tags.FirstOrDefault(t => t.Key == "orleans.storage.provider").Value);
                 Assert.Equal("state", storageReadSpan.Tags.FirstOrDefault(t => t.Key == "orleans.storage.state.name").Value);
                 Assert.Equal("PersistentStateActivityGrainState", storageReadSpan.Tags.FirstOrDefault(t => t.Key == "orleans.storage.state.type").Value);
 
-                // Verify the grain ID tag is present
+                // 验证 grain ID标记存在
                 var grainIdTag = storageReadSpan.Tags.FirstOrDefault(t => t.Key == "orleans.grain.id").Value;
                 Assert.NotNull(grainIdTag);
             }
@@ -296,9 +296,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that dehydrate and rehydrate spans are created during grain migration.
-        /// Verifies that the migration process creates proper tracing spans for both
-        /// dehydration (on the source silo) and rehydration (on the target silo).
+        /// 测试在以下试验期间产生脱水和再水合物间隙 grain 移徙。
+        /// 证明移徙过程为两者建立了适当的追踪范围
+        /// 脱水(关于源 silo)和补液(关于目标 silo)。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -310,32 +310,32 @@ namespace UnitTests.General
             parent?.Start();
             try
             {
-                // Create a grain and set some state
+                // 创建 grain 并设置某种状态
                 var grain = _fixture.GrainFactory.GetGrain<IMigrationTracingTestGrain>(Random.Shared.Next());
                 var expectedState = Random.Shared.Next();
                 await grain.SetState(expectedState);
                 var originalAddress = await grain.GetGrainAddress();
                 var originalHost = originalAddress.SiloAddress;
 
-                // Find a different silo to migrate to
+                // 查找不同的 silo 迁移到
                 var targetHost = _fixture.HostedCluster.GetActiveSilos()
                     .Select(s => s.SiloAddress)
                     .First(address => address != originalHost);
 
-                // Trigger migration with a placement hint to coerce the placement director to use the target silo
+                // 触发移民,暗示要强迫安置主任使用目标 silo
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
-                // Verify the state was preserved (this also waits for migration to complete)
+                // 校验国家是否被保存(这也等待移民完成)
                 var newState = await grain.GetState();
                 Assert.Equal(expectedState, newState);
 
-                // Give some time for all activities to complete
+                // 给所有活动一些时间完成
                 await Task.Delay(500, TestContext.Current.CancellationToken);
 
                 var testParentTraceId = parent!.TraceId.ToString();
 
-                // Verify dehydrate span was created
+                // 创建了检测脱水的宽度
                 var dehydrateSpans = Started.Where(a => a.OperationName == ActivityNames.ActivationDehydrate).ToList();
                 Assert.True(dehydrateSpans.Count > 0, "Expected at least one dehydrate span to be created during migration");
 
@@ -343,12 +343,12 @@ namespace UnitTests.General
                 Assert.NotNull(dehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.grain.id").Value);
                 Assert.NotNull(dehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.silo.id").Value);
                 Assert.NotNull(dehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.activation.id").Value);
-                // Verify target silo tag is present
+                // 目标 silo 标签存在
                 Assert.Equal(targetHost.ToString(), dehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.migration.target.silo").Value);
-                // Verify dehydrate span is parented to the migration request trace
+                // 检测脱水孔的宽度与移民申请的跟踪相匹配
                 Assert.Equal(testParentTraceId, dehydrateSpan.TraceId.ToString());
 
-                // Verify rehydrate span was created on the target silo
+                // 目标上创建了检测再水合的宽度 silo
                 var rehydrateSpans = Started.Where(a => a.OperationName == ActivityNames.ActivationRehydrate).ToList();
                 Assert.True(rehydrateSpans.Count > 0, "Expected at least one rehydrate span to be created during migration");
 
@@ -356,7 +356,7 @@ namespace UnitTests.General
                 Assert.NotNull(rehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.grain.id").Value);
                 Assert.NotNull(rehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.silo.id").Value);
                 Assert.NotNull(rehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.activation.id").Value);
-                // Verify the rehydrate span has the previous registration tag
+                // 验证水合度的宽度是否具有上一个注册标记
                 Assert.NotNull(rehydrateSpan.Tags.FirstOrDefault(t => t.Key == "orleans.rehydrate.previousRegistration").Value);
             }
             finally
@@ -368,10 +368,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that FilterPlacementCandidates spans are properly parented under a PlaceGrain span
-        /// when migration triggers placement via PlaceGrainAsync.
-        /// This covers the code path where PlaceGrainAsync (not the PlacementWorker message path)
-        /// calls a placement director which calls GetCompatibleSilos with filters.
+        /// 测试 FilterPlacementCandidates 空格的宽度在 PlaceGrain 宽
+        /// 当移徙通过 PlaceGrainAsync引发安置时。
+        /// 此选项覆盖 PlaceGrainAsync 的代码路径( 不是 PlacementWorker 消息路)
+        /// 调用设置主任,该主任用过滤器呼叫 GetCompatibleSilos 。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -383,42 +383,42 @@ namespace UnitTests.General
             parent?.Start();
             try
             {
-                // Create a grain that has both a placement filter and migration support
+                // 创建有布置过滤器和迁移支持的 grain
                 var grain = _fixture.GrainFactory.GetGrain<IMigrationFilterTracingTestGrain>(Random.Shared.Next());
                 var expectedState = Random.Shared.Next();
                 await grain.SetState(expectedState);
                 var originalAddress = await grain.GetGrainAddress();
                 var originalHost = originalAddress.SiloAddress;
 
-                // Find a different silo to migrate to
+                // 查找不同的 silo 迁移到
                 var targetHost = _fixture.HostedCluster.GetActiveSilos()
                     .Select(s => s.SiloAddress)
                     .First(address => address != originalHost);
 
-                // Clear activities to focus on migration placement
+                // 明确活动,着重移徙安置
                 Started.Clear();
 
-                // Trigger migration with a placement hint
+                // 带有安插提示的触发移徙
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
-                // Verify the state was preserved (this also waits for migration to complete)
+                // 校验国家是否被保存(这也等待移民完成)
                 var newState = await grain.GetState();
                 Assert.Equal(expectedState, newState);
 
-                // Give some time for all activities to complete
+                // 给所有活动一些时间完成
                 await Task.Delay(500, TestContext.Current.CancellationToken);
 
                 var testParentTraceId = parent!.TraceId.ToString();
 
-                // Find the PlaceGrain span created during migration's PlaceGrainAsync call
+                // 查找 PlaceGrain 移民过程中创建的 PlaceGrainAsync 调
                 var placementSpans = Started.Where(a => a.OperationName == ActivityNames.PlaceGrain).ToList();
                 Assert.True(placementSpans.Count > 0, "Expected at least one PlaceGrain span during migration");
 
                 var placementSpan = placementSpans.First();
                 Assert.Equal(testParentTraceId, placementSpan.TraceId.ToString());
 
-                // Find the FilterPlacementCandidates span - should share the same trace ID
+                // 查找 FilterPlacementCandidates 的横跨 - 应该共享相同的跟踪标识符
                 var filterSpans = Started.Where(a => a.OperationName == ActivityNames.FilterPlacementCandidates).ToList();
                 Assert.True(filterSpans.Count > 0, "Expected at least one FilterPlacementCandidates span during migration with filter");
 
@@ -426,7 +426,7 @@ namespace UnitTests.General
                 Assert.Equal(testParentTraceId, filterSpan.TraceId.ToString());
                 Assert.Equal("TracingTestPlacementFilterStrategy", filterSpan.Tags.FirstOrDefault(t => t.Key == "orleans.placement.filter.type").Value);
 
-                // The filter span should be a child of the PlaceGrain span
+                // 过滤范围应为 PlaceGrain 跨度的子(子)
                 Assert.Equal(placementSpan.SpanId.ToString(), filterSpan.ParentSpanId.ToString());
             }
             finally
@@ -438,8 +438,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that dehydrate and rehydrate spans are created during migration of a grain with persistent state.
-        /// Verifies that IPersistentState participates in migration and creates proper tracing spans.
+        /// 测试在 grain 具有持久性状态的迁移过程中产生脱水和补水间隙。
+        /// 证明 IPersistentState 参与移徙,并创造适当的追踪间隔。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -451,7 +451,7 @@ namespace UnitTests.General
             parent?.Start();
             try
             {
-                // Create a grain with persistent state and set some state
+                // 创建有持久性状态的 grain 并设定一定状态
                 var grain = _fixture.GrainFactory.GetGrain<IMigrationPersistentStateTracingTestGrain>(Random.Shared.Next());
                 var expectedStateA = Random.Shared.Next();
                 var expectedStateB = Random.Shared.Next();
@@ -459,16 +459,16 @@ namespace UnitTests.General
                 var originalAddress = await grain.GetGrainAddress();
                 var originalHost = originalAddress.SiloAddress;
 
-                // Find a different silo to migrate to
+                // 查找不同的 silo 迁移到
                 var targetHost = _fixture.HostedCluster.GetActiveSilos()
                     .Select(s => s.SiloAddress)
                     .First(address => address != originalHost);
 
-                // Trigger migration with a placement hint
+                // 带有安插提示的触发移徙
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
-                // Wait for migration to complete
+                // 等待移民完成
                 GrainAddress newAddress;
                 do
                 {
@@ -476,30 +476,30 @@ namespace UnitTests.General
                     newAddress = await grain.GetGrainAddress();
                 } while (newAddress.ActivationId == originalAddress.ActivationId);
 
-                // Verify the grain migrated to the target silo
+                // 核查向目标迁移的 grain silo
                 Assert.Equal(targetHost, newAddress.SiloAddress);
 
-                // Verify the state was preserved
+                // 核查国家是否被保存
                 var (actualA, actualB) = await grain.GetState();
                 Assert.Equal(expectedStateA, actualA);
                 Assert.Equal(expectedStateB, actualB);
 
-                // Give some time for all activities to complete
+                // 给所有活动一些时间完成
                 await Task.Delay(500, TestContext.Current.CancellationToken);
 
-                // Verify dehydrate span was NOT created (grain doesn't implement IGrainMigrationParticipant)
+                // 检测脱水宽度未创建(grain 不执行 IGrainMigrationParticipant)
                 var dehydrateSpans = Started.Where(a => a.OperationName == ActivityNames.ActivationDehydrate).ToList();
                 Assert.True(dehydrateSpans.Count == 0, $"Expected no dehydrate spans for grain without IGrainMigrationParticipant, but found {dehydrateSpans.Count}");
 
-                // Verify rehydrate span was NOT created
+                // 检测再水合度没有创建
                 var rehydrateSpans = Started.Where(a => a.OperationName == ActivityNames.ActivationRehydrate).ToList();
                 Assert.True(rehydrateSpans.Count == 0, $"Expected no rehydrate spans for grain without IGrainMigrationParticipant, but found {rehydrateSpans.Count}");
 
-                // Verify storage read span was NOT created during rehydration (state is transferred via migration context)
-                // Note: Storage read should NOT happen during migration - the state is transferred in-memory
+                // 体液补充期间(通过迁移转移状态)没有创建核查存储的读宽度
+                // 注:储存读作不应在移徙期间发生----国家暂时转移
                 var storageReadSpansAfterMigration = Started.Where(a => a.OperationName == ActivityNames.StorageRead).ToList();
-                // During migration, storage should not be read because state is transferred via dehydration context
-                // The storage read only happens on fresh activation, not on rehydration
+                // 在移徙期间,不应阅读储存,因为国家是通过脱水方式转移的
+                // 储存读取只见于新激活,而非补水
 
                 Assert.Equal(2, storageReadSpansAfterMigration.Count);
             }
@@ -512,8 +512,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that dehydrate and rehydrate spans are NOT created during migration of a grain
-        /// that does not implement IGrainMigrationParticipant.
+        /// 测试脱水和再水合的跨度不是在 grain迁移过程中产生的
+        /// 不符合 IGrainMigrationParticipant要求。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -525,38 +525,38 @@ namespace UnitTests.General
             parent?.Start();
             try
             {
-                // Create a grain that doesn't implement IGrainMigrationParticipant
+                // 创建 grain 执行不执行 IGrainMigrationParticipant
                 var grain = _fixture.GrainFactory.GetGrain<ISimpleMigrationTracingTestGrain>(Random.Shared.Next());
                 var expectedState = Random.Shared.Next();
                 await grain.SetState(expectedState);
                 var originalAddress = await grain.GetGrainAddress();
                 var originalHost = originalAddress.SiloAddress;
 
-                // Find a different silo to migrate to
+                // 查找不同的 silo 迁移到
                 var targetHost = _fixture.HostedCluster.GetActiveSilos()
                     .Select(s => s.SiloAddress)
                     .First(address => address != originalHost);
 
-                // Trigger migration with a placement hint to coerce the placement director to use the target silo
+                // 触发移民,暗示要强迫安置主任使用目标 silo
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
-                // Make a call to ensure grain is activated on target silo
-                // Note: State won't be preserved since grain doesn't participate in migration
+                // 打电话确保 grain 目标启动 silo
+                // 注:国家不会被保存,因为 grain 不参与移徙
                 _ = await grain.GetState();
 
-                // Give some time for all activities to complete
+                // 给所有活动一些时间完成
                 await Task.Delay(500, TestContext.Current.CancellationToken);
 
-                // Verify dehydrate span was NOT created (grain doesn't implement IGrainMigrationParticipant)
+                // 检测脱水宽度未创建(grain 不执行 IGrainMigrationParticipant)
                 var dehydrateSpans = Started.Where(a => a.OperationName == ActivityNames.ActivationDehydrate).ToList();
                 Assert.True(dehydrateSpans.Count == 0, $"Expected no dehydrate spans for grain without IGrainMigrationParticipant, but found {dehydrateSpans.Count}");
 
-                // Verify rehydrate span was NOT created
+                // 检测再水合度没有创建
                 var rehydrateSpans = Started.Where(a => a.OperationName == ActivityNames.ActivationRehydrate).ToList();
                 Assert.True(rehydrateSpans.Count == 0, $"Expected no rehydrate spans for grain without IGrainMigrationParticipant, but found {rehydrateSpans.Count}");
 
-                // Verify that activation span WAS created (the grain was still activated on the new silo)
+                // 验证是否创建了激活周期( grain 在新的 silo上仍然被激活)
                 var activationSpans = Started.Where(a => a.OperationName == ActivityNames.ActivateGrain).ToList();
                 Assert.True(activationSpans.Count > 0, "Expected at least one activation span for the migrated grain");
             }
@@ -569,11 +569,11 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that appropriate tracing spans are created for IAsyncEnumerable grain calls with multiple elements.
-        /// Verifies that:
-        /// 1. A session span is created with the original method name (GetActivityDataStream)
-        /// 2. StartEnumeration, MoveNext, and DisposeAsync spans are nested under the session span
-        /// 3. All spans share the same trace context
+        /// 测试为 IAsyncEnumerable grain 电话设置了具有多个元素的适当跟踪间隔。
+        /// 证明:
+        /// 1. 使用原方法名称(GetActivityDataStream)创建一个横跨度
+        /// 2. StartEnumeration、 MoveNext和 DisposeAsync 的宽度在届会宽度下嵌套
+        /// 3. 所有跨度都具有相同的跟踪背景
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -596,18 +596,18 @@ namespace UnitTests.General
                     values.Add(entry);
                 }
 
-                // Verify we received all elements
+                // 校验我们收到所有元素
                 Assert.Equal(elementCount, values.Count);
 
-                // Verify all expected spans are present and properly parented under test-parent
+                // 测试对象中应核查所有预期的间隔时间,并适当定位于测试对象
                 var testParentTraceId = parent!.TraceId.ToString();
                 var testParentSpanId = parent.SpanId.ToString();
 
-                // Find all activities with the ApplicationGrainActivitySourceName
+                // 查找 ApplicationGrainActivitySourceName的所有活动
                 var applicationSpans = Started.Where(a => a.Source.Name == ActivitySources.ApplicationGrainActivitySourceName).ToList();
 
-                // Find the session span (the logical method call span)
-                // This should have the method name from the grain interface (e.g., "IAsyncEnumerableActivityGrain/GetActivityDataStream")
+                // 查找会话范围(逻辑方法调用区域)
+                // 这应该包含来自 grain 接口(e.g. "IAsyncEnumerableActivityGrain/GetActivityDataStream" )的方法名称。
                 var sessionSpans = applicationSpans.Where(a => a.OperationName.Contains("GetActivityDataStream")).ToList();
                 Assert.True(sessionSpans.Count >= 1, "Expected at least one session span with GetActivityDataStream operation name");
 
@@ -615,17 +615,17 @@ namespace UnitTests.General
                 Assert.Equal(testParentTraceId, sessionSpan.TraceId.ToString());
                 Assert.Equal(testParentSpanId, sessionSpan.ParentSpanId.ToString());
 
-                // Verify the session span has the request ID tag
+                // 校验会的跨度是否有请求的ID标记
                 var requestIdTag = sessionSpan.Tags.FirstOrDefault(t => t.Key == "orleans.async_enumerable.request_id").Value;
                 Assert.NotNull(requestIdTag);
 
                 var sessionSpanId = sessionSpan.SpanId.ToString();
 
-                // Find all spans (including runtime spans) to verify parenting
+                // 查找所有用于校验亲子关系的跨度(包括运行时间间隔)
                 var allSpans = Started.ToList();
 
-                // Find the StartEnumeration span - should be nested under the session span (in RuntimeActivitySourceName)
-                // Filter to only client-side spans (those directly parented to the session span)
+                // 查找 StartEnumeration 范围 - 应该嵌套在会话区域下(在 RuntimeActivitySourceName)
+                // 过滤到仅客户端侧跨度( 直接嵌入会话横距的)
                 var startEnumerationSpans = allSpans
                     .Where(a => a.OperationName.Contains("StartEnumeration") && a.ParentSpanId.ToString() == sessionSpanId)
                     .ToList();
@@ -634,21 +634,21 @@ namespace UnitTests.General
                 var startEnumerationSpan = startEnumerationSpans.First();
                 Assert.Equal(testParentTraceId, startEnumerationSpan.TraceId.ToString());
 
-                // Find MoveNext spans - should be nested under the session span (in RuntimeActivitySourceName)
-                // Filter to only client-side spans (those directly parented to the session span)
+                // 查找 MoveNext 跨度 - 应该嵌套在会话间隔下( 在 RuntimeActivitySourceName)
+                // 过滤到仅客户端侧跨度( 直接嵌入会话横距的)
                 var moveNextSpans = allSpans
                     .Where(a => a.OperationName.Contains("MoveNext") && a.ParentSpanId.ToString() == sessionSpanId)
                     .ToList();
                 Assert.True(moveNextSpans.Count >= 1, $"Expected at least one MoveNext span parented to session span, found {moveNextSpans.Count}");
 
-                // All client-side MoveNext spans should share the same trace ID
+                // 所有客户端 MoveNext 宽度应共享相同的跟踪标识符
                 foreach (var moveNextSpan in moveNextSpans)
                 {
                     Assert.Equal(testParentTraceId, moveNextSpan.TraceId.ToString());
                 }
 
-                // Find DisposeAsync span - should be nested under the session span (in RuntimeActivitySourceName)
-                // Filter to only client-side spans (those directly parented to the session span)
+                // 查找 DisposeAsync 跨度 - 应该嵌套在会话间隔下( 在 RuntimeActivitySourceName)
+                // 过滤到仅客户端侧跨度( 直接嵌入会话横距的)
                 var disposeSpans = allSpans
                     .Where(a => a.OperationName.Contains("DisposeAsync") && a.ParentSpanId.ToString() == sessionSpanId)
                     .ToList();
@@ -657,8 +657,8 @@ namespace UnitTests.General
                 var disposeSpan = disposeSpans.First();
                 Assert.Equal(testParentTraceId, disposeSpan.TraceId.ToString());
 
-                // Verify each ActivityData received has activity information
-                // (verifying trace context was propagated into the grain during enumeration)
+                // 核查每收到 ActivityData 一次有活动信息
+                // (在查点时,将核实的跟踪背景传播到 grain )
                 foreach (var activityData in values)
                 {
                     Assert.NotNull(activityData);
@@ -674,10 +674,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Asserts that no spans from ApplicationGrainActivitySourceName have parents from RuntimeActivitySourceName.
-        /// This ensures that if only ApplicationGrainActivitySourceName has been added (without RuntimeActivitySourceName),
-        /// there won't be any hanging traces put at root because of missing RuntimeActivitySourceName spans
-        /// that would otherwise propagate the trace context.
+        /// 与 ApplicationGrainActivitySourceName 没有间隔的发言者有来自 RuntimeActivitySourceName的父母。
+        /// 这确保了如果只添加 ApplicationGrainActivitySourceName (不增加 RuntimeActivitySourceName),
+        /// 将不会有任何悬吊痕迹因为缺失 RuntimeActivitySourceName 的宽度而根部被挂起
+        /// 否则,它会传播跟踪背景。
         /// </summary>
         private void AssertNoApplicationSpansParentedByRuntimeSpans()
         {
@@ -733,7 +733,7 @@ namespace UnitTests.General
             sb.AppendLine("╚══════════════════════════════════════════════════════════════════════════════╝");
             sb.AppendLine();
 
-            // Group by source
+            // 按来源组
             var bySource = activities.GroupBy(a => a.Source.Name).OrderBy(g => g.Key);
 
             foreach (var sourceGroup in bySource)
@@ -780,7 +780,7 @@ namespace UnitTests.General
                 sb.AppendLine();
             }
 
-            // Print hierarchy view
+            // 打印层结构视图
             sb.AppendLine("═══════════════════════════════════════════════════════════════════════════════");
             sb.AppendLine("                              ACTIVITY HIERARCHY                               ");
             sb.AppendLine("═══════════════════════════════════════════════════════════════════════════════");
@@ -828,19 +828,19 @@ namespace UnitTests.General
 
 
     /// <summary>
-    /// Test placement filter attribute for tracing tests.
+    /// 用于跟踪测试的测试放置过滤属性 。
     /// </summary>
     public class TracingTestPlacementFilterAttribute() : PlacementFilterAttribute(new TracingTestPlacementFilterStrategy());
 
     /// <summary>
-    /// Test placement filter strategy for tracing tests.
+    /// 追踪测试的测试布置过滤策略。
     /// </summary>
     public class TracingTestPlacementFilterStrategy() : PlacementFilterStrategy(order: 1)
     {
     }
 
     /// <summary>
-    /// Test placement filter director that simply passes through all silos.
+    /// 测试定位过滤器主任,只要通过所有 silos即可。
     /// </summary>
     public class TracingTestPlacementFilterDirector : IPlacementFilterDirector
     {
@@ -851,19 +851,19 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Second test placement filter attribute for tracing tests with multiple filters.
+    /// 使用多个过滤器进行追踪测试的第二个测试定位过滤属性 。
     /// </summary>
     public class SecondTracingTestPlacementFilterAttribute() : PlacementFilterAttribute(new SecondTracingTestPlacementFilterStrategy());
 
     /// <summary>
-    /// Second test placement filter strategy for tracing tests with multiple filters.
+    /// 使用多个过滤器进行追踪测试的第二次测试定位过滤策略。
     /// </summary>
     public class SecondTracingTestPlacementFilterStrategy() : PlacementFilterStrategy(order: 2)
     {
     }
 
     /// <summary>
-    /// Second test placement filter director that simply passes through all silos.
+    /// 第二测试设置过滤器主任,只需通过所有 silos。
     /// </summary>
     public class SecondTracingTestPlacementFilterDirector : IPlacementFilterDirector
     {
@@ -874,7 +874,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain interface with a placement filter for tracing tests.
+    /// 测试 grain 接口与用于跟踪检测的定位过滤器接口。
     /// </summary>
     public interface IFilteredActivityGrain : IGrainWithIntegerKey
     {
@@ -882,7 +882,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation with a placement filter for tracing tests.
+    /// 测试 grain 执行,并配有跟踪检测的定位过滤器。
     /// </summary>
     [TracingTestPlacementFilter]
     public class FilteredActivityGrain : Grain, IFilteredActivityGrain
@@ -907,7 +907,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain interface with multiple placement filters for tracing tests.
+    /// 测试 grain 接口与多个定位过滤器的界面,用于跟踪检测。
     /// </summary>
     public interface IMultiFilteredActivityGrain : IGrainWithIntegerKey
     {
@@ -915,7 +915,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation with multiple placement filters for tracing tests.
+    /// 测试 grain ,并配有多个定位过滤器进行追踪检测。
     /// </summary>
     [TracingTestPlacementFilter]
     [SecondTracingTestPlacementFilter]
@@ -943,7 +943,7 @@ namespace UnitTests.General
 
 
     /// <summary>
-    /// Test grain interface with persistent state for tracing tests.
+    /// 测试 grain 与持久性状态接口,用于追踪检测。
     /// </summary>
     public interface IPersistentStateActivityGrain : IGrainWithIntegerKey
     {
@@ -952,7 +952,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain state for persistent state tracing tests.
+    /// 持久性国家追踪试验的 grain 状态。
     /// </summary>
     [GenerateSerializer]
     public class PersistentStateActivityGrainState
@@ -962,7 +962,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation with persistent state for tracing tests.
+    /// 具有持久性的追踪测试状态的试验 grain 实施。
     /// </summary>
     [TracingTestPlacementFilter]
     public class PersistentStateActivityGrain : Grain, IPersistentStateActivityGrain
@@ -1002,7 +1002,7 @@ namespace UnitTests.General
 
 
     /// <summary>
-    /// Test grain interface for migration tracing tests.
+    /// 移民追踪测试的测试 grain 接口。
     /// </summary>
     public interface IMigrationTracingTestGrain : IGrainWithIntegerKey
     {
@@ -1012,7 +1012,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain state for migration tracing tests.
+    /// 移民追踪试验 grain 状态。
     /// </summary>
     [GenerateSerializer]
     public class MigrationTracingTestGrainState
@@ -1022,9 +1022,9 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation for migration tracing tests.
-    /// Implements IGrainMigrationParticipant to participate in migration.
-    /// Uses RandomPlacement to allow migration to different silos.
+    /// 移民追踪试验的测试 grain 实施。
+    /// 实施 IGrainMigrationParticipant 参与移徙。
+    /// 使用 RandomPlacement 允许向不同的 silos迁移。
     /// </summary>
     [RandomPlacement]
     public class MigrationTracingTestGrain : Grain, IMigrationTracingTestGrain, IGrainMigrationParticipant
@@ -1053,7 +1053,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain interface for migration tracing tests with a placement filter.
+    /// 使用放置过滤器测试移民追踪检测的 grain 接口。
     /// </summary>
     public interface IMigrationFilterTracingTestGrain : IGrainWithIntegerKey
     {
@@ -1063,9 +1063,9 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation for migration tracing tests with a placement filter.
-    /// Combines IGrainMigrationParticipant and a placement filter to verify that
-    /// FilterPlacementCandidates spans are properly parented under PlaceGrain during migration.
+    /// 使用安置过滤器测试移民追踪检测的 grain 实施情况。
+    /// 组合 IGrainMigrationParticipant 和一个布置过滤器,以核实
+    /// FilterPlacementCandidates 跨度在移徙期间根据 PlaceGrain 适当定位。
     /// </summary>
     [RandomPlacement]
     [TracingTestPlacementFilter]
@@ -1095,7 +1095,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain interface for migration tracing tests without IGrainMigrationParticipant.
+    /// 测试测试 grain 用于进行移徙追踪测试的界面接口 IGrainMigrationParticipant.
     /// </summary>
     public interface ISimpleMigrationTracingTestGrain : IGrainWithIntegerKey
     {
@@ -1105,9 +1105,9 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation for migration tracing tests that does NOT implement IGrainMigrationParticipant.
-    /// Uses RandomPlacement to allow migration to different silos.
-    /// This grain will lose its state during migration since it doesn't participate in dehydration/rehydration.
+    /// 测试 grain 是否执行不执行 IGrainMigrationParticipant的移民追踪试验。
+    /// 使用 RandomPlacement 允许向不同的 silos迁移。
+    /// 这 grain 在移民过程中将失去状态,因为它不参与脱水/体液补充。
     /// </summary>
     [RandomPlacement]
     public class SimpleMigrationTracingTestGrain : Grain, ISimpleMigrationTracingTestGrain
@@ -1126,7 +1126,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain interface with persistent state for migration tracing tests.
+    /// 与持续状态的测试 grain 接口,用于移民追踪检测。
     /// </summary>
     public interface IMigrationPersistentStateTracingTestGrain : IGrainWithIntegerKey
     {
@@ -1136,8 +1136,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Test grain implementation with IPersistentState for migration tracing tests.
-    /// Uses RandomPlacement to allow migration to different silos.
+    /// 测试测试 grain 执行和 IPersistentState 进行移徙追踪试验。
+    /// 使用 RandomPlacement 允许向不同的 silos迁移。
     /// </summary>
     [RandomPlacement]
     public class MigrationPersistentStateTracingTestGrain : Grain, IMigrationPersistentStateTracingTestGrain
@@ -1166,8 +1166,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Grain call filter that triggers deactivation after DisposeAsync is called on an async enumerable.
-    /// This ensures deactivation happens after the enumeration is fully complete.
+    /// Grain 呼叫过滤器, 即 DisposeAsync 被调用后触发停用, 可以同数方式进行。
+    /// 这样可以确保查点完成后停止使用。
     /// </summary>
     public class DeactivateAfterDisposeAsyncFilter : IIncomingGrainCallFilter
     {

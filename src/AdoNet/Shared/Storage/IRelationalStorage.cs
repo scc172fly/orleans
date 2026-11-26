@@ -17,15 +17,15 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// A common interface for all relational databases.
+    /// 所有关系数据库的共同界面。
     /// </summary>
     /// <remarks>
-    /// Queries are trusted SQL statements supplied by provider configuration. Supply record and request values
-    /// through command parameters using <c>parameterProvider</c>.
+    /// 由供应商配置提供的查询报表可信 SQL 。
+    /// 通过使用 <c>parameterProvider</c>命令参数。
     /// </remarks>
 #if TESTER_SQLUTILS
     public interface IRelationalStorage
@@ -34,32 +34,32 @@ namespace Orleans.Tests.SqlUtils
 #endif
     {
         /// <summary>
-        /// Executes a given statement. Especially intended to use with <em>SELECT</em> statement.
+        /// 执行给定语句。 特别打算与 <em>SELECT</em> 语句一起使用。
         /// </summary>
-        /// <typeparam name="TResult">The result type.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="parameterProvider">Adds parameters to the query. The parameters must be in the same order with same names as defined in the query.</param>
-        /// <param name="selector">This function transforms the raw <see cref="IDataRecord"/> results to type <see paramref="TResult"/> the <see cref="int"/> parameter being the resultset number.</param>
-        /// <param name="commandBehavior">The command behavior that should be used. Defaults to <see cref="CommandBehavior.Default"/>.</param>
-        /// <param name="cancellationToken">The cancellation token. Defaults to <see cref="CancellationToken.None"/>.</param>
-        /// <returns>A list of objects as a result of the <see paramref="query"/>.</returns>
-        /// <example>This sample shows how to make a hand-tuned database call.
+        /// <typeparam name="TResult">结果类型。</typeparam>
+        /// <param name="query">要执行的查询。</param>
+        /// <param name="parameterProvider">添加参数到查询中。参数必须按相同顺序排列,名称与查询中所定义的名称相同。</param>
+        /// <param name="selector">此函数转换原始 <see cref="IDataRecord"/> 类型结果 <see paramref="TResult"/> 排 <see cref="int"/> 参数是结果图编号。</param>
+        /// <param name="commandBehavior">应该使用的命令行为。 默认为 <see cref="CommandBehavior.Default"/>。</param>
+        /// <param name="cancellationToken">取消牌。 默认为 <see cref="CancellationToken.None"/>。</param>
+        /// <returns>由该天体组成的物体列表 <see paramref="query"/>.</returns>
+        /// <example>这个样本显示如何使用手调数据库呼叫 。
         /// <code>
-        /// //This struct holds the return value in this example.
+        /// // 此结构体保存本示例的返回值。
         /// public struct Information
         /// {
         ///     public string TABLE_CATALOG { get; set; }
         ///     public string TABLE_NAME { get; set; }
         /// }
         ///
-        /// //Here are defined two queries. There can be more than two queries, in which case
-        /// //the result sets are differentiated by a count parameter. Here the queries are
-        /// //SELECT clauses, but they can be whatever, even mixed ones.
+        /// // 此处定义了两个查询。也可以定义更多查询，此时
+        /// // 通过一个计数参数区分结果集。本例中的查询是
+        /// // SELECT 语句，也可以使用或混用其他语句。
         /// IEnumerable&lt;Information&gt; ret =
         ///     await storage.ReadAsync&lt;Information&gt;("SELECT * FROM INFORMATION_SCHEMA.TABLES; SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tp1", command =>
         /// {
-        ///     //Parameters are added and created like this.
-        ///     //They are database vendor agnostic.
+        ///     // 按此方式创建并添加参数。
+        ///     // 这些参数与数据库供应商无关。
         ///     var tp1 = command.CreateParameter();
         ///     tp1.ParameterName = "tp1";
         ///     tp1.Value = "some test value";
@@ -67,12 +67,12 @@ namespace Orleans.Tests.SqlUtils
         ///     tp1.Direction = ParameterDirection.Input;
         ///     command.Parameters.Add(tp1);
         ///
-        ///     //The selector is used to select the results within the result set. In this case there are two homogenous
-        ///     //result sets, so there is actually no need to check which result set the selector holds and it could
-        ///     //marked with by convention by underscore (_).
+        ///     // 选择器用于从结果集中选取结果。本例有两个结构相同的
+        ///     // 结果集，因此无需判断选择器接收的是哪一个结果集，该参数可以
+        ///     // 按惯例用下划线（_）标记。
         /// }, (selector, resultSetCount) =>
         ///    {
-        ///        //This function is called once for each row returned, so the final result will be an
+        ///        // 此函数对每个返回行调用一次，因此最终结果将是一个
         ///        //IEnumerable&lt;Information&gt;.
         ///        return new Information
         ///        {
@@ -85,35 +85,35 @@ namespace Orleans.Tests.SqlUtils
         Task<IEnumerable<TResult>> ReadAsync<TResult>(string query, Action<IDbCommand>? parameterProvider, Func<IDataRecord, int, CancellationToken, Task<TResult>> selector, CommandBehavior commandBehavior = CommandBehavior.Default, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Executes a given statement. Especially intended to use with <em>INSERT</em>, <em>UPDATE</em>, <em>DELETE</em> or <em>DDL</em> queries.
+        /// 执行给定的语句。 特别打算用于 <em>INSERT</em>、 <em>Uppate</em>、 <em>Delete</em> 或 <em>DDL</em> 查询。
         /// </summary>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="parameterProvider">Adds parameters to the query. Parameter names must match those defined in the query.</param>
-        /// <param name="commandBehavior">The command behavior that should be used. Defaults to <see cref="CommandBehavior.Default"/>.</param>
-        /// <param name="cancellationToken">The cancellation token. Defaults to <see cref="CancellationToken.None"/>.</param>
-        /// <returns>Affected rows count.</returns>
-        /// <example>This sample shows how to make a hand-tuned database call.
+        /// <param name="query">要执行的查询。</param>
+        /// <param name="parameterProvider">添加参数到查询中。参数名称必须与查询中所定义的名称匹配。</param>
+        /// <param name="commandBehavior">应该使用的命令行为。 默认为 <see cref="CommandBehavior.Default"/>。</param>
+        /// <param name="cancellationToken">取消牌。 默认为 <see cref="CancellationToken.None"/>。</param>
+        /// <returns>受影响的行数。</returns>
+        /// <example>这个样本显示如何使用手调数据库呼叫 。
         /// <code>
-        /// //In contract to reading, execute queries are simpler as they return only
-        /// //the affected rows count if it is available.
+        /// // 执行查询比读取查询更简单，它只返回
+        /// // 受影响的行数（如果可用）。
         /// var query = ""IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'Test') CREATE TABLE Test(Id INT PRIMARY KEY IDENTITY(1, 1) NOT NULL);"
         /// int affectedRowsCount = await storage.ExecuteAsync(query, command =>
         /// {
-        ///     //There aren't parameters here, but they'd be added like when reading.
-        ///     //As the affected rows count is the only thing returned, there isn't
-        ///     //facilities to read anything.
+        ///     // 此处没有参数。添加参数的方法与读取查询相同。
+        ///     // 由于只返回受影响的行数，因此
+        ///     // 无须读取其他数据。
         /// }).ConfigureAwait(continueOnCapturedContext: false);
         /// </code>
         /// </example>
         Task<int> ExecuteAsync(string query, Action<IDbCommand>? parameterProvider, CommandBehavior commandBehavior = CommandBehavior.Default, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// The well known invariant name of the underlying database.
+        /// 基础数据库的众所周知的不变名称。
         /// </summary>
         string InvariantName { get; }
 
         /// <summary>
-        /// The connection string used to connect to the database.
+        /// 连接到数据库的连接字符串。
         /// </summary>
         string ConnectionString { get; }
     }

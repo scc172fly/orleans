@@ -4,49 +4,49 @@ using System;
 namespace Orleans.Hosting.Kubernetes
 {
     /// <summary>
-    /// Options for hosting in Kubernetes.
+    /// Kubernetes中托管的选项。
     /// </summary>
     public sealed class KubernetesHostingOptions
     {
         private readonly Lazy<KubernetesClientConfiguration> _clientConfiguration;
 
         /// <summary>
-        /// The environment variable for specifying the Kubernetes namespace which all silos in this cluster belong to.
+        /// 用于指定 Kubernetes 全部 silos 本组中属于该组。
         /// </summary>
         public const string PodNamespaceEnvironmentVariable = "POD_NAMESPACE";
 
         /// <summary>
-        /// The environment variable for specifying the name of the Kubernetes pod which this silo is executing in.
+        /// 指定 Kubernetes 哪个此缓放 silo 执行中。
         /// </summary>
         public const string PodNameEnvironmentVariable = "POD_NAME";
 
         /// <summary>
-        /// The environment variable for specifying the IP address of this pod.
+        /// 指定此播客的 IP 地址的环境变量 。
         /// </summary>
         public const string PodIPEnvironmentVariable = "POD_IP";
 
         /// <summary>
-        /// The environment variable for specifying <see cref="Orleans.Configuration.ClusterOptions.ClusterId"/>.
+        /// 指定 <see cref="Orleans.Configuration.ClusterOptions.ClusterId"/>的环境变量。
         /// </summary>
         public const string ClusterIdEnvironmentVariable = "ORLEANS_CLUSTER_ID";
 
         /// <summary>
-        /// The environment variable for specifying <see cref="Orleans.Configuration.ClusterOptions.ServiceId"/>.
+        /// 指定 <see cref="Orleans.Configuration.ClusterOptions.ServiceId"/>的环境变量。
         /// </summary>
         public const string ServiceIdEnvironmentVariable = "ORLEANS_SERVICE_ID";
 
         /// <summary>
-        /// The name of the <see cref="Orleans.Configuration.ClusterOptions.ServiceId"/> label on the pod.
+        /// 播客舱上的 <see cref="Orleans.Configuration.ClusterOptions.ServiceId"/> 标签的名称。
         /// </summary>
         public const string ServiceIdLabel = "orleans/serviceId";
 
         /// <summary>
-        /// The name of the <see cref="Orleans.Configuration.ClusterOptions.ClusterId"/> label on the pod.
+        /// 播客舱上的 <see cref="Orleans.Configuration.ClusterOptions.ClusterId"/> 标签的名称。
         /// </summary>
         public const string ClusterIdLabel = "orleans/clusterId";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KubernetesHostingOptions"/> class.
+        /// 初始化 <see cref="KubernetesHostingOptions"/> 类的新实例。
         /// </summary>
         public KubernetesHostingOptions()
         {
@@ -54,45 +54,45 @@ namespace Orleans.Hosting.Kubernetes
         }
 
         /// <summary>
-        /// Gets the client configuration.
+        /// 获得客户配置。
         /// </summary>
         internal KubernetesClientConfiguration ClientConfiguration => _clientConfiguration.Value;
 
         /// <summary>
-        /// The delegate used to get an instance of <see cref="KubernetesClientConfiguration"/>.
+        /// 该代表过去曾得到过 <see cref="KubernetesClientConfiguration"/>的例子。
         /// </summary>
         public Func<KubernetesClientConfiguration> GetClientConfiguration { get; set; } = KubernetesClientConfiguration.InClusterConfig;
 
         /// <summary>
-        /// The number of silos in the cluster which should monitor Kubernetes.
+        /// 编号数 silos 组内应监测 Kubernetes.
         /// </summary>
         /// <remarks>
-        /// Setting this to a small number can reduce the load on the Kubernetes API server.
+        /// 设置此选项为小数, 将减少 Kubernetes API 服务器的负载 。
         /// </remarks>
         public int MaxAgents { get; set; } = 2;
 
         /// <summary>
-        /// Gets or sets the maximum number of attempts to retry Kubernetes API calls.
+        /// 获取或设定尝试重试 Kubernetes API 电话的最大次数。
         /// </summary>
         public int MaxKubernetesApiRetryAttempts { get; set; } = 10;
 
         /// <summary>
-        /// Whether or not to delete pods which correspond to silos which have become defunct since this silo became active.
+        /// 是否删除对应的 silos 之后已失效的 silo 活动。
         /// </summary>
         public bool DeleteDefunctSiloPods { get; set; } = false;
 
         /// <summary>
-        /// The Kubernetes namespace which this silo and all other silos belong to.
+        /// 下 Kubernetes 哪个命名空间 silo 和所有其他其他 silos 属于.
         /// </summary>
         internal string? Namespace { get; set; }
 
         /// <summary>
-        /// The name of the Kubernetes pod which this silo is executing in.
+        /// 名称 Kubernetes 哪个此缓放 silo 执行中。
         /// </summary>
         internal string? PodName { get; set; }
 
         /// <summary>
-        /// The PodIP of the Kubernetes pod which this silo is executing in.
+        /// 下 PodIP 会 议 排排排排排排排排排排排排排排排排排 Kubernetes 哪个此缓放 silo 执行中。
         /// </summary>
         internal string? PodIP { get; set; }
     }

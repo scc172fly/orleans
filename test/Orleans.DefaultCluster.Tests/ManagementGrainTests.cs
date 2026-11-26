@@ -6,10 +6,10 @@ using Xunit;
 namespace UnitTests.OrleansRuntime
 {
     /// <summary>
-    /// Tests for the Orleans Management Grain functionality.
-    /// The Management Grain is a system grain that provides cluster management operations
-    /// such as querying grain activation information, collecting statistics, and
-    /// performing administrative tasks across the Orleans cluster.
+    /// Orleans 管理 Grain 功能测试。
+    /// 管理 Grain 是一个提供集群管理业务的系统 grain
+    /// 例如查询 grain 启动信息、收集统计数据,以及
+    /// 在整个 Orleans 组中履行行政任务。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -21,12 +21,12 @@ namespace UnitTests.OrleansRuntime
         }
 
         /// <summary>
-        /// Tests querying grain activation addresses through the management grain.
-        /// Verifies that:
-        /// - Non-activated grains return null addresses
-        /// - Activated grains return valid addresses that remain stable
-        /// - Stateless worker grains throw appropriate exceptions (no single activation)
-        /// This functionality is crucial for diagnostics and monitoring grain placement.
+        /// 测试查询 grain 通过管理层激活地址 grain.
+        /// 证明:
+        /// - 未激活 grains 返回无效地址
+        /// - 激活 grains 返回仍然稳定的有效地址
+        /// - 无国籍工人 grains 放弃适当的例外(没有单一激活)
+        /// 这一功能对于诊断和监测 grain 定位至关重要。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -67,8 +67,8 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// Test interface for a stateless worker grain.
-    /// Used to verify that management operations handle stateless workers correctly.
+    /// 无国籍工人的测试界面 grain。
+    /// 用于核实管理业务是否正确处理无国籍工人。
     /// </summary>
     public interface IDumbWorker : IGrainWithIntegerKey
     {
@@ -76,9 +76,9 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// Test implementation of a stateless worker grain.
-    /// Stateless workers can have multiple activations and don't have a single address,
-    /// which makes them special cases for management operations.
+    /// 无国籍工人的测试 grain。
+    /// 无国籍工人可以有多个激活器, 并且没有单一的地址,
+    /// 这使得管理业务有特殊的情况。
     /// </summary>
     [StatelessWorker(1)]
     public class DumbWorker : Grain, IDumbWorker
@@ -87,8 +87,8 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// Test interface for a regular stateful grain.
-    /// Used to verify normal grain activation address queries.
+    /// 正常状态 grain的测试界面。
+    /// 用于校验正常的 grain 激活地址查询。
     /// </summary>
     public interface IDumbGrain : IGrainWithGuidKey
     {
@@ -96,9 +96,9 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// Test implementation of a regular stateful grain.
-    /// Regular grains have a single activation at any time,
-    /// making their addresses queryable through management operations.
+    /// 测试定期状态 grain的测试。
+    /// 常规 grains 随时有一个单一的激活装置,
+    /// 使他们的地址通过管理业务可以查询。
     /// </summary>
     public class DumbGrain : Grain, IDumbGrain
     {

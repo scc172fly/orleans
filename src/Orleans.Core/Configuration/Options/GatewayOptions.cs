@@ -3,26 +3,26 @@ using System;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Options for configuring how clients interact with gateway endpoints.
+    /// 配置客户如何与网关端点互动的选项。
     /// </summary>
     public class GatewayOptions
     {
         /// <summary>
-        /// Gets or sets the period of time between refreshing the list of active gateways.
+        /// 获取或设置更新活动网关列表之间的时间间隔 。
         /// </summary>
-        /// <value>The list of active gateways will be refreshed every minute by default.</value>
+        /// <value>活动网关列表将默认每分钟更新一次。</value>
         public TimeSpan GatewayListRefreshPeriod { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// Default preferred gateway index,. Value -1 means prefer no gateway
+        /// 默认首选网关索引,。 值 - 1 表示不优先
         /// </summary>
         public const int DEFAULT_PREFERED_GATEWAY_INDEX = -1;
 
         /// <summary>
-        /// Gets or sets the index of the preferred gateway within the list of active gateways.
+        /// 获取或设置活动网关列表中首选网关的索引。
         /// </summary>
-        /// <remarks>Set this value to its default value, <c>-1</c>, to disable this functionality.</remarks>
-        /// <value>No gateway is preferred by default.</value>
+        /// <remarks>设置此值为默认值, <c>-1</c>,以禁用该功能。</remarks>
+        /// <value>默认情况下没有首选网关。</value>
         public int PreferredGatewayIndex { get; set; } = DEFAULT_PREFERED_GATEWAY_INDEX;
     }
 }

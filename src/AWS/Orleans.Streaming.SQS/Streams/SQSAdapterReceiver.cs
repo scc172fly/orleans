@@ -13,7 +13,7 @@ using SQSMessage = Amazon.SQS.Model.Message;
 namespace OrleansAWSUtils.Streams
 {
     /// <summary>
-    /// Receives batches of messages from a single partition of a message queue.
+    /// 接收来自信件队列单个分区的批次信件 。
     /// </summary>
     internal partial class SQSAdapterReceiver : IQueueAdapterReceiver
     {
@@ -50,7 +50,7 @@ namespace OrleansAWSUtils.Streams
 
         public Task Initialize(TimeSpan timeout)
         {
-            if (queue != null) // check in case we already shut it down.
+            if (queue != null) // 以防我们已经关闭了
             {
                 return queue.InitQueueAsync();
             }
@@ -70,7 +70,7 @@ namespace OrleansAWSUtils.Streams
 
             try
             {
-                // await the last storage operation, so after we shutdown and stop this receiver we don't get async operation completions from pending storage operations.
+                // 等待最后的储存操作, 所以在我们关闭后 并停止这个接收器... ...我们没有从等待的储存操作中 获得同步运行完成。
                 var pendingTask = outstandingTask;
                 if (pendingTask != null)
                 {
@@ -126,7 +126,7 @@ namespace OrleansAWSUtils.Streams
         {
             try
             {
-                var queueRef = queue; // store direct ref, in case we are somehow asked to shutdown while we are receiving.
+                var queueRef = queue; // 直接存储参考, 以防我们收到通知时被要求关闭。
                 if (queueRef == null) return new List<IBatchContainer>();
 
                 int count = maxCount < 0 || maxCount == QueueAdapterConstants.UNLIMITED_GET_QUEUE_MSG ?
@@ -192,7 +192,7 @@ namespace OrleansAWSUtils.Streams
         {
             try
             {
-                var queueRef = queue; // store direct ref, in case we are somehow asked to shutdown while we are receiving.
+                var queueRef = queue; // 直接存储参考, 以防我们收到通知时被要求关闭。
                 if (messages.Count == 0 || queueRef == null) return;
 
                 var pendingDeliveries = new HashSet<PendingDelivery>(ReferenceEqualityComparer.Instance);

@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.PlacementFilterTests;
 
 /// <summary>
-/// Tests for grain placement filter registration, ordering, and execution.
+/// grain 放置过滤器登记、订购和执行测试。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

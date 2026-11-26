@@ -1,5 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// 根据一项或多项协定获得 .NET 基金会许可证。
+// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
 
 using System;
 using System.Net.Sockets;
@@ -12,7 +12,7 @@ internal static partial class SocketsLog
     [LoggerMessage(21, LogLevel.Warning, "TCP keep-alive option {Option} is unsupported on this platform; retaining the supported socket settings.", EventName = "UnsupportedKeepAliveOption")]
     internal static partial void UnsupportedKeepAliveOption(ILogger logger, Exception exception, SocketOptionName option);
 
-    // Reserved: Event ID 3, EventName = ConnectionRead
+    // 保留:事件编号3, EventName = ConnectionRead
 
     [LoggerMessage(6, LogLevel.Debug, @"Connection ""{Connection}"" received FIN.", EventName = "ConnectionReadFin", SkipEnabledCheck = true)]
     private static partial void ConnectionReadFinCore(ILogger logger, string connection);
@@ -36,9 +36,9 @@ internal static partial class SocketsLog
         }
     }
 
-    // Reserved: Event ID 11, EventName = ConnectionWrite
+    // 保留:事件编号11, EventName = ConnectionWrite
 
-    // Reserved: Event ID 12, EventName = ConnectionWriteCallback
+    // 储备:事件编号12, EventName = ConnectionWriteCallback
 
     [LoggerMessage(14, LogLevel.Debug, @"Connection ""{Connection}"" communication error.", EventName = "ConnectionError", SkipEnabledCheck = true)]
     private static partial void ConnectionErrorCore(ILogger logger, string connection, Exception ex);

@@ -9,13 +9,13 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// The executable definition of the observable <see cref="IReminderTable"/> correctness contract.
+/// 可观测到的 <see cref="IReminderTable"/> 正确性合同的可执行定义。
 /// </summary>
 /// <remarks>
-/// This runner is deliberately framework neutral: no test attributes are applied and failures are reported by
-/// throwing <see cref="ReminderConformanceException"/> carrying a structured <see cref="ReminderFailureReport"/>.
-/// Derive from it in a provider suite, apply your test framework's attributes to overrides, and call the base
-/// implementation, exactly as <c>Orleans.Persistence.TestKit.GrainStorageTestRunner</c> is consumed.
+/// 此运行者故意将这一操纵者置于框架中中立的框架中:不应用测试属性,报告失败
+/// 扔弃 <see cref="ReminderConformanceException"/> 载有结构的 <see cref="ReminderFailureReport"/>.
+/// 将测试框架的属性用于覆盖,然后调用基
+/// 执行,正因 <c>Orleans.Persistence.TestKit.GrainStorageTestRunner</c> 是消耗。
 /// </remarks>
 public abstract class ReminderTableTestRunner
 {
@@ -23,11 +23,11 @@ public abstract class ReminderTableTestRunner
     private int _grainCounter;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReminderTableTestRunner"/> class.
+    /// 初始化 <see cref="ReminderTableTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="reminderTable">The reminder table under test.</param>
-    /// <param name="providerName">The provider name reported in conformance diagnostics.</param>
-    /// <param name="seed">The deterministic seed used to generate reminder identities.</param>
+    /// <param name="reminderTable">正在测试的提醒表。</param>
+    /// <param name="providerName">供应商名称在合规诊断中报告。</param>
+    /// <param name="seed">用于生成提醒识别的确定种子。</param>
     protected ReminderTableTestRunner(IReminderTable reminderTable, string providerName, int seed = 0)
     {
         ReminderTable = reminderTable ?? throw new ArgumentNullException(nameof(reminderTable));
@@ -37,39 +37,39 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Gets the reminder table under test.
+    /// 测试提醒表
     /// </summary>
     public IReminderTable ReminderTable { get; }
 
     /// <summary>
-    /// Gets the deterministic seed used to generate reminder identities.
+    /// 获得用来产生提醒身份的确定种子。
     /// </summary>
     public int Seed { get; }
 
     /// <summary>
-    /// Gets the provider name reported in failure messages.
+    /// 获取失败信息中报告的提供者名。
     /// </summary>
     protected string ProviderName { get; }
 
     /// <summary>
-    /// Gets a deterministic base time used by schedule-sensitive guarantees.
+    /// 获得一个确定性基准时间,用于对时间表敏感的保证。
     /// </summary>
-    /// <remarks>The value is truncated to whole seconds so it round-trips through every built-in provider.</remarks>
+    /// <remarks>值被短短到整个秒, 所以它会通过每个内建提供者的圆形路径。</remarks>
     protected virtual DateTime BaseTime { get; } = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     // ---------------------------------------------------------------------------------------------------------
-    // Lifecycle
+    // 生命周期
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Guarantee: <see cref="IReminderTable.StartAsync"/> is idempotent and leaves the table usable.
+    /// 保证: <see cref="IReminderTable.StartAsync"/> 是一无所有,可使用。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_StartAsync_IsIdempotent()
         => RunReminderTable_StartAsync_IsIdempotent(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_StartAsync_IsIdempotent()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_StartAsync_IsIdempotent(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_StartAsync_IsIdempotent);
@@ -87,14 +87,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: after <see cref="IReminderTable.StopAsync"/> the table can be restarted and resumes serving reads.
+    /// 担保:在 <see cref="IReminderTable.StopAsync"/> 之后,表格可以重新开张,恢复服务读作。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_StopAsync_ThenRestart_ResumesService()
         => RunReminderTable_StopAsync_ThenRestart_ResumesService(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_StopAsync_ThenRestart_ResumesService()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_StopAsync_ThenRestart_ResumesService(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_StopAsync_ThenRestart_ResumesService);
@@ -130,18 +130,18 @@ public abstract class ReminderTableTestRunner
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // Upsert, point read, grain read, identity
+    // 上下,点读, grain 读、 身份
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Guarantee: a successful upsert returns a non-empty ETag.
+    /// 保证:成功的上流者返回非空的ETag。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_UpsertRow_ReturnsNewNonEmptyETag()
         => RunReminderTable_UpsertRow_ReturnsNewNonEmptyETag(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_UpsertRow_ReturnsNewNonEmptyETag()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_UpsertRow_ReturnsNewNonEmptyETag(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_UpsertRow_ReturnsNewNonEmptyETag);
@@ -158,14 +158,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: a point read returns the persisted identity, schedule and ETag of an upserted reminder.
+    /// 保证:读取点返回持续的身份、时间表和不断更新的提醒通知的ETag。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_UpsertRow_PersistsScheduleForPointRead()
         => RunReminderTable_UpsertRow_PersistsScheduleForPointRead(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_UpsertRow_PersistsScheduleForPointRead()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_UpsertRow_PersistsScheduleForPointRead(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_UpsertRow_PersistsScheduleForPointRead);
@@ -181,14 +181,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: a point read of an unknown reminder returns <see langword="null"/> rather than a default entry.
+    /// 保证:读取未知提醒返回 <see langword="null"/> 而不是默认条目的点。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRow_MissingReminder_ReturnsNull()
         => RunReminderTable_ReadRow_MissingReminder_ReturnsNull(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRow_MissingReminder_ReturnsNull()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRow_MissingReminder_ReturnsNull(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRow_MissingReminder_ReturnsNull);
@@ -208,14 +208,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: the grain-scoped read returns every reminder of the requested grain and no reminder of any other grain.
+    /// 保证: grain- 范围读取后返回所要求的每一份催复通知 grain ,而没有提醒任何其他 grain。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_ForGrain_ReturnsOnlyThatGrainsReminders()
         => RunReminderTable_ReadRows_ForGrain_ReturnsOnlyThatGrainsReminders(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_ForGrain_ReturnsOnlyThatGrainsReminders()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_ForGrain_ReturnsOnlyThatGrainsReminders(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_ForGrain_ReturnsOnlyThatGrainsReminders);
@@ -266,14 +266,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: the grain-scoped read of a grain with no reminders returns an empty, non-null result.
+    /// 保证: grain- 范围读取的 grain ,不重复通知返回空的非无效结果。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_ForUnknownGrain_ReturnsEmpty()
         => RunReminderTable_ReadRows_ForUnknownGrain_ReturnsEmpty(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_ForUnknownGrain_ReturnsEmpty()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_ForUnknownGrain_ReturnsEmpty(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_ForUnknownGrain_ReturnsEmpty);
@@ -296,14 +296,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: reminder identity is the pair (<see cref="ReminderEntry.GrainId"/>, <see cref="ReminderEntry.ReminderName"/>).
+    /// 保证:提醒身份是对应的(<see cref="ReminderEntry.GrainId"/>、 <see cref="ReminderEntry.ReminderName"/>)。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_Identity_IsGrainIdAndReminderName()
         => RunReminderTable_Identity_IsGrainIdAndReminderName(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_Identity_IsGrainIdAndReminderName()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_Identity_IsGrainIdAndReminderName(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_Identity_IsGrainIdAndReminderName);
@@ -323,7 +323,7 @@ public abstract class ReminderTableTestRunner
         AssertEntry(Guarantee, "ReadRow", aSecond, aSecondETag, await ReadRequiredAsync(grainA, "other-name", Guarantee, cancellationToken, aSecond, aSecondETag));
         AssertEntry(Guarantee, "ReadRow", bFirst, bFirstETag, await ReadRequiredAsync(grainB, "shared-name", Guarantee, cancellationToken, bFirst, bFirstETag));
 
-        // Removing one identity must not affect the two identities which share one component with it.
+        // 消除一个身份不得影响与它共享一个组成部分的两个身份。
         if (!await ReminderTable.RemoveRow(grainA, "shared-name", aFirstETag, cancellationToken).WaitAsync(cancellationToken))
         {
             Report(Guarantee, "RemoveRow")
@@ -342,14 +342,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: reminder names containing path, escape, fragment, and query characters round-trip unchanged.
+    /// 保证:提醒姓名,包括路径、逃跑、碎片和查询字符,不作任何回行。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_Identity_WithSpecialCharacters_RoundTrips()
         => RunReminderTable_Identity_WithSpecialCharacters_RoundTrips(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_Identity_WithSpecialCharacters_RoundTrips()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_Identity_WithSpecialCharacters_RoundTrips(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_Identity_WithSpecialCharacters_RoundTrips);
@@ -363,18 +363,18 @@ public abstract class ReminderTableTestRunner
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // ETag semantics
+    // ETag 语义学
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Guarantee: every successful upsert replaces the ETag, and the point read observes the newest ETag.
+    /// 保证:每个成功的上层升降都取代ETag, 并且观察最新的ETag。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_UpsertRow_ReplacesETagOnEachWrite()
         => RunReminderTable_UpsertRow_ReplacesETagOnEachWrite(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_UpsertRow_ReplacesETagOnEachWrite()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_UpsertRow_ReplacesETagOnEachWrite(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_UpsertRow_ReplacesETagOnEachWrite);
@@ -426,14 +426,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: conditional removal with the current ETag removes the row.
+    /// 保证:有条件地搬走,以当前的ETag为条件,删除行。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_RemoveRow_WithCurrentETag_RemovesRow()
         => RunReminderTable_RemoveRow_WithCurrentETag_RemovesRow(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_RemoveRow_WithCurrentETag_RemovesRow()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_RemoveRow_WithCurrentETag_RemovesRow(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_RemoveRow_WithCurrentETag_RemovesRow);
@@ -473,14 +473,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: conditional removal with a stale ETag fails and leaves the current row untouched.
+    /// 保证:有条件地撤离,但因一团废旧的ETag失灵,目前行未动。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_RemoveRow_WithStaleETag_FailsAndRetainsRow()
         => RunReminderTable_RemoveRow_WithStaleETag_FailsAndRetainsRow(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_RemoveRow_WithStaleETag_FailsAndRetainsRow()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_RemoveRow_WithStaleETag_FailsAndRetainsRow(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_RemoveRow_WithStaleETag_FailsAndRetainsRow);
@@ -511,14 +511,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: removal targeting an unknown reminder name returns <see langword="false"/> and removes nothing.
+    /// 保证:清除目标不明的提醒名称返回 <see langword="false"/> ,不删除任何内容。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_RemoveRow_WithUnknownReminderName_ReturnsFalse()
         => RunReminderTable_RemoveRow_WithUnknownReminderName_ReturnsFalse(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_RemoveRow_WithUnknownReminderName_ReturnsFalse()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_RemoveRow_WithUnknownReminderName_ReturnsFalse(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_RemoveRow_WithUnknownReminderName_ReturnsFalse);
@@ -543,14 +543,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: a repeated removal of an already removed reminder returns <see langword="false"/>.
+    /// 保证:重复删除已经删除的提醒回函 <see langword="false"/>。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_RemoveRow_Repeated_ReturnsFalseAfterFirstSuccess()
         => RunReminderTable_RemoveRow_Repeated_ReturnsFalseAfterFirstSuccess(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_RemoveRow_Repeated_ReturnsFalseAfterFirstSuccess()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_RemoveRow_Repeated_ReturnsFalseAfterFirstSuccess(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_RemoveRow_Repeated_ReturnsFalseAfterFirstSuccess);
@@ -574,19 +574,19 @@ public abstract class ReminderTableTestRunner
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // Schedule updates and window movement
+    // 计划更新和窗口移动
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Guarantee: an upsert on an existing identity updates <see cref="ReminderEntry.StartAt"/> and
-    /// <see cref="ReminderEntry.Period"/> in place rather than creating a second row.
+    /// 保证:在现有的身份更新 <see cref="ReminderEntry.StartAt"/> 和
+    /// <see cref="ReminderEntry.Period"/> 到位,而不是创建第二行。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_UpsertRow_UpdatesStartAtAndPeriod()
         => RunReminderTable_UpsertRow_UpdatesStartAtAndPeriod(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_UpsertRow_UpdatesStartAtAndPeriod()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_UpsertRow_UpdatesStartAtAndPeriod(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_UpsertRow_UpdatesStartAtAndPeriod);
@@ -622,15 +622,15 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: moving a reminder's start time across a loading window boundary is observable through both the
-    /// point read and the grain-scoped read, and the previous schedule is no longer visible.
+    /// 保证:通过两个
+    /// 点改为 grain- 范围改为,而上一个时间表不再可见。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_UpsertRow_MovesReminderBetweenLoadingWindows()
         => RunReminderTable_UpsertRow_MovesReminderBetweenLoadingWindows(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_UpsertRow_MovesReminderBetweenLoadingWindows()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_UpsertRow_MovesReminderBetweenLoadingWindows(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_UpsertRow_MovesReminderBetweenLoadingWindows);
@@ -686,18 +686,18 @@ public abstract class ReminderTableTestRunner
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // Hash range semantics
+    // 混散范围语义
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Guarantee: the degenerate range <c>(0, 0]</c> enumerates every reminder in the table.
+    /// 保证:变质范围 <c>(0, 0]</c> 在表格中列举了每一份提醒函。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_FullRange_ReturnsAllReminders()
         => RunReminderTable_ReadRows_FullRange_ReturnsAllReminders(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_FullRange_ReturnsAllReminders()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_FullRange_ReturnsAllReminders(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_FullRange_ReturnsAllReminders);
@@ -721,14 +721,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: the unsigned upper ring boundary <c>(0, uint.MaxValue]</c> excludes only hash zero.
+    /// 保证:未签名的上环边界 <c>(0, uint.MaxValue]</c> )仅排除散列零。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_UnsignedBoundary_UsesUInt32Ordering()
         => RunReminderTable_ReadRows_UnsignedBoundary_UsesUInt32Ordering(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_UnsignedBoundary_UsesUInt32Ordering()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_UnsignedBoundary_UsesUInt32Ordering(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_UnsignedBoundary_UsesUInt32Ordering);
@@ -752,15 +752,15 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: the full range returns exactly the requested number of distinct, complete reminder entries.
+    /// 保证:全程返回的准确度是要求的、有区别的、完整的提醒条目数。
     /// </summary>
-    /// <param name="reminderCount">The exact positive number of reminders to create and enumerate.</param>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <param name="reminderCount">需要创建和列举的催复通知的确切正数。</param>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_FullRange_ReturnsExactRequestedCardinality(int reminderCount)
         => RunReminderTable_ReadRows_FullRange_ReturnsExactRequestedCardinality(reminderCount, CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_FullRange_ReturnsExactRequestedCardinality(int)"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_FullRange_ReturnsExactRequestedCardinality(
         int reminderCount,
         CancellationToken cancellationToken)
@@ -812,14 +812,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: a non-wrapping range is exclusive of <c>begin</c> and inclusive of <c>end</c>.
+    /// 保证:非包装范围不包括 <c>begin</c> ,并包括 <c>end</c>。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_Range_ExcludesBeginAndIncludesEnd()
         => RunReminderTable_ReadRows_Range_ExcludesBeginAndIncludesEnd(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_Range_ExcludesBeginAndIncludesEnd()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_Range_ExcludesBeginAndIncludesEnd(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_Range_ExcludesBeginAndIncludesEnd);
@@ -853,14 +853,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: a wrap-around range where <c>begin &gt;= end</c> returns the union of both ring segments.
+    /// 保证:一个环形圈段的组合返回的环形部分交集范围,即 <c>begin &gt;= end</c> 。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_WrapAroundRange_ReturnsWrappedSegment()
         => RunReminderTable_ReadRows_WrapAroundRange_ReturnsWrappedSegment(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_WrapAroundRange_ReturnsWrappedSegment()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_WrapAroundRange_ReturnsWrappedSegment(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_WrapAroundRange_ReturnsWrappedSegment);
@@ -871,7 +871,7 @@ public abstract class ReminderTableTestRunner
             var middle = fixtureState.All[1];
             var high = fixtureState.All[2];
 
-            // (high, low] wraps through zero: it contains 'low' and excludes 'middle' and 'high'.
+            // 折叠到零: 它包含“ 低” , 不包括“ 中” 和“ 高” 。
             var wrapped = await ReadRangeUntilExactAsync(
                 () => ReminderTable.ReadRows(high.Hash, low.Hash),
                 [low],
@@ -880,7 +880,7 @@ public abstract class ReminderTableTestRunner
                 cancellationToken);
             AssertRange(Guarantee, "ReadRows(high, low)", high.Hash, low.Hash, fixtureState, wrapped, [low], [middle, high]);
 
-            // (middle, low] wraps as well and contains 'high' (above begin) and 'low' (at or below end).
+            // 包装也包含“高”(以上开始)和“低”(在或以下结束)。
             var wrappedUnion = await ReadRangeUntilExactAsync(
                 () => ReminderTable.ReadRows(middle.Hash, low.Hash),
                 [low, high],
@@ -896,14 +896,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: absence from a hash-range read does not remove or otherwise modify the durable reminder.
+    /// 保证:不读大麻杂类不会消除或以其他方式更改耐用提醒。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_OutsideRange_DoesNotDeleteReminder()
         => RunReminderTable_ReadRows_OutsideRange_DoesNotDeleteReminder(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_OutsideRange_DoesNotDeleteReminder()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_OutsideRange_DoesNotDeleteReminder(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_OutsideRange_DoesNotDeleteReminder);
@@ -932,14 +932,14 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: a removed reminder disappears from range enumeration while its siblings remain.
+    /// 保证:在兄弟姐妹留守期间,从范围查点中清除的提醒就消失了。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRows_AfterRemoval_OmitsRemovedReminder()
         => RunReminderTable_ReadRows_AfterRemoval_OmitsRemovedReminder(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRows_AfterRemoval_OmitsRemovedReminder()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRows_AfterRemoval_OmitsRemovedReminder(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRows_AfterRemoval_OmitsRemovedReminder);
@@ -976,15 +976,15 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: deletion is confirmed by an explicit point read returning <see langword="null"/>. Absence from a
-    /// range or due-time enumeration alone must never be treated as durable deletion.
+    /// 保证:删除以 " 返回 " 改为 " 明确点 " 来确认 <see langword="null"/>缺勤
+    /// 不得将范围或适当时间点数单独视为持久的删除。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ReadRow_AfterRemoval_ReturnsNull()
         => RunReminderTable_ReadRow_AfterRemoval_ReturnsNull(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ReadRow_AfterRemoval_ReturnsNull()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ReadRow_AfterRemoval_ReturnsNull(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ReadRow_AfterRemoval_ReturnsNull);
@@ -994,7 +994,7 @@ public abstract class ReminderTableTestRunner
         var etag = await UpsertAsync(entry, Guarantee, cancellationToken);
         var hash = grainId.GetUniformHashCode();
 
-        // A range which cannot contain this reminder proves absence from a page is not deletion.
+        // 无法包含此提醒的域, 证明页面上没有显示该区域。
         var disjointBegin = unchecked(hash + 1);
         var disjointEnd = unchecked(hash + 2);
         var disjoint = RequireRows(
@@ -1052,18 +1052,18 @@ public abstract class ReminderTableTestRunner
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // Duplicate and concurrent operations
+    // 重复和同时作业
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Guarantee: concurrent upserts of one identity all succeed and each returns a distinct ETag.
+    /// 保证:同时提升一个身份,所有成功者,每个成功者都返回一个单独的ETag。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ConcurrentUpserts_ProduceDistinctETags()
         => RunReminderTable_ConcurrentUpserts_ProduceDistinctETags(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ConcurrentUpserts_ProduceDistinctETags()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ConcurrentUpserts_ProduceDistinctETags(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ConcurrentUpserts_ProduceDistinctETags);
@@ -1135,15 +1135,15 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Guarantee: concurrent replacement streams across distinct grains remain isolated: every grain observes
-    /// exactly one row from its own ETag stream.
+    /// 保证:不同 grains 之间同时的替代流仍然孤立:每个 grain 都表示意见
+    /// 正好是自自自的ETag河一排。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_ParallelUpserts_AcrossGrains_RemainIsolated()
         => RunReminderTable_ParallelUpserts_AcrossGrains_RemainIsolated(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_ParallelUpserts_AcrossGrains_RemainIsolated()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_ParallelUpserts_AcrossGrains_RemainIsolated(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_ParallelUpserts_AcrossGrains_RemainIsolated);
@@ -1151,7 +1151,7 @@ public abstract class ReminderTableTestRunner
         const int PerGrain = 5;
         var grains = Enumerable.Range(0, GrainCount).Select(index => NewGrainId($"parallel-{index}")).ToList();
 
-        // Seed serially so this guarantee isolates parallel replacement streams from same-identity insert contention.
+        // 种子序列,因此这一保证将平行的替代流与同一身份插入争议分离。
         foreach (var grainId in grains)
         {
             await UpsertAsync(
@@ -1222,18 +1222,18 @@ public abstract class ReminderTableTestRunner
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // Clear
+    // 清除
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Guarantee: <see cref="IReminderTable.TestOnlyClearTable()"/> removes every reminder.
+    /// 保证: <see cref="IReminderTable.TestOnlyClearTable()"/> 清除每一份催复通知。
     /// </summary>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <returns>代表非同步操作的任务。</returns>
     public virtual Task ReminderTable_TestOnlyClearTable_RemovesAllReminders()
         => RunReminderTable_TestOnlyClearTable_RemovesAllReminders(CancellationToken.None);
 
     /// <inheritdoc cref="ReminderTable_TestOnlyClearTable_RemovesAllReminders()"/>
-    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <param name="cancellationToken">取消的符号。</param>
     public virtual async Task RunReminderTable_TestOnlyClearTable_RemovesAllReminders(CancellationToken cancellationToken)
     {
         const string Guarantee = nameof(ReminderTable_TestOnlyClearTable_RemovesAllReminders);
@@ -1284,15 +1284,15 @@ public abstract class ReminderTableTestRunner
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // Shared helpers
+    // 共享帮助共享
     // ---------------------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Creates a failure report pre-populated with the provider, guarantee and operation.
+    /// 创建故障报告,预先与提供者、担保和操作一起进行人口共享。
     /// </summary>
-    /// <param name="guarantee">The guarantee being verified.</param>
-    /// <param name="operation">The operation which produced the observation.</param>
-    /// <returns>The report.</returns>
+    /// <param name="guarantee">保证书正在核实</param>
+    /// <param name="operation">产生观察结果的操作</param>
+    /// <returns>报告</returns>
     protected ReminderFailureReport Report(string guarantee, string operation)
     {
         ArgumentNullException.ThrowIfNull(guarantee);
@@ -1302,10 +1302,10 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Creates a grain identifier which is unique to this runner instance.
+    /// 创建此运行实例独有的 grain 标识符。
     /// </summary>
-    /// <param name="label">A human readable label included in the key.</param>
-    /// <returns>The grain identifier.</returns>
+    /// <param name="label">键中包含一个人可读标签。</param>
+    /// <returns> grain 标识符。</returns>
     protected GrainId NewGrainId(string label)
     {
         ArgumentNullException.ThrowIfNull(label);
@@ -1318,13 +1318,13 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Creates a reminder entry with a whole-second UTC schedule supported by every built-in provider.
+    /// 创建一个提醒条目,由每个内建供应商支持的完整秒世界协调时时间表创建提醒项。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="startAt">The start time, or <see langword="null"/> for <see cref="BaseTime"/>.</param>
-    /// <param name="period">The period, or <see langword="null"/> for one minute.</param>
-    /// <returns>The entry.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="startAt">开始时间, 或者 <see langword="null"/> 用于 <see cref="BaseTime"/>.</param>
+    /// <param name="period">期限,或 <see langword="null"/> 一分钟</param>
+    /// <returns>条目。</returns>
     protected ReminderEntry NewEntry(GrainId grainId, string reminderName, DateTime? startAt = null, TimeSpan? period = null)
     {
         ArgumentNullException.ThrowIfNull(reminderName);
@@ -1338,10 +1338,10 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Normalizes a timestamp to whole-second UTC precision supported by every built-in provider.
+    /// 使时间戳标准化,达到由每个内建供应商支持的全秒世界协调时精确度。
     /// </summary>
-    /// <param name="value">The timestamp.</param>
-    /// <returns>The normalized timestamp.</returns>
+    /// <param name="value">时间戳。</param>
+    /// <returns>正常的时印</returns>
     protected DateTime Normalize(DateTime value)
     {
         var utc = value.Kind == DateTimeKind.Utc ? value : DateTime.SpecifyKind(value, DateTimeKind.Utc);
@@ -1349,12 +1349,12 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Upserts an entry and asserts that a non-empty ETag was returned.
+    /// 上传一个条目并声称归还了无空ETag。
     /// </summary>
-    /// <param name="entry">The entry to upsert.</param>
-    /// <param name="guarantee">The guarantee being verified.</param>
-    /// <param name="previousETag">The ETag which a replacement must rotate, or <see langword="null"/> for a new row.</param>
-    /// <returns>The new ETag.</returns>
+    /// <param name="entry">上层条目。</param>
+    /// <param name="guarantee">保证书正在核实</param>
+    /// <param name="previousETag">替换必须旋转的 ETag, 或新行的 <see langword="null"/> 。</param>
+    /// <returns>新的ETag。</returns>
     protected Task<string> UpsertAsync(ReminderEntry entry, string guarantee, string? previousETag = null)
     {
         ArgumentNullException.ThrowIfNull(entry);
@@ -1363,13 +1363,13 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Upserts an entry and asserts that a non-empty ETag was returned.
+    /// 上传一个条目并声称归还了无空ETag。
     /// </summary>
-    /// <param name="entry">The entry to upsert.</param>
-    /// <param name="guarantee">The guarantee being verified.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <param name="previousETag">The ETag which a replacement must rotate, or <see langword="null"/> for a new row.</param>
-    /// <returns>The new ETag.</returns>
+    /// <param name="entry">上层条目。</param>
+    /// <param name="guarantee">保证书正在核实</param>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <param name="previousETag">替换必须旋转的 ETag, 或新行的 <see langword="null"/> 。</param>
+    /// <returns>新的ETag。</returns>
     protected async Task<string> UpsertAsync(
         ReminderEntry entry,
         string guarantee,
@@ -1405,12 +1405,12 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Reads a reminder which the guarantee requires to be present.
+    /// 阅读担保书要求存在的提醒函。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="guarantee">The guarantee being verified.</param>
-    /// <returns>The reminder entry.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="guarantee">保证书正在核实</param>
+    /// <returns>提醒通知条目。</returns>
     protected Task<ReminderEntry> ReadRequiredAsync(
         GrainId grainId,
         string reminderName,
@@ -1430,15 +1430,15 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Reads a reminder which the guarantee requires to be present.
+    /// 阅读担保书要求存在的提醒函。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="guarantee">The guarantee being verified.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <param name="expected">The expected entry.</param>
-    /// <param name="expectedETag">The expected ETag.</param>
-    /// <returns>The reminder entry.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="guarantee">保证书正在核实</param>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <param name="expected">预期条目。</param>
+    /// <param name="expectedETag">预期的ETag。</param>
+    /// <returns>提醒通知条目。</returns>
     protected async Task<ReminderEntry> ReadRequiredAsync(
         GrainId grainId,
         string reminderName,
@@ -1503,12 +1503,12 @@ public abstract class ReminderTableTestRunner
             && string.Equals(actual.ETag, expectedETag, StringComparison.Ordinal);
 
     /// <summary>
-    /// Removes a reminder during test cleanup.
+    /// 清除测试清理过程中的提醒。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="etag">The current ETag.</param>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="etag">当前的ETag。</param>
+    /// <returns>代表非同步操作的任务。</returns>
     protected Task RemoveAsync(GrainId grainId, string reminderName, string etag)
     {
         ArgumentNullException.ThrowIfNull(reminderName);
@@ -1517,13 +1517,13 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Removes a reminder during test cleanup.
+    /// 清除测试清理过程中的提醒。
     /// </summary>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <param name="reminderName">The reminder name.</param>
-    /// <param name="etag">The current ETag.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>A task which represents the asynchronous operation.</returns>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <param name="reminderName">提醒的名称。</param>
+    /// <param name="etag">当前的ETag。</param>
+    /// <param name="cancellationToken">取消的符号。</param>
+    /// <returns>代表非同步操作的任务。</returns>
     protected async Task RemoveAsync(
         GrainId grainId,
         string reminderName,
@@ -1538,12 +1538,12 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Asserts that a range or grain read returned a non-null result.
+    /// 断言一个区域或 grain 读取返回了非中值结果。
     /// </summary>
-    /// <param name="guarantee">The guarantee being verified.</param>
-    /// <param name="operation">The operation which produced the observation.</param>
-    /// <param name="rows">The result.</param>
-    /// <returns>The non-null result.</returns>
+    /// <param name="guarantee">保证书正在核实</param>
+    /// <param name="operation">产生观察结果的操作</param>
+    /// <param name="rows">结果。</param>
+    /// <returns>非无效结果 。</returns>
     protected ReminderTableData RequireRows(string guarantee, string operation, ReminderTableData? rows)
     {
         ArgumentNullException.ThrowIfNull(guarantee);
@@ -1613,13 +1613,13 @@ public abstract class ReminderTableTestRunner
             cancellationToken);
 
     /// <summary>
-    /// Asserts that a read observed the expected identity, schedule and ETag.
+    /// 认为阅读时会看到预期的身份、时间表和ETag。
     /// </summary>
-    /// <param name="guarantee">The guarantee being verified.</param>
-    /// <param name="operation">The operation which produced the observation.</param>
-    /// <param name="expected">The expected entry.</param>
-    /// <param name="expectedETag">The expected ETag.</param>
-    /// <param name="actual">The observed entry.</param>
+    /// <param name="guarantee">保证书正在核实</param>
+    /// <param name="operation">产生观察结果的操作</param>
+    /// <param name="expected">预期条目。</param>
+    /// <param name="expectedETag">预期的ETag。</param>
+    /// <param name="actual">观察进入。</param>
     protected void AssertEntry(string guarantee, string operation, ReminderEntry expected, string expectedETag, ReminderEntry actual)
     {
         ArgumentNullException.ThrowIfNull(guarantee);
@@ -1676,19 +1676,19 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Determines whether a reminder start time falls within the loading window which opens at <paramref name="now"/>.
+    /// 确定提醒开始时间是否属于 <paramref name="now"/>打开的装载窗口。
     /// </summary>
-    /// <param name="startAt">The reminder start time.</param>
-    /// <param name="now">The window start.</param>
-    /// <param name="window">The window length.</param>
-    /// <returns><see langword="true"/> when the reminder is inside the window.</returns>
+    /// <param name="startAt">提醒开始时间。</param>
+    /// <param name="now">窗口启动。</param>
+    /// <param name="window">窗口长度。</param>
+    /// <returns><see langword="true"/> 当提醒位于窗口内时。</returns>
     protected static bool IsWithinWindow(DateTime startAt, DateTime now, TimeSpan window) => startAt <= now + window;
 
     /// <summary>
-    /// Renders a reminder entry for diagnostics.
+    /// 重命名诊断的提醒条目 。
     /// </summary>
-    /// <param name="entry">The entry.</param>
-    /// <returns>The rendered entry.</returns>
+    /// <param name="entry">条目。</param>
+    /// <returns>填报的条目。</returns>
     protected static string Describe(ReminderEntry entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
@@ -1696,10 +1696,10 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// Renders an ETag for diagnostics.
+    /// 重新调试一个ETag用于诊断。
     /// </summary>
-    /// <param name="etag">The ETag.</param>
-    /// <returns>The rendered ETag.</returns>
+    /// <param name="etag">塔格号</param>
+    /// <returns>已经制造的ETag。</returns>
     protected static string FormatETag(string? etag) => etag is null ? "<null>" : etag.Length == 0 ? "<empty>" : $"'{etag}'";
 
     private async Task<RangeFixture> CreateRangeFixtureAsync(
@@ -1843,7 +1843,7 @@ public abstract class ReminderTableTestRunner
     }
 
     /// <summary>
-    /// A reminder created by the hash-range fixture.
+    /// 由散列草原固定所生成的提醒 。
     /// </summary>
     private sealed class RangeItem(ReminderEntry entry, uint hash, string etag)
     {

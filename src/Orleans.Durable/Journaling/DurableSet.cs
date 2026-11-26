@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Represents a set whose mutations are recorded in a journal.
+/// 代表一个在日记中记录突变的集。
 /// </summary>
-/// <typeparam name="T">The type of elements in the set.</typeparam>
+/// <typeparam name="T">集中元素的类型。</typeparam>
 /// <remarks>
-/// The set takes ownership of the elements passed to it, and the journal records each mutation when it is made. To change an element, remove it and add a new instance.
+/// 集将元素的所有权传给它, 而日记记录每个突变时进行。 要更改元素, 需要删除并添加新实例 。
 /// </remarks>
 public interface IDurableSet<T> : ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>
 {
@@ -81,7 +81,7 @@ internal sealed class DurableSet<T> : IDurableSet<T>, IStateMachine, IDurableSet
 
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer)
     {
-        // This state implementation appends journal entries as the data structure is modified, so there is no need to perform separate writing here.
+        // 此状态的实施随着数据结构的修改而附加日记条目, 因此在此无需单独写入 。
     }
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter snapshotWriter)

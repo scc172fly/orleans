@@ -1,353 +1,387 @@
-# Licenses
+<a id="licenses"></a>
 
-The app bundles dependencies which contain the following licenses:
+# 许可证许可证
 
-## @fortawesome/fontawesome-free - 7.1.0 ((CC-BY-4.0 AND OFL-1.1 AND MIT))
+应用程序捆绑了包含以下许可证的附属关系:
 
-Fonticons, Inc. (https://fontawesome.com)
+<a id="fortawesomefontawesome-free---710-cc-by-40-and-ofl-11-and-mit"></a>
 
---------------------------------------------------------------------------------
+## )7.1.0(CC-BY-4.0和OFL-1.1及MIT)
 
-Font Awesome Free License
-
-Font Awesome Free is free, open source, and GPL friendly. You can use it for
-commercial projects, open source projects, or really almost whatever you want.
-Full Font Awesome Free license: https://fontawesome.com/license/free.
+Fonticons股份有限公司(https://fontawesome.com)
 
 --------------------------------------------------------------------------------
 
-# Icons: CC BY 4.0 License (https://creativecommons.org/licenses/by/4.0/)
+字体“无威威威强”免费许可证
 
-The Font Awesome Free download is licensed under a Creative Commons
-Attribution 4.0 International License and applies to all icons packaged
-as SVG and JS file types.
+Font Awees Free 免费、开放源码和GPL友好。您可以用它来
+商业项目,开放源码项目 或者说实际上你想要的东西
+完全字体无畏免费许可证: https://fontawesome.com/license/free。
 
 --------------------------------------------------------------------------------
 
-# Fonts: SIL OFL 1.1 License
+<a id="icons-cc-by-40-license-httpscreativecommonsorglicensesby40"></a>
 
-In the Font Awesome Free download, the SIL OFL license applies to all icons
-packaged as web and desktop font files.
+# 照片来自:CC BY 4.https://creativecommons.org/licenses/by/4.0/)
+
+依据创用CC授权下下载Font Aweswean Free下载
+4.0 国际许可证,适用于所有包装图标
+以SVG和JS档案类型。
+
+--------------------------------------------------------------------------------
+
+<a id="fonts-sil-ofl-11-license"></a>
+
+# 字体:SLOOL 1.1许可证
+
+在Font Aweawe Free下载中,SIL OFL 许可证适用于所有图标
+被包装成 Web 和桌面字体文件。
 
 Copyright (c) 2025 Fonticons, Inc. (https://fontawesome.com)
-with Reserved Font Name: "Font Awesome".
+保留字体名称:"Font真棒"
 
-This Font Software is licensed under the SIL Open Font License, Version 1.1.
-This license is copied below, and is also available with a FAQ at:
+该字体软件根据SIL开放字体许可证1.1版获得许可。
+许可证副本如下,也可在以下网址上查阅常见问题查询:
 http://scripts.sil.org/OFL
 
-SIL OPEN FONT LICENSE
-Version 1.1 - 26 February 2007
+开放的FF基金
+2007年2月1日至26日版本1.1 - 版本
 
-PREAMBLE
-The goals of the Open Font License (OFL) are to stimulate worldwide
-development of collaborative font projects, to support the font creation
-efforts of academic and linguistic communities, and to provide a free and
-open framework in which fonts may be shared and improved in partnership
-with others.
+预 预 数
+开放字体许可证(OFL)的目标是在全世界范围内激励
+开发合作字体项目,以支持创建字体
+和语言社区的努力,并提供免费、
+用于共享和在伙伴关系中改进字体的打开框架
+与他人一起。
 
-The OFL allows the licensed fonts to be used, studied, modified and
-redistributed freely as long as they are not sold by themselves. The
-fonts, including any derivative works, can be bundled, embedded,
-redistributed and/or sold with any software provided that any reserved
-names are not used by derivative works. The fonts and derivatives,
-however, cannot be released under any other type of license. The
-requirement for fonts to remain under this license does not apply
-to any document created using the fonts or their derivatives.
+外国资产交易法允许使用、研究、修改和
+只要不是自己出售,就自由再分配。
+字体,包括任何衍生作品,可以捆绑、嵌入、
+任何软件只要保留
+衍生作品不使用名称。字体和衍生品,
+但是,不能以任何其他类型的许可证予以释放。
+字体必须保持本许可证下字体的要求不适用
+用于使用字体或其衍生物创建的文档。
 
-DEFINITIONS
-"Font Software" refers to the set of files released by the Copyright
-Holder(s) under this license and clearly marked as such. This may
-include source files, build scripts and documentation.
+定 义 定 定 定 定 定 定 定 定
+“Font软件”是指版权发行的一套文件。
+持本执照的持有人,并有明确标记。
+包括源文件、构建脚本和文档。
 
-"Reserved Font Name" refers to any names specified as such after the
-copyright statement(s).
+“保留字体名称”是指在“保存字体名称”之后指定的任何名称。
+版权声明。
 
-"Original Version" refers to the collection of Font Software components as
-distributed by the Copyright Holder(s).
+“原件”是指收集的字体软件组件,作为
+由版权持有者分发。
 
-"Modified Version" refers to any derivative made by adding to, deleting,
-or substituting — in part or in whole — any of the components of the
-Original Version, by changing formats or by porting the Font Software to a
-new environment.
+“修改后版本”是指任何通过添加、删除或
+或部分或全部替换《公约》的任何组成部分
+原始版本,通过修改格式或通过将字体软件移植到
+新环境。
 
-"Author" refers to any designer, engineer, programmer, technical
-writer or other person who contributed to the Font Software.
+“授权人”指任何设计师、工程师、程序员、技术设计师、技术人员。
+或为字体软件作出贡献的作者或其他人。
 
-PERMISSION & CONDITIONS
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of the Font Software, to use, study, copy, merge, embed, modify,
-redistribute, and sell modified and unmodified copies of the Font
-Software, subject to the following conditions:
+和条件
+特此给予取得下列证件的任何人免费准许:
+字体软件的副本,用于使用、研究、复制、合并、嵌入、修改
+重新再分配,出售经修改和未经修改的字体副本
+符合下列条件的软件:
 
-1) Neither the Font Software nor any of its individual components,
-in Original or Modified Versions, may be sold by itself.
+1) 既不是字体软件,也不是其任何单独组成部分;
+原版或修改后的版本可自行出售。
 
-2) Original or Modified Versions of the Font Software may be bundled,
-redistributed and/or sold with any software, provided that each copy
-contains the above copyright notice and this license. These can be
-included either as stand-alone text files, human-readable headers or
-in the appropriate machine-readable metadata fields within text or
-binary files as long as those fields can be easily viewed by the user.
+2) 字体软件的原始版本或修改后的版本可以捆绑,
+以任何软件重新分发和/或出售,但每份
+以上包含版权通知和该许可。这些可以是
+或作为独立的文本文件、可读的人读页眉或
+中文本或可读机元数据字段中的
+只要这些字段可以方便地被用户查看, 即为二进制文件 。
 
-3) No Modified Version of the Font Software may use the Reserved Font
-Name(s) unless explicit written permission is granted by the corresponding
-Copyright Holder. This restriction only applies to the primary font name as
-presented to the users.
+3) 字体软件的已修改版本可使用保留字体
+除非相应的机构给予明确的书面许可,否则姓名
+版权 Holder 版权所有。 此限制仅适用于主字体名
+向用户展示。
 
-4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
-Software shall not be used to promote, endorse or advertise any
-Modified Version, except to acknowledge the contribution(s) of the
-Copyright Holder(s) and the Author(s) or with their explicit written
-permission.
+4) 版权持有人或字体作者的姓名
+软件不得用于促进、认可或广告宣传任何
+修改后版本,但确认
+版权所有者、作者或有其明确书面的著作权拥有者和作者
+允许。
 
-5) The Font Software, modified or unmodified, in part or in whole,
-must be distributed entirely under this license, and must not be
-distributed under any other license. The requirement for fonts to
-remain under this license does not apply to any document created
-using the Font Software.
+5) 已经修改或未修改的字体软件,部分或全部,
+必须在许可证下完全分发,不得
+要求字体必须
+依据本许可证的规定,任何证件均不适用于所创建的证件。
+使用字体软件。
 
-TERMINATION
-This license becomes null and void if any of the above conditions are
-not met.
+终止
+如果上述条件中的任何一项条件,该执照无效
+未满足。
 
-DISCLAIMER
-THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
-OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
-COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
-DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
-OTHER DEALINGS IN THE FONT SOFTWARE.
-
---------------------------------------------------------------------------------
-
-# Code: MIT License (https://opensource.org/licenses/MIT)
-
-In the Font Awesome Free download, the MIT license applies to all non-font and
-non-icon files.
-
-Copyright 2025 Fonticons, Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in the
-Software without restriction, including without limitation the rights to use, copy,
-modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-and to permit persons to whom the Software is furnished to do so, subject to the
-following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+分 片 声 声 响
+买的Fontforware是"AS是," 没有任何种类的战争,
+包括但不限于任何战争或
+特殊目的与限制的雇佣军、
+或其它权利。
+任何索赔、损坏或其他损失的
+包括任何一般、特别、直接、附带、
+参与就合同、谈判或其他事项采取行动
+使用或不能使用该资金或
+其它交易 在FONTSOWORE的。
 
 --------------------------------------------------------------------------------
 
-# Attribution
+<a id="code-mit-license-httpsopensourceorglicensesmit"></a>
 
-Attribution is required by MIT, SIL OFL, and CC BY licenses. Downloaded Font
-Awesome Free files already contain embedded comments with sufficient
-attribution, so you shouldn't need to do anything additional when using these
-files normally.
+# 代码:MIT许可证(https://opensource.org/licenses/MIT)
 
-We've kept attribution comments terse, so we ask that you do not actively work
-to remove them from files, especially code. They're a great way for folks to
-learn about Font Awesome.
+麻省理工学院的许可证适用于所有非
+un-icon 文件。
+
+版权所有 2025 Fonticons公司
+
+特此免费准许任何人取得一份
+软件及相关的文件文档 (“软件”), 用于处理
+软件不受限制,包括使用、复制、
+修改、合并、出版、分发、分许可和/或出售软件副本,
+并允许软件的接收人这样做,但以下列条件为条件:
+下列条件:
+
+上述版权通知和这项许可通知应列入
+软件的复制件或大宗部分。
+
+软件是"AS是"提供的, 没有战争 任何种类的, 明示或假设,
+包括但不局限于战争、战争、战争、
+特别目的与非目标。
+任何索赔、损害或其他赔偿责任均可以
+或与《公约》有关、
+或使用或其他方式处理软件。
 
 --------------------------------------------------------------------------------
 
-# Brand Icons
+<a id="attribution"></a>
 
-All brand icons are trademarks of their respective owners. The use of these
-trademarks does not indicate endorsement of the trademark holder by Font
-Awesome, nor vice versa. **Please do not use brand logos for any purpose except
-to represent the company, product, or service to which they refer.**
+# 归属
 
-## @kurkle/color - 0.3.4 (MIT)
+依据MIT、SIL OFL和CC BY许可使用。
+已经包含含有足够多的内嵌评论的无限制免费文件
+属性,所以使用这些特性时, 你不需要做任何额外的事情
+通常情况下, 文件 。
 
-The MIT License (MIT)
+我们一直保留归属论的评论, 所以我们要求你不要积极工作
+特别是代码,这是人们用来
+了解Font Awow的奥妙。
+
+--------------------------------------------------------------------------------
+
+<a id="brand-icons"></a>
+
+# 品牌图标
+
+所有品牌图标都是各自所有者的商标。
+商标并不表示Font 认可商标持有人
+**请除用于其他用途外,不要为任何目的使用品牌标志。
+代表它们所指的公司、产品或服务。**
+
+<a id="kurklecolor---034-mit"></a>
+
+## @kurkle/color - 0.3.4 (麻省理工学院)
+
+MIT许可证(MIT)
 
 Copyright (c) 2018-2024 Jukka Kurkela
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+兹免费准许任何人获取软件和相关文件档案(“软件”)的副本,不受限制地在软件中交易,包括不受限制地使用、复制、修改、合并、出版、分发、分许可和/或出售软件副本的权利,并允许软件接收人这样做,但须符合下列条件:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+上述版权通知和这项许可通知应列入软件的所有副本或大部分内容。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+软件被写成“是”,没有任何种类、明示或假定的战争,包括但不局限于商业、特殊目的和无保障的战争。在没有任何机会使任何物体、损坏或其他损害都存在任何证据、损坏或其他损失,而且参与一项合同行动、托盘或其他活动,从或从或从与Sofware或使用或其他交易有关的行为产生、产生或产生的影响中产生的影响或影响的影响中产生的影响。
 
-## admin-lte - 4.0.0-rc3 (MIT)
+<a id="admin-lte---400-rc3-mit"></a>
 
-The MIT License (MIT)
+## 管理-液态 - 4.0.0-rc3(MIT)
+
+MIT许可证(MIT)
 
 Copyright (c) 2014-2023 ColorlibHQ
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+特此免费准许任何人取得一份
+此软件及相关文件文档( “ 软软件”) , 用于处理
+软件不受限制,包括不受限制的软件使用权
+使用、复制、修改、合并、出版、分发、分许可和/或出售
+软件,并允许软件的接收人这样做,
+但须符合下列条件:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+上述版权通知和这项许可通知应列入
+软件的复制件或大宗部分。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+软件是“AS是”的,没有任何种类、
+包括但不局限于战争、战争、战争、
+特别目的与非特定目的或非特别目的
+任何索赔、损害或其他损害,均可以
+或其它事项的,由《公约》
+与软件或使用或其它处理方式的关联。
 
-## bootstrap - 5.3.8 (MIT)
+<a id="bootstrap---538-mit"></a>
 
-The MIT License (MIT)
+## 皮靴-5.3.8(麻省理工学院)
+
+MIT许可证(MIT)
 
 Copyright (c) 2011-2025 The Bootstrap Authors
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+特此免费准许任何人获取副本
+处理
+软件中无限制的软件,包括不受限制的权利
+使用、复制、修改、合并、出版、分发、分许可和/或出售
+软件副本,并允许软件所接收的人
+提供此种服务,但须符合下列条件:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+上述版权通知和这一许可通知应列入
+软件的所有副本或大部分。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+软件是“AS是”的,没有任何种类、
+包括但不局限于战争的 现代,
+特定目的与非目的的借口。
+任何索赔、损坏或其他损失的
+或其他事项,
+或与《京都议定书》
+单价。
 
-## chart.js - 4.5.1 (MIT)
+<a id="chartjs---451-mit"></a>
 
-The MIT License (MIT)
+## chart.js - 4.5.1 (《麻疯 理
 
-Copyright (c) 2014-2024 Chart.js Contributors
+MIT许可证(MIT)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Copyright (c) 2014-2024 Chart.js 贡献者
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+兹免费准许任何人获取软件和相关文件档案(“软件”)的副本,不受限制地在软件中交易,包括不受限制地使用、复制、修改、合并、出版、分发、分许可和/或出售软件副本的权利,并允许软件接收人这样做,但须符合下列条件:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+上述版权通知和这项许可通知应列入软件的所有副本或大部分内容。
 
-## eventthing - 1.0.7 (MIT)
+软件被写成“是”,没有任何种类、明示或假定的战争,包括但不局限于商业、特殊目的和无保障的战争。在没有任何机会使任何物体、损坏或其他损害都存在任何证据、损坏或其他损失,而且参与一项合同行动、托盘或其他活动,从或从或从与Sofware或使用或其他交易有关的行为产生、产生或产生的影响中产生的影响或影响的影响中产生的影响。
 
-## humanize-duration - 3.33.1 (Unlicense)
+<a id="eventthing---107-mit"></a>
 
-This is free and unencumbered software released into the public domain.
+## 事件 -- -- 1.0.7(麻省理工学院)
 
-Anyone is free to copy, modify, publish, use, compile, sell, or
-distribute this software, either in source code form or as a compiled
-binary, for any purpose, commercial or non-commercial, and by any
-means.
+<a id="humanize-duration---3331-unlicense"></a>
 
-In jurisdictions that recognize copyright laws, the author or authors
-of this software dedicate any and all copyright interest in the
-software to the public domain. We make this dedication for the benefit
-of the public at large and to the detriment of our heirs and
-successors. We intend this dedication to be an overt act of
-relinquishment in perpetuity of all present and future rights to this
-software under copyright law.
+## 人文化-寿命期-33.3.1(未许可)
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+这是免费和无源软件,公开发布。
 
-For more information, please refer to <https://unlicense.org/>
+任何人可自由复制、修改、出版、使用、汇编、销售或
+以源代码格式或汇编的方式发布此软件
+任何目的的二元双,或二元,或
+意指。
 
-## react-chartjs-2 - 5.3.1 (MIT)
+在承认版权法的法域中,作者
+本软件中的任何和所有版权权益
+我们为大家奉献这段
+损害我们的继承人和
+我们打算把这一奉献精神作为
+永久放弃目前和未来对此项权利的一切权利
+版权法规定的软件。
 
-Copyright 2020 Jeremy Ayerst
+软件是"AS是"提供的, 没有战争的任何形式的,
+包括但不限于或
+雇佣军、特殊目的和限制的便利条件。
+万一发生任何一起事件,证明所有索赔人、索赔人或
+涉及合同、合同或其他事项的行动,
+或与使用有关或
+其它交易 在软件。
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+详情请查阅 <https://unlicense.org/>
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<a id="react-chartjs-2---531-mit"></a>
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+## 反光外壳-2 - 5.3.1 (MIT)
 
-## react-dom - 18.3.1 (MIT)
+版权所有:2020 Jeremy Ayerst
 
-MIT License
+兹免费准许任何人获取软件和相关文件档案(“软件”)的副本,不受限制地在软件中交易,包括不受限制地使用、复制、修改、合并、出版、分发、分许可和/或出售软件副本的权利,并允许软件接收人这样做,但须符合下列条件:
 
-Copyright (c) Facebook, Inc. and its affiliates.
+上述版权通知和这项许可通知应列入软件的所有副本或大部分内容。
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+软件被写成“是”,没有任何种类、明示或假定的战争,包括但不局限于商业、特殊目的和无保障的战争。在没有任何机会使任何物体、损坏或其他损害都存在任何证据、损坏或其他损失,而且参与一项合同行动、托盘或其他活动,从或从或从与Sofware或使用或其他交易有关的行为产生、产生或产生的影响中产生的影响或影响的影响中产生的影响。
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+<a id="react-dom---1831-mit"></a>
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## 反转体 - 18.3.1(MIT)
 
-## react - 18.3.1 (MIT)
+麻省理工学院许可证
 
-MIT License
+Copyright (c) Facebook, Inc.及其附属公司。
 
-Copyright (c) Facebook, Inc. and its affiliates.
+特此免费准许任何人获取副本
+处理
+软件中无限制的软件,包括不受限制的权利
+使用、复制、修改、合并、出版、分发、分许可和/或出售
+软件副本,并允许软件所接收的人
+提供此种服务,但须符合下列条件:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+上述版权通知和这项许可通知应列入
+软件的复制件或大宗部分。
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+软件是“AS是”的,没有任何种类、
+包括但不局限于战争的 现代,
+特定目的与非目的的借口。
+任何索赔、损坏或其他损失的
+或其他事项,
+或与《京都议定书》有关或与其
+这么慢。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+<a id="react---1831-mit"></a>
 
-## scheduler - 0.23.2 (MIT)
+## - 18.3.1(MIT)反应
 
-MIT License
+麻省理工学院许可证
 
-Copyright (c) Facebook, Inc. and its affiliates.
+Copyright (c) Facebook, Inc.及其附属公司。
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+特此免费准许任何人获取副本
+处理
+软件中无限制的软件,包括不受限制的权利
+使用、复制、修改、合并、出版、分发、分许可和/或出售
+软件副本,并允许软件所接收的人
+提供此种服务,但须符合下列条件:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+上述版权通知和这项许可通知应列入
+软件的复制件或大宗部分。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+软件是“AS是”的,没有任何种类、
+包括但不局限于战争的 现代,
+特定目的与非目的的借口。
+任何索赔、损坏或其他损失的
+或其他事项,
+或与《京都议定书》有关或与其
+这么慢。
+
+<a id="scheduler---0232-mit"></a>
+
+## 计时器 - 0.3.2(麻黄碱)
+
+麻省理工学院许可证
+
+Copyright (c) Facebook, Inc.及其附属公司。
+
+特此免费准许任何人获取副本
+处理
+软件中无限制的软件,包括不受限制的权利
+使用、复制、修改、合并、出版、分发、分许可和/或出售
+软件副本,并允许软件所接收的人
+提供此种服务,但须符合下列条件:
+
+上述版权通知和这项许可通知应列入
+软件的复制件或大宗部分。
+
+软件是“AS是”的,没有任何种类、
+包括但不局限于战争的 现代,
+特定目的与非目的的借口。
+任何索赔、损坏或其他损失的
+或其他事项,
+或与《京都议定书》有关或与其
+这么慢。

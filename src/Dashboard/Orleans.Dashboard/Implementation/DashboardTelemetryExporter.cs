@@ -16,7 +16,7 @@ internal sealed partial class DashboardTelemetryExporter(
     ISiloGrainClient siloGrainClient,
     ILogger<DashboardTelemetryExporter> logger) : BaseExporter<Metric>
 {
-    // The dashboard's metric reader serializes Export calls.
+    // 仪表板的量级读者将出口电话连载到系列中
     private readonly Dictionary<string, Value<double>> _metrics = [];
     private readonly ISiloGrainClient _siloGrainClient = siloGrainClient;
     private readonly ILogger<DashboardTelemetryExporter> _logger = logger;
@@ -103,8 +103,8 @@ internal sealed partial class DashboardTelemetryExporter(
 
     private void CollectMetric(Metric metric, Func<MetricPoint, double> getValue)
     {
-        // The dashboard displays one silo-wide value per instrument. Combine tagged
-        // series before computing the change from the previous cumulative export.
+        // 仪表板显示一个 silo- 每个仪器的全值。
+        // 在计算前一个累积导出的变化之前先使用序列。
         var value = 0d;
         foreach (var point in metric.GetMetricPoints())
         {

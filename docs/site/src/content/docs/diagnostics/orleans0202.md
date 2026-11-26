@@ -1,52 +1,62 @@
 ---
-title: "ORLEANS0202: Await external operations in steps or after the last durable operation"
-description: Understand ORLEANS0202, which reports durable task code which awaits a service, a grain call, or other external work where a replay runs it again, and fix it with steps or the synchronous tail.
+title: "ORLEANS0202:分阶段或最后一次持久行动之后等待外部业务"
+description: "理解 ORLEANS0202, 其中报告等待服务的耐久任务代码、 grain 呼叫或其他外部工作, 重播再次运行时使用该功能, 用步骤或同步尾巴来修正它 。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0202: Await external operations in steps or after the last durable operation
+<a id="orleans0202-await-external-operations-in-steps-or-after-the-last-durable-operation"></a>
 
-| Property | Value |
+# ORLEANS0202:分阶段或最后一次持久行动之后等待外部业务
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-A durable task body awaits an operation which isn't durable, such as an `HttpClient` call, a database query, an ordinary grain call, or a `Task`-returning service method, at a point from which it still reaches a durable operation. Awaits of durable tasks, their configurations and handles, durable task APIs, `Task.Yield`, and helpers in the same compilation which perform durable operations aren't external. The following invoice fetches an exchange rate before its first step:
+## 原因原因原因
+
+长期任务机构等待一项无法持久的行动,例如 `HttpClient` 调用、数据库查询、普通 grain 调用或 `Task`等待长期任务、其配置和处理、持久的任务API, `Task.Yield`,以及从事持久操作的同一编集中的助手不是外部的。以下发票在第一步之前就得到了汇率:
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-A replay runs the code before the body's last durable operation again, including each await in it. An external await then:
+## 规则说明
 
-- **Repeats its effects.** A call which changes another system, such as sending a message or creating a record, runs once per replay.
-- **Observes another result.** The replay receives another exchange rate and passes another amount to the recorded `bill` step, which diverges and stalls the execution when the step is a call to another grain, and otherwise returns the recorded total for a different amount.
-- **Fails where the first run succeeded.** A replay which runs while the service is unavailable fails the task, although every recorded operation succeeded.
+重播在尸体最后一次耐久手术之前播放代码,包括每部都在等待。
 
-A step records its result, so a replay returns the result without awaiting the operation again.
+- **重复其效果。** 更改另一个系统(如发送信件或创建记录)的呼叫,每次重播一次。
+- **观察另一个结果** 重播接收另一种汇率,再通过另一数额入账 `bill` 步骤,当该步骤是呼叫另一个 grain,否则返回以不同数额记录的总额。
+- **失败时,第一个运行成功。** 重播在服务不可用时运行,但任务失败,尽管每个记录操作都成功。
 
-For the rules and the replay model, see [Replay-safety rules](../grains/durable-tasks-replay-rules.md).
+一步记录其结果, 所以重放返回结果, 不等待操作再次。
 
-## How to fix violations
+规则和重放模型见 [重演安全规则](../grains/durable-tasks-replay-rules.md)。
 
-**Await the operation in `DurableTask.Run`.** The delegate runs as a child step, its result is recorded, and the step receives a cancellation token which durable cancellation signals:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**等待 `DurableTask.Run`.** 的操作。代表以儿童步骤行事,结果记录下来,该步骤收到一个吊销标记,其中发出持久的取消信号:
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_fix_run" language="csharp":::
 
-**Await the operation in a local step.** An `async DurableTask` method of the same grain records its completion. Name it when it does more than one thing, or when other workflows reuse it:
+**等行动在当地一步。** A 音 A `async DurableTask` 方法的相同 grain 记录完成的完整。 当它做了不止一件事或者当其他工作流程再使用时, 请给它命名 :
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_fix_step" language="csharp":::
 
-**Await the operation after the body's last durable operation.** The synchronous tail runs only in a run which completes the body:
+**尸体最后一次耐久操作后等待手术。** 同步尾巴只在完成身体的运行时运行:
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_fix_tail" language="csharp":::
 
-A step which ends before its result commits runs again, and so does the tail of a run which ends before the task's result commits. An external operation in a step or the tail therefore runs at least once, so give it an idempotency key derived from the task, such as `$"{grainId}/{DurableTask.Current.Id}/{DurableTask.Current.Incarnation:N}"`, when it changes another system; see [Idempotency in durable tasks](../grains/durable-tasks-idempotency.md) and [Integrate durable tasks with other systems](../grains/durable-tasks-integrations.md). The incarnation distinguishes a later run of the same task identifier, whose operations are new.
+其结果发生之前结束的一步, 其结果被执行前结束的一步会再次运行, 而任务结果被执行之前结束的运行尾尾尾也随之再次运行。 因此, 一个步骤或尾尾部的外部操作至少运行一次, 所以给它一个从任务中产生的应急密钥, 例如 `$"{grainId}/{DurableTask.Current.Id}/{DurableTask.Current.Incarnation:N}"`当它改变另一个系统时;见 [持久任务中具有的](../grains/durable-tasks-idempotency.md) 和 [将耐久任务与其他系统整合](../grains/durable-tasks-integrations.md)。后一种任务识别符的运行是新的,而后一种任务识别符则不同。
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic for a read which is idempotent, returns the same value in every run, and can't fail during a replay, such as a read of immutable configuration.
+## 何时压缩
+
+抑制读数诊断, 它在每次运行中返回相同值, 并且无法在重放时失败, 比如读取不可变配置 。

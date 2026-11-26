@@ -5,36 +5,36 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Defines an operation which is applied to a service when a transaction commits.
+    /// 定义交易发生时适用于服务的业务。
     /// </summary>
-    /// <typeparam name="TService">The service type.</typeparam>
+    /// <typeparam name="TService">服务类型。</typeparam>
     public interface ITransactionCommitOperation<TService>
         where TService : class
     {
         /// <summary>
-        /// Applies the operation to the service as part of committing the transaction.
+        /// 作为交易的一部分,业务适用于服务。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="service">The service to which the operation is applied.</param>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="service">操作所应用的服务 。</param>
         /// <returns>
-        /// A task whose result is <see langword="true"/> when the operation completed and the transaction can be committed;
-        /// otherwise, <see langword="false"/>.
+        /// 任务的结果是完成业务和交易可进行时的 <see langword="true"/> ;
+        /// 否则, <see langword="false"/>.
         /// </returns>
         Task<bool> Commit(Guid transactionId, TService service);
     }
 
     /// <summary>
-    /// Enlists service operations which are applied when their transactions commit.
+    /// 列入交易时适用的服务业务清单。
     /// </summary>
-    /// <typeparam name="TService">The service type.</typeparam>
+    /// <typeparam name="TService">服务类型。</typeparam>
     public interface ITransactionCommitter<TService>
         where TService : class
     {
         /// <summary>
-        /// Enlists an operation to be applied when the current transaction commits.
+        /// 输入当当前交易发生时要应用的操作。
         /// </summary>
-        /// <param name="operation">The operation to enlist.</param>
-        /// <returns>A task which represents the enlistment operation.</returns>
+        /// <param name="operation">作战行动</param>
+        /// <returns>一项代表征兵行动的任务。</returns>
         Task OnCommit(ITransactionCommitOperation<TService> operation);
     }
 }

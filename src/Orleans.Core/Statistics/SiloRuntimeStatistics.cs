@@ -7,87 +7,87 @@ using Orleans.Statistics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Snapshot of current runtime statistics for a silo
+    /// silo当前运行时统计的快照
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class SiloRuntimeStatistics
     {
         /// <summary>
-        /// Total number of activations in a silo.
+        /// silo中启动的总数。
         /// </summary>
         [Id(0)]
         public int ActivationCount { get; }
 
         /// <summary>
-        /// Number of activations in a silo that have been recently used.
+        /// 最近使用的 silo 中激活的数量。
         /// </summary>
         [Id(1)]
         public int RecentlyUsedActivationCount { get; }
 
         /// <summary>
-        /// The CPU utilization.
+        /// CPU的利用率
         /// </summary>
         [Id(2), Obsolete($"The will be removed, use {nameof(EnvironmentStatistics)}.{nameof(EnvironmentStatistics.FilteredCpuUsagePercentage)} instead.", error: false)]
         public float? CpuUsage { get; }
 
         /// <summary>
-        /// The amount of memory available in the silo [bytes].
+        /// silo [字节]中可用内存量。
         /// </summary>
         [Id(3), Obsolete($"The will be removed, use {nameof(EnvironmentStatistics)}.{nameof(EnvironmentStatistics.FilteredAvailableMemoryBytes)} instead.", error: false)]
         public float? AvailableMemory { get; }
 
         /// <summary>
-        /// The used memory size.
+        /// 使用的内存大小 。
         /// </summary>
         [Id(4), Obsolete($"The will be removed, use {nameof(EnvironmentStatistics)}.{nameof(EnvironmentStatistics.FilteredMemoryUsageBytes)} instead.", error: false)]
         public long? MemoryUsage { get; }
 
         /// <summary>
-        /// The total physical memory available [bytes].
+        /// 可用物理内存总数 [字节] 。
         /// </summary>
         [Id(5), Obsolete($"The will be removed, use {nameof(EnvironmentStatistics)}.{nameof(EnvironmentStatistics.MaximumAvailableMemoryBytes)} instead.", error: false)]
         public long? TotalPhysicalMemory { get; }
 
         /// <summary>
-        /// Is this silo overloaded.
+        /// 这是这个 silo 超载
         /// </summary>
         [Id(6)]
         public bool IsOverloaded { get; }
 
         /// <summary>
-        /// The number of clients currently connected to that silo.
+        /// 目前与该 silo有关的客户数目。
         /// </summary>
         [Id(7)]
         public long ClientCount { get; }
 
         /// <summary>
-        /// The cumulative size, in bytes, of messages received by the silo.
+        /// silo收到的信息的累积大小,以字节计。
         /// </summary>
         /// <remarks>
-        /// Use the sum of the <c>orleans-messaging-received-messages-size</c> histogram through OpenTelemetry
-        /// to obtain the bytes received since collection began.
+        /// 使用 <c>orleans-messaging-received-messages-size</c> 直方图通过 OpenTelemetry
+        /// 获取收藏开始以来收到的字节。
         /// </remarks>
         [Id(8), Obsolete("Use the orleans-messaging-received-messages-size histogram through OpenTelemetry instead.")]
         public long ReceivedMessages { get; }
 
         /// <summary>
-        /// The cumulative size, in bytes, of messages sent by the silo.
+        /// silo发送的信件的累积大小,以字节计。
         /// </summary>
         /// <remarks>
-        /// Use the sum of the <c>orleans-messaging-sent-messages-size</c> histogram through OpenTelemetry
-        /// to obtain the bytes sent since collection began.
+        /// 使用 <c>orleans-messaging-sent-messages-size</c> 直方图通过 OpenTelemetry
+        /// 获取收藏开始后发送的字节。
         /// </remarks>
         [Id(9), Obsolete("Use the orleans-messaging-sent-messages-size histogram through OpenTelemetry instead.")]
         public long SentMessages { get; }
 
         /// <summary>
-        /// The DateTime when this statistics was created.
+        /// 创建此统计时的 DateTime 。
         /// </summary>
         [Id(10)]
         public DateTime DateTime { get; }
 
         /// <summary>
-        /// Gets the environment resource utilization statistics for the silo.
+        /// 获取 silo的环境资源利用统计数据。
         /// </summary>
         [Id(11)]
         public EnvironmentStatistics EnvironmentStatistics { get; }
@@ -129,55 +129,55 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Simple snapshot of current statistics for a given grain type on a given silo.
+    /// 特定对象当前统计数据简简简简简 grain 指定类型上的 silo.
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class SimpleGrainStatistic
     {
         /// <summary>
-        /// The type of the grain for this SimpleGrainStatistic.
+        /// 类型 grain 为此 SimpleGrainStatistic.
         /// </summary>
         [Id(0)]
         public string GrainType { get; init; } = default!;
 
         /// <summary>
-        /// The silo address for this SimpleGrainStatistic.
+        /// 下 silo 用于此地址的地址 SimpleGrainStatistic.
         /// </summary>
         [Id(1)]
         public SiloAddress SiloAddress { get; init; } = default!;
 
         /// <summary>
-        /// The number of activations of this grain type on this given silo.
+        /// 此启动次数 grain 给定的此类型 silo.
         /// </summary>
         [Id(2)]
         public int ActivationCount { get; init; }
 
         /// <summary>
-        /// Returns the string representation of this SimpleGrainStatistic.
+        /// 返回此 SimpleGrainStatistic的字符串表示。
         /// </summary>
         public override string ToString() => $"SimpleGrainStatistic: GrainType={GrainType} Silo={SiloAddress} NumActivations={ActivationCount} ";
     }
 
     /// <summary>
-    /// Represents an active grain and its location within the cluster.
+    /// 代表活跃的 grain 及其在组内的位置。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class DetailedGrainStatistic
     {
         /// <summary>
-        /// The type of the grain for this DetailedGrainStatistic.
+        /// 类型 grain 为此 DetailedGrainStatistic.
         /// </summary>
         [Id(0)]
         public string GrainType { get; init; } = default!;
 
         /// <summary>
-        /// The silo address for this DetailedGrainStatistic.
+        /// 下 silo 用于此地址的地址 DetailedGrainStatistic.
         /// </summary>
         [Id(1)]
         public SiloAddress SiloAddress { get; init; } = default!;
 
         /// <summary>
-        /// Unique Id for the grain.
+        /// grain独有的 Id 。
         /// </summary>
         [Id(2)]
         public GrainId GrainId { get; init; }
@@ -190,31 +190,31 @@ namespace Orleans.Runtime
         [Id(0)]
         public GrainId Grain { get; init; }
 
-        /// <summary>silo on which these statistics come from</summary>
+        /// <summary>silo 这些统计数字来自</summary>
         [Id(1)]
         public SiloAddress SiloAddress { get; init; } = default!;
 
-        /// <summary>silo on which these statistics come from</summary>
+        /// <summary>silo 这些统计数字来自</summary>
         [Id(2)]
         public string SiloName { get; init; } = default!;
 
-        /// <summary>activation addresses in the local directory cache</summary>
+        /// <summary>本地目录缓存中激活地址</summary>
         [Id(3)]
         public GrainAddress? LocalCacheActivationAddress { get; init; }
 
-        /// <summary>activation addresses in the local directory.</summary>
+        /// <summary>本地目录中的激活地址。</summary>
         [Id(4)]
         public GrainAddress? LocalDirectoryActivationAddress { get; init; }
 
-        /// <summary>primary silo for this grain</summary>
+        /// <summary>小学 silo 为此 grain</summary>
         [Id(5)]
         public SiloAddress? PrimaryForGrain { get; init; }
 
-        /// <summary>the name of the class that implements this grain.</summary>
+        /// <summary>执行此 grain的类别的名称。</summary>
         [Id(6)]
         public string? GrainClassTypeName { get; init; }
 
-        /// <summary>activation on this silo</summary>
+        /// <summary>激活此 silo</summary>
         [Id(7)]
         public string? LocalActivation { get; init; }
 

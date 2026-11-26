@@ -5,8 +5,8 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// This exception indicates that an error has occurred on a stream subscription that has placed the subscription into
-    ///  a faulted state.  Work on faulted subscriptions should be abandoned.
+    /// 此例外表示,订阅时使用
+    ///  错误订阅的工作应该放弃。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -16,36 +16,36 @@ namespace Orleans.Streams
             "Subscription is in a Faulted state.  Subscription:{0}, Stream:{1}";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FaultedSubscriptionException"/> class.
+        /// 初始化 <see cref="FaultedSubscriptionException"/> 类的新实例。
         /// </summary>
         public FaultedSubscriptionException() { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FaultedSubscriptionException"/> class.
+        /// 初始化 <see cref="FaultedSubscriptionException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public FaultedSubscriptionException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FaultedSubscriptionException"/> class.
+        /// 初始化 <see cref="FaultedSubscriptionException"/> 类的新实例。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamId">The stream identifier.</param>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamId">流体识别符号。</param>
         internal FaultedSubscriptionException(GuidId subscriptionId, QualifiedStreamId streamId)
             : base(string.Format(ErrorStringFormat, subscriptionId.Guid, streamId)) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FaultedSubscriptionException"/> class.
+        /// 初始化 <see cref="FaultedSubscriptionException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         public FaultedSubscriptionException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FaultedSubscriptionException"/> class.
+        /// 初始化 <see cref="FaultedSubscriptionException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         private FaultedSubscriptionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }

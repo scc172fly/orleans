@@ -1,29 +1,29 @@
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configuration options for consistent hashing algorithm, used to balance resource allocations across the cluster.
+    /// 用于平衡整个组群资源分配的一致散列算法配置选项。
     /// </summary>
     public class ConsistentRingOptions
     {
         /// <summary>
-        /// Gets or sets the number of registrations a silo maintains in a consistent hash ring.  This affects the probabilistic
-        ///   balancing of resource allocations across the cluster.  More virtual buckets increase the probability of evenly balancing
-        ///   while minimally increasing management cost. 
+        /// 在一个前后一致的散列环中获取或设置 silo 所保持的登记登记数。
+        ///   更多的虚拟桶增加了平衡均衡的可能性
+        ///   管理费用略有增加。 
         /// </summary>
         public int NumVirtualBucketsConsistentRing { get; set; } = DEFAULT_NUM_VIRTUAL_RING_BUCKETS;
 
         /// <summary>
-        /// The default number of virtual ring buckets.
+        /// 虚拟环桶的默认数量 。
         /// </summary>
         public const int DEFAULT_NUM_VIRTUAL_RING_BUCKETS = 30;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to enable the use of virtual buckets.
+        /// 获取或设定一个数值,表明是否启用虚拟桶。
         /// </summary>
         public bool UseVirtualBucketsConsistentRing { get; set; } = DEFAULT_USE_VIRTUAL_RING_BUCKETS;
 
         /// <summary>
-        /// The default value for <see cref="UseVirtualBucketsConsistentRing"/>.
+        /// <see cref="UseVirtualBucketsConsistentRing"/>的默认值。
         /// </summary>
         public const bool DEFAULT_USE_VIRTUAL_RING_BUCKETS = true;
     }

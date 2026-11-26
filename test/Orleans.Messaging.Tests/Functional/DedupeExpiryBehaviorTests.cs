@@ -70,7 +70,7 @@ public sealed class DedupeExpiryBehaviorTests(DedupeExpiryClusterFixture fixture
         Assert.Equal(1, Assert.Single(failed.Effects).Count);
         var replayed = Assert.IsType<MessagingTestGrain>(fixture.GetGrainContext(receiver).GrainInstance).ReplayedSnapshot;
         Assert.Equal(1, Assert.IsType<EndpointSnapshot>(replayed).ProcessedMessageCount);
-        // The failed snapshot did not durably advance the floor, so journal replay retains the accepted send time.
+        // 失败的快照并没有持久地推进发言,所以《日刊》重播保留了可接受的发送时间。
         Assert.Equal(1, failed.ProcessedMessageCount);
 
         await receiver.RequestDeactivationAsync();

@@ -1,33 +1,33 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License.
+// 持麻省理工学院执照
 
 namespace Orleans.ShoppingCart.Abstractions;
 
 public interface IShoppingCartGrain : IGrainWithStringKey
 {
     /// <summary>
-    /// Adds the given <paramref name="quantity"/> of the corresponding
-    /// <paramref name="product"/> to the shopping cart.
+    /// 添加对应的给定 <paramref name="quantity"/>
+    /// <paramref name="product"/> 上购物车。
     /// </summary>
     Task<bool> AddOrUpdateItemAsync(int quantity, ProductDetails product);
 
     /// <summary>
-    /// Removes the given <paramref name="product" /> from the shopping cart.
+    /// 从购物车中删除给定的 <paramref name="product" /> 。
     /// </summary>
     Task RemoveItemAsync(ProductDetails product);
 
     /// <summary>
-    /// Gets all the items in the shopping cart.
+    /// 买下购物车里的所有物品
     /// </summary>
     Task<HashSet<CartItem>> GetAllItemsAsync();
 
     /// <summary>
-    /// Gets the number of items in the shopping cart.
+    /// 获得购物车内的项目数量。
     /// </summary>
     Task<int> GetTotalItemsInCartAsync();
 
     /// <summary>
-    /// Removes all items from the shopping cart.
+    /// 从购物车中删除所有项目。
     /// </summary>
     Task EmptyCartAsync();
 }

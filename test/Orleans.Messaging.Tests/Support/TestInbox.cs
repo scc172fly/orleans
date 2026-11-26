@@ -1,6 +1,6 @@
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-/// <summary>An <see cref="IInbox"/> which dispatches directly to its registered handlers.</summary>
+/// <summary>A 音 A <see cref="IInbox"/> 直接发送给注册的操作者。</summary>
 internal sealed class TestInbox : IInbox
 {
     private readonly InboxDispatcher _dispatcher = new([]);

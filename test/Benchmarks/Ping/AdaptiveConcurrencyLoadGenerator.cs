@@ -4,8 +4,8 @@ using System.Threading.Channels;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// A load generator that runs indefinitely and uses a hill climbing algorithm
-/// to continuously tune concurrency for maximum throughput.
+/// 使用山坡攀爬算法
+/// 以持续调整最高通量的货币计算。
 /// </summary>
 public sealed class AdaptiveConcurrencyLoadGenerator<TState>
 {
@@ -27,16 +27,16 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
     private volatile int _currentConcurrency;
     private CancellationTokenSource _cts = null!;
 
-    // Hill climbing state
+    // 山丘攀爬州
     private double _bestThroughput;
     private Measurement _bestMeasurement;
     private Measurement _lastMeasurement;
     private int _bestConcurrency;
     private int _stepSize;
-    private int _direction; // 1 = increasing, -1 = decreasing
+    private int _direction; // 1=增加, -1=减少
     private int _stableCount;
     private int _roundsSinceBestChanged;
-    private const int StableThreshold = 3; // Number of consecutive non-improvements before changing direction
+    private const int StableThreshold = 3; // 变化方向前连续未改进的数目
     private const int DefaultInitialStepSize = 50;
     private const int MinimumSampleCount = 4;
     private const double DefaultMinimumRelativeImprovement = 0.005;
@@ -107,7 +107,7 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
         _currentConcurrency = initialConcurrency;
         _stepSize = initialStepSize;
         _direction = 1;
-        _maxStableRounds = maxStableRounds; // 0 = run forever
+        _maxStableRounds = maxStableRounds; // 0=永远跑
         _minimumRelativeImprovement = minimumRelativeImprovement;
     }
 
@@ -123,7 +123,7 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             Console.WriteLine($"Will terminate after {_maxStableRounds} rounds with no statistically significant improvement to best");
         Console.WriteLine();
 
-        // Warmup phase
+        // 备热阶段
         Console.WriteLine("=== WARMUP PHASE ===");
         await RunPhaseAsync(_warmupDuration, isWarmup: true);
         GC.Collect();
@@ -147,7 +147,7 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             var elapsedStr = elapsed.ToString(@"hh\:mm\:ss\.f");
             Console.WriteLine($"{elapsedStr,-12} {measuredConcurrency,12} {measurement.SampleCount,7} {throughput,14:N0}/s {_bestThroughput,14:N0}/s {_bestConcurrency,10} {action,-28}");
 
-            // Check for convergence
+            // 检查趋同
             if (_maxStableRounds > 0 && _roundsSinceBestChanged >= _maxStableRounds)
             {
                 Converged = true;
@@ -169,11 +169,11 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             });
 
         var workerTasks = new List<Task>();
-        // Link to main cancellation token so Ctrl+C stops workers immediately
+        // 链接到主取消的标牌, 所以 Ctrl+C 立即停止工人
         using var workerCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
         var states = new Dictionary<int, TState>();
 
-        // Start initial workers
+        // 初始工人
         for (int i = 0; i < _currentConcurrency; i++)
         {
             var state = _getStateForWorker(i);
@@ -185,22 +185,22 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
 
         var measurement = await aggregator;
 
-        // Signal workers to stop
+        // 信号工人停止
         await workerCts.CancelAsync();
         _completedBlocks.Writer.Complete();
 
-        // Wait for workers with timeout
+        // 等待超时工人
         try
         {
             await Task.WhenAll(workerTasks).WaitAsync(TimeSpan.FromSeconds(2));
         }
         catch (TimeoutException)
         {
-            // Workers didn't stop in time, continue anyway
+            // 工人没有及时停止,不管怎样继续
         }
         catch (OperationCanceledException)
         {
-            // Expected
+            // 预期预期预计预计预计预计预计预计的预期预计预计预计预计的预期预计预计预计的
         }
 
         return measurement;
@@ -269,7 +269,7 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             }
             catch (TimeoutException)
             {
-                // Continue waiting
+                // 继续等待
             }
             catch (OperationCanceledException)
             {
@@ -277,10 +277,10 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             }
         }
 
-        // Signal workers to stop
+        // 信号工人停止
         workerCts.Cancel();
 
-        // Drain remaining blocks
+        // 排排剩余区块
         while (reader.TryRead(out var block))
         {
             RecordBlock(block);
@@ -321,15 +321,15 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             _roundsSinceBestChanged++;
         }
 
-        // Determine if this is a meaningful improvement (resets stable count)
-        // or just noise within measurement variance.
+        // 确定这是不是有意义的改进( 重置稳定计数)
+        // 或仅仅是测量差异范围内的噪音。
         bool meaningfulImprovement = isNewBest || !_lastMeasurement.HasValue || IsStatisticallySignificantImprovement(measurement, _lastMeasurement);
 
         if (meaningfulImprovement)
         {
             _stableCount = 0;
 
-            // Continue in the same direction
+            // 继续朝同一方向前进
             var newConcurrency = _currentConcurrency + (_direction * _stepSize);
             newConcurrency = Math.Clamp(newConcurrency, _minConcurrency, _maxConcurrency);
 
@@ -340,7 +340,7 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             }
             else
             {
-                // Hit boundary, reverse direction
+                // 撞击边界,反向方向
                 _direction = -_direction;
                 action = "Hit boundary";
             }
@@ -351,19 +351,19 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
 
             if (_stableCount >= StableThreshold)
             {
-                // No improvement for a while
+                // 一段时间没有改善
                 _stableCount = 0;
 
                 if (_stepSize > 1)
                 {
-                    // Reduce step size for finer tuning
+                    // 微调缩小步数
                     _stepSize = Math.Max(1, _stepSize / 2);
-                    _direction = -_direction; // Try the other direction with smaller steps
+                    _direction = -_direction; // 用小步尝试其它方向
                     action = $"Refine step={_stepSize}";
                 }
                 else
                 {
-                    // At minimum step, jump back toward best and try again
+                    // 起码一步,跳回最优秀的,再试一次
                     _direction = _bestConcurrency > _currentConcurrency ? 1 : -1;
                     _stepSize = Math.Max(1, Math.Abs(_currentConcurrency - _bestConcurrency) / 2);
                     if (_stepSize < 1) _stepSize = Math.Max(1, _bestConcurrency / 10);
@@ -376,13 +376,13 @@ public sealed class AdaptiveConcurrencyLoadGenerator<TState>
             }
             else
             {
-                // Continue probing in current direction
+                // 继续以当前方向进行查问
                 var newConcurrency = _currentConcurrency + (_direction * _stepSize);
                 newConcurrency = Math.Clamp(newConcurrency, _minConcurrency, _maxConcurrency);
 
                 if (newConcurrency == _currentConcurrency)
                 {
-                    // Hit boundary, reverse
+                    // 反向撞击边界
                     _direction = -_direction;
                     newConcurrency = _currentConcurrency + (_direction * _stepSize);
                     newConcurrency = Math.Clamp(newConcurrency, _minConcurrency, _maxConcurrency);

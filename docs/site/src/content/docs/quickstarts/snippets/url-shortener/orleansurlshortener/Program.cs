@@ -22,7 +22,7 @@ app.MapGet("/shorten",
     {
         var host = $"{request.Scheme}://{request.Host.Value}";
 
-        // Validate the URL query string.
+        // 校验 URL 查询字符串 。
         if (string.IsNullOrWhiteSpace(url) ||
             Uri.IsWellFormedUriString(url, UriKind.Absolute) is false)
         {
@@ -32,16 +32,16 @@ app.MapGet("/shorten",
                 """);
         }
 
-        // Create a unique, short ID
+        // 创建一个唯一的短的ID
         var shortenedRouteSegment = Guid.NewGuid().GetHashCode().ToString("X");
 
-        // Create and persist a grain with the shortened ID and full URL
+        // 创建并维持一个 grain ,使用缩短的ID和完整的 URL
         var shortenerGrain =
             grains.GetGrain<IUrlShortenerGrain>(shortenedRouteSegment);
 
         await shortenerGrain.SetUrl(url);
 
-        // Return the shortened URL for later use
+        // 返回缩短的 URL,供日后使用
         var resultBuilder = new UriBuilder(host)
         {
             Path = $"/go/{shortenedRouteSegment}"
@@ -53,13 +53,13 @@ app.MapGet("/shorten",
 app.MapGet("/go/{shortenedRouteSegment:required}",
     static async (IGrainFactory grains, string shortenedRouteSegment) =>
     {
-        // Retrieve the grain using the shortened ID and url to the original URL
+        // 使用缩写的身份识别和URL获取 grain 到原始 URL
         var shortenerGrain =
             grains.GetGrain<IUrlShortenerGrain>(shortenedRouteSegment);
 
         var url = await shortenerGrain.GetUrl();
 
-        // Handles missing schemes, defaults to "http://".
+        // 处理缺失的方案,默认为 "http://"。
         var redirectBuilder = new UriBuilder(url);
 
         return Results.Redirect(redirectBuilder.Uri.ToString());

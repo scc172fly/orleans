@@ -3,17 +3,17 @@ using System.Collections.Generic;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// Describes a placement target, which is a grain as well as context regarding the request which is triggering grain placement.
+    /// 描述一个安置目标,即 grain 以及触发 grain 安置的请求的背景。
     /// </summary>
     public readonly struct PlacementTarget
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlacementTarget"/> struct.
+        /// 初始化 <see cref="PlacementTarget"/> 结构的新实例。
         /// </summary>
-        /// <param name="grainIdentity">The grain being targeted.</param>
-        /// <param name="requestContextData">The <see cref="RequestContext"/> dictionary for the request which triggered placement.</param>
-        /// <param name="interfaceType">The interface being requested.</param>
-        /// <param name="interfaceVersion">The interface version being requested.</param>
+        /// <param name="grainIdentity">下 grain 成为目标。</param>
+        /// <param name="requestContextData">触发放置的请求的 <see cref="RequestContext"/> 字典。</param>
+        /// <param name="interfaceType">请求的接口。</param>
+        /// <param name="interfaceVersion">请求的接口版本。</param>
         public PlacementTarget(GrainId grainIdentity, Dictionary<string, object> requestContextData, GrainInterfaceType interfaceType, ushort interfaceVersion)
         {
             this.GrainIdentity = grainIdentity;
@@ -23,22 +23,22 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// Gets the grain being targeted.
+        /// 使 grain 成为目标。
         /// </summary>
         public GrainId GrainIdentity { get; }
 
         /// <summary>
-        /// Gets the interface type of the interface which is being called on the grain which triggered this placement request.
+        /// 获取触发此安插请求的 grain 所调用的接口的界面类型。
         /// </summary>
         public GrainInterfaceType InterfaceType { get; }
 
         /// <summary>
-        /// Gets the interface version being requested.
+        /// 获取请求的接口版本 。
         /// </summary>
         public ushort InterfaceVersion { get; }
 
         /// <summary>
-        /// Gets the <see cref="RequestContext"/> dictionary for the request which triggered placement.
+        /// 获取触发位置设置的请求的 <see cref="RequestContext"/> 字典。
         /// </summary>
         public Dictionary<string, object> RequestContextData { get; }
     }

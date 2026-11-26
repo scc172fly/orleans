@@ -5,12 +5,12 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// Persistence tests for MySQL.
+    /// MySQL的持久性测试。
     /// </summary>
     /// <remarks>
-    /// To duplicate these tests to any back-end, not just for relational, copy and paste this
-    /// class, optionally remove <see cref="RelationalStorageTests"/> inheritance and implement a
-    /// provider and environment setup as done in <see cref="CommonFixture"/> and how it delegates it.
+    /// 将这些测试复制到任何后端, 不仅仅是相关、 复制和粘贴
+    /// 类别,可选择删除 <see cref="RelationalStorageTests"/> 继承并落实
+    /// 与 <see cref="CommonFixture"/> 中的做法一样,以及该规定如何代表它,并设置了提供方和环境装置。
     /// </remarks>
     [TestCategory("MySql"), TestCategory("Persistence")]
     [TestSuite("Functional")]
@@ -19,7 +19,7 @@ namespace UnitTests.StorageTests.Relational
     public class MySqlStorageTests : RelationalStorageTests, IClassFixture<CommonFixture>
     {
         /// <summary>
-        /// The storage invariant, storage ID, or ADO.NET invariant for this test set.
+        /// 本测试集的存储变量、 存储代号或 ADO.NET 变量。
         /// </summary>
         private const string AdoNetInvariant = AdoNetInvariants.InvariantNameMySql;
 

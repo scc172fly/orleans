@@ -3,34 +3,34 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// Stream namespace predicate used for filtering implicit subscriptions using 
+    /// 用于过滤使用 
     /// <see cref="ImplicitChannelSubscriptionAttribute"/>.
     /// </summary>
-    /// <remarks>All implementations must be serializable.</remarks>
+    /// <remarks>所有执行都必须可连号进行。</remarks>
     public interface IChannelNamespacePredicate
     {
         /// <summary>
-        /// Defines if the consumer grain should subscribe to the specified namespace.
+        /// 定义消费者是否应当订阅指定命名空间 grain 。
         /// </summary>
-        /// <param name="streamNamespace">The target stream namespace to check.</param>
-        /// <returns><c>true</c>, if the grain should subscribe to the specified namespace; <c>false</c>, otherwise.
+        /// <param name="streamNamespace">要检查的目标流命名空间。</param>
+        /// <returns><c>true</c>,如果 grain 订阅指定的命名空间; <c>false</c>否则的话
         /// </returns>
         bool IsMatch(string streamNamespace);
 
         /// <summary>
-        /// Gets a pattern to describe this predicate. This value is passed to instances of <see cref="IChannelNamespacePredicateProvider"/> to recreate this predicate.
+        /// 获得描述此上游的图案。 此值被传递到 <see cref="IChannelNamespacePredicateProvider"/> 实例中, 以重建该上游 。
         /// </summary>
         string PredicatePattern { get; }
     }
 
     /// <summary>
-    /// Converts predicate pattern strings to <see cref="IChannelNamespacePredicate"/> instances.
+    /// 将上游模式字符串转换为 <see cref="IChannelNamespacePredicate"/> 实例。
     /// </summary>
     /// <seealso cref="IChannelNamespacePredicate.PredicatePattern"/>
     public interface IChannelNamespacePredicateProvider
     {
         /// <summary>
-        /// Get the predicate matching the provided pattern. Returns <see langword="false"/> if this provider cannot match the predicate.
+        /// 获取与所提供的模式匹配的上游。如果该提供者无法匹配上游,则返回 <see langword="false"/> 。
         /// </summary>
         bool TryGetPredicate(string predicatePattern, [NotNullWhen(true)] out IChannelNamespacePredicate? predicate);
     }

@@ -10,10 +10,10 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Verifies that a stored payload which can't be decoded, and a result which can't be stored, affect only their own task:
-/// the grain activates, runs its other tasks, and keeps committing.
+/// 证明一个无法解码的储存有效载荷 和无法存储的结果 只影响他们自己的任务
+/// 排 grain 启动、运行其他任务,并不断承诺。
 /// </summary>
-/// <remarks>The tests run the runtime on the grain's journal, so every payload is Orleans-serialized as in production.</remarks>
+/// <remarks>测试运行 grain日记上的运行时间,因此每个有效载荷都 Orleans- 与生产时一样序列。</remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -45,8 +45,8 @@ public sealed class DurableTaskStoredPayloadTests
             payload = ((DurableTaskState)stored).RequestPayload!;
         }
 
-        // A deployment can no longer decode the stored request: the grain activates and runs its other work, and the
-        // task stalls with its stored request unchanged.
+        // 部署无法再解码存储的请求: grain 启动并运行其其他工作,
+        // 任务拖拉,其存储的请求不变。
         PoisonedRequest.DecodeFails = true;
         using (var stalls = new StallRecorder(poisonedId))
         {
@@ -65,7 +65,7 @@ public sealed class DurableTaskStoredPayloadTests
                 (await activation.Runtime.SubscribeOrPollAsync(poisonedId, new SubscribeOrPollOptions { PollTimeout = TimeSpan.Zero }, TestCancellation)).Status);
         }
 
-        // Code which decodes the request runs the task from the stored request.
+        // 用于解码请求的代码运行任务, 而不是存储的请求 。
         PoisonedRequest.DecodeFails = false;
         PoisonedRequest.Release.SetResult();
         await using var recovered = await harness.ActivateAsync(TestCancellation);
@@ -93,8 +93,8 @@ public sealed class DurableTaskStoredPayloadTests
     });
 
     /// <summary>
-    /// Runs the harness's workflow, which completes with an outcome that doesn't serialize, and asserts that its task
-    /// faults durably while the grain commits later work.
+    /// 运行着操纵系统的工作流程, 完成的结果不连续排列, 并声称它的任务
+    /// 长期缺损, grain 以后的工作承诺。
     /// </summary>
     private static async Task AssertFaultsAndLaterWorkCommitsAsync(DurableTaskReplayHarness harness, string kind, Type type)
     {
@@ -110,7 +110,7 @@ public sealed class DurableTaskStoredPayloadTests
             Assert.Equal(5, (await activation.GetResponseAsync(laterId, TestCancellation)).GetResult<int>());
         }
 
-        // The fault committed like any result, so the next activation recovers it without running the workflow again.
+        // 错误像任何结果一样发生, 所以下一次激活会恢复它而不运行工作流程。
         await using var recovered = await harness.ActivateAsync(TestCancellation);
         AssertSerializationFault(await recovered.GetResponseAsync(faultedId, TestCancellation));
         Assert.Equal(5, (await recovered.GetResponseAsync(laterId, TestCancellation)).GetResult<int>());
@@ -124,10 +124,10 @@ public sealed class DurableTaskStoredPayloadTests
     }
 }
 
-/// <summary>A value of a type which has no codec, so it doesn't serialize.</summary>
+/// <summary>一种没有编码的值,所以不序列。</summary>
 internal sealed class NoCodecValue;
 
-/// <summary>A value whose decoding fails while <see cref="PoisonedRequest.DecodeFails"/> is set, as a removed type's does.</summary>
+/// <summary>数值,该值的解码在 <see cref="PoisonedRequest.DecodeFails"/> 被设置时发生故障,而已删除的类型则被设定。</summary>
 internal sealed class PoisonValue(int value)
 {
     public int Value { get; } = value;
@@ -149,15 +149,15 @@ internal sealed class PoisonValueConverter : IConverter<PoisonValue, PoisonValue
     public PoisonValueSurrogate ConvertToSurrogate(in PoisonValue value) => new() { Value = value.Value };
 }
 
-/// <summary>A request whose argument decodes only while <see cref="DecodeFails"/> is clear, and whose body waits for <see cref="Release"/>.</summary>
+/// <summary>其论据仅在时间解码的请求 <see cref="DecodeFails"/> 确是明确的,身体等待着的, <see cref="Release"/>.</summary>
 [GenerateSerializer]
 [Alias("Microsoft.Orleans.DurableTasks.Tests.PoisonedRequest")]
 internal sealed class PoisonedRequest : IDurableTaskRequest
 {
-    /// <summary>Gets or sets whether decoding the request fails. Only <see cref="DurableTaskStoredPayloadTests"/> uses it.</summary>
+    /// <summary>获取或设置请求解码失败与否。 只有 <see cref="DurableTaskStoredPayloadTests"/> 使用它。</summary>
     public static bool DecodeFails { get; set; }
 
-    /// <summary>Gets or sets the gate which the request's body waits for.</summary>
+    /// <summary>获取或设置请求方尸体等待的大门。</summary>
     public static TaskCompletionSource Release { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     [Id(0)]

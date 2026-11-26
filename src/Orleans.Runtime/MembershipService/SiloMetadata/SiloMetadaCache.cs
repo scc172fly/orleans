@@ -31,7 +31,7 @@ internal partial class SiloMetadataCache(
     {
         Task OnStart(CancellationToken _)
         {
-            // This gives time for the cluster to be voted Dead and for membership updates to propagate that out
+            // 这使该组有时间投票表决,让成员更新以宣传
             negativeCachePeriod = clusterMembershipOptions.Value.GetFailureDetectionTimeout()
                                   + (2 * clusterMembershipOptions.Value.TableRefreshTimeout);
             lock (_cts)
@@ -62,7 +62,7 @@ internal partial class SiloMetadataCache(
             LogDebugStartProcessingMembershipUpdates(logger);
             await foreach (var update in membershipManager.MembershipUpdates.WithCancellation(ct))
             {
-                // Add entries for members that aren't already in the cache
+                // 添加未在缓存中的成员条目
                 var now = DateTime.UtcNow;
                 var recentlyActiveSilos = update.Entries
                     .Where(e => e.Value.Status is SiloStatus.Active or SiloStatus.Joining)
@@ -93,7 +93,7 @@ internal partial class SiloMetadataCache(
                     }
                 }
 
-                // Remove entries for members that are now dead
+                // 移除已死成员条目
                 var deadSilos = update.Entries
                     .Where(e => e.Value.Status == SiloStatus.Dead);
                 foreach (var membershipEntry in deadSilos)
@@ -102,7 +102,7 @@ internal partial class SiloMetadataCache(
                     _negativeCache.Remove(membershipEntry.Key, out _);
                 }
 
-                // Remove entries for members that are no longer in the table
+                // 删除表格中已不包含的成员条目
                 foreach (var silo in _metadata.Keys.ToList())
                 {
                     if (!update.Entries.ContainsKey(silo))
@@ -120,7 +120,7 @@ internal partial class SiloMetadataCache(
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            // Ignore and continue shutting down.
+            // 忽略并继续关闭
         }
         catch (Exception exception)
         {
@@ -139,8 +139,8 @@ internal partial class SiloMetadataCache(
     public void Dispose()
     {
         var task = StartDisposal(out var started);
-        // Concurrent synchronous callers, including cancellation callbacks, return while the owner drains.
-        // DisposeAsync always returns the shared task for callers which require completed disposal.
+        // 同时同步的呼喊者,包括取消回电、返回和业主排水。
+        // DisposeAsync 总是返回需要完成处置的呼叫者的共同任务。
         if (started || task.IsCompleted)
         {
             task.GetAwaiter().GetResult();
@@ -161,7 +161,7 @@ internal partial class SiloMetadataCache(
             }
 
             completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            // Publish completion before cancellation callbacks can reenter disposal.
+            // 在取消回馈可以重新进入处置之前公布完成情况。
             _disposeTask = completion.Task;
             started = true;
         }
@@ -182,7 +182,7 @@ internal partial class SiloMetadataCache(
             }
             finally
             {
-                // The subscription and its metadata requests retain the source until the processor exits.
+                // 订阅和元数据请求保留源,直至处理者退出。
                 if (_runTask is { } task)
                 {
                     await task.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);

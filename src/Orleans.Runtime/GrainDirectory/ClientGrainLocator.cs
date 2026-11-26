@@ -7,7 +7,7 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// Implementation of <see cref="IGrainLocator"/> that uses the in memory distributed directory of Orleans
+    /// 执行《公约》的执行情况 <see cref="IGrainLocator"/> 用于内存分布目录中的 Orleans
     /// </summary>
     internal class ClientGrainLocator : IGrainLocator
     {

@@ -121,8 +121,8 @@ foreach ($projectPath in $projectFiles) {
     }
 }
 
-# Samples are copied out of the repository and built standalone, so each one carries its own
-# Directory.Packages.props and must not reference anything outside its own directory.
+# 样品从存储库复制出来,并独立建立,每个样本都携带自己的
+# Directory.Packages.props ,不得在自己的目录之外提及任何内容。
 $rootPackageProps = [System.IO.Path]::GetFullPath((Join-Path $samplesRoot 'Directory.Packages.props'))
 $packageVersions = @{}
 foreach ($projectPath in $projectFiles) {

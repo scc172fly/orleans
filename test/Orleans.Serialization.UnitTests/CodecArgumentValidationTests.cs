@@ -18,8 +18,8 @@ using Orleans.Serialization.TestKit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Tests argument validation and null-preserving serialization and copying contracts for
-/// built-in codecs.
+/// 检验论证的验证和无效保留序列化及复制合同
+/// 内置代码
 /// </summary>
 [Trait("Category", "BVT")]
 [TestSuite("BVT")]
@@ -40,11 +40,11 @@ public sealed class CodecArgumentValidationTests : IDisposable
     private T DeepCopyValue<T>(T value) => _serviceProvider.GetRequiredService<DeepCopier<T>>().Copy(value)!;
 
     /// <summary>
-    /// Resolves the concrete codec instance for <typeparamref name="T"/> from the
-    /// <see cref="CodecProvider"/>. Plain <c>AddSerializer()</c> registers codecs only under
-    /// their <see cref="Codecs.IFieldCodec{T}"/> service type, not as the concrete class, so
-    /// tests that need the concrete type's additional public members (e.g. <c>Serialize</c>/
-    /// <c>Deserialize</c> from <c>IBaseCodec&lt;T&gt;</c>) must resolve and cast this way.
+    /// 解决来自《京都议定书》的 <typeparamref name="T"/> 具体代码实例
+    /// <see cref="CodecProvider"/>普通 <c>AddSerializer()</c> 仅根据
+    /// 其 <see cref="Codecs.IFieldCodec{T}"/> 服务类型,而不是混凝土类,所以
+    /// 需要具体类型额外公共成员(e.g. <c>Serialize</c>/
+    /// <c>Deserialize</c> ,从 <c>IBaseCodec&lt;T&gt;</c>必须解决并采用这种方式。
     /// </summary>
     private TCodec GetConcreteCodec<T, TCodec>() where TCodec : IFieldCodec<T>
         => (TCodec)_serviceProvider.GetRequiredService<CodecProvider>().GetCodec<T>();
@@ -70,9 +70,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     /// <summary>
-    /// A spy <see cref="IDeepCopier{T}"/> which records invocation count and applies a
-    /// distinguishing transform, so tests can prove both "was this collaborator invoked?" and
-    /// "did the copy actually flow through this collaborator?".
+    /// 间谍 <see cref="IDeepCopier{T}"/> 记录援引数并应用
+    /// 区分变异,所以测试可以证明两个 “是否引用了这个合作者?”
+    /// "副本真的通过这个合作者流经吗?"
     /// </summary>
     private sealed class TrackingCopier<T>(Func<T, T> transform) : IDeepCopier<T>
     {
@@ -151,8 +151,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 1: IDeepCopier<T>.DeepCopy(T input, CopyContext context) -- 2-arg overload.
-    // Verified contract: null context throws; null input returns null WITHOUT throwing.
+    // 第1组: IDeepCopier<T>。DeepCopy(T输入, CopyContext 上下文) -- -- 2-弧超载。
+    // 经核实的合同:无效上下文抛出;无效输入返回无效,不投掷。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -185,9 +185,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     [Fact]
     public void ArrayCopier_NullInputAndNullContext_ThrowsForContextValidatedFirst()
     {
-        // Proves guard ORDER, not just that each guard exists independently: if input were
-        // checked before context, DeepCopy(null!, null!) would take the "return null" path
-        // and never throw. Because context is validated first, it must still throw here.
+        // 证明有证据证明,不仅每个警卫独立存在:如果输入
+        // 上下文前检查, DeepCopy将走"回归无"的道路
+        // 因为上下文首先被验证,它必须还是在这里扔。
         var elementCopier = new TrackingCopier<int>(v => v + 1000);
         var sut = new ArrayCopier<int>(elementCopier);
 
@@ -428,9 +428,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 2: IBaseCopier<T>.DeepCopy(T input, T output, CopyContext context) -- 3-arg
-    // "copy into" overload. Verified contract: all three parameters throw when null, before
-    // output is mutated or any element copier is invoked.
+    // 第2组: IBaseCopier<T>.DeepCopy(T投入,T产出, CopyContext 3-弧
+    // 复制到超载。经验证的合同:所有三个参数在无效时投出, 在无效之前
+    // 输出变异或引用任何元素复印机。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -481,10 +481,10 @@ public sealed class CodecArgumentValidationTests : IDisposable
     [Fact]
     public void ListCopier_CopyIntoAllNull_ThrowsForInputValidatedFirst()
     {
-        // Complements the 2-arg "both null" ordering proofs above: for the 3-arg "copy into"
-        // overload, all three parameters are documented to throw, in input/output/context
-        // order. Passing all three as null proves that ordering rather than merely that each
-        // guard exists in isolation.
+        // 补充上面的2-arg“两个无”订购证明:3arg“复制到”
+        // 超载, 所有三个参数都以文件形式被投放, 输入/ 输出/ 文本
+        // 命令,而不仅仅是单列。
+        // 警卫孤立地存在。
         var elementCopier = new TrackingCopier<int>(v => v + 1000);
         var sut = new ListCopier<int>(elementCopier);
 
@@ -624,7 +624,7 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 3: standalone helper Type/session boundary.
+    // 第3组:独立帮手类型/会期边界。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -677,9 +677,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 4: IBaseCodec<T>.Serialize/Deserialize boundary, called directly (bypassing
-    // WriteField's reference short-circuit). Verified reachable: the guard is the first
-    // statement, so no header byte is written and no reader byte is consumed.
+    // 第4组: IBaseCodec<T>. 定序/降序边界,直接调用(通过)
+    // WriteField的参考短路短路路。可验证:警卫是第一个
+    // 语句,因此没有页眉字节的文字,也没有消耗读者字节。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -690,9 +690,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
         using var session = SessionPool.GetSession();
         var writer = Writer.Create(buffer, session);
 
-        // Writer<TBufferWriter> is a ref struct, so the "ref" call cannot be made from inside a
-        // lambda (Assert.Throws(Action) would require capturing it in a closure); use an
-        // explicit try/catch instead.
+        // Writer<TBufferWriter> 是ref 支架, 所以“ ref” 调用无法从内部
+        // lambda (Assert.Throws(行动)需要将其捕获在封闭中);使用 a
+        // 改为明示试捕/捕获。
         ArgumentNullException? exception = null;
         try
         {
@@ -778,8 +778,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 5: ReferenceCodec writes nullable payloads as null-reference tokens before a
-    // codec accesses the value.
+    // 组 5: ReferenceCodec 将无效有效载荷写成无效符号,作为在
+    // 代码编码访问值。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -847,8 +847,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 6: valid, representative nonempty containers still deep-copy and round-trip
-    // correctly through the argument-validated codecs/copiers.
+    // 第6组:有效、有代表性的非空集装箱仍深影印和圆环
+    // 通过参数验证的编码/复印机正确无误。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -1006,9 +1006,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
         var copy = DeepCopyValue(original);
         var roundTripped = RoundTripSerialize(original);
 
-        // Tuple<T1, T2> is itself immutable, and both int and string are shallow-copyable, so
-        // TupleCopier's IsShallowCopyable() fast path legitimately returns the same instance
-        // rather than allocating a new one -- this is correct behavior, not a missed copy.
+        // 图<T1, T2> 本身是不可变的, 内字和弦都是浅可读的, 所以
+        // TupleCopier的 IsShallowCopyable() 快速路径合法返回相同情况
+        // 而不是分配新的一个—— 这是正确的行为, 不是遗漏的复制件。
         Assert.Same(original, copy);
         Assert.Equal(original, copy);
         Assert.Equal(original, roundTripped);
@@ -1022,15 +1022,15 @@ public sealed class CodecArgumentValidationTests : IDisposable
         var copy = DeepCopyValue(original);
         var roundTripped = RoundTripSerialize(original);
 
-        // Same rationale as the two-tuple case: int/string/bool are all shallow-copyable, so
-        // the immutable Tuple<T1,T2,T3> is legitimately returned as the same instance.
+        // 与两个图例相同的理由理由:内注/弦/布尔均可浅读,因此
+        // 永久图普<T1,T2,T3> 与原样合法归还。
         Assert.Same(original, copy);
         Assert.Equal(original, copy);
         Assert.Equal(original, roundTripped);
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 7: aliasing and cycles must remain preserved by deep copy and serialization.
+    // 第7组:必须保留假名和周期,并保持其深度复制和序列。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -1075,8 +1075,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // Group 8: polymorphic/reference behavior must remain intact through object-typed
-    // collections (exercises ObjectCodec's dispatch and ObjectCopier's null-return path).
+    // 第8组:多形态/参考行为必须通过对象类型保持完整
+    // 收藏( 执行 ObjectCodec的快递和 ObjectCopier无效返回路径) 。
     // ------------------------------------------------------------------------------------
 
     [Fact]

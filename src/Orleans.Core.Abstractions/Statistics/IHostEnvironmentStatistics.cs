@@ -4,13 +4,13 @@ namespace Orleans.Statistics
 {
 
     /// <summary>
-    /// Functionality for accessing statistics relating to the hosting environment.
+    /// 获取与托管环境有关的统计数据的功能。
     /// </summary>
     [Obsolete($"This functionality will be removed, use {nameof(IEnvironmentStatisticsProvider)}.{nameof(IEnvironmentStatisticsProvider.GetEnvironmentStatistics)} instead.")]
     public interface IHostEnvironmentStatistics
     {
         /// <summary>
-        /// Gets the total physical memory on the host in bytes.
+        /// 以字节表示主机的全部物理内存。
         /// </summary>
         /// <example>
         /// <c>16426476000L</c> for 16 GB.
@@ -18,15 +18,15 @@ namespace Orleans.Statistics
         long? TotalPhysicalMemory { get; }
 
         /// <summary>
-        /// Gets the host CPU usage from 0.0-100.0.
+        /// 将主机 CPU 使用量从 0.0- 1000. 中获取。
         /// </summary>
         /// <example>
-        /// <c>70.0f</c> for 70% CPU usage.
+        /// <c>70.0f</c> 70% CPU使用率的 CPU 。
         /// </example>
         float? CpuUsage { get; }
 
         /// <summary>
-        /// Gets the total memory available for allocation on the host in bytes.
+        /// 以字节表示主机可分配的全部内存。
         /// </summary>
         /// <example>
         /// <c>14426476000L</c> for 14 GB.

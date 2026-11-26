@@ -22,8 +22,8 @@ namespace DistributedTests
         public static string Validator<T>(OptionResult result, Func<T, bool> validator)
         {
             var value = result.GetValueOrDefault<T>();
-            // The validator operates on the parsed value exactly as before; the null-forgiving
-            // operator only suppresses the unconstrained-generic warning and emits no IL.
+            // 验证人按与以前完全相同的分析值运作;无效
+            // 操作员只压制不受限制的遗传警告,不发出IL。
             if (!validator(value!))
             {
                 return $"Option {result.Token?.Value} cannot be set to {value}";

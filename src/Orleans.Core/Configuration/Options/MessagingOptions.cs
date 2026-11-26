@@ -4,20 +4,20 @@ using System.Diagnostics;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Specifies global messaging options that are common to client and silo.
+    /// 指定客户端和 silo通用的全球信息消息选项。
     /// </summary>
     public abstract class MessagingOptions
     {
         /// <summary>
-        /// The <see cref="ResponseTimeout"/> value.
+        /// <see cref="ResponseTimeout"/> 值。
         /// </summary>
         private TimeSpan _responseTimeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// Gets or sets the default timeout before a request is assumed to have failed.
+        /// 在假定请求失败之前获取或设置默认超时 。
         /// </summary>
         /// <seealso cref="ResponseTimeoutWithDebugger"/>
-        /// <value>Requests will timeout after 30 seconds by default.</value>
+        /// <value>请求默认将在30秒后暂停执行。</value>
         public TimeSpan ResponseTimeout
         {
             get { return Debugger.IsAttached ? ResponseTimeoutWithDebugger : _responseTimeout; }
@@ -25,68 +25,68 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the effective <see cref="ResponseTimeout"/> value to use when a debugger is attached.
+        /// 获取或设置连接调试器时使用的有效的 <see cref="ResponseTimeout"/> 值。
         /// </summary>
-        /// <value>Requests will timeout after 30 minutes when a debugger is attached, by default.</value>
+        /// <value>请求将在30分钟后暂停,但如默认,调试器被附在后面。</value>
         public TimeSpan ResponseTimeoutWithDebugger { get; set; } = TimeSpan.FromMinutes(30);
 
         /// <summary>
-        /// Gets or sets a value indicating whether messages should be dropped once they expire, that is if it was not delivered
-        /// to the destination before it has timed out on the sender.
+        /// 获取或设定一个值,显示信件过期后是否即未发送时是否应删除
+        /// 发送者超时前到达目的地。
         /// </summary>
-        /// <value>Messages are dropped once they expire, by default.</value>
+        /// <value>信件一旦过期,默认会被丢弃。</value>
         public bool DropExpiredMessages { get; set; } = true;
 
         /// <summary>
-        /// The maximum number of times a message send attempt will be retried.
+        /// 信件发送尝试的最大次数将被重新搜索 。
         /// </summary>
         internal const short DEFAULT_MAX_MESSAGE_SEND_RETRIES = 1;
 
         /// <summary>
-        /// The maximum size, in bytes, of the header for a message. The runtime will forcibly close the connection
-        /// if the header size is greater than this value.
+        /// 信件信头的最大大小, 以字节为单位。 运行时间将强制关闭连接
+        /// 如果信头大小大于此值,则该信头的大小大于此值。
         /// </summary>
-        /// <value>The maximum message header size is 10 MB by default.</value>
+        /// <value>最大信头大小默认为 10 MB。</value>
         public int MaxMessageHeaderSize { get; set; } = 10 * 1024 * 1024;
 
         /// <summary>
-        /// The maximum size, in bytes, of the body for a message. The runtime will forcibly close the connection
-        /// if the body size is greater than this value.
+        /// 信件的最大体积, 以字节为单位。 运行时间将强制关闭连接
+        /// 如果身体大小大于此值,则该数值为“体积”。
         /// </summary>
-        /// <value>The maximum message body size is 100 MB by default.</value>
+        /// <value>最大信息体积大小默认为 100 MB。</value>
         public int MaxMessageBodySize { get; set; } = 100 * 1024 * 1024;
 
         /// <summary>
-        /// Gets the response timeout underlying the <see cref="ResponseTimeout"/> property, without debugger checks.
+        /// 获取 <see cref="ResponseTimeout"/> 属性的响应超时,不进行调试器检查。
         /// </summary>
         internal TimeSpan ConfiguredResponseTimeout => _responseTimeout;
 
         /// <summary>
-        /// Whether request cancellation should be attempted when a request times out.
+        /// 请求时间过后是否尝试取消请求 。
         /// </summary>
         /// <remarks>
-        /// Request cancellation may involve sending a cancellation message to the silo which hosts the target grain.
-        /// Defaults to <see langword="false"/>.
+        /// 取消请求可能涉及向 silo 目标所在的 grain.
+        /// 默认为 <see langword="false"/>。
         /// </remarks>
         public bool CancelRequestOnTimeout { get; set; }
 
         /// <summary>
-        /// Whether local calls should be cancelled immediately when cancellation is signaled (<see langword="false"/>)
-        /// rather than waiting for callees to acknowledge cancellation before a call is considered cancelled (<see langword="true"/>).
+        /// 当信号发出取消时是否立即取消本地电话 (<see langword="false"/>)
+        /// 而不是等待被传唤者在电话被考虑取消之前确认取消(<see langword="true"/>)。
         /// </summary>
         /// <remarks>
-        /// Defaults to <see langword="false"/>.
+        /// 默认为 <see langword="false"/>。
         /// </remarks>
         public bool WaitForCancellationAcknowledgement { get; set; }
 
         /// <summary>
-        /// Whether request cancellation should be attempted when a status update is received for an unknown request.
+        /// 在收到关于未知请求的状态更新时,是否应当尝试取消请求。
         /// </summary>
         /// <remarks>
-        /// A status update for an unknown request likely indicates that the request previously timed out and was subsequently dropped.
-        /// Request cancellation may involve sending a cancellation message to the silo which hosts the target grain.
-        /// If the remote callee does not support cancellation, this setting has no effect.
-        /// Defaults to <see langword="false"/>.
+        /// 一项未知请求的最新情况很可能表明,该请求先前被暂停,后来被撤销。
+        /// 取消请求可能涉及向 silo 目标所在的 grain.
+        /// 如果远程被调用者不支持取消, 此设置无效 。
+        /// 默认为 <see langword="false"/>。
         /// </remarks>
         public bool CancelUnknownRequestOnStatusUpdate { get; set; }
     }

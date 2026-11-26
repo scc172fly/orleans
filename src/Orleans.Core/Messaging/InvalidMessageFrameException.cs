@@ -5,31 +5,31 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime.Messaging;
 
 /// <summary>
-/// Indicates that a message frame is invalid, either when sending a message or receiving a message.
+/// 表示在发送信件或接收信件时,一个消息框无效。
 /// </summary>
 [GenerateSerializer]
 public sealed class InvalidMessageFrameException : OrleansException
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="InvalidMessageFrameException"/> class.
+    /// 初始化 <see cref="InvalidMessageFrameException"/> 类的新实例。
     /// </summary>
     public InvalidMessageFrameException()
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="InvalidMessageFrameException"/> class.
+    /// 初始化 <see cref="InvalidMessageFrameException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">The message that describes the error.</param>
+    /// <param name="message">描述错误的电文。</param>
     public InvalidMessageFrameException(string message) : base(message)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="InvalidMessageFrameException"/> class.
+    /// 初始化 <see cref="InvalidMessageFrameException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">The message that describes the error.</param>
-    /// <param name="innerException">The exception that is the cause of the current exception.</param>
+    /// <param name="message">描述错误的电文。</param>
+    /// <param name="innerException">例外是造成当前例外的原因。</param>
     public InvalidMessageFrameException(string message, Exception innerException) : base(message, innerException)
     {
     }

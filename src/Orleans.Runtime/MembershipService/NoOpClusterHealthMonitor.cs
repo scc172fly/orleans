@@ -8,19 +8,19 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// A no-op implementation of <see cref="IClusterHealthMonitor"/> for use with external
-/// failure detection systems.
+/// 执行不执行 <see cref="IClusterHealthMonitor"/> 与外部使用
+/// 故障检测系统。
 /// </summary>
 /// <remarks>
 /// <para>
-/// When using an external membership system that provides its own failure detection
-/// (such as an external consensus-based detection system), register this implementation
-/// to disable Orleans' built-in probe-based monitoring.
+/// 使用外部成员资格制度,提供自己的故障检测
+/// 登记这一实施情况(如外部协商一致检测系统)
+/// 禁用 Orleans'内置探测监测。
 /// </para>
 /// <para>
-/// This is the correct approach for external failure detection - the external system
-/// handles detecting failures and reports membership changes through <see cref="IMembershipManager"/>.
-/// Orleans' probe machinery is not needed and would be wasteful.
+/// 这是发现外部故障的正确方法----外部系统
+/// 处理检测失败情况,并报告通过 <see cref="IMembershipManager"/>改变成员资格。
+/// 不需要 "Orleans" 探测机,这将会是浪费的。
 /// </para>
 /// </remarks>
 internal sealed partial class NoOpClusterHealthMonitor : IClusterHealthMonitor
@@ -53,8 +53,8 @@ internal sealed partial class NoOpClusterHealthMonitor : IClusterHealthMonitor
     /// <inheritdoc/>
     bool IHealthCheckable.CheckHealth(DateTime lastCheckTime, [MaybeNullWhen(true)] out string reason)
     {
-        // External failure detection is always considered healthy from Orleans' perspective.
-        // The external system is responsible for health monitoring.
+        // 从 Orleans的角度而言,发现外部故障总是被认为是健康的。
+        // 外部系统负责健康监测。
         reason = null;
         return true;
     }

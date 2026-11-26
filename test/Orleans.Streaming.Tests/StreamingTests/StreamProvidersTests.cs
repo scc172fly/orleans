@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace UnitTests.Streaming
 {
     /// <summary>
-    /// Tests for stream provider configuration and error injection scenarios.
+    /// 流体提供者配置和错误注入假想的测试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -64,7 +64,7 @@ namespace UnitTests.Streaming
         {
             Guid streamId = Guid.NewGuid();
             var grainFullName = typeof(Streaming_ConsumerGrain).FullName;
-            // consumer joins first, producer later
+            // 消费者首先加入,然后生产者加入
             IStreaming_ConsumerGrain consumer = this.HostedCluster.GrainFactory!.GetGrain<IStreaming_ConsumerGrain>(Guid.NewGuid(), grainFullName);
             await Assert.ThrowsAsync<KeyNotFoundException>(() => consumer.BecomeConsumer(
                 streamId,
@@ -79,7 +79,7 @@ namespace UnitTests.Streaming
 
             SiloHandle siloHandle = this.HostedCluster.GetActiveSilos().First();
             var serviceId = await this.fixture.Client.GetTestHooks(siloHandle).GetServiceId();
-            Assert.Equal(thisRunServiceId, serviceId);  // "ServiceId active in silo"
+            Assert.Equal(thisRunServiceId, serviceId);  // "ServiceId 活动在 silo"
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Config"), TestCategory("ServiceId")]
@@ -88,7 +88,7 @@ namespace UnitTests.Streaming
             var configServiceId = this.fixture.GetClientServiceId();
             output.WriteLine("ServiceId={0}", this.fixture.ServiceId);
 
-            Assert.Equal(this.fixture.ServiceId, configServiceId);  // "ServiceId in test config"
+            Assert.Equal(this.fixture.ServiceId, configServiceId);  // “ServiceId 测试配置中”
 
             output.WriteLine("About to reset Silos .....");
             output.WriteLine("Restarting Silos ...");
@@ -108,7 +108,7 @@ namespace UnitTests.Streaming
                 await AsyncExecutorWithRetries.ExecuteWithRetries(async _ =>
                     {
                         var serviceId = await this.fixture.Client.GetTestHooks(siloHandle).GetServiceId();
-                        Assert.Equal(this.fixture.ServiceId, serviceId); // "ServiceId active in silo"
+                        Assert.Equal(this.fixture.ServiceId, serviceId); // "ServiceId 活动在 silo"
                     },
                     30,
                     (ex, i) => ex is OrleansException,

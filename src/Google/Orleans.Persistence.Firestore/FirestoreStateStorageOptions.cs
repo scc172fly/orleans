@@ -5,12 +5,12 @@ using Orleans.Storage;
 namespace Orleans.Persistence.Firestore;
 
 /// <summary>
-/// Configures the Google Cloud Firestore grain storage provider.
+/// 配置 Google Cloud Firshstore grain 存储供应商。
 /// </summary>
 public class FirestoreStateStorageOptions : FirestoreOptions, IStorageProviderSerializerOptions
 {
     /// <summary>
-    /// Indicates if grain data should be deleted or reset to defaults when a grain clears its state.
+    /// 表明 grain 数据应删除,或当 grain 澄清了它的状况。
     /// </summary>
     public bool DeleteStateOnClear { get; set; }
 

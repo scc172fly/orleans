@@ -3,59 +3,59 @@ using System;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Responsible for monitoring cache related metrics.
+    /// 负责监测与藏匿有关的计量标准。
     /// </summary>
     public interface ICacheMonitor
     {
         /// <summary>
-        /// Called when the cache pressure monitor encounter a status change.
+        /// 当缓存压力监视器 遇到状态改变时呼叫
         /// </summary>
-        /// <param name="pressureMonitorType">Type of the pressure monitor.</param>
-        /// <param name="underPressure">if set to <see langword="true" />, the cache is under pressure.</param>
-        /// <param name="cachePressureContributionCount">The cache pressure contribution count.</param>
-        /// <param name="currentPressure">The current pressure.</param>
-        /// <param name="flowControlThreshold">The flow control threshold.</param>
+        /// <param name="pressureMonitorType">压力监视器的类型。</param>
+        /// <param name="underPressure">如果被设为 <see langword="true" />,则缓存处于压力之下。</param>
+        /// <param name="cachePressureContributionCount">缓存压力贡献计数。</param>
+        /// <param name="currentPressure">当前压力。</param>
+        /// <param name="flowControlThreshold">流量控制阈值。</param>
         void TrackCachePressureMonitorStatusChange(string pressureMonitorType, bool underPressure, double? cachePressureContributionCount, double? currentPressure,
             double? flowControlThreshold);
 
         /// <summary>
-        /// Called when messages are added to the cache.
+        /// 信件添加到缓存时呼叫 。
         /// </summary>
-        /// <param name="messagesAdded">The number of messages added.</param>
+        /// <param name="messagesAdded">添加的电文数。</param>
         void TrackMessagesAdded(long messagesAdded);
 
         /// <summary>
-        /// Called when messages are purged from the cache.
+        /// 清除缓存中的信件时呼叫 。
         /// </summary>
-        /// <param name="messagesPurged">The number of messages purged.</param>
+        /// <param name="messagesPurged">已经清除的信件数量。</param>
         void TrackMessagesPurged(long messagesPurged);
 
         /// <summary>
-        /// Called when new memory is allocated by the cache.
+        /// 当缓存分配新内存时调用 。
         /// </summary>
-        /// <param name="memoryInBytes">The memory in bytes.</param>
+        /// <param name="memoryInBytes">内存以字节表示。</param>
         void TrackMemoryAllocated(int memoryInBytes);
 
         /// <summary>
-        /// Called when memory returned to block pool.
+        /// 当记忆返回到街区池时被调用
         /// </summary>
-        /// <param name="memoryInBytes">The memory in bytes.</param>
+        /// <param name="memoryInBytes">内存以字节表示。</param>
         void TrackMemoryReleased(int memoryInBytes);
 
         /// <summary>
-        /// Called to report cache status metrics.
+        /// 被叫来报告缓存状况的量度
         /// </summary>
-        /// <param name="oldestMessageEnqueueTimeUtc">The time in UTC when the oldest message was enqueued to the queue.</param>
-        /// <param name="oldestMessageDequeueTimeUtc">The time in UTC when the oldest message was read from the queue and put in the cache.</param>
-        /// <param name="newestMessageEnqueueTimeUtc">The time in UTC when the newest message was enqueued to the queue.</param>
-        /// <param name="totalMessageCount">The total message count.</param>
+        /// <param name="oldestMessageEnqueueTimeUtc">最古老的消息被排到队列前的时段。</param>
+        /// <param name="oldestMessageDequeueTimeUtc">最古老的信息从队列中读取并放入缓存的时间。</param>
+        /// <param name="newestMessageEnqueueTimeUtc">最新信件排入队列时在 UTC 的时间。</param>
+        /// <param name="totalMessageCount">信件总数。</param>
         void ReportMessageStatistics(DateTime? oldestMessageEnqueueTimeUtc, DateTime? oldestMessageDequeueTimeUtc, DateTime? newestMessageEnqueueTimeUtc,
             long totalMessageCount);
 
         /// <summary>
-        /// Called to report the total cache size.
+        /// 被叫来报告总缓存大小
         /// </summary>
-        /// <param name="totalCacheSizeInBytes">The total cache size in bytes.</param>
+        /// <param name="totalCacheSizeInBytes">以字节表示的总缓存大小。</param>
         void ReportCacheSize(long totalCacheSizeInBytes);
     }
 }

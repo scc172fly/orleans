@@ -12,25 +12,25 @@ namespace Orleans.Streams
     {
         public static MembershipVersion UnknownMembershipVersion => default;
 
-        // IMPORTANT!!!!!
-        // These fields have to be public non-readonly for JsonSerialization to work!
-        // Implement ISerializable if changing any of them to readonly
+        // 重要!
+        // 这些字段必须是非公开的, 无法被读取, 以便 JsonSerialization 工作!
+        // 如果将其中任何一项修改为只读, 则执行可实现的 ISeal
         [JsonProperty]
         [Id(0)]
         public QualifiedStreamId Stream;
 
         [JsonProperty]
         [Id(1)]
-        public GrainId Producer; // the field needs to be of a public type, otherwise we will not generate an Orleans serializer for that class.
+        public GrainId Producer; // 字段需要公开类型, 否则我们不会为该类生成 Orleans 序列器。
 
         [JsonProperty]
         [Id(2)]
-        // Older state has the default value because this field was absent. MembershipVersion is excluded
-        // from equality so re-registration can advance it in place.
+        // 旧状态有默认值, 因为此字段不存在。 MembershipVersion 被排除
+        // 重新登记可以推进其落实。
         public MembershipVersion MembershipVersion;
 
-        // This constructor has to be public for JsonSerialization to work!
-        // Implement ISerializable if changing it to non-public
+        // 建造者必须公开工作才能 JsonSerialization !
+        // 如果将其改为非公开,则可以实施
         public PubSubPublisherState(QualifiedStreamId streamId, GrainId streamProducer)
         {
             Stream = streamId;
@@ -40,12 +40,12 @@ namespace Orleans.Streams
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            // Note: Can't use the 'as' operator on PubSubPublisherState because it is a class.
+            // 注:不能使用 PubSubPublisherState 上的“作为”运算符,因为它是一个类。
             return obj is PubSubPublisherState && Equals((PubSubPublisherState)obj);
         }
         public bool Equals(PubSubPublisherState? other)
         {
-            return Equals(other!.Stream, other.Producer); // Preserve the legacy null dereference behavior.
+            return Equals(other!.Stream, other.Producer); // 保护遗产的无效行为。
         }
         public bool Equals(QualifiedStreamId streamId, GrainId streamProducer)
         {
@@ -55,11 +55,11 @@ namespace Orleans.Streams
 
         public static bool operator ==(PubSubPublisherState? left, PubSubPublisherState? right)
         {
-            return left!.Equals(right); // Preserve the legacy null dereference behavior.
+            return left!.Equals(right); // 保护遗产的无效行为。
         }
         public static bool operator !=(PubSubPublisherState? left, PubSubPublisherState? right)
         {
-            return !left!.Equals(right); // Preserve the legacy null dereference behavior.
+            return !left!.Equals(right); // 保护遗产的无效行为。
         }
         public override int GetHashCode() => HashCode.Combine(Stream, Producer);
 

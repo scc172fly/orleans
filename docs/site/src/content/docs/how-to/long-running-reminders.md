@@ -1,74 +1,86 @@
 ---
-title: Implement long-running reminders
-description: Run reminder-triggered work for longer than a grain call timeout by continuing it in the background.
+title: "执行长期催复通知"
+description: "运行提醒触发的工作, 其时间超过 grain 调用超时, 并在背景中继续 。"
 ms.date: 08/21/2026
 ms.topic: how-to
 ---
 
-# Implement long-running reminders
+<a id="implement-long-running-reminders"></a>
 
-Orleans delivers a reminder by calling <xref:Orleans.IRemindable.ReceiveReminder*> as a grain call. Keeping that call incomplete for longer than the configured response timeout can cause the reminder delivery to time out.
+# 执行长期催复通知
 
-For long-running reminder work, use the callback to start one cooperative background loop and return promptly. The loop continues on the grain scheduler and yields between bounded units of work. If the loop stops or the activation is replaced, a later reminder tick starts it again.
+Orleans 发送提醒, 以调用 <xref:Orleans.IRemindable.ReceiveReminder*> 的方式作为 grain 的呼叫。 保持该响应不全的通话时间超过配置的反应超时可以导致发送提醒的时间过长 。
 
-Use this recipe when one grain identity owns restartable work which should continue between reminder ticks. Model each iteration as a bounded, asynchronous operation and persist enough progress to resume after activation or process loss.
+对于长期提醒工作, 请使用回调来启动一个合作背景循环并迅速返回。 循环继续运行在 grain 调度器上, 并在有约束的工作单位之间产生效果。 如果循环停止或激活被替换, 稍后的提醒勾起再次开始 。
+
+当一个 grain 身份拥有可恢复的工作, 应在提醒勾勾之间继续。 将每次迭代都作为捆绑的、 无同步操作, 并持续足够进展, 在激活后或处理丢失后可以恢复 。
 
 > [!IMPORTANT]
-> The reminder definition is durable, while the background task belongs to the current activation. Reminder ticks can be missed or delivered more than once during cluster changes. Make each unit of work idempotent and reconcile it from durable business state.
+> 提醒的定义是耐久的, 而背景任务属于当前激活的任务。 在群集更改时, 提醒勾点可以错失或不止一次执行。 让每个工作单位都具备最佳能力, 并与持久的商业状态进行调和 。
 
-## Prerequisites
+<a id="prerequisites"></a>
 
-- Configure a [reminder provider](../grains/reminders.md#configure-reminder-storage) on every silo.
-- Choose a reminder period at or above <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType> and shorter than the grain's [activation collection age](../host/configuration-guide/activation-collection.md).
-- Design the work loop so that every iteration accepts cancellation, yields asynchronously, and records durable progress.
+## 先决条件
 
-## Schedule a frequent reminder
+- 配置 a [提醒提醒提供者](../grains/reminders.md#configure-reminder-storage) 上每 silo.
+- 在 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType> 或以上选择提醒期,且时间短于 grain的 [激活收集年龄](../host/configuration-guide/activation-collection.md)。
+- 设计工作循环,使每个迭代都接受取消、不同步地产生结果并记录持久进展。
 
-Reminder ticks count as activation activity. A reminder period shorter than the activation collection age keeps the grain active under normal idle collection, allowing the background task to continue making progress. If the activation ends because of shutdown, failure, migration, or explicit deactivation, a later tick activates the grain again and starts a new worker.
+<a id="schedule-a-frequent-reminder"></a>
 
-Register the reminder with a short period:
+## 经常安排提醒通知
+
+提醒计数为激活活动。提醒时间短于启动收集年龄,提醒时间使 grain 在正常闲置收藏中有效,允许背景任务继续取得进展。如果由于关闭、故障、迁移或明确停止功能而终止激活,稍后的答题再次激活 grain 并开始新工人。
+
+登记短时期的提醒:
 
 :::code language="csharp" source="../snippets/compiled/HowTo/LongRunningReminderSnippets.cs" id="schedule_long_running_reminder":::
 
-This example uses the default minimum reminder period of one minute, which is shorter than the default activation collection age of 15 minutes. If the application configures either value differently, keep the reminder period within the supported minimum and below the collection age.
+此示例使用默认最小提醒时间为1分钟, 短于15分钟的默认激活收集年龄。 如果应用程序配置不同值, 请将提醒时间保持在支持的最低和低于采集年龄的最小 。
 
-The reminder period controls activation activity and how quickly a stopped worker restarts. The background loop controls how frequently work is processed.
+提醒期控制激活活动,停止的工人恢复工作的速度有多快。背景循环控制了工作的处理频率。
 
-## Implement the worker
+<a id="implement-the-worker"></a>
 
-The following grain registers a reminder, starts at most one worker for each activation, observes worker failures, and stops the worker during deactivation:
+## 落实工人
+
+以下 grain 登记提醒,每次启动最多开始一名工人,观察工人的失败情况,并在停止工作时停止工作:
 
 :::code language="csharp" source="../snippets/compiled/HowTo/LongRunningReminderSnippets.cs" id="long_running_reminder_grain":::
 
-The implementation relies on these behaviors:
+执行取决于以下行为:
 
-1. <xref:Orleans.IRemindable.ReceiveReminder*> executes as a grain request. Returning <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> completes that reminder delivery without waiting for the background loop.
+1. <xref:Orleans.IRemindable.ReceiveReminder*> 执行请求 grain 。返回 <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> 完成提醒发送,无需等待背景循环。
 1. <xref:System.Threading.Tasks.ConfigureAwaitOptions> controls how the first await resumes. `ForceYielding` ensures that the loop starts after `ReceiveReminder` returns, and `ContinueOnCapturedContext` resumes it on the grain scheduler, where it can safely access grain state.
-1. `_backgroundTask` limits the activation to one worker. If the worker completes after a failure, the next reminder tick starts a new worker.
-1. <xref:Orleans.Grain.OnDeactivateAsync*> cancels the worker and waits within the runtime's deactivation deadline. Abrupt process termination can skip this callback, so durable progress remains the recovery source.
+1. `_backgroundTask` 限制一个工人的激活。 如果该工人在失败后完成, 下次提醒会选中开始一个新的工人 。
+1. <xref:Orleans.Grain.OnDeactivateAsync*> 取消工人的取消,并在运行期的终止期限内等待。 程序中断可能跳过此回召, 因此持久进展仍然是恢复的来源 。
 
-Replace `ProcessNextBatch` with one bounded unit of application work. Each iteration should await I/O or otherwise yield so that other queued work can run. Since other grain turns can execute while the loop is awaiting, recheck any grain state whose value affects the next operation.
+将 `ProcessNextBatch` 替换为一个约束的应用程序工作单位。 每次迭代应等待 I/O 或以其他方式产生,以便其它队列的工作能够运行。由于其他 grain 转弯可以在循环等待时执行,因此重新检查其值影响下一个操作的任何 grain 状态。
 
-Call `Start` once through a grain reference. <xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> creates the durable schedule; calling `Start` again updates the same named reminder.
+调调 `Start` 一次通过 a grain 参考。 <xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> 创建耐久时间表;调用 `Start` 再次更新同一命名的提醒通知。
 
-## Handle failures and recovery
+<a id="handle-failures-and-recovery"></a>
 
-The worker observes and logs unexpected exceptions because `ReceiveReminder` returns <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> to the reminder runtime. Completing the failed worker lets the next reminder tick restart it.
+## 处理失败和复原
 
-Persist a checkpoint before advancing to the next unit of work. A typical iteration:
+工人观察和记录意外例外,因为 `ReceiveReminder` 返回 <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> 提醒运行时间。 完成失败的工人, 让下次提醒时再重新激活它 。
 
-1. Reads the next incomplete item from durable state.
-1. Performs an idempotent side effect using a stable operation identifier.
-1. Records completion durably.
-1. Continues with the next item.
+向下一级单位推进前,先维持一个检查站。
 
-This sequence lets a new activation reconcile an interrupted operation after collection, migration, silo shutdown, or process failure.
+1. 从耐久状态读取下一个不完整的项目 。
+1. 使用稳定的操作识别符,执行一无所能的副作用。
+1. 记录完成时间可久。
+1. 继续下一个项目。
 
-## Verify the recipe
+此序列可以让新激活调节采集、迁移、 silo 关闭或进程失败后中断的操作。
 
-1. Call `Start` and confirm that the first reminder tick starts one worker.
-1. Let another reminder tick arrive while the worker is active and confirm that one worker remains active.
-1. Deactivate or restart the hosting silo and confirm that a later reminder tick creates a new activation and resumes from the durable checkpoint.
-1. Make one work iteration fail and confirm that the exception is logged and the next reminder tick restarts the worker.
+<a id="verify-the-recipe"></a>
 
-For periodic callbacks which run only while the grain is active, use a [grain timer](../grains/timers.md). For work which completes within one reminder invocation, return the work task directly from `ReceiveReminder`.
+## 校验食谱
+
+1. 拨打 `Start` 并确认第一个提醒键开始一个工人。
+1. 让另一个提醒在工人积极活动时滴答到,并证实一名工人仍然活跃。
+1. 关闭主机或重新启动主机 silo ,并确认后一个提醒滴答会产生新的启动并恢复从耐用检查站的运行。
+1. 使一个重复工作失败,确认例外被登录,下次提醒勾将重新启动工人。
+
+只有在 grain 活动期间才运行的定期回调,使用 [grain 计时器](../grains/timers.md)。对于在一次提醒中完成的工作,请直接从 `ReceiveReminder`返回工作任务。

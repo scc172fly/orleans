@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// The ExceptionGrain interface.
+    /// ExceptionGrain 接口。
     /// </summary>
     public interface IExceptionGrain : IGrainWithIntegerKey
     {

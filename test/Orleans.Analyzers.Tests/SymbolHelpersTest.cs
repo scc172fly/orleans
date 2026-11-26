@@ -51,8 +51,8 @@ public class SymbolHelpersTest
         var method = Assert.Single(type.GetMembers("Method"));
         var unattributed = consumer.GetTypeByMetadataName("Unattributed")!;
 
-        // The helper is internal. Exercise only its existence overload without adding a friend API.
-        // Metadata attributes have no syntax: delegating to the location overload would throw here.
+        // 辅助器是内部的。 只使用它的存在超载而不添加朋友 API。
+        // 元数据属性没有语法: 将超载下放到位置会在这里丢弃 。
         var helperType = typeof(GenerateAliasAttributesAnalyzer).Assembly.GetType("Orleans.Analyzers.SymbolHelpers", throwOnError: true)!;
         var helperMethod = helperType.GetMethod(
             "HasAttribute",

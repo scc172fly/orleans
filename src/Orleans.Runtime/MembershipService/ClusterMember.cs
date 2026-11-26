@@ -4,22 +4,22 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents a cluster member.
+    /// 代表一个分组成员。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class ClusterMember : IEquatable<ClusterMember>, ISpanFormattable
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterMember"/> class.
+        /// 初始化 <see cref="ClusterMember"/> 类的新实例。
         /// </summary>                
         /// <param name="siloAddress">
-        /// The silo address.
+        /// silo 地址。
         /// </param>
         /// <param name="status">
-        /// The silo status.
+        /// 状态 silo 。
         /// </param>
         /// <param name="name">
-        /// The silo name.
+        /// silo 名称。
         /// </param>
         public ClusterMember(SiloAddress siloAddress, SiloStatus status, string name)
             : this(siloAddress, status, name, wasDeclaredDead: false)
@@ -35,23 +35,23 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the silo address.
+        /// 获取 silo 地址。
         /// </summary>
-        /// <value>The silo address.</value>
+        /// <value> silo 地址。</value>
         [Id(0)]
         public SiloAddress SiloAddress { get; }
 
         /// <summary>
-        /// Gets the silo status.
+        /// 获取 silo 状态。
         /// </summary>
-        /// <value>The silo status.</value>
+        /// <value> silo 状态。</value>
         [Id(1)]
         public SiloStatus Status { get; }
 
         /// <summary>
-        /// Gets the silo name.
+        /// 获取 silo 名称。
         /// </summary>
-        /// <value>The silo name.</value>
+        /// <value> silo 名称。</value>
         [Id(2)]
         public string Name { get; }
 

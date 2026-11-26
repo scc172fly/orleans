@@ -6,16 +6,16 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="SortedSet{T}"/>.
+    /// <see cref="SortedSet{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class SortedSetCodec<T> : GeneralizedReferenceTypeSurrogateCodec<SortedSet<T>, SortedSetSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SortedSetCodec{T}"/> class.
+        /// 初始化 <see cref="SortedSetCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public SortedSetCodec(IValueSerializer<SortedSetSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -32,31 +32,31 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type for <see cref="SortedSetCodec{T}"/>.
+    /// <see cref="SortedSetCodec{T}"/>的代用类型。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct SortedSetSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public List<T> Values;
 
         /// <summary>
-        /// Gets or sets the comparer.
+        /// 设置比较器或获取比对器。
         /// </summary>
-        /// <value>The comparer.</value>
+        /// <value>比较器。</value>
         [Id(1)]
         public IComparer<T>? Comparer;
     }
 
     /// <summary>
-    /// Copier for <see cref="SortedSet{T}"/>.
+    /// <see cref="SortedSet{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class SortedSetCopier<T> : IDeepCopier<SortedSet<T>>, IBaseCopier<SortedSet<T>>
     {
@@ -64,9 +64,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _elementCopier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SortedSetCopier{T}"/> class.
+        /// 初始化 <see cref="SortedSetCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">The element copier.</param>
+        /// <param name="elementCopier">元素复印机。</param>
         public SortedSetCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = elementCopier;

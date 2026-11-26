@@ -35,8 +35,8 @@ runs:
       }
       "sdk=$sdk" >> $env:GITHUB_OUTPUT
       "path=$($Matches[1])" >> $env:GITHUB_OUTPUT
-  # GitHub isolates pull-request cache writes to their merge ref, while allowing reads from the base branch.
-  # Feed changes require a fresh store, since NuGet can satisfy a restore from already-extracted packages.
+  # GitHub 将请求的抓取缓存写到合并参考文件, 同时允许从基础分支读取 。
+  # 种子更改需要新鲜存储,因为 NuGet 能够满足已经提取的包件的恢复。
   - name: Cache NuGet packages
     if: inputs.nuget == 'true'
     uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5

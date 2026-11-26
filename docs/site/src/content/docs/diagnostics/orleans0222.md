@@ -1,48 +1,58 @@
 ---
-title: "ORLEANS0222: Pass delegates which return a task for asynchronous work"
-description: Understand ORLEANS0222, which reports async void delegates passed to DurableTask.Run and DurableTask.RunInline, and fix them with delegates which return a task or with async DurableTask methods.
+title: "ORLEANS0222:交回一项不同步工作任务的通行证代表"
+description: "理解 ORLEANS0222,而据报告,Async无效的代表通过 DurableTask.Run 和 DurableTask.RunInline,并用返回任务或同步代表来调整它们。 DurableTask 方法。"
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
-# ORLEANS0222: Pass delegates which return a task for asynchronous work
+<a id="orleans0222-pass-delegates-which-return-a-task-for-asynchronous-work"></a>
 
-| Property | Value |
+# ORLEANS0222:交回一项不同步工作任务的通行证代表
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Error |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 错误错误 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-`DurableTask.Run` or `DurableTask.RunInline` receives a delegate which returns `void` and binds an `async` function: an `async` lambda converted to `Action` or `Action<CancellationToken>`, an `async void` method, or a local which holds one:
+## 原因原因原因
+
+`DurableTask.Run` 或 `DurableTask.RunInline` 接收代表,该代表返回 `void` 并约束一个 `async` 函数:一个 `async` 羊羔转换成 `Action` 或 `Action<CancellationToken>`,一种 `async void` 方法,或持有以下功能的当地人:
 
 :::code source="snippets/durable-tasks/Orleans0222.cs" id="orleans0222_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-An `async void` delegate returns to its caller at its first incomplete `await`. `DurableTask.Run` and `DurableTask.RunInline` record the delegate's completion when it returns, so the record precedes the work which follows the `await`:
+## 规则说明
 
-- The step or the effect completes, and the body continues, while the work is still running.
-- A replay returns the record without running the delegate, so the work runs only in the first run.
-- An exception which the work throws after the `await` escapes the task instead of failing the step or the effect.
+`async void` 代表返回到第一个未完全的 `await`。 `DurableTask.Run` 和 `DurableTask.RunInline` 代表返回时记录代表完成的工作,因此记录先于 `await`之后的工作:
 
-In the example, the step completes before the email is sent, and a failed send leaves the step's record successful.
+- 步骤或效果完成,身体继续,而工作仍在进行。
+- 重放返回记录时不运行代表, 因此工作只在第一时间进行 。
+- 工作在 `await` 后丢弃的例外,是跳出任务而不是失败步骤或效果。
 
-For steps and effects, see [Effects and steps](../grains/durable-tasks.md#effects-and-steps).
+例如,电子邮件发送前该步骤就已完成,发送失败后该步骤的记录就会成功。
 
-## How to fix violations
+步骤和效果见 [效果和步骤](../grains/durable-tasks.md#effects-and-steps)。
 
-**Return a task.** `DurableTask.Run` with a delegate which returns a `Task` completes the step when the task completes, and records the task's outcome:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**返回任务。** `DurableTask.Run` 与一个代表一起返回 `Task` ,在任务完成后完成该步骤,并记录任务结果:
 
 :::code source="snippets/durable-tasks/Orleans0222.cs" id="orleans0222_fix_task" language="csharp":::
 
-**Run the work in an `async DurableTask` method.** The method is a step which the body awaits:
+**以 `async DurableTask` 方法运行工作。** 该方法是身体等待的一个步骤:
 
 :::code source="snippets/durable-tasks/Orleans0222.cs" id="orleans0222_fix_durable_method" language="csharp":::
 
-`DurableTask.RunInline` runs synchronous work only. Asynchronous work runs as a step.
+`DurableTask.RunInline` 仅运行同步工作。 同步工作作为一步运行 。
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic only for fire-and-forget work which the task neither records nor waits for, and whose failures the delegate handles itself.
+## 何时压缩
+
+仅因火灾和遗忘工作而抑制诊断,而这项任务既未记录也未等待,代表自己处理其失败。

@@ -9,7 +9,7 @@ using System.Security;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Creates delegates for calling ISerializable-conformant constructors.
+    /// 创建呼叫可实现的与易燃设备一致的建筑商的代表。
     /// </summary>
     internal sealed class SerializationConstructorFactory
     {
@@ -22,10 +22,10 @@ namespace Orleans.Serialization
         private readonly ConcurrentDictionary<(Type Owner, Type DelegateType), Delegate> _constructors = new();
 
         /// <summary>
-        /// Determines whether the provided type has a serialization constructor.
+        /// 确定所提供的类型是否有序列构建器。
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns><see langword="true" /> if the provided type has a serialization constructor; otherwise, <see langword="false" />.</returns>
+        /// <param name="type">类型。</param>
+        /// <returns><see langword="true" /> 如果所提供的类型有一个序列构造器;否则, <see langword="false" />.</returns>
         [SecurityCritical]
         public static bool HasSerializationConstructor(
 #if NET5_0_OR_GREATER
@@ -78,7 +78,7 @@ namespace Orleans.Serialization
                 }
                 finally
                 {
-                    // Preserve constructor mutations even when it throws.
+                    // 即使是抛出时 也保留建筑工变
                     value = (TOwner)boxed;
                 }
             };

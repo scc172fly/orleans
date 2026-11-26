@@ -4,15 +4,15 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Helper methods for reading journal storage data.
+/// 阅读日记存储数据的帮助方法。
 /// </summary>
 public static class JournalStorageConsumerExtensions
 {
     /// <summary>
-    /// Notifies <paramref name="consumer"/> that no more data will be supplied.
+    /// 通知 <paramref name="consumer"/> 不再提供数据。
     /// </summary>
-    /// <param name="consumer">The journal storage consumer.</param>
-    /// <param name="metadata">The metadata associated with the journal data being read, or <see langword="null"/> if no metadata is available.</param>
+    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
     public static void Complete(this IJournalStorageConsumer consumer, IJournalMetadata? metadata)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -23,12 +23,12 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// Supplies <paramref name="input"/> to <paramref name="consumer"/>.
+    /// 用品 <paramref name="input"/> 至 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">The journal storage consumer.</param>
-    /// <param name="input">The bytes to read.</param>
-    /// <param name="metadata">The metadata associated with the journal data being read, or <see langword="null"/> if no metadata is available.</param>
-    /// <param name="complete">Whether to notify the consumer that no more data will be supplied. If <see langword="false"/>, the consumer must read all supplied bytes.</param>
+    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="input">字节读取。</param>
+    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
+    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
     public static void Read(this IJournalStorageConsumer consumer, ReadOnlyMemory<byte> input, IJournalMetadata? metadata, bool complete)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -45,12 +45,12 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// Supplies <paramref name="input"/> to <paramref name="consumer"/>.
+    /// 用品 <paramref name="input"/> 至 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">The journal storage consumer.</param>
-    /// <param name="input">The bytes to read.</param>
-    /// <param name="metadata">The metadata associated with the journal data being read, or <see langword="null"/> if no metadata is available.</param>
-    /// <param name="complete">Whether to notify the consumer that no more data will be supplied. If <see langword="false"/>, the consumer must read all supplied bytes.</param>
+    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="input">字节读取。</param>
+    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
+    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
     public static void Read(this IJournalStorageConsumer consumer, ReadOnlySequence<byte> input, IJournalMetadata? metadata, bool complete)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -72,12 +72,12 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// Supplies ordered <paramref name="segments"/> to <paramref name="consumer"/>.
+    /// 订购的用品 <paramref name="segments"/> 至 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">The journal storage consumer.</param>
-    /// <param name="segments">The ordered bytes to read.</param>
-    /// <param name="metadata">The metadata associated with the journal data being read, or <see langword="null"/> if no metadata is available.</param>
-    /// <param name="complete">Whether to notify the consumer that no more data will be supplied. If <see langword="false"/>, the consumer must read all supplied bytes.</param>
+    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="segments">命令的字节读取。</param>
+    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
+    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
     public static void Read(this IJournalStorageConsumer consumer, IEnumerable<ReadOnlyMemory<byte>> segments, IJournalMetadata? metadata, bool complete)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -113,25 +113,25 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// Reads all bytes from <paramref name="input"/> and incrementally supplies them to <paramref name="consumer"/>.
+    /// 读取 <paramref name="input"/> 的所有字节,并逐步将其供给到 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">The journal storage consumer.</param>
-    /// <param name="input">The stream to read from.</param>
-    /// <param name="metadata">The metadata associated with the journal data being read, or <see langword="null"/> if no metadata is available.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The number of bytes read from <paramref name="input"/>.</returns>
+    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="input">要读取的流。</param>
+    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>读取的字数 <paramref name="input"/>.</returns>
     public static async ValueTask<long> ReadAsync(this IJournalStorageConsumer consumer, Stream input, IJournalMetadata? metadata, CancellationToken cancellationToken)
         => await consumer.ReadAsync(input, metadata, complete: true, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
-    /// Reads all bytes from <paramref name="input"/> and incrementally supplies them to <paramref name="consumer"/>.
+    /// 读取 <paramref name="input"/> 的所有字节,并逐步将其供给到 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">The journal storage consumer.</param>
-    /// <param name="input">The stream to read from.</param>
-    /// <param name="metadata">The metadata associated with the journal data being read, or <see langword="null"/> if no metadata is available.</param>
-    /// <param name="complete">Whether to notify the consumer that no more data will be supplied. If <see langword="false"/>, the consumer must read all supplied bytes.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The number of bytes read from <paramref name="input"/>.</returns>
+    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="input">要读取的流。</param>
+    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
+    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
+    /// <param name="cancellationToken">取消牌。</param>
+    /// <returns>读取的字数 <paramref name="input"/>.</returns>
     public static async ValueTask<long> ReadAsync(this IJournalStorageConsumer consumer, Stream input, IJournalMetadata? metadata, bool complete, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(consumer);

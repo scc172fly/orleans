@@ -13,7 +13,7 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// Formats and parses <see cref="Type"/> instances using configured rules.
+/// 格式和用配置的规则处理 <see cref="Type"/> 实例。
 /// </summary>
 public class TypeConverter
 {
@@ -58,14 +58,14 @@ public class TypeConverter
         WellKnownTypeAliases.Select(static alias => alias.RuntimeName).ToHashSet(StringComparer.Ordinal);
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TypeConverter"/> class.
+    /// 初始化 <see cref="TypeConverter"/> 类的新实例。
     /// </summary>
-    /// <param name="formatters">The type name formatters.</param>
-    /// <param name="typeNameFilters">The type name filters.</param>
-    /// <param name="typeFilters">The type filters.</param>
-    /// <param name="options">The options.</param>
-    /// <param name="typeResolver">The type resolver.</param>
-    /// <exception cref="ArgumentException">A configured type alias is empty, contains a quote, whitespace, a control character, or a reserved type-name delimiter, or has an invalid generic arity suffix.</exception>
+    /// <param name="formatters">类型名称格式化器。</param>
+    /// <param name="typeNameFilters">类型名称过滤器。</param>
+    /// <param name="typeFilters">类型过滤器。</param>
+    /// <param name="options">选项。</param>
+    /// <param name="typeResolver">类型解答器。</param>
+    /// <exception cref="ArgumentException">配置的类型别名为空, 含有引号、 白空空间、 控制字符或保留类型名称分隔符, 或者无效的通用性等字尾。</exception>
     public TypeConverter(
         IEnumerable<ITypeConverter> formatters,
         IEnumerable<ITypeNameFilter> typeNameFilters,
@@ -299,7 +299,7 @@ public class TypeConverter
             var formatted = RuntimeTypeNameFormatter.Format(type);
             var parsed = RuntimeTypeNameParser.Parse(formatted);
 
-            // Use the type name rewriter to visit every component of the type.
+            // 使用类型名称重写到该类型的每个部件。
             var converter = this;
             _ = RuntimeTypeNameRewriter.Rewrite(parsed, AddQualifiedType, ResolveCompoundAliasType, ref converter);
             static QualifiedType AddQualifiedType(in QualifiedType type, ref TypeConverter self)
@@ -311,28 +311,28 @@ public class TypeConverter
     }
 
     /// <summary>
-    /// Formats the provided type.
+    /// 格式化所提供类型。
     /// </summary>
-    /// <param name="type">The type.</param>
-    /// <param name="allowAllTypes">Whether all types are allowed or not.</param>
-    /// <returns>The formatted type name.</returns>
+    /// <param name="type">类型。</param>
+    /// <param name="allowAllTypes">是否允许所有类型。</param>
+    /// <returns>格式化类型名称。</returns>
     public string Format(Type type, bool allowAllTypes = false) => FormatInternal(type);
 
     /// <summary>
-    /// Formats the provided type, rewriting elements using the provided delegate.
+    /// 格式化所提供的类型,使用所派代表重写内容。
     /// </summary>
-    /// <param name="type">The type.</param>
-    /// <param name="rewriter">A delegate used to rewrite the type.</param>
-    /// <param name="allowAllTypes">Whether all types are allowed or not.</param>
-    /// <returns>The formatted type name.</returns>
+    /// <param name="type">类型。</param>
+    /// <param name="rewriter">一位代表曾经改写过该类型。</param>
+    /// <param name="allowAllTypes">是否允许所有类型。</param>
+    /// <returns>格式化类型名称。</returns>
     public string Format(Type type, Func<TypeSpec, TypeSpec> rewriter, bool allowAllTypes = false) => FormatInternal(type, rewriter);
 
     /// <summary>
-    /// Parses the provided type string.
+    /// 分析提供的类型字符串 。
     /// </summary>
-    /// <param name="formatted">The formatted type name.</param>
-    /// <returns>The parsed type.</returns>
-    /// <exception cref="TypeLoadException">Unable to load the resulting type.</exception>
+    /// <param name="formatted">格式化类型名称。</param>
+    /// <returns>分析型号。</returns>
+    /// <exception cref="TypeLoadException">无法装入由此生成的类型。</exception>
     public Type Parse(string formatted)
     {
         if (ParseInternal(formatted, out var type))
@@ -344,11 +344,11 @@ public class TypeConverter
     }
 
     /// <summary>
-    /// Parses the provided type string.
+    /// 分析提供的类型字符串 。
     /// </summary>
-    /// <param name="formatted">The formatted type name.</param>
-    /// <param name="result">The result.</param>
-    /// <returns><see langword="true"/> if the type was parsed and loaded; otherwise <see langword="false"/>.</returns>
+    /// <param name="formatted">格式化类型名称。</param>
+    /// <param name="result">结果。</param>
+    /// <returns><see langword="true"/> 如果该类型被剖析和装入;否则; <see langword="false"/>.</returns>
     public bool TryParse(string formatted, [NotNullWhen(true)] out Type result)
     {
         return ParseInternal(formatted, out result);
@@ -650,7 +650,7 @@ public class TypeConverter
             }
         }
 
-        // Enums and well-known types carry no user-defined behavior, so allow them absent an explicit opinion.
+        // 以「网络」为主,
         if (result is null && (type.IsEnum || type.FullName is { } fullName && WellKnownRuntimeTypeNames.Contains(fullName)))
         {
             result = true;

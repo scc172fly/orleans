@@ -6,9 +6,9 @@ namespace Orleans.Core.Messaging;
 internal static class OverloadDetectionLogic
 {
     /// <summary>
-    /// Determines whether or not the process is overloaded.
+    /// 确定进程是否超载。
     /// </summary>
-    /// <remarks><see cref="LoadSheddingOptions.LoadSheddingEnabled"/> is ignored here.</remarks>
+    /// <remarks><see cref="LoadSheddingOptions.LoadSheddingEnabled"/> 在此被忽略 。</remarks>
     public static bool IsOverloaded(ref readonly EnvironmentStatistics statistics, LoadSheddingOptions options)
     {
         bool isMemoryOverloaded = statistics.MemoryUsagePercentage > options.MemoryThreshold;

@@ -1,5 +1,5 @@
 version: 2
 
-# Disabling dependabot on Azure DevOps as this is a mirrored repo. Updates should go through github.
+# 正在禁用对 Azure DevOps 的自定义, 因为这是一个反射重写。 更新应该通过 Guthub 进行 。
 enable-campaigned-updates: false
 enable-security-updates: false

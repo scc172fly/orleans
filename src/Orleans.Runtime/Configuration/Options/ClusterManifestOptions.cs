@@ -1,22 +1,22 @@
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Configures how a silo retrieves grain manifests from the cluster.
+/// 配置 silo 从集中检索 grain 列表的方式。
 /// </summary>
 public sealed class ClusterManifestOptions
 {
     /// <summary>
-    /// Gets or sets a value indicating whether the silo retrieves manifests by content hash
-    /// and uses peer summaries to repair missing manifests.
+    /// 获取或设置值,以显示 silo 是否通过内容散列检索列表
+    /// 并使用同行摘要来弥补缺失的旅客名单。
     /// </summary>
     /// <value>
-    /// <see langword="true"/> by default. Set to <see langword="false"/> to retrieve each active silo's manifest directly.
+    /// 默认<see langword="true"/> 。 设为 <see langword="false"/> 直接检索每个活动 silo的列表 。
     /// </value>
     /// <remarks>
-    /// The runtime captures this setting when the silo's manifest provider is constructed.
-    /// Restart the silo to apply a changed value. Silos serve hash requests from enabled peers
-    /// on demand, including when their own retrieval is configured to use the direct path.
-    /// Peer repair uses up to three concurrent local attempts, each with a one-second deadline.
+    /// 当 silo的列表提供者构建时,运行时间会捕捉到此设置 。
+    /// 重新启动 silo 以应用更改的值。 Silos 服务于来自启用端点的散列请求
+    /// 需要时, 包括当他们自己配置的检索可使用直接路径时 。
+    /// 同侪修理最多利用三个同时进行的地方尝试,每次尝试的最后期限为1秒钟。
     /// </remarks>
     public bool EnableContentAddressedRetrieval { get; set; } = true;
 }

@@ -9,16 +9,16 @@ using Orleans.Serialization.Buffers.Adaptors;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Grain storage serializer that uses the Orleans <see cref="Serializer"/>.
+    /// Grain 使用 Orleans <see cref="Serializer"/>.
     /// </summary>
     public class OrleansGrainStorageSerializer : IGrainStorageStreamingSerializer
     {
         private readonly Serializer serializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansGrainStorageSerializer"/> class.
+        /// 初始化 <see cref="OrleansGrainStorageSerializer"/> 类的新实例。
         /// </summary>
-        /// <param name="serializer">The serializer.</param>
+        /// <param name="serializer">序列器。</param>
         public OrleansGrainStorageSerializer(Serializer serializer)
         {
             this.serializer = serializer;
@@ -52,8 +52,8 @@ namespace Orleans.Storage
         {
             ArgumentNullException.ThrowIfNull(input);
 
-            // Seekable streams (e.g., MemoryStream, FileStream) can be deserialized directly without buffering.
-            // Non-seekable streams (e.g., NetworkStream) require buffering to enable efficient multi-pass reading.
+            // 可查找流(e.g.、 MemoryStream、 FileStream)可直接在不缓冲的情况下进行消毒。
+            // 不可寻找的流(e.g., NetworkStream)需要缓冲,以便能够高效率地进行多路读取。
             if (input.CanSeek)
             {
                 return this.serializer.Deserialize<T>(input);

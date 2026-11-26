@@ -3,14 +3,14 @@ using Orleans.Serialization;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Grain storage serializer that uses Newtonsoft.Json
+    /// Grain 使用存储序列器 Newtonsoft.Json
     /// </summary>
     public class JsonGrainStorageSerializer : IGrainStorageStreamingSerializer
     {
         private readonly OrleansJsonSerializer _orleansJsonSerializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JsonGrainStorageSerializer"/> class.
+        /// 初始化 <see cref="JsonGrainStorageSerializer"/> 类的新实例。
         /// </summary>
         public JsonGrainStorageSerializer(OrleansJsonSerializer orleansJsonSerializer)
         {

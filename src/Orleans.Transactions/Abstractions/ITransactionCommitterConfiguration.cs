@@ -2,17 +2,17 @@
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Configures a transaction committer facet.
+    /// 配置交易承诺方的面板。
     /// </summary>
     public interface ITransactionCommitterConfiguration
     {
         /// <summary>
-        /// Gets the name of the service which receives committed operations.
+        /// 获取接受已承诺作业的服务的名称。
         /// </summary>
         string ServiceName { get; }
 
         /// <summary>
-        /// Gets the name of the storage provider used by the transaction committer.
+        /// 获取交易承诺方使用的存储提供者的名称。
         /// </summary>
         string? StorageName { get; }
     }

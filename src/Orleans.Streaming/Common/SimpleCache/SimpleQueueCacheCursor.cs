@@ -7,22 +7,22 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Cursor into a simple queue cache.
+    /// 光标进入一个简单的队列缓存 。
     /// </summary>
     public partial class SimpleQueueCacheCursor : IQueueCacheCursor, IQueueCacheCursorBatchDelivery
     {
         private readonly StreamId streamId;
         private readonly SimpleQueueCache cache;
         private readonly ILogger logger;
-        private IBatchContainer? current; // this is a pointer to the current element in the cache. It is what will be returned by GetCurrent().
+        private IBatchContainer? current; // 这是缓存中当前元素的指针。 将返回什么 GetCurrent().
         private DeliveryBatch? deliveryBatch;
 
-        // This is also a pointer to the current element in the cache. It differs from current, in
-        // that current is just the batch, and is null before the first call to MoveNext after
-        // construction. (Or after refreshing if we had previously run out of batches). Upon MoveNext
-        // being called in that situation, current gets set to the batch included in Element. That is
-        // needed to implement the Enumerator pattern properly, since in that pattern MoveNext gets called
-        // before the first access of (Get)Current.
+        // 也可以作为缓存中当前元素的指针。它与当前元素不同, in
+        // 即当前是整批,在第一次呼叫 MoveNext 之前无效
+        // 或已用完的成批的雨水, MoveNext
+        // 被召到这种情况, 电流将设定为元素中的批次。
+        // 正确执行点数模式所需的数据模式,因为在这个模式下 MoveNext 会被调用
+        // 在第一次访问( Get) 之前。
 
         internal LinkedListNode<SimpleQueueCacheItem>? Element { get; private set; }
         internal StreamSequenceToken? SequenceToken { get; private set; }
@@ -44,11 +44,11 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Cursor into a simple queue cache
+        /// 光标进入简单的队列缓存
         /// </summary>
-        /// <param name="cache">The cache instance.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="logger">The logger.</param>
+        /// <param name="cache">缓存实例。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="logger">日志器。</param>
         public SimpleQueueCacheCursor(SimpleQueueCache cache, StreamId streamId, ILogger logger)
         {
             if (cache == null)
@@ -76,7 +76,7 @@ namespace Orleans.Providers.Streams.Common
         [Obsolete("Use MoveNextWithResult instead.")]
         public virtual bool MoveNext()
         {
-            if (current == null && IsSet && IsInStream(Element!.Value.Batch)) // IsSet is true, so Element is non-null.
+            if (current == null && IsSet && IsInStream(Element!.Value.Batch)) // IsSet 是真的,所以元素是非核。
             {
                 current = Element!.Value.Batch;
                 deliveryBatch?.Track(Element);
@@ -127,7 +127,7 @@ namespace Orleans.Providers.Streams.Common
         {
             if (IsSet && current != null)
             {
-                Element!.Value.DeliveryFailure = true; // IsSet is true, so Element is non-null.
+                Element!.Value.DeliveryFailure = true; // IsSet 是真的,所以元素是非核。
             }
         }
 
@@ -164,9 +164,9 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Clean up cache data when done
+        /// 完成时清理缓存数据
         /// </summary>
-        /// <param name="disposing"><see langword="true"/> if the instance is being disposed; <see langword="false"/> if it is being called from a finalizer.</param>
+        /// <param name="disposing"><see langword="true"/> ,如果处理中处理; <see langword="false"/> ,如果从最后审定人那里调用。</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

@@ -1,31 +1,31 @@
 namespace UnitTests.GrainInterfaces;
 
 /// <summary>
-/// System target interface for testing CancellationToken propagation and handling.
-/// Note: All SystemTarget calls are interleaving by default - they execute immediately without queueing.
+/// 测试 CancellationToken 传播和处理的系统目标界面。
+/// 注意: 所有 SystemTarget 电话默认是连接的 - 它们不排队即刻执行 。
 /// </summary>
 public interface ICancellationTestSystemTarget : ISystemTarget
 {
     /// <summary>
-    /// Gets the runtime instance identifier for the silo hosting this system target.
+    /// 获取系统目标主机 silo 的运行时间实例标识符。
     /// </summary>
     Task<string> GetRuntimeInstanceId();
 
     /// <summary>
-    /// Performs a long wait that can be cancelled via the provided cancellation token.
+    /// 执行长的等待, 可以通过提供的取消标记来取消 。
     /// </summary>
-    /// <param name="delay">The delay to wait.</param>
-    /// <param name="callId">A unique identifier for this call, used to track cancellations.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="delay">等待的延迟。</param>
+    /// <param name="callId">此呼叫的一个独特的标识符, 用于跟踪取消的状态。</param>
+    /// <param name="cancellationToken">取消牌。</param>
     Task LongWait(TimeSpan delay, Guid callId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Calls another system target's LongWait method, passing through the cancellation token.
+    /// 调用另一个系统目标 LongWait 方法,通过取消标记。
     /// </summary>
-    /// <param name="target">The target system target to call.</param>
-    /// <param name="delay">The delay to wait.</param>
-    /// <param name="callId">A unique identifier for this call, used to track cancellations.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="target">目标系统目标呼叫。</param>
+    /// <param name="delay">等待的延迟。</param>
+    /// <param name="callId">此呼叫的一个独特的标识符, 用于跟踪取消的状态。</param>
+    /// <param name="cancellationToken">取消牌。</param>
     Task CallOtherLongRunningTask(
         ICancellationTestSystemTarget target,
         TimeSpan delay,
@@ -33,50 +33,50 @@ public interface ICancellationTestSystemTarget : ISystemTarget
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Calls another system target's LongWait method with a locally created cancellation token
-    /// that is cancelled after a specified delay.
+    /// 调用另一个系统目标的 LongWait 方法, 使用本地创建的取消符号
+    /// 后在指定延迟之后取消。
     /// </summary>
-    /// <param name="target">The target system target to call.</param>
-    /// <param name="delay">The delay for the long wait.</param>
-    /// <param name="delayBeforeCancel">The delay before cancelling.</param>
-    /// <param name="callId">A unique identifier for this call, used to track cancellations.</param>
+    /// <param name="target">目标系统目标呼叫。</param>
+    /// <param name="delay">等待时间太长了</param>
+    /// <param name="delayBeforeCancel">取消前的延迟。</param>
+    /// <param name="callId">此呼叫的一个独特的标识符, 用于跟踪取消的状态。</param>
     Task CallOtherLongRunningTaskWithLocalCancellation(ICancellationTestSystemTarget target, TimeSpan delay, TimeSpan delayBeforeCancel, Guid callId);
 
     /// <summary>
-    /// Tests that cancellation token callbacks execute in the correct execution context.
-    /// Returns true if the callback ran on the correct TaskScheduler.
+    /// 测试取消标记回调在正确执行背景下执行的测试。
+    /// 如果调回运行在正确的 TaskScheduler上,返回为真 。
     /// </summary>
-    /// <param name="callId">A unique identifier for this call, used to track cancellations.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="callId">此呼叫的一个独特的标识符, 用于跟踪取消的状态。</param>
+    /// <param name="cancellationToken">取消牌。</param>
     Task<bool> CancellationTokenCallbackResolve(Guid callId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Calls another system target's CancellationTokenCallbackResolve method with a locally created
-    /// cancellation token that is cancelled after a delay.
+    /// 调用另一个系统目标的 CancellationTokenCallbackResolve 方法, 使用本地创建的方法
+    /// 延迟后取消的标记 。
     /// </summary>
-    /// <param name="target">The target system target to call.</param>
-    /// <param name="callId">A unique identifier for this call, used to track cancellations.</param>
+    /// <param name="target">目标系统目标呼叫。</param>
+    /// <param name="callId">此呼叫的一个独特的标识符, 用于跟踪取消的状态。</param>
     Task<bool> CallOtherCancellationTokenCallbackResolve(ICancellationTestSystemTarget target, Guid callId);
 
     /// <summary>
-    /// Tests that exceptions thrown in cancellation callbacks do not propagate.
+    /// 取消回馈时提出的例外并不推广。
     /// </summary>
-    /// <param name="callId">A unique identifier for this call, used to track cancellations.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="callId">此呼叫的一个独特的标识符, 用于跟踪取消的状态。</param>
+    /// <param name="cancellationToken">取消牌。</param>
     Task CancellationTokenCallbackThrow(Guid callId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Checks if a specific call was cancelled.
+    /// 检查是否取消了特定电话 。
     /// </summary>
-    /// <param name="callId">The call identifier to check.</param>
-    /// <returns>True if the call was cancelled, false otherwise.</returns>
+    /// <param name="callId">要检查的调用标识符。</param>
+    /// <returns>如果电话被取消, 错误的错误, 则属实 。</returns>
     Task<bool> WasCallCancelled(Guid callId);
 
     /// <summary>
-    /// Waits for a specific call to be cancelled.
+    /// 等待取消特定电话。
     /// </summary>
-    /// <param name="callId">The call identifier to wait for.</param>
-    /// <param name="timeout">The maximum time to wait.</param>
-    /// <returns>A tuple containing whether the call was cancelled and any error that occurred.</returns>
+    /// <param name="callId">等待的调用标识符。</param>
+    /// <param name="timeout">等待的最长时间。</param>
+    /// <returns>包含是否取消通话和发生错误的图例。</returns>
     Task<(bool WasCancelled, Exception? Error)> WaitForCancellation(Guid callId, TimeSpan timeout);
 }

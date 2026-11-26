@@ -173,7 +173,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         codec.WriteField(ref writer, 0, typeof(TUnion), value);
         var unionIds = writerSession.ReferencedObjects.CurrentReferenceId;
 
-        // Compare with the case codec independently: exactly one ID belongs to the envelope.
+        // 与独立的案件编码器相比:确切地说,一个身份是信封的。
         using var caseSession = pool.GetSession();
         var caseBuffer = new ArrayBufferWriter<byte>();
         var caseWriter = Writer.Create(caseBuffer, caseSession);
@@ -225,7 +225,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         writer.WriteStartUnion(0, typeof(TUnion), typeof(TUnion));
         provider.GetCodec<TCase>().WriteField(ref writer, caseId, typeof(TCase), payload);
         var hidden = new List<int> { 13, 17 };
-        // Additional content is consumed after reading the case, and can own references used outside the envelope.
+        // 阅读了案件后消耗了额外内容,可以拥有信封外使用的参考资料。
         listCodec.WriteField(ref writer, 1, typeof(List<int>), hidden);
         writer.WriteEndObject();
         listCodec.WriteField(ref writer, 1, typeof(List<int>), hidden);
@@ -319,7 +319,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         Assert.NotSame(value, rightMutable);
         Assert.NotSame(items, rightMutable.Item);
         Assert.Equal(new[] { 7, 11 }, rightMutable.Item);
-        // Equal generic arguments collapse to the first case, but must not collapse the copy boundary.
+        // 与第一起案件相同的通用论点倒塌,但绝不能打破复制边界。
         var equalInput = CreateLeft<List<int>, List<int>>(value);
         var equalArguments = Copy(new List<Either<List<int>, List<int>>> { equalInput, equalInput });
         var equalCase = Assert.IsType<Value<List<int>>>(equalArguments[0].Value);
@@ -444,7 +444,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         Assert.Equal(new[] { 13, 17 }, result.Trailing);
         Assert.Same(result.Trailing, result.TrailingAlias);
 
-        // An older reader skips the converter-backed union, but later fields still reference its string payload.
+        // 旧的读者跳过转换器支持的联盟,但后田仍参考其字符串有效载荷。
         var serializer = _services.GetRequiredService<Serializer>();
         var skipped = serializer.Deserialize<CustomCopyHolderWithoutValue>(serializer.SerializeToArray(input))!;
         Assert.Equal(3, skipped.Items.Count);
@@ -513,7 +513,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         _ = ((ITaggedUnionCopyProxy)proxy).Send(root, new GraphBox { Value = root }, [root], "shallow", immutable, 42, 17);
 
         AssertRequestPolicy(request!, root, immutable, 117);
-        // The generated invokable copier is another consumer of method-parameter classification, distinct from the proxy.
+        // 产生的可被援引的复印机是方法参数分类的另一个消费者,不同于代理。
         var copiedRequest = Copy(request!);
         AssertRequestPolicy(copiedRequest, Assert.IsType<GraphNode>(Assert.IsType<GraphUnion>(request!.GetArgument(0)).Value), immutable, 217);
         Assert.NotSame(request, copiedRequest);
@@ -643,7 +643,7 @@ public sealed record MutableContact : Contact
     [Id(0)] public List<int> Values { get; set; } = [];
 }
 
-// No GenerateSerializer: callers must respect the registered copier, even though both cases are shallow.
+// no GenerateSerializer:尽管这两个案例都很浅,但打电话者必须尊重注册复印机。
 public union CustomNumber(int, string);
 
 [RegisterCopier]

@@ -6,7 +6,7 @@ using Orleans.Concurrency;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// Benchmarks stateless worker grain performance and adaptive worker pool management.
+/// 基准为无国籍工人 grain 业绩和适应性工人池管理。
 /// </summary>
 public class StatelessWorkerBenchmark : IDisposable
 {
@@ -60,9 +60,9 @@ public class StatelessWorkerBenchmark : IDisposable
 
         for (var i = 0; i < ConcurrencyLevel; i++)
         {
-            // For a Poisson process with rate λ (tasks / sec in our case), the time between arrivals is
-            // exponentially distributed with density: f(t) = λe^(-λt), t >= 0; and the interarrival
-            // time can be generated as: Δt = -ln(U) / λ, where U is uniformly distributed on (0, 1)
+            // 以Poisson 进程(我们的情况是,任务/秒)计算,抵达时间为到达时间
+            // 服从指数分布，密度为 f(t) = λe^(-λt)，其中 t >= 0；到达间隔
+            // 时间可以生成为: @ t=- ln(U) /\\\\\, U 统一分布于 (0, 1)
 
             var u = Random.Shared.NextDouble();
             var delaySec = -Math.Log(u > 0 ? u : double.Epsilon) / Lambda;

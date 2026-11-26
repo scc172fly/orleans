@@ -121,7 +121,7 @@ public class TransactionBenchmark : IDisposable
 
     public async Task<Report> RunAsync(int run, int transactiosPerRun, int concurrentPerRun)
     {
-        ILoadGrain load = this.host.Client!.GetGrain<ILoadGrain>(Guid.NewGuid()); // Benchmark setup deploys the client.
+        ILoadGrain load = this.host.Client!.GetGrain<ILoadGrain>(Guid.NewGuid()); // 基准设置安排了客户的部署。
         await load.Generate(run, transactiosPerRun, concurrentPerRun);
         Report? report = null;
         while (report == null)

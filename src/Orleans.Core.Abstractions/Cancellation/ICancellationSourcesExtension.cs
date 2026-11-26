@@ -6,18 +6,18 @@ using Orleans.Concurrency;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Extension used by the grain cancellation runtime to propagate cancellation notifications to grains.
+    /// grain 取消运行时用于向 grains发布注销通知的扩展时间。
     /// </summary>
     internal interface ICancellationSourcesExtension : IGrainExtension
     {
         /// <summary>
-        /// Indicates that a cancellation token has been canceled.
+        /// 表示取消一个标记已被取消 。
         /// </summary>
         /// <param name="tokenId">
-        /// The token id.
+        /// 象征性id。
         /// </param>
         /// <returns>
-        /// A <see cref="Task"/> representing the operation.
+        /// 代表行动的一个 <see cref="Task"/> 。
         /// </returns>
         [AlwaysInterleave]
         [Alias("50F75C16")]

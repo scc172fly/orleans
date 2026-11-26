@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// A value-type reference to a type, stored as a string representation of its syntax.
-/// Used in incremental pipeline models to avoid holding <c>ITypeSymbol</c> references.
+/// 一种类型值类型的引用, 存储为字符串表示其语法 。
+/// 用于增量管道模型,以避免持有 <c>ITypeSymbol</c> 参考文献。
 /// </summary>
 internal readonly record struct TypeRef
 {
@@ -14,7 +14,7 @@ internal readonly record struct TypeRef
     public string SyntaxString { get; }
 
     /// <summary>
-    /// Reconstructs a <see cref="TypeSyntax"/> from the stored string.
+    /// 从存储的字符串重建 <see cref="TypeSyntax"/> 。
     /// </summary>
     public TypeSyntax ToTypeSyntax() => SyntaxFactory.ParseTypeName(SyntaxString);
 

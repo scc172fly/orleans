@@ -11,12 +11,12 @@ using Orleans.Runtime.Hosting;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> extensions.
+    /// <see cref="IServiceCollection"/> 扩展。
     /// </summary>
     public static class DynamoDBGrainStorageServiceCollectionExtensions
     {
         /// <summary>
-        /// Configure silo to use AWS DynamoDB storage as the default grain storage.
+        /// 配置 silo 将 AWS DynamoDB 存储用作默认的 grain 存储。
         /// </summary>
         public static IServiceCollection AddDynamoDBGrainStorageAsDefault(this IServiceCollection services, Action<DynamoDBStorageOptions> configureOptions)
         {
@@ -24,7 +24,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use AWS DynamoDB storage for grain storage.
+        /// 配置配置 silo 使用 AWS 来使用 DynamoDB 储存用于 grain 储存。
         /// </summary>
         public static IServiceCollection AddDynamoDBGrainStorage(this IServiceCollection services, string name, Action<DynamoDBStorageOptions> configureOptions)
         {
@@ -32,7 +32,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use AWS DynamoDB storage as the default grain storage.
+        /// 配置 silo 将 AWS DynamoDB 存储用作默认的 grain 存储。
         /// </summary>
         public static IServiceCollection AddDynamoDBGrainStorageAsDefault(this IServiceCollection services, Action<OptionsBuilder<DynamoDBStorageOptions>>? configureOptions = null)
         {
@@ -40,7 +40,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use AWS DynamoDB storage for grain storage.
+        /// 配置配置 silo 使用 AWS 来使用 DynamoDB 储存用于 grain 储存。
         /// </summary>
         public static IServiceCollection AddDynamoDBGrainStorage(this IServiceCollection services, string name,
             Action<OptionsBuilder<DynamoDBStorageOptions>>? configureOptions = null)

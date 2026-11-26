@@ -1,53 +1,53 @@
 //*********************************************************
 //    Copyright (c) Microsoft. All rights reserved.
 //    
-//    Apache 2.0 License
+//    Apache 2. 0 许可证
 //    
-//    You may obtain a copy of the License at
+//    持有许可的芬兰公民可前往移民局申请居留许可。
 //    http://www.apache.org/licenses/LICENSE-2.0
 //    
-//    Unless required by applicable law or agreed to in writing, software 
-//    distributed under the License is distributed on an "AS IS" BASIS, 
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or 
-//    implied. See the License for the specific language governing 
-//    permissions and limitations under the License.
+//    除非适用法要求或书面约定,软件 
+//    许可证下发放的,在“ASIS”BASISS上分发。 
+//    没有任何战争或任何种类的战争或条件,无论是明示的还是 
+//    意指的语种,请见有关 
+//    许可证规定的许可和限制。
 //
 //*********************************************************
 
 namespace Samples.StorageProviders
 {
     /// <summary>
-    /// Defines the interface for the lower level of JSON storage providers, i.e.
-    /// the part that writes JSON strings to the underlying storage. The higher level
-    /// maps between grain state data and JSON.
+    /// 定义 JSON 存储提供者 i.e较低级别的储存供应商的接口。
+    /// 将 JSON 字符串写入底存储的字符串。较高水平
+    /// grain 国家数据和 JSON之间地图。
     /// </summary>
     /// <remarks>
-    /// Having this interface allows most of the serialization-level logic
-    /// to be implemented in a base class of the storage providers.
+    /// 拥有此界面可以使大多数序列级逻辑
+    /// 将在储存提供者的基级类别中实施。
     /// </remarks>
     public interface IJSONStateDataManager : IDisposable
     {
         /// <summary>
-        /// Deletes the grain state associated with a given key from the collection
+        /// 从收藏中删除与给定密钥相关的 grain 状态
         /// </summary>
-        /// <param name="collectionName">The name of a collection, such as a type name</param>
-        /// <param name="key">The primary key of the object to delete</param>
+        /// <param name="collectionName">收藏库的名称,例如类型名称</param>
+        /// <param name="key">删除对象的主要关键字</param>
         System.Threading.Tasks.Task Delete(string collectionName, string key);
 
         /// <summary>
-        /// Reads grain state from storage.
+        /// 从存储中读取 grain 状态。
         /// </summary>
-        /// <param name="collectionName">The name of a collection, such as a type name.</param>
-        /// <param name="key">The primary key of the object to read.</param>
-        /// <returns>A string containing a JSON representation of the entity, if it exists; null otherwise.</returns>
+        /// <param name="collectionName">收藏库的名称,如类型名称。</param>
+        /// <param name="key">对象要读取的主键。</param>
+        /// <returns>一个含有实体 JSON 表示的字符串,如果有的话;否则无效。</returns>
         System.Threading.Tasks.Task<string?> Read(string collectionName, string key);
 
         /// <summary>
-        /// Writes grain state to storage.
+        /// 将 grain 状态写入存储状态。
         /// </summary>
-        /// <param name="collectionName">The name of a collection, such as a type name.</param>
-        /// <param name="key">The primary key of the object to write.</param>
-        /// <param name="entityData">A string containing a JSON representation of the entity.</param>
+        /// <param name="collectionName">收藏库的名称,如类型名称。</param>
+        /// <param name="key">要写入的对象的主键。</param>
+        /// <param name="entityData">含有 JSON 代表实体。</param>
         System.Threading.Tasks.Task Write(string collectionName, string key, string entityData);
     }
 }

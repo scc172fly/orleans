@@ -1,12 +1,12 @@
 namespace Presence.LoadGenerator;
 
 /// <summary>
-/// Extension helpers for cancellation tokens.
+/// 取消代号的扩展辅助器 。
 /// </summary>
 public static class CancellationTokenExtensions
 {
     /// <summary>
-    /// Gets a task that completes when this cancellation token is cancelled.
+    /// 获取一个任务, 当取消此取消的代号时完成此项任务 。
     /// </summary>
     public static Task GetCompletionTask(this CancellationToken token)
     {

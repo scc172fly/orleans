@@ -21,17 +21,17 @@ using Orleans.TestingHost.Utils;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// Utility for creating silos given a name and collection of configuration sources.
+    /// 给定配置源的名称和收藏, 用于创建 silos 的工具 。
     /// </summary>
     public class TestClusterHostFactory
     {
         /// <summary>
-        /// Creates an returns a new silo.
+        /// 创建返回新 silo。
         /// </summary>
-        /// <param name="hostName">The silo name if it is not already specified in the configuration.</param>
-        /// <param name="configuration">The configuration.</param>
-        /// <param name="postConfigureHostBuilder">An optional delegate which can be used to configure the host builder just prior to a host being built.</param>
-        /// <returns>A new silo.</returns>
+        /// <param name="hostName">如果配置中没有指定, 则名称为 silo 。</param>
+        /// <param name="configuration">配置。</param>
+        /// <param name="postConfigureHostBuilder">一个可选的代表, 可用于在主机正在构建之前配置主机构建器。</param>
+        /// <returns>一个新的 silo。</returns>
         public static IHost CreateSiloHost(string hostName, IConfiguration configuration, Action<IHostBuilder>? postConfigureHostBuilder = null)
         {
             string siloName = configuration["Name"] ?? hostName;
@@ -60,7 +60,7 @@ namespace Orleans.TestingHost
 
                 if (Debugger.IsAttached)
                 {
-                    // Test is running inside debugger - Make timeout ~= infinite
+                    // 测试正在内部调试器内运行 - 让超时 *\\ 无限
                     services.Configure<SiloMessagingOptions>(op => op.ResponseTimeout = TimeSpan.FromMilliseconds(1000000));
                 }
             });
@@ -73,12 +73,12 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Creates the cluster client.
+        /// 创建分组客户端。
         /// </summary>
-        /// <param name="hostName">Name of the host.</param>
-        /// <param name="configuration">The configuration.</param>
-        /// <param name="postConfigureHostBuilder">An optional delegate which can be used to configure the host builder just prior to a host being built.</param>
-        /// <returns>The cluster client host.</returns>
+        /// <param name="hostName">主机的名称。</param>
+        /// <param name="configuration">配置。</param>
+        /// <param name="postConfigureHostBuilder">一个可选的代表, 可用于在主机正在构建之前配置主机构建器。</param>
+        /// <returns>群集客户端主机。</returns>
         public static IHost CreateClusterClient(string hostName, IConfiguration configuration, Action<IHostBuilder>? postConfigureHostBuilder = null)
         {
             var hostBuilder = new HostBuilder();
@@ -104,10 +104,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Serializes configuration to a string.
+        /// 将配置分级为字符串。
         /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        /// <returns>The serialized configuration.</returns>
+        /// <param name="configuration">配置。</param>
+        /// <returns>序列配置。</returns>
         public static string SerializeConfiguration(IConfiguration configuration)
         {
             var settings = new JsonSerializerSettings();
@@ -117,10 +117,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// Deserializes a configuration string.
+        /// 使配置字符串降序。
         /// </summary>
-        /// <param name="serializedSources">The serialized sources.</param>
-        /// <returns>The deserialized configuration.</returns>
+        /// <param name="serializedSources">序列资料</param>
+        /// <returns>解密配置。</returns>
         public static IConfiguration DeserializeConfiguration(string serializedSources)
         {
             var settings = new JsonSerializerSettings();

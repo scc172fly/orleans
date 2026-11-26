@@ -6,8 +6,8 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Contracts;
 
 /// <summary>
-/// Pins the serialized bytes of every messaging wire type. Messages cross silos of different versions and persist in
-/// journals, so any change to these bytes is a compatibility decision which must update the golden values deliberately.
+/// 将每个电文电线类型中的序列字节按序键键入。 silos 且永居其中,
+/// 所以,对这些字节的任何修改 都是一种兼容性决定 必须要刻意更新黄金价值
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

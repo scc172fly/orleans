@@ -6,16 +6,16 @@ using Orleans.Durable.Tasks;
 namespace Orleans.Durable.Http;
 
 /// <summary>
-/// Represents an operation's status monitor: the resource which reports a durable task's status and, once it is
-/// terminal, its result or error.
+/// 代表行动现况监测器:报告持久任务状况的资源,一旦报告,则报告
+/// 终端,其结果或错误。
 /// </summary>
-/// <param name="Id">The operation identifier, which addresses the status monitor.</param>
-/// <param name="Status">The operation's status.</param>
-/// <param name="Result">The task's result, when it succeeded with a value.</param>
-/// <param name="Error">The task's failure or cancellation, when it failed or was canceled.</param>
+/// <param name="Id">处理状态监视器的操作识别符。</param>
+/// <param name="Status">操作状态。</param>
+/// <param name="Result">任务成功时, 当任务与一个值相继的结果。</param>
+/// <param name="Error">任务失败或取消时,当任务失败或被取消时,任务失败或取消。</param>
 /// <remarks>
-/// The document has the shape of an Azure long-running operation status monitor, so clients which poll Azure operations
-/// read it as well. Durable tasks record it as the result of <see cref="IDurableHttpClient"/> steps.
+/// 文件具有 Azure 长期运行状态监测器形状, 客户可以进行 Azure 调查业务
+/// 长期的任务记录为根据 <see cref="IDurableHttpClient"/> 步骤的结果。
 /// </remarks>
 [Alias("Orleans.Durable.Http.DurableOperation")]
 public sealed record DurableOperation(
@@ -24,13 +24,13 @@ public sealed record DurableOperation(
     [property: JsonPropertyName("result"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] JsonElement? Result = null,
     [property: JsonPropertyName("error"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DurableOperationError? Error = null)
 {
-    /// <summary>Gets whether the operation has reached a terminal status.</summary>
+    /// <summary>获取操作是否达到终端状态。</summary>
     [JsonIgnore]
     public bool IsTerminal => Status is DurableOperationStatus.Succeeded or DurableOperationStatus.Failed or DurableOperationStatus.Canceled;
 
     /// <summary>
-    /// Reads a status monitor which a server returned, as Azure clients do: a <c>status</c> which this package's statuses
-    /// don't name, such as Azure Resource Manager's <c>InProgress</c> or <c>Accepted</c>, reads as
+    /// 读取服务器返回的状态监视器 Azure 客户客户做: a <c>status</c> 的状态,该软件包的状态
+    /// 名字不叫,比如 Azure 资源经理 <c>InProgress</c> 或 <c>Accepted</c>,读为
     /// <see cref="DurableOperationStatus.Running"/>.
     /// </summary>
     internal static DurableOperation Read(ReadOnlySpan<byte> json)
@@ -57,7 +57,7 @@ public sealed record DurableOperation(
     }
 }
 
-/// <summary>Serializes a <see cref="DurableOperation"/> for Orleans, with its result as JSON text.</summary>
+/// <summary>序列化a <see cref="DurableOperation"/> 用于 Orleans,其结果 JSON 文本。</summary>
 [GenerateSerializer, Immutable]
 internal readonly record struct DurableOperationSurrogate(
     string Id,
@@ -84,32 +84,32 @@ internal sealed class DurableOperationSurrogateConverter : IConverter<DurableOpe
         new(value.Id, value.Status, value.Result?.GetRawText(), value.Error);
 }
 
-/// <summary>Identifies the status of an operation.</summary>
-/// <remarks>The values are Azure's long-running operation statuses, serialized by name.</remarks>
+/// <summary>确定行动状态。</summary>
+/// <remarks>值为 Azure长期运行状态,按名称顺序排列。</remarks>
 [JsonConverter(typeof(JsonStringEnumConverter<DurableOperationStatus>))]
 [GenerateSerializer]
 [Alias("Orleans.Durable.Http.DurableOperationStatus")]
 public enum DurableOperationStatus
 {
-    /// <summary>The operation has not started.</summary>
+    /// <summary>操作尚未启动。</summary>
     NotStarted,
 
-    /// <summary>The operation is running. A durable task reports this status until it is terminal.</summary>
+    /// <summary>操作正在运行。 持久任务报告此状态, 直到它结束为止。</summary>
     Running,
 
-    /// <summary>The operation completed successfully.</summary>
+    /// <summary>操作成功完成。</summary>
     Succeeded,
 
-    /// <summary>The operation failed.</summary>
+    /// <summary>操作失败。</summary>
     Failed,
 
-    /// <summary>The operation was canceled.</summary>
+    /// <summary>操作被取消。</summary>
     Canceled,
 }
 
-/// <summary>Describes why an operation failed or was canceled.</summary>
-/// <param name="Code">A machine-readable code, which <see cref="DurableHttpOptions.CreateError"/> chooses.</param>
-/// <param name="Message">A human-readable description.</param>
+/// <summary>描述操作失败或取消的原因。</summary>
+/// <param name="Code">一个机器可读代码,它 <see cref="DurableHttpOptions.CreateError"/> 选择。</param>
+/// <param name="Message">人类可以读取的描述</param>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Http.DurableOperationError")]
 public sealed record DurableOperationError(
@@ -117,26 +117,26 @@ public sealed record DurableOperationError(
     [property: JsonPropertyName("message")] string Message)
 {
     /// <summary>
-    /// The code of a failed operation whose work never ran, because the grain which runs it refused it without storing
-    /// it, such as when the work's identifier already names another method's task there. A client starts the work again
-    /// with a new <c>Idempotency-Key</c>.
+    /// 工作从未运行的失败操作代码, 因为运行该操作的 grain 拒绝不存储
+    /// ,例如当工作标识符已经指定了其它方法的任务时。一个客户再次开始工作
+    /// 具有 <c>Idempotency-Key</c>能力钥匙。
     /// </summary>
     public const string NotStartedCode = "NotStarted";
 
     /// <summary>
-    /// The code of a failed operation whose work's grain didn't confirm the work, so whether it ran is unknown: the
-    /// delivery of its start retired without an acknowledgement, or arrived after the grain's admission window, by which
-    /// time the grain may have run it and deleted it. A client checks the work's effects, such as the resource it
-    /// creates, before it starts the work again, so the work's side effects aren't duplicated.
+    /// 工作 grain 无法确认工程的失败操作代码, 因此是否运行未知:
+    /// 未经确认而退休或抵达 grain入场窗口后,即
+    /// 时间 grain 可能运行并删除它的时间。客户端检查工作效果, 如资源等
+    /// 创造,在它重新开始工作之前, 这样工程的副作用就不会重复。
     /// </summary>
     public const string OutcomeUnknownCode = "OutcomeUnknown";
 }
 
-/// <summary>Represents an operation whose host failed to start its work on the work's grain.</summary>
+/// <summary>代表一项业务,其东道主未能开始有关该工程的工作 grain.</summary>
 /// <remarks>
-/// The operation's host fails with this exception when scheduling its work fails, so clients distinguish work which
-/// never ran, <see cref="DurableOperationError.NotStartedCode"/>, and work whose outcome is unknown,
-/// <see cref="DurableOperationError.OutcomeUnknownCode"/>, from work which ran and failed.
+/// 操作的主机在工作时间安排失败时,除此例外之外,操作的主机失效,因此客户区分了哪些工作
+/// 从未逃跑过 <see cref="DurableOperationError.NotStartedCode"/>和工作,其结果不明,
+/// <see cref="DurableOperationError.OutcomeUnknownCode"/>,运行失败的工作。
 /// </remarks>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Http.DurableOperationStartException")]
@@ -154,20 +154,20 @@ internal sealed class DurableOperationStartException : Exception
     }
 
     /// <summary>
-    /// Gets the operation's error code: <see cref="DurableOperationError.NotStartedCode"/> or
+    /// 获取操作错误代码 <see cref="DurableOperationError.NotStartedCode"/> 或
     /// <see cref="DurableOperationError.OutcomeUnknownCode"/>.
     /// </summary>
     [Id(0)]
     public string ErrorCode { get; private set; }
 
     /// <summary>
-    /// Returns the exception which reports <paramref name="failure"/>, a failure to schedule the operation's work, or
-    /// <see langword="null"/> for another failure.
+    /// 返回报告 <paramref name="failure"/>、未安排操作工作的例外,或
+    /// 又一次失败<see langword="null"/>
     /// </summary>
     /// <remarks>
-    /// Only a refusal which the work's grain makes without storing the work, a conflict or a rejection with its own code,
-    /// proves that the work never ran. A delivery which retired unacknowledged, or an invocation which arrived after the
-    /// grain's admission window, leaves the outcome unknown: the grain may have run the work, and even deleted it.
+    /// 只有在工作 grain 拒绝时,不储存工作、冲突或拒绝使用自己的代码,
+    /// 工作从未运行。 一种未确认的退货,或是在合同到期后收到的召回。
+    /// grain的入场窗口,结果不明: grain 可能已经运行工作,甚至删除。
     /// </remarks>
     public static DurableOperationStartException? FromScheduleFailure(Exception failure) => failure switch
     {
@@ -184,10 +184,10 @@ internal sealed class DurableOperationStartException : Exception
     private static DurableOperationStartException OutcomeUnknown(Exception failure) =>
         new(DurableOperationError.OutcomeUnknownCode, "The operation's work wasn't confirmed, so whether it ran is unknown.", failure);
 }
-/// <summary>Describes durable task responses as operations, for every protocol which serves them.</summary>
+/// <summary>将持久任务应对办法描述为行动,适用于为其服务的每一项议定书。</summary>
 internal static class DurableOperationResponses
 {
-    /// <summary>Returns the error which describes a failed or canceled response to clients.</summary>
+    /// <summary>返回描述对客户端的失败或取消回复的错误。</summary>
     public static DurableOperationError GetError(DurableTaskResponse response, DurableHttpOptions options) => response.Exception switch
     {
         DurableOperationStartException start => new(start.ErrorCode, start.Message),
@@ -195,7 +195,7 @@ internal static class DurableOperationResponses
         null => throw new InvalidOperationException($"A {response.Status} response carries its exception."),
     };
 
-    /// <summary>Returns the status monitor of the operation <paramref name="operationId"/>, whose response is <paramref name="response"/>.</summary>
+    /// <summary>返回运行状态监测器 <paramref name="operationId"/>,其答复是 <paramref name="response"/>。</summary>
     public static DurableOperation ToOperation(string operationId, DurableTaskResponse response, JsonSerializerOptions json, DurableHttpOptions options) =>
         response.Status switch
         {
@@ -208,7 +208,7 @@ internal static class DurableOperationResponses
             _ => new(operationId, DurableOperationStatus.Running),
         };
 
-    /// <summary>Returns the Nexus state of a terminal response.</summary>
+    /// <summary>返回终端响应的 Nexus 状态。</summary>
     public static string GetNexusState(DurableTaskResponse response) => response.Status switch
     {
         DurableTaskStatus.CompletedSuccessfully => NexusProtocol.Succeeded,
@@ -217,7 +217,7 @@ internal static class DurableOperationResponses
         var status => throw new InvalidOperationException($"A Nexus state describes a terminal response, not a {status} one."),
     };
 
-    /// <summary>Returns the Nexus <c>Failure</c> which reports a failed or canceled response.</summary>
+    /// <summary>返回报告答复失败或取消的Nexus <c>Failure</c> 。</summary>
     public static NexusFailure ToNexusFailure(DurableTaskResponse response, DurableHttpOptions options)
     {
         var error = GetError(response, options);
@@ -228,10 +228,10 @@ internal static class DurableOperationResponses
     }
 }
 
-/// <summary>Requests cancellation of an operation.</summary>
+/// <summary>要求取消一项行动。</summary>
 /// <param name="Reason">
-/// The reason which the canceled task reads from <see cref="DurableTaskContext.TaskCancellationReason"/>, or
-/// <see langword="null"/> for none.
+/// 取消任务的原因来自 <see cref="DurableTaskContext.TaskCancellationReason"/>, 或者
+/// <see langword="null"/> 毫无理由。
 /// </param>
 public sealed record DurableOperationCancelRequest(
     [property: JsonPropertyName("reason")] string? Reason);
@@ -244,8 +244,8 @@ internal sealed partial class DurableHttpJsonContext : JsonSerializerContext;
 internal static class DurableHttpJsonExtensions
 {
     /// <summary>
-    /// Returns the contract for <typeparamref name="T"/> which <paramref name="options"/> resolve, so serialization uses the
-    /// options' resolver, such as an application's source-generated context, rather than reflection.
+    /// 返回合同 <typeparamref name="T"/> 减去 <paramref name="options"/> 解析, 所以序列化使用
+    /// 选项的解析器, 如应用程序源生成上下文, 而不是反射 。
     /// </summary>
     public static JsonTypeInfo<T> GetTypeInfo<T>(this JsonSerializerOptions options) => (JsonTypeInfo<T>)options.GetTypeInfo(typeof(T));
 }

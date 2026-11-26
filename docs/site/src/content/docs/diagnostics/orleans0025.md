@@ -1,33 +1,43 @@
 ---
-title: "ORLEANS0025: Duplicate grain class declaration"
-description: Understand and resolve ORLEANS0025 when OrleansContracts.txt declares a grain identity more than once.
+title: "ORLEANS0025:重复 grain 类声明"
+description: "理解和决心 ORLEANS0025 何时 OrleansContracts.txt 宣布a grain 身份不止一次"
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
-# ORLEANS0025: Duplicate grain class declaration
+<a id="orleans0025-duplicate-grain-class-declaration"></a>
 
-| Property | Value |
+# ORLEANS0025:重复 grain 类声明
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Warning |
-| Code fix | Not available |
+| 类别类 | 版本 |
+| 严重性 | 警告 |
+| 代码修正 | 不详 |
 
-## Cause
+<a id="cause"></a>
 
-`OrleansContracts.txt` repeats an effective grain class identity. The effective identity is `GrainType` when present and the identity derived from the recorded CLR name using Orleans conventions for a legacy declaration.
+## 原因原因原因
 
-## Impact
+`OrleansContracts.txt` 重复有效的 grain 类身份。有效身份是存在时的 `GrainType` ,以及根据记录中的CLR名称得出的身份,使用 Orleans 公约来进行遗留声明。
 
-The grain identity history becomes ambiguous, and the parser accepts only the first declaration.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Merge declarations which have the same effective identity into one canonical entry. Active and retired declarations can share a CLR name when they record different explicit `GrainType` values across an identity migration.
+grain 身份历史变得模糊不清,分析者只接受第一份声明。
 
-## Suppress the diagnostic
+<a id="how-to-fix"></a>
 
-Repair the malformed manifest instead of suppressing this diagnostic.
+## 如何修补
+
+将具有相同有效身份的声明合并为一个卡尼基门入境。 当声明在身份移徙中记录不同的明确 `GrainType` 值时, 主动和退休声明可以共享一个 CLR 名称 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+修复错误的显示器,而不是抑制诊断。
 
 ```ini
 [*.cs]

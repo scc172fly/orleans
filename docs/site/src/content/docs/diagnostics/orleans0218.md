@@ -1,44 +1,54 @@
 ---
-title: "ORLEANS0218: Pass constant version names and ranges"
-description: Understand ORLEANS0218, which reports version checks whose change name or supported range is computed at run time, and fix it with constants or a DurableVersion descriptor.
+title: "ORLEANS0218:通过常数版本名称和范围"
+description: "理解 ORLEANS0218, 哪个报告版本检查时其更改名称或支持范围在运行时间计算, 并用常数或 DurableVersion 描述符来修正。"
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
-# ORLEANS0218: Pass constant version names and ranges
+<a id="orleans0218-pass-constant-version-names-and-ranges"></a>
 
-| Property | Value |
+# ORLEANS0218:通过常数版本名称和范围
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-`DurableTask.GetVersion` or the `DurableVersion` constructor receives a name, `minSupported`, or `maxSupported` argument which is computed at run time, such as an interpolated string or a parameter:
+## 原因原因原因
+
+`DurableTask.GetVersion` 或 `DurableVersion` 构建器收到一个在运行时计算的名称、 `minSupported`或 `maxSupported` 参数,例如内插字符串或参数:
 
 :::code source="snippets/durable-tasks/Orleans0218.cs" id="orleans0218_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-The first check of a change in an execution records the version under the change's name, and every later check, including every replay, reads the recorded version back under the same name. The execution's branches follow that version, so each replay schedules the operations which the first run scheduled.
+## 规则说明
 
-A name built from data names one change per value. When the data differs between a run and its replay, or a deployment builds the name differently, the replay checks a name which the execution never recorded, records a second decision, and can take another branch than the run which scheduled the recorded operations. The replay then diverges.
+执行记录中更改的第一个检查, 以及每次后来的检查, 包括每部重放, 都读回了同一名称下的记录版本。 执行分支遵循该版本, 所以每个重播都计划第一个运行的操作 。
 
-The range states which versions the deployed code supports: `maxSupported` is the newest version which the code implements, and `minSupported` is the oldest version which it still replays. Both belong to the code which branches on the version. A range which callers pass can admit a version for which the code has no branch, or retire a version which pending executions recorded, which stalls them.
+以数据创建的名称为每个值的变化。当数据在运行和重放之间有差异,或者如果部署建立不同的名称时,重播检查执行从未记录过的名字、记录第二个决定,并且可以取另一个分支而不是用于计划记录的操作的运行。重播则会有所不同。
 
-For versioning, see [Version durable tasks](../grains/durable-tasks-versioning.md).
+调用代码的版本所在区域状态: `maxSupported` 是该代码执行的最新版本, `minSupported` 也是它仍然重播的最老版本。 两者都属于版本中分支的代码。 调用者通过的范围可以接受一个代码没有分支的版本, 或者退出一个在等待处决之前记录下来的版本, 拖住它们。
 
-## How to fix violations
+版本见 [版本耐久任务](../grains/durable-tasks-versioning.md)。
 
-**Pass constants.** Name the change with a constant, and state the range which the branches implement. Data which selects behavior, such as the region, goes to the operations in each branch:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**传递常数。** 用一个常数来命名更改, 并指定分支执行的范围。 选择行为的数据, 如区域, 转到每个分支的操作 :
 
 :::code source="snippets/durable-tasks/Orleans0218.cs" id="orleans0218_fix_constant" language="csharp":::
 
-**Declare a `DurableVersion`.** A static descriptor states the change's name and range once, and the body reads it with `Get` or `IsAtLeast`:
+**声明 `DurableVersion`。** 一个静态描述符一次说明更改的名称和范围,而身体读为 `Get` 或 `IsAtLeast`:
 
 :::code source="snippets/durable-tasks/Orleans0218.cs" id="orleans0218_fix_descriptor" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic for a value which stays constant for the lifetime of every execution which checks it, such as a name which a generated constant class supplies through a `static readonly` field.
+## 何时压缩
+
+禁止对每次检查时的一生中始终保持不变的价值进行诊断,例如通过 `static readonly` 字段生成的固定类供应的名称。

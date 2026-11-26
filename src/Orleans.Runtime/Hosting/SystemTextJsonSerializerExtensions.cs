@@ -9,15 +9,15 @@ using Orleans.Storage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extensions for configuring System.Text.Json-based grain storage serialization.
+    /// 配置 System.Text.Json- 基于 grain 的储存序列化的扩展。
     /// </summary>
     public static class SystemTextJsonSerializerExtensions
     {
         /// <summary>
-        /// Configures System.Text.Json as the default grain storage serializer.
+        /// 配置 System.Text.Json 默认为存储序列器 grain 。
         /// </summary>
-        /// <param name="siloBuilder">The silo builder to configure with System.Text.Json grain storage support.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="siloBuilder"> silo 构建器, 以 System.Text.Json grain 储存支持配置。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder UseSystemTextJsonGrainStorageSerializer(this ISiloBuilder siloBuilder)
         {
             siloBuilder.Services.AddSingleton<IGrainStorageSerializer, SystemTextJsonGrainStorageSerializer>();
@@ -25,13 +25,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures System.Text.Json as the default grain storage serializer.
+        /// 配置 System.Text.Json 默认为存储序列器 grain 。
         /// </summary>
-        /// <param name="siloBuilder">The silo builder to configure with System.Text.Json grain storage support.</param>
-        /// <param name="configureOptions">The delegate used to configure the serializer options.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="siloBuilder"> silo 构建器, 以 System.Text.Json grain 储存支持配置。</param>
+        /// <param name="configureOptions">代表用于配置序列器选项。</param>
+        /// <returns>下 silo 建筑商</returns>
         /// <remarks>
-        /// <paramref name="configureOptions"/> runs before Orleans adds its own converters, so converters added here take precedence.
+        /// <paramref name="configureOptions"/> 运行在 Orleans 添加自有转换器之前,因此在此添加的转换器优先。
         /// </remarks>
         public static ISiloBuilder UseSystemTextJsonGrainStorageSerializer(this ISiloBuilder siloBuilder, Action<SystemTextJsonGrainStorageSerializerOptions> configureOptions)
         {
@@ -40,13 +40,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures System.Text.Json as the default grain storage serializer.
+        /// 配置 System.Text.Json 默认为存储序列器 grain 。
         /// </summary>
-        /// <param name="siloBuilder">The silo builder to configure with System.Text.Json grain storage support.</param>
-        /// <param name="configureOptions">The delegate used to configure the serializer options builder, for example to resolve services or bind configuration.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="siloBuilder"> silo 构建器, 以 System.Text.Json grain 储存支持配置。</param>
+        /// <param name="configureOptions">代表用来配置序列器选项构建器,例如用于解决服务或捆绑配置。</param>
+        /// <returns>下 silo 建筑商</returns>
         /// <remarks>
-        /// Configuration applied through <paramref name="configureOptions"/> runs before Orleans adds its own converters, so converters added here take precedence.
+        /// 配置应用到 <paramref name="configureOptions"/> 之前运行的 Orleans 添加自有的转换器, 因此在此添加的转换器优先 。
         /// </remarks>
         public static ISiloBuilder UseSystemTextJsonGrainStorageSerializer(this ISiloBuilder siloBuilder, Action<OptionsBuilder<SystemTextJsonGrainStorageSerializerOptions>> configureOptions)
         {

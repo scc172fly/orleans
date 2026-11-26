@@ -12,9 +12,9 @@ internal static class MessagingTime
             && nowTicks - timestampTicks >= retention.Ticks;
     }
 
-    /// <summary>Returns the delay before retry <paramref name="attempt"/>, doubling from the initial interval to a cap.</summary>
-    /// <param name="initialInterval">The delay before the first retry.</param>
-    /// <param name="attempt">The one-based number of the failed attempt.</param>
+    /// <summary>返回重试前的延迟时间 <paramref name="attempt"/>,从最初间隔翻倍到上限。</summary>
+    /// <param name="initialInterval">第一次重试前的延迟。</param>
+    /// <param name="attempt">失败尝试的以一个基于数字的编号。</param>
     public static TimeSpan GetBackoff(TimeSpan initialInterval, int attempt) =>
         TimeSpan.FromTicks(initialInterval.Ticks
             * (1L << Math.Clamp(attempt - 1, 0, Configuration.DurableMessagingOptions.MaximumBackoffExponent)));

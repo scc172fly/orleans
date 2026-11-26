@@ -8,29 +8,29 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Identifies the version of a cluster membership configuration.
+    /// 确定分组成员组合的版本。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     [JsonConverter(typeof(MembershipVersionConverter))]
     public readonly struct MembershipVersion : IComparable<MembershipVersion>, IEquatable<MembershipVersion>, ISpanFormattable
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MembershipVersion"/> struct.
+        /// 初始化 <see cref="MembershipVersion"/> 结构的新实例。
         /// </summary>
-        /// <param name="version">The underlying version.</param>
+        /// <param name="version">基本版本。</param>
         public MembershipVersion(long version)
         {
             this.Value = version;
         }
 
         /// <summary>
-        /// Gets the version.
+        /// 获得版本。
         /// </summary>
         [Id(0)]
         public long Value { get; init; }
 
         /// <summary>
-        /// Gets the minimum possible version.
+        /// 获得最小可能的版本。
         /// </summary>
         public static MembershipVersion MinValue => new MembershipVersion(long.MinValue);
 
@@ -72,56 +72,56 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Compares the provided operands for equality.
+        /// 与所提供的平等目标相比较。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
         public static bool operator ==(MembershipVersion left, MembershipVersion right) => left.Value == right.Value;
 
         /// <summary>
-        /// Compares the provided operands for inequality.
+        /// 比较所提供的不平等域。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are not equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
         public static bool operator !=(MembershipVersion left, MembershipVersion right) => left.Value != right.Value;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is greater than or equal to the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 倘若左边的手术功过右的或等量,否则 <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is greater than or equal to the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形操作大于或等于右形操作,否则 <see langword="false"/>。</returns>
         public static bool operator >=(MembershipVersion left, MembershipVersion right) => left.Value >= right.Value;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is less than or equal to the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> ,如果左操作小于或等于右操作,否则 <see langword="false"/>。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is less than or equal to the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形操作小于或等于右形操作,否则 <see langword="false"/>。</returns>
         public static bool operator <=(MembershipVersion left, MembershipVersion right) => left.Value <= right.Value;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is greater than the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 倘若左边的手术胜过右边的手术,否则 <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is greater than the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形大于右形,否则 <see langword="false"/>。</returns>
         public static bool operator >(MembershipVersion left, MembershipVersion right) => left.Value > right.Value;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is less than the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 如果左边的手术功率低于右边的手术功率,那末, <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is less than the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左边的手术功率低于右边的手术功率,那末, <see langword="false"/>.</returns>
         public static bool operator <(MembershipVersion left, MembershipVersion right) => left.Value < right.Value;
     }
 
     /// <summary>
-    /// Functionality for converting <see cref="MembershipVersion"/> instances to and from JSON.
+    /// 将 <see cref="MembershipVersion"/> 例转换为或从 JSON函数。
     /// </summary>
     public sealed class MembershipVersionConverter : JsonConverter<MembershipVersion>
     {

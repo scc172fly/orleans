@@ -7,30 +7,36 @@ products:
 page_type: sample
 name: "Orleans Streaming sample apps"
 urlFragment: "orleans-streaming-samples"
-description: "A collection of Orleans sample apps demonstrating streaming capabilities."
+description: "一组 Orleans 样本应用软件,展示流能力。"
 ---
 
-# Orleans Streaming samples
+<a id="orleans-streaming-samples"></a>
 
-This folder contains two samples demonstrating Orleans Streams.
+# Orleans 流式样品
 
-The first sample, in the `Simple` folder, demonstrates pub/sub using Azure Event Hub and an implicit consumer.
+该文件夹包含两个样本, 演示 Orleans 流 。
 
-The second sample, in the `CustomDataAdapter` folder, demonstrates how to configure a custom data adapter so that Orleans can consume stream messages which did not originate from Orleans.
+第一个样本,在 `Simple` 文件夹中,使用 Azure 事件枢纽和一个隐含消费者来显示阴道/子集。
 
-## Sample prerequisites
+第二个样本,在 `CustomDataAdapter` 文件夹中,展示了如何配置自定义数据适配器,以便 Orleans 能够消耗并非来自 Orleans的流信息。
 
-This sample is written in C# and targets .NET 10. It requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+<a id="sample-prerequisites"></a>
 
-## Building the sample
+## 抽样的前提条件
 
-To download and run the sample, follow these steps:
+本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
+<a id="building-the-sample"></a>
+
+## 建立样本
+
+下载和运行样本时,请遵循以下步骤:
+
+1. 下载并解开样本的平面
+2. 视觉演播室(2022年或以后):
+    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
     2. Navigate to the folder that holds the unzipped sample code, and open the C# project (.csproj) file.
     3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. At the command line, type [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run).
+3. 从命令行 :
+   1. 导航到持有未设偏移样本代码的文件夹 。
+   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。

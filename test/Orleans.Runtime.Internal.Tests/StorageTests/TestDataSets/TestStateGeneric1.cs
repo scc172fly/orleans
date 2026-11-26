@@ -1,7 +1,7 @@
 namespace UnitTests.StorageTests.Relational.TestDataSets
 {
     /// <summary>
-    /// A generic state used to test if saving, reading and clearing of the storage functions as expected.
+    /// 用于测试储存功能是否如预期的那样保存、读取和清理的通用国家。
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]

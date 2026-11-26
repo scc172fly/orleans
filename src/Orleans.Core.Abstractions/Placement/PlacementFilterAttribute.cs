@@ -6,20 +6,20 @@ using Orleans.Runtime;
 namespace Orleans.Placement;
 
 /// <summary>
-/// Base for all placement filter marker attributes.
+/// 用于所有放置过滤标记属性的基础 。
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public abstract class PlacementFilterAttribute : Attribute, IGrainPropertiesProviderAttribute
 {
     /// <summary>
-    /// Gets the placement filter strategy.
+    /// 获得职位布局过滤策略。
     /// </summary>
     public PlacementFilterStrategy PlacementFilterStrategy { get; private set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PlacementFilterAttribute"/> class.
+    /// 初始化 <see cref="PlacementFilterAttribute"/> 类的新实例。
     /// </summary>
-    /// <param name="placement">The placement filter strategy associated with this attribute.</param>
+    /// <param name="placement">与此属性相关的放置过滤策略。</param>
     protected PlacementFilterAttribute(PlacementFilterStrategy placement)
     {
         ArgumentNullException.ThrowIfNull(placement);

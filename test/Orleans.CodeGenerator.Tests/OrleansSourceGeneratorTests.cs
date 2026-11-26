@@ -8,20 +8,20 @@ using Orleans.Serialization;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Tests for the Orleans source generator that generates serialization and RPC code.
+/// 用于生成序列和RPC代码的 Orleans 源生成器测试。
 ///
-/// The Orleans source generator uses Roslyn source generators to:
-/// - Generate serializers for types marked with [GenerateSerializer]
-/// - Generate proxy classes for grain interfaces
-/// - Generate invokable wrappers for grain methods
-/// - Generate metadata for Orleans runtime
+/// Orleans 源发电机使用Roslyn源发电机:
+/// - 生成[GenerateSerializer]标记类型序列器
+/// - 为 grain 接口生成代理服务器类
+/// - 为 grain 方法生成可引用的包装包件
+/// - 生成运行时 Orleans 的元数据
 ///
-/// Key features tested:
-/// - Serialization code generation for various type patterns
-/// - Support for different C# language features (records, nullable reference types, etc.)
-/// - Grain proxy generation for different grain key types
-/// - Proper handling of generic types
-/// - Diagnostics for incorrect usage
+/// 测试的关键特征:
+/// - 各种类型模式的序列代号生成
+/// - 支持不同的C##语言特征(记录、无效参考类型等)
+/// - Grain 不同 grain 关键类型代用生成
+/// - 适当处理通用类型
+/// - 诊断使用不当
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -29,8 +29,8 @@ namespace Orleans.CodeGenerator.Tests;
 public class OrleansSourceGeneratorTests
 {
     /// <summary>
-    /// Tests basic serializer generation for a simple class with a string property.
-    /// This is the most common scenario - a POCO with properties marked with [Id] attributes.
+    /// 测试一个带有字符串属性的简单类的基本序列生成器。
+    /// 这是最常见的假想 -- -- 带有有[ID]属性标记的属性的 POCO。
     /// </summary>
     [Fact]
     public Task TestBasicClass() => AssertSuccessfulSourceGeneration(
@@ -46,11 +46,11 @@ public class DemoData
 }");
 
     /// <summary>
-    /// Tests serializer generation for classes with private readonly fields.
-    /// Verifies that the generator can handle:
-    /// - Private fields (not just public properties)
-    /// - Readonly fields that must be set via constructor
-    /// - Property getters that expose private field values
+    /// 测试序列器生成,用于使用私有读数字段的班级。
+    /// 证明发电机可以处理:
+    /// - 私人领域(不仅仅是公共财产)
+    /// - 仅可读取的字段,必须通过构建器设置
+    /// - 暴露私人实地价值的地产获取者
     /// </summary>
     [Fact]
     public Task TestBasicClassWithoutNamespace() => AssertSuccessfulSourceGeneration(
@@ -84,11 +84,11 @@ internal class InternalDemoData
 }");
 
     /// <summary>
-    /// Tests serializer generation for classes with private readonly fields.
-    /// Verifies that the generator can handle:
-    /// - Private fields (not just public properties)
-    /// - Readonly fields that must be set via constructor
-    /// - Property getters that expose private field values
+    /// 测试序列器生成,用于使用私有读数字段的班级。
+    /// 证明发电机可以处理:
+    /// - 私人领域(不仅仅是公共财产)
+    /// - 仅可读取的字段,必须通过构建器设置
+    /// - 暴露私人实地价值的地产获取者
     /// </summary>
     [Fact]
     public Task TestBasicClassWithAnnotatedFields() => AssertSuccessfulSourceGeneration(
@@ -147,9 +147,9 @@ public class DerivedData : BaseData
 }");
 
     /// <summary>
-    /// Tests serializer generation for value types (structs).
-    /// Structs have different semantics than classes (value vs reference types)
-    /// and the generator must handle them appropriately.
+    /// 测试序列器生成值类型( 结构) 。
+    /// 直截管与类别(值相对于参考类型)的语义不同
+    /// 发电机必须妥善处理。
     /// </summary>
     [Fact]
     public Task TestBasicStruct() => AssertSuccessfulSourceGeneration(
@@ -165,12 +165,12 @@ public struct DemoData
 }");
 
     /// <summary>
-    /// Tests serializer generation for C# 9+ record types.
-    /// Records are immutable by default and use positional parameters,
-    /// requiring special handling for:
-    /// - Record structs vs record classes
-    /// - Property attributes on positional parameters
-    /// - Init-only properties
+    /// C# 9+记录型的测试序列器生成。
+    /// 记录因默认而不可更改,使用位置参数;
+    /// 需要特殊处理的:
+    /// - 记录支架与记录等级
+    /// - 定位参数上的财产属性
+    /// - 仅使用 Init 属性
     /// </summary>
     [Fact]
     public Task TestRecords() => AssertSuccessfulSourceGeneration(
@@ -188,7 +188,7 @@ public record class DemoDataRecordClass([property: Id(0)] string Value);
 public record DemoDataRecord([property: Id(0)] string Value);");
 
     /// <summary>
-    /// Tests serializer generation for records with [Id] attributes on primary constructor parameters.
+    /// 测试序列器生成,用于记录中具有主建参数上的[Id]属性。
     /// </summary>
     [Fact]
     public Task TestRecordsWithParameterIdAttributes() => AssertSuccessfulSourceGeneration(
@@ -210,11 +210,11 @@ public record RecordWithExtraProperty([Id(30)] int Id, [Id(40)] string Name)
 public record struct RecordStructWithParameterId([Id(60)] string Value);");
 
     /// <summary>
-    /// Tests serializer generation for generic types.
-    /// Generic types require:
-    /// - Generating specialized serializers for each concrete type usage
-    /// - Handling type parameters in serialization logic
-    /// - Supporting nested generic types
+    /// 测试序列器生成通用类型。
+    /// 通用类型要求:
+    /// - 为每种具体用途制作专门专制的定级器
+    /// - 处理序列化逻辑的类型参数
+    /// - 支持嵌套通用类型
     /// </summary>
     [Fact]
     public Task TestGenericClass() => AssertSuccessfulSourceGeneration(
@@ -244,11 +244,11 @@ public class ConcreteUsage
 }");
 
     /// <summary>
-    /// Tests serializer generation for classes with nullable reference types.
-    /// Verifies support for C# 8+ nullable reference types including:
-    /// - Nullable and non-nullable reference properties
-    /// - Required properties (C# 11+)
-    /// - Init-only setters
+    /// 测试序列器生成,用于具有无效参考类型的类别。
+    /// 证明支持C# 8+无效参考类型,包括:
+    /// - 无效和不可无效参考属性
+    /// - 所需属性(C#11+)
+    /// - 仅使用 Init 设置器
     /// </summary>
     [Fact]
     public Task TestClassReferenceProperties() => AssertSuccessfulSourceGeneration(
@@ -274,12 +274,12 @@ public class DemoData
 }");
 
     /// <summary>
-    /// Tests serializer generation for all primitive .NET types.
-    /// Ensures the generator has built-in support for:
-    /// - Numeric types (int, long, float, double, decimal, etc.)
-    /// - Boolean, char, string
-    /// - Date/time types (DateTime, DateTimeOffset, TimeSpan)
-    /// - GUID and arrays
+    /// 对所有原始 .NET 类型进行测试序列器生成。
+    /// 确保发电机内嵌支持:
+    /// - 数字类型(内形、长型、浮式、双形、小数等)
+    /// -布林、字符、弦
+    /// - 日期/时间类型(DateTime、 DateTimeOffset、 TimeSpan)
+    /// - 图形界面和数组
     /// </summary>
     [Fact]
     public Task TestClassPrimitiveTypes() => AssertSuccessfulSourceGeneration(
@@ -411,11 +411,11 @@ public class DemoData
 }");
 
     /// <summary>
-    /// Tests serializer generation for complex object graphs.
-    /// Verifies handling of:
-    /// - Nested object references
-    /// - Collections of custom types
-    /// - Cyclic references (important for preventing stack overflow)
+    /// 用于复杂对象图形的测试序列器生成。
+    /// 验证处理:
+    /// - 嵌套对象引用
+    /// - 收集自定制类型的收藏
+    /// - 自行车参考文献(对于防止堆叠溢出至关重要)
     /// </summary>
     [Fact]
     public Task TestClassNestedTypes() => AssertSuccessfulSourceGeneration(
@@ -465,9 +465,9 @@ public class CyclicClass
 }");
 
     /// <summary>
-    /// Tests the [Alias] attribute for type name aliases.
-    /// Aliases allow types to be renamed without breaking serialization compatibility,
-    /// essential for versioning and refactoring scenarios.
+    /// 测试类型名称别名的 [Alias] 属性。
+    /// 异名允许类型重新命名,不中断序列兼容性,
+    /// 用于版本和重构设想情景的必要。
     /// </summary>
     [Fact]
     public Task TestAlias() => AssertSuccessfulSourceGeneration(
@@ -491,9 +491,9 @@ public struct MyTypeAliasStruct
 ");
 
     /// <summary>
-    /// Tests the [CompoundTypeAlias] attribute for complex type aliases.
-    /// Compound aliases can include multiple type components and versions,
-    /// supporting advanced versioning scenarios like type migrations.
+    /// 测试复杂类型别名的[CompoundTypeAlias]属性。
+    /// 复合别名可包括多种类型成分和版本,
+    /// 支持诸如类型迁移等高级版本设想。
     /// </summary>
     [Fact]
     public Task TestCompoundTypeAlias() => AssertSuccessfulSourceGeneration(
@@ -1090,11 +1090,11 @@ public class ClassWithImplicitFieldIds
 }");
 
     /// <summary>
-    /// Tests proxy generation for a basic grain interface.
-    /// Verifies that the generator creates:
-    /// - Proxy class implementing the grain interface
-    /// - Method invokers for RPC calls
-    /// - Proper integration with Orleans runtime
+    /// 测试一个基本 grain 界面的代理生成。
+    /// 证明发电机制造:
+    /// - 实施 grain 接口的代理类
+    /// - RPC电话方法援引器
+    /// - 与 Orleans 运行时间适当整合
     /// </summary>
     [Fact]
     public Task TestBasicGrain() => AssertSuccessfulSourceGeneration(
@@ -1118,13 +1118,13 @@ public class BasicGrain : Grain, IBasicGrain
 }");
 
     /// <summary>
-    /// Tests proxy generation for grains with different key types.
-    /// Orleans supports multiple grain key types:
-    /// - Integer keys
-    /// - GUID keys
-    /// - String keys
-    /// - Compound keys (primary key + extension)
-    /// Each requires different proxy generation logic.
+    /// 测试 grains 不同关键字类型的代理生成。
+    /// Orleans 支持多个 grain 关键类型:
+    /// - 整数键
+    /// - 图形界面密钥
+    /// -字符串键
+    /// - 复合钥匙(主键+扩展)
+    /// 每种方法都需要不同的代用代用代用人逻辑。
     /// </summary>
     [Fact]
     public Task TestGrainWithDifferentKeyTypes() => AssertSuccessfulSourceGeneration(
@@ -1187,11 +1187,11 @@ public class GrainWithIntegerCompoundKey : Grain, IMyGrainWithIntegerCompoundKey
 }");
 
     /// <summary>
-    /// Tests grain proxy generation with complex method signatures.
-    /// Verifies that the generator correctly handles:
-    /// - Multiple parameters
-    /// - Custom types as parameters and return values
-    /// - Async Task return types
+    /// 测试 grain 代谢生成,并使用复杂方法符号。
+    /// 证明生成器正确处理:
+    /// - 多个参数
+    /// - 以自定义类型作为参数和返回值
+    /// - 任务返回类型
     /// </summary>
     [Fact]
     public Task TestGrainComplexGrain() => AssertSuccessfulSourceGeneration(
@@ -1380,13 +1380,13 @@ public class DemoClass
 }");
 
     /// <summary>
-    /// Tests that invokable deduplication works correctly when multiple grain interfaces
-    /// share a common base interface. The base method <c>DoWork</c> is inherited by both
-    /// <c>IGrainA</c> and <c>IGrainB</c>, but the generator should produce only one
-    /// invokable class for that method per declaring interface, not duplicate it for each
-    /// derived interface.
-    /// This behavior is currently handled by the active proxy pipeline via the
-    /// <c>_invokableMethodDescriptions</c> dictionary on the proxy-generation state.
+    /// 测试多个 grain 接口时可引用的解码正确工作
+    /// 基法 <c>DoWork</c> 由两个机构继承
+    /// <c>IGrainA</c> 和 <c>IGrainB</c>,但发电机应该只生产一个
+    /// 每次声明接口时该方法的可变代数类, 而不是对每个界面重复
+    /// 导出接口。
+    /// 目前,这种行为由正在运行的代理代理管道通过
+    /// <c>_invokableMethodDescriptions</c> 字典,关于代理生成状态。
     /// </summary>
     [Fact]
     public async Task SharedBaseInterfaceMethodProducesDeduplicatedInvokable()
@@ -1421,13 +1421,13 @@ public class DemoClass
 
         var generatedSource = ConcatenateGeneratedSources(result);
 
-        // The base method DoWork is declared on IBaseGrain. Regardless of how many interfaces
-        // inherit from IBaseGrain, only one invokable should be generated for DoWork on IBaseGrain.
+        // 基法 DoWork 在 IBaseGrain上声明。无论接口有多少个
+        // 继承的 IBaseGrain,应该为 DoWork 日期 时 IBaseGrain.
         var invokableDoWorkCount = System.Text.RegularExpressions.Regex.Matches(
             generatedSource, @"sealed class Invokable_IBaseGrain_GrainReference_\w+").Count;
         Assert.Equal(1, invokableDoWorkCount);
 
-        // Each derived interface should get its own invokable for its unique method.
+        // 每个衍生界面应为自己的独特方法找到自己的可援引的引号。
         Assert.Contains("Invokable_IGrainA_GrainReference_", generatedSource);
         Assert.Contains("Invokable_IGrainB_GrainReference_", generatedSource);
     }
@@ -1465,9 +1465,9 @@ public class DemoClass
     }
 
     /// <summary>
-    /// Tests that the compilation-level reference-assembly extraction path correctly handles
-    /// types discovered via [GenerateCodeForDeclaringAssembly]. These types cannot be found by
-    /// ForAttributeWithMetadataName since they live in other assemblies.
+    /// 测试编译级别参考组装提取路径正确处理是否正确
+    /// [GenerateCodeForDeclaringAssembly]中发现的类型。
+    /// ForAttributeWithMetadataName 因为他们居住在其他集会中。
     /// </summary>
     [Fact]
     public async Task GeneratesSerializersForReferencedAssemblyTypesViaGenerateCodeForDeclaringAssembly()
@@ -1493,11 +1493,11 @@ public class DemoClass
             libraryCompilation.GetDiagnostics(TestContext.Current.CancellationToken)
                 .Where(d => d.Severity == DiagnosticSeverity.Error));
 
-        // Run the generator on the library so its output assembly includes the generated metadata
+        // 在图书馆运行发电机, 使其输出组件包含生成的元数据
         var libraryGeneratorResult = RunSourceGenerator(libraryCompilation);
         Assert.Empty(libraryGeneratorResult.Diagnostics);
 
-        // Build the consumer that references the library via [GenerateCodeForDeclaringAssembly]
+        // 构建通过[GenerateCodeForDeclaringAssembly引用图书馆的消费者
         var consumerCode = """
             using Orleans;
 
@@ -1506,7 +1506,7 @@ public class DemoClass
 
         var consumerCompilation = await CreateCompilation(consumerCode, "ConsumerProject");
 
-        // Add the library as a metadata reference so the consumer can see its types
+        // 添加图书馆作为元数据参考,使消费者能够看到其类型
         consumerCompilation = consumerCompilation.AddReferences(libraryCompilation.ToMetadataReference());
         Assert.Empty(
             consumerCompilation.GetDiagnostics(TestContext.Current.CancellationToken)
@@ -1518,7 +1518,7 @@ public class DemoClass
 
         var generatedSource = ConcatenateGeneratedSources(consumerResult);
 
-        // The generator should produce a serializer (codec) for LibraryDto from the referenced assembly
+        // 发电机应制作一个从引用组装中 LibraryDto 的序列器(编码c)
         Assert.Contains("LibraryDto", generatedSource);
         Assert.Contains("Codec", generatedSource);
     }
@@ -1705,9 +1705,9 @@ public class DemoClass
     }
 
     /// <summary>
-    /// Tests that the generator emits a warning when [GenerateSerializer] is used in a reference assembly.
-    /// Reference assemblies contain only metadata, no implementation, so generating serializers
-    /// in them is incorrect. This test ensures developers get proper diagnostics for this mistake.
+    /// 测试生成器在GenerateSerializer使用参考组装时发出警告。
+    /// 参考集集只包含元数据, 没有执行, 所以生成序列器
+    /// 测试确保开发者能为错误获得正确的诊断。
     /// </summary>
     [Fact]
     public async Task EmitsWarningForGenerateSerializerInReferenceAssembly()
@@ -1725,8 +1725,8 @@ public class DemoClass
             }
         """;
 
-        // The ReferenceAssemblyAttribute marks the assembly as a reference assembly.
-        // This triggers the Orleans code generator's logic to emit a diagnostic if [GenerateSerializer] is used in such an assembly.
+        // 下 ReferenceAssemblyAttribute 将集会标为参考集会。
+        // 这触发了 Orleans 代码生成器的逻辑,即如果GenerateSerializer在这种组装中使用的话,可以发出诊断。
         var compilation = await CreateCompilation(code, "TestProject");
         var referenceAssemblyAttribute = SyntaxFactory.Attribute(SyntaxFactory.ParseName("System.Runtime.CompilerServices.ReferenceAssemblyAttribute"));
         var assemblyAttr = SyntaxFactory.AttributeList(
@@ -1736,7 +1736,7 @@ public class DemoClass
         var newRoot = ((CompilationUnitSyntax)root).AddAttributeLists(assemblyAttr);
         var newTree = compilation.SyntaxTrees[0].WithRootAndOptions(newRoot, compilation.SyntaxTrees[0].Options);
 
-        // leave only syntaxTree with the ReferenceAssemblyAttribute
+        // 只请假 syntaxTree 和 ReferenceAssemblyAttribute
         compilation = compilation.RemoveSyntaxTrees(compilation.SyntaxTrees[0]).AddSyntaxTrees(newTree);
 
         var result = RunSourceGenerator(compilation);
@@ -2255,9 +2255,9 @@ public class DemoClass
     }
 
     /// <summary>
-    /// Helper method that runs the Orleans source generator on the provided code
-    /// and verifies successful generation without errors.
-    /// Uses snapshot testing to verify the generated code matches expectations.
+    /// 使用所提供代码运行 Orleans 源生成器的辅助工具方法
+    /// 并核查成功生成的无误。
+    /// 使用快照测试来核查生成的代码是否与预期相符。
     /// </summary>
     private static async Task AssertSuccessfulSourceGeneration(string code, string? snapshotName = null)
     {
@@ -2549,9 +2549,9 @@ public class DemoClass
     }
 
     /// <summary>
-    /// Creates a Roslyn compilation with the necessary Orleans references.
-    /// This simulates the build environment where the source generator runs,
-    /// including all required Orleans assemblies and .NET framework references.
+    /// 创建罗森汇编,并配有必要的 Orleans 参考文献。
+    /// 模拟源发电机运行的建筑环境
+    /// 包括所有要求的 Orleans 集会和 .NET 框架参考。
     /// </summary>
     private static Task<CSharpCompilation> CreateCompilation(string sourceCode, string assemblyName = "TestProject")
         => TestCompilationHelper.CreateCompilation(sourceCode, assemblyName);

@@ -72,7 +72,7 @@ namespace AWSUtils.Tests.RemindersTest
     }
 
     /// <summary>
-    /// Tests DynamoDB implementation of the Orleans reminders table for storing and retrieving grain reminders.
+    /// 测试 DynamoDB 是否执行 Orleans 备查表格,用于储存和检索 grain 提醒。
     /// </summary>
     [TestCategory("Reminders"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

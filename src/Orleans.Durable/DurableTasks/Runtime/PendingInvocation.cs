@@ -4,18 +4,18 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// An invocation which this grain's outbox holds by reference, which the runtime journals until the outbox retires it.
+/// 此 grain发件箱的引用点仍然保留着,运行时日记直到发件箱退掉。
 /// </summary>
-/// <param name="Target">The grain on which the invocation starts a task.</param>
-/// <param name="Payload">The encoded invocation message.</param>
+/// <param name="Target">援引开始任务时的 grain 。</param>
+/// <param name="Payload">编码的调用信。</param>
 /// <param name="RecordId">
-/// The wire identifier of the task which records the start and its outcome: a call's own task, or a detached task's
-/// subscription record. A root task which an ordinary grain method posted has none. A retirement which names an earlier
-/// run of the record's tree, which was deleted, changes nothing.
+/// 记录起始时间及其结果的任务的线性识别符号:电话本身的任务,或独立任务
+/// 订阅记录。 一个普通 grain 方法所张贴的根任务没有根任务。
+/// 记录树的运行,它被删除了,没有改变任何东西。
 /// </param>
 /// <remarks>
-/// The table of pending invocations is separate from the execution trees, so an invocation survives the deletion of the
-/// tree which started it.
+/// 等待援引的表格与处决树分开,因此,在删除该表之后,仍可继续适用。
+/// 树的开始,
 /// </remarks>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Tasks.Runtime.PendingInvocation")]

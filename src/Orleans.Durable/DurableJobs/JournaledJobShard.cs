@@ -11,7 +11,7 @@ using Orleans.Runtime.Internal;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Journaled implementation of <see cref="IJobShard"/> that stores shard state in Orleans journaling storage.
+/// 日刊的编辑执行情况 <see cref="IJobShard"/> 仓库的硬质状态 Orleans 日记存储。
 /// </summary>
 internal sealed class JournaledJobShard : IJobShard
 {
@@ -30,23 +30,23 @@ internal sealed class JournaledJobShard : IJobShard
     private int _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="JournaledJobShard"/> class.
+    /// 初始化 <see cref="JournaledJobShard"/> 类的新实例。
     /// </summary>
-    /// <param name="shardId">The unique identifier for this job shard.</param>
-    /// <param name="provider">The journal provider containing this shard.</param>
-    /// <param name="startTime">The start time of the time range managed by this shard.</param>
-    /// <param name="endTime">The end time of the time range managed by this shard.</param>
-    /// <param name="metadata">Optional metadata associated with this job shard.</param>
-    /// <param name="isClosed">A value indicating whether this shard is closed to new jobs.</param>
-    /// <param name="state">The journaled shard state.</param>
-    /// <param name="stateManager">The manager used to persist journaled state.</param>
-    /// <param name="shardManager">The shard manager that owns this shard.</param>
-    /// <param name="timeProvider">The time provider used for batch linger delays. Defaults to <see cref="TimeProvider.System"/>.</param>
+    /// <param name="shardId">此工作碎片的独特标识符。</param>
+    /// <param name="provider">包含此碎片的日记服务商。</param>
+    /// <param name="startTime">由此碎片管理的时段的起始时间。</param>
+    /// <param name="endTime">由此碎片管理的时间范围的结束时间。</param>
+    /// <param name="metadata">与此工作碎片相关的任择元数据。</param>
+    /// <param name="isClosed">值,显示是否关闭此片断以打开新任务。</param>
+    /// <param name="state">日记散状态。</param>
+    /// <param name="stateManager">管理器过去用来持续日记状态。</param>
+    /// <param name="shardManager">拥有此片段的碎片管理器。</param>
+    /// <param name="timeProvider">批量延迟时间提供者所用时间。 默认为 <see cref="TimeProvider.System"/>。</param>
     /// <param name="batchLingerDelay">
-    /// Optional duration the operation processor waits for additional mutations to join the batch
-    /// after the first one arrives. Use <see cref="TimeSpan.Zero"/> (the default) to disable linger.
+    /// 操作处理程序等待更多变异加入批次的可选持续时间
+    /// 第一个到达后,使用 <see cref="TimeSpan.Zero"/> (默认) 禁用剩余时间 。
     /// </param>
-    /// <param name="durableJobsInstruments">The durable jobs metrics instruments.</param>
+    /// <param name="durableJobsInstruments">持久就业衡量工具。</param>
     public JournaledJobShard(
         JobShardId shardId,
         DurableJobsJournalProvider provider,
@@ -87,7 +87,7 @@ internal sealed class JournaledJobShard : IJobShard
             _state.MarkAsComplete();
         }
 
-        // The processor outlives its creator, so it runs without the creator's execution context and async locals.
+        // 过程比创造者活得久, 因此它运行没有创作者的执行环境 和与当地人同步。
         using var suppressExecutionContext = new ExecutionContextSuppressor();
         _operationProcessor = Task.Run(ProcessOperationsAsync);
     }
@@ -110,7 +110,7 @@ internal sealed class JournaledJobShard : IJobShard
     public bool IsAddingCompleted => _state.IsAddingCompleted;
 
     /// <summary>
-    /// Gets the backing journal identifier for this shard.
+    /// 获取此碎片的支持日记识别符 。
     /// </summary>
     internal JournalId StorageId => JobShardId.Parse(Id).ToJournalId();
 
@@ -133,9 +133,9 @@ internal sealed class JournaledJobShard : IJobShard
     }
 
     /// <summary>
-    /// Closes mutation admission and drains accepted operations before ownership cleanup.
+    /// 关闭了突变的进入和排水管,在清理所有权之前接受作业。
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the completion barrier wait.</param>
+    /// <param name="cancellationToken">取消完成屏障等待的标记 。</param>
     internal async Task RetireAsync(CancellationToken cancellationToken)
     {
         using var operation = new MarkAsCompleteOperation(cancellationToken);
@@ -147,7 +147,7 @@ internal sealed class JournaledJobShard : IJobShard
             _pendingOperationSignal.Signal();
         }
 
-        // Canceling the wait lets unregistration dispose the shard and cancel owned closing I/O.
+        // 取消等待, 未经登记处理碎片并注销自有关闭 I/ O 。
         await operation.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         if (!_state.IsAddingCompleted)
         {
@@ -223,10 +223,10 @@ internal sealed class JournaledJobShard : IJobShard
     }
 
     /// <summary>
-    /// Deletes this shard's journaled state.
+    /// 删除此碎片日记状态 。
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <returns>代表无同步操作的任务。</returns>
     internal async ValueTask DeleteStateAsync(CancellationToken cancellationToken)
     {
         ThrowIfDisposed();
@@ -300,7 +300,7 @@ internal sealed class JournaledJobShard : IJobShard
                 if (!TryDequeueOperation(out var operation) || operation is null)
 #pragma warning restore CA2000
                 {
-                    // The queue is authoritative: drain it before waiting for another coalesced signal.
+                    // 队列是权威性的:排干它,等待另一个联合信号。
                     await _pendingOperationSignal.WaitAsync().ConfigureAwait(false);
                     continue;
                 }

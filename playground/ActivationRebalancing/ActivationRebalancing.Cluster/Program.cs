@@ -19,7 +19,7 @@ builder.UseOrleans(builder => builder
     {
         o.RebalancerDueTime = TimeSpan.FromSeconds(5);
         o.SessionCyclePeriod = TimeSpan.FromSeconds(5);
-        // uncomment these below, if you want higher migration rate
+        // 如果要提高移民比率,请在下面加注这些
         //o.CycleNumberWeight = 1;
         //o.SiloNumberWeight = 0; 
     })

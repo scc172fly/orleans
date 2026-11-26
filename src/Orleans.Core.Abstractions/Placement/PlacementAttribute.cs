@@ -8,20 +8,20 @@ using static Orleans.Placement.ImmovableAttribute;
 namespace Orleans.Placement
 {
     /// <summary>
-    /// Base for all placement policy marker attributes.
+    /// 用于所有职位安排政策标记属性的基础。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public abstract class PlacementAttribute : Attribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// Gets the placement strategy associated with this attribute.
+        /// 获取与此属性相关的定位策略。
         /// </summary>
         public PlacementStrategy PlacementStrategy { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlacementAttribute"/> class.
+        /// 初始化 <see cref="PlacementAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="placement">The placement strategy associated with this attribute.</param>
+        /// <param name="placement">与此属性相关的职位安排策略。</param>
         protected PlacementAttribute(PlacementStrategy placement)
         {
             if (placement == null) throw new ArgumentNullException(nameof(placement));
@@ -37,17 +37,17 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Marks a grain class as using the <see cref="RandomPlacement"/> policy.
+    /// 标记a grain 类作为使用 <see cref="RandomPlacement"/> 政策。
     /// </summary>
     /// <remarks>
-    /// This is the default placement policy, so this attribute does not need to be used for normal grains.
+    /// 这是默认安放策略, 所以此属性不需要用于正常 grains。
     /// </remarks>
     /// <inheritdoc cref="RandomPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class RandomPlacementAttribute : PlacementAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="RandomPlacementAttribute"/> class.
+        /// 初始化 <see cref="RandomPlacementAttribute"/> 类的新实例。
         /// </summary>
         public RandomPlacementAttribute() :
             base(RandomPlacement.Singleton)
@@ -56,14 +56,14 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Marks a grain class as using the <see cref="HashBasedPlacement"/> policy.
+    /// 标记a grain 类作为使用 <see cref="HashBasedPlacement"/> 政策。
     /// </summary>
     /// <inheritdoc cref="HashBasedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class HashBasedPlacementAttribute : PlacementAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="HashBasedPlacementAttribute"/> class.
+        /// 初始化 <see cref="HashBasedPlacementAttribute"/> 类的新实例。
         /// </summary>
         public HashBasedPlacementAttribute() :
             base(HashBasedPlacement.Singleton)
@@ -71,14 +71,14 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Marks a grain class as using the <see cref="PreferLocalPlacement"/> policy.
+    /// 标记a grain 类作为使用 <see cref="PreferLocalPlacement"/> 政策。
     /// </summary>
     /// <inheritdoc cref="PreferLocalPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class PreferLocalPlacementAttribute : PlacementAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PreferLocalPlacementAttribute"/> class.
+        /// 初始化 <see cref="PreferLocalPlacementAttribute"/> 类的新实例。
         /// </summary>
         public PreferLocalPlacementAttribute()
             : base(PreferLocalPlacement.Singleton)
@@ -87,15 +87,15 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Marks a grain class as using the <see cref="ActivationCountBasedPlacement"/> policy, which attempts to balance
-    /// grain placement across servers based upon the relative number of recently active grains on each one.
+    /// 标记一个 grain 类为使用试图平衡的 <see cref="ActivationCountBasedPlacement"/> 策略
+    /// grain 跨服务器的放置,根据每个服务器最近运行的 grains 相对数量。
     /// </summary>
     /// <inheritdoc cref="ActivationCountBasedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class ActivationCountBasedPlacementAttribute : PlacementAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActivationCountBasedPlacementAttribute"/> class.
+        /// 初始化 <see cref="ActivationCountBasedPlacementAttribute"/> 类的新实例。
         /// </summary>
         public ActivationCountBasedPlacementAttribute()
             : base(ActivationCountBasedPlacement.Singleton)
@@ -104,14 +104,14 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Marks a grain class as using the <see cref="SiloRoleBasedPlacement"/> policy.
+    /// 标记a grain 类作为使用 <see cref="SiloRoleBasedPlacement"/> 政策。
     /// </summary>
     /// <inheritdoc cref="SiloRoleBasedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class SiloRoleBasedPlacementAttribute : PlacementAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SiloRoleBasedPlacementAttribute"/> class.
+        /// 初始化 <see cref="SiloRoleBasedPlacementAttribute"/> 类的新实例。
         /// </summary>
         public SiloRoleBasedPlacementAttribute() :
             base(SiloRoleBasedPlacement.Singleton)
@@ -119,14 +119,14 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Marks a grain class as using the <see cref="ResourceOptimizedPlacement"/> policy.
+    /// 标记a grain 类作为使用 <see cref="ResourceOptimizedPlacement"/> 政策。
     /// </summary>
     /// <inheritdoc cref="ResourceOptimizedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class ResourceOptimizedPlacementAttribute : PlacementAttribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ResourceOptimizedPlacementAttribute"/> class.
+        /// 初始化 <see cref="ResourceOptimizedPlacementAttribute"/> 类的新实例。
         /// </summary>
         public ResourceOptimizedPlacementAttribute() :
             base(ResourceOptimizedPlacement.Singleton)
@@ -134,15 +134,15 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Ensures that activations of this grain type will not be migrated automatically.
+    /// 确保不自动迁移该 grain 型号的激活。
     /// </summary>
-    /// <remarks>Activations can still be migrated by user initiated code.</remarks>
+    /// <remarks>活动仍可以通过用户启动的代码迁移。</remarks>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class ImmovableAttribute(ImmovableKind kind = ImmovableKind.Any)
         : Attribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// The kind of immovability.
+        /// 那种无法移动的
         /// </summary>
         public ImmovableKind Kind { get; } = kind;
 
@@ -154,21 +154,21 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// Emphasizes that immovability is restricted to certain components.
+    /// 强调不得迁移仅限于某些组成部分。
     /// </summary>
     [Flags]
     public enum ImmovableKind : byte
     {
         /// <summary>
-        /// Activations of this grain type will not be migrated by the repartitioner.
+        /// 此 grain 类型的激活不会被重新分配者迁移。
         /// </summary>
         Repartitioner = 1,
         /// <summary>
-        /// Activations of this grain type will not be migrated by the rebalancer.
+        /// 此 grain 类型的激活不会由再平衡器迁移。
         /// </summary>
         Rebalancer = 2,
         /// <summary>
-        /// Activations of this grain type will not be migrated by anything.
+        /// 此类型 grain 的激活不会被任何物体移动。
         /// </summary>
         Any = Repartitioner | Rebalancer
     }

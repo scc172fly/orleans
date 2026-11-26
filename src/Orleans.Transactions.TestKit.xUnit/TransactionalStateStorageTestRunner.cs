@@ -11,16 +11,16 @@ namespace Orleans.Transactions.TestKit.xUnit
         where TState : class, new()
     {
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
-        /// <param name="stateStorageFactory">factory to create ITransactionalStateStorage, the test runner are assuming the state 
-        /// in storage is empty when ITransactionalStateStorage was created </param>
-        /// <param name="stateFactory">factory to create TState for test</param>
-        /// <param name="grainFactory">grain Factory needed for test runner</param>
-        /// <param name="testOutput">test output to helpful messages</param>
-        /// <param name="assertConfig">A reference to the AwesomeAssertions.Equivalency.EquivalencyOptions`1
-        ///     configuration object that can be used to influence the way the object graphs
-        ///     are compared</param>
+        /// <param name="stateStorageFactory">要创建工厂 ITransactionalStateStorage,测试选手将假设状态 
+        /// 创建 ITransactionalStateStorage </param>时存储为空
+        /// <param name="stateFactory">创建用于测试的 T State 工厂</param>
+        /// <param name="grainFactory">grain 测试跑者所需的工厂</param>
+        /// <param name="testOutput">测试输出到帮助信息</param>
+        /// <param name="assertConfig">提及 AwesomeAssertions.Equivalency.EquivalencyOptions`1
+        ///     可用于影响对象图形方式的配置对象
+        ///     比较</param>
         public TransactionalStateStorageTestRunnerxUnit(Func<Task<ITransactionalStateStorage<TState>>> stateStorageFactory,
             Func<int, TState> stateFactory, IGrainFactory grainFactory, ITestOutputHelper testOutput,
             Func<EquivalencyOptions<TState>, EquivalencyOptions<TState>>? assertConfig = null)

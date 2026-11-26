@@ -19,22 +19,22 @@ using Orleans.Statistics;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Event Hub Partition settings
+    /// 活动中心分区设置
     /// </summary>
     public class EventHubPartitionSettings
     {
         /// <summary>
-        /// Eventhub settings
+        /// 偶形设置
         /// </summary>
         public EventHubOptions Hub { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the options which control receiving events from the partition.
+        /// 获取或设置控制从分区接收事件选项。
         /// </summary>
         public EventHubReceiverOptions ReceiverOptions { get; set; } = null!;
 
         /// <summary>
-        /// Partition name
+        /// 分区名称
         /// </summary>
         public string Partition { get; set; } = null!;
     }
@@ -61,7 +61,7 @@ namespace Orleans.Streaming.EventHubs
         private IStreamQueueCheckpointer<string>? checkpointer;
         private AggregatedQueueFlowController flowController = null!;
 
-        // Receiver life cycle
+        // 接收者生命周期
         private int receiverState = ReceiverShutdown;
 
         private const int ReceiverShutdown = 0;
@@ -116,7 +116,7 @@ namespace Orleans.Streaming.EventHubs
         {
             LogInfoInitializingEventHubPartition(this.settings.Hub.EventHubName, this.settings.Partition);
 
-            // if receiver was already running, do nothing
+            // 如果接收器已经在运行, 什么都不做
             if (ReceiverRunning == Interlocked.Exchange(ref this.receiverState, ReceiverRunning))
             {
                 return;
@@ -127,8 +127,8 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Initialization of EventHub receiver is performed at adapter receiver initialization, but if it fails,
-        ///  it will be retried when messages are requested
+        /// EventHub 接收器的初始化是在适配器接收器初始化时进行的,但如果它失败了,
+        ///  当信件被请求时, 将会重新处理它
         /// </summary>
         /// <returns></returns>
         private async Task Initialize(CancellationToken cancellationToken)
@@ -178,14 +178,14 @@ namespace Orleans.Streaming.EventHubs
                 return new List<IBatchContainer>();
             }
 
-            // if receiver initialization failed, retry
+            // 如果接收初始化失败, 重试
             if (this.receiver == null)
             {
                 LogWarningRetryingInitializationOfEventHubPartition(this.settings.Hub.EventHubName, this.settings.Partition);
                 await Initialize(cancellationToken);
                 if (this.receiver == null)
                 {
-                    // should not get here, should throw instead, but just incase.
+                    // 不应该来这里,应该扔过来,但只是以防万一。
                     return new List<IBatchContainer>();
                 }
             }
@@ -194,7 +194,7 @@ namespace Orleans.Streaming.EventHubs
             try
             {
 
-                // Receivers built against older Orleans versions can still return null.
+                // 与旧版本 Orleans 相配的接收器仍可返回无效。
                 messages = (await this.receiver.ReceiveAsync(
                     maxCount,
                     ReceiveTimeout,
@@ -218,7 +218,7 @@ namespace Orleans.Streaming.EventHubs
                 return batches;
             }
 
-            // monitor message age
+            // 监视显示电文时间
             var dequeueTimeUtc = DateTime.UtcNow;
 
             DateTime oldestMessageEnqueueTime = messages[0].EnqueuedTime.UtcDateTime;
@@ -236,15 +236,15 @@ namespace Orleans.Streaming.EventHubs
 
         public void AddToCache(IList<IBatchContainer> messages)
         {
-            // do nothing, we add data directly into cache.  No need for agent involvement
+            // 什么都不做,我们直接把数据添加到缓存中。
         }
 
         public bool TryPurgeFromCache([MaybeNullWhen(false)] out IList<IBatchContainer> purgedItems)
         {
             purgedItems = null;
 
-            //if not under pressure, signal the cache to do a time based purge
-            //if under pressure, which means consuming speed is less than producing speed, then shouldn't purge, and don't read more message into the cache
+            //如果压力不强,请信号缓存进行基于时间的清洗
+            //如果在压力下, 意味着消费速度低于生产速度, 那么不应该清洗, 不要读更多的信息进入缓存
             if (!this.IsUnderPressure())
                 this.cache!.SignalPurge();
 
@@ -306,7 +306,7 @@ namespace Orleans.Streaming.EventHubs
             var watch = Stopwatch.StartNew();
             try
             {
-                // if receiver was already shutdown, do nothing
+                // 如果接收器已经关闭, 什么都不做
                 if (ReceiverShutdown == Interlocked.Exchange(ref this.receiverState, ReceiverShutdown))
                 {
                     return;
@@ -318,8 +318,8 @@ namespace Orleans.Streaming.EventHubs
 
                 try
                 {
-                    // Flush the checkpoint before disposing the cache or closing the receiver,
-                    // so the latest processed offset is persisted and not replayed on restart.
+                    // 冲淡检查站,然后处置缓存或关闭接收器,
+                    // ,所以最新的处理偏移会持续进行,在重新启动时不会重播。
                     if (this.checkpointer != null)
                     {
                         using var flushCancellation = timeout == Timeout.InfiniteTimeSpan ? null : new CancellationTokenSource(timeout);
@@ -331,12 +331,12 @@ namespace Orleans.Streaming.EventHubs
                     shutdownExceptions.Add(ex);
                 }
 
-                // clear cache and receiver
+                // 清除缓存和接收器
                 IEventHubQueueCache? localCache = Interlocked.Exchange(ref this.cache, null);
 
                 var localReceiver = Interlocked.Exchange(ref this.receiver, null);
 
-                // start closing receiver
+                // 开始关闭接收器
                 Task closeTask = Task.CompletedTask;
                 using var closeCancellation = timeout == Timeout.InfiniteTimeSpan ? null : new CancellationTokenSource(timeout);
                 var closeCancellationToken = closeCancellation?.Token ?? CancellationToken.None;
@@ -352,7 +352,7 @@ namespace Orleans.Streaming.EventHubs
                     shutdownExceptions.Add(ex);
                 }
 
-                // dispose of cache
+                // 处置缓存
                 try
                 {
                     localCache?.Dispose();
@@ -362,7 +362,7 @@ namespace Orleans.Streaming.EventHubs
                     shutdownExceptions.Add(ex);
                 }
 
-                // finish return receiver closing task
+                // 完成返回接收器的返回接收器结束任务
                 try
                 {
                     await closeTask.WaitAsync(closeCancellationToken);
@@ -404,7 +404,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// For test purpose. ConfigureDataGeneratorForStream will configure a data generator for the stream
+        /// 用于测试目的。 ConfigureDataGeneratorForStream 将为流源配置数据生成器
         /// </summary>
         /// <param name="streamId"></param>
         internal void ConfigureDataGeneratorForStream(StreamId streamId)

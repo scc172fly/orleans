@@ -4,15 +4,15 @@ using System;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="Version"/>.
+    /// <see cref="Version"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class VersionCodec : GeneralizedReferenceTypeSurrogateCodec<Version, VersionSurrogate>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="VersionCodec"/> class.
+        /// 初始化 <see cref="VersionCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public VersionCodec(IValueSerializer<VersionSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -23,8 +23,8 @@ namespace Orleans.Serialization.Codecs
             int revision = surrogate.Revision;
             int build = surrogate.Build;
 
-            // ArgumentOutOfRangeException is thrown if any argument is less than zero
-            // Build and Revision are -1 if they are not defined during construction
+            // ArgumentOutOfRangeException 如果任何论点少于零,则将抛出
+            // 如果在施工期间未界定构建和修订是 - 1
             if (revision != -1)
             {
                 return new Version(surrogate.Major, surrogate.Minor, build, revision);
@@ -50,36 +50,36 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type for <see cref="VersionCodec"/>.
+    /// <see cref="VersionCodec"/>的代用类型。
     /// </summary>
     [GenerateSerializer]
     public struct VersionSurrogate
     {
         /// <summary>
-        /// Gets or sets the major version component.
+        /// 获取或设置主版本组件。
         /// </summary>
-        /// <value>The major version component.</value>
+        /// <value>主版本组件。</value>
         [Id(0)]
         public int Major;
 
         /// <summary>
-        /// Gets or sets the minor version component.
+        /// 获取或设置次要版本组件。
         /// </summary>
-        /// <value>The minor version component.</value>
+        /// <value>次要版本组件。</value>
         [Id(1)]
         public int Minor;
 
         /// <summary>
-        /// Gets or sets the build number.
+        /// 获取或设置构建数字。
         /// </summary>
-        /// <value>The build number.</value>
+        /// <value>构建号。</value>
         [Id(2)]
         public int Build;
 
         /// <summary>
-        /// Gets or sets the revision.
+        /// 获取或设置修改。
         /// </summary>
-        /// <value>The revision.</value>
+        /// <value>修改。</value>
         [Id(3)]
         public int Revision;
     }

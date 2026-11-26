@@ -8,21 +8,21 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// Verifies that a grain which loses its activation while one of its executions is runnable, running a local step rather
-/// than waiting for a message, resumes the execution without a call to that grain: its durable wake-up reactivates it.
+/// 证明a grain 其一处决是可操作的,而执行的是地方一步,而不是地方一步
+/// 而不是等待消息, 恢复处决而不发出这样的呼吁 grain:它持久的觉醒,重新激活了它。
 /// </summary>
 /// <remarks>
-/// A workflow calls the partner's gated step, which waits for a gate the test opens. The partner's activation ends while the
-/// step runs: it deactivates, its silo shuts down or crashes, or its journal write fails. Only the client polls the
-/// workflow's grain.
+/// 工作流程呼叫伴侣的大门,等待测试打开的门。当伴侣被激活时,该伴侣的启动结束
+/// 步数运行: 它停止使用, silo 关闭或崩溃, 或者日记写失败。 只有客户对
+/// 工作流程 grain。
 /// </remarks>
 public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : IAsyncLifetime
 {
     private const int Value = 5;
 
 
-    // Durable Jobs adopts a crashed silo's shards, which hold the crashed activations' wake-ups, in its periodic shard
-    // check: the sweep which a membership change triggers runs before the crashed silo is declared dead.
+    // 永久工作会采用崩溃 silo的碎片, 将崩溃启动的提醒屏住, 并用周期碎片将其固定在
+    // 检查:在崩溃 silo 被宣布为死亡之前,会籍变更触发的扫描程序将运行。
     private InjectedFault? _wakeups;
     private readonly DurableTaskFaultHarness _harness = new(
         journalFormatKey,
@@ -39,8 +39,8 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
         var (workflow, partnerKey, partner) = await StartGatedStepAsync();
         Assert.True(_harness.Fixture.Cluster.TryGetGrainContext(partner.GetGrainId(), out var activation));
 
-        // The step's segment holds the non-reentrant partner, as a grain method does, so deactivation starts on the
-        // activation itself and completes once the segment, whose result the stop discards, has ended.
+        // 阶梯段的段段保持非返回伙伴,就像 grain 方法一样,因此从
+        // 分离的弃鱼停止了 部分完成后 就会自动激活并完成
         activation.Deactivate(new(DeactivationReasonCode.ApplicationRequested, "The test deactivates the partner."), CancellationToken);
         _harness.Gates.Open(partnerKey);
         await activation.Deactivated.WaitAsync(DurableTaskFaultHarness.RunTimeout, CancellationToken);
@@ -73,14 +73,14 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
         await AssertCompletesAsync(workflow, partner);
     }
 
-    /// <summary>The step's write fails, before or after it is durable, which fences the partner's journal and deactivates it.</summary>
+    /// <summary>步骤的写作失败, 在它持久之前或之后, 它围住合伙人的日记并停止使用。</summary>
     [Theory]
     [InlineData(FaultPoint.JournalWriteBeforeDurable)]
     [InlineData(FaultPoint.JournalWriteAfterDurable)]
     public async Task FailedWriteWhileAStepRunsResumesTheStep(FaultPoint point)
     {
         var (workflow, partnerKey, partner) = await StartGatedStepAsync();
-        // The step started once the write which recorded it completed, so the partner's next write records its result.
+        // 步骤开始于记录该步骤的写作完成后, 所以合伙人接下来的写作记录了结果。
         var fault = _harness.Injector.Arm(point, partner.GetGrainId(), 0);
 
         _harness.Gates.Open(partnerKey);
@@ -89,7 +89,7 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
         Assert.True(fault.HasFired, $"{fault} didn't fire.");
     }
 
-    /// <summary>Starts the workflow's call to the partner's gated step, and waits until the step runs.</summary>
+    /// <summary>启动工作流量呼叫到伴侣的门阶,并等待步骤运行。</summary>
     private async Task<(IFaultWorkflowGrain Workflow, Guid PartnerKey, IFaultPartnerGrain Partner)> StartGatedStepAsync()
     {
         _harness.Injector.Reset();
@@ -103,7 +103,7 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
     }
 
 
-    /// <summary>Gets the silo which hosts the partner's activation; the cluster's other silo remains.</summary>
+    /// <summary>得到 silo 伙伴的激活所在所在方; 组群的另外 silo 遗体。</summary>
     private InProcessSiloHandle GetSilo(IFaultPartnerGrain partner)
     {
         Assert.True(_harness.Fixture.Cluster.TryGetGrainContext(partner.GetGrainId(), out var context));
@@ -136,14 +136,14 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
     }
 }
 
-/// <summary>Runs runnable-execution wake-up coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行可运行执行的运行状态提醒覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskRunnableWakeupTests() : DurableTaskRunnableWakeupTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs runnable-execution wake-up coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行可运行执行的运行强制提醒覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

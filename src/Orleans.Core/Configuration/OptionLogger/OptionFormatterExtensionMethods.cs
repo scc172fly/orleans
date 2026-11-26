@@ -6,24 +6,24 @@ using Orleans.Configuration.Internal;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Extension methods on <see cref="IServiceCollection"/>, to provider better usability to IOptionFormatter.
+    /// <see cref="IServiceCollection"/>的扩展方法,使供应商更适合使用 IOptionFormatter。
     /// </summary>
     public static class OptionConfigureExtensionMethods
     {
         /// <summary>
-        /// Configures an options formatter for <typeparamref name="TOptions"/>.
+        /// 配置 <typeparamref name="TOptions"/>的选项。
         /// </summary>
         /// <param name="services">
-        /// The services.
+        /// 服务。
         /// </param>
         /// <typeparam name="TOptions">
-        /// The options type.
+        /// 选项类型。
         /// </typeparam>
         /// <typeparam name="TOptionFormatter">
-        /// The option formatter type, including the public constructors used for dependency injection.
+        /// 选择物质类型,包括用于依赖注射的公共建筑师。
         /// </typeparam>
         /// <returns>
-        /// The <see cref="IServiceCollection"/>, for chaining with other calls.
+        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
         /// </returns>
         public static IServiceCollection ConfigureFormatter<
             TOptions,
@@ -40,26 +40,26 @@ namespace Orleans.Configuration
             }
             else
             {
-                // override IOptionFormatter<TOptions>
+                // 覆盖 IOptionFormatter<TOptions>
                 services.AddSingleton<IOptionFormatter<TOptions>, TOptionFormatter>();
             }
             return services;
         }
 
         /// <summary>
-        /// Configures an options formatter for <typeparamref name="TOptions"/>.
+        /// 配置 <typeparamref name="TOptions"/>的选项。
         /// </summary>
         /// <remarks>
-        /// This will use the default options formatter unless a non-default formatter is configured.
+        /// 这将使用默认选项来处理事项, 除非配置了非默认的事项 。
         /// </remarks>
         /// <param name="services">
-        /// The services.
+        /// 服务。
         /// </param>
         /// <typeparam name="TOptions">
-        /// The options type.
+        /// 选项类型。
         /// </typeparam>
         /// <returns>
-        /// The <see cref="IServiceCollection"/>, for chaining with other calls.
+        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
         /// </returns>
         public static IServiceCollection ConfigureFormatter<TOptions>(this IServiceCollection services)
             where TOptions : class, new()
@@ -68,19 +68,19 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures an options formatter for <typeparamref name="TOptions"/> if none are already configured.
+        /// 配置尚未配置的 <typeparamref name="TOptions"/> 的选项。
         /// </summary>
         /// <param name="services">
-        /// The services.
+        /// 服务。
         /// </param>
         /// <typeparam name="TOptions">
-        /// The options type.
+        /// 选项类型。
         /// </typeparam>
         /// <typeparam name="TOptionFormatter">
-        /// The option formatter type, including the public constructors used for dependency injection.
+        /// 选择物质类型,包括用于依赖注射的公共建筑师。
         /// </typeparam>
         /// <returns>
-        /// The <see cref="IServiceCollection"/>, for chaining with other calls.
+        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
         /// </returns>
         public static IServiceCollection TryConfigureFormatter<
             TOptions,
@@ -98,19 +98,19 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures an options formatter resolver for <typeparamref name="TOptions"/>.
+        /// 配置 <typeparamref name="TOptions"/>的物料解答器选项。
         /// </summary>
         /// <param name="services">
-        /// The services.
+        /// 服务。
         /// </param>
         /// <typeparam name="TOptions">
-        /// The options type.
+        /// 选项类型。
         /// </typeparam>
         /// <typeparam name="TOptionFormatterResolver">
-        /// The option formatter resolver type, including the public constructors used for dependency injection.
+        /// 用于物料解答器类型的选项,包括用于依赖注射的公共建筑师。
         /// </typeparam>
         /// <returns>
-        /// The <see cref="IServiceCollection"/>, for chaining with other calls.
+        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
         /// </returns>
         public static IServiceCollection ConfigureFormatterResolver<
             TOptions,
@@ -123,7 +123,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configure option formatter resolver for named option TOptions, if none is configured
+        /// 配置指定选项 Toptions 的物料解解器配置选项, 如果未配置
         /// </summary>
         public static IServiceCollection TryConfigureFormatterResolver<
             TOptions,
@@ -141,19 +141,19 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures a named option to be logged.
+        /// 配置要登录的命名选项 。
         /// </summary>
         /// <typeparam name="TOptions">
-        /// The option object's type.
+        /// 选项对象的类型。
         /// </typeparam>
         /// <param name="services">
-        /// The services.
+        /// 服务。
         /// </param>
         /// <param name="name">
-        /// The option object's name.
+        /// 选项对象的名称。
         /// </param>
         /// <returns>
-        /// The <see cref="IServiceCollection"/>, for chaining with other calls.
+        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
         /// </returns>
         public static IServiceCollection ConfigureNamedOptionForLogging<TOptions>(this IServiceCollection services, string name)
             where TOptions : class

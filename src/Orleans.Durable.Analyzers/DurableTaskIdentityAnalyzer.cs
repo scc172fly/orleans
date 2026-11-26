@@ -9,17 +9,17 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>Reports unnamed durable operations whose generated identifiers can shift between runs and deployments.</summary>
+/// <summary>报告未命名的持久行动,其产生的识别资料可在运行和部署之间转移。</summary>
 /// <remarks>
-/// An unnamed operation of a durable task body takes the execution's next generated identifier: a child, an effect, or a
-/// detached start takes <c>$child-n</c>, and an awaited combinator takes an operation identifier such as
-/// <c>$when-all-n</c>. Each counts the unnamed operations of its kind which ran before it, so an operation in a loop or a
-/// condition, or after another unnamed operation of its kind, can receive another identifier.
+/// 持久任务机构无名操作,则采用处决后下一个身份识别特征:儿童、效果或
+/// 独立启动时使用 <c>$child-n</c>,等待的组合器使用操作识别符,例如
+/// <c>$when-all-n</c>。每个单位都计及其面前的无名型号操作,因此一个循环或一个循环中操作
+/// 条件,或是在另一种未命名的此类操作之后,可再获得另一个识别特征。
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic property which marks an operation which <c>WithId</c> can name.</summary>
+    /// <summary>诊断特性是指 <c>WithId</c> 缩略语</summary>
     internal const string WithIdProperty = "WithId";
 
     private static readonly ImmutableDictionary<string, string?> WithIdProperties =
@@ -45,10 +45,10 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
 
     private enum Counter
     {
-        /// <summary>Children, effects, and detached starts, which take <c>$child-n</c>.</summary>
+        /// <summary>儿童、影响和分离的开始, <c>$child-n</c>.</summary>
         Child,
 
-        /// <summary>Awaited combinators, which take operation identifiers such as <c>$when-all-n</c>.</summary>
+        /// <summary>等待的组合集集机,它们使用诸如 <c>$when-all-n</c>.</summary>
         Operation,
     }
 
@@ -85,8 +85,8 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Returns the unnamed operation which an operation starts: an awaited, scheduled, or posted definition without
-    /// <c>WithId</c>, which the diagnostic marks, or an unnamed <c>DurableTask.RunInline</c> effect.
+    /// 返回一个操作开始的未命名操作:等待、计划或已张贴定义,不包含
+    /// <c>WithId</c>,诊断标记或未命名 <c>DurableTask.RunInline</c> 效应。
     /// </summary>
     private static (Counter Counter, SyntaxNode Node, bool Nameable)? GetUnnamedOperation(IOperation operation, DurableTaskSymbols symbols)
     {
@@ -124,8 +124,8 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Returns the durable task body which assigns an operation's identifier, and whether code between them, such as a
-    /// lambda which a query runs or a local function, can run the operation more than once.
+    /// 返回指定操作标识符的持久任务机构,以及两者之间是否代码,例如
+    /// imbda , 查询运行或本地函数, 可以不止一次运行此操作 。
     /// </summary>
     private static (SyntaxNode Node, bool Repeated)? GetScope(IOperation operation, ISymbol owningSymbol, DurableTaskSymbols symbols)
     {
@@ -164,7 +164,7 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
         return null;
     }
 
-    /// <summary>Returns whether a node runs in a loop or a condition within its body.</summary>
+    /// <summary>返回一个节点是循环运行的,还是其体内的条件。</summary>
     private static bool IsConditionalOrRepeated(SyntaxNode node, SyntaxNode scope)
     {
         for (var child = node; child.Parent is { } parent && child != scope; child = parent)

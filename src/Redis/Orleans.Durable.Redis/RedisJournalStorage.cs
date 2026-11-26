@@ -392,7 +392,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
     private readonly RedisJournalStorageOptions _options;
     private readonly JournalId _journalId;
     private readonly string _encodedJournalId;
-    // Null until read or creation, empty for an absent journal.
+    // 读取或创建前不为空日记 。
     private string? _contentETag;
     private long _appendLength;
 
@@ -451,7 +451,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
         var state = CreateStorageState(result, startIndex: 1, nameof(CreateIfNotExistsAsync));
         if (status == SuccessStatus)
         {
-            // Creating the journal is a write by this instance; finding an existing journal leaves the precondition unchanged.
+            // 创建日记是此实例的写作;找到已有日记使先决条件保持不变。
             SetState(state);
         }
 
@@ -601,7 +601,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
         ClearState();
     }
 
-    // Write scripts take the content ETag this instance holds, or an empty string to require an absent journal.
+    // 写入脚本时会使用此实例所持有的内容 ETag, 或者空字符串来要求缺少日记 。
     private void ThrowIfWriteBeforeRead(string operation)
     {
         if (_contentETag is null)
@@ -618,8 +618,8 @@ internal sealed class RedisJournalStorage : IJournalStorage
 
     internal static RedisValue GetMetadataKeyPattern(string keyPrefix, string? journalIdPrefix = null)
     {
-        // An ordinal prefix can end halfway through a surrogate pair. Broaden the scan in that
-        // case since escaping the incomplete pair would not match the encoded complete character.
+        // 正交前缀可以通过替代配对结束一半。 放大扫描
+        // 情况,因为不完全对的脱钩与编码完整的字符不符。
         if (journalIdPrefix is { Length: > 0 } && char.IsHighSurrogate(journalIdPrefix[^1]))
         {
             journalIdPrefix = journalIdPrefix[..^1];
@@ -813,7 +813,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
         _appendLength = appendLength;
     }
 
-    // Records that this instance observed the journal absent.
+    // 记录显示此事件显示日记不在。
     private void ClearState()
     {
         _contentETag = string.Empty;
@@ -963,7 +963,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
                 continue;
             }
 
-            // URI escaping handles Unicode scalars; %uXXXX preserves individual unpaired UTF-16 code units.
+            // URI 逃跑控点为 Unicode 电路弧;%uXXXX 保存个人未受保护的UTF-16代码单位。
             result ??= new StringBuilder();
             result.Append(Uri.EscapeDataString(value[start..index]));
             result.Append("%u").Append(((int)character).ToString("X4", CultureInfo.InvariantCulture));

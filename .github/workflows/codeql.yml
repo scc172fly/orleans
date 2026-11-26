@@ -11,7 +11,7 @@ on:
     types:
       - checks_requested
   schedule:
-    - cron: '0 6 * * 1'  # Run weekly on Monday at 6:00 UTC
+    - cron: '0 6 * * 1'  # 每周在星期一6: 00世界协调时运行
 
 jobs:
   # Keep the final job id as "analyze" so CodeQL matches its analysis_key to the configuration on main.

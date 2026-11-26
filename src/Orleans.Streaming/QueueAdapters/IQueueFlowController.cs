@@ -3,15 +3,15 @@
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Functionality for controlling the flow of retrieved queue items.
+    /// 控制检索到的队列项目流动的职能。
     /// </summary>
     public interface IQueueFlowController
     {
         /// <summary>
-        /// Gets the maximum number of items that can be added.
+        /// 获取可以添加的最大项目数。
         /// </summary>
         /// <returns>
-        /// The maximum number of items that can be added.
+        /// 可添加的项目的最大数量 。
         /// </returns>
         int GetMaxAddCount();
     }

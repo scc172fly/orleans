@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// The kind of manually-registered codec/provider.
+/// 手动注册的编码/提供者类型
 /// </summary>
 internal enum RegisteredCodecKind : byte
 {
@@ -12,8 +12,8 @@ internal enum RegisteredCodecKind : byte
 }
 
 /// <summary>
-/// Describes a type annotated with <c>[RegisterSerializer]</c>, <c>[RegisterCopier]</c>,
-/// <c>[RegisterActivator]</c>, or <c>[RegisterConverter]</c>.
+/// 描述注释类型 <c>[RegisterSerializer]</c>, <c>[RegisterCopier]</c>,
+/// <c>[RegisterActivator]</c>]、或 <c>[RegisterConverter]</c>。
 /// </summary>
 internal readonly record struct RegisteredCodecModel(
     TypeRef Type,

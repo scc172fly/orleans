@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.Configuration;
 
 /// <summary>
-/// Describes a serialization type using concrete types and an implementation's generic parameters.
+/// 描述使用具体类型和实施通用参数的序列型号。
 /// </summary>
 public sealed class SerializationType
 {
@@ -74,17 +74,17 @@ public sealed class SerializationType
     }
 
     /// <summary>
-    /// Describes a concrete type or a generic type definition with its argument descriptions.
+    /// 描述具体类型或通用定义及其说明。
     /// </summary>
-    /// <param name="type">The concrete type or generic definition.</param>
-    /// <param name="arguments">The generic arguments, in declaration order.</param>
-    /// <returns>The type description.</returns>
+    /// <param name="type">具体类型或通用定义。</param>
+    /// <param name="arguments">通用论点,按声明顺序排列。</param>
+    /// <returns>类型描述。</returns>
     /// <remarks>
-    /// Generic definitions supplied without argument descriptions use the implementation's
-    /// generic parameters in declaration order for target matching and executable type resolution.
-    /// Supply argument descriptions to bind a subset of the parameters or reorder them.
-    /// Array types supplied to this method must be closed. Use <see cref="Array"/>
-    /// to describe a structural target-matching pattern with generic element parameters.
+    /// 通用定义,无说明说明而提供的一般定义使用执行说明
+    /// 目标匹配和可执行类型分辨率的宣布参数通用参数。
+    /// 提供参数说明,以约束某一子参数或重新排序参数。
+    /// 为此方法提供的数组类型必须关闭。 使用 <see cref="Array"/>
+    /// 来描述结构目标匹配模式与通用元素参数的对比。
     /// </remarks>
     public static SerializationType Create(
 #if NET5_0_OR_GREATER
@@ -127,10 +127,10 @@ public sealed class SerializationType
     }
 
     /// <summary>
-    /// Describes an implementation's generic parameter.
+    /// 描述执行的通用参数。
     /// </summary>
-    /// <param name="index">The zero-based parameter index, including parameters of declaring types.</param>
-    /// <returns>The parameter description.</returns>
+    /// <param name="index">零基参数指数,包括宣布类型的参数。</param>
+    /// <returns>参数说明。</returns>
     public static SerializationType Parameter(int index)
     {
         if (index < 0)
@@ -142,16 +142,16 @@ public sealed class SerializationType
     }
 
     /// <summary>
-    /// Describes an array shape for matching a serialization contract's target.
+    /// 描述匹配序列化合同目标的阵列形状。
     /// </summary>
-    /// <param name="element">The element type description.</param>
-    /// <param name="rank">The array rank, starting at one for a vector.</param>
-    /// <returns>The array description.</returns>
+    /// <param name="element">元素类型描述。</param>
+    /// <param name="rank">矩阵排序,从矢量的一开始。</param>
+    /// <returns>数组说明。</returns>
     /// <remarks>
-    /// Array descriptions bind element parameters when matching a requested target type.
-    /// Executable type resolution requires a source-known closed array supplied using
-    /// <see cref="Create"/> or a closed converter registration. Resolving an array shape
-    /// as an executable type throws <see cref="NotSupportedException"/> on all runtimes.
+    /// 匹配所请求的目标类型时, 矩阵描述将元素参数绑定 。
+    /// 可执行的分辨率类型需要使用源已知的封闭数组提供源名
+    /// <see cref="Create"/> 或封闭式转换器注册。解析数组形状
+    /// 是一个可执行文件类型, 在所有运行时投下 <see cref="NotSupportedException"/> 。
     /// </remarks>
     public static SerializationType Array(SerializationType element, int rank = 1)
     {

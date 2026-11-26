@@ -21,10 +21,10 @@ namespace Documentation.Grains.Versioning.Compatibility
 [Version(2)]
 public interface IInventoryGrain : IGrainWithStringKey
 {
-    // Retained for version 1 callers.
+    // 保留为第1版呼叫者。
     Task<int> ReserveAsync(string sku, int quantity);
 
-    // Added for version 2 callers.
+    // 添加到第二版调用器
     Task<ReservationResult> ReserveWithIdAsync(
         string operationId,
         string sku,
@@ -246,7 +246,7 @@ public sealed class QuoteGrain(IPriceFeed feed) : Grain, IQuoteGrain
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        // The feed invokes OnPrice on its own threads.
+        // 饲料在自己的线上点燃 OnPrice 。
         _subscription = feed.Subscribe(this.GetPrimaryKeyString(), OnPrice);
         return Task.CompletedTask;
     }
@@ -259,7 +259,7 @@ public sealed class QuoteGrain(IPriceFeed feed) : Grain, IQuoteGrain
 
     public ValueTask<decimal> GetPrice() => ValueTask.FromResult(_price);
 
-    // Runs the update as a request on this activation, where it can safely access grain state.
+    // 运行更新作为激活请求, 以便安全访问 grain 状态 。
     private Task OnPrice(decimal price, CancellationToken cancellationToken) =>
         this.RunRequestAsync(
             static (state, _) => state.Grain._price = state.Price,
@@ -298,7 +298,7 @@ public sealed class QuoteGrain(IPriceFeed feed) : Grain, IQuoteGrain
         public ValueTask<DateTimeOffset> GetLastSeen() => ValueTask.FromResult(_lastSeen);
 
         // <run_request_options>
-// Heartbeats don't extend the activation's lifetime, and they run between the turns of other requests.
+// 心跳不会延长激活的寿命, 它们会在其他请求之间运行。
 private Task OnHeartbeat(DateTimeOffset timestamp, CancellationToken cancellationToken) =>
     this.RunRequestAsync(
         static (state, _) => state.Grain._lastSeen = state.Timestamp,
@@ -323,7 +323,7 @@ private Task OnHeartbeat(DateTimeOffset timestamp, CancellationToken cancellatio
     }
 
     // <receive_local_request>
-// A request which increments IngestGrain's counter. Call filters observe it as IIngestRequests.Increment.
+// 递增 IngestGrain柜台的请求。调用过滤器时将其视为 IIngestRequests.Increment。
 internal sealed class IncrementRequest : Request, ILocalRequest
 {
     private readonly TaskCompletionSource _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -331,8 +331,8 @@ internal sealed class IncrementRequest : Request, ILocalRequest
 
     public Task Completion => _completion.Task;
 
-    // Receives the outcome once the request and its call filters complete, or when the activation rejects the request.
-    // The task keeps the first outcome.
+    // 一旦请求及其呼叫过滤器完成,或当激活拒绝请求时,接收结果。
+    // 这项任务保持了第一个结果。
     public void Complete(Response response)
     {
         if (response.Exception is { } exception)
@@ -370,7 +370,7 @@ internal sealed class IncrementRequest : Request, ILocalRequest
 
 public static class IngestRequests
 {
-    // Delivers the request to the activation and returns a task which completes with the request's outcome.
+    // 将请求送达启动程序,并返回一项任务,完成请求的结果。
     public static Task Increment(IGrainContext activation)
     {
         var request = new IncrementRequest();

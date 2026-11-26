@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace TestExtensions
 {
-    // used for test constants
+    // 用于测试常量
     public static class TestConstants
     {
         public static readonly TimeSpan InitTimeout =

@@ -9,7 +9,7 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Monitors currently-active requests and sends status notifications to callers for long-running and blocked requests.
+    /// 监测当前正在运作的请求,并向长期和被冻结请求的打电话者发出状况通知。
     /// </summary>
     internal sealed class IncomingRequestMonitor : ILifecycleParticipant<ISiloLifecycle>
     {
@@ -75,7 +75,7 @@ namespace Orleans.Runtime
 
                 if (optionsPeriod <= TimeSpan.Zero)
                 {
-                    // Scanning is disabled. Wake up and check again soon.
+                    // 扫描已禁用, 尽快醒来再检查
                     nextDelay = DefaultAnalysisPeriod;
                     if (_enabled)
                     {

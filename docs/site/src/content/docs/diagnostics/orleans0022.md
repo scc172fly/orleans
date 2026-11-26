@@ -1,35 +1,45 @@
 ---
-title: "ORLEANS0022: Grain class is not active in OrleansContracts.txt"
-description: Understand and resolve ORLEANS0022 when a concrete grain class is missing or retired in the contract manifest.
+title: "ORLEANS0022: Grain 类在 OrleansContracts.txt中不活跃"
+description: "理解和决心 ORLEANS0022 当混凝土 grain 合同清单中缺少或退职的等级。"
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
-# ORLEANS0022: Grain class is not active in OrleansContracts.txt
+<a id="orleans0022-grain-class-is-not-active-in-orleanscontractstxt"></a>
 
-| Property | Value |
+# ORLEANS0022: Grain 类在 OrleansContracts.txt中不活跃
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Warning |
-| Code fix | Available |
+| 类别类 | 版本 |
+| 严重性 | 警告 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-A concrete grain or system-target class has no active manifest declaration matching its effective `GrainType`.
+## 原因原因原因
 
-## Impact
+混凝土 grain 或系统目标类没有与其有效 `GrainType`相符的主动明确声明。
 
-The implementation identity is not protected by contract review. A CLR rename without a stable `[GrainType]`, or a `GrainType` change, can create a distinct logical grain type and disrupt routing or state continuity.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Verify the class's durable grain type, add `[GrainType]` when it must remain independent of the CLR name, and apply **Add to OrleansContracts.txt**. The code fix adds or reactivates the class declaration.
+实施身份不受合同审查的保护。没有稳定的 `[GrainType]`或 `GrainType` 更改的 CLR 重命名,可创建一种独特的逻辑 grain 类型,并干扰路线或状态连续性。
 
-Apply **Regenerate OrleansContracts.txt** to rebuild the complete project manifest. Run regeneration separately for each contract project and review the generated diff using the [contract compatibility guidance](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest).
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Suppress only for a grain class intentionally excluded from deployment-contract tracking.
+验证该类的耐久性 grain 类型, 当必须保持独立于 CLR 名称时添加 `[GrainType]` , 并应用 **添加到 OrleansContracts.txt**。代码修正会增加或重新启动分类声明 。
+
+应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单。为每个合同项目分别运行再生,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+仅对故意被排除在部署合同跟踪之外的 grain 类禁止。
 
 ```ini
 [*.cs]

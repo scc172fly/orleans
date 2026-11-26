@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Places activations on compatible silos by hashing the grain identifier using a stable hash and selecting a silo from a sorted set using a modulo operation.
+    /// 将激活安装在兼容的 silos 以散 grain 使用稳定的散列并选择 silo 从使用模组操作的排序集中选择 。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable, SuppressReferenceTracking]
     public sealed class HashBasedPlacement : PlacementStrategy

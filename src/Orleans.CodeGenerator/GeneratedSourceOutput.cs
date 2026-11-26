@@ -164,7 +164,7 @@ internal static class GeneratedSourceOutput
                 continue;
             }
 
-            // Only conflicting hints need full-source hashing and per-original-hint deduplication.
+            // 只有相互冲突的提示需要全部来源的散列和按原创原创重复。
             collidingSourcesByOriginalHintName ??= new(StringComparer.Ordinal);
             if (!collidingSourcesByOriginalHintName.TryGetValue(entry.HintName, out var collidingSources))
             {
@@ -249,8 +249,8 @@ internal static class GeneratedSourceOutput
     }
 
     /// <summary>
-    /// Writes a generated file: assembly attributes, then each namespace in ordinal order with its members in insertion order,
-    /// enclosed by the generated-code warning suppression.
+    /// 写入生成的文件: 组装属性, 然后每个名称空间以正序顺序和其成员的插入顺序排列
+    /// 并附有生成代码警告抑制。
     /// </summary>
     internal static string CreateSourceString(
         Dictionary<string, List<Action<SourceWriter>>> namespacedMembers,
@@ -296,7 +296,7 @@ internal static class GeneratedSourceOutput
 
         if (!hasContent)
         {
-            // An empty compilation unit still occupies the line between the suppression directives.
+            // 一支空的编队仍然在镇压指令之间占据线。
             writer.StartLine();
         }
 

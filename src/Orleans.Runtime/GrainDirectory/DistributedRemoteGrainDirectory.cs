@@ -12,9 +12,9 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime.GrainDirectory;
 
 /// <summary>
-/// A system target that implements <see cref="IRemoteGrainDirectory"/> by delegating to <see cref="DistributedGrainDirectory"/>.
-/// This enables silos running the old <see cref="LocalGrainDirectory"/> to forward directory requests to silos running the
-/// new <see cref="DistributedGrainDirectory"/> during a rolling upgrade.
+/// 系统目标,执行 <see cref="IRemoteGrainDirectory"/> 委托给 <see cref="DistributedGrainDirectory"/>.
+/// 启用此功能 silos 运行旧 <see cref="LocalGrainDirectory"/> 将目录请求转发到 silos 运行
+/// 滚动升级期间的 <see cref="DistributedGrainDirectory"/> 。
 /// </summary>
 internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IRemoteGrainDirectory
 {
@@ -44,9 +44,9 @@ internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IR
     }
 
     /// <summary>
-    /// Creates the pair of system targets that replace <see cref="RemoteGrainDirectory"/> when
-    /// <see cref="DistributedGrainDirectory"/> is the default directory: one for <see cref="Constants.DirectoryServiceType"/>
-    /// and one for <see cref="Constants.DirectoryCacheValidatorType"/>.
+    /// 创建系统目标对齐,以替换 <see cref="RemoteGrainDirectory"/> 何时
+    /// <see cref="DistributedGrainDirectory"/> 是默认目录: <see cref="Constants.DirectoryServiceType"/>的目录 1
+    /// <see cref="Constants.DirectoryCacheValidatorType"/>中一个。
     /// </summary>
     internal static (DistributedRemoteGrainDirectory DirectoryService, DistributedRemoteGrainDirectory CacheValidator)
         Create(DistributedGrainDirectory directory, DirectoryMembershipService membershipService, SystemTargetShared shared)
@@ -57,9 +57,9 @@ internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IR
     }
 
     /// <summary>
-    /// Ensures the directory has an initialized membership view before processing requests.
-    /// Without this, calls arriving before the directory processes its first membership update
-    /// would block indefinitely in <see cref="DistributedGrainDirectory"/>'s internal retry loop.
+    /// 确保名录在处理请求之前先有初始成员观点。
+    /// 没有这个, 便在名录处理首次更新成员之前接到电话
+    /// 将无限期地在 <see cref="DistributedGrainDirectory"/>的内部重试循环中屏蔽。
     /// </summary>
     private async Task EnsureDirectoryInitializedAsync(CancellationToken cancellationToken)
     {
@@ -281,8 +281,8 @@ internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IR
             case UnregistrationCause.Force:
                 return _directory.UnregisterAsync(address, cancellationToken);
             case UnregistrationCause.NonexistentActivation:
-                // LocalGrainDirectory only removes these entries after LazyDeregistrationDelay.
-                // This compatibility path does not track entry age, so preserve the conditional semantics by not force-removing the entry.
+                // LocalGrainDirectory 只有在 LazyDeregistrationDelay之后才删除这些条目。
+                // 此兼容路径无法跟踪进入年龄, 所以保留有条件的语义, 而不是强制移动输入 。
                 return Task.CompletedTask;
             default:
                 throw new ArgumentOutOfRangeException(nameof(cause), cause, $"Deregistration cause {cause} is unknown and is not supported. This is a bug.");

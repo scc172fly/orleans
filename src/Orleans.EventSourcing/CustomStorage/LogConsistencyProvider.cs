@@ -7,19 +7,19 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.EventSourcing.CustomStorage
 {
     /// <summary>
-    /// A log-consistency provider that relies on grain-specific custom code for 
-    /// reading states from storage, and appending deltas to storage.
-    /// Grains that wish to use this provider must implement the <see cref="ICustomStorageInterface{TState, TDelta}"/>
-    /// interface, to define how state is read and how deltas are written.
-    /// The configured primary cluster identifier is passed to each custom-storage adaptor.
-    /// Custom-storage adaptors accept submissions from every cluster.
+    /// 依赖 grain- 特定自定义代码的对数一致性提供商 
+    /// 正在从存储中读取状态, 并附加三角洲到存储。
+    /// 希望使用该供应商的Grains 必须执行 <see cref="ICustomStorageInterface{TState, TDelta}"/>
+    /// 界面, 定义状态如何读取和三角洲是如何写成的 。
+    /// 配置的主要集束识别码将传送给每个自定义存储适配器。
+    /// 自定义存储适应器接受每个组群的提交文件。
     /// </summary>
     public class LogConsistencyProvider : ILogViewAdaptorFactory
     {
         private readonly CustomStorageLogConsistencyOptions options;
 
         /// <summary>
-        /// Gets the cluster identifier passed to each custom-storage adaptor.
+        /// 将集束识别码传递给每个自定义存储适配器。
         /// </summary>
         public string? PrimaryCluster => options.PrimaryCluster;
 
@@ -27,9 +27,9 @@ namespace Orleans.EventSourcing.CustomStorage
         public bool UsesStorageProvider => false;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogConsistencyProvider"/> class.
+        /// 初始化 <see cref="LogConsistencyProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The provider configuration.</param>
+        /// <param name="options">供应商配置。</param>
         public LogConsistencyProvider(CustomStorageLogConsistencyOptions options)
         {
             this.options = options;
@@ -45,16 +45,16 @@ namespace Orleans.EventSourcing.CustomStorage
     }
 
     /// <summary>
-    /// Creates custom-storage log consistency providers from named options.
+    /// 从指定的选项创建自定义存储日志一致性提供者 。
     /// </summary>
     public static class LogConsistencyProviderFactory
     {
         /// <summary>
-        /// Creates a custom-storage log consistency provider.
+        /// 创建自定义存储日志一致性提供者。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The name of the provider configuration.</param>
-        /// <returns>The configured log view adaptor factory.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">供应商配置的名称。</param>
+        /// <returns>配置的日志视图适配器厂</returns>
         public static ILogViewAdaptorFactory Create(IServiceProvider services, string? name)
         {
             var optionsMonitor = services.GetRequiredService<IOptionsMonitor<CustomStorageLogConsistencyOptions>>();

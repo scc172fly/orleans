@@ -1,14 +1,14 @@
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// Stream producer grain that sends a single event at a time (when told, see SendEvent) and tracks the number of events sent
+    /// 流制制制 grain ,它一次发送单一事件(当被通知时,请见 SendEvent)并跟踪所发送事件的数量
     /// </summary>
     public interface IProducerEventCountingGrain : IGrainWithGuidKey
     {
         Task BecomeProducer(Guid streamId, string providerToUse);
 
         /// <summary>
-        /// Sends a single event and, upon successful completion, updates the number of events produced.
+        /// 发送单一事件,并在成功完成后更新所制作活动的数量。
         /// </summary>
         /// <returns></returns>
         Task SendEvent();

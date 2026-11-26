@@ -5,29 +5,29 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// An async mutual exclusion mechanism that supports scoping via ‘using’.
+    /// 一种相互排斥的结合机制,通过“使用”支持范围界定。
     /// </summary>
     /// <remarks>
-    /// (Adapted from http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx)
+    /// (编自 http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx)
     ///
-    /// When programming with <b>async</b>, the <b>lock</b> keyword is problematic:
+    /// 与 <b>亚同步</b>, 和 <b>锁定锁定</b> 关键字有问题:
     /// <list type="bullet">
-    ///     <item><description><b>lock</b> will cause the thread to block while it waits for exclusive access to the critical section of code.</description></item>
-    ///     <item><description>The <b>await</b> keyword cannot be used within the scope of a <b>lock</b> construct.</description></item>
+    ///     <item><description><b>锁</b> 将让线索在等待对代码关键部分的独家访问时被阻塞。</description></item>
+    ///     <item><description>下 <b>等待等待</b> 关键字不能在 <b>锁定锁定</b> 构造。</description></item>
     /// </list>
     ///
-    /// It is still useful, at times, to provide exclusive access to a critical section of code. AsyncLock provides semantics
-    /// that correspond to that of a (non-recursive) mutex, while maintaining compatibility with the tenets of async programming.
+    /// 有时提供对代码关键部分的独家访问仍然有用。 AsyncLock 提供语义
+    /// 与(非递录性)哑音相对应,同时符合同步方案拟订原则。
     /// </remarks>
     /// <example>
-    /// The following example implements some work that needs to be done under lock:
+    /// 以下例子执行一些需要锁在门下完成的工作:
     /// <code>
     /// class Test
     /// {
     ///     private AsyncLock _initLock = new AsyncLock();
     ///     public async Task&lt;int> WorkUnderLock()
     ///     {
-    ///             using (await _initLock.LockAsync()) // analogous to lock(_initLock)
+    ///             using (await _initLock.LockAsync()) // 类似于 lock(_initLock)
     ///             {
     ///                  return await DoSomeWork();
     ///             }
@@ -36,14 +36,14 @@ namespace Orleans
     /// </code>
     /// </example>
     ///
-    /// We decided to keep the implementation simple and mimic the semantics of a regular mutex as much as possible.
-    /// 1) AsyncLock is NOT IDisposable, since we don't want to give the developer an option to erroneously manually dispose the lock
-    /// while there may be some unreleased LockReleasers.
-    /// 2) AsyncLock does NOT have to implement the Finalizer function. The underlying resource of SemaphoreSlim will be eventually released by the .NET,
-    /// when SemaphoreSlim is finalized. Having finalizer for AsyncLock will not speed it up.
-    /// 3) LockReleaser is IDisposable to implement the "using" pattern.
-    /// 4) LockReleaser does NOT have to implement the Finalizer function. If users forget to Dispose the LockReleaser (analogous to forgetting to release a mutex)
-    /// the AsyncLock will remain locked, which may potentially cause deadlock. This is OK, since these are the exact regular mutex semantics - if one forgets to unlock the mutex, it stays locked.
+    /// 我们决定尽量保持执行的简单性,尽可能模仿普通哑音的语义。
+    /// 1) AsyncLock 不可工作,因为我们不想让开发者选择错误手动处理锁定
+    /// 可能有些未释放 LockReleasers。
+    /// 2) AsyncLock 不必执行最后处理功能。 SemaphoreSlim 的基本资源最终将由 .NET释放,
+    /// 何时 SemaphoreSlim 已完成。 AsyncLock 无法加速
+    /// 3) LockReleaser 是无法执行“使用”模式的。
+    /// LockReleaser 不需要执行最后处理功能。如果用户忘记丢弃 LockReleaser (与忘记释放哑巴相似)
+    /// AsyncLock 将仍然锁定, 这可能会导致僵局。 这是可以的, 因为这些都是非常普通的哑语语义学 - 如果忘记解锁哑语的话, 它会一直被锁住 。
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
         "Design",
         "CA1001:Types that own disposable fields should be disposable",
@@ -53,7 +53,7 @@ namespace Orleans
         private readonly SemaphoreSlim semaphore;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AsyncLock"/> class.
+        /// 初始化 <see cref="AsyncLock"/> 类的新实例。
         /// </summary>
         public AsyncLock()
         {
@@ -61,9 +61,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Acquires the lock asynchronously.
+        /// 迅速获得锁
         /// </summary>
-        /// <returns>An <see cref="IDisposable"/> which must be used to release the lock.</returns>
+        /// <returns>解锁必须使用的 <see cref="IDisposable"/> 。</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage(
             "Reliability",
             "CA2000:Dispose objects before losing scope",
@@ -101,14 +101,14 @@ namespace Orleans
                 if (target == null)
                     return;
 
-                // first null it, next Release, so even if Release throws, we don't hold the reference any more.
+                // 首先是取消,下个释放, 所以即使发布扔了, 我们不再持有参考文献。
                 AsyncLock tmp = target;
                 target = null;
                 try
                 {
                     tmp.semaphore.Release();
                 }
-                catch (Exception) { } // just ignore the Exception
+                catch (Exception) { } // 忽略例外
             }
         }
     }

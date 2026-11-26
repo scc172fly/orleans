@@ -10,8 +10,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Verifies that deleting a completed task's execution tree cancels the work which the task started and never observed:
-/// a running local child, and a pending call to another grain.
+/// 证明删除已完成任务的执行树会取消任务开始和从未观察到的工作:
+/// 正在运行的本地儿童, 以及尚未通知另一个孩子 grain。
 /// </summary>
 public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
 {
@@ -39,7 +39,7 @@ public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
         var startId = TaskId.CreateRoot("start");
         using var events = DurableTaskEventBarriers.Collect();
 
-        // The owner's task starts a local child and a call to the worker, and completes without observing either.
+        // 业主的任务就是让当地孩子和工人打电话,完成后也没有人观察。
         var start = await starter.StartAsync(owner.GetPrimaryKey(), worker.GetPrimaryKey()).WithId("start").ScheduleAsync(cancellationToken);
         Assert.Equal(TreeDeletionOwnerGrain.Returned, (await start.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<string>());
         var ownedId = await events.WaitForCallerChildAsync(ownerId, starter.GetGrainId(), startId.Child(TreeDeletionStarterGrain.CallId));
@@ -47,28 +47,28 @@ public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
         var remoteId = ownedId.Child(TreeDeletionOwnerGrain.RemoteId);
         var workerTaskId = await events.WaitForCallerChildAsync(workerId, ownerId, remoteId);
 
-        // The starter accepts the owner's completion, which deletes the owner's tree with the work which is still running.
+        // 启动器接受所有者的完成, 从而删除所有者树上的仍在运行的工程 。
         await events.WaitForDeletedAsync(ownerId, ownedId);
         await events.WaitForDeletedAsync(ownerId, localId);
         await events.WaitForDeletedAsync(ownerId, remoteId);
 
-        // The local child's attempt is canceled without task cancellation, and its cleanup commits.
+        // 当地儿童的尝试取消,没有取消任务,而且清理工作也承诺。
         var local = await _probe.LocalUnwound.WaitAsync(Timeout, cancellationToken);
         Assert.False(local.TaskCancellationRequested);
         Assert.True(local.AttemptCanceled);
         Assert.Null(local.CleanupFailure);
 
-        // The worker's task receives the deletion as durable cancellation through the owner's outbox.
+        // 工人的任务通过业主的发包作为持久取消而被删除。
         Assert.True(await _probe.RemoteCanceled.WaitAsync(Timeout, cancellationToken));
         Assert.Equal(DurableTaskStatus.Canceled, (await events.WaitForCompletedAsync(workerId, workerTaskId)).Status);
 
-        // The owner accepts the canceled task's completion without recreating it, so the worker deletes its task.
+        // 所有人接受取消的任务完成后, 不重建它, 所以工人删除了任务 。
         await events.WaitForDeletedAsync(workerId, workerTaskId);
         Assert.Empty(await owner.GetInboxDeadLetterReasonsAsync());
         Assert.Empty(await GetTasksAsync(owner));
         Assert.Equal(TreeDeletionOwnerGrain.CleanedUp, await owner.GetCleanupAsync());
 
-        // The committed journal holds the canceled attempt's cleanup.
+        // 承诺日记保存取消的尝试清理。
         Assert.True(_fixture.Cluster.TryGetGrainContext(ownerId, out var activation));
         await owner.RequestDeactivationAsync();
         await activation.Deactivated.WaitAsync(Timeout, cancellationToken);
@@ -88,33 +88,33 @@ public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
     }
 }
 
-/// <summary>Runs tree deletion coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行树形删除覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskTreeDeletionTests() : DurableTaskTreeDeletionTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs tree deletion coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行以 Orleans 二进制日记格式存储的任务状态树删除覆盖。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class OrleansBinaryDurableTaskTreeDeletionTests() : DurableTaskTreeDeletionTests(DurableTaskRecoveryFixture.OrleansBinary);
 
-/// <summary>What the local child's attempt observed as it unwound.</summary>
+/// <summary>当地孩子的尝试所观察到的 是不健康的</summary>
 public sealed record LocalUnwinding(bool TaskCancellationRequested, bool AttemptCanceled, Exception? CleanupFailure);
 
-/// <summary>Records what the owner's unobserved work observes when the owner's tree is deleted.</summary>
+/// <summary>记录当业主的树被删除时,主人未观察的工作会看到什么。</summary>
 public sealed class TreeDeletionProbe
 {
     private readonly TaskCompletionSource<LocalUnwinding> _localUnwound = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource<bool> _remoteCanceled = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    /// <summary>Completes once the local child's attempt unwinds.</summary>
+    /// <summary>一旦当地孩子的尝试解除了 就会完全结束</summary>
     public Task<LocalUnwinding> LocalUnwound => _localUnwound.Task;
 
-    /// <summary>Completes once the worker's task observes cancellation, with whether it was task cancellation.</summary>
+    /// <summary>一旦工人的任务被观察到取消,就完成,是否是取消任务。</summary>
     public Task<bool> RemoteCanceled => _remoteCanceled.Task;
 
     public void RecordLocalUnwound(LocalUnwinding unwinding) => _localUnwound.TrySetResult(unwinding);
@@ -129,7 +129,7 @@ public interface ITreeDeletionStarterGrain : IGrainWithGuidKey
 
 public interface ITreeDeletionOwnerGrain : IGrainWithGuidKey
 {
-    /// <summary>Starts a local child and a call to the worker, and returns without observing either.</summary>
+    /// <summary>开始一个本地孩子, 和给工人的电话, 返回时也没有观察。</summary>
     DurableTask<string> StartWorkAndReturnAsync(Guid workerKey);
 
     Task<string?> GetCleanupAsync();
@@ -141,7 +141,7 @@ public interface ITreeDeletionOwnerGrain : IGrainWithGuidKey
 
 public interface ITreeDeletionWorkerGrain : IGrainWithGuidKey
 {
-    /// <summary>Waits until its task is canceled.</summary>
+    /// <summary>等待任务取消。</summary>
     DurableTask<string> HoldAsync();
 }
 
@@ -168,7 +168,7 @@ public sealed class TreeDeletionOwnerGrain(
 
     public async DurableTask<string> StartWorkAndReturnAsync(Guid workerKey)
     {
-        // The task completes while its children run, so deleting its tree cancels them.
+        // 任务完成时,孩子在运行, 所以删除树上的树就取消它们。
 #pragma warning disable ORLEANS0219
         _ = await DurableTask.Run(RunLocalWorkAsync).WithId(LocalId).ScheduleAsync();
         _ = await GrainFactory.GetGrain<ITreeDeletionWorkerGrain>(workerKey).HoldAsync().WithId(RemoteId).ScheduleAsync();

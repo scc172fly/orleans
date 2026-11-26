@@ -17,9 +17,9 @@ internal sealed class AzureTableStorageJournalingProviderBuilder : IProviderBuil
         var optionsBuilder = builder.Services.AddJournalStorageOptions<AzureTableJournalStorageOptions>(name);
         optionsBuilder.Configure<IServiceProvider>((options, services) =>
         {
-            // The configuration-binding generator cannot bind AzureTableJournalStorageOptions or the Azure client
-            // option types as objects: they expose client instances, pipeline policies, and delegates, and the Azure
-            // option types lack public constructors. Their configurable members are read individually instead.
+            // 配置装有引信的发电机无法绑定 AzureTableJournalStorageOptions 或 Azure 客户
+            // 对象类型:它们暴露客户实例、编审中的政策和代表,以及 Azure
+            // 选择类型缺少公共建筑师,可配置成员则按个人阅读。
             var tableName = configurationSection[nameof(options.TableName)];
             if (!string.IsNullOrEmpty(tableName))
             {
@@ -33,7 +33,7 @@ internal sealed class AzureTableStorageJournalingProviderBuilder : IProviderBuil
             options.MetadataOnlyConflictInitialBackoff = configurationSection.GetValue(nameof(options.MetadataOnlyConflictInitialBackoff), options.MetadataOnlyConflictInitialBackoff);
             options.MetadataOnlyConflictMaxBackoff = configurationSection.GetValue(nameof(options.MetadataOnlyConflictMaxBackoff), options.MetadataOnlyConflictMaxBackoff);
 
-            // Clients created through ConfigureTableServiceClient read ClientOptions when they are created.
+            // 客户端创建时通过 ConfigureTableServiceClient 创建的客户端在创建时读取 ClientOptions 。
             var clientSection = configurationSection.GetSection(nameof(options.ClientOptions));
             if (clientSection.Exists())
             {
@@ -46,12 +46,12 @@ internal sealed class AzureTableStorageJournalingProviderBuilder : IProviderBuil
             var serviceKey = configurationSection["ServiceKey"];
             if (!string.IsNullOrEmpty(serviceKey))
             {
-                // Get a client by name.
+                // 给客户取个名字
                 options.TableServiceClient = services.GetRequiredKeyedService<TableServiceClient>(serviceKey);
             }
             else
             {
-                // Construct a table service client from a connection string.
+                // 构造一个连接字符串中的表格服务客户端。
                 var connectionName = configurationSection["ConnectionName"];
                 var connectionString = configurationSection["ConnectionString"];
                 if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

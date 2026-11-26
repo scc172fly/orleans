@@ -4,16 +4,16 @@ using System;
 namespace Orleans.EventSourcing.StateStorage
 {
     /// <summary>
-    /// A class that extends grain state with versioning metadata, so that a grain with log-view consistency
-    /// can use a standard storage provider.
+    /// 扩展的类 grain 状态与元数据版本的元数据,因此 a grain 具有日志一致性
+    /// 使用标准的储存提供者。
     /// </summary>
-    /// <typeparam name="TView">The type used for log view</typeparam>
+    /// <typeparam name="TView">日志视图</typeparam>所用类型
     [Serializable]
     [GenerateSerializer]
     public sealed class GrainStateWithMetaDataAndETag<TView> : IGrainState<GrainStateWithMetaData<TView>> where TView : class, new()
     {
         /// <summary>
-        /// Gets and Sets StateAndMetaData
+        /// 获取和设置 StateAndMetaData
         /// </summary>
         [Id(0)]
         public GrainStateWithMetaData<TView> StateAndMetaData
@@ -23,7 +23,7 @@ namespace Orleans.EventSourcing.StateStorage
         }
 
         /// <summary>
-        /// Gets and Sets Etag
+        /// 获取和设置标签
         /// </summary>
         [Id(1)]
         public string? ETag { get; set; }
@@ -42,7 +42,7 @@ namespace Orleans.EventSourcing.StateStorage
         }
 
         /// <summary>
-        /// Initialize a new instance of GrainStateWithMetaDataAndETag class with an initialView
+        /// 初始化一个 GrainStateWithMetaDataAndETag 类新实例,其中带有 initialView
         /// </summary>
         public GrainStateWithMetaDataAndETag(TView initialview)
         {
@@ -50,7 +50,7 @@ namespace Orleans.EventSourcing.StateStorage
         }
 
         /// <summary>
-        /// Initializes a new instance of GrainStateWithMetaDataAndETag class
+        /// 初始化 GrainStateWithMetaDataAndETag 类的新实例
         /// </summary>
         public GrainStateWithMetaDataAndETag()
         {
@@ -58,7 +58,7 @@ namespace Orleans.EventSourcing.StateStorage
         }
 
         /// <summary>
-        /// Convert current GrainStateWithMetaDataAndETag object information to a string
+        /// 将当前 GrainStateWithMetaDataAndETag 对象信息转换为字符串
         /// </summary>
         public override string ToString()
         {
@@ -68,39 +68,39 @@ namespace Orleans.EventSourcing.StateStorage
 
 
     /// <summary>
-    /// A class that extends grain state with versioning metadata, so that a log-consistent grain
-    /// can use a standard storage provider.
+    /// 包含元元元版本的扩展 grain 状态的分类,以便符合日志的 grain
+    /// 使用标准的储存提供者。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class GrainStateWithMetaData<TView> where TView : class, new()
     {
         /// <summary>
-        /// The stored view of the log
+        /// 日志的存储视图
         /// </summary>
         [Id(0)]
         public TView State { get; set; }
 
         /// <summary>
-        /// The length of the log
+        /// 日志长度
         /// </summary>
         [Id(1)]
         public int GlobalVersion { get; set; }
 
 
         /// <summary>
-        /// Metadata that is used to avoid duplicate appends.
-        /// Logically, this is a (string->bit) map, the keys being replica ids
-        /// But this map is represented compactly as a simple string to reduce serialization/deserialization overhead
-        /// Bits are read by <see cref="GetBit"/> and flipped by  <see cref="FlipBit"/>.
-        /// Bits are toggled when writing, so that the retry logic can avoid appending an entry twice
-        /// when retrying a failed append.
+        /// 用于避免重复附件的元数据。
+        /// 逻辑上, 这是一张( 字符串- >bit) 映射图, 键是复制代码
+        /// 但这张地图的缩写 简单代表一个字符串 以减少序列化/后级化间接费用
+        /// 位数由 <see cref="GetBit"/> 读取,而由 <see cref="FlipBit"/>翻转。
+        /// 写时会将位元混在一起, 这样重试逻辑可以避免两次附加条目
+        /// 重试失败的附加件时。
         /// </summary>
         [Id(2)]
         public string WriteVector { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainStateWithMetaData{TView}"/> class.
+        /// 初始化 <see cref="GrainStateWithMetaData{TView}"/> 类的新实例。
         /// </summary>
         public GrainStateWithMetaData()
         {
@@ -110,9 +110,9 @@ namespace Orleans.EventSourcing.StateStorage
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainStateWithMetaData{TView}"/> class.
+        /// 初始化 <see cref="GrainStateWithMetaData{TView}"/> 类的新实例。
         /// </summary>
-        /// <param name="initialstate">The initial state of the view</param>
+        /// <param name="initialstate">视图的初始状态</param>
         public GrainStateWithMetaData(TView initialstate)
         {
             this.State = initialstate;
@@ -122,9 +122,9 @@ namespace Orleans.EventSourcing.StateStorage
 
 
         /// <summary>
-        /// Gets one of the bits in <see cref="WriteVector"/>
+        /// 在 <see cref="WriteVector"/>中获取一个位数
         /// </summary>
-        /// <param name="Replica">The replica for which we want to look up the bit</param>
+        /// <param name="Replica">我们希望查找位数的复制件</param>
         /// <returns></returns>
         public bool GetBit(string Replica)
         {
@@ -132,10 +132,10 @@ namespace Orleans.EventSourcing.StateStorage
         }
 
         /// <summary>
-        /// toggle one of the bits in <see cref="WriteVector"/> and return the new value.
+        /// 切换 <see cref="WriteVector"/> 中的比特之一并返回新值。
         /// </summary>
-        /// <param name="Replica">The replica for which we want to flip the bit</param>
-        /// <returns>the state of the bit after flipping it</returns>
+        /// <param name="Replica">复制我们想要翻转位</param>
+        /// <returns>翻转时位数的状态</returns>
         public bool FlipBit(string Replica)
         {
             var str = WriteVector;

@@ -6,79 +6,79 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Receives batches of messages from a single partition of a message queue.  
+    /// 接收来自信件队列单个分区的批次信件 。  
     /// </summary>
     public interface IQueueAdapterReceiver
     {
         /// <summary>
-        /// Initializes this receiver.
+        /// 初始化这个接收器 。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Initialize(TimeSpan timeout);
 
         /// <summary>
-        /// Initializes this receiver.
+        /// 初始化这个接收器 。
         /// </summary>
-        /// <param name="timeout">The timeout for this operation.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="timeout">此操作的超时 。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Initialize(TimeSpan timeout, CancellationToken cancellationToken) => Initialize(timeout);
 
         /// <summary>
-        /// Retrieves batches from a message queue.
+        /// 从信件队列中获取批次 。
         /// </summary>
         /// <param name="maxCount">
-        /// The maximum number of message batches to retrieve.
+        /// 要获取的最大信件批次数 。
         /// </param>
-        /// <returns>The message batches.</returns>
+        /// <returns>信件批次。</returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         Task<IList<IBatchContainer>> GetQueueMessagesAsync(int maxCount);
 
         /// <summary>
-        /// Retrieves batches from a message queue.
+        /// 从信件队列中获取批次 。
         /// </summary>
-        /// <param name="maxCount">The maximum number of message batches to retrieve.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The message batches.</returns>
+        /// <param name="maxCount">要检索的最大批次数。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>信件批次。</returns>
 #pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy overload.
         Task<IList<IBatchContainer>> GetQueueMessagesAsync(int maxCount, CancellationToken cancellationToken)
             => GetQueueMessagesAsync(maxCount);
 #pragma warning restore CS0618
 
         /// <summary>
-        /// Notifies the adapter receiver that the messages were delivered to all consumers,
-        /// so the receiver can take an appropriate action (e.g., delete the messages from a message queue).
+        /// 通知调适接收器,电文已发送给所有消费者,
+        /// 以便接收者能够采取适当行动(e.g.,从邮件队列中删除电文)。
         /// </summary>
         /// <param name="messages">
-        /// The message batches.
+        /// 信息批量。
         /// </param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         Task MessagesDeliveredAsync(IList<IBatchContainer> messages);
 
         /// <summary>
-        /// Notifies the adapter receiver that the messages were delivered to all consumers.
+        /// 通知调适接收器,电文已发送到所有消费者。
         /// </summary>
-        /// <param name="messages">The message batches.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="messages">信件批次。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
 #pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy overload.
         Task MessagesDeliveredAsync(IList<IBatchContainer> messages, CancellationToken cancellationToken)
             => MessagesDeliveredAsync(messages);
 #pragma warning restore CS0618
 
         /// <summary>
-        /// Receiver is no longer used. Shutdown and clean up.
+        /// 接收器不再使用,关闭和清理。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Shutdown(TimeSpan timeout);
 
         /// <summary>
-        /// Shuts down this receiver and cleans up.
+        /// 关闭接收器,清理干净
         /// </summary>
-        /// <param name="timeout">The timeout for this operation.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="timeout">此操作的超时 。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Shutdown(TimeSpan timeout, CancellationToken cancellationToken) => Shutdown(timeout);
     }
 }

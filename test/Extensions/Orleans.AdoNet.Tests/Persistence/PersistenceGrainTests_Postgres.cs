@@ -10,7 +10,7 @@ using Xunit;
 namespace Tester.AdoNet.Persistence
 {
     /// <summary>
-    /// Tests for Orleans grain state persistence functionality using PostgreSQL as the storage provider.
+    /// 试验 Orleans grain 使用状态持久性功能 PostgreSQL 作为存储提供者。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("PostgreSql")]
     [TestSuite("Functional")]

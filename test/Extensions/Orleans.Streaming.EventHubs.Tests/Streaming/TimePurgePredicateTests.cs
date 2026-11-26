@@ -15,7 +15,7 @@ namespace ServiceBus.Tests.StreamingTests
         private static readonly DateTime NowUtc = DateTime.UtcNow;
 
         /// <summary>
-        /// Message has not been in cache long enough to purge, and message age is not old enough to purge
+        /// 信件在缓存时间不够长,不足以清洗,信息使用年老也不足以清洗
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_NoPurgeThreshold_Tests()
@@ -28,7 +28,7 @@ namespace ServiceBus.Tests.StreamingTests
         }
 
         /// <summary>
-        /// Message has been in cache long enough to purge, and message age is old enough to purge
+        /// 信息在暗藏中已经足够长的时间可以清洗, 信息使用年龄也足够老到可以清洗
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_PurgeDataThreshold_Tests()
@@ -41,7 +41,7 @@ namespace ServiceBus.Tests.StreamingTests
         }
 
         /// <summary>
-        /// Message has been in cache long enough to purge, but message age is not old enough to purge
+        /// 消息在缓存中已足够长的时间可以清洗, 但信件使用年龄不足以清除
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_NoPurgeAgeThreshold_Tests()
@@ -54,7 +54,7 @@ namespace ServiceBus.Tests.StreamingTests
         }
 
         /// <summary>
-        /// Message has not been in cache long enough to purge, but message age is old enough to purge
+        /// 信件在缓存时间不够长,不足以清洗,但信息使用年老已足够长,足以清洗
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_NoPurgeTimeInCacheThreshold_Tests()

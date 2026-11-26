@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// Tests for EventHub stream-per-partition data adapter functionality.
+    /// 测试 EventHub 流- 逐项数据适配器功能。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -96,13 +96,13 @@ namespace ServiceBus.Tests.StreamingTests
                 consumers.Add(this.fixture.GrainFactory.GetGrain<ISampleStreaming_ConsumerGrain>(Guid.NewGuid()));
             }
 
-            // subscribe to each partition
+            // 订阅每个分区
             List<Task> becomeConsumersTasks = consumers
                 .Select((consumer, i) => consumer.BecomeConsumer(
                     StreamPerPartitionDataAdapter.GetPartitionGuid(i.ToString()),
                     null!,
                     StreamProviderName,
-                    TestContext.Current.CancellationToken)) // This test intentionally uses the null stream namespace.
+                    TestContext.Current.CancellationToken)) // 此测试有意使用空行命名空间。
                 .ToList();
             await Task.WhenAll(becomeConsumersTasks);
 
@@ -123,7 +123,7 @@ namespace ServiceBus.Tests.StreamingTests
 
             for (int i = 0; i < eventsInStream; i++)
             {
-                // send event on each stream
+                // 每个溪流上的事件
                 for (int j = 0; j < streamCount; j++)
                 {
                     await producers[j].OnNextAsync(i);
@@ -140,7 +140,7 @@ namespace ServiceBus.Tests.StreamingTests
 
             if (assertIsTrue)
             {
-                // one stream per queue
+                // 每个队列一串
                 Assert.Equal(totalEventCount, counts.Sum());
             }
             else if (totalEventCount != counts.Sum())

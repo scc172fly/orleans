@@ -6,43 +6,43 @@ using System.Threading.Tasks;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// Interface for In-memory stream queue grain.
+    /// 内模流队列的接口 grain。
     /// </summary>
     public interface IMemoryStreamQueueGrain : IGrainWithGuidKey
     {
         /// <summary>
-        /// Enqueues an event.
+        /// 加入一个事件。
         /// </summary>
-        /// <param name="data">The data.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="data">数据。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("Enqueue")]
         Task Enqueue(MemoryMessageData data);
 
         /// <summary>
-        /// Enqueues an event.
+        /// 加入一个事件。
         /// </summary>
-        /// <param name="data">The data.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="data">数据。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("74D60341")]
         Task Enqueue(MemoryMessageData data, CancellationToken cancellationToken) => Enqueue(data);
 
         /// <summary>
-        /// Dequeues up to <paramref name="maxCount"/> events.
+        /// 取消最多为 <paramref name="maxCount"/> 事件。
         /// </summary>
         /// <param name="maxCount">
-        /// The maximum number of events to dequeue.
+        /// 最大取消事件次数 。
         /// </param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("Dequeue")]
         Task<List<MemoryMessageData>> Dequeue(int maxCount);
 
         /// <summary>
-        /// Dequeues up to <paramref name="maxCount"/> events.
+        /// 取消最多为 <paramref name="maxCount"/> 事件。
         /// </summary>
-        /// <param name="maxCount">The maximum number of events to dequeue.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="maxCount">取消排队的最大事件次数。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         [Alias("7A8F8C1A")]
         Task<List<MemoryMessageData>> Dequeue(int maxCount, CancellationToken cancellationToken) => Dequeue(maxCount);
     }

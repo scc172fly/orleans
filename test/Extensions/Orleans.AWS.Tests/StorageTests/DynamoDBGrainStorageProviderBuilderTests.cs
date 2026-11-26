@@ -147,7 +147,7 @@ public sealed class DynamoDBGrainStorageProviderBuilderTests
         Assert.Contains($"type '{expectedType}'", exception.Message);
     }
 
-    // The configuration binding source generator treats an empty value as absent.
+    // 配置绑定源生成器将空值视为不存在 。
     [Theory]
     [InlineData(nameof(DynamoDBStorageOptions.ReadCapacityUnits))]
     [InlineData(nameof(DynamoDBStorageOptions.UseProvisionedThroughput))]

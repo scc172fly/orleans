@@ -5,126 +5,126 @@ using Orleans.Runtime;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Options for configuring activation repartitioning.
+/// 配置激活重新分割的选项 。
 /// </summary>
 public sealed class ActivationRepartitionerOptions
 {
     /// <summary>
     /// <para>
-    /// The maximum number of edges to retain in-memory during a repartitioning round. An edge represents how many calls were made from one grain to another.
+    /// 重新分割回合中保留记忆中的边缘的最大边数。 边缘代表从一个 grain 对另一个。
     /// </para>
     /// <para>
-    /// If this number is N, it does not mean that N activations will be migrated after a repartitioning round.
-    /// It also does not mean that if any activation ranked very high, that it will rank high at the next cycle.
-    /// At the most extreme case, the number of activations that will be migrated, will equal this number, so this should give you some idea as to setting a reasonable value for this.
+    /// 如果这个数字是N,则并不意味着N启动将在重新分配后迁移。
+    /// 这也不意味着任何启动的排名都很高,在下一个周期中将排位高。
+    /// 在最极端的情况下, 迁移的激活次数将等于这个数目, 这样你就可以知道为此设定一个合理的价值。
     /// </para>
     /// </summary>
     /// <remarks>
-    /// In order to preserve memory, the most heaviest links are recorded in a probabilistic way, so there is an inherent error associated with that.
-    /// That error is inversely proportional to this value, so values under 100 are not recommended. If you notice that the system is not converging fast enough, do consider increasing this number.
+    /// 为了保存记忆,最重的链接是概率性记录,因此存在一个与此相关的内在错误。
+    /// 此错误与此值成反比, 因此不推荐低于100的数值。 如果您注意到系统没有快速融合, 请考虑增加这个数字 。
     /// </remarks>
     public int MaxEdgeCount { get; set; } = DEFAULT_MAX_EDGE_COUNT;
 
     /// <summary>
-    /// The default value of <see cref="MaxEdgeCount"/>.
+    /// 默认值 <see cref="MaxEdgeCount"/>。
     /// </summary>
     public const int DEFAULT_MAX_EDGE_COUNT = 10_000;
 
     /// <summary>
-    /// The minimum time between initiating a repartitioning round.
+    /// 启动再分配回合的最小时间 。
     /// </summary>
-    /// <remarks>The actual due time is picked randomly between this and <see cref="MaxRoundPeriod"/>.</remarks>
+    /// <remarks>实际到期时间是随机选择的,在 <see cref="MaxRoundPeriod"/>.</remarks>
     public TimeSpan MinRoundPeriod { get; set; } = DEFAULT_MINUMUM_ROUND_PERIOD;
 
     /// <summary>
-    /// The default value of <see cref="MinRoundPeriod"/>.
+    /// 默认值 <see cref="MinRoundPeriod"/>。
     /// </summary>
     public static readonly TimeSpan DEFAULT_MINUMUM_ROUND_PERIOD = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// The maximum time between initiating a repartitioning round.
+    /// 启动再分配回合之间的最大时间 。
     /// </summary>
     /// <remarks>
-    /// <para>The actual due time is picked randomly between this and <see cref="MinRoundPeriod"/>.</para>
-    /// <para>For optimal results, you should aim to give this an extra 10 seconds multiplied by the maximum anticipated silo count in the cluster.</para>
+    /// <para>实际到期时间是随机选择的,在 <see cref="MinRoundPeriod"/>.</para>
+    /// <para>为了取得最佳效果,您应力求将这一额外增加10秒乘以预期的上限 silo 组合中计数。</para>
     /// </remarks>
     public TimeSpan MaxRoundPeriod { get; set; } = DEFAULT_MAXIMUM_ROUND_PERIOD;
 
     /// <summary>
-    /// The default value of <see cref="MaxRoundPeriod"/>.
+    /// 默认值 <see cref="MaxRoundPeriod"/>。
     /// </summary>
     public static readonly TimeSpan DEFAULT_MAXIMUM_ROUND_PERIOD = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// The minimum time needed for a silo to recover from a previous repartitioning round.
-    /// Until this time has elapsed, this silo will not take part in any repartitioning attempt from another silo.
+    /// 上一轮再分配后 silo 恢复的最低时间。
+    /// 直到这一时间过去,这个 silo 将不参加任何其他 silo的企图。
     /// </summary>
     public TimeSpan RecoveryPeriod { get; set; } = DEFAULT_RECOVERY_PERIOD;
 
     /// <summary>
-    /// The default value of <see cref="RecoveryPeriod"/>.
+    /// 默认值 <see cref="RecoveryPeriod"/>。
     /// </summary>
     public static readonly TimeSpan DEFAULT_RECOVERY_PERIOD = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// The maximum number of unprocessed edges to buffer. If this number is exceeded, the oldest edges will be discarded.
+    /// 缓冲处未处理边缘的最大数量。 如果超过此数量, 则会丢弃最老的边缘 。
     /// </summary>
     public int MaxUnprocessedEdges { get; set; } = DEFAULT_MAX_UNPROCESSED_EDGES;
 
     /// <summary>
-    /// The default value of <see cref="MaxUnprocessedEdges"/>.
+    /// 默认值 <see cref="MaxUnprocessedEdges"/>。
     /// </summary>
     public const int DEFAULT_MAX_UNPROCESSED_EDGES = 100_000;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to enable the local vertex filter. This filter tracks which
-    /// vertices are well-partitioned (moving them from the local host would be detrimental) and collapses them
-    /// into a single per-silo vertex to reduce the space required to track edges involving that vertex. The result
-    /// is a reduction in accuracy but a potentially significant increase in effectiveness of the repartitioner, since
-    /// well-partitioned edges will not dominate the top-K data structure, leaving sufficient room to track
-    /// non-well-partitioned vertices. This is enabled by default.
+    /// 获取或设置值,以显示是否启用本地顶点过滤器。此过滤器跟踪
+    /// 脊椎是分很细的(从当地宿主移走会有害),并粉碎
+    /// 成单数 /silo 减少跟踪涉及该顶端的边缘所需的空间的顶部。 结果
+    /// 准确性降低,但有可能大大提高重新分配者的效力,因为
+    /// 分布良好的边缘不会主宰顶层K级数据结构,留有足够的跟踪空间
+    /// 不带完全分隔的顶点。 这是默认启用的 。
     /// </summary>
     public bool AnchoringFilterEnabled { get; set; } = DEFAULT_ANCHORING_FILTER_ENABLED;
 
     /// <summary>
-    /// The default value of <see cref="AnchoringFilterEnabled"/>.
+    /// 默认值 <see cref="AnchoringFilterEnabled"/>。
     /// </summary>
     public const bool DEFAULT_ANCHORING_FILTER_ENABLED = true;
 
     /// <summary>
-    /// The maximum allowed error rate when <see cref="AnchoringFilterEnabled"/> is set to <see langword="true"/>, otherwise this does not apply.
+    /// <see cref="AnchoringFilterEnabled"/> 设为 <see langword="true"/>时允许的最大错误率,否则此值不适用。
     /// </summary>
-    /// <remarks>Allowed range: [0.001 - 0.01](0.1% - 1%)</remarks>
+    /// <remarks>允许范围: [0.001 - 0.01](0.1% - 1%)</remarks>
     public double ProbabilisticFilteringMaxAllowedErrorRate { get; set; } = DEFAULT_PROBABILISTIC_FILTERING_MAX_ALLOWED_ERROR;
 
     /// <summary>
-    /// The default value of <see cref="ProbabilisticFilteringMaxAllowedErrorRate"/>.
+    /// 默认值 <see cref="ProbabilisticFilteringMaxAllowedErrorRate"/>。
     /// </summary>
     public const double DEFAULT_PROBABILISTIC_FILTERING_MAX_ALLOWED_ERROR = 0.01d;
 
     /// <summary>
     /// <para>
-    /// Determines how long anchoring history is retained. A lower generation count keeps the filter fresher, but might forget anchored grains too quickly.
-    /// A higher generation count retains history longer, but increases the memory usage and the risk of saturation.
+    /// 确定保存锁定历史的时间长度。低代数可以让过滤器更新,但可能会忘记锁定 grains 的过快。
+    /// 高一代的统计保留了更长的历史,但增加了记忆的使用和饱和的风险。
     /// </para>
     /// <para>
-    /// Because the filter decays exactly once per repartitioning round, the actual time a "cold" grain remains anchored is directly tied to 
-    /// <see cref="MinRoundPeriod"/> and <see cref="MaxRoundPeriod"/>. 
-    /// For example with the default of 3 generations and round periods randomly firing between 1-2 mins, a grain that goes completely 
-    /// "cold" will be retained in the filter for 4.5 mins (on average) before being dropped.
+    /// 因为过滤器每轮的分化周期都精确衰减一次, 实际“冷” grain 固定在地上的时间直接与 
+    /// <see cref="MinRoundPeriod"/> 和 <see cref="MaxRoundPeriod"/>。 
+    /// 例如,在3代人违约和周期连续连续2-2分钟之间随机发射的情况下,a grain 完全彻底 
+    /// 冷在过滤器中保留4.5分钟,然后(平均)扔掉。
     /// </para>
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Setting this value to 1 effectively disables retention. The filter will be compltely cleared at the start of every 
-    /// repartitioning round, meaning a grain must be continuusly active in the exact current cycle to remain anchored.
-    /// This makes the filter highly reactive to current traffic, but prone to forgetting anchored grains during brief idle periods.
+    /// 设置此值为 1 有效禁用保留。 过滤器将在每次 
+    /// 重新分割回合,意思是 grain 必须在当前确切周期中连续活动才能保持固定状态。
+    /// 这使得过滤器对当前流量反应非常积极,但容易在短暂闲置期间忘记固定 grains 。
     /// </para>
     /// </remarks>
     public int AnchoringFilterGenerations { get; set; } = DEFAULT_ANCHORING_FILTER_GENERATIONS;
 
     /// <summary>
-    /// The default value of <see cref="AnchoringFilterGenerations"/>.
+    /// 默认值 <see cref="AnchoringFilterGenerations"/>。
     /// </summary>
     public const int DEFAULT_ANCHORING_FILTER_GENERATIONS = 3;
 }

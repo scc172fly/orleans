@@ -13,7 +13,7 @@ using Xunit;
 namespace Orleans.Serialization.Buffers.Adaptors.UnitTests;
 
 /// <summary>
-/// Unit tests for the PooledBufferStream constructor.
+/// 用于 PooledBufferStream 构建器的单位测试。
 /// </summary>
 [Trait("Category", "BVT")]
 [Trait("Suite", "BVT")]
@@ -22,30 +22,30 @@ namespace Orleans.Serialization.Buffers.Adaptors.UnitTests;
 public class PooledBufferStreamTests
 {
     /// <summary>
-    /// Verifies that the parameterless constructor initializes a new instance with a length of zero 
-    /// and appropriate stream capabilities.
+    /// 验证无参数构建器初始化一个零长度的新实例 
+    /// 和适当的流能力。
     /// </summary>
     [Fact]
     public void Constructor_Parameterless_InitializesWithZeroLengthAndValidCapabilities()
     {
-        // Arrange & Act
+        // 排列和法案
         using var stream = new PooledBufferStream();
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Length);
         Assert.True(stream.CanRead);
         Assert.True(stream.CanSeek);
         Assert.True(stream.CanWrite);
-        // Verify default Position is 0
+        // 校验默认位置为 0
         Assert.Equal(0, stream.Position);
     }
 
     /// <summary>
-    /// Verifies that the constructor with a minAllocationSize parameter initializes a new instance 
-    /// with a length of zero and appropriate stream capabilities.
-    /// Tests various edge cases for the minAllocationSize parameter.
+    /// 证明带有 minAllocationSize 参数初始化新实例的构建器 
+    /// 具有零和适当的流能力。
+    /// 测试 minAllocationSize 参数的各种边缘大小写。
     /// </summary>
-    /// <param name="minAllocationSize">The minimum allocation size passed to the constructor.</param>
+    /// <param name="minAllocationSize">最低分配规模传递给建筑商。</param>
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
@@ -54,24 +54,24 @@ public class PooledBufferStreamTests
     [InlineData(int.MaxValue)]
     public void Constructor_WithMinAllocationSize_InitializesWithZeroLengthAndValidCapabilities(int minAllocationSize)
     {
-        // Arrange & Act
+        // 排列和法案
         using var stream = new PooledBufferStream(minAllocationSize);
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Length);
         Assert.True(stream.CanRead);
         Assert.True(stream.CanSeek);
         Assert.True(stream.CanWrite);
-        // Verify default Position is 0
+        // 校验默认位置为 0
         Assert.Equal(0, stream.Position);
     }
 
     /// <summary>
-    /// Verifies that the PooledBufferStream constructor initializes the Length property to zero,
-    /// regardless of the provided minAllocationSize parameter value.
-    /// Test cases include negative, zero, positive, int.MaxValue, and int.MinValue values.
+    /// 证明 PooledBufferStream 构造器初始化长度属性为零,
+    /// 不论提供的 minAllocationSize 参数值如何。
+    /// 试验案例包括负值、零值、正值、 int.MaxValue值和 int.MinValue 值。
     /// </summary>
-    /// <param name="minAllocationSize">The minimum allocation size used to initialize the stream.</param>
+    /// <param name="minAllocationSize">启动流所用的最小分配大小 。</param>
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
@@ -81,94 +81,94 @@ public class PooledBufferStreamTests
     [InlineData(int.MinValue)]
     public void Constructor_WithMinAllocationValues_LengthIsZero(int minAllocationSize)
     {
-        // Arrange & Act
+        // 排列和法案
         using var stream = new PooledBufferStream(minAllocationSize);
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Length);
     }
 
     /// <summary>
-    /// Verifies that the default PooledBufferStream constructor initializes the Length property to zero.
+    /// 证明默认 PooledBufferStream 构建器初始化到长度属性为零。
     /// </summary>
     [Fact]
     public void DefaultConstructor_LengthIsZero()
     {
-        // Arrange & Act
+        // 排列和法案
         using var stream = new PooledBufferStream();
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Length);
     }
 
     /// <summary>
-    /// Verifies that calling Rent returns a non-null instance of PooledBufferStream with an initial length of zero.
-    /// This test parameterizes the number of times Rent is called to ensure consistent behavior regardless of call count.
+    /// 证明调用租金返回了非null实例 PooledBufferStream ,最初长度为零。
+    /// 此测试参数将Rent被调用的次数计算在内, 以确保无论呼号多少都保持行为一致。
     /// </summary>
-    /// <param name="rentCount">The number of times to invoke Rent.</param>
+    /// <param name="rentCount">援用租金的次数。</param>
     [Theory]
     [InlineData(1)]
     [InlineData(5)]
     [InlineData(10)]
     public void Rent_MultipleTimes_ReturnsValidInstance(int rentCount)
     {
-        // Arrange
+        // 排列排列
         var instances = new List<PooledBufferStream>();
 
-        // Act
+        // 法案法
         for (int i = 0; i < rentCount; i++)
         {
             var instance = PooledBufferStream.Rent();
             instances.Add(instance);
         }
 
-        // Assert
+        // 发货
         Assert.Equal(rentCount, instances.Count);
         foreach (var instance in instances)
         {
             Assert.NotNull(instance);
-            // Verify that the Length property is zero for a freshly rented stream.
+            // 验证新租的溪流的长度属性为零。
             Assert.Equal(0, instance.Length);
         }
     }
 
     /// <summary>
-    /// Tests that returning a valid stream recycles it by ensuring that a subsequently rented instance is the same as the returned one.
+    /// 测试返回有效流的回收,确保随后租用的原样与归还的原样相同,从而进行循环利用。
     /// </summary>
     [Fact]
     public void Return_ValidStream_RecyclesObject()
     {
-        // Arrange
+        // 排列排列
         using var stream = PooledBufferStream.Rent();
-        // Modify state to simulate usage.
+        // 修改状态以模拟使用 。
         stream.Position = 100;
 
-        // Act
+        // 法案法
         PooledBufferStream.Return(stream);
         var recycledStream = PooledBufferStream.Rent();
 
-        // Assert
-        // Expect the same instance to be recycled.
+        // 发货
+        // 期望回收利用同样的例子。
         Assert.True(Object.ReferenceEquals(stream, recycledStream), "The recycled stream instance should be the same as the one returned.");
 
-        // Cleanup: Return the stream again to avoid affecting other tests.
+        // 清理: 再次返回流以避免影响其他测试。
         PooledBufferStream.Return(recycledStream);
     }
 
     /// <summary>
-    /// Tests that passing a null stream to Return throws an exception.
+    /// 测试通过空流返回会引发例外
     /// </summary>
     [Fact]
     public void Return_NullStream_ThrowsException()
     {
-        // Arrange & Act & Assert
+        // 安排和法案及裁决
         Assert.Throws<ArgumentNullException>(() => PooledBufferStream.Return(null!));
     }
 
     /// <summary>
-    /// Verifies that a newly created PooledBufferStream has a Length of zero, regardless of the specified minAllocationSize.
+    /// 证明新建的 PooledBufferStream 长度为零,而不论指定的 minAllocationSize。
     /// </summary>
-    /// <param name="minAllocationSize">The minimum allocation size to use when constructing the stream.</param>
+    /// <param name="minAllocationSize">构建流时使用的最低分配大小。</param>
     [Theory]
     [InlineData(0)]
     [InlineData(4096)]
@@ -176,35 +176,35 @@ public class PooledBufferStreamTests
     [InlineData(-1)]
     public void Length_OnNewStream_ReturnsZero(int minAllocationSize)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream(minAllocationSize);
 
-        // Act
+        // 法案法
         long length = stream.Length;
 
-        // Assert
+        // 发货
         Assert.Equal(0L, length);
     }
 
     /// <summary>
-    /// Tests that ToArray returns an empty array when no data has been written to the stream.
+    /// 测试 ToArray 在没有将数据写入流时返回空数组。
     /// </summary>
     [Fact]
     public void ToArray_EmptyStream_ReturnsEmptyArray()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
 
-        // Act
+        // 法案法
         byte[] result = stream.ToArray();
 
-        // Assert
+        // 发货
         Assert.NotNull(result);
         Assert.Empty(result);
     }
 
     /// <summary>
-    /// Verifies that the CopyTo method correctly writes all segments to the provided writer.
+    /// 证明 CopyTo 方法正确将所有部分写入提供给作者的文字。
     /// </summary>
     [Theory]
     [InlineData(new byte[] { 1, 2, 3, 4 })]
@@ -215,7 +215,7 @@ public class PooledBufferStreamTests
         stream.Write(expectedData);
 
         var output = new byte[expectedData.Length];
-        // This test only exercises raw buffer copying, which does not access a serializer session.
+        // 测试只使用原始缓冲复制, 无法访问序列转换器会话 。
         var writer = Writer.Create(output, session: null!);
 
         stream.CopyTo(ref writer);
@@ -224,8 +224,8 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// Verifies that the CopyTo method correctly writes all segments to the provided writer for larger buffers.
-    /// Tests with buffers larger than 5kb to ensure multi-segment functionality works properly.
+    /// 证明 CopyTo 方法正确将所有部分写入给提供更大的缓冲字符的作者。
+    /// 带有大于5千字节的缓冲测试,以确保多部分功能正常运行。
     /// </summary>
     [Theory]
     [InlineData(0)]
@@ -243,7 +243,7 @@ public class PooledBufferStreamTests
         stream.Write(expectedData, 0, expectedData.Length);
 
         var output = new byte[expectedData.Length];
-        // This test only exercises raw buffer copying, which does not access a serializer session.
+        // 测试只使用原始缓冲复制, 无法访问序列转换器会话 。
         var writer = Writer.Create(output, session: null!);
 
         stream.CopyTo(ref writer);
@@ -252,57 +252,57 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// Verifies that calling Reset on a fresh instance results in a Length of zero.
+    /// 证明重新设定一个新实例 会导致零长度
     /// </summary>
     [Fact]
     public void Reset_FreshInstance_LengthIsZero()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
 
-        // Act
+        // 法案法
         stream.Reset();
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Length);
     }
 
     /// <summary>
-    /// Verifies that after writing data to the stream, calling Reset resets the stream length to zero.
-    /// Tests multiple scenarios using different write counts.
+    /// 验证在将数据写入流后, 重新设置重置将流长度改成零 。
+    /// 使用不同的写数测试多种情景。
     /// </summary>
-    /// <param name="writeCount">The number of bytes to write to the stream.</param>
+    /// <param name="writeCount">要写入流的字节数。</param>
     [Theory]
     [InlineData(0)]
     [InlineData(10)]
     [InlineData(1024)]
     public void Reset_AfterWrite_LengthResetToZero(int writeCount)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         var buffer = new byte[writeCount];
-        // Populate the buffer with some dummy data if needed.
+        // 必要时用一些假数据弹出缓冲。
         for (int i = 0; i < writeCount; i++)
         {
             buffer[i] = (byte)(i % 256);
         }
 
-        // Act
+        // 法案法
         stream.Write(buffer, 0, writeCount);
-        // Depending on implementation, Length may or may not reflect the exact number of written bytes.
-        // Calling Reset should clear any written data and reset Length.
+        // 长度视执行情况而定,可能反映也可能不反映书面字节的确切数目。
+        // 调用重置应清除任何书面数据并重置长度 。
         stream.Reset();
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Length);
     }
 
     /// <summary>
-    /// Verifies that calling Reset resets the Position property to zero.
-    /// This is important when recycling streams from the pool to ensure the position
-    /// doesn't carry over from previous usage.
+    /// 验证调用重置将位置属性重置为零。
+    /// 当从池中回收循环流以确保位置时,这一点很重要
+    /// 以往使用时不会留下任何痕迹。
     /// </summary>
-    /// <param name="initialPosition">The initial position to set before calling Reset.</param>
+    /// <param name="initialPosition">调用重置前要设定的初始位置。</param>
     [Theory]
     [InlineData(0)]
     [InlineData(10)]
@@ -310,24 +310,24 @@ public class PooledBufferStreamTests
     [InlineData(1024)]
     public void Reset_WithPosition_ResetsPositionToZero(int initialPosition)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
-        stream.SetLength(2000); // Set length large enough to accommodate position
+        stream.SetLength(2000); // 长度宽,足以容纳位置
         stream.Position = initialPosition;
 
-        // Act
+        // 法案法
         stream.Reset();
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Position);
         Assert.Equal(0, stream.Length);
     }
 
     /// <summary>
-    /// Verifies that RentReadOnlySequence returns a correct ReadOnlySequence for various data lengths.
-    /// When no data has been written, an empty sequence is returned; otherwise, the sequence matches the written data.
+    /// 证明 RentReadOnlySequence 返回各种数据长度的正确 ReadOnlySequence 。
+    /// 当没有写入数据时,返回空序;否则,该序列与书面数据相符。
     /// </summary>
-    /// <param name="dataLength">The length of the test data to write to the stream.</param>
+    /// <param name="dataLength">要写入流的测试数据长度。</param>
     [Theory]
     [InlineData(0)]
     [InlineData(100)]
@@ -335,7 +335,7 @@ public class PooledBufferStreamTests
     [InlineData(5000)]
     public void RentReadOnlySequence_VariousDataLengths_ReturnsExpectedSequence(int dataLength)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         byte[] expectedData = GenerateTestData(dataLength);
         if (dataLength > 0)
@@ -343,10 +343,10 @@ public class PooledBufferStreamTests
             stream.Write(expectedData, 0, expectedData.Length);
         }
 
-        // Act
+        // 法案法
         ReadOnlySequence<byte> sequence = stream.RentReadOnlySequence();
 
-        // Assert
+        // 发货
         if (dataLength == 0)
         {
             Assert.Equal(0, sequence.Length);
@@ -362,10 +362,10 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// Generates deterministic test data of a specified length.
+    /// 生成特定长度的确定性测试数据。
     /// </summary>
-    /// <param name="length">The length of the data to generate.</param>
-    /// <returns>A byte array filled with sequential values modulo 256.</returns>
+    /// <param name="length">要生成的数据长度。</param>
+    /// <returns>字节数组,填充连续值的元数组 256。</returns>
     private static byte[] GenerateTestData(int length)
     {
         byte[] data = new byte[length];
@@ -377,75 +377,75 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// Verifies that ReturnReadOnlySequence performs no action when the sequence's start does not return a BufferSegment.
-    /// In this test, we create a dummy ReadOnlySequenceSegment<byte> that returns an object not of type BufferSegment.
-    /// Expected outcome: No exception is thrown.
+    /// 证明 ReturnReadOnlySequence 在序列启动时不返回 BufferSegment时不执行动作。
+    /// 在此测试中, 我们创建一个假 ReadOnlySequenceSegment<byte> 返回非类型对象 BufferSegment。
+    /// 预期成果:没有出现任何例外。
     /// </summary>
     [Theory]
     [InlineData(0)]
     [InlineData(100)]
     public void ReturnReadOnlySequence_StartNotBufferSegment_DoesNotThrow(int dummyValue)
     {
-        // Arrange
+        // 排列排列
         var dummySegment = new DummyReadOnlySequenceSegment(dummyValue);
-        // Create a ReadOnlySequence using the dummy segment.
+        // 使用假片段创建 ReadOnlySequence 。
         var sequence = new ReadOnlySequence<byte>(dummySegment, 0, dummySegment, dummySegment.Memory.Length);
         using var stream = new PooledBufferStream();
 
-        // Act & Assert (should not throw)
+        // 动作和声响( 不应该扔)
         stream.ReturnReadOnlySequence(in sequence);
     }
 
     /// <summary>
-    /// Verifies that ReturnReadOnlySequence returns the BufferSegment chain to the pool.
-    /// Tests that each segment in a multi-segment chain is properly returned to the pool
-    /// and can be reused for subsequent operations.
+    /// 证明 ReturnReadOnlySequence 返回集合的 BufferSegment 链。
+    /// 测试多分层链条中每个段段是否正确返回到池内
+    /// 并可用于以后的作业。
     /// </summary>
     [Fact]
     public void ReturnReadOnlySequence_ValidBufferSegmentChain_CallsPoolReturnForEachSegment()
     {
         using var stream = new PooledBufferStream();
 
-        // Write data that will span multiple segments to create a chain
-        var dataSize = 10000; // Large enough to span multiple segments
+        // 写入数据, 以覆盖多个段创建链条
+        var dataSize = 10000; // 足够大, 横跨多个区块
         var testData = GenerateTestData(dataSize);
         stream.Write(testData, 0, testData.Length);
 
-        // Rent the ReadOnlySequence to get the BufferSegment chain
+        // 租赁 ReadOnlySequence 以获取 BufferSegment 链
         var sequence = stream.RentReadOnlySequence();
 
-        // Verify we have a multi-segment chain
+        // 核查我们有一个多层链
         Assert.True(sequence.Length > 0);
 
-        // Count the number of segments in the chain before returning
+        // 返回前计算链条中段数
         var segmentCount = CountSegmentsInChain(sequence);
         Assert.True(segmentCount > 1, "Test requires multiple segments to verify chain handling");
 
-        // Get fresh segments from the pool to verify they're different before returning
+        // 取泳池的新鲜片段,在返回前确认它们不同
         var freshSegments = new List<PooledBufferStream.BufferSegment>();
         for (int i = 0; i < segmentCount; i++)
         {
             freshSegments.Add(PooledBufferStream.BufferSegment.Pool.Get());
         }
 
-        // Return the fresh segments to avoid affecting the test
+        // 返回新鲜的片段以避免影响试验
         foreach (var segment in freshSegments)
         {
             PooledBufferStream.BufferSegment.Pool.Return(segment);
         }
 
-        // Return the sequence - this should return all segments in the chain to the pool
+        // 返回序列 - 这将返回链条中的所有部分到池
         stream.ReturnReadOnlySequence(sequence);
 
-        // Verify that segments are returned to the pool by getting new ones
-        // and checking they're the same instances (indicating they were recycled)
+        // 校验通过获取新区块返回到池中
+        // 检查它们是否相同(表明它们是回收的)
         var recycledSegments = new List<PooledBufferStream.BufferSegment>();
         for (int i = 0; i < segmentCount; i++)
         {
             recycledSegments.Add(PooledBufferStream.BufferSegment.Pool.Get());
         }
 
-        // The recycled segments should be reset and ready for reuse
+        // 回收的段段应重新设置,准备再利用
         foreach (var segment in recycledSegments)
         {
             Assert.True(segment.Memory.IsEmpty, "Recycled segment should have empty memory");
@@ -453,7 +453,7 @@ public class PooledBufferStreamTests
             Assert.Null(segment.Next);
         }
 
-        // Clean up by returning the segments back to the pool
+        // 清理,把部件送回池子
         foreach (var segment in recycledSegments)
         {
             PooledBufferStream.BufferSegment.Pool.Return(segment);
@@ -461,10 +461,10 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// Counts the number of segments in a ReadOnlySequence chain.
+    /// 计算 ReadOnlySequence 链条中的段数。
     /// </summary>
-    /// <param name="sequence">The sequence to count segments for.</param>
-    /// <returns>The number of segments in the chain.</returns>
+    /// <param name="sequence">计算段的序列。</param>
+    /// <returns>链条中段数。</returns>
     private static int CountSegmentsInChain(ReadOnlySequence<byte> sequence)
     {
         if (sequence.IsSingleSegment)
@@ -487,7 +487,7 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// A dummy implementation of ReadOnlySequenceSegment<byte> used to simulate a segment whose GetObject does not return a BufferSegment.
+    /// 模拟实施 ReadOnlySequenceSegment<byte> 模拟一个部分的 GetObject 不返回a BufferSegment.
     /// </summary>
     private class DummyReadOnlySequenceSegment : ReadOnlySequenceSegment<byte>
     {
@@ -496,80 +496,80 @@ public class PooledBufferStreamTests
         public DummyReadOnlySequenceSegment(int dummyValue)
         {
             _dummyValue = dummyValue;
-            // Initialize Memory with an empty array for simplicity.
+            // 以空阵列初始化内存, 用于简单化 。
             Memory = new byte[0];
         }
 
     }
 
     /// <summary>
-    /// Tests that the CanRead property returns true.
-    /// This test verifies that a newly instantiated PooledBufferStream correctly reports that it can be read.
+    /// 测试 CanRead 属性返回为真。
+    /// 此测试可核实新即时 PooledBufferStream 正确报告可以读取。
     /// </summary>
     [Fact]
     public void CanRead_Property_ReturnsTrue()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
 
-        // Act
+        // 法案法
         bool canRead = stream.CanRead;
 
-        // Assert
+        // 发货
         Assert.True(canRead);
     }
 
     /// <summary>
-    /// Tests that the CanSeek property returns true.
+    /// 测试 CanSeek 属性返回为真。
     /// </summary>
     [Fact]
     public void CanSeek_Property_ReturnsTrue()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
 
-        // Act
+        // 法案法
         bool result = stream.CanSeek;
 
-        // Assert
+        // 发货
         Assert.True(result);
     }
 
     /// <summary>
-    /// Tests that the CanWrite property returns true regardless of the constructor used.
+    /// 测试 CanWrite 属性返回为真,而不论使用的构建器如何。
     /// </summary>
-    /// <param name="useNonDefaultConstructor">Boolean flag to test both default and parameterized constructors.</param>
+    /// <param name="useNonDefaultConstructor">布尔旗,以测试默认和参数化构造器。</param>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void CanWrite_Property_ReturnsTrue(bool useNonDefaultConstructor)
     {
-        // Arrange
+        // 排列排列
         using var stream = useNonDefaultConstructor ? new PooledBufferStream(1024) : new PooledBufferStream();
 
-        // Act
+        // 法案法
         bool canWrite = stream.CanWrite;
 
-        // Assert
+        // 发货
         Assert.True(canWrite);
     }
 
     /// <summary>
-    /// Tests valid Seek scenarios with a preset stream length.
-    /// For Begin: newPosition equals the offset.
-    /// For Current: newPosition equals Position plus offset.
-    /// For End: newPosition equals Length plus offset.
+    /// 测试预设流长的搜索假想 。
+    /// 开始: newPosition 等于偏移。
+    /// 在当前: newPosition 等于职位加抵消。
+    /// 结尾: newPosition 等于长度加抵消。
     /// </summary>
-    /// <param name="offset">The offset parameter for Seek.</param>
-    /// <param name="origin">The SeekOrigin used in Seek.</param>
-    /// <param name="expectedPosition">The expected new position after seeking.</param>
+    /// <param name="offset">搜索的偏移参数。</param>
+    /// <param name="origin">下 SeekOrigin 搜索中所用的。</param>
+    /// <param name="expectedPosition">寻求后预期的新职位。</param>
     [Theory]
     [InlineData(30, SeekOrigin.Begin, 30)]
     [InlineData(20, SeekOrigin.Current, 30)]
     [InlineData(-10, SeekOrigin.End, 90)]
     public void Seek_ValidScenarios_ExpectedPosition(long offset, SeekOrigin origin, long expectedPosition)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         stream.SetLength(100);
         if (origin == SeekOrigin.Current)
@@ -577,57 +577,57 @@ public class PooledBufferStreamTests
             stream.Position = 10;
         }
 
-        // Act
+        // 法案法
         long result = stream.Seek(offset, origin);
 
-        // Assert
+        // 发货
         Assert.Equal(expectedPosition, result);
         Assert.Equal(expectedPosition, stream.Position);
     }
 
     /// <summary>
-    /// Tests valid Seek scenarios on a stream with default length (0).
-    /// For Begin and Current with offset 0, the operation should succeed.
+    /// 测试在默认长度( 0) 的溪流上搜索假想的有效 。
+    /// 开始和当前,加上0,操作应该成功。
     /// </summary>
     [Theory]
     [InlineData(0, SeekOrigin.Begin, 0)]
     [InlineData(0, SeekOrigin.Current, 0)]
     public void Seek_ZeroOffsetOnEmptyStream_ReturnsZero(long offset, SeekOrigin origin, long expectedPosition)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
 
-        // Act
+        // 法案法
         long result = stream.Seek(offset, origin);
 
-        // Assert
+        // 发货
         Assert.Equal(expectedPosition, result);
         Assert.Equal(expectedPosition, stream.Position);
     }
 
     /// <summary>
-    /// Tests Seek scenarios that are expected to throw InvalidOperationException 
-    /// when the resulting position is out of bounds.
+    /// 测试 寻找预期抛出 InvalidOperationException的情景 
+    /// 当其结果已脱离境界的时候,
     /// </summary>
-    /// <param name="offset">The offset parameter for Seek.</param>
-    /// <param name="origin">The SeekOrigin used in Seek.</param>
-    /// <param name="expectedMessage">The expected exception message.</param>
+    /// <param name="offset">搜索的偏移参数。</param>
+    /// <param name="origin">下 SeekOrigin 搜索中所用的。</param>
+    /// <param name="expectedMessage">预期的例外信息。</param>
     [Theory]
-    // For Begin: negative offset.
+    // 开始:负数抵消。
     [InlineData(-1, SeekOrigin.Begin, "Attempted to seek past beginning of stream")]
-    // For Current: result becomes negative.
+    // 对于目前:结果为负。
     [InlineData(-11, SeekOrigin.Current, "Attempted to seek past beginning of stream")]
-    // For End: a negative offset whose magnitude exceeds Length results in a negative newPosition.
+    // 结尾:负抵消其数量超过长度导致负 newPosition。
     [InlineData(-101, SeekOrigin.End, "Attempted to seek past beginning of stream")]
-    // For Begin: offset greater than Length.
+    // 开始: 抵消大于长度的值。
     [InlineData(101, SeekOrigin.Begin, "Attempted to seek past end of stream")]
-    // For Current: result exceeds Length.
+    // 现有:结果超过长度。
     [InlineData(91, SeekOrigin.Current, "Attempted to seek past end of stream")]
-    // For End: a positive offset causes newPosition to exceed Length.
+    // 结尾:正抵消原因 newPosition 超过长度。
     [InlineData(1, SeekOrigin.End, "Attempted to seek past end of stream")]
     public void Seek_OutOfBounds_ThrowsInvalidOperationException(long offset, SeekOrigin origin, string expectedMessage)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         stream.SetLength(100);
         if (origin == SeekOrigin.Current)
@@ -635,143 +635,143 @@ public class PooledBufferStreamTests
             stream.Position = 10;
         }
 
-        // Act & Assert
+        // 动作和发售
         var ex = Assert.Throws<InvalidOperationException>(() => stream.Seek(offset, origin));
         Assert.Equal(expectedMessage, ex.Message);
     }
 
     /// <summary>
-    /// Tests that an invalid SeekOrigin value causes an ArgumentOutOfRangeException.
+    /// 测试无效 SeekOrigin 值导致 ArgumentOutOfRangeException。
     /// </summary>
     [Fact]
     public void Seek_InvalidOrigin_ThrowsArgumentOutOfRangeException()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
 
-        // Act & Assert
+        // 动作和发售
         Assert.Throws<ArgumentOutOfRangeException>(() => stream.Seek(0, (SeekOrigin)999));
     }
 
     /// <summary>
-    /// Verifies that calling Read on an empty stream (with no data written) returns zero.
+    /// 证明在空流上调用读( 没有写入数据) 返回零 。
     /// </summary>
     [Fact]
     public void Read_WithEmptyStream_ReturnsZero()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         var buffer = new byte[10];
 
-        // Act
+        // 法案法
         int bytesRead = stream.Read(buffer, 0, buffer.Length);
 
-        // Assert
+        // 发货
         Assert.Equal(0, bytesRead);
     }
 
     /// <summary>
-    /// Verifies that calling Read with a null buffer throws an ArgumentNullException.
+    /// 证明调用“阅读”与“无缓冲”相交,会丢出一个 ArgumentNullException。
     /// </summary>
     [Fact]
     public void Read_NullBuffer_ThrowsArgumentNullException()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
 
-        // Act & Assert
+        // 动作和发售
         Assert.Throws<ArgumentNullException>(() => stream.Read(null!, 0, 5));
     }
 
     /// <summary>
-    /// Verifies that calling Read with an invalid offset or count throws an ArgumentOutOfRangeException.
+    /// 证明调用 Read 以无效的偏移或计数会投出 ArgumentOutOfRangeException。
     /// </summary>
-    /// <param name="offset">The offset to use when reading.</param>
-    /// <param name="count">The count to use when reading.</param>
+    /// <param name="offset">读取时要使用的偏移。</param>
+    /// <param name="count">读取时要使用的计数。</param>
     [Theory]
     [InlineData(-1, 5)]
     [InlineData(2, 100)]
     public void Read_InvalidOffsetOrCount_ThrowsArgumentOutOfRangeException(int offset, int count)
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         var buffer = new byte[10];
 
-        // Act & Assert
+        // 动作和发售
         Assert.Throws<ArgumentOutOfRangeException>(() => stream.Read(buffer, offset, count));
     }
 
     /// <summary>
-    /// Verifies that calling SetLength with a value equal to the current Length does not modify the stream state.
-    /// This test sets an initial non-zero length then calls SetLength with the same value.
+    /// 证明调用与当前长度等值的 SetLength 不修改流状态 。
+    /// 此测试设定初始非零长度, 然后调用值相同的 SetLength 。
     /// </summary>
     [Fact]
     public void SetLength_ValueEqualsCurrentLength_DoesNotChangeState()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         stream.Position = 200;
         stream.SetLength(500);
         long originalLength = stream.Length;
         long originalPosition = stream.Position;
 
-        // Act
+        // 法案法
         stream.SetLength(500);
 
-        // Assert
+        // 发货
         Assert.Equal(originalLength, stream.Length);
         Assert.Equal(originalPosition, stream.Position);
     }
 
     /// <summary>
-    /// Verifies that calling SetLength on an empty or non-empty stream updates the Length and adjusts Position accordingly.
-    /// This test covers scenarios including growth and truncation.
+    /// 证明在空或非空流上调用 SetLength 会更新长度并相应调整位置。
+    /// 本测试涵盖包括生长和短时在内的各种设想。
     /// </summary>
-    /// <param name="initialPosition">The initial Position set on the stream.</param>
-    /// <param name="initialSetLength">The first SetLength call to establish a non-empty state.</param>
-    /// <param name="newSetLength">The second SetLength call to update the length.</param>
-    /// <param name="expectedPosition">The expected Position after updating the length.</param>
-    /// <param name="expectedLength">The expected Length after updating the length.</param>
+    /// <param name="initialPosition">流上初始位置设置。</param>
+    /// <param name="initialSetLength">第一次 SetLength 呼吁建立一个非空状态。</param>
+    /// <param name="newSetLength">第二次 SetLength 呼叫更新长度。</param>
+    /// <param name="expectedPosition">更新长度后预期位置。</param>
+    /// <param name="expectedLength">更新长度后预期的长度。</param>
     [Theory]
-    [InlineData(100, 500, 500, 100, 500)]   // Equality case on non-empty stream.
-    [InlineData(600, 500, 1000, 500, 1000)]  // Growth case: initial length 500 grows to 1000.
-    [InlineData(800, 1000, 500, 500, 500)]   // Truncate case: initial length 1000 truncates to 500.
+    [InlineData(100, 500, 500, 100, 500)]   // 平等案件,非空白流。
+    [InlineData(600, 500, 1000, 500, 1000)]  // 增长情况:最初长度500长,后增长到1000。
+    [InlineData(800, 1000, 500, 500, 500)]   // runcate 大小写: 初始长度为 1000 长的短程到 500 。
     public void SetLength_Scenarios_UpdatesLengthAndPosition(int initialPosition, int initialSetLength, int newSetLength, int expectedPosition, int expectedLength)
     {
-        // Arrange
+        // 排列排列
         using var stream = new MemoryStream();
         stream.Position = initialPosition;
         stream.SetLength(initialSetLength);
 
-        // Act
+        // 法案法
         stream.SetLength(newSetLength);
 
-        // Assert
+        // 发货
         Assert.Equal(expectedLength, stream.Length);
         Assert.Equal(expectedPosition, stream.Position);
     }
 
     /// <summary>
-    /// Verifies that calling SetLength with 0 on an empty stream maintains Length and Position at 0.
+    /// 证明在空流上拨打0的 SetLength 时,长度和位置维持在0。
     /// </summary>
     [Fact]
     public void SetLength_ZeroOnEmpty_DoesNotChangeState()
     {
-        // Arrange
+        // 排列排列
         using var stream = new PooledBufferStream();
         stream.Position = 0;
 
-        // Act
+        // 法案法
         stream.SetLength(0);
 
-        // Assert
+        // 发货
         Assert.Equal(0, stream.Length);
         Assert.Equal(0, stream.Position);
     }
 
     /// <summary>
-    /// Provides invalid parameter combinations for testing Write method exceptions.
-    /// Each object array contains: buffer, offset, count, and expected exception type.
+    /// 提供无效参数组合用于测试 写方法例外。
+    /// 每个对象数组包含:缓冲、偏移、计数和预期例外类型。
     /// </summary>
     public static IEnumerable<object?[]> InvalidWriteParameters
     {
@@ -785,23 +785,23 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// Tests that Write throws the appropriate exceptions when provided with invalid parameters.
+    /// 提供无效参数时, Wride 将提出适当的例外。
     /// </summary>
-    /// <param name="buffer">The input byte array (may be null).</param>
-    /// <param name="offset">The starting offset in the array.</param>
-    /// <param name="count">The number of bytes to write.</param>
-    /// <param name="expectedException">The expected type of exception.</param>
+    /// <param name="buffer">输入字节数组( 可能是空的) 。</param>
+    /// <param name="offset">数组中的起始偏移。</param>
+    /// <param name="count">要写入的字节数。</param>
+    /// <param name="expectedException">预期的例外类型。</param>
     [Theory]
     [MemberData(nameof(InvalidWriteParameters))]
     public void Write_InvalidParameters_ThrowsException(byte[]? buffer, int offset, int count, Type expectedException)
     {
         using var stream = new PooledBufferStream();
-        // Null is an intentional theory input used to verify Stream.Write's argument validation.
+        // Null是用于核实 Stream.Write论证的有意理论输入。
         Assert.Throws(expectedException, () => stream.Write(buffer!, offset, count));
     }
 
     /// <summary>
-    /// Tests that calling Write with a zero count does not modify the stream's position.
+    /// 以零计数调用写作测试不会改变流的位置。
     /// </summary>
     [Fact]
     public void Write_ZeroCount_DoesNothing()
@@ -814,10 +814,10 @@ public class PooledBufferStreamTests
     }
 
     /// <summary>
-    /// Tests that Write correctly appends data to the stream.
-    /// Verifies that written data can be retrieved via ToArray() and that the stream's Position advances appropriately.
+    /// 测试“正确写入”将数据附加到流中。
+    /// 证明书面数据可以通过 ToArray()检索,流的位置适当推进。
     /// </summary>
-    /// <param name="inputLength">The length of data to write.</param>
+    /// <param name="inputLength">要写入的数据长度。</param>
     [Theory]
     [InlineData(1)]
     [InlineData(10)]
@@ -834,34 +834,34 @@ public class PooledBufferStreamTests
 
         stream.Write(data, 0, data.Length);
 
-        // Verify that the data has been correctly appended
+        // 核实数据是否正确附件
         byte[] writtenData = stream.ToArray();
         Assert.Equal(data, writtenData);
 
-        // Verify that the stream length matches the written data length
+        // 校验流流长度是否与书面数据长度相符
         Assert.Equal(inputLength, stream.Length);
 
-        // Verify that the position has advanced correctly
+        // 校验位置是否正确推进
         Assert.Equal(initialPosition + inputLength, stream.Position);
     }
 
     /// <summary>
-    /// Verifies that the Flush method performs no operation and does not throw any exceptions.
+    /// 证明Flush方法不执行操作,也不提出任何例外。
     /// </summary>
     [Fact]
     public void Flush_NoData_DoesNotThrowException()
     {
-        // Arrange: Create a new instance of PooledBufferStream.
+        // 排列: 创建一个 PooledBufferStream的新实例。
         using var stream = new PooledBufferStream();
 
-        // Act & Assert: Calling Flush should not throw an exception.
+        // 动作和发声: 呼叫 Flush 不应该丢弃例外 。
         var exception = Record.Exception(() => stream.Flush());
         Assert.Null(exception);
     }
 }
 
 /// <summary>
-/// Unit tests for the BufferSegment class.
+/// 单位测试 BufferSegment 类。
 /// </summary>
 [Trait("Category", "BVT")]
 [Trait("Suite", "BVT")]
@@ -870,8 +870,8 @@ public class PooledBufferStreamTests
 public class BufferSegmentTests
 {
     /// <summary>
-    /// Provides test data for the Initialize method.
-    /// Each test case includes a byte array and a corresponding runningIndex value.
+    /// 提供初始化方法的测试数据。
+    /// 每个测试案例都包含字节数组和相应的 runningIndex 值。
     /// </summary>
     public static IEnumerable<object[]> GetInitializeTestData()
     {
@@ -883,75 +883,75 @@ public class BufferSegmentTests
     }
 
     /// <summary>
-    /// Verifies that the Initialize method sets the Memory and RunningIndex properties correctly.
-    /// Tests various edge cases including empty arrays, typical values, and boundary numeric values.
+    /// 证明初始化方法正确设置了内存和 RunningIndex 属性。
+    /// 测试各种边缘的大小写,包括空数组、典型值和边界数值。
     /// </summary>
-    /// <param name="inputData">Byte array to be set into the Memory property.</param>
-    /// <param name="runningIndex">The runningIndex value to be assigned.</param>
+    /// <param name="inputData">字节数组将设置为内存属性。</param>
+    /// <param name="runningIndex">下 runningIndex 待分配值。</param>
     [Theory]
     [MemberData(nameof(GetInitializeTestData))]
     public void Initialize_ValidInput_PropertiesSetCorrectly(byte[] inputData, long runningIndex)
     {
-        // Arrange
+        // 排列排列
         ReadOnlyMemory<byte> readOnlyMemory = new ReadOnlyMemory<byte>(inputData);
         var bufferSegment = new PooledBufferStream.BufferSegment();
 
-        // Act
+        // 法案法
         bufferSegment.Initialize(readOnlyMemory, runningIndex);
 
-        // Assert
+        // 发货
         Assert.Equal(readOnlyMemory.ToArray(), bufferSegment.Memory.ToArray());
         Assert.Equal(runningIndex, bufferSegment.RunningIndex);
     }
 
     /// <summary>
-    /// Verifies that calling SetNext with a valid BufferSegment correctly sets the Next property.
+    /// 证明调用 SetNext 并配有有效的 BufferSegment 正确设置了“下一”属性。
     /// </summary>
     [Fact]
     public void SetNext_ValidBufferSegment_SetsNextProperty()
     {
-        // Arrange
+        // 排列排列
         var segment = new PooledBufferStream.BufferSegment();
         var nextSegment = new PooledBufferStream.BufferSegment();
 
-        // Act
+        // 法案法
         segment.SetNext(nextSegment);
 
-        // Assert
+        // 发货
         Assert.Equal(nextSegment, segment.Next);
     }
 
     /// <summary>
-    /// Verifies that calling SetNext more than once correctly overwrites the Next property.
+    /// 证明调用 SetNext 不止一次正确覆盖了下一项财产。
     /// </summary>
     [Fact]
     public void SetNext_OverwriteExistingNext_SetsNextPropertyToNewValue()
     {
-        // Arrange
+        // 排列排列
         var segment = new PooledBufferStream.BufferSegment();
         var firstNextSegment = new PooledBufferStream.BufferSegment();
         var secondNextSegment = new PooledBufferStream.BufferSegment();
 
-        // Act
+        // 法案法
         segment.SetNext(firstNextSegment);
         segment.SetNext(secondNextSegment);
 
-        // Assert
+        // 发货
         Assert.Equal(secondNextSegment, segment.Next);
     }
 
     /// <summary>
-    /// Verifies that the SegmentPoolPolicy.Create method creates a new BufferSegment instance.
-    /// This test calls BufferSegment.Pool.Get() which internally uses the SegmentPoolPolicy.Create method.
-    /// Expected: A non-null BufferSegment instance is returned.
+    /// 证明 SegmentPoolPolicy.Create 方法创建了一个新的 BufferSegment 实例。
+    /// 这个试调 BufferSegment.Pool.Get() 哪些内部使用 SegmentPoolPolicy.Create 方法。
+    /// 预期成绩:返回一个非null BufferSegment 实例。
     /// </summary>
     [Fact]
     public void SegmentPoolPolicy_Create_ReturnsNewBufferSegment()
     {
-        // Act
+        // 法案法
         PooledBufferStream.BufferSegment segment = PooledBufferStream.BufferSegment.Pool.Get();
 
-        // Assert
+        // 发货
         Assert.NotNull(segment);
         Assert.IsType<PooledBufferStream.BufferSegment>(segment);
         PooledBufferStream.BufferSegment.Pool.Return(segment);

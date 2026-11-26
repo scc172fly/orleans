@@ -16,101 +16,101 @@ using Orleans.Serialization.Session;
 namespace Orleans.Serialization.Buffers
 {
     /// <summary>
-    /// Helper methods for creating <see cref="Writer{TBufferWriter}"/> instances.
+    /// 创建 <see cref="Writer{TBufferWriter}"/> 示例的帮助器方法。
     /// </summary>
     public static class Writer
     {
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer output type.</typeparam>
-        /// <param name="destination">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <typeparam name="TBufferWriter">缓冲写器输出类型。</typeparam>
+        /// <param name="destination">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<TBufferWriter> Create<TBufferWriter>(TBufferWriter destination, SerializerSession session) where TBufferWriter : IBufferWriter<byte> => new(destination, session);
 
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <param name="destination">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="destination">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<ArcBufferWriterWrapper> Create(ArcBufferWriter destination, SerializerSession session) => new(new(destination), session);
 
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <param name="destination">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="destination">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<MemoryStreamBufferWriter> Create(MemoryStream destination, SerializerSession session) => new(new MemoryStreamBufferWriter(destination), session);
 
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <param name="destination">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <param name="sizeHint">The size hint.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="destination">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <param name="sizeHint">大小提示。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<PoolingStreamBufferWriter> CreatePooled(Stream destination, SerializerSession session, int sizeHint = 0) => new(new PoolingStreamBufferWriter(destination, sizeHint), session);
 
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <param name="destination">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <param name="sizeHint">The size hint.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="destination">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <param name="sizeHint">大小提示。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<ArrayStreamBufferWriter> Create(Stream destination, SerializerSession session, int sizeHint = 0) => new(new ArrayStreamBufferWriter(destination, sizeHint), session);
 
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <param name="output">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="output">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<SpanBufferWriter> Create(byte[] output, SerializerSession session) => Create(output.AsSpan(), session);
 
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <param name="output">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="output">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<MemoryBufferWriter> Create(Memory<byte> output, SerializerSession session) => new(new MemoryBufferWriter(output), session);
 
         /// <summary>
-        /// Creates a writer which writes to the specified destination.
+        /// 创建写到指定目的地的作家。
         /// </summary>
-        /// <param name="output">The destination.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="output">目的地</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<SpanBufferWriter> Create(Span<byte> output, SerializerSession session) => new(new SpanBufferWriter(output), output, session);
 
         /// <summary>
-        /// Creates a writer which writes to a pooled buffer.
+        /// 创建写作器, 将其写入集合缓冲 。
         /// </summary>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Writer{TBufferWriter}"/>.</returns>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Writer{TBufferWriter}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<PooledBuffer> CreatePooled(SerializerSession session) => new(new PooledBuffer(), session);
     }
 
     /// <summary>
-    /// Wraps an <see cref="ArcBufferWriter"/> for use as a serialization writer target.
+    /// 将 <see cref="ArcBufferWriter"/> 包成一个序列化作家目标。
     /// </summary>
     /// <remarks>
-    /// Disposing a <see cref="Writer{TBufferWriter}"/> over this wrapper does not dispose the underlying <see cref="ArcBufferWriter"/>.
+    /// 处理此包装纸上的 <see cref="Writer{TBufferWriter}"/> 不处置底部 <see cref="ArcBufferWriter"/>。
     /// </remarks>
-    /// <param name="bufferWriter">The wrapped buffer writer.</param>
+    /// <param name="bufferWriter">包装缓冲写作器。</param>
     public readonly struct ArcBufferWriterWrapper(ArcBufferWriter bufferWriter) : IBufferWriter<byte>
     {
         /// <inheritdoc/>
@@ -124,36 +124,36 @@ namespace Orleans.Serialization.Buffers
     }
 
     /// <summary>
-    /// Provides functionality for writing to an output stream.
+    /// 提供将文字写入输出流的功能。
     /// </summary>
-    /// <typeparam name="TBufferWriter">The underlying buffer writer type.</typeparam>
+    /// <typeparam name="TBufferWriter">后含缓冲写作类型。</typeparam>
     public ref partial struct Writer<TBufferWriter> where TBufferWriter : IBufferWriter<byte>
     {
         /// <summary>
-        /// The output buffer writer.
+        /// 输出缓冲写器
         /// </summary>
         /// <remarks>
-        /// Modifying the output directly may corrupt the state of the writer.
+        /// 直接修改输出可能会腐蚀作者的状态。
         /// </remarks>
         public TBufferWriter Output;
 
         /// <summary>
-        /// The current write span.
+        /// 当前写字间隔 。
         /// </summary>
         private Span<byte> _currentSpan;
 
         /// <summary>
-        /// The buffer position within the current span.
+        /// 在当前范围内的缓冲位置。
         /// </summary>
         private int _bufferPos;
 
         /// <summary>
-        /// The previous buffer's size.
+        /// 上次缓冲的大小 。
         /// </summary>
         private int _previousBuffersSize;
 
         /// <summary>
-        /// Max segment buffer size hint (1MB)
+        /// 最大段缓冲大小提示(1MB)
         /// </summary>
         internal const int MaxMultiSegmentSizeHint = 1024 * 1024;
 
@@ -183,7 +183,7 @@ namespace Orleans.Serialization.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            // Avoid boxing the struct, for better perf and codegen.
+            // 避免打斗, 更好的渗透器和代码。
             if (typeof(TBufferWriter).IsValueType)
             {
                 if (Output is IDisposable)
@@ -198,21 +198,21 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Gets the serializer session.
+        /// 获得连环机会话。
         /// </summary>
-        /// <value>The serializer session.</value>
+        /// <value>序列器会话。</value>
         public SerializerSession Session { get; }
 
         /// <summary>
-        /// Gets the position.
+        /// 获得位置。
         /// </summary>
-        /// <value>The position.</value>
+        /// <value>位置。</value>
         public readonly int Position => _previousBuffersSize + _bufferPos;
 
         /// <summary>
-        /// Gets the current writable span.
+        /// 获取当前可写频谱。
         /// </summary>
-        /// <value>The current writable span.</value>
+        /// <value>当前可写字的间隔。</value>
         public readonly Span<byte> WritableSpan
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -220,14 +220,14 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Advance the write position in the current span.
+        /// 在当前间隔内推进写入位置。
         /// </summary>
-        /// <param name="length">The number of bytes to advance wirte position by.</param>
+        /// <param name="length">用于预发 wirte 位置的字节数。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AdvanceSpan(int length) => _bufferPos += length;
 
         /// <summary>
-        /// Commit the currently written buffers.
+        /// 提交当前写入的缓冲文件。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Commit()
@@ -243,53 +243,53 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Ensures that there are at least <paramref name="length"/> contiguous bytes available to be written.
+        /// 确保至少有 <paramref name="length"/> 毗连字节可以写入。
         /// </summary>
-        /// <param name="length">The number of contiguous bytes to ensure.</param>
+        /// <param name="length">要确保的毗连字节数。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureContiguous(int length)
         {
-            // The current buffer is adequate.
+            // 目前缓冲剂足够。
             if (_bufferPos + length <= _currentSpan.Length)
             {
                 return;
             }
 
-            // The current buffer is inadequate, allocate another.
+            // 目前的缓冲不够, 另分配一个。
             Allocate(length);
 #if DEBUG
-            // Throw if the allocation does not satisfy the request.
+            // 如果分配未满足请求, 则丢弃 。
             if (_currentSpan.Length < length)
                 throw new InvalidOperationException($"Requested buffer length {length} cannot be satisfied by the writer.");
 #endif
         }
 
         /// <summary>
-        /// Allocates buffer space for the specified number of bytes.
+        /// 为指定的字节数分配缓冲空间。
         /// </summary>
-        /// <param name="sizeHint">The number of bytes to reserve.</param>
+        /// <param name="sizeHint">准备储备的字节数。</param>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Allocate(int sizeHint)
         {
-            // Commit the bytes which have been written.
+            // 提交已写入的字节 。
             Output.Advance(_bufferPos);
 
-            // Request a new buffer with at least the requested number of available bytes.
+            // 请求新建至少包含所需可用字节数的缓冲文件 。
             _currentSpan = Output.GetSpan(sizeHint);
 
-            // Update internal state for the new buffer.
+            // 更新新缓冲的内建状态 。
             _previousBuffersSize += _bufferPos;
             _bufferPos = 0;
         }
 
         /// <summary>
-        /// Writes the specified value.
+        /// 写入指定值。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(scoped ReadOnlySpan<byte> value)
         {
-            // Fast path, try copying to the current buffer.
+            // 快路径, 尝试复制到当前缓冲 。
             var destination = WritableSpan;
             if ((uint)value.Length <= (uint)destination.Length)
             {
@@ -307,7 +307,7 @@ namespace Orleans.Serialization.Buffers
         {
             while (true)
             {
-                // Write as much as possible/necessary into the current segment.
+                // 尽可能/必要地写入当前段。
                 var span = WritableSpan;
                 var writeSize = Math.Min(span.Length, input.Length);
                 input[..writeSize].CopyTo(span);
@@ -320,15 +320,15 @@ namespace Orleans.Serialization.Buffers
                     return;
                 }
 
-                // The current segment is full but there is more to write.
+                // 当前段满载, 但还有更多要写 。
                 Allocate(Math.Min(input.Length, MaxMultiSegmentSizeHint));
             }
         }
 
         /// <summary>
-        /// Writes the provided <see cref="byte"/> to the output buffer.
+        /// 将提供的 <see cref="byte"/> 写入输出缓冲。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteByte(byte value)
         {
@@ -354,23 +354,23 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes the provided <see cref="int"/> to the output buffer.
+        /// 将提供的 <see cref="int"/> 写入输出缓冲。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt32(int value) => WriteUInt32((uint)value);
 
         /// <summary>
-        /// Writes the provided <see cref="long"/> to the output buffer.
+        /// 将提供的 <see cref="long"/> 写入输出缓冲。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt64(long value) => WriteUInt64((ulong)value);
 
         /// <summary>
-        /// Writes the provided <see cref="uint"/> to the output buffer.
+        /// 将提供的 <see cref="uint"/> 写入输出缓冲。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteUInt32(uint value)
         {
@@ -397,9 +397,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes the provided <see cref="ulong"/> to the output buffer.
+        /// 将提供的 <see cref="ulong"/> 写入输出缓冲。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteUInt64(ulong value)
         {
@@ -426,7 +426,7 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes a 7-bit unsigned value as a variable-width integer.
+        /// 将一个7位数的无符号值作为变量-宽整数写入。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void WriteVarUInt7(uint value)
@@ -436,7 +436,7 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes a 28-bit unsigned value as a variable-width integer.
+        /// 将一个28位未符号值作为变量-宽整数写入。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void WriteVarUInt28(uint value)
@@ -471,9 +471,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes the provided <see cref="uint"/> to the output buffer as a variable-width integer.
+        /// 将提供的 <see cref="uint"/> 写入输出缓冲,作为变量-宽整数。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarUInt32(uint value)
         {
@@ -495,7 +495,7 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes a 56-bit unsigned value as a variable-width integer.
+        /// 将56位未符号值作为变量-宽整数写入。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void WriteVarUInt56(ulong value)
@@ -530,14 +530,14 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Writes the provided <see cref="ulong"/> to the output buffer as a variable-width integer.
+        /// 将提供的 <see cref="ulong"/> 写入输出缓冲,作为变量-宽整数。
         /// </summary>
-        /// <param name="value">The value.</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarUInt64(ulong value)
         {
             nuint pos = (uint)_bufferPos;
-            // Since this method writes a ulong plus a ushort worth of bytes unconditionally, ensure that there is sufficient space.
+            // 因为这方法写了一块乌隆加一个粗略值的字节,
             if ((uint)pos + sizeof(ulong) + sizeof(ushort) <= (uint)_currentSpan.Length)
             {
                 var neededBytes = (int)((uint)BitOperations.Log2(value) / 7);
@@ -549,7 +549,7 @@ namespace Orleans.Serialization.Buffers
                 if (!BitConverter.IsLittleEndian) lower = BinaryPrimitives.ReverseEndianness(lower);
                 Unsafe.WriteUnaligned(ref writeHead, lower);
 
-                // Write the 2 byte overflow unconditionally
+                // 无条件写2字节溢出
                 var upper = value >> (63 - neededBytes);
                 writeHead = ref Unsafe.Add(ref writeHead, sizeof(ulong));
                 if (!BitConverter.IsLittleEndian) upper = BinaryPrimitives.ReverseEndianness((ushort)upper);
@@ -572,7 +572,7 @@ namespace Orleans.Serialization.Buffers
             ulong lower = ((value << 1) + 1) << neededBytes;
             BinaryPrimitives.WriteUInt64LittleEndian(_currentSpan, lower);
 
-            // Write the 2 byte overflow unconditionally
+            // 无条件写2字节溢出
             var upper = value >> (63 - neededBytes);
             BinaryPrimitives.WriteUInt16LittleEndian(_currentSpan[sizeof(ulong)..], (ushort)upper);
         }

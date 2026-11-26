@@ -4,17 +4,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Builder for configuring an Orleans client.
+    /// 配置 Orleans 客户端的构建器。
     /// </summary>
     public interface IClientBuilder
     {
         /// <summary>
-        /// Gets the services collection.
+        /// 收集服务
         /// </summary>
         IServiceCollection Services { get; }
 
         /// <summary>
-        /// Gets the configuration.
+        /// 得到配置。
         /// </summary>
         IConfiguration Configuration { get; }
     }

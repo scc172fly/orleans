@@ -5,8 +5,8 @@ using Xunit;
 namespace UnitTests
 {
     /// <summary>
-    /// Tests for Orleans management and monitoring components, particularly the SystemStatus enumeration.
-    /// SystemStatus is used throughout Orleans to track the lifecycle state of silos and other runtime components.
+    /// Orleans 管理和监测组成部分的测试,特别是 SystemStatus 点数。
+    /// SystemStatus 整个 Orleans 跟踪 silos 和其他运行时部件。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -14,8 +14,8 @@ namespace UnitTests
     public class ManagementAgentTests
     {
         /// <summary>
-        /// Tests the equality implementation of SystemStatus values to ensure proper comparison behavior.
-        /// This is important for state management and monitoring throughout the Orleans runtime.
+        /// 测试 SystemStatus 值的平等落实情况,以确保适当的比较行为。
+        /// 这对于国家在整个 Orleans 运行期间的管理和监测十分重要。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("Management")]
         public void SystemStatusEquals()
@@ -29,10 +29,10 @@ namespace UnitTests
             CheckNotEquals(same2, other);
         }
 
-        //[Fact]
-        //public void CheckEventChannelEnvSetup()
+        //[真
+        //公共无效 CheckEventChannelEnvSetup()
         //{
-        //    bool found = ManagementBusConnector.CheckEventChannelEnvSetup();
+        //    找到布层 = ManagementBusConnector.CheckEventChannelEnvSetup();
         //    Console.WriteLine("CheckEventChannelEnvSetup=" + found);
         //}
 

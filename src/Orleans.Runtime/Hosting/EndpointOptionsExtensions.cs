@@ -7,18 +7,18 @@ using Orleans.Runtime.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for configuring <see cref="EndpointOptions"/>.
+    /// 配置的扩展方法 <see cref="EndpointOptions"/>。
     /// </summary>
     public static class EndpointOptionsExtensions
     {
         /// <summary>
-        /// Configure endpoints for the silo.
+        /// 配置 silo的端点 。
         /// </summary>
-        /// <param name="builder">The host builder to configure.</param>
-        /// <param name="advertisedIP">The IP address to be advertised in membership tables</param>
-        /// <param name="siloPort">The port this silo uses for silo-to-silo communication.</param>
-        /// <param name="gatewayPort">The port this silo uses for client-to-silo (gateway) communication. Specify 0 to disable gateway functionality.</param>
-        /// <param name="listenOnAnyHostAddress">Set to true to listen on all IP addresses of the host instead of just the advertiseIP.</param>
+        /// <param name="builder">要配置的主机构建器 。</param>
+        /// <param name="advertisedIP">成员表格中公布的IPIP地址</param>
+        /// <param name="siloPort">此处端口 silo 用途的用途 silo- 来...silo 通信。</param>
+        /// <param name="gatewayPort">此处端口 silo 客户端到-silo 指定 0 来禁用网关功能 。</param>
+        /// <param name="listenOnAnyHostAddress">设置为真实性, 以收听主机的所有 IP 地址, 而不是仅收听 advertiseIP。</param>
         /// <returns></returns>
         public static ISiloBuilder ConfigureEndpoints(
             this ISiloBuilder builder,
@@ -43,14 +43,14 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure endpoints for the silo.
+        /// 配置 silo的端点 。
         /// </summary>
-        /// <param name="builder">The host builder to configure.</param>
-        /// <param name="hostname">The host name the silo is running on.</param>
-        /// <param name="siloPort">The port this silo uses for silo-to-silo communication.</param>
-        /// <param name="gatewayPort">The port this silo uses for client-to-silo (gateway) communication. Specify 0 to disable gateway functionality.</param>
-        /// <param name="addressFamily">Address family to listen on.  Default IPv4 address family.</param>
-        /// <param name="listenOnAnyHostAddress">Set to true to listen on all IP addresses of the host instead of just the advertiseIP.</param>
+        /// <param name="builder">要配置的主机构建器 。</param>
+        /// <param name="hostname">主机名称 silo 正在运行。</param>
+        /// <param name="siloPort">此处端口 silo 用途的用途 silo- 来...silo 通信。</param>
+        /// <param name="gatewayPort">此处端口 silo 客户端到-silo 指定 0 来禁用网关功能 。</param>
+        /// <param name="addressFamily">地址是要收听的家属。默认 IPv4 地址是家庭。</param>
+        /// <param name="listenOnAnyHostAddress">设置为真实性, 以收听主机的所有 IP 地址, 而不是仅收听 advertiseIP。</param>
         /// <returns></returns>
         public static ISiloBuilder ConfigureEndpoints(
             this ISiloBuilder builder,
@@ -71,13 +71,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure endpoints for the silo.
+        /// 配置 silo的端点 。
         /// </summary>
-        /// <param name="builder">The host builder to configure.</param>
-        /// <param name="siloPort">The port this silo uses for silo-to-silo communication.</param>
-        /// <param name="gatewayPort">The port this silo uses for client-to-silo (gateway) communication. Specify 0 to disable gateway functionality.</param>
-        /// <param name="addressFamily">Address family to listen on.  Default IPv4 address family.</param>
-        /// <param name="listenOnAnyHostAddress">Set to true to listen on all IP addresses of the host instead of just the advertiseIP.</param>
+        /// <param name="builder">要配置的主机构建器 。</param>
+        /// <param name="siloPort">此处端口 silo 用途的用途 silo- 来...silo 通信。</param>
+        /// <param name="gatewayPort">此处端口 silo 客户端到-silo 指定 0 来禁用网关功能 。</param>
+        /// <param name="addressFamily">地址是要收听的家属。默认 IPv4 地址是家庭。</param>
+        /// <param name="listenOnAnyHostAddress">设置为真实性, 以收听主机的所有 IP 地址, 而不是仅收听 advertiseIP。</param>
         /// <returns></returns>
         public static ISiloBuilder ConfigureEndpoints(
             this ISiloBuilder builder,

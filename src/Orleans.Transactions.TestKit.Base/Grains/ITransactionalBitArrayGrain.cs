@@ -5,28 +5,28 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit.Correctnesss
 {
     /// <summary>
-    /// Defines operations for exercising transactional bit-array states.
+    /// 定义运行交易点数组状态的操作。
     /// </summary>
     public interface ITransactionalBitArrayGrain : IGrainWithGuidKey
     {
         /// <summary>
-        /// Verifies that the grain is reachable without accessing transactional state.
+        /// 证明 grain 在无法进入交易状态的情况下是可以达到的。
         /// </summary>
-        /// <returns>A completed task.</returns>
+        /// <returns>一项已完成的任务。</returns>
         Task Ping();
 
         /// <summary>
-        /// Sets a bit in every transactional state.
+        /// 在每个交易状态下设置一点。
         /// </summary>
-        /// <param name="newValue">The zero-based bit index to set.</param>
-        /// <returns>A task representing the transactional operation.</returns>
+        /// <param name="newValue">零基位数指数要设置。</param>
+        /// <returns>一项代表交易操作的任务。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task SetBit(int newValue);
 
         /// <summary>
-        /// Reads every transactional bit-array state.
+        /// 读取每一个交易性的微数状态。
         /// </summary>
-        /// <returns>The current states in transactional state order.</returns>
+        /// <returns>国家秩序中的现行状态</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<List<BitArrayState>> Get();
     }

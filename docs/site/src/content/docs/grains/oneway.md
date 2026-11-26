@@ -1,30 +1,34 @@
 ---
-title: One-way grain calls
-description: Use one-way requests for best-effort Orleans notifications.
+title: "单行 grain 调用"
+description: "使用单向请求,以获取最佳努力 Orleans 通知。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# One-way grain calls
+<a id="one-way-grain-calls"></a>
 
-A regular grain call returns a task that completes when Orleans receives the method's response. The task carries a return value or exception and tells the caller that the request finished.
+# 单行 grain 调用
 
-A method marked with <xref:Orleans.Concurrency.OneWayAttribute> returns to the caller after Orleans accepts the request for sending. The caller receives no completion signal, result, or exception:
+常规 grain 调用返回一个在 Orleans 收到方法响应时完成的任务。该任务包含一个返回值或例外,并告诉呼叫者请求已完成。
+
+一种方法,标记为 <xref:Orleans.Concurrency.OneWayAttribute> 返回后返回呼叫器 Orleans 接受发送请求。 呼叫者没有收到完成信号、 结果或例外:
 
 :::code language="csharp" source="../snippets/compiled/Grains/ServicesAndObserversSnippets.cs" id="one_way_audit":::
-One-way methods must return <xref:System.Threading.Tasks.Task> or <xref:System.Threading.Tasks.ValueTask>, not their generic forms.
+单程方法必须返回 <xref:System.Threading.Tasks.Task> 或 <xref:System.Threading.Tasks.ValueTask>,而不是其通用形式。
 
-## Delivery semantics
+<a id="delivery-semantics"></a>
 
-One-way calls are best effort:
+## 交付语义
 
-- Completion of the returned task doesn't mean the target received or processed the request.
-- Exceptions thrown by the target aren't returned to the caller.
-- The caller can't distinguish successful processing from message loss or target failure.
-- Cancellation and response timeout semantics don't provide useful completion guarantees because there is no response.
+单向电话是最佳努力:
 
-Use one-way calls only for notifications that are safe to lose and where the result isn't needed. Telemetry hints, cache invalidation hints, or redundant status signals can fit this model.
+- 完成返回的任务并不意味着收到或处理请求的目标。
+- 目标的例外不归回呼叫者
+- 呼叫者无法区分成功处理与信息丢失或目标失败。
+- 取消和反应超时语义不能提供有用的完成保证 因为没有回应
 
-Don't use one-way calls for state changes that require confirmation, financial operations, workflow transitions, or any operation the caller might need to retry. Prefer a regular request-response call, a durable queue, or an Orleans streaming provider when delivery and recovery matter.
+仅使用单向电话通知安全丢失且不需要结果的状态。 遥测提示、缓存失效提示或冗余状态信号可以适合此模式 。
 
-One-way calls can reduce response-message overhead, but treat them as an advanced optimization. Measure before replacing regular calls.
+不要使用单向电话要求国家改变,而这种改变需要确认、财务业务、工作流程过渡或打电话者可能需要重新尝试的任何操作。 最好使用常规请求- 响应呼叫、耐久的队列或者在交付和回收事项时使用 Orleans 流动提供者。
+
+单向电话可以减少响应信息管理费用,但可以作为先进的优化。 在替换常规电话之前先采取措施。

@@ -19,7 +19,7 @@ public sealed class InboxEnvelopeValidationTests : MessagingBehaviorTestBase
     {
         var receiver = NewGrain();
         _ = await receiver.GetSnapshotAsync();
-        // External deserialization can materialize invalid default fields before admission.
+        // 外部消毒在进入前可能变成无效的默认字段。
         var malformed = new InboxMessage { Envelope = default, SentAt = Fixture.JobNow };
         var context = Fixture.GetGrainContext(receiver);
         if (existingKey)

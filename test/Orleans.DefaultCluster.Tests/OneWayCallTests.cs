@@ -5,11 +5,11 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for Orleans one-way method calls.
-    /// One-way methods are grain methods that return immediately to the caller
-    /// without waiting for the method execution to complete. This fire-and-forget
-    /// pattern is useful for notifications, logging, and other scenarios where
-    /// the caller doesn't need confirmation of completion or results.
+    /// Orleans 单向方法调用测试。
+    /// 单向方法为 grain 方法,可立即返回呼叫者
+    /// 等待方法执行完成。 这个火和忘记
+    /// 用于通知、记录和其他情况,
+    /// 打电话的人不需要确认完成或结果
     /// </summary>
     [TestCategory("BVT"), TestCategory("OneWay")]
     [TestSuite("BVT")]
@@ -20,11 +20,11 @@ namespace DefaultCluster.Tests.General
         public OneWayCallTests(DefaultClusterFixture fixture) : base(fixture) { }
 
         /// <summary>
-        /// Tests that one-way methods return synchronously when called from a client.
-        /// Verifies that:
-        /// - The Task/ValueTask completes immediately without waiting for execution
-        /// - The method still executes on the grain (observable via side effects)
-        /// - Exceptions in one-way methods don't propagate to the caller
+        /// 测试单向方法在客户打电话时同步返回。
+        /// 证明:
+        /// - 任务/ValueTask 在不等待执行的情况下立即完成,而不等待执行
+        /// - grain (通过副作用可观察到)仍在执行的方法
+        /// - 单程方法的例外不会向打电话者传播
         /// </summary>
         [Fact]
         public async Task OneWayMethodsReturnSynchronously_ViaClient()
@@ -39,16 +39,16 @@ namespace DefaultCluster.Tests.General
             var count = await grain.GetCount();
             Assert.Equal(expectedCount, count);
 
-            // This should not throw.
+            // 这不应该扔。
             task = grain.ThrowsOneWay();
             Assert.True(task.Status == TaskStatus.RanToCompletion, "Task should be synchronously completed.");
         }
 
         /// <summary>
-        /// Tests that one-way methods return synchronously when called from another grain.
-        /// Verifies that grain-to-grain one-way calls also complete immediately,
-        /// allowing the calling grain to continue processing without blocking
-        /// on the target grain's execution.
+        /// 测试单向方法从另一个调用时同步返回 grain。
+        /// 证明 grain至grain 单向电话也立即完成,
+        /// 允许调用 grain 继续处理而不阻塞
+        /// 目标 grain的处决。
         /// </summary>
         [Fact]
         public async Task OneWayMethodReturnSynchronously_ViaGrain()
@@ -66,10 +66,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests one-way methods that return ValueTask instead of Task.
-        /// Verifies that ValueTask-based one-way methods behave identically
-        /// to Task-based ones, completing synchronously while still executing
-        /// the method logic asynchronously on the target grain.
+        /// 测试返回 ValueTask 而不是任务单向方法。
+        /// 证明: ValueTask- 以单向方法为基础的单向方法行为相同
+        /// 任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务
+        /// 方法逻辑对目标的逻辑不同步 grain。
         /// </summary>
         [Fact]
         public async Task OneWayMethodsReturnSynchronously_ViaClient_ValueTask()
@@ -84,15 +84,15 @@ namespace DefaultCluster.Tests.General
             var count = await grain.GetCount();
             Assert.Equal(expectedCount, count);
 
-            // This should not throw.
+            // 这不应该扔。
             task = grain.ThrowsOneWayValueTask();
             Assert.True(task.IsCompleted, "Task should be synchronously completed.");
         }
 
         /// <summary>
-        /// Tests ValueTask-based one-way methods called from another grain.
-        /// Ensures that the ValueTask variant of one-way methods maintains
-        /// the same fire-and-forget semantics in grain-to-grain communication.
+        /// 测试 ValueTask- 从另一个角度调用单向方法 grain。
+        /// 确保单程方法的 ValueTask 变式保持
+        /// 在 grain-至grain 通信中,使用同样的火力和断开语义。
         /// </summary>
         [Fact]
         public async Task OneWayMethodReturnSynchronously_ViaGrain_ValueTask()

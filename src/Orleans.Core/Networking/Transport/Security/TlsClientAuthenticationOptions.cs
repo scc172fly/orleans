@@ -6,18 +6,18 @@ using System.Security.Cryptography.X509Certificates;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// Selects the local certificate presented during a TLS client handshake.
+/// 选择 TLS 客户端握手时显示的本地证书 。
 /// </summary>
-/// <param name="sender">The <see cref="SslStream"/> performing the handshake.</param>
-/// <param name="targetHost">The name of the remote host.</param>
-/// <param name="localCertificates">The available local certificates.</param>
-/// <param name="remoteCertificate">The remote certificate, when available.</param>
-/// <param name="acceptableIssuers">The certificate issuers accepted by the remote host.</param>
-/// <returns>The certificate to present, or <see langword="null"/> to proceed without a client certificate.</returns>
+/// <param name="sender">进行握手的 <see cref="SslStream"/> 。</param>
+/// <param name="targetHost">远程主机的名称。</param>
+/// <param name="localCertificates">可用的本地证书。</param>
+/// <param name="remoteCertificate">远程证书,如果有的话。</param>
+/// <param name="acceptableIssuers">远程主机接受的证书发放者。</param>
+/// <returns>提交证书,或 <see langword="null"/> 在没有客户端证书的情况下继续处理。</returns>
 public delegate X509Certificate? ClientCertificateSelectionCallback(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate? remoteCertificate, string[] acceptableIssuers);
 
 /// <summary>
-/// Configures authentication for an Orleans TLS client handshake.
+/// 配置 Orleans TLS 客户端握手的认证 。
 /// </summary>
 public class TlsClientAuthenticationOptions
 {
@@ -30,7 +30,7 @@ public class TlsClientAuthenticationOptions
     };
 
     /// <summary>
-    /// Gets or sets the callback which selects the local client certificate.
+    /// 获取或设置选择本地客户端证书的回调 。
     /// </summary>
     public ClientCertificateSelectionCallback? LocalCertificateSelectionCallback
     {
@@ -42,7 +42,7 @@ public class TlsClientAuthenticationOptions
     }
 
     /// <summary>
-    /// Gets or sets the certificates available for client authentication.
+    /// 获取或设置可供客户端验证的证书 。
     /// </summary>
     public X509CertificateCollection? ClientCertificates
     {
@@ -51,7 +51,7 @@ public class TlsClientAuthenticationOptions
     }
 
     /// <summary>
-    /// Gets or sets the TLS protocol versions allowed for the handshake.
+    /// 获取或设置用于握手的 TLS 协议版本 。
     /// </summary>
     public SslProtocols EnabledSslProtocols
     {
@@ -60,7 +60,7 @@ public class TlsClientAuthenticationOptions
     }
 
     /// <summary>
-    /// Gets or sets how the remote certificate's revocation status is checked.
+    /// 获取或设置远程证书的撤销状态如何检查 。
     /// </summary>
     public X509RevocationMode CertificateRevocationCheckMode
     {
@@ -69,7 +69,7 @@ public class TlsClientAuthenticationOptions
     }
 
     /// <summary>
-    /// Gets or sets the remote host name used for certificate validation and TLS server name indication.
+    /// 获取或设置用于验证证书和 TLS 服务器名称的远程主机名 。
     /// </summary>
     public string? TargetHost
     {
@@ -78,7 +78,7 @@ public class TlsClientAuthenticationOptions
     }
 
     /// <summary>
-    /// Gets the underlying <see cref="System.Net.Security.SslClientAuthenticationOptions"/> for additional handshake configuration.
+    /// 获取用于额外握手配置的底部 <see cref="System.Net.Security.SslClientAuthenticationOptions"/> 。
     /// </summary>
     public object SslClientAuthenticationOptions => Value;
 }

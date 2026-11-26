@@ -282,7 +282,7 @@ internal sealed class CassandraClusteringTable : IMembershipTable, IDisposable
             var hasOpeningVersion = rows.GetAvailableWithoutFetching() > 0;
             if (!singlePage && !hasOpeningVersion && !before.HasValue)
             {
-                // An empty opening page supplies no version. Restart with an explicit opening fence.
+                // 空开页不提供版本。 以明确的打开栅栏重新开始 。
                 before = await ReadVersionAsync(cancellationToken);
                 continue;
             }
@@ -290,7 +290,7 @@ internal sealed class CassandraClusteringTable : IMembershipTable, IDisposable
             var result = await GetMembershipTableData(rows, cancellationToken);
             if (singlePage && result is not null)
             {
-                // The partition's static version and selected rows share the native read boundary.
+                // 分区的静态版本和选定行共享本地读取边界。
                 return result;
             }
 
@@ -300,8 +300,8 @@ internal sealed class CassandraClusteringTable : IMembershipTable, IDisposable
             }
 
             var after = await ReadVersionAsync(cancellationToken);
-            // Pages carry no snapshot. Use the opening page's version, or a preceding explicit fence,
-            // and reuse the closing version for the next attempt when a point read is absent or a scan races.
+            // 使用首页的版本,或者前面的清晰栅栏
+            // 并重新使用结束版本, 下次尝试时当读取点没有或扫描比赛时再使用。
             if ((hasOpeningVersion ? result?.Version.Version : before) == after && (result is null || result.Version.Version == after))
             {
                 return result ?? new MembershipTableData([], new TableVersion(after, after.ToString(CultureInfo.InvariantCulture)));

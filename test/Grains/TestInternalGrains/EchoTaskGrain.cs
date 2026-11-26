@@ -20,7 +20,7 @@ namespace UnitTests.Grains
     }
 
     [StorageProvider(ProviderName = "MemoryStore")]
-    [CollectionAgeLimit(Days = 1)] // Added to test the attribute itself.
+    [CollectionAgeLimit(Days = 1)] // 添加以测试属性本身 。
     public class EchoGrain : Grain<EchoTaskGrainState>, IEchoGrain
     {
         private readonly ILogger logger;
@@ -59,7 +59,7 @@ namespace UnitTests.Grains
     }
 
     [StorageProvider(ProviderName = "MemoryStore")]
-    [CollectionAgeLimit("01:00:00")] // Added to test the attribute itself.
+    [CollectionAgeLimit("01:00:00")] // 添加以测试属性本身 。
     internal class EchoTaskGrain : Grain<EchoTaskGrainState>, IEchoTaskGrain, IDebuggerHelperTestGrain
     {
         private readonly IInternalGrainFactory internalGrainFactory;
@@ -283,7 +283,7 @@ namespace UnitTests.Grains
             logger.LogInformation("{Name} Data={Data}", name, data);
             IEchoTaskGrain avGrain = GrainFactory.GetGrain<IEchoTaskGrain>(this.GetPrimaryKey());
 
-            // Note: We deliberately use .Result here in this test case to block current executing thread
+            // 注:我们在此测试案例中故意使用.Result来阻断当前执行线
             var result = avGrain.EchoAsync(data).Result;
 
             logger.LogInformation("{Name} Result={Result}", name, result);
@@ -299,7 +299,7 @@ namespace UnitTests.Grains
             logger.LogInformation("{Name} Data={Data}", name, data);
             IEchoGrain avGrain = GrainFactory.GetGrain<IEchoGrain>(this.GetPrimaryKey());
 
-            // Note: We deliberately use .Result here in this test case to block current executing thread
+            // 注:我们在此测试案例中故意使用.Result来阻断当前执行线
             var result = avGrain.Echo(data).Result;
 
             logger.LogInformation("{Name} Result={Result}", name, result);
@@ -376,7 +376,7 @@ namespace UnitTests.Grains
             logger.LogInformation("{Name} Data={Data}", name, data);
             IEchoTaskGrain avGrain = GrainFactory.GetGrain<IEchoTaskGrain>(this.GetPrimaryKey());
 
-            // Note: We deliberately use .Result here in this test case to block current executing thread
+            // 注:我们在此测试案例中故意使用.Result来阻断当前执行线
             var result = avGrain.EchoAsync(data).Result;
 
             logger.LogInformation("{Name} Result={Result}", name, result);
@@ -392,7 +392,7 @@ namespace UnitTests.Grains
             logger.LogInformation("{Name} Data={Data}", name, data);
             IEchoGrain avGrain = GrainFactory.GetGrain<IEchoGrain>(this.GetPrimaryKey());
 
-            // Note: We deliberately use .Result here in this test case to block current executing thread
+            // 注:我们在此测试案例中故意使用.Result来阻断当前执行线
             var result = avGrain.Echo(data).Result;
 
             logger.LogInformation("{Name} Result={Result}", name, result);

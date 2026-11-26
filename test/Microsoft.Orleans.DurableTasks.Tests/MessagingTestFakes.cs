@@ -14,21 +14,21 @@ using Orleans.Serialization;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Records staged messages in send order, including repeated sends of a pending identity.
+/// 记录按发送顺序发送信息,包括反复发送待发身份。
 /// </summary>
 /// <remarks>
-/// The messaging outbox stages a message addressed to the sending grain, such as a delay resume, directly in that grain's
-/// own inbox; this fake records every send the adapter makes through <see cref="IOutbox"/>, whatever its receiver.
+/// 发件人发件机发送发件机的发件机阶段,给发 grain的邮件,如延迟恢复,直接在 grain中
+/// 自己的收件箱; 这个假记录, 每个调试器发送到 <see cref="IOutbox"/>中, 不论接收器是什么 。
 /// </remarks>
 internal sealed class RecordingOutbox : IOutbox
 {
     private readonly List<OutboxMessage> _sends = [];
     private readonly List<MessageId> _sourceSends = [];
 
-    /// <summary>Gets every staged send, including sends which coalesce with a pending identity.</summary>
+    /// <summary>获取每个分阶段发送的,包括发送带有待发身份的连接。</summary>
     public IReadOnlyList<OutboxMessage> Messages => _sends;
 
-    /// <summary>Gets every staged reference send, whose message a registered source provides.</summary>
+    /// <summary>获取每个有步骤的查询发送,其信息由注册源提供。</summary>
     public IReadOnlyList<MessageId> SourceMessages => _sourceSends;
 
     public void Send(OutboxMessage message) => _sends.Add(message);
@@ -42,10 +42,10 @@ internal sealed class RecordingOutbox : IOutbox
 
 internal static class MessagingTestHelpers
 {
-    /// <summary>Delivers <paramref name="message"/> as its sender's outbox would, sent now on the system clock.</summary>
+    /// <summary>交付交付 <paramref name="message"/> 发件人发信的发信箱会发送到系统时钟</summary>
     /// <remarks>
-    /// Only an invocation's send time affects the receiver, which admits it within <c>DeduplicationWindow</c>; tests which
-    /// control the receiver's clock pass the send time explicitly.
+    /// 只有在援引的发送时间影响接收人,而接受人承认在 <c>DeduplicationWindow</c>; 测试
+    /// 控制接收器的时钟通过发送时间明确。
     /// </remarks>
     public static InboxMessage ToInboxMessage(this OutboxMessage message) => message.ToInboxMessage(DateTimeOffset.UtcNow);
 
@@ -68,7 +68,7 @@ internal static class MessagingTestHelpers
             receiver,
             body).ToInboxMessage();
 
-    /// <summary>Creates an invocation which its sender first staged at <paramref name="sentAt"/>.</summary>
+    /// <summary>创建其发件人首先在 <paramref name="sentAt"/>启动的援引。</summary>
     public static InboxMessage CreateInvocationMessage(
         GrainId sender,
         GrainId receiver,

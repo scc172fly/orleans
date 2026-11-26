@@ -1,5 +1,5 @@
 #if !NET11_0_OR_GREATER
-// The C# compiler requires these types to declare closed types and unions. They are part of the base class library starting with .NET 11.
+// C# 汇编者要求这些类型必须声明封闭的类型和工会。 它们从 .NET 11开始是基础类图书馆的一部分。
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]

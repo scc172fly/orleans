@@ -15,20 +15,20 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// A holder for well known, vendor specific connector class invariant names.
+    /// 拥有一个已知的,销售商特定连接器类变式名名的持有人。
     /// </summary>
     internal static class AdoNetInvariants
     {
         /// <summary>
-        /// A list of the supported invariants.
+        /// 支持的变量列表 。
         /// </summary>
-        /// <remarks>The invariant names here do not match the namespaces as is often the convention.
-        /// Current exception is MySQL Connector library that uses the same invariant as MySQL compared
-        /// to the official Oracle distribution.</remarks>
+        /// <remarks>这里的变量名称与命名空间不符, 通常公约也如此。
+        /// 目前的例外是 MySQL 使用与 MySQL 比较对比
+        /// 至正式甲骨文分布。</remarks>
         public static ICollection<string> Invariants { get; } = new Collection<string>(new List<string>(new[]
         {
             InvariantNameMySql,
@@ -40,38 +40,38 @@ namespace Orleans.Tests.SqlUtils
         }));
 
         /// <summary>
-        /// Microsoft SQL Server invariant name string.
+        /// Microsoft SQL 服务器变量名称字符串。
         /// </summary>
         public const string InvariantNameSqlServer = "Microsoft.Data.SqlClient";
 
         /// <summary>
-        /// Oracle Database server invariant name string.
+        /// Oracle 数据库服务器变量名称字符串。
         /// </summary>
         public const string InvariantNameOracleDatabase = "Oracle.DataAccess.Client";
 
         /// <summary>
-        /// SQLite invariant name string.
+        /// SQLite 变量名称字符串。
         /// </summary>
         public const string InvariantNameSqlLite = "System.Data.SQLite";
 
         /// <summary>
-        /// MySql invariant name string.
+        /// MySql 变量名称字符串。
         /// </summary>
         public const string InvariantNameMySql = "MySql.Data.MySqlClient";
 
         /// <summary>
-        /// PostgreSQL invariant name string.
+        /// PostgreSQL 变量名称字符串。
         /// </summary>
         public const string InvariantNamePostgreSql = "Npgsql";
 
         /// <summary>
-        /// Dotnet core Microsoft SQL Server invariant name string.
+        /// Dotnet 核心 Microsoft SQL 服务器变量名称字符串。
         /// </summary>
         [Obsolete("Use InvariantNameSqlServer instead.")]
         public const string InvariantNameSqlServerDotnetCore = InvariantNameSqlServer;
 
         /// <summary>
-        /// An open source implementation of the MySQL connector library.
+        /// 开源连接库的启用 MySQL 连接器库。
         /// </summary>
         public const string InvariantNameMySqlConnector = "MySql.Data.MySqlConnector";
     }

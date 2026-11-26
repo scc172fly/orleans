@@ -18,7 +18,7 @@ namespace Orleans.UnitTest.GrainInterfaces
         }
     }
 
-    // Verify that we do generate a custom serializer for MyTypeWithAnInternalTypeField because it is visible within the assembly.
+    // 校验我们是否为 MyTypeWithAnInternalTypeField 生成自定义序列器, 因为它在组装中可见 。
     public interface IInternalReturnType : IGrainWithIntegerKey
     {
         Task<MyTypeWithAnInternalTypeField> Foo();

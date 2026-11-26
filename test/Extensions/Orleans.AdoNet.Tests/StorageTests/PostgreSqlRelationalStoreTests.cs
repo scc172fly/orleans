@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.StorageTests.AdoNet
 {
     /// <summary>
-    /// Tests for PostgreSQL relational storage functionality.
+    /// 测试 PostgreSQL 关系存储功能。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("PostgreSql")]
     [TestSuite("Functional")]

@@ -15,27 +15,27 @@ using Orleans.Providers;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Configures Azure Queue stream providers from configuration.
+/// 配置 Azure 队列数据流提供者。
 /// </summary>
 public sealed class AzureQueueStreamProviderBuilder : IProviderBuilder<ISiloBuilder>, IProviderBuilder<IClientBuilder>
 {
     /// <summary>
-    /// Configures an Azure Queue stream provider on a silo.
+    /// 配置 Azure 排队流提供方 silo.
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="configurationSection">The provider configuration.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="configurationSection">供应商配置。</param>
     public void Configure(ISiloBuilder builder, string? name, IConfigurationSection configurationSection)
     {
         builder.AddAzureQueueStreams(name!, GetQueueOptionBuilder(configurationSection));
     }
 
     /// <summary>
-    /// Configures an Azure Queue stream provider on a client.
+    /// 配置客户端上的 Azure 队列流提供者 。
     /// </summary>
-    /// <param name="builder">The client builder.</param>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="configurationSection">The provider configuration.</param>
+    /// <param name="builder">客户端构建器。</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="configurationSection">供应商配置。</param>
     public void Configure(IClientBuilder builder, string? name, IConfigurationSection configurationSection)
     {
         builder.AddAzureQueueStreams(name!, GetQueueOptionBuilder(configurationSection));
@@ -61,12 +61,12 @@ public sealed class AzureQueueStreamProviderBuilder : IProviderBuilder<ISiloBuil
                 var serviceKey = configurationSection["ServiceKey"];
                 if (!string.IsNullOrEmpty(serviceKey))
                 {
-                    // Get a client by name.
+                    // 给客户取个名字
                     options.QueueServiceClient = services.GetRequiredKeyedService<QueueServiceClient>(serviceKey);
                 }
                 else
                 {
-                    // Construct a connection multiplexer from a connection string.
+                    // 构造连接字符串中的连接多路驱动器。
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))
@@ -81,7 +81,7 @@ public sealed class AzureQueueStreamProviderBuilder : IProviderBuilder<ISiloBuil
                         {
                             if (!string.IsNullOrEmpty(uri.Query))
                             {
-                                // SAS URI
+                                // 苏苏联合
                                 options.QueueServiceClient = new QueueServiceClient(uri);
                             }
                             else

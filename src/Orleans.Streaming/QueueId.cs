@@ -3,8 +3,8 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Identifier of a durable queue.
-    /// Used by Orleans streaming extensions.
+    /// 指定耐久的队列。
+    /// 使用 Orleans 流扩展。
     /// </summary>
     [Serializable]
     [Immutable]
@@ -19,11 +19,11 @@ namespace Orleans.Streams
         private readonly uint uniformHashCache;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueId"/> class.
+        /// 初始化 <see cref="QueueId"/> 类的新实例。
         /// </summary>
-        /// <param name="queuePrefix">The queue prefix.</param>
-        /// <param name="id">The identifier.</param>
-        /// <param name="hash">The hash.</param>
+        /// <param name="queuePrefix">队列前缀。</param>
+        /// <param name="id">识别符号。</param>
+        /// <param name="hash">杂草。</param>
         private QueueId(string queuePrefix, uint id, uint hash)
         {
             queueNamePrefix = queuePrefix ?? throw new ArgumentNullException(nameof(queuePrefix));
@@ -32,31 +32,31 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Gets the queue identifier.
+        /// 获取队列标识符。
         /// </summary>
-        /// <param name="queueName">Name of the queue.</param>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="hash">The hash.</param>
-        /// <returns>The queue identifier.</returns>
+        /// <param name="queueName">队列名称。</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="hash">杂草。</param>
+        /// <returns>队列标识符。</returns>
         public static QueueId GetQueueId(string queueName, uint queueId, uint hash) => new(queueName, queueId, hash);
 
         /// <summary>
-        /// Gets the queue name prefix.
+        /// 获取队列名称前缀。
         /// </summary>
-        /// <returns>The queue name prefix.</returns>
+        /// <returns>队列名称前缀。</returns>
         public string GetStringNamePrefix() => queueNamePrefix;
 
         /// <summary>
-        /// Gets the numeric identifier.
+        /// 获得数字识别码。
         /// </summary>
-        /// <returns>The numeric identifier.</returns>
+        /// <returns>数字识别符号。</returns>
         public uint GetNumericId() => queueId;
 
         /// <inheritdoc/>
         public uint GetUniformHashCode() => uniformHashCache;
 
         /// <summary>
-        /// Gets a value indicating whether the instance is the default instance.
+        /// 获得一个值,以显示此实例是否为默认实例。
         /// </summary>
         public bool IsDefault => queueNamePrefix is null;
 
@@ -82,19 +82,19 @@ namespace Orleans.Streams
         public override int GetHashCode() => HashCode.Combine(queueId, uniformHashCache, queueNamePrefix);
 
         /// <summary>
-        /// Compares two queue identifiers for equality.
+        /// 比较了两个队列平等标识符。
         /// </summary>
-        /// <param name="left">The first queue identifier.</param>
-        /// <param name="right">The second queue identifier.</param>
-        /// <returns><see langword="true"/> if both identifiers are equal; otherwise, <see langword="false"/>.</returns>
+        /// <param name="left">第一个队列标识符。</param>
+        /// <param name="right">第二个队列标识符。</param>
+        /// <returns><see langword="true"/> ,如果两个识别符号相等;否则, <see langword="false"/>。</returns>
         public static bool operator ==(QueueId left, QueueId right) => left.Equals(right);
 
         /// <summary>
-        /// Compares two queue identifiers for inequality.
+        /// 将不平等的队列识别码比作两个。
         /// </summary>
-        /// <param name="left">The first queue identifier.</param>
-        /// <param name="right">The second queue identifier.</param>
-        /// <returns><see langword="true"/> if the identifiers differ; otherwise, <see langword="false"/>.</returns>
+        /// <param name="left">第一个队列标识符。</param>
+        /// <param name="right">第二个队列标识符。</param>
+        /// <returns><see langword="true"/> ,如果识别符号不同;否则, <see langword="false"/>。</returns>
         public static bool operator !=(QueueId left, QueueId right) => !(left == right);
 
         /// <inheritdoc/>
@@ -128,9 +128,9 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Returns a string representation of this instance which includes its uniform hash code.
+        /// 返回此实例的字符串表示, 包括统一的散列代码。
         /// </summary>
-        /// <returns>A string representation of this instance which includes its uniform hash code.</returns>
+        /// <returns>此实例的字符串表示, 包括统一的散列代码。</returns>
         public string ToStringWithHashCode() => $"{this:H}";
     }
 }

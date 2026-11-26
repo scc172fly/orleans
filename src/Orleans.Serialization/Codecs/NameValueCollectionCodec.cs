@@ -6,15 +6,15 @@ using System.Collections.Specialized;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="NameValueCollection"/>.
+    /// <see cref="NameValueCollection"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class NameValueCollectionCodec : GeneralizedReferenceTypeSurrogateCodec<NameValueCollection, NameValueCollectionSurrogate>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NameValueCollectionCodec"/> class.
+        /// 初始化 <see cref="NameValueCollectionCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public NameValueCollectionCodec(IValueSerializer<NameValueCollectionSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -64,33 +64,33 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="NameValueCollectionCodec"/>.
+    /// <see cref="NameValueCollectionCodec"/>所使用的代金矿类型。
     /// </summary>
     [GenerateSerializer]
     public struct NameValueCollectionSurrogate
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public Dictionary<string, string?>? Values;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the collection contains a null key.
+        /// 获取或设置一个值,以显示收藏是否包含空键。
         /// </summary>
         [Id(1)]
         public bool HasNullKey;
 
         /// <summary>
-        /// Gets or sets the value associated with the null key.
+        /// 获取或设置与空键相关的值。
         /// </summary>
         [Id(2)]
         public string? NullKeyValue;
     }
 
     /// <summary>
-    /// Copier for <see cref="NameValueCollection"/>.
+    /// <see cref="NameValueCollection"/>的复印机。
     /// </summary>
     [RegisterCopier]
     public sealed class NameValueCollectionCopier : IDeepCopier<NameValueCollection>

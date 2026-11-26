@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>Tests the replay region rules: state, non-determinism, external awaits, and state changes in the tail.</summary>
+/// <summary>测试重播区域规则:状态、非确定性、外部等待和尾部的状态变化。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskReplayRegionTests
 {

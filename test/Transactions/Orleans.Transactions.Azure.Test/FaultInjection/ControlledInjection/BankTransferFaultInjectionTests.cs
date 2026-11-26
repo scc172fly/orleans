@@ -39,7 +39,7 @@ public sealed class BankTransferFaultInjectionTests : IClassFixture<ControlledFa
             expectedFrom: 99,
             expectedTo: 1,
             "the transaction manager committed its durable state before the storage exception was surfaced",
-            // Run the deposit first so the deposit account joins first and deterministically becomes the transaction manager.
+            // 先运行存款,然后存款账户首先合并,最终成为交易经理。
             useDepositAsManager: true);
     }
 
@@ -59,7 +59,7 @@ public sealed class BankTransferFaultInjectionTests : IClassFixture<ControlledFa
             expectedFrom: 99,
             expectedTo: 1,
             "a generic exception surfaced after the underlying storage write must recover the durable commit instead of partially aborting it",
-            // Run the deposit first so the deposit account joins first and deterministically becomes the transaction manager.
+            // 先运行存款,然后存款账户首先合并,最终成为交易经理。
             useDepositAsManager: true);
     }
 

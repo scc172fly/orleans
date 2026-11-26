@@ -1,6 +1,6 @@
-/* Custom styles for Orleans Dashboard layout */
+/* Orleans Dashboard布局自定义样式 */
 
-/* AdminLTE limits the sidebar to the viewport height. Scroll menus taller than it. */
+/* AdminLTE 将侧边栏限制在视图端口高度。 滚动菜单的高度比它高 。 */
 .app-sidebar {
   overflow-y: auto;
 }
@@ -9,7 +9,7 @@
   position: fixed;
 }
 
-/* Brand logo styling */
+/* 品牌标志符号 */
 .brand-logo {
   height: 45px;
   width: auto;
@@ -65,7 +65,7 @@
   margin-left: -420px;
 }
 
-/* Close button styling for alerts */
+/* 用于提醒的关闭按钮样式 */
 .alert .close {
   position: relative;
   top: -2px;
@@ -141,7 +141,7 @@ h3 {
   font-weight: 100;
 }
 
-/* Fix info-box layout */
+/* 固定信息框布局 */
 .info-box {
   display: flex;
   min-height: 80px;
@@ -191,7 +191,7 @@ h3 {
   text-decoration: none;
 }
 
-/* Card/Panel consistency */
+/* 贺卡/单板一致性 */
 .card,
 .box {
   border-radius: .25rem;
@@ -210,12 +210,12 @@ h3 {
   padding: 1.25rem;
 }
 
-/* Ensure proper row spacing */
+/* 确保适当的行间距 */
 .row {
     --bs-gutter-x: 1rem;
 }
 
-/* Make cards in rows have equal heights */
+/* 使牌在行中的高度相等 */
 .row > [class*='col-'] {
   display: flex;
   flex-direction: column;
@@ -227,7 +227,7 @@ h3 {
   flex: 1;
 }
 
-/* Sidebar menu spacing */
+/* 侧边栏菜单间距 */
 .sidebar .nav-sidebar {
   display: flex;
   flex-direction: column;
@@ -238,7 +238,7 @@ h3 {
   margin-top: auto !important;
 }
 
-/* Ensure sidebar scrolls properly */
+/* 妥善确保侧边栏滚轴 */
 .main-sidebar .sidebar {
   display: flex;
   flex-direction: column;
@@ -246,7 +246,7 @@ h3 {
   overflow-y: auto;
 }
 
-/* Fix menu items to display icon and text on same line */
+/* 固定在相同行上显示图标和文本的菜单项 */
 .nav-sidebar .nav-link {
   display: flex;
   align-items: center;

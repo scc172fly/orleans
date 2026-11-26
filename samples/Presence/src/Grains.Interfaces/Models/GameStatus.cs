@@ -3,9 +3,9 @@ using System.Collections.Immutable;
 namespace Presence.Grains.Models;
 
 /// <summary>
-/// Data about the current state of the game.
-/// This class is immutable.
-/// Operations on this class always return a new copy.
+/// 游戏当前状态的数据。
+/// 这门课是不可改变的
+/// 此类操作总是返回新副本 。
 /// </summary>
 [GenerateSerializer]
 public record class GameStatus(
@@ -13,7 +13,7 @@ public record class GameStatus(
     string Score)
 {
     /// <summary>
-    /// Creates an immutable copy of the current game status with the given score.
+    /// 创建当前游戏状态的不可更改副本, 并使用给定分 。
     /// </summary>
     public GameStatus WithNewScore(string newScore) =>
         this with { Score = newScore };

@@ -3,65 +3,65 @@ using System;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Config for LeaseBasedQueueBalancer. User need to configure this option in order to use LeaseBasedQueueBalancer in the
-    ///   stream provider.  Per stream provider options can be configured as named options using the same name as the provider.
+    /// 配置 LeaseBasedQueueBalancer。用户需要配置此选项,才能使用 LeaseBasedQueueBalancer 中在
+    ///   流提供方的串流提供方选项可以配置为与提供者同名的命名选项。
     /// </summary>
     public class LeaseBasedQueueBalancerOptions
     {
         /// <summary>
-        /// Gets or sets the length of the lease.
+        /// 租约的长短或定数
         /// </summary>
-        /// <value>The length of the lease.</value>
+        /// <value>租约的长度。</value>
         public TimeSpan LeaseLength { get; set; } = DefaultLeaseLength;
 
         /// <summary>
-        /// The default lease length.
+        /// 默认租赁期长度 。
         /// </summary>
         public static readonly TimeSpan DefaultLeaseLength = TimeSpan.FromSeconds(60);
 
         /// <summary>
-        /// Gets or sets the lease renew period.
+        /// 延长或确定续租期。
         /// </summary>
-        /// <value>The lease renew period.</value>
+        /// <value>租赁期的续延。</value>
         public TimeSpan LeaseRenewPeriod { get; set; } = DefaultLeaseRenewPeriod;
 
         /// <summary>
-        /// The default lease renew period
+        /// 违约租赁续期
         /// </summary>
         /// <remarks>
-        /// <see cref="DefaultLeaseRenewPeriod"/> set to (<see cref="DefaultLeaseLength"/>/2 - 1) to allow time for at least 2 renew calls before we lose the lease.        
+        /// <see cref="DefaultLeaseRenewPeriod"/> 设于<see cref="DefaultLeaseLength"/>/2 - 1,以便在我们失去租约之前至少允许两次重新通话。        
         /// </remarks>
         public static readonly TimeSpan DefaultLeaseRenewPeriod = TimeSpan.FromSeconds(29);
 
         /// <summary>
-        /// Gets or sets how often balancer attempts to acquire leases.
+        /// 获得或确定平衡者试图获得租赁的频率。
         /// </summary>
         public TimeSpan LeaseAcquisitionPeriod { get; set; } = DefaultMinLeaseAcquisitionPeriod;
 
         /// <summary>
-        /// Gets or sets how often balancer attempts to acquire leases.
+        /// 获得或确定平衡者试图获得租赁的频率。
         /// </summary>
         [Obsolete($"Use {nameof(LeaseAcquisitionPeriod)} instead.", error: true)]
         public TimeSpan LeaseAquisitionPeriod { get => LeaseAcquisitionPeriod; set => LeaseAcquisitionPeriod = value; }
 
         /// <summary>
-        /// The default minimum lease acquisition period.
+        /// 默认最低租赁期。
         /// </summary>
         public static readonly TimeSpan DefaultMinLeaseAcquisitionPeriod = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// The default minimum lease acquisition period.
+        /// 默认最低租赁期。
         /// </summary>
         [Obsolete($"Use {nameof(DefaultMinLeaseAcquisitionPeriod)} instead.", error: true)]
         public static readonly TimeSpan DefaultMinLeaseAquisitionPeriod = DefaultMinLeaseAcquisitionPeriod;
 
         /// <summary>
-        /// Gets or sets the lease category, allows for more fine grain partitioning of leases.
+        /// 获得或确定租赁类别,允许对租赁进行更多的罚款 grain 分割。
         /// </summary>
         public string LeaseCategory { get; set; } = DefaultLeaseCategory;
 
         /// <summary>
-        /// The default lease category
+        /// 默认租赁类别
         /// </summary>
         public const string DefaultLeaseCategory = "QueueBalancer";
     }

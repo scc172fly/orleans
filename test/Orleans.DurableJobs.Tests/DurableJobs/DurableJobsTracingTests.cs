@@ -15,9 +15,9 @@ using Xunit;
 namespace DefaultCluster.Tests;
 
 /// <summary>
-/// Verifies that scheduling, executing, handling, and persisting a durable job all share the
-/// W3C trace context of the originating caller activity. These tests prove the end-to-end trace
-/// continuity that powers the Aspire dashboard view for durable jobs.
+/// 证明安排、执行、处理和持续持久工作都符合《公约》
+/// W3C 源调用器活动跟踪环境。 这些测试证明端对端的追踪
+/// 使"神像仪表板"能够浏览 持久工作。
 /// </summary>
 public class DurableJobsTracingTests : IClassFixture<DurableJobsTracingTests.Fixture>
 {
@@ -53,8 +53,8 @@ public class DurableJobsTracingTests : IClassFixture<DurableJobsTracingTests.Fix
     }
 
     /// <summary>
-    /// Cluster fixture that mirrors <see cref="DefaultClusterFixture"/> but additionally turns on
-    /// activity propagation so the schedule-time trace flows across the receiver grain RPC.
+    /// 反向 <see cref="DefaultClusterFixture"/> 但额外打开的组群固定值
+    /// 活动传播,以便时间-跟踪流动在接收器 grain RPC之间。
     /// </summary>
     public class Fixture : BaseTestClusterFixture
     {
@@ -124,7 +124,7 @@ public class DurableJobsTracingTests : IClassFixture<DurableJobsTracingTests.Fix
         var handlerTraceId = await grain.GetJobTraceId(job.Id);
         Assert.Equal(expectedTraceId, handlerTraceId);
 
-        // Allow the post-execute follow-up storage write (RemoveJob) to settle before snapshotting.
+        // 允许执行后后续存储写入( 默认)RemoveJob)在拍片前解决。
         await Task.Delay(250, testCancellationToken);
 
         var traceActivities = CapturedActivities

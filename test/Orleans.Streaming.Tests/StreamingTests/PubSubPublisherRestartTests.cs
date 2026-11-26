@@ -41,7 +41,7 @@ public class PubSubPublisherRestartTests
         Assert.Equal(originalProducer, persistedPublisher.Producer);
         Assert.Equal(originalSnapshot.Version, persistedPublisher.MembershipVersion);
 
-        // Allocate the replacement cluster while the original silo still owns its endpoint.
+        // 分配替换组,而原 silo 仍拥有其终点。
         await using var replacementCluster = CreateCluster();
         await originalCluster.DisposeAsync();
 

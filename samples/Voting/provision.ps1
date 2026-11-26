@@ -5,22 +5,22 @@ $containerRegistry = "dncvotingapp"
 
 az login
 
-# Create a resource group
+# 创建资源组
 az group create --name $resourceGroup --location $location
 
-# Create an AKS cluster. This can take a few minutes
+# 创建 AKSS 集组。 这需要几分钟时间
 az aks create --resource-group $resourceGroup --name $clusterName --node-count 3
 
-# If you haven't already, install the Kubernetes CLI
+# 如果您尚未安装 Kubernetes CLI
 az aks install-cli
 
-# Authenticate the Kubernetes CLI
+# 认证 Kubernetes CLI
 az aks get-credentials --resource-group $resourceGroup --name $clusterName
 
-# Create an Azure Container Registry account and login to it
+# 创建一个 Azure 集装箱登记账户并登录到该账户
 az acr create --name $containerRegistry --resource-group $resourceGroup --sku Standard
 
-# Create a service principal for the container registry and register it with Kubernetes as an image pulling secret
+# 为集装箱登记册创建一个服务本服务本,并以 Kubernetes 作为图像解密注册
 $acrId = $(az acr show --name $containerRegistry --query id --output tsv)
 $acrServicePrincipalName = "$($containerRegistry)-aks-service-principal"
 $acrSpPw = $(az ad sp create-for-rbac --name http://$acrServicePrincipalName --scopes $acrId --role acrpull --query password --output tsv)

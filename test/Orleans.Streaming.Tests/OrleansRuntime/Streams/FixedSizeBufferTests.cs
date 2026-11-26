@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// Tests for fixed size buffer pooling and segment allocation.
+    /// 测试固定规模缓冲池和分部分分配。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

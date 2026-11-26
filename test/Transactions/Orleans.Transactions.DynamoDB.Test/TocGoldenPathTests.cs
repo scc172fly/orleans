@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for Transfer of Coordination (TOC) golden path scenarios with DynamoDB.
+    /// 以 DynamoDB测试协调转移金路情景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

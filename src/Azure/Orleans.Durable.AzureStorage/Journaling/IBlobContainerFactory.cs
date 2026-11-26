@@ -3,22 +3,22 @@ using Azure.Storage.Blobs;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// A factory for building container clients for blob storage.
+/// 一家建造集装箱客户的工厂,用于储存塑料桶。
 /// </summary>
 public interface IBlobContainerFactory
 {
     /// <summary>
-    /// Gets the container which should be used for the specified journal.
+    /// 获取指定日记应该使用的容器。
     /// </summary>
-    /// <param name="journalId">The journal id.</param>
-    /// <returns>A configured blob client.</returns>
+    /// <param name="journalId">日记id。</param>
+    /// <returns>一个配置的布罗客户端。</returns>
     public BlobContainerClient GetBlobContainerClient(JournalId journalId);
 
     /// <summary>
-    /// Initialize any required dependencies using the provided client and options.
+    /// 利用所提供的客户和选择,启动任何必要的依赖关系。
     /// </summary>
-    /// <param name="client">The connected blob client</param>
-    /// <param name="cancellationToken">A token used to cancel the request.</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <param name="client">连接的上衣客户端</param>
+    /// <param name="cancellationToken">用于取消请求的标记。</param>
+    /// <returns>A <see cref="Task"/> 代表非同步操作。</returns>
     public Task InitializeAsync(BlobServiceClient client, CancellationToken cancellationToken);
 }

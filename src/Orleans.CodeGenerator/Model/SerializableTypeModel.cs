@@ -3,8 +3,8 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// Describes a <c>[GenerateSerializer]</c>-annotated type for incremental discovery and metadata generation.
-/// Serializer, copier, and activator emission resolves additional semantic dependencies against the current compilation.
+/// 描述一个 <c>[GenerateSerializer]</c>-- -- 附加说明的递增发现和元数据生成类型。
+/// 序列式制导器、复印机和活性物排放解决了与当前汇编相比更多的语义依赖。
 /// </summary>
 internal sealed record class SerializableTypeModel(
     Accessibility Accessibility,

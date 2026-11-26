@@ -7,7 +7,7 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PublishRoot>bin\$(Configuration)\publish\</PublishRoot>
-    <!-- Build prepares the standalone silo deployment consumed by the upgrade tests. -->
+    <!-- 构建准备升级测试所消耗的独立 silo 部署。 -->
     <OutputPath>$(PublishRoot)</OutputPath>
     <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
@@ -15,7 +15,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Declare that this is version 2 of our code. This is used for #ifdefs in the code -->
+  <!-- 声明这是代码的第二版。 这是用于代码中的 #ifdeffs 。 -->
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);VERSION_2</DefineConstants>
   </PropertyGroup>
@@ -28,7 +28,7 @@
     <ProjectReference Include="$(SourceRoot)test\Grains\TestGrains\TestGrains.csproj" />
   </ItemGroup>
 
-  <!-- Link all .cs files from the TestVersionGrains project, since the only difference between the two is that this defines a different version constant -->
+  <!-- 链接 TestVersionGrains 项目的所有.cs 文件, 因为两者的唯一区别是, 这定义了不同的版本常数 -->
   <ItemGroup>
     <Compile Include="$(SourceDir)/**/*.cs" Exclude="$(SourceDir)obj/**/*.cs;$(SourceDir)bin/**/*.cs" />
   </ItemGroup>

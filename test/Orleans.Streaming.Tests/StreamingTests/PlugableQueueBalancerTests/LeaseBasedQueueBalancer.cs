@@ -2,7 +2,7 @@ using Orleans.Streams;
 
 namespace Tester.StreamingTests
 {
-    //Dumb queue balancer only acquire leases once, never renew it, just for testing
+    //蠢蛋排队平衡器只租一次租约, 绝不续签, 仅作测试
     public class LeaseBasedQueueBalancerForTest : IStreamQueueBalancer
     {
         private readonly string id;
@@ -50,13 +50,13 @@ namespace Tester.StreamingTests
 
         public bool SubscribeToQueueDistributionChangeEvents(IStreamQueueBalanceListener observer)
         {
-            //no op operation
+            //无操作操作
             return true;
         }
 
         public bool UnSubscribeFromQueueDistributionChangeEvents(IStreamQueueBalanceListener observer)
         {
-            //no op operation
+            //无操作操作
             return true;
         }
     }

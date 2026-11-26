@@ -1,7 +1,7 @@
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// Stream consumer grain that just counts the events it consumes
+    /// 仅计算消费量的流消费 grain
     /// </summary>
     public interface IConsumerEventCountingGrain : IGrainWithGuidKey
     {

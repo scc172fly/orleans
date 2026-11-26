@@ -9,7 +9,7 @@ using Orleans.Configuration;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Runs transaction tests which inject faults at controlled protocol phases and verify recovery.
+    /// 进行交易测试,在受控协议阶段输入缺陷并核实回收。
     /// </summary>
     public class ControlledFaultInjectionTransactionTestRunner : TransactionTestRunnerBase
     {
@@ -20,18 +20,18 @@ namespace Orleans.Transactions.TestKit
             + TransactionalStateOptions.DefaultLockTimeout;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ControlledFaultInjectionTransactionTestRunner"/> class.
+        /// 初始化 <see cref="ControlledFaultInjectionTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to access test grains.</param>
-        /// <param name="output">The callback used to write test output.</param>
+        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="output">用于写入测试输出的回调。</param>
         public ControlledFaultInjectionTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
          : base(grainFactory, output)
         { }
 
         /// <summary>
-        /// Verifies that a committed value remains readable after the grain is deactivated and reactivated.
+        /// 证明在 grain 被停止使用和重新启动后,承诺值仍可读取。
         /// </summary>
-        /// <returns>A task which represents the test.</returns>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task SingleGrainReadTransaction()
         {
             const int expected = 5;
@@ -46,9 +46,9 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies that a transactional write remains committed after the grain is deactivated and reactivated.
+        /// 证明在[问题]解除和重新启动 grain 后仍有交易书写作。
         /// </summary>
-        /// <returns>A task which represents the test.</returns>
+        /// <returns>代表测试的任务。</returns>
         public virtual async Task SingleGrainWriteTransaction()
         {
             const int delta = 5;
@@ -62,11 +62,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Injects a fault into a multi-grain write at a selected protocol phase and verifies the recovered state.
+        /// 在选定的协议阶段给多grain 写字输入错误,并核实回收状态。
         /// </summary>
-        /// <param name="injectionPhase">The transaction protocol phase at which to inject the fault.</param>
-        /// <param name="injectionType">The type of fault to inject.</param>
-        /// <returns>A task which represents the fault-injection and recovery test.</returns>
+        /// <param name="injectionPhase">输入错误的交易协议阶段。</param>
+        /// <param name="injectionType">注射的过失类型。</param>
+        /// <returns>代表错误注射和回收测试的任务。</returns>
         public virtual async Task MultiGrainWriteTransaction_FaultInjection(TransactionFaultInjectPhase injectionPhase, FaultInjectionType injectionType)
         {
             const int setval = 5;

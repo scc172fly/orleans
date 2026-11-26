@@ -51,15 +51,15 @@ namespace UnitTests.Grains
             var methodInfo = context.ImplementationMethod;
             if (methodInfo.Name == nameof(One) && methodInfo.GetParameters().Length == 0)
             {
-                // Short-circuit the request and return to the caller without actually invoking the grain method.
+                // 将请求短路并返回到呼叫者,而没有实际使用 grain 方法。
                 context.Result = "intercepted one with no args";
                 return;
             }
 
             if (methodInfo.Name == nameof(IncorrectResultType))
             {
-                // This method has a string return type, but we are setting the result to a Guid.
-                // This should result in an invalid cast exception.
+                // 此方法有一个字符串返回类型, 但我们将结果设置为“ Guid” 。
+                // 这应导致无效的例外条款。
                 context.Result = Guid.NewGuid();
                 return;
             }
@@ -69,7 +69,7 @@ namespace UnitTests.Grains
                 throw new MyDomainSpecificException("Filter THROW!");
             }
 
-            // Invoke the request.
+            // 请求启动
             try
             {
                 await context.Invoke();
@@ -80,9 +80,9 @@ namespace UnitTests.Grains
                 return;
             }
 
-            // To prove that the MethodInfo is from the implementation and not the interface,
-            // we check for this attribute which is only present on the implementation. This could be
-            // done in a simpler fashion, but this demonstrates a potential usage scenario.
+            // 证明 MethodInfo 来自执行,而不是接口,
+            // 检查此属性的属性,该属性仅存在于执行中。这可以是
+            // 这样做更简单,但这表明了潜在使用情景。
             var shouldMessWithResult = methodInfo.GetCustomAttribute<MessWithResultAttribute>();
             var resultString = context.Result as string;
             if (shouldMessWithResult != null && resultString != null)
@@ -139,15 +139,15 @@ namespace UnitTests.Grains
             var methodInfo = context.ImplementationMethod;
             if (methodInfo.Name == nameof(One) && methodInfo.GetParameters().Length == 0)
             {
-                // Short-circuit the request and return to the caller without actually invoking the grain method.
+                // 将请求短路并返回到呼叫者,而没有实际使用 grain 方法。
                 context.Result = "intercepted one with no args";
                 return;
             }
 
             if (methodInfo.Name == nameof(IncorrectResultType))
             {
-                // This method has a string return type, but we are setting the result to a Guid.
-                // This should result in an invalid cast exception.
+                // 此方法有一个字符串返回类型, 但我们将结果设置为“ Guid” 。
+                // 这应导致无效的例外条款。
                 context.Result = Guid.NewGuid();
                 return;
             }
@@ -157,7 +157,7 @@ namespace UnitTests.Grains
                 throw new MyDomainSpecificException("Filter THROW!");
             }
 
-            // Invoke the request.
+            // 请求启动
             try
             {
                 await context.Invoke();
@@ -168,9 +168,9 @@ namespace UnitTests.Grains
                 return;
             }
 
-            // To prove that the MethodInfo is from the implementation and not the interface,
-            // we check for this attribute which is only present on the implementation. This could be
-            // done in a simpler fashion, but this demonstrates a potential usage scenario.
+            // 证明 MethodInfo 来自执行,而不是接口,
+            // 检查此属性的属性,该属性仅存在于执行中。这可以是
+            // 这样做更简单,但这表明了潜在使用情景。
             var shouldMessWithResult = methodInfo.GetCustomAttribute<MessWithResultAttribute>();
             var resultString = context.Result as string;
             if (shouldMessWithResult != null && resultString != null)
@@ -312,7 +312,7 @@ namespace UnitTests.Grains
 
                     if (string.Equals(implementationMethod.Name, nameof(GrainSpecificCallFilterMarker), StringComparison.Ordinal))
                     {
-                        // explicitly do not continue calling Invoke
+                        // 明确不继续呼叫
                         return;
                     }
 
@@ -372,7 +372,7 @@ namespace UnitTests.Grains
 
                     if (string.Equals(implementationMethod.Name, nameof(GrainSpecificCallFilterMarker), StringComparison.Ordinal))
                     {
-                        // explicitly do not continue calling Invoke
+                        // 明确不继续呼叫
                         return;
                     }
 

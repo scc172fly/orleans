@@ -5,102 +5,102 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Interface that allows a component to be a transaction participant.
+    /// 使一个组件成为交易参与者的接口。
     /// </summary>
     public interface ITransactionalResource
     {
         /// <summary>
-        /// Request sent by TA to all participants of a read-only transaction (one-phase commit). 
-        /// Participants respond after committing or aborting the read.
+        /// 技术援助局向只读交易(一阶段承诺)的所有参与者发出请求。 
+        /// 参与者在承诺或中止阅读后作出答复。
         /// </summary>
-        /// <param name="transactionId">the id of the transaction to prepare</param>
-        /// <param name="accessCount">number of reads/writes performed on this participant by this transaction</param>
-        /// <param name="timeStamp">the commit timestamp for this transaction</param>
-        /// <returns>A task whose result is the transaction status reported by the resource.</returns>
+        /// <param name="transactionId">准备交易的编号</param>
+        /// <param name="accessCount">交易中该参与者的读数/写数</param>
+        /// <param name="timeStamp">交易的承付时间戳</param>
+        /// <returns>其结果是资源报告的交易状况。</returns>
         Task<TransactionalStatus> CommitReadOnly(Guid transactionId, AccessCounter accessCount, DateTime timeStamp);
 
         /// <summary>
-        /// Commits a read-only transaction.
+        /// 提交只读交易。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="accessCount">The number of resource accesses performed by the transaction.</param>
-        /// <param name="timeStamp">The commit timestamp.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The transaction status.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="accessCount">交易所获取的资源数量。</param>
+        /// <param name="timeStamp">承诺时间戳。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>交易状况。</returns>
         Task<TransactionalStatus> CommitReadOnly(Guid transactionId, AccessCounter accessCount, DateTime timeStamp, CancellationToken cancellationToken)
             => CommitReadOnly(transactionId, accessCount, timeStamp);
 
         /// <summary>
-        /// One-way message sent by TA to all participants except TM.  
+        /// TA向所有与会者发送单向信息,TM除外。  
         /// </summary>
-        /// <param name="transactionId">the id of the transaction to prepare</param>
-        /// <param name="accessCount">number of reads/writes performed on this participant by this transaction</param>
-        /// <param name="timeStamp">the commit timestamp for this transaction</param>
-        /// <param name="transactionManager">the transaction manager for this transaction</param>
-        /// <returns>A task which represents the operation.</returns>
+        /// <param name="transactionId">准备交易的编号</param>
+        /// <param name="accessCount">交易中该参与者的读数/写数</param>
+        /// <param name="timeStamp">交易的承付时间戳</param>
+        /// <param name="transactionManager">本交易的交易管理人</param>
+        /// <returns>代表操作的任务。</returns>
         Task Prepare(Guid transactionId, AccessCounter accessCount,
             DateTime timeStamp, ParticipantId transactionManager);
 
         /// <summary>
-        /// Prepares a transaction.
+        /// 准备交易
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="accessCount">The number of resource accesses performed by the transaction.</param>
-        /// <param name="timeStamp">The commit timestamp.</param>
-        /// <param name="transactionManager">The transaction manager.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="accessCount">交易所获取的资源数量。</param>
+        /// <param name="timeStamp">承诺时间戳。</param>
+        /// <param name="transactionManager">交易经理</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Prepare(Guid transactionId, AccessCounter accessCount, DateTime timeStamp, ParticipantId transactionManager, CancellationToken cancellationToken)
             => Prepare(transactionId, accessCount, timeStamp, transactionManager);
 
         /// <summary>
-        /// One-way message sent by TA to participants to let them know a transaction has aborted.
+        /// 技术管理局向参与者发送单向信息,让他们知道交易已经中止。
         /// </summary>
-        /// <param name="transactionId">The id of the aborted transaction</param>
+        /// <param name="transactionId">中止交易的代号</param>
         Task Abort(Guid transactionId);
 
         /// <summary>
-        /// Aborts a transaction.
+        /// 中止交易。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Abort(Guid transactionId, CancellationToken cancellationToken) => Abort(transactionId);
 
         /// <summary>
-        /// One-way message sent by TM to participants to let them know a transaction has aborted.
+        /// TM向参与者发送单向信息,让他们知道交易已经中止。
         /// </summary>
-        /// <param name="transactionId">The id of the aborted transaction</param>
-        /// <param name="timeStamp">The commit timestamp of the aborted transaction</param>
-        /// <param name="status">Reason for abort</param>
+        /// <param name="transactionId">中止交易的代号</param>
+        /// <param name="timeStamp">中止交易的承付时间戳</param>
+        /// <param name="status">中止原因</param>
         Task Cancel(Guid transactionId, DateTime timeStamp, TransactionalStatus status);
 
         /// <summary>
-        /// Cancels a transaction.
+        /// 取消交易。
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timeStamp">The commit timestamp.</param>
-        /// <param name="status">The cancellation status.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timeStamp">承诺时间戳。</param>
+        /// <param name="status">取消状态。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Cancel(Guid transactionId, DateTime timeStamp, TransactionalStatus status, CancellationToken cancellationToken)
             => Cancel(transactionId, timeStamp, status);
 
         /// <summary>
-        /// Request sent by TM to participants to let them know a transaction has committed.
-        /// Participants respond after cleaning up all prepare records.
+        /// TM向与会者发出要求,请他们知道已进行的交易。
+        /// 与会者在清理所有准备记录后作出回应。
         /// </summary>
-        /// <param name="transactionId">The id of the committed transaction</param>
-        /// <param name="timeStamp">The commit timestamp of the committed transaction</param>
+        /// <param name="transactionId">承诺交易的代号</param>
+        /// <param name="timeStamp">承诺交易的承付时间戳</param>
         Task Confirm(Guid transactionId, DateTime timeStamp);
 
         /// <summary>
-        /// Confirms a transaction.
+        /// 确认交易
         /// </summary>
-        /// <param name="transactionId">The transaction identifier.</param>
-        /// <param name="timeStamp">The commit timestamp.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="timeStamp">承诺时间戳。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Confirm(Guid transactionId, DateTime timeStamp, CancellationToken cancellationToken)
             => Confirm(transactionId, timeStamp);
     }

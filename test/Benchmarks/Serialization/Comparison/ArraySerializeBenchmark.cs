@@ -16,7 +16,7 @@ using Xunit;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// Compares Orleans serialization performance against other popular serializers for array types.
+/// 将 Orleans 序列化性能与其他阵列类型的流行序列化器作比较。
 /// </summary>
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 [Config(typeof(BenchmarkConfig))]
@@ -40,7 +40,7 @@ public class ArraySerializeBenchmark
         _orleansSerializer = serviceProvider.GetRequiredService<Serializer<MyVector3[]>>();
         _session = serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
 
-        // create buffers
+        // 创建缓冲
         _stream = new MemoryStream();
 
         var serialize1 = _orleansSerializer.SerializeToArray(_value);
@@ -56,7 +56,7 @@ public class ArraySerializeBenchmark
         _pipe = new Pipe(new PipeOptions(readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, pauseWriterThreshold: 0));
     }
 
-    // return byte[]
+    // 返回 位元单位 []
 
     [Benchmark(Baseline = true), BenchmarkCategory(" byte[]")]
     public byte[] MessagePackSerialize()
@@ -88,7 +88,7 @@ public class ArraySerializeBenchmark
         return _orleansSerializer.SerializeToArray(_value);
     }
 
-    // use BufferWriter
+    // BufferWriter使用
 
     [Fact]
     [Benchmark(Baseline = true), BenchmarkCategory("BufferWriter")]
@@ -139,7 +139,7 @@ public class ArraySerializeBenchmark
     [Benchmark, BenchmarkCategory("BufferWriter")]
     public void OrleansBufferWriter2()
     {
-        // wrap ArrayBufferWriter<byte>
+        // 以 ArrayBufferWriter<byte>
         var writer = _arrayBufferWriter.CreateWriter(_session);
         try
         {
@@ -151,7 +151,7 @@ public class ArraySerializeBenchmark
             _session.Reset();
         }
 
-        _arrayBufferWriter.Clear(); // clear ArrayBufferWriter<byte>
+        _arrayBufferWriter.Clear(); // 清 ArrayBufferWriter<byte>
     }
 
     [Fact]

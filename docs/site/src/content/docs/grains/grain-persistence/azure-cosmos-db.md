@@ -1,37 +1,45 @@
 ---
-title: Azure Cosmos DB grain persistence
-description: Configure Azure Cosmos DB for NoSQL as an Orleans grain storage provider.
+title: "Azure 宇宙DB grain 持久性"
+description: "配置配置 Azure 宇宙 DB NoSQL 以 A 时 Orleans grain 储存提供者。"
 ms.date: 08/02/2026
 ms.topic: how-to
 ---
 
-# Azure Cosmos DB for NoSQL grain persistence
+<a id="azure-cosmos-db-for-nosql-grain-persistence"></a>
 
-The [`Microsoft.Orleans.Persistence.Cosmos`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Cosmos) package stores grain state as items in [Azure Cosmos DB for NoSQL](https://learn.microsoft.com/azure/cosmos-db/overview). Clustering is configured separately using [`Microsoft.Orleans.Clustering.Cosmos`](https://www.nuget.org/packages/Microsoft.Orleans.Clustering.Cosmos); installing or configuring clustering isn't required merely to use Cosmos DB for grain state.
+# Azure 宇宙 NoSQL grain 持久性DB
 
-## Configure storage
+[`Microsoft.Orleans.Persistence.Cosmos`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Cosmos) 包仓库 grain 状态作为 [Azure 宇宙 DB NoSQL](https://learn.microsoft.com/azure/cosmos-db/overview)中的物项。组合组别使用 [`Microsoft.Orleans.Clustering.Cosmos`](https://www.nuget.org/packages/Microsoft.Orleans.Clustering.Cosmos)配置;安装或配置组群不仅仅是在 grain 状态中使用宇宙DB。
 
-Configure a named provider with <xref:Orleans.Hosting.HostingExtensions.AddCosmosGrainStorage*>. Microsoft Entra authentication avoids storing account keys:
+<a id="configure-storage"></a>
+
+## 配置存储
+
+配置一个有 <xref:Orleans.Hosting.HostingExtensions.AddCosmosGrainStorage*>的名服务提供方。 Microsoft Entra 认证避免存储账户密钥:
 
 :::code language="csharp" source="../../snippets/compiled/Grains/PersistenceSnippets.cs" id="azure_identity_using_cosmos":::
 
 :::code language="csharp" source="../../snippets/compiled/Grains/PersistenceSnippets.cs" id="configure_cosmos_storage":::
 <xref:Orleans.Persistence.Cosmos.CosmosOptions.DatabaseName> defaults to `Orleans`, <xref:Orleans.Persistence.Cosmos.CosmosOptions.ContainerName> defaults to `OrleansStorage`, and <xref:Orleans.Persistence.Cosmos.CosmosGrainStorageOptions.PartitionKeyPath> defaults to `/PartitionKey`. Provision the database and container before startup when <xref:Orleans.Persistence.Cosmos.CosmosOptions.IsResourceCreationEnabled> is `false`. Enabling resource creation is convenient for development but production provisioning is usually managed separately.
 
-## Partitioning and indexing
+<a id="partitioning-and-indexing"></a>
 
-The <xref:Orleans.Persistence.Cosmos.DefaultDocumentIdProvider> derives the document ID and partition key for each grain record. To customize either value, implement <xref:Orleans.Persistence.Cosmos.IDocumentIdProvider> and register it using the generic <xref:Orleans.Hosting.HostingExtensions.AddCosmosGrainStorage*?displayProperty=nameWithType> overload.
+## 分区和索引
 
-Changing the partition-key path or partition-key algorithm after data exists is a data migration. All silos using the same provider name must agree on the database, container, partition-key path, and provider implementation.
+<xref:Orleans.Persistence.Cosmos.DefaultDocumentIdProvider> 是为每个 grain 记录提供文档编号和分区密钥。要自定义任一值,请执行 <xref:Orleans.Persistence.Cosmos.IDocumentIdProvider> ,并使用通用 <xref:Orleans.Hosting.HostingExtensions.AddCosmosGrainStorage*?displayProperty=nameWithType> 超载来登记。
 
-Use <xref:Orleans.Persistence.Cosmos.CosmosGrainStorageOptions.StateFieldsToIndex> to opt selected serialized state fields into indexing. Index only fields used by operational queries: additional indexing increases write cost. Grain storage itself retrieves records by identity and doesn't provide a general query API.
+在数据存在后更改分区键路径或分区键算法是数据迁移。所有使用相同提供者名称的 silos 都必须就数据库、容器、分区键路径和提供者执行达成协议。
 
-## Concurrency and deployment
+使用 <xref:Orleans.Persistence.Cosmos.CosmosGrainStorageOptions.StateFieldsToIndex> 选择选定的序列化状态字段进行索引编制。只有操作查询中使用的域:额外的索引增加写成本。 Grain 存储本身通过身份检索记录,不提供一般查询 API。
 
-The provider maps Cosmos DB ETags to Orleans ETags. Concurrent writes from stale activations fail with <xref:Orleans.Storage.InconsistentStateException>.
+<a id="concurrency-and-deployment"></a>
 
-When evolving state:
+## 货币和部署
 
-- Keep the configured serializer able to read existing items.
-- Deploy compatible readers before writing a new representation.
-- Treat container changes, partition-key changes, and serializer changes as explicit migrations.
+供应商将宇宙DBETags地图绘制到 Orleans 以失败的状态 <xref:Orleans.Storage.InconsistentStateException>.
+
+变化状态时:
+
+- 保持配置的序列器能够读取现有项目。
+- 安装兼容的阅读器,然后写出新的代表。
+- 将集装箱变更、隔开钥匙变更和序列转换作为明确的迁移处理。

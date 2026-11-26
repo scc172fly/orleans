@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.Tests
 {
     /// <summary>
-    /// Tests for transaction behavior under grain fault conditions with in-memory storage.
+    /// 以存储在模拟储存的 grain 故障条件下的交易行为测试。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Transactions")]
     [TestSuite("BVT")]

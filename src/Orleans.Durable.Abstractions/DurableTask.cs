@@ -6,50 +6,50 @@ using System.Runtime.CompilerServices;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>Defines a deferred, host-scheduled durable asynchronous operation.</summary>
+/// <summary>定义推迟的、主机计划不同步的持久操作。</summary>
 [AsyncMethodBuilder(typeof(DurableTaskMethodBuilder))]
 [Alias("Orleans.Durable.Tasks.DurableTask")]
 public abstract partial class DurableTask
 {
-    /// <summary>Gets the context of the durable task which the calling code runs in.</summary>
+    /// <summary>获取调用代码所运行的耐久任务的背景。</summary>
     /// <remarks>
-    /// The context describes the running task: its identifier, logical time, and cancellation. Code which also runs
-    /// outside durable tasks checks with <see cref="DurableTaskContext.TryGetCurrent"/>.
+    /// 上下文描述运行中的任务:其标识符、逻辑时间和取消。
+    /// 外部持久任务核查 <see cref="DurableTaskContext.TryGetCurrent"/>.
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The calling code isn't running in a durable task.</exception>
+    /// <exception cref="InvalidOperationException">通话密码不是在持久任务中运行的</exception>
     public static DurableTaskContext Current => DurableTaskContext.Ambient
         ?? throw new InvalidOperationException("The calling code isn't running in a durable task.");
 
-    /// <summary>Creates a successfully completed durable task.</summary>
+    /// <summary>创建成功完成的耐久任务。</summary>
     public static DurableTask<TResult> FromResult<TResult>(TResult value) => new CompletedDurableTask<TResult>(value);
 
-    /// <summary>Creates a durable delay measured using host logical time.</summary>
+    /// <summary>创建使用主机逻辑时间测量的耐久延迟。</summary>
     public static DurableTask Delay(TimeSpan duration)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(duration, TimeSpan.Zero);
         return new DelayDurableTask(duration);
     }
 
-    /// <summary>Creates a durable delay which completes at <paramref name="dueTime"/>, measured using host logical time.</summary>
-    /// <remarks>A due time at or before the current logical time completes the delay promptly.</remarks>
+    /// <summary>创建耐久延迟,在 <paramref name="dueTime"/>完成,使用主机逻辑时间测量。</summary>
+    /// <remarks>及时完成延误的时间是目前逻辑时间的某一适当时间,还是在当前逻辑时间之前。</remarks>
     public static DurableTask DelayUntil(DateTimeOffset dueTime) => new DelayUntilDurableTask(dueTime);
 
-    /// <summary>Creates an unstarted step which runs <paramref name="action"/> as a child execution when it is awaited, scheduled, or posted.</summary>
+    /// <summary>创建运行中未启动的步 <paramref name="action"/> 等待、预定或张贴时作为处决儿童。</summary>
     public static DurableTask Run(Action<CancellationToken> action)
     {
         ArgumentNullException.ThrowIfNull(action);
         return new DelegateDurableTask(action);
     }
 
-    /// <summary>Creates an unstarted step which runs <paramref name="function"/> as a child execution when it is awaited, scheduled, or posted.</summary>
+    /// <summary>创建运行中未启动的步 <paramref name="function"/> 等待、预定或张贴时作为处决儿童。</summary>
     public static DurableTask<TResult> Run<TResult>(Func<CancellationToken, TResult> function)
     {
         ArgumentNullException.ThrowIfNull(function);
         return new DelegateDurableTask<TResult>(function);
     }
 
-    /// <summary>Creates an unstarted step which runs asynchronous <paramref name="function"/> as a child execution when it is awaited, scheduled, or posted.</summary>
-    /// <remarks>An asynchronous lambda also converts to other delegates which <c>Run</c> accepts, and this overload takes precedence.</remarks>
+    /// <summary>创建一个不启动的步进, 运行同步 <paramref name="function"/> 等待、预定或张贴时作为处决儿童。</summary>
+    /// <remarks>一种非同步的羊羔也改成其他代表, <c>Run</c> 接受,而超载优先。</remarks>
     [OverloadResolutionPriority(1)]
     public static DurableTask Run(Func<CancellationToken, Task> function)
     {
@@ -57,8 +57,8 @@ public abstract partial class DurableTask
         return new AsyncDelegateDurableTask(function);
     }
 
-    /// <summary>Creates an unstarted step which runs asynchronous <paramref name="function"/> as a child execution when it is awaited, scheduled, or posted.</summary>
-    /// <remarks>An asynchronous lambda also converts to other delegates which <c>Run</c> accepts, and this overload takes precedence.</remarks>
+    /// <summary>创建一个不启动的步进, 运行同步 <paramref name="function"/> 等待、预定或张贴时作为处决儿童。</summary>
+    /// <remarks>一种非同步的羊羔也改成其他代表, <c>Run</c> 接受,而超载优先。</remarks>
     [OverloadResolutionPriority(1)]
     public static DurableTask<TResult> Run<TResult>(Func<CancellationToken, Task<TResult>> function)
     {
@@ -67,28 +67,28 @@ public abstract partial class DurableTask
     }
 
     /// <summary>
-    /// Creates an unstarted step. It runs <paramref name="function"/> when it is awaited, scheduled, or posted, possibly in
-    /// a later turn, as a child execution with its own <see cref="Current"/> and cancellation scope. Unlike
-    /// <see cref="Task.Run(Func{Task})"/>, creating it starts nothing, and nothing runs on the thread pool.
+    /// 创建未启动的步步。 它在等待、 计划或张贴时运行 <paramref name="function"/> , 可能情况下
+    /// 后转,作为处决儿童并用自己的 <see cref="Current"/> 和注销范围。
+    /// <see cref="Task.Run(Func{Task})"/>, 创造它开始不是什么, 和没有运行在线性池。
     /// </summary>
-    /// <typeparam name="TResult">The type of the function's result, which the host stores with the child.</typeparam>
-    /// <param name="function">The asynchronous function which the child runs.</param>
-    /// <returns>A definition which runs the function each time it is awaited, scheduled, or posted.</returns>
+    /// <typeparam name="TResult">函数结果的类型,主机与该儿童一起储存。</typeparam>
+    /// <param name="function">儿童所运行的无同步函数。</param>
+    /// <returns>定义,每次等待、排定或张贴时都运行该函数。</returns>
     /// <remarks>
     /// <para>
-    /// The child records the result of the function's task, or the exception which it threw, and a replay returns the
-    /// recorded outcome without running the function. <see cref="RunInline{TResult}(string, Func{TResult})"/> runs a
-    /// synchronous effect in the caller's work item instead. Because the step runs later, as a child, a step which
-    /// isn't shielded completes as canceled when the parent's cancellation was requested before it starts, and its
-    /// record commits in a journal write of its own. A step and an effect with the same name share an identifier, and a
-    /// replay which finds the other kind recorded under it is a divergence.
+    /// 儿童记录函数任务的结果,或该函数抛出例外,重放返回
+    /// 记录结果,但不运行该函数。 <see cref="RunInline{TResult}(string, Func{TResult})"/> 运行a
+    /// 以同步效果代替了打电话者的工作项目。 因为这个步骤在孩子的童年后, 步进一个
+    /// 保护完整不等于取消 当父母在开始之前要求取消时, 其保护完整
+    /// 同一名称的一步步效果共有一个识别符号,一个
+    /// 重放发现它下记录的其他类型是差异。
     /// </para>
     /// <para>
-    /// An asynchronous lambda also converts to other delegates which <c>Run</c> accepts, and this overload takes
-    /// precedence.
+    /// 一个小向速成的羊羔也转换为其他代表,该代表 <c>Run</c> 接受,而超载需要
+    /// 上下一级。
     /// </para>
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="function"/> 是 <see langword="null"/>.</exception>
     [OverloadResolutionPriority(1)]
     public static DurableTask<TResult> Run<TResult>(Func<Task<TResult>> function)
     {
@@ -96,11 +96,11 @@ public abstract partial class DurableTask
         return new AsyncDelegateDurableTask<TResult>(_ => function());
     }
 
-    /// <summary>Creates an unstarted step which runs asynchronous <paramref name="function"/> as a child execution when it is awaited, scheduled, or posted.</summary>
-    /// <param name="function">The asynchronous function which the child runs.</param>
-    /// <returns>A definition which runs the function each time it is awaited, scheduled, or posted.</returns>
-    /// <remarks>The child runs and records its outcome as <see cref="Run{TResult}(Func{Task{TResult}})"/> describes.</remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+    /// <summary>创建一个不启动的步进, 运行同步 <paramref name="function"/> 等待、预定或张贴时作为处决儿童。</summary>
+    /// <param name="function">儿童所运行的无同步函数。</param>
+    /// <returns>定义,每次等待、排定或张贴时都运行该函数。</returns>
+    /// <remarks>儿童在下列情况下运行并记录其结果: <see cref="Run{TResult}(Func{Task{TResult}})"/> 描述。</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="function"/> 是 <see langword="null"/>.</exception>
     [OverloadResolutionPriority(1)]
     public static DurableTask Run(Func<Task> function)
     {
@@ -108,23 +108,23 @@ public abstract partial class DurableTask
         return new AsyncDelegateDurableTask(_ => function());
     }
 
-    /// <summary>Creates an unstarted step which runs asynchronous <paramref name="function"/> as a child execution when it is awaited, scheduled, or posted.</summary>
-    /// <typeparam name="TResult">The type of the function's result, which the host stores with the child.</typeparam>
-    /// <param name="function">The asynchronous function which the child runs.</param>
-    /// <returns>A definition which runs the function each time it is awaited, scheduled, or posted.</returns>
-    /// <remarks>The child runs and records its outcome as <see cref="Run{TResult}(Func{Task{TResult}})"/> describes.</remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+    /// <summary>创建一个不启动的步进, 运行同步 <paramref name="function"/> 等待、预定或张贴时作为处决儿童。</summary>
+    /// <typeparam name="TResult">函数结果的类型,主机与该儿童一起储存。</typeparam>
+    /// <param name="function">儿童所运行的无同步函数。</param>
+    /// <returns>定义,每次等待、排定或张贴时都运行该函数。</returns>
+    /// <remarks>儿童在下列情况下运行并记录其结果: <see cref="Run{TResult}(Func{Task{TResult}})"/> 描述。</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="function"/> 是 <see langword="null"/>.</exception>
     public static DurableTask<TResult> Run<TResult>(Func<ValueTask<TResult>> function)
     {
         ArgumentNullException.ThrowIfNull(function);
         return new AsyncDelegateDurableTask<TResult>(_ => function().AsTask());
     }
 
-    /// <summary>Creates an unstarted step which runs asynchronous <paramref name="function"/> as a child execution when it is awaited, scheduled, or posted.</summary>
-    /// <param name="function">The asynchronous function which the child runs.</param>
-    /// <returns>A definition which runs the function each time it is awaited, scheduled, or posted.</returns>
-    /// <remarks>The child runs and records its outcome as <see cref="Run{TResult}(Func{Task{TResult}})"/> describes.</remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+    /// <summary>创建一个不启动的步进, 运行同步 <paramref name="function"/> 等待、预定或张贴时作为处决儿童。</summary>
+    /// <param name="function">儿童所运行的无同步函数。</param>
+    /// <returns>定义,每次等待、排定或张贴时都运行该函数。</returns>
+    /// <remarks>儿童在下列情况下运行并记录其结果: <see cref="Run{TResult}(Func{Task{TResult}})"/> 描述。</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="function"/> 是 <see langword="null"/>.</exception>
     public static DurableTask Run(Func<ValueTask> function)
     {
         ArgumentNullException.ThrowIfNull(function);
@@ -134,61 +134,61 @@ public abstract partial class DurableTask
     private const string RunAwaitsDurableTasks =
         "DurableTask.Run runs a delegate as a durable child, and a durable task already runs as one. Await the durable task directly.";
 
-    /// <summary>Rejects a delegate which returns a durable task, which runs as a durable child when it is awaited.</summary>
+    /// <summary>拒绝代表返回一项持久任务,该任务在等待时作为可持久的子女执行。</summary>
     [Obsolete(RunAwaitsDurableTasks, error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static DurableTask<TResult> Run<TResult>(Func<DurableTask<TResult>> function) => throw new NotSupportedException(RunAwaitsDurableTasks);
 
-    /// <summary>Rejects a delegate which returns a durable task, which runs as a durable child when it is awaited.</summary>
+    /// <summary>拒绝代表返回一项持久任务,该任务在等待时作为可持久的子女执行。</summary>
     [Obsolete(RunAwaitsDurableTasks, error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static DurableTask Run(Func<DurableTask> function) => throw new NotSupportedException(RunAwaitsDurableTasks);
 
-    /// <summary>Rejects a delegate which returns a durable task, which runs as a durable child when it is awaited.</summary>
+    /// <summary>拒绝代表返回一项持久任务,该任务在等待时作为可持久的子女执行。</summary>
     [Obsolete(RunAwaitsDurableTasks, error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static DurableTask<TResult> Run<TResult>(Func<CancellationToken, DurableTask<TResult>> function) => throw new NotSupportedException(RunAwaitsDurableTasks);
 
-    /// <summary>Rejects a delegate which returns a durable task, which runs as a durable child when it is awaited.</summary>
+    /// <summary>拒绝代表返回一项持久任务,该任务在等待时作为可持久的子女执行。</summary>
     [Obsolete(RunAwaitsDurableTasks, error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static DurableTask Run(Func<CancellationToken, DurableTask> function) => throw new NotSupportedException(RunAwaitsDurableTasks);
 
-    /// <summary>Creates a durable task which invokes <paramref name="action"/> with captured <paramref name="state"/>.</summary>
+    /// <summary>创建持久的任务,其中引用 <paramref name="action"/> 与已捕捉 <paramref name="state"/>.</summary>
     public static DurableTask Run<TState>(Action<TState, CancellationToken> action, TState state)
     {
         ArgumentNullException.ThrowIfNull(action);
         return Run(ct => action(state, ct));
     }
 
-    /// <summary>Creates a durable task which invokes <paramref name="function"/> with captured <paramref name="state"/>.</summary>
+    /// <summary>创建持久的任务,其中引用 <paramref name="function"/> 与已捕捉 <paramref name="state"/>.</summary>
     public static DurableTask<TResult> Run<TState, TResult>(Func<TState, CancellationToken, TResult> function, TState state)
     {
         ArgumentNullException.ThrowIfNull(function);
         return Run(ct => function(state, ct));
     }
 
-    /// <summary>Creates a durable task which invokes asynchronous <paramref name="function"/> with captured <paramref name="state"/>.</summary>
+    /// <summary>创建耐久的任务, 以非同步方式引用 <paramref name="function"/> 与已捕捉 <paramref name="state"/>.</summary>
     public static DurableTask Run<TState>(Func<TState, CancellationToken, Task> function, TState state)
     {
         ArgumentNullException.ThrowIfNull(function);
         return Run(ct => function(state, ct));
     }
 
-    /// <summary>Creates a durable task which invokes asynchronous <paramref name="function"/> with captured <paramref name="state"/>.</summary>
+    /// <summary>创建耐久的任务, 以非同步方式引用 <paramref name="function"/> 与已捕捉 <paramref name="state"/>.</summary>
     public static DurableTask<TResult> Run<TState, TResult>(Func<TState, CancellationToken, Task<TResult>> function, TState state)
     {
         ArgumentNullException.ThrowIfNull(function);
         return Run(ct => function(state, ct));
     }
 
-    /// <summary>Runs the definition in the supplied execution context.</summary>
+    /// <summary>在所提供的执行上运行定义。</summary>
     protected internal abstract ValueTask<DurableTaskResponse> RunAsync(DurableTaskContext context);
 
     internal virtual bool RunsInlineInParent => false;
 }
 
-/// <summary>Defines a deferred durable asynchronous operation with a result.</summary>
+/// <summary>定义推迟的不同步操作并产生结果。</summary>
 [AsyncMethodBuilder(typeof(DurableTaskMethodBuilder<>))]
 [Alias("Orleans.Durable.Tasks.DurableTask`1")]
 public abstract class DurableTask<TResult> : DurableTask;
@@ -217,7 +217,7 @@ internal sealed class DelayUntilDurableTask(DateTimeOffset dueTime) : DurableTas
     }
 }
 
-/// <summary>Runs delegate bodies and reports their completion to the execution context.</summary>
+/// <summary>管理代表机构,并向执行部门报告其完成情况。</summary>
 internal static class DelegateBody
 {
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Durable task failures are represented as terminal responses.")]
@@ -244,11 +244,11 @@ internal static class DelegateBody
         return new(response);
     }
 
-    /// <summary>Runs an asynchronous delegate and creates its response from its completed task.</summary>
+    /// <summary>运行一个不同步的代表,并根据其已完成的任务作出响应。</summary>
     /// <remarks>
-    /// The completion is reported from a continuation which runs synchronously with the delegate's final code, on the
-    /// scheduler which started the delegate, so a host which runs the delegate's code on that scheduler stages the
-    /// response in the same work item as the code's state changes.
+    /// 完成报告来自与代表最后代码同步的续续,该续编于2002年11月15日
+    /// 启动代表的调度器, 所以在调度器上运行代表代码的主机
+    /// 与代码状态变化相同的工作项目响应。
     /// </remarks>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Durable task failures are represented as terminal responses.")]
     public static ValueTask<DurableTaskResponse> RunAsync<TTask>(
@@ -354,15 +354,15 @@ internal sealed class AsyncDelegateDurableTask<TResult>(Func<CancellationToken, 
 }
 
 /// <summary>
-/// An immutable durable task configuration: a name or a root identifier, and whether the task is detached or shielded.
+/// 不可改变的耐久任务配置: 名称或根标识符, 以及任务是否分离或屏蔽 。
 /// </summary>
 /// <remarks>
 /// <para>
-/// Within a durable execution, the start allocates the operation's identifier, so the order of the configuration calls
-/// doesn't change identifiers: a name which <see cref="WithId(string)"/> assigns identifies the execution's operation, as a
-/// counted occurrence such as <c>reserve$2</c>, and an unnamed start takes the execution's next generated identifier. A
-/// detached task's root identifier derives from that operation's identifier, unless <see cref="Detached(string)"/> supplies
-/// the root identifier verbatim. Outside a durable execution, every task is a root, and the name is its root identifier.
+/// 在持久执行内,启动时分配操作的识别特征,所以配置呼叫顺序
+/// 不会更改标识符: <see cref="WithId(string)"/> 指定的名称将执行操作确定为
+/// 计算发生次数,如 <c>reserve$2</c>,而未命名的启动则使用执行中下一个生成的标识符。 A
+/// 分离任务根标识符源于该操作的识别特征,除非 <see cref="Detached(string)"/> 供应
+/// 根标识符逐字打印。 除了持久执行外, 每个任务都是根, 而名称是根标识符 。
 /// </para>
 /// </remarks>
 internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableTask
@@ -373,7 +373,7 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
         + "or a combinator runs as part of the execution which starts it: start it attached, or call a grain whose "
         + "durable method runs it (ORLEANS0228).";
 
-    // An explicit identifier: a verbatim root identifier which Detached(string) supplies, or a combinator input's identifier.
+    // 明确的识别符号:一个已拆卸(字符串)的逐字根识别符号,或者组合输入的识别符号。
     private readonly TaskId _taskId;
     private readonly string? _name;
     private readonly bool _detached;
@@ -436,7 +436,7 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
     }
 
     internal ConfiguredDurableTaskCore<TTask> Detached()
-        // Outside a durable execution, every task is already a root.
+        // 在一个持久的执行之外,每一项任务都已经是一个根。
         => ParentContext is null ? this : new(Task, ParentContext, _taskId, _name, detached: true, _shielded);
 
     internal ConfiguredDurableTaskCore<TTask> Detached(string rootId)
@@ -456,8 +456,8 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
         }
     }
 
-    /// <summary>Allocates the identifier under which the task starts.</summary>
-    /// <exception cref="InvalidOperationException">A detached task's definition isn't one which a host starts as a root task.</exception>
+    /// <summary>分配任务启动时的标识符。</summary>
+    /// <exception cref="InvalidOperationException">分离任务的定义不是主机以根任务开头的定义。</exception>
     private TaskId CreateId()
     {
         if (_detached && ParentContext is not null && Task is not ISchedulableTask)
@@ -484,13 +484,13 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
         ParentContext?.ThrowIfCannotRunOperation();
         if (ParentContext is { } parent && !_detached)
         {
-            // The shield follows this method's asynchronous flow, and ends when the method returns to its caller.
+            // 屏蔽遵循这个方法的无同步流, 当方法返回到其呼叫器时结束。
             if (_shielded)
             {
                 parent.EnterShield();
             }
 
-            // An awaited combinator runs in the parent, and an identifier assigned with WithId names its operation.
+            // 等待的组合器在母体中运行,并指定一个标识符,其中标明其操作 WithId 名称。
             if (Task is IInlineOperation operation)
             {
                 return await operation.RunInlineAsync(parent, _name is { } name ? parent.CreateChildTaskId(name) : _taskId);
@@ -507,8 +507,8 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
     }
 
     /// <summary>
-    /// Starts the task with <paramref name="options"/>, adding <see cref="DurableTaskStartOptions.Detached"/> for a
-    /// detached configuration, and returns its identifier and either its terminal response or its handle.
+    /// 以 <paramref name="options"/>启动任务,为 a 添加 <see cref="DurableTaskStartOptions.Detached"/>
+    /// 独立配置,并返回其标识符和终端响应或处理。
     /// </summary>
     internal async Task<(TaskId TaskId, DurableTaskResponse? Response, IScheduledTaskHandle? Handle)> StartAsync(
         DurableTaskStartOptions options,
@@ -524,8 +524,8 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
                 parent.EnterShield();
             }
 
-            // The start ends when the attempt is canceled, as the wait which follows it does, so a canceled attempt's pending
-            // start throws DurableTaskAttemptCanceledException rather than holding the attempt open.
+            // 尝试取消时开始结束, 等待随之而来, 尝试取消后就结束了。 所以尝试取消时还未结束
+            // 开始扔出 DurableTaskAttemptCanceledException ,而不是保持尝试打开。
             using var linked = ScheduledTask.CreateLinkedWaitCancellation(parent, cancellationToken);
             IScheduledTaskHandle handle;
             try
@@ -535,7 +535,7 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
             }
             catch (OperationCanceledException exception) when (DurableTaskContext.IsCallerCancellation(exception, cancellationToken))
             {
-                // The caller's cancellation ends the start, so the start reports the caller's token.
+                // 取消呼叫的取消结束开始, 所以启动报告呼叫者的标记。
                 throw new OperationCanceledException(exception.Message, exception, cancellationToken);
             }
 
@@ -589,17 +589,17 @@ internal readonly struct ConfiguredDurableTaskCore<TTask> where TTask : DurableT
         ?? throw new InvalidOperationException("The durable task definition does not support root scheduling.");
 }
 
-/// <summary>Configures and starts a durable task.</summary>
+/// <summary>配置并启动一个耐久任务。</summary>
 /// <remarks>
 /// <para>
-/// Each configuration method returns a new configuration and leaves this one unchanged. <see cref="WithId(string)"/>
-/// names the task, <see cref="Detached()"/> and <see cref="Detached(string)"/> make it an independent root task, and
-/// <see cref="Shielded"/> keeps the starting execution's durable cancellation from reaching it.
+/// 每种配置方法都返回新的配置,而没有改变。 <see cref="WithId(string)"/>
+/// 指定任务, <see cref="Detached()"/> 和 <see cref="Detached(string)"/> ,使之成为独立的根任务;
+/// <see cref="Shielded"/> 执行期开始后 无法持续取消
 /// </para>
 /// <para>
-/// Awaiting the configuration runs the task and returns once its result is durable. <see cref="ScheduleAsync"/> returns
-/// a handle once the task's host has accepted and durably stored the task, and <see cref="Post"/> stages the start with
-/// the caller's next durable write and returns its handle at once.
+/// 等待配置后,任务运行并返回结果为耐久时返回。 <see cref="ScheduleAsync"/> 返回
+/// 任务主机接受并保存该任务且 <see cref="Post"/> 开始阶段
+/// 打电话者下一个耐用书写 并立即返回其手柄
 /// </para>
 /// </remarks>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This fluent configuration value has no equality contract.")]
@@ -611,32 +611,32 @@ public readonly struct ConfiguredDurableTask
 
     private ConfiguredDurableTask(ConfiguredDurableTaskCore<DurableTask> core) => _core = core;
 
-    /// <summary>Gets an awaiter which runs or attaches to the task and returns once its result is durable.</summary>
+    /// <summary>寻找一个执行或附属任务并一旦结果持久后返回的等待者。</summary>
     public DurableTaskAwaiter GetAwaiter() => new(_core.RunAsync(CancellationToken.None));
 
     /// <inheritdoc cref="DurableTaskExtensions.WithId(DurableTask, string)"/>
-    /// <exception cref="InvalidOperationException">This configuration already has an identifier.</exception>
+    /// <exception cref="InvalidOperationException">此配置已经有一个标识符 。</exception>
     public ConfiguredDurableTask WithId(string name) => new(_core.WithId(name));
 
     /// <inheritdoc cref="DurableTaskExtensions.Detached(DurableTask)"/>
     public ConfiguredDurableTask Detached() => new(_core.Detached());
 
     /// <inheritdoc cref="DurableTaskExtensions.Detached(DurableTask, string)"/>
-    /// <exception cref="InvalidOperationException">This configuration already has an identifier.</exception>
+    /// <exception cref="InvalidOperationException">此配置已经有一个标识符 。</exception>
     public ConfiguredDurableTask Detached(string rootId) => new(_core.Detached(rootId));
 
     /// <inheritdoc cref="DurableTaskExtensions.Shielded(DurableTask)"/>
     public ConfiguredDurableTask Shielded() => new(_core.Shielded());
 
     /// <summary>
-    /// Starts the task and returns its handle once the task's host has accepted and durably stored the task.
+    /// 开始任务, 一旦任务主机接受并保存该任务后返回其处理。
     /// </summary>
-    /// <param name="cancellationToken">A token which abandons the start. It doesn't cancel the task.</param>
-    /// <returns>The task's handle, whose <see cref="ScheduledTask.Id"/> addresses the task.</returns>
+    /// <param name="cancellationToken">放弃开始的象征, 它不会取消任务 。</param>
+    /// <returns>任务由谁来负责,谁来 <see cref="ScheduledTask.Id"/> 处理任务。</returns>
     /// <remarks>
-    /// The task's host holds the task when this returns, so its identifier can be handed to other parties, which address
-    /// it, for example with <c>GetDurableTask</c>. Within a durable execution, the start is recorded in the execution, and a
-    /// replay returns the same handle.
+    /// 任务所在主机在返回时要执行任务, 这样它的身份识别符可以交给其他当事方, 后者处理
+    /// 例如,它 <c>GetDurableTask</c>。在持久执行范围内,开始记录为执行过程,并记录在执行过程中;
+    /// 重放返回相同的控点。
     /// </remarks>
     public async Task<ScheduledTask> ScheduleAsync(CancellationToken cancellationToken = default)
     {
@@ -647,23 +647,23 @@ public readonly struct ConfiguredDurableTask
     }
 
     /// <summary>
-    /// Stages the start of the task in the caller's durable outbox, and returns its handle without waiting.
+    /// 开始在调用者的耐久发件箱中的任务, 并返回其手柄而不等待。
     /// </summary>
-    /// <returns>The task's handle, which the caller can await later.</returns>
+    /// <returns>任务的任务处理, 打电话者可以等待以后。</returns>
     /// <remarks>
-    /// The start commits with the caller's next durable write, in the same write as the state changes which the calling
-    /// code made. The host then delivers the start to the task's host, retrying until it is accepted, and the task's host
-    /// deduplicates repeated deliveries by the task's identifier, so the task starts once. A start which the task's host
-    /// doesn't accept, for example because it arrives after the host's admission window, fails the returned handle. Within
-    /// a durable execution, the start is recorded like <see cref="DurableTask.RunInline{TResult}(Func{TResult})"/>, so a
-    /// replay returns the same handle without starting the task again. In an ordinary method of a grain which has a durable
-    /// outbox, the task is a root task.
+    /// 开始承诺使用调用者的下一个耐久写作, 与调用时状态变化相同
+    /// 代码已创建。主机然后向任务主机发送启动命令的开始,在被接受之前重新尝试,以及任务的主机
+    /// 任务由任务标识符重复发送, 任务开始一次。 任务主机的启动
+    /// 不接受, 例如因为它到达主机入口窗口后, 无法使用返回的控点。 在内部 。
+    /// 持续执行,开始记录为 <see cref="DurableTask.RunInline{TResult}(Func{TResult})"/>,所以a
+    /// 以具有耐用 grain 的普通方法返回相同的控件,不重新开始任务。
+    /// 发件箱,任务是一个根任务。
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The caller has no durable outbox, for example because it's a client.</exception>
+    /// <exception cref="InvalidOperationException">来电人没有耐用发信箱,例如因为客户。</exception>
     public ScheduledTask Post() => new ScheduledTaskHandle(_core.Post());
 }
 
-/// <summary>Configures and starts a durable task with a result.</summary>
+/// <summary>配置并启动一个持久任务并产生结果。</summary>
 /// <remarks><inheritdoc cref="ConfiguredDurableTask" path="/remarks"/></remarks>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This fluent configuration value has no equality contract.")]
 public readonly struct ConfiguredDurableTask<TResult>
@@ -674,18 +674,18 @@ public readonly struct ConfiguredDurableTask<TResult>
 
     private ConfiguredDurableTask(ConfiguredDurableTaskCore<DurableTask<TResult>> core) => _core = core;
 
-    /// <summary>Gets an awaiter which runs or attaches to the task and returns its result once the result is durable.</summary>
+    /// <summary>寻找一个运行或附属于任务并一旦结果持久后返回其结果的等待者。</summary>
     public DurableTaskAwaiter<TResult> GetAwaiter() => new(_core.RunAsync(CancellationToken.None));
 
     /// <inheritdoc cref="DurableTaskExtensions.WithId(DurableTask, string)"/>
-    /// <exception cref="InvalidOperationException">This configuration already has an identifier.</exception>
+    /// <exception cref="InvalidOperationException">此配置已经有一个标识符 。</exception>
     public ConfiguredDurableTask<TResult> WithId(string name) => new(_core.WithId(name));
 
     /// <inheritdoc cref="DurableTaskExtensions.Detached(DurableTask)"/>
     public ConfiguredDurableTask<TResult> Detached() => new(_core.Detached());
 
     /// <inheritdoc cref="DurableTaskExtensions.Detached(DurableTask, string)"/>
-    /// <exception cref="InvalidOperationException">This configuration already has an identifier.</exception>
+    /// <exception cref="InvalidOperationException">此配置已经有一个标识符 。</exception>
     public ConfiguredDurableTask<TResult> Detached(string rootId) => new(_core.Detached(rootId));
 
     /// <inheritdoc cref="DurableTaskExtensions.Shielded(DurableTask)"/>

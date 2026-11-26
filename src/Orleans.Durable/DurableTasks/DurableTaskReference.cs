@@ -9,28 +9,28 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// A reference to an existing durable task of a grain, which
-/// <see cref="DurableTaskGrainExtensions.GetDurableTask{TResult}(IAddressable, TaskId)"/> returns.
+/// 提及 grain的现有持久任务,
+/// <see cref="DurableTaskGrainExtensions.GetDurableTask{TResult}(IAddressable, TaskId)"/> 返回。
 /// </summary>
-/// <typeparam name="TResult">The task's result type.</typeparam>
+/// <typeparam name="TResult">任务结果类型。</typeparam>
 /// <remarks>
 /// <para>
-/// In a durable execution, the reference is a durable task definition: awaiting it, scheduling it, or passing it to a
-/// combinator subscribes a child of the execution to the task's result, which the execution records for replay.
+/// 在持久执行中,参考是长期任务定义:等待、安排或转交
+/// 执行结果记录为重放。
 /// </para>
 /// <para>
-/// Outside a durable execution, awaiting the reference waits for the task's result, and its polling members, such as
-/// <see cref="GetResponseAsync(CancellationToken)"/>, <see cref="WaitAsync(CancellationToken)"/>, and
-/// <see cref="GetStatusAsync"/>, and its control members,
-/// <see cref="CancelAsync(string, CancellationToken)"/> and <see cref="AbortAsync"/>, call the task's grain. Waits and
-/// polls retry the failures which leave the task unaffected, such as a lost connection, a crashed silo, or a deactivating
-/// activation, until the grain answers or the caller's token ends them. A durable execution doesn't record those calls.
+/// 等待推荐人等待任务结果,其投票成员,例如:
+/// <see cref="GetResponseAsync(CancellationToken)"/>, <see cref="WaitAsync(CancellationToken)"/>,和
+/// <see cref="GetStatusAsync"/>及其控制成员,
+/// <see cref="CancelAsync(string, CancellationToken)"/> 和 <see cref="AbortAsync"/>,调用任务 grain。
+/// 重新测试使任务不受影响而导致的工作失败,例如连接丢失、坠机 silo或停用
+/// 激活, 直到 grain 回答或呼叫者的信条结束它们。 耐用执行不会记录这些电话 。
 /// </para>
 /// <para>
-/// The reference is awaitable through <see cref="DurableTaskReferenceExtensions.GetAwaiter{TResult}"/>, an extension
-/// method, so frameworks which inspect a return type's instance members, such as ASP.NET Core Minimal APIs, treat the
-/// reference as a value. <see cref="IDurableTaskReference"/> reads its <see cref="Target"/> and <see cref="Id"/> without its
-/// result type.
+/// 参考文件可通过 <see cref="DurableTaskReferenceExtensions.GetAwaiter{TResult}"/>,一个扩展等待
+/// 用于检查返回类型实例成员(例如 ASP.NET 核心最小API)的框架,处理
+/// <see cref="IDurableTaskReference"/> 读 <see cref="Target"/> 和 <see cref="Id"/> ,但无其
+/// 属性类型。
 /// </para>
 /// </remarks>
 public sealed class DurableTaskReference<TResult> : DurableTask<TResult>, IDurableTaskSubscription
@@ -45,13 +45,13 @@ public sealed class DurableTaskReference<TResult> : DurableTask<TResult>, IDurab
         Id = taskId;
     }
 
-    /// <summary>Gets the identifier of the referenced task.</summary>
+    /// <summary>获取引用任务的身份识别符号。</summary>
     public TaskId Id { get; }
 
-    /// <summary>Gets the grain which owns the referenced task.</summary>
+    /// <summary>获取拥有该引用任务的 grain 。</summary>
     public GrainId Target { get; }
 
-    /// <summary>Gets the address of the referenced task, which code stores or sends to reach the task later.</summary>
+    /// <summary>获取引用的任务地址,该地址编码为存储或发送以待日后完成任务。</summary>
     public DurableTaskAddress Address => new(Target, Id);
 
     private ScheduledTask<TResult> Handle =>
@@ -63,62 +63,62 @@ public sealed class DurableTaskReference<TResult> : DurableTask<TResult>, IDurab
             ? new(DurableTaskExtensions.GetAwaiter(this))
             : new(Handle.GetAwaiter());
 
-    /// <summary>Waits for the task's terminal response.</summary>
-    /// <param name="cancellationToken">A token which abandons the wait. It doesn't cancel the task.</param>
-    /// <exception cref="DurableTaskNotFoundException">The grain retains no task with this identifier.</exception>
+    /// <summary>等待任务终端响应。</summary>
+    /// <param name="cancellationToken">放弃等待的象征,它不会取消任务</param>
+    /// <exception cref="DurableTaskNotFoundException"> grain 与此标识符没有任务。</exception>
     public Task<DurableTaskResponse> GetResponseAsync(CancellationToken cancellationToken = default) =>
         Handle.GetResponseAsync(cancellationToken);
 
-    /// <summary>Waits for the task's successful result.</summary>
-    /// <param name="cancellationToken">A token which abandons the wait. It doesn't cancel the task.</param>
-    /// <returns>An awaitable which returns the result, or throws the task's failure or cancellation.</returns>
+    /// <summary>等待任务成功结果。</summary>
+    /// <param name="cancellationToken">放弃等待的象征,它不会取消任务</param>
+    /// <returns>返回结果或丢弃任务失败或取消的待处理文件。</returns>
     /// <remarks>
-    /// The wait calls the task's grain. In a durable execution, await the reference itself, or pass it to
-    /// <c>WaitAsync(TimeSpan)</c>, so the execution records the wait.
+    /// 等待时间呼叫任务 grain。在持久执行中,等待参考文件本身或传递给
+    /// <c>WaitAsync(TimeSpan)</c>,因此执行记录了等待。
     /// </remarks>
     public ConfiguredScheduledTaskAwaitable<TResult> WaitAsync(CancellationToken cancellationToken = default) =>
         Handle.WaitAsync(cancellationToken);
 
-    /// <summary>Polls the task and returns whether it is terminal.</summary>
-    /// <param name="options">The options of the poll.</param>
-    /// <param name="cancellationToken">A token which abandons the poll.</param>
-    /// <exception cref="DurableTaskNotFoundException">The grain retains no task with this identifier.</exception>
+    /// <summary>将任务打滚并返回是否为终端。</summary>
+    /// <param name="options">民意测验的选择。</param>
+    /// <param name="cancellationToken">放弃民意调查的象征</param>
+    /// <exception cref="DurableTaskNotFoundException"> grain 与此标识符没有任务。</exception>
     public Task<bool> IsCompletedAsync(PollingOptions options = default, CancellationToken cancellationToken = default) =>
         Handle.IsCompletedAsync(options, cancellationToken);
 
-    /// <summary>Waits for the task's terminal response, polling with <paramref name="options"/>.</summary>
-    /// <param name="options">The options of each poll.</param>
-    /// <param name="cancellationToken">A token which abandons the wait. It doesn't cancel the task.</param>
-    /// <exception cref="DurableTaskNotFoundException">The grain retains no task with this identifier.</exception>
+    /// <summary>等待任务的最终响应、与 <paramref name="options"/>的投票。</summary>
+    /// <param name="options">每一次民意测验的选择。</param>
+    /// <param name="cancellationToken">放弃等待的象征,它不会取消任务</param>
+    /// <exception cref="DurableTaskNotFoundException"> grain 与此标识符没有任务。</exception>
     public Task<DurableTaskResponse> GetResponseAsync(PollingOptions options, CancellationToken cancellationToken = default) =>
         Handle.GetResponseAsync(options, cancellationToken);
 
-    /// <summary>Polls the task and returns its current status.</summary>
-    /// <param name="options">The options of the poll.</param>
-    /// <param name="cancellationToken">A token which abandons the poll.</param>
-    /// <exception cref="DurableTaskNotFoundException">The grain retains no task with this identifier.</exception>
+    /// <summary>将任务打滚并返回当前状态。</summary>
+    /// <param name="options">民意测验的选择。</param>
+    /// <param name="cancellationToken">放弃民意调查的象征</param>
+    /// <exception cref="DurableTaskNotFoundException"> grain 与此标识符没有任务。</exception>
     public Task<DurableTaskStatus> GetStatusAsync(PollingOptions options = default, CancellationToken cancellationToken = default) =>
         Handle.GetStatusAsync(options, cancellationToken);
 
-    /// <summary>Requests durable cancellation of the task.</summary>
-    /// <param name="cancellationToken">A token which abandons waiting for the request to commit.</param>
+    /// <summary>要求持久取消这一任务。</summary>
+    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
     public ValueTask CancelAsync(CancellationToken cancellationToken = default) => Handle.CancelAsync(cancellationToken);
 
-    /// <summary>Requests durable cancellation of the task carrying <paramref name="reason"/>.</summary>
+    /// <summary>要求持久取消执行的任务 <paramref name="reason"/>.</summary>
     /// <param name="reason">
-    /// The reason which the task's <see cref="DurableTaskContext.TaskCancellationReason"/> reports, or <see langword="null"/>
-    /// for none. The first request determines the reason.
+    /// 任务 <see cref="DurableTaskContext.TaskCancellationReason"/> 报告或 <see langword="null"/>报告的原因
+    /// 第一次请求决定了原因。
     /// </param>
-    /// <param name="cancellationToken">A token which abandons waiting for the request to commit.</param>
+    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
     public ValueTask CancelAsync(string? reason, CancellationToken cancellationToken = default) =>
         Handle.CancelAsync(reason, cancellationToken);
 
     /// <summary>
-    /// Administratively aborts the task, which terminalizes it and its execution tree as failed with
-    /// <see cref="DurableTaskAbortedException"/> without running further task code.
+    /// 自动中止任务, 任务终止, 任务结束, 执行树因失败而 停止
+    /// <see cref="DurableTaskAbortedException"/> 没有运行其他任务代码 。
     /// </summary>
-    /// <param name="reason">The reason for the abort, recorded as the exception message.</param>
-    /// <param name="cancellationToken">A token which abandons waiting for the abort to commit.</param>
+    /// <param name="reason">中止的原因,记录为例外信息。</param>
+    /// <param name="cancellationToken">放弃等待中止执行的标记。</param>
     public ValueTask AbortAsync(string reason, CancellationToken cancellationToken = default) =>
         Handle.AbortAsync(reason, cancellationToken);
 
@@ -129,10 +129,10 @@ public sealed class DurableTaskReference<TResult> : DurableTask<TResult>, IDurab
 }
 
 /// <summary>
-/// Awaits a <see cref="DurableTaskReference{TResult}"/>: as a subscribed child in a durable execution, and otherwise by
-/// waiting for the task's result.
+/// 等待a <see cref="DurableTaskReference{TResult}"/>:作为长期执行的被认可儿童,或
+/// 等待任务结果
 /// </summary>
-/// <typeparam name="TResult">The task's result type.</typeparam>
+/// <typeparam name="TResult">任务结果类型。</typeparam>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Awaiters are compiler protocol values whose identity and equality are not part of their contract.")]
 public readonly struct DurableTaskReferenceAwaiter<TResult> : ICriticalNotifyCompletion
 {
@@ -183,19 +183,19 @@ public readonly struct DurableTaskReferenceAwaiter<TResult> : ICriticalNotifyCom
         }
     }
 
-    /// <summary>Returns the task's successful result, or throws its failure or cancellation.</summary>
+    /// <summary>返回任务的成功结果,或丢弃其失败或取消。</summary>
     public TResult GetResult() => _subscribes ? _subscription.GetResult() : _wait.GetResult();
 }
 
-/// <summary>Awaits references to existing durable tasks.</summary>
+/// <summary>等待提及现有的持久任务。</summary>
 public static class DurableTaskReferenceExtensions
 {
     /// <summary>
-    /// Gets an awaiter which, in a durable execution, subscribes a child of the execution to the task's result, and
-    /// otherwise waits for the task's result.
+    /// 找一个等待者,在持久处决中, 将执行任务的孩子 与任务的结果挂钩,
+    /// 否则,将等待任务结果。
     /// </summary>
-    /// <typeparam name="TResult">The task's result type.</typeparam>
-    /// <param name="reference">The reference to the task.</param>
+    /// <typeparam name="TResult">任务结果类型。</typeparam>
+    /// <param name="reference">任务引用。</param>
     public static DurableTaskReferenceAwaiter<TResult> GetAwaiter<TResult>(this DurableTaskReference<TResult> reference)
     {
         ArgumentNullException.ThrowIfNull(reference);
@@ -204,24 +204,24 @@ public static class DurableTaskReferenceExtensions
 }
 
 /// <summary>
-/// A reference to an existing durable task of a grain, such as a <see cref="DurableTaskReference{TResult}"/> read without
-/// its result type, or a <see cref="DurableTaskAddress"/>.
+/// 提及 grain的现有持久任务,例如不读取的 <see cref="DurableTaskReference{TResult}"/>
+/// 或 <see cref="DurableTaskAddress"/>。
 /// </summary>
 /// <remarks>
-/// A <see cref="ScheduledTask"/> whose task other parties reach provides its reference as a feature, through
-/// <see cref="ScheduledTask.GetFeature{TFeature}"/>, which
-/// <see cref="DurableTaskAddressExtensions.TryGetAddress(ScheduledTask, out DurableTaskAddress)"/> reads.
+/// 其其他缔约方所要完成的任务作为特点提及 <see cref="ScheduledTask"/> ,
+/// <see cref="ScheduledTask.GetFeature{TFeature}"/>,其中
+/// <see cref="DurableTaskAddressExtensions.TryGetAddress(ScheduledTask, out DurableTaskAddress)"/> 内容如下。
 /// </remarks>
 public interface IDurableTaskReference
 {
-    /// <summary>Gets the identifier of the referenced task.</summary>
+    /// <summary>获取引用任务的身份识别符号。</summary>
     TaskId Id { get; }
 
-    /// <summary>Gets the grain which owns the referenced task.</summary>
+    /// <summary>获取拥有该引用任务的 grain 。</summary>
     GrainId Target { get; }
 }
 
-/// <summary>A reference to an existing task, which the durable task runtime schedules as a subscription child.</summary>
+/// <summary>提及一项现有任务,而持久任务将这一任务作为订阅儿童的时间安排。</summary>
 internal interface IDurableTaskSubscription : IDurableTaskReference
 {
 }

@@ -1,2 +1,2 @@
-// This file exists to make the project compile.
-// All examples are defined with region markers for documentation snippets.
+// 此文件存在可以使工程编译 。
+// 所有实例都用区域标记来界定文件片段。

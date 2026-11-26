@@ -1,62 +1,74 @@
 ---
-title: Core Orleans configuration options
-description: Find the Orleans option types used for common hosting tasks.
+title: "核心 Orleans 配置选项"
+description: "查找 Orleans 用于共同主机任务选项类型。"
 ms.date: 08/02/2026
 ms.topic: reference
 ---
 
-# Core Orleans configuration options
+<a id="core-orleans-configuration-options"></a>
 
-Orleans options use the [.NET options pattern](https://learn.microsoft.com/dotnet/core/extensions/options). Configure them with <xref:Orleans.Hosting.SiloBuilderExtensions.Configure*> or <xref:Orleans.Hosting.ClientBuilderExtensions.Configure*>. Orleans also automatically binds the specific sections listed in [Declarative configuration](index.md#declarative-configuration); other option types require explicit binding.
+# 核心 Orleans 配置选项
 
-This page is a curated starting point, not an exhaustive property catalog. <xref:Orleans.Configuration> and provider package APIs are the source of truth for the installed Orleans version.
+Orleans 选项使用 [.NET 选项模式](https://learn.microsoft.com/dotnet/core/extensions/options)。配置它们时使用 <xref:Orleans.Hosting.SiloBuilderExtensions.Configure*> 或 <xref:Orleans.Hosting.ClientBuilderExtensions.Configure*>。 Orleans 也自动约束 [声明配置](index.md#declarative-configuration)所列的具体部分;其他选项类型需要明确的约束性。
 
-## Common core options for client and silo builders
+本页是一个整理的起点,不是详尽无遗的财产目录。 <xref:Orleans.Configuration> 和供应商的成套API是安装的 Orleans 版本的真理来源。
 
-| Option type | Use it for |
+<a id="common-core-options-for-client-and-silo-builders"></a>
+
+## 客户和 silo 构建器的通用核心选项
+
+| 选项类型 | 用来 |
 |---|---|
-| <xref:Orleans.Configuration.ClusterOptions> | <xref:Orleans.Configuration.ClusterOptions.ServiceId> and <xref:Orleans.Configuration.ClusterOptions.ClusterId> shared by silos and clients |
+| <xref:Orleans.Configuration.ClusterOptions> | <xref:Orleans.Configuration.ClusterOptions.ServiceId> 和 <xref:Orleans.Configuration.ClusterOptions.ClusterId> 共有 silos 客户和客户 |
 
 <a id="iclientbuilder-specific-options"></a>
 
-## <xref:Orleans.Hosting.IClientBuilder>-specific options
+<a id="-specific-options"></a>
 
-| Option type | Use it for |
+## <xref:Orleans.Hosting.IClientBuilder>- 特定备选办法
+
+| 选项类型 | 用来 |
 |---|---|
-| <xref:Orleans.Configuration.ClientMessagingOptions> | External client messaging and connections |
-| <xref:Orleans.Configuration.GatewayOptions> | Client gateway refresh and preferred gateway behavior |
+| <xref:Orleans.Configuration.ClientMessagingOptions> | 外部客户信息传递和联系 |
+| <xref:Orleans.Configuration.GatewayOptions> | 客户端网关更新和首选网关行为 |
 
 <a id="isilobuilder-specific-options"></a>
 
-## <xref:Orleans.Hosting.ISiloBuilder>-specific options
+<a id="-specific-options-1"></a>
 
-| Option type | Use it for |
+## <xref:Orleans.Hosting.ISiloBuilder>- 特定备选办法
+
+| 选项类型 | 用来 |
 |---|---|
-| <xref:Orleans.Configuration.SiloMessagingOptions> | Silo messaging, response timeouts, and connection behavior |
-| <xref:Orleans.Configuration.EndpointOptions> | Advertised silo/gateway ports and listening endpoints |
-| <xref:Orleans.Configuration.SiloOptions> | Silo name |
-| <xref:Orleans.Configuration.ClusterMembershipOptions> | Membership probing, failure detection, and initial connectivity validation |
-| <xref:Orleans.Configuration.GrainCollectionOptions> | Idle activation collection and memory-pressure shedding |
-| <xref:Orleans.Configuration.GrainDirectoryOptions> | Built-in grain directory cache and partition behavior |
-| <xref:Orleans.Configuration.LoadSheddingOptions> | Request rejection under host load |
-| <xref:Orleans.Configuration.SchedulingOptions> | Grain scheduling limits and diagnostics |
-| <xref:Orleans.Configuration.GrainTypeOptions> | Grain classes and interfaces supported by the process |
+| <xref:Orleans.Configuration.SiloMessagingOptions> | Silo 信息、响应超时和连接行为 |
+| <xref:Orleans.Configuration.EndpointOptions> | 广告 silo/门口和收听端点 |
+| <xref:Orleans.Configuration.SiloOptions> | Silo 名称 |
+| <xref:Orleans.Configuration.ClusterMembershipOptions> | 成员测试、故障检测和初步连接验证 |
+| <xref:Orleans.Configuration.GrainCollectionOptions> | 空闲激活收集与内存压力悬停 |
+| <xref:Orleans.Configuration.GrainDirectoryOptions> | 内置 grain 目录缓存和分区行为 |
+| <xref:Orleans.Configuration.LoadSheddingOptions> | 请求在主负载下被拒绝 |
+| <xref:Orleans.Configuration.SchedulingOptions> | Grain 排期限制和诊断 |
+| <xref:Orleans.Configuration.GrainTypeOptions> |  进程支持的 Grain 类和接口 |
 
-## Feature-specific options
+<a id="feature-specific-options"></a>
 
-Storage, clustering, reminders, streaming, serialization, dashboards, and third-party integrations define options in their own packages. Start with the provider's builder method, such as <xref:Microsoft.Extensions.Hosting.RedisClusteringISiloBuilderExtensions.UseRedisClustering*>, <xref:Orleans.Hosting.AzureBlobSiloBuilderExtensions.AddAzureBlobGrainStorage*>, or <xref:Orleans.Hosting.SiloBuilderReminderExtensions.UseAdoNetReminderService*>, then follow the linked options type in IntelliSense or API reference.
+## 具体特地选项
 
-Named providers are normally configured using their builder methods:
+存储、集束、提醒、流体、序列、仪表板和第三方整合等定义了自己包件中的选项。从供应商的构建器方法(如 <xref:Microsoft.Extensions.Hosting.RedisClusteringISiloBuilderExtensions.UseRedisClustering*>、 <xref:Orleans.Hosting.AzureBlobSiloBuilderExtensions.AddAzureBlobGrainStorage*>或 <xref:Orleans.Hosting.SiloBuilderReminderExtensions.UseAdoNetReminderService*>)开始,然后在参考 IntelliSense 或 API 中遵循链接选项类型。
+
+命名的提供者通常使用其构建器方法配置配置 :
 
 :::code language="csharp" source="../snippets/hosting/HostingExamples.cs" id="named_providers":::
 
-Declarative named providers use `Orleans:{capability}:{name}` and a `ProviderType`; see [Declarative configuration](index.md#declarative-configuration).
+使用声明命名的供应商 `Orleans:{capability}:{name}` 和 a 以及 `ProviderType`; 见 [声明配置](index.md#declarative-configuration).
 
-## Find an option
+<a id="find-an-option"></a>
 
-1. Start from the hosting extension method for the feature.
-2. Follow its options delegate type in IntelliSense.
-3. Check the installed package's API reference for defaults and validation.
-4. Inspect startup validation errors; Orleans validates required provider settings before the silo or client becomes ready.
+## 查找选项
 
-Avoid copying all available properties into configuration. Leave defaults in place unless a deployment requirement or measurement justifies an override. This reduces version drift and makes intentional tuning visible.
+1. 从该特性的主机扩展方法开始 。
+2. 遵循 IntelliSense中代表类型选项。
+3. 检查安装的软件包 API 引用, 以确认默认值和验证值。
+4. 检查启动验证错误; Orleans 在 silo 或客户端准备就绪之前对所需供应商设置进行验证。
+
+避免将所有可用属性复制为配置。 除非部署要求或测量证明需要超文本, 否则保留默认值。 这样可以减少版本漂移并让有意调试可见 。

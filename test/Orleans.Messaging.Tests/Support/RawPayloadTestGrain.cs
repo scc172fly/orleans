@@ -20,8 +20,8 @@ public sealed record RawPayloadEffect([property: Id(0)] MessageId MessageId, [pr
 public sealed record RawPayloadSnapshot([property: Id(0)] Guid ActivationId, [property: Id(1)] int InboxCount,
     [property: Id(2)] int OutboxCount, [property: Id(3)] int ProcessedCount, [property: Id(4)] RawPayloadEffect[] Effects);
 
-// The application protocol is arbitrary bytes. Orleans codecs are only used for journal commands,
-// business state and RPC results, never to encode/decode the messaging payload.
+// 应用程序协议是任意的字节。 Orleans 编码器仅用于日记命令,
+// 业务状态和RPC结果,从不编码/解码信息有效载荷。
 public sealed class RawPayloadTestGrain : DurableGrain, IRawPayloadTestGrain, IInboxHandler
 {
     public const string HandlerBarrier = "raw-payload";

@@ -18,7 +18,7 @@ public class SqlServerMessageQueueingBenchmark() : MessageQueueingBenchmark(AdoN
 }
 
 /// <summary>
-/// This benchmark measures the performance of message queueing.
+/// 本基准衡量信息排队的绩效。
 /// </summary>
 [WarmupCount(1), IterationCount(3), InvocationCount(1), MarkdownExporter]
 public abstract class MessageQueueingBenchmark(string invariant, string database)
@@ -26,26 +26,26 @@ public abstract class MessageQueueingBenchmark(string invariant, string database
     private const int OperationsPerInvoke = 1000;
 
     private readonly Consumer _consumer = new();
-    // BenchmarkDotNet invokes GlobalSetup before any of these fields are read.
+    // 在阅读上述任何字段之前,BenchmarkDotNet 先援引 GlobalSetup 。
     private IRelationalStorage _storage = default!;
     private RelationalOrleansQueries _queries = default!;
     private byte[] _payload = [];
     private string[] _queueIds = default!;
 
     /// <summary>
-    /// This highlights degradation from database locking.
+    /// 这突出表明数据库锁定的退化。
     /// </summary>
     [Params(1, 4, 8)]
     public int QueueCount { get; set; }
 
     /// <summary>
-    /// This highlights degradation from payload size.
+    /// 这突出表明有效载荷大小的降解。
     /// </summary>
     [Params(1000, 10000, 100000)]
     public int PayloadSize { get; set; }
 
     /// <summary>
-    /// This highlights degradation from concurrency.
+    /// 这突出表明了同货币贬值。
     /// </summary>
     [Params(1, 4, 8)]
     public int Concurrency { get; set; }

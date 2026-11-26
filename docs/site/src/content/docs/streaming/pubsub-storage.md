@@ -1,39 +1,45 @@
 ---
-title: Configure PubSub storage
-description: Persist Orleans stream subscription metadata with the PubSubStore grain storage provider.
+title: "配置 PubSub 存储"
+description: "持久性 Orleans 使用 PubSubStore grain 储存提供者。"
 ms.date: 08/02/2026
 ms.topic: how-to
 ---
 
-# Configure PubSub storage
+<a id="configure-pubsub-storage"></a>
 
-Orleans stream providers use a pub/sub rendezvous to connect producers and consumers. The grain storage provider named `PubSubStore` stores explicit subscription metadata used by the grain-based pub/sub implementation.
+# 配置 PubSub 存储
 
-`PubSubStore` durability determines whether explicit subscription records survive loss of the cluster's in-memory state:
+Orleans 流源供应商使用酒吧/分会合连接生产者和消费者。 grain 存储供应商的名称 `PubSubStore` 储存了 grain-基于酒吧/分会执行的明确的订阅元数据。
 
-- <xref:Orleans.Hosting.MemoryGrainStorageSiloBuilderExtensions.AddMemoryGrainStorage*> configured with the name `PubSubStore` is suitable for development and tests. Records are lost when the cluster state is lost.
-- A durable grain storage provider preserves records across silo and cluster restarts, subject to that provider's own availability and consistency.
-- Implicit subscriptions are derived from grain metadata instead of being created as explicit subscription records.
+是否保持`PubSubStore` 的耐久性决定了明确订阅记录是否在群组失去记忆状态后继续存在:
 
-Even with durable `PubSubStore`, an explicit consumer must call <xref:Orleans.Streams.StreamSubscriptionHandle`1.ResumeAsync*> after activation to attach its current observer instance. Conversely, durable event storage doesn't make subscription records durable. Configure both layers according to the recovery requirement.
+- <xref:Orleans.Hosting.MemoryGrainStorageSiloBuilderExtensions.AddMemoryGrainStorage*> 配置时使用名称 `PubSubStore` 适合开发和测试。当集群状态丢失时,记录就会丢失。
+- 耐久 grain 存储供应商保存整个 silo 和集群重新启动的记录,但以该供应商本身的可用性和一致性为条件。
+- 暗含订阅来自 grain 元数据,而不是作为明确的订阅记录创建。
 
-## Azure Table Storage example
+即便有耐久 `PubSubStore`,明确的消费者在激活后必须调用 <xref:Orleans.Streams.StreamSubscriptionHandle`1.ResumeAsync*> 附加其当前观察实例。相反,持久事件存储并不能使订阅记录具有耐久性。根据回收要求配置两个层次。
 
-Managed identity with <xref:Orleans.Hosting.AzureTableSiloBuilderExtensions.AddAzureTableGrainStorage*> is preferred:
+<a id="azure-table-storage-example"></a>
+
+## Azure 表格存储示例
+
+首选 <xref:Orleans.Hosting.AzureTableSiloBuilderExtensions.AddAzureTableGrainStorage*> 的被管理身份 :
 
 :::code language="csharp" source="snippets/streaming/Configuration.cs" id="pubsub_managed_identity":::
 
-A connection string is also supported:
+也支持连接字符串:
 
 :::code language="csharp" source="snippets/streaming/Configuration.cs" id="pubsub_connection_string":::
 
-Use a stable Orleans service ID and the same durable storage configuration across cluster restarts. Changing service identity or deleting the backing table creates a logically new subscription registry.
+使用稳定的 Orleans 服务代号,并在集群重新启动时使用相同的耐久存储配置。更改服务身份或删除支持表格将创建符合逻辑的新订阅登记簿。
 
-## Operational guidance
+<a id="operational-guidance"></a>
 
-- Back up and monitor `PubSubStore` like other application metadata.
-- Keep provider names stable. A provider rename changes stream identity from the pub/sub system's perspective.
-- Remove subscriptions with <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> when they are no longer needed.
-- Before replacing a `PubSubStore`, plan how existing explicit subscriptions will be recreated.
+## 业务指导
 
-For the internal rendezvous and pulling-agent design, see [Orleans streams implementation](../implementation/streams-implementation/index.md).
+- 备份并像其它应用程序元数据一样监视 `PubSubStore` 。
+- 保持提供者名称稳定。 提供者重命名会从酒吧/ 子系统的角度更改流身份 。
+- 在不再需要时删除订阅, 以 <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> 方式删除订阅。
+- 在替换 `PubSubStore`之前,先计划如何重新创建现有的明确订阅。
+
+内部会合和拉动剂设计见 [Orleans 流执行](../implementation/streams-implementation/index.md)。

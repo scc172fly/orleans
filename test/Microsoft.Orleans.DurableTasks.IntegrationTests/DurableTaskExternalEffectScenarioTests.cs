@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>Runs the sample's actual payment/email owner and separately journaled provider against controlled boundaries.</summary>
+/// <summary>对照受管制边界,对抽样的实际付款/电子邮件所有人和单独记账的供应商进行检查。</summary>
 public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
@@ -23,8 +23,8 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     protected DurableTaskExternalEffectScenarioTests(string format)
     {
         _format = format;
-        // Keep automatic scheduler delivery in the future. These cases invoke the production due-job handler
-        // explicitly; the application owner, not membership or Durable Jobs, owns this clock.
+        // 今后继续自动交付调度器。这些案例都援引了生产业余操作员
+        // 明确; 应用程序所有人,而非会员或持久工作拥有这个时钟。
         _clock.Advance(TimeSpan.FromDays(2));
         _fixture = new(format, silo =>
         {
@@ -61,7 +61,7 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     public async Task EffectIntentAcknowledgementFollowsStorageNotStaging(bool afterAcknowledgement)
     {
         var (owner, _, identity, request) = await CreateAsync(EffectKind.PaymentAuthorization, RecipeProviderBehavior.Apply);
-        // Establish the initial snapshot so the selected write is an append, not initial journal replacement.
+        // 建立初始快照, 使选中的写作是附件, 不是首期日记替换 。
         var existingIdentity = identity with { OperationId = "existing-intent" };
         await owner.SubmitAsync(existingIdentity, request);
         var key = identity.ProviderKey(owner.GetGrainId().ToString());
@@ -99,7 +99,7 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     [Fact]
     public async Task PaymentAppliedWithLostResponseRetriesTheSameKeyAfterOwnerRecovery()
     {
-        // Contract: a payment whose response is lost reuses its provider key, with a fresh attempt ID and one applied effect.
+        // 合同:因回复丢失而付款的付款将重新使用其供应商钥匙,并带有新的尝试身份和一种应用效果。
         var (owner, provider, identity, request) = await CreateAsync(
             EffectKind.PaymentAuthorization, RecipeProviderBehavior.LoseResponseAfterApply);
         var accepted = await owner.SubmitAsync(identity, request);
@@ -132,8 +132,8 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     [Fact]
     public async Task InterruptedNonRepeatableEmailRecoversItsReconciliationOwnerWithoutRedispatch()
     {
-        // Contract: after a non-repeatable provider applies, loss of the owner's result write recovers the committed
-        // attempt marker. Recovery must reconcile, never interpret the missing answer as permission to resend.
+        // 合同:在适用不可再重复的供应商之后,所有人损失其回购书的原主结果笔记本将收回已承诺支付的款项
+        // 恢复必须调和, 绝不将缺失的答案解释为允许重现。
         var (owner, provider, identity, request) = await CreateAsync(EffectKind.Email, RecipeProviderBehavior.Apply);
         await provider.HoldNextResponseAsync();
         _gate.Arm(provider.GetGrainId(), afterAcknowledgement: true);
@@ -177,8 +177,8 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     [Fact]
     public async Task ExhaustedRetryDecisionAndAuthorizedFollowUpSurviveImmediateSiloLoss()
     {
-        // Contract: exhausting proven-no-effect attempts yields a durable terminal decision. A separately authorized
-        // follow-up retains its own identity and linkage across immediate silo loss without reopening the original.
+        // 合同:用尽经证明没有效果的尝试产生持久的终极判决。
+        // 后续行动保留了自己的特性和在直接 silo 损失中的联系,而没有重新开审原损失。
         var (owner, provider, identity, request) = await CreateAsync(
             EffectKind.PaymentAuthorization, RecipeProviderBehavior.ProveNoEffect);
         var accepted = await owner.SubmitAsync(identity, request);

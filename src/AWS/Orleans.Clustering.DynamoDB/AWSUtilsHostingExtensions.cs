@@ -8,21 +8,21 @@ using Microsoft.Extensions.Options;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extension methods for configuring DynamoDB clustering.
+    /// 提供配置 DynamoDB 组合的扩展方法。
     /// </summary>
     public static class AwsUtilsHostingExtensions
     {
         /// <summary>
-        /// Configures the silo to use DynamoDB for clustering.
+        /// 配置 silo 使用 DynamoDB 组群。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>.
+        /// 提供 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder UseDynamoDBClustering(
             this ISiloBuilder builder,
@@ -41,16 +41,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the silo to use DynamoDB for clustering.
+        /// 配置 silo 使用 DynamoDB 组群。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="ISiloBuilder"/>.
+        /// 提供 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder UseDynamoDBClustering(
             this ISiloBuilder builder,
@@ -65,16 +65,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to use DynamoDB for clustering.
+        /// 配置客户端使用 DynamoDB 组合组合的配置。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="IClientBuilder"/>.
+        /// 提供 <see cref="IClientBuilder"/>。
         /// </returns>
         public static IClientBuilder UseDynamoDBClustering(
             this IClientBuilder builder,
@@ -93,16 +93,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to use DynamoDB for clustering.
+        /// 配置客户端使用 DynamoDB 组合组合的配置。
         /// </summary>
         /// <param name="builder">
-        /// The builder.
+        /// 建筑工
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="IClientBuilder"/>.
+        /// 提供 <see cref="IClientBuilder"/>。
         /// </returns>
         public static IClientBuilder UseDynamoDBClustering(
             this IClientBuilder builder,

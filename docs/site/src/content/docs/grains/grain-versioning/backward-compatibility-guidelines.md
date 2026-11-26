@@ -1,43 +1,53 @@
 ---
-title: Grain contract compatibility guidelines
-description: Evolve Orleans grain interfaces safely across rolling deployments.
+title: "Grain 合同兼容性准则"
+description: "在整个滚动部署中安全地推进 Orleans grain 接口。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# Grain contract compatibility guidelines
+<a id="grain-contract-compatibility-guidelines"></a>
 
-Orleans version routing doesn't validate contracts. A newer activation is backward compatible only when it can correctly process requests produced by every older caller that may reach it.
+# Grain 合同兼容性准则
 
-## Preserve existing methods
+Orleans 版本路由不验证合同。 新的激活只有在能够正确处理每一个可能接到的老调时, 才能进行后向兼容。
 
-Don't remove or change the signature of a method while callers using it remain deployed. This includes parameter order, parameter and return types, generic shape, and method semantics.
+<a id="preserve-existing-methods"></a>
 
-Add a new method instead of repurposing an existing one:
+## 保留现有方法
+
+在使用该方法的调用器仍然被部署时, 不要删除或更改方法的签名。 这包括参数顺序、 参数和返回类型、 通用形状以及方法语义 。
+
+添加新方法,而不是重新定位现有方法:
 
 :::code language="csharp" source="../../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="versioned_inventory_interface":::
-Mark the old method `[Obsolete]` to stop new usage, but keep it until telemetry and deployment state show no older callers remain.
+标记旧的方法 `[Obsolete]` ,以停止新的使用,但保留到遥测和部署状态显示没有老的呼叫器留下。
 
-## Preserve payload contracts
+<a id="preserve-payload-contracts"></a>
 
-Grain method arguments and return values are serialized contracts. Follow Orleans serializer version-tolerance rules:
+## 保留有效有效有效有效载荷合同
 
-- Keep existing `[Id]` values stable.
-- Add new fields with new IDs and safe defaults.
-- Don't reuse an ID for a different meaning.
-- Don't rename or reinterpret values when older code can still observe them.
-- Keep exception and result types available to all caller versions.
+Grain 方法参数和返回值是按序列排列的合同。 Orleans 序列号版本容忍规则:
 
-Parameter names aren't part of dispatch, but changing their semantic order while retaining the same types can silently produce incorrect results.
+- 保持现有 `[Id]` 值的稳定。
+- 添加带有新ID和安全默认值的新字段。
+- 身份证不能用其他的
+- 当旧代码仍然可以观察到时, 不要重命名或重新解释价值 。
+- 保留所有调用版本的例外和结果类型。
 
-## Preserve behavior
+参数名称不是发送的一部分,但改变语义顺序,保留同样的类型,可以无声地产生错误的结果。
 
-Signature compatibility isn't enough. A newer implementation serving older callers must preserve invariants, authorization behavior, idempotency, and result meaning expected by those callers.
+<a id="preserve-behavior"></a>
 
-When behavior must change incompatibly, add a new method or use strict version compatibility and accept the operational cost of version isolation.
+## 保护行为
 
-## Coordinate with persisted state
+签名兼容性还不够。 更新的实施为老的来电者服务必须保存变异、授权行为、权力和结果,这些来电者预期会达到的结果意义。
 
-Grain interface versioning doesn't version storage. During a rolling upgrade, either implementation can activate for a grain identity allowed by the routing policy. Both versions must read the persisted representation and tolerate writes from the other for as long as rollback or mixed placement is possible.
+当行为必须发生不兼容的变化时,应增加新方法或使用严格版本兼容性,并接受版本隔离的操作成本。
 
-Use staged schema changes: compatible readers, then new writers, then cleanup after the old version is gone.
+<a id="coordinate-with-persisted-state"></a>
+
+## 与持续保持的州协调
+
+Grain 接口版本不版本存储。在滚动升级过程中,两个版本都可以启动路径政策允许的 grain 身份。两种版本必须读取持续表达式,并只要可以进行回放或混合定位,则两个版本都必须从另一个版本中能够保持写字。
+
+使用预设的变换:兼容的读者,然后是新作者,然后在旧版本消失后清理。

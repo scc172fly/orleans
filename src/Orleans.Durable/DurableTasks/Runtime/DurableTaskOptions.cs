@@ -2,44 +2,44 @@ using System;
 
 namespace Orleans.Configuration;
 
-/// <summary>Configures durable grain RPC retention and cleanup.</summary>
+/// <summary>配置耐久 grain RPC的保留和清理。</summary>
 public sealed class DurableTaskOptions
 {
-    /// <summary>Gets or sets how long terminal responses remain available for polling after completion.</summary>
+    /// <summary>获取或确定完成后投票时还有多长时间的终站答复。</summary>
     /// <remarks>
-    /// Applies to tasks without a grain caller, such as tasks scheduled by clients, and to tasks whose completion message
-    /// was dead-lettered, measured from the dead letter. When the period ends, the task is deleted with its execution
-    /// tree: polls report <see cref="Orleans.Durable.Tasks.DurableTaskNotFoundException"/>, and scheduling the same task
-    /// identifier executes it again, so a task identifier deduplicates schedules for this period after completion. The
-    /// period is independent of Messaging's <c>DeduplicationWindow</c>: each run of a task identifier has its own
-    /// incarnation, which the identities of its messages cover, so a later run's messages are delivered, and replies to an
-    /// earlier run don't reach it. A
-    /// task whose completion was delivered to its calling grain is deleted when the delivery retires.
+    /// 适用于没有 grain 调用器的任务,例如客户预定的任务,以及其完成信息
+    /// 任务被用死字母来写, 从废信件中测量。 当时间结束时, 任务会随着执行而删除
+    /// 树: 民意测验报告 <see cref="Orleans.Durable.Tasks.DurableTaskNotFoundException"/>,并安排相同任务
+    /// 标识符再次执行,因此任务识别符在完成后会更改此时期的进度表。
+    /// 时间段不与 <c>DeduplicationWindow</c>:任务标识符的每个运行都有自己的
+    /// 其信息所覆盖的内化,即其信息的身份所覆盖的内化,因此以后一期版本的信息将发送,对
+    /// 早跑还没到
+    /// 完成任务后,在服务结束后,将删除其调用 grain 。
     /// </remarks>
     public TimeSpan ResultRetentionPeriod { get; set; } = TimeSpan.FromDays(1);
 
     /// <summary>
-    /// Gets or sets how often a grain which holds a stalled execution wakes, so that a later activation replays the
-    /// execution.
+    /// 获取或设置 grain 使一个后期的启动重弹
+    /// 执行。
     /// </summary>
     /// <remarks>
-    /// An execution stalls when the running code can't replay it: it recorded a version which the code doesn't support,
-    /// or the code diverged from its record. The task stays pending, and the grain keeps a wake-up at this interval, so
-    /// once its activation ends, such as when a deployment stops its silo, the grain reactivates and replays the execution
-    /// with the code which the new activation runs. The interval is positive; the default is one minute.
+    /// 当运行中的代码无法重放时, 执行摊位会被重播: 它记录了一个版本, 而代码不支持它,
+    /// 或其记录有出入的代码。任务将等待完成, grain 在此间隔时保持警醒, 所以
+    /// 一旦其启动结束,例如部署停止时,即停止 silo, 和 grain 恢复和重放执行
+    /// 与新激活的代码运行。 间隔为正数; 默认值为1分钟 。
     /// </remarks>
     public TimeSpan StalledExecutionRetryInterval { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Gets or sets how soon a grain which stopped while an execution was running wakes, so that a later activation
-    /// resumes the execution.
+    /// 获取或设定执行时在行刑后休眠时停止的 grain 多久才会被控制, 以便稍后激活
+    /// 恢复执行。
     /// </summary>
     /// <remarks>
-    /// While one of a grain's executions runs code, the grain keeps a Durable Jobs wake-up at this delay. A grain which
-    /// crashes or deactivates meanwhile reactivates and replays the execution once the delay has passed. While the grain
-    /// is active, each wake-up only reschedules itself, so the delay also sets how often that happens. A parked execution,
-    /// which waits for a message such as a call's result, needs no wake-up: the message reactivates its grain. The delay
-    /// is positive; the default is 30 seconds.
+    /// 而在 grain处决运行代码, grain 继续在此延误时提醒人们注意“持久工作”。 grain 减去
+    /// 延迟过后,会同时发生崩溃或停止作用,重新启动和重播处决。 grain
+    /// 活动,每次醒醒只重新安排时间本身,所以延迟也决定了发生频率。
+    /// 等待诸如呼叫结果等信息,不需要提醒:该信息重新启动 grain。延迟
+    /// 是正数;默认值为30秒。
     /// </remarks>
     public TimeSpan RunnableExecutionWakeupDelay { get; set; } = TimeSpan.FromSeconds(30);
 }

@@ -1,72 +1,82 @@
 ---
-title: Deploy and operate Orleans
-description: Plan, deploy, and operate an Orleans application in production.
+title: "部署和作业 Orleans"
+description: "计划、部署和操作生产 Orleans 应用软件。"
 ms.date: 08/19/2026
 ms.topic: overview
 ---
 
-# Deploy and operate Orleans
+<a id="deploy-and-operate-orleans"></a>
 
-An Orleans production deployment is a cluster of silo processes, optionally with separate Orleans clients. Silos communicate directly with each other over TCP. Clients discover gateways through the configured clustering provider and connect to those gateways.
+# 部署和作业 Orleans
 
-Orleans manages grain activation and cluster membership, but the hosting platform remains responsible for process supervision, networking, health probes, secrets, resource allocation, and controlled rollout. A production design also needs durable grain state where the application requires it.
+Orleans 生产部署是 silo 流程的一组,可选择与单独的 Orleans 客户进行直接沟通。 Silos 通过TCP进行直接沟通。客户通过配置组合组合提供商发现网关并连接到这些网关。
 
-Review the [Orleans security model](../security/index.md) before choosing the client, network, provider, and administrative boundaries for a production deployment.
+Orleans 管理 grain 启动和集群成员,但托管平台仍然负责流程监督、网络建设、健康探测、秘密、资源分配和控制推出。 生产设计也需要满足申请要求的耐用 grain 状态。
+
+在选择客户、网络、提供者和行政边界进行生产部署之前,先审查 [Orleans 安全模型](../security/index.md) 。
 
 <a id="configure-and-start-a-silo"></a>
 <a id="configure-and-connect-to-a-client"></a>
 <a id="configure-and-connect-a-client"></a>
 
-## Start the application
+<a id="start-the-application"></a>
 
-Configure a silo on the [.NET Generic Host](https://learn.microsoft.com/dotnet/core/extensions/generic-host) with <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*>, then build and run the host with <xref:Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync*>. For a separate client process, use <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*> and run that host the same way. Starting the host starts the silo or connects the client; stopping it coordinates a [graceful Orleans shutdown](../host/configuration-guide/shutting-down-orleans.md).
+## 启动应用程序
 
-See [Server configuration](../host/configuration-guide/server-configuration.md) and [Client configuration](../host/configuration-guide/client-configuration.md) for compiled examples.
+配置 a silo 排在《公约》 [.NET 通用主机](https://learn.microsoft.com/dotnet/core/extensions/generic-host) 与 <xref:Microsoft.Extensions.Hosting.OrleansSiloGenericHostExtensions.UseOrleans*>,然后构建和运行主机 <xref:Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync*>使用 <xref:Microsoft.Extensions.Hosting.OrleansClientGenericHostExtensions.UseOrleansClient*> 以同样的方式运行主机。启动主机开始 silo 或连接客户端;停止它 [优美 Orleans 关闭](../host/configuration-guide/shutting-down-orleans.md).
 
-## Follow the deployment walkthrough
+汇编实例见 [服务器配置](../host/configuration-guide/server-configuration.md) 和 [客户配置](../host/configuration-guide/client-configuration.md) 。
 
-[Deploy an Orleans application to Azure Container Apps](../tutorials-and-samples/production-application.md) takes you from an empty directory to a running multi-process cluster, then through code-based production configuration, deployment, observability, and verification. The sample's application code, infrastructure, and deployment workflow are validated together.
+<a id="follow-the-deployment-walkthrough"></a>
 
-For an existing application, use the walkthrough as a sequence:
+## 跟着部署行进
 
-1. Host silos and external clients on the .NET Generic Host.
-1. Configure cluster identity, providers, credentials, and endpoints in code from deployment-supplied configuration.
-1. Choose a platform which gives every silo a unique, directly reachable endpoint.
-1. Deploy multiple silos with health probes, telemetry, resource policies, and a graceful termination deadline.
-1. Verify membership, TCP reachability, grain calls, provider state, failure behavior, and rolling replacement before admitting production traffic.
+[将 Orleans 应用程序安装到 Azure 容器应用软件](../tutorials-and-samples/production-application.md) 将您从一个空目录带到运行中的多进程组,然后通过基于代码的生产配置、部署、可观察性和核查。样本的应用代码、基础设施和部署工作流程一起验证。
+
+对于现有的应用程序,将行进作为序列使用:
+
+1. 东道主主 silos 外部客户和对外客户 .NET 通用主机 。
+1. 配置部署提供配置的代码中的群集身份、提供者、证书和终点。
+1. 选择一个平台,让每个 silo 有一个唯一、可直接达到的终点。
+1. 部署多个 silos ,配备健康探测、遥测、资源政策和优雅的终止期限。
+1. 验证成员、TCP可达性、 grain 电话、供应国、失败行为和滚动替换,然后才承认生产流量。
 
 <a id="production-configurations"></a>
 
-## Operations track
+<a id="operations-track"></a>
 
-Use these articles together:
+## 业务轨道
 
-1. [Production-readiness checklist](production-readiness.md) - Review the decisions required before launch.
-1. [Operate a production cluster](production-operations.md) - Control configuration, perform maintenance, exercise recovery, and maintain runbooks.
-1. [Topology and networking](networking.md) - Configure listening and advertised endpoints, firewalls, and clustering.
-1. [Health and observability](health-and-observability.md) - Design startup, readiness, liveness, dependency health, telemetry, and alerts.
-1. [Graceful shutdown and upgrades](upgrades.md) - Drain instances, scale in, and perform rolling or blue-green releases.
-1. [Capacity planning and scaling](capacity-planning.md) - Size silos, set resource policies, and validate scaling behavior.
-1. [Backup, restore, and disaster recovery](disaster-recovery.md) - Protect application state and recover clusters safely.
-1. [Failure handling](handling-failures.md) - Design grain calls for unknown outcomes, idempotency, and bounded retries.
-1. [Troubleshoot deployments](troubleshooting-deployments.md) - Triage incidents using membership, networking, dependencies, and telemetry.
+将这些条款一并使用:
 
-## Choose a platform
+1. [生产准备状态清单](production-readiness.md) - 审查发射前所需的决定。
+1. [运行生产集群](production-operations.md) - 控制配置、进行维护、恢复工作和维护运行簿。
+1. [地形学和联网](networking.md) - 配置监听和广告的终点、防火墙和集群。
+1. [健康和可观察性](health-and-observability.md) - 设计启动、准备状态、生命力、依赖性健康、遥测和警报。
+1. [优优优停机和升级](upgrades.md) - 排水量减少、规模缩小和进行滚动或蓝绿色释放。
+1. [能力规划和规模](capacity-planning.md) - 大小 silos,制定资源政策,并验证缩放行为。
+1. [备份、恢复和灾后恢复](disaster-recovery.md) - 保护申请状态和安全回收聚类。
+1. [处理失败](handling-failures.md) - 设计 grain 要求得出未知的结果、确定是否有效以及约束性重试。
+1. [故障解决部署](troubleshooting-deployments.md) - 利用成员资格、联网、依赖关系和遥测手段的逃难事件。
 
-Use [Choose a deployment target](choose-deployment-target.md) to compare maintained hosting topologies, endpoint identity, client reachability, scaling, failure-domain controls, operational ownership, and common provider choices.
+<a id="choose-a-platform"></a>
 
-The target guides cover:
+## 选择平台
 
-- [Azure Kubernetes Service](azure-kubernetes-service.md) and [platform-neutral Kubernetes](kubernetes.md).
-- [Azure Container Apps](deploy-to-azure-container-apps.md), including its one-silo-per-app endpoint model.
-- [Azure App Service](azure-app-service.md) on [Windows](deploy-to-azure-app-service.md) or [Linux](deploy-to-azure-app-service-linux.md).
-- [Service Fabric](service-fabric.md).
-- [Containers across multiple hosts](containers.md).
-- Other orchestrators, virtual machines, or bare-metal hosts that satisfy the [platform requirements](platform-guides.md).
+使用 [选择部署目标](choose-deployment-target.md) 比较保存的托管服务类型、终端点身份、客户可达性、规模、故障域控制、业务所有权和共同供应商选择。
 
-For a guided deployment with a maintained application and infrastructure sample, use [Deploy an Orleans application to Azure Container Apps](../tutorials-and-samples/production-application.md).
+目标指南包括:
 
-For application configuration, see [Server configuration](../host/configuration-guide/server-configuration.md), [Client configuration](../host/configuration-guide/client-configuration.md), and [Typical configurations](../host/configuration-guide/typical-configurations.md).
+- [Azure Kubernetes 服务](azure-kubernetes-service.md) 和 [platform-neutral Kubernetes](kubernetes.md)。
+- [Azure 集装箱套件](deploy-to-azure-container-apps.md),包括其一个silo-每个应用终点模式。
+- [Azure 服务处](azure-app-service.md) 日期 时 [视窗](deploy-to-azure-app-service.md) 或 [林勒](deploy-to-azure-app-service-linux.md).
+- [服务制造](service-fabric.md).
+- [多个东道集装箱](containers.md).
+- 满足 [所需平台](platform-guides.md)要求的其他管弦、虚拟机器或赤金属主机。
+
+使用 [将 Orleans 应用程序安装到 Azure 容器应用软件](../tutorials-and-samples/production-application.md)进行有保留应用程序和基础设施样本的制导部署。
+
+应用程序配置见 [服务器配置](../host/configuration-guide/server-configuration.md)、 [客户配置](../host/configuration-guide/client-configuration.md)和 [典型配置](../host/configuration-guide/typical-configurations.md)。
 
 > [!IMPORTANT]
-> Localhost clustering and in-memory grain storage are development defaults. They don't provide a multi-host production cluster or durable application state.
+> 本地主机群集和模拟 grain 存储是开发默认。 它们不提供多主机生产组或耐久应用状态 。

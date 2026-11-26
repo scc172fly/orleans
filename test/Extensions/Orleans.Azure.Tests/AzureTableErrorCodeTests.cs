@@ -5,7 +5,7 @@ using Xunit;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// Tests for Azure Storage error code handling and validation of table/container names.
+    /// 存储错误代码处理和验证表格/容器名称的测试 Azure
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage")]
     [TestSuite("Functional")]
@@ -25,7 +25,7 @@ namespace Tester.AzureUtils
             Assert.False(AzureTableUtils.IsRetriableHttpError((HttpStatusCode)500, null));
             Assert.False(AzureTableUtils.IsRetriableHttpError((HttpStatusCode)500, "SomeOtherStatusValue"));
 
-            // Current behaviour is to ignore successes as not retriable:
+            // 现今的行为是忽略成功,
             Assert.False(AzureTableUtils.IsRetriableHttpError((HttpStatusCode)200, null));
         }
 

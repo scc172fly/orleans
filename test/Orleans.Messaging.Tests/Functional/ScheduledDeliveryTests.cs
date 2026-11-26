@@ -197,10 +197,10 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
             await DeliverAsync(receiver, Schedule(CreateEnvelope(receiver, NewMessage(80, "outage")), deliverAt)));
         await Fixture.CollectAsync(Fixture.GetGrainContext(receiver));
 
-        // Durable Jobs gives up on other jobs after 5 failed runs; the pump job keeps retrying through a longer outage.
+        // 5次失败后, 持久工作放弃其他工作; 抽水机的工作持续经历长期停工。
         const int failures = 7;
         Fixture.Storage.FailReads(journal, failures);
-        // Each retry becomes due on the Durable Jobs clock once Durable Jobs records the failed run.
+        // 一旦《持久工作》记录了失败的运行,每件重试都会在“持久工作钟”上到期。
         var reads = Fixture.Storage.GetReadCount(journal);
         await WaitUntilAsync(() =>
         {
@@ -220,7 +220,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         var receiver = NewGrain();
         _ = await receiver.GetSnapshotAsync();
 
-        // No messaging call has reached this activation, and its wake-up is suppressed.
+        // 没有任何信息通话达到启动时间,而且其警醒被抑制。
         Fixture.JobManagerProbe.SkipNext(MessagingPump.JobName);
         var staged = CreateEnvelope(receiver, NewMessage(83, "staged"));
         await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.StageAcceptance(Fixture.GetInbox(receiver), staged));
@@ -241,8 +241,8 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
             DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, CreateEnvelope(receiver, NewMessage(81, "first"), HeldRoute)));
             await WaitForBarrierAsync(receiver, held);
 
-            // The live loop performs due work, so the wake-up is crash insurance due within RecheckDelay, and later
-            // writes reuse it.
+            // 现场循环运行时进行正常工作, 所以提醒是 RecheckDelay内到期的崩溃保险, 然后
+            // 写回再使用它。
             var jobs = Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId);
             Assert.Equal(scheduled + 1, jobs.Count);
             Assert.Equal(now + MessagingPump.RecheckDelay, jobs[^1].DueTime);
@@ -333,7 +333,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
 
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
 
-        // The acceptance is durable, but wake-ups before the due time leave the message pending and reschedule for it.
+        // 接受时间是持久的, 但提前提醒大家不要等到时机,
         await AssertWakeupAtAsync(receiver, deliverAt);
         await AssertWakeupAtAsync(receiver, deliverAt);
         var pending = await receiver.GetSnapshotAsync();
@@ -352,7 +352,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         Assert.Equal(1, Assert.Single(completed.Effects).Count);
         Assert.Equal(0, completed.InboxCount);
 
-        // Late and duplicate wake-ups and redeliveries after completion change nothing.
+        // 完成后,晚间和重复的唤醒和再放款都一无所获。
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(receiver)).Status);
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, envelope));
         Assert.Equal(1, Assert.Single((await receiver.GetSnapshotAsync()).Effects).Count);
@@ -371,13 +371,13 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         var laterJob = Assert.Single(Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId));
         Assert.Equal(later, laterJob.DueTime);
 
-        // The later wake-up does not cover a message due first, so its acceptance schedules an earlier one.
+        // 稍后的警醒并不包括先发电文,因此其接受时间为更早。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, Schedule(CreateEnvelope(receiver, NewMessage(21, "earlier")), earlier)));
         var jobs = Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId);
         Assert.Equal(2, jobs.Count);
         Assert.Equal(earlier, jobs[1].DueTime);
 
-        // Any other wake-up completes in favour of the earliest one, whose run reschedules for the remaining work.
+        // 任何其他的觉醒都有利于最早的觉醒,因为最早的觉醒将重新安排剩余工作的时间安排。
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunDuplicatePumpAsync(receiver)).Status);
         await AssertWakeupAtAsync(receiver, earlier);
         JobClock.Advance(earlier - JobClock.GetUtcNow());
@@ -385,7 +385,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         Assert.Equal("earlier", Assert.Single((await Fixture.WaitForEffectCountAsync(receiver, 1)).Effects).Value);
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunDuplicatePumpAsync(receiver)).Status);
 
-        // Work due later than the earliest wake-up schedules nothing further.
+        // 工作时间晚于最早的觉醒时间表,再无进一步进展。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, Schedule(CreateEnvelope(receiver, NewMessage(22, "last")), later + Delay)));
         Assert.Equal(2, Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId).Count);
         await AssertWakeupAtAsync(receiver, later);
@@ -419,7 +419,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         await AssertWakeupAtAsync(receiver, deliverAt);
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, envelope));
 
-        // The recovered scheduled message counts toward MaxCapacity (2).
+        // 收回的预定信件计为 MaxCapacity (2)。
         var second = CreateEnvelope(receiver, NewMessage(4, "second"));
         using (var held = Fixture.HandlerProbe.Arm(receiver.GetGrainId(), HeldRoute))
         {
@@ -448,7 +448,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         _ = await receiver.GetSnapshotAsync();
         var deliverAt = JobClock.GetUtcNow() + Delay;
 
-        // MaxCapacity is 2, and scheduled messages hold capacity while they wait.
+        // MaxCapacity 是2,预定的邮件在等待期间保持着容量。
         for (var sequence = 10; sequence < 12; sequence++)
         {
             var scheduled = Schedule(CreateEnvelope(receiver, NewMessage(sequence, $"scheduled-{sequence}")), deliverAt);
@@ -499,7 +499,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(receiver)).Status);
         Assert.Equal(1, Assert.Single((await Fixture.WaitForEffectCountAsync(receiver, 1)).Effects).Count);
 
-        // Completed IDs are deduplicated regardless of content.
+        // 不论内容如何,填写完毕的身份证均予以废除。
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, Schedule(envelope, deliverAt + Delay)));
         Assert.Equal(1, Assert.Single((await receiver.GetSnapshotAsync()).Effects).Count);
     }
@@ -517,7 +517,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         await grain.StageOutputAsync(outgoing);
         await grain.RetryWriteStateAsync();
 
-        // The grain's own inbox accepted the message in that write, without waiting for the due time.
+        // grain自己的收件箱接受了该文中的电文,没有等待到到期时间。
         var delivered = await Fixture.SnapshotProbe.WaitAsync(
             grain.GetGrainId(), static snapshot => snapshot.InboxCount == 1 && snapshot.OutboxCount == 0);
         Assert.Empty(delivered.Effects);
@@ -542,7 +542,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
         await AssertWakeupAtAsync(receiver, deliverAt);
 
-        // Work which is due later does not keep the activation alive; the durable wake-up reactivates it.
+        // 晚些应完成的工作不能维持激活;持久觉醒可以恢复启动。
         var context = Fixture.GetGrainContext(receiver);
         await Fixture.CollectAsync(context);
 

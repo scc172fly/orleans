@@ -213,7 +213,7 @@ public sealed partial class ShellHostedService : BackgroundService
             """);
         if (title)
         {
-            // ASCII art bird logo (replaces image-based logo to avoid SixLabors.ImageSharp dependency)
+            // ASCII 艺术鸟类徽标(取代图像标识以避免 SixLabors.ImageSharp 依赖性)
             var logo = new Markup("""
                 [yellow]        ▄▄▄▄▄▄▄        [/]
                 [yellow]     ▄██[/][white]░░░░░░░[/][yellow]██▄     [/]

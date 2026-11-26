@@ -23,7 +23,7 @@ namespace Orleans.Runtime.Placement
             public void IncrementActivationCount(int delta) => Interlocked.Add(ref _activationCount, delta);
         }
 
-        // Track created activations on this silo between statistic intervals.
+        // 音轨在统计间隔间距之间在此 silo 上创建了激活 。
         private readonly ConcurrentDictionary<SiloAddress, CachedLocalStat> _localCache = new();
         private readonly SiloAddress _localAddress;
         private readonly int _chooseHowMany;
@@ -46,7 +46,7 @@ namespace Orleans.Runtime.Placement
                 throw new SiloUnavailableException("Unable to select a candidate because there are no compatible silos.");
             }
 
-            // Exclude overloaded and non-compatible silos
+            // 排除超载和不兼容 silos
             var relevantSilos = new List<KeyValuePair<SiloAddress, CachedLocalStat>>();
             var totalSilos = _localCache.Count;
             var compatibleSilosWithoutStats = 0;
@@ -93,21 +93,21 @@ namespace Orleans.Runtime.Placement
                     }
                 }
 
-                // Increment placement by number of silos instead of by one.
-                // This is our trick to get more balanced placement, accounting to the probable
-                // case when multiple silos place on the same silo at the same time, before stats are refreshed.
+                // 增加安置,按 silos 而不是按1编号计算。
+                // 这是我们的伎俩 来更平衡地安置, 考虑可能
+                // 复数 silos 位于同一时间,在更新数据之前的多个 silo 位置。
                 minLoadedSilo.Value.IncrementActivationCount(totalSilos);
 
                 return minLoadedSilo.Key;
             }
 
-            // Some compatible silos might not have published statistics yet.
+            // 有些兼容的 silos 可能尚未公布统计数据。
             if (compatibleSilosWithoutStats > 0)
             {
                 return sampledCompatibleSiloWithoutStats!;
             }
 
-            // All compatible silos have published stats and are overloaded.
+            // 所有兼容的 silos 都公布了统计,并超载。
             var allSiloStats = _localCache.ToList();
             throw new SiloUnavailableException(
                 $"Unable to select a candidate from {silos.Length} compatible silos (all are overloaded). All silo stats: {Utils.EnumerableToString(allSiloStats, kvp => $"SiloAddress = {kvp.Key} -> IsOverloaded = {kvp.Value.SiloStats.IsOverloaded}, ActivationCount = {kvp.Value.ActivationCount}, RecentlyUsedActivationCount = {kvp.Value.SiloStats.RecentlyUsedActivationCount}")}");
@@ -119,13 +119,13 @@ namespace Orleans.Runtime.Placement
         {
             var compatibleSilos = context.GetCompatibleSilos(target);
 
-            // If a valid placement hint was specified, use it.
+            // 如果指定了有效的放置提示, 请使用它 。
             if (IPlacementDirector.GetPlacementHint(target.RequestContextData, compatibleSilos) is { } placementHint)
             {
                 return placementHint;
             }
 
-            // If the cache was not populated, place locally only if this silo is compatible.
+            // 如果缓存不包含人口, 只有当 silo 兼容时才在本地放置。
             if (_localCache.IsEmpty)
             {
                 if (compatibleSilos.Contains(_localAddress))
@@ -141,7 +141,7 @@ namespace Orleans.Runtime.Placement
 
         public void SiloStatisticsChangeNotification(SiloAddress updatedSilo, SiloRuntimeStatistics newSiloStats)
         {
-            // just create a new empty CachedLocalStat and throw the old one.
+            // 只需创建一个新的空 CachedLocalStat ,然后扔掉旧的。
             _localCache[updatedSilo] = new(newSiloStats);
         }
 

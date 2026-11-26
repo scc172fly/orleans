@@ -1,8 +1,8 @@
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// Consumer grain which passively reacts to subscriptions which was made on behalf of
-    /// it using Programmatic Subscribing 
+    /// 消费者 grain 对代表用户
+    /// 使用程序订阅 
     /// </summary>
     public interface IPassive_ConsumerGrain : IGrainWithGuidKey
     {
@@ -11,7 +11,7 @@ namespace UnitTests.GrainInterfaces
         Task<int> GetNumberConsumed();
     }
 
-    //the consumer grain marker interface which would unsubscribe on any subscription added by StreamSubscriptionManager
+    //消费者 grain 将取消订阅任何用户添加的 StreamSubscriptionManager
     public interface IJerk_ConsumerGrain : IGrainWithGuidKey
     {
     }

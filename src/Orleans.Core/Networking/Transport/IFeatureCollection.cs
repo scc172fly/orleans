@@ -4,38 +4,38 @@ using System.Collections.Generic;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// Represents a collection of typed features.
+/// 代表一组已打印的特征。
 /// </summary>
 public interface IFeatureCollection : IEnumerable<KeyValuePair<Type, object>>
 {
     /// <summary>
-    /// Indicates if the collection can be modified.
+    /// 表示收藏是否可以修改。
     /// </summary>
     bool IsReadOnly { get; }
 
     /// <summary>
-    /// Incremented for each modification and can be used to verify cached results.
+    /// 每次修改都加添,可用于核实隐藏的结果。
     /// </summary>
     int Revision { get; }
 
     /// <summary>
-    /// Gets or sets a given feature. Setting a null value removes the feature.
+    /// 获取或设置指定特性。设置空值将删除该特性。
     /// </summary>
     /// <param name="key"></param>
-    /// <returns>The requested feature, or null if it is not present.</returns>
+    /// <returns>请求的特性, 如果没有, 则无效 。</returns>
     object? this[Type key] { get; set; }
 
     /// <summary>
-    /// Retrieves the requested feature from the collection.
+    /// 从收藏中获取请求的特性 。
     /// </summary>
-    /// <typeparam name="TFeature">The feature key.</typeparam>
-    /// <returns>The requested feature, or null if it is not present.</returns>
+    /// <typeparam name="TFeature">特性密钥。</typeparam>
+    /// <returns>请求的特性, 如果没有, 则无效 。</returns>
     TFeature? Get<TFeature>();
 
     /// <summary>
-    /// Sets the given feature in the collection.
+    /// 设置收藏中指定特性。
     /// </summary>
-    /// <typeparam name="TFeature">The feature key.</typeparam>
-    /// <param name="instance">The feature value.</param>
+    /// <typeparam name="TFeature">特性密钥。</typeparam>
+    /// <param name="instance">特性值。</param>
     void Set<TFeature>(TFeature? instance);
 }

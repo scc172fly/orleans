@@ -38,15 +38,15 @@ public sealed record CatalogItem(
     int ReservedStock,
     int SoldStock);
 
-/// <summary>Retains an order's reservation request and outcome independently of its durable task.</summary>
+/// <summary>保留命令的保留请求和结果,不考虑其持久任务。</summary>
 [GenerateSerializer, Immutable]
 public sealed record StockReservation(int Units, bool Confirmed);
 
 [GenerateSerializer, Immutable]
 public sealed record BasketItem(int ProductId, string ProductName, decimal UnitPrice, int Quantity);
 
-// The body of POST /api/orders, which checks out the buyer's basket as a new order. The request's Idempotency-Key is the
-// order's ID.
+// POST/api/订单的体质,它们检查买方篮子作为新的订单。
+// 命令的身份证。
 public sealed record CheckoutRequest(string BuyerId, Address Address, string CardNumber);
 
 [GenerateSerializer, Immutable]
@@ -69,8 +69,8 @@ public sealed record OrderState(
 [GenerateSerializer, Immutable]
 public sealed record StockLine(int ProductId, StockLineStatus Status);
 
-// A snapshot of an order: the entry which each step of the order's workflow reports to its history. Each transition
-// returns the next snapshot as a pure function of the current one and its inputs, and advances the order's version.
+// 命令的简略简况:命令工作流程的每一步骤向历史报告的记录。
+// 返回下一个快照,作为当前快照及其输入的纯函数,并推进顺序版本。
 [GenerateSerializer, Immutable]
 public sealed record OrderDetails(OrderState Order, StockLine[] Stock)
 {
@@ -90,8 +90,8 @@ public sealed record OrderDetails(OrderState Order, StockLine[] Stock)
     public OrderDetails BeginValidation() =>
         Next(OrderStatus.AwaitingValidation, [.. Order.Lines.Select(line => new StockLine(line.ProductId, StockLineStatus.Pending))]);
 
-    // Records each line's reservation. The order confirms its stock when every line was reserved; otherwise its status
-    // stays unchanged until the workflow cancels it.
+    // 订单确认其库存,但每条线保留时都确认;否则,它的地位
+    // 保持不变, 直到工作流程取消它 。
     public OrderDetails RecordStock(bool[] confirmed)
     {
         StockLine[] stock = [.. Order.Lines.Select((line, i) =>
@@ -113,7 +113,7 @@ public sealed record OrderDetails(OrderState Order, StockLine[] Stock)
         new(Order with { Status = status, Version = Order.Version + 1, Description = description }, stock);
 }
 
-// Durable task arguments and results. The runtime stores them with the Orleans serializer.
+// 长期任务参数和结果。运行时将它们保存在 Orleans 连环器
 [GenerateSerializer, Immutable]
 public sealed record PlaceOrder(string BuyerId, Address Address, string CardLast4);
 
@@ -129,32 +129,32 @@ public sealed record OrderSummary(
     DateTimeOffset OrderDate,
     string? Description);
 
-// The result of a payment authorization, which the payment gateway's status monitor reports.
+// 付款授权的结果,付款网关的状况监测报告。
 [GenerateSerializer, Immutable]
 public sealed record PaymentResult(bool Succeeded, string? Reason);
 
-// The outcome of an order's PlaceOrder workflow.
+// 订单 PlaceOrder 工作流程的结果。
 [GenerateSerializer, Immutable]
 public sealed record OrderResult(OrderStatus Status, string? Description);
 
-// The value of an order's shipped signal, which the shipper identifies. The workflow records the first shipment, so a
-// repeated signal with the same shipment succeeds and another shipment conflicts with it.
+// 订单发送信号的价值,托运人确认其身份。
+// 同一批货物成功,重复发出信号,另一批货物与之发生冲突。
 [GenerateSerializer, Immutable]
 public sealed record Shipment(Guid ShipmentId);
 
 public sealed class OrderingOptions
 {
-    // eShop's GracePeriodManager waits one minute; a shorter default keeps the demo responsive.
+    // eShop的 GracePeriodManager 等一分钟;较短的默认使降压反应。
     public TimeSpan GracePeriod { get; set; } = TimeSpan.FromSeconds(10);
 
-    // The order is cancelled when payment authorization doesn't complete within this time.
+    // 如果付款授权书没有在此期限内完成, 命令将被取消 。
     public TimeSpan PaymentTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
-    // The interval between polls of a payment authorization which doesn't advertise one with Retry-After.
+    // 付款授权的民意测验间隔 不向Retry-after公司做广告
     public TimeSpan PaymentPollInterval { get; set; } = TimeSpan.FromSeconds(1);
 }
 
-// Journaled state is stored as JSON lines, so each persisted type needs source-generated metadata.
+// 日记状态以 JSON 行存储, 所以每个类型都存在需要源生成的元数据。
 [JsonSerializable(typeof(int))]
 [JsonSerializable(typeof(Guid))]
 [JsonSerializable(typeof(CatalogItem))]

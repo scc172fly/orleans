@@ -1,147 +1,173 @@
 ---
-title: Secure Orleans connections with TLS
-description: Configure server-authenticated TLS or mutual TLS for Orleans silo and client connections.
+title: "与 TLS 连接的安全 Orleans"
+description: "配置服务器认证 TLS 或 Orleans silo 和客户端连接的双向 TLS 。"
 ms.date: 08/08/2026
 ms.topic: how-to
 ---
 
-# Secure Orleans connections with TLS
+<a id="secure-orleans-connections-with-tls"></a>
 
-Orleans can protect client-to-silo and silo-to-silo connections with Transport Layer Security (TLS). TLS encrypts traffic and authenticates the endpoint acting as the TLS server. Mutual TLS (mTLS) additionally requires and authenticates the endpoint acting as the TLS client.
+# 与 TLS 连接的安全 Orleans
+
+Orleans 能够保护客户端到silo 和 silo- 来...silo 与运输层安全(TLS)连接。 TLS加密通信,认证端点作为 TLS 服务器。mTLS还要求并认证作为 TLS 客户端的终点。
 
 > [!IMPORTANT]
 > <xref:Orleans.Connections.Transport.Security.TlsOptions.RemoteCertificateMode> defaults to `RequireCertificate`. On a silo's inbound connections, this default requires the connecting silo or Orleans client to present a certificate. To configure server-authenticated TLS without client certificates, explicitly set it to `NoCertificate` on every silo.
 
-The TLS APIs are included in the Orleans server and client packages.
+TRS API 包含在 Orleans 服务器和客户包中。
 
-## Migrate TLS configuration
+<a id="migrate-tls-configuration"></a>
 
-TLS configuration and certificate loading now reside in the Orleans Core and Runtime packages. Applications migrating from `Microsoft.Orleans.Connections.Security` update their references as follows:
+## 迁移 TLS 配置
 
-| Previous API | Current API |
+TLS 配置和证书装入现位于 Orleans 核心包和运行时间包中。从 `Microsoft.Orleans.Connections.Security` 迁移到该软件的应用更新其参考文献如下:
+
+| [前一个 API | 当前 API |
 |---|---|
-| `Orleans.Hosting.OrleansConnectionSecurityHostingExtensions` client overloads | <xref:Orleans.Hosting.ClientTlsHostingExtensions> |
-| `Orleans.Hosting.OrleansConnectionSecurityHostingExtensions` silo overloads | <xref:Orleans.Hosting.SiloTlsHostingExtensions> |
+| `Orleans.Hosting.OrleansConnectionSecurityHostingExtensions` 客户端超载 | <xref:Orleans.Hosting.ClientTlsHostingExtensions> |
+| `Orleans.Hosting.OrleansConnectionSecurityHostingExtensions` silo 超载 | <xref:Orleans.Hosting.SiloTlsHostingExtensions> |
 | `Orleans.Connections.Security.CertificateLoader` | <xref:Orleans.Connections.Transport.Security.CertificateLoader> |
-| `Orleans.Connections.Security` TLS options and features | `Orleans.Connections.Transport.Security` |
+| `Orleans.Connections.Security` TLS 选项和特性 | `Orleans.Connections.Transport.Security` |
 
-The `builder.UseTls(...)` call syntax is preserved. Explicit static calls use the client or silo hosting type listed above. This package and assembly consolidation is a binary API change: rebuild applications and libraries against the message transport APIs and deploy those rebuilt binaries together.
+下 `builder.UseTls(...)` 保留了调用语法。 明确静态呼叫使用客户端或 silo 以上所列主机主机类型。此软件包和组装合并是一个二进制 API 改变:重建应用程序和图书馆,
 
-## Choose an authentication model
+<a id="choose-an-authentication-model"></a>
 
-| Model | Inbound silo policy | Outbound local-certificate policy | Typical boundary |
+## 选择认证模式
+
+| 型 型 | 入 silo 政策 | 向外的当地认证政策 | 典型边界 |
 |---|---|---|---|
-| Server-authenticated TLS | `RemoteCertificateMode = NoCertificate` | `ClientCertificateMode = NoCertificate` | Clients already authenticate at an application gateway or another trusted layer |
-| mTLS | `RemoteCertificateMode = RequireCertificate` (the default) | `ClientCertificateMode = RequireCertificate` | Direct connections across a network where both workloads need cryptographic identity |
+| 服务器认证 TLS | `RemoteCertificateMode = NoCertificate` | `ClientCertificateMode = NoCertificate` | 客户端已在应用程序网关或其他信任层验证 |
+| mTLS | `RemoteCertificateMode = RequireCertificate` (默认) | `ClientCertificateMode = RequireCertificate` | 整个网络的直接连接,其中两个工作量都需要加密身份 |
 
-The two similarly named options apply at different stages:
+两种类似名称的备选办法在不同阶段适用:
 
 - <xref:Orleans.Connections.Transport.Security.TlsOptions.RemoteCertificateMode> controls peer certificate requirements. On inbound silo connections, `RequireCertificate` requires a certificate from the connecting Orleans client or silo, `AllowCertificate` requests one and accepts its absence, and `NoCertificate` omits client-certificate requests. On outbound connections, this option governs validation of the TLS server's certificate.
 - <xref:Orleans.Connections.Transport.Security.TlsOptions.ClientCertificateMode> controls selection of the local client certificate whenever Orleans initiates a TLS connection: silo-to-silo connections for a silo and gateway connections for an Orleans client.
 
-`ClientCertificateMode` defaults to `AllowCertificate`: a configured local certificate is sent when it's valid for client authentication, but a missing or unsuitable local certificate is tolerated. Setting it to `RequireCertificate` makes the outbound requirement explicit and fails configuration or connection setup when an appropriate local certificate isn't available.
+`ClientCertificateMode` 默认值为 `AllowCertificate`: 当配置的本地证书对客户端验证有效时, 发送该证书, 但允许丢失或不合适的本地证书。 设置为 `RequireCertificate` , 使外限要求清晰明了, 当没有适当的本地证书时配置或连接设置失败 。
 
-Every silo both accepts and initiates connections. For mTLS, a silo certificate therefore needs the Server Authentication extended key usage (EKU) for inbound connections and the Client Authentication EKU for outbound connections. For server-authenticated TLS, the silo certificate only needs Server Authentication. An Orleans client certificate used for mTLS needs Client Authentication. Certificate identity, issuance, and trust should reflect workload roles rather than reusing one certificate and private key across the cluster.
+每一 silo 接受和启动连接。 for mTLS, a silo 因此证书需要输入连接的服务器验证扩展密钥使用(EKU),外出连接的客户身份验证 EKU。 silo 证书只需要服务器验证。 Orleans 客户端证书 mTLS 证书身份、发放和信任应反映工作量的作用,而不是在整个组群中重复使用一份证书和私人钥匙。
 
-TLS provides confidentiality, integrity, and certificate-based peer authentication for the Orleans transport. It doesn't authorize grain calls, isolate tenants, protect data after either process receives it, or secure membership/storage provider traffic unless those providers are separately configured. Compromise of a trusted certificate or private key can let an attacker impersonate that workload.
+TLS为 Orleans 运输提供保密、完整和基于证书的同行认证。它不授权 grain 电话,孤立租户,在接收数据后保护数据,或确保成员/存储供应商交通安全,除非这些供应商是单独配置的。 折中信任证书或私人钥匙可以让攻击者冒充工作量。
 
-## Load the local certificate
+<a id="load-the-local-certificate"></a>
 
-The `UseTls` overloads accept an <xref:System.Security.Cryptography.X509Certificates.X509Certificate2> with an accessible private key. Load it from the certificate source supported by your deployment, and keep it undisposed for the lifetime of the Orleans host.
+## 装入本地证书
 
-### Operating system certificate store
+`UseTls` 超载接受一个有可访问的私人密钥的 <xref:System.Security.Cryptography.X509Certificates.X509Certificate2> 。从您部署支持的证书源中装入,并在 Orleans 主机存在期间将其保存为未处理 。
 
-When the workload certificate is installed in an operating system certificate store, Orleans can load it by subject name. The following silo example searches the current user's Personal (`My`) store, requires the certificate to be currently valid, and configures server-authenticated TLS:
+<a id="operating-system-certificate-store"></a>
+
+### 操作系统证书存储
+
+当工作量证书安装在操作系统证书存储处时, Orleans 可以按主题名称装载。以下 silo 示例搜索当前用户的个人(`My`)存储,要求当前证书有效,并配置服务器认证的 TLS :
 
 :::code language="csharp" source="./snippets/transport-layer-security/csharp/SiloExample/Program.cs" id="CertificateStore":::
 
-Set `allowInvalid` to `false` outside isolated development environments. The store overload requires an accessible private key and selects a certificate suitable for the workload role. Ensure the selected certificate has every EKU required by the authentication model; in particular, a silo certificate used for mTLS needs both Server Authentication and Client Authentication.
+设定 `allowInvalid` 至 `false` 仓库超载要求有一个无障碍的私人密钥,并选择适合工作量角色的证书。 确保选定的证书拥有认证模式所要求的每一所EKU;特别是 silo 使用证书的 mTLS 既需要服务器验证,也需要客户身份验证。
 
-Choose [CurrentUser](xref:System.Security.Cryptography.X509Certificates.StoreLocation) or [LocalMachine](xref:System.Security.Cryptography.X509Certificates.StoreLocation) according to the identity which runs the process, and grant that identity access to the private key. If a subject name can match more than one deployment certificate, load the intended certificate explicitly or use a certificate selector with an issuer, thumbprint, or other deployment-specific identity check.
+根据运行该过程的身份选择 [CurrentUser](xref:System.Security.Cryptography.X509Certificates.StoreLocation) 或 [LocalMachine](xref:System.Security.Cryptography.X509Certificates.StoreLocation) ,并给予该身份进入私人密钥。如果一个主题名称可以匹配多个部署证书,则将指定的证书装入或使用证书选择器使用发行人、缩略图或其他特定部署的身份证检查。
 
-### PKCS#12/PFX file
+<a id="pkcs12pfx-file"></a>
 
-For a PKCS#12/PFX file, use <xref:System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadPkcs12FromFile*>:
+### PKCS#12/PFX文件
+
+PKCS#12/PFX文件使用 <xref:System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadPkcs12FromFile*>:
 
 :::code language="csharp" source="./snippets/transport-layer-security/csharp/SiloExample/Program.cs" id="LoadPkcs12Certificate":::
 
-Obtain the path and password from protected configuration or a secret provider rather than source code or ordinary configuration files. Restrict access to the file and its private key to the workload identity. Pass the returned certificate to the appropriate silo or client `UseTls` configuration shown in the following sections, keep it alive while the host runs, and dispose it after the host stops.
+获取来自受保护配置或秘密提供者的路径和密码, 而不是源代码或普通配置文件。 限制对文件及其私人密钥的访问, 使其进入工作量身份。 将返回的证书传递给以下各节显示的有关 silo 或客户 `UseTls` 配置, 在主机运行时保持其生命力并在主机停止后处置它 。
 
-## Configure server-authenticated TLS
+<a id="configure-server-authenticated-tls"></a>
 
-The silo presents a server certificate. Connecting clients and silos validate its chain, validity period, EKU, and DNS name but don't present a client certificate. The silo configuration explicitly disables remote certificates for inbound connections and local client certificates for outbound silo-to-silo connections.
+## 配置服务器认证 TLS
+
+silo 提供服务器证书。连接客户端和 silos 验证其链条、有效期、 EKU 和 DNS 名称,但不提交客户端证书。 silo 配置明确禁用了入境连接的远程证书和出境 silo- -silo 连接的本地客户端证书。
 
 :::code language="csharp" source="./snippets/transport-layer-security/csharp/SiloExample/Program.cs" id="ServerAuthenticatedTls":::
 
-Configure an Orleans client without a local certificate:
+配置没有本地证书的 Orleans 客户端 :
 
 :::code language="csharp" source="./snippets/transport-layer-security/csharp/ClientExample/Program.cs" id="ServerAuthenticatedTls":::
 
 <xref:Orleans.Connections.Transport.Security.TlsClientAuthenticationOptions.TargetHost> must match a DNS Subject Alternative Name (SAN) on the server certificate. Use the stable service name clients use to reach the silos, not an arbitrary certificate subject.
 
-## Configure mutual TLS
+<a id="configure-mutual-tls"></a>
 
-For mTLS, silos require a certificate from every inbound Orleans client or silo and require a local client certificate for every outbound silo-to-silo connection:
+## 配置彼此的 TLS
+
+对于 mTLS, silos 要求每个入境的 Orleans 客户或 silo 出具证书,并要求每一个出境 silo-至silo 连接都出具本地客户证书:
 
 :::code language="csharp" source="./snippets/transport-layer-security/csharp/SiloExample/Program.cs" id="MutualTls":::
 
 :::code language="csharp" source="./snippets/transport-layer-security/csharp/ClientExample/Program.cs" id="MutualTls":::
 
-The default platform validation applies when <xref:Orleans.Connections.Transport.Security.TlsOptions.RemoteCertificateValidation> isn't set. If you provide that callback, keep normal chain and name checks and add only the deployment-specific policy you require. A callback which returns `true` unconditionally defeats peer authentication.
+默认平台验证在 <xref:Orleans.Connections.Transport.Security.TlsOptions.RemoteCertificateValidation> 不设置时适用。 如果您提供回调, 请保持正常的链条和名称检查, 并只添加您所需的具体部署策略。 返回 `true` 的回调会无条件地破坏对等认证 。
 
 > [!WARNING]
 > <xref:Orleans.Connections.Transport.Security.TlsOptions.AllowAnyRemoteCertificate> is suitable only for isolated local development. It accepts any remote certificate and therefore doesn't protect against impersonation or an active man-in-the-middle.
 
-## Establish certificate trust
+<a id="establish-certificate-trust"></a>
 
-Treat these as separate trust decisions:
+## 建立证书信任
 
-- **Clients trust silos:** The issuing CA for silo server certificates is trusted by Orleans clients. The certificate SAN matches `TargetHost`.
-- **Silos trust clients:** For mTLS, the issuing CA for client certificates is trusted by every silo. Use a private CA or an additional validation policy when possession of an arbitrary public certificate isn't sufficient authorization.
-- **Silos trust silos:** Each silo validates the server certificate on outbound silo-to-silo connections. With mTLS, each silo also presents a client-authentication certificate.
+将上述决定作为单独的信托决定处理:
 
-Keep trust stores narrow. Don't place unrelated public or corporate roots in a workload-specific trust bundle when any certificate from those roots would be accepted as a cluster identity. Network policy should still restrict silo and gateway ports to expected peers.
+- **客户端信任 silos:** 签发 silo 服务器证书的 CA 由 Orleans 客户信任。 SAN 证书与 `TargetHost`匹配。
+- **Silos 信托客户:** 对于 mTLS,为客户签发证书的CA由每个 silo信任。如果拥有任意公共证书不足以获得授权,则使用私人CA或附加验证政策。
+- **Silos 信任信托基金 silos:** 每一 silo 外出验证服务器证书 silo- 来...silo 连接的 mTLS, 每个 silo 并提交客户认证证书。
 
-## Protocols and revocation
+保持信任商店的狭义。 当来自这些信托的证书被接受为集群身份时,不要将无关的公共或公司根植于工作量特定的信任包中。 网络政策仍应将 silo 和网关港口限制在预期同行手中。
 
-The TLS transports negotiate the `Orleans1` application-layer protocol identifier, preserving protocol negotiation with existing Orleans endpoints. Authentication callbacks can access the <xref:System.Net.Security.SslStream> through the message transport's feature collection.
+<a id="protocols-and-revocation"></a>
+
+## 协议和撤销
+
+TLS 运输工具谈判了 `Orleans1` 应用程序- 程序协议标识符, 与现有的 Orleans 端点保持协议谈判。 认证回调可以通过信件传输的特性收集访问 <xref:System.Net.Security.SslStream> 。
 
 <xref:Orleans.Connections.Transport.Security.TlsOptions.SslProtocols> defaults to TLS 1.2 and TLS 1.3. Retain those defaults unless an interoperability or policy requirement calls for a narrower set. Orleans doesn't enable TLS 1.0 or TLS 1.1 by default.
 
-Set <xref:Orleans.Connections.Transport.Security.TlsOptions.CheckCertificateRevocation> to check remote certificates on inbound silo connections. For outbound connections, set <xref:Orleans.Connections.Transport.Security.TlsClientAuthenticationOptions.CertificateRevocationCheckMode> in <xref:Orleans.Connections.Transport.Security.TlsOptions.OnAuthenticateAsClient>. Before enabling revocation checks, verify that every workload can reach the certificate revocation list (CRL) or Online Certificate Status Protocol (OCSP) service and decide how outages should affect availability.
+设定 <xref:Orleans.Connections.Transport.Security.TlsOptions.CheckCertificateRevocation> 输入时检查远程证书 silo 连接。对于外向连接,设置 <xref:Orleans.Connections.Transport.Security.TlsClientAuthenticationOptions.CertificateRevocationCheckMode> 内 <xref:Orleans.Connections.Transport.Security.TlsOptions.OnAuthenticateAsClient>在允许进行撤销检查之前,核实所有工作量都可达到证书撤销清单或在线证书状况协议服务,并决定停业应如何影响可用性。
 
-## Rotate certificates
+<a id="rotate-certificates"></a>
 
-Plan rotation before deployment:
+## 旋转证书
 
-1. Issue the replacement certificate with the same required names and EKUs.
-2. Distribute the new issuing chain to trust stores before any endpoint presents the new certificate.
-3. Make both old and new chains valid during an overlap window.
-4. Restart processes with the replacement certificate, or use <xref:Orleans.Connections.Transport.Security.TlsOptions.LocalServerCertificateSelector> and <xref:Orleans.Connections.Transport.Security.TlsOptions.LocalClientCertificateSelector> to select certificates dynamically.
-5. Confirm new connections use the replacement, then remove the old certificate and obsolete trust roots.
+部署前计划轮调:
 
-Certificate selectors are called during authentication, but certificate loading, caching, disposal, and refresh are application responsibilities. Test rotation under normal reconnect and silo restart behavior. Alert on certificate expiration well before the overlap window closes.
+1. 签发与要求的姓名和工伤和工伤股相同的替换证书。
+2. 在任何终点提交新证书之前,将新的发行链分配给信托商店。
+3. 使新旧链在重叠窗口中有效。
+4. 与替换证书重新启动进程,或使用 <xref:Orleans.Connections.Transport.Security.TlsOptions.LocalServerCertificateSelector> 和 <xref:Orleans.Connections.Transport.Security.TlsOptions.LocalClientCertificateSelector> 动态选择证书。
+5. 确认新的连接使用替换,然后删除旧证书和过时的信任根。
 
-## Production checklist
+验证过程中会调用证书选择器, 但证书装入、 缓存、 处置和刷新是应用程序的责任。 在正常重新连接和 silo 重新启动行为下测试旋转。 提醒在重叠窗口关闭前提前过期 。
 
-- Give private-key files or key-store entries only to the workload identity that needs them.
-- Prefer separate certificates per workload or instance over one exported cluster-wide private key.
-- Validate SANs, EKUs, chain trust, validity, and revocation behavior.
-- For server-authenticated TLS, set `RemoteCertificateMode` and `ClientCertificateMode` to `NoCertificate` on silos.
-- For mTLS, set `RemoteCertificateMode` and `ClientCertificateMode` to `RequireCertificate` on silos and configure a client-authentication certificate on every connecting Orleans client.
-- Protect gateway and silo ports with network policy even when TLS is enabled.
-- Keep clocks synchronized because certificate validity checks depend on time.
-- Monitor TLS handshake failures and certificate expiration; don't log private keys or certificate passwords.
-- Store PFX passwords in a secret store rather than source or ordinary configuration files.
+<a id="production-checklist"></a>
 
-## See also
+## 生产清单
 
-- [Orleans security](../security/index.md)
-- [Network hardening](../security/networking.md)
+- 仅给予需要的工作身份, 给予私人钥匙文件或密钥存储条目 。
+- 最好对每个工作量或每例一次的单独证书,超过一个出口的全集群私人钥匙。
+- 验证 SANs、 EKUs、链信任、有效性和撤销行为。
+- 服务器认证 TLS, 设置 `RemoteCertificateMode` 和 `ClientCertificateMode` 至 `NoCertificate` 日期 时 silos.
+- 用于 mTLS, 设置 `RemoteCertificateMode` 和 `ClientCertificateMode` 至 `RequireCertificate` 日期 时 silos 并配置每个连接上的客户端认证证书 Orleans 客户端。
+- 即使启用 TLS , 也仍然保护网关和有网络政策的 silo 端口。
+- 保持时钟同步, 因为证书有效性检查取决于时间 。
+- 监测 TLS 握手失败和证书过期; 不记录私人密钥或证书密码 。
+- 将PFX密码存放在秘密仓库,而不是源文件或普通配置文件。
+
+<a id="see-also"></a>
+
+## 另请参阅
+
+- [Orleans 安全](../security/index.md)
+- [网络加固](../security/networking.md)
 - <xref:Orleans.Connections.Transport.Security.TlsOptions>
 - <xref:Orleans.Hosting.ClientTlsHostingExtensions.UseTls*>
 - <xref:Orleans.Hosting.SiloTlsHostingExtensions.UseTls*>
-- [Client configuration](configuration-guide/client-configuration.md)
-- [Server configuration](configuration-guide/server-configuration.md)
-- [.NET TLS/SSL best practices](https://learn.microsoft.com/dotnet/core/extensions/sslstream-best-practices)
-- [Orleans Transport Layer Security (TLS) sample](https://learn.microsoft.com/samples/dotnet/samples/orleans-transport-layer-security-tls/)
+- [客户配置](configuration-guide/client-configuration.md)
+- [服务器配置](configuration-guide/server-configuration.md)
+- [.NET TLS/SSL最佳做法](https://learn.microsoft.com/dotnet/core/extensions/sslstream-best-practices)
+- [Orleans 运输层安全抽样](https://learn.microsoft.com/samples/dotnet/samples/orleans-transport-layer-security-tls/)

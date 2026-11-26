@@ -5,67 +5,67 @@ using Orleans.Runtime;
 namespace Orleans.BroadcastChannel.Diagnostics;
 
 /// <summary>
-/// Provides the diagnostic listener and event payload types for Orleans broadcast channel events.
+/// 为 Orleans 广播频道活动提供诊断听众和事件有效载荷类型。
 /// </summary>
 /// <remarks>
-/// These types are public but may change between minor versions. They are intended for
-/// advanced scenarios such as simulation testing and diagnostics.
+/// 这些类型是公开的,但可能在不同版本之间发生变化。
+/// 模拟测试和诊断等先进假设情景。
 /// </remarks>
 public static class BroadcastChannelEvents
 {
     /// <summary>
-    /// The name of the diagnostic listener for broadcast channel events.
+    /// 广播频道活动诊断听众的姓名。
     /// </summary>
     public const string ListenerName = "Orleans.BroadcastChannel";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// Gets an observable sequence of all broadcast channel events.
+    /// 获得所有广播频道活动的可观测序列。
     /// </summary>
     public static IObservable<BroadcastChannelEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// The base class used for broadcast channel diagnostic events.
+    /// 用于广播频道诊断活动的基础班。
     /// </summary>
-    /// <param name="providerName">The name of the broadcast channel provider.</param>
-    /// <param name="siloAddress">The address of the silo associated with the event, if any.</param>
-    /// <param name="clusterId">The identifier of the cluster associated with the event.</param>
+    /// <param name="providerName">广播频道提供者的名称。</param>
+    /// <param name="siloAddress">大会主席的地址 silo 如果与事件有关,请予以说明。</param>
+    /// <param name="clusterId">与事件相关的组群识别符号。</param>
     public abstract class BroadcastChannelEvent(string providerName, SiloAddress? siloAddress, string clusterId)
     {
         /// <summary>
-        /// Initializes an event without cluster identity.
+        /// 初始化一个没有群集识别的事件 。
         /// </summary>
-        /// <param name="providerName">The name of the broadcast channel provider.</param>
+        /// <param name="providerName">广播频道提供者的名称。</param>
         protected BroadcastChannelEvent(string providerName)
             : this(providerName, siloAddress: null, clusterId: string.Empty)
         {
         }
 
         /// <summary>
-        /// The name of the broadcast channel provider.
+        /// 广播频道供应商的名字。
         /// </summary>
         public readonly string ProviderName = providerName;
 
         /// <summary>
-        /// The address of the silo associated with the event, if any.
+        /// 与事件相关的 silo 地址(如果有的话)。
         /// </summary>
         public readonly SiloAddress? SiloAddress = siloAddress;
 
         /// <summary>
-        /// The identifier of the cluster associated with the event.
+        /// 与事件相关的组别标识符 。
         /// </summary>
         public readonly string ClusterId = clusterId;
     }
 
     /// <summary>
-    /// Event payload for when an item is published to a broadcast channel.
+    /// 当某物品发布到广播频道时,该事件的有效有效载荷。
     /// </summary>
-    /// <param name="providerName">The name of the broadcast channel provider.</param>
-    /// <param name="channelId">The channel ID.</param>
-    /// <param name="subscriberCount">The number of subscribers that will receive this item.</param>
-    /// <param name="siloAddress">The address of the silo publishing the item, if any.</param>
-    /// <param name="clusterId">The identifier of the cluster publishing the item.</param>
+    /// <param name="providerName">广播频道提供者的名称。</param>
+    /// <param name="channelId">频道 ID。</param>
+    /// <param name="subscriberCount">将接收此项目的用户数。</param>
+    /// <param name="siloAddress">大会主席的地址 silo 如果有的话,公布该项目。</param>
+    /// <param name="clusterId">发布该集组的标识符 。</param>
     public sealed class ItemPublished(
         string providerName,
         ChannelId channelId,
@@ -74,7 +74,7 @@ public static class BroadcastChannelEvents
         string clusterId) : BroadcastChannelEvent(providerName, siloAddress, clusterId)
     {
         /// <summary>
-        /// Initializes an event without cluster identity.
+        /// 初始化一个没有群集识别的事件 。
         /// </summary>
         public ItemPublished(string providerName, ChannelId channelId, int subscriberCount)
             : this(providerName, channelId, subscriberCount, siloAddress: null, clusterId: string.Empty)
@@ -82,24 +82,24 @@ public static class BroadcastChannelEvents
         }
 
         /// <summary>
-        /// The channel ID.
+        /// 频道的身份证
         /// </summary>
         public readonly ChannelId ChannelId = channelId;
 
         /// <summary>
-        /// The number of subscribers that will receive this item.
+        /// 将接收此项目的用户数。
         /// </summary>
         public readonly int SubscriberCount = subscriberCount;
     }
 
     /// <summary>
-    /// Event payload for when an item is delivered to a broadcast channel subscriber.
+    /// 当物品交付给广播频道用户时,该物体的有效有效载荷。
     /// </summary>
-    /// <param name="providerName">The name of the broadcast channel provider.</param>
-    /// <param name="channelId">The channel ID.</param>
-    /// <param name="consumerGrainId">The grain ID of the consumer.</param>
-    /// <param name="siloAddress">The address of the silo delivering the item.</param>
-    /// <param name="clusterId">The identifier of the cluster delivering the item.</param>
+    /// <param name="providerName">广播频道提供者的名称。</param>
+    /// <param name="channelId">频道 ID。</param>
+    /// <param name="consumerGrainId">下 grain 消费者的身份。</param>
+    /// <param name="siloAddress">大会主席的地址 silo 发送项目。</param>
+    /// <param name="clusterId">交付项目的组的识别码 。</param>
     public sealed class ItemDelivered(
         string providerName,
         ChannelId channelId,
@@ -108,7 +108,7 @@ public static class BroadcastChannelEvents
         string clusterId) : BroadcastChannelEvent(providerName, siloAddress, clusterId)
     {
         /// <summary>
-        /// Initializes an event without cluster identity.
+        /// 初始化一个没有群集识别的事件 。
         /// </summary>
         public ItemDelivered(string providerName, ChannelId channelId, GrainId consumerGrainId)
             : this(providerName, channelId, consumerGrainId, siloAddress: null, clusterId: string.Empty)
@@ -116,12 +116,12 @@ public static class BroadcastChannelEvents
         }
 
         /// <summary>
-        /// The channel ID.
+        /// 频道的身份证
         /// </summary>
         public readonly ChannelId ChannelId = channelId;
 
         /// <summary>
-        /// The grain ID of the consumer.
+        /// 消费者的 grain 身份。
         /// </summary>
         public readonly GrainId ConsumerGrainId = consumerGrainId;
     }

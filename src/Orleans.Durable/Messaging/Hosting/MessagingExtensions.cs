@@ -11,19 +11,19 @@ using Orleans.Durable.Journaling.Json;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extensions for configuring messaging.
+/// 配置信息扩展
 /// </summary>
 public static class MessagingExtensions
 {
     /// <summary>
-    /// Adds inbox and outbox messaging support to the silo.
+    /// 添加框和发箱信息支持到 silo。
     /// </summary>
     /// <remarks>
-    /// A grain receives messages by resolving <see cref="IInbox"/> during construction or activation setup, before journal recovery.
+    /// A grain 在日记收回之前,通过在建造或启动安装过程中解决 <see cref="IInbox"/> 来接收电文。
     /// </remarks>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configureOptions">The optional action used to configure inbox and outbox behavior.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configureOptions">用于配置框和发件人行为的可选动作。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder AddMessaging(this ISiloBuilder builder, Action<DurableMessagingOptions>? configureOptions = null)
     {
         builder.AddDurableJobs();
@@ -31,21 +31,21 @@ public static class MessagingExtensions
     }
 
     /// <summary>
-    /// Adds inbox and outbox messaging services.
+    /// 添加收件箱和发件箱信息服务。
     /// </summary>
     /// <remarks>
-    /// A grain receives messages by resolving <see cref="IInbox"/> during construction or activation setup, before journal recovery.
+    /// A grain 在日记收回之前,通过在建造或启动安装过程中解决 <see cref="IInbox"/> 来接收电文。
     /// </remarks>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configureOptions">The optional action used to configure inbox and outbox behavior.</param>
-    /// <returns>The service collection.</returns>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="configureOptions">用于配置框和发件人行为的可选动作。</param>
+    /// <returns>服务收藏。</returns>
     public static IServiceCollection AddMessaging(this IServiceCollection services, Action<DurableMessagingOptions>? configureOptions = null)
     {
         services.AddDurableJobs();
         services.TryAddSingleton(TimeProvider.System);
 
-        // The pump job is each grain's only durable wake-up for committed messaging work, so it retries indefinitely
-        // while other jobs keep the configured policy.
+        // 泵工作是每个 grain唯一的持久提醒, 以提醒投入的邮件工作, 所以它无限期地重复
+        // ,而其他任务则保留配置的政策。
         services.AddOptions<DurableJobsOptions>().PostConfigure<IServiceProvider>(static (options, services) =>
         {
             var shouldRetry = options.ShouldRetry;
@@ -83,7 +83,7 @@ public static class MessagingExtensions
         return services;
     }
 
-    // Reports the invalid option's own message through the options contract.
+    // 无效选项通过选项合同报告无效选项自己的信息。
     private sealed class DurableMessagingOptionsValidation : IValidateOptions<DurableMessagingOptions>
     {
         public ValidateOptionsResult Validate(string? name, DurableMessagingOptions options)
@@ -100,7 +100,7 @@ public static class MessagingExtensions
         }
     }
 
-    // Resolving the options runs their validation, so the silo reports invalid configuration before it starts.
+    // 解析选项时运行验证, 因此 silo 在启动前报告无效配置 。
     private sealed class DurableMessagingOptionsValidator(IOptions<DurableMessagingOptions> options) : IConfigurationValidator
     {
         public void ValidateConfiguration() => _ = options.Value;

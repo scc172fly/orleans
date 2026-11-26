@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Specifies options for the <see cref="IPersistentState{TState}"/> constructor argument which it is applied to.
+    /// 指定用于 <see cref="IPersistentState{TState}"/> 构建器参数的选项。
     /// </summary>
     /// <seealso cref="System.Attribute" />
     /// <seealso cref="Orleans.IFacetMetadata" />
@@ -12,10 +12,10 @@ namespace Orleans.Runtime
     public class PersistentStateAttribute : Attribute, IFacetMetadata, IPersistentStateConfiguration
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PersistentStateAttribute"/> class.
+        /// 初始化 <see cref="PersistentStateAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="stateName">Name of the state.</param>
-        /// <param name="storageName">Name of the storage provider.</param>
+        /// <param name="stateName">国家名称。</param>
+        /// <param name="storageName">存储提供者的名称。</param>
         public PersistentStateAttribute(string stateName, string? storageName = null)
         {
             ArgumentNullException.ThrowIfNull(stateName);
@@ -24,15 +24,15 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the name of the state.
+        /// 得到国家的名字。
         /// </summary>
-        /// <value>The name of the state.</value>
+        /// <value>国家名称。</value>
         public string StateName { get; }
 
         /// <summary>
-        /// Gets the name of the storage provider.
+        /// 获取存储供应商的名称。
         /// </summary>
-        /// <value>The name of the storage provider.</value>
+        /// <value>存储提供者的名称。</value>
         public string? StorageName { get; }
     }
 }

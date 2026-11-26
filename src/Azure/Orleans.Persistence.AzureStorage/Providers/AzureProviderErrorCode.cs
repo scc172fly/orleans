@@ -4,7 +4,7 @@ namespace Orleans.Providers.Azure
     {
         ProvidersBase = 200000,
 
-        // Azure storage provider related
+        // Azure 与储存供应商有关的
         AzureTableProviderBase = ProvidersBase + 100,
         AzureTableProvider_DataNotFound = AzureTableProviderBase + 1,
         AzureTableProvider_ReadingData = AzureTableProviderBase + 2,

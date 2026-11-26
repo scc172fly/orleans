@@ -68,8 +68,8 @@ public sealed class InboxHandlerTransactionTests : MessagingBehaviorTestBase
         var accepted = await DeliverAsync(receiver, envelope);
         var state = await Fixture.WaitForDeadLetterCountAsync(receiver, 1);
 
-        // Each failed attempt fails its activation without staging anything. With this fixture's zero
-        // InboxRetryTimeout, the first recovery starts the retry window and the second dead-letters the message.
+        // 每次失败的尝试都失败 , 无法在未启动任何设备的情况下启动 。
+        // InboxRetryTimeout,第一次恢复开始重试窗口,第二个断字字母则发出消息。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(accepted);
         Assert.Empty(state.Effects);
         Assert.Equal(0, state.InboxCount);
@@ -145,7 +145,7 @@ public sealed class InboxHandlerTransactionTests : MessagingBehaviorTestBase
         await handler.WaitUntilEnteredAsync();
         var oldContext = Fixture.GetGrainContext(receiver);
 
-        // The failed attempt writes nothing, so the next write is the charge which recovery stages for it.
+        // 失败的尝试没有写任何文字, 所以下一个写作是回收阶段的收费。
         using var chargeWrite = Fixture.Storage.BlockWrite(JournalId.FromGrainId(receiver.GetGrainId()));
         handler.Release();
         await chargeWrite.WaitUntilEnteredAsync();
@@ -156,8 +156,8 @@ public sealed class InboxHandlerTransactionTests : MessagingBehaviorTestBase
 
         var completed = await Fixture.WaitForDeadLetterCountAsync(receiver, 1);
         Assert.NotEqual(before.ActivationId, completed.ActivationId);
-        // The uncommitted charge doesn't count: a later recovery charges the first attempt again, starting the retry
-        // window, and the recovery after the rerun's failure dead-letters the message at its second attempt.
+        // 无罪指控不算: 事后追收费用 第一次尝试,重新开始
+        // 窗口中,再运行失败后恢复的功能 将信息第二次尝试时的信号写成死字
         Assert.Equal(2, Assert.Single(completed.InboxDeadLetters).AttemptCount);
         Assert.Empty(completed.Effects);
         Assert.Empty(Fixture.GetStagedOutput(receiver));

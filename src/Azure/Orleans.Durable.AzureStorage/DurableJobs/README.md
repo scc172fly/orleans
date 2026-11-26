@@ -1,46 +1,58 @@
-# Microsoft Orleans Durable Jobs for Azure Storage
+<a id="microsoft-orleans-durable-jobs-for-azure-storage"></a>
 
-## Introduction
-Microsoft Orleans Durable Jobs for Azure Storage persists scheduled jobs through the Azure Blob or Azure Table journal provider. Jobs survive silo restarts, grain deactivation, and cluster reconfigurations. `UseAzureBlobDurableJobs` configures append-blob WALs and block-blob checkpoints; `UseAzureTableDurableJobs` configures Table journal headers and data generations. Both register the journal-backed shard manager and durable-job JSON serialization metadata.
+# Microsoft Orleans 就业的持久就业机会 Azure 储存
 
-## Getting Started
+<a id="introduction"></a>
 
-### Installation
-To use this package, install it via NuGet along with the core package:
+## 简介
+Microsoft Orleans 就业的持久就业机会 Azure 通过以下方式长期保留在 Azure 布布或 Azure 日记表提供商。 silo 重新开始, grain 停止使用和集群重组。 `UseAzureBlobDurableJobs` 配置附加式蓝色WAL和块形蓝色检查点; `UseAzureTableDurableJobs` 配置表日记页眉和数据代代。两者都登记了日记支持的碎片管理器和长期工作 JSON 序列元数据。
+
+<a id="getting-started"></a>
+
+## 入门
+
+<a id="installation"></a>
+
+### 安装
+要使用此软件包,请通过 NuGet 安装该软件包以及核心软件包:
 
 ```shell
 dotnet add package Microsoft.Orleans.Durable --prerelease
 dotnet add package Microsoft.Orleans.Durable.AzureStorage --prerelease
 ```
 
-### Configuration
+<a id="configuration"></a>
 
-Choose `UseAzureBlobDurableJobs` with `AzureBlobJournalStorageOptions`, or
-`UseAzureTableDurableJobs` with `AzureTableJournalStorageOptions`. Both support
-`ISiloBuilder` and `IServiceCollection` registration. Table configuration accepts
-a `TableServiceClient` and `TableName`; Blob configuration accepts a
-`BlobServiceClient` and `ContainerName`. Clustering uses an appropriate Table
-service, including a separate standard account when journal storage uses a
-premium BlockBlobStorage account.
+### 配置
 
-The [Durable Jobs journaling playground](../../../playground/DurableJobsJournaling/README.md)
-provides runnable Blob/Table backend selection. The
-[Azure provider benchmarks](../../../test/Benchmarks/Journaling/Azure/README.md)
-measure append, checkpoint, recovery, and catalog workloads with bounded work
-and explicit resource ownership.
+选择 `UseAzureBlobDurableJobs` ,使用 `AzureBlobJournalStorageOptions`,或
+`UseAzureTableDurableJobs` 与 `AzureTableJournalStorageOptions`两种支持
+`ISiloBuilder` 和 `IServiceCollection` 登记。
+a `TableServiceClient` 和 `TableName`;布束配置接受
+`BlobServiceClient` 和 `ContainerName`。
+包括一个单独的标准账户,用于
+溢价 BlockBlobStorage 账户。
 
-### Named providers and account migration
+下 [持久工作日记操场](../../../playground/DurableJobsJournaling/README.md)
+提供可运行的布洛/ 表后端选择。
+[Azure 提供商基准](../../../test/Benchmarks/Journaling/Azure/README.md)
+与受捆绑工作有关的附加、检查站、恢复和目录工作量
+以及明确的资源所有权。
 
-For explicit storage selection, register
-`AddAzureBlobJournalStorage("jobs-a", configure)` or
-`AddAzureTableJournalStorage("jobs-a", configure)` and call
+<a id="named-providers-and-account-migration"></a>
+
+### 名列提供者和账户移徙
+
+用于明确储存选择,登记
+`AddAzureBlobJournalStorage("jobs-a", configure)` 或
+`AddAzureTableJournalStorage("jobs-a", configure)` 和调用
 `UseJournaledDurableJobs(options => options.ActiveProviderName = "jobs-a")`.
-Both builder and service-collection APIs are supported. Each name has its own
-backend options, storage provider, catalog, and state-manager factory. Named
-registrations leave default grain journaling independent.
+支持建筑商和服务收集的API,每个名字都有自己的
+后端选项、 存储提供者、 目录和国营管理工厂。 命名
+注册后不设缺省 grain 日记账独立。
 
-To move new work to another account, container, or table, retain A's original
-namespace under `"jobs-a"` and register B's namespace under `"jobs-b"`:
+将新工程转到另一个账户、集装箱或表格,保留A的原版
+在 `"jobs-a"` 下注册命名空间,并在 `"jobs-b"`下登记B的命名空间:
 
 ```csharp
 siloBuilder
@@ -61,45 +73,47 @@ siloBuilder
     });
 ```
 
-The same pattern works with separate Table names/clients, or a Blob-to-Table
-change. Register each physical namespace under one selected name; changing a
-name's account or mapping while it contains work changes where those jobs can
-be found.
+同一模式与不同的表格名称/客户或组合表一起工作。
+。在选定名称下登记每个物理命名空间;修改
+包含工作更改的账户或绘图, 这些任务可以
+查找。
 
-With one selected provider, uncached shard lookup reads its metadata directly.
-With B plus A selected, discovery reads both catalogs and known-ID lookup checks
-B then A as needed. Existing jobs, including retries, reschedules, cancellation,
-and deletion, continue writing A. New shards are created only in B. Shard IDs
-and `DurableJob` handles remain timestamp/GUID-based and provider-independent.
-Storage errors remain distinct from successful absence.
+使用一个选定的提供者,未剪切的碎片搜索直接读取其元数据。
+发现B+A选择了,发现内容既包括目录,也包括已知身份查勘。
+现有工作,包括重试、重新安排时间表、取消、
+和删除后,继续写入 A。新的碎片仅以 B. 散列ID创建
+和 `DurableJob` 处理器保持时间戳/基于通用数字数据交换工具且独立提供。
+储存错误与成功缺勤有区别。
 
-Before enabling B writes, deploy both selected bindings to all scheduling silos
-with A as write provider and B as draining. Then roll out B as write provider
-and A as draining. These settings take effect at startup. Pause scheduling for
-a strict cutover boundary; otherwise A-configured silos can keep creating A
-shards until the rollout and their admitted scheduling requests finish.
+在启用 B 写入前, 请将选中的绑定都安装到所有日程列表 silos
+A 以书写提供商为A, B 以排水。 然后将B 以书写提供商为B
+A 排水。这些设置在启动时生效。
+严格的削减边界;否则,A形 silos 可保持创建 A
+碎片一直到推出和他们同意的日程安排请求完成为止
 
-Keep A's identity authorized for listing, reads, conditional metadata updates,
-journal writes, compaction, and deletes for the entire drain. These permissions
-allow existing jobs to progress and their shards to be cleaned up.
-Preserve WAL/checkpoint or Table partition mappings and the
-readers needed to recover both providers.
+保留 A 的身份授权列名, 读作:有条件元数据更新
+整个排水管的日记、缩写和删除。这些权限
+现有工作可以不断进步,其碎片可以被清理。
+保存 WAL/检查点或表格分区绘图和
+读者需要恢复两个供应商。
 
-Use `IDurableJobsStorageInspector.InspectAsync("jobs-a", cancellationToken)`
-for a full `jobs/shards/` inventory, including future-dated and poisoned work.
-Report inventory failures as unknown. After **all writers** have cut over,
-require successful complete inventories with a total shard count of zero,
-including unrecognized entries, before removing A. Retirement combines these
-live observations with independent evidence of completed cluster-wide writer
-cutover.
+使用 `IDurableJobsStorageInspector.InspectAsync("jobs-a", cancellationToken)`
+用于完整 `jobs/shards/` 清单,包括未来日期和中毒工作。
+以未知身份报告库存失报情况。 **所有作家** 已经切开,
+要求成功完成完整的库存,其全部碎片数为零,
+A. 退休结合了这些内容
+与完成的全集群作者的独立证据
+切开。
 
-The [migration sample](../../../samples/DurableJobsMigration/README.md)
-uses disk-backed Azurite, two Blob namespaces, separate prepare/drain processes,
-and local inventory reporting. See the
-[core migration guidance](../../Orleans.DurableJobs/README.md#cut-over-and-retire-a-provider)
-for rollback and retirement criteria.
+下 [移徙抽样](../../../samples/DurableJobsMigration/README.md)
+使用磁盘支持的 Azurite、两个布洛命名空间、单独的准备/排水程序,
+和当地清单报告。
+[核心移徙核心指南](../../Orleans.DurableJobs/README.md#cut-over-and-retire-a-provider)
+反弹和退休标准。
 
-#### Using Connection String
+<a id="using-connection-string"></a>
+
+#### 使用连接字符串
 ```csharp
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Hosting;
@@ -121,7 +135,9 @@ builder.UseOrleans(siloBuilder =>
 await builder.Build().RunAsync();
 ```
 
-#### Using Managed Identity (Recommended for Production)
+<a id="using-managed-identity-recommended-for-production"></a>
+
+#### 使用管理身份( 建议生产)
 ```csharp
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -147,7 +163,9 @@ builder.UseOrleans(siloBuilder =>
 await builder.Build().RunAsync();
 ```
 
-#### With Advanced Options
+<a id="with-advanced-options"></a>
+
+#### 带有高级选项
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
@@ -193,9 +211,13 @@ builder.UseOrleans(siloBuilder =>
 });
 ```
 
-## Usage Example
+<a id="usage-example"></a>
 
-### Email Scheduling with Cancellation
+## 用法示例
+
+<a id="email-scheduling-with-cancellation"></a>
+
+### 以取消方式发送电子邮件排程
 ```csharp
 using Orleans;
 using Orleans.Durable.Jobs;
@@ -297,7 +319,9 @@ public class EmailGrain : Grain, IEmailGrain, IDurableJobHandler
 }
 ```
 
-### Order Workflow with Multiple Scheduled Steps
+<a id="order-workflow-with-multiple-scheduled-steps"></a>
+
+### 工作顺序,多档期
 ```csharp
 public interface IOrderGrain : IGrainWithGuidKey
 {
@@ -473,26 +497,34 @@ public enum OrderStatus
 }
 ```
 
-## How It Works
+<a id="how-it-works"></a>
 
-### Storage Architecture
-Each durable-job shard has a journal identity and persisted ownership metadata.
-The journal-backed shard manager discovers shard identities through the storage
-catalog and recovers state through the configured journal format.
+## 如何运作
 
-The Blob provider stores the WAL at `wal/{journalId}` and checkpoints at
-`checkpoints/{journalId}/{snapshotId}` within the configured container. The
-Table provider stores journal headers and data generations in the configured
-table. Provider metadata selects the committed checkpoint or generation; caller
-metadata carries the durable-job shard's discovery and ownership properties.
+<a id="storage-architecture"></a>
 
-### Shard Ownership and High Availability
-1. **Optimistic Concurrency**: ETags prevent conflicting updates when multiple silos try to claim a shard
-2. **Ownership Transfer**: When a silo fails, other silos detect the failure and claim orphaned shards
-3. **Creator Priority**: The silo that created a shard gets priority to reclaim it if it loses ownership
-4. **Automatic Cleanup**: Empty shards are deleted automatically after processing
+### 存储结构
+每一持久工作碎片都有日记身份,并持续拥有所有权元数据。
+日记支持的碎片管理器在存储中发现有碎片身份
+单表和回收通过配置的日记格式状态。
 
-### Job Lifecycle with Azure Storage
+供应商Blob公司将WAL存放在 `wal/{journalId}` 检查站和检查站关检查站的检查站设置的检查站和检查站站及检查站检查站检查站和检查站
+配置容器内`checkpoints/{journalId}/{snapshotId}` 。
+表格提供者存储配置中的日记头和数据代数
+表格中提供方元数据选择承诺的检查站或生成点;调用者
+元数据包含持久工作碎片的发现和所有权属性。
+
+<a id="shard-ownership-and-high-availability"></a>
+
+### 硬所有权和高可用性
+1. **最佳货币**:当多个 silos 试图要求硬块时,ETags防止相互矛盾的更新
+2. **所有权转让**:当 silo 失败时,其他 silos 发现失败并声称是孤儿碎片
+3. **创建者优先级**:创建碎片的 silo 如果失去所有权,则优先收回
+4. **自动清除**:在处理后自动删除空碎片
+
+<a id="job-lifecycle-with-azure-storage"></a>
+
+### 具有 Azure 储存的作业生命周期
 ```
 ┌─────────────────────┐
 │  Job Scheduled      │ ──▶ Committed to the shard journal
@@ -519,9 +551,13 @@ metadata carries the durable-job shard's discovery and ownership properties.
                           No Retry: Job entry removed
 ```
 
-## Performance Considerations
+<a id="performance-considerations"></a>
 
-### Concurrency Settings
+## 业绩考量
+
+<a id="concurrency-settings"></a>
+
+### 货币汇兑设置
 ```csharp
 services.Configure<DurableJobsOptions>(options =>
 {
@@ -530,51 +566,67 @@ services.Configure<DurableJobsOptions>(options =>
 });
 ```
 
-### Storage Costs
-Account for stored WAL/checkpoint bytes or Table generations, append batches,
-recovery reads, checkpoint publication and cleanup, ownership metadata updates,
-and catalog listing pages. Standard and premium Blob use the same provider
-operations with different account pricing and service characteristics.
+<a id="storage-costs"></a>
 
-Use `orleans-journaling-provider-catalog-pages`, `catalog-items`, and
-`catalog-entries` (with the same prefix) to compare catalog traversal and
-delivered results. `orleans-journaling-provider-retries` counts explicit
-provider retries. The benchmarks pair these counters with independently
-measured operation counts, outcomes, payload bytes, and latency.
+### 储存费用
+存储的 WAL/ 检查点字节或表格代代、 附加批次的账户,
+回收读物、检查站出版物和清理、所有权元数据更新
+标准与溢价公司使用同一供应商
+业务的账户定价和服务特点不同。
 
-Configure request counts, timing, and outcomes through host-owned Azure SDK
-diagnostics, Aspire integrations, or other application instrumentation.
-Reconcile transaction cost with Azure service metrics and the SDK's retry and
-upload behavior.
+使用 `orleans-journaling-provider-catalog-pages`、 `catalog-items`、
+`catalog-entries` (同前注)比较目录的跨
+交付成果。 `orleans-journaling-provider-retries` 直列数
+提供重试。 基准对这些对齐这些对面的
+测量的运行量、结果、有效载荷字节和潜伏。
 
-## Monitoring and Troubleshooting
+通过主机自有 Azure SDK 配置请求的计算、 时间和结果
+诊断、误差整合或其他应用仪器。
+与 Azure 服务度量和SDK重试的调整
+上传行为。
 
-### Enable Logging
+<a id="monitoring-and-troubleshooting"></a>
+
+## 监测和排除问题
+
+<a id="enable-logging"></a>
+
+### 启用日志
 ```csharp
 builder.Logging.AddFilter("Orleans.Durable.Jobs", LogLevel.Information);
 builder.Logging.AddFilter("Orleans.Durable.Jobs.AzureStorage", LogLevel.Information);
 ```
 
-### Key Metrics to Monitor
-- **Shard Assignment Time**: Time to claim ownership of unassigned shards
-- **Job Execution Latency**: Time between due time and actual execution
-- **Retry Rate**: Percentage of jobs requiring retry
-- **Blob Operations**: Number of read/write/delete operations per minute
+<a id="key-metrics-to-monitor"></a>
 
-## Security Best Practices
+### 监测的关键度量
+- **硬质指定时间**:要求拥有未指派碎片所有权的时间
+- **工作执行期限**:在规定时间与实际执行之间的时间
+- **再试率**:需要重新尝试的工作所占百分比
+- **球形操作**:每分钟读/写/删除操作数
 
-### Use Managed Identity
+<a id="security-best-practices"></a>
+
+## 安保最佳做法
+
+<a id="use-managed-identity"></a>
+
+### 使用管理身份
 ```csharp
 var credential = new DefaultAzureCredential();
 var blobServiceClient = new BlobServiceClient(storageAccountUri, credential);
 ```
 
-### Network Security
-- Enable firewall rules to restrict access
-- Use private endpoints for enhanced security
-- Consider Azure Virtual Network integration
+<a id="network-security"></a>
 
-### Access Control
+### 网络安保网
+- 启用防火墙规则限制访问
+- 使用私人终端点加强安保
+- 考虑 Azure 虚拟网络整合
+
+<a id="access-control"></a>
+
+### 出入控制
 ```csharp
 // Minimum required permissions:
 // - Storage Blob Data Contributor (for read/write/delete operations)
@@ -585,15 +637,19 @@ var blobServiceClient = new BlobServiceClient(storageAccountUri, credential);
 //   - Microsoft.Storage/storageAccounts/blobServices/containers/blobs/delete
 ```
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Azure Blob Storage Documentation](https://learn.microsoft.com/azure/storage/blobs/)
-- [Orleans Durable Jobs Core Package](../../Orleans.DurableJobs/README.md)
+<a id="documentation"></a>
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [Azure 布球存储文档](https://learn.microsoft.com/azure/storage/blobs/)
+- [Orleans 持久就业核心一揽子方案](../../Orleans.DurableJobs/README.md)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

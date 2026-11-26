@@ -63,7 +63,7 @@ namespace Tester.StreamingTests
             try
             {
                 await generateFn(streamNamespace, streamCount, eventsInStream, cancellationToken);
-                // should eventually skip the faulted event, so event count should be one (faulted event) less that number of events in stream.
+                // 最终应该跳过错误事件, 所以事件数应该是一个( 错误事件) 而不是流中的事件数 。
                 await TestingUtils.WaitUntilAsync(
                     (lastTry, token) => this.CheckCounters(streamNamespace, streamCount, eventsInStream - 1, lastTry, token),
                     TimeSpan.FromSeconds(90),
@@ -98,7 +98,7 @@ namespace Tester.StreamingTests
             var report = await reporter.GetReport(streamProviderName, streamNamespace, cancellationToken);
             if (assertIsTrue)
             {
-                // one stream per queue
+                // 每个队列一串
                 Assert.Equal(streamCount, report.Count);
                 foreach (int eventsPerStream in report.Values)
                 {

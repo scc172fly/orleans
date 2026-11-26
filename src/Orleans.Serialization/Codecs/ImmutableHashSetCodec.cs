@@ -7,16 +7,16 @@ using System.Collections.Immutable;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="ImmutableHashSet{T}"/>.
+    /// <see cref="ImmutableHashSet{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ImmutableHashSetCodec<T> : GeneralizedReferenceTypeSurrogateCodec<ImmutableHashSet<T>, ImmutableHashSetSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImmutableHashSetCodec{T}"/> class.
+        /// 初始化 <see cref="ImmutableHashSetCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public ImmutableHashSetCodec(IValueSerializer<ImmutableHashSetSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -34,31 +34,31 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="ImmutableHashSetCodec{T}"/>.
+    /// <see cref="ImmutableHashSetCodec{T}"/>所使用的代金矿类型。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct ImmutableHashSetSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public List<T> Values;
 
         /// <summary>
-        /// Gets or sets the key comparer.
+        /// 获取或设置密钥比较器 。
         /// </summary>
-        /// <value>The key comparer.</value>
+        /// <value>密钥比较器。</value>
         [Id(1)]
         public IEqualityComparer<T>? KeyComparer;
     }
 
     /// <summary>
-    /// Copier for <see cref="ImmutableHashSet{T}"/>.
+    /// <see cref="ImmutableHashSet{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class ImmutableHashSetCopier<T> : IDeepCopier<ImmutableHashSet<T>>, IOptionalDeepCopier
     {
@@ -66,9 +66,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImmutableHashSetCopier{T}"/> class.
+        /// 初始化 <see cref="ImmutableHashSetCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">The element copier.</param>
+        /// <param name="copier">元素复印机。</param>
         public ImmutableHashSetCopier(IDeepCopier<T> copier) => _copier = OrleansGeneratedCodeHelper.UnwrapService(this, copier);
 
         /// <inheritdoc />
@@ -88,8 +88,8 @@ namespace Orleans.Serialization.Codecs
             if (input.IsEmpty || IsShallowCopyable())
                 return input;
 
-            // There is a possibility for infinite recursion here if any value in the input collection is able to take part in a cyclic reference.
-            // Mitigate that by returning a shallow-copy in such a case.
+            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
+            // 将这种案件退回浅本,从而减轻这一负担。
             context.RecordCopy(input, input);
 
             var items = new List<T>(input.Count);

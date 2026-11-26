@@ -6,21 +6,21 @@ using Orleans.Placement;
 namespace Orleans.Runtime.Placement.Filtering;
 
 /// <summary>
-/// Configures placement filtering which requires silos to match the calling silo's metadata for every specified key.
+/// 配置配置布局过滤程序,该过滤程序要求 silos 匹配每个指定密钥的调用 silo元数据。
 /// </summary>
-/// <param name="metadataKeys">The metadata keys whose values must match those of the calling silo.</param>
-/// <param name="order">The order in which this filter is applied relative to other placement filters.</param>
+/// <param name="metadataKeys">元数据键的数值必须与调用 silo的数值相符。</param>
+/// <param name="order">相对于其他放置过滤器应用此过滤器的顺序。</param>
 public class RequiredMatchSiloMetadataPlacementFilterStrategy(string[] metadataKeys, int order)
     : PlacementFilterStrategy(order)
 {
     /// <summary>
-    /// Gets the metadata keys whose values must match those of the calling silo.
+    /// 获取其值必须与调用 silo的数值相符的元数据键。
     /// </summary>
     public string[] MetadataKeys { get; private set; } = metadataKeys;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RequiredMatchSiloMetadataPlacementFilterStrategy"/> class
-    /// with no metadata keys and the default filter order.
+    /// 初始化 <see cref="RequiredMatchSiloMetadataPlacementFilterStrategy"/> 类的新实例
+    /// 没有元数据键和默认过滤顺序。
     /// </summary>
     public RequiredMatchSiloMetadataPlacementFilterStrategy() : this([], 0)
     {

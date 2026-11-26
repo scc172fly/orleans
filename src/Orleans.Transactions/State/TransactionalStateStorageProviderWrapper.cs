@@ -30,15 +30,15 @@ namespace Orleans.Transactions
         public async Task<TransactionalStorageLoadResponse<TState>> Load()
         {
             await this.StateStorage.ReadStateAsync();
-            var state = stateStorage!.State!; // ReadStateAsync initializes the transactional state record.
-            return new TransactionalStorageLoadResponse<TState>(stateStorage!.Etag, state.CommittedState, state.CommittedSequenceId, state.Metadata, state.PendingStates); // StateStorage access above initializes the field.
+            var state = stateStorage!.State!; // ReadStateAsync 初始化交易状态记录。
+            return new TransactionalStorageLoadResponse<TState>(stateStorage!.Etag, state.CommittedState, state.CommittedSequenceId, state.Metadata, state.PendingStates); // 访问超过StateStorage 将字段初始化。
         }
 
         public async Task<string> Store(string? expectedETag, TransactionalStateMetaData metadata, List<PendingTransactionState<TState>>? statesToPrepare, long? commitUpTo, long? abortAfter)
         {
             if (this.StateStorage.Etag != expectedETag)
                 throw new ArgumentException("Etag does not match", nameof(expectedETag));
-            var storedState = stateStorage!.State!; // StateStorage access above initializes the field and ReadStateAsync has populated its state.
+            var storedState = stateStorage!.State!; // 访问量超过StateStorage ,初始化字段,且 ReadStateAsync 已进入状态。
             var storedETag = stateStorage.Etag;
             var state = new TransactionalStateRecord<TState>
             {
@@ -50,7 +50,7 @@ namespace Orleans.Transactions
 
             var pendinglist = state.PendingStates;
 
-            // abort
+            // 中止中断
             if (abortAfter.HasValue && pendinglist.Count != 0)
             {
                 var pos = pendinglist.FindIndex(t => t.SequenceId > abortAfter.Value);
@@ -60,7 +60,7 @@ namespace Orleans.Transactions
                 }
             }
 
-            // prepare
+            // 准备
             if (statesToPrepare?.Count > 0)
             {
                 foreach (var p in statesToPrepare)
@@ -68,20 +68,20 @@ namespace Orleans.Transactions
                     var pos = pendinglist.FindIndex(t => t.SequenceId >= p.SequenceId);
                     if (pos == -1)
                     {
-                        pendinglist.Add(p); //append
+                        pendinglist.Add(p); //附加附件(附件)
                     }
                     else if (pendinglist[pos].SequenceId == p.SequenceId)
                     {
-                        pendinglist[pos] = p;  //replace
+                        pendinglist[pos] = p;  //替换
                     }
                     else
                     {
-                        pendinglist.Insert(pos, p); //insert
+                        pendinglist.Insert(pos, p); //插入
                     }
                 }
             }
 
-            // commit
+            // 承诺
             if (commitUpTo.HasValue && commitUpTo.Value > state.CommittedSequenceId)
             {
                 var pos = pendinglist.FindIndex(t => t.SequenceId == commitUpTo.Value);
@@ -124,34 +124,34 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// Represents transactional state stored using an <see cref="IGrainStorage"/> provider.
+    /// 表示使用 <see cref="IGrainStorage"/> 提供者存储的交易状态。
     /// </summary>
-    /// <typeparam name="TState">The transactional state type.</typeparam>
+    /// <typeparam name="TState">交易状态类型。</typeparam>
     [Serializable]
     [GenerateSerializer]
     public sealed class TransactionalStateRecord<TState>
         where TState : class, new()
     {
         /// <summary>
-        /// Gets or sets the most recently committed state.
+        /// 获取或设置最近承诺状态。
         /// </summary>
         [Id(0)]
         public TState CommittedState { get; set; } = new TState();
 
         /// <summary>
-        /// Gets or sets the sequence number of the most recently committed state.
+        /// 获取或设置最近承诺状态的序列编号。
         /// </summary>
         [Id(1)]
         public long CommittedSequenceId { get; set; }
 
         /// <summary>
-        /// Gets or sets the transaction protocol metadata.
+        /// 获取或设置交易协议元数据。
         /// </summary>
         [Id(2)]
         public TransactionalStateMetaData Metadata { get; set; } = new TransactionalStateMetaData();
 
         /// <summary>
-        /// Gets or sets the prepared state versions which have not been committed.
+        /// 获取或设置未执行的预设状态版本。
         /// </summary>
         [Id(3)]
         public List<PendingTransactionState<TState>> PendingStates { get; set; } = new List<PendingTransactionState<TState>>();

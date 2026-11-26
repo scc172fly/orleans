@@ -131,7 +131,7 @@ namespace DistributedTests.Common.MessageChannel
                         msg.MessageId,
                         msg.PopReceipt,
                         cancellationToken);
-                    // A message that was just dequeued is expected to deserialize to a valid T.
+                    // 刚刚解密的信息预计将被淡化为有效的T。
                     return JsonSerializer.Deserialize<T>(msg.MessageText)!;
                 }
 

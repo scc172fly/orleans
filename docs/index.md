@@ -1,8 +1,8 @@
 # dotnet/orleans
 
-> Routing index for the knowledge base. Copilot reads this file to decide
-> which docs to open for a given task. Keep entries short — one line per doc.
+> 知识库的 Routing 索引。 共同试点读取此文件以决定
+> 中,该文档将为指定任务打开。保留条目短——每个文档一行。
 
-| When working on | Topics | Read |
+| 工作时 | 专题 | 读 |
 |---|---|---|
-| Any task in this repo | general | (no docs yet — the sync workflow will populate this table after merge) |
+| 本次回寄中的任何任务 | 一般一般 | (还没有医生 - 合并后同步工作流程将包含此表格) |

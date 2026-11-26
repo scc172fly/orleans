@@ -79,7 +79,7 @@ internal sealed class ActivationDirectory : IEnumerable<KeyValuePair<GrainId, IG
             }
             catch
             {
-                // Ignore exceptions during disposal.
+                // 处置过程中忽略例外。
             }
             finally
             {
@@ -103,7 +103,7 @@ internal sealed class ActivationDirectory : IEnumerable<KeyValuePair<GrainId, IG
             }
             catch
             {
-                // Ignore exceptions during disposal.
+                // 处置过程中忽略例外。
             }
             finally
             {

@@ -21,8 +21,8 @@
     <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.6.5" />
   </ItemGroup>
 
-  <!-- Project references removed - Silo and Client are library projects
-       used only for the snippet examples. We provide stub IProjectMetadata
-       types in Projects.cs for compilation. -->
+  <!-- 移除项目参考 - Silo 和客户是图书馆项目
+       仅用于片段示例。我们提供支架 IProjectMetadata
+       用于汇编的 Projects.cs 类型。 -->
 
 </Project>

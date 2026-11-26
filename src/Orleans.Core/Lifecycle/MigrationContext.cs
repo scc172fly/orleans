@@ -33,7 +33,7 @@ internal sealed class MigrationContext : IDehydrationContext, IRehydrationContex
     [NonSerialized]
     private ArrayBufferWriter<byte> _buffer = new();
 
-    // Keep the shipped wire representation. Migration is infrequent, so copy into the consuming codec's buffer.
+    // 移民并不常见,所以复制到消费编码器的缓冲处
     [Id(1), Immutable]
     internal PooledBuffer SerializedBuffer
     {
@@ -61,11 +61,11 @@ internal sealed class MigrationContext : IDehydrationContext, IRehydrationContex
     }
 
     /// <summary>
-    /// Gets an upper bound on the serialized size of this context.
+    /// 获得上下限的连环大小。
     /// </summary>
     internal long GetMaxSerializedSize()
     {
-        // Each entry adds its key and two variable-length integers, each with field framing.
+        // 每个条目都加上其关键字和两个不同长度的整数,每个条目都有实地布局。
         const int EntryOverhead = 32;
         const int ContextOverhead = 64;
         lock (_lock)

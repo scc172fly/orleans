@@ -6,12 +6,12 @@ using Orleans.Diagnostics;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Helpers for creating Durable Jobs distributed-tracing activities.
+/// 帮助创造持久就业的分布式跟踪活动。
 /// </summary>
 internal static class DurableJobsDiagnostics
 {
     /// <summary>
-    /// The activity source used for Durable Jobs spans.
+    /// 用于持久工作的活动来源跨度。
     /// </summary>
     public static ActivitySource Source { get; } = new(ActivitySources.DurableJobsActivitySourceName, "1.0.0");
 
@@ -24,7 +24,7 @@ internal static class DurableJobsDiagnostics
     private const int MaxBatchLinks = 128;
 
     /// <summary>
-    /// Returns the W3C <c>traceparent</c>/<c>tracestate</c> values for the supplied activity, or both <see langword="null"/> when there is no W3C activity available.
+    /// 返回所提供活动的 W3C <c>traceparent</c>/<c>tracestate</c> ,或者当没有 W3C活动可用时,返回两个 <see langword="null"/> 。
     /// </summary>
     public static (string? TraceParent, string? TraceState) CaptureTraceContext(Activity? activity)
     {
@@ -37,7 +37,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Tries to parse a persisted W3C trace context into an <see cref="ActivityContext"/>.
+    /// 尝试将一个长期存在的 W3C 跟踪上下文解析成 <see cref="ActivityContext"/>。
     /// </summary>
     public static bool TryParseTraceContext(string? traceParent, string? traceState, out ActivityContext context)
     {
@@ -51,7 +51,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Starts a Producer activity for a scheduling request and tags it with job attributes once a job id is allocated.
+    /// 启动生产者活动,以申请日程安排,并在分配工作标识符后标有工作属性。
     /// </summary>
     public static Activity? StartScheduleActivity(in ScheduleJobRequest request)
     {
@@ -67,7 +67,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Attaches the persisted/allocated job identity tags to a scheduling activity.
+    /// 将长期存在/分配的工作身份标记附在日程安排活动之后。
     /// </summary>
     public static void SetScheduledJobTags(Activity? activity, DurableJob job)
     {
@@ -81,7 +81,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Starts a Consumer activity for executing a durable job, optionally continuing the trace recorded when the job was scheduled.
+    /// 启动一项消费者活动,以开展一项持久的工作,可选择继续跟踪在安排该工作时记录的情况。
     /// </summary>
     public static Activity? StartExecuteActivity(DurableJob job, int dequeueCount, string? runId)
     {
@@ -115,7 +115,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Starts an internal activity covering the handler invocation portion of a job execution.
+    /// 启动一项内部活动,涵盖执行职务时处理人的调用部分。
     /// </summary>
     public static Activity? StartHandlerActivity(DurableJob job, int dequeueCount, string? runId)
     {
@@ -138,7 +138,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Records an exception against an activity using the OpenTelemetry semantic-convention tags.
+    /// 记录使用 OpenTelemetry 语义-公约标记的活动的例外。
     /// </summary>
     public static void SetError(Activity? activity, Exception exception)
     {
@@ -158,11 +158,11 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Starts an internal activity that wraps a batched persistence write for a job shard. The first non-default
-    /// captured context becomes the parent; subsequent distinct contexts are recorded as <see cref="ActivityLink"/>s
-    /// so the resulting span can be reached from every contributing schedule trace.
+    /// 启动内部活动,将分批的持久性包装成一个工作碎片。第一个非默认
+    /// 后被捕获的上下文成为父;随后不同的上下文以 <see cref="ActivityLink"/>s记录
+    /// 以便从每个捐款时间表的追踪中 达到相应的范围
     /// </summary>
-    /// <typeparam name="T">The pending-operation type (must expose a captured <see cref="ActivityContext"/>).</typeparam>
+    /// <typeparam name="T">待定操作类型( 必须暴露被俘的 <see cref="ActivityContext"/>).</typeparam>
     public static Activity? StartPersistBatchActivity<T>(IReadOnlyList<T> operations, string shardId)
         where T : class
     {
@@ -225,8 +225,8 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Starts an internal activity that wraps a shard-state delete. Used so the resulting storage span is part of the
-    /// same trace as the originating deletion request.
+    /// 启动一个内部活动,以包住“硬状态”删除。使用后产生的存储间隔是
+    /// 与原删除请求的相同。
     /// </summary>
     public static Activity? StartDeleteShardActivity(ActivityContext parent, string shardId)
     {
@@ -244,8 +244,8 @@ internal static class DurableJobsDiagnostics
 
     private static ActivityContext GetCapturedContext(object operation)
     {
-        // PendingOperation lives inside JournaledJobShard. Reach the public CapturedContext property by reflection-free duck-typing
-        // via a dedicated interface to keep the helper decoupled from the private type.
+        // PendingOperation 生活在内心 JournaledJobShard向公众进行宣传 CapturedContext 以无反射鸭形形式
+        // 使用专用界面将辅助器与私人类型脱钩。
         if (operation is IHasCapturedContext capturing)
         {
             return capturing.CapturedContext;
@@ -255,8 +255,8 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// Implemented by types that carry an <see cref="ActivityContext"/> captured at enqueue time so storage spans can
-    /// later be created as children of (or links to) the original activity.
+    /// 使用在后排时间捕捉到的 <see cref="ActivityContext"/> 类型执行,以便存储能够
+    /// 后作为原活动(或与原活动有关)的子孙而创建。
     /// </summary>
     public interface IHasCapturedContext
     {

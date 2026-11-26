@@ -99,10 +99,10 @@
     }
 
     .nav-scrollable {
-        /* Never collapse the sidebar for wide screens */
+        /* 永远不要为宽屏幕而折叠侧边栏 */
         display: block;
 
-        /* Allow sidebar to scroll for tall menus */
+        /* 允许侧边栏滚动高菜单 */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
     }

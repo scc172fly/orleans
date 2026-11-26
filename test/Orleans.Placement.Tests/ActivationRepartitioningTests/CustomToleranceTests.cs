@@ -14,7 +14,7 @@ using Xunit;
 
 namespace UnitTests.ActivationRepartitioningTests;
 
-// Scenarios can be seen visually here: https://github.com/dotnet/orleans/pull/8877
+// 可见以下图示: https://github.com/dotnet/orleans/pull/8877
 [TestSuite("Functional")]
 [TestProvider("None")]
 [TestArea("Placement")]
@@ -73,22 +73,22 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
         Assert.Equal(Silo2, f2_host);
         Assert.Equal(Silo2, f3_host);
 
-        Assert.Equal(Silo2, await x.GetAddress()); // X remains in silo 2
+        Assert.Equal(Silo2, await x.GetAddress()); // X 留在 silo 2
 
         await TriggerExchangeRequestAfterFlushingBuffers(Silo1Repartitioner, cancellationToken);
 
-        // At this point the layout is like follows:
+        // 此时,布局如下:
 
-        // S1: E1-F1, E3-F3, sys.svc.clustering.dev, rest (default activations, present in both silos)
-        // S2: E2-F2, X, rest (default activations, present in both silos)
+        // S1:E1-F1, E3-F3, sys.svc.clustering.dev休息(默认启动,同时存在于 silos中)
+        // S2:E2-F2,X,休息(默认启动,同时存在于 silos中)
 
-        // Tolerance <= 2, and if we ignore defaults once, sys.svc.clustering.dev, and X (which is used to counter-balance sys.svc.clustering.dev)
-        // we end up with a total of 4 activations in silo1, and 2 in silo 2, which means the tolerance has been respected, and all remote calls have
-        // been converted to local calls.
+        // 容忍2,如果我们一次忽略违约, sys.svc.clustering.dev和X(用来抵消平衡 sys.svc.clustering.dev)
+        // 最终我们总共4个启动在1号发射井1,2号发射 silo 2号发射,这意味着容忍得到尊重,所有远程电话都受到尊重
+        // 改为当地电话。
 
         await Test().WaitAsync(cancellationToken);
 
-        // To make sure, we trigger 's1_rebalancer' again, which should yield to no further migrations.
+        // 保证我们再次触发“ s1_ reconfreancer” , 不再向迁徙者屈服。
         i = 0;
         while (i < 3)
         {
@@ -104,7 +104,7 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
         await TriggerExchangeRequestAfterFlushingBuffers(Silo1Repartitioner, cancellationToken);
         await Test().WaitAsync(cancellationToken);
 
-        // To make extra sure, we now trigger 's2_rebalancer', which again should yield to no further migrations.
+        // 更确切地说,我们现在触发“s2_reconfulr”, 而这应该不再让位于任何迁徙。
         i = 0;
         while (i < 3)
         {
@@ -129,7 +129,7 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
             f2_host = await f2.GetAddress();
             f3_host = await f3.GetAddress();
 
-            // Check that each grain is collocated with its pair
+            // 检查每个 grain 都与对同地合用同一地点
             Assert.Equal(f1_host, e1_host);
             Assert.Equal(f2_host, e2_host);
             Assert.Equal(f3_host, e3_host);
@@ -138,7 +138,7 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
             Assert.False(locations.All(h => h.Equals(Silo1)), "Grains should not all be located on silo 1.");
             Assert.False(locations.All(h => h.Equals(Silo2)), "Grains should not all be located on silo 2.");
 
-            Assert.Equal(Silo2, await x.GetAddress()); // X remains in silo 2
+            Assert.Equal(Silo2, await x.GetAddress()); // X 留在 silo 2
         }
     }
 
@@ -216,8 +216,8 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
     }
 
     /// <summary>
-    /// This is simply to achieve initial balance between the 2 silos, as by default the primary
-    /// will have 1 more activation than the secondary. That activations is 'sys.svc.clustering.dev'
+    /// 这样做只是为了在2 silos之间达成初步平衡,因为默认情况下初级
+    /// 激活时间比第二发多1次。sys.svc.clustering.dev'
     /// </summary>
     [Immovable(ImmovableKind.Repartitioner)]
     public class X : Grain, IX
@@ -258,13 +258,13 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
                     })
                     .Configure<ActivationRepartitionerOptions>(o =>
                     {
-                        // Make these so that the timers practically never fire! We will invoke the protocol manually.
+                        // 使计时器实际上不开火!我们将手动援引协议。
                         o.MinRoundPeriod = TimeSpan.FromSeconds(299);
                         o.MaxRoundPeriod = TimeSpan.FromSeconds(300);
-                        // Make this zero, so we can invoke the protocol more than once without needing to put a delay in the tests. 
+                        // 做这个零,这样我们就可以不止一次援引议定书,而不必拖延试验。 
                         o.RecoveryPeriod = TimeSpan.Zero;
 
-                        // To remove the remote possibility of false positives caused by the probabilistic filtering in tests.
+                        // 消除试验中概率过滤造成的假阳性的可能性。
                         o.AnchoringFilterEnabled = false;
                     })
                     .AddActivationRepartitioner<HardLimitRule>()

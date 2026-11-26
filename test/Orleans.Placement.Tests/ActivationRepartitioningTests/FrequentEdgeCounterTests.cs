@@ -21,7 +21,7 @@ public interface IMyActiveBalancingGrain<T> : IGrainWithStringKey
 }
 
 /// <summary>
-/// Tests for the frequent edge counter used to track communication patterns in activation repartitioning.
+/// 用于跟踪激活重新分割过程中通信模式的常用边缘柜台测试。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -82,7 +82,7 @@ public class FrequentEdgeCounterTests
         Assert.Equal(2, sink.Count);
 
         var edge3 = new Edge(new(Id_E, SiloAddress.Zero, true), new(Id_F, SiloAddress.Zero, true));
-        sink.Add(edge3);  // should remove the minimum counter (edge2) since capacity is 2
+        sink.Add(edge3);  // 最低限度对数(格格2)应去除,因为容量为2
 
         var counters = sink.Elements.ToList();
 

@@ -12,12 +12,12 @@ namespace UnitTests.Grains
     [GenerateSerializer]
     public class StreamLifecycleTestGrainState
     {
-        // For producer and consumer
-        // -- only need to store this because of how we run our unit tests against multiple providers
+        // 生产者和消费者
+        // 只需要储存这个 因为我们是如何对多个供应商进行单位测试的
         [Id(0)]
         public string? StreamProviderName { get; set; }
 
-        // For producer only.
+        // 仅供制片人使用。
         [Id(1)]
         public IAsyncStream<int>? Stream { get; set; }
         [Id(2)]
@@ -27,7 +27,7 @@ namespace UnitTests.Grains
         [Id(4)]
         public int NumErrors { get; set; }
 
-        // For consumer only.
+        // 仅供消费者使用。
         [Id(5)]
         public HashSet<StreamSubscriptionHandle<int>> ConsumerSubscriptionHandles { get; set; }
 
@@ -124,7 +124,7 @@ namespace UnitTests.Grains
             {
                 if (logger.IsEnabled(LogLevel.Debug)) logger.LogDebug("Stream already exists for StreamId={0} StreamProvider={1} - Resetting", State.Stream, providerToUse);
 
-                // Note: in this test, we are deliberately not doing Unsubscribe consumers, just discard old stream and let auto-cleanup functions do their thing.
+                // 说明:在本次测试中,我们有意不做取消客户订阅、抛弃旧流和让自动清理功能来完成他们的任务。
                 State.ConsumerSubscriptionHandles.Clear();
                 State.IsProducer = false;
                 State.NumMessagesSent = 0;
@@ -204,7 +204,7 @@ namespace UnitTests.Grains
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-                    // Cancellation is expected when shutdown interrupts deactivation.
+                    // 当停产中断停止作用时,预计会取消。
                 }
             }
 
@@ -364,7 +364,7 @@ namespace UnitTests.Grains
                 State.NumErrors++;
                 error = exc;
             }
-            await WriteStateAsync(); // Update counts in persisted state
+            await WriteStateAsync(); // 更新的数控数持续状态
 
             if (error != null)
             {
@@ -379,7 +379,7 @@ namespace UnitTests.Grains
             InitStream(streamId, providerName);
             State.IsProducer = true;
 
-            // Send an initial message to ensure we are properly initialized as a Producer.
+            // 发送初始信息以确保我们作为制片人被适当初始化。
             await State.Stream!.OnNextAsync(0);
             State.NumMessagesSent++;
             await WriteStateAsync();
@@ -471,6 +471,6 @@ namespace UnitTests.Grains
 
     internal class ClosedTypeStreamSubscriptionHandle : StreamSubscriptionHandleImpl<StreamSubscriptionHandleArg>
     {
-        public ClosedTypeStreamSubscriptionHandle() : base(null!, null!) { /* This test-only type is never instantiated through the normal creation path. */ }
+        public ClosedTypeStreamSubscriptionHandle() : base(null!, null!) { /* 此只试类型从不通过正常创建路径即时 。 */ }
     }
 }

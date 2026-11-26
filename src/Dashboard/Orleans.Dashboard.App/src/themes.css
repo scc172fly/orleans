@@ -1,6 +1,6 @@
-/* Theme system using CSS custom properties */
+/* 使用 CSS 自定义属性的主题系统 */
 
-/* Light theme (default) */
+/* 光主题( 默认) */
 :root {
   --log-bg: #fff;
   --log-border: #ddd;
@@ -73,7 +73,7 @@
   --sidebar-brand-version-color: #6c757d;
 }
 
-/* Override Bootstrap 5 CSS variables for light theme */
+/* 光主题的 CSS 变量 */
 [data-bs-theme="light"] {
   --bs-body-bg: #fff;
   --bs-body-color: #333;
@@ -88,7 +88,7 @@
   --bs-link-hover-color: #663399;
 }
 
-/* Dark theme */
+/* 暗主题 */
 body.dark-mode {
   --log-bg: #1e282c;
   --log-border: #333;
@@ -161,7 +161,7 @@ body.dark-mode {
   --sidebar-brand-version-color: #b8c7ce;
 }
 
-/* Override Bootstrap 5 CSS variables for dark theme */
+/* 用于暗主题的 CSS 变量 */
 [data-bs-theme="dark"] {
   --bs-body-bg: #1e282c;
   --bs-body-color: #c2c7d0;
@@ -176,7 +176,7 @@ body.dark-mode {
   --bs-link-hover-color: #c4b5fd;
 }
 
-/* Apply theme variables to components */
+/* 将主题变量应用到组件 */
 .log {
   background: var(--log-bg) !important;
   border: 1px solid var(--log-border) !important;
@@ -311,7 +311,7 @@ a:hover {
   color: var(--link-hover-color) !important;
 }
 
-/* Sidebar theming */
+/* 边边栏 */
 .app-sidebar {
   background-color: var(--sidebar-bg) !important;
 }
@@ -365,7 +365,7 @@ a:hover {
   margin-bottom: 25px !important;
 }
 
-/* Bootstrap label/badge components - use purple theme */
+/* 靴带标签/羽盖部件 - 使用紫色主题 */
 .label,
 .badge {
   display: inline-block;
@@ -385,20 +385,20 @@ a:hover {
   color: #ffffff !important;
 }
 
-/* Bootstrap alert components */
+/* 诱捕警报组件 */
 .alert-info {
   background-color: #e7ddf7 !important;
   border-color: #c4b5fd !important;
   color: #4c2a85 !important;
 }
 
-/* Progress bars */
+/* 进步条 */
 .progress-bar-primary,
 .bg-primary {
   background-color: #663399 !important;
 }
 
-/* Bootstrap 3 legacy classes for backwards compatibility */
+/* 用于后向兼容性的布设 3 后向连接的后向遗留类 */
 .pull-right {
   float: right !important;
 }

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Represents a directive to update an invalid, cached <see cref="GrainAddress"/> to a valid <see cref="GrainAddress"/>.
+/// 表示将一个无效的缓存 <see cref="GrainAddress"/> 更新为有效 <see cref="GrainAddress"/>的指示。
 /// </summary>
 [GenerateSerializer, Immutable]
 public sealed class GrainAddressCacheUpdate : ISpanFormattable
@@ -31,10 +31,10 @@ public sealed class GrainAddressCacheUpdate : ISpanFormattable
     private readonly MembershipVersion _validMembershipVersion = MembershipVersion.MinValue;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GrainAddressCacheUpdate"/> class.
+    /// 初始化 <see cref="GrainAddressCacheUpdate"/> 类的新实例。
     /// </summary>
-    /// <param name="invalidAddress">The cached grain address to invalidate.</param>
-    /// <param name="validAddress">The replacement grain address, or <see langword="null"/> to remove the invalid address without replacing it.</param>
+    /// <param name="invalidAddress">缓存 grain 地址无效。</param>
+    /// <param name="validAddress">替换 grain 地址或 <see langword="null"/> ,以删除无效地址而不替换。</param>
     public GrainAddressCacheUpdate(GrainAddress invalidAddress, GrainAddress? validAddress)
     {
         ArgumentNullException.ThrowIfNull(invalidAddress);
@@ -59,22 +59,22 @@ public sealed class GrainAddressCacheUpdate : ISpanFormattable
     }
 
     /// <summary>
-    /// Identifier of the Grain.
+    /// Grain的标识。
     /// </summary>
     public GrainId GrainId => _grainId;
 
     /// <summary>
-    /// Identifier of the invalid grain activation.
+    /// 无效 grain 激活的标识符 。
     /// </summary>
     public ActivationId InvalidActivationId => _invalidActivationId;
 
     /// <summary>
-    /// Address of the silo indicated by the invalid grain activation cache entry.
+    /// 唱唱唱唱唱唱唱的要 silo 无效者指定的 grain 启动缓存进入
     /// </summary>
     public SiloAddress? InvalidSiloAddress => _invalidSiloAddress;
 
     /// <summary>
-    /// Gets the valid grain activation address.
+    /// 获取有效的 grain 激活地址。
     /// </summary>
     public GrainAddress? ValidGrainAddress => _validSiloAddress switch
     {
@@ -89,7 +89,7 @@ public sealed class GrainAddressCacheUpdate : ISpanFormattable
     };
 
     /// <summary>
-    /// Gets the invalid grain activation address.
+    /// 获取无效的 grain 激活地址。
     /// </summary>
     public GrainAddress InvalidGrainAddress => new()
     {
@@ -108,9 +108,9 @@ public sealed class GrainAddressCacheUpdate : ISpanFormattable
         => destination.TryWrite($"[{nameof(GrainAddressCacheUpdate)} GrainId {_grainId}, InvalidActivationId: {_invalidActivationId}, InvalidSiloAddress: {_invalidSiloAddress}, ValidGrainAddress: {ValidGrainAddress}]", out charsWritten);
 
     /// <summary>
-    /// Returns a string representation which includes the invalid and replacement addresses and the invalid address membership version.
+    /// 返回字符串代表,包括无效地址和替换地址以及无效地址会籍版本。
     /// </summary>
-    /// <returns>A detailed string representation of this cache update.</returns>
+    /// <returns>此缓存更新的详细字符串表示 。</returns>
     public string ToFullString() => $"[{nameof(GrainAddressCacheUpdate)} GrainId {_grainId}, InvalidActivationId: {_invalidActivationId}, InvalidSiloAddress: {_invalidSiloAddress}, ValidGrainAddress: {ValidGrainAddress}, MembershipVersion: {_invalidMembershipVersion}]";
 
     [DoesNotReturn]

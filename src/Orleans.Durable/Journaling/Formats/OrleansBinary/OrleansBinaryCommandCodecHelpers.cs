@@ -6,7 +6,7 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// Reads and writes Orleans binary command values using an isolated serializer session for each value.
+/// 使用每个值的孤立序列器会话读写 Orleans 二进制命令值。
 /// </summary>
 internal static class OrleansBinaryCommandCodecHelpers
 {

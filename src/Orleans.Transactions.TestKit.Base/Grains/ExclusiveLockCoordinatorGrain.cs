@@ -3,7 +3,7 @@ using Orleans.Concurrency;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Coordinates read-then-write transaction patterns used to verify exclusive locking behavior.
+    /// 坐标 用于验证独家锁定行为 的读写时写交易模式
     /// </summary>
     [StatelessWorker]
     [Reentrant]
@@ -14,7 +14,7 @@ namespace Orleans.Transactions.TestKit
         {
             ArgumentNullException.ThrowIfNull(grain);
             await grain.Get();
-            await Task.Delay(TimeSpan.FromMilliseconds(100)); // add some delay to make concurrent txs interleave each other
+            await Task.Delay(TimeSpan.FromMilliseconds(100)); // 添加一些延迟,使 tx 同时互插
             await grain.Add(value);
         }
 
@@ -23,7 +23,7 @@ namespace Orleans.Transactions.TestKit
         {
             ArgumentNullException.ThrowIfNull(grain);
             await grain.Get();
-            await Task.Delay(TimeSpan.FromMilliseconds(100)); // add some delay to make concurrent txs interleave each other
+            await Task.Delay(TimeSpan.FromMilliseconds(100)); // 添加一些延迟,使 tx 同时互插
             await grain.Add(value);
         }
     }

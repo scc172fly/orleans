@@ -5,49 +5,49 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime.Diagnostics;
 
 /// <summary>
-/// Provides the diagnostic listener and event payload types for Orleans grain timer events.
+/// 提供诊断听者类型和 Orleans grain 定时器事件的有效载荷类型的诊断听者。
 /// </summary>
 /// <remarks>
-/// These types are public but may change between minor versions. They are intended for
-/// advanced scenarios such as simulation testing and diagnostics.
+/// 这些类型是公开的,但可能在不同版本之间发生变化。
+/// 模拟测试和诊断等先进假设情景。
 /// </remarks>
 public static class GrainTimerEvents
 {
     /// <summary>
-    /// The name of the diagnostic listener for grain timer events.
+    /// 用于 grain 定时器事件的诊断倾听器名称。
     /// </summary>
     public const string ListenerName = "Orleans.GrainTimers";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// Gets an observable sequence of all timer events.
+    /// 获得所有定时事件可观察到的序列。
     /// </summary>
     public static IObservable<TimerEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// The base class used for timer diagnostic events.
+    /// 用于定时器诊断事件的基准等级 。
     /// </summary>
     public abstract class TimerEvent(IGrainContext grainContext, IGrainTimer timer)
     {
         /// <summary>
-        /// The grain context that owns the timer.
+        /// 拥有计时器的 grain 上下文。
         /// </summary>
         public readonly IGrainContext GrainContext = grainContext;
 
         /// <summary>
-        /// The timer associated with the event.
+        /// 与事件相关的计时器 。
         /// </summary>
         public readonly IGrainTimer Timer = timer;
     }
 
     /// <summary>
-    /// Event payload for when a grain timer is created.
+    /// 创建 grain 计时器时的事件有效载荷。
     /// </summary>
-    /// <param name="grainContext">The grain context that owns the timer.</param>
-    /// <param name="timer">The timer instance.</param>
-    /// <param name="dueTime">The initial due time of the timer.</param>
-    /// <param name="period">The timer period.</param>
+    /// <param name="grainContext">拥有定时器的 grain 上下文。</param>
+    /// <param name="timer">定时器实例。</param>
+    /// <param name="dueTime">计时器的初始到期时间 。</param>
+    /// <param name="period">计时周期。</param>
     public sealed class Created(
         IGrainContext grainContext,
         IGrainTimer timer,
@@ -55,21 +55,21 @@ public static class GrainTimerEvents
         TimeSpan period) : TimerEvent(grainContext, timer)
     {
         /// <summary>
-        /// The initial due time of the timer.
+        /// 计时器的初始到期时间 。
         /// </summary>
         public readonly TimeSpan DueTime = dueTime;
 
         /// <summary>
-        /// The timer period.
+        /// 定时期
         /// </summary>
         public readonly TimeSpan Period = period;
     }
 
     /// <summary>
-    /// Event payload for when a grain timer tick callback is about to start.
+    /// 事件有效载荷, 当 grain 计时器回调即将启动时使用。
     /// </summary>
-    /// <param name="grainContext">The grain context that owns the timer.</param>
-    /// <param name="timer">The timer instance.</param>
+    /// <param name="grainContext">拥有定时器的 grain 上下文。</param>
+    /// <param name="timer">定时器实例。</param>
     public sealed class TickStart(
         IGrainContext grainContext,
         IGrainTimer timer) : TimerEvent(grainContext, timer)
@@ -77,27 +77,27 @@ public static class GrainTimerEvents
     }
 
     /// <summary>
-    /// Event payload for when a grain timer tick callback has completed.
+    /// 事件有效载荷, 当 grain 计时器回调完成后使用。
     /// </summary>
-    /// <param name="grainContext">The grain context that owns the timer.</param>
-    /// <param name="timer">The timer instance.</param>
-    /// <param name="exception">The exception thrown by the callback, if any.</param>
+    /// <param name="grainContext">拥有定时器的 grain 上下文。</param>
+    /// <param name="timer">定时器实例。</param>
+    /// <param name="exception">被回调的例外,如果有的话</param>
     public sealed class TickStop(
         IGrainContext grainContext,
         IGrainTimer timer,
         Exception? exception) : TimerEvent(grainContext, timer)
     {
         /// <summary>
-        /// The exception thrown by the callback, if any.
+        /// 被回调的例外,如果有的话
         /// </summary>
         public readonly Exception? Exception = exception;
     }
 
     /// <summary>
-    /// Event payload for when a grain timer is disposed.
+    /// 处置 grain 计时器时的事件有效载荷。
     /// </summary>
-    /// <param name="grainContext">The grain context that owns the timer.</param>
-    /// <param name="timer">The timer instance.</param>
+    /// <param name="grainContext">拥有定时器的 grain 上下文。</param>
+    /// <param name="timer">定时器实例。</param>
     public sealed class Disposed(
         IGrainContext grainContext,
         IGrainTimer timer) : TimerEvent(grainContext, timer)

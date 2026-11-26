@@ -8,35 +8,35 @@ using Orleans.Streams.Core;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Provider-facing interface for manager of streaming providers
+    /// 流源供应商管理器提供方-向导界面
     /// </summary>
     internal interface IStreamProviderRuntime : IProviderRuntime
     {
         /// <summary>
-        /// Retrieves the opaque identity of currently executing grain or client object. 
+        /// 获取当前执行的 grain 或客户端对象的不透明身份。 
         /// </summary>
-        /// <remarks>Exposed for logging purposes.</remarks>
+        /// <remarks>用于伐木目的的</remarks>。
         string ExecutingEntityIdentity();
 
         /// <summary>
-        /// Returns the stream directory.
+        /// 返回流目录。
         /// </summary>
-        /// <returns>The stream directory.</returns>
+        /// <returns>流体目录。</returns>
         StreamDirectory GetStreamDirectory();
 
         /// <summary>
-        /// A Pub Sub runtime interface.
+        /// 备用运行界面
         /// </summary>
         /// <returns></returns>
         IStreamPubSub? PubSub(StreamPubSubType pubSubType);
     }
 
     /// <summary>
-    /// Provider-facing interface for manager of streaming providers
+    /// 流源供应商管理器提供方-向导界面
     /// </summary>
     internal interface ISiloSideStreamProviderRuntime : IStreamProviderRuntime
     {
-        /// <summary>Start the pulling agents for a given persistent stream provider.</summary>
+        /// <summary>启动给定的持久性流提供者的拉动剂。</summary>
         Task<IPersistentStreamPullingManager> InitializePullingAgents(
             string streamProviderName,
             IQueueAdapterFactory adapterFactory,
@@ -45,183 +45,183 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// Identifies the publish/subscribe system types which stream providers can use.
+    /// 确定流源供应商可以使用的出版/订阅系统类型。
     /// </summary>
     public enum StreamPubSubType
     {
         /// <summary>
-        /// Supports explicit subscriptions created at runtime and implicit subscriptions declared on grain types.
+        /// 支持在运行时创建的明确订阅和以 grain 类型宣布的默示订阅。
         /// </summary>
         ExplicitGrainBasedAndImplicit,
 
         /// <summary>
-        /// Supports only explicit subscriptions created at runtime.
+        /// 只支持运行时创建的明确订阅。
         /// </summary>
         ExplicitGrainBasedOnly,
 
         /// <summary>
-        /// Supports implicit subscriptions declared on grain types and resolves them from grain metadata for minimum pub/sub control-plane overhead.
-        /// Explicit subscriptions use <see cref="ExplicitGrainBasedAndImplicit"/> or <see cref="ExplicitGrainBasedOnly"/>.
+        /// 支持以 grain 类型宣布的默示订阅,并从最低限度公用/子控制机间接费用的 grain 元数据中解决这些订阅问题。
+        /// 明确订阅使用 <see cref="ExplicitGrainBasedAndImplicit"/> 或 <see cref="ExplicitGrainBasedOnly"/>。
         /// </summary>
         ImplicitOnly,
     }
 
     /// <summary>
-    /// Provides the stream provider pub/sub control plane for registering producers and consumers and querying subscription state.
+    /// 提供供应源代码的酒吧/子控制机,用于登记生产商和消费者以及询问订阅国。
     /// </summary>
-    public interface IStreamPubSub // Compare with: IPubSubRendezvousGrain
+    public interface IStreamPubSub // 比较与: IPubSubRendezvousGrain
     {
         /// <summary>
-        /// Registers a producer for a stream and returns the active consumer registrations which the producer should connect to.
+        /// 登记流的生产者,并返回生产者应当与之连接的积极消费者登记。
         /// </summary>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <param name="streamProducer">The identifier of the producer.</param>
-        /// <returns>The active consumer registrations for the stream.</returns>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <param name="streamProducer">制作人的身份识别符</param>
+        /// <returns>流流的活性消费者登记。</returns>
         Task<ISet<PubSubSubscriptionState>> RegisterProducer(QualifiedStreamId streamId, GrainId streamProducer);
 
         /// <summary>
-        /// Registers a stream producer.
+        /// 注册一个流体生产者。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProducer">The producer identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The set of stream subscriptions.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProducer">生产者识别码。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>串流订阅集。</returns>
         Task<ISet<PubSubSubscriptionState>> RegisterProducer(QualifiedStreamId streamId, GrainId streamProducer, CancellationToken cancellationToken)
             => RegisterProducer(streamId, streamProducer);
 
         /// <summary>
-        /// Unregisters a producer from a stream.
+        /// 使一个小溪的生产者不再注册
         /// </summary>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <param name="streamProducer">The identifier of the producer.</param>
-        /// <returns>A task which represents the operation.</returns>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <param name="streamProducer">制作人的身份识别符</param>
+        /// <returns>代表操作的任务。</returns>
         Task UnregisterProducer(QualifiedStreamId streamId, GrainId streamProducer);
 
         /// <summary>
-        /// Unregisters a stream producer.
+        /// 不再登记一个流的生产者。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProducer">The producer identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProducer">生产者识别码。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task UnregisterProducer(QualifiedStreamId streamId, GrainId streamProducer, CancellationToken cancellationToken)
             => UnregisterProducer(streamId, streamProducer);
 
         /// <summary>
-        /// Registers a consumer subscription for a stream.
+        /// 注册用户订阅流。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <param name="streamConsumer">The identifier of the consumer.</param>
-        /// <param name="filterData">The serialized filter data associated with the subscription.</param>
-        /// <returns>A task which represents the operation.</returns>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <param name="streamConsumer">消费者的身份识别符</param>
+        /// <param name="filterData">与订阅有关的序列式过滤数据。</param>
+        /// <returns>代表操作的任务。</returns>
         Task RegisterConsumer(GuidId subscriptionId, QualifiedStreamId streamId, GrainId streamConsumer, string? filterData);
 
         /// <summary>
-        /// Registers a stream consumer.
+        /// 注册了流生消费者。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamConsumer">The consumer identifier.</param>
-        /// <param name="filterData">The optional filter data.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamConsumer">消费者识别资料</param>
+        /// <param name="filterData">可选过滤数据。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task RegisterConsumer(GuidId subscriptionId, QualifiedStreamId streamId, GrainId streamConsumer, string? filterData, CancellationToken cancellationToken)
             => RegisterConsumer(subscriptionId, streamId, streamConsumer, filterData);
 
         /// <summary>
-        /// Unregisters a consumer subscription from a stream.
+        /// 拒绝注册用户订阅的一条流。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <returns>A task which represents the operation.</returns>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <returns>代表操作的任务。</returns>
         Task UnregisterConsumer(GuidId subscriptionId, QualifiedStreamId streamId);
 
         /// <summary>
-        /// Unregisters a stream consumer.
+        /// 拒绝注册 流消费者。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task UnregisterConsumer(GuidId subscriptionId, QualifiedStreamId streamId, CancellationToken cancellationToken)
             => UnregisterConsumer(subscriptionId, streamId);
 
         /// <summary>
-        /// Gets the number of registered producers for a stream.
+        /// 获取流的注册制片人数量 。
         /// </summary>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <returns>The number of registered producers.</returns>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <returns>注册生产者人数。</returns>
         Task<int> ProducerCount(QualifiedStreamId streamId);
 
         /// <summary>
-        /// Gets the number of producers registered for a stream.
+        /// 获取注册的制作者数量。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The number of producers.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>生产者的数量。</returns>
         Task<int> ProducerCount(QualifiedStreamId streamId, CancellationToken cancellationToken)
             => ProducerCount(streamId);
 
         /// <summary>
-        /// Gets the number of registered consumers for a stream.
+        /// 获取流的注册消费者数量。
         /// </summary>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <returns>The number of registered consumers.</returns>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <returns>注册消费者人数。</returns>
         Task<int> ConsumerCount(QualifiedStreamId streamId);
 
         /// <summary>
-        /// Gets the number of consumers registered for a stream.
+        /// 获取注册的用户数量。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The number of consumers.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>消费者人数。</returns>
         Task<int> ConsumerCount(QualifiedStreamId streamId, CancellationToken cancellationToken)
             => ConsumerCount(streamId);
 
         /// <summary>
-        /// Gets active subscriptions for a stream, optionally restricted to a specific consumer.
+        /// 获得流流的活跃订阅,可选择限于特定消费者。
         /// </summary>
-        /// <param name="streamId">The qualified stream identifier.</param>
+        /// <param name="streamId">合格的流识别符号。</param>
         /// <param name="streamConsumer">
-        /// The identifier of the consumer whose subscriptions are returned, or the default value to return all subscriptions.
+        /// 返回订阅的消费者的身份识别符,或返回所有订阅的默认值。
         /// </param>
-        /// <returns>The matching active subscriptions.</returns>
+        /// <returns>匹配的当前订阅。</returns>
         Task<List<StreamSubscription>> GetAllSubscriptions(QualifiedStreamId streamId, GrainId streamConsumer = default);
 
         /// <summary>
-        /// Gets the subscriptions for a stream.
+        /// 获得一条流的订阅。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamConsumer">The optional consumer identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The stream subscriptions.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamConsumer">消费者识别特征的任择。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>流流订阅。</returns>
         Task<List<StreamSubscription>> GetAllSubscriptions(QualifiedStreamId streamId, GrainId streamConsumer, CancellationToken cancellationToken)
             => GetAllSubscriptions(streamId, streamConsumer);
 
         /// <summary>
-        /// Creates a subscription identifier for a stream consumer.
+        /// 为流消费者创建订阅标识符。
         /// </summary>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <param name="streamConsumer">The identifier of the consumer.</param>
-        /// <returns>The subscription identifier.</returns>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <param name="streamConsumer">消费者的身份识别符</param>
+        /// <returns>订阅标识符。</returns>
         GuidId CreateSubscriptionId(QualifiedStreamId streamId, GrainId streamConsumer);
 
         /// <summary>
-        /// Marks a subscription as faulted.
+        /// 标记订阅为错误 。
         /// </summary>
-        /// <param name="streamId">The qualified stream identifier.</param>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <returns><see langword="true"/> when the subscription is handled by this pub/sub implementation; otherwise, <see langword="false"/>.</returns>
+        /// <param name="streamId">合格的流识别符号。</param>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <returns><see langword="true"/> 当订阅由本执行部分/子执行部分处理时;否则, <see langword="false"/>.</returns>
         Task<bool> FaultSubscription(QualifiedStreamId streamId, GuidId subscriptionId);
 
         /// <summary>
-        /// Marks a subscription as faulted.
+        /// 标记订阅为错误 。
         /// </summary>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><see langword="true"/> if the subscription was faulted; otherwise, <see langword="false"/>.</returns>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns><see langword="true"/> 如果订阅有误;否则, <see langword="false"/>。</returns>
         Task<bool> FaultSubscription(QualifiedStreamId streamId, GuidId subscriptionId, CancellationToken cancellationToken)
             => FaultSubscription(streamId, subscriptionId);
     }

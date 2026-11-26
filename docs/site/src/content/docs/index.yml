@@ -229,8 +229,8 @@ additionalContent:
                     - text: Comment on pull requests
                       url: https://github.com/dotnet/orleans/pulls
 
-        - title: API and language reference # < 60 chars (optional)
-          summary: Search the .NET API and language reference documentation. # < 160 chars (optional)
+        - title: API and language reference # < 60 字节( 可选)
+          summary: Search the .NET API and language reference documentation. # < 160个字符( 可选)
           items:
 
           - title: ".NET Orleans core API reference"
@@ -266,5 +266,5 @@ additionalContent:
             url: https://dotnet.github.io/orleans/docs/api/csharp/microsoft.orleans.transactions/
 
 
-    # footer (optional)
+    # 脚( 可选择)
     footer: "Are you interested in contributing to the .NET docs? For more information, see our [contributor guide](https://learn.microsoft.com/contribute/content/dotnet/dotnet-contribute)."

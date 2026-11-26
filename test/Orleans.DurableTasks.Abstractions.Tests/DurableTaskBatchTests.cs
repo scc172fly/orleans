@@ -6,8 +6,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Verifies scheduled task inspection, <c>ScheduleAll</c>, <c>WhenAllCompleted</c>, deterministic <c>ScheduledTask.WhenAll</c>
-/// failures, and <c>WhenEach</c> ordering.
+/// 核证预定任务检查、 <c>ScheduleAll</c>、 <c>WhenAllCompleted</c>、确定性 <c>ScheduledTask.WhenAll</c>
+/// 失败, 以及 <c>WhenEach</c> 订单。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -59,7 +59,7 @@ public class DurableTaskBatchTests
                 .WithId("canceled")
                 .ScheduleAsync();
 
-            // A wait which returns the response caches it in the handle.
+            // 返回响应的等待在把手中缓存。
             Assert.Equal(DurableTaskStatus.Failed, (await failed.GetResponseAsync()).Status);
             Assert.Equal(DurableTaskStatus.Canceled, (await canceled.GetResponseAsync()).Status);
 
@@ -135,7 +135,7 @@ public class DurableTaskBatchTests
         Assert.Contains("scheduled task handles", await await root.WithId("root").ScheduleAsync(TestCancellation), StringComparison.Ordinal);
         Assert.Equal([RootId], host.EntryIds);
 
-        // A host which runs the definition as an execution's body receives a failed response.
+        // 执行机构所在的操作主机运行该定义时收到失败响应。
         var response = await DurableTaskRuntimeHelper.RunAsync(
             DurableTask.ScheduleAll([DurableTask.Run(static _ => 1)]),
             host.CreateContext(TaskId.CreateRoot("other")));
@@ -180,7 +180,7 @@ public class DurableTaskBatchTests
 
         var execution = (await root.WithId("root").ScheduleAsync(TestCancellation)).GetResponseAsync(TestCancellation);
 
-        // The failed and canceled inputs complete first; the combinator waits for the slow input.
+        // 失败和取消的输入先完成; 组合器等待缓慢输入 。
         Assert.Equal(DurableTaskStatus.Failed, (await ObserveAsync(inputs[0])).Status);
         Assert.Equal(DurableTaskStatus.Canceled, (await ObserveAsync(inputs[2])).Status);
         Assert.False(execution.IsCompleted);
@@ -241,8 +241,8 @@ public class DurableTaskBatchTests
                 DurableTask.Run((Func<CancellationToken, int>)(static _ => throw new InvalidOperationException("second failure"))),
             ]);
 
-            // The canceled input and the later failure complete before the first failure, which completes before the
-            // slow input.
+            // 首个失败之前完成的取消输入和后一个失败, 首个失败在
+            // 慢速输入。
             await handles[1].GetResponseAsync();
             await handles[3].GetResponseAsync();
             var whenAll = generic ? ScheduledTask.WhenAll(handles) : ScheduledTask.WhenAll((IReadOnlyList<ScheduledTask>)handles);
@@ -309,7 +309,7 @@ public class DurableTaskBatchTests
 
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, (await first.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation)).Status);
 
-        // The replay finds every input complete; the recorded selections yield the original order.
+        // 重放查找每一个输入完整; 记录的选择产生原始顺序 。
         var replay = await DurableTaskRuntimeHelper.RunAsync(definition, host.CreateContext(RootId));
 
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, replay.Status);
@@ -416,7 +416,7 @@ public class DurableTaskBatchTests
     private static Task<DurableTaskResponse> ObserveAsync<TResult>(ObservedDurableTask<TResult> input)
         => input.Response.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
 
-    /// <summary>Runs an input definition and publishes its terminal response before the host records it.</summary>
+    /// <summary>运行输入定义,并在主机记录前公布其终端响应。</summary>
     private sealed class ObservedDurableTask<TResult>(DurableTask<TResult> inner) : DurableTask<TResult>
     {
         private readonly TaskCompletionSource<DurableTaskResponse> _response = new(TaskCreationOptions.RunContinuationsAsynchronously);

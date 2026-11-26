@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.ActivationRepartitioningTests;
 
 /// <summary>
-/// Tests for the max heap data structure used in activation repartitioning algorithms.
+/// 用于激活再分配算法的最大数据结构测试。
 /// </summary>
 public sealed class MaxHeapTests
 {
@@ -43,7 +43,7 @@ public sealed class MaxHeapTests
         heap.OnIncreaseElementPriority(edge);
         Assert.Equal(2000, heap.Peek().Value);
 
-        // Randomly re-assign priorities to edges
+        // 随机重新指定优先排序到边缘
         var newScore = 100;
         var elements = heap.UnorderedElements.ToArray();
         Random.Shared.Shuffle(elements);

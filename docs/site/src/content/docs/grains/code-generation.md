@@ -1,40 +1,50 @@
 ---
-title: Orleans source generation
-description: Understand build-time code generation for grains and serialization in Orleans.
+title: "Orleans 源产生"
+description: "理解 grains 和序列化的构建时间代码生成 Orleans。"
 ms.date: 09/01/2026
 ms.topic: concept-article
 ---
 
-# Orleans source generation
+<a id="orleans-source-generation"></a>
 
-Orleans generates grain proxies, method dispatch code, serializers, and copiers at build time. There is no runtime or initialization-time code generation workflow for application code.
+# Orleans 源产生
 
-## Reference the SDK
+Orleans 生成 grain 代理器、 方法发送代码、 序列器和复印机, 用于构建时。 没有运行时间或初始化时间生成程序代码的应用程序代码工作流程 。
 
-Use the package matching the project role:
+<a id="reference-the-sdk"></a>
 
-- [Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client) for client applications.
-- [Microsoft.Orleans.Server](https://www.nuget.org/packages/Microsoft.Orleans.Server) for silo applications.
-- [Microsoft.Orleans.Sdk](https://www.nuget.org/packages/Microsoft.Orleans.Sdk) for class libraries containing grain contracts, implementations, or serializable types.
+## 参考 SDK
 
-These packages include the source generator and analyzers.
+使用匹配项目角色的软件包 :
 
-## Grain contracts
+- 客户申请的[Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client) 。
+- [Microsoft.Orleans.Server](https://www.nuget.org/packages/Microsoft.Orleans.Server) 用于 silo 应用程序。
+- [Microsoft.Orleans.Sdk](https://www.nuget.org/packages/Microsoft.Orleans.Sdk) 适用于含有 grain 合同、执行或可连号类型的类图书馆。
 
-The generator discovers grain interfaces and implementations from their Orleans base interfaces. It reports build diagnostics for unsupported signatures, inaccessible types, multiple cancellation token parameters, and other contract errors.
+这些包包括源生成器和分析器。
 
-Supported grain method return types are <xref:System.Threading.Tasks.Task>, <xref:System.Threading.Tasks.Task`1>, <xref:System.Threading.Tasks.ValueTask>, and <xref:System.Threading.Tasks.ValueTask`1>. The generator emits strongly typed references and invocation classes for those methods.
+<a id="grain-contracts"></a>
 
-## Serializable types
+## Grain 合同
 
-Mark application data crossing grain boundaries or stored by Orleans with <xref:Orleans.GenerateSerializerAttribute>. Give serialized members stable field IDs:
+发电机发现 grain 接口及其 Orleans 基准界面。 它报告为不支持的签名、 不可访问类型、 多取消代号参数和其他合同错误建立诊断。
+
+支持的 grain 方法返回类型为 <xref:System.Threading.Tasks.Task>、 <xref:System.Threading.Tasks.Task`1>、 <xref:System.Threading.Tasks.ValueTask>和 <xref:System.Threading.Tasks.ValueTask`1>。生成器为这些方法提供了强烈的输入参考和招工类别。
+
+<a id="serializable-types"></a>
+
+## 分级类型
+
+标记应用程序数据跨越 grain 边界,或由 Orleans 以 <xref:Orleans.GenerateSerializerAttribute>储存。
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="serializable_purchase_order":::
-IDs are part of the wire and storage contract. Don't reuse or renumber them after deployment. Use <xref:Orleans.AliasAttribute> when a stable serialized type alias is required independently of the CLR name.
+ID是电线和存储合同的一部分。 不要在部署后重新使用或重编号它们。 在需要固定序列化别名时使用 <xref:Orleans.AliasAttribute> , 且不需使用 CLR 名称 。
 
-## Hot Reload for serializable members
+<a id="hot-reload-for-serializable-members"></a>
 
-Enable the Hot Reload generation shape in development builds:
+## 用于可连序成员的热重充载
+
+开发中启用热再载生成形状, 建立:
 
 ```xml
 <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -42,35 +52,41 @@ Enable the Hot Reload generation shape in development builds:
 </PropertyGroup>
 ```
 
-The generator gives serializer and copier fields stable identities and resolves newly added concrete codec and copier dependencies when an existing generated instance first uses them. A running application can therefore apply supported .NET Hot Reload updates which add strongly typed `[Id]` members to `[GenerateSerializer]` classes and records, including members whose concrete serializable type is added in the same update.
+发电机提供序列机和复印机场稳定的身份,并在现有生成的系统首次使用时解决新添加的具体编码和相继性。 因此,运行中的应用程序可以应用 .NET 添加强键入的热重充热重新加更新 `[Id]` 成员加入成员 `[GenerateSerializer]` 包括具体可连号类型被添加在同一更新中的成员。
 
-Keep each `[Id]` value stable and unique. Additive member updates preserve the existing wire contract. Changes to existing member types, IDs, type hierarchy, generic shape, grain interfaces, and generated invokable types follow the corresponding .NET Hot Reload and Orleans contract compatibility requirements. A restart rebuilds the serializer manifest after updates which introduce new types through polymorphic declarations such as `object` or interfaces, or through container element types.
+每个保存 `[Id]` 增加成员更新保留现有的电线合同。 grain 界面, 并生成的可引用类型 .NET 热装货和 Orleans 重新开始在更新后重建序列器清单,更新后通过多形态声明(例如: `object` 或界面,或通过容器元件类型。
 
-When `OrleansHotReload` is unset or `false`, the generator emits readonly fields with eager initialization for normal application builds.
+当 `OrleansHotReload` 被卸载或 `false`时,生成器会发出只读的字段,且对正常应用程序进行急切初始化,从而建立。
 
-## Generate code for external types
+<a id="generate-code-for-external-types"></a>
 
-When a project must generate serializers for accessible types declared elsewhere, use <xref:Orleans.GenerateCodeForDeclaringAssemblyAttribute>:
+## 生成外部类型代码
+
+当项目必须生成可获取类型在别处申报的序列器时,使用 <xref:Orleans.GenerateCodeForDeclaringAssemblyAttribute>:
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="generate_external_contract":::
-Prefer owning serialization annotations with the type whenever possible. Generating for external declaring assemblies broadens the compatibility surface and can increase build output.
+尽可能以该类型优先拥有序列说明。 产生外部申报组件会扩大兼容面,并可以增加构建输出。
 
-## Other .NET languages
+<a id="other-net-languages"></a>
 
-For end-to-end interop examples, see the [Orleans F# sample](https://learn.microsoft.com/samples/dotnet/samples/orleans-fsharp-sample/) and [Orleans Visual Basic sample](https://learn.microsoft.com/samples/dotnet/samples/orleans-vb-sample/).
+## 其他 .NET 语文
 
-## Inspect diagnostics and output
+端对端的插件示例见 [Orleans F# 样本](https://learn.microsoft.com/samples/dotnet/samples/orleans-fsharp-sample/) 和 [Orleans 视觉基本样本](https://learn.microsoft.com/samples/dotnet/samples/orleans-vb-sample/)。
 
-Treat Orleans analyzer and generator diagnostics as contract errors. Orleans marks generated implementation types with `EditorBrowsable(Never)` for editors which honor this metadata. Generated files retain their source locations for diagnostics and debugging, and remain available through compiler-generated-file tooling and direct definition navigation to generated symbols.
+<a id="inspect-diagnostics-and-output"></a>
 
-Roslyn honors type-level `EditorBrowsable` for type completion from referenced assemblies. Member completion, same-assembly type completion, and implementation searches include generated symbols while their implementation trees participate in the compilation.
+## 检查诊断和产出
 
-The generator registers serializers, copiers, activators, proxies, invocation helpers, runtime metadata, and serializer-context registration bodies with Roslyn's `RegisterImplementationSourceOutput`. Minimal serializer-context declarations use regular source output to complete authored partial types for editor type checking, including consumers of projects whose implementation outputs are omitted. Hosts choose whether to include implementation outputs in their compilations; ordinary builds include the complete generated implementation. Context-shape and supported-contract diagnostics use regular output. Diagnostics which require a producer's generated codec or copier metadata accompany implementation output.
+将 Orleans 分析器和发电机诊断作为合同错误处理。 Orleans 标记生成了执行类型,给符合此元数据的编辑提供 `EditorBrowsable(Never)` 。生成的文件保留其源位置进行诊断和调试,并通过编译者产生的文件工具以及直接对生成符号进行定义导航,仍然可用。
 
-XML documentation contains authored API comments. The documentation site's API reference filters generated implementation types and members using their generated-code attributes, preserving authored partial types such as generated contexts.
+Roslyn荣誉级别 `EditorBrowsable` 成员完成、相同组装型的完成和执行搜索包括产生的符号,而其执行树参与汇编。
 
-The optional [Orleans contract compatibility analyzer](grain-versioning/contract-compatibility-analyzer.md) records grain RPC identities and signatures in `OrleansContracts.txt` so contract drift can be reviewed before a rolling upgrade.
+发电机登记了Rassizer、复印机、活动者、代理人、职业助手、运行时元数据以及Roslyn `RegisterImplementationSourceOutput`的序列式自动传输系统登记机构。最小的序列器-文本申报使用正常源产出完成编辑类型检查的部分作者类型,包括执行产出被省略的项目消费者。主机选择是否将实施产出纳入其汇编;普通建筑包括完全产生的实施。背景形状和辅助合同诊断使用常规输出。要求生产者生成编码或复制元数据的诊断需要生产者制作的编码或复制元数据伴随执行产出。
 
-Libraries which define custom grain-call return types can extend the generated proxy and invokable request model. See [Customize Orleans serialization code generation](code-generation-customization.md).
+XML文件包含已撰写的 API 评论。文档网站的 API 参考过滤器生成了执行类型和成员使用生成代码属性,保存了生成背景等部分类型的作者。
 
-For serialization rules and version tolerance, see [Orleans serialization](../host/configuration-guide/serialization.md).
+任选 [Orleans 合同兼容性分析器](grain-versioning/contract-compatibility-analyzer.md) 记录记录 grain 区域PC身份和签名 `OrleansContracts.txt` 以便合同的变动在滚动升级之前可以审查。
+
+定义自定义 grain- 调用返回类型可以扩展生成的代理和可引用请求模式。 见 [自定义 Orleans 序列代码生成](code-generation-customization.md)。
+
+序列规则和版本耐受度见 [Orleans 序号](../host/configuration-guide/serialization.md)。

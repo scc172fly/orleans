@@ -6,18 +6,18 @@ using Orleans.Statistics;
 namespace Orleans.Runtime.Messaging
 {
     /// <summary>
-    /// Determines whether or not the process is overloaded.
+    /// 确定进程是否超载。
     /// </summary>
     public interface IOverloadDetector
     {
         /// <summary>
-        /// Returns <see langword="true"/> if this process is overloaded, <see langword="false"/> otherwise.
+        /// 如果此进程超载,则返回 <see langword="true"/> ,否则返回 <see langword="false"/> 。
         /// </summary>
         bool IsOverloaded { get; }
     }
 
     /// <summary>
-    /// Determines whether or not the process is overloaded.
+    /// 确定进程是否超载。
     /// </summary>
     internal class OverloadDetector : IOverloadDetector
     {
@@ -38,12 +38,12 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether overload detection is enabled.
+        /// 获取或设定值,以显示是否启用过载检测。
         /// </summary>
         public bool Enabled { get; set; }
 
         /// <summary>
-        /// Returns <see langword="true"/> if this process is overloaded, <see langword="false"/> otherwise.
+        /// 如果此进程超载,则返回 <see langword="true"/> ,否则返回 <see langword="false"/> 。
         /// </summary>
         public bool IsOverloaded
         {
@@ -65,7 +65,7 @@ namespace Orleans.Runtime.Messaging
             }
         }
 
-        // Exposed only for testing purposes
+        // 仅为测试目的进行外露
         internal void ForceRefresh()
         {
             _isOverloaded = null;

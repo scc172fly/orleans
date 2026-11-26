@@ -4,70 +4,70 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures DynamoDB-backed stream queue checkpointing.
+    /// 配置 DynamoDB- 支持的流队列检查。
     /// </summary>
     public sealed class DynamoDBStreamQueueCheckpointerOptions
     {
         /// <summary>
-        /// Gets or sets the AWS region name or DynamoDB service endpoint.
+        /// 获取或设置 AWS 区域名称或 DynamoDB 服务终点。
         /// </summary>
         public string Service { get; set; } = "us-east-1";
 
         /// <summary>
-        /// Gets or sets the AWS access key. When omitted, the default AWS credential chain is used.
+        /// 获取或设置 AWS 访问密钥。如果忽略,则使用默认的 AWS 证书链。
         /// </summary>
         [Redact]
         public string? AccessKey { get; set; }
 
         /// <summary>
-        /// Gets or sets the AWS secret key.
+        /// 获取或设置 AWS 秘密密钥 。
         /// </summary>
         [Redact]
         public string? SecretKey { get; set; }
 
         /// <summary>
-        /// Gets or sets the AWS session token.
+        /// 获取或设置 AWS 会话符号 。
         /// </summary>
         [Redact]
         public string? Token { get; set; }
 
         /// <summary>
-        /// Gets or sets the AWS profile name.
+        /// 获取或设置 AWS 配置文件名称。
         /// </summary>
         public string? ProfileName { get; set; }
 
         /// <summary>
-        /// Gets or sets the DynamoDB table name.
+        /// 获取或设置 DynamoDB 表名称。
         /// </summary>
         public string TableName { get; set; } = "OrleansStreamCheckpoints";
 
         /// <summary>
-        /// Gets or sets a value indicating whether to create the checkpoint table when it does not exist.
+        /// 获取或设置一个值,以显示在没有检查站时是否创建检查表。
         /// </summary>
         public bool CreateIfNotExists { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the table uses provisioned throughput instead of on-demand billing.
+        /// 获取或设定一个值,以显示表格是否使用提供输送量而不是按需计费。
         /// </summary>
         public bool UseProvisionedThroughput { get; set; }
 
         /// <summary>
-        /// Gets or sets the provisioned read capacity units.
+        /// 设置或设置提供读能力单位。
         /// </summary>
         public int ReadCapacityUnits { get; set; } = 10;
 
         /// <summary>
-        /// Gets or sets the provisioned write capacity units.
+        /// 获取或设置提供的书面能力单位。
         /// </summary>
         public int WriteCapacityUnits { get; set; } = 5;
 
         /// <summary>
-        /// Gets or sets the minimum interval between checkpoint writes.
+        /// 获取或设定检查站之间的最小间隔。
         /// </summary>
         public TimeSpan PersistInterval { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// Gets or sets the maximum time to wait for the checkpoint table to become active.
+        /// 获取或设定等待检查站表格启用的最大时间。
         /// </summary>
         public TimeSpan InitializationTimeout { get; set; } = TimeSpan.FromMinutes(2);
     }

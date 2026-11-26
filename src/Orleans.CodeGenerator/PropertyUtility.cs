@@ -4,17 +4,17 @@ using System.Text.RegularExpressions;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Provides utilities for relating Roslyn property, field, and constructor parameter symbols.
+/// 提供与Roslyn财产、田地和建筑师参数符号有关的水电费。
 /// </summary>
 public static class PropertyUtility
 {
     private static readonly Regex PropertyMatchRegex = new("^<([^>]+)>.*$", RegexOptions.Compiled);
 
     /// <summary>
-    /// Gets the property represented by a compiler-generated backing field.
+    /// 获取由编译器生成的支持字段所代表属性。
     /// </summary>
-    /// <param name="field">The field to inspect.</param>
-    /// <returns>The matching property when exactly one match exists; otherwise, <see langword="null"/>.</returns>
+    /// <param name="field">检查的字段。</param>
+    /// <returns>完全匹配时对应的属性;否则, <see langword="null"/>。</returns>
     public static IPropertySymbol? GetMatchingProperty(IFieldSymbol field)
     {
         if (field.ContainingType is null)
@@ -23,27 +23,27 @@ public static class PropertyUtility
     }
 
     /// <summary>
-    /// Determines whether a symbol has a compiler-generated attribute.
+    /// 确定符号是否有编译器生成属性。
     /// </summary>
-    /// <param name="symbol">The symbol to inspect.</param>
-    /// <returns><see langword="true"/> when <paramref name="symbol"/> has a compiler-generated attribute; otherwise, <see langword="false"/>.</returns>
+    /// <param name="symbol">检查的符号。</param>
+    /// <returns><see langword="true"/> 何时 <paramref name="symbol"/> 具有编译器生成属性; 否则, <see langword="false"/>.</returns>
     public static bool IsCompilerGenerated(this ISymbol? symbol)
         => symbol?.GetAttributes().Any(a => a.AttributeClass?.Name == "CompilerGeneratedAttribute") == true;
 
     /// <summary>
-    /// Determines whether a property's accessors are compiler-generated.
+    /// 确定属性的访问器是否是编译器生成的。
     /// </summary>
-    /// <param name="property">The property to inspect.</param>
-    /// <returns><see langword="true"/> when both accessors are compiler-generated; otherwise, <see langword="false"/>.</returns>
+    /// <param name="property">检查的财产。</param>
+    /// <returns><see langword="true"/> ,当两个存取器都是编译器生成时;否则, <see langword="false"/>。</returns>
     public static bool IsCompilerGenerated(this IPropertySymbol? property)
         => property?.GetMethod.IsCompilerGenerated() == true && property.SetMethod.IsCompilerGenerated();
 
     /// <summary>
-    /// Gets the constructor parameter which represents a property, matching by canonical name and type.
+    /// 获取代表属性的构造参数,与语义名称和类型匹配。
     /// </summary>
-    /// <param name="property">The property to match.</param>
-    /// <param name="constructorParameters">The constructor parameters to search.</param>
-    /// <returns>The first matching parameter; otherwise, <see langword="null"/>.</returns>
+    /// <param name="property">匹配的属性。</param>
+    /// <param name="constructorParameters">搜索的构建参数。</param>
+    /// <returns>第一个匹配参数;否则, <see langword="null"/>。</returns>
     public static IParameterSymbol? GetMatchingPrimaryConstructorParameter(IPropertySymbol property, IEnumerable<IParameterSymbol> constructorParameters)
     {
         return constructorParameters.FirstOrDefault(p =>
@@ -52,11 +52,11 @@ public static class PropertyUtility
     }
 
     /// <summary>
-    /// Gets the property represented by a compiler-generated backing field from a set of member symbols.
+    /// 从一组成员符号中获取由编译器生成的支持字段所代表属性。
     /// </summary>
-    /// <param name="field">The field to inspect.</param>
-    /// <param name="memberSymbols">The member symbols to search.</param>
-    /// <returns>The matching property when exactly one match exists; otherwise, <see langword="null"/>.</returns>
+    /// <param name="field">检查的字段。</param>
+    /// <param name="memberSymbols">要搜索的成员符号。</param>
+    /// <returns>完全匹配时对应的属性;否则, <see langword="null"/>。</returns>
     public static IPropertySymbol? GetMatchingProperty(IFieldSymbol field, IEnumerable<ISymbol> memberSymbols)
     {
         var propertyName = PropertyMatchRegex.Match(field.Name);
@@ -73,10 +73,10 @@ public static class PropertyUtility
     }
 
     /// <summary>
-    /// Gets the field which stores the value of a property.
+    /// 获取存储财产价值的字段。
     /// </summary>
-    /// <param name="property">The property to inspect.</param>
-    /// <returns>The matching field when exactly one match exists; otherwise, <see langword="null"/>.</returns>
+    /// <param name="property">检查的财产。</param>
+    /// <returns>匹配字段,如果有一个完全匹配的字段;否则, <see langword="null"/>。</returns>
     public static IFieldSymbol? GetMatchingField(IPropertySymbol property)
     {
         if (property.ContainingType is null)
@@ -85,11 +85,11 @@ public static class PropertyUtility
     }
 
     /// <summary>
-    /// Gets the field which stores the value of a property from a set of member symbols.
+    /// 从一组成员符号中获取存储属性价值的字段。
     /// </summary>
-    /// <param name="property">The property to inspect.</param>
-    /// <param name="memberSymbols">The member symbols to search.</param>
-    /// <returns>The matching field when exactly one match exists; otherwise, <see langword="null"/>.</returns>
+    /// <param name="property">检查的财产。</param>
+    /// <param name="memberSymbols">要搜索的成员符号。</param>
+    /// <returns>匹配字段,如果有一个完全匹配的字段;否则, <see langword="null"/>。</returns>
     public static IFieldSymbol? GetMatchingField(IPropertySymbol property, IEnumerable<ISymbol> memberSymbols)
     {
         var backingFieldName = $"<{property.Name}>k__BackingField";
@@ -101,10 +101,10 @@ public static class PropertyUtility
     }
 
     /// <summary>
-    /// Gets the canonical form of a member or parameter name by removing leading underscores and lowercasing its first character.
+    /// 去除前加下划线并降低第一个字符,从而获得成员或参数名称的卡龙式形式。
     /// </summary>
-    /// <param name="name">The name to canonicalize.</param>
-    /// <returns>The canonical name.</returns>
+    /// <param name="name">要加固的名 。</param>
+    /// <returns>语句名称。</returns>
     public static string GetCanonicalName(string name)
     {
         name = name.TrimStart('_');

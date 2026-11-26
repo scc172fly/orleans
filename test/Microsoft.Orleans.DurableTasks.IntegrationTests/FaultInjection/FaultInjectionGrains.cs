@@ -7,7 +7,7 @@ using Orleans.Durable.Messaging;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
-/// <summary>A grain's journaled effect counters and its messaging dead letters.</summary>
+/// <summary>A grain的日记效果计数器及其短信空白信。</summary>
 [GenerateSerializer, Immutable]
 public sealed class FaultGrainState
 {
@@ -31,55 +31,55 @@ public interface IFaultInjectedGrain : IGrainWithGuidKey
 public interface IFaultWorkflowGrain : IFaultInjectedGrain
 {
     /// <summary>
-    /// Runs a local step, a <see cref="DurableTask.RunInline(string, Action)"/> effect, a call to the partner which signals the
-    /// workflow back, a signal wait, a delay, and a detached start on the partner which it awaits.
+    /// 运行本地步、 <see cref="DurableTask.RunInline(string, Action)"/> 效果、呼叫显示
+    /// 工作流程返回,信号等待,延迟, 和独立启动伙伴 它等待的。
     /// </summary>
     DurableTask<string> PipelineAsync(Guid partnerKey, string rootId);
 
     /// <summary>
-    /// Races a call to the partner's hold against a local gate which waits for the hold's signal and a delay, so the hold
-    /// loses after its body started and compensates through a shielded child; then times out a signal wait. The hold's
-    /// cancellation lands mid-run, and its compensation checks that every replay observed it at the same point.
+    /// 与当地门对着等待着船口信号和延迟的车门进行比赛,所以车门对着车门
+    /// 身体开始后会丢失,通过一个被保护的孩子进行补偿;然后用时间来计算信号等待。
+    /// 取消中跑土地, 并进行补偿检查,
     /// </summary>
     DurableTask<string> RaceAsync(Guid partnerKey, string rootId);
 
-    /// <summary>Calls the partner, which throws, and records the exception's type and message.</summary>
+    /// <summary>通知对方,然后通知对方 记录例外类型和讯息</summary>
     DurableTask<string> CatchPartnerFailureAsync(Guid partnerKey);
 
-    /// <summary>Calls the partner, which throws, and lets the exception escape.</summary>
+    /// <summary>号召伴侣,谁扔出,让例外逃脱。</summary>
     DurableTask<int> PropagatePartnerFailureAsync(Guid partnerKey);
 
-    /// <summary>Records an effect, then throws <see cref="FaultApplicationException"/>.</summary>
+    /// <summary>记录效果,然后抛出 <see cref="FaultApplicationException"/>。</summary>
     DurableTask<int> FailAsync(string message);
 
-    /// <summary>Throws <see cref="FaultApplicationException"/> from a local step, and records what the body observed.</summary>
+    /// <summary>从本地一步扔出 <see cref="FaultApplicationException"/> ,记录身体所观察到的。</summary>
     DurableTask<string> CatchLocalStepFailureAsync(string message);
 
-    /// <summary>Throws <see cref="FaultApplicationException"/> from a <see cref="DurableTask.RunInline(string, Action)"/> effect.</summary>
+    /// <summary>抛掷 <see cref="FaultApplicationException"/> a 发自 <see cref="DurableTask.RunInline(string, Action)"/> 效果。</summary>
     DurableTask<string> CatchOnceFailureAsync(string message);
 
-    /// <summary>Starts a detached task on the partner under a root ID, and records what the start observed.</summary>
+    /// <summary>开始在根标识下对伙伴进行独立任务,并记录所观察到的启动。</summary>
     DurableTask<string> StartDetachedEchoAsync(Guid partnerKey, string detachedRootId, int value);
 
-    /// <summary>Waits for the <see cref="FaultWorkflowGrain.Ready"/> signal.</summary>
+    /// <summary>等待着 <see cref="FaultWorkflowGrain.Ready"/> 信号</summary>
     DurableTask<int> WaitForReadyAsync();
 
-    /// <summary>Calls the partner's gated step.</summary>
+    /// <summary>要求合伙人的门前一步</summary>
     DurableTask<int> CallGatedAsync(Guid partnerKey, int value);
 
-    /// <summary>Starts a detached echo on a <see cref="IFaultFencedGrain"/>, and records what the start observed.</summary>
+    /// <summary>启动 <see cref="IFaultFencedGrain"/>上的独立回声,记录所观察到的启动。</summary>
     DurableTask<string> StartDetachedFencedEchoAsync(Guid fencedKey, string detachedRootId, int value);
 
     /// <summary>
-    /// Runs one run of a root which runs again once retention deleted its earlier run: records the run's number as an
-    /// effect, calls the partner's process, which signals <see cref="FaultWorkflowGrain.Ready"/> back, waits for that signal,
-    /// and races the partner's gated step for this run against the <see cref="FaultWorkflowGrain.Go"/> signal and a delay of
+    /// 运行根的一运行运行一次, 一旦保留被删除后再次运行 root 。 将 Run 的编号记录为
+    /// 效果,调用伙伴的过程, 它的信号 <see cref="FaultWorkflowGrain.Ready"/> 后,等待该信号,
+    /// 比赛合伙人的门前步 这场比赛与 <see cref="FaultWorkflowGrain.Go"/> 和延迟的定期的定期的定期的定期的定期的定期的定期的定期的
     /// <see cref="FaultWorkflowGrain.RunDeadline"/>.
     /// </summary>
     /// <remarks>
-    /// Every run sends the same request and the same signal values, so only the run's own incarnation tells its messages
-    /// apart from an earlier run's. The partner's step waits for the gate <see cref="FaultWorkflowGrain.GetGateKey"/> names
-    /// for the run.
+    /// 每一次运行都发出相同的请求和同样的信号值, 所以只有运行本身的化身 传达出它的信息
+    /// 伴侣的步数等待门 <see cref="FaultWorkflowGrain.GetGateKey"/> 名称
+    /// 跑步时
     /// </remarks>
     DurableTask<string> RunAgainAsync(Guid partnerKey, string rootId);
 }
@@ -90,43 +90,43 @@ public interface IFaultPartnerGrain : IFaultInjectedGrain
 
     DurableTask<int> EchoAsync(int value);
 
-    /// <summary>Echoes like <see cref="EchoAsync"/> through another method, so its task conflicts with an echo under the same root ID.</summary>
+    /// <summary>回声像 <see cref="EchoAsync"/> 一样,通过另一种方法,因此任务与同一根ID下的回声相冲突。</summary>
     DurableTask<int> EchoAgainAsync(int value);
 
     DurableTask<string> HoldAsync(Guid workflowKey, string rootId);
 
-    /// <summary>Records an effect, then throws <see cref="FaultApplicationException"/>.</summary>
+    /// <summary>记录效果,然后抛出 <see cref="FaultApplicationException"/>。</summary>
     DurableTask<int> FailAsync(string message);
 
-    /// <summary>Signals <see cref="FaultWorkflowGrain.Ready"/> to a task of a <see cref="IFaultFencedGrain"/>.</summary>
+    /// <summary>信号 <see cref="FaultWorkflowGrain.Ready"/> 任务的任务 <see cref="IFaultFencedGrain"/>.</summary>
     DurableTask SignalFencedAsync(Guid fencedKey, string rootId, int value);
 
-    /// <summary>Runs a local step which waits for the partner's <see cref="FaultTestGates"/> gate.</summary>
+    /// <summary>运行一个等待伴侣的 <see cref="FaultTestGates"/> 大门的本地步。</summary>
     DurableTask<int> GatedStepAsync(int value);
 
     /// <summary>
-    /// Runs a local step which waits for the gate <paramref name="gateKey"/>, and returns <paramref name="value"/> plus the
-    /// number of gated steps which completed.
+    /// 运行一个本地步,等待门 <paramref name="gateKey"/>,返回 <paramref name="value"/> 加上
+    /// 完成的门级数。
     /// </summary>
     DurableTask<int> StepThroughGateAsync(Guid gateKey, int value);
 }
 
-/// <summary>A reentrant grain whose journal a test fences while a delivery to it is in progress.</summary>
+/// <summary>重新entrant 重试 grain 日记上测试围栏,但正在送交该杂志。</summary>
 public interface IFaultFencedGrain : IFaultInjectedGrain
 {
     DurableTask<int> EchoAsync(int value);
 
-    /// <summary>Calls the partner's echo, whose completion this grain's inbox accepts.</summary>
+    /// <summary>呼叫伙伴的回声,此 grain的收件箱是否接受其完成 。</summary>
     DurableTask<int> CallEchoAsync(Guid partnerKey, int value);
 
-    /// <summary>Waits for the <see cref="FaultWorkflowGrain.Ready"/> signal.</summary>
+    /// <summary>等待着 <see cref="FaultWorkflowGrain.Ready"/> 信号</summary>
     DurableTask<int> WaitForReadyAsync();
 
-    /// <summary>Stages a journaled effect and writes it, and returns the write's failure, if any.</summary>
+    /// <summary>阶段一个日记效果并写成,如果有的话,则返回该写作失败。</summary>
     Task<string> FenceAsync();
 }
 
-/// <summary>Gates which test grains wait for, and which the test opens, keyed by grain.</summary>
+/// <summary>试验关口 grains 键键键,然后由 grain.</summary>
 public sealed class FaultTestGates
 {
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource> _gates = new();
@@ -139,7 +139,7 @@ public sealed class FaultTestGates
         _gates.GetOrAdd(key, static _ => new(TaskCreationOptions.RunContinuationsAsynchronously));
 }
 
-/// <summary>An application failure, which every awaiter, poller, and subscriber observes unchanged.</summary>
+/// <summary>申请失败,每个等待者、投票者和订阅者都认为没有问题。</summary>
 [GenerateSerializer]
 public sealed class FaultApplicationException : Exception
 {
@@ -149,11 +149,11 @@ public sealed class FaultApplicationException : Exception
 }
 
 /// <summary>
-/// A durable grain which records journaled effect counters and registers the injector's inbox participant ahead of the
-/// durable task runtime's sink and handler.
+/// 耐久 grain ,记录日记效应计数器并提前登记注射者参加方的收件箱
+/// 耐久任务运行时间的水槽和处理者。
 /// </summary>
 /// <remarks>
-/// The grain is constructed before activation setup registers the runtime's sink and handler, so the participant is first.
+/// grain 是在启动装置登记运行时间的汇和处理器之前建造的,因此参与者是第一个。
 /// </remarks>
 public abstract class FaultInjectedGrain : DurableGrain, IFaultInjectedGrain
 {
@@ -186,7 +186,7 @@ public abstract class FaultInjectedGrain : DurableGrain, IFaultInjectedGrain
         return Task.CompletedTask;
     }
 
-    /// <summary>Increments a journaled effect counter; call it from a <see cref="DurableTask.RunInline(string, Func{int})"/> effect.</summary>
+    /// <summary>添加一个已日记效果计数器;从 <see cref="DurableTask.RunInline(string, Func{int})"/> 效应中调用。</summary>
     protected int Increment(string effect)
     {
         var count = _effects.TryGetValue(effect, out var current) ? current + 1 : 1;
@@ -209,10 +209,10 @@ public sealed class FaultWorkflowGrain(
     public static readonly DurableSignal<string> Never = new("never");
     public static readonly DurableSignal<int> Go = new("go");
 
-    /// <summary>Gets the delay which each run of <see cref="RunAgainAsync"/> races, far beyond a run's duration.</summary>
+    /// <summary>获取每次赛跑 <see cref="RunAgainAsync"/> 的延迟时间, 远远超出赛程的长度。</summary>
     public static readonly TimeSpan RunDeadline = TimeSpan.FromHours(1);
 
-    /// <summary>Returns the gate which the partner's step waits for in run <paramref name="run"/> of a workflow.</summary>
+    /// <summary>返回伙伴的步数等待运行工作流程时的 <paramref name="run"/> 关口。</summary>
     public static Guid GetGateKey(Guid workflowKey, int run)
     {
         Span<byte> bytes = stackalloc byte[16];
@@ -305,7 +305,7 @@ public sealed class FaultWorkflowGrain(
             observed = $"{exception.GetType().Name}: {exception.Message}";
         }
 
-        // A later durable write commits the effect's record, so a replay observes the recorded failure.
+        // 后期的耐久书写 将带来效果的记录, 因此重播会看到记录失败。
         await DurableTask.Run(static _ => { }).WithId("after");
         return observed;
     }
@@ -406,7 +406,7 @@ public sealed class FaultPartnerGrain(
         var stage = "send";
         try
         {
-            // The workflow can cancel the hold as soon as the signal arrives, which can precede the send's own completion.
+            // 工作流程可以在信号到达后立即取消搁置,这可在发送者完成之前完成。
             await Workflow(workflowKey).SignalDurableTaskAsync(TaskId.CreateRoot(rootId), FaultWorkflowGrain.Held, "held");
             stage = DurableTask.Current.IsTaskCancellationRequested ? "signaled" : "hold";
             await DurableTask.Run(static async cancellationToken => await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken))
@@ -415,9 +415,9 @@ public sealed class FaultPartnerGrain(
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // The first run records the stage at which it observed the cancellation. A replay observes it at the same
-            // cancellation point, so it compensates from the same stage; one which observed it elsewhere, such as at its
-            // start, records an effect which the scenario doesn't expect.
+            // 第一次运行记录它观察到取消的阶段。重放记录它在同一阶段
+            // 取消点,因此它从同一阶段进行补偿;一个在其他地方观察到的点,例如:
+            // 开始,记录一个效果 情况并不会预期。
             if (DurableTask.RunInline("observed", () => stage) != stage)
             {
                 DurableTask.RunInline("observed-elsewhere", () => Increment("observed-elsewhere"));

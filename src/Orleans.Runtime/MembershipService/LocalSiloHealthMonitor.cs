@@ -54,30 +54,30 @@ namespace Orleans.Runtime.MembershipService
     internal interface ILocalSiloHealthMonitor
     {
         /// <summary>
-        /// Returns a timestamp from the stall detector's time source.
+        /// 返回从拖拉探测器的时间源中返回时间戳。
         /// </summary>
-        /// <returns>A timestamp suitable for use with <see cref="GetStallDurationAsync"/>.</returns>
+        /// <returns>一个适合与 <see cref="GetStallDurationAsync"/>一起使用的时标。</returns>
         long GetTimestamp();
 
         /// <summary>
-        /// Waits for the stall detector to sample past the end of the interval, then returns the detected stall duration.
+        /// 等待摊位探测器在间隔结束时进行取样,然后返回检测到的滞期。
         /// </summary>
-        /// <param name="startTimestamp">The start of the interval.</param>
-        /// <param name="endTimestamp">The end of the interval.</param>
-        /// <param name="cancellationToken">A token which cancels the wait.</param>
-        /// <returns>The detected stall duration.</returns>
+        /// <param name="startTimestamp">间隔的开始。</param>
+        /// <param name="endTimestamp">间隔的结束。</param>
+        /// <param name="cancellationToken">取消等待的符号 。</param>
+        /// <returns>检测到的停顿期。</returns>
         ValueTask<TimeSpan> GetStallDurationAsync(
             long startTimestamp,
             long endTimestamp,
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Returns the aggregate local health status over the provided interval.
+        /// 返回在提供间隔内当地健康状况的总和。
         /// </summary>
-        /// <param name="startTimestamp">The inclusive start of the interval to aggregate.</param>
-        /// <param name="endTimestamp">The inclusive end of the interval to aggregate.</param>
-        /// <param name="categories">The categories of health checks to include.</param>
-        /// <returns>The aggregate health status.</returns>
+        /// <param name="startTimestamp">累计间隔的开始时间。</param>
+        /// <param name="endTimestamp">累计间隔的包容性结束。</param>
+        /// <param name="categories">健康检查的类别包括:</param>
+        /// <returns>总体健康状况。</returns>
         LocalSiloHealthStatus GetLocalHealthStatus(
             long startTimestamp,
             long endTimestamp,
@@ -88,7 +88,7 @@ namespace Orleans.Runtime.MembershipService
             LocalSiloHealthCheckCategory categories);
 
         /// <summary>
-        /// The most recent list of detected health issues.
+        /// 最新发现的健康问题清单。
         /// </summary>
         ImmutableArray<string> Complaints { get; }
     }
@@ -104,23 +104,23 @@ namespace Orleans.Runtime.MembershipService
     }
 
     /// <summary>
-    /// Monitors the health of the local node using a combination of heuristics to create a health degradation score which
-    /// is exposed as a boolean value: whether or not the local node's health is degraded.
+    /// 利用综合的累进学来监测当地节点的健康,以产生健康退化分数。
+    /// 以布尔值暴露:是否使当地节点的健康退化。
     /// </summary>
     /// <remarks>
-    /// The primary goal of this functionality is to passify degraded nodes so that they do not evict healthy nodes.
-    /// This functionality is inspired by the Lifeguard paper (https://arxiv.org/abs/1707.00788), which is a set of extensions
-    /// to the SWIM membership algorithm (https://research.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf). Orleans
-    /// uses a strong consistency membership algorithm, and not all of the Lifeguard extensions to SWIM apply to Orleans'
-    /// membership algorithm (refutation, for example).
-    /// The monitor implements the following heuristics:
+    /// 这一功能的主要目标是使退化节点失效,以免它们驱逐健康节点。
+    /// 这一功能受生命保护文件(https://arxiv.org/abs/1707.00788)的启发,该文件是一系列扩展
+    /// SWIM 成员算法 (https://research.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf)。 Orleans
+    /// 使用高度一致的会员算法,并非SWIM的所有救生员扩展适用于 Orleans'
+    /// 成员算法(例如拒绝)。
+    /// 该监测仪执行下列经济理论:
     /// <list type="bullet">
-    ///   <item><description>Check that this silos is marked as active in membership.</description></item>
-    ///   <item><description>Check that no other silo suspects this silo.</description></item>
-    ///   <item><description>Check for recently received successful ping responses (via <see cref="IProbeHealthMonitor"/>).</description></item>
-    ///   <item><description>Check for recently received ping requests (via <see cref="IProbeHealthMonitor"/>).</description></item>
-    ///   <item><description>Check that the .NET Thread Pool executes periodic timer callbacks on schedule.</description></item>
-    ///   <item><description>Check that local async timers have been firing on-time (within 3 seconds of their due time).</description></item>
+    ///   <item><description>检查此 silos 被标为积极成员。</description></item>
+    ///   <item><description>检查没有其他 silo 怀疑这一点 silo。</description></item>
+    ///   <item><description>检查最近收到的成功按铃回复(通过 <see cref="IProbeHealthMonitor"/>)。</description></item>
+    ///   <item><description>检查最近收到的(通过 <see cref="IProbeHealthMonitor"/>)拨号请求。</description></item>
+    ///   <item><description>检查 .NET 线索库是否按时间表执行定期的定时器回调。</description></item>
+    ///   <item><description>检查当地同步计时器是否按时(在规定时间3秒内)开火。</description></item>
     /// </list>
     /// </remarks>
     internal partial class LocalSiloHealthMonitor :
@@ -359,7 +359,7 @@ namespace Orleans.Runtime.MembershipService
                     _clusteredSinceTimestamp ??= timestamp;
                 }
 
-                // Only consider certain checks if the silo has been a member of a multi-silo cluster for a certain period.
+                // 只有在 silo 在一定时期内一直是多silo 组别成员时,才考虑某些检查。
                 var recencyWindow = _clusterMembershipOptions.GetFailureDetectionTimeout();
                 if (_clusteredSinceTimestamp is { } clusteredSince
                     && _timeProvider.GetElapsedTime(clusteredSince, timestamp) > recencyWindow)
@@ -438,7 +438,7 @@ namespace Orleans.Runtime.MembershipService
                     statusComplaint,
                     Duration: null));
 
-                // Check if there are valid votes against this node.
+                // 检查是否对这个节点持有有效票数 。
                 var expiration = _clusterMembershipOptions.DeathVoteExpirationTimeout;
                 var freshVotes = membershipEntry.GetFreshVotes(now, expiration);
                 foreach (var vote in freshVotes)
@@ -504,7 +504,7 @@ namespace Orleans.Runtime.MembershipService
             List<string> complaints)
         {
             var membershipSnapshot = _membershipManager.CurrentSnapshot;
-            // Use ActiveNodeCount - 1 as a proxy for monitored node count (we don't monitor ourselves)
+            // 使用 ActiveNodeCount - 1 作为监测节点计数的代理( 我们不监测我们自己)
             var monitoredNodeCount = Math.Max(0, membershipSnapshot.ActiveNodeCount - 1);
             var score = _probeHealthMonitor.CheckReceivedProbeResponses(now, monitoredNodeCount, out var complaint);
             if (complaint is not null)

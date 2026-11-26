@@ -14,21 +14,21 @@ using Orleans.Configuration;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Extensions to <see cref="ISiloBuilder"/> for configuring durable jobs.
+/// 延长至 <see cref="ISiloBuilder"/> ,用于配置耐久工作。
 /// </summary>
 public static class DurableJobsExtensions
 {
     /// <summary>
-    /// Adds support for durable jobs to this silo.
+    /// 添加对耐久工作的支持。 silo。
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">建筑工。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder AddDurableJobs(this ISiloBuilder builder) => builder.ConfigureServices(services => AddDurableJobs(services));
 
     /// <summary>
-    /// Adds support for durable jobs to this silo.
+    /// 添加对耐久工作的支持。 silo。
     /// </summary>
-    /// <param name="services">The services.</param>
+    /// <param name="services">服务。</param>
     public static void AddDurableJobs(this IServiceCollection services)
     {
         if (services.Any(service => service.ServiceType.Equals(typeof(LocalDurableJobManager))))
@@ -74,13 +74,13 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// Configures durable jobs storage using an in-memory, non-persistent store.
+    /// 配置使用内存、非持久性存储器的耐用工作储存。
     /// </summary>
     /// <remarks>
-    /// Note that this is for development and testing scenarios only and should not be used in production.
+    /// 请注意,这只用于开发和测试设想情景,不应用于生产。
     /// </remarks>
-    /// <param name="builder">The silo host builder.</param>
-    /// <returns>The provided <see cref="ISiloBuilder"/>, for chaining.</returns>
+    /// <param name="builder">下 silo 建筑主机</param>
+    /// <returns>提供的情况 <see cref="ISiloBuilder"/>用来绑链</returns>
     public static ISiloBuilder UseInMemoryDurableJobs(this ISiloBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -88,13 +88,13 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// Configures durable jobs storage using an in-memory, non-persistent store.
+    /// 配置使用内存、非持久性存储器的耐用工作储存。
     /// </summary>
     /// <remarks>
-    /// Note that this is for development and testing scenarios only and should not be used in production.
+    /// 请注意,这只用于开发和测试设想情景,不应用于生产。
     /// </remarks>
-    /// <param name="services">The service collection.</param>
-    /// <returns>The provided <see cref="IServiceCollection"/>, for chaining.</returns>
+    /// <param name="services">服务收藏。</param>
+    /// <returns>提供的情况 <see cref="IServiceCollection"/>用来绑链</returns>
     internal static IServiceCollection UseInMemoryDurableJobs(this IServiceCollection services)
     {
         new ServiceCollectionSiloBuilder(services).UseInMemoryDurableJobs();
@@ -102,12 +102,12 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// Configures Durable Jobs to create shards in the selected write journal provider
-    /// and drain existing shards from all selected providers.
+    /// 配置在选定写日记账提供商中创建碎片的可持久工作
+    /// 并排干所有选定提供者的现有碎片。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="configure">The optional Durable Jobs configuration delegate.</param>
-    /// <returns>The silo builder.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="configure">任选的可持久工作组合代表。</param>
+    /// <returns>下 silo 建筑商</returns>
     public static ISiloBuilder UseJournaledDurableJobs(this ISiloBuilder builder, Action<DurableJobsOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -136,11 +136,11 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// Configures Durable Jobs to use the selected named journal providers.
+    /// 配置可使用选定命名日记提供者的持久任务。
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">The optional Durable Jobs configuration delegate.</param>
-    /// <returns>The service collection.</returns>
+    /// <param name="services">服务收藏。</param>
+    /// <param name="configure">任选的可持久工作组合代表。</param>
+    /// <returns>服务收藏。</returns>
     public static IServiceCollection UseJournaledDurableJobs(this IServiceCollection services, Action<DurableJobsOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(services);

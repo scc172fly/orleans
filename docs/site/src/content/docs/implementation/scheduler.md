@@ -1,24 +1,28 @@
 ---
-title: Scheduling and turn execution
-description: Understand Orleans activation scheduling, request admission, continuations, and interleaving.
+title: "排排和转手执行"
+description: "理解 Orleans 启动时间表、请求承认、继续和中断。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# Scheduling and turn execution
+<a id="scheduling-and-turn-execution"></a>
 
-Orleans separates **request scheduling** from **task scheduling**:
+# 排排和转手执行
 
-- request scheduling decides which incoming calls may make progress for an activation;
-- task scheduling executes each synchronous work item one at a time in that activation's context.
+Orleans 将 **请求的时间安排** 与 **任务时间安排**分开:
 
-This distinction explains how reentrant calls can interleave without two pieces of grain code running in parallel on the same activation.
+- 请求的时间安排决定了收到电话后哪些可以启动程序取得进展;
+- 任务调度在激活的上下文中执行每个同步的工作项目。
 
-## `WorkItemGroup` and `ActivationTaskScheduler` <a name="task-scheduling"></a>
+这种区分解释了重新响应的电话如何可以互接,而没有同时运行同一激活的两片 grain 代码。
+
+<a id="workitemgroup-and-activationtaskscheduler-"></a>
+
+## `WorkItemGroup` 和 `ActivationTaskScheduler` <a name="task-scheduling"></a>
 
 <a name="task-scheduling-in-orleans"></a>
 
-Each activation owns a `WorkItemGroup` and an `ActivationTaskScheduler`, which derives from the .NET <xref:System.Threading.Tasks.TaskScheduler> abstraction. The task scheduler enqueues work into the group. The group implements a small state machine (`Waiting`, `Runnable`, and `Running`) and schedules itself onto the [.NET managed thread pool](https://learn.microsoft.com/dotnet/standard/threading/the-managed-thread-pool).
+每个激活都拥有一个 `WorkItemGroup` 和一个 `ActivationTaskScheduler`,它们来自 .NET <xref:System.Threading.Tasks.TaskScheduler> 抽象。任务调度器将工作排入组内。小组使用一个小型国家机器(`Waiting`、 `Runnable`和 `Running`),并排入 [.NET 管理下的线性球](https://learn.microsoft.com/dotnet/standard/threading/the-managed-thread-pool)。
 
 ```mermaid
 flowchart LR
@@ -37,50 +41,60 @@ flowchart LR
     Turn -->|more queued work| Pool
 ```
 
-Only one thread can execute a `WorkItemGroup` at a time. That thread is not permanently assigned: different turns can run on different pool threads. The invariant is exclusive execution of the activation context, not thread affinity.
+只有一个线索可以一次执行 `WorkItemGroup` 。 该线索没有永久指定: 不同的转可在不同球库线上运行。 变量是激活环境的独家执行, 而不是线亲关系 。
 
-Source: [`WorkItemGroup`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Scheduler/WorkItemGroup.cs) and [`ActivationTaskScheduler`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Scheduler/ActivationTaskScheduler.cs).
+来源: [`WorkItemGroup`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Scheduler/WorkItemGroup.cs) 和 [`ActivationTaskScheduler`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Scheduler/ActivationTaskScheduler.cs)。
 
-## Async methods become multiple turns
+<a id="async-methods-become-multiple-turns"></a>
 
-An async grain method runs synchronously until it awaits incomplete work. Its continuation is later queued back to the same activation scheduler. Code before the incomplete await executes in one turn; code after it executes in a later turn.
+## 自动同步方法变成多转
 
-For a non-reentrant activation, other application requests normally wait while this request is incomplete. For reentrant or selectively interleavable calls, another request can run during the await. It still runs as a separate synchronous turn; it does not execute in parallel with either portion of the awaiting method.
+同步 grain 方法同步运行, 直到等待完成工作。 继续后会排队到相同的激活调度器上。 在不完全前代码会一转等待执行; 稍后再执行之后的代码 。
 
-Therefore, grain state is protected from parallel access by the scheduler but can still change across an `await` when interleaving is allowed. Code must recheck assumptions after awaits in reentrant grains.
+对于非返回激活, 其他应用程序请求通常等待, 而该请求不完整。 对于重新输入或选择性的中间可传输调用, 另外一个请求可以在等待期间运行。 它仍然作为单独的同步转弯运行; 它与等待方法的任何部分不同时执行 。
 
-## Request admission
+因此, grain 状态不受调度器平行访问的保护,但在允许中断时仍然可以在整个 `await` 之间变化。代码必须在等待重试后重新检查假设 grains。
 
-`ActivationData` owns pending and running requests. It applies the grain's concurrency policy, dispatches eligible messages, and signals completion so that another request can progress. Policies include:
+<a id="request-admission"></a>
 
-- the default non-reentrant model;
-- grain-wide reentrancy;
-- call-chain reentrancy;
+## 请求入境
+
+`ActivationData` 拥有待决和正在运行的请求。 它应用 grain的同值货币政策,发送符合资格的信息并发出完成信号,以便另一个请求能够取得进展。
+
+- 默认的不重新输入模式;
+- grain- 全范围重复性;
+- 电链回流;
 - <xref:Orleans.Concurrency.AlwaysInterleaveAttribute>; and
 - predicate-based <xref:Orleans.Concurrency.MayInterleaveAttribute>.
 
-The user-facing rules are documented in [request scheduling](../grains/request-scheduling.md). Internally, request admission and task serialization remain separate layers.
+用户定位规则记录在 [请求申请时间安排](../grains/request-scheduling.md)中。 内部而言,申请承认和任务序列化仍然是单独的层层。
 
-Admission is a state machine layered over the activation scheduler and shared thread pool. `ActivationData` keeps pending requests and running requests, evaluates an incoming request against every active request, and starts it when every pair is compatible under the current interleaving policy. Completion signals admission to reevaluate the queue. A request which is waiting on an incomplete task therefore occupies a logical slot according to the request policy, while its executing thread returns to the pool.
+接收是一台州机器, 分层在激活调度器和共享线条库上。 `ActivationData` 保存待决请求并运行请求, 根据每一项主动请求评估收到的请求, 并在每对对申请都符合当前交接政策时启动。 完成信号允许重新评价队列。 因此, 等待一个不完整任务的请求会按照请求政策占据一个逻辑空档, 而执行线索会返回到集合中 。
 
-Call-chain reentrancy is narrower than grain-wide reentrancy: it permits progress for calls which belong to the current chain while preserving the non-interleaving default for unrelated calls. `AlwaysInterleave` and `MayInterleave` are explicit opt-ins because they trade simpler invariants for throughput or avoidance of dependency cycles.
+呼叫链回存范围小于 grain-- -- 全网回存:它允许属于当前链条的电话取得进展,同时保留不互连的默认不接不连通的通话。 `AlwaysInterleave` 和 `MayInterleave` 是明确的选择,因为它们以较简单的变数交易来吞吐或避免依赖周期。
 
-## Runtime context and inline execution
+<a id="runtime-context-and-inline-execution"></a>
 
-`ActivationTaskScheduler.TryExecuteTaskInline` permits inline execution only when the current `RuntimeContext` belongs to the same `WorkItemGroup` and the task was not already queued. Runtime helpers follow the same rule: execute inline in the matching grain context, otherwise enqueue.
+## 运行时间背景和内联执行
 
-This prevents a continuation or runtime callback from bypassing activation isolation simply because it originated on a thread which is already processing Orleans work.
+`ActivationTaskScheduler.TryExecuteTaskInline` 只有在当前 `RuntimeContext` 属于同一 `WorkItemGroup` 并且任务尚未排队的情况下才允许内线执行。运行时间助手遵循相同的规则:在匹配 grain 上下文中执行内线,否则将进行排队。
 
-## Blocking and escaping the scheduler
+这防止了连续或即时回调,而仅仅因为其起源于已经处理 Orleans 工作的线条,就无法绕过启动隔离。
 
-Blocking a turn prevents every queued continuation and admitted request for that activation from progressing. Sync-over-async can deadlock when the awaited completion needs the same activation scheduler.
+<a id="blocking-and-escaping-the-scheduler"></a>
 
-<xref:System.Threading.Tasks.Task.Run*> executes outside the activation scheduler. It can be useful for isolated CPU work, but code running there must not directly access mutable grain state or assume `RuntimeContext.Current` is the activation. Return immutable results and apply them in a scheduled continuation.
+## 屏蔽和逃出调度器
 
-## Fairness and diagnostics
+屏蔽转弯阻止了排队的每次续编,并承认启动请求已停止。 当等待完成时需要相同的激活调度器时,同步超同步可能会陷入僵局。
 
-`WorkItemGroup` drains work subject to runtime scheduling limits so one busy activation does not permanently own a thread-pool worker. Long synchronous turns still delay other work and are reported by runtime scheduling diagnostics. The [.NET diagnostics tools](https://learn.microsoft.com/dotnet/core/diagnostics/) provide the underlying runtime traces, counters, and dumps used alongside Orleans telemetry.
+<xref:System.Threading.Tasks.Task.Run*> 执行在激活调度器之外。 它可用于孤立的 CPU 工作, 但运行该程序代码时不能直接访问可变 grain 状态, 或者假设 `RuntimeContext.Current` 是激活。 返回不可变的结果并在预定的续延中应用它们 。
 
-Scheduling guarantees are local to an activation. They do not order calls across grains, create a distributed lock, or provide message exactly-once behavior.
+<a id="fairness-and-diagnostics"></a>
 
-Activations compete on the process-wide thread pool. A long synchronous turn consumes a worker and delays that activation's requests; a burst of work across many activations increases that competition. Queue length and turn-duration diagnostics indicate capacity pressure and require additional evidence to diagnose deadlock.
+## 公平和诊断
+
+`WorkItemGroup` 排水工作受到时间紧迫的排泄安排限制,因此一个忙碌的激活活动无法永久拥有一个线性资源库工人。 长同步转折仍然延缓其他工作,并且通过运行时排期诊断报告。 [.NET 诊断工具](https://learn.microsoft.com/dotnet/core/diagnostics/) 提供与 Orleans 遥测
+
+排程保障是本地到激活的。 它们不命令跨 grains调用, 创建分布式锁, 或者提供信息, 或提供完全自动的行为 。
+
+启动活动在全过程的线性球中竞争。 长期同步转折会消耗工人,而激活请求的延迟会耗尽工人;许多启动活动的一连串工作都增加了竞争。 问题在于长度和周期诊断显示能力压力,需要更多证据来判断僵局。

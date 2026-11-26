@@ -6,7 +6,7 @@ namespace Orleans.Clustering.TestKit;
 
 internal sealed record SuspectSnapshot(string Identity, DateTime Time);
 
-// No mutable MembershipEntry, SiloAddress endpoint, or list is kept in an observation.
+// 没有可变 MembershipEntry、 SiloAddress 终点或清单保留在观察中。
 internal sealed record MembershipEntrySnapshot(
     string Identity, SiloStatus Status, int ProxyPort, string HostName, string SiloName,
     string? RoleName, int UpdateZone, int FaultZone, DateTime StartTime, DateTime IAmAliveTime,
@@ -38,7 +38,7 @@ internal sealed record MembershipEntrySnapshot(
 
     internal string? Difference(MembershipEntrySnapshot actual, bool complete)
     {
-        // Compare values, not display strings. Capture normalizes the absent optional role name.
+        // 比较数值, 不显示字符串。 抓取将不存在的选角色名称正常化 。
         if (Identity != actual.Identity) return Field(nameof(Identity), Identity, actual.Identity);
         if (Status != actual.Status) return Field(nameof(Status), Status, actual.Status);
         if (ProxyPort != actual.ProxyPort) return Field(nameof(ProxyPort), ProxyPort, actual.ProxyPort);

@@ -1,20 +1,20 @@
 namespace Orleans.Runtime;
 
 /// <summary>
-/// An activation which components can keep alive while they have pending work.
+/// 启动,在部件有待处理工作时,可以保持其生命力。
 /// </summary>
 internal interface IActivationKeepAlive
 {
     /// <summary>
-    /// Prevents idle collection of the activation until a matching call to <see cref="ReleaseKeepAlive"/>.
+    /// 防止闲置的激活收藏,直到匹配到 <see cref="ReleaseKeepAlive"/>。
     /// </summary>
     /// <remarks>
-    /// Holds are counted. Memory-pressure collection and explicit deactivation do not observe holds.
+    /// 内存压力收集与明确解除作用不观察搁置。
     /// </remarks>
     void AcquireKeepAlive();
 
     /// <summary>
-    /// Releases a hold acquired by <see cref="AcquireKeepAlive"/>. Releasing the last hold restarts the idle period of a valid activation.
+    /// 释放 <see cref="AcquireKeepAlive"/>获得的持有量。解除最后持有量将重新启动有效激活的闲置期 。
     /// </summary>
     void ReleaseKeepAlive();
 }

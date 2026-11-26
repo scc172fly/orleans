@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// Helper for testing buffer types.
+    /// 缓冲型测试助手。
     /// </summary>
     [ExcludeFromCodeCoverage]
     internal static class BufferTestHelper<TValue>

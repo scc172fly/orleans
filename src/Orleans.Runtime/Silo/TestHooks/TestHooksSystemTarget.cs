@@ -15,7 +15,7 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Runtime.TestHooks
 {
     /// <summary>
-    /// A fake, test-only implementation of <see cref="IEnvironmentStatisticsProvider"/>.
+    /// 假的、只试执行 <see cref="IEnvironmentStatisticsProvider"/>。
     /// </summary>
     internal class TestHooksEnvironmentStatisticsProvider : IEnvironmentStatisticsProvider
     {
@@ -39,7 +39,7 @@ namespace Orleans.Runtime.TestHooks
     }
 
     /// <summary>
-    /// Test hook functions for white box testing implemented as a SystemTarget
+    /// 白箱测试的测试钩功能,作为 SystemTarget
     /// </summary>
     internal sealed class TestHooksSystemTarget : SystemTarget, ITestHooksSystemTarget
     {

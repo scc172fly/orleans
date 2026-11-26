@@ -5,14 +5,14 @@ using Orleans.EventSourcing;
 namespace TestGrains
 {
     /// <summary>
-    /// An example of a journaled grain that records seat reservations.
+    /// 记录座位预订的已出版 grain 号记录。
     /// 
-    /// Configured to have one instance per cluster.
-    /// Configured to use the default storage provider.
-    /// Configured to use the StateStorage consistency provider.
+    /// 配置为每个集有一个实例 。
+    /// 配置后使用默认的存储提供者。
+    /// 配置后使用 StateStorage 一致性提供商。
     /// 
-    /// This means we persist the latest state only ... we are not truly "event sourcing".
-    /// It is not necessary here to persist all events, as the state already stores all the successful reservations.
+    /// 也就是说我们坚持最新状态... 我们不是真正的“活动来源”。
+    /// 没有必要在这里坚持所有事件,因为国家已经储存了所有成功的预订。
     /// 
     /// </summary>
 
@@ -23,14 +23,14 @@ namespace TestGrains
 
         public async Task<bool> Reserve(int seatnumber, string userid)
         {
-            // first, enqueue the request
+            // 首, 排在请求前
             RaiseEvent(new SeatReservation() { Seat = seatnumber, UserId = userid });
 
-            // then, wait for the request to propagate
+            // 然后,等待传播请求
             await ConfirmEvents();
 
-            // we can determine if the reservation went through
-            // by re-reading it - if it is not there, it means a different user won
+            // 我们能确定保留是否经过
+            // 重新阅读它 - 如果它不在那里, 这意味着另一个用户赢了
             var success = (State.Reservations.ContainsKey(seatnumber)
                                  && State.Reservations[seatnumber].UserId == userid);
             return success;
@@ -39,7 +39,7 @@ namespace TestGrains
 
 
     /// <summary>
-    /// The state of the reservation grain
+    /// 保留的状况 grain
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]
@@ -55,16 +55,16 @@ namespace TestGrains
 
         private void Apply(SeatReservation reservation)
         {
-            // see if this reservation targets an available seat
-            // otherwise, treat it as a no-op
-            // (this is a "first writer wins" conflict resolution)
+            // 查看此项保留是否针对一个可用的座位
+            // 否则,就当做不接
+            // (这是第一个作家赢得”冲突解决)
             if (!Reservations.ContainsKey(reservation.Seat))
                 Reservations.Add(reservation.Seat, reservation);
         }
     }
 
     /// <summary>
-    /// The class that defines the update operation when a reservation is requested
+    /// 当请求保留时定义更新操作的类别
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]

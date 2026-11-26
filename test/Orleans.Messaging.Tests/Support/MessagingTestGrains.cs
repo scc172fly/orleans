@@ -101,7 +101,7 @@ public sealed class MessagingTestGrain : DurableGrain, IMessagingTestGrain, IDur
     private int _activeHandlers;
     private int _maxConcurrentHandlers;
     private bool _handlerRegistered;
-    // Spans activations so a replayed message does not fail again after recovery.
+    // Spans 激活, 这样重放信件在恢复后不会再次失败 。
     private static readonly ConcurrentDictionary<MessageId, byte> FailedOnce = new();
     private static readonly ConcurrentDictionary<MessageId, int> FailedAttempts = new();
 
@@ -414,7 +414,7 @@ public sealed class MessagingTestGrain : DurableGrain, IMessagingTestGrain, IDur
             }
             if (message.ThrowAfterSending && outgoing is { } unsent)
             {
-                // The handler fails after its outbox send, before it stages its effect.
+                // 处理器发送发件箱后失败, 在它开始作用之前。
                 _outbox.Send(unsent);
                 throw new InvalidOperationException($"Injected handler failure after sending for {message.LogicalId}.");
             }
@@ -496,7 +496,7 @@ public sealed class MessagingTestGrain : DurableGrain, IMessagingTestGrain, IDur
     }
 }
 
-// Tests can change registration between real activations without adding a production registry API.
+// 测试可以改变实际引爆之间的登记,而不增加生产登记册 API。
 public sealed class TestHandlerConfiguration
 {
     private readonly ConcurrentDictionary<GrainId, bool> _enabled = new();

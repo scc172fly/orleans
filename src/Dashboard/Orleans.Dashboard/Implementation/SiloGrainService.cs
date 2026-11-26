@@ -15,7 +15,7 @@ namespace Orleans.Dashboard.Implementation;
 
 internal sealed partial class SiloGrainService : GrainService, ISiloGrainService
 {
-    private const int DefaultTimerIntervalMs = 1000; // 1 second
+    private const int DefaultTimerIntervalMs = 1000; // 1 秒
     private readonly Queue<SiloRuntimeStatistics?> _statistics;
     private readonly Dictionary<string, StatCounter> _counters = [];
     private readonly DashboardOptions _options;
@@ -103,7 +103,7 @@ internal sealed partial class SiloGrainService : GrainService, ISiloGrainService
         }
         catch (Exception)
         {
-            // we can't get the silo stats, it's probably dead, so kill the grain
+            // 我们无法获得 silo 数据, 它可能已经死了,所以杀了 grain
             if (canDeactivate)
             {
                 _timer?.Dispose();

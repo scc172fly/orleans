@@ -3,7 +3,7 @@ namespace UnitTests.StorageTests.Relational.TestDataSets
     public static class GrainTypeGenerator
     {
         /// <summary>
-        /// A sentinel value for when a generic parameter isn't used and applied to some function call.
+        /// 当通用参数未被使用并应用到某些函数调用时, 将一个监控值用于该值。
         /// </summary>
         private class NotApplicable { };
 
@@ -65,17 +65,17 @@ namespace UnitTests.StorageTests.Relational.TestDataSets
             return GetGrainType<TGrainKey, NotApplicable>();
         }
 
-        // Orleans.Storage.AdoNetStorageProvider cannot be resolved, because the containing assembly is not referenced since not needed.
+        // Orleans.Storage.AdoNetStorageProvider 无法解决,因为由于不需要,没有提及含有组件的组装。
 #pragma warning disable 1574
         /// <summary>
-        /// Returns a grain type name.
+        /// 返回 grain 类型名称。
         /// </summary>
-        /// <typeparam name="TGrainKey">Used to choose the key type interface.</typeparam>
-        /// <typeparam name="TGrain">Used to choose the type of grain.</typeparam>
-        /// <returns>The class in typeof(T).AssemblyQualifiedName form.</returns>
-        /// <remarks> ASSUMES Orleans give <em>grainType</em> parameters in this form to <see cref="Orleans.Storage.IStorageProvider"/> interface implementing functions.
-        /// In <see cref="Orleans.Storage.AdoNetStorageProvider"/> private function <em>ExtractClassBaseType</em> relies this is in this form. Should be fixed
-        /// if/when this is changed in Orleans.
+        /// <typeparam name="TGrainKey">用于选择密钥类型接口。</typeparam>
+        /// <typeparam name="TGrain">用于选择 grain的类型。</typeparam>
+        /// <returns>类型( T) 中的类别 。AssemblyQualifiedName 窗体。</returns>
+        /// <remarks> Asumes Orleans 将这种形式的 <em>grainType</em> 参数改为 <see cref="Orleans.Storage.IStorageProvider"/> 接口执行功能。
+        /// 在 <see cref="Orleans.Storage.AdoNetStorageProvider"/> 私用函数 <em>ExtractClassBaseType</em> 中,此格式为此。应该固定
+        /// 是否/如果在 Orleans中更改了该数值。
         /// </remarks>
 #pragma warning restore 1574
         public static string GetGrainType<TGrainKey, TGrain>()

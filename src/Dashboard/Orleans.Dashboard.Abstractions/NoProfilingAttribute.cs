@@ -3,15 +3,15 @@ using System;
 namespace Orleans.Dashboard;
 
 /// <summary>
-/// Suppresses profiling for grain classes or methods, preventing them from being tracked by the Orleans Dashboard profiler.
-/// Apply this attribute to exclude specific grains or methods from performance metrics collection.
+/// 以 grain 类或方法进行禁止性特征分析,防止 Orleans 戴斯板剖面图仪跟踪这些特征分析。
+/// 应用此属性将特定 grains 或方法排除在性能衡量收集之外。
 /// </summary>
 /// <example>
 /// <code>
 /// [NoProfiling]
 /// public class MyInternalGrain : Grain
 /// {
-///     // This entire grain will not be profiled
+///     // 这个 Grain 不会被分析
 /// }
 ///
 /// public class MyGrain : Grain
@@ -19,7 +19,7 @@ namespace Orleans.Dashboard;
 ///     [NoProfiling]
 ///     public Task InternalMethod()
 ///     {
-///         // This specific method will not be profiled
+///         // 此方法不会被分析
 ///     }
 /// }
 /// </code>

@@ -4,17 +4,17 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Indicates a lifecycle was canceled, either by request or due to observer error.
+    /// 表示存在周期因请求或观察员错误而被取消。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class OrleansLifecycleCanceledException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansLifecycleCanceledException"/> class.
+        /// 初始化 <see cref="OrleansLifecycleCanceledException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         internal OrleansLifecycleCanceledException(string message)
             : base(message)
@@ -22,13 +22,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansLifecycleCanceledException"/> class.
+        /// 初始化 <see cref="OrleansLifecycleCanceledException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// The message.
+        /// 信息
         /// </param>
         /// <param name="innerException">
-        /// The inner exception.
+        /// 内在的例外
         /// </param>
         internal OrleansLifecycleCanceledException(string message, Exception innerException)
             : base(message, innerException)
@@ -36,16 +36,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrleansLifecycleCanceledException"/> class.
+        /// 初始化 <see cref="OrleansLifecycleCanceledException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// The serialization info.
+        /// 序列信息
         /// </param>
         /// <param name="context">
-        /// The context.
+        /// 背景。
         /// </param>
-        /// <exception cref="SerializationException">The class name is <see langword="null" /> or <see cref="P:System.Exception.HResult" /> is zero (0).</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="info" /> is <see langword="null" />.</exception>
+        /// <exception cref="SerializationException">类名为 <see langword="null" /> 或 <see cref="P:System.Exception.HResult" /> 为零(0)</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info" /> 是 <see langword="null" />.</exception>
         [Obsolete]
         private OrleansLifecycleCanceledException(SerializationInfo info, StreamingContext context)
             : base(info, context)

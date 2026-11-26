@@ -8,8 +8,8 @@ using Orleans.Runtime;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// Memory stream queue grain. This grain works as a storage queue of event data. Enqueue and Dequeue operations are supported.
-    /// the max event count sets the max storage limit to the queue.
+    /// 内存流队列 grain。 此 grain 作为事件数据的存储队列工作。 支持 Enqueue 和 dequeue 操作 。
+    /// 最大事件数设定队列的最大存储限制。
     /// </summary>
     public class MemoryStreamQueueGrain : Grain, IMemoryStreamQueueGrain, IGrainMigrationParticipant
     {
@@ -17,15 +17,15 @@ namespace Orleans.Providers
         private long sequenceNumber = DateTime.UtcNow.Ticks;
 
         /// <summary>
-        /// The maximum event count. 
+        /// 最大事件数 。 
         /// </summary>
         private const int MaxEventCount = 16384;
 
         /// <summary>
-        /// Enqueues an event data. If the current total count reaches the max limit. throws an exception.
+        /// 添加事件数据。如果当前总数达到最大限制,则会丢弃一个例外。
         /// </summary>
-        /// <param name="data">The event data.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="data">事件数据。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         public Task Enqueue(MemoryMessageData data)
             => Enqueue(data, CancellationToken.None);
 
@@ -43,10 +43,10 @@ namespace Orleans.Providers
         }
 
         /// <summary>
-        /// Dequeues up to a max amount of maxCount event data from the queue.
+        /// 从队列中删除最多不超过 maxCount 事件数据 。
         /// </summary>
-        /// <param name="maxCount">The maximum number of events to dequeue.</param>
-        /// <returns>The dequeued events.</returns>
+        /// <param name="maxCount">取消排队的最大事件次数。</param>
+        /// <returns>被压抑的事件</returns>
         public Task<List<MemoryMessageData>> Dequeue(int maxCount)
             => Dequeue(maxCount, CancellationToken.None);
 

@@ -1,19 +1,19 @@
 # OrleansWebApp
 
-This ASP.NET Core application co-hosts an Orleans silo. The HTTP endpoint resolves `IGrainFactory` from dependency injection and calls a grain in the same cluster.
+本 ASP.NET 核心应用程序共同主办一个 Orleans silo。HTTP终点通过依赖注射解决 `IGrainFactory` ,并在同一组中呼叫 grain 。
 
-Run the application:
+运行应用程序 :
 
 ```dotnetcli
 dotnet run
 ```
 
-Call the generated endpoint:
+调用生成的端点 :
 
 ```console
 curl http://localhost:5000/hello/Ada
 ```
 
-The endpoint returns `Hello, Ada!`.
+终点返回 `Hello, Ada!`。
 
-The generated app uses localhost clustering for local development. Configure a shared clustering provider, durable storage, and production endpoints before deploying multiple instances.
+生成的应用程序使用本地主机群集促进本地发展。 在部署多个实例之前配置共享集群提供商、耐久存储和生产端点。

@@ -1,7 +1,7 @@
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Contains the configuration used to create a transactional state facet.
+    /// 包含用于创建交易状态元件的配置。
     /// </summary>
     public class TransactionalStateConfiguration : ITransactionalStateConfiguration
     {
@@ -9,10 +9,10 @@ namespace Orleans.Transactions.Abstractions
         private readonly string? storage;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionalStateConfiguration"/> class.
+        /// 初始化 <see cref="TransactionalStateConfiguration"/> 类的新实例。
         /// </summary>
-        /// <param name="config">The state and storage configuration.</param>
-        /// <param name="supportedRoles">The transaction participant roles supported by the state.</param>
+        /// <param name="config">状态和储存配置。</param>
+        /// <param name="supportedRoles">国家支持的交易参与作用。</param>
         public TransactionalStateConfiguration(ITransactionalStateConfiguration config, ParticipantId.Role supportedRoles = ParticipantId.Role.Resource | ParticipantId.Role.Manager)
         {
             this.name = config.StateName;
@@ -27,22 +27,22 @@ namespace Orleans.Transactions.Abstractions
         public string? StorageName => this.storage;
 
         /// <summary>
-        /// Gets the transaction participant roles supported by the state.
+        /// 获得国家支持的交易参与角色。
         /// </summary>
         public ParticipantId.Role SupportedRoles { get; }
     }
 
     /// <summary>
-    /// Creates transactional state facets for grain activations.
+    /// 创建用于启动 grain 的交易状态方方面面。
     /// </summary>
     public interface ITransactionalStateFactory
     {
         /// <summary>
-        /// Creates a transactional state facet using the specified configuration.
+        /// 使用指定配置创建交易状态表。
         /// </summary>
-        /// <typeparam name="TState">The transactional state type.</typeparam>
-        /// <param name="config">The transactional state configuration.</param>
-        /// <returns>The configured transactional state facet.</returns>
+        /// <typeparam name="TState">交易状态类型。</typeparam>
+        /// <param name="config">交易状态配置。</param>
+        /// <returns>配置的交易状态元件。</returns>
         ITransactionalState<TState> Create<TState>(TransactionalStateConfiguration config) where TState : class, new();
     }
 }

@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>Tests the rules for effects, definitions, names, scheduling, cancellation, signals, and logging.</summary>
+/// <summary>测试效果、定义、名称、时间安排、取消、信号和伐木的规则。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskUsageRuleTests
 {

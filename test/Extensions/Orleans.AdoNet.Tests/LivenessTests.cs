@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// Tests for Orleans silo membership liveness functionality using SQL Server as the membership provider.
+    /// 试验 Orleans silo 使用 SQL 服务器作为会员提供商。
     /// </summary>
     [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("Membership"), TestCategory("AdoNet")]
     [TestSuite("Functional")]
@@ -95,7 +95,7 @@ namespace UnitTests.MembershipTests
     }
 
     /// <summary>
-    /// Tests for Orleans silo membership liveness functionality using PostgreSQL as the membership provider.
+    /// 试验 Orleans silo 使用 PostgreSQL 作为成员提供方。
     /// </summary>
     [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("Membership"), TestCategory("AdoNet")]
     [TestSuite("Functional")]
@@ -183,7 +183,7 @@ namespace UnitTests.MembershipTests
     }
 
     /// <summary>
-    /// Tests for Orleans silo membership liveness functionality using MySQL as the membership provider.
+    /// 试验 Orleans silo 使用 MySQL 作为成员提供方。
     /// </summary>
     [TestCategory("MySql"), TestCategory("Functional"), TestCategory("Membership"), TestCategory("AdoNet")]
     [TestSuite("Functional")]

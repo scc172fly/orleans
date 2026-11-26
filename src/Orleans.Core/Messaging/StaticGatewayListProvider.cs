@@ -8,7 +8,7 @@ using Orleans.Configuration;
 namespace Orleans.Messaging
 {
     /// <summary>
-    /// <see cref="IGatewayListProvider"/> implementation which returns a static list, configured via <see cref="StaticGatewayListProviderOptions"/>.
+    /// <see cref="IGatewayListProvider"/> 执行返回通过 <see cref="StaticGatewayListProviderOptions"/>配置的静态列表。
     /// </summary>
     public class StaticGatewayListProvider : IGatewayListProvider
     {
@@ -16,10 +16,10 @@ namespace Orleans.Messaging
         private readonly TimeSpan maxStaleness;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StaticGatewayListProvider"/> class.
+        /// 初始化 <see cref="StaticGatewayListProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The specific options.</param>
-        /// <param name="gatewayOptions">The general gateway options.</param>
+        /// <param name="options">具体备选办法。</param>
+        /// <param name="gatewayOptions">通用网关选项。</param>
         public StaticGatewayListProvider(IOptions<StaticGatewayListProviderOptions> options, IOptions<GatewayOptions> gatewayOptions)
         {
             this.options = options.Value;

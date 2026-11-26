@@ -1,23 +1,23 @@
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Provides functionality to record the creation and deletion of grain timers.
+/// 提供功能,记录 grain 计时器的创建和删除。
 /// </summary>
 internal interface IGrainTimerRegistry
 {
     /// <summary>
-    /// Signals to the registry that a timer was created.
+    /// 向登记处发出信号,显示创建了定时器。
     /// </summary>
     /// <param name="timer">
-    /// The timer.
+    /// 计时器
     /// </param>
     void OnTimerCreated(IGrainTimer timer);
 
     /// <summary>
-    /// Signals to the registry that a timer was disposed.
+    /// 向登记处发出关于处置定时器的信号。
     /// </summary>
     /// <param name="timer">
-    /// The timer.
+    /// 计时器
     /// </param>
     void OnTimerDisposed(IGrainTimer timer);
 }

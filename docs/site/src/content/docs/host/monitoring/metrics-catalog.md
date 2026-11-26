@@ -1,329 +1,357 @@
 ---
-title: Orleans metrics catalog
-description: Complete reference for metrics emitted by the Microsoft.Orleans meter.
+title: "Orleans 指标目录"
+description: "Microsoft.Orleans 计数所排放的计量指标完整参考。"
 ms.date: 08/18/2026
 ms.topic: reference
 ---
 
-# Orleans metrics catalog
+<a id="orleans-metrics-catalog"></a>
 
-This catalog lists every instrument created for the `Microsoft.Orleans` meter in the current source tree. Core runtime instruments are available when their component runs. Streaming, transactions, durable jobs, journaling, and provider-specific instruments appear only when those features are configured. Discover the instruments emitted by the deployed Orleans version because releases and configured packages can differ.
+# Orleans 指标目录
 
-The **Unit** column gives the natural unit recorded by Orleans. "Implicit" means the instrument doesn't set unit metadata. `TimeSpan` ticks are 100 nanoseconds. The **Attributes** column lists attributes added by Orleans; resource attributes such as `service.instance.id` also identify each time series.
+此目录列出了当前源树中为 `Microsoft.Orleans` 仪表创建的每个工具。 当组件运行时, 核心运行时间工具可用。 流、 交易、 耐久性任务、 日记和供应商专用仪器只有在这些特性配置时才出现。 发现已部署的 Orleans 版本所释放的工具, 因为发布和配置包可能不同 。
 
-Instrument types use these abbreviations:
+**单位** 栏给出了 Orleans记录的自然单位。“隐含”是指工具不设置单位元数据。 `TimeSpan` 计数为 100毫秒。 **属性** 列列表由 Orleans所添加的属性;资源属性,如 `service.instance.id` ,也标明每个时间序列。
+
+使用这些缩略语的仪器类型:
 
 - **C**: <xref:System.Diagnostics.Metrics.Counter`1>
-- **OC**: <xref:System.Diagnostics.Metrics.ObservableCounter`1>
-- **UDC**: <xref:System.Diagnostics.Metrics.UpDownCounter`1>
-- **OG**: <xref:System.Diagnostics.Metrics.ObservableGauge`1>
+- **OC(石油公司)**: <xref:System.Diagnostics.Metrics.ObservableCounter`1>
+- **UDC 统一和华联**: <xref:System.Diagnostics.Metrics.UpDownCounter`1>
+- **零零零零**: <xref:System.Diagnostics.Metrics.ObservableGauge`1>
 - **H**: <xref:System.Diagnostics.Metrics.Histogram`1>
 
-Some instruments retain historical types or unit strings. The descriptions below state the runtime behavior so queries can preserve those semantics.
+有些仪器保留了历史类型或单位字符串。下面的描述说明了运行时间行为,以便查询可以保存这些语义。
 
-## Application requests and clients
+<a id="application-requests-and-clients"></a>
 
-| Instrument | Type | Unit | Attributes | Description |
+## 申请请求和客户
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-app-requests-canceled` | C | Requests, implicit | `grain_type` | Outbound grain requests canceled by their caller. |
-| `orleans-app-requests-latency` | H | `ms` | - | Distribution of caller-observed elapsed time for completed outbound request callbacks. Configure application-specific bucket boundaries using an exporter View. |
-| `orleans-app-requests-timedout` | C | Requests, implicit | `grain_type` | Outbound grain requests which exceeded the configured response timeout. |
-| `orleans-client-connected-gateways` | OG | Gateways, implicit | - | Gateway connections currently held by an Orleans client. |
+| `orleans-app-requests-canceled` | C | 默示要求 | `grain_type` | 出 grain 被他们的电话人取消请求 |
+| `orleans-app-requests-latency` | H | `ms` | - | 完成外出请求回馈的通话时间的间隔。 使用出口商视图配置具体应用程序的桶底界限 。 |
+| `orleans-app-requests-timedout` | C | 默示要求 | `grain_type` | 超出配置响应超时的外传 grain 请求。 |
+| `orleans-client-connected-gateways` | 零零零零 | 隐式网关 | - | 由 Orleans 客户端目前持有的网关连接 。 |
 
-Request latency covers the interval until the caller's callback completes, including terminal timeout, cancellation, target-silo failure, and host-shutdown paths.
+请求的延迟时间覆盖呼叫者回调完成之前的间隔,包括结束超时、取消、目标-silo 失败和主机休眠路径。
 
-## Networking, gateways, and messaging
+<a id="networking-gateways-and-messaging"></a>
 
-| Instrument | Type | Unit | Attributes | Description |
+## 联网、网关和短信
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-gateway-connected-clients` | UDC | Clients, implicit | - | Client identities currently tracked by a silo gateway, including disconnected clients retained during the configured drop timeout. |
-| `orleans-gateway-load-shedding` | C | Messages, implicit | - | Client requests rejected because the gateway overload detector reported saturation. |
-| `orleans-gateway-received` | C | Messages, implicit | - | Messages received by a silo through a client gateway connection. |
-| `orleans-gateway-sent` | C | Messages, implicit | - | Gateway message-send events, including messages written to client connections. |
-| `orleans-messaging-expired` | C | Messages, implicit | `Phase` | Messages which expired during `Send`, `Receive`, `Dispatch`, `Invoke`, or `Respond`. |
-| `orleans-messaging-pings-received` | C | Pings, implicit | `Destination` | Membership probe messages received from the identified silo address. |
-| `orleans-messaging-pings-reply-missed` | C | Replies, implicit | `Destination` | Direct or indirect membership probes which didn't receive a successful reply from the identified silo address. |
-| `orleans-messaging-pings-reply-received` | C | Replies, implicit | `Destination` | Successful direct or indirect membership probe replies from the identified silo address. |
-| `orleans-messaging-pings-sent` | C | Pings, implicit | `Destination` | Membership probe messages sent to the identified silo address. |
-| `orleans-messaging-processing-activation-data` | OG | Requests, implicit | - | Requests currently queued or executing across all grain activations on the silo. |
-| `orleans-messaging-processing-dispatcher-forwarded` | OC | Messages, implicit | - | Messages forwarded by the dispatcher. |
-| `orleans-messaging-processing-dispatcher-processed` | OC | Messages, implicit | `Direction`, `Status` | Messages processed by the dispatcher, split by message direction and `Ok` or `Error` result. |
-| `orleans-messaging-processing-dispatcher-received` | OC | Messages, implicit | `Context`, `Direction` | Messages received by the dispatcher, split by message direction and whether a grain runtime context was present. |
-| `orleans-messaging-processing-ima-enqueued` | OC | Messages, implicit | `Context` | Messages enqueued to an incoming-message-agent target: `ToNull`, `ToSystemTarget`, or `ToGrain`. |
-| `orleans-messaging-processing-ima-received` | OC | Messages, implicit | - | Messages received by the incoming message agent. |
-| `orleans-messaging-received-header-size` | OC | `bytes` | - | Cumulative serialized header bytes received by the process. |
-| `orleans-messaging-received-messages-size` | H | `bytes` | `ConnectionDirection`, `MessageDirection`, optional `silo` | Distribution of total received message sizes. |
-| `orleans-messaging-rejected` | C | Messages, implicit | `Direction` | Messages rejected by the runtime. |
-| `orleans-messaging-rerouted` | C | Messages, implicit | `Direction` | Messages rerouted after their original route couldn't be used. |
-| `orleans-messaging-sent-dropped` | C | Messages, implicit | `Direction` | Outbound messages dropped before successful transmission. |
-| `orleans-messaging-sent-failed` | C | Messages, implicit | `Direction` | Outbound messages whose send attempt failed. |
-| `orleans-messaging-sent-header-size` | OC | `bytes` | - | Cumulative serialized header bytes sent by the process. |
-| `orleans-messaging-sent-local` | OC | Messages, implicit | - | Messages delivered locally without a network send. |
-| `orleans-messaging-sent-messages-size` | H | `bytes` | `ConnectionDirection`, `MessageDirection`, optional `silo` | Distribution of total sent message sizes. |
-| `orleans-networking-sockets-closed` | C | Sockets, implicit | `Direction` | Network connections closed, split by connection direction. |
-| `orleans-networking-sockets-opened` | C | Sockets, implicit | `Direction` | Network connections opened, split by connection direction. |
+| `orleans-gateway-connected-clients` | UDC 统一和华联 | 隐含客户 | - | 目前由 silo 网关跟踪的客户身份,包括在配置的暂停使用期间保留的断开客户端。 |
+| `orleans-gateway-load-shedding` | C | 暗含信息 | - | 客户请求被拒绝,因为网关超载探测器报告饱和。 |
+| `orleans-gateway-received` | C | 暗含信息 | - | silo 通过客户端网关连接接收的信件。 |
+| `orleans-gateway-sent` | C | 暗含信息 | - | 网关信息发送事件,包括给客户端连接的文字。 |
+| `orleans-messaging-expired` | C | 暗含信息 | `Phase` | 在 `Send`、 `Receive`、 `Dispatch`、 `Invoke`或 `Respond`期间过期的邮件。 |
+| `orleans-messaging-pings-received` | C | 暗中的 | `Destination` | 成员查询从已查明的 silo 地址收到的信息。 |
+| `orleans-messaging-pings-reply-missed` | C | 默示答复 | `Destination` | 直接或间接成员调查没有得到已查明的 silo 地址成功答复。 |
+| `orleans-messaging-pings-reply-received` | C | 默示答复 | `Destination` | 成功直接或间接的成员从已确定的 silo 地址中寻找答复。 |
+| `orleans-messaging-pings-sent` | C | 暗中的 | `Destination` | 成员查询发送到已确认的 silo 地址的信息。 |
+| `orleans-messaging-processing-activation-data` | 零零零零 | 默示要求 | - | 目前排队或执行的请求 grain 启动 silo. |
+| `orleans-messaging-processing-dispatcher-forwarded` | OC(石油公司) | 暗含信息 | - | 调度员发送的信息。 |
+| `orleans-messaging-processing-dispatcher-processed` | OC(石油公司) | 暗含信息 | `Direction`, `Status` | 由发件人处理的、按信件方向和 `Ok` 或 `Error` 结果拆分的信件。 |
+| `orleans-messaging-processing-dispatcher-received` | OC(石油公司) | 暗含信息 | `Context`, `Direction` | 发件人收到的信息,按信件方向和是否存在 grain 运行时段进行分割。 |
+| `orleans-messaging-processing-ima-enqueued` | OC(石油公司) | 暗含信息 | `Context` | 排队到收件信件代理目标的邮件: `ToNull`、 `ToSystemTarget`或 `ToGrain`。 |
+| `orleans-messaging-processing-ima-received` | OC(石油公司) | 暗含信息 | - | 收到信息后,收到信息代理。 |
+| `orleans-messaging-received-header-size` | OC(石油公司) | `bytes` | - | 程序收到的累计序列页头字字节。 |
+| `orleans-messaging-received-messages-size` | H | `bytes` | `ConnectionDirection`、 `MessageDirection`、任择 `silo` | 收到的信息总数量分布。 |
+| `orleans-messaging-rejected` | C | 暗含信息 | `Direction` | 运行时拒绝的消息 。 |
+| `orleans-messaging-rerouted` | C | 暗含信息 | `Direction` | 无法使用原始路径后更改信件的路径 。 |
+| `orleans-messaging-sent-dropped` | C | 暗含信息 | `Direction` | 发送信息成功之前,即已发出。 |
+| `orleans-messaging-sent-failed` | C | 暗含信息 | `Direction` | 发送失败的外传信息。 |
+| `orleans-messaging-sent-header-size` | OC(石油公司) | `bytes` | - | 程序发送的累计序列页头字节。 |
+| `orleans-messaging-sent-local` | OC(石油公司) | 暗含信息 | - | 本地发送的讯息没有网络发送 。 |
+| `orleans-messaging-sent-messages-size` | H | `bytes` | `ConnectionDirection`、 `MessageDirection`、任择 `silo` | 发送信件总大小的分布。 |
+| `orleans-networking-sockets-closed` | C | 隐含的袜索 | `Direction` | 网络连接关闭, 按连接方向分隔 。 |
+| `orleans-networking-sockets-opened` | C | 隐含的袜索 | `Direction` | 打开网络连接, 由连接方向分隔 。 |
 
-`Destination` and `silo` contain silo addresses and incarnations. They are useful during incident diagnosis and can create new time series during restarts.
+`Destination` 和 `silo` 含有 silo 地址和内装物。在事故诊断期间有用,可以在重新启动时创建新的时间序列。
 
-## Scheduling, activations, and grains
+<a id="scheduling-activations-and-grains"></a>
 
-| Instrument | Type | Unit | Attributes | Description |
+## 排程、启动和 grains
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-catalog-activation-collections` | C | Scans, implicit | - | Activation-collection scans performed by the silo. |
-| `orleans-catalog-activation-concurrent-registration-attempts` | C | Attempts, implicit | `grain_type` | Activation registrations which encountered an activation already registered elsewhere. |
-| `orleans-catalog-activation-created` | C | Activations, implicit | `grain_type` | Grain contexts created by the silo catalog, including attempts which subsequently fail activation. |
-| `orleans-catalog-activation-destroyed` | C | Activations, implicit | `grain_type` | Grain contexts successfully unregistered from the silo catalog. |
-| `orleans-catalog-activation-failed-to-activate` | C | Activations, implicit | `grain_type` | Activations whose lifecycle initialization failed or was canceled. |
-| `orleans-catalog-activation-latency` | H | `ms` | `grain_type`, `status`, `directory` | Activation duration, split by outcome and whether the grain uses the directory (`enabled` or `disabled`). Status values are `success`, `canceled`, `directory_error`, `duplicate`, and `error`. |
-| `orleans-catalog-activation-non-existent` | C | Messages, implicit | `grain_type` | Requests for a new activation which the catalog could not create while the silo was inactive, tagged with the target's canonical grain type. |
-| `orleans-catalog-activation-shutdown` | C | Shutdown events, implicit | `via`, `grain_type` for individual activations | Activation shutdowns split by `collection`, `deactivateOnIdle`, `deactivateStuckActivation`, or `migration`. Includes the historical additional event for each nonempty collection batch, tagged only with `via=collection`. |
-| `orleans-catalog-activation-working-set` | OG | Activations, implicit | `grain_type` | Activations recently active on this silo, counted until working-set eviction or deactivation. |
-| `orleans-catalog-activations` | OG | Catalog entries, implicit | `grain_type` | Targets currently registered in the local activation directory, including system targets and stateless-worker group contexts. |
-| `orleans-catalog-deactivation-latency` | H | `ms` | `grain_type`, `via` | Deactivation duration, split by the shutdown path. `via=unknown` identifies completion before a shutdown path was selected. |
-| `orleans-grains` | UDC | Grains, implicit | `grain_type` | Constructed grain instances, incremented on instance assignment and decremented on disposal. Each stateless-worker instance contributes individually. |
-| `orleans-scheduler-long-running-turns` | C | Turns, implicit | - | Grain micro-turns whose synchronous execution exceeded <xref:Orleans.Configuration.SchedulingOptions.TurnWarningLengthThreshold>. |
-| `orleans-system-targets` | UDC | System targets, implicit | `type` | Current Orleans system-target instances by type. |
+| `orleans-catalog-activation-collections` | C | 暗扫描 | - | silo进行的动能感应扫描。 |
+| `orleans-catalog-activation-concurrent-registration-attempts` | C | 暗中尝试, | `grain_type` | 已经在其他地点登记的启动登记中遇到的激活登记。 |
+| `orleans-catalog-activation-created` | C | 内含的激活 | `grain_type` | Grain 由 silo 包括后来失败启动的尝试。 |
+| `orleans-catalog-activation-destroyed` | C | 内含的激活 | `grain_type` | Grain 上下文从 silo 目录中成功注册。 |
+| `orleans-catalog-activation-failed-to-activate` | C | 内含的激活 | `grain_type` | 其生命周期启动失败或被取消的活动。 |
+| `orleans-catalog-activation-latency` | H | `ms` | `grain_type`, `status`, `directory` | 激活期,按结果和 grain 是否使用目录(`enabled` 或 `disabled`)分列。状态值是 `success`、 `canceled`、 `directory_error`、 `duplicate`和 `error`。 |
+| `orleans-catalog-activation-non-existent` | C | 暗含信息 | `grain_type` | 请求新激活, 且该目录在 silo 不活动时无法创建, 并标有目标的语句类型 grain 。 |
+| `orleans-catalog-activation-shutdown` | C | 隐含的关闭事件 | `via`,用于个别激活的 `grain_type` | 激活关闭除以 `collection`、 `deactivateOnIdle`、 `deactivateStuckActivation`或 `migration`。包括每个非空收藏批次的历史性额外事件,仅标有 `via=collection`。 |
+| `orleans-catalog-activation-working-set` | 零零零零 | 内含的激活 | `grain_type` | 最近积极开展这项工作 silo,在工作安排驱逐或停止雇用之前计算。 |
+| `orleans-catalog-activations` | 零零零零 | 隐含的目录条目 | `grain_type` | 目前在当地启动目录中登记的目标,包括系统目标和无国籍者-工人群体背景。 |
+| `orleans-catalog-deactivation-latency` | H | `ms` | `grain_type`, `via` | 关闭路径分隔为关闭路径。 `via=unknown` 在选择关闭路径之前先确认完成时间 。 |
+| `orleans-grains` | UDC 统一和华联 | Grains,隐含 | `grain_type` | 构建了 grain 例,在案件分配上加插和处置时减少。 |
+| `orleans-scheduler-long-running-turns` | C | 旋转,隐含 | - | Grain 微转,其同步执行超过 <xref:Orleans.Configuration.SchedulingOptions.TurnWarningLengthThreshold>。 |
+| `orleans-system-targets` | UDC 统一和华联 | 系统目标,隐含 | `type` | 按类型分列的当前 Orleans 系统目标实例。 |
 
-### Grain-type identity and aggregation
+<a id="grain-type-identity-and-aggregation"></a>
 
-`grain_type` is the canonical string representation of the target's <xref:Orleans.Runtime.GrainType>, equivalent to `GrainId.Type.ToString()`. Each activation and targeted message carries this identity in its grain ID. Explicit grain-type names and constructed generic arguments are part of that identity, including a grain explicitly named `unknown`. The value can differ from the CLR implementation name.
+### Grain- 类型识别和聚合
 
-Activation metrics cache the canonical string and population counters per registered type for the silo lifetime. All activations of a type share this metadata. Rejected activation requests reuse cached names when available and otherwise format the target's grain type for that event, keeping cache growth tied to type registration. Working-set insertion/removal and activation-directory registration/removal update the corresponding populations. A scrape enumerates type counters, including zero counts after the last member leaves. Working-set members which expose no grain identity contribute an untagged population. The first idle working-set scan retains a member; eviction removes it. Completed transitions reconcile per-type and untagged sums with the corresponding local population; concurrent scrapes can observe transitions in progress.
+`grain_type` 是目标 <xref:Orleans.Runtime.GrainType>的直线字符串表示,相当于 `GrainId.Type.ToString()`。每个激活和定向电文都在其 grain ID中含有这一特性。 明确 grain-类型名称和构建的通用参数是该特性的一部分,包括一个明确命名的 grain `unknown`。其值可能不同于CLR执行名称。
 
-Lifecycle counters record additive events. Sum their increases across types and any untagged contributions for the same emitter and interval to recover total event volume. Collection scans and the additional collection-batch shutdown event retain their batch-level scope; individual activation events carry their grain type. A completed activation attempt contributes one latency observation with its outcome and directory tags; a completed deactivation contributes one observation with its shutdown path. Histograms begin timing when enabled at the start of the operation.
+激活指标在 silo 一生中将能量弦和人口计数器隐藏于每个登记类型。所有类型的激活都分享了这个元数据。拒绝启动请求重新使用缓存名称,并在有时以其他方式格式为该事件的目标 grain 类型格式,保持缓存增长与类型注册挂钩;工作设置插入/清除和激活-指令登记/删除更新相应的人口。一个刮号列出类型计数器,包括最后成员离开后零计数。暴露无 grain 身份的工类成员贡献了一个未标记的人口。第一个闲置的工作分类扫描保留了一名成员;驱逐了成员;完成过渡使每类和未标记的金额与相应当地居民相协调;同时出现的废料可以观察正在发生的转变。
 
-Constructed-instance counts are stored in the same per-type metadata and updated atomically during instance assignment and disposal. Management statistics read those counters and combine types sharing a CLR implementation name when collecting a snapshot; metric events retain each canonical grain-type identity.
+生命周期反转记录添加事件。 将不同类型和任何未加标记的投放器的增加数量和用于相同发泄器和间隔的附加收集批次停机事件以回收总事件量, 收藏扫描和额外的收缴批次停机事件保留其分批范围; 单个启动事件带有 grain 类型。 完成激活尝试有助于一次含结果和目录标签的潜伏观察; 已完成的失能会有助于一次观测, 并使用关闭路径。 直方图在操作开始时启用时开始计时 。
 
-Population gauges record snapshots. For a cluster total, select the latest fresh observation for each emitting silo and type, then sum across those silos. Preserve distinct emitter identities, expire stale observations, and materialize gauges as current values in the backend. Repeated scrapes contribute successive snapshots. `orleans-grains` instead supplies signed instance deltas which the exporter aggregates from the start of collection.
+构建的内存计数储存在相同的每类元数据中,并在试派和处置期间以原子方式更新。管理统计读取这些对应数据,并将收集快照时共享一个CLR实施名称的类型组合在一起;量度事件保留了每一种 grain类型的身份。
 
-Catalog populations, working-set populations, and constructed instance counts each retain their own scope. A stateless-worker group contributes one catalog entry and can contain several constructed workers. Activation failures can leave a catalog entry temporarily present while cleanup proceeds. During migration, the source and destination account for their own registrations and removals.
+一组总数,选择每一排放的最近新观测结果 silo 和类型,然后在 silos。保存不同的排放源身份,结束过时的观测,并实现后端当前值的测量仪。重复的擦拭有助于连续的拍摄。 `orleans-grains` 转而供应注册的试样三角洲,出口商从收集开始就汇总。
 
-For the `orleans-grains` key/value migration and dashboard updates, see [Activation metric schema update](../../migration-guide.md#activation-metric-schema-update).
+无国籍者-工人群体提供一份目录条目,并可以包含若干已建工。 活动失败可以在清理过程中暂时留下一个目录条目。 在移民过程中,来源和目的地负责自己的登记和清除。
 
-## Cluster manifests
+`orleans-grains` 键/价值迁移和仪表板更新见 [动能指标系统的最新计划](../../migration-guide.md#activation-metric-schema-update)。
 
-| Instrument | Type | Unit | Attributes | Description |
+<a id="cluster-manifests"></a>
+
+## 群集显示器
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-manifest-cache-lookups` | C | Lookups, implicit | `result`, `source` | Content-cache lookups with `hit` or `miss` results, sourced from a `silo` hash response or a `peer` summary. |
-| `orleans-manifest-fallbacks` | C | Retrievals, implicit | `reason` | Hash retrievals falling back to the direct manifest RPC: `error`, `missing`, or `mismatch`. |
-| `orleans-manifest-peer-probes` | C | Attempts, implicit | `status` | Local peer attempts completed with `success`, `timeout`, `canceled`, or `error`; `skipped` counts attempts denied by local admission. |
-| `orleans-manifest-peer-repairs` | C | Silo entries, implicit | - | Missing silo manifest entries supplied by successfully published peer repairs. |
-| `orleans-manifest-retrieval-duration` | H | `ms` | `mode`, `status` | Local silo-manifest retrieval duration in `direct` or `hash` mode, ending in `success`, `error`, or `canceled`. |
+| `orleans-manifest-cache-lookups` | C | 隐性调查 | `result`, `source` | 内容缓缓查查找 `hit` 或 `miss` 来源于 `silo` 散数响应或 a `peer` 摘要。 |
+| `orleans-manifest-fallbacks` | C | 隐存检索 | `reason` | 散列回收回落到直接的 RPC : `error`、 `missing`或 `mismatch`。 |
+| `orleans-manifest-peer-probes` | C | 暗中尝试, | `status` | 本地同行尝试完成后, `success`、 `timeout`、 `canceled`或 `error`; `skipped` 点算当地拒绝的尝试。 |
+| `orleans-manifest-peer-repairs` | C | Silo 条目,隐含 | - | 成功公布的同侪修理提供的缺失 silo 清单条目。 |
+| `orleans-manifest-retrieval-duration` | H | `ms` | `mode`, `status` | 当地当地 silo- 最显著的检索时间 `direct` 或 `hash` 模式模式,以 `success`, `error`,或 `canceled`. |
 
-The categories are fixed and carry no silo addresses, manifest hashes, or grain type names. Probe cancellation includes optional work superseded by complete direct results. See [cluster manifest retrieval](../../implementation/cluster-manifest-retrieval.md) for publication, fallback, and rollout semantics.
+分类是固定的,没有 silo 地址、 显示的 hashes 或 grain 类型名称。 测试取消包括由完全直接结果取代的可选工作。 发布、 回溯和推出语义请见 [集群数据单检索](../../implementation/cluster-manifest-retrieval.md) 。
 
-## Grain directory and consistent rings
+<a id="grain-directory-and-consistent-rings"></a>
 
-| Instrument | Type | Unit | Attributes | Description |
+## Grain 目录和一致环
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-consistent-ring-range-percentage-average` | OG | Percent, implicit | - | Equal-share percentage of the consistent-hash ring for one silo (`100 / ring size`). |
-| `orleans-consistent-ring-range-percentage-local` | OG | Percent, implicit | - | Percentage of the consistent-hash ring currently owned by this silo. |
-| `orleans-consistent-ring-size` | OG | Silos, implicit | - | Members in the consistent-hash ring. |
-| `orleans-directory-cache-size` | OG | Entries, implicit | - | Total entries across registered local grain-directory caches. |
-| `orleans-directory-lookups-cache-issued` | C | Lookups, implicit | - | Grain-location lookups attempted against this silo's directory cache. |
-| `orleans-directory-lookups-cache-successes` | C | Lookups, implicit | - | Local directory-cache lookups which returned a usable entry. |
-| `orleans-directory-lookups-full-issued` | C | Lookups, implicit | - | Full grain-directory lookups initiated by this silo. |
-| `orleans-directory-lookups-local-directory-issued` | C | Lookups, implicit | - | Lookups issued directly against the legacy directory partition. |
-| `orleans-directory-lookups-local-directory-successes` | C | Lookups, implicit | - | Direct legacy-partition lookups which returned a grain address. |
-| `orleans-directory-lookups-local-issued` | C | Lookups, implicit | - | Grain-location lookups issued through the legacy grain locator. |
-| `orleans-directory-lookups-local-successes` | C | Lookups, implicit | - | Legacy grain-locator lookups which returned a grain address. |
-| `orleans-directory-lookups-remote-received` | C | Lookups, implicit | - | Forwarded directory lookup requests received from another silo. |
-| `orleans-directory-lookups-remote-sent` | C | Lookups, implicit | - | Directory lookup requests forwarded to another silo. |
-| `orleans-directory-partition-size` | OG | Entries, implicit | - | Grain registrations in this silo's legacy directory partition. |
-| `orleans-directory-range-lock-held-duration` | H | Milliseconds, implicit | - | Distribution of time directory range locks were held. |
-| `orleans-directory-recovery-count` | C | Recoveries, implicit | - | Directory range recoveries completed after membership changes. |
-| `orleans-directory-recovery-duration` | H | Milliseconds, implicit | - | Distribution of completed directory range-recovery durations. |
-| `orleans-directory-registration-duration` | H | `ms` | `locator`, `status` | Grain registration duration by locator implementation and `success`, `canceled`, or `error` outcome. |
-| `orleans-directory-registrations` | C | Registrations, implicit | `locator`, `status` | Completed grain registration attempts by locator implementation and outcome. |
-| `orleans-directory-registrations-single-act-issued` | C | Registrations, implicit | - | Single-activation registration requests initiated on this silo. |
-| `orleans-directory-registrations-single-act-local` | C | Registrations, implicit | - | Single-activation registrations handled by this silo's legacy directory partition. |
-| `orleans-directory-registrations-single-act-remote-received` | C | Registrations, implicit | - | Forwarded single-activation registration requests received from another silo. |
-| `orleans-directory-registrations-single-act-remote-sent` | C | Registrations, implicit | - | Single-activation registration requests forwarded to another silo. |
-| `orleans-directory-ring-local-portion-average-percentage` | OG | Percent, implicit | - | Equal-share percentage of the legacy grain-directory ring (`100 / ring size`). |
-| `orleans-directory-ring-local-portion-distance` | OG | Hash-ring distance, implicit | - | Raw hash-ring distance from this silo to its successor. |
-| `orleans-directory-ring-local-portion-percentage` | OG | Percent, implicit | - | Percentage of the legacy grain-directory ring assigned to this silo. |
-| `orleans-directory-ring-size` | OG | Silos, implicit | - | Members in the legacy grain-directory ring. |
-| `orleans-directory-snapshot-transfer-count` | C | Transfers, implicit | - | Directory range snapshots successfully received from the previous partition owner. |
-| `orleans-directory-snapshot-transfer-duration` | H | Milliseconds, implicit | - | Distribution of successful directory snapshot-transfer durations. |
-| `orleans-directory-unregistrations-issued` | C | Unregistrations, implicit | - | Single grain-unregistration requests initiated on this silo. |
-| `orleans-directory-unregistrations-local` | C | Unregistrations, implicit | - | Single grain-unregistration requests handled by this silo's legacy directory partition. |
-| `orleans-directory-unregistrations-many-issued` | C | Requests, implicit | - | Batch grain-unregistration requests initiated on this silo. |
-| `orleans-directory-unregistrations-many-remote-received` | C | Requests, implicit | - | Forwarded batch unregistration requests received from another silo. |
-| `orleans-directory-unregistrations-many-remote-sent` | C | Requests, implicit | - | Batch unregistration requests forwarded to another silo. |
-| `orleans-directory-unregistrations-remote-received` | C | Unregistrations, implicit | - | Forwarded single unregistration requests received from another silo. |
-| `orleans-directory-unregistrations-remote-sent` | C | Unregistrations, implicit | - | Single unregistration requests forwarded to another silo. |
-| `orleans-directory-validations-cache-received` | C | Requests, implicit | - | Batch directory-cache validation requests received from another silo. |
+| `orleans-consistent-ring-range-percentage-average` | 零零零零 | 隐含百分比 | - | 一种 silo (`100 / ring size`)在一致环中所占份额比例相等。 |
+| `orleans-consistent-ring-range-percentage-local` | 零零零零 | 隐含百分比 | - | 占目前属于该 silo的一致环的百分比。 |
+| `orleans-consistent-ring-size` | 零零零零 | Silos,隐含 | - | 会员们在一贯的黑环圈里 |
+| `orleans-directory-cache-size` | 零零零零 | 隐含条目 | - | 注册的本地 grain- 指令缓存条目总条目数 。 |
+| `orleans-directory-lookups-cache-issued` | C | 隐性调查 | - | Grain- 定位搜索试图针对此 silo目录缓存进行。 |
+| `orleans-directory-lookups-cache-successes` | C | 隐性调查 | - | 返回可用条目的本地目录缓存查询 。 |
+| `orleans-directory-lookups-full-issued` | C | 隐性调查 | - | 完整 grain- 由此引发的指令性调查 silo. |
+| `orleans-directory-lookups-local-directory-issued` | C | 隐性调查 | - | 直接针对遗留目录分区发布搜索 。 |
+| `orleans-directory-lookups-local-directory-successes` | C | 隐性调查 | - | 直接的遗留区调查,返回了 grain 地址。 |
+| `orleans-directory-lookups-local-issued` | C | 隐性调查 | - | Grain-通过遗留 grain 定位器发布位置查询。 |
+| `orleans-directory-lookups-local-successes` | C | 隐性调查 | - | 遗留 grain-locator lookups 返回 grain 地址的定位器查询。 |
+| `orleans-directory-lookups-remote-received` | C | 隐性调查 | - | 从另一个 silo收到的转发目录查询请求 。 |
+| `orleans-directory-lookups-remote-sent` | C | 隐性调查 | - | 向另一个 silo转发目录查询请求 。 |
+| `orleans-directory-partition-size` | 零零零零 | 隐含条目 | - | Grain 本登记登记 silo遗留目录分割区 。 |
+| `orleans-directory-range-lock-held-duration` | H | 毫米, 隐含 | - | 时间目录范围锁定分布情况已保持。 |
+| `orleans-directory-recovery-count` | C | 回收,隐含 | - | 成员变动后完成的回收范围目录。 |
+| `orleans-directory-recovery-duration` | H | 毫米, 隐含 | - | 完成的目录范围回收期限分布。 |
+| `orleans-directory-registration-duration` | H | `ms` | `locator`, `status` | Grain 执行定位和 `success`, `canceled`,或 `error` 结果。 |
+| `orleans-directory-registrations` | C | 登记,默示 | `locator`, `status` | 已完成 grain 登记尝试,通过定位器执行和结果。 |
+| `orleans-directory-registrations-single-act-issued` | C | 登记,默示 | - | 就此 silo启动的单一激活登记申请。 |
+| `orleans-directory-registrations-single-act-local` | C | 登记,默示 | - | 由此 silo遗留目录分区处理的单激活登记。 |
+| `orleans-directory-registrations-single-act-remote-received` | C | 登记,默示 | - | 从另一个 silo收到的转交的单启动登记申请。 |
+| `orleans-directory-registrations-single-act-remote-sent` | C | 登记,默示 | - | 向另一个 silo发送的单一激活登记申请。 |
+| `orleans-directory-ring-local-portion-average-percentage` | 零零零零 | 隐含百分比 | - | 继承 grain-- -- 指令环(`100 / ring size`)的等额份额百分比。 |
+| `orleans-directory-ring-local-portion-distance` | 零零零零 | 含散闭距离 | - | 与后继者 silo 之间距离的原散星环。 |
+| `orleans-directory-ring-local-portion-percentage` | 零零零零 | 隐含百分比 | - | 遗留 grain-分配给本 silo的指令圈的百分比。 |
+| `orleans-directory-ring-size` | 零零零零 | Silos,隐含 | - | 遗留 grain-- -- 指令圈的成员。 |
+| `orleans-directory-snapshot-transfer-count` | C | 内隐转让 | - | 从上一个分区所有者成功接收到目录范围快照 。 |
+| `orleans-directory-snapshot-transfer-duration` | H | 毫米, 隐含 | - | 成功分发快递目录的最后期限。 |
+| `orleans-directory-unregistrations-issued` | C | 默示不登记, | - | 单一 grain- 就本 silo启动的未登记申请。 |
+| `orleans-directory-unregistrations-local` | C | 默示不登记, | - | 单一 grain- 由该 silo的遗留目录分割处理的未登记请求。 |
+| `orleans-directory-unregistrations-many-issued` | C | 默示要求 | - | 批发 grain- 根据本 silo启动的未登记申请。 |
+| `orleans-directory-unregistrations-many-remote-received` | C | 默示要求 | - | 收到另一批 silo的未登记申请。 |
+| `orleans-directory-unregistrations-many-remote-sent` | C | 默示要求 | - | 向另一 silo转交的批发未登记申请。 |
+| `orleans-directory-unregistrations-remote-received` | C | 默示不登记, | - | 转交从另一个 silo收到的单一未登记申请。 |
+| `orleans-directory-unregistrations-remote-sent` | C | 默示不登记, | - | 向另一 silo转交的单一未登记申请。 |
+| `orleans-directory-validations-cache-received` | C | 默示要求 | - | 从另一个 silo收到的批次目录缓存核证请求。 |
 
-## Reminders, storage, runtime resources, and watchdog
+<a id="reminders-storage-runtime-resources-and-watchdog"></a>
 
-| Instrument | Type | Unit | Attributes | Description |
+## 提醒、储存、运行时间资源和监督
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-reminders-active` | OG | Reminders, implicit | - | Upper bound on reminders tracked locally, including temporary tombstones. |
-| `orleans-reminders-tardiness` | H | `seconds` | - | Delay between a reminder's scheduled tick time and the time delivery begins. |
-| `orleans-reminders-ticks-delivered` | C | Ticks, implicit | - | Reminder ticks successfully delivered to `IRemindable.ReceiveReminder`. |
-| `orleans-runtime-available-memory` | OG | `MB` | - | GC-reported available memory budget, divided by 1,024 squared. |
-| `orleans-runtime-total-physical-memory` | OG | `MB` | - | <xref:System.GCMemoryInfo.TotalAvailableMemoryBytes>, divided by 1,024 squared. The historical name can represent a process or container memory limit instead of host physical RAM. |
-| `orleans-storage-clear-errors` | C | Errors, implicit | `provider_type_name`, `state_name`, `state_type` | Grain-state clear operations which threw an exception. |
-| `orleans-storage-clear-latency` | H | `ms` | `provider_type_name`, `state_name`, `state_type` | Latency of successfully completed grain-state clear operations. |
-| `orleans-storage-read-errors` | C | Errors, implicit | `provider_type_name`, `state_name`, `state_type` | Grain-state read operations which threw an exception. |
-| `orleans-storage-read-latency` | H | `ms` | `provider_type_name`, `state_name`, `state_type` | Latency of successfully completed grain-state reads. |
-| `orleans-storage-write-errors` | C | Errors, implicit | `provider_type_name`, `state_name`, `state_type` | Grain-state write operations which threw an exception. |
-| `orleans-storage-write-latency` | H | `ms` | `provider_type_name`, `state_name`, `state_type` | Latency of successfully completed grain-state writes. |
-| `orleans-watchdog-health-checks` | C | Checks, implicit | - | Runtime watchdog health checks performed. |
-| `orleans-watchdog-health-checks-failed` | C | Checks, implicit | - | Runtime watchdog health checks which reported failure. |
+| `orleans-reminders-active` | 零零零零 | 默示提醒 | - | 在当地追踪的提醒信上方被绑着,包括临时墓碑。 |
+| `orleans-reminders-tardiness` | H | `seconds` | - | 提醒时间与发送时间之间的延迟。 |
+| `orleans-reminders-ticks-delivered` | C | 下滴答, 隐含 | - | 提醒计数成功传送到 `IRemindable.ReceiveReminder`。 |
+| `orleans-runtime-available-memory` | 零零零零 | `MB` | - | GC报告的现有记忆预算,除以1,024平方。 |
+| `orleans-runtime-total-physical-memory` | 零零零零 | `MB` | - | <xref:System.GCMemoryInfo.TotalAvailableMemoryBytes>,除以1,024平方。历史名称可以代表一个过程或容器内存限,而不是主机的物理内存限制。 |
+| `orleans-storage-clear-errors` | C | 隐含错误 | `provider_type_name`, `state_name`, `state_type` | Grain- 说明排除例外的清晰操作。 |
+| `orleans-storage-clear-latency` | H | `ms` | `provider_type_name`, `state_name`, `state_type` | 顺利完成 grain- 状态清晰作业的延迟期。 |
+| `orleans-storage-read-errors` | C | 隐含错误 | `provider_type_name`, `state_name`, `state_type` | Grain- 状态读取放弃例外的操作。 |
+| `orleans-storage-read-latency` | H | `ms` | `provider_type_name`, `state_name`, `state_type` | 成功完成 grain- state repecial. |
+| `orleans-storage-write-errors` | C | 隐含错误 | `provider_type_name`, `state_name`, `state_type` | Grain- 国家书面作业,但有例外。 |
+| `orleans-storage-write-latency` | H | `ms` | `provider_type_name`, `state_name`, `state_type` | 成功完成 grain- state write. 的延迟时间。 |
+| `orleans-watchdog-health-checks` | C | 隐含支票 | - | 进行体检的运行时间监督。 |
+| `orleans-watchdog-health-checks-failed` | C | 隐含支票 | - | 运行时间监督健康检查报告失败。 |
 
-## Streaming
+<a id="streaming"></a>
 
-Pub/sub instruments use `provider` and `grain_type`. Persistent-stream read instruments use `provider` and `queue`; sent instruments use `provider` and `grain_type`. Default receiver and cache monitors use `QueueId`, and default block-pool monitors use `BlockPoolId`. Custom monitor implementations can choose different dimensions.
+## 串流
 
-| Instrument | Type | Unit | Attributes | Description |
+钚/子仪器使用 `provider` 和 `grain_type`。持久性流读仪器使用 `provider` 和 `queue`;发送仪器使用 `provider` 和 `grain_type`。默认接收器和缓存监测器使用 `QueueId`,默认区块库监测器使用 `BlockPoolId`。自定义监测器的安装可以选择不同层面。
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-streams-block-pool-allocated-memory` | OC | `bytes` | Default: `BlockPoolId` | Cumulative bytes allocated from the stream buffer pool. |
-| `orleans-streams-block-pool-available-memory` | OC | `bytes` | Default: `BlockPoolId` | Current available bytes reported by the stream buffer pool. This point-in-time value is implemented as an observable counter. |
-| `orleans-streams-block-pool-claimed-memory` | OC | `bytes` | Default: `BlockPoolId` | Current claimed bytes reported by the stream buffer pool. This point-in-time value is implemented as an observable counter. |
-| `orleans-streams-block-pool-released-memory` | OC | `bytes` | Default: `BlockPoolId` | Cumulative bytes released to the stream buffer pool. |
-| `orleans-streams-block-pool-total-memory` | OC | `bytes` | Default: `BlockPoolId` | Current total bytes reported by the stream buffer pool. This point-in-time value is implemented as an observable counter. |
-| `orleans-streams-persistent-stream-messages-read` | C | Batch containers, implicit | `provider`, `queue` | Batch containers read from persistent-stream receiver queues. One container can hold multiple stream events. |
-| `orleans-streams-persistent-stream-messages-sent` | C | Batch containers, implicit | `provider`, `grain_type` | Batch containers selected for consumer delivery. The counter increments before delivery, so it isn't a successful-delivery count. |
-| `orleans-streams-persistent-stream-pubsub-cache-size` | OG | Entries, implicit | `name` | Pub/sub cache entries held by a persistent-stream pulling agent. |
-| `orleans-streams-persistent-stream-pulling-agents` | OG | Agents, implicit | `name` | Pulling agents currently owned by a persistent-stream provider on this silo. |
-| `orleans-streams-pubsub-consumers` | C, signed deltas | Consumers, implicit | `provider`, `grain_type` | Signed cumulative consumer-registration deltas recorded by this process, using positive additions and negative removals. The series isn't initialized from persisted pub/sub state and isn't a point-in-time count. |
-| `orleans-streams-pubsub-consumers-added` | C | Attempts, implicit | `provider`, `grain_type` | Pub/sub consumer registration attempts. |
-| `orleans-streams-pubsub-consumers-removed` | C | Attempts, implicit | `provider`, `grain_type` | Pub/sub consumer unregistration attempts. |
-| `orleans-streams-pubsub-producers` | C, signed deltas | Producers, implicit | `provider`, `grain_type` | Signed cumulative producer-registration deltas recorded by this process, using positive additions and negative removals. The series isn't initialized from persisted pub/sub state and isn't a point-in-time count. |
-| `orleans-streams-pubsub-producers-added` | C | Attempts, implicit | `provider`, `grain_type` | Pub/sub producer registration attempts. |
-| `orleans-streams-pubsub-producers-removed` | C | Attempts, implicit | `provider`, `grain_type` | Pub/sub producer unregistration attempts. |
-| `orleans-streams-queue-cache-length` | OC | `messages` | Default: `QueueId` | Current number of messages in a queue cache. This point-in-time value is implemented as an observable counter. |
-| `orleans-streams-queue-cache-memory-allocated` | OC | Bytes, implicit | Default: `QueueId` | Cumulative bytes allocated by a queue cache. |
-| `orleans-streams-queue-cache-memory-released` | OC | Bytes, implicit | Default: `QueueId` | Cumulative bytes released by a queue cache. |
-| `orleans-streams-queue-cache-messages-added` | OC | Messages, implicit | Default: `QueueId` | Cumulative messages added to a queue cache. |
-| `orleans-streams-queue-cache-messages-purged` | OC | Messages, implicit | Default: `QueueId` | Cumulative messages purged from a queue cache. |
-| `orleans-streams-queue-cache-oldest-age` | OG | `TimeSpan` ticks, implicit | Default: `QueueId` | Age of the oldest dequeued message still represented by the cache monitor. |
-| `orleans-streams-queue-cache-oldest-to-newest-duration` | OG | `TimeSpan` ticks, implicit | Default: `QueueId` | Enqueue-time span from the oldest to newest messages represented by the cache monitor. |
-| `orleans-streams-queue-cache-pressure` | OG | Ratio, implicit | Default: `QueueId`, `PressureMonitorType` | Current pressure value reported by each cache pressure monitor. |
-| `orleans-streams-queue-cache-pressure-contribution-count` | OG | Contributions, implicit | Default: `QueueId`, `PressureMonitorType` | Pressure-contribution count reported by each cache pressure monitor. |
-| `orleans-streams-queue-cache-size` | OC | `bytes` | Default: `QueueId` | Current queue-cache size. This point-in-time value is implemented as an observable counter. |
-| `orleans-streams-queue-cache-under-pressure` | OG | Boolean (`0` or `1`), implicit | Default: `QueueId`, `PressureMonitorType` | Whether each cache pressure monitor currently reports pressure. |
-| `orleans-streams-queue-initialization-duration` | C | `TimeSpan` ticks, implicit | Default: `QueueId` | Cumulative duration of queue receiver initialization calls. |
-| `orleans-streams-queue-initialization-exceptions` | C | Exceptions, implicit | Default: `QueueId` | Queue receiver initialization calls which supplied an exception. |
-| `orleans-streams-queue-initialization-failures` | C | Failures, implicit | Default: `QueueId` | Queue receiver initialization calls reported as unsuccessful. |
-| `orleans-streams-queue-messages-received` | OC | Messages, implicit | Default: `QueueId` | Cumulative messages received from a stream queue. |
-| `orleans-streams-queue-newest-message-enqueue-age` | OG | `TimeSpan` ticks, implicit | Default: `QueueId` | Age of the newest message returned by the latest queue read. |
-| `orleans-streams-queue-oldest-message-enqueue-age` | OG | `TimeSpan` ticks, implicit | Default: `QueueId` | Age of the oldest message returned by the latest queue read. |
-| `orleans-streams-queue-read-duration` | C | `TimeSpan` ticks, implicit | Default: `QueueId` | Cumulative duration of queue receiver read calls. |
-| `orleans-streams-queue-read-exceptions` | C | Exceptions, implicit | Default: `QueueId` | Queue receiver read calls which supplied an exception. |
-| `orleans-streams-queue-read-failures` | C | Failures, implicit | Default: `QueueId` | Queue receiver read calls reported as unsuccessful. |
-| `orleans-streams-queue-shutdown-duration` | C | `TimeSpan` ticks, implicit | Default: `QueueId` | Cumulative duration of queue receiver shutdown calls. |
-| `orleans-streams-queue-shutdown-exceptions` | C | Exceptions, implicit | Default: `QueueId` | Queue receiver shutdown calls which supplied an exception. |
-| `orleans-streams-queue-shutdown-failures` | C | Failures, implicit | Default: `QueueId` | Queue receiver shutdown calls reported as unsuccessful. |
+| `orleans-streams-block-pool-allocated-memory` | OC(石油公司) | `bytes` | 默认: `BlockPoolId` | 从流流缓冲池中分配的累计字节。 |
+| `orleans-streams-block-pool-available-memory` | OC(石油公司) | `bytes` | 默认: `BlockPoolId` | 流动缓冲池报告的现有可用字节。 这个点点值作为可观测计数器执行 。 |
+| `orleans-streams-block-pool-claimed-memory` | OC(石油公司) | `bytes` | 默认: `BlockPoolId` | 流缓冲池报告的现有索赔字节。 这个点点值作为可观测计数器执行。 |
+| `orleans-streams-block-pool-released-memory` | OC(石油公司) | `bytes` | 默认: `BlockPoolId` | 向溪流缓冲池释放的累计字节。 |
+| `orleans-streams-block-pool-total-memory` | OC(石油公司) | `bytes` | 默认: `BlockPoolId` | 流流缓冲池报告的现有总字节。 这个点点值作为可观测计数器执行。 |
+| `orleans-streams-persistent-stream-messages-read` | C | 隐含的批货集装箱 | `provider`, `queue` | 批发集装箱从持久性流接收器队列中读取,一个集装箱可举行多个流事件。 |
+| `orleans-streams-persistent-stream-messages-sent` | C | 隐含的批货集装箱 | `provider`, `grain_type` | 批发集装箱选择供消费者交付。在交货前的反增量,所以这不是一个成功的交付计算。 |
+| `orleans-streams-persistent-stream-pubsub-cache-size` | 零零零零 | 隐含条目 | `name` | 由持久性流动拉动剂持有的钚/子缓存条目。 |
+| `orleans-streams-persistent-stream-pulling-agents` | 零零零零 | 隐含 | `name` | 目前由这一 silo的持久性流供应商拥有的拉动剂。 |
+| `orleans-streams-pubsub-consumers` | C, 签署三角三角洲 | 消费者,隐含 | `provider`, `grain_type` | 使用正增加值和负清除值,在此过程中记录的已签名的累计消费登记三角洲。 该系列不是从持续存在的公酒吧/子州初始化的,也不是时间点数。 |
+| `orleans-streams-pubsub-consumers-added` | C | 暗中尝试, | `provider`, `grain_type` | 试图进行消费者登记。 |
+| `orleans-streams-pubsub-consumers-removed` | C | 暗中尝试, | `provider`, `grain_type` | 普布/次消费者未登记尝试。 |
+| `orleans-streams-pubsub-producers` | C, 签署三角三角洲 | 暗生产者, | `provider`, `grain_type` | 使用正增加值和负清除值,在此过程中记录的已签名的累计生产者登记三角洲。该系列不是从持续存在的公关/子州开始启动的,也不是时间点数。 |
+| `orleans-streams-pubsub-producers-added` | C | 暗中尝试, | `provider`, `grain_type` | 生产/分生产者登记尝试。 |
+| `orleans-streams-pubsub-producers-removed` | C | 暗中尝试, | `provider`, `grain_type` | 未经注册的试样。 |
+| `orleans-streams-queue-cache-length` | OC(石油公司) | `messages` | 默认: `QueueId` | 队列缓存中当前信件的数量。 此点在时间值将作为可观察的计数器执行 。 |
+| `orleans-streams-queue-cache-memory-allocated` | OC(石油公司) | 隐含字节 | 默认: `QueueId` | 由队列缓存分配的累积字节 。 |
+| `orleans-streams-queue-cache-memory-released` | OC(石油公司) | 隐含字节 | 默认: `QueueId` | 由队列缓存释放的累积字节 。 |
+| `orleans-streams-queue-cache-messages-added` | OC(石油公司) | 暗含信息 | 默认: `QueueId` | 累积信件添加到队列缓存中 。 |
+| `orleans-streams-queue-cache-messages-purged` | OC(石油公司) | 暗含信息 | 默认: `QueueId` | 从队列缓存中清除累积信件 。 |
+| `orleans-streams-queue-cache-oldest-age` | 零零零零 | `TimeSpan` 勾滴, 隐含 | 默认: `QueueId` | 最古老的被解密信息 仍然由缓存监视器代表 |
+| `orleans-streams-queue-cache-oldest-to-newest-duration` | 零零零零 | `TimeSpan` 勾滴, 隐含 | 默认: `QueueId` | 后端时间范围是从缓存监视器所代表的最古老到最新的信件。 |
+| `orleans-streams-queue-cache-pressure` | 零零零零 | 内含比率 | 默认: `QueueId`, `PressureMonitorType` | 每个缓存压力监测器都报告当前的压力值。 |
+| `orleans-streams-queue-cache-pressure-contribution-count` | 零零零零 | 内含捐款 | 默认: `QueueId`, `PressureMonitorType` | 每个缓冲压力监测器都报告了压力-贡献计数。 |
+| `orleans-streams-queue-cache-size` | OC(石油公司) | `bytes` | 默认: `QueueId` | 当前队列缓存大小。 此点在时间值作为可观察的计数器执行 。 |
+| `orleans-streams-queue-cache-under-pressure` | 零零零零 | 隐含的布尔(`0` 或 `1`) | 默认: `QueueId`, `PressureMonitorType` | 是否每个缓存压力监测器 都报告目前的压力。 |
+| `orleans-streams-queue-initialization-duration` | C | `TimeSpan` 勾滴, 隐含 | 默认: `QueueId` | 队列接收器初始化电话累计时间。 |
+| `orleans-streams-queue-initialization-exceptions` | C | 隐含例外, | 默认: `QueueId` | 将提供例外的接收器初始化呼叫排队。 |
+| `orleans-streams-queue-initialization-failures` | C | 失败,隐含 | 默认: `QueueId` | 将接收器初始化电话排成队,据报未成功。 |
+| `orleans-streams-queue-messages-received` | OC(石油公司) | 暗含信息 | 默认: `QueueId` | 由队列组别收到的累积信息。 |
+| `orleans-streams-queue-newest-message-enqueue-age` | 零零零零 | `TimeSpan` 勾滴, 隐含 | 默认: `QueueId` | 最新队列读取时返回的最新消息的时代 。 |
+| `orleans-streams-queue-oldest-message-enqueue-age` | 零零零零 | `TimeSpan` 勾滴, 隐含 | 默认: `QueueId` | 最老的讯息年龄由最新的队列读回。 |
+| `orleans-streams-queue-read-duration` | C | `TimeSpan` 勾滴, 隐含 | 默认: `QueueId` | 队列接收器累计读电话时间。 |
+| `orleans-streams-queue-read-exceptions` | C | 隐含例外, | 默认: `QueueId` | 将接收器排队,读取提供例外的电话。 |
+| `orleans-streams-queue-read-failures` | C | 失败,隐含 | 默认: `QueueId` | 将接收器排队, 读取被报告为未成功电话 。 |
+| `orleans-streams-queue-shutdown-duration` | C | `TimeSpan` 勾滴, 隐含 | 默认: `QueueId` | 排队接收器停机电话累计持续时间。 |
+| `orleans-streams-queue-shutdown-exceptions` | C | 隐含例外, | 默认: `QueueId` | 将提供例外的接收器关闭电话排成队列。 |
+| `orleans-streams-queue-shutdown-failures` | C | 失败,隐含 | 默认: `QueueId` | 将接收器关闭电话排成队,据报未成功。 |
 
-Failure and exception counters can both increment for one operation. Duration counters aggregate total elapsed ticks; divide their increase by the matching operation count when calculating a windowed mean.
+失败和例外计数器可以同时对一个操作进行递增。 期限用来对总过错计数; 在计算一个窗口平均值时,将其增加数除以匹配计算算法。
 
-## Transactions
+<a id="transactions"></a>
 
-| Instrument | Type | Unit | Attributes | Description |
+## 交易交易
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-transactions-failed` | OC | Transactions, implicit | - | Transactions which completed unsuccessfully. |
-| `orleans-transactions-started` | OC | Transactions, implicit | - | Transactions started by the local transaction agent. |
-| `orleans-transactions-successful` | OC | Transactions, implicit | - | Transactions which completed successfully. |
-| `orleans-transactions-throttled` | OC | Transactions, implicit | - | Transaction attempts rejected by transaction-agent throttling. |
+| `orleans-transactions-failed` | OC(石油公司) | 隐性交易,即 | - | 完成的交易没有成功。 |
+| `orleans-transactions-started` | OC(石油公司) | 隐性交易,即 | - | 由当地交易代理开始的交易。 |
+| `orleans-transactions-successful` | OC(石油公司) | 隐性交易,即 | - | 交易成功完成 。 |
+| `orleans-transactions-throttled` | OC(石油公司) | 隐性交易,即 | - | 交易代理暂停交易,拒绝交易尝试。 |
 
-## Durable jobs
+<a id="durable-jobs"></a>
 
-| Instrument | Type | Unit | Attributes | Description |
+## 持久就业
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-durablejobs-cancel-job-call-duration` | H | `ms` | `status` | Duration of `CancelAsync` calls, split by `cancellation_requested`, `not_found`, `operation_canceled`, or `error`. |
-| `orleans-durablejobs-cancel-job-calls` | C | Calls, implicit | `status` | Completed `CancelAsync` calls by request outcome. |
-| `orleans-durablejobs-handler-execution-duration` | H | `ms` | `status` | Duration of completed handler executions, split by `completed`, `attempt_canceled`, or `failed`. |
-| `orleans-durablejobs-handler-executions` | C | Executions, implicit | `status` | Handler executions which reached a terminal outcome. |
-| `orleans-durablejobs-handler-executions-started` | C | Executions, implicit | - | Durable-job handler executions started. |
-| `orleans-durablejobs-job-attempt-duration` | H | `ms` | `status` | Duration of job attempts ending as `completed`, `failed`, `retried`, or `rescheduled`. |
-| `orleans-durablejobs-job-attempts-started` | C | Attempts, implicit | - | Durable-job attempts started. |
-| `orleans-durablejobs-job-dispatch-lag` | H | `ms` | - | Delay between a job's due time and the start of its attempt. |
-| `orleans-durablejobs-job-schedule-duration` | H | `ms` | - | Time required to persist and schedule a job. |
-| `orleans-durablejobs-job-cancellation-requests` | C | Requests, implicit | - | Durable job cancellation requests which were durably recorded. |
-| `orleans-durablejobs-jobs-completed` | C | Jobs, implicit | - | Durable jobs completed successfully. |
-| `orleans-durablejobs-jobs-failed` | C | Jobs, implicit | - | Durable-job attempts recorded as failed. |
-| `orleans-durablejobs-jobs-retried` | C | Jobs, implicit | - | Durable-job attempts scheduled for retry. |
-| `orleans-durablejobs-jobs-scheduled` | C | Jobs, implicit | - | Durable jobs successfully scheduled. |
-| `orleans-durablejobs-ownership-check-duration` | H | `ms` | - | Duration of shard-ownership checks. |
-| `orleans-durablejobs-schedule-job-call-duration` | H | `ms` | `status` | Duration of schedule-job API calls, split by `ok`, `operation_canceled`, or `error`. |
-| `orleans-durablejobs-schedule-job-calls` | C | Calls, implicit | `status` | Completed schedule-job API calls by outcome. |
-| `orleans-durablejobs-shard-batch-bytes` | H | `bytes` | - | Serialized byte size of durable-job shard mutation batches. |
-| `orleans-durablejobs-shard-batch-mutations` | H | Mutations, implicit | - | Mutation count in durable-job shard batches. |
-| `orleans-durablejobs-shard-pending-depth` | H | Mutations, implicit | - | Pending mutation operations collected into each shard batch immediately before processing. |
-| `orleans-durablejobs-shard-processing-duration` | H | `ms` | `status` | Shard processing duration, split by `completed`, `attempt_canceled`, or `error`. |
-| `orleans-durablejobs-shards-processed` | C | Shards, implicit | `status` | Shard processing passes completed by outcome. |
-| `orleans-durablejobs-storage-batch-size` | H | Mutations, implicit | `status` | Applied shard mutations included in each state-write attempt, split by outcome. |
-| `orleans-durablejobs-storage-batches` | C | Batches, implicit | `status` | Durable-job storage batches split by `ok`, `operation_canceled`, or `error`. |
-| `orleans-durablejobs-stripe-distribution` | C | Assignments, implicit | `stripe` | Job assignments by durable-job stripe number. |
+| `orleans-durablejobs-cancel-job-call-duration` | H | `ms` | `status` | 有效期 `CancelAsync` 平分 `cancellation_requested`, `not_found`, `operation_canceled`,或 `error`. |
+| `orleans-durablejobs-cancel-job-calls` | C | 暗内呼吁 | `status` | 已完成 `CancelAsync` 请求,按要求结果进行。 |
+| `orleans-durablejobs-handler-execution-duration` | H | `ms` | `status` | 完成处理者处决的期限,除以 `completed`、 `attempt_canceled`或 `failed`。 |
+| `orleans-durablejobs-handler-executions` | C | 处决,含 | `status` | 手法处决最终结果。 |
+| `orleans-durablejobs-handler-executions-started` | C | 处决,含 | - | 执行处决开始。 |
+| `orleans-durablejobs-job-attempt-duration` | H | `ms` | `status` | 工作尝试期以 `completed`、 `failed`、 `retried`或 `rescheduled`结束。 |
+| `orleans-durablejobs-job-attempts-started` | C | 暗中尝试, | - | 开始尝试长期工作。 |
+| `orleans-durablejobs-job-dispatch-lag` | H | `ms` | - | 工作到开始的时候 都拖延了 |
+| `orleans-durablejobs-job-schedule-duration` | H | `ms` | - | 需要时间才能坚持并安排工作。 |
+| `orleans-durablejobs-job-cancellation-requests` | C | 默示要求 | - | 长期有效的取消工作申请,这些申请已记录下来。 |
+| `orleans-durablejobs-jobs-completed` | C | 隐性工作,含 | - | 成功完成了持久工作。 |
+| `orleans-durablejobs-jobs-failed` | C | 隐性工作,含 | - | 持久工作尝试记录为失败。 |
+| `orleans-durablejobs-jobs-retried` | C | 隐性工作,含 | - | 计划重新尝试的持久工作尝试。 |
+| `orleans-durablejobs-jobs-scheduled` | C | 隐性工作,含 | - | 成功安排了持久工作。 |
+| `orleans-durablejobs-ownership-check-duration` | H | `ms` | - | 硬性所有权检查的持续时间。 |
+| `orleans-durablejobs-schedule-job-call-duration` | H | `ms` | `status` | 工作时间表 API 调用时间,除以 `ok`、 `operation_canceled`或 `error`。 |
+| `orleans-durablejobs-schedule-job-calls` | C | 暗内呼吁 | `status` | 已完成的日程安排工作 API 呼叫按结果分列。 |
+| `orleans-durablejobs-shard-batch-bytes` | H | `bytes` | - | 耐用工作碎片突变批次的序号小字节大小。 |
+| `orleans-durablejobs-shard-batch-mutations` | H | 隐含变异, | - | 耐用工作碎片批次的变异计数 |
+| `orleans-durablejobs-shard-pending-depth` | H | 隐含变异, | - | 处理前,在每批散装货中收集到的突变作业之前。 |
+| `orleans-durablejobs-shard-processing-duration` | H | `ms` | `status` | 碎片处理时间,除以 `completed`、 `attempt_canceled`或 `error`。 |
+| `orleans-durablejobs-shards-processed` | C | 纸质碎片 | `status` | 碎件处理通行证按结果填写。 |
+| `orleans-durablejobs-storage-batch-size` | H | 隐含变异, | `status` | 应用硬变异 包括在每个州-书面尝试中, 以结果分开。 |
+| `orleans-durablejobs-storage-batches` | C | 含蓄电池筒 | `status` | 长期储存的批次除以 `ok`、 `operation_canceled`或 `error`。 |
+| `orleans-durablejobs-stripe-distribution` | C | 默示转让, | `stripe` | 按持久工作条纹编号分配的工作。 |
 
-## Journaling
+<a id="journaling"></a>
 
-Core journaling instruments use `operation` and `status` where applicable. Operation values include `append`, `snapshot`, `replace`, `read`, `delete`, and `recovery`; status is `ok` or `error`.
+## 日刊
 
-| Instrument | Type | Unit | Attributes | Description |
+核心日记工具酌情使用 `operation` 和 `status` 。操作值包括 `append`、 `snapshot`、 `replace`、 `read`、 `delete`和 `recovery`;状态是 `ok` 或 `error`。
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-journaling-compaction-triggers` | C | Triggers, implicit | `reason` | Journal compactions requested because of `user_snapshot`, `storage_requested`, or `migration`. |
-| `orleans-journaling-gather-duration` | H | `ms` | `operation` | Time spent gathering journal state for a storage operation. |
-| `orleans-journaling-recoveries` | C | Recoveries, implicit | `operation`, `status` | Journal recovery attempts by outcome. |
-| `orleans-journaling-recovery-duration` | H | `ms` | `operation`, `status` | Journal recovery duration by outcome. |
-| `orleans-journaling-state-delete-duration` | H | `ms` | `operation`, `status` | Duration of journaled-state delete requests. |
-| `orleans-journaling-state-delete-requests` | C | Requests, implicit | `operation`, `status` | Journaled-state delete requests by outcome. |
-| `orleans-journaling-state-scan-count` | H | States, implicit | `operation` | Journal states scanned while gathering work for an operation. |
-| `orleans-journaling-state-write-duration` | H | `ms` | `operation`, `status` | Duration of journaled-state write requests. |
-| `orleans-journaling-state-write-requests` | C | Requests, implicit | `operation`, `status` | Journaled-state write requests by operation and outcome. |
-| `orleans-journaling-storage-bytes` | C | `bytes` | `operation` | Cumulative bytes successfully processed by journal storage operations. |
-| `orleans-journaling-storage-operation-bytes` | H | `bytes` | `operation`, `status` | Distribution of successful journal storage operation sizes. |
-| `orleans-journaling-storage-operation-duration` | H | `ms` | `operation`, `status` | Journal storage operation duration by operation and outcome. |
-| `orleans-journaling-storage-operation-queue-duration` | H | `ms` | `operation`, `status` | Time journal storage operations spent queued before execution. |
-| `orleans-journaling-storage-operations` | C | Operations, implicit | `operation`, `status` | Journal storage operations by operation and outcome. |
-| `orleans-journaling-write-coalesced-callers` | H | Callers, implicit | `operation` | Number of callers combined into each coalesced journal write. |
+| `orleans-journaling-compaction-triggers` | C | 暗中触发器 | `reason` | 要求印发 `user_snapshot`, `storage_requested`,或 `migration`. |
+| `orleans-journaling-gather-duration` | H | `ms` | `operation` | 收集日记的时间用于存储操作。 |
+| `orleans-journaling-recoveries` | C | 回收,隐含 | `operation`, `status` | 按结果分列的日志回收尝试。 |
+| `orleans-journaling-recovery-duration` | H | `ms` | `operation`, `status` | 按成果分列的日志回收期。 |
+| `orleans-journaling-state-delete-duration` | H | `ms` | `operation`, `status` | 日记状态删除请求的期限。 |
+| `orleans-journaling-state-delete-requests` | C | 默示要求 | `operation`, `status` | 日刊-状态删除按结果分列的请求。 |
+| `orleans-journaling-state-scan-count` | H | 国家,默示 | `operation` | 日志显示在为某项作业收集工作时进行扫描。 |
+| `orleans-journaling-state-write-duration` | H | `ms` | `operation`, `status` | 日记国家书面请求的期限。 |
+| `orleans-journaling-state-write-requests` | C | 默示要求 | `operation`, `status` | 按业务和结果分列的已公布的书面请求。 |
+| `orleans-journaling-storage-bytes` | C | `bytes` | `operation` | 日记存储业务成功处理的累积字节。 |
+| `orleans-journaling-storage-operation-bytes` | H | `bytes` | `operation`, `status` | 成功分发日记存储操作规模。 |
+| `orleans-journaling-storage-operation-duration` | H | `ms` | `operation`, `status` | 按业务和结果分列的日记储存运行期限。 |
+| `orleans-journaling-storage-operation-queue-duration` | H | `ms` | `operation`, `status` | 时间日记存储操作在执行前排队。 |
+| `orleans-journaling-storage-operations` | C | 隐含业务, | `operation`, `status` | 按业务和结果分列的日记储存业务。 |
+| `orleans-journaling-write-coalesced-callers` | H | 暗中呼叫者 | `operation` | 在每个联合日记笔记本中,将呼叫者数合并在一起。 |
 
-### Provider workload counters
+<a id="provider-workload-counters"></a>
 
-Provider counters record catalog traversal and explicit provider retries at existing execution
-points. Each provider library defines its own short name for the `provider` tag: `s3`,
-`azure_blob`, `azure_table`, `redis`, or `volatile`. Existing state-manager and provider-specific
-instruments supply storage operation latency, outcomes, and bytes.
+### 供应商工作量计数
 
-| Instrument | Type | Unit | Attributes | Description |
+供应商对账记录
+。每个提供者库为 `provider` 标记定义自己的简称: `s3`,
+`azure_blob`, `azure_table`, `redis`,或 `volatile`现有的国家管理人员和具体供应商
+供应工具的储存运行时长、结果和字节。
+
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-journaling-provider-catalog-entries` | C | Entries, implicit | `provider` | Catalog entries delivered to the consumer. |
-| `orleans-journaling-provider-catalog-pages` | C | Pages, implicit | `provider` | Pages received during S3 and Azure catalog traversal, including empty pages. |
-| `orleans-journaling-provider-catalog-items` | C | Items, implicit | `provider` | Native catalog page candidates before filtering, or Redis scan keys consumed by catalog traversal. |
-| `orleans-journaling-provider-retries` | C | Retries, implicit | `provider`, `reason` | Explicit provider-loop retries, using bounded reason labels. |
+| `orleans-journaling-provider-catalog-entries` | C | 隐含条目 | `provider` | 向消费者发送的目录条目。 |
+| `orleans-journaling-provider-catalog-pages` | C | 暗页,隐性 | `provider` | S3和 Azure 目录跨页期间收到的页面,包括空页。 |
+| `orleans-journaling-provider-catalog-items` | C | 隐含项目, | `provider` | 过滤前或目录跨行所消耗的 Redis 扫描键之前, 本地目录页面候选人 。 |
+| `orleans-journaling-provider-retries` | C | 默示回签,内含 | `provider`, `reason` | 使用有条不紊的理由标签的 明目张胆的供应商-用户循环雷管。 |
 
-S3 and Azure count each page received by the catalog traversal and all candidates on that page,
-before local filtering. Redis counts keys consumed by traversal before filtering and duplicate
-suppression. Volatile storage records delivered entries. Comparing candidates with delivered
-entries shows how much data the provider filters.
+S3和 Azure 计算经编的考试目录收到的每一页以及该页上的所有候选人,
+本地过滤前的本地过滤。 Redis 计取过滤和重复之前跨行所消耗的密钥
+控制多变存储记录交付的条目。
+条目显示提供者过滤器的数据数量。
 
-Empty logical ranges produce zero pages, items, and entries. Early disposal and cancellation
-retain counts already recorded. A terminal enumeration advance or a failed page retrieval adds
-zero pages. Provider retry counts describe explicit storage recovery loops.
+空的逻辑逻辑范围产生零页、项目和条目。
+保留已记录的数字。 终端点查预览或错误的页面检索添加
+提供方重试数描述明确的存储回收循环。
 
-Use the existing duration histograms for storage latency and
-[host-provided dependency telemetry](../../grains/journaling/operations.md#use-host-provided-dependency-telemetry)
-for SDK request timing, outcomes, and transport attempts. Catalog page and item counts describe
-provider traversal; service-side transaction metrics provide the basis for billing reconciliation.
+使用现有时间段直方图进行储存内嵌嵌入和
+[东道国提供托管提供扶养用人](../../grains/journaling/operations.md#use-host-provided-dependency-telemetry)
+SDK 请求的时间、结果和运输尝试。
+服务方交易计量为账单调节提供了基础。
 
-The existing state-manager and provider-specific instruments below retain their original meanings.
+下文现有的国家管理和具体供应商文书保留其原始含义。
 
-Azure and S3 storage-method instruments use operations `create`, `get_metadata`, `update_metadata`, `append`, `delete`, `read`, and `replace`.
+Azure 和S3储存-方法工具使用操作 `create`、 `get_metadata`、 `update_metadata`、 `append`、 `delete`、 `read`和 `replace`。
 
-| Instrument | Type | Unit | Attributes | Description |
+| 文书文书文书文书 | 类型类型 | 股股股股 | 属性 | 说明 |
 |---|---|---|---|---|
-| `orleans-journaling-azure-blob-operation-bytes` | C | `bytes` | `operation` | Cumulative bytes successfully processed by Azure Blob journal storage operations. |
-| `orleans-journaling-azure-blob-operation-duration` | H | `ms` | `operation`, `status` | Azure Blob journal storage operation duration by operation and outcome. |
-| `orleans-journaling-azure-blob-operations` | C | Operations, implicit | `operation`, `status` | Azure Blob journal storage operations by operation and `ok` or `error` status. |
-| `orleans-journaling-azure-table-operation-bytes` | C | `bytes` | `operation` | Cumulative bytes successfully processed by Azure Table journal storage operations. |
-| `orleans-journaling-azure-table-operation-duration` | H | `ms` | `operation`, `status` | Azure Table journal storage operation duration by operation and outcome. |
-| `orleans-journaling-azure-table-operations` | C | Operations, implicit | `operation`, `status` | Azure Table journal storage operations by operation and `ok` or `error` status. |
-| `orleans-journaling-s3-operation-bytes` | C | `bytes` | `operation` | Cumulative bytes successfully processed by S3 journal storage methods. |
-| `orleans-journaling-s3-operation-duration` | H | `ms` | `operation`, `status` | S3 journal storage method duration by operation and outcome. |
-| `orleans-journaling-s3-operations` | C | Operations, implicit | `operation`, `status` | S3 journal storage methods by operation and `ok` or `error` status. |
+| `orleans-journaling-azure-blob-operation-bytes` | C | `bytes` | `operation` | 由 Azure Blob日记账存储操作成功处理的累计字节。 |
+| `orleans-journaling-azure-blob-operation-duration` | H | `ms` | `operation`, `status` | Azure 球状日记账存储运行期,按运行和结果分列。 |
+| `orleans-journaling-azure-blob-operations` | C | 隐含业务, | `operation`, `status` | Azure 黑球日记账存储业务,按运行和 `ok` 或 `error` 状态分列。 |
+| `orleans-journaling-azure-table-operation-bytes` | C | `bytes` | `operation` | Azure 表日记账存储操作成功处理的累计字节。 |
+| `orleans-journaling-azure-table-operation-duration` | H | `ms` | `operation`, `status` | Azure 表格日记账存储运行期,按运行和结果分列。 |
+| `orleans-journaling-azure-table-operations` | C | 隐含业务, | `operation`, `status` | Azure 表日记账存储业务,按运行和 `ok` 或 `error` 状态分列。 |
+| `orleans-journaling-s3-operation-bytes` | C | `bytes` | `operation` | 以S3日记存储方法成功处理的累积字节。 |
+| `orleans-journaling-s3-operation-duration` | H | `ms` | `operation`, `status` | S3 日记存储方法的有效期,按运行和结果分列。 |
+| `orleans-journaling-s3-operations` | C | 隐含业务, | `operation`, `status` | S3 日记存储方法,按运行和 `ok` 或 `error` 状态分列。 |
 
-## Use the catalog
+<a id="use-the-catalog"></a>
 
-Use [Monitor Orleans metrics](metrics.md) to select health indicators, aggregate each instrument according to its type, control cardinality, and build alerts. Use [Troubleshoot Orleans incidents](troubleshooting.md) to correlate metrics with logs, traces, deployment changes, and dependency health.
+## 使用目录
+
+使用 [监测 Orleans 指标](metrics.md) 选择健康指标,根据类型将每个工具汇总,控制主要特征并建立警报。使用 [排除故障 Orleans 事件](troubleshooting.md) 与日志、跟踪、部署变化和依赖性健康相关。

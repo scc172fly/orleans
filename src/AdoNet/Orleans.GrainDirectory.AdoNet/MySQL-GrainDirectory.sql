@@ -1,34 +1,34 @@
 /*
-Orleans Grain Directory.
-This table stores the location of all grains in the cluster.
+Orleans Grain 目录。
+此表格存储集中所有 grains 的位置。
 
-NOTE:
-The combination of ClusterId, ProviderId, and GrainId forms the primary key for the OrleansGrainDirectory table.
-Together, these columns reach the maximum allowed key size for MariaDB/MySQL indexes (768 bytes).
-Care should be taken not to increase the length of these columns, as it may exceed MariaDB/MySQL's key size limitation.
+注:
+ClusterId、 ProviderId和 GrainId 的组合构成 OrleansGrainDirectory 表格的主要关键字。
+这些列加起来达到 MariaDB/MySQL 指数(768字节)允许的最大关键字大小。
+应注意不要增加这些栏的长度,因为其可能超过 MariaDB/MySQL的关键尺寸限制。
 
 */
 CREATE TABLE OrleansGrainDirectory
 (
-    /* Identifies the cluster instance */
+    /* 确定群集实例 */
     ClusterId VARCHAR(150) NOT NULL,
 
-    /* Identifies the grain directory provider */
+    /* 指定 grain 目录提供者 */
     ProviderId VARCHAR(150) NOT NULL,
 
-    /* Holds the grain id in text form */
+    /* 以文本格式持有 grain id */
     GrainId VARCHAR(468) NOT NULL,
 
-    /* Holds the silo address where the grain is located */
+    /* 握住 silo 地址 grain 位于 */
     SiloAddress VARCHAR(100) NOT NULL,
 
-    /* Holds the activation id in the silo where it is located */
+    /* 将激活id 保存在 silo 所在位置 */
     ActivationId VARCHAR(100) NOT NULL,
 
-    /* Holds the time at which the grain was added to the directory */
+    /* 持有将 grain 添加到目录的时间 */
     CreatedOn DATETIME(3) NOT NULL,
 
-    /* Primary key ensures uniqueness of grain identity */
+    /* 主键确保 grain 身份的独特性 */
     PRIMARY KEY (ClusterId, ProviderId, GrainId)
 );
 
@@ -73,7 +73,7 @@ BEGIN
     ON DUPLICATE KEY UPDATE
         ClusterId = ClusterId;
 
-    -- Return the current registration
+    -- 恢复目前的登记
     SELECT
         ClusterId,
         ProviderId,
@@ -196,7 +196,7 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Parse silo addresses into temporary table for batch operation
+    -- 将 silo 地址分析为批量操作临时表格
     CREATE TEMPORARY TABLE TempSiloAddresses
     (
         SiloAddress VARCHAR(100) NOT NULL,

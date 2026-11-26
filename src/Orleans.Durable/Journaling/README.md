@@ -1,40 +1,50 @@
-# Microsoft Orleans Journaling
+<a id="microsoft-orleans-journaling"></a>
 
-## Introduction
-Microsoft Orleans Journaling persists durable state changes as ordered journal data which can be replayed to recover in-memory durable collections and values.
+# Microsoft Orleans 日刊
 
-The package includes a JSON Lines-based storage format powered by System.Text.Json and uses it by default. Pair it with a Journaling storage provider such as Microsoft.Orleans.Durable.AzureStorage. The storage provider remains independent of the serialization format: Microsoft.Orleans.Durable supplies the journal format and keyed durable-entry codecs which durable state components use to encode and recover their own operations.
+<a id="introduction"></a>
 
-Application code uses `IDurableStateManager` to manage the grain's durable state, declare its components, and acknowledge writes.
-`IStateMachine` defines the low-level replay and snapshot protocol for state implementations.
-`IJournaledStateManager` is an independent contract for journal ownership and lifetime operations.
+## 简介
+Microsoft Orleans 日刊按订购的期刊数据,维持了持久性状态变化,可重播这些数据以收回模拟的耐久收藏和价值。
 
-## Volatile storage snapshot thresholds
+包包包括 JSON 线基储存格式 System.Text.Json 与一个日记存储供应商如 Microsoft.Orleans.Durable.AzureStorage储存提供者仍然独立于序列格式: Microsoft.Orleans.Durable 提供日记格式和关键耐用输入编码,这些是耐用的国家组成部分用于编码和恢复自己的业务。
 
-`AddVolatileJournalStorage(options => ...)` configures
-`VolatileJournalStorageOptions.MaxAppendsBeforeSnapshot` (default 100) and
-`MaxBytesBeforeSnapshot` (default 1,048,576 bytes). The named-provider overload
-configures each provider independently. Both values must be positive.
-Providers capture the configured limits when constructed.
+应用代码使用 `IDurableStateManager` 管理 grain的耐久状态,声明其组成部分和确认写作。
+`IStateMachine` 界定了国家执行的低级重播和快照程序。
+`IJournaledStateManager` 是一份独立合同,涉及日记本所有权和终身业务。
 
-Reaching either threshold requests a snapshot before the next journal write.
-Successful replacement resets both counters; the snapshot itself is excluded
-from append history. Deletion and recreation reset the history too. A single
-append can exceed the byte threshold. Larger limits amortize snapshot copies
-over more updates; smaller limits reduce retained history and replay work.
-Counters belong to each journal and are shared by handles for the same journal
-within one provider.
-Retained memory includes the latest snapshot, appended encoded bytes up to and
-including the crossing append, and provider bookkeeping.
+<a id="volatile-storage-snapshot-thresholds"></a>
 
-## Getting Started
-To use this package, install it via NuGet:
+## 易挥挥挥散储存快快的阈值
+
+`AddVolatileJournalStorage(options => ...)` 配置
+`VolatileJournalStorageOptions.MaxAppendsBeforeSnapshot` (违约100)和
+`MaxBytesBeforeSnapshot` (违约 1,048,576 字节)。
+每个提供者独立配置。 两个值必须是正数 。
+供应商在构建时捕捉配置的限制 。
+
+达到这两个门槛都需要在下一期日记写前提供快照。
+成功替换替换重置两个对控台;快照本身不包含
+将历史从附加历史中重新设置。 删除和娱乐也重置历史。 单
+附加件可超过字节阈值。
+超过更多更新; 小限制会减少保留的历史和重播工作。
+对应器属于每一份日记账簿,由同一日记账的手柄共享
+在一个供应商内部。
+保存的内存包括最新的快照,并附有编码字节,直至和
+包括过境附件和提供商簿记。
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Durable --prerelease
 ```
 
-## Example - Configuring JSON journaling
+<a id="example---configuring-json-journaling"></a>
+
+## 示例 - 配置 JSON 日记
 ```csharp
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -64,7 +74,7 @@ await host.RunAsync(cancellationToken);
 internal partial class JournalJsonContext : JsonSerializerContext;
 ```
 
-If you need to customize `JsonSerializerOptions`, configure `JsonJournalOptions` through the options pipeline:
+如果您需要自定义 `JsonSerializerOptions`, 请通过选项管道配置 `JsonJournalOptions` :
 
 ```csharp
 siloBuilder
@@ -76,25 +86,25 @@ siloBuilder
     });
 ```
 
-Provider registration calls `JournalingHostingExtensions.AddJournaling` to register core services,
-formats, state factories, and activation lifecycle integration. Use `AddJournalStorage<TProvider>`
-for an application-supplied storage provider. `AddJournaling` is core setup; a provider registration
-supplies the backing storage.
+供应商登记电话 `JournalingHostingExtensions.AddJournaling` 登记核心服务,
+使用 `AddJournalStorage<TProvider>`
+用于应用程序供应的存储供应商。 `AddJournaling` 是核心设置;供应商登记
+提供后盾储存。
 
-Apply `[JournalStorageProvider("orders")]` to a grain class to select a named
-provider registered using, for example, `AddAzureBlobJournalStorage("orders", options => ...)`.
-Grain types without an explicit selection use `Default`. `DurableGrain` helpers,
-injected durable values and collections, and journaling-backed persistent state all
-share the activation's manager and selected storage. Register the same names and
-physical namespaces on every silo hosting the grain type.
+将 `[JournalStorageProvider("orders")]` 应用到一个 grain 类,以选择命名
+供应商注册使用,例如 `AddAzureBlobJournalStorage("orders", options => ...)`。
+Grain 类型类型,没有明确的选择用途 `Default`. `DurableGrain` 助者,
+注射耐久值和收集,以及日记支持的持久性持续状态
+共享激活的管理员和选定存储。注册相同的名称
+每一个 silo 主机主机 grain 类型。
 
-Recovery reads the selected provider's physical namespace using the existing
-journal identity. Changing the selection for a grain type with existing journals
-requires a deliberate data migration or cutover strategy, including rollback.
+回收使用现有
+更改现有期刊中的 grain 类型选择
+需要一项有意的数据迁移或削减战略,包括倒退。
 
-JSON Lines is the default `JournaledStateManagerOptions.JournalFormatKey`. Storage providers expose the stored journal format key through `IJournalMetadata.FormatKey` and `JournalMetadata.FormatKey`. During recovery, Orleans uses that stored key to select the matching journal format and durable operation codecs. If a non-empty journal has no stored format metadata, Orleans treats it as legacy OrleansBinary data for compatibility.
+JSON 线是默认的 `JournaledStateManagerOptions.JournalFormatKey`存储提供者通过 `IJournalMetadata.FormatKey` 和 `JournalMetadata.FormatKey`恢复期间, Orleans 用于选择匹配的日记格式和持久操作编码的存储密钥。 如果非空白日记没有存储的格式元数据, Orleans 将它视为遗产 OrleansBinary 兼容性数据。
 
-If you already have data written with the OrleansBinary format, you can keep using it while you plan a migration:
+如果您已经用 OrleansBinary 格式写入数据,可以在计划迁移时继续使用:
 
 ```csharp
 siloBuilder
@@ -104,9 +114,11 @@ siloBuilder
             options.JournalFormatKey = "orleans-binary"));
 ```
 
-To migrate to JSON, configure `JournaledStateManagerOptions.JournalFormatKey` to `JsonLinesJournalFormat.JournalFormatKey` and call `UseJsonJournalFormat(...)`, provided by `JsonJournalHostingExtensions`. When a grain recovers data written with a different format than the configured write format, the next write is forced to a full snapshot so the journal is rewritten using JSON and the storage format metadata is updated.
+移徙至 JSON配置 `JournaledStateManagerOptions.JournalFormatKey` 至 `JsonLinesJournalFormat.JournalFormatKey` 调和 `UseJsonJournalFormat(...)`提供,由 `JsonJournalHostingExtensions`. When a grain 回收与配置的写入格式不同的数据, 下一个写入被强制进行完整快照, 以便日记使用 JSON 并更新存储格式元数据。
 
-## Example - Using durable state
+<a id="example---using-durable-state"></a>
+
+## 实例 - 使用耐久状态
 ```csharp
 using Orleans;
 using Orleans.Durable.Journaling;
@@ -138,56 +150,58 @@ public sealed class ShoppingCartGrain(IDurableStateManager stateManager)
 }
 ```
 
-The field initializer declares the cart component of the grain's state during construction. The standard state manager registered by
-`AddJournaling` enrolls itself once in the grain lifecycle when constructed with the activation's
-`IGrainContext`, before resolution returns. Recovery at `SetupState` completes before `OnActivateAsync`
-and grain requests. Ordinary `Grain` subclasses, application-owned grain bases, `IGrainBase`
-implementations, and activation-scoped features can inject `IDurableStateManager`. Registering journal
-storage makes the services available; only activations which resolve the manager perform per-grain
-journal I/O.
+字段初始化器在施工期间宣布 grain状态的车件组件。
+`AddJournaling` 注册后, grain 与激活装置一起建造的寿命周期
+`IGrainContext`,在解析返回之前。 `SetupState` 的恢复工作在 `OnActivateAsync`之前完成
+和 grain 普通要求 `Grain` 应用程序拥有的子类 grain 基数, `IGrainBase`
+执行,以及启动范围特征可以输入 `IDurableStateManager`。
+存储服务提供; 只有解决管理员的激活方能执行每 -grain
+日记I/O
 
-`DurableGrain` remains a convenience base class exposing that same application interface through
-`StateManager` and forwarding its protected `WriteStateAsync` helper. Grain-scoped managers are enrolled
-before resolution returns. Custom manager replacements establish this in their constructor or
-registration factory, enrolling their `ILifecycleParticipant<IGrainLifecycle>` or subscribing their
-initialization and shutdown callbacks directly.
+`DurableGrain` 仍是一个便利基级基本等级,通过
+`StateManager` 和转交其受保护的 `WriteStateAsync` 助手。 Grain-- -- 范围广泛的管理人员被录用
+解析返回之前的分辨率返回。自定义管理器替换者在其构建者或
+注册工厂、注册 `ILifecycleParticipant<IGrainLifecycle>` 或签署
+直接启动和关闭回调。
 
-The default grain manager implements both independent contracts, `IDurableStateManager` and
-`IJournaledStateManager`, on the same activation-scoped object. Custom grain manager replacements
-provide both contracts and their registrations as appropriate.
+默认 grain 管理器既执行独立合同,也执行 `IDurableStateManager` 和
+`IJournaledStateManager`,在同一激活范围对象上。自定义 grain 管理器替换
+合同和登记均酌情提供。
 
-Shared activation setup actions run synchronously after construction and can first resolve the manager
-or additional state components. The manager subscribes through the existing lifecycle participation mechanism.
-Resolve grain-owned managers and declare state components during construction or synchronous activation
-setup so their subscriptions are established before lifecycle startup. If lifecycle subscription fails,
-the constructor disposes the failed manager and its writer, then propagates the failure.
-A feature which uses recovered state runs after `SetupState`;
-work required before application activation runs before `Activate`. Flow the caller's cancellation token
-through asynchronous grain and state-manager operations.
+共同启动启动安装操作在施工后同步运行,并可以首先解决经理问题
+管理人员通过现有的生命周期参与机制订阅。
+决议 grain-- -- 施工或同步启动期间,所有经理人和宣布国家部件
+设置,在启动生命周期之前就建立用户订阅。如果使用周期的订阅失败,
+建造者处置失败的经理及其作家,然后宣传失败。
+a. 使用回收状态的特性在 `SetupState`之后运行;
+程序激活前需要工作才能启动 `Activate`。 运行调用机的取消标记
+以非同步 grain 和州管理操作方式进行。
 
-`GetOrAddState<TState>(name)` takes an application contract, such as
-`IDurableDictionary<string, int>`, and uses a registered factory to construct its state-machine
-implementation. `DurableStateManagerExtensions` supplies `GetOrAddDictionary`, `GetOrAddList`,
-`GetOrAddQueue`, `GetOrAddSet`, `GetOrAddLog`, `GetOrAddValue`, `GetOrAddTaskCompletionSource`, and
-`GetOrAddPersistentState` helpers.
+`GetOrAddState<TState>(name)` 接受申请合同,例如
+`IDurableDictionary<string, int>`,并使用注册工厂建造其国营机器
+`DurableStateManagerExtensions` 用品 `GetOrAddDictionary`、 `GetOrAddList`、
+`GetOrAddQueue`, `GetOrAddSet`, `GetOrAddLog`, `GetOrAddValue`, `GetOrAddTaskCompletionSource`,和
+`GetOrAddPersistentState` 帮助者。
 
-Declare new state components during construction or synchronous activation setup, before initialization. After initialization succeeds,
-read and mutate their recovered contents. Later `GetOrAdd` requests resolve existing names; a request
-for a missing name fails immediately before changing the registry. `TryGetState<TState>` performs
-lookup without creation. Use keys inside a declared durable dictionary for runtime-varying identities.
+在启动前,在施工或同步激活装置期间宣布新的状态组件。
+稍后 `GetOrAdd` 请求解决现有姓名;请求
+替换登记册前一时丢失了名称的错误名失败。 `TryGetState<TState>`
+查找而不创建。 在已宣布的耐久字典中使用密钥来显示运行时间变化身份 。
 
-Names use ordinal comparison within one manager. Repeated requests for a compatible contract return
-the same instance; an incompatible contract or closed generic type fails immediately. Keyed injection
-of `[FromKeyedServices("cart")] IDurableDictionary<string, int>` returns the same object as
-`stateManager.GetOrAddDictionary<string, int>("cart")`, regardless of which path resolves it first.
+在一个管理人员内部使用名称的正交式比较。
+同一实例;不兼容的合同或封闭式通用类型立即失效。
+`[FromKeyedServices("cart")] IDurableDictionary<string, int>` 返回与
+`stateManager.GetOrAddDictionary<string, int>("cart")`,不管哪条路先解决它。
 
-Built-in durable state components use the configured JSON codec automatically. Configure `JsonJournalOptions` to control the `JsonSerializerOptions` instance used for entry payloads. Journaling command names and record shape are fixed by the storage format, so serializer naming policies only affect user payload values.
+内建耐久状态组件自动使用配置的 JSON 编码器。 配置 `JsonJournalOptions` 以控制输入有效载荷所用的 `JsonSerializerOptions` 实例。 发布命令名称和记录形状由存储格式固定, 因此序列器命名策略只影响用户的有效载荷值 。
 
-For trimming and Native AOT, use `Configure<JsonJournalOptions>(...)` to configure `SerializerOptions.TypeInfoResolver`, `SerializerOptions.TypeInfoResolverChain`, or `JsonJournalOptions.AddTypeInfoResolver(...)` with source-generated metadata for every journaled key, value, and state type. The `UseJsonJournalFormat(JournalJsonContext.Default)` overload is the recommended low-friction path when you also want to enable the JSON format explicitly. If metadata is unavailable, the JSON durable entry codecs fail with a configuration error instead of falling back to reflection-based serialization.
+用于裁剪和本土AOT,使用 `Configure<JsonJournalOptions>(...)` 配置 `SerializerOptions.TypeInfoResolver`, `SerializerOptions.TypeInfoResolverChain`,或 `JsonJournalOptions.AddTypeInfoResolver(...)` 带有每个日记密钥、值和状态类型的源生成元数据。 `UseJsonJournalFormat(JournalJsonContext.Default)` 指的是推荐的低反射路径,当您也想要启用 JSON 格式。如果元数据不可用,则 JSON 耐久输入编码器失败, 配置错误, 而不是返回到基于反射的序列化 。
 
-## Observing state and streaming drafts
+<a id="observing-state-and-streaming-drafts"></a>
 
-Grains expose watch streams over their durable state as `IAsyncEnumerable<T>` methods:
+## 观测状态和流汇草稿
+
+Grains 暴露监视流在其耐久状态上作为 `IAsyncEnumerable<T>` 方法:
 
 ```csharp
 public sealed class ConversationGrain(IDurableStateManager stateManager) : Grain, IConversationGrain
@@ -203,103 +217,105 @@ public sealed class ConversationGrain(IDurableStateManager stateManager) : Grain
 }
 ```
 
-`DurableStateWatchExtensions.WatchAsync` watches a durable value. Watches and log reads deliver a change
-after the journal write which contains it is acknowledged, so readers observe only durable state. Each
-acknowledged write publishes one watermark shared by every watcher of the manager.
+`DurableStateWatchExtensions.WatchAsync` 监视一个耐久值。 观察和日志读取显示变化
+日记后写下它被确认, 所以读者只观察耐久状态。
+注册的著作刊登了经理每位看门人共享的一个水印。
 
-Each write captures every state, persists what it captured, and then acknowledges it. A change made while a
-write is in flight belongs to the next write, so `IStateMachine.OnWriteCompleted` implementations and
-`IDurableTaskCompletionSource<T>.Task` report only what the completed write captured. When
-another thread holds a journal entry open, as a standalone manager's owner can, the write waits for the entry
-to close and then captures it with every other change, so `WriteStateAsync` acknowledges every change staged
-before it was called.
+每一个写作都捕捉每个州, 坚持它所捕捉的东西, 然后承认它。一个变化是一时的改变
+正在运行中写入属于下个写入, 所以 `IStateMachine.OnWriteCompleted` 执行并
+`IDurableTaskCompletionSource<T>.Task` 仅报告已完成的写入记录。
+另一线索则保持一个日记条目打开, 独立管理器的所有人可以将该条目写入等待
+关闭并随后用其他每处变化来捕捉它, 所以 `WriteStateAsync` 确认每一个阶段的改变
+在那日,被召唤的时候,
 
-Value watches deliver the latest committed value and retain no backlog. A manager creates its observer
-state when the first watch begins, and unwatched state publishes nothing. Watching requires a recovered
-manager. A watch which begins while the value is staged delivers it after the next write.
+价值观察提供最新承诺值,不积压。 管理员创建其观察员
+第一次观察开始时状态, 而未监视的状态则没有发布任何信息。 观察需要恢复
+。在下一个写入后,将开始一个手表,该手表将随着数值的逐步确定而交付给下一个写作。
 
-`IDurableLog<T>` is an append-only log with durable, monotonically increasing `long` sequence numbers.
-`Append` returns an entry's sequence and `CommittedSequence` marks the end of the durable entries.
-`TrimBefore` bounds retention, `Clear` replaces the entries and consumes one sequence number, so sequence
-numbers are never reused within a history, and `Seal` durably ends the log. `Epoch` identifies the history:
-the first change after the log is created or its journal is deleted begins a history with a new random epoch,
-which is journaled with it. A reader position is an epoch and a sequence number, and every `LogEvent<T>`
-carries its `Epoch`. `ReadAsync(fromSequence, epoch, includeDrafts, resumeDraftId)` re-reads committed
-entries from a position and waits for new entries, so every entry a reader receives is a valid resume point. Every active reader receives `Trimmed` when entries are trimmed and
-`Reset` when the entries it observed are replaced: by a clear, by deleting the journal, or because it resumes
-with another history's epoch or at or before a cleared sequence number, in any activation. The stream delivers
-`CaughtUp` once after the entries which were committed when the read began, and ends with `Sealed` once a seal
-is durable.
+`IDurableLog<T>` 是一个仅附加的日志,其序列号耐久、单质增加 `long` 。
+`Append` 返回条目序列, `CommittedSequence` 则表示耐久条目的结束。
+`TrimBefore` 约束保留, `Clear` 替换条目并消耗一个序列号,所以顺序
+数字在历史中从未再利用,且 `Seal` 可持久结束日志。 `Epoch` 确定历史:
+日志创建或日记删除后的第一个更改, 以新的随机时代开始历史
+以它为日记,读者位置是一个时代和一个序列号,每个 `LogEvent<T>`
+轴的, `Epoch`. `ReadAsync(fromSequence, epoch, includeDrafts, resumeDraftId)` 承诺重新阅读
+条目从位置条目中获取,等待新条目,因此读者收到的每个条目都是有效的恢复点。在剪裁条目时,每个活动阅读器都接收 `Trimmed`
+`Reset` ,当它所观察到的条目被替换时:用一个清晰、删除日记或因为它恢复
+任何激活中, 都存在另一个历史时代或清除序列号前后的空序号。 流会传送
+`CaughtUp` 之后的一则条目,当读开始和结束时所执行的条目 `Sealed` 封印一旦发出,
+具有持久性。
 
-`BeginDraft` opens a draft whose `Write` items reach readers which pass `includeDrafts: true` immediately. `Commit` appends zero
-or more entries as one journal entry and reports `DraftCommitted` with the committed range; `Commit()` with no
-entries closes the draft cleanly. `Abandon` or disposal reports `DraftAbandoned` with a
-`LogDraftAbandonReason`. A closed draft releases its items, so a reader which has not read every item
-receives the outcome next and never receives the rest; the committed entries carry the final content. The
-log closes open drafts when its journal is deleted or it is sealed, so check `IsOpen` before committing a
-draft which the log can close. The log journals a draft's identifier with its committed entries, so a reader
-which resumes a committed draft receives `DraftCommitted`, in any activation, while the log retains the first
-committed entry. A reader which resumes a draft that the current activation abandoned receives its reason; the
-log records the reasons for its 16 most recently abandoned drafts. A reader resuming a draft which another
-activation opened and never committed receives `DraftAbandoned` with `PreviousActivation`.
+`BeginDraft` 打开一份 `Write` 项目送达读者的草稿, 即立即通过 `includeDrafts: true` 。 `Commit` 附加零
+或更多条目,作为一份日记项并报告 `DraftCommitted` ,且承诺范围; `Commit()` ,无
+将条目干净地关闭草稿。 `Abandon` 或处置报告 `DraftAbandoned` 具有 a 的
+`LogDraftAbandonReason`封闭式草案释放其项目,因此读者没有读过每个项目
+收到下一个结果,而从未收到其余结果;承诺的条目含有最终内容。
+当日记被删除或密封时, 日志关闭打开草稿, 将它关闭, 检查 `IsOpen` 在承诺
+日志可以关闭草稿的草稿。日志日志会将草稿的识别特征及其承诺条目进行日志, 因而是读者
+恢复承诺草案的,在任何激活中接收 `DraftCommitted`,而日志保留第一个
+被指定条目。 读者如果恢复当前放弃的激活程序得到其理由的草稿, 则会收到它的理由;
+记录最近被弃的16份草稿的原因。
+启动打开并从未被承诺过 接收 `DraftAbandoned` 与 `PreviousActivation`。
 
-A failed journal write faults watch streams; a stopped manager completes them without `Sealed`.
+日记写错误失败, 监视流; 被停止的管理器在没有 `Sealed`的情况下完成 。
 
-To test code which uses durable state, host it in a grain on an `InProcessTestCluster` whose silos call `AddJournaling()`,
-apply the application's journal format configuration, and call `AddVolatileJournalStorage()`. The silos run
-real journaled state managers over in-memory journals.
+测试使用耐久状态的代码, grain 在一个 `InProcessTestCluster` 其 silos 调 `AddJournaling()`,
+应用应用程序的日记账格式配置,并调用 `AddVolatileJournalStorage()`。 silos 运行
+真实的日记国家经理 在模拟杂志上。
 
-## Custom state and standalone ownership
+<a id="custom-state-and-standalone-ownership"></a>
 
-Register a grain-facing state component contract and its implementation with
-`services.AddStateMachine<TState, TImplementation>()` on `IServiceCollection`. Both type arguments
-are reference types, and the implementation implements both `TState` and `IStateMachine`.
-In silo configuration, use `siloBuilder.AddJournaling()` for core setup and
-`siloBuilder.Services.AddStateMachine<TState, TImplementation>()` for the grain state component mapping.
-Storage-provider registration already calls `AddJournaling` internally. Grain code obtains components
-through `IDurableStateManager.GetOrAddState` using the existing activation scope. The manager handles
-construction, registration, and journal-stream binding; constructors receive
-dependencies and leave registration to the manager. Unsupported application contracts produce an
-explicit registration error at `GetOrAddState`.
+## 自定义状态和独立所有权
 
-The parameterless registration overload resolves constructor dependencies through dependency
-injection. For name-aware construction, use the overload accepting
-`Func<IServiceProvider, string, TImplementation>`: the callback receives the owning service
-provider and requested state name.
+a 登记册 grain- 符合国家组成部分合同及其与
+`services.AddStateMachine<TState, TImplementation>()` 日期 时 `IServiceCollection`两种类型的参数
+是指参考类型,执行既执行 `TState` 又执行 `IStateMachine`。
+在 silo 配置中,使用 `siloBuilder.AddJournaling()` 设置核心元件和
+`siloBuilder.Services.AddStateMachine<TState, TImplementation>()` 排排 grain 状态组成部分绘图。
+存储供应商登记已在内部调用 `AddJournaling` 。 Grain 代码获得组件
+中 `IDurableStateManager.GetOrAddState` 使用现有的激活范围。管理器操作
+建筑、登记和期刊-流装订;施工者接收
+申请人的无证明申请合同产生
+`GetOrAddState`时的清清楚登记错误。
 
-`IStateMachine` consists of:
+无参数登记超载通过依赖解决建筑商的依附关系
+输入。对于名称意识的构造,使用超载接收
+`Func<IServiceProvider, string, TImplementation>`:回调接受自控服务
+提供方和被要求的国家名称。
 
-- `Reset`: reset in-memory state and bind a `JournalStreamWriter`.
-- `ReplayEntry`: reconstruct state from a recorded operation.
-- `PrepareWriteAsync`: establish asynchronous persistence prerequisites for pending state.
-- `WritePendingEntries`: emit pending operations into the supplied writer.
-- `WriteSnapshot`: emit a reconstructible snapshot into the supplied writer.
-- `OnRecoveryCompleted`: finish reconstruction before application use.
-- `OnWriteCompleted`: publish effects that depend on storage acknowledgement.
+`IStateMachine` 包括:
 
-Command-backed states can use `IDurableValueCommandCodec<TCommand>` to encode a
-complete command before applying it locally. A snapshot is a command in the same
-application-defined schema which reconstructs the whole state. Annotate command data
-for Orleans serialization and supply System.Text.Json metadata when using the JSON codec.
+- `Reset`:重置记忆状态并约束一个 `JournalStreamWriter`。
+- `ReplayEntry`:从记录的行动中重建状态。
+- `PrepareWriteAsync`:为待决状态建立不同步的持久性先决条件。
+- `WritePendingEntries`:将待处理的操作发送到提供作者。
+- `WriteSnapshot`:向提供作者发送可重建的快照。
+- `OnRecoveryCompleted`:在应用使用前完成重建。
+- `OnWriteCompleted`:公布取决于储存确认的效果。
 
-Recovery resets state machines and replays durable entries. A failed initialization can be retried on the
-same manager and registered states. `JournalReplayContext.ResolveStateMachine` routes entries to the
-state machine for their stream.
+命令支持状态可以使用 `IDurableValueCommandCodec<TCommand>` 编码
+将它应用到本地时, 命令在全部命令中完成后才能将其应用为本地。
+用于重建整个州的国家。
+用于 Orleans 序列和供应 System.Text.Json 使用元数据时 JSON 代码码
 
-Write preparation runs before append or snapshot capture.
-Each state prepares its own prerequisites idempotently. An asynchronous completion
-leaves prepared prerequisites synchronously ready; the manager then rechecks all states
-to include mutations staged on interleaved turns. A complete synchronous pass flows
-directly into capture. Preparation failures retain pending changes for an explicit
-write retry and report `JournaledStatePreCommitException`. The owner's shutdown token
-cancels preparation, and disposal drains its actual completion.
+回收重置国有机器和重放耐用条目。
+经理和注册州同属一地。 `JournalReplayContext.ResolveStateMachine` 路径条目的
+他们的流体状态机器。
 
-`IJournaledStateManager` is independent of the grain-facing `IDurableStateManager` and extends
-`IAsyncDisposable`. Its owner API provides `RegisterStateMachine`, `TryGetStateMachine`,
-`InitializeAsync`, `WriteStateAsync`, whole-journal `DeleteStateAsync`, and `PendingWriteByteCount`.
-`IJournaledStateManagerFactory.CreateStandalone(JournalId)` returns this owner contract. Construct
-state machine components with caller-supplied dependencies and register them before initialization.
-This helper accepts a caller-owned component and an operation which updates it after recovery:
+编写工作在附件或快照捕捉之前进行。
+每一个州都自行制定自己的先决条件。
+准备好的先决条件,同时准备;然后管理人员重新检查所有各州
+包括由跨左转所引发的突变。
+准备失败保留,等待修改以明确
+重新写入并报告 `JournaledStatePreCommitException`。所有者的关闭标记
+取消准备工作,处置工作排干实际完成。
+
+`IJournaledStateManager` 独立于 grain- 面 `IDurableStateManager` 并扩展
+`IAsyncDisposable`. 其所有人 API 提供 `RegisterStateMachine`、 `TryGetStateMachine`,
+`InitializeAsync`、 `WriteStateAsync`、全日 `DeleteStateAsync`和 `PendingWriteByteCount`。
+`IJournaledStateManagerFactory.CreateStandalone(JournalId)` 返回该所有人合同。
+状态机器组件,有呼叫员提供的附属关系,并在启动前登记。
+协助者接受呼叫者拥有的部分和在恢复后更新的操作:
 
 ```csharp
 using Orleans.Durable.Journaling;
@@ -324,103 +340,113 @@ public static class StandaloneJournal
 }
 ```
 
-The caller supplies component codecs matching the journal's configured write format and retains
-ownership of the components and their dependencies. Standalone journal owners never create or dispose
-DI scopes. If component construction needs a scope, the caller supplies and manages it. Disposing
-the owner stops journal processing and releases journal resources; component and dependency disposal
-remains the caller's responsibility. `TryGetStateMachine` looks up an explicitly registered component.
+与日记配置的写写格式和保留格式相匹配的调用器供应组件编码器
+独立日记业主从不创建或处置
+DI范围。如果部件的施工需要工程范围,则呼叫器供应和管理。
+所有人停止日记处理和发布日记资源;构成部分和扶养财产处置
+`TryGetStateMachine` 寻找一个明确注册的部分。
 
-Grain-facing `GetOrAdd` and keyed resolution use the existing activation scope. The runtime owns
-that scope and the lifetime of its DI-created state components, dependencies, and manager cleanup.
-Standalone integrations, such as Durable Jobs shards, explicitly provide their own state components
-and use the owner interface to coordinate recovery and writes.
+Grain- 向上 `GetOrAdd` 和按键分辨率使用现有的激活范围。运行时间自有
+其设计的国家组成部分、依赖关系和管理人员清理的范围及其寿命。
+独立一体化,如 " 持久就业 " 等独立融合,明确提供了自己的国家组成部分
+并使用所有者界面协调回收和写作。
 
-Managers created with an explicit `JournalId` through `CreateStandalone`, or constructed
-directly from storage without a grain context, retain caller-owned initialization and disposal even when
-created inside a grain call. Register their state components and await `InitializeAsync(cancellationToken)` with
-the operation's token before use, or deliberately supply them through a registration which assigns
-lifecycle ownership. Creation through the explicit-journal factory keeps failure handling independent
-of the ambient grain context, including when the caller subsequently enrolls the manager in a lifecycle.
+明确设立管理人员 `JournalId` 中 `CreateStandalone`,或建造的
+直接从储存中直接储存,不使用 grain 背景,保留呼叫者拥有的初始化和处置,即使
+内创建 grain 登记其国家组成部分,等待 `InitializeAsync(cancellationToken)` 与
+使用前操作的标记,或通过指定注册来故意提供
+通过明确的新闻工厂创建的工厂使处理不合格者保持独立
+环境 grain 上下文,包括调用者随后将管理人员纳入生命周期。
 
-## State identity and retirement
+<a id="state-identity-and-retirement"></a>
 
-Preserve state names across activations and deployments. A stream absent from the setup declarations
-enters the manager's automatic retirement grace period, seven days by default through
-`JournaledStateManagerOptions.RetirementGracePeriod`. Recovery preserves its entries during that
-period. Reintroduce the name during a later activation's setup to recover it; a compaction after the
-grace period removes the retired stream. Declare every state component that must remain active on each activation,
-even when its contents will not be accessed.
+## 国家身份和退休
 
-The application/protocol naming changes preserve persisted state names, stream identities, command
-tokens, format-key values, serialized member IDs, and provider metadata keys. Keep codecs available
-for retired streams and stored formats throughout the deployment and rollback window.
+保存所有启动和部署的州名。
+自动退休宽限期,在出现7天的违约情况下通过
+`JournaledStateManagerOptions.RetirementGracePeriod`. 追回在[质 期间保留其记录
+周期。 在以后启动的恢复装置中重新命名;
+宽度期间将去除已留存的流。 声明每个激活时必须保持活跃的状态组成部分,
+即使内容无法查阅。
 
-## Staging and failure boundaries
+应用程序/程序命名更改保留了国家名称、流身份、命令等长期存在的国家名称
+符号、 格式键值、 序列成员身份和提供源元元密钥。 保持代码化
+在整个部署和回滚窗口中,用于已退役流和存储格式。
 
-The pending journal is shared by every caller using a state manager. Prepare fallible work and external
-acknowledgements in operation-local data. Once an outcome is safe to commit, apply its mutations to the
-durable state and await `WriteStateAsync`. One acknowledgement covers the manager-wide journal
-batch, including changes staged by interleaved callers. Applications are responsible for sequencing that transition
-with other interleaved operations and for making uncertain-outcome retries idempotent.
+<a id="staging-and-failure-boundaries"></a>
 
-A failed write or delete permanently fences the manager, faults queued operations, and requests
-deactivation of the associated grain. In-flight calls retain their existing in-memory state while subsequent
-state-manager operations fail explicitly. A new activation recovers the actual durable outcome.
-For a manager created through `IJournaledStateManagerFactory`, dispose the failed instance and create
-another manager for the same `JournalId`, explicitly constructing and registering fresh state components
-before initialization and retiring the old components and dependencies according to their assigned lifetimes.
+## 储存和故障边界
 
-An initialization failure reports its error to the attempt's callers and leaves the manager uninitialized.
-Call `InitializeAsync` again to retry from the beginning using the existing reset/replay contract.
-Concurrent callers share the active attempt, and writes become available after recovery succeeds.
-State registration stays closed after initialization first begins.
+每位使用国家经理的来电者都共享未结日记。
+操作中本地数据中确认的数值。一旦结果安全进行,则将其变异适用于
+持久状态和等待的状态 `WriteStateAsync`一份确认书涵盖全管理人员期刊
+包括由间断电话人进行的改动。 应用程序负责对过渡进行排序
+并造成不确定结果的重整
 
-Cancelling a caller's wait leaves an already queued write running. Observe durability through write
-acknowledgement or a fresh activation before deciding whether to retry an application command.
+失败的写作或永久删除, 将管理器、 排队的故障操作和请求永久围上
+相关 grain的解除。在飞行中的通话保持其现有记忆状态,随后则保持
+州管理器操作明显失败。 新的激活可以恢复实际的持久结果 。
+对于通过 `IJournaledStateManagerFactory`创建的管理器,处置失败实例并创建
+同一 `JournalId`的另一名经理,明确建造和登记新的状态组件
+在启动之前,并根据旧部件和依赖性指定寿命将其初始化并退休。
 
-## Storage provider contract
+初始化失败时, 向尝试的来电员报告错误, 让经理无法启动 。
+再次调用 `InitializeAsync` ,以便使用现有的重设/重放合同从头重试。
+并写作在恢复成功后便可以使用。
+国家登记在启动之初即停止。
 
-The journal is the source of truth for durable state. Every `IJournalStorage` implementation provides these guarantees:
+取消呼叫者等待的等候时, 留下一个已经排队的写正在运行。 通过写入观察耐用性
+是否重试应用程序命令之前确认或重新激活。
 
-- `AppendAsync` makes its whole segment visible after every earlier segment, or none of it, and `ReplaceAsync` makes its whole value the journal's only segment, or the journal keeps its earlier content. A segment stored across several records or requests becomes visible through one atomic publication step, so successful reads observe whole segments after a crash, timeout, conflict, or retry inside the provider.
-- A segment which exceeds a provider limit fails the whole call with an exception, and nothing of it becomes visible.
-- A definitively rejected write leaves the earlier content in place. A write with an indeterminate outcome, such as a timeout after the request was sent, applied its whole segment or none of it. A retry can report a precondition conflict after the original request committed; recovery determines the outcome.
-- A successful `ReadAsync` returns one version of the journal: every segment written up to that version, whole and in write order. Callers discard data from a failed read and recover from the beginning.
-- Each storage instance holds a write precondition established by its first successful read or creation, including an observed absence, and advanced by its own writes. `AppendAsync`, `ReplaceAsync`, and `DeleteAsync` succeed only at that version and otherwise throw `InconsistentStateException`. An instance writes after it reads the journal or creates it with `CreateIfNotExistsAsync`; a write through an instance which has done neither throws `InvalidOperationException`. Metadata operations never establish or move the precondition.
+<a id="storage-provider-contract"></a>
 
-Callers await each operation before starting another through the same storage instance. Separate instances coordinate through storage preconditions. Direct storage callers initialize their precondition with `ReadAsync` or a successful `CreateIfNotExistsAsync` before writing.
+## 储存提供商合同
 
-Subsequent `ReadAsync` calls validate the established precondition and throw `InconsistentStateException` if another writer changed the content. This provides history reads through the same interface while preserving the active writer's precondition. Recovery after a conflict uses a fresh storage instance.
+该日记是持久状态的真理来源。 `IJournalStorage` 执行中提供这些保障:
 
-Appends contain at least one byte. An empty append throws `ArgumentOutOfRangeException` before touching storage; `ReplaceAsync` accepts an empty value to publish an empty journal.
+- `AppendAsync` 使得整个部分在早期的每个段段之后都能看到,或者说没有一个,并且 `ReplaceAsync` 将它的全部价值都放在期刊唯一的部分上,或者把日记保留其先前的内容。 储存于多个记录或请求中的一段通过原子出版步骤就能看得见,因此成功读到在提供者内部崩溃、超时、冲突或重试后对整段进行观察。
+- 超过提供者限制的段段除例外无法通过整个调用,任何部分都无法看得见。
+- 明确拒绝的书写内容留下先前的内容。 含有不确定结果(如请求发出后暂停)的书写应用了整段或其中任何一部分。 重试可以报告原始请求提出后出现的先决条件冲突; 追偿决定结果。
+- 成功 `ReadAsync` 返回一个日记版本:每个部分,只要写到该版本,全部和按写序。调用者从失败的读取中丢弃数据并从开始恢复 。
+- 每个存储实例都具有由首次成功读作或创建所设定的、包括观察到的缺失在内的书面先决条件,并由其本身的写作加以推进。 `AppendAsync`、 `ReplaceAsync`和 `DeleteAsync` 仅在该版本中成功并以其他方式丢弃 `InconsistentStateException`。一个实例在读到日记或用 `CreateIfNotExistsAsync`创建该日记后写;通过一个既未丢出 `InvalidOperationException`的案例撰写。元数据操作从不确定也不移动该先决条件。
 
-The provider conformance suite (`JournalStorageConformanceTests` in `test/Orleans.Journaling.Tests/Conformance`) verifies these guarantees with limit, concurrency, fault-injection, and model-based tests. Each provider in this repository runs it.
+调用员等待每次操作,然后通过同一个存储实例启动另一个操作。 单独的情况通过储存的先决条件协调。 直接储存调用员在写作前先以 `ReadAsync` 或成功 `CreateIfNotExistsAsync` 开始设定其先决条件。
 
-## Storage format
+事后 `ReadAsync` 调用确认既定的先决条件,如果另一个作家更改了内容,则丢弃 `InconsistentStateException` 。这提供了历史通过同一界面读取,同时保留活跃作家的前提条件。冲突后恢复使用新的存储实例。
 
-The JSON journaling format stores journal entries as true JSON Lines: UTF-8 text, no byte order mark, and one JSON array per journal entry line. Each line is terminated by `\n`. Recovery accepts both LF and CRLF line endings. Storage providers which use format metadata should store `JsonLinesJournalFormat.JournalFormatKey` as the format key and may use `application/jsonl` as the MIME type.
+追加文件至少包含一个字节。 空白的附加文件在触摸存储前会丢弃 `ArgumentOutOfRangeException` ; `ReplaceAsync` 接受空值以发布空日记 。
 
-Each record contains the state id as element 0 and the durable operation payload array as element 1:
+供应商符合规定的套房(`JournalStorageConformanceTests` 内 `test/Orleans.Journaling.Tests/Conformance`以限制、通货、错误注射和基于模型的测试来核实这些担保。本存储处的每个供应商都运行该软件库。
+
+<a id="storage-format"></a>
+
+## 储存格式
+
+JSON 将日记条目格式化为真实的 JSON 行: UTF-8 文本,无字节顺序标记,每个日记条目行有一个 JSON 阵列。每行都由 `\n`终止。回收既接受LF和CRLF行结尾。使用格式元数据的存储供应商应存储 `JsonLinesJournalFormat.JournalFormatKey` 作为格式键,并可以使用 `application/jsonl` 作为MIME类型。
+
+每个记录中包含作为元素0的状态代号,持久运行有效载荷阵列作为元素1:
 
 ```json
 [8,["set","alpha",1]]
 ```
 
-Inside the operation payload array, element 0 is the command name, followed by command-specific operands such as keys, values, item arrays, or versions. Storage write batches append one or more complete JSON Lines records without adding a separate extent envelope or final container-close step.
+在操作有效载荷阵列中,元素0是命令名称,后面是命令专用的魔方,如键、值、项目阵列或版本。存储写入批次附加一个或多个完整的 JSON 线记录,但不增加一个单独的范围信封或最后的容器关闭步骤。
 
-Existing data is read using its stored format metadata, or as legacy OrleansBinary data when metadata is absent, and migrated to the configured write format by the next snapshot write.
+现有数据是使用其存储的格式元数据阅读的,或者在没有元数据时作为遗留 OrleansBinary 数据阅读,然后通过下个快照写入迁移到配置的写入格式。
 
-## Catalog enumeration
+<a id="catalog-enumeration"></a>
 
-`IJournalStorageCatalog.ListAsync` returns an `IAsyncEnumerable<JournalCatalogEntry>` in provider traversal order.
-Each entry contains its `Id` and optional `Metadata`. Deduplicate by `Id` when unique identities
-are required, since repeated entries can carry different metadata versions.
-`JournalCatalogListOptions.Prefix` matches the raw beginning of `JournalId.Value`, including partial path
-segments. For example, `jobs/shards/20260909` selects timestamped names for that UTC day.
-Use a trailing slash, such as `jobs/shards/`, to select a namespace's descendants.
-`MinId` and `MaxId` supply inclusive lower and upper bounds. All three constraints use
-`StringComparison.Ordinal` and are snapshotted when enumeration begins. Default values
-leave the corresponding constraint open. Disjoint constraints produce an empty result.
+## 分类表列举
+
+`IJournalStorageCatalog.ListAsync` 返回提供者跨行订单中的 `IAsyncEnumerable<JournalCatalogEntry>` 。
+每个条目中包含 `Id` 和任择 `Metadata`复制的 `Id` 当身份特性与
+需要,因为重复输入可以包含不同的元数据版本。
+`JournalCatalogListOptions.Prefix` 符合 `JournalId.Value`的原始起始点,包括部分路径
+例如, `jobs/shards/20260909` 为UTC日选择了时间戳名称。
+使用尾部斜线, 如 `jobs/shards/`来选择命名空间的子孙 。
+`MinId` 和 `MaxId` 供应中包含下限和上限值的供给。
+`StringComparison.Ordinal` ,当开始计数时被快速抓取。默认值
+允许相应的限制被打开。不连接的限制产生空结果。
 
 ```csharp
 var options = new JournalCatalogListOptions
@@ -432,74 +458,80 @@ var options = new JournalCatalogListOptions
 };
 ```
 
-Providers can narrow the native prefix further using the common prefix of the lower and upper
-bounds. Applications requiring a uniform result order sort the selected ids using
+供应商可以使用上下共同的前缀进一步缩小本地的前缀
+。需要统一结果顺序的应用程序对选定的ID进行排序
 `StringComparer.Ordinal`.
 
-Storage providers fetch pages internally and yield matching identities as they discover them. `await foreach` advances the traversal and disposes the enumerator when the loop ends. Consumers which process identities in batches can retain one enumerator across batches, advance it serially, and dispose it after the last pending `MoveNextAsync` completes. Use a cancellation token whose lifetime covers that enumeration.
+存储提供者内部取取页面,并随着发现这些页面时生成匹配的身份。 `await foreach` 预发跨行并在循环结束时处置该查点器。分批处理身份的消费者可以保留一个逐批进行查点的统计器,并按序在最后待决 `MoveNextAsync` 完成后予以处理。使用其一生都包含此查点内容的取消标记。
 
-`IncludeMetadata` defaults to false and is snapshotted with the range options. When true, providers
-include complete metadata available from the listing: journal format, storage ETag, and caller-owned
-properties observed together, using the same semantics as `GetMetadataAsync`. Azure Blob projects
-WAL metadata, Azure Table projects header properties, and Volatile snapshots metadata under its store
-lock. S3 and Redis return null metadata because their listings expose identities rather than the
-complete journal metadata. Projection adds no separate per-journal metadata requests.
+`IncludeMetadata` 默认为假的, 并用范围选项快速描述。 如果是, 则提供方
+清单中列出的完整元数据:日记格式、储存ETag和呼叫者拥有
+使用与 `GetMetadataAsync`. Azure 布罗布项目相同的语义,同时观测到的特性。
+WAL 元数据、 Azure 表工程头属性和挥动快照存储下的元数据
+锁定 S3 和 Redis 返回无效元数据,因为其列表显示身份而不是
+完整日记元数据。预测没有增加每期日刊的单独元数据请求。
 
-Consumers requiring metadata use the supplied snapshot or call `GetMetadataAsync` when it is absent.
-An empty caller-property dictionary is a valid complete snapshot. Treat the ETag as the version of that
-snapshot and pass it to conditional metadata updates; concurrent changes can cause the update to fail.
+需要元数据的消费者使用提供的快照,或在缺少时拨打 `GetMetadataAsync` 。
+空的调用器- 财产字典是有效的完整快照。 请将ETag 当作该版本
+将快照转至有条件元数据更新; 同时变动可能导致更新失败 。
 
-| Provider | How narrowly discovery scans | Remaining work |
+| 提供商 | 如何狭小的发现扫描 | 剩余剩余工作 |
 | --- | --- | --- |
-| Volatile | An ordered key index selects a view covering the requested prefix and bounds. | Snapshots selected keys and checks current journal existence. |
-| Azure Table, default mapping | Printable ASCII ids use two uppercase hex digits per byte, allowing direct indexed prefix and lower/upper key filters. | Queries include the journal header row condition; the service controls work inside the selected key range. |
-| Azure Table, custom mapping | Canonical journal-id filters limit returned headers. | Arbitrary mappings can require a table scan because the journal-id property is not indexed. |
-| Azure Blob | The `wal/` namespace and raw id prefix select WAL blobs; conservative ASCII bounds narrow traversal safely in both flat and hierarchical namespaces. | Widened bounds and the final page can include additional candidates, filtered against the original ordinal range. Checkpoints occupy a separate namespace. |
-| S3 general-purpose, ordered listing enabled | The `wal/` namespace excludes checkpoints. Identity-mapped keys use native prefixes and an initial `StartAfter` marker preceding the inclusive lower bound, then stop at the upper WAL key. | The final page can overrun the range. Custom key mappings use their configured native prefix and identity filtering. |
-| S3 Express directory buckets | A native slash-terminated prefix within `wal/` limits the namespace and excludes checkpoints. | Partial-name and time bounds are filtered during unordered traversal. |
-| Redis | Readable key names enable native `SCAN MATCH` prefix filtering and local key-range checks before identity metadata reads for the default mapping. | `SCAN MATCH` still traverses the server keyspace. Custom key mappings read canonical ids from matching metadata hashes. |
+| 挥变 | 命令键索引选择一个视图,覆盖要求的前缀和边框。 | 抓图选中的密钥并检查当前日记的存在 。 |
+| Azure 表格,默认绘图 | 可打印 ASCII id 使用两个大写字母的每个字节的十六进制数字, 允许直接索引前缀和下/上键过滤器。 | 查询包括日记页眉行条件;服务控制在选定关键区域内工作。 |
+| Azure 表格,自定义绘图 | 卡尼西亚日记牌过滤器限制返回页眉。 | 任意制图可能需要扫描表,因为日记标识属性没有索引。 |
+| Azure 组合 | `wal/` 命名空间和原始id前缀选择 WAL 边框;保守的 ASCII 在平坦和等级名称空格中安全地将窄跨行绑定。 | 宽度和最后页面可以包括额外的候选人,根据原正则范围过滤。 检查站使用单独的命名空间 。 |
+| S3 普通用途,可按订单列入名单 | `wal/` 命名空间不包括检查站。身份标记键使用本地的前缀和在包容性下下限之前的第一个 `StartAfter` 标记,然后停在上WAL键处。 | 最后页面可以覆盖范围。 自定义密钥映射使用他们配置的本地前缀和身份过滤 。 |
+| S3 快式目录桶 | `wal/` 内原本地刀切的预设物限制命名空间,排除检查站。 | 在无顺序的跨行期间,部分名称和时限被过滤。 |
+| Redis | 可读关键词名可以在身份元数据读作默认映射之前,先进行本地 `SCAN MATCH` 前缀过滤和本地密钥范围检查。 | `SCAN MATCH` 仍然横穿服务器密钥空间。自定义密钥映射从匹配的元数据 hashes 读取卡尼卡代号 。 |
 
-Blob native bounds preserve the shared listing prefix and widen suffixes where punctuation or
-directory separators affect storage ordering. Ordered S3 native lower/upper optimizations apply
-where storage ordering agrees with ordinal identity ordering, including fixed-width ASCII
-timestamp names. All original bounds remain enforced while traversing storage. S3 ordered listing is an explicit
-`UseOrderedListing` capability setting for general-purpose buckets.
-The selected identity count, transferred keys, and backend scan work are separate costs:
-server-side filtering can reduce transferred data while the service still examines a wider keyspace.
+Blob 本地边框保留了共同列名前缀,并在标点或
+命令 S3 本地的低/上优化
+储存订单与包括固定宽的ASCII在内的定序身份订单一致
+保存时,所有原始界限在跨越储存期间仍然有效。
+通用桶`UseOrderedListing` 能力设置。
+选择的身份计数、 传输的密钥和后端扫描工作是单独成本 :
+服务器侧过滤可减少传输的数据, 而服务仍然在检查一个更大的密钥空间。
 
-Enumeration observes live storage. Concurrent changes follow each provider's listing semantics; callers should tolerate repeated identities during changes and use subsequent enumerations to discover later updates. Journal existence can change between discovery and a storage operation. Cancellation and storage errors propagate through enumeration. Dispose a failed enumerator and begin a new enumeration when retrying a listing operation.
+数字观察现场存储。 同时变化会跟随每个供应商的列表语义; 呼叫者应该容忍在修改过程中重复身份, 并使用随后的查点来发现以后更新情况。 日记的存在可以在发现和储存操作之间发生变化。 取消和存储错误会通过查点传播。 解开一个失败的点名器, 在重新尝试列表操作时开始新的查点 。
 
-## Provider metrics
+<a id="provider-metrics"></a>
 
-The `Microsoft.Orleans` meter records catalog traversal and explicit provider retries:
+## 提供方衡量量
 
-- `orleans-journaling-provider-catalog-pages` counts pages received during S3 and Azure catalog
-  traversal, including empty pages.
-- `orleans-journaling-provider-catalog-items` counts native page candidates and consumed Redis
-  scan keys before local filtering.
-- `orleans-journaling-provider-catalog-entries` counts entries delivered by S3, Azure Blob, Azure
-  Table, Redis, and Volatile providers.
-- `orleans-journaling-provider-retries` counts explicit provider-loop retries.
+`Microsoft.Orleans` 仪表记录按行进和明确供应商的重试分类:
 
-Pages, items, and entries use a `provider` tag supplied by the provider; retries also use `reason`.
-Each provider library owns its short name, such as `volatile` for the in-memory provider.
-Compare candidates with delivered entries to assess filtering and duplicate suppression.
+- `orleans-journaling-provider-catalog-pages` S3和S3期间收到的 Azure 单表
+  跨行,包括空页。
+- `orleans-journaling-provider-catalog-items` 计数本地页候选人并消费 Redis
+  本地过滤前扫描密钥 。
+- `orleans-journaling-provider-catalog-entries` 由S3交付的条目, Azure 布洛布, Azure
+  表、 Redis和多变性提供者。
+- `orleans-journaling-provider-retries` 计数明确的供应商-循环重置。
 
-Existing state-manager and provider-specific metrics retain storage latency, outcomes, and byte
-measurements. The application supplies [client SDK telemetry](../../docs/site/src/content/docs/grains/journaling/operations.md#use-host-provided-dependency-telemetry)
-through hosting integrations such as Aspire, instrumentation libraries, or SDK diagnostic
-configuration. Use those signals for dependency timing and outcomes, and service-side transaction
-metrics for billing reconciliation.
+页、项目和条目使用提供者提供的 `provider` 标记;重试还使用 `reason`。
+每个提供库拥有其简称,例如用于模拟提供者的 `volatile` 。
+将候选人与交付的条目进行比较,以评估过滤和重复抑制。
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Grain Persistence](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
-- [System.Text.Json Documentation](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/overview)
+现有的国家管理和具体供应商的计量标准保留储存时间、结果和字节
+应用用品 [SDK 客户端遥测](../../docs/site/src/content/docs/grains/journaling/operations.md#use-host-provided-dependency-telemetry)
+通过主机集成,如喷射、仪器仪表图书馆或SDK诊断
+配置。使用这些依赖时间和结果以及服务方交易的信号
+记账调节的衡量标准。
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+<a id="documentation"></a>
+
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [Grain 持久性](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
+- [System.Text.Json 文档](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/overview)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

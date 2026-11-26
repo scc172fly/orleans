@@ -6,102 +6,102 @@ using Orleans.Runtime;
 namespace Orleans.GrainDirectory
 {
     /// <summary>
-    /// Interface for grain directory implementations
+    /// grain 目录实施接口
     /// </summary>
     public interface IGrainDirectory
     {
         /// <summary>
-        /// Register a <see cref="GrainAddress"/> entry in the directory.
-        /// Only one <see cref="GrainAddress"/> per <see cref="GrainAddress.GrainId"/> can be registered. If there is already an
-        /// existing entry, the directory will not override it.
+        /// 在目录中注册 <see cref="GrainAddress"/> 条目。
+        /// 只有一个 <see cref="GrainAddress"/> 百分比/ 百 <see cref="GrainAddress.GrainId"/> 中已经注册的,如果已经登记
+        /// 已有条目, 目录不会覆盖它 。
         /// </summary>
-        /// <param name="address">The <see cref="GrainAddress"/> to register</param>
-        /// <returns>The <see cref="GrainAddress"/> that is effectively registered in the directory.</returns>
+        /// <param name="address">下 <see cref="GrainAddress"/> 登记</param>
+        /// <returns>下 <see cref="GrainAddress"/> 已在目录中有效注册。</returns>
         Task<GrainAddress?> Register(GrainAddress address);
 
         /// <summary>
-        /// Register a <see cref="GrainAddress"/> entry in the directory.
+        /// 在目录中注册 <see cref="GrainAddress"/> 条目。
         /// </summary>
-        /// <param name="address">The <see cref="GrainAddress"/> to register.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The <see cref="GrainAddress"/> that is effectively registered in the directory.</returns>
+        /// <param name="address">下 <see cref="GrainAddress"/> 登记。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>下 <see cref="GrainAddress"/> 已在目录中有效注册。</returns>
         Task<GrainAddress?> Register(GrainAddress address, CancellationToken cancellationToken) =>
             Register(address).WaitAsync(cancellationToken);
 
         /// <summary>
-        /// Register a <see cref="GrainAddress"/> entry in the directory.
-        /// Only one <see cref="GrainAddress"/> per <see cref="GrainAddress.GrainId"/> can be registered. If there is already an
-        /// existing entry, the directory will not override it.
+        /// 在目录中注册 <see cref="GrainAddress"/> 条目。
+        /// 只有一个 <see cref="GrainAddress"/> 百分比/ 百 <see cref="GrainAddress.GrainId"/> 中已经注册的,如果已经登记
+        /// 已有条目, 目录不会覆盖它 。
         /// </summary>
-        /// <param name="address">The <see cref="GrainAddress"/> to register</param>
-        /// <param name="previousAddress">The previous registration to replace, if any.</param>
-        /// <returns>The <see cref="GrainAddress"/> that is effectively registered in the directory.</returns>
+        /// <param name="address">下 <see cref="GrainAddress"/> 登记</param>
+        /// <param name="previousAddress">先前的登记将替换(如果有的话)</param>
+        /// <returns>下 <see cref="GrainAddress"/> 已在目录中有效注册。</returns>
         Task<GrainAddress?> Register(GrainAddress address, GrainAddress? previousAddress) => GrainDirectoryExtension.Register(this, address, previousAddress);
 
         /// <summary>
-        /// Register a <see cref="GrainAddress"/> entry in the directory.
+        /// 在目录中注册 <see cref="GrainAddress"/> 条目。
         /// </summary>
-        /// <param name="address">The <see cref="GrainAddress"/> to register.</param>
-        /// <param name="previousAddress">The previous registration, if any.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The <see cref="GrainAddress"/> that is effectively registered in the directory.</returns>
+        /// <param name="address">下 <see cref="GrainAddress"/> 登记。</param>
+        /// <param name="previousAddress">先前的登记(如有的话)</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>下 <see cref="GrainAddress"/> 已在目录中有效注册。</returns>
         Task<GrainAddress?> Register(GrainAddress address, GrainAddress? previousAddress, CancellationToken cancellationToken) =>
             Register(address, previousAddress).WaitAsync(cancellationToken);
 
         /// <summary>
-        /// Unregisters the specified <see cref="GrainAddress"/> entry from the directory.
+        /// 取消从目录中输入指定的 <see cref="GrainAddress"/> 条目的登记。
         /// </summary>
         /// <param name="address">
-        /// The <see cref="GrainAddress"/> to unregister.
+        /// 解除登记所需的 <see cref="GrainAddress"/> 。
         /// </param>
         /// <returns>
-        /// A <see cref="Task"/> representing the operation.
+        /// 代表行动的一个 <see cref="Task"/> 。
         /// </returns>
         Task Unregister(GrainAddress address);
 
         /// <summary>
-        /// Unregisters the specified <see cref="GrainAddress"/> entry from the directory.
+        /// 取消从目录中输入指定的 <see cref="GrainAddress"/> 条目的登记。
         /// </summary>
-        /// <param name="address">The <see cref="GrainAddress"/> to unregister.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="address">解除登记所需的 <see cref="GrainAddress"/> 。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task Unregister(GrainAddress address, CancellationToken cancellationToken) =>
             Unregister(address).WaitAsync(cancellationToken);
 
         /// <summary>
-        /// Lookup for a <see cref="GrainAddress"/> for a given Grain ID.
+        /// 查找 <see cref="GrainAddress"/> 给定 Grain ID.
         /// </summary>
-        /// <param name="grainId">The Grain ID to lookup</param>
-        /// <returns>The <see cref="GrainAddress"/> entry found in the directory, if any</returns>
+        /// <param name="grainId">要查找的 Grain ID</param>
+        /// <returns>下 <see cref="GrainAddress"/> 在目录中找到的条目,如果</returns>
         Task<GrainAddress?> Lookup(GrainId grainId);
 
         /// <summary>
-        /// Lookup for a <see cref="GrainAddress"/> for a given Grain ID.
+        /// 查找 <see cref="GrainAddress"/> 给定 Grain ID.
         /// </summary>
-        /// <param name="grainId">The Grain ID to lookup.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The <see cref="GrainAddress"/> entry found in the directory, if any.</returns>
+        /// <param name="grainId">要查找的 Grain ID。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>目录中找到的 <see cref="GrainAddress"/> 条目,如果有的话。</returns>
         Task<GrainAddress?> Lookup(GrainId grainId, CancellationToken cancellationToken) =>
             Lookup(grainId).WaitAsync(cancellationToken);
 
         /// <summary>
-        /// Unregisters all grain directory entries which point to any of the specified silos.
+        /// 全部不登记者 grain 指任何指定条目的目录条目 silos.
         /// </summary>
         /// <remarks>
-        /// Can be a No-Op depending on the implementation.
+        /// 视执行情况而定,可以是无行动。
         /// </remarks>
-        /// <param name="siloAddresses">The silos to be removed from the directory</param>
+        /// <param name="siloAddresses">将从目录中删除的 silos</param>
         /// <returns>
-        /// A <see cref="Task"/> representing the operation.
+        /// 代表行动的一个 <see cref="Task"/> 。
         /// </returns>
         Task UnregisterSilos(List<SiloAddress> siloAddresses);
 
         /// <summary>
-        /// Unregisters all grain directory entries which point to any of the specified silos.
+        /// 全部不登记者 grain 指任何指定条目的目录条目 silos.
         /// </summary>
-        /// <param name="siloAddresses">The silos to be removed from the directory.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="siloAddresses">将从目录中删除的 silos 。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task UnregisterSilos(List<SiloAddress> siloAddresses, CancellationToken cancellationToken) =>
             UnregisterSilos(siloAddresses).WaitAsync(cancellationToken);
     }

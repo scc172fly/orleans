@@ -19,7 +19,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
     private readonly StockMessages _messages;
     private readonly IDurableList<ReservationOutcome> _receipts;
 
-    // Requests waiting for an outcome. Grain code runs one turn at a time, so a plain dictionary suffices.
+    // 请求等待结果。 Grain 代码一次运行一个转, 所以简单的字典就足够了。
     private readonly Dictionary<MessageId, TaskCompletionSource<ReservationOutcome>> _waiters = [];
 
     public OrderGrain(IInbox inbox, IOutbox outbox, IDurableStateManager state, StockMessages messages)
@@ -41,7 +41,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
     {
         _outbox.Send(_messages.Reserve, commandId, stock, new ReserveStock(quantity, this.GetGrainId()));
 
-        // The command is delivered once this write is durable.
+        // 命令在写入可耐性后即执行。
         await _state.WriteStateAsync();
     }
 
@@ -50,7 +50,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
         var outcome = _receipts.FirstOrDefault(receipt => receipt.CommandId == commandId);
         if (outcome is null)
         {
-            // Concurrent callers waiting for the same command share one completion.
+            // 等待同一命令的呼唤者 共享一个完成
             if (!_waiters.TryGetValue(commandId, out var waiter))
             {
                 waiter = new TaskCompletionSource<ReservationOutcome>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -60,7 +60,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
             outcome = await waiter.Task;
         }
 
-        // Any write includes the receipt which the reply's handler staged, so the outcome is durable once it returns.
+        // 任何写作都包括答复处理人制作的收据,因此结果一旦返回即为持久。
         await _state.WriteStateAsync();
         return outcome;
     }

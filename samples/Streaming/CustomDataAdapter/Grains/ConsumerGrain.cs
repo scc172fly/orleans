@@ -6,11 +6,11 @@ using Orleans.Streams.Core;
 
 namespace Grains;
 
-// ImplicitStreamSubscription attribute here is to subscribe implicitely to all stream within
-// a given namespace: whenever some data is pushed to the streams of namespace Constants.StreamNamespace,
-// a grain of type ConsumerGrain with the same guid of the stream will receive the message.
-// Even if no activations of the grain currently exist, the runtime will automatically
-// create a new one and send the message to it.
+// ImplicitStreamSubscription 属性在此属性是默认于内的所有流
+// 指定命名空间: 当某些数据被推到命名空间流 Constants.StreamNamespace时,
+// a 类型 grain 的 ConsumerGrain ,与流的首饰相同,将接收电文。
+// 即使目前不存在 grain 的激活,运行时间也会自动
+// 创建一个新的,并向它发送信息。
 [ImplicitStreamSubscription(Constants.StreamNamespace)]
 public class ConsumerGrain : Grain, IConsumerGrain, IStreamSubscriptionObserver
 {
@@ -18,7 +18,7 @@ public class ConsumerGrain : Grain, IConsumerGrain, IStreamSubscriptionObserver
     private readonly LoggerObserver _observer;
 
     /// <summary>
-    /// Class that will log streaming events
+    /// 将记录流活动类
     /// </summary>
     private class LoggerObserver : IAsyncObserver<int>
     {
@@ -54,10 +54,10 @@ public class ConsumerGrain : Grain, IConsumerGrain, IStreamSubscriptionObserver
         _observer = new LoggerObserver(_logger);
     }
 
-    // Called when a subscription is added
+    // 添加订阅时呼叫
     public async Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory)
     {
-        // Plug our LoggerObserver to the stream
+        // 将我们 LoggerObserver 插插到流
         var handle = handleFactory.Create<int>();
         await handle.ResumeAsync(_observer);
     }

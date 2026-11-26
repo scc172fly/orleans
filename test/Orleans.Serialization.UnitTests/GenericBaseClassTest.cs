@@ -9,15 +9,15 @@ namespace Orleans.Serialization.UnitTests
     class Derived : Base<int>;
 
     /// <summary>
-    /// Tests for serialization behavior with generic base classes.
+    /// 测试普通基级的序列行为。
     /// 
-    /// Orleans requires that serializable types are explicitly marked with [GenerateSerializer].
-    /// When a base class is generic and marked for serialization, derived classes that close
-    /// the generic type parameters do not automatically inherit serialization capability
-    /// unless they are also marked with [GenerateSerializer].
+    /// Orleans 要求可连号类型必须明确标有[GenerateSerializer]。
+    /// 当基类为通用,并标记序列化时,则关闭的衍生类别
+    /// 通用类型参数不自动继承序列化能力
+    /// 除非也用标记标出[GenerateSerializer].
     /// 
-    /// This test verifies that the serializer correctly identifies which types can be serialized
-    /// based on explicit attribute marking rather than inheritance.
+    /// 此测试校验序列器正确识别哪些类型可以序列
+    /// 依据明确的属性标识而不是继承。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]

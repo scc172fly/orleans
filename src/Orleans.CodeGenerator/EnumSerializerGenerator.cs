@@ -30,8 +30,8 @@ internal static class EnumSerializerGenerator
         string assemblyName,
         TypeMetadataIdentity metadataIdentity)
     {
-        // Ordinary non-generic enums have one codec field and no copier or activator.
-        // More general shapes continue through the compilation-aware serializer pipeline.
+        // 普通非通用电子元有一个编码字段,没有复印机或活动器。
+        // 更一般的形状继续通过编译-认知序列式连载器管道进行。
         if (!type.IsEnumType || type.IsGenericType || type.Members.Count > 0
             || type.SerializationHooks.Count > 0 || type.UseActivator)
         {

@@ -2,44 +2,44 @@ using System;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>A received command whose destination is the grain owning the inbox.</summary>
+/// <summary>收到命令的目的地是拥有该收件箱的 grain 。</summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxMessage")]
 public readonly struct InboxMessage
 {
-    /// <summary>Gets the command identity, payload, and application metadata.</summary>
+    /// <summary>获得命令身份、有效载荷和应用元数据。</summary>
     [Id(0)]
     public required Envelope Envelope { get; init; }
 
     /// <summary>
-    /// Gets the time, on the sending grain's Durable Jobs clock, at which this logical send was staged.
+    /// 发送 grain的持久工作钟时段时段, 逻辑发送时段是在此时段进行。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The outbox journals this value when it stages the send, and every delivery attempt and recovery reuses it.
-    /// Direct callers of <see cref="IMessagingExtension.DeliverAsync"/> likewise reuse it when retrying a command.
+    /// 发件箱日记在分期发送时 和每次发送尝试及回收再利用时 都具有这个价值
+    /// 直接呼叫 <see cref="IMessagingExtension.DeliverAsync"/> 的人在重试命令时同样会再使用它。
     /// </para>
     /// <para>
-    /// The receiving inbox keeps each pending message until it is processed, including a message whose
-    /// <see cref="Envelope.DeliverAt"/> is later. It retains each processed record for <c>DeduplicationWindow</c> after
-    /// the send time it accepted. A delivery of a tracked message receives its recorded outcome, whatever its send time.
-    /// Before removing records, the inbox journals an admission floor, which only advances. It answers a message it
-    /// doesn't track with <see cref="DeliveryResult.Expired"/>, staging nothing for it, when the message's send time is
-    /// at or below that floor.
+    /// 接收收件箱将每个待处理信件保存到处理为止,包括一个其邮件
+    /// <see cref="Envelope.DeliverAt"/> 保存了每个经过处理的记录 <c>DeduplicationWindow</c> 之后
+    /// 发送信息时,无论发送时间长短,发送跟踪信息都会收到记录结果。
+    /// 取消记录前,收件箱日记是入场底,只向前推进。它回答一个信息
+    /// 无法追踪 <see cref="DeliveryResult.Expired"/>, 且当信息发送时间为
+    /// 或下一层。
     /// </para>
     /// <para>
-    /// The floor survives recovery and migration, so a delayed retry of a removed message stays expired even after a
-    /// clock moves backward. Clock jumps and skew change when messages expire and how long records are retained.
-    /// Once a record is removed, sending its command again with a later send time is admitted as a new delivery, so
-    /// applications reconcile an uncertain outcome before doing so.
+    /// 地面能维持恢复和迁移,因此,删除的邮件延迟重试即使经过
+    /// 时钟向后移动。 当信件过期和保留记录的时间长度时, 时钟跳动和扭曲更改 。
+    /// 一旦删除记录,在较晚发送时间后再次发出命令,作为新的交货,因此
+    /// 在此之前,在应用软件时要对不确定的结果进行调节。
     /// </para>
     /// <para>
-    /// The inbox never accepts a delivered send time later than its own clock plus <c>DeduplicationWindow</c>. It rejects
-    /// such a delivery of an untracked message above the admission floor with an <see cref="ArgumentOutOfRangeException"/>,
-    /// staging nothing, so the sender retries it within its retry budget. A tracked message still receives its recorded
-    /// outcome, and an untracked message at or below the floor still receives <see cref="DeliveryResult.Expired"/>.
-    /// A message a grain sends to itself uses its clock, or the first time above the admission floor after a backward
-    /// clock jump. Every processed record therefore becomes eligible for removal within twice the window of the
-    /// receiver's clock, or just after the floor when a self-send follows a backward jump.
+    /// 收件箱从不接受发件时间晚于它自己的时钟加上 <c>DeduplicationWindow</c>。
+    /// 以 <see cref="ArgumentOutOfRangeException"/>在接驳楼层上方发送未跟踪的电文,
+    /// 仍然收到跟踪信件
+    /// 下层或下层的未跟踪信息仍接收到 <see cref="DeliveryResult.Expired"/>。
+    /// grain 发送给自己的信息使用其时钟,或后退后第一次超过录取层
+    /// 因此,每处理的记录都有资格在双倍于窗口的窗口内被删除。
+    /// 接收器的时钟,或者在地板之后 当自我发送后会发生后向跳跃。
     /// </para>
     /// </remarks>
     [Id(1)]

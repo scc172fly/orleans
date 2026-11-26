@@ -7,10 +7,10 @@ using Xunit;
 namespace DefaultCluster.Tests.StorageTests
 {
     /// <summary>
-    /// Tests for the Orleans Memory Storage Provider.
-    /// The memory storage provider stores grain state in memory (non-persistent)
-    /// and is typically used for development, testing, and scenarios where
-    /// state persistence across restarts is not required.
+    /// 存储存储提供者的 Orleans 测试。
+    /// 内存存储供应商存储存储器 grain 状态(非持久性)
+    /// 通常用于开发、测试和假设情景,
+    /// 不需要在重新启动时连续保持状态。
     /// </summary>
     [TestCategory("Storage"), TestCategory("MemoryStore")]
     [TestSuite("BVT")]
@@ -23,9 +23,9 @@ namespace DefaultCluster.Tests.StorageTests
         }
 
         /// <summary>
-        /// Tests that grains can restore their initial state from storage.
-        /// Verifies the basic contract that grain state is loaded during activation
-        /// and that the storage provider properly initializes state objects.
+        /// 测试 grains 能够恢复其存储时的初始状态。
+        /// 证明基本合同 grain 状态在激活期间已装船
+        /// 存储提供者正确初始化了状态物体。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task MemoryStorageProvider_RestoreStateTest()
@@ -35,10 +35,10 @@ namespace DefaultCluster.Tests.StorageTests
         }
 
         /// <summary>
-        /// Tests handling of null state values in the storage provider.
-        /// Verifies that grains can store and retrieve null state without errors,
-        /// and can transition between null and non-null state values.
-        /// This is important for optional state scenarios.
+        /// 存储提供者对无效国家价值的测试处理。
+        /// 证明 grains 可以储存和检索无效状态,无错误,
+        /// 并且可以从无效和非无效的国家价值过渡。
+        /// 这对于任择状态情景很重要。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task MemoryStorageProvider_NullState()
@@ -51,10 +51,10 @@ namespace DefaultCluster.Tests.StorageTests
         }
 
         /// <summary>
-        /// Tests basic write and read operations for grain state.
-        /// Verifies that state changes are properly persisted in memory
-        /// and can be retrieved, demonstrating the fundamental storage
-        /// provider contract for state management.
+        /// grain 状态的基本写作和读取操作测试。
+        /// 证明在记忆中适当坚持了国家的变化
+        /// 并可以检索,以证明基本储存
+        /// 国家管理供应商合同。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task MemoryStorageProvider_WriteReadStateTest()
@@ -65,14 +65,14 @@ namespace DefaultCluster.Tests.StorageTests
             Assert.NotNull(names);
             Assert.Empty(names);
 
-            // first write
+            // 首写
             await grainWithState.AddName("Bob");
             names = await grainWithState.GetNames();
             Assert.NotNull(names);
             Assert.Single(names);
             Assert.Equal("Bob", names[0]);
 
-            // secodn write
+            // 缺水书写
             await grainWithState.AddName("Alice");
             names = await grainWithState.GetNames();
             Assert.NotNull(names);
@@ -82,106 +82,106 @@ namespace DefaultCluster.Tests.StorageTests
         }
 
         /// <summary>
-        /// Tests ETag (entity tag) enforcement in the memory storage provider.
-        /// ETags provide optimistic concurrency control by ensuring updates only succeed
-        /// if the state hasn't changed since it was read. This test verifies:
-        /// - Null ETags work for initial writes
-        /// - Mismatched ETags cause appropriate exceptions
-        /// - Correct ETags allow updates
-        /// - Deleted state requires null ETags for new writes
+        /// 测试存储器供应商对Etag(实体标记)的强制执行情况。
+        /// ETags通过确保更新仅成功提供乐观的货币同值控制
+        /// 如果国家从读取后没有变化的话。
+        /// - Null ETags 工作为首写
+        /// - 不合称的ETags造成适当的例外
+        /// - 校对ETags允许更新
+        /// - 删除状态要求新写作需要无 Etags 。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task MemoryStorageGrainEnforcesEtagsTest()
         {
             var memoryStorageGrain = this.GrainFactory.GetGrain<IMemoryStorageGrain>(Random.Shared.Next());
 
-            // Delete grain state from empty grain, should be safe.
+            // 删除删除 grain 状态从空 grain应该是安全的
             await memoryStorageGrain.DeleteStateAsync<object>(
                 "grainStoreKey",
                 "eTag",
                 TestContext.Current.CancellationToken);
 
-            // Read grain state from empty grain, should be safe, but return nothing.
+            // 读 grain 状态从空 grain,应该是安全的,但什么也不返回。
             var grainState = await memoryStorageGrain.ReadStateAsync<object>(
                 "grainStoreKey",
                 TestContext.Current.CancellationToken);
             Assert.Null(grainState);
 
-            // write state with etag, when there is nothing in storage.  Most storage should fail this, but memory storage should succeed.
+            // 以 etag 写入状态写, 当没有存储时。 大多数存储会失败, 但内存会成功 。
             await memoryStorageGrain.WriteStateAsync(
                 "grainId",
                 TestGrainState.CreateRandom(),
                 TestContext.Current.CancellationToken);
 
-            // write new state with null etag
+            // 以 Null etag 写入新状态
             string newEtag = await memoryStorageGrain.WriteStateAsync(
                 "id",
                 TestGrainState.CreateWithEtag(null),
                 TestContext.Current.CancellationToken);
             Assert.NotNull(newEtag);
 
-            // try to write new state with null etag;
+            // 尝试用 Null etag 写入新状态;
             var ex = await Assert.ThrowsAsync<MemoryStorageEtagMismatchException>(
                 () => memoryStorageGrain.WriteStateAsync(
                     "id",
                     TestGrainState.CreateWithEtag(null),
                     TestContext.Current.CancellationToken));
 
-            // try to write new state with different etag;
+            // 尝试用不同的 etag 写入新状态;
             ex = await Assert.ThrowsAsync<MemoryStorageEtagMismatchException>(
                 () => memoryStorageGrain.WriteStateAsync(
                     "id",
                     TestGrainState.CreateWithEtag(newEtag + "a"),
                     TestContext.Current.CancellationToken));
 
-            // Write new state with good etag;
+            // 以良好的标签写入新状态;
             string latestEtag = await memoryStorageGrain.WriteStateAsync(
                 "id",
                 TestGrainState.CreateWithEtag(newEtag),
                 TestContext.Current.CancellationToken);
             Assert.NotNull(latestEtag);
 
-            // try delete state with null etag
+            // 尝试用 Null etag 来删除状态
             ex = await Assert.ThrowsAsync<MemoryStorageEtagMismatchException>(
                 () => memoryStorageGrain.DeleteStateAsync<object>(
                     "id",
                     null!,
                     TestContext.Current.CancellationToken));
 
-            // try delete state with wrong etag
+            // 尝试以错误的标签方式删除状态
             ex = await Assert.ThrowsAsync<MemoryStorageEtagMismatchException>(
                 () => memoryStorageGrain.DeleteStateAsync<object>(
                     "id",
                     latestEtag + "a",
                     TestContext.Current.CancellationToken));
 
-            // delete state
+            // 删除状态
             await memoryStorageGrain.DeleteStateAsync<object>(
                 "id",
                 latestEtag,
                 TestContext.Current.CancellationToken);
 
-            // Read grain deleted grain state, should be safe, but return nothing.
+            // 读 grain 删除已删除 grain 状态,应该是安全的,但什么都不返回。
             grainState = await memoryStorageGrain.ReadStateAsync<object>(
                 "id",
                 TestContext.Current.CancellationToken);
             Assert.Null(grainState);
 
-            // try delete already deleted grain state
+            // 尝试删除已删除 grain 状态
             ex = await Assert.ThrowsAsync<MemoryStorageEtagMismatchException>(
                 () => memoryStorageGrain.DeleteStateAsync<object>(
                     "id",
                     latestEtag,
                     TestContext.Current.CancellationToken));
 
-            // try to write state to deleted state.
+            // 尝试写入状态以删除状态 。
             ex = await Assert.ThrowsAsync<MemoryStorageEtagMismatchException>(
                 () => memoryStorageGrain.WriteStateAsync(
                     "id",
                     TestGrainState.CreateWithEtag(latestEtag),
                     TestContext.Current.CancellationToken));
 
-            // Make sure we can write new state to a deleted state
+            // 确保我们能将新状态写入删除状态
             await memoryStorageGrain.WriteStateAsync(
                 "id",
                 TestGrainState.CreateWithEtag(null),

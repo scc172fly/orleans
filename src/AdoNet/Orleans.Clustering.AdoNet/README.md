@@ -1,24 +1,32 @@
-# Microsoft Orleans Clustering Provider for ADO.NET
+<a id="microsoft-orleans-clustering-provider-for-adonet"></a>
 
-## Introduction
-Microsoft Orleans Clustering Provider for ADO.NET allows Orleans silos to organize themselves as a cluster using relational databases through ADO.NET. This provider enables silos to discover each other, maintain cluster membership, and detect and handle failures.
+# Microsoft Orleans 集束器 ADO.NET
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 集束器 ADO.NET 允许 Orleans silos 将自己组织成一个集群,通过 ADO.NET。此提供者启用 silos 相互发现,保持集群成员身份,并发现和处理失败。
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Clustering.AdoNet
 ```
 
-You will also need to install the appropriate database driver package for your database system:
+您还需要为您的数据库系统安装合适的数据库驱动程序包 :
 
-- SQL Server: `Microsoft.Data.SqlClient`
-- MySQL: `MySql.Data` or `MySqlConnector`
+- SQL 服务器: `Microsoft.Data.SqlClient`
+- MySQL: `MySql.Data` 或 `MySqlConnector`
 - PostgreSQL: `Npgsql`
-- Oracle: `Oracle.ManagedDataAccess.Core`
+- 甲骨文: `Oracle.ManagedDataAccess.Core`
 - SQLite: `Microsoft.Data.Sqlite`
 
-## Example - Configuring ADO.NET Clustering
+<a id="example---configuring-adonet-clustering"></a>
+
+## 示例 - 配置 ADO.NET 群集
 
 ```csharp
 using Microsoft.Extensions.Hosting;
@@ -70,7 +78,9 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-## Example - Configuring Client to Connect to Cluster
+<a id="example---configuring-client-to-connect-to-cluster"></a>
+
+## 示例 - 配置客户端连接到集群
 
 ```csharp
 using Microsoft.Extensions.Hosting;
@@ -113,39 +123,47 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-## Database Setup
+<a id="database-setup"></a>
 
-Before using the ADO.NET clustering provider, you need to set up the necessary database tables. Scripts for different database systems are available in the Orleans source repository:
-namespace ExampleGrains;
+## 数据库设置
 
-- [SQL Server Scripts](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/SQLServer-Clustering.sql)
-- [MySQL Scripts](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/MySQL-Clustering.sql)
-- [PostgreSQL Scripts](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/PostgreSQL-Clustering.sql)
-- [Oracle Scripts](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/Oracle-Clustering.sql)
+在使用 ADO.NET 组合集提供者之前,您需要先建立必要的数据库表格。不同的数据库系统的脚本可在 Orleans 源库中查到:
+名称空间 ExampleGrains;
 
-### Optional membership SQL enhancements
+- [SQL 服务器脚本](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/SQLServer-Clustering.sql)
+- [MySQL 脚本](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/MySQL-Clustering.sql)
+- [PostgreSQL 脚本](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/PostgreSQL-Clustering.sql)
+- [甲骨文脚本](https://github.com/dotnet/orleans/tree/main/src/AdoNet/Orleans.Clustering.AdoNet/Oracle-Clustering.sql)
 
-Each silo owns its heartbeat. A heartbeat is one primary-key-targeted assignment to `IAmAliveTime`, sent as a single database command. Heartbeats preserve the logical membership row and table tokens, so a membership update can use tokens captured before a heartbeat. Canonical membership consistency is governed by those logical tokens; heartbeat timestamps are best-effort liveness observations.
+<a id="optional-membership-sql-enhancements"></a>
 
-Upgrading silos or ADO.NET gateway-discovery clients preserves support for existing query installations. Database updates are optional. With an existing catalog, cleanup continues using its installed `CleanupDefunctSiloEntriesKey` query and behavior.
+### 选择性成员 SQL 强化
 
-The existing `*-Clustering.sql` installation scripts include improved conditional-write rollback and Dead-row cleanup. Their optional `CleanupDefunctSiloEntryKey` enables cleanup based on the latest start, heartbeat, and suspicion timestamps, with a captured-row condition protecting concurrent changes. Fresh installations receive these definitions through the usual database setup.
+每个 silo 都有心跳。心跳是作为单一数据库命令发送的 `IAmAliveTime`的主要关键目标任务之一。心跳保留了逻辑成员行和表格符号,因此会员更新可以使用心跳前所捕捉的标记。能成为会员的一致性由这些逻辑标志决定;心跳时间戳是最理想的生命观察。
 
-SQL Server joined membership reads use statement snapshots provided by `READ_COMMITTED_SNAPSHOT`, which the existing `SQLServer-Main.sql` setup enables.
+升级 silos 或 ADO.NET 网关发现客户端保留对现有查询装置的支持。数据库更新是可选的。有了现有的目录,清理工作将继续使用安装的 `CleanupDefunctSiloEntriesKey` 查询和行为。
 
-Providers load and cache queries during initialization. Existing deployments continue using their installed definitions. Operators choosing to adopt revised definitions can use their normal database change-management process; reinitialize providers afterward to load the revised catalog. The original query keys and parameter sets remain supported.
+现有的 `*-Clustering.sql` 安装脚本包括改进有条件的滚回和死递清理。它们的可选 `CleanupDefunctSiloEntryKey` 能够根据最新的开始、心跳和怀疑时间戳进行清理,并有一个捕捉到的行时戳条件来保护同时的变化。新设施通过通常的数据库设置来接收这些定义。
 
-The SQL enhancements take effect per process as it adopts the updated queries. Until then, cached SQL Server/MySQL updates retain their previous missing-row version-increment behavior, and cached cleanup retains its previous status filter. The enhanced behavior applies cluster-wide once all membership writers use those definitions. SQL Server and MySQL inserts retain the original row-then-version statement order.
+SQL 服务器加入为成员, `READ_COMMITTED_SNAPSHOT`现有 `SQLServer-Main.sql` 设置启用 。
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Clustering providers](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
-- [ADO.NET database configuration](https://dotnet.github.io/orleans/docs/host/configuration-guide/adonet-configuration/)
+初始化过程中供应商的负载和缓存查询。 现有的部署继续使用已安装的定义。 选择采用订正定义的操作员可以使用正常的数据库变更管理程序; 在启动时重新启用供应商以装入订正目录。 原始查询键和参数组仍然支持 。
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+SQL 增强功能在通过更新查询时按程序生效。在此之前,缓存的 SQL 服务器/MySQL 更新保留了它们以前的缺失行版本递增行为,缓存的清理保留了其先前的状况过滤器。强化的行为一旦所有成员作者使用这些定义,即适用于整个集群。插入的 SQL 服务器和 MySQL 保留原始行代换语句命令。
+
+<a id="documentation"></a>
+
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [集群集供应商](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
+- [ADO.NET 数据库配置](https://dotnet.github.io/orleans/docs/host/configuration-guide/adonet-configuration/)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

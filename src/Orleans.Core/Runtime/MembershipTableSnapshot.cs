@@ -8,12 +8,12 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents an immutable snapshot of a canonical membership view and per-silo liveness timestamps.
+    /// 代表一个永恒的会员观点和每个silo 活性时间戳。
     /// </summary>
     /// <remarks>
-    /// A version identifies the same canonical membership rows throughout the cluster.
-    /// Updates retain versioned fields at the same version and the maximum observed IAmAliveTime for each silo.
-    /// Each peer retains local status knowledge separately from those rows.
+    /// 版本确定了整个组群中相同的大宗会员。
+    /// 更新保留在同一版本的已更新字段和最大遵守 IAmAliveTime 每个 silo.
+    /// 每个同侪将保留与这些行分开的当地身份知识。
     /// </remarks>
     [GenerateSerializer, Immutable]
     internal sealed class MembershipTableSnapshot : ISpanFormattable
@@ -24,12 +24,12 @@ namespace Orleans.Runtime
         private static readonly MembershipTableSnapshot InitialValue = new(MembershipVersion.MinValue, ImmutableDictionary<SiloAddress, MembershipEntry>.Empty);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MembershipTableSnapshot"/> class.
+        /// 初始化 <see cref="MembershipTableSnapshot"/> 类的新实例。
         /// </summary>
-        /// <param name="version">The membership version represented by this snapshot.</param>
-        /// <param name="entries">The membership entries contained in this snapshot.</param>
-        /// <param name="minimumSiloGeneration">The local exclusive upper bound of retired positive silo generations.</param>
-        /// <param name="recentlyDeadSilos">Known dead identities whose records have been removed.</param>
+        /// <param name="version">本快照所代表的成员版本。</param>
+        /// <param name="entries">本快照所载成员条目。</param>
+        /// <param name="minimumSiloGeneration">退休阳性者在当地独有的上限 silo 几代人</param>
+        /// <param name="recentlyDeadSilos">已知身份已死亡 记录已被删除。</param>
         public MembershipTableSnapshot(
             MembershipVersion version,
             ImmutableDictionary<SiloAddress, MembershipEntry> entries,
@@ -39,23 +39,23 @@ namespace Orleans.Runtime
             this.Version = version;
             this.Entries = entries;
             this.MinimumSiloGeneration = minimumSiloGeneration;
-            // Freeze caller-owned sets so published snapshots remain immutable.
+            // 冻结电话机,因此已公布的快照仍然无法改变。
             _recentlyDeadSilos = recentlyDeadSilos?.ToFrozenSet() ?? FrozenSet<SiloAddress>.Empty;
         }
 
         /// <summary>
-        /// Creates an initial snapshot from membership table data.
+        /// 创建成员表格数据的初步快照。
         /// </summary>
-        /// <param name="table">The membership table data.</param>
-        /// <returns>A snapshot containing the provided table data.</returns>
+        /// <param name="table">成员表数据。</param>
+        /// <returns>载有所提供的表格数据的简况。</returns>
         public static MembershipTableSnapshot Create(MembershipTableData table) => Update(InitialValue, table);
 
         /// <summary>
-        /// Creates a snapshot by applying membership table data to a previous snapshot.
+        /// 将会籍表数据应用到前一抓图中, 创建快照 。
         /// </summary>
-        /// <param name="previousSnapshot">The previous snapshot.</param>
-        /// <param name="table">The updated membership table data.</param>
-        /// <returns>The resulting membership snapshot.</returns>
+        /// <param name="previousSnapshot">上一个快照。</param>
+        /// <param name="table">更新的成员数据表。</param>
+        /// <returns>由此产生的成员简况。</returns>
         public static MembershipTableSnapshot Update(MembershipTableSnapshot previousSnapshot, MembershipTableData table)
         {
             ArgumentNullException.ThrowIfNull(previousSnapshot);
@@ -67,11 +67,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a snapshot by applying the contents of a newer snapshot to a previous snapshot.
+        /// 将更新的快照内容应用到上一个快照中, 创建快照 。
         /// </summary>
-        /// <param name="previousSnapshot">The previous snapshot.</param>
-        /// <param name="updated">The updated snapshot.</param>
-        /// <returns>The resulting membership snapshot.</returns>
+        /// <param name="previousSnapshot">上一个快照。</param>
+        /// <param name="updated">最新快照。</param>
+        /// <returns>由此产生的成员简况。</returns>
         public static MembershipTableSnapshot Update(MembershipTableSnapshot previousSnapshot, MembershipTableSnapshot updated)
         {
             ArgumentNullException.ThrowIfNull(previousSnapshot);
@@ -95,7 +95,7 @@ namespace Orleans.Runtime
                     && entry.Status == SiloStatus.Dead
                     && !previousSnapshot.Entries.ContainsKey(entry.SiloAddress))
                 {
-                    // An equal-version read can predate pruning of a Dead row.
+                    // 等版本读取可在死列的剪裁前完成 。
                     dead.Add(entry.SiloAddress);
                     continue;
                 }
@@ -125,8 +125,8 @@ namespace Orleans.Runtime
             var olderEntries = incomingIsOlder ? incomingEntries : previousSnapshot.Entries;
             foreach (var (silo, entry) in olderEntries)
             {
-                // Delayed reads and successful write completions can reveal a registration
-                // which was already removed from the published, newer view.
+                // 阅读延迟,写作成功完成,可以显示登记
+                // 已经从已出版的较新视图中删除。
                 if (!canonicalEntries.ContainsKey(silo)
                     && (version != previousSnapshot.Version || entry.Status == SiloStatus.Dead))
                 {
@@ -169,31 +169,31 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the membership version represented by this snapshot.
+        /// 获得由此快照所代表的会员版本。
         /// </summary>
         [Id(0)]
         public MembershipVersion Version { get; }
 
         /// <summary>
-        /// Gets the membership entries contained in this snapshot.
+        /// 获得会员条目包含在这张快照中。
         /// </summary>
         [Id(1)]
         public ImmutableDictionary<SiloAddress, MembershipEntry> Entries { get; }
 
         /// <summary>
-        /// Gets this peer's exclusive upper bound of retired positive silo generations.
+        /// 获得这个同侪独有的退休阳性 silo 几代人
         /// </summary>
         [Id(2)]
         public int MinimumSiloGeneration { get; }
 
         /// <summary>
-        /// Gets known dead identities retained separately from the canonical membership rows.
+        /// 获得已知的死身份 与卡尼科州会员排分开保留。
         /// </summary>
-        // Snapshots from older silos omit field 3 and carry no retained death history.
+        // 旧 silos 的截图忽略了字段3, 没有保留死亡历史 。
         public IReadOnlySet<SiloAddress> RecentlyDeadSilos => _recentlyDeadSilos ?? FrozenSet<SiloAddress>.Empty;
 
         /// <summary>
-        /// Gets the number of active silos in this snapshot.
+        /// 在此快照中获取活动 silos 的数 。
         /// </summary>
         public int ActiveNodeCount
         {
@@ -213,10 +213,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the status of the specified silo in this snapshot.
+        /// 获取此快照中指定 silo 的状态。
         /// </summary>
-        /// <param name="silo">The silo address.</param>
-        /// <returns>The silo status.</returns>
+        /// <param name="silo"> silo 地址。</param>
+        /// <returns> silo 状态。</returns>
         public SiloStatus GetSiloStatus(SiloAddress silo) => GetSiloStatus(silo, includeRetirement: true);
 
         internal SiloStatus GetSiloStatus(SiloAddress silo, bool includeRetirement)
@@ -260,14 +260,14 @@ namespace Orleans.Runtime
             silo.Generation > 0 && silo.Generation < minimumSiloGeneration;
 
         /// <summary>
-        /// Determines whether this snapshot is a successor to another snapshot.
+        /// 确定此快照是否是另一个快照的后继者 。
         /// </summary>
         /// <remarks>
-        /// At the same canonical membership version, progress consists of newer liveness timestamps
-        /// or pruning previously Dead rows. Non-Dead rows are retained.
+        /// 在同一种卡尼卡成员制版本中,进步包括较新的活性时间戳
+        /// 或前行的剪裁。保留非死列。
         /// </remarks>
-        /// <param name="other">The snapshot to compare against.</param>
-        /// <returns><see langword="true"/> if this snapshot is a successor to <paramref name="other"/>; otherwise, <see langword="false"/>.</returns>
+        /// <param name="other">与该快照比较。</param>
+        /// <returns><see langword="true"/> 如果该快照是 <paramref name="other"/>的继承者;否则, <see langword="false"/>。</returns>
         public bool IsSuccessorTo(MembershipTableSnapshot other)
         {
             if (Version > other.Version)
@@ -287,7 +287,7 @@ namespace Orleans.Runtime
 
             if (Entries.Count > other.Entries.Count)
             {
-                // Adding a row requires a new canonical membership version.
+                // 添加一行需要一个新的卡通会籍版本 。
                 return false;
             }
 
@@ -296,7 +296,7 @@ namespace Orleans.Runtime
             {
                 if (!other.Entries.TryGetValue(silo, out var otherEntry))
                 {
-                    // Membership changes require a table-version advance.
+                    // 成员变动要求表格转换预发款。
                     return false;
                 }
 

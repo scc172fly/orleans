@@ -1,13 +1,13 @@
--- Run this migration for upgrading the PostgreSQL persistence table and routines for deployments created before 3.6.0
+-- 运行此迁移以更新 PostgreSQL 持久性表和3.6.0之前创建的部署常规。
 
 BEGIN;
 
--- Change date type
+-- 更改日期类型
 
 ALTER TABLE OrleansStorage
 ALTER COLUMN modifiedon TYPE TIMESTAMPTZ USING modifiedon AT TIME ZONE 'UTC';
 
--- Recreate routines
+-- 重建常规
 
 CREATE OR REPLACE FUNCTION writetostorage(
     _grainidhash integer,
@@ -28,24 +28,24 @@ AS $function$
 
     BEGIN
 
-    -- Grain state is not null, so the state must have been read from the storage before.
-    -- Let's try to update it.
+    -- Grain 状态并非无效, 因此该国必须已经读过之前存储处的文字 。
+    -- 让我们试着更新它。
     --
-    -- When Orleans is running in normal, non-split state, there will
-    -- be only one grain with the given ID and type combination only. This
-    -- grain saves states mostly serially if Orleans guarantees are upheld. Even
-    -- if not, the updates should work correctly due to version number.
+    -- 当 Orleans 在正常状态下运行时,如果该状态不分裂,将
+    -- 只有一个 grain ,只有给定的ID和类型组合。此
+    -- grain 如果 Orleans 保证得到坚持,则主要以序列形式保存国家。
+    -- 如果不是,由于版本号,更新应正确工作。
     --
-    -- In split brain situations there can be a situation where there are two or more
-    -- grains with the given ID and type combination. When they try to INSERT
-    -- concurrently, the table needs to be locked pessimistically before one of
-    -- the grains gets @GrainStateVersion = 1 in return and the other grains will fail
-    -- to update storage. The following arrangement is made to reduce locking in normal operation.
+    -- 在分裂的大脑情况下,可能出现两种或两种以上的情况
+    -- 与给定的ID和类型组合grains 。当他们尝试 INSERT 时
+    -- 同时,表格需要以悲观的方式锁在
+    -- grains 得到 @GrainStateVersion = 1 回报,而另一个 grains 将失败
+    -- 以更新存储。以下安排是为了减少正常操作中的锁定。
     --
-    -- If the version number explicitly returned is still the same, Orleans interprets it so the update did not succeed
-    -- and throws an InconsistentStateException.
+    -- 如果明确返回的版本号仍然相同, Orleans 解释其内容,更新没有成功
+    -- 抛下一箭, InconsistentStateException.
     --
-    -- See further information at https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence.
+    -- 见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence中的进一步资料。
     IF _GrainStateVersion IS NOT NULL
     THEN
         UPDATE OrleansStorage
@@ -71,8 +71,8 @@ AS $function$
         END IF;
     END IF;
 
-    -- The grain state has not been read. The following locks rather pessimistically
-    -- to ensure only one INSERT succeeds.
+    -- grain 状态尚未读取。 以下锁的锁定相当悲观
+    -- 确保只有一次国家清单专家审评组成功。
     IF _GrainStateVersion IS NULL
     THEN
         INSERT INTO OrleansStorage
@@ -101,7 +101,7 @@ AS $function$
             1
         WHERE NOT EXISTS
          (
-            -- There should not be any version of this grain state.
+            -- 不应有任何版本的 grain 状态。
             SELECT 1
             FROM OrleansStorage
             WHERE

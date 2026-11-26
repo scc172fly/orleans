@@ -131,7 +131,7 @@ public sealed class AzureTableJournalStorageTests
         var storage = CreateStorage(store);
         await storage.ReadForWriteAsync();
 
-        // One byte beyond a full row forces a second data row within the same transaction.
+        // 完整行之后的一个字节在同一交易中强制输入第二个数据行。
         var payload = CreatePayload(15 * 64 * 1024 + 1);
         await storage.AppendAsync(new ReadOnlySequence<byte>(payload), CancellationToken.None);
 
@@ -462,8 +462,8 @@ public sealed class AzureTableJournalStorageTests
 
         await storage.ReplaceAsync(new ReadOnlySequence<byte>([3, 4]), CancellationToken.None);
 
-        // The new generation's rows are written without touching the header, then the header flip
-        // publishes them under the last observed ETag, and finally the previous rows are deleted.
+        // 新一代的行是写字时不触动页眉,然后页眉翻转
+        // 将前几行删除。
         var rowWrite = store.TransactionCalls[2];
         Assert.All(rowWrite, static action => Assert.Equal(TableTransactionActionType.Add, action.ActionType));
         var cleanup = store.TransactionCalls[3];
@@ -575,7 +575,7 @@ public sealed class AzureTableJournalStorageTests
         {
             if (rowKey == AzureTableJournalStorage.HeaderRowKey)
             {
-                // Simulate a competing writer appending one byte between the manifest load and the flip.
+                // 模拟一个竞争中的作家在单数负载和翻转之间附加一个字节。
                 store.BeforeUpdate = null;
                 store.PutEntity(TestPartitionKey, AzureTableJournalStorage.HeaderRowKey, new Dictionary<string, object>
                 {
@@ -613,7 +613,7 @@ public sealed class AzureTableJournalStorageTests
         await CreateStorage(store).ReadAsync(replacedConsumer, CancellationToken.None);
         Assert.Equal([7], replacedConsumer.Bytes.ToArray());
 
-        // Deleting the journal removes the header and current generation.
+        // 删除日记时报可删除信头和当前一代。
         await freshStorage.DeleteAsync(CancellationToken.None);
         Assert.Null(await CreateStorage(store).GetMetadataAsync(TestContext.Current.CancellationToken));
         Assert.True(store.IsEmpty);
@@ -652,7 +652,7 @@ public sealed class AzureTableJournalStorageTests
         Assert.True(before.IsCompleted);
         if (!commitBeforeFailure)
         {
-            // Complete the outstanding conditional request after the client has finished failure handling.
+            // 客户端完成故障处理后, 完成未满足的有条件请求 。
             Assert.NotNull(publish);
             publish();
         }
@@ -737,7 +737,7 @@ public sealed class AzureTableJournalStorageTests
 
         await (await CreateStorage(store).ReadForWriteAsync()).DeleteAsync(CancellationToken.None);
 
-        // The read observes the absent journal, and the delete confirms that it is still absent.
+        // 阅读时注意到没有日记,删除后确认它仍然没有。
         Assert.Equal(2, store.GetCalls.Count);
         Assert.Empty(store.DeleteCalls);
         Assert.Empty(store.TransactionCalls);
@@ -1155,7 +1155,7 @@ public sealed class AzureTableJournalStorageTests
             DeleteCalls.Add(new(partitionKey, rowKey, ifMatch));
             if (!_entities.TryGetValue((partitionKey, rowKey), out var stored))
             {
-                // The table client swallows 404 responses to make deletes idempotent.
+                // 表格客户端吞了404个响应,以删除无能者。
                 return Task.FromResult<Response>(new FakeResponse(eTag: default));
             }
 
@@ -1194,7 +1194,7 @@ public sealed class AzureTableJournalStorageTests
                 throw new RequestFailedException(500, "Transaction failed.");
             }
 
-            // Validate every action before applying any so the transaction is atomic.
+            // 在应用任何交易前先验证每一项行动, 交易是原子的。
             foreach (var action in actions)
             {
                 var key = (action.Entity.PartitionKey, action.Entity.RowKey);
@@ -1367,8 +1367,8 @@ public sealed class AzureTableJournalStorageTests
     }
 
     /// <summary>
-    /// Evaluates the OData filters the storage implementation generates: conjunctions of
-    /// <c>PartitionKey</c>/<c>RowKey</c> comparisons against quoted string literals.
+    /// 评估存储实施产生的 OData 过滤器:
+    /// <c>PartitionKey</c>/<c>RowKey</c> 与所引用字符串字典的比较。
     /// </summary>
     private static class FilterParser
     {
@@ -1582,7 +1582,7 @@ public sealed class AzureTableJournalStorageTests
     {
         var store = new FakeTableStore();
         var payload = CreatePayload(15 * 64 * 1024 + 37);
-        // Both the 64 KiB chunk boundary and the 15-chunk row boundary fall inside segments.
+        // 64 KiB 块边界和15千米的行边界都属于各段。
         var sequence = CreateMultiSegmentSequence(payload, 17, 100_000, 880_000, 3_060);
         Assert.False(sequence.IsSingleSegment);
 

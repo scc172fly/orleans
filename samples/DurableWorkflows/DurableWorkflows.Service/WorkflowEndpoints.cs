@@ -26,8 +26,8 @@ public static class WorkflowEndpoints
         return endpoints;
     }
 
-    // The client waits for the result of the workflow which it schedules under a root ID derived from the workflow ID.
-    // Repeating the request, with any input, returns that workflow's result while the grain retains it.
+    // 客户等待其根据工作流程编号产生的根ID排在工作流编号下所安排的工作流量结果。
+    // 重复请求时, 随任何输入返回工作流程的结果, 而 grain 保留了该结果 。
     private static async Task<IResult> RunBasicAsync(
         IClusterClient client,
         string workflowId,
@@ -55,7 +55,7 @@ public static class WorkflowEndpoints
             return InvalidId();
         }
 
-        // A JSON null body binds as null; an empty list has no branch to run.
+        // JSON 无效体约束为空;空白列表没有要运行的分支。
         if (items is not { Length: > 0 })
         {
             return InvalidItems();
@@ -86,8 +86,8 @@ public static class WorkflowEndpoints
         return Accepted("approval", workflowId, scheduled.Id);
     }
 
-    // Starts the approval when it is not running yet, then signals the decision to its root task. The task records the
-    // first decision, so repeating it is idempotent and a different decision conflicts.
+    // 当批准尚未运行时启动批准, 然后将决定信号到其根任务。 任务记录
+    // 首先决定,所以重复一遍,这是一无是处的, 和不同的决定冲突。
     private static async Task<IResult> SubmitApprovalAsync(
         IClusterClient client,
         string workflowId,
@@ -99,7 +99,7 @@ public static class WorkflowEndpoints
             return InvalidId();
         }
 
-        // A JSON null body binds as null.
+        // JSON 无效机构以无效形式约束。
         if (submission is null || string.IsNullOrWhiteSpace(submission.Subject))
         {
             return InvalidSubject();
@@ -140,8 +140,8 @@ public static class WorkflowEndpoints
         return Accepted("cancellation", workflowId, scheduled.Id);
     }
 
-    // Requests durable cancellation of the workflow, starting it first when it is not running yet. The runtime records
-    // the first request and its reason with the task, and the workflow decides its outcome.
+    // 请求持久取消工作流程, 要求在运行尚未开始时从启动流程开始。 运行时间记录
+    // 第一项请求及其任务的理由,工作流程决定其结果。
     private static async Task<IResult> CancelAsync(
         IClusterClient client,
         string workflowId,
@@ -181,7 +181,7 @@ public static class WorkflowEndpoints
         return Results.Ok(await scheduled.WaitAsync(cancellationToken));
     }
 
-    // Scheduling an existing root ID reaches that workflow, whatever the subject which this request names.
+    // 将现有的根身份表排成日程,不论要求标出什么主题,都可达到工作流程。
     private static Task<ScheduledTask<ApprovalWorkflowResult>> ScheduleApprovalAsync(
         IClusterClient client,
         string workflowId,
@@ -199,8 +199,8 @@ public static class WorkflowEndpoints
             .RunCancellationAsync(HoldPeriod)
             .WithId(RootId("cancellation", workflowId)).ScheduleAsync(cancellationToken);
 
-    // Polls the retained root task without scheduling it. The grain retains a client-scheduled task's result for
-    // DurableTaskOptions.ResultRetentionPeriod after completion; a missing or expired task returns 404.
+    // 将留存的根任务不安排时间,而将保留的任务投平。 grain 保留客户计划完成的任务结果
+    // 完成后DurableTaskOptions.ResultRetentionPeriod ; 丢失或过期的任务返回404。
     private static async Task<IResult> GetStatusAsync<TResult>(
         IClusterClient client,
         string kind,

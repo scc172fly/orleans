@@ -9,7 +9,7 @@ namespace Tester.CodeGenTests
     using Orleans;
     using Orleans.Providers;
 
-    // Regression test for explicit interface method implementations https://github.com/dotnet/orleans/issues/8991
+    // 清晰接口方法实施回归测试 https://github.com/dotnet/orleans/issues/8991
     public interface IExplicitInterfaceMethodImplementationTestGenericBase<in T>
     {
         Task M(T arg);
@@ -32,15 +32,15 @@ namespace Tester.CodeGenTests
         }
     }
 
-    // End regression test for https://github.com/dotnet/orleans/issues/8991
+    // https://github.com/dotnet/orleans/issues/8991的结束回归测试
 
     public interface IGrainWithNonPublicMethods : IGrainWithGuidKey
     {
         internal class P1;
         internal Task M1(P1 arg);
 
-        //protected class P2;
-        //protected Task M2(P2 arg);
+        //P2受保护等级;
+        //受保护的任务 M2(P2 arg) ;
 
         internal protected class P3;
         internal protected Task M3(P3 arg);
@@ -171,16 +171,16 @@ namespace Tester.CodeGenTests
     public interface IRuntimeCodeGenGrain<T> : IGrainWithGuidKey
     {
         /// <summary>
-        /// Sets and returns the grain's state.
+        /// 设置并返回 grain状态。
         /// </summary>
-        /// <param name="value">The new state.</param>
-        /// <returns>The current state.</returns>
+        /// <param name="value">新状态。</param>
+        /// <returns>现状。</returns>
         Task<T> SetState(T value);
 
         /// <summary>
-        /// Tests that code generation correctly handles methods with reserved keyword identifiers.
+        /// 测试代码生成正确处理方法的方法是否与保留的关键字识别符号正确。
         /// </summary>
-        /// <returns>The current state's event.</returns>
+        /// <returns>当前状态事件。</returns>
         Task<@event> @static();
     }
 
@@ -193,7 +193,7 @@ namespace Tester.CodeGenTests
     }
 
     /// <summary>
-    /// A class designed to test that code generation correctly handles reserved keywords.
+    /// 用于测试代码生成正确处理保留关键字的类别。
     /// </summary>
     [GenerateSerializer]
     public class @event : IEquatable<@event>
@@ -207,31 +207,31 @@ namespace Tester.CodeGenTests
         }
 
         /// <summary>
-        /// A public field.
+        /// 公共领域。
         /// </summary>
         [Id(0)]
         public Guid Id;
 
         /// <summary>
-        /// A private field.
+        /// 私人田地
         /// </summary>
         [Id(1)]
         private Guid privateId;
 
         /// <summary>
-        /// A property with a reserved keyword type and identifier.
+        /// 带有保留关键字类型和识别符号的属性。
         /// </summary>
         [Id(2)]
         public @event @public { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the enum.
+        /// 设置或设置大号
         /// </summary>
         [Id(3)]
         public @enum Enum { get; set; }
 
         /// <summary>
-        /// A property with a reserved keyword generic type and identifier.
+        /// 有保留关键词通用类型和识别符号的属性。
         /// </summary>
         [Id(4)]
         public List<@event> @if { get; set; } = null!;
@@ -245,7 +245,7 @@ namespace Tester.CodeGenTests
         }
 
         /// <summary>
-        /// Gets or sets the private id.
+        /// 获取或设置私人身份。
         /// </summary>
         // ReSharper disable once ConvertToAutoProperty
         public Guid PrivateId
@@ -359,7 +359,7 @@ namespace Tester.CodeGenTests
     }
 
     /// <summary>
-    /// Tests that nested classes do not fail code generation.
+    /// 嵌套类不会失败代码生成的测试 。
     /// </summary>
     public class NestedGenericGrain : Grain, INestedGenericGrain
     {

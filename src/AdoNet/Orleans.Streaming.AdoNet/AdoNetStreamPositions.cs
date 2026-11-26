@@ -3,13 +3,13 @@ using System.Threading;
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// Assigns queue cache positions to dequeued messages and resolves positions to their message identifiers.
+/// 指定队列缓存位置以解排信件, 并解决其信件标识符的方位 。
 /// </summary>
 /// <remarks>
-/// Queue caches require sequence tokens which increase in dequeue order across reads.
-/// Message identifiers do not provide this guarantee because a message released by a previous owner,
-/// retried after a delivery failure, or committed late becomes visible after messages with greater identifiers.
-/// Positions are unique within the provider, so a position never resolves to a message dequeued by another receiver.
+/// 队列缓存需要序列符号, 增加取消顺序的顺序会读取 。
+/// 电文识别特征不能提供这一保证,因为先前的所有人所发电文、
+/// 交付失败后重新处理,或发送时间过晚在信息具有较大识别特征之后可见。
+/// 提供方内部的位置是独一无二的, 所以一个位置永远无法解决由另一个接收器解密的信息。
 /// </remarks>
 internal sealed class AdoNetStreamPositions
 {
@@ -17,7 +17,7 @@ internal sealed class AdoNetStreamPositions
     private long _lastPosition;
 
     /// <summary>
-    /// Assigns the next position to the specified message.
+    /// 指定指定指定信件的下一个位置。
     /// </summary>
     public long Add(long messageId)
     {
@@ -27,12 +27,12 @@ internal sealed class AdoNetStreamPositions
     }
 
     /// <summary>
-    /// Gets the message identifier for a position which has not yet been removed.
+    /// 获取尚未删除位置的信息标识符。
     /// </summary>
     public bool TryGetMessageId(long position, out long messageId) => _messageIds.TryGetValue(position, out messageId);
 
     /// <summary>
-    /// Removes a position once its message has left the queue cache or is no longer held by the receiver.
+    /// 一旦信件离开队列缓存或接收器不再持有, 则删除位置 。
     /// </summary>
     public void Remove(long position) => _messageIds.TryRemove(position, out _);
 }

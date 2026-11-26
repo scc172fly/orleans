@@ -6,7 +6,7 @@ using UnitTests.GrainInterfaces;
 namespace Tester
 {
     /// <summary>
-    /// Tests for grain service functionality including service invocation, lifecycle, and extensions.
+    /// 测试 grain 服务功能,包括服务职业、生命周期和扩展。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

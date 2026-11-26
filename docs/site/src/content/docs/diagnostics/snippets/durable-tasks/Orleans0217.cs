@@ -14,7 +14,7 @@ public sealed class RoomHoldGrain(IRoomInventory rooms) : DurableGrain
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // Task cancellation has already canceled CancellationToken, so the release ends at once.
+            // 任务取消已取消 CancellationToken, 所以解密会立刻结束 。
             await rooms.ReleaseAsync(room, DurableTask.Current.CancellationToken);
             return new OrderResult(OrderStatus.Cancelled, DurableTask.Current.TaskCancellationReason);
         }
@@ -33,7 +33,7 @@ public sealed class RoomHoldGrain(IRoomInventory rooms) : DurableGrain
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // AttemptCancellationToken is canceled only when the host cancels the attempt, so the release runs to completion.
+            // AttemptCancellationToken 只有在主机取消尝试时才会取消, 所以解密将持续到完成 。
             await rooms.ReleaseAsync(room, DurableTask.Current.AttemptCancellationToken);
             return new OrderResult(OrderStatus.Cancelled, DurableTask.Current.TaskCancellationReason);
         }
@@ -51,7 +51,7 @@ public sealed class RoomHoldGrain(IRoomInventory rooms) : DurableGrain
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // The task's cancellation doesn't reach a shielded step, and the step records the release.
+            // 取消任务没有达到屏蔽的一步, 而该步骤记录了释放。
             await DurableTask.Run(ct => rooms.ReleaseAsync(room, ct)).WithId("release").Shielded();
             return new OrderResult(OrderStatus.Cancelled, DurableTask.Current.TaskCancellationReason);
         }

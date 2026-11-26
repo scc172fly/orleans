@@ -5,23 +5,23 @@ namespace Orleans;
 internal static class ReminderOptionsDefaults
 {
     /// <summary>
-    /// Minimum period for registering a reminder ... we want to enforce a lower bound <see cref="ReminderOptions.MinimumReminderPeriod"/>.
+    /// 登记提醒的最低期限.我们想执行一个较低的约束 <see cref="ReminderOptions.MinimumReminderPeriod"/>。
     /// </summary>
-    /// <remarks>Increase this period, reminders are supposed to be less frequent ... we use 2 seconds just to reduce the running time of the unit tests</remarks>
+    /// <remarks>增加这一时期,提醒时间应该少一些... 我们只需要用两秒钟来缩短单位测试的运行时间</remarks>
     public const uint MinimumReminderPeriodMinutes = 1;
 
     /// <summary>
-    /// Period (in minutes) between refreshing local reminder list to reflect the global reminder table every <see cref="ReminderOptions.RefreshReminderListPeriod"/>.
+    /// 刷新本地提醒列表以反映全球提醒表的间隔时间(分钟),每 <see cref="ReminderOptions.RefreshReminderListPeriod"/>。
     /// </summary>
     public const uint RefreshReminderListPeriodMinutes = 5;
 
     /// <summary>
-    /// The amount of time (in minutes) before their next tick that reminders are loaded into memory.
+    /// 下次选中时, 提醒被装入内存的时间( 分钟) 。
     /// </summary>
     public const uint ReminderLoadingWindowMinutes = 2 * RefreshReminderListPeriodMinutes;
 
     /// <summary>
-    /// The maximum amount of time (in minutes) to attempt to initialize reminders giving up <see cref="ReminderOptions.InitializationTimeout"/>.
+    /// 尝试启动放弃提醒的最长时间(分钟) <see cref="ReminderOptions.InitializationTimeout"/>。
     /// </summary>
     public const uint InitializationTimeoutMinutes = 5;
 }

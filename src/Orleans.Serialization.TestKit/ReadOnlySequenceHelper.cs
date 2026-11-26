@@ -7,18 +7,18 @@ using System.Linq;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// Provides helpers for creating segmented <see cref="ReadOnlySequence{T}"/> instances.
+    /// 提供创建分隔 <see cref="ReadOnlySequence{T}"/> 实例的帮助。
     /// </summary>
     [ExcludeFromCodeCoverage]
     public static class ReadOnlySequenceHelper
     {
         /// <summary>
-        /// Groups a sequence of bytes into arrays containing at most <paramref name="batchSize"/> bytes.
+        /// 将字节的序列分组成最多包含 <paramref name="batchSize"/> 字节的数组。
         /// </summary>
-        /// <param name="sequence">The sequence to divide into batches.</param>
-        /// <param name="batchSize">The maximum number of bytes in each batch.</param>
-        /// <returns>A sequence of byte arrays containing the source bytes in order.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="sequence"/> is <see langword="null"/>.</exception>
+        /// <param name="sequence">组分序列。</param>
+        /// <param name="batchSize">每批中最大字节数 。</param>
+        /// <returns>字节数组序列,按顺序包含源字节。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sequence"/> 是 <see langword="null"/>.</exception>
         public static IEnumerable<byte[]> Batch(this IEnumerable<byte> sequence, int batchSize)
         {
             if (sequence is null)
@@ -50,11 +50,11 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Creates a read-only sequence whose segments are backed by the provided byte arrays.
+        /// 创建只读序列,其各部分由提供的字节数组支持。
         /// </summary>
-        /// <param name="buffers">The buffers to include as sequence segments.</param>
-        /// <returns>A read-only sequence containing the provided buffers in order.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="buffers"/> is <see langword="null"/>.</exception>
+        /// <param name="buffers">缓冲带应包含序列段。</param>
+        /// <returns>一个只读序列,包含按顺序排列的提供的缓冲。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffers"/> 是 <see langword="null"/>.</exception>
         public static ReadOnlySequence<byte> ToReadOnlySequence(this IEnumerable<byte[]> buffers)
         {
             if (buffers is null)
@@ -66,11 +66,11 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Creates a read-only sequence whose segments are backed by the provided memory regions.
+        /// 创建只读序列,其各部分由提供的内存区域支持。
         /// </summary>
-        /// <param name="buffers">The memory regions to include as sequence segments.</param>
-        /// <returns>A read-only sequence containing the provided memory regions in order.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="buffers"/> is <see langword="null"/>.</exception>
+        /// <param name="buffers">内存区域包含序列段。</param>
+        /// <returns>包含按顺序排列的所提供记忆区域的一个只读序列。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffers"/> 是 <see langword="null"/>.</exception>
         public static ReadOnlySequence<byte> ToReadOnlySequence(this IEnumerable<Memory<byte>> buffers)
         {
             if (buffers is null)
@@ -82,11 +82,11 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Creates a read-only sequence whose segments are backed by the provided byte arrays.
+        /// 创建只读序列,其各部分由提供的字节数组支持。
         /// </summary>
-        /// <param name="buffers">The buffers to include as sequence segments.</param>
-        /// <returns>A read-only sequence containing the provided buffers in order.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="buffers"/> is <see langword="null"/>.</exception>
+        /// <param name="buffers">缓冲带应包含序列段。</param>
+        /// <returns>一个只读序列,包含按顺序排列的提供的缓冲。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="buffers"/> 是 <see langword="null"/>.</exception>
         public static ReadOnlySequence<byte> CreateReadOnlySequence(params byte[][] buffers)
         {
             if (buffers is null)

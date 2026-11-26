@@ -41,7 +41,7 @@ namespace Orleans.Streams
         public bool IsRewindable => isRewindable;
         public string ProviderName => streamId.ProviderName;
 
-        // Constructor for Orleans serialization, otherwise initLock is null
+        // Orleans 序列化的构造器,否则 initLock 无效
         public StreamImpl()
         {
         }
@@ -93,14 +93,14 @@ namespace Orleans.Streams
 
         public async Task Cleanup(bool cleanupProducers, bool cleanupConsumers)
         {
-            // Cleanup producers
+            // 清洁清洁生产者
             if (cleanupProducers && producerInterface != null)
             {
                 await producerInterface.Cleanup();
                 producerInterface = null;
             }
 
-            // Cleanup consumers
+            // 清洁消费者
             if (cleanupConsumers && consumerInterface != null)
             {
                 await consumerInterface.Cleanup();

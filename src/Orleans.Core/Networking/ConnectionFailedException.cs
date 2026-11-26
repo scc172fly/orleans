@@ -4,39 +4,39 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime.Messaging
 {
     /// <summary>
-    /// Indicates that a connection failed.
+    /// 表示连接失败 。
     /// </summary>
     public class ConnectionFailedException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionFailedException"/> class.
+        /// 初始化 <see cref="ConnectionFailedException"/> 类的新实例。
         /// </summary>
         public ConnectionFailedException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionFailedException"/> class.
+        /// 初始化 <see cref="ConnectionFailedException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public ConnectionFailedException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionFailedException"/> class.
+        /// 初始化 <see cref="ConnectionFailedException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         public ConnectionFailedException(string message, Exception innerException) : base(message, innerException)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionFailedException"/> class.
+        /// 初始化 <see cref="ConnectionFailedException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         protected ConnectionFailedException(SerializationInfo info, StreamingContext context) : base(info, context)
         {

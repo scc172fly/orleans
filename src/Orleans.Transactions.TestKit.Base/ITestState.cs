@@ -1,12 +1,12 @@
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Defines the integer state used by transaction test grains.
+    /// 定义交易测试 grains所用的整数状态。
     /// </summary>
     public interface ITestState
     {
         /// <summary>
-        /// Gets or sets the current test value.
+        /// 获取或设置当前测试值。
         /// </summary>
         int state { get; set; }
     }

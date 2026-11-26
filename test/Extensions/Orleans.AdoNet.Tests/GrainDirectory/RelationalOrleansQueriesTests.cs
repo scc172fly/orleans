@@ -8,7 +8,7 @@ using static System.String;
 namespace Tester.AdoNet.GrainDirectory;
 
 /// <summary>
-/// Tests the relational storage layer via <see cref="RelationalOrleansQueries"/> against Sql Server.
+/// 通过 Sql 服务器测试 <see cref="RelationalOrleansQueries"/> 的关联存储层。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("SqlServer")]
@@ -18,7 +18,7 @@ public class SqlServerRelationalOrleansQueriesTests() : RelationalOrleansQueries
 }
 
 /// <summary>
-/// Tests the relational storage layer via <see cref="RelationalOrleansQueries"/> against PostgreSQL.
+/// 通过 <see cref="RelationalOrleansQueries"/> 测试 PostgreSQL的关联储存层。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("PostgreSql")]
@@ -32,7 +32,7 @@ public class PostgreSqlRelationalOrleansQueriesTests : RelationalOrleansQueriesT
 }
 
 /// <summary>
-/// Tests the relational storage layer via <see cref="RelationalOrleansQueries"/> against MySQL.
+/// 通过 <see cref="RelationalOrleansQueries"/> 测试 MySQL的关联储存层。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("MySql")]
@@ -46,7 +46,7 @@ public class MySqlRelationalOrleansQueriesTests : RelationalOrleansQueriesTests
 }
 
 /// <summary>
-/// Tests the relational storage layer via <see cref="RelationalOrleansQueries"/>.
+/// 通过 <see cref="RelationalOrleansQueries"/>测试相关储存层。
 /// </summary>
 [TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestSuite("Functional")]
@@ -84,12 +84,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     /// <summary>
-    /// Tests that a grain activation is registered.
+    /// 测试 grain 激活是否被注册。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_RegistersActivation()
     {
-        // arrange
+        // 安排
         var clusterId = RandomClusterId();
         var providerId = RandomProviderId();
         var grainId = RandomGrainId();
@@ -98,10 +98,10 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
 
         await _storage.ExecuteAsync("DELETE FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
 
-        // act
+        // 行为
         var entry = await _queries.RegisterGrainActivationAsync(clusterId, providerId, grainId, siloAddress, activationId);
 
-        // assert
+        // 平面
         Assert.NotNull(entry);
         Assert.Equal(clusterId, entry.ClusterId);
         Assert.Equal(providerId, entry.ProviderId);
@@ -119,12 +119,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// Tests that a grain activation is unregistered.
+    /// 测试 grain 激活是否未注册。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_UnregistersActivation()
     {
-        // arrange
+        // 安排
         var clusterId = RandomClusterId();
         var providerId = RandomProviderId();
         var grainId = RandomGrainId();
@@ -133,11 +133,11 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
 
         await _storage.ExecuteAsync("DELETE FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
 
-        // act
+        // 行为
         var entry = await _queries.RegisterGrainActivationAsync(clusterId, providerId, grainId, siloAddress, activationId);
         var count = await _queries.UnregisterGrainActivationAsync(clusterId, providerId, grainId, activationId);
 
-        // assert
+        // 平面
         Assert.NotNull(entry);
         Assert.Equal(1, count);
 
@@ -146,12 +146,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// Tests that a grain activation can be looked up.
+    /// 测试 grain 激活可被检查。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_LooksUpActivation()
     {
-        // arrange
+        // 安排
         var clusterId = RandomClusterId();
         var providerId = RandomProviderId();
         var grainId = RandomGrainId();
@@ -160,11 +160,11 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
 
         await _storage.ExecuteAsync("DELETE FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
 
-        // act
+        // 行为
         var entry = await _queries.RegisterGrainActivationAsync(clusterId, providerId, grainId, siloAddress, activationId);
         var result = await _queries.LookupGrainActivationAsync(clusterId, providerId, grainId);
 
-        // assert
+        // 平面
         Assert.NotNull(entry);
         Assert.NotNull(result);
         Assert.Equal(clusterId, result.ClusterId);
@@ -175,12 +175,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// Tests that grain activations for a set of silos are unregistered.
+    /// 测试 grain 一组 silos 未经登记。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_UnregistersActivationsForSilos()
     {
-        // arrange
+        // 安排
         var clusterId = RandomClusterId();
         var providerId = RandomProviderId();
         var grainId = RandomGrainId();
@@ -194,10 +194,10 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         await _queries.RegisterGrainActivationAsync(clusterId, providerId, "G4", "D", "A4");
         await _queries.RegisterGrainActivationAsync(clusterId, providerId, "G5", "E", "A5");
 
-        // act
+        // 行为
         var count = await _queries.UnregisterGrainActivationsAsync(clusterId, providerId, "A|C|E");
 
-        // assert
+        // 平面
         Assert.Equal(3, count);
 
         var remaining = await _storage.ReadAsync<AdoNetGrainDirectoryEntry>("SELECT * FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
@@ -207,12 +207,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// Chaos test for concurrent grain directory queries.
+    /// 测试同时查询 grain 目录时的混乱。
     /// </summary>
     /// <remarks>
-    /// This test looks for susceptibility to database deadlocks and other concurrency issues.
-    /// During development, this test consistently triggered deadlocking until the queries were made to prevent it.
-    /// If this test shows flakiness then it is likely the queries need to be looked at.
+    /// 这一测试旨在研究是否容易出现数据库僵局和其他同货币问题。
+    /// 在开发过程中,这一试验一直引发僵局,直到提出问题以防止它发生。
+    /// 如果测试显示不耐用, 则可能需要查看查询 。
     /// </remarks>
     [TestSuite("Stress")]
     [TestCategory("Stress")]
@@ -222,7 +222,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var clusterId = RandomClusterId();
         var providerId = RandomProviderId();
 
-        // act
+        // 行为
         await Parallel.ForAsync(0, 10000, new ParallelOptions
         {
             MaxDegreeOfParallelism = concurrency,
@@ -234,7 +234,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             var activationId = RandomActivationId();
             var randomLookups = Random.Shared.Next(10);
 
-            // simulate the lifecycle including unstable overlapping operations
+            // 模拟生命周期,包括不稳定的重叠操作
             await _queries.RegisterGrainActivationAsync(clusterId, providerId, grainId, siloAddress, activationId);
             for (var i = 0; i < randomLookups; i++)
             {
@@ -243,7 +243,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             await _queries.UnregisterGrainActivationAsync(clusterId, providerId, grainId, activationId);
         });
 
-        // assert
+        // 平面
         var remaining = await _storage.ReadAsync<AdoNetGrainDirectoryEntry>("SELECT * FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
         Assert.Empty(remaining);
     }

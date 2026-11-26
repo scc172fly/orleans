@@ -10,41 +10,41 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Base exception for any serializer exception.
+    /// 任何序列器例外的基底例外。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class SerializerException : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerException"/> class.
+        /// 初始化 <see cref="SerializerException"/> 类的新实例。
         /// </summary>
         public SerializerException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerException"/> class.
+        /// 初始化 <see cref="SerializerException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
+        /// <param name="message">描述错误的电文。</param>
         public SerializerException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerException"/> class.
+        /// 初始化 <see cref="SerializerException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The error message that explains the reason for the exception.</param>
-        /// <param name="innerException">The exception that is the cause of the current exception, or a null reference (<see langword="Nothing" /> in Visual Basic) if no inner exception is specified.</param>
+        /// <param name="message">解释例外原因的错误信息。</param>
+        /// <param name="innerException">造成目前例外或无效引用的例外(<see langword="Nothing" /> ),如果未指明内侧例外。</param>
         public SerializerException(string message, Exception innerException) : base(message, innerException)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerException"/> class.
+        /// 初始化 <see cref="SerializerException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -54,24 +54,24 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// An field identifier was expected but not present.
+    /// 期望有一个字段识别符, 但该标识符不存在 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class FieldIdNotPresentException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldIdNotPresentException"/> class.
+        /// 初始化 <see cref="FieldIdNotPresentException"/> 类的新实例。
         /// </summary>
         public FieldIdNotPresentException() : base("Attempted to access the field id from a tag which cannot have a field id.")
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldIdNotPresentException"/> class.
+        /// 初始化 <see cref="FieldIdNotPresentException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -81,24 +81,24 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// The schema type is invalid.
+    /// schema 类型无效 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class SchemaTypeInvalidException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SchemaTypeInvalidException"/> class.
+        /// 初始化 <see cref="SchemaTypeInvalidException"/> 类的新实例。
         /// </summary>
         public SchemaTypeInvalidException() : base("Attempted to access the schema type from a tag which cannot have a schema type.")
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SchemaTypeInvalidException"/> class.
+        /// 初始化 <see cref="SchemaTypeInvalidException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -108,24 +108,24 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// The field type is invalid.
+    /// 字段类型无效 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class FieldTypeInvalidException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldTypeInvalidException"/> class.
+        /// 初始化 <see cref="FieldTypeInvalidException"/> 类的新实例。
         /// </summary>
         public FieldTypeInvalidException() : base("Attempted to access the schema type from a tag which cannot have a schema type.")
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldTypeInvalidException"/> class.
+        /// 初始化 <see cref="FieldTypeInvalidException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -135,25 +135,25 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A field type was expected but not present.
+    /// 期望字段类型不存在。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class FieldTypeMissingException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldTypeMissingException"/> class.
+        /// 初始化 <see cref="FieldTypeMissingException"/> 类的新实例。
         /// </summary>
-        /// <param name="type">The type.</param>
+        /// <param name="type">类型。</param>
         public FieldTypeMissingException(Type type) : base($"Attempted to deserialize an instance of abstract type {type}. No concrete type was provided.")
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FieldTypeMissingException"/> class.
+        /// 初始化 <see cref="FieldTypeMissingException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -163,29 +163,29 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A serialized tagged-union value identifies a case which the union type or closed type hierarchy does not declare.
+    /// 连环贴标签的工会价值确定工会类型或封闭型等级没有申报的情况。
     /// </summary>
     /// <remarks>
-    /// This occurs when data written by a newer version of a type, which declares additional cases, is read by an older version of that type.
+    /// 当由一种类型较新版本的、宣布额外案例的数据编写数据时,就会出现这种情况。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public sealed class UnknownUnionCaseException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnknownUnionCaseException"/> class.
+        /// 初始化 <see cref="UnknownUnionCaseException"/> 类的新实例。
         /// </summary>
-        /// <param name="unionType">The union type or closed base type being deserialized.</param>
-        /// <param name="caseId">The case identifier which was read.</param>
+        /// <param name="unionType">工会类型或封闭型基底类型正在被解除输电。</param>
+        /// <param name="caseId">所读到的案例识别符号 。</param>
         public UnknownUnionCaseException(Type unionType, uint caseId) : base($"Encountered unknown case {caseId} while deserializing a value of type {unionType}.")
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnknownUnionCaseException"/> class.
+        /// 初始化 <see cref="UnknownUnionCaseException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -195,14 +195,14 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// The extended wire type is invalid.
+    /// 扩展线型无效 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class ExtendedWireTypeInvalidException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExtendedWireTypeInvalidException"/> class.
+        /// 初始化 <see cref="ExtendedWireTypeInvalidException"/> 类的新实例。
         /// </summary>
         public ExtendedWireTypeInvalidException() : base(
             "Attempted to access the extended wire type from a tag which does not have an extended wire type.")
@@ -210,10 +210,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExtendedWireTypeInvalidException"/> class.
+        /// 初始化 <see cref="ExtendedWireTypeInvalidException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -223,32 +223,32 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// The wire type is unsupported.
+    /// 线型没有支持 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class UnsupportedWireTypeException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnsupportedWireTypeException"/> class.
+        /// 初始化 <see cref="UnsupportedWireTypeException"/> 类的新实例。
         /// </summary>
         public UnsupportedWireTypeException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnsupportedWireTypeException"/> class.
+        /// 初始化 <see cref="UnsupportedWireTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
+        /// <param name="message">描述错误的电文。</param>
         public UnsupportedWireTypeException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnsupportedWireTypeException"/> class.
+        /// 初始化 <see cref="UnsupportedWireTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -258,31 +258,31 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A referenced value was not found.
+    /// 找不到引用值 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class ReferenceNotFoundException : SerializerException
     {
         /// <summary>
-        /// Gets the target reference.
+        /// 获得目标参照。
         /// </summary>
-        /// <value>The target reference.</value>
+        /// <value>目标基准。</value>
         [Id(0)]
         public uint TargetReference { get; }
 
         /// <summary>
-        /// Gets the type of the target reference.
+        /// 获取目标参考的类型。
         /// </summary>
-        /// <value>The type of the target reference.</value>
+        /// <value>目标参考类型。</value>
         [Id(1)]
         public Type? TargetReferenceType { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReferenceNotFoundException"/> class.
+        /// 初始化 <see cref="ReferenceNotFoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="targetType">Type of the target.</param>
-        /// <param name="targetId">The target identifier.</param>
+        /// <param name="targetType">目标类型。</param>
+        /// <param name="targetId">目标识别符号。</param>
         public ReferenceNotFoundException(Type? targetType, uint targetId) : base(
             $"Reference with id {targetId} and type {targetType} not found.")
         {
@@ -291,10 +291,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReferenceNotFoundException"/> class.
+        /// 初始化 <see cref="ReferenceNotFoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -317,7 +317,7 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A referenced type was not found.
+    /// 找不到引用类型 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -326,19 +326,19 @@ namespace Orleans.Serialization
     public sealed class UnknownReferencedTypeException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnknownReferencedTypeException"/> class.
+        /// 初始化 <see cref="UnknownReferencedTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="reference">The reference.</param>
+        /// <param name="reference">参考。</param>
         public UnknownReferencedTypeException(uint reference) : base($"Unknown referenced type {reference}.")
         {
             Reference = reference;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnknownReferencedTypeException"/> class.
+        /// 初始化 <see cref="UnknownReferencedTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -348,9 +348,9 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Gets or sets the reference.
+        /// 查找或设置引用。
         /// </summary>
-        /// <value>The reference.</value>
+        /// <value>参考。</value>
         [Id(0)]
         public uint Reference { get; set; }
 
@@ -366,23 +366,23 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A reference to a value is not supported here.
+    /// 在此不支持引用值 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class ReferenceFieldNotSupportedException : SerializerException
     {
         /// <summary>
-        /// Gets the type of the target reference.
+        /// 获取目标参考的类型。
         /// </summary>
-        /// <value>The type of the target reference.</value>
+        /// <value>目标参考类型。</value>
         [Id(0)]
         public Type? TargetReferenceType { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReferenceFieldNotSupportedException"/> class.
+        /// 初始化 <see cref="ReferenceFieldNotSupportedException"/> 类的新实例。
         /// </summary>
-        /// <param name="targetType">Type of the target.</param>
+        /// <param name="targetType">目标类型。</param>
         public ReferenceFieldNotSupportedException(Type? targetType) : base(
             $"Reference with type {targetType} not allowed here.")
         {
@@ -390,10 +390,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReferenceFieldNotSupportedException"/> class.
+        /// 初始化 <see cref="ReferenceFieldNotSupportedException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -414,7 +414,7 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A well-known type was not known.
+    /// 一种众所周知的类型尚不得而知。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -423,19 +423,19 @@ namespace Orleans.Serialization
     public sealed class UnknownWellKnownTypeException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnknownWellKnownTypeException"/> class.
+        /// 初始化 <see cref="UnknownWellKnownTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="id">The identifier.</param>
+        /// <param name="id">识别符号。</param>
         public UnknownWellKnownTypeException(uint id) : base($"Unknown well-known type {id}.")
         {
             Id = id;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnknownWellKnownTypeException"/> class.
+        /// 初始化 <see cref="UnknownWellKnownTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -445,9 +445,9 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Gets or sets the identifier.
+        /// 获取或设置标识符。
         /// </summary>
-        /// <value>The identifier.</value>
+        /// <value>识别符号。</value>
         [Id(0)]
         public uint Id { get; set; }
 
@@ -463,26 +463,26 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A specified type is not allowed.
+    /// 不允许指定类型 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class IllegalTypeException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="IllegalTypeException"/> class.
+        /// 初始化 <see cref="IllegalTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="typeName">Name of the type.</param>
+        /// <param name="typeName">类型的名称。</param>
         public IllegalTypeException(string typeName) : base($"Type \"{typeName}\" is not allowed.")
         {
             TypeName = typeName;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IllegalTypeException"/> class.
+        /// 初始化 <see cref="IllegalTypeException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -492,9 +492,9 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Gets the name of the type.
+        /// 获取类型的名称 。
         /// </summary>
-        /// <value>The name of the type.</value>
+        /// <value>类型的名称。</value>
         [Id(0)]
         public string TypeName { get; }
 
@@ -510,24 +510,24 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A type was expected but not found.
+    /// 期待有型号, 但找不到 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class TypeMissingException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TypeMissingException"/> class.
+        /// 初始化 <see cref="TypeMissingException"/> 类的新实例。
         /// </summary>
         public TypeMissingException() : base("Expected a type but none were encountered.")
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TypeMissingException"/> class.
+        /// 初始化 <see cref="TypeMissingException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -537,25 +537,25 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A required field was not present.
+    /// 不存在所需的字段。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class RequiredFieldMissingException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequiredFieldMissingException"/> class.
+        /// 初始化 <see cref="RequiredFieldMissingException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
+        /// <param name="message">描述错误的电文。</param>
         public RequiredFieldMissingException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequiredFieldMissingException"/> class.
+        /// 初始化 <see cref="RequiredFieldMissingException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -565,25 +565,25 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// No suitable serializer codec was found for a specified type.
+    /// 找不到适合指定类型序列器编码器的合适代号 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class CodecNotFoundException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CodecNotFoundException"/> class.
+        /// 初始化 <see cref="CodecNotFoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
+        /// <param name="message">描述错误的电文。</param>
         public CodecNotFoundException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CodecNotFoundException"/> class.
+        /// 初始化 <see cref="CodecNotFoundException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif
@@ -593,36 +593,36 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// A length encoded field which is expected to have a length
+    /// 长度编码字段,其长度预计为
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class UnexpectedLengthPrefixValueException : SerializerException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnexpectedLengthPrefixValueException"/> class.
+        /// 初始化 <see cref="UnexpectedLengthPrefixValueException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
+        /// <param name="message">描述错误的电文。</param>
         public UnexpectedLengthPrefixValueException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnexpectedLengthPrefixValueException"/> class.
+        /// 初始化 <see cref="UnexpectedLengthPrefixValueException"/> 类的新实例。
         /// </summary>
-        /// <param name="typeName">Name of the type.</param>
-        /// <param name="expectedLength">The expected length.</param>
-        /// <param name="actualLength">The actual length.</param>
+        /// <param name="typeName">类型的名称。</param>
+        /// <param name="expectedLength">预期长度。</param>
+        /// <param name="actualLength">实际长度。</param>
         public UnexpectedLengthPrefixValueException(string typeName, uint expectedLength, uint actualLength)
             : base($"VarInt length specified in header for {typeName} should be {expectedLength} but is instead {actualLength}")
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnexpectedLengthPrefixValueException"/> class.
+        /// 初始化 <see cref="UnexpectedLengthPrefixValueException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
-        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
+        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
 #if NET8_0_OR_GREATER
         [Obsolete]
 #endif

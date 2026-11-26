@@ -81,9 +81,9 @@ internal sealed class DashboardClient(IGrainFactory grainFactory) : IDashboardCl
 
     public async Task<Immutable<LifecycleStageInfo[]>> GetLifecycleStages(CancellationToken cancellationToken = default)
     {
-        // All silos run an identical lifecycle, so we only need to ask one of them.
-        // Use the management grain to find an active host, then call its dashboard
-        // silo grain proxy.
+        // 所有 silos 运行一个相同的生命周期, 所以我们只需要问其中之一。
+        // 使用管理 grain 来找到一个活动主机, 然后调用其仪表板
+        // silo grain 代理服务器。
         var management = _grainFactory.GetGrain<IManagementGrain>(0);
         var hosts = await management.GetHosts(onlyActive: true, cancellationToken);
         var siloAddress = hosts

@@ -92,7 +92,7 @@ public sealed class InProcessMembershipTableTests
         entry.AddSuspector(SiloAddress.FromParsableString("127.0.0.1:20001@1"), DateTime.UnixEpoch);
         await Insert(entry);
         var before = await _table.ReadAllAsync(_cancellationToken);
-        // The owning silo can report the same time or a clock adjustment.
+        // 拥有的 silo 可同时报告或按时钟调整。
         var heartbeat = new MembershipEntry
         {
             SiloAddress = entry.SiloAddress,
@@ -208,7 +208,7 @@ public sealed class InProcessMembershipTableTests
         foreach (var entry in entries)
         {
             var current = (await _table.ReadAllAsync(_cancellationToken)).Version;
-            // Seed the version limit directly to exercise unversioned cleanup at the boundary.
+            // 种子版本限制在边界处直接进行非转换清理。
             var candidate = atVersionLimit && entry == entries[^1]
                 ? new TableVersion(int.MaxValue, current.VersionEtag)
                 : current.Next();

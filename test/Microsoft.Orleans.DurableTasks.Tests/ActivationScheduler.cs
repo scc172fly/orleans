@@ -8,17 +8,17 @@ using Orleans.Runtime.Scheduler;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Runs test code on a grain activation's scheduler, as a silo runs the durable task runtime.
+/// 运行 grain 激活调度器上的测试代码,因为 silo 运行耐久任务运行时间。
 /// </summary>
 /// <remarks>
-/// The runtime captures the current scheduler for each execution and relies on its activation running one work item
-/// at a time. Running a test on an activation's <c>ActivationTaskScheduler</c> gives the runtime that guarantee, so the
-/// test, the runtime, and every execution interleave only at awaits.
+/// 运行时为每次执行捕捉当前调度器, 并依靠它启动一个工作项
+/// 一次进行测试 <c>ActivationTaskScheduler</c> 给运行时间保证,所以
+/// 测试,运行时间,每次执行 只在等待时中断。
 /// </remarks>
 internal static class ActivationScheduler
 {
-    // Work which a test leaves queued on its activation, such as a background write, can run after the test completes,
-    // so the activations' services live for the test process.
+    // 测试完成后,在启动时排队的试验(例如背景文字)可以运行的工作,如背景文字,
+    // 启动器的服务为测试过程直播
     private static readonly ServiceProvider Services = new ServiceCollection()
         .AddLogging()
         .AddMetrics()

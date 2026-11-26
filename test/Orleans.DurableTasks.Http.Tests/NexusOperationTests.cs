@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Orleans.Durable.Http.Tests;
 
-/// <summary>Exercises durable operations through the Nexus protocol, and their interplay with the group's own routes.</summary>
+/// <summary>通过Nexus协议及其与该团体自己的路线的相互作用,开展持久行动。</summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -42,7 +42,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
             Assert.Equal(token, (await ReadJsonAsync(retry, cancellationToken)).GetProperty("token").GetString());
         }
 
-        // A group of the service's scope addresses the operation which the Nexus request identifier names.
+        // 服务范围中一组涉及Nexus要求识别名称的操作。
         using (var signal = await Http.PostAsJsonAsync($"/approvals/operations/{requestId}/signals/approved", "ada", cancellationToken))
         {
             Assert.Equal(HttpStatusCode.NoContent, signal.StatusCode);
@@ -75,7 +75,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
 
         await WaitForStatusAsync(requestId, "Canceled", cancellationToken);
 
-        // A repeated cancellation, with the token in the query, is accepted and changes nothing.
+        // 接受重复取消, 并附加查询中的标记, 并且不更改任何更改 。
         using (var repeated = await Http.PostAsync($"{Operation}/cancel?token={Uri.EscapeDataString(token)}", content: null, cancellationToken))
         {
             Assert.Equal(HttpStatusCode.Accepted, repeated.StatusCode);
@@ -98,8 +98,8 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
         using var started = await StartAsync(new NexusApprovalInput(orderId, "widget"), requestId, cancellationToken);
         var token = (await ReadJsonAsync(started, cancellationToken)).GetProperty("token").GetString()!;
 
-        // A retry whose input differs calls the same method on the same grain, so it reaches the operation; a call on
-        // another grain under the request identifier conflicts.
+        // 输入不相同的重试, 输入不同时用相同的方法调用同一 grain, 从而它到达操作; 调用
+        // 请求识别特征冲突下的另外 grain 。
         using (var changed = await StartAsync(new NexusApprovalInput(orderId, "gadget"), requestId, cancellationToken))
         {
             Assert.Equal(HttpStatusCode.Created, changed.StatusCode);
@@ -116,7 +116,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
             await AssertHandlerErrorAsync(invalid, HttpStatusCode.BadRequest, "BAD_REQUEST", cancellationToken);
         }
 
-        // A token of another user's operation, an unknown operation, or an invalid identifier names no operation.
+        // 表示另一个用户操作、 一个未知操作或一个无效的身份识别名称不操作。
         foreach (var (candidate, user) in new[] { (token, "ada"), ("unknown", null), ("a/b", (string?)null) })
         {
             using var cancel = new HttpRequestMessage(HttpMethod.Post, $"{Operation}/cancel");
@@ -130,7 +130,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
             await AssertHandlerErrorAsync(response, HttpStatusCode.NotFound, "NOT_FOUND", cancellationToken);
         }
 
-        // The refused requests changed nothing.
+        // 被拒绝的请求没有改变。
         using var status = await Http.GetAsync($"/approvals/operations/{requestId}", cancellationToken);
         Assert.Equal("Running", (await ReadJsonAsync(status, cancellationToken)).GetProperty("status").GetString());
     }
@@ -142,7 +142,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
         var orderId = Guid.NewGuid().ToString("N");
         var requestId = Guid.NewGuid().ToString();
 
-        // The order's grain already holds other work under the root which the operation's work would use.
+        // 该订单 grain 已经含有业务工作将使用的其他根基下的工作。
         var workRootId = TaskId.CreateRoot(DurableHttpFixture.ApprovalsScope).Child("@").Child(requestId).ToString();
         await fixture.Client.GetGrain<IDurableHttpTestGrain>(orderId).EchoAsync("other").WithId(workRootId).ScheduleAsync(cancellationToken);
 

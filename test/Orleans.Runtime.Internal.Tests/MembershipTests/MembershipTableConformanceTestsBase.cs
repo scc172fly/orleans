@@ -10,7 +10,7 @@ public abstract class MembershipTableConformanceTestsBase
     protected abstract MembershipTableTestFixture CreateConformanceFixture();
 
     protected virtual int ConformanceConcurrencyRowCount => 128;
-    // Padding is appended to HostName and must fit the provider's persisted string limit.
+    // 贴面附于 HostName ,必须符合供应商的固定字符串限制。
     protected virtual int ConformanceConcurrencyRowPadding => 0;
 
     protected virtual void WriteConformanceOutput(string message)

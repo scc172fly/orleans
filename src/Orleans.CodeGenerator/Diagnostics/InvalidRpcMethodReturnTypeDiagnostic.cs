@@ -3,12 +3,12 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when an RPC method has an unsupported return type.
+/// 当 RPC 方法有不支持的返回类型时,定义所报告诊断。
 /// </summary>
 public static class InvalidRpcMethodReturnTypeDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string RuleId = DiagnosticRuleId.InvalidRpcMethodReturnType;
     private const string Category = "Usage";
@@ -19,13 +19,13 @@ public static class InvalidRpcMethodReturnTypeDiagnostic
     internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
 
     /// <summary>
-    /// Creates a diagnostic for an RPC method with an unsupported return type.
+    /// 创建 RPC 方法的诊断,该方法具有不支持的返回类型。
     /// </summary>
-    /// <param name="location">The source location associated with the diagnostic.</param>
-    /// <param name="returnType">The unsupported return type.</param>
-    /// <param name="methodIdentifier">The identifier of the RPC method.</param>
-    /// <param name="supportedReturnTypeList">A display list of supported return types.</param>
-    /// <returns>The diagnostic.</returns>
+    /// <param name="location">与诊断有关的源位置。</param>
+    /// <param name="returnType">不支持的返回类型。</param>
+    /// <param name="methodIdentifier">辐射防护中心方法的识别符号。</param>
+    /// <param name="supportedReturnTypeList">支持的返回类型显示列表。</param>
+    /// <returns>诊断。</returns>
     public static Diagnostic CreateDiagnostic(Location? location, string returnType, string methodIdentifier, string supportedReturnTypeList) => Diagnostic.Create(Rule, location, returnType, methodIdentifier, supportedReturnTypeList);
 
     internal static Diagnostic CreateDiagnostic(InvokableMethodDescription methodDescription)

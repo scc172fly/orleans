@@ -125,15 +125,15 @@ public static class StorageConfiguration
 
     public static void ConfigureRedisAspireAppHost()
     {
-        // Note: This is pseudo-code for Aspire AppHost - won't actually compile
-        // in this project but represents the pattern for docs
+        // 注:这是阿spire AppHost - 无法实际编译的伪代码
+        // 此处的工程中,但代表了医生的图案
     }
 
     public static void ConfigureRedisAspireSilo(HostApplicationBuilder builder)
     {
         // <configure_redis_aspire_silo>
-        // Register the Redis client with keyed services.
-        // Orleans providers look up resources by their keyed service name.
+        // 注册有密钥服务的 Redis 客户端。
+        // Orleans 供应商用其密钥服务名查找资源。
         // builder.AddKeyedRedisClient("orleans-redis");
 
         builder.UseOrleans(siloBuilder =>
@@ -142,7 +142,7 @@ public static class StorageConfiguration
                 name: "redis",
                 configureOptions: options =>
                 {
-                    // Use the Aspire-provided connection string
+                    // 使用 Aspire 提供的连接字符串
                     var connectionString = builder.Configuration.GetConnectionString("orleans-redis");
                     options.ConfigurationOptions = ConfigurationOptions.Parse(connectionString!);
                 });
@@ -153,8 +153,8 @@ public static class StorageConfiguration
     public static void ConfigureRedisAdvanced(ISiloBuilder siloBuilder, IServiceProvider sp)
     {
         // <configure_redis_advanced>
-        // Register the Redis client with keyed services.
-        // Orleans providers look up resources by their keyed service name.
+        // 注册有密钥服务的 Redis 客户端。
+        // Orleans 供应商用其密钥服务名查找资源。
         // builder.AddKeyedRedisClient("orleans-redis");
 
         siloBuilder.AddRedisGrainStorage("redis");
@@ -163,7 +163,7 @@ public static class StorageConfiguration
             {
                 options.CreateMultiplexer = _ =>
                 {
-                    // Resolve the IConnectionMultiplexer from DI (provided by Aspire)
+                    // 从DI(由仲裁庭提供)中解决 IConnectionMultiplexer
                     return Task.FromResult((
                         Multiplexer: sp.GetRequiredService<IConnectionMultiplexer>(),
                         IsShared: true));

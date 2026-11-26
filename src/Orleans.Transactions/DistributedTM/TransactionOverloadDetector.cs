@@ -6,40 +6,40 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Detects when the transaction start rate exceeds the configured load-shedding limit.
+    /// 当交易启动率超过配置的卸载中断限制时检测 。
     /// </summary>
     public interface ITransactionOverloadDetector
     {
         /// <summary>
-        /// Determines whether new transactions should be rejected because the transaction start rate is over its limit.
+        /// 确定是否应当拒绝新的交易,因为交易启动率超过其限度。
         /// </summary>
-        /// <returns><see langword="true"/> when transaction load shedding is enabled and the measured rate exceeds its limit; otherwise, <see langword="false"/>.</returns>
+        /// <returns><see langword="true"/> ,如果允许交易负荷停止,且所计量的比率超过其限度;否则, <see langword="false"/>。</returns>
         bool IsOverloaded();
     }
 
     /// <summary>
-    /// Configures load shedding based on the transaction start rate.
+    /// 根据交易启动率配置已卸载的配置 。
     /// </summary>
     public class TransactionRateLoadSheddingOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether transaction-rate load shedding is enabled.
+        /// 获取或设定一个值,以显示是否启用交易率负荷叠加 。
         /// </summary>
         public bool Enabled { get; set; }
 
         /// <summary>
-        /// The default transaction start-rate limit, in transactions per second.
+        /// 默认交易起始率限制, 每秒交易中 。
         /// </summary>
         public const double DEFAULT_LIMIT = 700;
 
         /// <summary>
-        /// Gets or sets the transaction start-rate limit, in transactions per second.
+        /// 获取或设定交易起始率限制,每秒交易中。
         /// </summary>
         public double Limit { get; set; } = DEFAULT_LIMIT;
     }
 
     /// <summary>
-    /// Detects transaction overload using a weighted transaction start rate sampled over time.
+    /// 使用一段时间内抽样的加权交易起始率,检测交易超负荷。
     /// </summary>
     public class TransactionOverloadDetector : ITransactionOverloadDetector
     {
@@ -52,10 +52,10 @@ namespace Orleans.Transactions
         private DateTime lastCheckTime;
         private static readonly TimeSpan MetricsCheck = TimeSpan.FromSeconds(15);
         /// <summary>
-        /// Initializes a new transaction overload detector.
+        /// 初始化新的交易超载探测器。
         /// </summary>
-        /// <param name="statistics">The cumulative transaction-agent statistics used to calculate the start rate.</param>
-        /// <param name="options">The transaction-rate load-shedding options.</param>
+        /// <param name="statistics">计算起始率所用的交易代理的累积统计数据。</param>
+        /// <param name="options">交易率减压选项。</param>
         public TransactionOverloadDetector(ITransactionAgentStatistics statistics, IOptions<TransactionRateLoadSheddingOptions> options)
             : this(statistics, options, TimeProvider.System)
         {
@@ -83,9 +83,9 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// Determines whether the weighted transaction start rate exceeds the configured limit.
+        /// 确定加权交易启动率是否超过配置的上限。
         /// </summary>
-        /// <returns><see langword="true"/> when load shedding is enabled and the weighted rate exceeds the limit; otherwise, <see langword="false"/>.</returns>
+        /// <returns><see langword="true"/> ,当启用装载叠加而加权率超过限额时;否则, <see langword="false"/>。</returns>
         public bool IsOverloaded()
         {
             if (!this.options.Enabled)
@@ -94,7 +94,7 @@ namespace Orleans.Transactions
             DateTime now = this.timeProvider.GetUtcNow().UtcDateTime;
             this.monitor.TryAction(now);
             double txPerSecondCurrently = CalculateTps(this.lastStatistics.TransactionsStarted, this.lastCheckTime, this.statistics.TransactionsStarted, now);
-            //decaying utilization for tx per second
+            //以 tx 每秒为tx 使用衰变
             var aggregratedTxPerSecond = (this.transactionStartedPerSecond + (2.0 * txPerSecondCurrently)) / 3.0;
 
             return aggregratedTxPerSecond > this.options.Limit;

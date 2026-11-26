@@ -8,24 +8,24 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// The [Orleans.ImplicitStreamSubscription] attribute is used to mark grains as implicit stream subscriptions.
+    /// Orleans.ImplicitStreamSubscription属性用于标记 grains 为隐含流订阅。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ImplicitChannelSubscriptionAttribute : Attribute, IGrainBindingsProviderAttribute
     {
         /// <summary>
-        /// Gets the stream namespace filter predicate.
+        /// 获取流名空间过滤器的前提。
         /// </summary>
         public IChannelNamespacePredicate Predicate { get; }
 
         /// <summary>
-        /// Gets the name of the channel identifier mapper.
+        /// 获取频道标识符映射器的名称。
         /// </summary>
-        /// <value>The name of the channel identifier mapper.</value>
+        /// <value>频道标识符映像器的名称。</value>
         public string? ChannelIdMapper { get; }
 
         /// <summary>
-        /// Used to subscribe to all stream namespaces.
+        /// 用于订阅所有流命名空间 。
         /// </summary>
         public ImplicitChannelSubscriptionAttribute()
         {
@@ -33,10 +33,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Used to subscribe to the specified stream namespace.
+        /// 用于订阅指定的流命名空间 。
         /// </summary>
-        /// <param name="streamNamespace">The stream namespace to subscribe.</param>
-        /// <param name="channelIdMapper">The name of the stream identity mapper.</param>
+        /// <param name="streamNamespace">要订阅的流命名空间。</param>
+        /// <param name="channelIdMapper">流体身份映射器的名称。</param>
         public ImplicitChannelSubscriptionAttribute(string streamNamespace, string? channelIdMapper = null)
         {
             ArgumentNullException.ThrowIfNull(streamNamespace);
@@ -46,11 +46,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Allows to pass an arbitrary predicate type to filter stream namespaces to subscribe. The predicate type 
-        /// must have a constructor without parameters.
+        /// 允许将任意的上游类型传递到过滤要订阅的流命名空间。 
+        /// 必须有一个没有参数的构造器 。
         /// </summary>
-        /// <param name="predicateType">The stream namespace predicate type.</param>
-        /// <param name="channelIdMapper">The name of the stream identity mapper.</param>
+        /// <param name="predicateType">流命名空间上游类型。</param>
+        /// <param name="channelIdMapper">流体身份映射器的名称。</param>
         public ImplicitChannelSubscriptionAttribute(Type predicateType, string? channelIdMapper = null)
         {
             Predicate = (IChannelNamespacePredicate)Activator.CreateInstance(predicateType)!;
@@ -58,11 +58,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Allows to pass an instance of the stream namespace predicate. To be used mainly as an extensibility point
-        /// via inheriting attributes.
+        /// 允许通过溪流命名空间前位实例。主要用作扩展点
+        /// 通过继承属性。
         /// </summary>
-        /// <param name="predicate">The stream namespace predicate.</param>
-        /// <param name="channelIdMapper">The name of the stream identity mapper.</param>
+        /// <param name="predicate">流命名空间上游。</param>
+        /// <param name="channelIdMapper">流体身份映射器的名称。</param>
         public ImplicitChannelSubscriptionAttribute(IChannelNamespacePredicate predicate, string? channelIdMapper = null)
         {
             Predicate = predicate;
@@ -87,7 +87,7 @@ namespace Orleans
                     keyType = nameof(Guid);
                 else if (typeof(IGrainWithIntegerKey).IsAssignableFrom(grainClass) || typeof(IGrainWithIntegerCompoundKey).IsAssignableFrom(grainClass))
                     keyType = nameof(Int64);
-                else // fallback to string
+                else // 返回回到字符串
                     keyType = nameof(String);
 
                 binding[WellKnownGrainTypeProperties.LegacyGrainKeyType] = keyType;
@@ -103,16 +103,16 @@ namespace Orleans
     }
 
     /// <summary>
-    /// The [Orleans.RegexImplicitStreamSubscription] attribute is used to mark grains as implicit stream
-    /// subscriptions by filtering stream namespaces to subscribe using a regular expression.
+    /// [Orleans.RegexImplicitStreamSubscription]属性用于标记 grains 的隐含流
+    /// 通过过滤流命名空间订阅使用正则表达式的用户。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class RegexImplicitChannelSubscriptionAttribute : ImplicitChannelSubscriptionAttribute
     {
         /// <summary>
-        /// Allows to pass a regular expression to filter stream namespaces to subscribe to.
+        /// 允许将正则表达式传递到要订阅的过滤流命名空间 。
         /// </summary>
-        /// <param name="pattern">The stream namespace regular expression filter.</param>
+        /// <param name="pattern">流名称空间正则表达式过滤器。</param>
         public RegexImplicitChannelSubscriptionAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string pattern)
             : base(new RegexChannelNamespacePredicate(pattern))
         {

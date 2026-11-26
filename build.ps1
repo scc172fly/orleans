@@ -1,5 +1,5 @@
 # --------------------
-# Orleans build script
+# Orleans 构建脚本
 # --------------------
 
 . (Join-Path $PSScriptRoot 'eng\common.ps1')
@@ -7,7 +7,7 @@
 $scriptDir = $PSScriptRoot
 $solution = Join-Path $scriptDir "Orleans.slnx"
 
-# Define build flags & config
+# 定义构建旗帜配置
 if ($null -eq $env:BUILD_FLAGS)
 {
     $env:BUILD_FLAGS = "/m /v:m"
@@ -17,16 +17,16 @@ if ($null -eq $env:BuildConfiguration)
     $env:BuildConfiguration = "Debug"
 }
 
-# Clear the 'Platform' env variable for this session, as it's a per-project setting within the build, and
-# misleading value (such as 'MCD' in HP PCs) may lead to build breakage (issue: #69).
+# 清除本次会话的“ Platform” 信封变量, 因为它是建筑内部每个项目设置, 而且
+# 误导值(如HPPCs中的“MCD”)可能导致断裂(问题:#69)。
 $Platform = $null
 
-# Disable multilevel lookup https://github.com/dotnet/core-setup/blob/main/Documentation/design-docs/multilevel-sharedfx-lookup.md
+# 禁用多级别查找 https://github.com/dotnet/core-setup/blob/main/Documentation/design-docs/multilevel-sharedfx-lookup.md
  $DOTNET_MULTILEVEL_LOOKUP = 0
 
 $BuildProperties = "/p:Configuration=$env:BuildConfiguration";
 
- # Set DateTime suffix for debug builds
+ # 设置调试构建 DateTime 后缀
  if ($env:BuildConfiguration -eq "Debug")
  {
     $dateSuffix = Get-Date -Format "yyyyMMddHHmm"

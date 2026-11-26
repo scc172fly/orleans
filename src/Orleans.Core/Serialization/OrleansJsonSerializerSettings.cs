@@ -8,7 +8,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// Provides factory and configuration methods for Newtonsoft.Json settings which support Orleans framework types.
+    /// 提供工厂和配置方法 Newtonsoft.Json 支持的设置 Orleans 框架类型。
     /// </summary>
     public static class OrleansJsonSerializerSettings
     {
@@ -30,10 +30,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Creates the default serializer settings and configures the Orleans serialization binder and converters.
+        /// 创建默认的序列器设置,并配置 Orleans 序列绑定和转换器。
         /// </summary>
-        /// <param name="services">The service provider used to resolve serializer dependencies.</param>
-        /// <returns>The configured default serializer settings.</returns>
+        /// <param name="services">用于解决序列器依赖关系的服务供应商。</param>
+        /// <returns>配置的默认序列器设置。</returns>
         public static JsonSerializerSettings GetDefaultSerializerSettings(IServiceProvider services)
         {
             var settings = GetDefaultSerializerSettings();
@@ -62,20 +62,20 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// Updates the provided serializer settings with the specified options.
+        /// 更新所提供的序列器设置, 并使用指定的选项 。
         /// </summary>
-        /// <param name="settings">The settings.</param>
+        /// <param name="settings">设置。</param>
         /// <param name="useFullAssemblyNames">
-        /// When <see langword="true"/>, use full assembly-qualified names when formatting type names;
-        /// otherwise, leave the current assembly name formatting unchanged.
+        /// 当 <see langword="true"/>时,在格式化类型名称时使用完整的组装合格名称;
+        /// 另选其他格式,不修改当前组装名称的格式。
         /// </param>
         /// <param name="indentJson">
-        /// When <see langword="true"/>, indent the formatted JSON; otherwise, leave the current formatting unchanged.
+        /// 当 <see langword="true"/>时,缩进格式 JSON;否则,保持当前格式不变。
         /// </param>
         /// <param name="typeNameHandling">
-        /// The type name handling value to apply, or <see langword="null"/> to leave the current value unchanged.
+        /// 要应用的名称处理值类型, 或要保持当前值不变的 <see langword="null"/> 。
         /// </param>
-        /// <returns>The provided serializer settings.</returns>
+        /// <returns>提供的序列器设置。</returns>
         public static JsonSerializerSettings UpdateSerializerSettings(JsonSerializerSettings settings, bool useFullAssemblyNames, bool indentJson, TypeNameHandling? typeNameHandling)
         {
             if (useFullAssemblyNames)

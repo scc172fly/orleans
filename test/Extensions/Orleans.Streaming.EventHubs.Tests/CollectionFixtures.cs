@@ -8,26 +8,26 @@ using Xunit;
 
 namespace ServiceBus.Tests
 {
-    // Assembly collections must be defined once in each assembly
+    // 必须在每组集会中确定一次大会收藏的收藏
 
     /// <summary>
-    /// Defines a test collection for tests that require a default Orleans cluster setup.
-    /// Tests in this collection share a single cluster instance for improved performance.
+    /// 定义需要默认 Orleans 组合集设置的测试收藏。
+    /// 这份收藏中的测试有一个单一组别实例,可以用来改进业绩。
     /// </summary>
     [CollectionDefinition("DefaultCluster")]
     public class DefaultClusterTestCollection : ICollectionFixture<DefaultClusterFixture> { }
 
 
     /// <summary>
-    /// Defines a test collection for tests that require shared test environment configuration.
-    /// Provides Azure Service Bus and Event Hub specific test environment setup.
+    /// 定义需要共享测试环境配置的测试集。
+    /// 提供 Azure 服务公交车和事件枢纽特定环境测试设置。
     /// </summary>
     [CollectionDefinition(TestEnvironmentFixture.DefaultCollection)]
     public class TestEnvironmentFixtureCollection : ICollectionFixture<TestEnvironmentFixture> { }
 
     /// <summary>
-    /// Base test cluster fixture for Event Hub integration tests.
-    /// Ensures Event Hub connectivity and waits for stream queue initialization.
+    /// 事件枢纽集成测试基准测试组群固定装置。
+    /// 确保事件枢纽连接,等待流队列初始化。
     /// </summary>
     public abstract class BaseEventHubTestClusterFixture : BaseTestClusterFixture
     {
@@ -52,7 +52,7 @@ namespace ServiceBus.Tests
             cts.CancelAfter(TimeSpan.FromSeconds(30));
             try
             {
-                // Wait for 10 queue reads across the cluster.
+                // 等待10个队列的排列,会在整个组群中读取。
                 while (collectors.Sum(collector => collector.GetMeasurementSnapshot().Count) < 10)
                 {
                     await Task.Delay(TimeSpan.FromMilliseconds(100), cts.Token);

@@ -59,10 +59,10 @@ public sealed class ConcurrentLoadGenerator<TState>
             this._tasks[ree] = this.RunWorker(this._states[ree], this._requestsPerBlock, this._warmupBlocksPerWorker);
         }
 
-        // Wait for warmup to complete.
+        // 等待热身完成
         await Task.WhenAll(this._tasks);
 
-        // Ignore warmup blocks.
+        // 忽略了热身区块。
         while (completedBlockReader.TryRead(out _)) ;
         GC.Collect();
     }
@@ -83,7 +83,7 @@ public sealed class ConcurrentLoadGenerator<TState>
         this.ResetBetweenRuns();
         var completedBlockReader = this._completedBlocks.Reader;
 
-        // Start the run.
+        // 开始跑步
         for (var i = 0; i < this._numWorkers; i++)
         {
             this._tasks[i] = this.RunWorker(this._states[i], this._requestsPerBlock, this._blocksPerWorker);

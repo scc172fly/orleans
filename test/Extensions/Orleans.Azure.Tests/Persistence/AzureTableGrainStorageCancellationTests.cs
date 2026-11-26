@@ -112,7 +112,7 @@ public sealed class AzureTableGrainStorageCancellationTests
         var original = Assert.IsType<Dictionary<string, int>>(state.State);
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
-        // No SDK operation is configured: even a call with the right token is unexpected.
+        // 没有配置 SDK 操作: 即使一个带有正确牌的电话也出乎意料。
 
         var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => Invoke(fixture.Storage, branch, state, cancellation.Token));
@@ -141,8 +141,8 @@ public sealed class AzureTableGrainStorageCancellationTests
         var operation = Invoke(fixture.Storage, branch, state, cancellation.Token);
         try
         {
-            // Race the entry barrier with the operation so a broken/omitted SDK call fails
-            // immediately instead of waiting forever for a barrier which will never arrive.
+            // 与操作赛道的进入屏障赛跑, 导致SDK电话中断/ 断开失败
+            // 而不是等待永远的屏障,而屏障永不到。
             Assert.Same(fixture.Table.Entered.Task, await Task.WhenAny(fixture.Table.Entered.Task, operation));
             await fixture.Table.Entered.Task;
             Assert.False(operation.IsCompleted);
@@ -160,7 +160,7 @@ public sealed class AzureTableGrainStorageCancellationTests
             Assert.Equal(IsWrite(branch) ? 1 : 0, fixture.Serializer.SerializeCalls);
             Assert.Equal(0, fixture.Serializer.DeserializeCalls);
             Assert.Equal(0, fixture.Activators.Calls);
-            // Logging is enabled, and the same logger observes provider AND manager logs.
+            // 启用了测井,同一伐木者观察供应商和经理的日志。
             Assert.Empty(fixture.Logger.StorageErrors);
         }
         finally
@@ -328,7 +328,7 @@ public sealed class AzureTableGrainStorageCancellationTests
                 DeleteStateOnClear = branch == Branch.ClearDelete,
                 GrainStorageSerializer = fixture.Serializer,
             };
-            // Slow-access diagnostics are unrelated to cancellation, even on paused/debugged runs.
+            // 缓慢获得诊断与取消无关,即使是暂停/调试运行。
             options.StoragePolicyOptions.OperationTimeout = TimeSpan.MaxValue;
             var storage = new AzureTableGrainStorage(
                 "CancellationStorage",
@@ -349,7 +349,7 @@ public sealed class AzureTableGrainStorageCancellationTests
         }
     }
 
-    // Hand-written strict SDK mocks: no real client pipeline, extra packages or reflection.
+    // 严格自制的手写SDK模型:没有真正的客户管道、额外的包件或反射。
     private sealed class StrictTableServiceClient(StrictTableClient table) : TableServiceClient
     {
         public int GetTableCalls { get; private set; }

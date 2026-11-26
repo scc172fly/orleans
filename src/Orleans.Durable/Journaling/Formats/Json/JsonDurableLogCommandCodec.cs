@@ -4,13 +4,13 @@ using System.Text.Json.Serialization.Metadata;
 namespace Orleans.Durable.Journaling.Json;
 
 /// <summary>
-/// JSON codec for durable log journal entries.
+/// 耐用日志条目的JSON 编码。
 /// </summary>
 /// <remarks>
-/// Commands are encoded as <c>["append", item, ...]</c>, <c>["commitDraft", draftId, sequence, item, ...]</c>, <c>["trimBefore", sequence]</c>, <c>["clear"]</c>, <c>["seal"]</c>,
-/// and <c>["snapshot", epoch, firstSequence, resetSequence, sealed, [items], [[draftId, sequence, count], ...]]</c>.
+/// 将命令编码为 <c>["append", item, ...]</c>, <c>["commitDraft", draftId, sequence, item, ...]</c>, <c>["trimBefore", sequence]</c>, <c>["clear"]</c>, <c>["seal"]</c>,
+/// 和 <c>["snapshot", epoch, firstSequence, resetSequence, sealed, [items], [[draftId, sequence, count], ...]]</c>.
 /// </remarks>
-/// <typeparam name="T">The type of entries in the log.</typeparam>
+/// <typeparam name="T">日志中条目的类型。</typeparam>
 public sealed class JsonDurableLogCommandCodec<T>(JsonSerializerOptions? options = null)
     : IDurableLogCommandCodec<T>
 {
@@ -222,7 +222,7 @@ public sealed class JsonDurableLogCommandCodec<T>(JsonSerializerOptions? options
         }
     }
 
-    // Applies the items which follow the command's fixed operands and returns their number.
+    // 应用命令固定操作符之后的项目并返回其编号。
     private int ApplyRemainingItems(ref JsonCommandReader reader, IDurableLogCommandHandler<T> consumer)
     {
         var count = 0;

@@ -1,26 +1,26 @@
 namespace Orleans.EventSourcing.Common
 {
     /// <summary>
-    /// Provides operations for a compact, string-encoded set of replica identifiers used as a write vector.
+    /// 提供用于用作写矢量的一套紧凑、字符串编码的复制识别符操作。
     /// </summary>
     public static class StringEncodedWriteVector
     {
 
-        // BitVector of replicas is implemented as a set of replica strings encoded within a string
-        // The bitvector is represented as the set of replica ids whose bit is 1
-        // This set is written as a string that contains the replica ids preceded by a comma each
+        // BitVector 复制件作为一套在字符串中编码的复制字符串
+        // 位向量表示为一组其位数为 1 的复制ids
+        // 此集以字符串形式写入, 包含复制的代码, 之前先有一个逗号
         //
-        // Assuming our replicas are named A, B, and BB, then
-        // ""     represents    {}        represents 000 
-        // ",A"   represents    {A}       represents 100 
-        // ",A,B" represents    {A,B}     represents 110 
-        // ",BB,A,B" represents {A,B,BB}  represents 111 
+        // 假设我们的复制品 命名A,B,BB,然后
+        // 代表 代表 代表 000 
+        // “ A” 表示 {A} 代表 100 
+        // “A,B”表示 {A,B} 代表 110 
+        // “,BB,A,B”代表 {A,B,B,BB}代表 111 
 
         /// <summary>
-        /// Gets one of the bits in writeVector
+        /// 在 writeVector中获取一个位数
         /// </summary>
-        /// <param name="writeVector">The write vector which we want get the bit from</param>
-        /// <param name="Replica">The replica for which we want to look up the bit</param>
+        /// <param name="writeVector">我们要从</param>获得位数的刻录矢量
+        /// <param name="Replica">我们希望查找位数的复制件</param>
         /// <returns></returns>
         public static bool GetBit(string writeVector, string Replica)
         {
@@ -29,11 +29,11 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// toggle one of the bits in writeVector and return the new value.
+        /// 切换 writeVector 中的比特之一并返回新值。
         /// </summary>
-        /// <param name="writeVector">The write vector in which we want to flip the bit</param>
-        /// <param name="Replica">The replica for which we want to flip the bit</param>
-        /// <returns>the state of the bit after flipping it</returns>
+        /// <param name="writeVector">刻录矢量, 我们要翻转位</param>
+        /// <param name="Replica">复制我们想要翻转位</param>
+        /// <returns>翻转时位数的状态</returns>
         public static bool FlipBit(ref string writeVector, string Replica)
         {
             var pos = writeVector.IndexOf(Replica, StringComparison.Ordinal);

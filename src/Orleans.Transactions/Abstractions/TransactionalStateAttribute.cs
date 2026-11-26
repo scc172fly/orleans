@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// Identifies a grain constructor parameter as a transactional state facet.
+    /// 将 grain 构建参数指定为交易状态表。
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
     public class TransactionalStateAttribute : Attribute, IFacetMetadata, ITransactionalStateConfiguration
@@ -15,10 +15,10 @@ namespace Orleans.Transactions.Abstractions
         public string? StorageName { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionalStateAttribute"/> class.
+        /// 初始化 <see cref="TransactionalStateAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="stateName">The transactional state name.</param>
-        /// <param name="storageName">The name of the storage provider used for the transactional state.</param>
+        /// <param name="stateName">交易国名称。</param>
+        /// <param name="storageName">交易状态所用存储供应商的名称。</param>
         public TransactionalStateAttribute(string stateName, string? storageName = null)
         {
             this.StateName = stateName;

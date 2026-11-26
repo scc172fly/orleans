@@ -1,35 +1,45 @@
 ---
-title: "ORLEANS0012: Change a duplicated serialization Id"
-description: Understand and resolve ORLEANS0012 when serialized members reuse an Orleans field ID.
+title: "ORLEANS0012:更改重复的序列编号d"
+description: "理解和决心 ORLEANS0012 成员再使用 Orleans 字段编号。"
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
-# ORLEANS0012: Change a duplicated serialization Id
+<a id="orleans0012-change-a-duplicated-serialization-id"></a>
 
-| Property | Value |
+# ORLEANS0012:更改重复的序列编号d
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Usage |
-| Severity | Error |
-| Code fix | Available |
+| 类别类 | 用法 |
+| 严重性 | 错误错误 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-Two or more members of one `[GenerateSerializer]` type use the same constant `[Id]` value.
+## 原因原因原因
 
-## Impact
+一种 `[GenerateSerializer]` 类型的两个或多个成员使用相同的常数 `[Id]` 值。
 
-Field-ID ambiguity can deserialize data into the wrong member, corrupt payloads, and break version tolerance.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Restore the established field-ID mapping. Assign a previously unused ID only to the new or incorrect member, and never renumber IDs which have been deployed.
+实地识别模糊性可以将数据分解为错误成员、腐败的有效载荷和断裂版本容忍度。
 
-The code fix selects a value greater than the highest ID found in the document. Review the result carefully before applying Fix All.
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Do not suppress this diagnostic for a type serialized by Orleans. Remove the serialization annotations if the type is not part of an Orleans schema.
+恢复已建立的字段ID映射。 只为新会员指派一个未使用的ID, 并且不重编已经部署的ID 。
+
+代码修正选择一个大于文档中发现的最高代号的值。在应用“全部固定”之前仔细审查结果。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+不为 Orleans所串联的类型进行此诊断。如果序列说明类型不是 Orleans schema的一部分,则删除该符号。
 
 ```ini
 [*.cs]

@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// Describes the kind of a serializable member.
+/// 描述一个可以连号的成员的类型。
 /// </summary>
 internal enum MemberKind : byte
 {
@@ -10,50 +10,50 @@ internal enum MemberKind : byte
 }
 
 /// <summary>
-/// Describes the accessibility strategy for getting/setting a member value during serialization.
+/// 描述在序列过程中获取/确定成员价值的无障碍战略。
 /// </summary>
 internal enum AccessStrategy : byte
 {
     /// <summary>
-    /// The member can be accessed directly (public field or property with accessible getter/setter).
+    /// 成员可以直接进入(公共领域或有无障碍取用/改进的地产)。
     /// </summary>
     Direct,
 
     /// <summary>
-    /// The member requires a generated delegate-based accessor (FieldAccessor utility).
+    /// 成员要求生成一个以代表为基础的访问(FieldAccessor 有用)功能。
     /// </summary>
     GeneratedAccessor,
 
     /// <summary>
-    /// The member requires an UnsafeAccessor-based accessor.
+    /// 成员需要 UnsafeAccessor-基于存取器。
     /// </summary>
     UnsafeAccessor
 }
 
 /// <summary>
-/// Describes the strategy for constructing an instance of a serializable type during deserialization.
+/// 描述在脱序过程中构建一个可连号类型的例子的战略。
 /// </summary>
 internal enum ObjectCreationStrategy : byte
 {
     /// <summary>
-    /// Use <c>default(T)</c> for value types.
+    /// 使用 <c>default(T)</c> 来计算数值类型 。
     /// </summary>
     Default,
 
     /// <summary>
-    /// Use <c>new T()</c> — type has an accessible parameterless constructor.
+    /// 使用 <c>new T()</c> ——类型有一个无障碍无参数构建器。
     /// </summary>
     NewExpression,
 
     /// <summary>
-    /// Use <c>RuntimeHelpers.GetUninitializedObject(typeof(T))</c>.
+    /// 使用 <c>RuntimeHelpers.GetUninitializedObject(typeof(T))</c>。
     /// </summary>
     GetUninitializedObject
 }
 
 /// <summary>
-/// Describes a serializable field or property member in a <see cref="SerializableTypeModel"/>.
-/// Contains all data needed for serializer, copier, and activator generation without holding <c>ISymbol</c> references.
+/// 描述 <see cref="SerializableTypeModel"/>中可连号作业场或财产成员。
+/// 包含序列器、复印机和活性器生成所需的全部数据,不持有 <c>ISymbol</c> 参考文献。
 /// </summary>
 internal sealed record class MemberModel
 {

@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>Verifies that journaled task state persists completion sequences and continues them after recovery.</summary>
+/// <summary>证明已公布的任务状态维持完成顺序,并在恢复后继续。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]

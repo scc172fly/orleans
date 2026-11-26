@@ -7,149 +7,149 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents a grain from the perspective of the runtime.
+    /// 从运行时间的角度代表 grain 。
     /// </summary>
     public interface IGrainContext : ITargetHolder, IEquatable<IGrainContext>
     {
         /// <summary>
-        /// Gets a reference to this grain.
+        /// 获取此 grain的引用。
         /// </summary>
         GrainReference GrainReference { get; }
 
         /// <summary>
-        /// Gets the grain identity.
+        /// 获取 grain 身份。
         /// </summary>
         GrainId GrainId { get; }
 
         /// <summary>
-        /// Gets the grain instance, or <see langword="null"/> if the grain instance has not been set yet.
+        /// 得到 grain 实例,或 <see langword="null"/> 如果 grain 实例尚未设定 。
         /// </summary>
         object? GrainInstance { get; }
 
         /// <summary>
-        /// Gets the activation id.
+        /// 获得激活代号。
         /// </summary>
         ActivationId ActivationId { get; }
 
         /// <summary>
-        /// Gets the activation address.
+        /// 获得激活地址。
         /// </summary>
         GrainAddress Address { get; }
 
         /// <summary>
-        /// Gets the <see cref="IServiceProvider" /> that provides access to the grain activation's service container.
+        /// 得到 <see cref="IServiceProvider" /> 提供获取 grain 启动服务集装箱
         /// </summary>
         IServiceProvider ActivationServices { get; }
 
         /// <summary>
-        /// Gets the observable <see cref="Grain"/> lifecycle, which can be used to add lifecycle hooks.
+        /// 获得可观测到的 <see cref="Grain"/> 生命周期,该生命周期可用于添加生命周期钩。
         /// </summary>
         IGrainLifecycle ObservableLifecycle { get; }
 
         /// <summary>
-        /// Gets the scheduler.
+        /// 去拿调度器
         /// </summary>
         IWorkItemScheduler Scheduler { get; }
 
         /// <summary>
-        /// Gets the <see cref="Task"/> which completes when the grain has deactivated.
+        /// 得到 <see cref="Task"/> 于 grain 已经解除了作用。
         /// </summary>
         Task Deactivated { get; }
 
         /// <summary>
-        /// Sets the provided value as the component for type <typeparamref name="TComponent"/>.
+        /// 将提供值设为类型 <typeparamref name="TComponent"/>的组件。
         /// </summary>
-        /// <typeparam name="TComponent">The type used to lookup this component.</typeparam>
-        /// <param name="value">The component instance.</param>
+        /// <typeparam name="TComponent">用于查找此组件的类型。</typeparam>
+        /// <param name="value">组件实例。</param>
         void SetComponent<TComponent>(TComponent? value) where TComponent : class;
 
         /// <summary>
-        /// Submits an incoming message to this instance.
+        /// 向此实例提交收到的信息 。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         /// <remarks>
-        /// The context assumes ownership of the message when this method is called. It is responsible for processing
-        /// or forwarding the message, or rejecting or discarding it and releasing its resources, including if activation fails
-        /// or the context is deactivated.
-        /// Ownership remains with the context if this method throws.
+        /// 当使用该方法时,上下文将承担电文的所有权。
+        /// 或传递信息,或拒绝或抛弃信息并释放其资源,包括启动失败时
+        /// 或上下文被禁用。
+        /// 如果采用这种方法,所有权仍与上下文相关。
         /// </remarks>
         void ReceiveMessage(object message);
 
         /// <summary>
-        /// Queues <paramref name="request"/> as a one-way request on this instance.
+        /// 在此情况下将 <paramref name="request"/> 排为单向请求。
         /// </summary>
         /// <param name="request">
-        /// The request to invoke. Its <see cref="IInvokable.GetInterfaceType"/> method must return an interface type.
+        /// 请求引用。 它的 <see cref="IInvokable.GetInterfaceType"/> 方法必须返回接口类型 。
         /// </param>
-        /// <param name="options">The options for the request.</param>
+        /// <param name="options">请求选项。</param>
         /// <remarks>
         /// <para>
-        /// The request is scheduled with the instance's other requests and passes through grain call filters, which observe
-        /// <paramref name="request"/>. It starts a new call chain and never leaves this instance.
+        /// 请求与案件的其他请求一起安排,通过 grain 呼叫过滤器,以观察
+        /// <paramref name="request"/>. 它启动一个新的呼叫链, 并且永远不会离开这个例子。
         /// </para>
         /// <para>
-        /// The instance passes the request's outcome to <see cref="ILocalRequest.Complete"/> after the request and its call filters complete,
-        /// or when it rejects the request.
+        /// 实例在请求完成后将请求结果传送到 <see cref="ILocalRequest.Complete"/> ,其调用过滤器完成后
+        /// 或拒绝请求。
         /// </para>
         /// </remarks>
-        /// <exception cref="NotSupportedException">This instance does not support local requests.</exception>
+        /// <exception cref="NotSupportedException">此例不支持本地请求 。</exception>
         void ReceiveLocalRequest(ILocalRequest request, LocalRequestOptions options)
             => throw new NotSupportedException($"{GetType()} does not support local requests.");
 
         /// <summary>
-        /// Start activating this instance.
+        /// 启动这个实例
         /// </summary>
-        /// <param name="requestContext">The request context of the request which is causing this instance to be activated, if any.</param>
-        /// <param name="cancellationToken">A cancellation token which, when canceled, indicates that the process should complete promptly.</param>
+        /// <param name="requestContext">请求中要求启动这一审判的背景(如果有的话)。</param>
+        /// <param name="cancellationToken">取消符,该标记在取消时表示进程应迅速完成。</param>
         /// <remarks>
-        /// The creator calls this method once for each newly created grain activation, after submitting any rehydration work.
-        /// This method schedules activation. The context handles activation failures through its request and lifecycle failure paths.
+        /// 创建者在提交任何补液工作后,对每个新创建的 grain 激活程序都使用这种方法一次。
+        /// 方法计划激活。 上下文通过请求和生命周期故障路径处理启动失败。
         /// </remarks>
         void Activate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Start deactivating this instance.
+        /// 开始取消此实例的激活 。
         /// </summary>
-        /// <param name="deactivationReason">The reason for deactivation, for informational purposes.</param>
-        /// <param name="cancellationToken">A cancellation token which, when canceled, indicates that the process should complete promptly.</param>
+        /// <param name="deactivationReason">为提供信息的目的,说明解除其作用的理由。</param>
+        /// <param name="cancellationToken">取消符,该标记在取消时表示进程应迅速完成。</param>
         void Deactivate(DeactivationReason deactivationReason, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Start rehydrating this instance from the provided rehydration context.
+        /// 开始从提供的补液环境中再补充这一实例。
         /// </summary>
         /// <remarks>
-        /// This method schedules rehydration and transfers ownership of <paramref name="context"/> to this instance.
-        /// Implementations handle operational failures internally so that the creator can subsequently call <see cref="Activate"/>.
+        /// 这种方法安排补液和将 <paramref name="context"/> 的所有权转让给本例。
+        /// 实施程序处理内部操作故障,以便创建者随后可以调用 <see cref="Activate"/>。
         /// </remarks>
         void Rehydrate(IRehydrationContext context);
 
         /// <summary>
-        /// Starts an attempt to migrating this instance to another location.
-        /// Migration captures the current <see cref="RequestContext"/>, making it available to the activation's placement director so that it can consider it when selecting a new location.
-        /// Migration will occur asynchronously, when no requests are executing, and will not occur if the activation's placement director does not select an alternative location.
+        /// 开始尝试将这个实例移到另一个地方。
+        /// 移民捕捉到当前的 <see cref="RequestContext"/>,向启动的安置主任提供,以便其在选择新地点时能够加以考虑。
+        /// 移民将不同步地发生,而没有执行任何请求;如果启动的安置主任不选择其他地点,则不会出现移徙。
         /// </summary>
-        /// <param name="requestContext">The request context, which is provided to the placement director so that it can be examined when selecting a new location.</param>
-        /// <param name="cancellationToken">A cancellation token which, when canceled, indicates that the process should complete promptly.</param>
+        /// <param name="requestContext">向安置主任提供请求的背景,以便在选择新地点时加以审查。</param>
+        /// <param name="cancellationToken">取消符,该标记在取消时表示进程应迅速完成。</param>
         void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
-    /// Extensions for <see cref="IGrainContext"/>.
+    /// <see cref="IGrainContext"/>的扩展期。
     /// </summary>
     public static class GrainContextExtensions
     {
         /// <summary>
-        /// Deactivates the provided grain.
+        /// 取消提供 grain。
         /// </summary>
         /// <param name="grainContext">
-        /// The grain context.
+        /// grain 上下文。
         /// </param>
         /// <param name="deactivationReason">
-        /// The deactivation reason.
+        /// 停止功能的原因
         /// </param>
-        /// <param name="cancellationToken">A cancellation token which when canceled, indicates that the process should complete promptly.</param>
+        /// <param name="cancellationToken">取消标记, 当取消时表示该过程应迅速完成。</param>
         /// <returns>
-        /// A <see cref="Task"/> which will complete once the grain has deactivated.
+        /// A <see cref="Task"/> 完成后, grain 已经解除了作用。
         /// </returns>
         [Obsolete("This method is error-prone: waiting deactivation to complete from within the grain being deactivated will usually result in a deadlock.")]
         public static Task DeactivateAsync(this IGrainContext grainContext, DeactivationReason deactivationReason, CancellationToken cancellationToken = default)
@@ -160,66 +160,66 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// Functionality to schedule tasks on a grain.
+    /// 是否具有安排 grain任务的职能。
     /// </summary>
     public interface IWorkItemScheduler
     {
         /// <summary>
-        /// Schedules an action for execution by this instance.
+        /// 将执行该例的行动排成时间表。
         /// </summary>
         /// <param name="action">
-        /// The action.
+        /// 动作
         /// </param>
         void QueueAction(Action action);
 
         /// <summary>
-        /// Schedules a task to be started by this instance.
+        /// 计划此实例要启动的任务。
         /// </summary>
-        /// <param name="task">The task.</param>
+        /// <param name="task">任务</param>
         void QueueTask(Task task);
 
         /// <summary>
-        /// Schedules a work item for execution by this instance.
+        /// 将执行此例的工作项目排入时间表。
         /// </summary>
-        /// <param name="action">The work item.</param>
-        /// <param name="state">The state passed when invoking the item.</param>
+        /// <param name="action">工作项目。</param>
+        /// <param name="state">国家援引项目时通过。</param>
         void QueueAction(Action<object> action, object state);
     }
 
     /// <summary>
-    /// Provides access to the currently executing grain context.
+    /// 提供当前执行的 grain 上下文的访问权限。
     /// </summary>
     public interface IGrainContextAccessor
     {
         /// <summary>
-        /// Gets the currently executing grain context.
+        /// 获取当前执行的 grain 上下文。
         /// </summary>
         IGrainContext GrainContext { get; }
     }
 
     /// <summary>
-    /// Functionality for accessing or installing an extension on a grain.
+    /// 获取或安装 grain扩展的功能。
     /// </summary>
     public interface IGrainExtensionBinder
     {
         /// <summary>
-        /// Returns the grain extension registered for the provided <typeparamref name="TExtensionInterface"/>.
+        /// 返回 grain 所提供文件的登记延期 <typeparamref name="TExtensionInterface"/>.
         /// </summary>
         /// <typeparam name="TExtensionInterface">
-        /// The grain extension interface.
+        /// grain 扩展界面。
         /// </typeparam>
         /// <returns>
-        /// The implementation of the extension which is bound to this grain.
+        /// 执行与本 grain有关的延长期。
         /// </returns>
         TExtensionInterface GetExtension<TExtensionInterface>() where TExtensionInterface : class, IGrainExtension;
 
         /// <summary>
-        /// Binds an extension to an addressable object, if not already done.
+        /// 将扩展部分绑在可标定对象的扩展面上,如果尚未完成的话。
         /// </summary>
-        /// <typeparam name="TExtension">The type of the extension (e.g. StreamConsumerExtension).</typeparam>
-        /// <typeparam name="TExtensionInterface">The public interface type of the implementation.</typeparam>
-        /// <param name="newExtensionFunc">A factory function that constructs a new extension object.</param>
-        /// <returns>A tuple, containing first the extension and second an addressable reference to the extension's interface.</returns>
+        /// <typeparam name="TExtension">扩展名类型(e.g. StreamConsumerExtension).</typeparam>
+        /// <typeparam name="TExtensionInterface">执行的公共接口类型。</typeparam>
+        /// <param name="newExtensionFunc">制造新扩展对象的工厂函数。</param>
+        /// <returns>象牙,包含第一个扩展名,第二个可处理的扩展名界面引用。</returns>
         (TExtension, TExtensionInterface) GetOrSetExtension<TExtension, TExtensionInterface>(Func<TExtension> newExtensionFunc)
             where TExtension : class, TExtensionInterface
             where TExtensionInterface : class, IGrainExtension;

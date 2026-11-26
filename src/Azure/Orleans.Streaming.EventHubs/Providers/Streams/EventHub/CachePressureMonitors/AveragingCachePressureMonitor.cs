@@ -6,13 +6,13 @@ using Orleans.Configuration;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Cache pressure monitor whose back pressure algorithm is based on averaging pressure value
-    /// over all pressure contribution
+    /// 其背压力算法基于平均压力值的缓存压力监视器
+    /// 压力超过所有压力
     /// </summary>
     public partial class AveragingCachePressureMonitor : ICachePressureMonitor
     {
         /// <summary>
-        /// Cache monitor which is used to report cache related metrics
+        /// 用于报告缓存相关度量的缓存监测器
         /// </summary>
         public ICacheMonitor? CacheMonitor { set; private get; }
         private static readonly TimeSpan checkPeriod = TimeSpan.FromSeconds(2);
@@ -25,7 +25,7 @@ namespace Orleans.Streaming.EventHubs
         private readonly double flowControlThreshold;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="monitor"></param>
@@ -34,7 +34,7 @@ namespace Orleans.Streaming.EventHubs
         { }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="flowControlThreshold"></param>
         /// <param name="logger"></param>
@@ -51,8 +51,8 @@ namespace Orleans.Streaming.EventHubs
         /// <inheritdoc />
         public void RecordCachePressureContribution(double cachePressureContribution)
         {
-            // Weight unhealthy contributions thrice as much as healthy ones.
-            // This is a crude compensation for the fact that healthy consumers wil consume more often than unhealthy ones.
+            // 体重比健康贡献高三倍。
+            // 健康消费者消费比不健康的消费者多,这是对这一事实的粗略补偿。
             double weight = cachePressureContribution < flowControlThreshold ? 1.0 : 3.0;
             accumulatedCachePressure += cachePressureContribution * weight;
             cachePressureContributionCount += weight;
@@ -71,10 +71,10 @@ namespace Orleans.Streaming.EventHubs
 
         private void CalculatePressure()
         {
-            // if we don't have any contributions, don't change status
+            // 如果我们没有捐款, 不要改变状态
             if (cachePressureContributionCount < 0.5)
             {
-                // after 5 checks with no contributions, check anyway
+                // 5次支票之后,没有交款,反正要查
                 cachePressureContributionCount += 0.1;
                 return;
             }
@@ -82,7 +82,7 @@ namespace Orleans.Streaming.EventHubs
             double pressure = accumulatedCachePressure / cachePressureContributionCount;
             bool wasUnderPressure = isUnderPressure;
             isUnderPressure = pressure > flowControlThreshold;
-            // If we changed state, log
+            // 如果我们改变状态, 日志
             if (isUnderPressure != wasUnderPressure)
             {
                 this.CacheMonitor?.TrackCachePressureMonitorStatusChange(this.GetType().Name, isUnderPressure, cachePressureContributionCount, pressure, this.flowControlThreshold);

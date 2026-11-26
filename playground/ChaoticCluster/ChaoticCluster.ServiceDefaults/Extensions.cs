@@ -8,9 +8,9 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Hosting;
-// Adds common .NET Aspire services: service discovery, resilience, health checks, and OpenTelemetry.
-// This project should be referenced by each service project in your solution.
-// To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
+// 常见添加 .NET 服务:服务发现、复原力、健康检查和 OpenTelemetry.
+// 解决时,每个服务项目都应参考该项目。
+// 要了解更多关于使用此项目的知识,请见 https://aka.ms/dotnet/aspire/service-defaults
 public static class Extensions
 {
     public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
@@ -23,15 +23,15 @@ public static class Extensions
 
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
-            // Turn on resilience by default
+            // 默认打开抗力
             http.AddStandardResilienceHandler();
 
-            // Turn on service discovery by default
+            // 默认打开服务发现
             http.AddServiceDiscovery();
         });
 
-        // Uncomment the following to restrict the allowed schemes for service discovery.
-        // builder.Services.Configure<ServiceDiscoveryOptions>(options =>
+        // 不同意以下限制服务发现许可计划的意见。
+        // builder.Services.Configure<ServiceDiscoveryOptions>(选项 ____________________________________________________________________________________
         // {
         //     options.AllowedSchemes = ["https"];
         // });
@@ -71,8 +71,8 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        // 将下列行 Azure 监测出口者(要求 Azure.Monitor.OpenTelemetry.AspNetCore 包)
+        //是否(!)string.IsNullOrEmpty(builder.Configuration) (《关于推进的动态- 控制- 战略》)
         //{
         //    builder.Services.AddOpenTelemetry()
         //       .UseAzureMonitor();
@@ -84,7 +84,7 @@ public static class Extensions
     public static IHostApplicationBuilder AddDefaultHealthChecks(this IHostApplicationBuilder builder)
     {
         builder.Services.AddHealthChecks()
-            // Add a default liveness check to ensure app is responsive
+            // 添加默认活性检查以确保应用程序响应
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
         return builder;
@@ -92,14 +92,14 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        // Adding health checks endpoints to applications in non-development environments has security implications.
-        // See https://aka.ms/dotnet/aspire/healthchecks for details before enabling these endpoints in non-development environments.
+        // 在非发展环境中,在申请中增加健康检查终点对安全有影响。
+        // 在非发展环境中实现这些终点之前,详见 https://aka.ms/dotnet/aspire/healthchecks 。
         if (app.Environment.IsDevelopment())
         {
-            // All health checks must pass for app to be considered ready to accept traffic after starting
+            // 所有健康检查必须经过所有健康检查,才能认为申请在开始后可以接受交通
             app.MapHealthChecks("/health");
 
-            // Only health checks tagged with the "live" tag must pass for app to be considered alive
+            // 只有贴有“活”标签的健康检查才能通过应用程序才被视为活
             app.MapHealthChecks("/alive", new HealthCheckOptions
             {
                 Predicate = r => r.Tags.Contains("live")

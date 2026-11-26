@@ -3,8 +3,8 @@ using Aspire.Hosting.Azure;
 
 namespace Orleans.Docs.Snippets.Aspire;
 
-// This file contains examples for Orleans Aspire integration documentation.
-// Each example is wrapped in a region marker and a method to allow compilation.
+// 此文件包含 Orleans 请求整合文档示例。
+// 每个实例都以区域标记和汇编方法包扎。
 
 public static class AppHostExamples
 {
@@ -13,14 +13,14 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // Add Redis for Orleans clustering
+        // 添加添加添加 Redis 用于 Orleans 组合
         var redis = builder.AddRedis("orleans-redis");
 
-        // Define the Orleans resource with Redis clustering
+        // 定义 Orleans 资源,并使用 Redis 组合
         var orleans = builder.AddOrleans("cluster")
             .WithClustering(redis);
 
-        // Add the Orleans silo project
+        // 添加 Orleans silo 项目
         builder.AddProject<Projects.Silo>("silo")
             .WithReference(orleans)
             .WaitFor(redis)
@@ -63,15 +63,15 @@ public static class AppHostExamples
             .WithClustering(redis)
             .WithGrainStorage("Default", redis);
 
-        // Backend Orleans silo cluster
+        // 后端 Orleans silo 群集
         var silo = builder.AddProject<Projects.Silo>("backend")
             .WithReference(orleans)
             .WaitFor(redis)
             .WithReplicas(5);
 
-        // Frontend web project as Orleans client
+        // 前端网络项目 Orleans 客户端
         builder.AddProject<Projects.Client>("frontend")
-            .WithReference(orleans.AsClient())  // Client-only reference
+            .WithReference(orleans.AsClient())  // 仅客户端引用
             .WaitFor(silo);
 
         builder.Build().Run();
@@ -83,9 +83,9 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // Add Azure Storage for Orleans
+        // 添加 Azure 储存 Orleans
         var storage = builder.AddAzureStorage("orleans-storage")
-            .RunAsEmulator();  // Use Azurite emulator for local development
+            .RunAsEmulator();  // 使用 Azurite 模拟器促进本地发展
 
         var tables = storage.AddTables("orleans-tables");
 
@@ -109,7 +109,7 @@ public static class AppHostExamples
         var builder = DistributedApplication.CreateBuilder(args);
 
         var redis = builder.AddRedis("orleans-redis");
-        // Redis container runs automatically during development
+        // Redis 集装箱在开发期间自动运行
 
         builder.AddOrleans("cluster")
             .WithClustering(redis);
@@ -123,7 +123,7 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // Use existing Azure Cache for Redis
+        // 使用现有 Azure 缓存缓存的缓存 Redis
         var redis = builder.AddConnectionString("orleans-redis");
 
         builder.AddOrleans("cluster")
@@ -198,20 +198,20 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // Add a SQL Server instance and database.
-        // Note: Aspire infers the Orleans provider type from the resource class name
-        // (SqlServerDatabaseResource → "SqlServerDatabase"), which does not match
-        // the Orleans provider name "AdoNet".
+        // 添加 SQL 服务器实例和数据库。
+        // 注: 远征从资源类别名称中引用 Orleans 提供者类型
+        // (SqlServerDatabaseResource → "SqlServerDatabase“)),但与
+        // Orleans 提供商名称 "AdoNet" 。
         //
-        // There is no public API to override this inference in the current version
-        // of Aspire.Hosting.Orleans. As a workaround, configure the Orleans providers
-        // manually in the silo using UseOrleans(siloBuilder => {...}) and read the
-        // connection string from IConfiguration.
+        // 当前版本中没有公开的 API 推翻此推论
+        // Aspire.Hosting.Orleans。作为一种变通办法,配置 Orleans 提供者
+        // 中手动 silo 使用 UseOrleans(siloBuilder 并读取
+        // Iconfigation 的连接字符串。
         var sql = builder.AddSqlServer("sql");
         var db = sql.AddDatabase("orleans-db");
 
-        // Pass the database resource so Aspire injects ConnectionStrings__orleans-db.
-        // Then configure Orleans manually in the silo (see silo example).
+        // 传递数据库资源, 从而快速输入 ConnectionStrings__orleans- db。
+        // 然后配置 Orleans 中手动 silo (见 silo 实例)
         builder.AddProject<Projects.Silo>("silo")
             .WithReference(db)
             .WaitFor(sql);
@@ -247,10 +247,10 @@ public static class AppHostExamples
         var redis = builder.AddRedis("orleans-redis");
 
         var orleans = builder.AddOrleans("cluster")
-            // Set stable IDs for rolling deployments and cross-restart compatibility.
-            // If omitted, random IDs are generated per run — fine for development,
-            // but problematic in production because silos from different runs
-            // will not recognize each other.
+            // 设定滚动部署和交叉重新启动兼容性的稳定标识。
+            // 如果省略,则每次运行生成随机身份识别码—— 用于开发的罚款;
+            // 生产有问题,因为 silos 来自不同的运行
+            // 彼此不承认对方。
             .WithClusterId("my-cluster")
             .WithServiceId("my-service")
             .WithClustering(redis);

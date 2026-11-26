@@ -5,28 +5,28 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Primitive type for identities, representing a sequence of bytes.
+    /// 身份原始类型,代表一个字节序列。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public readonly struct IdSpan : IEquatable<IdSpan>, IComparable<IdSpan>, ISerializable, ISpanFormattable
     {
         /// <summary>
-        /// The stable hash of the underlying value.
+        /// 基本价值的稳定散列。
         /// </summary>
         [Id(0)]
         private readonly int _hashCode;
 
         /// <summary>
-        /// The underlying value.
+        /// 基本价值。
         /// </summary>
         [Id(1)]
         private readonly byte[]? _value;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IdSpan"/> struct.
+        /// 初始化 <see cref="IdSpan"/> 结构的新实例。
         /// </summary>
         /// <param name="value">
-        /// The value.
+        /// 价值。
         /// </param>
         public IdSpan(byte[] value)
         {
@@ -35,13 +35,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IdSpan"/> struct.
+        /// 初始化 <see cref="IdSpan"/> 结构的新实例。
         /// </summary>
         /// <param name="value">
-        /// The value.
+        /// 价值。
         /// </param>
         /// <param name="hashCode">
-        /// The hash code of the value.
+        /// 值的散列代码 。
         /// </param>
         private IdSpan(byte[]? value, int hashCode)
         {
@@ -50,13 +50,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IdSpan"/> struct.
+        /// 初始化 <see cref="IdSpan"/> 结构的新实例。
         /// </summary>
         /// <param name="info">
-        /// The serialization info.
+        /// 序列信息
         /// </param>
         /// <param name="context">
-        /// The context.
+        /// 背景。
         /// </param>
         private IdSpan(SerializationInfo info, StreamingContext context)
         {
@@ -65,28 +65,28 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the underlying value.
+        /// 获得基本价值。
         /// </summary>
         public ReadOnlyMemory<byte> Value => _value;
 
         /// <summary>
-        /// Gets a value indicating whether this instance is the default value.
+        /// 获得一个值,以显示此实例是否为默认值。
         /// </summary>
         public bool IsDefault => _value is null || _value.Length == 0;
 
         /// <summary>
-        /// Creates a new <see cref="IdSpan"/> instance from the provided value.
+        /// 从所提供的值创建新的 <see cref="IdSpan"/> 实例。
         /// </summary>
         /// <returns>
-        /// A new <see cref="IdSpan"/> corresponding to the provided id.
+        /// 与所提供的代号相应的新 <see cref="IdSpan"/> 。
         /// </returns>
         public static IdSpan Create(string id) => new(Encoding.UTF8.GetBytes(id));
 
         /// <summary>
-        /// Returns a span representation of this instance.
+        /// 返回此实例的跨度代表。
         /// </summary>
         /// <returns>
-        /// A span representation of this instance.
+        /// 本案的跨度代表。
         /// </returns>
         public ReadOnlySpan<byte> AsSpan() => _value;
 
@@ -113,10 +113,10 @@ namespace Orleans.Runtime
         public override int GetHashCode() => _hashCode;
 
         /// <summary>
-        /// Returns a uniform, stable hash code for an <see cref="IdSpan"/>.
+        /// 返回 <see cref="IdSpan"/>的统一、稳定的散列代码。
         /// </summary>
         /// <returns>
-        /// The hash code of this instance.
+        /// 此处的散列代码 。
         /// </returns>
         public uint GetUniformHashCode() => unchecked((uint)_hashCode);
 
@@ -128,27 +128,27 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates an instance, specifying both the hash code and the value.
+        /// 创建实例,指定散列代码和值。
         /// </summary>
         /// <remarks>
-        /// This method is intended for use by serializers and other low-level libraries.
+        /// 这种方法供序列器和其他低层图书馆使用。
         /// </remarks>
         /// <param name="value">
-        /// The underlying value.
+        /// 基本价值。
         /// </param>
         /// <param name="hashCode">
-        /// The hash of the underlying value.
+        /// 基本价值的散列。
         /// </param>
         /// <returns>
-        /// An <see cref="IdSpan"/> instance.
+        /// <see cref="IdSpan"/> 实例。
         /// </returns>
         public static IdSpan UnsafeCreate(byte[]? value, int hashCode) => new(value, hashCode);
 
         /// <summary>
-        /// Gets the underlying array from this instance.
+        /// 从此实例中获取底部矩阵 。
         /// </summary>
-        /// <param name="id">The id span.</param>
-        /// <returns>The underlying array from this instance.</returns>
+        /// <param name="id">假跨度。</param>
+        /// <returns>此实例的底部数组。</returns>
         public static byte[]? UnsafeGetArray(IdSpan id) => id._value;
 
         /// <inheritdoc/>
@@ -168,19 +168,19 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns a string representation of this instance, decoding the value as UTF8.
+        /// 返回此实例的字符串表示,将值解码为 UTF8。
         /// </summary>
         /// <returns>
-        /// A string representation fo this instance.
+        /// 字符串表示符在此实例下 。
         /// </returns>
         public override string ToString() => _value is null ? "" : Encoding.UTF8.GetString(_value);
 
         /// <summary>
-        /// Formats the UTF-8 encoded identifier into the provided character span.
+        /// 将 UTF-8 编码识别符格式化为提供的字符范围。
         /// </summary>
-        /// <param name="destination">The span in which to write the formatted identifier.</param>
-        /// <param name="charsWritten">When this method returns, contains the number of characters written to <paramref name="destination"/>.</param>
-        /// <returns><see langword="true"/> if the destination was large enough; otherwise, <see langword="false"/>.</returns>
+        /// <param name="destination">写格式化标识符的间隔。</param>
+        /// <param name="charsWritten">当此方法返回时, 包含写到 <paramref name="destination"/>的字符数。</param>
+        /// <returns><see langword="true"/> 如果目的地足够大;否则, <see langword="false"/>。</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten)
         {
             if (_value is null)
@@ -205,19 +205,19 @@ namespace Orleans.Runtime
         bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => TryFormat(destination, out charsWritten);
 
         /// <summary>
-        /// Compares the provided operands for equality.
+        /// 与所提供的平等目标相比较。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
         public static bool operator ==(IdSpan left, IdSpan right) => left.Equals(right);
 
         /// <summary>
-        /// Compares the provided operands for inequality.
+        /// 比较所提供的不平等域。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are not equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
         public static bool operator !=(IdSpan left, IdSpan right) => !left.Equals(right);
     }
 }

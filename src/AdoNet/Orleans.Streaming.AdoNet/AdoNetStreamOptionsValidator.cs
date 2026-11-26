@@ -3,7 +3,7 @@ using static System.String;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// Validates <see cref="AdoNetStreamOptions"/> configuration.
+/// 校验 <see cref="AdoNetStreamOptions"/> 配置。
 /// </summary>
 public class AdoNetStreamOptionsValidator(AdoNetStreamOptions options, string name) : IConfigurationValidator
 {

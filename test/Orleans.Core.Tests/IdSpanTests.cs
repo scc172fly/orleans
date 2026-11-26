@@ -4,8 +4,8 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// Tests for IdSpan, a primitive type for identities representing a sequence of bytes.
-    /// Validates equality, hash code consistency, and proper handling of null vs empty arrays.
+    /// IdSpan测试,这是代表字节序列的身份的原始类型。
+    /// 验证平等、散列码一致性,并正确处理空阵列和空阵列。
     /// </summary>
     [TestCategory("BVT")]
     [TestSuite("BVT")]
@@ -14,8 +14,8 @@ namespace NonSilo.Tests
     public class IdSpanTests
     {
         /// <summary>
-        /// Tests that IdSpan.Create(string.Empty) and default(IdSpan) are NOT equal.
-        /// They should have different internal states (empty array vs null) and should not be considered equal.
+        /// 测试 IdSpan.Create(string.Empty) 和默认(IdSpan) 不相等 。
+        /// 它们应有不同的内部状态(空阵列与空阵列),不应被视为平等。
         /// </summary>
         [Fact]
         public void IdSpan_CreateEmptyString_NotEqualToDefault()
@@ -30,8 +30,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that hash codes are consistent with equality.
-        /// If two IdSpans are equal, they must have the same hash code.
+        /// 大麻守则的检验符合平等原则。
+        /// 如果两个 IdSpans 相等,它们必须具有相同的散列码。
         /// </summary>
         [Fact]
         public void IdSpan_HashCode_ConsistentWithEquality()
@@ -40,16 +40,16 @@ namespace NonSilo.Tests
             IdSpan id2 = IdSpan.Create("test");
             IdSpan id3 = IdSpan.Create("different");
 
-            // Equal objects must have equal hash codes
+            // 等物必须具有平等的散列法则
             Assert.Equal(id1, id2);
             Assert.Equal(id1.GetHashCode(), id2.GetHashCode());
 
-            // Not equal objects may have different hash codes (not required but expected)
+            // 不同对象的散列代码可能不同(不需要但预期),但并非相等对象
             Assert.NotEqual(id1, id3);
         }
 
         /// <summary>
-        /// Tests that default IdSpan has expected properties.
+        /// 测试默认 IdSpan 有预期属性 。
         /// </summary>
         [Fact]
         public void IdSpan_Default_HasExpectedProperties()
@@ -62,7 +62,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that IdSpan created from empty string has expected properties.
+        /// 测试空字符串创建的 IdSpan 有预期属性。
         /// </summary>
         [Fact]
         public void IdSpan_CreateEmptyString_HasExpectedProperties()
@@ -71,12 +71,12 @@ namespace NonSilo.Tests
 
             Assert.True(emptyStringIdSpan.IsDefault);
             Assert.Equal("", emptyStringIdSpan.ToString());
-            // Hash code should be computed from empty byte array, not 0
+            // 散码应该从空字节数组而不是 0 计算出来
             Assert.NotEqual(0, emptyStringIdSpan.GetHashCode());
         }
 
         /// <summary>
-        /// Tests that IdSpans with same content are equal.
+        /// 测试内容相同的 IdSpans 。
         /// </summary>
         [Fact]
         public void IdSpan_SameContent_AreEqual()
@@ -91,7 +91,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests that IdSpans with different content are not equal.
+        /// 测试内容不同的 IdSpans 不相等。
         /// </summary>
         [Fact]
         public void IdSpan_DifferentContent_AreNotEqual()
@@ -105,7 +105,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Tests CompareTo behavior with null and empty arrays.
+        /// 以空数组测试 CompareTo 行为。
         /// </summary>
         [Fact]
         public void IdSpan_CompareTo_HandlesNullAndEmpty()
@@ -114,11 +114,11 @@ namespace NonSilo.Tests
             IdSpan emptyStringIdSpan = IdSpan.Create(string.Empty);
             IdSpan normalIdSpan = IdSpan.Create("test");
 
-            // Default (null) should compare differently than empty string
+            // 默认( null) 的比较应该与空字符串不同
             Assert.NotEqual(0, defaultIdSpan.CompareTo(emptyStringIdSpan));
             Assert.NotEqual(0, emptyStringIdSpan.CompareTo(defaultIdSpan));
 
-            // Both should be less than a normal span
+            // 两者的间隔应少于正常时间
             Assert.True(defaultIdSpan.CompareTo(normalIdSpan) < 0);
             Assert.True(emptyStringIdSpan.CompareTo(normalIdSpan) < 0);
         }

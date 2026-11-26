@@ -1,17 +1,17 @@
 namespace Orleans.Persistence.Cosmos;
 
 /// <summary>
-/// Creates a partition key for the provided grain.
+/// 为提供 grain创建分区密钥。
 /// </summary>
 [Obsolete("Use IDocumentIdProvider instead.")]
 public interface IPartitionKeyProvider
 {
     /// <summary>
-    /// Creates a partition key for the provided grain.
+    /// 为提供 grain创建分区密钥。
     /// </summary>
-    /// <param name="grainType">The grain type.</param>
-    /// <param name="grainId">The grain identifier.</param>
-    /// <returns>The partition key.</returns>
+    /// <param name="grainType"> grain 类型。</param>
+    /// <param name="grainId"> grain 标识符。</param>
+    /// <returns>分区键。</returns>
     ValueTask<string> GetPartitionKey(string grainType, GrainId grainId);
 }
 

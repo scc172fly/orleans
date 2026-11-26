@@ -69,7 +69,7 @@ public class CosmosMembershipTableCancellationTests
         Assert.Equal(cancellation.Token, exception.CancellationToken);
         Assert.False(creation.Task.IsCompleted);
         creation.SetResult(client);
-        // A retry is a deterministic fence after completion of the shared factory.
+        // 重试是共同工厂完工后的一种决定性的围栏。
         await provider.InitializeGatewayListProviderAsync(TestContext.Current.CancellationToken);
         Assert.Equal(2, factoryCalls);
         Assert.Equal(1, client.ContainerCalls);

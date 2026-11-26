@@ -6,15 +6,15 @@ using Orleans.Runtime;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Methods for configuring <see cref="IGrainExtension"/>s on a silo.
+    /// 配置方法 <see cref="IGrainExtension"/>秒对a silo.
     /// </summary>
     public static class HostingGrainExtensions
     {
         /// <summary>
-        /// Registers a grain extension implementation for the specified interface.
+        /// 登记指定接口的 grain 扩展执行。
         /// </summary>
-        /// <typeparam name="TExtensionInterface">The <see cref="IGrainExtension"/> interface being registered.</typeparam>
-        /// <typeparam name="TExtension">The implementation of <typeparamref name="TExtensionInterface"/>, including the public constructors used for dependency injection.</typeparam>
+        /// <typeparam name="TExtensionInterface"> <see cref="IGrainExtension"/> 接口正在登记。</typeparam>
+        /// <typeparam name="TExtension">执行《执行和执行执行执行 <typeparamref name="TExtensionInterface"/>包括用于依赖注射的公共建筑师。</typeparam>
         public static ISiloBuilder AddGrainExtension<
             TExtensionInterface,
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TExtension>(

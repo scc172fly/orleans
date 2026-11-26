@@ -6,7 +6,7 @@ using Xunit;
 namespace NonSilo.Tests.Directory;
 
 /// <summary>
-/// Tests for ring range operations including difference, complement, intersection, and containment logic.
+/// 环程操作测试,包括差异、补充、交叉和封闭逻辑。
 /// </summary>
 [TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -204,7 +204,7 @@ public sealed class RingRangeTests
             var start = 0u;
             for (var i = 0; i < count; i++)
             {
-                // (Start, End]
+                // (开始, 结束)
                 var end = unchecked((uint)(start + portion));
 
                 if (remainder > 0)
@@ -325,7 +325,7 @@ public sealed class RingRangeTests
     [Fact]
     public void FromPoint_UnitTests()
     {
-        // Point 0 (wraps around: Start = uint.MaxValue, End = 0)
+        // 点 0 (围绕的圆形: 开始 = uint.MaxValue, 结束 = 0)
         var range0 = RingRange.FromPoint(0);
         Assert.Equal(uint.MaxValue, range0.Start);
         Assert.Equal(0u, range0.End);
@@ -337,7 +337,7 @@ public sealed class RingRangeTests
         Assert.False(range0.Contains(1));
         Assert.False(range0.Contains(uint.MaxValue));
 
-        // Point 1 (Start = 0, End = 1)
+        // 点1 (开始=0,结束=1)
         var range1 = RingRange.FromPoint(1);
         Assert.Equal(0u, range1.Start);
         Assert.Equal(1u, range1.End);
@@ -349,7 +349,7 @@ public sealed class RingRangeTests
         Assert.False(range1.Contains(0));
         Assert.False(range1.Contains(2));
 
-        // Arbitrary point 42 (Start = 41, End = 42)
+        // 任意点42(开始=41,结束=42)
         var range42 = RingRange.FromPoint(42);
         Assert.Equal(41u, range42.Start);
         Assert.Equal(42u, range42.End);
@@ -358,7 +358,7 @@ public sealed class RingRangeTests
         Assert.False(range42.Contains(41));
         Assert.False(range42.Contains(43));
 
-        // Point uint.MaxValue (Start = uint.MaxValue - 1, End = uint.MaxValue)
+        // 点 uint.MaxValue (开始= uint.MaxValue - 1,结束= uint.MaxValue)
         var rangeMax = RingRange.FromPoint(uint.MaxValue);
         Assert.Equal(uint.MaxValue - 1, rangeMax.Start);
         Assert.Equal(uint.MaxValue, rangeMax.End);
@@ -496,17 +496,17 @@ public sealed class RingRangeTests
     [Fact]
     public void RingRange_CompareTo_UnitTests()
     {
-        // Full range
+        // 全范围
         Assert.Equal(0, RingRange.Full.CompareTo(0));
         Assert.Equal(0, RingRange.Full.CompareTo(42));
         Assert.Equal(0, RingRange.Full.CompareTo(uint.MaxValue));
 
-        // Empty range
+        // 空空范围
         Assert.Equal(1, RingRange.Empty.CompareTo(0));
         Assert.Equal(-1, RingRange.Empty.CompareTo(1));
         Assert.Equal(-1, RingRange.Empty.CompareTo(100));
 
-        // Normal range (10, 20]
+        // 正常幅度(10、20)
         var normal = RingRange.Create(10, 20);
         Assert.Equal(0, normal.CompareTo(11));
         Assert.Equal(0, normal.CompareTo(15));
@@ -516,7 +516,7 @@ public sealed class RingRangeTests
         Assert.Equal(-1, normal.CompareTo(21));
         Assert.Equal(-1, normal.CompareTo(100));
 
-        // Wrapped range (100, 10]
+        // 包装范围(100、10)
         var wrapped = RingRange.Create(100, 10);
         Assert.Equal(0, wrapped.CompareTo(0));
         Assert.Equal(0, wrapped.CompareTo(5));
@@ -594,23 +594,23 @@ public sealed class RingRangeTests
         Gen.Select(GenRingRange, GenRingRange, GenRingRange).Sample((r1, r2, r3) =>
         {
             var r1Same = r1;
-            // Reflexivity
+            // 弹性
             Assert.True(r1 == r1Same);
             Assert.True(r1.Equals(r1));
             Assert.True(r1.Equals((object)r1));
             Assert.False(r1 != r1Same);
 
-            // Symmetry
+            // 对对称
             Assert.Equal(r1 == r2, r2 == r1);
             Assert.Equal(r1.Equals(r2), r2.Equals(r1));
 
-            // Transitivity
+            // 转 转
             if (r1 == r2 && r2 == r3)
             {
                 Assert.True(r1 == r3);
             }
 
-            // HashCode consistency
+            // HashCode 一致性
             if (r1 == r2)
             {
                 Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -659,7 +659,7 @@ public sealed class RingRangeTests
     [Fact]
     public void BoundaryValueAnalysis_RangeCreationAndProperties()
     {
-        // 1. Empty range boundary
+        // 1. 空射线边界
         var empty = RingRange.Create(0, 0);
         Assert.True(empty.IsEmpty);
         Assert.False(empty.IsFull);
@@ -669,7 +669,7 @@ public sealed class RingRangeTests
         Assert.Equal(0UL, empty.Size);
         Assert.Equal(0.0f, empty.SizePercent);
 
-        // 2. Full range boundaries (Start == End > 0)
+        // 2. 全部边界(开始时间:结束 > 0)
         var fullBoundary1 = RingRange.Create(1, 1);
         var fullBoundary2 = RingRange.Create(2, 2);
         var fullBoundaryMax = RingRange.Create(uint.MaxValue, uint.MaxValue);
@@ -688,7 +688,7 @@ public sealed class RingRangeTests
             Assert.Equal(100.0f, full.SizePercent);
         }
 
-        // 3. FromPoint boundary cases (0, 1, 2, uint.MaxValue - 1, uint.MaxValue)
+        // 3. FromPoint 边界案件(0、1、2、 uint.MaxValue -1、 uint.MaxValue)
         var p0 = RingRange.FromPoint(0);
         Assert.Equal(uint.MaxValue, p0.Start);
         Assert.Equal(0u, p0.End);
@@ -707,7 +707,7 @@ public sealed class RingRangeTests
         Assert.Equal(1UL, pMax.Size);
         Assert.False(pMax.IsWrapped);
 
-        // 4. Normal range boundaries
+        // 4. 正常范围边界
         var minNormal = RingRange.Create(0, 1);
         Assert.Equal(0u, minNormal.Start);
         Assert.Equal(1u, minNormal.End);
@@ -726,7 +726,7 @@ public sealed class RingRangeTests
         Assert.Equal(1UL, minNormalAtEnd.Size);
         Assert.False(minNormalAtEnd.IsWrapped);
 
-        // 5. Wrapped range boundaries
+        // 5. 环球边界
         var minWrapped = RingRange.Create(uint.MaxValue, 0);
         Assert.Equal(uint.MaxValue, minWrapped.Start);
         Assert.Equal(0u, minWrapped.End);
@@ -751,7 +751,7 @@ public sealed class RingRangeTests
     {
         uint[] points = [0, 1, 2, 10, 11, 20, 21, 100, uint.MaxValue - 1, uint.MaxValue];
 
-        // Empty range
+        // 空空范围
         foreach (var p in points)
         {
             Assert.False(RingRange.Empty.Contains(p));
@@ -761,18 +761,18 @@ public sealed class RingRangeTests
                 Assert.Equal(-1, RingRange.Empty.CompareTo(p));
         }
 
-        // Full range
+        // 全范围
         foreach (var p in points)
         {
             Assert.True(RingRange.Full.Contains(p));
             Assert.Equal(0, RingRange.Full.CompareTo(p));
         }
 
-        // Normal range (10, 20]
+        // 正常幅度(10、20)
         var normal = RingRange.Create(10, 20);
-        Assert.False(normal.Contains(10)); // Start is exclusive
+        Assert.False(normal.Contains(10)); // 启动为独家
         Assert.True(normal.Contains(11));
-        Assert.True(normal.Contains(20));  // End is inclusive
+        Assert.True(normal.Contains(20));  // 结束是包容性的
         Assert.False(normal.Contains(21));
         Assert.Equal(1, normal.CompareTo(0));
         Assert.Equal(1, normal.CompareTo(10));
@@ -781,12 +781,12 @@ public sealed class RingRangeTests
         Assert.Equal(-1, normal.CompareTo(21));
         Assert.Equal(-1, normal.CompareTo(uint.MaxValue));
 
-        // Wrapped range (uint.MaxValue - 1, 1]
+        // 包装范围 (uint.MaxValue - 1, 1]
         var wrapped = RingRange.Create(uint.MaxValue - 1, 1);
-        Assert.False(wrapped.Contains(uint.MaxValue - 1)); // Start is exclusive
+        Assert.False(wrapped.Contains(uint.MaxValue - 1)); // 启动为独家
         Assert.True(wrapped.Contains(uint.MaxValue));
         Assert.True(wrapped.Contains(0));
-        Assert.True(wrapped.Contains(1));                  // End is inclusive
+        Assert.True(wrapped.Contains(1));                  // 结束是包容性的
         Assert.False(wrapped.Contains(2));
         Assert.Equal(0, wrapped.CompareTo(0));
         Assert.Equal(0, wrapped.CompareTo(1));
@@ -799,9 +799,9 @@ public sealed class RingRangeTests
     [Fact]
     public void BoundaryValueAnalysis_TwoWrappedRangesIntersections()
     {
-        // Double intersection when two wrapped ranges overlap in two distinct segments
-        // w1: (1000, 500] covers 1001..uint.MaxValue and 0..500
-        // w2: (2000, 1200] covers 2001..uint.MaxValue and 0..1200
+        // 两个包着范围的重叠, 以两个不同的部分重叠时的双交叉点
+        // w1: (1000,500) 覆盖 1001. 。uint.MaxValue 和 0. 500
+        // 2 w2:(2000, 1200) 涵盖2001年。uint.MaxValue 和0.1200。
         var w1 = RingRange.Create(1000, 500);
         var w2 = RingRange.Create(2000, 1200);
 
@@ -810,7 +810,7 @@ public sealed class RingRangeTests
         Assert.Equal(RingRange.Create(2000, 500), intersections[0]);
         Assert.Equal(RingRange.Create(1000, 1200), intersections[1]);
 
-        // Symmetric check
+        // 对对对检查
         var reversedIntersections = w2.Intersections(w1).ToArray();
         Assert.Equal(2, reversedIntersections.Length);
         Assert.Equal(RingRange.Create(2000, 500), reversedIntersections[0]);
@@ -823,25 +823,25 @@ public sealed class RingRangeTests
         Span<char> smallBuffer = stackalloc char[1];
         Span<char> largeBuffer = stackalloc char[128];
 
-        // Empty
+        // 空空
         Assert.False(((ISpanFormattable)RingRange.Empty).TryFormat(smallBuffer, out var written, default, null));
         Assert.Equal(0, written);
         Assert.True(((ISpanFormattable)RingRange.Empty).TryFormat(largeBuffer, out written, default, null));
         Assert.Equal("(0, 0) 0.00%", largeBuffer[..written].ToString());
 
-        // Full
+        // 完整
         Assert.False(((ISpanFormattable)RingRange.Full).TryFormat(smallBuffer, out written, default, null));
         Assert.Equal(0, written);
         Assert.True(((ISpanFormattable)RingRange.Full).TryFormat(largeBuffer, out written, default, null));
         Assert.Equal("(0, 0] (100.00%)", largeBuffer[..written].ToString());
 
-        // Normal
+        // 普通普通
         var normal = RingRange.Create(0, 1);
         Assert.False(((ISpanFormattable)normal).TryFormat(smallBuffer, out written, default, null));
         Assert.Equal(0, written);
         Assert.True(((ISpanFormattable)normal).TryFormat(largeBuffer, out written, default, null));
 
-        // Wrapped
+        // 包装包装
         var wrapped = RingRange.Create(uint.MaxValue, 0);
         Assert.False(((ISpanFormattable)wrapped).TryFormat(smallBuffer, out written, default, null));
         Assert.Equal(0, written);
@@ -858,7 +858,7 @@ public sealed class RingRangeTests
             Assert.InRange(range.Size, 0UL, 1UL << 32);
             Assert.Equal(GetExpectedSize(range), range.Size);
 
-            // Verify contains logic matches boundary definition
+            // 校验包含符合逻辑的边界定义
             var contains = range.Contains(point);
             if (range.IsEmpty)
             {
@@ -877,7 +877,7 @@ public sealed class RingRangeTests
                 Assert.Equal(point > range.Start || point <= range.End, contains);
             }
 
-            // Verify CompareTo contract
+            // 核实 CompareTo 合同
             var cmp = range.CompareTo(point);
             if (contains)
             {

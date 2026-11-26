@@ -61,7 +61,7 @@ namespace Orleans.Runtime.Messaging
         {
             try
             {
-                // Build message
+                // 构建信息
                 message = new();
                 var headersReader = Reader.Create(readRequest._headers, _deserializationSession);
                 DeserializeHeaders(ref headersReader, message);
@@ -83,7 +83,7 @@ namespace Orleans.Runtime.Messaging
 
                 if (message.Result == ResponseTypes.Success)
                 {
-                    message.Result = ResponseTypes.None; // reset raw response indicator
+                    message.Result = ResponseTypes.None; // 重置原始响应指标
                     if (!_rawResponseCodecs.TryGetValue(field.FieldType!, out var rawCodec))
                         rawCodec = GetRawCodec(field.FieldType!);
                     message._bodyObject = rawCodec.ReadRaw(ref reader, ref field);
@@ -124,9 +124,9 @@ namespace Orleans.Runtime.Messaging
                 if (headers.ResponseType is ResponseTypes.None && bodyCodec is ResponseCodec responseCodec)
                 {
                     rawCodec = responseCodec;
-                    headers.ResponseType = ResponseTypes.Success; // indicates a raw simple response (not wrapped in Response<T>)
-                    // The raw encoding changes the type encoded in the field header from Response<T> to T
-                    // and does not encode a null reference value, but otherwise it's identical to normal encoding.
+                    headers.ResponseType = ResponseTypes.Success; // 表示简单响应(未在回应<T>中包装)
+                    // 原始编码将字段标题中编码的类型从反应<T> 改为 T
+                    // 并且没有编码无效引用值, 否则它和普通编码完全相同。
                 }
             }
 
@@ -154,7 +154,7 @@ namespace Orleans.Runtime.Messaging
                     bodyLength = writer.Position;
                 }
 
-                // Before completing, check lengths
+                // 完成前检查长度
                 ValidateFrameLengths(headerLength, bodyLength);
 
                 return (headerLength, bodyLength);
@@ -166,8 +166,8 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Gives a local request an owned serialized body, as a received request already has.
-        /// Subsequent migration or forwarding sends these bytes instead of serializing its values again.
+        /// 当地请求提供拥有的序列式机构,因为收到的请求已经发出。
+        /// 随后的移徙或转运发送这些字节,而不是再次按序确定其价值。
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage(
             "Reliability", "CA2000:Dispose objects before losing scope",
@@ -205,11 +205,11 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// Bounds valid current headers without consuming arbitrary request-context values.
+        /// 检查有效的当前信头,不消耗任意要求-文本价值。
         /// </summary>
         /// <remarks>
-        /// The migration owns the headers while requests are queued. A pending local callback can still retarget a silo,
-        /// so the bound allows address growth. Opaque request context uses the configured header limit.
+        /// 移民拥有页眉,而请求排队。待回调的本地回调仍然可以重新瞄准 silo,
+        /// ,这样约束可以允许地址增长。不透明请求的上下文使用配置的页眉限制。
         /// </remarks>
         internal long GetHeaderSizeBound(ArcBufferWriter buffer, Message message)
         {
@@ -279,7 +279,7 @@ namespace Orleans.Runtime.Messaging
                 WriteCacheInvalidationHeaders(ref writer, value.CacheInvalidationHeader!);
             }
 
-            // Always write RequestContext last
+            // 总是向上写 RequestContext
             if (headers.HasFlag(MessageFlags.HasRequestContextData))
             {
                 WriteRequestContext(ref writer, value.RequestContextData!);
@@ -382,7 +382,7 @@ namespace Orleans.Runtime.Messaging
         {
             if (value is null)
             {
-                writer.WriteByte(1); // Equivalent to `writer.WriteVarUInt32(0);`
+                writer.WriteByte(1); // 等值于 `writer.WriteVarUInt32(0);`
                 return;
             }
 

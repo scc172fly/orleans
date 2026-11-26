@@ -8,62 +8,62 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging.Diagnostics;
 
 /// <summary>
-/// Provides the diagnostic listener and event payload types for durable messaging events.
+/// 为耐用信息发布活动提供诊断听众和事件有效载荷类型。
 /// </summary>
 /// <remarks>
 /// <para>
-/// These types are public but may change between minor versions. They are intended for advanced scenarios such as
-/// simulation testing and diagnostics.
+/// 这些类型是公开的,但可能在不同版本之间发生变化。
+/// 模拟测试和诊断。
 /// </para>
 /// <para>
-/// Each event is written synchronously on the activation which raises it, at the transition which it describes, so an
-/// observer sees the grain's state at that transition. An exception thrown by an observer propagates to the code which
-/// raised the event; <see cref="InboxMessageReceiving"/> documents how a delivery treats one.
+/// 每个事件都同步写在 启动它时的激活上, 在它描述的过渡期间,
+/// 观察员在过渡时看到 grain的状态。
+/// 所出现的事件; <see cref="InboxMessageReceiving"/> 记录交付如何对待。
 /// </para>
 /// </remarks>
 public static class MessagingEvents
 {
-    /// <summary>The name of the diagnostic listener for durable messaging events.</summary>
+    /// <summary>耐久信息活动诊断听众的名字。</summary>
     public const string ListenerName = "Orleans.Messaging";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
-    /// <summary>Gets an observable sequence of all durable messaging events.</summary>
+    /// <summary>获得所有持久信息活动的可观测序列。</summary>
     public static IObservable<MessagingEvent> AllEvents { get; } = new Observable();
 
-    /// <summary>The base class used for durable messaging diagnostic events.</summary>
-    /// <param name="grainContext">The activation whose inbox or outbox raised the event.</param>
+    /// <summary>用于耐用信息诊断活动的基础等级。</summary>
+    /// <param name="grainContext">启动其信箱或发件箱引发事件的信号。</param>
     public abstract class MessagingEvent(IGrainContext grainContext)
     {
-        /// <summary>The activation whose inbox or outbox raised the event.</summary>
+        /// <summary>启动其信箱或发件箱引发事件的信号。</summary>
         public readonly IGrainContext GrainContext = grainContext;
     }
 
     /// <summary>
-    /// Event payload for a new delivery whose send time is above the inbox's admission floor, before the inbox
-    /// stages message effects.
+    /// 事件有效载荷,用于新交付的发送时间在收件箱接收楼层以上、收件箱前的新投送
+    /// 等相电文效果。
     /// </summary>
-    /// <param name="grainContext">The receiving activation.</param>
-    /// <param name="message">The delivered message.</param>
+    /// <param name="grainContext">接收启动。</param>
+    /// <param name="message">传递的信息。</param>
     /// <remarks>
-    /// An exception thrown by an observer fails the delivery attempt like an inbox message sink exception: the inbox
-    /// stages nothing, and the sender's outbox retries the message, which tests use to inject delivery faults.
+    /// 观察员提出的例外,与收信箱信息汇槽例外:收件箱一样,未能完成送货尝试。
+    /// 发送者发件人发件箱重写信息,用来测试投送故障。
     /// </remarks>
     public sealed class InboxMessageReceiving(IGrainContext grainContext, InboxMessage message) : MessagingEvent(grainContext)
     {
-        /// <summary>The delivered message.</summary>
+        /// <summary>传递的信息。</summary>
         public readonly InboxMessage Message = message;
     }
 
     /// <summary>
-    /// Event payload for a failed delivery attempt whose retry the outbox staged.
+    /// 重试发件箱的失败送货尝试事件有效载荷
     /// </summary>
-    /// <param name="grainContext">The sending activation.</param>
-    /// <param name="messageId">The message's ID.</param>
-    /// <param name="receiverId">The receiving grain.</param>
-    /// <param name="attemptCount">The number of failed delivery attempts so far.</param>
-    /// <param name="nextAttemptAt">The time, on the Durable Jobs clock, from which the outbox attempts the delivery again.</param>
-    /// <param name="error">The attempt's failure.</param>
+    /// <param name="grainContext">发送激活。</param>
+    /// <param name="messageId">消息的代号。</param>
+    /// <param name="receiverId">接受者 grain.</param>
+    /// <param name="attemptCount">迄今为止,交付尝试失败的次数。</param>
+    /// <param name="nextAttemptAt">时间,在“持久工作钟”上,发信箱再次尝试从中交付。</param>
+    /// <param name="error">尝试失败了</param>
     public sealed class OutboxRetryScheduled(
         IGrainContext grainContext,
         MessageId messageId,
@@ -72,42 +72,42 @@ public static class MessagingEvents
         DateTimeOffset nextAttemptAt,
         string error) : MessagingEvent(grainContext)
     {
-        /// <summary>The message's ID.</summary>
+        /// <summary>消息的代号。</summary>
         public readonly MessageId MessageId = messageId;
 
-        /// <summary>The receiving grain.</summary>
+        /// <summary>接受者 grain.</summary>
         public readonly GrainId ReceiverId = receiverId;
 
-        /// <summary>The number of failed delivery attempts so far.</summary>
+        /// <summary>迄今为止,交付尝试失败的次数。</summary>
         public readonly int AttemptCount = attemptCount;
 
-        /// <summary>The time, on the Durable Jobs clock, from which the outbox attempts the delivery again.</summary>
+        /// <summary>时间,在“持久工作钟”上,发信箱再次尝试从中交付。</summary>
         public readonly DateTimeOffset NextAttemptAt = nextAttemptAt;
 
-        /// <summary>The attempt's failure.</summary>
+        /// <summary>尝试失败了</summary>
         public readonly string Error = error;
     }
 
     /// <summary>
-    /// Event payload for an outbox message whose retirement the outbox staged: the message was delivered, its receiver
-    /// rejected it, or the outbox dead-lettered it.
+    /// 发送盒退出后所制作的发箱信息输出箱事件有效载荷:电文已发送,接收器
+    /// 或以妄言否认它,或以妄言定真理。
     /// </summary>
-    /// <param name="grainContext">The sending activation.</param>
-    /// <param name="messageId">The message's ID.</param>
-    /// <param name="retirement">How the message retired.</param>
+    /// <param name="grainContext">发送激活。</param>
+    /// <param name="messageId">消息的代号。</param>
+    /// <param name="retirement">消息如何退出。</param>
     /// <remarks>
-    /// The retirement commits with the sending grain's next journal write. A reference message's source is notified
-    /// first, so its changes for the retirement are staged when observers run.
+    /// 使用发送 grain的下一期日记写时承诺退休。通知了引用信件的来源
+    /// 首先,在观察员运行时,将对其退休情况进行修改。
     /// </remarks>
     public sealed class OutboxMessageRetired(
         IGrainContext grainContext,
         MessageId messageId,
         OutboxMessageRetirement retirement) : MessagingEvent(grainContext)
     {
-        /// <summary>The message's ID.</summary>
+        /// <summary>消息的代号。</summary>
         public readonly MessageId MessageId = messageId;
 
-        /// <summary>How the message retired.</summary>
+        /// <summary>消息如何退出。</summary>
         public readonly OutboxMessageRetirement Retirement = retirement;
     }
 

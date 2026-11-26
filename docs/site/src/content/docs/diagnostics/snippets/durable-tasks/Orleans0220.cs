@@ -12,11 +12,11 @@ public sealed class LoyaltyGrain : DurableGrain
     {
         if (firstOrder)
         {
-            // $child-1, in the executions of first orders only.
+            // 以一美元为单位,只执行第一命令
             await SendWelcome(customer);
         }
 
-        // $child-1 or $child-2, and the statement $child-2 or $child-3, depending on the condition.
+        // 以1美元或2美元为单位,以2美元为单位,以3美元为单位。
         var points = DurableTask.RunInline(() => _points.Value += 100);
         await SendStatement(customer, points);
         return points;
@@ -32,7 +32,7 @@ public sealed class LoyaltyGrain : DurableGrain
             await SendWelcome(customer).WithId("send-welcome");
         }
 
-        // Each name identifies its call site, whichever operations ran before it.
+        // 每个名字都标明其呼叫站点,无论之前的作业是哪个。
         var points = DurableTask.RunInline("add-points", () => _points.Value += 100);
         await SendStatement(customer, points).WithId("send-statement");
         return points;

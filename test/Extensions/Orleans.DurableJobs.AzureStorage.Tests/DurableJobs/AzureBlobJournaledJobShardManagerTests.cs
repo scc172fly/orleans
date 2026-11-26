@@ -273,7 +273,7 @@ public sealed class AzureBlobJournaledJobShardManagerTests(AzureBlobJournaledJob
             }
             else
             {
-                // The owner metadata has changed, but both storage commits are still gated.
+                // 拥有者元数据已经改变,但两个存储承诺仍然被封存。
                 firstGate.Resume.SetResult();
                 await Assert.ThrowsAsync<InconsistentStateException>(() => firstClaim.WaitAsync(token));
                 lastGate.Resume.SetResult();
@@ -773,7 +773,7 @@ public sealed class AzureBlobJournaledJobShardManagerTestFixture : IJobShardMana
             }
             catch (OperationCanceledException) when (TestContext.Current.CancellationToken.IsCancellationRequested)
             {
-                // Preserve the original test cancellation after bounded cleanup.
+                // 保留在受约束的清理后取消原试验。
             }
 
             await base.DisposeAsync();
@@ -783,7 +783,7 @@ public sealed class AzureBlobJournaledJobShardManagerTestFixture : IJobShardMana
             }
             catch (OperationCanceledException) when (TestContext.Current.CancellationToken.IsCancellationRequested)
             {
-                // Preserve the original test cancellation after bounded cleanup.
+                // 保留在受约束的清理后取消原试验。
             }
         }
     }

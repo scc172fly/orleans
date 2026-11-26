@@ -16,13 +16,13 @@ using Orleans.Serialization.Session;
 using TestExtensions;
 using Xunit;
 
-namespace UnitTests.Serialization
+名称空间 UnitTests.Serialization
 {
     /// <summary>
-    /// Tests for Orleans message serialization functionality.
+    /// Orleans 信件序列化功能测试。
     /// </summary>
-    [Collection(TestEnvironmentFixture.DefaultCollection)]
-    public class MessageSerializerTests
+    [集合(TestEnvironmentFixture.DefaultCollection)]
+    公共类 MessageSerializerTests
     {
         private readonly ITestOutputHelper output;
         private readonly TestEnvironmentFixture fixture;
@@ -31,22 +31,22 @@ namespace UnitTests.Serialization
         private readonly SerializerSessionPool _serializerSessionPool;
         private readonly IFieldCodec<GrainAddress> _grainAddressCodec;
 
-        public MessageSerializerTests(ITestOutputHelper output, TestEnvironmentFixture fixture)
+        公共 MessageSerializerTests(ITestOutputHelper 输出, TestEnvironmentFixture 固定值)
         {
-            this.output = output;
-            this.fixture = fixture;
+            this.output =产出;
+            this.fixture =固定物;
             this.messageFactory = this.fixture.Services.GetRequiredService<MessageFactory>();
             this.messageSerializer = this.fixture.Services.GetRequiredService<MessageSerializer>();
-            _serializerSessionPool = fixture.Services.GetRequiredService<SerializerSessionPool>();
-            _grainAddressCodec = fixture.Services.GetRequiredService<IFieldCodec<GrainAddress>>();
+            · 4个序列号为Pool fixture.Services.GetRequiredService<SerializerSessionPool>();
+            地址(_G) fixture.Services.GetRequiredService<IFieldCodec<GrainAddress>>();
         }
 
-        [TestSuite("Functional")]
-        [TestProvider("None")]
-        [Theory, TestCategory("Functional")]
+        TestSuite("功能")
+        TestProvider(“无”)
+        [理论, TestCategory(“功能”)
         [InlineData(10_000)]
         [InlineData(0)]
-        public void MessageTest_TtlUpdatedOnAccess(int initialTimeToLiveMilliseconds)
+        公开无效 MessageTest_TtlUpdatedOnAccess(int initialTimeToLiveMilliseconds)
         {
             var message = this.messageFactory.CreateMessage(null, InvokeMethodOptions.None);
 
@@ -66,12 +66,12 @@ namespace UnitTests.Serialization
                 TimeSpan.FromMilliseconds(expirationTimestamp - accessStarted));
         }
 
-        [TestSuite("Functional")]
-        [TestProvider("None")]
-        [Theory, TestCategory("Functional"), TestCategory("Serialization")]
+        TestSuite("功能")
+        TestProvider(“无”)
+        [理论, TestCategory(“功能”), TestCategory(“序列化”)
         [InlineData(10_000)]
         [InlineData(0)]
-        public void MessageTest_TtlUpdatedOnSerialization(int initialTimeToLiveMilliseconds)
+        公开无效 MessageTest_TtlUpdatedOnSerialization(int initialTimeToLiveMilliseconds)
         {
             var message = this.messageFactory.CreateMessage(null, InvokeMethodOptions.None);
 
@@ -88,19 +88,19 @@ namespace UnitTests.Serialization
                 sourceExpirationTimestamp - serialization.Started + deserialization.Completed);
         }
 
-        private static void WaitForTimestamp(long timestamp)
-            => Assert.True(SpinWait.SpinUntil(() => CoarseStopwatch.GetTimestamp() >= timestamp, TimeSpan.FromSeconds(1)));
+        私有静态真空 WaitForTimestamp(长时间戳)
+            => Assert.True(SpinWait.SpinUntil(() => CoarseStopwatch.GetTimestamp(c) 时间戳, TimeSpan.FromSeconds(1)));
 
-        [TestSuite("Functional")]
-        [TestProvider("None")]
-        [Fact, TestCategory("Functional"), TestCategory("Serialization")]
-        public void Message_Serialize_RoundTrip_Buffer()
+        TestSuite("功能")
+        TestProvider(“无”)
+        [事实, TestCategory("功能"), TestCategory(“序列化”)
+        公共空虚 信件(_S)
         {
-            for (var i = 0; i < 10; i++)
+            用于 ( var i= 0; i < 10; i++)
             {
                 var writeBuffer = new PooledBuffer();
                 var readBuffer = new PooledBuffer();
-                try
+                试
                 {
                     var message = CreateTestMessage();
                     var (headerLength, bodyLength) = this.messageSerializer.Write(ref writeBuffer, message);
@@ -111,7 +111,7 @@ namespace UnitTests.Serialization
 
                     CheckMessage(message, deserializedMessage);
                 }
-                finally
+                最后最后
                 {
                     writeBuffer.Dispose();
                     readBuffer.Dispose();
@@ -120,10 +120,10 @@ namespace UnitTests.Serialization
             }
         }
 
-        [Fact, TestCategory("Functional"), TestCategory("Serialization")]
-        public void Message_Serialize_RoundTrip_Request()
+        [事实, TestCategory("功能"), TestCategory(“序列化”)
+        公共空虚 信件(_S)
         {
-            for (var i = 0; i < 10; i++)
+            用于 ( var i= 0; i < 10; i++)
             {
                 var writeRequest = this.messageHandlerShared.GetSendMessageHandler();
                 var message = CreateTestMessage();
@@ -132,20 +132,20 @@ namespace UnitTests.Serialization
                 var readRequest = messageHandlerShared.GetReceiveMessageHandler();
 
                 var writeBuffers = writeRequest.Buffers;
-                int writeLength;
-                do
+                以 writeLength;
+                do 做
                 {
                     writeLength = (int)Math.Min(writeBuffers.Length, readRequest.Buffer.Length);
                     writeBuffers.Slice(0, writeLength).CopyTo(readRequest.Buffer.Span);
                     writeBuffers = writeBuffers.Slice(writeLength);
-                } while (!readRequest.OnProgress(writeLength));
+                时(!)readRequest.OnProgress(writeLength));
 
                 //var deserializedMessage = readRequest.TestReadMessage();
                 CheckMessage(message, deserializedMessage);
             }
         }
 
-        private static void CheckMessage(Message message, Message deserializedMessage)
+        私人静态真空 CheckMessage(信件、信件 deserializedMessage)
         {
             Assert.Equal(message.Id, deserializedMessage.Id);
             Assert.Equal(message.BodyObject, deserializedMessage.BodyObject);
@@ -158,7 +158,7 @@ namespace UnitTests.Serialization
             Assert.Equal(message.Direction, deserializedMessage.Direction);
             Assert.Equal(message.InterfaceType, deserializedMessage.InterfaceType);
             Assert.Equal(message.InterfaceVersion, deserializedMessage.InterfaceVersion);
-            foreach (var header in message.CacheInvalidationHeader)
+            每一页 ( message.CacheInvalidationHeader中的空头)
             {
                 Assert.Contains(header, deserializedMessage.CacheInvalidationHeader);
             }
@@ -166,123 +166,123 @@ namespace UnitTests.Serialization
             Assert.Equal(message.BodyObject, deserializedMessage.BodyObject);
         }
 
-        private Message CreateTestMessage()
+        私密信件 CreateTestMessage()
         {
-            try
+            试
             {
                 RequestContext.Set("fancy_feet", "yes");
                 var message = this.messageFactory.CreateMessage("ladida", InvokeMethodOptions.None);
-                message.SendingGrain = GrainId.Create("test", "foo");
-                message.TargetGrain = GrainId.Create("test2", "foo2");
+                message.SendingGrain = GrainId.Create("测试","软");
+                message.TargetGrain = GrainId.Create(“测试2”、“ foo2”);
                 message.SendingSilo = SiloAddress.New(IPAddress.Loopback, 12345, 543212345);
                 message.TargetSilo = SiloAddress.New(IPAddress.Parse("100.200.1.2"), 12345, 543212345);
-                message.CacheInvalidationHeader = new()
+                message.CacheInvalidationHeader =新()
                 {
-                    new GrainAddress
+                    新 GrainAddress
                     {
-                        GrainId = GrainId.Create("test", "foo"),
+                        GrainId = GrainId.Create("测试","软"),
                         ActivationId = ActivationId.NewId(),
                         SiloAddress = SiloAddress.New(IPAddress.Parse("1.2.3.4"), 8285, 11)
                     },
 
-                    new GrainAddress
+                    新 GrainAddress
                     {
-                        GrainId = GrainId.Create("cow", "gertrude"),
+                        GrainId = GrainId.Create("牛","黄珠"),
                         ActivationId = ActivationId.NewId(),
                         SiloAddress = SiloAddress.New(IPAddress.Parse("2.2.2.22"), 1, 123456)
                     }
                 };
                 return message;
             }
-            finally
+            最后最后
             {
                 RequestContext.Clear();
             }
         }
 
-        [Fact, TestCategory("Functional"), TestCategory("Serialization")]
-        public void Message_SerializeHeaderTooBig()
+        [事实, TestCategory("功能"), TestCategory(“序列化”)
+        公共空虚 消息(_S)
         {
             var buffer = new PooledBuffer();
-            try
+            试
             {
-                // Create a ridiculously big RequestContext
+                // 创建一个荒谬大 RequestContext
                 var maxHeaderSize = this.fixture.Services.GetService<IOptions<SiloMessagingOptions>>().Value.MaxMessageHeaderSize;
                 RequestContext.Set("big_object", new byte[maxHeaderSize + 1]);
 
                 var message = this.messageFactory.CreateMessage(null, InvokeMethodOptions.None);
 
-                Assert.Throws<OrleansException>(() => this.messageSerializer.Write(ref buffer, message));
+                Assert.Throws<OrleansException>(() => this.messageSerializer.Write(ref缓冲,电文));
             }
-            finally
+            最后最后
             {
                 buffer.Dispose();
                 RequestContext.Clear();
             }
         }
 
-        [Fact, TestCategory("Functional"), TestCategory("Serialization")]
-        public void Message_SerializeBodyTooBig()
+        [事实, TestCategory("功能"), TestCategory(“序列化”)
+        公文空白 信件(_S)
         {
             var buffer = new PooledBuffer();
-            try
+            试
             {
                 var maxBodySize = this.fixture.Services.GetService<IOptions<SiloMessagingOptions>>().Value.MaxMessageBodySize;
 
-                // Create a request with a ridiculously big argument
+                // 以荒谬的大辩论创建请求
                 var arg = new byte[maxBodySize + 1];
                 var request = new[] { arg };
                 var message = this.messageFactory.CreateMessage(request, InvokeMethodOptions.None);
 
-                Assert.Throws<OrleansException>(() => this.messageSerializer.Write(ref buffer, message));
+                Assert.Throws<OrleansException>(() => this.messageSerializer.Write(ref缓冲,电文));
             }
-            finally
+            最后最后
             {
                 buffer.Dispose();
             }
         }
 
-        [Fact, TestCategory("Functional"), TestCategory("Serialization")]
-        public void Message_DeserializeHeaderTooBig()
+        [事实, TestCategory("功能"), TestCategory(“序列化”)
+        公文无效 消息(_Desireize HeaderTooBig)
         {
             var maxSize = this.fixture.Services.GetService<IOptions<SiloMessagingOptions>>().Value.MaxMessageHeaderSize;
 
             DeserializeFakeMessage(maxSize + 1, 0);
         }
 
-        [Fact, TestCategory("Functional"), TestCategory("Serialization")]
-        public void Message_DeserializeBodyTooBig()
+        [事实, TestCategory("功能"), TestCategory(“序列化”)
+        公共空虚 消息(_D)
         {
             var maxSize = this.fixture.Services.GetService<IOptions<SiloMessagingOptions>>().Value.MaxMessageHeaderSize;
 
             DeserializeFakeMessage(0, maxSize + 1);
         }
 
-        private void DeserializeFakeMessage(int headerSize, int bodySize)
+        私人空 DeserializeFakeMessage(int headerSize, int bodySize)
         {
             var buffer = new PooledBuffer();
 
-            try
+            试
             {
-                Span<byte> lengthFields = stackalloc byte[8];
+                平面<byte> lengthFields = 书架字节[8];
                 BinaryPrimitives.WriteInt32LittleEndian(lengthFields, headerSize);
                 BinaryPrimitives.WriteInt32LittleEndian(lengthFields[4..], bodySize);
                 buffer.Write(lengthFields);
 
                 var reader = buffer.Slice(0);
-                Assert.Throws<OrleansException>(() => this.messageSerializer.Read(in reader, headerSize, bodySize, out var message));
+                Assert.Throws<OrleansException>(() => this.messageSerializer.Read(读者, headerSize, bodySize,发文)));
             }
-            finally
+            最后最后
             {
                 buffer.Dispose();
             }
         }
 
-        private Message RoundTripMessage(Message message)
+        私人信件 RoundTripMessage(邮件)
         {
             var buffer = new PooledBuffer();
 
-            try
+            试
             {
                 var (headerSize, bodySize) = this.messageSerializer.Write(ref buffer, message);
 
@@ -290,16 +290,16 @@ namespace UnitTests.Serialization
                 this.messageSerializer.Read(in reader, headerSize, bodySize, out var deserializedMessage);
                 return deserializedMessage;
             }
-            finally
+            最后最后
             {
                 buffer.Dispose();
             }
         }
 
-        private Message RoundTripMessage(
-            Message message,
-            out (long Started, long Completed) serialization,
-            out (long Started, long Completed) deserialization)
+        私人信件 RoundTripMessage(
+            信息留言
+            排行(长期启动、长期完成),
+            排出( 远程启动、 长期完成) 解密)
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 0));
             var writer = pipe.Writer;
@@ -314,32 +314,32 @@ namespace UnitTests.Serialization
             var (requiredBytes, _, _) = this.messageSerializer.TryRead(ref reader, out var deserializedMessage);
             var deserializationCompleted = CoarseStopwatch.GetTimestamp();
             Assert.Equal(0, requiredBytes);
-            serialization = (serializationStarted, serializationCompleted);
-            deserialization = (deserializationStarted, deserializationCompleted);
+            序列化= (serializationStarted, serializationCompleted);
+            衰减序列=(deserializationStarted、 deserializationCompleted);
             return deserializedMessage!;
         }
 
-        [TestSuite("Functional")]
-        [TestProvider("None")]
-        [Theory, TestCategory("Functional"), TestCategory("Serialization")]
+        TestSuite("功能")
+        TestProvider(“无”)
+        [理论, TestCategory(“功能”), TestCategory(“序列化”)
         [InlineData(0, 0)]
         [InlineData(1, 1)]
         [InlineData(1024, 1024)]
         [InlineData(1025, 1024)]
         [InlineData(2048, 1024)]
-        public void Message_RequestContextInitialCapacity_IsBounded(int size, int expected)
+        公文无效 消息_ 请求文本
         {
-            Assert.Equal(expected, MessageSerializer.GetRequestContextInitialCapacity(size));
+            Assert.Equal(预期, MessageSerializer.GetRequestContextInitialCapacity(规模);
         }
 
-        [TestSuite("Functional")]
-        [TestProvider("None")]
-        [Fact, TestCategory("Functional"), TestCategory("Serialization")]
-        public void Message_RequestContextBeyondInitialCapacity_RoundTrips()
+        TestSuite("功能")
+        TestProvider(“无”)
+        [事实, TestCategory("功能"), TestCategory(“序列化”)
+        公共空白 信息(_R)
         {
-            const int entryCount = 2048;
+            等同 entryCount =2048;
             var requestContext = new Dictionary<string, object>(entryCount);
-            for (var i = 0; i < entryCount; i++)
+            用于 ( var I= 0; i < entryCount; i++)
             {
                 requestContext[$"key-{i}"] = i;
             }
@@ -351,34 +351,34 @@ namespace UnitTests.Serialization
 
             Assert.NotNull(deserializedMessage.RequestContextData);
             Assert.Equal(entryCount, deserializedMessage.RequestContextData.Count);
-            for (var i = 0; i < entryCount; i++)
+            用于 ( var I= 0; i < entryCount; i++)
             {
                 Assert.Equal(i, deserializedMessage.RequestContextData[$"key-{i}"]);
             }
         }
 
-        [Fact, TestCategory("BVT")]
-        public void MessageTest_CacheInvalidationHeader_RoundTripCompatibility()
+        [事实, TestCategory("BVT")]
+        公共无效 MessageTest_CacheInvalidationHeader_RoundTripCompatibility()
         {
             var newSilo = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 55555), 55555);
 
-            var oldActivations = new List<GrainAddress>
+            var oldActivations =新列表<GrainAddress>
             {
-                GrainAddress.NewActivationAddress(SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 11111), 111111), GrainId.Create("test", "1")),
-                GrainAddress.NewActivationAddress(SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 22222), 222222), GrainId.Create("test", "2")),
-                new() { SiloAddress = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 33333), 33333), GrainId = GrainId.Create("test", "3") },
+                GrainAddress.NewActivationAddress(SiloAddress.New)(新的 IPEndPoint(IPAddress.Loopback,11111),111111111), GrainId.Create(“测试”,“1”),
+                GrainAddress.NewActivationAddress(SiloAddress.New)(新 IPEndPoint(IPAddress.Loopback, 2222222), 22222, GrainId.Create("测试", "2" ),
+                新建(){{ SiloAddress = SiloAddress.New(新 IPEndPoint(IPAddress.Loopback, 33333), 33333), GrainId = GrainId.Create("测试,"3") }
             };
 
-            var newActivations = new List<GrainAddress>
+            var newActivations =新列表<GrainAddress>
             {
-                GrainAddress.NewActivationAddress(newSilo, GrainId.Create("test", "1")),
-                GrainAddress.NewActivationAddress(newSilo, GrainId.Create("test", "2")),
-                new() { SiloAddress = newSilo, GrainId = GrainId.Create("test", "3") },
+                GrainAddress.NewActivationAddress(newSilo, GrainId.Create(“测试”, “1”)),
+                GrainAddress.NewActivationAddress(newSilo, GrainId.Create(“测试”、“2”),
+                { SiloAddress = newSilo, GrainId = GrainId.Create("测试","3")},
             };
 
             var newUpdates = oldActivations.Zip(newActivations).Select(x => new GrainAddressCacheUpdate(x.First, x.Second)).ToList();
 
-            // Old to new
+            // 旧到新
             {
                 using var writer1Session = _serializerSessionPool.GetSession();
                 var writer = Writer.CreatePooled(writer1Session);
@@ -392,9 +392,9 @@ namespace UnitTests.Serialization
                 var toNew = messageSerializer.ReadCacheInvalidationHeaders(ref reader);
                 Assert.NotNull(toNew);
                 Assert.Equal(fromOld.Count, toNew.Count);
-                for (var i = 0; i < fromOld.Count; i++)
+                用于 ( var I= 0; i < fromOld.Count; i++)
                 {
-                    // Only the invalid grain address can be represented.
+                    // 只有无效的 grain 地址才能被代表。
                     Assert.Equal(fromOld[i], toNew[i].InvalidGrainAddress);
                     Assert.Null(toNew[i].ValidGrainAddress);
                 }
@@ -402,7 +402,7 @@ namespace UnitTests.Serialization
                 writer.Dispose();
             }
 
-            // New to new
+            // 新建到新
             {
                 using var writer1Session = _serializerSessionPool.GetSession();
                 var writer = Writer.CreatePooled(writer1Session);
@@ -416,9 +416,9 @@ namespace UnitTests.Serialization
                 var toNew = messageSerializer.ReadCacheInvalidationHeaders(ref reader);
                 Assert.NotNull(toNew);
                 Assert.Equal(fromNew.Count, toNew.Count);
-                for (var i = 0; i < fromNew.Count; i++)
+                用于 ( var I= 0; i < fromNew.Count; i++)
                 {
-                    // Full fidelity is expected
+                    // 期望完全忠诚
                     Assert.Equal(fromNew[i].InvalidGrainAddress, toNew[i].InvalidGrainAddress);
                     Assert.Equal(fromNew[i].ValidGrainAddress, toNew[i].ValidGrainAddress);
                 }
@@ -426,7 +426,7 @@ namespace UnitTests.Serialization
                 writer.Dispose();
             }
 
-            // New to old
+            // 新建到旧
             {
                 using var writer1Session = _serializerSessionPool.GetSession();
                 var writer = Writer.CreatePooled(writer1Session);
@@ -441,9 +441,9 @@ namespace UnitTests.Serialization
                 var toOld = stub.ReadCacheInvalidationHeaders(ref reader);
                 Assert.NotNull(toOld);
                 Assert.Equal(fromNew.Count, toOld.Count);
-                for (var i = 0; i < fromNew.Count; i++)
+                用于 ( var I= 0; i < fromNew.Count; i++)
                 {
-                    // Only the invalid grain address can be represented.
+                    // 只有无效的 grain 地址才能被代表。
                     Assert.Equal(fromNew[i].InvalidGrainAddress, toOld[i]);
                 }
 
@@ -451,24 +451,24 @@ namespace UnitTests.Serialization
             }
         }
 
-        private class MessageSerializerBackwardsCompatibilityStub
+        私人类 MessageSerializerBackwardsCompatibilityStub
         {
             private readonly IFieldCodec<GrainAddress> _grainAddressCodec;
 
-            public MessageSerializerBackwardsCompatibilityStub(IFieldCodec<GrainAddress> grainAddressCodec)
+            公共公共 MessageSerializerBackwardsCompatibilityStub(IFieldCodec<GrainAddress> grainAddressCodec)
             {
-                _grainAddressCodec = grainAddressCodec;
+                地址(_G) grainAddressCodec;
             }
 
-            internal List<GrainAddress> ReadCacheInvalidationHeaders<TInput>(ref Reader<TInput> reader)
+            内部清单<GrainAddress> ReadCacheInvalidationHeaders<TInput>(ref reader<TInput> 阅读器)
             {
                 var n = (int)reader.ReadVarUInt32();
                 if (n > 0)
                 {
                     var list = new List<GrainAddress>(n);
-                    for (int i = 0; i < n; i++)
+                    (一 = 0; i < n; i++)
                     {
-                        list.Add(_grainAddressCodec.ReadValue(ref reader, reader.ReadFieldHeader()));
+                        list.Add(_grainAddressCodec.ReadValue(参考书, reader.ReadFieldHeader()));
                     }
 
                     return list;
@@ -477,16 +477,16 @@ namespace UnitTests.Serialization
                 return new List<GrainAddress>();
             }
 
-            internal void WriteCacheInvalidationHeaders<TBufferWriter>(ref Writer<TBufferWriter> writer, List<GrainAddress> value) where TBufferWriter : IBufferWriter<byte>
+            内部空 WriteCacheInvalidationHeaders<TBufferWriter>(ref Writer<TBufferWriter> 作家,列出<GrainAddress> 值) TBufferWriter : IBufferWriter<byte>
             {
-                writer.WriteVarUInt32((uint)value.Count);
-                foreach (var entry in value)
+                writer.WriteVarUInt32((昆特)value.Count);
+                每一( var 条目值)
                 {
-                    _grainAddressCodec.WriteField(ref writer, 0, typeof(GrainAddress), entry);
+                    _grainAddressCodec.WriteField(参考书写, 0, 类型(GrainAddress, 条目);
                 }
             }
             }
-            finally
+            最后最后
             {
                 buffer.Dispose();
             }

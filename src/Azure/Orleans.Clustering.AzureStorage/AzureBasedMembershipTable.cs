@@ -49,12 +49,12 @@ namespace Orleans.Runtime.MembershipService
                 this.options,
                 cancellationToken);
 
-            // even if I am not the one who created the table,
-            // try to insert an initial table version if it is not already there,
-            // so we always have a first table version row, before this silo starts working.
+            // 假若不是我创造了这个桌子,
+            // 尝试插入初始表格版本,如果它尚未存在的话;
+            // 因此我们总是有一个第一个表格版本行, 此时 silo 开始工作之前。
             if (tryInitTableVersion)
             {
-                // ignore return value, since we don't care if I inserted it or not, as long as it is in there.
+                // 忽略返回值, 因为只要它在里面, 我们不在乎是否插入它。
                 bool created = await tableManager.TryCreateTableVersionEntryAsync(cancellationToken);
                 if (created) LogInformationCreatedNewTableVersionRow();
             }
@@ -262,8 +262,8 @@ namespace Orleans.Runtime.MembershipService
             }
             else if (!string.IsNullOrEmpty(tableEntry.InstanceName))
             {
-                // this is for backward compatability: in a mixed cluster of old and new version,
-                // some entries will have the old InstanceName column.
+                // 这是后向兼容性: 在混合的一组新旧版本中,
+                // 有些条目将拥有旧的 InstanceName 列。
                 parse.SiloName = tableEntry.InstanceName;
             }
             if (!string.IsNullOrEmpty(tableEntry.UpdateZone))
@@ -323,8 +323,8 @@ namespace Orleans.Runtime.MembershipService
                 ProxyPort = memEntry.ProxyPort.ToString(CultureInfo.InvariantCulture),
                 RoleName = memEntry.RoleName,
                 SiloName = memEntry.SiloName,
-                // this is for backward compatability: in a mixed cluster of old and new version,
-                // we need to populate both columns.
+                // 这是后向兼容性: 在混合的一组新旧版本中,
+                // 我们需要填充两个柱子
                 InstanceName = memEntry.SiloName,
                 UpdateZone = memEntry.UpdateZone.ToString(CultureInfo.InvariantCulture),
                 FaultZone = memEntry.FaultZone.ToString(CultureInfo.InvariantCulture),

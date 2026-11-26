@@ -9,18 +9,18 @@ using Orleans.Runtime;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// Represents a handle to a silo that is deployed in the same process and AppDomain.
+    /// 表示手柄为 silo 在同一进程中部署的 AppDomain.
     /// </summary>
     public class InProcessSiloHandle : SiloHandle
     {
         private bool isActive = true;
         private int disposed;
 
-        /// <summary>Gets a reference to the silo host.</summary>
+        /// <summary>获取 silo 主机的引用。</summary>
         public IHost SiloHost { get; init; } = null!;
 
         /// <summary>
-        /// Gets the silo's service provider.
+        /// 获取 silo的服务提供商。
         /// </summary>
         public IServiceProvider ServiceProvider => SiloHost.Services;
 
@@ -28,12 +28,12 @@ namespace Orleans.TestingHost
         public override bool IsActive => isActive;
 
         /// <summary>
-        /// Create a silo handle.
+        /// 创建 silo 控件。
         /// </summary>
-        /// <param name="siloName">Name of the silo.</param>
-        /// <param name="configuration">The configuration.</param>
-        /// <param name="postConfigureHostBuilder">An optional delegate which is invoked just prior to building the host builder.</param>
-        /// <returns>The silo handle.</returns>
+        /// <param name="siloName">国名 国 名 国 名 silo.</param>
+        /// <param name="configuration">配置。</param>
+        /// <param name="postConfigureHostBuilder">一位在建造主机建筑商之前被援引的可选代表。</param>
+        /// <returns> silo 控件。</returns>
         public static async Task<InProcessSiloHandle> CreateAsync(
             string siloName,
             IConfiguration configuration,
@@ -41,13 +41,13 @@ namespace Orleans.TestingHost
             => await CreateAsync(siloName, configuration, postConfigureHostBuilder, CancellationToken.None);
 
         /// <summary>
-        /// Create a silo handle.
+        /// 创建 silo 控件。
         /// </summary>
-        /// <param name="siloName">Name of the silo.</param>
-        /// <param name="configuration">The configuration.</param>
-        /// <param name="postConfigureHostBuilder">An optional delegate which is invoked just prior to building the host builder.</param>
-        /// <param name="cancellationToken">The token used to cancel silo startup.</param>
-        /// <returns>The silo handle.</returns>
+        /// <param name="siloName">国名 国 名 国 名 silo.</param>
+        /// <param name="configuration">配置。</param>
+        /// <param name="postConfigureHostBuilder">一位在建造主机建筑商之前被援引的可选代表。</param>
+        /// <param name="cancellationToken">取消时使用的牌点 silo 启动。</param>
+        /// <returns> silo 控件。</returns>
         public static async Task<InProcessSiloHandle> CreateAsync(
             string siloName,
             IConfiguration configuration,

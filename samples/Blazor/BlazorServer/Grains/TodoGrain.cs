@@ -14,26 +14,26 @@ public class TodoGrain(
 
     public async Task SetAsync(TodoItem item)
     {
-        // Ensure the key is consistent
+        // 确保关键键前后一致
         if (item.Key != GrainKey)
         {
             throw new InvalidOperationException();
         }
 
-        // Save the item
+        // 保存项目
         state.State = state.State with { Item = item };
         await state.WriteStateAsync();
 
-        // Register the item with its owner list
+        // 将物品及其所有人名单登记在登记册上
         await GrainFactory.GetGrain<ITodoManagerGrain>(item.OwnerKey)
             .RegisterAsync(item.Key);
 
-        // For sample debugging
+        // 用于样本调试
         logger.LogInformation(
             "{@GrainType} {@GrainKey} now contains {@Todo}",
             GrainType, GrainKey, item);
 
-        // Notify listeners - best effort only
+        // 通知听众 - 仅尽力
         var streamId = StreamId.Create(nameof(ITodoGrain), item.OwnerKey);
         this.GetStreamProvider("MemoryStreams").GetStream<TodoNotification>(streamId)
             .OnNextAsync(new TodoNotification(item.Key, item))
@@ -42,32 +42,32 @@ public class TodoGrain(
 
     public async Task ClearAsync()
     {
-        // Fast path for already cleared state
+        // 已经清除状态的快路径
         if (state.State.Item is null) return;
 
-        // Hold on to the keys
+        // 抓稳钥匙
         var itemKey = state.State.Item.Key;
         var ownerKey = state.State.Item.OwnerKey;
 
-        // Unregister from the registry
+        // 登记册的未登记者
         await GrainFactory.GetGrain<ITodoManagerGrain>(ownerKey)
             .UnregisterAsync(itemKey);
 
-        // Clear the state
+        // 清除状态
         await state.ClearStateAsync();
 
-        // For sample debugging
+        // 用于样本调试
         logger.LogInformation(
             "{@GrainType} {@GrainKey} is now cleared",
             GrainType, GrainKey);
 
-        // Notify listeners - best effort only
+        // 通知听众 - 仅尽力
         var streamId = StreamId.Create(nameof(ITodoGrain), ownerKey);
         this.GetStreamProvider("MemoryStreams").GetStream<TodoNotification>(streamId)
             .OnNextAsync(new TodoNotification(itemKey, null))
             .Ignore();
 
-        // No need to stay alive anymore
+        // 没必要再活着了
         DeactivateOnIdle();
     }
 

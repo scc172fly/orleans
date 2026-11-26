@@ -5,34 +5,34 @@ namespace Orleans.Docs.Snippets.Persistence;
 
 // <grain_storage_interface>
 /// <summary>
-/// Interface to be implemented for a storage able to read and write Orleans grain state data.
+/// 用于存储能够读写 Orleans grain 状态数据的存储,将实施接口。
 /// </summary>
 public interface ICustomGrainStorage
 {
-    /// <summary>Read data function for this storage instance.</summary>
-    /// <param name="stateName">Name of the state for this grain</param>
-    /// <param name="grainId">Grain ID</param>
-    /// <param name="grainState">State data object to be populated for this grain.</param>
-    /// <typeparam name="T">The grain state type.</typeparam>
-    /// <returns>Completion promise for the Read operation on the specified grain.</returns>
+    /// <summary>读取此存储实例的数据函数。</summary>
+    /// <param name="stateName">国家名称 grain</param>
+    /// <param name="grainId">Grain ID 身份</param>
+    /// <param name="grainState">为此要输入的州数据对象 grain.</param>
+    /// <typeparam name="T"> grain 状态类型。</typeparam>
+    /// <returns>特定 grain的读化操作的完成承诺。</returns>
     Task ReadStateAsync<T>(
         string stateName, GrainId grainId, IGrainState<T> grainState);
 
-    /// <summary>Write data function for this storage instance.</summary>
-    /// <param name="stateName">Name of the state for this grain</param>
-    /// <param name="grainId">Grain ID</param>
-    /// <param name="grainState">State data object to be written for this grain.</param>
-    /// <typeparam name="T">The grain state type.</typeparam>
-    /// <returns>Completion promise for the Write operation on the specified grain.</returns>
+    /// <summary>为此存储实例写入数据函数 。</summary>
+    /// <param name="stateName">国家名称 grain</param>
+    /// <param name="grainId">Grain ID 身份</param>
+    /// <param name="grainState">为此要写入的状态数据对象 grain.</param>
+    /// <typeparam name="T"> grain 状态类型。</typeparam>
+    /// <returns>指定写入操作的完成承诺 grain.</returns>
     Task WriteStateAsync<T>(
         string stateName, GrainId grainId, IGrainState<T> grainState);
 
-    /// <summary>Delete / Clear data function for this storage instance.</summary>
-    /// <param name="stateName">Name of the state for this grain</param>
-    /// <param name="grainId">Grain ID</param>
-    /// <param name="grainState">Copy of last-known state data object for this grain.</param>
-    /// <typeparam name="T">The grain state type.</typeparam>
-    /// <returns>Completion promise for the Delete operation on the specified grain.</returns>
+    /// <summary>删除/清除此存储实例的数据函数。</summary>
+    /// <param name="stateName">国家名称 grain</param>
+    /// <param name="grainId">Grain ID 身份</param>
+    /// <param name="grainState">本 grain的最后已知的状态数据对象副本。</param>
+    /// <typeparam name="T"> grain 状态类型。</typeparam>
+    /// <returns>特定 grain的删除操作的完成承诺。</returns>
     Task ClearStateAsync<T>(
         string stateName, GrainId grainId, IGrainState<T> grainState);
 }
@@ -60,10 +60,10 @@ public class InconsistentStateException : OrleansException
     {
     }
 
-    /// <summary>The Etag value currently held in persistent storage.</summary>
+    /// <summary>目前持续储存中的滞值。</summary>
     public string StoredEtag { get; }
 
-    /// <summary>The Etag value currently held in memory, and attempting to be updated.</summary>
+    /// <summary>目前存储在记忆中的牌值, 并试图更新。</summary>
     public string CurrentEtag { get; }
 }
 // </inconsistent_state_exception>

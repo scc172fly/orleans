@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// Type which allows any exception type to be resolved.
+    /// 允许解决任何例外类型的类型。
     /// </summary>
     public sealed class DefaultTypeFilter : ITypeNameFilter
     {

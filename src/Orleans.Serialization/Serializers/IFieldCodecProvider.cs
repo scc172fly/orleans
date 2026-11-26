@@ -4,40 +4,40 @@ using System;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Provides access to field codecs.
+    /// 提供外地编码。
     /// </summary>
     public interface IFieldCodecProvider
     {
         /// <summary>
-        /// Gets a codec for the specified type.
+        /// 获取指定类型代码的编码。
         /// </summary>
-        /// <typeparam name="TField">The field type.</typeparam>
-        /// <returns>A codec.</returns>
+        /// <typeparam name="TField">字段类型。</typeparam>
+        /// <returns>代码码</returns>
         IFieldCodec<TField> GetCodec<TField>();
 
         /// <summary>
-        /// Gets a codec for the specific type, or <see langword="null"/> if no appropriate codec was found.
+        /// 获取特定类型的编码器,或者找不到合适的编码器的 <see langword="null"/> 。
         /// </summary>
-        /// <typeparam name="TField">The field type.</typeparam>
-        /// <returns>A codec.</returns>
+        /// <typeparam name="TField">字段类型。</typeparam>
+        /// <returns>代码码</returns>
         IFieldCodec<TField>? TryGetCodec<TField>();
 
         /// <summary>
-        /// Gets a codec for the specific type.
+        /// 获得特定类型代码的编码器 。
         /// </summary>
         /// <param name="fieldType">
-        /// The field type.
+        /// 字段类型。
         /// </param>
-        /// <returns>A codec.</returns>
+        /// <returns>代码码</returns>
         IFieldCodec GetCodec(Type fieldType);
 
         /// <summary>
-        /// Gets a codec for the specific type, or <see langword="null"/> if no appropriate codec was found.
+        /// 获取特定类型的编码器,或者找不到合适的编码器的 <see langword="null"/> 。
         /// </summary>
         /// <param name="fieldType">
-        /// The field type.
+        /// 字段类型。
         /// </param>
-        /// <returns>A codec.</returns>
+        /// <returns>代码码</returns>
         IFieldCodec? TryGetCodec(Type fieldType);
     }
 }

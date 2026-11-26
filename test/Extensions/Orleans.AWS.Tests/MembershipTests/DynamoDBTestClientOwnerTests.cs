@@ -241,7 +241,7 @@ public sealed class DynamoDBTestClientOwnerTests
         var clients = GetClients(owner).ToArray();
         foreach (var client in clients)
         {
-            // A failed ownership assertion must not send a request to any backend.
+            // 失败的所有权主张不能向任何后端发送请求。
             client.BeforeRequestEvent += (_, _) => throw new InvalidOperationException("Unexpected backend request.");
         }
 

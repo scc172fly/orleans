@@ -2,26 +2,26 @@ namespace TestGrainInterfaces
 {
 
     /// <summary>
-    /// A grain that maintains a number of counters, indexed by a string key
+    /// 维护若干计数器的 grain ,用字符串键索引
     /// </summary>
     public interface ICountersGrain : Orleans.IGrainWithIntegerKey
     {
-        /// <summary> Updates the counter for the given key by the given amount </summary>
+        /// <summary> 更新给定数额 </summary>给定金额中给定键的柜台
         Task Add(string key, int amount, bool wait_for_confirmation);
 
-        /// <summary> Resets all counters to zero </summary>
+        /// <summary> 重置所有对数为零 </summary>
         Task Reset(bool wait_for_confirmation);
 
-        /// <summary> Retrieves the tentative value of the counter for the given key </summary>
+        /// <summary> 获取给定密钥的计数器临时值 </summary>
         Task<int> GetTentativeCount(string key);
 
-        /// <summary> Retrieves the tentative value of all counters </summary>
+        /// <summary> 检索所有计数器的暂定值 </summary>
         Task<IReadOnlyDictionary<string, int>> GetTentativeState();
 
-        /// <summary> Retrieves the confirmed value of all counters </summary>
+        /// <summary> 检索所有计数器的确认值 </summary>
         Task<IReadOnlyDictionary<string, int>> GetConfirmedState();
 
-        /// <summary> Confirm all events </summary>
+        /// <summary> 确认所有事件 </summary>
         Task ConfirmAllPreviouslyRaisedEvents();
 
     }

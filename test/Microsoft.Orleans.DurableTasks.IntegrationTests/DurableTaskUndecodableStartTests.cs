@@ -11,13 +11,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Verifies that a start whose invocation its target can't decode is retried, and fails with
-/// <see cref="DurableTaskDeliveryException"/> once <see cref="DurableMessagingOptions.OutboxRetryTimeout"/> elapses.
+/// 证明一个开始 其目标无法解码的 援引被重新研究
+/// <see cref="DurableTaskDeliveryException"/> 一次 <see cref="DurableMessagingOptions.OutboxRetryTimeout"/> 过。
 /// </summary>
 /// <remarks>
-/// A <see cref="DeliveryFaultInjector"/> fails each delivery of the invocation at the target's inbox, as a request type
-/// which the target's deployment doesn't know does. The outbox retries on the Durable Jobs clock, which the test advances
-/// once the outbox has rescheduled each attempt.
+/// A <see cref="DeliveryFaultInjector"/> 无法按请求类型在目标的收件箱中每次发送请求
+/// 目标部署时不知道。
+/// 一旦发件箱 重新安排每次尝试。
 /// </remarks>
 public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
 {
@@ -54,8 +54,8 @@ public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
         var workflow = await starter.StartAsync(target.GetPrimaryKey()).WithId("workflow").ScheduleAsync(cancellationToken);
         var outcome = workflow.GetResponseAsync(cancellationToken);
 
-        // The target fails the delivery and stages nothing, so the starter's outbox reschedules it, on the Durable Jobs
-        // clock, which the test advances.
+        // 目标失败了,没有进展,没有阶段, 所以启动人的发件箱重新安排它, 关于持久就业
+        // 测试推进的时钟
         var firstRetry = await WaitForRetryAsync(events, starterId, attemptCount: 1);
         Assert.Equal(targetId, firstRetry.ReceiverId);
         Assert.Contains(DecodingError, firstRetry.Error, StringComparison.Ordinal);
@@ -67,7 +67,7 @@ public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
         Assert.Equal(2, faults.Count);
         Assert.False(outcome.IsCompleted);
 
-        // Once the retry timeout elapses, the outbox dead-letters the invocation, and the start fails.
+        // 一旦重试超时过后,发箱就会发出无信号的信号 启动失败
         _fixture.JobClock.Advance(RetryTimeout);
         var retired = (MessagingEvents.OutboxMessageRetired)(await events.WaitForEventAsync(
             nameof(MessagingEvents.OutboxMessageRetired),
@@ -100,14 +100,14 @@ public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
             TestContext.Current.CancellationToken)).Payload!;
 }
 
-/// <summary>Runs undecodable start coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行不可更改的启动覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskUndecodableStartTests() : DurableTaskUndecodableStartTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs undecodable start coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行不可更改的启动覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

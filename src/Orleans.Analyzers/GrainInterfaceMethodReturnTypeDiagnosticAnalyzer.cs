@@ -88,7 +88,7 @@ namespace Orleans.Analyzers
             ProxyContext? resolvedContext = null;
             foreach (var methodContext in contexts)
             {
-                // Each proxy's entries are contiguous; preserve its first matching constructed view.
+                // 每个代理条目都是毗连的; 保存第一个匹配的构造视图 。
                 if (ReferenceEquals(methodContext.ProxyContext, resolvedContext))
                 {
                     continue;
@@ -185,7 +185,7 @@ namespace Orleans.Analyzers
                     result.Add(declaringInterface.OriginalDefinition, contexts = []);
                 }
 
-                // Preserve proxy order and every constructed view: receiver and type arguments affect resolution.
+                // 保存代理订单和所有构思观点:接收器和类型参数影响分辨率。
                 contexts.Add(new MethodContext(declaringInterface, proxyContext));
             }
         }

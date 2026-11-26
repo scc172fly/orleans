@@ -210,7 +210,7 @@ public sealed class DurableStateManagerTests
         Assert.Equal(0, callerMarker.DisposalCount);
         Assert.Equal(2, constructions.Count);
 
-        // Distinct live values alone would not catch two managers writing to the same journal.
+        // 光是不同的活值并不能吸引两位管理人员向同一日记写信。
         await using var recoveredScopeA = CreateActivationScope(services, idA);
         await using var recoveredScopeB = CreateActivationScope(services, idB);
         var recoveredA = recoveredScopeA.ServiceProvider.GetRequiredService<IDurableStateManager>();
@@ -623,7 +623,7 @@ public sealed class DurableStateManagerTests
         AssertExisting(manager, "state", original);
         var keyedError = Assert.Throws<InvalidOperationException>(() => services.GetRequiredKeyedService<TState>("state"));
         Assert.Contains("state", keyedError.Message);
-        // Built-ins self-register: this path diagnoses the conflicting implementation, not its interface.
+        // 内建自注册:这条路诊断了执行中的矛盾,而不是它的接口。
         Assert.Contains(typeof(TImplementation).ToString(), keyedError.Message);
         AssertExisting(manager, "state", original);
     }

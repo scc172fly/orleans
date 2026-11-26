@@ -5,16 +5,16 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// The stream queue mapper is responsible for mapping ring ranges from the load balancing ring provider to stream queues.
-    /// Implementation must be thread safe.
+    /// 溪流队列绘图仪负责绘制环形图,范围从负载平衡环提供商到流队列。
+    /// 执行必须做到安全。
     /// </summary>
     public interface IConsistentRingStreamQueueMapper : IStreamQueueMapper
     {
         /// <summary>
-        /// Gets the queues which map to the specified range.
+        /// 将地图的队列移到指定区域。
         /// </summary>
-        /// <param name="range">The range.</param>
-        /// <returns>The queues which map to the specified range.</returns>
+        /// <param name="range">范围。</param>
+        /// <returns>映射到指定范围的队列。</returns>
         IEnumerable<QueueId> GetQueuesForRange(IRingRange range);
     }
 }

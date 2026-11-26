@@ -2,8 +2,8 @@ using Orleans.Durable.Journaling;
 
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-// An empty journal state which lets tests fail write preparation or observe write acknowledgement. It never stages a
-// change, so it doesn't hide handler changes from failure detection.
+// 空日记状态, 该状态允许测试失败的日记状态, 它让测试失败写入准备或观察写确认。 它从不分阶段
+// 更改, 所以它不会隐藏处理器的改变 从检测失败。
 internal sealed class JournalProbeState : IStateMachine
 {
     public const string Name = "test-journal-probe";

@@ -10,7 +10,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="float"/>.
+    /// <see cref="float"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class FloatCodec : IFieldCodec<float>
@@ -27,12 +27,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, float value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -50,12 +50,12 @@ namespace Orleans.Serialization.Codecs
         float IFieldCodec<float>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static float ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -88,11 +88,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads a value without any protocol framing.
+        /// 阅读一个没有设置协议的值。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>数值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #if NET6_0_OR_GREATER
         public static float ReadFloatRaw<TInput>(ref Reader<TInput> reader) => BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
@@ -108,7 +108,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="double"/>.
+    /// <see cref="double"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class DoubleCodec : IFieldCodec<double>
@@ -125,12 +125,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, double value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -148,12 +148,12 @@ namespace Orleans.Serialization.Codecs
         double IFieldCodec<double>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static double ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -177,11 +177,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads a value without any protocol framing.
+        /// 阅读一个没有设置协议的值。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>数值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #if NET6_0_OR_GREATER
         public static double ReadDoubleRaw<TInput>(ref Reader<TInput> reader) => BitConverter.UInt64BitsToDouble(reader.ReadUInt64());
@@ -194,7 +194,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="decimal"/>.
+    /// <see cref="decimal"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class DecimalCodec : IFieldCodec<decimal>
@@ -209,12 +209,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, decimal value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -247,12 +247,12 @@ namespace Orleans.Serialization.Codecs
         decimal IFieldCodec<decimal>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static decimal ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -292,11 +292,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads a value without protocol framing.
+        /// 阅读一个没有协议框架的值。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>数值。</returns>
         public static decimal ReadDecimalRaw<TInput>(ref Reader<TInput> reader)
         {
             var length = reader.ReadVarUInt32();
@@ -337,7 +337,7 @@ namespace Orleans.Serialization.Codecs
 
 #if NET6_0_OR_GREATER
     /// <summary>
-    /// Serializer for <see cref="Half"/>.
+    /// <see cref="Half"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class HalfCodec : IFieldCodec<Half>
@@ -349,12 +349,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="fieldIdDelta">The field identifier delta.</param>
-        /// <param name="value">The value.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
+        /// <param name="value">数值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Half value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -367,12 +367,12 @@ namespace Orleans.Serialization.Codecs
         Half IFieldCodec<Half>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// Reads a value.
+        /// 读取值 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段。</param>
+        /// <returns>数值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static Half ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -419,11 +419,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Reads a value without protocol framing.
+        /// 阅读一个没有协议框架的值。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>The value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>数值。</returns>
         internal static Half ReadHalfRaw<TInput>(ref Reader<TInput> reader) => BitConverter.UInt16BitsToHalf(reader.ReadVarUInt16());
 
         [DoesNotReturn]

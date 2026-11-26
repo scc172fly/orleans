@@ -6,10 +6,10 @@ using Orleans.Serialization;
 namespace Orleans.Streaming.JsonConverters
 {
     /// <summary>
-    /// Configures Newtonsoft.Json serializer options with streaming converters.
+    /// 配置 Newtonsoft.Json 序列器选项,可使用流转换器。
     /// </summary>
     /// <remarks>
-    /// This class is internal because it depends on <see cref="IRuntimeClient"/> which is an internal type.
+    /// 此类是内部的, 因为它取决于 <see cref="IRuntimeClient"/> 是一个内部类型。
     /// </remarks>
     internal class StreamingConverterConfigurator : IPostConfigureOptions<OrleansJsonSerializerOptions>
     {
@@ -27,10 +27,10 @@ namespace Orleans.Streaming.JsonConverters
     }
 
     /// <summary>
-    /// Configures System.Text.Json serializer options with streaming converters.
+    /// 配置 System.Text.Json 序列器选项,可使用流转换器。
     /// </summary>
     /// <remarks>
-    /// This class is internal because it depends on <see cref="IRuntimeClient"/> which is an internal type.
+    /// 此类是内部的, 因为它取决于 <see cref="IRuntimeClient"/> 是一个内部类型。
     /// </remarks>
     internal sealed class SystemTextJsonStreamConverterConfigurator(IRuntimeClient runtimeClient) : IPostConfigureOptions<SystemTextJsonGrainStorageSerializerOptions>
     {

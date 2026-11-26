@@ -10,7 +10,7 @@ using UnitTests.StreamingTests;
 namespace Orleans.Streaming.Kinesis.Tests
 {
     /// <summary>
-    /// Tests multiple subscription scenarios for Kinesis streams including parallel, linear, and resubscription patterns.
+    /// 测试Kinesis流的多种订阅方案,包括平行、线性和重新订阅模式。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]

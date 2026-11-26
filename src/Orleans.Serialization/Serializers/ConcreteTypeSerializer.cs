@@ -9,10 +9,10 @@ using System.Buffers;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Serializer for reference types which can be instantiated.
+    /// 可用于可即时转换的参考类型的序列式递增器。
     /// </summary>
-    /// <typeparam name="TField">The field type.</typeparam>
-    /// <typeparam name="TBaseCodec">The partial serializer implementation type.</typeparam>
+    /// <typeparam name="TField">字段类型。</typeparam>
+    /// <typeparam name="TBaseCodec">部分序列执行类型。</typeparam>
     public sealed class ConcreteTypeSerializer<TField, TBaseCodec> : IFieldCodec<TField> where TField : class where TBaseCodec : IBaseCodec<TField>
     {
         private readonly Type CodecFieldType = typeof(TField);
@@ -20,10 +20,10 @@ namespace Orleans.Serialization.Serializers
         private readonly TBaseCodec _serializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConcreteTypeSerializer{TField, TBaseCodec}"/> class.
+        /// 初始化 <see cref="ConcreteTypeSerializer{TField, TBaseCodec}"/> 类的新实例。
         /// </summary>
-        /// <param name="activator">The activator.</param>
-        /// <param name="serializer">The serializer.</param>
+        /// <param name="activator">激活器。</param>
+        /// <param name="serializer">序列器。</param>
         public ConcreteTypeSerializer(IActivator<TField> activator, TBaseCodec serializer)
         {
             _activator = activator;
@@ -72,12 +72,12 @@ namespace Orleans.Serialization.Serializers
         }
 
         /// <summary>
-        /// Reads a value whose runtime type is known to be <typeparamref name="TField"/>.
+        /// 读取运行时间类型已知为 <typeparamref name="TField"/>的值。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field header.</param>
-        /// <returns>The deserialized value.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">字段页眉。</param>
+        /// <returns>消毒价值</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public TField ReadValueSealed<TInput>(ref Reader<TInput> reader, Field field)
         {

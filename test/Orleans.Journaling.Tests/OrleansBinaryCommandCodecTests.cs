@@ -314,8 +314,8 @@ public sealed class OrleansBinaryCommandCodecTests : JournalingTestBase
         Assert.Contains("snapshot count", overflow.Message);
         Assert.Contains("exceeds", overflow.Message);
 
-        // Snapshot count must also be capped well below int.MaxValue to prevent corrupted
-        // journals from triggering huge in-memory allocations during recovery.
+        // 为了防止腐败, 还必须将快照计数限制在远低于 int.MaxValue 下方以防止被损坏
+        // 避免在恢复期间引发大量初步拨款。
         var overCap = Assert.Throws<InvalidOperationException>(
             () => listCodec.Apply(CodecTestHelpers.ReadBuffer(Command(5, (uint)OrleansBinaryCollectionWireHelpers.MaxSnapshotItemCount + 1)), new RecordingListCommandHandler<byte>()));
         Assert.Contains("snapshot count", overCap.Message);

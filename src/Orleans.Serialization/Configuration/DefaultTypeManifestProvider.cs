@@ -9,14 +9,14 @@ namespace Orleans.Serialization.Configuration
     {
         public void PostConfigure(string? name, TypeManifestOptions options)
         {
-            // Clean up the options bookkeeping.
+            // 清理选项簿记。
             options.TypeManifestProviders.Clear();
         }
 
         protected override void ConfigureInner(TypeManifestOptions typeManifest)
         {
             var wellKnownTypes = typeManifest.WellKnownTypeIds;
-            wellKnownTypes[0] = typeof(void); // Represents the type of null
+            wellKnownTypes[0] = typeof(void); // 表示无效类型
             wellKnownTypes[1] = typeof(int);
             wellKnownTypes[2] = typeof(string);
             wellKnownTypes[3] = typeof(bool);

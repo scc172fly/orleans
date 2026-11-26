@@ -598,7 +598,7 @@ public class MessageTransportLifecycleTests
             else
             {
                 Assert.True(failingTransport.EnqueueWrite(write));
-                // Real transports consume and release the buffers before reporting a failed write.
+                // 实际运输在报告写错前消耗并释放缓冲剂。
                 write.Buffers.ConsumeSlice(write.Buffers.Length).Dispose();
                 Assert.Equal(0, write.Buffers.Length);
                 await failingTransport.CloseAsync(new ConnectionClosedException(), cancellationToken);
@@ -618,7 +618,7 @@ public class MessageTransportLifecycleTests
             Assert.Null(bodyless._bodyObject);
         }
 
-        // Retransmit without decoding any body locally, then read the frames as their destination does.
+        // 重新发送而不解码本地任何机构, 然后按其目的地阅读框架 。
         Assert.True(transport.EnqueueWrite(WriteMessages()));
         Assert.Equal(messages.Length, connection.SentMessageCount);
         Assert.All(messages, message => Assert.Null(message._bodyObject));
@@ -724,7 +724,7 @@ public class MessageTransportLifecycleTests
         }, cancellationToken);
         try
         {
-            // The serializer captured the body handler before serializing this header.
+            // 序列器在对页眉进行序列之前抓获了身体操作员。
             await entered.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
             callback.OnTimeout();
             Assert.IsType<TimeoutException>(completion.Response.Exception);

@@ -13,24 +13,24 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// Represents the result of a method invocation.
+    /// 系方法调用的结果。
     /// </summary>
     [SerializerTransparent]
     public abstract class Response : IDisposable
     {
         /// <summary>
-        /// Creates a new response representing an exception.
+        /// 创建代表例外的新回复。
         /// </summary>
-        /// <param name="exception">The exception.</param>
-        /// <returns>A new response.</returns>
+        /// <param name="exception">例外。</param>
+        /// <returns>新的回应。</returns>
         public static Response FromException(Exception exception) => new ExceptionResponse { Exception = exception };
 
         /// <summary>
-        /// Creates a new response object which has been fulfilled with the provided value.
+        /// 创建已用所提供的值满足的新响应对象。
         /// </summary>
-        /// <typeparam name="TResult">The underlying result type.</typeparam>
-        /// <param name="value">The value.</param>
-        /// <returns>A new response.</returns>
+        /// <typeparam name="TResult">基本结果类型。</typeparam>
+        /// <param name="value">数值。</param>
+        /// <returns>新的回应。</returns>
         public static Response FromResult<TResult>(TResult value)
         {
             var result = ResponsePool.Get<TResult>();
@@ -39,31 +39,31 @@ namespace Orleans.Serialization.Invocation
         }
 
         /// <summary>
-        /// Gets a completed response.
+        /// 得到一个完整的回应。
         /// </summary>
         public static Response Completed => CompletedResponse.Instance;
 
         /// <summary>
-        /// Gets or sets the untyped result value.
+        /// 获取或设置未类型结果值。
         /// </summary>
         public abstract object? Result { get; set; }
 
         /// <summary>
-        /// Gets the result type when the response represents a simple typed result.
+        /// 当响应代表简单输入结果时,会获取结果类型。
         /// </summary>
-        /// <returns>The result type, or <see langword="null"/> when the response does not represent a simple typed result.</returns>
+        /// <returns>结果类型,或当响应不代表简单打印结果时的 <see langword="null"/> 。</returns>
         public virtual Type? GetSimpleResultType() => null;
 
         /// <summary>
-        /// Gets or sets the exception represented by this response.
+        /// 获取或设置此回复所代表的例外。
         /// </summary>
         public abstract Exception? Exception { get; set; }
 
         /// <summary>
-        /// Gets the result as the specified type.
+        /// 获取结果为指定类型。
         /// </summary>
-        /// <typeparam name="T">The requested result type.</typeparam>
-        /// <returns>The result.</returns>
+        /// <typeparam name="T">所请求的结果类型。</typeparam>
+        /// <returns>结果。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public abstract T GetResult<T>();
 
@@ -75,13 +75,13 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// Represents a completed <see cref="Response"/>.
+    /// 表示已完成的 <see cref="Response"/>。
     /// </summary>
     [GenerateSerializer, Immutable, UseActivator, SuppressReferenceTracking]
     public sealed class CompletedResponse : Response
     {
         /// <summary>
-        /// Gets the singleton instance of this class.
+        /// 获得单吨的例子 这个类。
         /// </summary>
         public static CompletedResponse Instance { get; } = new CompletedResponse();
 
@@ -103,7 +103,7 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// Activator for <see cref="CompletedResponse"/>.
+    /// <see cref="CompletedResponse"/>的激活器。
     /// </summary>
     [RegisterActivator]
     internal sealed class CompletedResponseActivator : IActivator<CompletedResponse>
@@ -113,7 +113,7 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// A <see cref="Response"/> which represents an exception, a broken promise.
+    /// 代表例外和违背诺言的 <see cref="Response"/> 。
     /// </summary>
     [GenerateSerializer, Immutable]
     public sealed class ExceptionResponse : Response
@@ -150,9 +150,9 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// A <see cref="Response"/> which represents a typed value.
+    /// 代表已输入值的 <see cref="Response"/> 。
     /// </summary>
-    /// <typeparam name="TResult">The underlying result type.</typeparam>
+    /// <typeparam name="TResult">基本结果类型。</typeparam>
     [UseActivator, SuppressReferenceTracking]
     public sealed class Response<TResult> : Response
     {
@@ -160,15 +160,15 @@ namespace Orleans.Serialization.Invocation
         private TResult? _result;
 
         /// <summary>
-        /// Gets or sets the typed result value.
+        /// 获取或设置输入的结果值。
         /// </summary>
         public TResult? TypedResult { get => _result; set => _result = value; }
 
         /// <summary>
-        /// Gets the exception associated with the response.
+        /// 获得与回复相关的例外。
         /// </summary>
         /// <remarks>
-        /// Typed responses do not contain exceptions. Setting this property throws <see cref="InvalidOperationException"/>.
+        /// 输入回复不包含例外。设置此属性投弃 <see cref="InvalidOperationException"/>。
         /// </remarks>
         public override Exception? Exception
         {
@@ -207,25 +207,25 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// Supports raw serialization of <see cref="Response{TResult}"/> values.
+    /// 支持 <see cref="Response{TResult}"/> 值的原始序列化。
     /// </summary>
     public abstract class ResponseCodec
     {
         /// <summary>
-        /// Writes a response without a containing field header.
+        /// 撰写答复,不包含字段页眉。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="value">The response to write.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="value">要写的答复。</param>
         public abstract void WriteRaw<TBufferWriter>(ref Writer<TBufferWriter> writer, object value) where TBufferWriter : IBufferWriter<byte>;
 
         /// <summary>
-        /// Reads a response without a containing field header.
+        /// 阅读响应而不包含字段信头。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="field">The field header for the response content.</param>
-        /// <returns>The response.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="field">响应内容的字段标题。</param>
+        /// <returns>反应。</returns>
         public abstract object ReadRaw<TInput>(ref Reader<TInput> reader, scoped ref Field field);
     }
 
@@ -324,14 +324,14 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// Extension methods for working with invocation responses.
+    /// 适用援引答复的扩展方法。
     /// </summary>
     public static class ResponseExtensions
     {
         /// <summary>
-        /// Throws the exception represented by a response, when present.
+        /// 将有回复的例外条款丢弃。
         /// </summary>
-        /// <param name="response">The response to inspect.</param>
+        /// <param name="response">检查回复。</param>
         public static void ThrowIfExceptionResponse(this Response response)
         {
             if (response.Exception is { } exception)

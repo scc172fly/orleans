@@ -14,20 +14,20 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// Formats .NET types appropriately for database consumption in non-parameterized queries.
+    /// 适合数据库非参数查询中使用的格式 .NET 类型。
     /// </summary>
     internal class AdoNetFormatProvider : IFormatProvider
     {
         private readonly AdoNetFormatter formatter = new AdoNetFormatter();
 
         /// <summary>
-        /// Returns an instance of the formatter
+        /// 返回一个要处理的事项实例
         /// </summary>
-        /// <param name="formatType">Requested format type</param>
+        /// <param name="formatType">请求格式类型</param>
         /// <returns></returns>
         public object? GetFormat(Type? formatType)
         {
@@ -39,7 +39,7 @@ namespace Orleans.Tests.SqlUtils
         {
             public string Format(string? format, object? arg, IFormatProvider? formatProvider)
             {
-                //This null check applies also to Nullable<T> when T does not have value defined.
+                //当 T 没有定义值时, 此无效检查也适用于 Nulable<T> 。
                 if (arg == null)
                 {
                     return "NULL";

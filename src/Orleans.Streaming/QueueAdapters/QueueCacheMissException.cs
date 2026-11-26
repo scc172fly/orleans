@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Exception indicates that the requested message is not in the queue cache.
+    /// 例外表示请求的邮件不在队列缓存中 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -14,48 +14,48 @@ namespace Orleans.Streams
         private const string MESSAGE_FORMAT = "Item not found in cache.  Requested: {0}, Low: {1}, High: {2}";
 
         /// <summary>
-        /// Gets the requested sequence token.
+        /// 获取请求的序列符号 。
         /// </summary>
-        /// <value>The requested sequence token.</value>
+        /// <value>请求的序列符号。</value>
         [Id(0)]
         public string? Requested { get; private set; }
 
         /// <summary>
-        /// Gets the earliest available sequence token.
+        /// 获得最早可用的序列符号 。
         /// </summary>
         [Id(1)]
         public string? Low { get; private set; }
 
         /// <summary>
-        /// Gets the latest available sequence token.
+        /// 获取最新可用的序列符号 。
         /// </summary>
         [Id(2)]
         public string? High { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCacheMissException"/> class.
+        /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
         public QueueCacheMissException() : this("Item no longer in cache") { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCacheMissException"/> class.
+        /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public QueueCacheMissException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCacheMissException"/> class.
+        /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="innerException">The inner exception.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="innerException">内在的例外</param>
         public QueueCacheMissException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCacheMissException"/> class.
+        /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="requested">The requested sequence token.</param>
-        /// <param name="low">The earliest available sequence token.</param>
-        /// <param name="high">The latest available sequence token.</param>
+        /// <param name="requested">请求的序列符号。</param>
+        /// <param name="low">最早可用的序列符号。</param>
+        /// <param name="high">最新的可用序列符号。</param>
         public QueueCacheMissException(StreamSequenceToken requested, StreamSequenceToken low, StreamSequenceToken high)
             : this(GetTokenString(requested, nameof(requested)), GetTokenString(low, nameof(low)), GetTokenString(high, nameof(high)))
         {
@@ -68,11 +68,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCacheMissException"/> class.
+        /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="requested">The requested sequence token.</param>
-        /// <param name="low">The earliest available sequence token.</param>
-        /// <param name="high">The latest available sequence token.</param>
+        /// <param name="requested">请求的序列符号。</param>
+        /// <param name="low">最早可用的序列符号。</param>
+        /// <param name="high">最新的可用序列符号。</param>
         public QueueCacheMissException(string? requested, string? low, string? high)
             : this(string.Format(CultureInfo.InvariantCulture, MESSAGE_FORMAT, requested, low, high))
         {
@@ -82,10 +82,10 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueueCacheMissException"/> class.
+        /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         private QueueCacheMissException(SerializationInfo info, StreamingContext context)
             : base(info, context)

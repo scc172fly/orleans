@@ -4,15 +4,15 @@ using Orleans.Hosting;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// Allows implementations to configure the client builder when starting up each silo in the test cluster.
+    /// 允许在测试组中启动每个 silo 时, 执行配置客户端构建器。
     /// </summary>
     public interface IClientBuilderConfigurator
     {
         /// <summary>
-        /// Configures the client builder.
+        /// 配置客户端构建器 。
         /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        /// <param name="clientBuilder">The client builder.</param>
+        /// <param name="configuration">配置。</param>
+        /// <param name="clientBuilder">客户端构建器。</param>
         void Configure(IConfiguration configuration, IClientBuilder clientBuilder);
     }
 }

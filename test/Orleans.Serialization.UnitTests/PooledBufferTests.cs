@@ -9,22 +9,22 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// Tests for Orleans' PooledBuffer implementation.
+    /// 执行 Orleans' PooledBuffer 的测试。
     ///
-    /// PooledBuffer is a high-performance buffer management system that:
-    /// - Uses ArrayPool to minimize allocations and GC pressure
-    /// - Supports efficient slicing operations without copying
-    /// - Handles large data through segmented storage
-    /// - Provides zero-copy access to buffer contents
+    /// PooledBuffer 是一个高绩效缓冲管理系统,它:
+    /// - 使用 ArrayPool 来尽量减少拨款和GC压力
+    /// - 支持高效的切片操作,不复制
+    /// - 通过分部分储存处理大量数据
+    /// - 提供缓冲区内内容的零副本
     ///
-    /// Key features tested:
-    /// - Large buffer handling (multi-megabyte)
-    /// - Slicing operations at various offsets
-    /// - Memory safety and bounds checking
-    /// - Proper cleanup and return to pool
+    /// 测试的关键特征:
+    /// - 大型缓冲处理(多兆字节)
+    /// - 各种冲抵的切断作业
+    /// - 内存安全和约束检查
+    /// - 适当清理和重新池水
     ///
-    /// This infrastructure is critical for Orleans' serialization performance,
-    /// especially when handling large object graphs or streaming scenarios.
+    /// 这一基础设施对于 Orleans的序列化绩效至关重要,
+    /// 特别是当处理大对象图形或流式情景时。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]
@@ -96,7 +96,7 @@ namespace Orleans.Serialization.UnitTests
             var random = new Random();
             var randomData = new byte[1024 * 1024 * 10];
             random.NextBytes(randomData);
-            // Raw reader/writer operations in this test do not access a serializer session.
+            // 本测试的原始阅读/撰写操作无法访问连载器会话。
             var writer = Writer.Create(new PooledBuffer(), null!);
             writer.Write(randomData);
             writer.Commit();
@@ -135,7 +135,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// Regression test for https://github.com/dotnet/orleans/issues/8503
+        /// https://github.com/dotnet/orleans/issues/8503的回归测试
         /// </summary>
         [Fact]
         public void PooledBuffer_WriteTwice()
@@ -171,7 +171,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// Tests that the serializer can correctly serialized <see cref="PooledBuffer"/>.
+        /// 测试序列器能够正确序列 <see cref="PooledBuffer"/>。
         /// </summary>
         [Fact]
         public void PooledBuffer_SerializerRoundTrip()
@@ -186,7 +186,7 @@ namespace Orleans.Serialization.UnitTests
             {
                 const int TargetLength = 8120;
 
-                // NOTE: The serializer is responsible for freeing the buffer provided to it, so we do not free this.
+                // 注:序列器负责释放向其提供的缓冲,所以我们不放出这个。
                 var buffer = new PooledBuffer();
                 while (buffer.Length < TargetLength)
                 {
@@ -205,13 +205,13 @@ namespace Orleans.Serialization.UnitTests
                 var resultBytes = result.ToArray();
                 Assert.Equal(bytes, resultBytes);
 
-                // NOTE: we are responsible for disposing a buffer returned from deserialization.
+                // 注:我们负责处置从消毒中返回的缓冲。
                 result.Dispose();
             }
         }
 
         /// <summary>
-        /// Tests that the serializer can correctly serialized <see cref="PooledBuffer"/> when it's embedded in another structure.
+        /// 测试序列器嵌入另一个结构时, 序列器能够正确序列 <see cref="PooledBuffer"/> 。
         /// </summary>
         [Fact]
         public void PooledBuffer_SerializerRoundTrip_Embedded()
@@ -226,7 +226,7 @@ namespace Orleans.Serialization.UnitTests
             {
                 const int TargetLength = 8120;
 
-                // NOTE: The serializer is responsible for freeing the buffer provided to it, so we do not free this.
+                // 注:序列器负责释放向其提供的缓冲,所以我们不放出这个。
                 var buffer = new PooledBuffer();
                 while (buffer.Length < TargetLength)
                 {
@@ -249,7 +249,7 @@ namespace Orleans.Serialization.UnitTests
                 var resultBytes = resultBuffer.ToArray();
                 Assert.Equal(bytes, resultBytes);
 
-                // NOTE: we are responsible for disposing a buffer returned from deserialization.
+                // 注:我们负责处置从消毒中返回的缓冲。
                 resultBuffer.Dispose();
             }
         }
@@ -274,26 +274,26 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// Ensures that BufferSlice's SpanEnumerator and MemoryEnumerator correctly handle non-zero offsets that cross segment boundaries.
-        /// This test exercises the offset math for enumerators when the slice starts partway through a segment and spans multiple segments.
+        /// 确保 BufferSlice的 SpanEnumerator 和 MemoryEnumerator 正确处理跨越段界的非零抵消。
+        /// 当切片从一个段段的部位开始,跨多个段段时,此测试会为计数员练习偏移数学。
         /// </summary>
         [Fact]
         public void PooledBuffer_SliceEnumerators_OffsetCrossSegment_Correctness()
         {
-            // Arrange: Write enough data to ensure multiple segments
+            // 排列: 写入足够数据以确保多个部分
             var random = new Random(42);
             var buffer = new PooledBuffer();
-            int totalLength = 16 * 1024; // 16KB, should span multiple segments (4KB min segment size)
+            int totalLength = 16 * 1024; // 16KB, 应横跨多个区段( 4KB 分钟段大小)
             var data = new byte[totalLength];
             random.NextBytes(data);
             buffer.Write(data);
 
-            // Pick an offset and length that will cross segment boundaries
-            int offset = 3500; // Not aligned to segment boundary
-            int length = 7000; // Crosses at least one segment boundary
+            // 选择一个偏移和长度,跨段边界
+            int offset = 3500; // 未与段边界对齐
+            int length = 7000; // 跨越至少一个段边界
             var expected = data.AsSpan(offset, length).ToArray();
 
-            // Act & Assert: SpanEnumerator
+            // 动作和发信人: SpanEnumerator
             var slice = buffer.Slice(offset, length);
             var spanConcat = new byte[length];
             int spanPos = 0;
@@ -319,30 +319,30 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// Ensures that BufferSlice's SpanEnumerator and MemoryEnumerator exercise the code path where the enumerator's position is greater than zero.
-        /// This is achieved by using a slice offset that skips at least one full segment, so the enumerator must skip segments before yielding data.
-        /// The test validates that the enumerators return the correct data for such non-zero offsets.
+        /// 确保: BufferSlice's SpanEnumerator 和 MemoryEnumerator 运行数值表示器位置大于零的代码路径。
+        /// 实现这一点的方法是使用切片偏移法,至少跳过一个整段,因此,在生成数据之前,该查点器必须跳过段。
+        /// 测试证实,这些测量员返回了这种非零抵消的正确数据。
         /// </summary>
         [Fact]
         public void PooledBuffer_SliceEnumerators_OffsetAfterFirstSegment_CoversPositionGreaterThanZero()
         {
-            // This test ensures that the BufferSlice enumerators exercise the branch where _position > 0
-            // by using a slice offset that skips at least one full segment. The correctness of the output
-            // validates that the offset math is correct for non-zero _position.
+            // 此测试确保 BufferSlice 计数员在 _位置 > 0处运行分支
+            // 使用切片偏移,至少跳过一个整段。输出的正确性
+            // 校验偏移数学对非零位置正确。
             var random = new Random(123);
             var buffer = new PooledBuffer();
             int segmentSize = 4 * 1024; // MinimumBlockSize
-            int totalLength = segmentSize * 3; // 3 segments
+            int totalLength = segmentSize * 3; // 3个部分
             var data = new byte[totalLength];
             random.NextBytes(data);
             buffer.Write(data);
 
-            // Pick an offset that is after the first segment
-            int offset = segmentSize + 123; // Offset into the second segment
-            int length = 1000; // Arbitrary length within the second segment
+            // 选择在第一部分之后的偏移
+            int offset = segmentSize + 123; // 移位到第二部分
+            int length = 1000; // 第二部分的任意长度
             var expected = data.AsSpan(offset, length).ToArray();
 
-            // Act & Assert: SpanEnumerator
+            // 动作和发信人: SpanEnumerator
             var slice = buffer.Slice(offset, length);
             var spanConcat = new byte[length];
             int spanPos = 0;

@@ -2,9 +2,9 @@ using UnitTests.GrainInterfaces;
 
 namespace UnitTests.Grains
 {
-    // uncomment the following class to verify correct code generation for #1349
-    // (do so once code generation succeeds)
-    // NOTE: also uncomment the corresponding test in Tester/GeneratorGrainTests.cs
+    // 取消以下等级的注释, 以验证 # 1349 正确的代码生成
+    // (一旦代码生成成功,就这样做)
+    // 注:在试验器/GeneratorGrainTests.cs中未加注相应的试验。
 
     public class GeneratorTestDerivedFromFSharpInterfaceInExternalAssemblyGrain : Grain, IGeneratorTestDerivedFromFSharpInterfaceInExternalAssemblyGrain
     {

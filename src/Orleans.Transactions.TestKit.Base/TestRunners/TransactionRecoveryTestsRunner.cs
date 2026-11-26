@@ -18,7 +18,7 @@ using Orleans.Transactions.TestKit.Correctnesss;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// Runs transaction recovery scenarios which interrupt silos or transaction protocol phases.
+    /// 运行中断 silos 或交易协议阶段的交易回收设想方案。
     /// </summary>
     public partial class TransactionRecoveryTestsRunner : TransactionTestRunnerBase
     {
@@ -31,9 +31,9 @@ namespace Orleans.Transactions.TestKit
         private readonly TimeSpan recoveryTimeout;
 
         /// <summary>
-        /// Writes a timestamped message to the test output and the runner logger.
+        /// 将时间戳信息写入测试输出和运行记录器。
         /// </summary>
-        /// <param name="message">The message to write.</param>
+        /// <param name="message">要写的信息 。</param>
         protected void Log(string message)
         {
             this.testOutput($"[{DateTime.Now}] {message}");
@@ -61,7 +61,7 @@ namespace Orleans.Transactions.TestKit
                 }
                 catch (Exception)
                 {
-                    // allow a single retry
+                    // 允许单次重试
                     await Task.Delay(TimeSpan.FromSeconds(30));
                     this.Actual = await this.Grain.Get();
                 }
@@ -105,10 +105,10 @@ namespace Orleans.Transactions.TestKit
             TimeSpan Elapsed);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionRecoveryTestsRunner"/> class.
+        /// 初始化 <see cref="TransactionRecoveryTestsRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="testCluster">The test cluster whose silos and grains are used by recovery scenarios.</param>
-        /// <param name="testOutput">The callback used to write test output.</param>
+        /// <param name="testCluster">试验组的 silos 和 grains 用于回收设想。</param>
+        /// <param name="testOutput">用于写入测试输出的回调。</param>
         public TransactionRecoveryTestsRunner(TestCluster testCluster, Action<string> testOutput)
             : base(GetGrainFactory(testCluster), testOutput)
         {
@@ -129,15 +129,15 @@ namespace Orleans.Transactions.TestKit
         private static IGrainFactory GetGrainFactory(TestCluster testCluster)
         {
             ArgumentNullException.ThrowIfNull(testCluster);
-            return testCluster.GrainFactory!; // Transaction test clusters initialize a client.
+            return testCluster.GrainFactory!; // 交易测试组群初始化客户端 。
         }
 
         /// <summary>
-        /// Verifies transaction recovery after gracefully stopping a randomly selected silo.
+        /// 在随意停止选择的 silo后,经优雅地验证交易回收。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The class name of the transaction test grain.</param>
-        /// <param name="concurrent">The number of concurrent transaction groups.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试的类名 grain.</param>
+        /// <param name="concurrent">并行交易集团的数目。</param>
+        /// <returns>代表回收试验的任务。</returns>
         public virtual Task TransactionWillRecoverAfterRandomSiloGracefulShutdown(string transactionTestGrainClassName, int concurrent)
             => TransactionWillRecoverAfterRandomSiloFailure(
                 transactionTestGrainClassName,
@@ -145,12 +145,12 @@ namespace Orleans.Transactions.TestKit
                 gracefulShutdown: true);
 
         /// <summary>
-        /// Verifies transaction recovery after gracefully stopping a randomly selected silo.
+        /// 在随意停止选择的 silo后,经优雅地验证交易回收。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The transaction test grain class name.</param>
-        /// <param name="concurrent">The number of concurrent transaction groups.</param>
-        /// <param name="cancellationToken">A token which cancels the recovery test.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试 grain 类名。</param>
+        /// <param name="concurrent">并行交易集团的数目。</param>
+        /// <param name="cancellationToken">取消回收测试的符号。</param>
+        /// <returns>代表回收试验的任务。</returns>
         public virtual Task TransactionWillRecoverAfterRandomSiloGracefulShutdown(
             string transactionTestGrainClassName,
             int concurrent,
@@ -164,11 +164,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies transaction recovery after abruptly stopping a randomly selected silo.
+        /// 在突然停止随机选择的 silo后,验证交易恢复。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The class name of the transaction test grain.</param>
-        /// <param name="concurrent">The number of concurrent transaction groups.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试的类名 grain.</param>
+        /// <param name="concurrent">并行交易集团的数目。</param>
+        /// <returns>代表回收试验的任务。</returns>
         public virtual Task TransactionWillRecoverAfterRandomSiloUnGracefulShutdown(string transactionTestGrainClassName, int concurrent)
             => TransactionWillRecoverAfterRandomSiloFailure(
                 transactionTestGrainClassName,
@@ -176,12 +176,12 @@ namespace Orleans.Transactions.TestKit
                 gracefulShutdown: false);
 
         /// <summary>
-        /// Verifies transaction recovery after abruptly stopping a randomly selected silo.
+        /// 在突然停止随机选择的 silo后,验证交易恢复。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The transaction test grain class name.</param>
-        /// <param name="concurrent">The number of concurrent transaction groups.</param>
-        /// <param name="cancellationToken">A token which cancels the recovery test.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试 grain 类名。</param>
+        /// <param name="concurrent">并行交易集团的数目。</param>
+        /// <param name="cancellationToken">取消回收测试的符号。</param>
+        /// <returns>代表回收试验的任务。</returns>
         public virtual Task TransactionWillRecoverAfterRandomSiloUnGracefulShutdown(
             string transactionTestGrainClassName,
             int concurrent,
@@ -195,10 +195,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// Verifies recovery when the transaction manager activation is terminated while waiting for remote prepares.
+        /// 验证交易经理在等待远程准备时启动终止后恢复的功能。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The class name of the transaction test grain.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试的类名 grain.</param>
+        /// <returns>代表回收试验的任务。</returns>
         public Task TransactionWillRecoverAfterManagerWait(string transactionTestGrainClassName)
             => TransactionWillRecoverAfterTargetedPhase(
                 transactionTestGrainClassName,
@@ -206,10 +206,10 @@ namespace Orleans.Transactions.TestKit
                 requireParticipantConfirmation: false);
 
         /// <summary>
-        /// Verifies recovery when a remote participant activation is terminated after persisting its prepare.
+        /// 远程参与者启动在持续准备后终止时,验证恢复。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The class name of the transaction test grain.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试的类名 grain.</param>
+        /// <returns>代表回收试验的任务。</returns>
         public Task TransactionWillRecoverAfterRemotePreparePersisted(string transactionTestGrainClassName)
             => TransactionWillRecoverAfterTargetedPhase(
                 transactionTestGrainClassName,
@@ -217,10 +217,10 @@ namespace Orleans.Transactions.TestKit
                 requireParticipantConfirmation: false);
 
         /// <summary>
-        /// Verifies recovery when the transaction manager activation is terminated after its commit is durable.
+        /// 交易经理在业务承诺持续后终止激活时,验证收回。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The class name of the transaction test grain.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试的类名 grain.</param>
+        /// <returns>代表回收试验的任务。</returns>
         public Task TransactionWillRecoverAfterLocalCommitStored(string transactionTestGrainClassName)
             => TransactionWillRecoverAfterTargetedPhase(
                 transactionTestGrainClassName,
@@ -412,12 +412,12 @@ namespace Orleans.Transactions.TestKit
             => Stopwatch.GetTimestamp() + (long)(timeout.TotalSeconds * Stopwatch.Frequency);
 
         /// <summary>
-        /// Verifies transaction recovery after stopping a randomly selected silo.
+        /// 在随机停止选择的 silo后验证交易回收。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The class name of the transaction test grain.</param>
-        /// <param name="concurrent">The number of concurrent transaction groups.</param>
-        /// <param name="gracefulShutdown">Whether to stop the silo gracefully.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试的类名 grain.</param>
+        /// <param name="concurrent">并行交易集团的数目。</param>
+        /// <param name="gracefulShutdown">是否优雅地停止 silo 。</param>
+        /// <returns>代表回收试验的任务。</returns>
         protected virtual Task TransactionWillRecoverAfterRandomSiloFailure(
             string transactionTestGrainClassName,
             int concurrent,
@@ -429,13 +429,13 @@ namespace Orleans.Transactions.TestKit
                 CancellationToken.None);
 
         /// <summary>
-        /// Verifies transaction recovery after stopping a randomly selected silo.
+        /// 在随机停止选择的 silo后验证交易回收。
         /// </summary>
-        /// <param name="transactionTestGrainClassName">The transaction test grain class name.</param>
-        /// <param name="concurrent">The number of concurrent transaction groups.</param>
-        /// <param name="gracefulShutdown">Whether to stop the silo gracefully.</param>
-        /// <param name="cancellationToken">A token which cancels the recovery test.</param>
-        /// <returns>A task which represents the recovery test.</returns>
+        /// <param name="transactionTestGrainClassName">交易测试 grain 类名。</param>
+        /// <param name="concurrent">并行交易集团的数目。</param>
+        /// <param name="gracefulShutdown">是否优雅地停止 silo 。</param>
+        /// <param name="cancellationToken">取消回收测试的符号。</param>
+        /// <returns>代表回收试验的任务。</returns>
         [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
             Justification = "Randomness selects a silo to stop during recovery conformance tests.")]
         protected virtual async Task TransactionWillRecoverAfterRandomSiloFailure(
@@ -450,7 +450,7 @@ namespace Orleans.Transactions.TestKit
                 .Select(i => Guid.NewGuid())
                 .Select(grainId => new ExpectedGrainActivity(grainId, TestGrain<ITransactionalBitArrayGrain>(transactionTestGrainClassName, grainId)))
                 .ToList();
-            //ping all grains to activate them
+            //点所有 grains 以激活它们
             await WakeupGrains(txGrains.Select(g => g.Grain).ToList()).WaitAsync(cancellationToken);
             List<ExpectedGrainActivity>[] transactionGroups = txGrains
                 .Select((txGrain, i) => new { index = i, value = txGrain })
@@ -462,7 +462,7 @@ namespace Orleans.Transactions.TestKit
             txSucceedBeforeInterruption.Should().BeTrue();
             await ValidateResults(txGrains, transactionGroups).WaitAsync(cancellationToken);
 
-            // have transactions in flight when silo goes down
+            // silo 下降时有在飞行中的交易
             var stopProducing = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var firstFailure = new TaskCompletionSource<TransactionFailure>(TaskCreationOptions.RunContinuationsAsynchronously);
             var firstInFlightBatch = new TaskCompletionSource<InFlightBatch>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -807,7 +807,7 @@ namespace Orleans.Transactions.TestKit
                 Stopwatch.GetElapsedTime(startedAt));
         }
 
-        // Runs all transactions and returns failed;
+        // 运行所有交易和返回失败;
         private async Task<List<ExpectedGrainActivity>[]?> RunAllTxReportFailed(
             List<ExpectedGrainActivity>[] transactionGroups,
             int index,
@@ -883,7 +883,7 @@ namespace Orleans.Transactions.TestKit
 
         private async Task<bool> AllTxSucceed(List<ExpectedGrainActivity>[] transactionGroups, int index)
         {
-            // null return indicates none failed
+            // 无效返回表示无失败
             return (await RunAllTxReportFailed(transactionGroups, index) == null);
         }
 
@@ -965,9 +965,9 @@ namespace Orleans.Transactions.TestKit
                 int j = 0;
                 foreach (BitArrayState result in actual)
                 {
-                    // skip comparing first to first.
+                    // 跳过比对第一个比较 。
                     if (ReferenceEquals(first, result)) continue;
-                    // Check if each state is identical to the first state.
+                    // 检查每个状态是否与第一个状态相同。
                     var difference = result ^ first;
                     if (difference.Value.Any(v => v != 0))
                     {
@@ -982,7 +982,7 @@ namespace Orleans.Transactions.TestKit
                     j++;
                 }
 
-                // Check if the unambiguous portions of the first match.
+                // 检查第一次匹配的清晰部分 。
                 var unambiguousFirst = first & unambiguous;
                 var unambiguousDifference = unambuguousExpected ^ unambiguousFirst;
 

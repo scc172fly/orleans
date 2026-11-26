@@ -1,41 +1,51 @@
 ---
-title: "ORLEANS0018: Grain interface member not declared"
-description: Understand and resolve ORLEANS0018 when an RPC method signature is missing from OrleansContracts.txt.
+title: "ORLEANS0018: Grain 接口成员未申报"
+description: "理解和决心 ORLEANS0018 当 RPC 方法签名缺失时 OrleansContracts.txt."
 ms.date: 08/28/2026
 ms.topic: reference
 ---
 
-# ORLEANS0018: Grain interface member not declared
+<a id="orleans0018-grain-interface-member-not-declared"></a>
 
-| Property | Value |
+# ORLEANS0018: Grain 接口成员未申报
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Category | Versioning |
-| Severity | Warning |
-| Code fix | Available |
+| 类别类 | 版本 |
+| 严重性 | 警告 |
+| 代码修正 | 可用 |
 
-## Cause
+<a id="cause"></a>
 
-An ordinary grain-interface method has no matching contract signature in `OrleansContracts.txt`. Method identity, generic arity, parameter types and order, and return type are part of the signature. Parameter names are not.
+## 原因原因原因
 
-The method identity is the source `[Id]` value, the source `[Alias]` value, or the generated xxHash32 ID used by the Orleans code generator. The manifest records the resulting identifier before the colon, independent of how source declares it.
+普通 grain- 界面方法在 `OrleansContracts.txt`中没有匹配的合同签名。方法识别、通用性、参数类型和顺序以及返回类型是签名的一部分,参数名称不是。
 
-## Impact
+方法身份是源 `[Id]` 值,源代码 `[Alias]` 或生成的值 xxHash32 使用身份证使用的身份证 Orleans 代码生成器。 清单记录了结肠前的识别码, 而不取决于源是如何声明的 。
 
-Older activations can receive an unknown RPC, and changed identities or payload types can cause dispatch or serialization failures during a rolling upgrade.
+<a id="impact"></a>
 
-## How to fix
+## 影响影响
 
-Prefer preserving the existing method and adding a new method for changed behavior. Review payload compatibility, increment the interface version when appropriate, and apply **Add to OrleansContracts.txt**. The code fix records the CLR signature and effective wire identity in the manifest. Source attributes remain unchanged.
+更老的启动程序可收到未知的RPC, 改变身份或有效载荷类型可能导致在滚动升级过程中发送或序列故障。
 
-Apply **Regenerate OrleansContracts.txt** to rebuild the complete project manifest. Run regeneration separately for each contract project and review the generated diff using the [contract compatibility guidance](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest).
+<a id="how-to-fix"></a>
 
-## Suppress the diagnostic
+## 如何修补
 
-Suppress only for a demonstrated signature-normalization false positive where the source and manifest represent the same contract.
+优先保留现有方法, 并添加新的改变行为的方法。 审查有效载荷兼容性, 酌情加增接口版本, 并应用 **添加到 OrleansContracts.txt**。代码将 CLR 签名和有效线条身份记录在舱单中。 源属性保持不变 。
+
+应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单。为每个合同项目分别运行再生,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff 。
+
+<a id="suppress-the-diagnostic"></a>
+
+## 抑制诊断
+
+只有在来源和表现为同一合同的情况下,仅对证明的签字正常化假正数加以禁止。
 
 ```ini
 [*.cs]
 dotnet_diagnostic.ORLEANS0018.severity = none
 ```
 
-See [Backward compatibility guidelines](../grains/grain-versioning/backward-compatibility-guidelines.md).
+见 [后向兼容准则](../grains/grain-versioning/backward-compatibility-guidelines.md)。

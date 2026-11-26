@@ -2,7 +2,7 @@
 namespace Orleans
 {
     /// <summary>
-    /// Marker interface for facets
+    /// 侧面标记界面
     /// </summary>
     public interface IFacetMetadata
     {

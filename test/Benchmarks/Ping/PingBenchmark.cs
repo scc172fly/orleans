@@ -9,7 +9,7 @@ using Orleans.Configuration;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// Benchmarks grain-to-grain communication latency and throughput using simple ping operations.
+/// 基准 grain- -grain 通信时长和通过简单的平线操作输送。
 /// </summary>
 [MemoryDiagnoser]
 public class PingBenchmark : IDisposable

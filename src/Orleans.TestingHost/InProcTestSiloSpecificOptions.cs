@@ -1,36 +1,36 @@
 namespace Orleans.TestingHost;
 
 /// <summary>
-/// Configuration overrides for individual silos.
+/// 单个配置的替换 silos。
 /// </summary>
 public sealed class InProcessTestSiloSpecificOptions
 {
     /// <summary>
-    /// Gets or sets the silo port.
+    /// 获取或设置 silo 端口。
     /// </summary>
-    /// <value>The silo port.</value>
+    /// <value> silo 端口。</value>
     public int SiloPort { get; set; }
 
     /// <summary>
-    /// Gets or sets the gateway port.
+    /// 获取或设置网关端口。
     /// </summary>
-    /// <value>The gateway port.</value>
+    /// <value>网关端口。</value>
     public int GatewayPort { get; set; }
 
     /// <summary>
-    /// Gets or sets the name of the silo.
+    /// 获取或设置 silo的名称。
     /// </summary>
-    /// <value>The name of the silo.</value>
+    /// <value> silo的名称。</value>
     public string SiloName { get; set; } = null!;
 
     /// <summary>
-    /// Creates an instance of the <see cref="TestSiloSpecificOptions"/> class.
+    /// 创建 <see cref="TestSiloSpecificOptions"/> 类实例。
     /// </summary>
-    /// <param name="testCluster">The test cluster.</param>
-    /// <param name="testClusterOptions">The test cluster options.</param>
-    /// <param name="instanceNumber">The instance number.</param>
-    /// <param name="assignNewPort">if set to <see langword="true" />, assign a new port for the silo.</param>
-    /// <returns>The options.</returns>
+    /// <param name="testCluster">测试组。</param>
+    /// <param name="testClusterOptions">测试组群选项。</param>
+    /// <param name="instanceNumber">实例编号。</param>
+    /// <param name="assignNewPort">设定为 <see langword="true" />,为 silo.</param>
+    /// <returns>选项。</returns>
     public static InProcessTestSiloSpecificOptions Create(InProcessTestCluster testCluster, InProcessTestClusterOptions testClusterOptions, int instanceNumber, bool assignNewPort = false)
     {
         var result = new InProcessTestSiloSpecificOptions

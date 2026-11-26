@@ -25,11 +25,11 @@ public sealed class AsyncEnumerableGrainCallTestCollectionDefinition : ICollecti
 }
 
 /// <summary>
-/// Tests support for grain methods which return <see cref="IAsyncEnumerable{T}"/>.
-/// These tests verify Orleans' ability to handle streaming results from grain methods,
-/// including batching, error handling, cancellation, and proper resource cleanup.
-/// Orleans uses a grain extension mechanism to manage the lifecycle of async enumerators
-/// across the distributed system.
+/// 测试支持 grain 返回返回的方法 <see cref="IAsyncEnumerable{T}"/>.
+/// 这些测试核实 Orleans处理 grain 方法流出结果的能力,
+/// 包括批量、处理错误、注销和适当资源清理。
+/// Orleans 使用 grain 扩展机制管理同步点算器的生命周期
+/// 分布在分布式系统各处。
 /// </summary>
 [Collection(AsyncEnumerableGrainCallTestCollection.Name)]
 public class AsyncEnumerableGrainCallTests
@@ -46,9 +46,9 @@ public class AsyncEnumerableGrainCallTests
     private ILogger Logger => _fixture.Logger;
 
     /// <summary>
-    /// Tests basic async enumerable functionality where a grain produces values that are consumed by the client.
-    /// Verifies that values are correctly transmitted and the enumerator is properly disposed after use.
-    /// This demonstrates Orleans' support for streaming data from grains without keeping all data in memory.
+    /// 测试一个 grain 产生客户消费值的可计算功能的基本同步功能。
+    /// 证明数值的传输正确,使用之后对数字进行妥善处理。
+    /// 这显示了 Orleans对从 grains 流出的数据的支持,而没有将所有数据保留在内存中。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -78,16 +78,16 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(5, values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests preemptive cancellation of async enumerable streams before any values are yielded.
-    /// Verifies that when a CancellationToken is cancelled before the enumeration starts yielding values,
-    /// the operation properly throws OperationCanceledException and no values are returned.
-    /// This test ensures Orleans handles early cancellation gracefully in distributed streaming scenarios.
+    /// 在产生任何值之前先先行取消同声流的测试。
+    /// 证明在计数开始产生值之前取消一个 CancellationToken 时,
+    /// 正确丢弃 OperationCanceledException ,且不返回任何数值。
+    /// 此测试确保 Orleans 在分布式流景中优雅地处理早期取消。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -97,22 +97,22 @@ public class AsyncEnumerableGrainCallTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var grain = GrainFactory.GetGrain<IObservableGrain>(Guid.NewGuid());
 
-        // Set up cancellation tokens - one for test timeout, one for the grain call
+        // 设置取消标记牌 - 一个用于测试超时,一个用于 grain 调用
         using var testCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         testCts.CancelAfter(TimeSpan.FromSeconds(35));
         using var callCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var callId = Guid.NewGuid();
 
-        // Task to cancel the enumeration after it starts but before it yields
+        // 任务, 以取消开始后但在产生前的点数
         var enumerationStartedTask = Task.Run(async () =>
         {
-            await grain.WaitForCall(callId); // Wait for enumeration to begin
-            callCts.Cancel(); // Cancel before any values are yielded
+            await grain.WaitForCall(callId); // 等待开始点数
+            callCts.Cancel(); // 在任何值被产生之前取消
         }, cancellationToken);
 
         try
         {
-            // Start enumeration with a slow grain method and un-cancelled token
+            // 以慢速 grain 方法和未取消的牌照开始计数
             await foreach (var entry in grain.SleepyEnumerable(callId, TimeSpan.FromSeconds(25), callCts.Token))
             {
                 Assert.Fail("Should have thrown due to cancellation before yielding any values.");
@@ -124,13 +124,13 @@ public class AsyncEnumerableGrainCallTests
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Verify the cancellation token was indeed cancelled
+            // 校验取消的代号已确实被注销
             Assert.True(callCts.Token.IsCancellationRequested);
         }
 
         await enumerationStartedTask;
 
-        // Wait for the grain to record the cancellation
+        // 等待 grain 记录取消
         while (true)
         {
             var canceledCalls = await grain.GetCanceledCalls();
@@ -149,10 +149,10 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// Tests error handling in async enumerable streams when an exception is thrown during enumeration.
-    /// Verifies that exceptions are properly propagated to the client and resources are cleaned up.
-    /// The errorIndex parameter determines when the error occurs, testing both immediate and delayed errors.
-    /// The waitAfterYield parameter tests error handling with and without async delays after yielding values.
+    /// 当在点查时出现例外时, 测试会处理同步可数流中的错误 。
+    /// 证明例外情况已适当地向客户宣传,资源也得到清理。
+    /// errorIndex 参数确定出错发生的时间,同时测试即时和延迟错误。
+    /// waitAfterYield 参数测试错误处理,在产生值后有和没有同步延迟。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -189,15 +189,15 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(errorIndex, values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests cancellation handling in async enumerable streams when the grain cancels the enumeration.
-    /// Verifies that OperationCanceledException is properly propagated and resources are cleaned up.
-    /// This tests Orleans' ability to handle cooperative cancellation in distributed streaming scenarios.
+    /// 当 grain 取消计数时, 在同步可列流中测试注销处理 。
+    /// 证明 OperationCanceledException 的传播得当,资源被清理干净。
+    /// 测试 Orleans处理分布式流景情景中合作取消的能力。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -215,8 +215,8 @@ public class AsyncEnumerableGrainCallTests
     public async Task ObservableGrain_AsyncEnumerable_Cancellation(int errorIndex, bool waitAfterYield)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        // This special error message is interpreted to indicate that cancellation
-        // should occur when the index is reached.
+        // 此特殊错误消息被解释为表示取消
+        // 应在达到指数时进行。
         const string ErrorMessage = "cancel";
         var grain = GrainFactory.GetGrain<IObservableGrain>(Guid.NewGuid());
 
@@ -238,17 +238,17 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(errorIndex, values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests client-side cancellation of async enumerable streams using CancellationToken.
-    /// Verifies that cancellation requests from the client are properly handled, including:
-    /// - Preemptive cancellation (before enumeration starts)
-    /// - Mid-stream cancellation (during enumeration)
-    /// - Proper cleanup and disposal of server-side resources
+    /// 使用 CancellationToken测试客户端取消可同步的可数流。
+    /// 证明客户提出的取消申请得到妥善处理,包括:
+    /// - 提前取消(在计数开始之前)
+    /// - 中途取消(在列举期间)
+    /// - 适当清理和处置服务器端资源
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -300,14 +300,14 @@ public class AsyncEnumerableGrainCallTests
 
         if (errorIndex == 0)
         {
-            // Check that the enumerator was not disposed since it was cancelled preemptively and therefore no call should have been made.
+            // 检查该查点员是否由于事先取消而没有处理,因此本不应打电话。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
         }
         if (errorIndex > 0)
         {
-            // Check that the enumerator is disposed, but only if it was not cancelled preemptively.
+            // 检查是否对分子进行了处置,但前提是它不是先发制人地被注销。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
@@ -315,9 +315,9 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// Tests client-side cancellation using the WithCancellation extension method.
-    /// Similar to CancellationToken test but uses the extension method approach for cancellation.
-    /// Verifies that the WithCancellation extension properly integrates with Orleans' async enumerable support.
+    /// 使用 WithCancellation 扩展方法测试客户端取消。
+    /// 与 CancellationToken 测试类似,但使用扩展方法取消。
+    /// 证明 WithCancellation 扩展名与 Orleans的“合成数列支持”相融合适当。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -369,14 +369,14 @@ public class AsyncEnumerableGrainCallTests
 
         if (errorIndex == 0)
         {
-            // Check that the enumerator was not disposed since it was cancelled preemptively and therefore no call should have been made.
+            // 检查该查点员是否由于事先取消而没有处理,因此本不应打电话。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
         }
         if (errorIndex > 0)
         {
-            // Check that the enumerator is disposed, but only if it was not cancelled preemptively.
+            // 检查是否对分子进行了处置,但前提是它不是先发制人地被注销。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
@@ -384,9 +384,9 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// Tests batching optimization for async enumerable streams.
-    /// Verifies that Orleans automatically batches multiple values to reduce network round-trips.
-    /// This optimization is crucial for performance when streaming many small values.
+    /// 测试对同步可数流的批量优化。
+    /// 证明 Orleans 自动分批多个值以减少网络圆程。
+    /// 这种优化对于在流出许多小值时的绩效至关重要。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -418,14 +418,14 @@ public class AsyncEnumerableGrainCallTests
             && (element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.MoveNext)) || element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration))));
         Assert.True(moveNextCallCount < values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests custom batch size configuration for async enumerable streams.
-    /// Verifies that the WithBatchSize extension method correctly controls the number of items per batch.
-    /// This allows clients to tune the trade-off between latency and throughput.
+    /// 测试对同步可数流的批量大小配置自定义 。
+    /// 证明 WithBatchSize 扩展方法正确控制了每批物品的数量。
+    /// 这使客户能够调整延缓和吞吐之间的权衡。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -457,14 +457,14 @@ public class AsyncEnumerableGrainCallTests
             && (element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.MoveNext)) || element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration))));
         Assert.True(moveNextCallCount < values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests disabling batching by setting batch size to 1.
-    /// Verifies that each value results in a separate network call when batching is disabled.
-    /// This mode provides lowest latency but highest overhead for streaming scenarios.
+    /// 将批量大小设定为 1 的测试使分批处理失效。
+    /// 证明在批量被禁用时,每个值都产生单独的网络呼叫。
+    /// 这一模式为流出情景提供了最低的潜伏,但最高的管理费用。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -495,17 +495,17 @@ public class AsyncEnumerableGrainCallTests
             element.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension))
             && (element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.MoveNext)) || element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration))));
 
-        // One call for every value and one final call to complete the enumeration
+        // 一次要求每个价值,最后一次要求完成点数
         Assert.Equal(values.Count + 1, moveNextCallCount);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests cancellation during active enumeration.
-    /// Verifies that cancelling mid-stream properly stops enumeration and cleans up resources.
-    /// This simulates real-world scenarios where clients need to stop consuming data early.
+    /// 主动点名时取消测试。
+    /// 证明取消中流,适当停止查点和清理资源。
+    /// 这模拟了现实世界的情景 客户需要及早停止消费数据
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -546,20 +546,20 @@ public class AsyncEnumerableGrainCallTests
         catch (OperationCanceledException)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // Expected
+            // 预期预期预计预计预计预计预计预计的预期预计预计预计预计的预期预计预计预计的
         }
 
         Assert.Equal(3, values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests async enumerable behavior with a slow-producing grain.
-    /// Verifies that the client can stop consuming before all values are produced.
-    /// This tests Orleans' ability to handle backpressure and early termination in streaming scenarios.
+    /// 测试慢产 grain的可数行为。
+    /// 证明客户可在产生所有价值之前停止消费。
+    /// 测试 Orleans处理后压和在流态情景中提前终止的能力。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -594,15 +594,15 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(2, values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests async enumerable behavior with a slow-consuming client.
-    /// Verifies that the enumerator is not prematurely cleaned up when the client consumes slowly.
-    /// Uses diagnostic listeners to monitor the cleanup timer behavior.
+    /// 测试与消费缓慢的客户群一起发生的无数行为。
+    /// 证明当客户消费缓慢时,该调查员不会过早地清理干净。
+    /// 使用诊断性听众来监测清理计时器的行为。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -635,16 +635,16 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(3, values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests enumerator eviction when a client consumes too slowly.
-    /// Verifies that Orleans properly cleans up abandoned enumerators after a timeout period.
-    /// This prevents resource leaks when clients fail to complete enumeration.
-    /// The test ensures proper error handling when trying to continue after eviction.
+    /// 当客户消费过慢时,测试人口统计员驱逐。
+    /// 证明 Orleans 在超时后适当清理废弃的计数员。
+    /// 这防止了客户未能完成查点时资源漏出。
+    /// 测试确保了驱逐后继续处理错误时能够正确处理。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -691,15 +691,15 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(3, values.Count);
 
-        // Check that the enumerator is disposed
+        // 请检查是否对分子进行了处理
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// Tests async enumerable behavior when the grain is deactivated during enumeration.
-    /// Verifies that grain deactivation properly terminates active enumerations with an appropriate error.
-    /// This ensures clean shutdown and prevents hanging clients when grains are deactivated.
+    /// 当 grain 在查点时被停用时,测试可数行为。
+    /// 证明 grain 解除[失效]适当终止了有适当误差的主动计数。
+    /// 这确保了干净的关闭,防止在 grains 被停用时吊死客户。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -759,12 +759,12 @@ public class AsyncEnumerableGrainCallTests
         await _fixture.AdvanceTimeByResponseTimeoutAsync().WaitAsync(cancellationToken);
         await listener.WaitForCleanupCountAsync(cleanupCount, cancellationToken);
 
-        // Cleanup is reported from inside the callback, before the one-shot timer is rearmed.
+        // 清理报告来自回调内部 在一发计时器重开前
         await _fixture.WaitForTimerChangeAsync(timer, timerChangeCount + 1, cancellationToken);
     }
 
     /// <summary>
-    /// Test fixture which uses a fake silo time provider so cleanup timers can be advanced deterministically.
+    /// 使用假 silo 时间提供者的测试固定装置,以便清理定时器能够以确定的方式先进。
     /// </summary>
     public sealed class Fixture : BaseInProcessTestClusterFixture
     {
@@ -795,9 +795,9 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// Diagnostic listener for monitoring AsyncEnumerableGrainExtension behavior during tests.
-    /// This helper class allows tests to observe internal cleanup operations and verify
-    /// that enumerators are properly managed according to their lifecycle requirements.
+    /// 检测期间监测 AsyncEnumerableGrainExtension 行为的诊断倾听器。
+    /// 这个辅助人员班可以进行测试,观察内部清理作业和核查
+    /// 计算员应根据其生命周期要求得到适当管理。
     /// </summary>
     private sealed class AsyncEnumerableGrainExtensionListener : IObserver<KeyValuePair<string, object?>>, IObserver<DiagnosticListener>, IDisposable
     {

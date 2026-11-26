@@ -11,8 +11,8 @@ using Xunit;
 namespace DurableOrderProcessing.Tests;
 
 /// <summary>
-/// Exercises the playground's end-to-end idempotency: each checkout's Idempotency-Key is its order's ID, so retries of a
-/// checkout reach one order, and each payment step's derived key reaches one authorization at the gateway.
+/// 运动场的端到端的一等能力:每次退场的一等能力键是它的命令身份,所以
+/// 退票达到一个订单, 每个支付步骤的衍生钥匙 到达在网关的一个授权。
 /// </summary>
 [Collection(OrderProcessingCollection.Name)]
 [TestSuite("BVT")]
@@ -51,7 +51,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         var orderId = Guid.NewGuid();
         await fixture.FillBasketAsync(buyerId, 1);
 
-        // A double click sends the checkout twice, and a retry a third time, all with the order's key.
+        // 双击后两次发送退票,第三次重试,全部使用顺序键。
         var responses = await Task.WhenAll(Enumerable.Range(0, 3).Select(_ => fixture.CheckoutAsync(buyerId, orderId)));
 
         foreach (var response in responses)
@@ -76,8 +76,8 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         var orderId = Guid.NewGuid();
         await fixture.FillBasketAsync(buyerId, 2);
 
-        // The server places the order, then the connection resets before the response arrives, which the test server
-        // reports as an aborted request.
+        // 服务器设置顺序, 然后在响应到达之前重新连接连接, 测试服务器
+        // 被报告为中止的请求 。
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => fixture.CheckoutAsync(buyerId, orderId, loseResponse: true));
 
         using var retry = await fixture.CheckoutAsync(buyerId, orderId);
@@ -95,7 +95,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         var orderId = Guid.NewGuid();
         await fixture.FillBasketAsync(buyerId, 3);
 
-        // The gateway drops its first response for a card ending in 0004, and the payment client retries the request.
+        // 网关会丢掉第一个对以0004结束的一张卡片的答复,付款客户方会重新提出申请。
         using var started = await fixture.CheckoutAsync(buyerId, orderId, cardNumber: "4111111111110004");
         await fixture.WaitForStatusAsync(orderId, OrderStatus.Paid);
 
@@ -145,7 +145,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         var available = (await fixture.Client.GetGrain<ICatalogItemGrain>(10).GetAsync())!.AvailableStock;
         await fixture.FillBasketAsync(buyerId, 10);
 
-        // The gateway never decides for a card ending in 0003, so the order waits for its payment.
+        // 网关从不决定一张于0003年结束的卡片,所以订单等待支付。
         using var started = await fixture.CheckoutAsync(buyerId, orderId, cardNumber: "4111111111110003");
         await fixture.WaitForStatusAsync(orderId, OrderStatus.StockConfirmed);
         using (var cancel = await Http.PostAsJsonAsync($"/api/orders/operations/{orderId}:cancel", new DurableOperationCancelRequest("Cancelled by the buyer."), cancellationToken))
@@ -194,7 +194,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var gracePeriod = TimeSpan.FromMinutes(1);
         var clock = new ReplayClock(gracePeriod);
-        // The clock belongs to this test, and the silo owns the volatile journals used by every replacement activation.
+        // 时钟属于此测试, silo 拥有每次替换激活所使用的挥发性日志。
         await using var replay = new OrderProcessingFixture(silo =>
         {
             silo.Services.AddKeyedSingleton<TimeProvider>(DurableJobTimeProviderNames.DurableJobs, clock);
@@ -207,7 +207,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         await replay.FillBasketAsync(buyerId, 7);
         using var started = await replay.CheckoutAsync(buyerId, orderId);
 
-        // Deactivates the order within its grace period, so its next activation replays the workflow from its start.
+        // 在其宽限期内取消顺序, 因此下一次激活从开始就重放工作流程。
         await replay.WaitForStatusAsync(orderId, OrderStatus.Submitted);
         Assert.Empty(replay.Gateway.List());
         await DeactivateOrderAsync();
@@ -216,7 +216,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         clock.Resume();
         await replay.WaitForStatusAsync(orderId, OrderStatus.Paid);
 
-        // Deactivates the paid order and its operation's host, so the shipped signal reaches both through recovery.
+        // 解除已付订单及其操作的宿主的功能,因此,运出的信号通过恢复到达两个地点。
         await DeactivateOrderAsync();
         await replay.Cluster.DeactivateAsync(GrainId.Create("orleans-durable-operation", $"orders/@/{orderId}"));
         using (var ship = await replay.Http.PostAsJsonAsync($"/api/orders/operations/{orderId}/signals/shipped", new Shipment(Guid.NewGuid()), cancellationToken))
@@ -227,7 +227,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         var operation = await replay.WaitForOperationAsync(orderId);
         Assert.Equal("Shipped", operation.GetProperty("result").GetProperty("status").GetString());
 
-        // Each transition appended its snapshot once, and the gateway received one authorization request.
+        // 每个过渡都附上了一次快照,网关收到一份授权请求。
         var statuses = new List<OrderStatus>();
         await foreach (var snapshot in order.WatchAsync(cancellationToken))
         {
@@ -283,7 +283,7 @@ public sealed class OrderProcessingTests(OrderProcessingFixture fixture)
         var available = (await fixture.Client.GetGrain<ICatalogItemGrain>(12).GetAsync())!.AvailableStock;
         await fixture.FillBasketAsync(buyerId, 12);
 
-        // The gateway answers 503 Service Unavailable for a card ending in 0005, after the resilience handler's retries.
+        // 网关回答503服务 在恢复力处理器重新试镜后 万五的卡片结束时没有可用
         using var started = await fixture.CheckoutAsync(buyerId, orderId, cardNumber: "4111111111110005");
         var operation = await fixture.WaitForOperationAsync(orderId);
 

@@ -1,16 +1,22 @@
-# Microsoft Orleans Streaming for ADO.NET
+<a id="microsoft-orleans-streaming-for-adonet"></a>
 
-## Introduction
-Microsoft Orleans Streaming for ADO.NET provides a stream provider implementation for Orleans using ADO.NET-compatible databases (SQL Server, MySQL, PostgreSQL, etc.). This allows for publishing and subscribing to streams of events with relational databases as the underlying infrastructure.
+# Microsoft Orleans 流来 ADO.NET
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 流来 ADO.NET 提供流源提供者实施 Orleans 使用 ADO.NET- 兼容数据库(C)SQL 服务器 MySQL, PostgreSQL这样可以出版和订阅以关系数据库作为基本基础设施的事件流。
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Streaming.AdoNet
 ```
 
-You will also need to install the appropriate ADO.NET provider for your database:
+您还需要为您的数据库安装合适的 ADO.NET 提供者:
 
 ```shell
 # For SQL Server
@@ -23,7 +29,9 @@ dotnet add package MySql.Data
 dotnet add package Npgsql
 ```
 
-## Example - Configuring ADO.NET Streaming
+<a id="example---configuring-adonet-streaming"></a>
+
+## 示例 - 配置 ADO.NET 流
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -48,7 +56,9 @@ var builder = Host.CreateApplicationBuilder(args)
 await builder.RunAsync();
 ```
 
-## Example - Using ADO.NET Streams in a Grain
+<a id="example---using-adonet-streams-in-a-grain"></a>
+
+## 实例 - 使用 ADO.NET 流成一股 Grain
 ```csharp
 // Producer grain
 public class ProducerGrain : Grain, IProducerGrain
@@ -108,22 +118,28 @@ public class ConsumerGrain : Grain, IConsumerGrain, IAsyncObserver<string>
 }
 ```
 
-## Receiver shutdown
+<a id="receiver-shutdown"></a>
 
-During shutdown or queue reassignment, each receiver closes admission and waits for accepted dequeue and confirmation operations to finish, including batch conversion and receipt bookkeeping. It then releases its pending messages using their current receipts so another receiver can dequeue them promptly.
+## 接收器关闭
 
-The shutdown timeout bounds the drain wait and the subsequent release query separately. If the drain times out, the receiver logs a warning and pending messages become eligible for redelivery through their database visibility timeout.
+在停机或排队调任期间,每个接收器关闭收件程序,等待接受的卸货和确认操作完成,包括批次转换和收据簿记,然后使用现有收据发布待发信息,以便另一个接收器能够迅速解压。
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Orleans Streams](https://dotnet.github.io/orleans/docs/streaming/)
-- [Stream Providers](https://dotnet.github.io/orleans/docs/streaming/stream-providers/)
-- [ADO.NET Database Setup](https://dotnet.github.io/orleans/docs/host/configuration-guide/adonet-configuration/)
+关闭超时将排水管的等待和随后的排气孔分开。 如果排水管的抽出时间过长,接收器会记录警告信息,而待定的信息则可以通过数据库可见度的超时来重新发送。
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+<a id="documentation"></a>
+
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [Orleans 流](https://dotnet.github.io/orleans/docs/streaming/)
+- [流源供应商](https://dotnet.github.io/orleans/docs/streaming/stream-providers/)
+- [ADO.NET 数据库设置](https://dotnet.github.io/orleans/docs/host/configuration-guide/adonet-configuration/)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

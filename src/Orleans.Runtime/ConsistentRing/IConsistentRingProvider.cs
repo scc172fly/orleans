@@ -1,40 +1,40 @@
 namespace Orleans.Runtime.ConsistentRing
 {
-    // someday, this will be the only provider for the ring, i.e., directory service will use this
+    // 有一天, 这将是唯一的环的提供者, i.e。 目录服务将会使用此
 
     internal interface IConsistentRingProvider
     {
         /// <summary>
-        /// Get the responsibility range of the current silo
+        /// 获取当前 silo的责任范围
         /// </summary>
         /// <returns></returns>
         IRingRange GetMyRange();
 
-        // the following two are similar to the ISiloStatusOracle interface ... this replaces the 'OnRangeChanged' because OnRangeChanged only supports one subscription
+        // 以下两个与 ISiloStatusOracle 接口类似.,这取代了 "OnRangeChanged" ,因为 OnRangeChanged 只支持一个订阅
 
         /// <summary>
-        /// Subscribe to receive range change notifications
+        /// 订阅接收更改范围通知
         /// </summary>
-        /// <param name="observer">An observer interface to receive range change notifications.</param>
-        /// <returns>bool value indicating that subscription succeeded or not.</returns>
+        /// <param name="observer">一个接收范围变更通知的观察员界面。</param>
+        /// <returns>上下标值,表明订阅成功与否。</returns>
         bool SubscribeToRangeChangeEvents(IRingRangeListener observer);
 
         /// <summary>
-        /// Unsubscribe from receiving range change notifications
+        /// 从接收更改范围通知中取消订阅
         /// </summary>
-        /// <param name="observer">An observer interface to receive range change notifications.</param>
-        /// <returns>bool value indicating that unsubscription succeeded or not</returns>
+        /// <param name="observer">一个接收范围变更通知的观察员界面。</param>
+        /// <returns>布尔值,表明未订阅是否成功</returns>
         bool UnSubscribeFromRangeChangeEvents(IRingRangeListener observer);
 
         /// <summary>
-        /// Get the silo responsible for <paramref name="key"/> according to consistent hashing
+        /// 获取对 silo 负责的 <paramref name="key"/> , 并按一致的散列
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
         SiloAddress? GetPrimaryTargetSilo(uint key);
     }
 
-    // similar to ISiloStatusListener
+    // 类似 ISiloStatusListener
     internal interface IRingRangeListener
     {
         void RangeChangeNotification(IRingRange old, IRingRange now, bool increased);

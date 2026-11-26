@@ -2,7 +2,7 @@ using UnitTests.FSharpInterfaces;
 
 namespace UnitTests.GrainInterfaces
 {
-    // uncomment the following interface definition to reproduce #1349
+    // 取消以下复制 #1349 的界面定义
 
     public interface IGeneratorTestDerivedFromFSharpInterfaceInExternalAssemblyGrain : IGrainWithGuidKey, IFSharpBaseInterface
     {

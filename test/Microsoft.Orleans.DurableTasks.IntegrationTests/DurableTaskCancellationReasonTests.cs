@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>Exercises cancellation reasons, inline compensation with suppressed cancellation, and signal results across grains.</summary>
+/// <summary>行使取消理由,将补偿与抑制的取消相联,并在整个 grains中发出信号结果。</summary>
 public abstract class DurableTaskCancellationReasonTests(string journalFormatKey) : IAsyncLifetime
 {
     private readonly DurableTaskRecoveryFixture _fixture = new(journalFormatKey);
@@ -60,14 +60,14 @@ public abstract class DurableTaskCancellationReasonTests(string journalFormatKey
     }
 }
 
-/// <summary>Runs cancellation reason coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行取消理由覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskCancellationReasonTests() : DurableTaskCancellationReasonTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs cancellation reason coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行取消理由覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

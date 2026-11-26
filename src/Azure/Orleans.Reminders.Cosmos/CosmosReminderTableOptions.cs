@@ -1,14 +1,14 @@
 namespace Orleans.Reminders.Cosmos;
 
 /// <summary>
-/// Options for Azure Cosmos DB Reminder Storage.
+/// Azure 宇宙 DB 提醒存储选项。
 /// </summary>
 public class CosmosReminderTableOptions : CosmosOptions
 {
     private const string ORLEANS_REMINDERS_CONTAINER = "OrleansReminders";
 
     /// <summary>
-    /// Initializes a new <see cref="CosmosReminderTableOptions"/> instance.
+    /// 初始化一个新的 <see cref="CosmosReminderTableOptions"/> 实例。
     /// </summary>
     public CosmosReminderTableOptions()
     {

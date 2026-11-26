@@ -1,34 +1,34 @@
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// A grain used for testing log-consistency providers.
-    /// The content of this class is pretty arbitrary and messy;
-    /// (don't use this as an introduction on how to use JournaledGrain)
-    /// it started from SimpleGrain, but a lot of stuff got added over time 
+    /// 用于测试逻辑一致性提供者的 grain 。
+    /// 班级的内容是武断的,乱七八糟的;
+    /// (不要用这个来介绍如何使用 JournaledGrain)
+    /// 是从 SimpleGrain开始的, 但随着时间推移,很多东西被添加 
     /// </summary>
     public interface ILogTestGrain : IGrainWithIntegerKey
     {
-        // read A
+        // 改为A
 
         Task<int> GetAGlobal();
 
         Task<int> GetALocal();
 
-        // read both
+        // 改为
 
         Task<AB> GetBothGlobal();
 
         Task<AB> GetBothLocal();
 
-        // reservations
+        // 保留
 
         Task<int[]> GetReservationsGlobal();
 
-        // version
+        // 版本版本
 
         Task<int> GetConfirmedVersion();
 
-        // set or increment A
+        // 设置值或加量 A
 
         Task SetAGlobal(int a);
 
@@ -40,13 +40,13 @@ namespace UnitTests.GrainInterfaces
 
         Task IncrementAGlobal();
 
-        // set B
+        // B 套B
 
         Task SetBGlobal(int b);
 
         Task SetBLocal(int b);
 
-        // reservations
+        // 保留
 
         Task AddReservationLocal(int x);
 
@@ -59,7 +59,7 @@ namespace UnitTests.GrainInterfaces
         Task<IReadOnlyList<object>> GetEventLog();
 
 
-        // other operations
+        // 其他业务的业务
 
         Task SynchronizeGlobalState();
         Task Clear();
@@ -67,9 +67,9 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Used by unit tests. 
-    /// The fields don't really have any meaning. 
-    /// The point of the struct is just that a grain method can return both A and B at the same time.
+    /// 单位测试使用。 
+    /// 田地没有真正意义 
+    /// 支架的点只是 grain 方法可以同时返回 A和B。
     /// </summary>
     [GenerateSerializer]
     public struct AB

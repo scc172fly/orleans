@@ -1123,7 +1123,7 @@ public class ManifestContractTests
     [InlineData(typeof(ReferenceConstrainedCopier<>), typeof(int), false)]
     [InlineData(typeof(ConstructorConstrainedCopier<>), typeof(PublicConstructorTarget), true)]
     [InlineData(typeof(ConstructorConstrainedCopier<>), typeof(PrivateConstructorTarget), false)]
-    // MakeGenericType rejects an abstract new()-constrained argument.
+    // MakeGenericType 拒绝接受一个受到限制的抽象的新论点。
     [InlineData(typeof(ConstructorConstrainedCopier<>), typeof(AbstractConstructorTarget), false)]
     [InlineData(typeof(ConstructorConstrainedCopier<>), typeof(int), true)]
     [InlineData(typeof(ComparableConstrainedCopier<>), typeof(string), true)]

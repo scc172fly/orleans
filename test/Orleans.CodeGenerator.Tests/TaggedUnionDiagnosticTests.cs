@@ -1,4 +1,4 @@
-// net10.0 tests reference Roslyn 5.9, which parses closed types and unions; net8.0 tests reference the oldest supported Roslyn.
+// 净额10.00测试参考Roslyn 5.9,其中对封闭型和结合进行剖析;净额8.0测试参考最老的受支持的Roslyn。
 #if NET10_0_OR_GREATER
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
@@ -13,11 +13,11 @@ using static VerifyXunit.Verifier;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Tests the source generator's ORLEANS0117 diagnostics for closed type hierarchies and union types.
+/// 测试源发电机对封闭型等级和联盟类型的 ORLEANS0117 诊断。
 /// </summary>
 /// <remarks>
-/// These tests compile closed and union types with <see cref="LanguageVersion.Preview"/>. Union diagnostics which depend on union case types
-/// require a compiler which exposes them, so the tests cover the union diagnostics which are available with the referenced compiler.
+/// 这些测试用 <see cref="LanguageVersion.Preview"/>汇编了封闭型和工会类型。
+/// 需要一个能暴露它们的编译者,所以测试涵盖引用的编译者提供的工会诊断。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -46,7 +46,7 @@ public sealed class TaggedUnionDiagnosticTests
     [Fact]
     public void NullabilityConstraintsOfCasesDoNotAffectGeneratedCodec()
     {
-        // Nullability is not part of a type's runtime identity, and generated code has no nullable context, so these cases are supported.
+        // 无效性不是类型运行时身份的一部分,生成的代码没有无效的背景,因此支持这些情况。
         var (output, result) = Generate("""
             [GenerateSerializer] public closed record NotNullBase<T>;
             [GenerateSerializer, Case(0)] public sealed record NotNullCase<T>([property: Id(0)] T Value) : NotNullBase<T> where T : notnull;

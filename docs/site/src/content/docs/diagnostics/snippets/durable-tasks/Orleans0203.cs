@@ -17,8 +17,8 @@ public sealed class ShipmentGrain : DurableGrain
     // <orleans0203_violation>
     private async DurableTask<int> NotifyShippedAsync(string customer)
     {
-        // Another journal write can commit this change while the email is sending, without the step's result.
-        // The step then runs again and counts the notice twice.
+        // 其它日记可以写入此更改, 而电子邮件正在发送时, 没有步骤结果 。
+        // 然后,该步骤又运行了一次,并两次计数通知。
         _notices.Value++;
         await _email.SendAsync(customer, "Your order has shipped", DurableTask.Current.CancellationToken);
         return _notices.Value;
@@ -31,7 +31,7 @@ public sealed class ShipmentGrain : DurableGrain
     {
         await _email.SendAsync(customer, "Your order has shipped", DurableTask.Current.CancellationToken);
 
-        // The step's final synchronous code: the change commits in the same journal write as the step's result.
+        // 步骤的最后同步代码: 更改在同一个日记中承诺作为步骤结果 。
         return ++_notices.Value;
     }
     // </orleans0203_fix_reorder>

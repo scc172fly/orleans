@@ -7,16 +7,16 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="ConcurrentQueue{T}"/>.
+    /// <see cref="ConcurrentQueue{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ConcurrentQueueCodec<T> : GeneralizedReferenceTypeSurrogateCodec<ConcurrentQueue<T>, ConcurrentQueueSurrogate<T>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConcurrentQueueCodec{T}"/> class.
+        /// 初始化 <see cref="ConcurrentQueueCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">The surrogate serializer.</param>
+        /// <param name="surrogateSerializer">代孕序列器</param>
         public ConcurrentQueueCodec(IValueSerializer<ConcurrentQueueSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -29,22 +29,22 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Surrogate type used by <see cref="ConcurrentQueueCodec{T}"/>.
+    /// <see cref="ConcurrentQueueCodec{T}"/>所使用的代金矿类型。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct ConcurrentQueueSurrogate<T>
     {
         /// <summary>
-        /// Gets or sets the values.
+        /// 获取或设置值。
         /// </summary>
-        /// <value>The values.</value>
+        /// <value>价值。</value>
         [Id(0)]
         public Queue<T> Values;
     }
 
     /// <summary>
-    /// Copier for <see cref="ConcurrentQueue{T}"/>.
+    /// <see cref="ConcurrentQueue{T}"/>的复印机。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [RegisterCopier]
@@ -54,9 +54,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConcurrentQueueCopier{T}"/> class.
+        /// 初始化 <see cref="ConcurrentQueueCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public ConcurrentQueueCopier(IDeepCopier<T> valueCopier)
         {
             _copier = valueCopier;

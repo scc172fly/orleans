@@ -13,26 +13,26 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
     private readonly List<T> _items = [];
     private JournalStreamWriter _writer;
 
-    // Identifies the history. Zero until the first change, so a log without an epoch has no entries and is not sealed.
+    // 指定历史。 第一次修改前为零, 所以没有时代的日志没有条目也没有密封 。
     private long _epoch;
     private long _firstSequence;
 
-    // The first sequence after the most recent clear. Readers positioned before it observed entries which the clear replaced.
+    // 最清楚的后第一个序列。 在它之前的位置上, 读者会看到被替换的条目 。
     private long _resetSequence;
     private bool _isSealed;
 
-    // The log's boundaries when the most recent write was captured, and when the most recent acknowledged write was captured.
+    // 记录日志的边界 当最近写作被捕获, 当最新的确认的写作被捕获。
     private Boundary _captured;
     private Boundary _committed;
 
-    // The drafts whose committed entries begin at or after the first retained sequence, in sequence order. Allocated by the first commit.
+    // 承诺条目的草稿在第一个保留序列前后开始,按顺序排列。
     private List<DraftCommitRecord>? _draftCommits;
 
-    // Numbers this instance's draft commit records. A boundary's count shows which commit records a write captured, which an
-    // empty commit's entry range cannot show.
+    // 此例的草稿记录记录。 边界的计数显示哪项记录记录了所抓到的笔记, 而
+    // 无法显示空当量的条目区域 。
     private long _draftCommitCount;
 
-    // Allocated by the first draft.
+    // 由第一稿分配。
     private DraftTable? _drafts;
 
     public DurableLog(
@@ -116,7 +116,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
     {
         ThrowIfSealed();
 
-        // The clear consumes the first sequence of the history which it begins.
+        // 清晰的消耗了它开始的历史的最初序列。
         if (!TryBeginHistory([], firstSequence: 1, isSealed: false, draftCommits: []))
         {
             _codec.WriteClear(GetWriter());
@@ -206,7 +206,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         SignalAllReaders();
     }
 
-    // Entries and commands are journaled when they are made. Capturing records which of them this write makes durable.
+    // 条目和命令在制作时会被日记。 获取其中哪个记录可以保持耐用性 。
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer) => _captured = Current;
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter writer)
@@ -222,8 +222,8 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         _captured = Current;
     }
 
-    // Every write captures this log before its acknowledgement. The manager publishes the write's watermark after this
-    // callback, which wakes readers.
+    // 每一个写入记录都捕捉到这个日志, 之后才确认。 经理在此之后公布该写作的水印
+    // 召回,它唤醒读者。
     void IStateMachine.OnWriteCompleted() => _committed = _captured;
 
     void IDurableLogCommandHandler<T>.ApplyAppend(T item)
@@ -234,8 +234,8 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
 
     void IDurableLogCommandHandler<T>.ApplyDraftCommit(LogDraftCommit commit)
     {
-        // Recorded commits end at or before the next sequence, and a commit begins at or after the end of the previous one,
-        // so comparing the commit's count with the entries after its start cannot overflow, as its end could.
+        // 记录的承诺在下一个序列时或之前结束,承诺在上一个序列结束时或之后开始,
+        // 所以将承诺的计算和开始后的项目项进行比较, 无法溢出, 因为其结束可以。
         var previousEnd = _draftCommits is { Count: > 0 } commits ? commits[^1].Commit.Sequence + commits[^1].Commit.Count : _firstSequence;
         if (commit.Count < 0 || commit.Sequence < previousEnd || commit.Count > NextSequence - commit.Sequence)
         {
@@ -291,8 +291,8 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         _isSealed = false;
     }
 
-    // Replay enforces the invariants which the writer enforces: a change belongs to a history, a sealed log accepts no
-    // entries or clears, and each append or clear consumes a sequence number, which cannot exceed the maximum sequence.
+    // 执行作者强制实施的变数, 执行重放执行: 更改属于历史, 密封日志接受不
+    // 条目或清除,而每个附件或清除都消耗一个序列编号,该序列数字不能超过最大序列。
     private void ThrowIfMalformedChange(string command)
     {
         if (_epoch == 0 || _isSealed)
@@ -307,9 +307,9 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         }
     }
 
-    // A history begins with its epoch. A log without an epoch is empty, so the command which begins a history is journaled
-    // as a snapshot of the state which the command produces, carrying the new epoch. Beginning the history and the command
-    // then form one journal entry, which an encoding failure discards entirely, leaving the log without an epoch.
+    // 历史从历史的时代开始。 没有时代的日志是空的, 所以开始历史的命令会被编辑
+    // 以快速显示命令产生状态, 携带新的时代。 从历史和命令开始
+    // 然后形成一个日记条目, 编码失败将完全丢弃, 使日志没有时间间隔 。
     private bool TryBeginHistory(IReadOnlyCollection<T> items, long firstSequence, bool isSealed, IReadOnlyCollection<LogDraftCommit> draftCommits)
     {
         if (_epoch != 0)
@@ -324,7 +324,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         return true;
     }
 
-    // Journals a draft's entries and outcome as one journal entry.
+    // 将草稿条目和结果作为一份日刊条目予以日报。
     private DraftOutcome CommitDraft(LogDraftId draftId, ReadOnlySpan<T> items)
     {
         Debug.Assert(!_isSealed, "Sealing closes open drafts.");
@@ -341,7 +341,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         return DraftOutcome.Committed(_epoch, record);
     }
 
-    // The clear consumes one sequence number, so a reader's position shows whether it observed the replaced entries.
+    // 清晰使用一个序列编号, 所以读者的位置显示是否观察到被替换的条目 。
     private void ApplyClear()
     {
         var sequence = NextSequence + 1;
@@ -393,8 +393,8 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         return _writer;
     }
 
-    // Committed entries become visible through the write's watermark, which wakes every reader. Draft content is visible
-    // as soon as it is written.
+    // 承诺条目通过写作的水印可见, 使每个读者都醒了。 内容草稿是可见的
+    // 写完后马上
     private void SignalDraftReaders()
     {
         if (DurableStateObservation.TryGetTopic(_manager, this, out var topic))
@@ -426,8 +426,8 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         SignalDraftReaders();
     }
 
-    // Follows the draft a reconnecting reader was viewing: its items while it is open, otherwise its outcome. The log is the
-    // authority for commits, which it retains with their entries across activations. Abandonment is volatile, like draft items.
+    // 跟随草案,一个重新连接的读者查看了:项目在开放时打开,否则结果。
+    // 承诺授权, 它保留了这些权限, 并同时在激活之间进行输入。 放弃像项目草稿一样是挥发性的 。
     private FollowedDraft ResumeDraft(LogDraftId id)
     {
         var drafts = _drafts is { } table && table.InstanceId == id.InstanceId ? table : null;
@@ -475,21 +475,21 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         return reader;
     }
 
-    // Computes the reader's next event from the current log state. Called between yields, so each call observes mutations
-    // made while the reader was suspended. The checks run in order of precedence:
-    // 1. The outcomes of drafts the reader follows, so that the reader learns how they closed before a history change. A commit
-    //    whose history was deleted is reported as abandoned, since its entries no longer exist.
-    // 2. A history change: another epoch, a position past the end, or a clear. Each repositions the reader with Reset.
-    // 3. A durable trim.
-    // 4. CaughtUp, then the next committed entry.
-    // 5. Sealed, once every entry has been delivered.
-    // 6. Draft items.
-    // Readers observe trims, clears, and the seal once they are durable, as they observe entries.
+    // 计算读者从当前日志状态的下一个事件。 在产量之间调用, 所以每次调用都观察到突变
+    // 校对按优先顺序进行:
+    // 1. 读者随后阅读草稿的结果,以便读者了解他们在历史改变前如何关闭。
+    //    其历史被删除后,由于条目已不复存在,被报告为废弃。
+    // 2. 历史变化:另一个时代、一个超越终点的位置或清晰,每个方向都以重置重新定位读者。
+    // 3. 耐久修补。
+    // 4. CaughtUp,然后是下一个承诺输入。
+    // 5. 每次入境都密封,完成后即封存。
+    // 6. 项目草案。
+    // 读者观察分线、清扫和封条,一旦它们耐久,即观察条目。
     private bool TryGetNextEvent(Reader reader, out LogEvent<T> logEvent)
     {
         if (reader.Epoch == 0)
         {
-            // A reader which has observed no history adopts the log's history, which begins at sequence zero.
+            // 读者没有看到历史, 就会通过日志的历史, 以零顺序开始。
             reader.Epoch = _epoch;
         }
 
@@ -511,7 +511,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         reader.Epoch = _epoch;
         if (isOtherHistory)
         {
-            // When the history changed during the read, the entries which were committed when the read began no longer exist.
+            // 当读取时历史发生变化,当读取开始时所执行的条目就不复存在。
             if (_epoch != reader.CatchUpEpoch)
             {
                 reader.CatchUpSequence = 0;
@@ -555,7 +555,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
             return true;
         }
 
-        // A reader positioned before an uncommitted trim awaits the trim's write.
+        // 一位在未完成的剪辑前 被定位的读者等待剪辑稿
         if (reader.Cursor >= _firstSequence && reader.Cursor < _committed.NextSequence)
         {
             var sequence = reader.Cursor++;
@@ -580,7 +580,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
         return false;
     }
 
-    // Repositions the reader at the first committed entry of the log's history.
+    // 将读者重新定位到日志历史的第一个承诺条目。
     private LogEvent<T> ResetReader(Reader reader)
     {
         reader.Cursor = _committed.FirstSequence;
@@ -600,13 +600,13 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
 
             if (outcome.IsCommitted && outcome.Epoch != _epoch)
             {
-                // Deleting the journal discarded the committed entries, along with the rest of their history.
+                // 将承诺的条目和历史遗迹一起丢弃。
                 outcome = DraftOutcome.Abandoned(LogDraftAbandonReason.JournalDeleted, message: null);
             }
 
             if (outcome.IsCommitted)
             {
-                // Readers learn of a commit once its record, which contains its entries, is durable.
+                // 读者一旦得知一份包含其条目的记录,即了解承诺,这是持久的。
                 if (outcome.CommitIndex > _committed.DraftCommitCount)
                 {
                     continue;
@@ -684,18 +684,18 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
     }
 
     /// <summary>
-    /// The log's boundaries at one point: where its entries end and begin, where its most recent clear began, whether it is
-    /// sealed, and how many draft commit records it holds.
+    /// 日志的边界点是:它的条目从哪条条目结束和开始,最近一个清楚的条目从哪条条目开始,它是否在
+    /// 并保存多少记录
     /// </summary>
     private readonly record struct Boundary(long NextSequence, long FirstSequence, long ResetSequence, bool IsSealed, long DraftCommitCount);
 
     /// <summary>
-    /// A draft commit retained by the log, and its number among this instance's commit records.
+    /// 日志保留的承诺草案及其数量,属于此例承诺记录。
     /// </summary>
     private readonly record struct DraftCommitRecord(LogDraftCommit Commit, long Index);
 
     /// <summary>
-    /// How a draft closed: the range of entries which replaced it, or why it was abandoned.
+    /// 草案如何结束:取代该草案的条目范围,或为什么放弃草案。
     /// </summary>
     private readonly record struct DraftOutcome(
         long Epoch,
@@ -714,11 +714,11 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
     }
 
     /// <summary>
-    /// The open drafts of one log instance and why its most recently abandoned drafts closed.
+    /// 一个日志实例的开放式草稿及其最近废弃的草稿为何关闭。
     /// </summary>
     private sealed class DraftTable
     {
-        // Reconnecting readers learn why this many recently abandoned drafts closed.
+        // 读者重新连结,
         private const int MaxRecentAbandonments = 16;
 
         private readonly Queue<(long Number, DraftOutcome Outcome)> _recentAbandonments = new();
@@ -838,13 +838,13 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
 
         public long Cursor { get; set; } = cursor;
 
-        // The epoch of the history which the reader's position belongs to, or zero when the reader has observed no history.
+        // 读者所处位置的历史时代,当读者没有看到历史时,即为零。
         public long Epoch { get; set; } = epoch;
 
-        // The first retained sequence the reader has been told of. A higher first sequence is reported as a trim.
+        // 读者被告知第一个保留序列。第一个较高序列作为剪辑报告。
         public long KnownFirstSequence { get; set; }
 
-        // The position after the entries which were committed when the read began, and the epoch of their history.
+        // 条目后的位置, 当读取开始时, 以及它们历史的时代 。
         public long CatchUpSequence { get; set; } = catchUpSequence;
 
         public long CatchUpEpoch { get; } = log._epoch;
@@ -862,14 +862,14 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
                 return false;
             }
 
-            // A commit's range belongs to the commit's history, which can precede the reader's Reset into it.
+            // 承诺的范围属于承诺的历史,它可以在读者重置之前。
             if (value.Kind is not LogEventKind.DraftCommitted)
             {
                 value = value with { Epoch = Epoch };
             }
             if (value.Kind is LogEventKind.Sealed)
             {
-                // Sealed is the stream's final event.
+                // 密封是溪流的最后一件事
                 _isEnded = true;
                 Complete(failure: null);
             }
@@ -879,7 +879,7 @@ internal sealed class DurableLog<T> : IDurableLog<T>, IStateMachine, IDurableLog
     }
 
     /// <summary>
-    /// A draft which a reader follows: an open draft, or the outcome of a draft which closed before the reader resumed it.
+    /// 草案由读者编写:开放式草案,或草案在读者恢复之前结束的结果。
     /// </summary>
     private sealed class FollowedDraft
     {

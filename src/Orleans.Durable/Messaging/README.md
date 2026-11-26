@@ -1,319 +1,343 @@
-# Microsoft Orleans Messaging
+<a id="microsoft-orleans-messaging"></a>
 
-Messaging in `Microsoft.Orleans.Durable` provides grain-scoped durable inboxes and outboxes
-built on Orleans Journaling and Durable Jobs. A grain sends a message by staging it
-in its outbox; the message persists with the grain's other journaled state and is
-delivered to the receiver's inbox, which processes it at least once and deduplicates
-it by message ID. A message a grain sends to itself skips the outbox: its own inbox
-accepts it in the same journal write.
+# Microsoft Orleans 通信
 
-## Setup
+`Microsoft.Orleans.Durable` 中提供 grain- 范围宽耐久信箱和发件箱中的通信
+以 Orleans 日记和持久工作为基础。 A grain 通过播放发送信息
+发件箱中的发件框;该信息与 grain其他日记状态保持了持续状态,并且
+发送到接收器的收件箱, 接收器至少处理一次并复制
+发送到 grain 本身的信息会跳过发件箱: 它自己的信箱
+在同一日记中接受它。
 
-Configure Journaling and Durable Jobs storage, then call `AddMessaging` on the silo
-builder or service collection. The optional `DurableMessagingOptions` callback configures
-capacity, batch sizes, retries, deduplication, and dead-letter retention; options are
-validated at startup. Register typed subjects with `AddMessageType<T>(subject)`.
+<a id="setup"></a>
 
-A grain receives messages by resolving `IInbox`, and sends them by resolving `IOutbox`,
-during construction or activation setup, typically by constructor injection, so each
-recovers with the grain's journal. Resolving `IOutbox` also enables the inbox, which
-accepts the grain's messages to itself. Deliveries reach the inbox through the grain's
-messaging extension. Stateless worker grains are rejected; reentrant and interleaving
-grains are supported, and the grain's code is responsible for correctness when calls
-interleave.
+## 设置设置设置设置
 
-## Messages
+配置日记和持久工作存储,然后调用 `AddMessaging` 排在《公约》 silo
+构建器或服务收藏。可选 `DurableMessagingOptions` 回调配置
+能力、批量尺寸、批量大小、累进、重复和保留无字母;选项
+启动时验证。 注册为 `AddMessageType<T>(subject)`的输入对象 。
 
-`Envelope` carries:
+A grain 通过解决 `IInbox`接收信息,并通过解决 `IOutbox`发出信息,
+建筑或启动装置期间,通常通过建造者注射,所以每个
+使用 grain日记本回收。解析 `IOutbox` 也启用了收件箱,该收件箱
+接受 grain给它自己发来的邮件。交付品通过 grain到达收件箱
+信息扩展发件。 拒绝不列颠工人 grains ; 重新输入和中继
+grains 得到支持, grain的代码负责在调用时正确无误
+中途休息。
 
-- `MessageId`: an application-supplied `HierarchicalKey` wrapped in a `MessageId`, at
-  most 1,024 UTF-8 bytes. It identifies one command at the receiver.
-- `Payload`: opaque bytes; an empty payload is valid.
-- `Subject`: an optional ordinal name, at most 256 UTF-8 bytes, that selects a typed
-  handler.
-- `Headers`: optional named byte arrays with nonempty keys and non-null values.
-- `DeliverAt`: an optional time on the Durable Jobs clock. The receiver accepts the
-  message immediately and processes it once that clock reaches `DeliverAt`. A message
-  with `DeliverAt` counts toward `MaxCapacity` from its acceptance until it completes.
+<a id="messages"></a>
 
-`OutboxMessage` pairs an envelope with its receiver. `InboxMessage` carries the same
-envelope and the logical send's `SentAt` time at the receiver. Keep published payload
-and header arrays unchanged.
+## 消息
 
-`MessageId` wraps a `HierarchicalKey`. Create one with `new MessageId(key)` or
-`MessageId.Create(segments)`, and read the key through `Key`. `HierarchicalKey` wraps
-its canonical escaped path, and equality and hashing of both types compare that path
-ordinally. Use `HierarchicalKey.Create`, `CreateChildKey`, and `Append` to build keys,
-and `GetParent`, `IsParentOf`, `IsChildOf`, `IsAncestorOf`, and the segment enumerator
-to navigate them.
+`Envelope` 包含:
 
-## Handle messages
+- `MessageId`:一个应用程序供应 `HierarchicalKey` 包裹在 `MessageId`, 时
+  最大 1 024 UTF-8 字节。 它在接收器中指定一个命令 。
+- `Payload`:不透明字节;空有效载荷有效。
+- `Subject`:选择已键入的可选正则名称,最多为256 UTF-8字节,最多可选
+  处理器
+- `Headers`:可选命名的字节数组,带有无空白键和非核值。
+- `DeliverAt`:在持久工作时钟上可选择的时间。接收者接受
+  立即处理该信息, 一旦时钟到达 `DeliverAt`, 即进行处理。 消息
+  与 `DeliverAt` 计数 `MaxCapacity` 从接受到完成。
 
-`IInbox.Register(IInboxHandler)` adds a handler. Each message goes to the first
-registered handler whose `CanHandle(InboxMessage)` returns `true`. Selection reads
-only the message; the selected handler finishes it in `HandleAsync`. Handlers can be
-registered at any time; registering during construction or activation makes them
-available to recovered messages.
+`OutboxMessage` 对一个信封与接收器配对。 `InboxMessage` 随同带
+接收器的逻辑发送时间 `SentAt` 。保持已公布的有效载荷
+和页眉数组不变。
 
-`InboxExtensions.Register` binds a `MessageType<T>` subject to a typed method:
+`MessageId` 以 `HierarchicalKey`创建 `new MessageId(key)` 或
+`MessageId.Create(segments)`,然后通过 `Key`读取键。 `HierarchicalKey` 折叠
+两者的平等与散列 比较了这条路
+或以空格。使用 `HierarchicalKey.Create`、 `CreateChildKey`和 `Append` 来构建密钥,
+和 `GetParent`, `IsParentOf`, `IsChildOf`, `IsAncestorOf`和段数计算器
+来导航它们
+
+<a id="handle-messages"></a>
+
+## 处理信件
+
+`IInbox.Register(IInboxHandler)` 添加一个处理器。 每一条消息都转到第一个
+登记在册的处理器 `CanHandle(InboxMessage)` 返回 `true`选择的文字为
+仅信件;所选处理器在 `HandleAsync`中完成。手动程序可以是
+在任何时候登记;在施工或启动期间登记,使
+可用以获取回信 。
+
+`InboxExtensions.Register` 绑定了 `MessageType<T>` ,但需采用已打字的方法:
 
 ```csharp
 inbox.Register(reserve, HandleReserve);
 inbox.Register(reserve, this, static (request, grain, context) => grain.HandleReserve(request, context));
 ```
 
-Overloads accept synchronous or asynchronous delegates, with or without a `TArg`
-argument for static, allocation-free delegates.
+超载接受同步或非同步代表,不论有无 `TArg`
+静态、无分配代表的论据。
 
-A handler finishes each message with `IInboxHandlerContext.Complete()` or
+处理器以 `IInboxHandlerContext.Complete()` 或
 `Fail(reason)`:
 
-- `Complete()` stages the message's removal and completion record.
-- `Fail(reason)` moves the message to the inbox dead letters and records its ID as
-  processed.
-- A handler exception, or a return without either call, leaves the outcome unknown.
-  Changes staged by the attempt share the grain's pending journal write, so the grain
-  deactivates and recovery from the journal discards them.
-- Recovery after an activation stops without recording an attempt's outcome, through
-  such a failure or a crash, charges one attempt to each due message. The message
-  retries with exponential backoff until `InboxRetryTimeout` (6 hours) after its first
-  failure, then moves to the dead letters. A graceful deactivation journals a clean
-  stop when messages are pending, so it charges nothing. A crash can charge a message
-  that hadn't run, so attempts overcount by at most one per crash, and a charge alone
-  never dead-letters a message whose retries hadn't started.
-- `Fail(reason)` after `Complete()`, or after `Fail` with a different reason, deactivates
-  the grain. `Complete()` after `Fail(reason)` keeps the dead letter.
+- 信息清除和完成记录`Complete()` 的阶段。
+- `Fail(reason)` 将信件移到收件箱中, 记录其身份为
+  已处理。
+- 处理者的例外,或返回时不打电话,结果不明。
+  企图改变的改动 grain正在撰写 grain
+  撤销这些装置并从日记上收回后,就将其抛弃。
+- 启动后恢复,但未记录尝试结果,通过
+  这样的失败或崩溃,对每个相应消息都要求尝试一次。
+  以指数反向回溯重试,直到第一次反转后 `InboxRetryTimeout` (6小时)
+  失败, 然后转到死信。 一个优雅的关闭日记账簿
+  信件待发时停止停止, 所以不收费。 坠机可以收取消息
+  一次撞车最多要一个 单收费
+  从来没有写过一个信息,但信的回音还没有开始
+- `Fail(reason)` 之后 `Complete()`,或 `Fail` 具有不同理由的
+  grain. `Complete()` 之后, `Fail(reason)` 保留了空白信。
 
-The inbox persists each batch's outcomes, business changes, and outgoing messages in
-one journal write. Perform asynchronous and fallible work with local values first,
-then send, apply state changes and complete in one synchronous block with no await
-after the first change.
-## Send messages
+收件箱维持每批的结果、业务变化和在
+以本地值进行非同步和可谬误的工作
+然后发送,应用状态修改并在一个同步块中完成,无等待
+第一次修改后。
+<a id="send-messages"></a>
 
-`IOutbox.Send(OutboxMessage)` stages a message. `OutboxExtensions` adds typed helpers:
+## 发送信息
 
-- `Send(type, messageId, receiver, body, deliverAt)` encodes and stages one
-  message, optionally scheduled; a batch overload stages several.
-- `SendReply(type, context, destination, body)` stages a reply whose ID is the
-  received message ID's `result` child, sent to a destination the application
-  carries in its request.
+`IOutbox.Send(OutboxMessage)` 阶段信件。 `OutboxExtensions` 添加已输入的助手 :
 
-`MessageType<T>.Create` and `OutboxMessage.ToInboxMessage(sentAt)` build messages for direct
-inbox delivery. Sending equivalent content (destination, subject, payload, and
-`DeliverAt`) with a pending ID coalesces with the original message; different content
-throws `InvalidOperationException`.
+- `Send(type, messageId, receiver, body, deliverAt)` 编码和第一阶段
+  信件, 可选排程; 批量超载阶段数个 。
+- 填`SendReply(type, context, destination, body)` 的答
+  收到电文 ID `result` 孩子, 并发送到目的地
+  请求书中载有该请求。
 
-When the receiver is the sending grain, `Send` stages the message's acceptance in
-the grain's own inbox instead of the outbox, applying the inbox's identity rules: an
-ID that is pending with equivalent content or has a retained completion record
-is a duplicate, and a pending ID with different content throws
-`InvalidOperationException`. The acceptance persists in the caller's next journal
-write, atomically with its other staged state, and the inbox processes the message
-once that write completes. Because `Send` is synchronous, the grain's inbox admits the
-message regardless of `MaxCapacity` and of handler registration; an unscheduled
-self-sent message still occupies capacity for other senders until it completes, and
-processing waits for a handler.
+`MessageType<T>.Create` 和 `OutboxMessage.ToInboxMessage(sentAt)` 为直接目的创建信息
+发送等同内容(目的地、主题、有效载荷和
+`DeliverAt`)与原始电文的ID连接未完成;内容不同
+丢弃 `InvalidOperationException`。
 
-## Journal payloads once
+当收件人是发送 grain时, `Send` 将电文的接受阶段从
+应用 grain的“ Q0Q” 身份规则, 使用该“ Q0Q” 自己的箱而不是发件箱, 应用了该信箱的身份规则: a
+具有同等内容或保留完成记录的身份识别证件
+是一个重复的,而一个具有不同内容的待处理身份
+`InvalidOperationException`. 接受情况在调用者的下一期日记中一直存在
+以其他阶段状态原子写入, 并且该收件箱处理此信息
+写完该写完成后。 由于 `Send` 同步, grain的收件箱承认
+不论电文 `MaxCapacity` 和处理人登记;
+自发电文在完成之前仍占据其他发送者的能力,
+处理等待处理者。
 
-When a payload already lives in the grain's own journaled state, an outbox source or
-an inbox sink keeps that state as its only journaled copy. Register both during
-construction or activation setup, before journal recovery.
+<a id="journal-payloads-once"></a>
 
-- `IOutbox.Register(IOutboxMessageSource)` adds a source, and
-  `IOutbox.Send(messageId)` stages a reference entry with the message ID and delivery
-  state. The first source whose `TryGetMessage` returns the message owns it; the
-  outbox calls `TryGetMessage` to validate the send and before each delivery attempt,
-  and the source returns the same `OutboxMessage` while it provides the message. Every
-  delivery rule above applies. `TryGetMessage` returns `false` for a message that
-  isn't the source's. A source withdraws a pending message with
-  `IOutbox.Withdraw(messageId)`, staged in the same journal write that releases its
-  payload: the outbox makes no further attempt and doesn't call `OnRetired`, and an
-  attempt already in flight can still deliver it. When the message retires, the outbox
-  calls `OnRetired` with an `OutboxMessageRetirement`: `Delivered` (the receiver
-  answered `Accepted` or `Duplicate`), `Rejected` (a receiver's sink rejected it, with
-  the sink's `Reason` and `Code`) or `DeadLettered` (the outbox dead-lettered it,
-  with its `Reason`), while it stages the removal, so the source's changes commit in
-  the same journal write. An outbox dead letter stores its own copy of the materialized
-  message, so the source can release its payload in `OnRetired`. After the send, a
-  source that throws, returns an invalid message, such as one with a different ID, or
-  no longer provides its message dead-letters that entry alone in the same journal
-  write as its `DeadLettered` retirement; the grain keeps processing its other
-  messages. That dead letter carries only the message ID, with an empty payload and a
-  default receiver, and its reason records the failure. A recovered entry that no
-  source provides is dead-lettered the same way, without an owner to notify. Sending a
-  pending reference again coalesces; an ID pending as an ordinary message, or one
-  which no source provides, throws `InvalidOperationException`, and an exception or
-  invalid message from the source during `Send` propagates without staging anything.
-  A source message addressed to the sending grain throws `ArgumentException`. A
-  recovered reference fails the activation when no source is registered.
-  `OnRetired` runs once per entry in the current activation. If the activation fails
-  before the retirement write commits, recovery restores the pending entry and the
-  source's prior journaled state, and retiring the recovered entry invokes the
-  callback again. Stage durable callback effects in the same journal write as
-  retirement; make effects outside that write idempotent across repeated calls.
-- `IInbox.Register(IInboxMessageSink)` adds a sink. After validation and
-  deduplication, the inbox offers each message, including self-sent and scheduled
-  messages, to the sinks in order. The first sink whose `TryAccept` returns `true`
-  reports the `DeliveryResult` case:
-  - `Accepted`: the sink staged the message in its own state. The inbox journals
-    only the processed record in the same write and returns `Accepted` once it is
+## 一次日志有效有效载荷
+
+当有效载荷已经生活在 grain自己日记状态、发件箱源或
+收件箱汇槽保持该状态,作为唯一的日记副本。
+或启动装置, 在日记恢复前。
+
+- `IOutbox.Register(IOutboxMessageSource)` 添加一个源,
+  `IOutbox.Send(messageId)` 级中一个带有电文识别和发送信息的参考条目
+  状态。第一个来源的 `TryGetMessage` 返回信息拥有的信息;
+  发件人打电话 `TryGetMessage` 验证发送,每次发货尝试之前,
+  源返回相同的 `OutboxMessage` ,而它提供消息。
+  以上交付规则中, `TryGetMessage` 返回 `false` ,用于电文
+  来源信息撤回了待定消息
+  `IOutbox.Withdraw(messageId)`,在同一日记中播放
+  有效载荷:发件箱不再尝试,也不呼叫 `OnRetired`
+  已经在飞行中尝试中的尝试仍然可以发送它。 当消息退出时, 发件箱
+  调来电话 `OnRetired` 和 A 相 `OutboxMessageRetirement`: `Delivered` (接收人)
+  回答 `Accepted` 或 `Duplicate`, `Rejected` ,(接收器的汇水槽拒绝接受该汇,
+  汇的 `Reason` 和 `Code`)或 `DeadLettered` (以死字命名的发箱)
+  其 `Reason`,在分期清除时,源的变更导致
+  发件箱存有它自己的实现副本
+  使源头能够释放有效载荷 `OnRetired`发送后, a
+  发送、返回无效消息的源,例如使用不同身份的无效信件,或
+  不再提供它的信息 旧字母,单从同一日记
+  写作 `DeadLettered` 退休; grain 处理其其他
+  。该信件中只有信息代号,其中空载荷和
+  默认默认接收器, 其原因记录失败。 回收的条目
+  源代码所提供的来源以相同方式用死字母编号,而没有所有人通知。发送
+  正在等待引用的再次合并; 身份识别码作为普通信息或
+  没有任何来源的,没有给养; `InvalidOperationException`,以及例外或
+  `Send` 发布时源代码的无效信息,没有进行任何活动。
+  发送 grain 时发送的源消息会丢弃 `ArgumentException`。 A
+  恢复的引用在未注册源时失败激活 。
+  当前激活中的`OnRetired` 运行一次当前激活中的每一条目。 如果激活失败
+  在退休书写承诺前,恢复的回收将恢复待填条目和
+  来源源的先前日记状态,并退出回收条目时援引
+  与
+  退休; 在重复电话中, 产生效果, 而不是在写临时能力。
+- `IInbox.Register(IInboxMessageSink)` 添加一个汇清除量。在审定之后和
+  收件箱提供每一信息,包括自同意和预定的
+  返回 `TryAccept` 的第一个汇的 `true`
+  报告 `DeliveryResult` 个案:
+  - `Accepted`:水槽将信息放在自己状态下。
+    只处理同一写作中的已处理记录,一旦返回 `Accepted`
     durable.
-  - `Duplicate`: the sink already holds the message.
-  - `Backpressured`: the sink is at capacity, so the sender retries. A self-sent
-    message fails its `Send` instead.
-  - `DeadLettered`: the sink rejects the message with a reason and an optional
-    application-defined `Code`, such as `orders/duplicate-order`, and the sender's
+  - `Duplicate`:水槽已经持有此信件。
+  - `Backpressured`:汇的容量是吸收能力,发送方重试。
+    信件失败 `Send` 。
+  - `DeadLettered`:水槽拒绝电文,有原因和可选
+    定义的应用程序 `Code`,例如 `orders/duplicate-order`等
     source receives both in a `Rejected` retirement. The processed record keeps the
     reason and code, so a retained duplicate, such as a retry whose first answer was
     lost, is rejected the same way. This is the only permanent rejection.
 
-  A sink exception, or any other case, leaves the outcome unknown: the inbox stages
-  nothing and the delivery fails, so the sender's outbox retries it with backoff
-  until `OutboxRetryTimeout`, and a self-sent message fails its `Send`.
-  Sink-owned messages never occupy capacity and have no inbox retry lifecycle; the
-  sink honors their `DeliverAt`. Declined messages follow the handler path once
-  `DeliverAt` passes. Retained completion records deduplicate before a sink runs;
-  the durable admission floor expires an untracked message's old send time.
-- `IInbox.RegisterWakeup(getWakeupDelay)` adds a callback for a component, such as a
-  sink, that holds durable work in the grain's journal. It returns how soon a
-  deactivated grain must wake to resume that work, or `null` when none is pending.
-  Every journal write that leaves work pending schedules the messaging wake-up before
-  it is stored, and the wake-up reactivates the grain until the work clears. The
-  component resumes its work on activation.
+  汇的例外或其他任何情况,结果不明:收件箱阶段
+  送货没有结果,所以发件人用后卸回的发件箱重新处理
+  直到 `OutboxRetryTimeout`,而自发的电文失败了 `Send`.
+  由Sink所有的信息从不占用容量,也没有信箱重试生命周期;
+  下个 命令 $ `DeliverAt`。 拒绝的消息会跟随处理器路径一次
+  `DeliverAt` 传阅。在汇流运行前保存的完成记录已变质;
+  永久的入场底数过期了 一段未追踪的信件是旧发件时间
+- `IInbox.RegisterWakeup(getWakeupDelay)` 添加一个组件的回调,例如
+  中具有耐久性的工作 grain日记数,它返回多快
+  已停用 grain 必须醒过来恢复这项工作, 或在无工作未决时 `null` 。
+  每一期杂志在等待信息提醒时间前,
+  将它储存起来,而觉醒者又复活了; grain 直到工作结束。
+  部件恢复启动工作。
 
-## Delivery and processing
+<a id="delivery-and-processing"></a>
 
-Staged outgoing messages are delivered only after the sender's journal write
-completes. Accepted inbox messages are processed only after the receiver's journal
-write completes and, for a message with `DeliverAt`, once the Durable Jobs clock
-reaches that time. Scheduled messages are delivered and accepted immediately, and a
-scheduled message a grain sends to itself is accepted in the sending write; each
-stays in the receiver's journal until it is due. Each receiver returns one
-`DeliveryResult` case:
+## 交付和处理
 
-- `Accepted`: the message is durable in the inbox, or, for a message an inbox sink
-  accepted, in the sink's state together with its processed record.
-- `Duplicate`: the message ID is pending or has a retained processed record. A
-  duplicate of a message that a sink rejected receives that rejection instead.
-- `Backpressured`: the inbox holds `MaxCapacity` pending messages. The inbox admits
-  messages its grain sends to itself regardless of `MaxCapacity`.
-- `HandlerNotFound`: the receiver has no registered handlers.
-- `DeadLettered`: an inbox sink durably rejected the message, with a reason and an
-  optional `Code`.
-- `Expired`: the message was sent before the receiver's deduplication window and
-  the receiver retains no outcome for it. This attempt stages no message effects;
-  an earlier attempt can have been accepted, so the delivery outcome is unknown.
+只有在发送者日记写后才能发送分阶段发送的讯息
+收到的信息箱信息仅在接收器日记之后处理
+完成写作, 且在永久工作时段( Q0Q) 完成后, 给您发一封 `DeliverAt`的邮件
+立即发送和接受排程信件,并
+发送书写中接受 grain 发送给自己的排定信件;每个
+保存在接收器日记到到期时。 每个接收器返回一个
+`DeliveryResult` 案例:
 
-`Accepted`, `Duplicate`, and `DeadLettered` remove the outbox entry. `Expired`
-keeps a sender dead letter and retires the entry with its earlier outcome unknown.
-Any other outcome schedules a durable retry with exponential backoff, and
-the outbox keeps up to `OutboxBatchSize` attempts in flight, so a slow receiver
-delays only its own messages. Backpressure shares the send's absolute retry budget.
-The outbox logs `HandlerNotFound` as an error. Other failures, including
-calls which fail without an answer during an outage, dead-letter the message once
-`OutboxRetryTimeout` (6 hours) elapses after it was sent. Retry deadlines and
-backoff follow the Durable Jobs clock. Delivery order is unspecified.
+- `Accepted`:信件在收件箱中是耐久的,或者,对于信息来说是收件箱汇
+  被接受,在汇的状态 连同处理的记录。
+- `Duplicate`:电文识别码待处理或有保留处理的记录。
+  发送信息,但汇的拒绝者将接收该信息。
+- `Backpressured`: 收件箱持有 `MaxCapacity` 待发信件。 收件箱接收
+  其电文 grain 无论向自己发送,而不论 `MaxCapacity`。
+- `HandlerNotFound`:接收者没有注册的操作员。
+- `DeadLettered`:一个收件箱槽可下潜地拒绝该信息,并有原因和理由
+  可选 `Code`。
+- `Expired`:电文是在接收器的解码窗口前发送的,
+  接收器没有结果,这种尝试没有产生电文效果;
+  早先的尝试本来可以被接受,因此交付结果不详。
 
-Each activation runs one messaging pump on its scheduler, processing inbox batches
-and delivering outbox messages. One durable job per grain wakes the pump while either
-queue or a registered wake-up callback holds work. Journaled state determines which
-messages are due, so each wake-up processes exactly the ready work. A live activation
-processes due work as soon as it is durable; the job covers a failed activation, so
-work that is already due resumes within about a second of recovery. The job retries
-indefinitely with backoff while activation fails, and every activation re-arms it
-from recovered state, so committed work always keeps a wake-up.
+`Accepted`, `Duplicate`,和 `DeadLettered` 删除发件箱条目。 `Expired`
+发送者保留了死亡信,并退出条目,其先前的结果不详。
+任何其他结果都计划以指数反弹进行耐久的重试,
+发箱保持了飞行中的 `OutboxBatchSize` 尝试,所以是一个慢接收器
+后压共享发送的绝对重试预算 。
+发箱日志 `HandlerNotFound` 是一个错误。其他失败,包括
+断电时无答不通的电话 断电时断断电
+`OutboxRetryTimeout` 发送后(6小时),会发生故障。
+工作持续时间后,请在后退。未注明交货订单。
 
-## State
+每个启动程序都在其调度器上运行一个信息泵,处理箱批次
+发送发件箱信息。 一次 grain 的持久工作会唤醒泵, 而两者中之一
+或注册的催醒回召提示工作 。
+信件到期, 所以每个提醒进程都完全可以完成。 启动
+一旦工作持续,即进行适当的工作;该工作包括一次失败的激活,因此
+已经到期的工作在恢复后大约一秒钟内恢复。
+激活失败时, 将后退永久后卸, 而每次激活都重新武装它
+恢复状态后,所以投入的工作总是会唤醒人们。
 
-The inbox and the outbox are event-sourced journal states named
-`orleans.messaging.inbox` and `orleans.messaging.outbox`, and work with the JSON and
-Orleans binary journal formats. They persist alongside the grain's other journaled
-state. After the grain's state is deleted, both start empty and continue working.
+<a id="state"></a>
 
-Completed message IDs become eligible for removal after `DeduplicationWindow`
-from their accepted `SentAt`. Acknowledged snapshots and recovery reclaim
-eligible records once the admission floor covers their send time. Dead letters are
-retained up to `DeadLetterRetentionPeriod` and `MaxRetainedDeadLetters` for each queue.
-Dead-letter timestamps and retention follow the grain's `TimeProvider`.
+## 状态状态状态状态
 
-## Diagnostics
+信箱和发件箱是事件源
+`orleans.messaging.inbox` 和 `orleans.messaging.outbox`,并与 JSON 和
+Orleans 二进制日记日记格式,它们与 grain其他日记保持了连续
+状态。删除 grain状态后,既开始空位,又继续工作。
 
-`IMessagingDiagnostics` exposes `InboxDeadLetters` and `OutboxDeadLetters`, with each
-record's message, reason, attempt count, and dead-letter time.
-`RemoveInboxDeadLetter` and `RemoveOutboxDeadLetter` remove records, durably at the
-grain's next journal write.
+`DeduplicationWindow`之后,填全的邮件识别号有资格被清除
+所接受的受 `SentAt`承认的近照和收回回收
+一旦入院楼层覆盖其发送时间,合格记录即符合资格。
+每个队列保留到 `DeadLetterRetentionPeriod` 和 `MaxRetainedDeadLetters` 。
+字母时间戳和保留在 grain `TimeProvider`之后。
 
-The `Microsoft.Orleans` meter publishes counters for received, processed, sent, and
-delivered messages tagged by grain type and status; histograms for processing and
-delivery duration; and `orleans-messaging-inbox-depth` and
-`orleans-messaging-outbox-depth` up-down counters for pending work. A message a grain
-sends to itself counts as sent and as received by its inbox, and never contributes
-to outbox delivery or depth. Reference sends count as sent; a reference entry whose
-source fails to provide its message counts as delivered `source_error`. A message an
-inbox sink accepts counts as received `accepted` and processed `success`; one which
-the sink rejects counts as received and processed `dead_lettered`.
+<a id="diagnostics"></a>
 
-`MessagingEvents`, the `Orleans.Messaging` diagnostic listener, reports each transition
-synchronously on the activation which makes it: `InboxMessageReceiving` before the inbox
-stages a delivered message, `OutboxRetryScheduled` when a failed delivery is rescheduled,
-and `OutboxMessageRetired` when a message retires. Each event carries the activation's
-`IGrainContext`. Tests use the events as barriers, and inject a delivery fault by throwing
-from an `InboxMessageReceiving` observer, which fails the attempt like a sink exception.
+## 诊断
 
-`DurableMessagingOptions` configures capacity, batch sizes, retries, deduplication,
-and dead-letter retention.
+`IMessagingDiagnostics` 暴露 `InboxDeadLetters` 和 `OutboxDeadLetters`,每个
+记录的信息,理由,尝试数数和死字时间。
+`RemoveInboxDeadLetter` 和 `RemoveOutboxDeadLetter` 删除记录,可久
+grain的下一期日记写入 。
 
-## Deduplication window
+下 `Microsoft.Orleans` 用于接收、处理、发送和
+以 grain 类型和状态标记的已发邮件;用于处理和
+交付期;以及 `orleans-messaging-inbox-depth` 和
+`orleans-messaging-outbox-depth` 待定工作的上下调计数器。 消息 a grain
+向自己发送其收件箱所送发的和收到的编号,而永不捐款
+发送框, 发送或深度。 引用会按发送时的编号发送引用; 一个引用条目
+来源未提供已发信件数 `source_error`。
+收件箱汇清除量单位接受收到 `accepted` 和处理 `success`的计数;一个
+汇的拒绝计为收到和处理的 `dead_lettered`。
 
-The outbox journals each send's `SentAt` time; every delivery attempt and recovery
-reuses it. `OutboxRetryTimeout`, six hours by default, bounds delivery attempts
-after that time, including while the receiver is backpressured.
+`MessagingEvents`, `Orleans.Messaging` 诊断听器,报告每个过渡阶段
+同步激活, 从而让它发生: `InboxMessageReceiving` 在收件箱前
+发送电文的各阶段, `OutboxRetryScheduled` 在重订一次交付失败时,
+和电文失效时的 `OutboxMessageRetired` 。每个事件都带有激活
+`IGrainContext`. 试验将事件作为障碍,并用投掷物来注入交货过失
+从 a 中 `InboxMessageReceiving` 观察者,它失败了尝试 像一个汇例外。
 
-The inbox retains each processed record for `DeduplicationWindow`, seven days by
-default, after its accepted `SentAt`, and then makes it eligible for removal. Before removing records,
-the inbox journals an admission floor: its clock minus `DeduplicationWindow`, which
-only advances. Pending and processed records determine known outcomes first. A
-message the inbox no longer tracks whose `SentAt` is at or below the floor receives
-`Expired` before any sink or handler runs. Recovery preserves the floor.
-The inbox never accepts a delivered `SentAt` later than its clock plus
-`DeduplicationWindow`. It rejects such a delivery of an untracked message above the
-admission floor with `ArgumentOutOfRangeException`, staging nothing, so the sender
-retries it within its retry budget. A tracked message still receives its recorded
-outcome, including after the receiver's clock steps backward, and an untracked
-message at or below the floor still receives `Expired`. A grain's messages to itself
-use its clock, or the first time above the floor after a backward clock jump.
-Pending messages stay until they are processed, and completed records become eligible
-for removal within twice the window of the receiver's clock, or just after the floor
-when a self-send follows a backward jump.
+`DurableMessagingOptions` 配置容量、批量大小、回溯性、重复性、
+和死字保留。
 
-A forward clock jump can expire undelivered work early; a backward jump can delay
-cleanup and prolong retries. The journaled floor keeps removed messages expired in
-both cases. Direct callers reuse a command's `SentAt` across retries.
-`OutboxRetryTimeout` must be shorter than `DeduplicationWindow`, so the retry
-budget ends within the receiver's retention window.
+<a id="deduplication-window"></a>
 
-## Recoverable terminal outcomes
+## 调解窗口
 
-Applications which need to respond durably to expired or rejected sends register
-an `IOutboxMessageSource` and stage those sends through `IOutbox.Send(messageId)`.
-In `OnRetired`, stage the application's terminal outcome and any pending follow-up
-work in journaled state, alongside releasing the source's payload. That work commits
-atomically with outbox retirement and is recovered with the grain after a crash.
-Stage a self-addressed inbox message in that callback to resume follow-up through
-the messaging pump's durable wake-up and handler path after recovery.
+寄送的发件日记 `SentAt` 时间; 每次运送尝试和恢复
+`OutboxRetryTimeout`,默认6小时后,将交付尝试捆绑起来
+在那日之后,包括接受者受后退。
 
-`Delivered` means the receiver durably accepted the message or recognized it as a
-duplicate. `Rejected` carries the receiver's durable rejection. `DeadLettered`
-means the outbox stopped delivering and the receiver's earlier outcome is unknown,
-including when it received `Expired`. Reconcile uncertain outcomes using the
-application's idempotency protocol before initiating a new send. Reuse the
-original `SentAt` for retries of the same logical send.
+收件箱保留每个处理记录7天, `DeduplicationWindow`
+默认值, 在被接受 `SentAt`后, 然后使其有资格被删除。 在删除记录之前,
+收件箱日记簿上的一个入场数:其时钟减去 `DeduplicationWindow`,
+有待处理和已处理的记录首先确定已知结果。
+信息框中不再有 `SentAt` 位于或低于该层的音轨
+在任何汇或处理器运行之前`Expired` 。回收会保留地板。
+收件箱在收发单时间后再也不会接受已发货 `SentAt`
+`DeduplicationWindow`. 不接受在[备查]上方发送未记录电文的这种发送
+允许进入的楼层 `ArgumentOutOfRangeException`,无任何动作,所以发件人
+在其重试预算范围内重新重新检查它。
+接收器时钟后后退后和未跟踪的结果
+仍然收到 `Expired`. A grain给它自己的邮件
+使用它的时钟,或者在后钟跳过之后第一次在地板上方。
+将待处理的留言留待处理,直至处理完毕的记录符合资格
+以在接收器钟窗的两倍内或仅于地板后移走
+当自我发送后 后向跳跃。
 
-Dead-letter retention limits control diagnostic history. The application-owned
-outcome and follow-up work have the lifetime the application gives them.
-## Learn more
+提前时钟跳可以提前结束未完成的工作;后向跳可以推迟
+清除并延长重试。 日记楼层保存已过期的删除信件
+直接呼叫者在重复使用命令 `SentAt` 时,对重试重复使用。
+`OutboxRetryTimeout` 必须短于 `DeduplicationWindow`, 所以重试
+接收方保留窗口的预算将结束。
 
-See the [messaging guide](https://dotnet.github.io/orleans/docs/grains/messaging/)
-for guarantees, recipes, idempotency, and operations. Compiled examples live in the
-[documentation snippets](../../docs/site/src/content/docs/snippets/compiled/Grains/).
+<a id="recoverable-terminal-outcomes"></a>
+
+## 可回收的终端结果
+
+申请如过期或被拒,需长期对过期或被拒的申请作出答复
+一种 `IOutboxMessageSource` ,并排成一个通过 `IOutbox.Send(messageId)`发送的。
+在 `OnRetired`中,阶段申请的最终结果和任何待处理的后续行动
+以日记状态工作,同时释放源头的有效载荷。
+以发件箱退出原子弹,然后在坠机后与 grain 一起收回。
+阶段 一个自用信息箱的 信息在回回回回中 恢复后续跟进
+信息泵的持久警醒和处理器路径 恢复后。
+
+`Delivered` 系指接收人长期接受该电文或承认其为
+重复。 `Rejected` 携带接收者的持久拒绝。 `DeadLettered`
+表示发送盒停止了发送, 接收器的早期结果未知,
+使用 `Expired`对不确定性结果进行调和
+启动新发送前应用程序的应急程序协议。
+用于同一逻辑发送的重写原始 `SentAt` 。
+
+使用自有软件
+申请给予的寿命为结果和后续工作。
+<a id="learn-more"></a>
+
+## 学习更多
+
+见 [信息通讯指南](https://dotnet.github.io/orleans/docs/grains/messaging/)
+所汇编的例子见于《联合国国际仲裁裁决汇编》,
+[文档辅助片段](../../docs/site/src/content/docs/snippets/compiled/Grains/).

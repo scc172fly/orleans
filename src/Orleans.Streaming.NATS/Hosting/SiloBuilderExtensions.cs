@@ -4,17 +4,17 @@ using Orleans.Hosting;
 namespace Orleans.Streaming.NATS.Hosting;
 
 /// <summary>
-/// Provides extensions for configuring NATS JetStream providers on an Orleans silo.
+/// 提供配置NATS 的扩展 JetStream 提供方在 Orleans silo.
 /// </summary>
 public static class SiloBuilderExtensions
 {
     /// <summary>
-    /// Configures the silo to use a NATS JetStream provider.
+    /// 配置 silo 使用 NATS 来使用NATS JetStream 提供商。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="configureOptions">The delegate used to configure the provider.</param>
-    /// <returns>The same <paramref name="builder"/> instance.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="configureOptions">用于配置提供者的代表。</param>
+    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
     public static ISiloBuilder AddNatsStreams(this ISiloBuilder builder, string name,
         Action<NatsOptions> configureOptions)
     {
@@ -24,15 +24,15 @@ public static class SiloBuilderExtensions
     }
 
     /// <summary>
-    /// Configures the silo to use a NATS JetStream provider.
+    /// 配置 silo 使用 NATS 来使用NATS JetStream 提供商。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="name">The stream provider name.</param>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="name">流体提供者名称。</param>
     /// <param name="configure">
-    /// The delegate used to configure the provider, or <see langword="null"/> to omit inline configuration.
-    /// Required options, including <see cref="NatsOptions.StreamName"/>, must be configured separately.
+    /// 用于配置提供者的代表,或用于删除内嵌配置的 <see langword="null"/> 代表。
+    /// 包括 <see cref="NatsOptions.StreamName"/>在内的所需选项必须单独配置。
     /// </param>
-    /// <returns>The same <paramref name="builder"/> instance.</returns>
+    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
     public static ISiloBuilder AddNatsStreams(this ISiloBuilder builder, string name,
         Action<SiloNatsStreamConfigurator>? configure)
     {

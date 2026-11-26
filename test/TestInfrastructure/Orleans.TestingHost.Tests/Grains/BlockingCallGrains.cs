@@ -26,9 +26,9 @@ namespace Orleans.TestingHost.Tests.Grains
     }
 
     /// <summary>
-    /// A regular grain which blocks until the test releases it, holding the response to a call open so
-    /// the caller stays in-flight. State is keyed by the grain's primary key so each test is isolated
-    /// from the process-wide statics used by the others.
+    /// A 常设经常定期 grain 将响应按住一个呼叫的响应, 以打开
+    /// 调用者在飞行中停留。国家用 grain主密钥键系国家,因此每个测试都是孤立的
+    /// 由其他方使用的全过程静态中产生的。
     /// </summary>
     public class RemoteBlockerGrain : Grain, IRemoteBlockerGrain
     {
@@ -59,10 +59,10 @@ namespace Orleans.TestingHost.Tests.Grains
     }
 
     /// <summary>
-    /// A stateless worker (placed local to its caller) which makes an outbound call and awaits the
-    /// response. When its silo is killed while this call is in-flight, the grain context disposal
-    /// awaits deactivation of this worker. If the first call faults during shutdown, the worker retries
-    /// to verify that no new callback can be registered after the shutdown callback sweep.
+    /// 无国籍工人(当地人,由当地人打来),他发出外向的呼唤,等待着
+    /// 。当其 silo 在呼声在飞行中时被杀死时, grain 上下文处置
+    /// 如果在停工期间发生第一个呼叫故障,工人将重新计票。
+    /// 以核实在关闭回击扫描后, 任何新的回调都无法登记 。
     /// </summary>
     [StatelessWorker(1)]
     public class LocalWorkerGrain : Grain, ILocalWorkerGrain
@@ -81,8 +81,8 @@ namespace Orleans.TestingHost.Tests.Grains
     }
 
     /// <summary>
-    /// A regular (identity-placed) grain used to trigger the stateless worker call so the worker is
-    /// co-located on this grain's silo, giving the test a deterministic silo to kill.
+    /// 通常使用一种(身份 -- -- 地点) grain ,触发无国籍工人的呼唤,因此该工人
+    /// 将 grain silo放在此处,给测试一个确定性 silo 来杀死。
     /// </summary>
     public class LauncherGrain : Grain, ILauncherGrain
     {
@@ -91,8 +91,8 @@ namespace Orleans.TestingHost.Tests.Grains
 
         public Task StartBlockingCall(ILocalWorkerGrain worker, IRemoteBlockerGrain remote)
         {
-            // Fire-and-forget so this grain does not itself block. The stateless worker is placed on
-            // this silo and will block awaiting the remote response.
+            // 火烧而忘记,所以这 grain 本身并不能阻挡。
+            // 下个 silo 将阻挡远程响应
             _ = worker.CallRemote(remote);
             return Task.CompletedTask;
         }

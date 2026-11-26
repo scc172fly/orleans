@@ -39,8 +39,8 @@ public sealed class DurableStateManagerGrainTests(DurableStateManagerIntegration
         Assert.DoesNotContain(builder.Services, descriptor =>
             descriptor.ServiceType == typeof(IConfigureGrainTypeComponents));
 
-        // Keep the real empty-journal read protocol, while counting reads independently
-        // of recovery completion so an extra read cannot hide behind an idempotent observer.
+        // 保持真正的空日记阅读协议, 同时独立计数读取
+        // 恢复完成后,额外阅读无法隐藏在一无所能的观察员背后。
         var innerStorage = new VolatileJournalStorage();
         var storage = Substitute.For<IJournalStorage>();
         storage.ReadAsync(Arg.Any<IJournalStorageConsumer>(), Arg.Any<CancellationToken>())
@@ -142,7 +142,7 @@ public sealed class DurableStateManagerGrainTests(DurableStateManagerIntegration
             await grain.Cast<IGrainManagementExtension>().DeactivateOnIdle(TestContext.Current.CancellationToken);
 
             phase = "first application read on a fresh activation";
-            // Do not call another grain method before this read: recovery must precede it.
+            // 不再调用其它 grain 此处改为:必须先追偿。
             Assert.Equal(42, await grain.GetValue());
             Assert.Equal(1, await grain.GetFirstReadRecoveryCount());
             Assert.Equal(new[] { "saved" }, await grain.GetItems());
@@ -186,7 +186,7 @@ public sealed class DurableStateManagerIntegrationFixture : IntegrationTestFixtu
 {
     protected override void ConfigureTestCluster(InProcessTestClusterBuilder builder)
     {
-        // The base constructor calls this hook. Do not depend on derived instance fields.
+        // 基建工称此勾。 不依赖于衍生的示例字段 。
         builder.ConfigureSilo((_, siloBuilder) =>
         {
             siloBuilder.AddJournaling();

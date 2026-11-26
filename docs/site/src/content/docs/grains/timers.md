@@ -1,77 +1,97 @@
 ---
-title: Grain timers
-description: Schedule activation-scoped periodic work as Orleans grain turns.
+title: "Grain 计时器"
+description: "将 Orleans grain 转动时的周期工作排入启动范围。"
 ms.date: 10/15/2026
 ms.topic: concept-article
 ---
 
-# Grain timers
+<a id="grain-timers"></a>
 
-A grain timer schedules periodic work for one grain activation. Each callback executes as a grain turn on that activation and follows Orleans request scheduling, tracing, and grain call filter behavior. The runtime owns the timer for the activation lifetime and discards it when the activation deactivates.
+# Grain 计时器
 
-Use a grain timer for frequent work whose lifetime and state belong to the current activation. Use a [reminder](reminders.md) when the schedule belongs to the logical grain and must survive activation or cluster lifecycle changes.
+A grain 定期工作 grain 激活。 每个回调执行时, 以 A grain 启动并随后 Orleans 请求安排、跟踪和 grain 运行时拥有激活寿命的定时器, 当启动失效时丢弃它 。
 
-To run a callback once as a grain request, use <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>. See [Request scheduling](request-scheduling.md#run-background-work-as-a-grain-request).
+使用 a grain 使用一个 [提醒提醒](reminders.md) 当附表属于逻辑 grain 并且必须活下来活化或集群生命周期变化。
 
-## Register a grain timer
+要作为 grain 请求再运行一次回调,请使用 <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>。见 [请求安排](request-scheduling.md#run-background-work-as-a-grain-request)。
 
-Register timers with <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*>. <xref:Orleans.Grain.RegisterTimer*> is obsolete.
+<a id="register-a-grain-timer"></a>
+
+## 注册 grain 计时器
+
+登记计时器 <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*>. <xref:Orleans.Grain.RegisterTimer*> 已经过时。
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="grain_timer":::
 
-<xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*> returns <xref:Orleans.Runtime.IGrainTimer>. Keep the handle when the activation needs to change or stop the schedule.
+<xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*> 返回 <xref:Orleans.Runtime.IGrainTimer>。当激活需要更改或停止计划时, 保留控点 。
 
-## Timer behavior
+<a id="timer-behavior"></a>
+
+## 计时器行为
 
 <xref:Orleans.Runtime.GrainTimerCreationOptions> controls the initial schedule and callback behavior:
 
-| Property | Default | Runtime behavior |
+| 财产 | 默认默认 | 运行时行为 |
 |---|---:|---|
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.DueTime> | Required | Delays the first callback. <xref:System.TimeSpan.Zero> schedules it immediately, and <xref:System.Threading.Timeout.InfiniteTimeSpan> leaves the timer paused. |
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.Period> | Required | Delays the next callback after the current callback completes. <xref:System.Threading.Timeout.InfiniteTimeSpan> creates a single scheduled callback. |
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> | `false` | Applies the grain's normal reentrancy rules. `true` allows the callback to interleave with other grain calls and timers. |
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> | `false` | Controls whether each callback extends the activation's idle lifetime. |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.DueTime> | 需要 | 延迟第一次调回。 <xref:System.TimeSpan.Zero> 立即安排时间, <xref:System.Threading.Timeout.InfiniteTimeSpan> 使计时器暂停。 |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.Period> | 需要 | 在当前回调完成后延迟下次回调。 <xref:System.Threading.Timeout.InfiniteTimeSpan> 创建一个单列的回调 。 |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> | `false` | 应用 grain的正常恢复规则。 `true` 允许回调与其他 grain 电话和计时器交叉接驳。 |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> | `false` | 控制每个回调是否延长激活的闲置寿命。 |
 
-### Callback scheduling
+<a id="callback-scheduling"></a>
 
-A timer callback never overlaps itself. Orleans waits for the callback task to complete and then measures the period before scheduling the next callback. Callback duration therefore adds to the interval between callback starts.
+### 召回日程安排
 
-Timer callbacks are local-only messages addressed to their activation. They participate in normal turn scheduling and stay on the activation which registered them.
+计时回调从不重叠。 Orleans 等待回调任务完成,然后在排好下次回调之前测量时间段。 因此回调时间会增加回调开始之间的间隔 。
 
-### Interleaving
+时间回调是仅针对本地的信号, 用于激活它们。 他们参加正常的转班日程安排, 并保留注册的激活时间 。
 
-With <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> set to `false`, the callback follows the grain's reentrancy configuration like a grain method call. A non-reentrant grain processes the callback without interleaving it with other requests. A reentrant grain can interleave the callback according to its scheduling rules.
+<a id="interleaving"></a>
 
-Set <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> to `true` when the callback can safely observe grain state changing across awaits while other turns execute.
+### 间隔
 
-### Activation lifetime
+与 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> 设置至 `false`,回调后 grain的再生配置 grain 方法呼叫。 grain 进程调回时,不与其他请求连接。重新输入 grain 可根据日程安排规则中断回调。
 
-Timer callbacks leave the activation's idle lifetime unchanged by default. Orleans can collect an otherwise idle activation, which ends all timers owned by that activation.
+设定 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> 至 `true` 当召唤能安全地观察的时候, grain 状态在等待时发生变化, 而其他旋转执行 。
 
-With <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> set to `true`, each callback extends the activation lifetime. A period shorter than the configured idle collection period keeps the activation active through successive callbacks. Infrequent callbacks still allow collection between ticks.
+<a id="activation-lifetime"></a>
 
-## Change or stop a timer
+### 启动寿命
 
-Call <xref:Orleans.Runtime.IGrainTimer.Change*> to replace the due time and period. The new due time schedules the next callback, and the new period applies after that callback completes. A change made inside a running callback takes effect after the callback completes.
+计时回调使激活的闲置寿命不变。 Orleans 能够收集其它闲置的激活, 从而结束激活的所有定时器 。
 
-Dispose <xref:Orleans.Runtime.IGrainTimer> to cancel its callback token and stop future callbacks. Orleans also cancels the token and disposes the timer when the activation begins deactivating.
+设置 <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> 到 `true`, 每次回调都会延长激活寿命。 比配置的闲置收集期短的一段时间会通过连续回调来保持激活活动。 反复回调仍然允许在选中之间进行收藏 。
 
-## Handle callback failures
+<a id="change-or-stop-a-timer"></a>
 
-Orleans logs exceptions returned by a timer callback and schedules the next callback after the configured period. Keep application state consistent before allowing an exception to escape, and use grain state or another durable store when recovery must span activation failure.
+## 更改或停止定时器
 
-The callback's <xref:System.Threading.CancellationToken> signals timer disposal and activation shutdown. Observe it in asynchronous work so deactivation can complete promptly.
+调用 <xref:Orleans.Runtime.IGrainTimer.Change*> 以替换到期时间和期间。新的到期时间安排下一个回调,新时期则在回调完成后适用。在回调结束后,在回调中作出的更改生效。
 
-## POCO grains
+丢弃 <xref:Orleans.Runtime.IGrainTimer> 以取消调回牌并停止未来的调回。 Orleans 也取消调回牌,并在激活开始停用时处置计时器。
 
-Grains implementing <xref:Orleans.IGrainBase> directly use <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*>. Inject <xref:Orleans.Timers.ITimerRegistry> when infrastructure code needs lower-level registration through the current <xref:Orleans.Runtime.IGrainContext>.
+<a id="handle-callback-failures"></a>
 
-## Troubleshoot grain timers
+## 处理回调失败
 
-| Observed behavior | Runtime behavior and action |
+Orleans 记录例外被计时器回调返回, 并计划在配置的期间后下次回调。 在允许例外逃跑之前保持应用程序状态一致, 当恢复必须跨越激活失败时使用 grain 状态或其他耐久存储 。
+
+调回 <xref:System.Threading.CancellationToken> 信号计时器处理和启动关闭。 在非同步工作中观察它, 这样解除功能就能迅速完成 。
+
+<a id="poco-grains"></a>
+
+## 波哥 grains
+
+Grains 执行中 <xref:Orleans.IGrainBase> 直接使用 <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*>注射 <xref:Orleans.Timers.ITimerRegistry> 基础设施法规需要低级别登记时, <xref:Orleans.Runtime.IGrainContext>.
+
+<a id="troubleshoot-grain-timers"></a>
+
+## 排除故障计时器 grain
+
+| 观察行为 | 运行时行为和行动 |
 |---|---|
-| The timer ends after activation collection or silo failure. | The timer belongs to that activation. Register it during activation setup, or use a [reminder](reminders.md) for a schedule which survives activation changes. |
-| Callback starts drift later than wall-clock intervals. | Orleans measures the period after callback completion. Shorten the callback, adjust the period, or model wall-clock scheduling with durable application state. |
-| Other grain calls execute while the callback awaits. | The grain is reentrant or the timer enables <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave>. Protect invariants across await points or use non-interleaved scheduling. |
-| An idle activation remains active. | <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> extends its lifetime on each callback. Set it to `false` when collection should follow the normal idle timeout. |
-| A callback exception appears repeatedly. | Orleans logs the exception and continues the schedule. Make the callback converge from durable state, then resolve the underlying failure. |
+| 定时器在激活收藏或 silo 故障后结束。 | 定时器属于激活。 在启动设置过程中注册, 或者使用 [提醒提醒](reminders.md) 来保存激活的更改 。 |
+| 回召开始漂移 时间间隔超过墙时段 。 | Orleans 测量回调完成后的时期。缩短回调时间,调整时间或按长效应用状态的墙上时钟表模式。 |
+| 其他 grain 呼叫在等待回拨时执行。 | grain 是重新输入, 或定时器启用 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave>。 保护等待点之间的异位数或使用非间断时间排程 。 |
+| 闲置激活活动仍然在运行。 | <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> 延长每次回调的寿命。 当收藏应该遵循正常闲置超时后, 请将其设为 `false` 。 |
+| 重复回调的例外情况屡次出现。 | Orleans 记录例外情形并继续执行时间表。让回调从耐久状态中趋同,然后解决潜在的故障。 |

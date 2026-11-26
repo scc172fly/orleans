@@ -6,17 +6,17 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Serialization.Buffers
 {
     /// <summary>
-    /// Extensions for working with <see cref="IBufferWriter{Byte}"/> implementations.
+    /// 与 <see cref="IBufferWriter{Byte}"/> 执行有关的工作延期。
     /// </summary>
     public static class BufferWriterExtensions
     {
         /// <summary>
-        /// Creates a <see cref="Writer{TBufferWriter}"/> instance for the provided buffer.
+        /// 为提供的缓冲创建 <see cref="Writer{TBufferWriter}"/> 实例。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The type of the buffer writer.</typeparam>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new writer.</returns>
+        /// <typeparam name="TBufferWriter">缓冲写作器的类型。</typeparam>
+        /// <param name="buffer">缓冲。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>新作家。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<TBufferWriter> CreateWriter<TBufferWriter>(this TBufferWriter buffer, SerializerSession session) where TBufferWriter : IBufferWriter<byte>
         {

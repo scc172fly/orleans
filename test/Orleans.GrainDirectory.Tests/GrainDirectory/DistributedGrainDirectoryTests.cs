@@ -40,8 +40,8 @@ public sealed class DefaultGrainDirectoryFixture : BaseTestClusterFixture
     private sealed class SyntheticMembershipConfigurator : ISiloConfigurator
     {
         public void Configure(ISiloBuilder siloBuilder) =>
-            // The provider contract tests register synthetic, absent silos with fixed generations.
-            // Their directory semantics are independent of clock-derived generation retirement.
+            // 供应商合同测试对固定代人进行合成登记,而不在 silos 。
+            // 他们的目录语义与按时钟计算的退休无关。
             siloBuilder.Configure<ClusterMembershipOptions>(options => options.SiloGenerationRetirementAge = null);
     }
 }

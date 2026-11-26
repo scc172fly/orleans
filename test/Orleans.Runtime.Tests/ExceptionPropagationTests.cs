@@ -7,21 +7,21 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Comprehensive tests for exception propagation across Orleans' distributed system boundaries.
+    /// 全面测试例外情形,在 Orleans分布式系统边界上传播。
     /// 
-    /// Orleans must correctly propagate exceptions from grains back to callers, preserving:
-    /// - Original exception types and messages
-    /// - Stack traces from the remote grain (critical for debugging distributed systems)
-    /// - AggregateException structure (not unwrapped)
-    /// - Task cancellation semantics
+    /// Orleans 必须正确地向调用者宣传从 grains 返回的例外, 并保存:
+    /// - 原始例外类型和讯息
+    /// - 远程 grain (对调试分布式系统关键)的堆积痕迹
+    /// - AggregateException 结构(未解包)
+    /// - 任务取消语义
     /// 
-    /// These tests also verify exception propagation during serialization/deserialization failures,
-    /// which can occur at multiple points:
-    /// - Client -> Grain (request/response)
-    /// - Grain -> Client (callbacks)
-    /// - Grain -> Grain (cross-silo calls)
+    /// 这些测试还核查了序列/下层机能失效期间的例外传播情况,
+    /// 可在多个点发生:
+    /// - 客户客户 - > Grain (要求/答复)
+    /// - Grain - > 客户端(回召)
+    /// - Grain -- > Grain (交叉silo 调用)
     /// 
-    /// Proper exception handling is crucial for debugging and maintaining distributed applications.
+    /// 适当的例外处理对调试和维护分布式应用程序至关重要。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -50,8 +50,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that different exception types thrown by grains are correctly
-        /// propagated to the calling client with their original type and message intact.
+        /// 证明 grains 提出的不同例外类型正确无误
+        /// 以原始类型和讯息完整地向呼叫客户传播
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task ExceptionsPropagatedFromGrainToClient()
@@ -66,8 +66,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Basic test ensuring that exceptions thrown in grain methods
-        /// are propagated back to the caller as the same exception type.
+        /// 确保采用 grain 方法的例外情形的基本检验
+        /// 与同一例外类型一样,被传播回至呼叫者。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task BasicExceptionPropagation()
@@ -81,17 +81,17 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Critical test verifying that remote stack traces are preserved in propagated exceptions.
-        /// When debugging distributed systems, it's essential to see where the exception originated
-        /// in the remote grain, not just where it was received in the client.
-        /// Uses .Wait() to get the raw AggregateException without any async state machine modifications.
+        /// 关键测试,以核实在传播的例外情况中是否保存了远距离堆叠痕迹。
+        /// 当调试分布式系统时, 关键是要查看例外的起源
+        /// 偏僻的 grain不只是客户收到地址
+        /// 使用. Wait () 来获取原始 AggregateException ,而不进行同步状态机器的修改 。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task ExceptionContainsOriginalStackTrace()
         {
             IExceptionGrain grain = this.fixture.GrainFactory.GetGrain<IExceptionGrain>(GetRandomGrainId());
 
-            // Explicitly using .Wait() instead of await the task to avoid any modification of the inner exception
+            // 明确使用.wait () 而不是等待任务以避免对内特例作任何修改
             var originalException = await Task.Run(() =>
             {
                 try
@@ -116,9 +116,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that even when using async/await (which rethrows exceptions),
-        /// the original remote stack trace is still preserved in the exception.
-        /// This is important for maintaining debuggability in async code.
+        /// 证明即使使用async/wait(重新播种例外),
+        /// 原始远程书架跟踪仍然保存在例外中。
+        /// 这对于保持合成代码中的可调试性十分重要。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task ExceptionContainsOriginalStackTraceWhenRethrowingLocally()
@@ -126,7 +126,7 @@ namespace UnitTests.General
             IExceptionGrain grain = this.fixture.GrainFactory.GetGrain<IExceptionGrain>(GetRandomGrainId());
             try
             {
-                // Use await to force the exception to be rethrown and validate that the remote stack trace is still present
+                // 使用该工具以迫迫重新丢回例外,并验证远程堆藏追踪仍然存在
                 await grain.ThrowsInvalidOperationException();
                 Assert.Fail("should have thrown");
             }
@@ -140,9 +140,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Ensures that AggregateExceptions thrown by grains are NOT unwrapped during propagation.
-        /// This preserves the original exception structure, which may be important for error handling
-        /// logic that expects specific exception hierarchies.
+        /// 确保: AggregateExceptions 被 grains 在传播期间不解包。
+        /// 这保留了原有的例外结构,对处理错误可能很重要
+        /// 逻辑预示了特定的例外等级。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task ExceptionPropagationDoesNotUnwrapAggregateExceptions()
@@ -156,9 +156,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that nested AggregateExceptions maintain their structure during propagation.
-        /// Orleans does not flatten the exception hierarchy, preserving the original nesting
-        /// that may have semantic meaning in the application.
+        /// 嵌套 AggregateExceptions 在传播期间保持结构的测试。
+        /// Orleans 保存原巢,不平整例外等级,以保持原巢
+        /// 可能具有语义含义的词句在应用程序中。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task ExceptionPropagationDoesNoFlattenAggregateExceptions()
@@ -173,8 +173,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that task cancellation is properly propagated as TaskCanceledException.
-        /// This is important for cooperative cancellation patterns in distributed systems.
+        /// 证明取消任务作为 TaskCanceledException适当宣传。
+        /// 这对于分布式系统中的合作取消模式十分重要。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task TaskCancelationPropagation()
@@ -185,9 +185,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests exception propagation through grain-to-grain calls.
-        /// When grain A calls grain B, and grain B throws an exception,
-        /// the exception should propagate back through grain A to the original caller.
+        /// 通过 grain- -grain 电话进行测试例外传播。
+        /// 何时 grain 调来电话 grain B, 和 grain B会破例
+        /// 例外情况应该通过 grain A向原调用者宣传。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task GrainForwardingExceptionPropagation()
@@ -213,16 +213,16 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Ensures that exceptions thrown synchronously in grain methods (before any await)
-        /// still result in a faulted Task rather than throwing synchronously to the caller.
-        /// This maintains consistent async behavior regardless of where exceptions occur.
+        /// 确保例外情形同步地采用 grain 方法(在等待任何等待之前)
+        /// 而不是同步向打电话者投掷。
+        /// 无论在何地出现例外,这都保持了一贯的同步行为。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task SynchronousExceptionThrownShouldResultInFaultedTask()
         {
             IExceptionGrain grain = this.fixture.GrainFactory.GetGrain<IExceptionGrain>(GetRandomGrainId());
 
-            // start the grain call but don't await it nor wrap in try/catch, to make sure it doesn't throw synchronously
+            // 开始 grain 调用,但不要等待它或以试捕/抓获方式包扎,以确保它不会同步投
             var grainCallTask = grain.ThrowsSynchronousInvalidOperationException();
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => grainCallTask);
@@ -235,9 +235,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a Task is faulted with multiple exceptions, all exceptions
-        /// are propagated in the AggregateException, not just the first one.
-        /// This is currently skipped pending implementation of issue #1378.
+        /// 测试当任务有多重例外被错责时,所有例外
+        /// 传播在 AggregateException中,而不仅仅是第一个。
+        /// 在执行第1378号议题之前,目前暂不讨论这个问题。
         /// </summary>
         [Fact(Skip = "Implementation of issue #1378 is still pending"), TestCategory("BVT")]
         public async Task ExceptionPropagationForwardsEntireAggregateException()
@@ -250,8 +250,8 @@ namespace UnitTests.General
                 try
                 {
 #pragma warning disable xUnit1031 // Do not use blocking task operations in test method
-                    // use Wait() so that we get the entire AggregateException ('await' would just catch the first inner exception)
-                    // Do not use Assert.Throws to avoid any tampering of the AggregateException itself from the test framework
+                    // 使用 Wait () 以便我们得到整个 AggregateException (“ 等待” 将只抓住第一个内部例外)
+                    // 不使用 Assert.Throws 来避免从测试框架对 AggregateException 本身作任何篡改
                     grainCall.Wait();
 #pragma warning restore xUnit1031 // Do not use blocking task operations in test method
                     return null;
@@ -265,7 +265,7 @@ namespace UnitTests.General
 
             output.WriteLine(exception.ToString());
 
-            // make sure that all exceptions in the task are present, and not just the first one.
+            // 确保任务中的所有例外都存在,而不仅仅是第一项例外。
             Assert.Equal(2, exception.InnerExceptions.Count);
             var firstEx = Assert.IsAssignableFrom<InvalidOperationException>(exception.InnerExceptions[0]);
             Assert.Equal("Test exception 1", firstEx.Message);
@@ -278,15 +278,15 @@ namespace UnitTests.General
         {
             IExceptionGrain grain = this.fixture.GrainFactory.GetGrain<IExceptionGrain>(GetRandomGrainId());
 
-            // start the grain call but don't await it nor wrap in try/catch, to make sure it doesn't throw synchronously
+            // 开始 grain 调用,但不要等待它或以试捕/抓获方式包扎,以确保它不会同步投
             var grainCallTask = grain.ThrowsSynchronousAggregateExceptionWithMultipleInnerExceptions();
 
-            // assert that the faulted task has an inner exception of type AggregateException, which should be our original exception
+            // 声称错误任务有内型例外 AggregateException应该是我们原来的例外
             var exception = await Assert.ThrowsAsync<AggregateException>(() => grainCallTask);
 
             Assert.StartsWith("Test AggregateException message", exception.Message);
 
-            // make sure that all exceptions in the task are present, and not just the first one.
+            // 确保任务中的所有例外都存在,而不仅仅是第一项例外。
             Assert.Equal(2, exception.InnerExceptions.Count);
             var firstEx = Assert.IsAssignableFrom<InvalidOperationException>(exception.InnerExceptions[0]);
             Assert.Equal("Test exception 1", firstEx.Message);
@@ -295,10 +295,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests exception propagation when a client cannot deserialize a request from a grain.
-        /// This scenario occurs when a grain makes a callback to a client observer, but the
-        /// request contains types that cannot be deserialized on the client side.
-        /// The serialization failure should be detected and propagated back to the grain.
+        /// 当客户无法解密 grain的请求时,测试例外传播。
+        /// 如果 grain 回调一个客户观察员,但
+        /// 请求中包含客户端无法解密的类型 。
+        /// 应检测到序列化故障,并将其传播回 grain。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsClient_Request_Deserialization_Failure()
@@ -311,7 +311,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a client cannot serialize a response to a grain, an exception is promptly propagated back to the original caller.
+        /// 测试客户无法对 grain的回复进行序列处理时,例外被迅速转发给原调用者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsClient_Response_Serialization_Failure()
@@ -324,7 +324,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a grain cannot deserialize a response from a client, an exception is promptly propagated back to the original caller.
+        /// 测试如果一个 grain 无法解除客户回复的顺序,则例外将迅速传播到最初的调用者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsClient_Response_Deserialization_Failure()
@@ -337,7 +337,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a grain cannot serialize a request to a client, an exception is promptly propagated back to the original caller.
+        /// 测试如果 grain 无法对客户端的请求进行序列处理,则例外被迅速转发回原调用者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsClient_Request_Serialization_Failure()
@@ -350,10 +350,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests exception propagation for grain-to-grain calls when deserialization fails.
-        /// This can happen in cross-silo scenarios where grains have incompatible type versions
-        /// or when using custom serializers that fail. The exception should propagate back
-        /// through the call chain to the original caller.
+        /// 解密失败时, grain-grain 调用时的测试传播例外。
+        /// 这可能发生在交叉...silo 假设情况中 grains 类型版本不兼容
+        /// 或当使用自定义序列器失败时,该例外情形应该回传
+        /// 透过呼叫链到最初的来电者
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsGrain_Request_Deserialization_Failure()
@@ -366,7 +366,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a grain cannot serialize a request to another grain, an exception is promptly propagated back to the original caller.
+        /// 测试如果 grain 无法将请求序列化为另一个 grain,则例外将被迅速传播回原调用者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsGrain_Request_Serialization_Failure()
@@ -379,7 +379,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a grain cannot serialize a response to another grain, an exception is promptly propagated back to the original caller.
+        /// 测试如果 grain 不能对另一个 grain的答复进行序列处理, 例外将被迅速传播回原调用者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsGrain_Response_Serialization_Failure()
@@ -392,7 +392,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a grain cannot deserialize a response from another grain, an exception is promptly propagated back to the original caller.
+        /// 测试如果一个 grain 无法解除另一个 grain的答复的顺序,则将例外迅速传播回原呼叫者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_GrainCallsGrain_Response_Deserialization_Failure()
@@ -405,10 +405,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests the most common serialization failure scenario: client sends a request
-        /// that the grain cannot deserialize. This validates that Orleans properly detects
-        /// the failure and sends an appropriate exception back to the client rather than
-        /// silently failing or hanging.
+        /// 测试最常见的序列化故障假设情景:客户发送请求
+        /// 无法使 grain 降序。这验证了 Orleans 是否正确检测
+        /// 失败并发回适当的例外情形给客户而不是
+        /// 沉默失败或绞死。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_ClientCallsGrain_Request_Deserialization_Failure()
@@ -421,7 +421,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a client cannot serialize a request to a grain, an exception is promptly propagated back to the original caller.
+        /// 测试客户端无法将向 grain提出的请求序列化时,例外将被迅速传播回原调用者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_ClientCallsGrain_Request_Serialization_Failure()
@@ -434,7 +434,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a grain cannot serialize a response to a client, an exception is promptly propagated back to the original caller.
+        /// 测试如果 grain 无法对客户端回复进行序列处理,则例外将迅速传播回原呼叫者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_ClientCallsGrain_Response_Serialization_Failure()
@@ -447,7 +447,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that when a client cannot deserialize a response from a grain, an exception is promptly propagated back to the original caller.
+        /// 测试客户端无法解除 grain回复的序列,例外将被迅速传播回原呼叫者。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Messaging"), TestCategory("Serialization")]
         public async Task ExceptionPropagation_ClientCallsGrain_Response_Deserialization_Failure()

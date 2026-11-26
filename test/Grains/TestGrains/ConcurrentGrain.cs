@@ -63,7 +63,7 @@ namespace UnitTests.Grains
         {
             return Task<List<int>>.Factory.StartNew(() =>
             {
-                // just do a lot of modifications of the list
+                // 只需要对列表做很多修改
                 for (int i = 0; i < 10; i++)
                 {
                     if (m_list.Count < 1000)
@@ -84,7 +84,7 @@ namespace UnitTests.Grains
             return Task.CompletedTask;
         }
 
-        // start a long tail call on the 1st grain by calling into the 2nd grain 
+        // 启动 1 号的长尾尾拖听呼叫 grain 拨打到第二 grain 
         public async Task<int> TailCall_Caller(IConcurrentReentrantGrain another, bool doCW)
         {
             logger.LogInformation("TailCall_Caller");
@@ -97,8 +97,8 @@ namespace UnitTests.Grains
         }
 
 
-        // calls into the 1st grain while the tail call (TailCall_Caller) is not resolved yet.
-        // if tail call optimization is working, this call should go in (the grain should be considered not executing request).
+        // 键调到第一 grain 尾巴时(TailCall_Caller尚未解决。
+        // 如果尾部呼叫优化有效,该呼叫应进入( grain 不应被视为执行请求)。
         public Task<int> TailCall_Resolver(IConcurrentReentrantGrain another)
         {
             logger.LogInformation("TailCall_Resolver");

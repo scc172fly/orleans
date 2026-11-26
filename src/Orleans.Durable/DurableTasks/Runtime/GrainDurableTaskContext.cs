@@ -14,43 +14,43 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// Executes one attempt of a durable task within a grain activation.
+/// 在启动 grain 内执行一项耐久任务尝试 。
 /// </summary>
 /// <remarks>
 /// <para>
-/// The runtime cancels the attempt when the activation stops, or when the task is aborted or deleted with its execution
-/// tree, through <see cref="EndAttempt"/>. From then on, the attempt's durable operations throw
-/// <see cref="DurableTaskAttemptCanceledException"/>, and the changes which its code makes to the grain's journaled state,
-/// such as cleanup, commit with the grain's next journal write. The runtime discards the canceled attempt's response;
-/// after the activation stops, the next activation replays the task in a new context.
+/// 当激活停止时, 或任务执行中止或删除时, 运行时间取消尝试
+/// 穿过树,穿过 <see cref="EndAttempt"/>。从那时起,尝试的持久操作就投下
+/// <see cref="DurableTaskAttemptCanceledException"/>,以及其代码对 grain日记状态所作的修改,
+/// 清理等, 请在 grain下一份日记中承诺。 运行时将放弃取消的尝试回复;
+/// 激活停止后, 下一次激活会在新的背景下重现任务 。
 /// </para>
 /// <para>
-/// An attempt which the running code can't replay stalls: the runtime cancels it for
-/// <see cref="DurableTaskAttemptCancellationReason.UnsupportedVersion"/> when the execution recorded a version which
-/// the code doesn't support, and for <see cref="DurableTaskAttemptCancellationReason.Diverged"/> when an operation
-/// diverges from the execution's record, such as another operation under a recorded identifier or a recorded outcome
-/// which no longer decodes. The task stays pending until code which can replay it runs.
+/// 运行中的代码无法重放摊位的尝试:运行时间取消
+/// <see cref="DurableTaskAttemptCancellationReason.UnsupportedVersion"/> 当执行时记录了
+/// 代码不支持, 当操作时 <see cref="DurableTaskAttemptCancellationReason.Diverged"/>
+/// 与执行记录的差异,例如根据记录的身份识别特征进行的另一项行动或记录的结果
+/// 不再解码。任务将一直等待到代码重放为止。
 /// </para>
 /// <para>
-/// The attempt runs in <em>segments</em>: the code between its durable waits. Each segment is a local request on the
-/// grain activation, which follows the grain's reentrancy rules, so on a non-reentrant grain a segment excludes the
-/// grain's other requests, as a grain method does. The first segment starts the body. A durable wait which is pending,
-/// such as the wait for a child's result, a signal, or the first of several completions, parks the attempt: the
-/// segment's request completes. Once the wait completes, a new request resumes the attempt, and the waiting code
-/// continues within it. Other awaits, such as journal writes or calls to other grains, stay within the segment.
+/// 尝试在 <em>段</em>中运行: 其耐久等待之间的代码。 每个区段是本地对
+/// grain 激活,该启动继 grain重新恢复规则,所以对于一个没有被重新恢复的人 grain 一个段不包括
+/// grain的其他请求, 作为一种 grain 方法。 第一部分开始身体。 等待的持久等待, 尚未结束 ,
+/// 例如等待儿童的结果、信号或几个完成的第一项,使尝试成为空洞:
+/// 请求。一旦等待完成,新的请求将恢复尝试,等待代码将
+/// 其他等待,例如日记写作或致其他 grains的电话等,则留在该部分内。
 /// </para>
 /// <para>
-/// An attempt which is discarded, because the activation stops or the attempt stalls, is never resumed: its next
-/// activation replays the execution from its records. Its open segment, if any, observes the cancellation and ends.
+/// 一次因启动停止或试图拖延而放弃的尝试,从未恢复:下一次
+/// 激活从记录中重放执行的功能。 如果有的话,它打开部分会观察取消和结束 。
 /// </para>
 /// <para>
-/// The body observes its task's cancellation at a <em>cancellation point</em>, the start of one of its durable operations,
-/// which the execution records when it first observes it, so a replay observes it at the same point; see
+/// 该机构在 <em>取消点</em>观察其任务的取消,这是其一个持久业务的开始,
+/// 执行记录在它第一次观察时,重放时在同一点上;见
 /// <see cref="DeliverTaskCancellation"/>.
 /// </para>
 /// <para>
-/// The attempt's state is confined to the activation's scheduler. Its entry points from the abstractions switch to the
-/// scheduler before they read or change that state, because a body can continue elsewhere, such as after
+/// 尝试状态仅限于启动的调度器
+/// 之前的调度器在读取或更改该状态前先读取或修改此状态,因为一个机构可以在其他地方继续,例如
 /// <c>ConfigureAwait(false)</c>.
 /// </para>
 /// </remarks>
@@ -63,45 +63,45 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     private readonly TaskScheduler _scheduler;
     private long _utcNowTicks;
 
-    // Why the runtime ended the attempt, which it cancels in a later work item, or null.
+    // 为何运行时间结束了尝试,在以后的工作项目中取消这一尝试,或无效。
     private DurableTaskAttemptCancellationReason? _endReason;
 
-    // The request of the segment which runs, or null while the attempt is parked or hasn't started; the segment requests
-    // which are queued; the attempt's durable waits which are parked, and the tasks and signal records which they await;
-    // and whether a parked wait was released and its resume isn't queued yet.
+    // 运行的段段的请求,或尝试停放时无效或尚未启动的部分请求;部分请求
+    // 排队; 试图等待的耐久等待停放,以及等待的任务和信号记录;
+    // 以及停在车边的等待是否已经释放 其简历是否还没有排队
     private TaskCompletionSource? _segment;
     private int _queuedSegments;
     private int _parkedWaits;
     private HashSet<TaskId>? _awaited;
     private bool _resumePending;
 
-    // Completes once the attempt's code has ended or, for a discarded attempt, once no segment of it runs.
+    // 一旦尝试代码结束,或者在被废弃的尝试中,一旦它没有运行部分时,它就会完成。
     private readonly TaskCompletionSource _settled = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    // The number of sends of each signal which this attempt has begun, by marker segment.
+    // 尝试开始的每个信号发送次数,按标记段分列。
     private Dictionary<string, int>? _signalSends;
 
-    // The operations which earlier attempts recorded and this attempt hasn't reached yet, released once the attempt has
-    // reached each of them; and, while the attempt replays, those which it has reached, released when the replay ends.
-    // The replay ends earlier than the unreached set empties when the attempt starts an operation which no earlier
-    // attempt recorded.
+    // 先前的尝试记录的行动和这次尝试尚未达到,一旦尝试出来即予以释放
+    // 每一个都达到了;当尝试重播时,它所达到的, 当重播结束时释放出来。
+    // 重放结束比未到达空格设定时间早于当尝试开始一项操作时的重播放结束, 而不是提前
+    // 记录了尝试。
     private HashSet<TaskId>? _unreached;
     private HashSet<TaskId>? _reached;
     private bool _replaying;
 
-    // The versions which this attempt decided, by change name.
+    // 尝试决定的版本,以更改名称。
     private Dictionary<string, int>? _versions;
 
-    // The cancellation points which the attempt reached; the point at which the execution first observed its task's
-    // cancellation, which a record holds or this attempt chose; and whether task cancellation was requested and awaits
-    // its point, with its reason.
+    // 试图达到的取消点;执行过程首先遵守任务时的点
+    // 取消, 记录持有的取消或这种尝试选择的取消; 是否请求取消任务并等待
+    // 其点,它的理由。
     private int _cancellationPoints;
     private int? _cancellationPoint;
     private bool _cancellationPending;
     private string? _pendingCancellationReason;
 
-    // Why the running code can't replay the execution, when the runtime stalled this attempt: a version which the code
-    // doesn't support, or a divergence from the execution's record.
+    // 为什么运行中的代码无法重弹处决, 当运行时间停止了这一尝试: 代码的版本
+    // 与处决记录不符
     private Exception? _stallException;
 
     private Guid? _incarnation;
@@ -124,36 +124,36 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <inheritdoc/>
-    /// <remarks>The incarnation of the invoked task whose execution tree contains this execution, read once.</remarks>
+    /// <remarks>被援引的任务的化身 其行刑树包含这一处决, 读一次。</remarks>
     public override Guid Incarnation => _incarnation ??= _runtime.GetIncarnation(Id);
 
     /// <summary>
-    /// Gets why the attempt ended, by the runtime or by a divergence which the abstractions detected, or
-    /// <see langword="null"/> while it runs.
+    /// 获取为什么尝试结束, 由运行时间或抽象发现的差异, 或者
+    /// <see langword="null"/> 运行时。
     /// </summary>
     internal DurableTaskAttemptCancellationReason? AttemptEndReason => AttemptCancellationReason ?? _endReason;
 
-    /// <summary>Gets whether the attempt ended.</summary>
+    /// <summary>获取尝试是否结束。</summary>
     internal bool IsAttemptEnded => AttemptEndReason is not null;
 
     /// <summary>
-    /// Gets whether the attempt ended without a record, so it is never resumed: the activation stops, or the running code
-    /// can't replay the execution.
+    /// 获取是否尝试在没有记录的情况下结束, 所以它永远不会恢复: 激活停止, 或者运行代码
+    /// 无法重播处决。
     /// </summary>
     internal bool IsDiscarded => AttemptEndReason
         is DurableTaskAttemptCancellationReason.ActivationStopping
         or DurableTaskAttemptCancellationReason.Diverged
         or DurableTaskAttemptCancellationReason.UnsupportedVersion;
 
-    /// <summary>Gets whether a segment of the attempt runs or is queued, so the attempt makes progress without a message.</summary>
+    /// <summary>获取尝试的某个部分是否运行或被排队,所以尝试在没有消息的情况下会取得进展。</summary>
     /// <remarks>
-    /// A parked wait which the runtime released, by completing what it awaits or canceling its token, resumes in a later
-    /// work item. The attempt counts as runnable from the release, so a wake-up which the activation consults meanwhile
-    /// still resumes it after a crash.
+    /// 等待时间已解除,
+    /// 工作项。尝试计算从释放时可以运行,所以激活时会进行提醒
+    /// 坠机后仍恢复原样
     /// </remarks>
     internal bool IsRunnable => _segment is not null || _queuedSegments > 0 || _resumePending;
 
-    /// <summary>Notes that the runtime completed <paramref name="awaited"/>, a task or signal record, which can release a parked wait.</summary>
+    /// <summary>注意到完成的运行时间 <paramref name="awaited"/>,任务或信号记录,可以释放停靠的等待。</summary>
     internal void OnAwaitedCompleted(TaskId awaited)
     {
         AssertOnScheduler();
@@ -164,32 +164,32 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Delivers the task cancellation of this attempt at its cancellation point, which releases its parked waits.
+    /// 在其取消点,即解除停泊等候的等待时间时,将取消这一尝试的任务。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The cancellation points of an attempt are the starts of its body's durable operations, in order: each operation
-    /// which <see cref="ObserveOperation"/> notes, and each durable wait, such as for a task or a signal, whether or not
-    /// it parks, so a replay which finds the awaited event already recorded counts the same points. A deterministic replay
-    /// reaches the same points as the run which it replays, as it reaches the same operations.
+    /// 尝试取消的点数是其机构开始持久行动的起点,以便:
+    /// 减去 <see cref="ObserveOperation"/> 和每个耐久等待,例如任务或信号,不论是否
+    /// 公园,所以一个重放 发现等待事件已经记录下来 计算了相同的点数。
+    /// 到达与其重放的运行相同的点, 当它达到同样的操作时。
     /// </para>
     /// <para>
-    /// The execution's body observes its task's cancellation at one point, which the execution records under
-    /// <c>{execution}/$cancellation-observed</c> when it first observes it, in the journal write which follows. A live
-    /// attempt observes it at its current point, which for a parked attempt is the start of the parked wait. A replay
-    /// observes it when it reaches the recorded point, at that operation's start, and its durable token stays uncanceled
-    /// until then. A replay of an execution which recorded no point, because its attempt ended before the record committed,
-    /// observes it at the point where the replay ends, as it reaches the last operation which earlier attempts recorded or
-    /// starts one which they didn't, and records that point; so does a request which arrives while the attempt replays.
-    /// No operation which the earlier attempt started after its observation committed, so the replay chooses the point.
-    /// A first run reaches no recorded operations, so it observes a request which precedes its body at the start, point 0.
+    /// 执行机关在某一点上观察任务取消时,即执行机关在以下记录下:
+    /// <c>{execution}/$cancellation-observed</c> 。
+    /// 重放。
+    /// 当它到达记录点时, 在操作开始的时候, 观察它, 而它的持久标记 保持未取消
+    /// 在此之前,重播一次死刑,因为其企图在记录之前就已终止,
+    /// 显示重放结尾点的该台,因为它到达了先前记录的最后一次操作或
+    /// 开始一个他们没有开始,记录那个点。 当尝试重播时, 一个请求也来了。
+    /// 早期尝试在观察后开始的操作没有, 因此重播选择了点 。
+    /// 第一次运行没有记录,因此它注意到在开始点0时先于身体的要求。
     /// </para>
     /// <para>
-    /// The delivery cancels <see cref="DurableTaskContext.CancellationToken"/>, whose registrations run synchronously, so
-    /// a registration which throws fails the delivery or, at a later point, that point's operation.
+    /// 交付取消 <see cref="DurableTaskContext.CancellationToken"/>,其登记同步运行,因此
+    /// 登记时,发送货物失败或稍后发生该点的操作。
     /// </para>
     /// </remarks>
-    /// <exception cref="AggregateException">A registration on a token threw.</exception>
+    /// <exception cref="AggregateException">标记上的一个注册。</exception>
     internal void DeliverTaskCancellation(string? reason)
     {
         AssertOnScheduler();
@@ -206,8 +206,8 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         DeliverPendingCancellation();
     }
 
-    /// <summary>Notes that the body reached its next cancellation point, where a pending task cancellation can be delivered.</summary>
-    /// <exception cref="AggregateException">A registration on a token threw.</exception>
+    /// <summary>注意到该机构达到了下一个取消点,可以交付待决任务取消。</summary>
+    /// <exception cref="AggregateException">标记上的一个注册。</exception>
     private void ReachCancellationPoint()
     {
         _cancellationPoints++;
@@ -215,8 +215,8 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Delivers a pending task cancellation once the attempt is at the point where its body observes it, and records that
-    /// point when the execution has no record of one.
+    /// 一旦尝试在机构观察时,即交付待决任务取消,并记录
+    /// 执行时没有记录。
     /// </summary>
     private void DeliverPendingCancellation()
     {
@@ -237,8 +237,8 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Stalls the attempt as diverged when its body ended before reaching the cancellation point at which an earlier
-    /// attempt observed its task's cancellation, so the running code doesn't replay the execution.
+    /// 其身体在达到一个较早取消点之前就已停止,但这一尝试却因时间差而停滞不前
+    /// 试图观察任务取消后, 所以运行代码不会重现执行过程 。
     /// </summary>
     internal void VerifyCancellationPointReached()
     {
@@ -251,15 +251,15 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Gets a task which completes once the attempt's code has ended or, for a discarded attempt, once no segment of it
-    /// runs, so the attempt runs no more code on the activation.
+    /// 任务一旦尝试代码完成, 完成一个任务。 或者,如果尝试被废弃, 一旦没有部分内容, 任务就会完成
+    /// 运行,所以尝试在激活时不再使用代码。
     /// </summary>
     internal Task Settled => _settled.Task;
 
-    /// <summary>Queues the segment which runs the attempt's body, which <paramref name="start"/> releases.</summary>
+    /// <summary>将运行尝试体的段排队,该部分 <paramref name="start"/> 释放。</summary>
     internal void Start(TaskCompletionSource start) => QueueSegment(start);
 
-    /// <summary>Queues a segment request which releases <paramref name="gate"/> when the activation admits it.</summary>
+    /// <summary>请求在激活时允许释放 <paramref name="gate"/> 的段请求。</summary>
     private void QueueSegment(TaskCompletionSource gate)
     {
         AssertOnScheduler();
@@ -269,12 +269,12 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Runs a segment which the activation admitted: releases <paramref name="gate"/>, whose waiting code continues
-    /// within the request, and completes once the attempt parks or ends.
+    /// 运行一个允许激活的段,即释放 <paramref name="gate"/>,其等待代码继续
+    /// 请求内,并完成一次尝试公园或结束。
     /// </summary>
     /// <remarks>
-    /// A discarded attempt isn't resumed. A segment which the activation admits while another one of the attempt runs,
-    /// as a reentrant grain can, continues within the running one.
+    /// 被抛弃的尝试没有恢复。
+    /// 重新输入的 grain 可以, 继续运行在运行的 。
     /// </remarks>
     internal ValueTask<Response> RunSegmentAsync(TaskCompletionSource gate)
     {
@@ -302,7 +302,7 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         }
     }
 
-    /// <summary>Ends the running segment, so the activation admits its other requests.</summary>
+    /// <summary>结束运行的段,所以激活会接受其他请求。</summary>
     private void EndSegment()
     {
         if (_segment is { } segment)
@@ -318,19 +318,19 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Waits for <paramref name="wait"/>, a durable wait for an event which a message delivers, parking the attempt while
-    /// the wait is pending.
+    /// 等待 <paramref name="wait"/>,等待信息传递事件的长期等待,等待时间停放尝试
+    /// 等待时间待定。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// A pending wait ends the attempt's segment. Once the wait completes, a new segment request resumes the waiting code
-    /// within it, unless the attempt was discarded meanwhile.
+    /// 等待完成后, 将请求恢复等待代码
+    /// 除非同时抛弃企图,
     /// </para>
     /// <para>
-    /// The library's combinators can wait for several events of one attempt at once. When a resumed wait returns while
-    /// another one stays parked, its segment ends, so the other wait's resume can run, and code which continues between
-    /// the two runs outside a segment. Within one logical flow, which the replay model requires, at most one wait is
-    /// parked at a time.
+    /// 图书馆的组合器可以同时等待一次尝试的若干事件。 当继续等待返回时, 库的组合器可以等待一次尝试的多次事件。
+    /// 另一只停在车停停停,它的片段结束, 所以另一个等待的简历可以运行, 代码在
+    /// 在一个逻辑流中,重放模式要求的一条逻辑流中,最多一个等待
+    /// 一次停靠。
     /// </para>
     /// </remarks>
     internal async ValueTask<T> ParkAsync<T>(Task<T> wait, IReadOnlyCollection<TaskId> awaited)
@@ -378,36 +378,36 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         Debug.Assert(TaskScheduler.Current == _scheduler, "The attempt's state is confined to the activation's scheduler.");
 
     /// <remarks>
-    /// The runtime supplies the operations which earlier attempts recorded in this execution's tree when the attempt
-    /// starts: its children, including subscriptions to other tasks and records of detached tasks, signal-send markers,
-    /// and effect records, but not signal values, which senders record, invoked descendants, or cancellations which
-    /// arrived before their requests. The attempt reaches an operation when it starts or posts it, looks up its handle,
-    /// signals under its marker, selects a completion under its decision, or runs an effect under its name. Starting an
-    /// operation which no earlier attempt recorded ends the replay; reaching an operation again doesn't.
+    /// 运行时间提供以前在试图执行处决时,这棵树上记录到的尝试行动。
+    /// 开始:儿童,包括订阅其他任务和记录,分别的任务、信号发送标记,
+    /// 和有效记录,但不信号值,发送者记录、援引后代或注销
+    /// 尝试在行动开始或发布时到达, 寻找它的手柄,
+    /// 标记下标志下的信号,选择其决定之下的完成或在其名称下产生效果。
+    /// 操作中没有记录过任何早期尝试, 结束重播; 再次到达操作时不会停止 。
     /// </remarks>
     public override bool IsReplaying => _replaying;
 
     /// <summary>
-    /// Gets whether earlier attempts recorded operations which this attempt hasn't reached yet, so an earlier run went
-    /// past the attempt's current point.
+    /// 之前的尝试是否记录了这次尝试尚未达到的行动,所以早前的运行已经进行了
+    /// 已经超越了尝试的当前点。
     /// </summary>
     /// <remarks>
-    /// An execution's body runs its durable operations in one logical flow, and concurrent work runs in child executions,
-    /// so a deterministic replay reaches the recorded operations in the order in which the earlier run created them.
+    /// 处决机构在逻辑上以一个流程运行其持久运作,同时进行儿童处决方面的工作,
+    /// 由早期运行创造的顺序 来决定重播
     /// </remarks>
     private bool HasUnreachedOperations => _unreached is not null;
 
     /// <summary>
-    /// Gets the grain which runs this execution, which qualifies the root identifiers of the detached tasks which the
-    /// execution starts without a name, so executions with the same identifier on different grains derive different ones.
+    /// 获取执行此执行的 grain ,它符合独立任务根标识符。
+    /// 执行开始时没有姓名, 所以不同 grains 上同一标识符的处决产生不同的。
     /// </summary>
     protected internal override string HostId => _runtime.GrainId.ToString();
 
-    /// <summary>Notes that this attempt reached <paramref name="operationId"/>, which can end its replay.</summary>
-    /// <param name="operationId">The operation's identifier.</param>
+    /// <summary>注意到这一努力已实现, <paramref name="operationId"/>,它可以结束它的重播。</summary>
+    /// <param name="operationId">操作的识别符号。</param>
     /// <param name="recordsOperation">
-    /// Whether the operation records itself under a new identifier, as scheduling does, rather than only looking up an
-    /// existing one, as a handle lookup or a completion selection which the host derives from a durable order does.
+    /// 操作是否按照时间表将自己记录在一个新的识别符号下,而不是仅仅查找
+    /// 现有一个,作为处理查询或完成选择,东道方根据耐久命令进行选择。
     /// </param>
     private void ObserveOperation(TaskId operationId, bool recordsOperation)
     {
@@ -449,12 +449,12 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Gets this execution's logical time: when the task first ran, advanced to the recorded completion time of each
-    /// child whose terminal response the execution observes.
+    /// 获取此执行的逻辑时间: 当任务第一次运行时, 将进度提高到每个完成时间记录
+    /// 其最终反应 处决观察。
     /// </summary>
     /// <remarks>
-    /// Child results keep their completion times, so a replay which observes the same children in the same order reads
-    /// the same times. A delay therefore starts when the work before it completed.
+    /// 儿童成绩保持完成时间,所以重放时,以同样的顺序观察同样的孩子,
+    /// 因此,在完成之前的工程时开始延误。
     /// </remarks>
     public override DateTimeOffset UtcNow => new(_utcNowTicks, TimeSpan.Zero);
 
@@ -476,15 +476,15 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Ends this attempt for <paramref name="reason"/> at once: from now on, its durable operations throw
-    /// <see cref="DurableTaskAttemptCanceledException"/>, and a discarded attempt isn't resumed.
-    /// <see cref="ApplyCancellation"/> then cancels the attempt's tokens.
+    /// 立即结束 <paramref name="reason"/> 的这一尝试:从现在起,其持久作业即告结束
+    /// <see cref="DurableTaskAttemptCanceledException"/>和放弃的尝试没有恢复。
+    /// <see cref="ApplyCancellation"/> 然后取消尝试的标记 。
     /// </summary>
-    /// <returns><see langword="true"/> when this call ended the attempt.</returns>
+    /// <returns><see langword="true"/> 当此呼叫结束尝试时。</returns>
     /// <remarks>
-    /// The runtime ends attempts on the activation's scheduler, where the attempt's code runs, so a synchronous run of that
-    /// code observes one state of the attempt. Canceling the attempt's tokens runs their registrations and can continue the
-    /// attempt's code synchronously, so the runtime applies it outside its staging operations.
+    /// 运行时间结束在激活调度器上的尝试, 启动的代码运行时, 运行时的尝试会同步运行
+    /// 代码可以观察尝试的状态。取消尝试的标记会运行它们的注册,并且可以继续
+    /// 同步使用 运行时间将它应用到 其中转操作之外
     /// </remarks>
     internal bool EndAttempt(DurableTaskAttemptCancellationReason reason)
     {
@@ -503,8 +503,8 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         return true;
     }
 
-    /// <summary>Cancels the tokens of an attempt which <see cref="EndAttempt"/> ended.</summary>
-    /// <exception cref="AggregateException">A registration on a token threw.</exception>
+    /// <summary>取消 <see cref="EndAttempt"/> 结束的尝试的标记。</summary>
+    /// <exception cref="AggregateException">标记上的一个注册。</exception>
     internal void ApplyCancellation()
     {
         AssertOnScheduler();
@@ -513,7 +513,7 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         CancelAttempt(_endReason.GetValueOrDefault());
     }
 
-    /// <summary>Ends the attempt's segment and settles the attempt once its code has ended.</summary>
+    /// <summary>尝试的段结束,一旦代码结束就解决尝试。</summary>
     internal void OnAttemptCompleted()
     {
         EndSegment();
@@ -521,10 +521,10 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Stalls this attempt for <paramref name="reason"/>: the runtime cancels it and keeps its task pending, so code which
-    /// can replay the execution runs it later.
+    /// 拖慢 <paramref name="reason"/>的尝试:运行时间取消并保持任务未完成,所以代码
+    /// 稍后再放行刑
     /// </summary>
-    /// <returns>The exception which the stalled operation throws.</returns>
+    /// <returns>停止作业的例外。</returns>
     private DurableTaskAttemptCanceledException Stall(DurableTaskAttemptCancellationReason reason, Exception cause)
     {
         _stallException ??= cause;
@@ -532,11 +532,11 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         return CreateAttemptEndedException();
     }
 
-    /// <summary>Stalls this attempt because an operation diverged from the execution's record.</summary>
+    /// <summary>拖延了这次尝试 因为一次行动偏离了处决记录</summary>
     private DurableTaskAttemptCanceledException Diverge(DurableTaskDivergenceException divergence) =>
         Stall(DurableTaskAttemptCancellationReason.Diverged, divergence);
 
-    /// <summary>Throws <see cref="DurableTaskAttemptCanceledException"/> when the runtime canceled this attempt.</summary>
+    /// <summary>抛掷 <see cref="DurableTaskAttemptCanceledException"/> 当运行时间取消此尝试时 。</summary>
     private void ThrowIfAttemptCanceled()
     {
         if (IsAttemptEnded)
@@ -552,12 +552,12 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Completes an operation of this attempt with its outcome, or with the attempt's cancellation once the runtime
-    /// canceled the attempt. An operation which diverged from the execution's record stalls the attempt.
+    /// 以其结果或一旦运行时间即取消尝试,完成这一尝试的操作
+    /// 取消尝试。 与执行记录不符的行动会拖慢尝试 。
     /// </summary>
     /// <remarks>
-    /// The runtime cancels an attempt before it signals the attempt's tokens, so an operation which completes in between,
-    /// such as the wait for a child whose abort committed, ends with the attempt's cancellation rather than its outcome.
+    /// 运行时间取消了一次尝试, 在它发出尝试的标志之前, 所以一个操作完成之间,
+    /// 例如等待一个已经堕胎的儿童,最后是试图取消而不是结果。
     /// </remarks>
     private async ValueTask<T> CompleteOperationAsync<T>(ValueTask<T> operation)
     {
@@ -599,11 +599,11 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <remarks>
-    /// This host detaches durable grain calls: the target recovers the root task from the call's serialized request. The
-    /// abstraction detaches any <see cref="ISchedulableTask"/>, so this host rejects the others with
-    /// <see cref="NotSupportedException"/> before recording or sending anything. A detached
-    /// start is recorded under <c>$detach:{target}:{rootId}</c>, so each detached task which this execution starts has
-    /// one record, independently of other operations which a deployment adds or removes.
+    /// 此主机解开耐用 grain 调用: 目标从该呼叫的序列请求中恢复根任务。 The the name
+    /// 抽象的脱钩任意 <see cref="ISchedulableTask"/>,所以此主机拒绝其他人使用
+    /// <see cref="NotSupportedException"/> 之前记录或发送任何信息。
+    /// 开始时记录在 <c>$detach:{target}:{rootId}</c>下,因此,本执行开始的每一项分离任务
+    /// 与部署增加或取消的其他行动无关。
     /// </remarks>
     protected internal override ValueTask<IScheduledTaskHandle> StartTaskAsync(
         TaskId taskId,
@@ -611,7 +611,7 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         DurableTaskStartOptions options,
         CancellationToken cancellationToken)
     {
-        // The shield flows with the starting code, so it is read before switching schedulers.
+        // 盾牌随起始代码流动, 所以在切换调度器之前读取它 。
         var shielded = SchedulesShieldedChildren;
         var waitForAcceptance = options.HasFlag(DurableTaskStartOptions.WaitForAcceptance);
         if (options.HasFlag(DurableTaskStartOptions.Detached))
@@ -663,11 +663,11 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <remarks>
-    /// The start and its record are staged in the work item which calls this on the activation, so they commit in the
-    /// same journal write as the journaled state which that work item changed. A replay which reaches the record returns
-    /// the same handle without starting the task again.
+    /// 开始和记录在工作项目中进行, 工作项目要求激活启动时, 所以他们承诺在
+    /// 与日记一样的日记写, 并以此来显示工作项目更改了哪个工作项。 返回到记录的回放
+    /// 相同的手柄,不重新开始任务。
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The caller isn't running on the activation's scheduler.</exception>
+    /// <exception cref="InvalidOperationException">调用器没有在激活的调度器上运行。</exception>
     protected internal override IScheduledTaskHandle PostTask(TaskId taskId, DurableTask task, DurableTaskStartOptions options)
     {
         if (TaskScheduler.Current != _scheduler)
@@ -696,8 +696,8 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         }
     }
 
-    /// <summary>Returns the identifier which records a detached start in this execution, and the started request.</summary>
-    /// <exception cref="NotSupportedException">The definition isn't a durable grain call.</exception>
+    /// <summary>返回记录执行中的分离启动的标识符和开始的请求。</summary>
+    /// <exception cref="NotSupportedException">定义不是一个耐久 grain 呼叫。</exception>
     private (TaskId RecordId, IDurableTaskRequest Request) GetDetachedRecord(TaskId rootId, DurableTask task)
     {
         if (task is not IDurableTaskRequest { Context: { } requestContext } request)
@@ -711,11 +711,11 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Throws unless <paramref name="taskId"/> can be a child of this execution which runs <paramref name="task"/>: the
-    /// execution isn't deleted, and no effect which an earlier run recorded holds the operation beneath which the child
-    /// runs, such as a named combinator whose input the child is.
+    /// 丢弃, 除非 <paramref name="taskId"/> 可以是执行该执行时的子 <paramref name="task"/>:
+    /// 执行不删除, 并且没有任何效果 早期记录记录 保持操作
+    /// 运行,例如一个名为组合器的子输入。
     /// </summary>
-    /// <remarks>The runtime checks the record which a direct child finds under its own identifier when it starts.</remarks>
+    /// <remarks>运行时间检查直接儿童在开始时根据自己的识别特征找到的记录。</remarks>
     private void ValidateChild(TaskId taskId, DurableTask task)
     {
         ArgumentOutOfRangeException.ThrowIfEqual(taskId, default);
@@ -767,11 +767,11 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <remarks>
-    /// The body's final code runs in the work item which calls this, so staging the response here commits it in the same
-    /// journal write as the journaled state that code changed, whichever operation requests that write. A body which
-    /// completes on another scheduler has its response handled by the attempt, and a canceled attempt's response is
-    /// discarded. A body which ended before the cancellation point at which an earlier attempt observed its task's
-    /// cancellation diverged, so its attempt stalls and stages nothing.
+    /// 人体的最终代码 运行在工作项目中 它被称为这个, 所以在这里启动响应 即以同样的方式执行
+    /// 日记写时日记表示代码已更改, 任何操作要求写入的, 都更改。
+    /// 另一台调度器上的完整内容 其反应通过尝试得到处理, 取消的尝试回应是
+    /// 被丢弃的。一个机构在取消点之前结束,当时曾试图遵守任务
+    /// 取消协议后,各异,因此尝试取消协议时没有拖延和分阶段。
     /// </remarks>
     protected internal override void OnBodyCompleted(DurableTaskResponse response)
     {
@@ -790,16 +790,16 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <remarks>
-    /// The effect runs, and its record is staged, in the work item which calls this on the activation, so the record
-    /// commits in the same journal write as the journaled state which the effect changed. Effects and children share
-    /// identifiers, so an effect where an earlier run recorded a child, or a child where an earlier run recorded an
-    /// effect, diverges: the attempt stalls with <see cref="DurableTaskAttemptCancellationReason.Diverged"/>, whose
-    /// divergence names both kinds, instead of running the effect again.
+    /// 效果运行,记录被进行到工作项目中, 激活时需要它, 所以记录
+    /// 在同一日记中承诺与日记写时的状态相同, 效果改变。
+    /// 儿童或儿童
+    /// 效果和效果各异:尝试拖延 <see cref="DurableTaskAttemptCancellationReason.Diverged"/>,其
+    /// 将两种名称分开, 而不是再次运行效果 。
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The caller isn't running on the activation's scheduler.</exception>
+    /// <exception cref="InvalidOperationException">调用器没有在激活的调度器上运行。</exception>
     /// <exception cref="DurableTaskAttemptCanceledException">
-    /// The attempt was canceled, or stalled because an earlier run recorded another kind of operation under the effect's
-    /// identifier.
+    /// 或因为早期运行记录了 另一种类型的行动
+    /// 身份识别符。
     /// </exception>
     protected internal override DurableTaskResponse RunEffect<TState>(
         TaskId effectId,
@@ -826,16 +826,16 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <remarks>
-    /// The first call for a name in an attempt decides the version and memoizes it, so loops and helpers which check the
-    /// same change read the same version. A decision which no record holds yet is <c>0</c> while earlier attempts'
-    /// operations remain unreached, rather than while <see cref="IsReplaying"/> reports a replay: an operation which a
-    /// deployment inserted earlier in the body ends the replay without changing how far the earlier run went. The record
-    /// is staged in the work item which calls this on the activation and doesn't end the replay.
+    /// 尝试中第一个呼叫的名称, 试图决定版本并记住它, 所以循环和帮助者来检查
+    /// 同一修改为同一种版本。没有记录的决定是 <c>0</c> ,而先前的尝试是'。
+    /// 而不是 <see cref="IsReplaying"/> 报告重播:
+    /// 先前插入的安装位置插入到正文中, 重放结束时不改变前一次运行的距离。 记录
+    /// 是在工作项目中进行,它叫这个激活, 并且不会结束重播。
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The caller isn't running on the activation's scheduler.</exception>
+    /// <exception cref="InvalidOperationException">调用器没有在激活的调度器上运行。</exception>
     /// <exception cref="DurableTaskAttemptCanceledException">
-    /// The runtime canceled the attempt, for example because the execution's version lies outside the supported range,
-    /// whose <see cref="DurableTaskVersionException"/> is then the inner exception.
+    /// 运行时间取消了尝试, 例如因为执行版本不在支持范围之内,
+    /// 其 <see cref="DurableTaskVersionException"/> 那时,内心是例外。
     /// </exception>
     protected internal override int GetVersion(string name, int minSupported, int maxSupported)
     {
@@ -867,7 +867,7 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
 
         if (version < minSupported || version > maxSupported)
         {
-            // The runtime cancels the attempt and keeps its task pending, so code which supports the version replays it.
+            // 运行时取消尝试并保持任务未完成, 所以支持版本重播的代码 。
             throw Stall(
                 DurableTaskAttemptCancellationReason.UnsupportedVersion,
                 new DurableTaskVersionException(Id, name, version, minSupported, maxSupported));
@@ -877,9 +877,9 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Creates the segment of a marker which records an operation of this execution, from the operation's identity:
-    /// <c>${kind}:{part}:{part}...</c>, with <c>\</c>, <c>:</c>, and <c>$</c> escaped in each part, so distinct
-    /// identities create distinct segments, and a <c>$</c> suffix can number repeated occurrences.
+    /// 创建标记的段,从操作身份中记录执行操作:
+    /// <c>${kind}:{part}:{part}...</c>, <c>\</c>、 <c>:</c>和 <c>$</c> 在每个部分均以如此明显的方式逃脱
+    /// 字符创建独立的区段, <c>$</c> 后缀可以数重复发生。
     /// </summary>
     private static string CreateMarkerSegment(string kind, ReadOnlySpan<string> parts)
     {
@@ -902,8 +902,8 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <remarks>
-    /// The wait observes the signals of the invoked task whose execution tree contains this execution, and advances this
-    /// execution's logical time to when the signal was recorded.
+    /// 等待观察所看到的任务的信号 援引任务, 其行刑树包含处决, 并推进
+    /// 输入信号的逻辑时间 。
     /// </remarks>
     protected internal override ValueTask<DurableTaskResponse> WaitForSignalAsync(string name, CancellationToken cancellationToken) =>
         RunOnScheduler(
@@ -921,18 +921,18 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Sends a signal to the invoked task <paramref name="taskId"/> on <paramref name="target"/>, recording the send under
-    /// <c>$send:{target}:{taskId}:{name}</c> in this execution, so a replay doesn't send it again.
+    /// 向引用的任务发送信号 <paramref name="taskId"/> 日期 时 <paramref name="target"/>下,记录发送
+    /// <c>$send:{target}:{taskId}:{name}</c> 在这个执行中,重播不会再次发送它。
     /// </summary>
     /// <remarks>
-    /// The signal's identity names the record, so adding or removing other operations doesn't change the record which a
-    /// send reaches. Repeated sends of one signal in an execution, such as a retry after
-    /// <see cref="DurableSignalResult.TaskNotFound"/>, are numbered by occurrence, <c>$send:{target}:{taskId}:{name}$2</c>
-    /// and so on, so each reaches its own record; the target reports an equal value as
-    /// <see cref="DurableSignalResult.Duplicate"/> and a different one as <see cref="DurableSignalResult.Conflict"/>.
-    /// Task cancellation of this execution doesn't abandon the send; the cancellation of the attempt does.
+    /// 信号的识别身份名记录 所以添加或删除其他操作 并不能改变
+    /// 执行时重复发送一个信号,例如
+    /// <see cref="DurableSignalResult.TaskNotFound"/>,按发生时编号, <c>$send:{target}:{taskId}:{name}$2</c>
+    /// 如此,每个目标都达到了自己的记录;目标报告值相等,
+    /// <see cref="DurableSignalResult.Duplicate"/> 和不同的 <see cref="DurableSignalResult.Conflict"/>。
+    /// 任务取消执行不会放弃发送; 尝试取消会放弃。
     /// </remarks>
-    /// <param name="throwOnRejection">Whether a rejection by a task of this grain throws rather than being recorded and returned.</param>
+    /// <param name="throwOnRejection">是否因为某项任务而拒绝 grain 而不是被记录和归还。</param>
     internal ValueTask<DurableSignalResult> SendSignalAsync(
         GrainId target,
         TaskId taskId,
@@ -997,14 +997,14 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         }
     }
 
-    /// <summary>Links an operation's token with the attempt's cancellation, which ends every operation of the attempt.</summary>
+    /// <summary>将操作的标记与试图取消连接,从而结束每次尝试。</summary>
     private CancellationTokenSource CreateOperationCancellationSource(CancellationToken cancellationToken) =>
         CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken,
             AttemptCancellationToken);
 
-    /// <summary>Runs an entry point's <paramref name="callback"/>, which the activation's scheduler runs.</summary>
-    /// <exception cref="InvalidOperationException">The caller isn't running on the activation's scheduler.</exception>
+    /// <summary>运行启动调度器运行的入口 <paramref name="callback"/>。</summary>
+    /// <exception cref="InvalidOperationException">调用器没有在激活的调度器上运行。</exception>
     private static ValueTask RunOnScheduler(TaskScheduler scheduler, Func<ValueTask> callback)
     {
         ThrowIfOffScheduler(scheduler);
@@ -1019,11 +1019,11 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
     }
 
     /// <summary>
-    /// Throws unless the caller runs on <paramref name="scheduler"/>, the activation's, which owns the attempt's state.
+    /// 除非呼叫器运行在启动状态 <paramref name="scheduler"/>上,否则会投出投手。
     /// </summary>
     /// <remarks>
-    /// A body continues on the activation's scheduler at every await, unless it uses <c>ConfigureAwait(false)</c>, which
-    /// ORLEANS0226 reports.
+    /// 引爆程序上继续有尸体在排程器上进行 <c>ConfigureAwait(false)</c>, 其中
+    /// ORLEANS0226 报告。
     /// </remarks>
     private static void ThrowIfOffScheduler(TaskScheduler scheduler)
     {
@@ -1034,7 +1034,7 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         }
     }
 
-    /// <summary>Wraps a handle of this execution's operation, which the activation's scheduler runs.</summary>
+    /// <summary>包住执行此操作的控点, 启动调度器运行该控点。</summary>
     private ExecutionTaskHandle CreateExecutionHandle(IScheduledTaskHandle handle)
     {
         var targetTaskId = _runtime.GetTargetTaskId(handle.TaskId, out var addressedHost);
@@ -1052,7 +1052,7 @@ internal sealed class GrainDurableTaskContext : DurableTaskContext
         public TaskId TargetTaskId { get; } = targetTaskId;
 
         /// <summary>
-        /// Returns the <see cref="DurableTaskAddress"/> of a detached or subscribed task, as
+        /// 返回独立任务或已订阅任务的 <see cref="DurableTaskAddress"/> ,以
         /// <see cref="IDurableTaskReference"/>.
         /// </summary>
         public TFeature? GetFeature<TFeature>()

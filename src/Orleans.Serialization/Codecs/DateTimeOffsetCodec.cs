@@ -7,7 +7,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="DateTimeOffset"/>.
+    /// <see cref="DateTimeOffset"/>的序列器。
     /// </summary>
     [RegisterSerializer]
     public sealed class DateTimeOffsetCodec : IFieldCodec<DateTimeOffset>
@@ -22,7 +22,7 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Writes a field without type info (expected type is statically known).
+        /// 写入没有类型信息( 期待的类型为静态) 的字段。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, DateTimeOffset value) where TBufferWriter : IBufferWriter<byte>

@@ -18,72 +18,72 @@ using Orleans.Serialization.Utilities;
 namespace Orleans.Serialization.Buffers
 {
     /// <summary>
-    /// Functionality for reading binary data.
+    /// 阅读二元数据功能。
     /// </summary>
     public abstract class ReaderInput
     {
         /// <summary>
-        /// Gets the position.
+        /// 获得位置。
         /// </summary>
-        /// <value>The position.</value>
+        /// <value>位置。</value>
         public abstract long Position { get; }
 
         /// <summary>
-        /// Gets the length.
+        /// 长了
         /// </summary>
-        /// <value>The length.</value>
+        /// <value>长度。</value>
         public abstract long Length { get; }
 
         /// <summary>
-        /// Skips the specified number of bytes.
+        /// 跳过指定的字节数 。
         /// </summary>
-        /// <param name="count">The number of bytes to skip.</param>
+        /// <param name="count">要跳过的字节数。</param>
         public abstract void Skip(long count);
 
         /// <summary>
-        /// Seeks to the specified position.
+        /// 寻找指定位置。
         /// </summary>
-        /// <param name="position">The position.</param>
+        /// <param name="position">位置。</param>
         public abstract void Seek(long position);
 
         /// <summary>
-        /// Reads a byte from the input.
+        /// 读取输入中的字节。
         /// </summary>
-        /// <returns>The byte which was read.</returns>
+        /// <returns>读到的字节</returns>
         public abstract byte ReadByte();
 
         /// <summary>
-        /// Reads a <see cref="uint"/> from the input.
+        /// 从输入读取 <see cref="uint"/> 。
         /// </summary>
-        /// <returns>The <see cref="uint"/> which was read.</returns>
+        /// <returns>下 <see cref="uint"/> 后经宣读。</returns>
         public abstract uint ReadUInt32();
 
         /// <summary>
-        /// Reads a <see cref="ulong"/> from the input.
+        /// 从输入读取 <see cref="ulong"/> 。
         /// </summary>
-        /// <returns>The <see cref="ulong"/> which was read.</returns>
+        /// <returns>下 <see cref="ulong"/> 后经宣读。</returns>
         public abstract ulong ReadUInt64();
 
         /// <summary>
-        /// Fills the destination span with data from the input.
+        /// 填充输入中的数据,以填充目的地的宽度。
         /// </summary>
-        /// <param name="destination">The destination.</param>
+        /// <param name="destination">目的地</param>
         public abstract void ReadBytes(Span<byte> destination);
 
         /// <summary>
-        /// Reads bytes from the input into the destination array.
+        /// 从输入到目标数组的读取字节。
         /// </summary>
-        /// <param name="destination">The destination array.</param>
-        /// <param name="offset">The offset into the destination to start writing bytes.</param>
-        /// <param name="length">The number of bytes to copy into destination.</param>
+        /// <param name="destination">目标数组。</param>
+        /// <param name="offset">将偏移到开始写入字节的目的地。</param>
+        /// <param name="length">要复制到目的地的字节数。</param>
         public abstract void ReadBytes(byte[] destination, int offset, int length);
 
         /// <summary>
-        /// Tries to read the specified number of bytes from the input.
+        /// 尝试读取输入中指定的字节数 。
         /// </summary>
-        /// <param name="length">The number of bytes to read..</param>
-        /// <param name="bytes">The bytes which were read..</param>
-        /// <returns><see langword="true"/> if the number of bytes were successfully read, <see langword="false"/> otherwise.</returns>
+        /// <param name="length">要读取的字节数。</param>
+        /// <param name="bytes">读取的字节。</param>
+        /// <returns><see langword="true"/> 如果成功读取字节数,则 <see langword="false"/> 。</returns>
         public abstract bool TryReadBytes(int length, out ReadOnlySpan<byte> bytes);
     }
 
@@ -161,7 +161,7 @@ namespace Orleans.Serialization.Buffers
 
         public override bool TryReadBytes(int length, out ReadOnlySpan<byte> destination)
         {
-            // Cannot get a span pointing to a stream's internal buffer.
+            // 无法在流的内缓冲处定位一个空格 。
             destination = default;
             return false;
         }
@@ -172,101 +172,101 @@ namespace Orleans.Serialization.Buffers
     }
 
     /// <summary>
-    /// Helper methods for <see cref="Reader{TInput}"/>.
+    /// <see cref="Reader{TInput}"/>的辅助方法。
     /// </summary>
     public static class Reader
     {
         /// <summary>
-        /// Gets the byte count for a variable-width integer from its first byte.
+        /// 从第一个字节中获取变量-宽整数的位元计。
         /// </summary>
-        /// <param name="firstByte">The first byte of the encoded variable-width integer.</param>
-        /// <returns>The encoded byte count indicated by <paramref name="firstByte"/>.</returns>
+        /// <param name="firstByte">编码变量-宽整数的第一个字节。</param>
+        /// <returns>编号的字节数 <paramref name="firstByte"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetVarIntByteCount(byte firstByte) => BitOperations.TrailingZeroCount(0x0100U | firstByte) + 1;
 
         /// <summary>
-        /// Creates a reader for the provided buffer.
+        /// 为提供的缓冲创建阅读器。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<BufferSliceReaderInput> Create(PooledBuffer input, SerializerSession session) => Create(input.Slice(), session);
 
         /// <summary>
-        /// Creates a reader for the provided buffer.
+        /// 为提供的缓冲创建阅读器。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
+        /// <param name="input">输入。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<BufferSliceReaderInput> Create(BufferSlice input, SerializerSession session) => new(new BufferSliceReaderInput(in input), session, 0);
 
         /// <summary>
-        /// Creates a reader for the provided buffer.
+        /// 为提供的缓冲创建阅读器。
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
-        /// <remarks>The input must remain valid and its referenced bytes unchanged for the lifetime of the reader.</remarks>
+        /// <param name="input">输入。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
+        /// <remarks>输入必须保持有效,其引用字节在读者一生中保持不变。</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<ArcBufferReaderInput> Create(ArcBuffer input, SerializerSession session) => new(new ArcBufferReaderInput(in input), session, 0);
 
         /// <summary>
-        /// Creates a reader for the provided input stream.
+        /// 为所提供的输入流创建阅读器 。
         /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
+        /// <param name="stream">流。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<ReaderInput> Create(Stream stream, SerializerSession session) => new(new StreamReaderInput(stream, ArrayPool<byte>.Shared), session, 0);
 
         /// <summary>
-        /// Creates a reader for the provided buffer.
+        /// 为提供的缓冲创建阅读器。
         /// </summary>
-        /// <param name="sequence">The buffer.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
+        /// <param name="sequence">缓冲。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<ReadOnlySequenceInput> Create(ReadOnlySequence<byte> sequence, SerializerSession session) => new(new ReadOnlySequenceInput { Sequence = sequence }, session, 0);
 
         /// <summary>
-        /// Creates a reader for the provided buffer.
+        /// 为提供的缓冲创建阅读器。
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
+        /// <param name="buffer">缓冲。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<SpanReaderInput> Create(ReadOnlySpan<byte> buffer, SerializerSession session) => new(buffer, session, 0);
 
         /// <summary>
-        /// Creates a reader for the provided buffer.
+        /// 为提供的缓冲创建阅读器。
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
+        /// <param name="buffer">缓冲。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<SpanReaderInput> Create(byte[] buffer, SerializerSession session) => new(buffer, session, 0);
 
         /// <summary>
-        /// Creates a reader for the provided buffer.
+        /// 为提供的缓冲创建阅读器。
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="session">The session.</param>
-        /// <returns>A new <see cref="Reader{TInput}"/>.</returns>
+        /// <param name="buffer">缓冲。</param>
+        /// <param name="session">本届会议。</param>
+        /// <returns>一个新的 <see cref="Reader{TInput}"/>。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reader<SpanReaderInput> Create(ReadOnlyMemory<byte> buffer, SerializerSession session) => new(buffer.Span, session, 0);
     }
 
     /// <summary>
-    /// Marker type for <see cref="Reader{TInput}"/> objects which operate over <see cref="ReadOnlySpan{Byte}"/> buffers.
+    /// 标记类型 <see cref="Reader{TInput}"/> 物体在 <see cref="ReadOnlySpan{Byte}"/> 缓冲带。
     /// </summary>
     public readonly struct SpanReaderInput
     {
     }
 
     /// <summary>
-    /// Input type for <see cref="Reader{TInput}"/> to support <see cref="ReadOnlySequence{Byte}"/> buffers.
+    /// <see cref="Reader{TInput}"/> 用于支持 <see cref="ReadOnlySequence{Byte}"/> 缓冲的输入类型。
     /// </summary>
     public struct ReadOnlySequenceInput
     {
@@ -276,9 +276,9 @@ namespace Orleans.Serialization.Buffers
     }
 
     /// <summary>
-    /// Provides functionality for parsing data from binary input.
+    /// 提供从二进制输入解析数据的功能。
     /// </summary>
-    /// <typeparam name="TInput">The underlying buffer reader type.</typeparam>
+    /// <typeparam name="TInput">基本缓冲阅读器类型。</typeparam>
     public ref struct Reader<TInput>
     {
         private readonly static bool IsSpanInput = typeof(TInput) == typeof(SpanReaderInput);
@@ -361,15 +361,15 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Gets the serializer session.
+        /// 获得连环机会话。
         /// </summary>
-        /// <value>The serializer session.</value>
+        /// <value>序列器会话。</value>
         public SerializerSession Session { get; }
 
         /// <summary>
-        /// Gets the current reader position.
+        /// 获取当前读者位置 。
         /// </summary>
-        /// <value>The current position.</value>
+        /// <value>现有位置。</value>
         public long Position
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -406,9 +406,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Gets the input length.
+        /// 输入长度。
         /// </summary>
-        /// <value>The input length.</value>
+        /// <value>输入长度。</value>
         public long Length
         {
             get
@@ -441,7 +441,7 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Gets the number of unread bytes in the input.
+        /// 获取输入中的未读字节数。
         /// </summary>
         public long Remaining
         {
@@ -479,9 +479,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Throws if fewer than <paramref name="count"/> bytes remain in the input.
+        /// 如果输入中保留小于 <paramref name="count"/> 字节的投弃。
         /// </summary>
-        /// <param name="count">The number of bytes which are required.</param>
+        /// <param name="count">所需字节数。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureAvailable(uint count)
         {
@@ -493,16 +493,16 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Reads bytes into an independently owned <see cref="ArcBuffer"/>.
+        /// 读取字节为独立拥有的 <see cref="ArcBuffer"/>。
         /// </summary>
-        /// <param name="length">The number of bytes to read.</param>
-        /// <returns>An owned buffer which the caller must dispose, or <see cref="ArcBuffer.Empty"/> for a zero-length read.</returns>
+        /// <param name="length">要读取的字节数。</param>
+        /// <returns>电话人必须处置的自有缓冲,或 <see cref="ArcBuffer.Empty"/> 零长为。</returns>
         /// <remarks>
-        /// Advances the reader by <paramref name="length"/> bytes. A nonempty read from Arc input acquires an
-        /// independent pin over the referenced pages; other nonempty reads copy the bytes into owned pooled pages.
+        /// 向读者提供 <paramref name="length"/> 字元。 从 Arc 输入的非空读取后, 获取 a
+        /// 独立页面上页;其他非空白的读取将字节复制到自有集合页面。
         /// </remarks>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="length"/> is negative.</exception>
-        /// <exception cref="IndexOutOfRangeException">The input contains fewer than <paramref name="length"/> unread bytes.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="length"/> 为负。</exception>
+        /// <exception cref="IndexOutOfRangeException">输入含有少于 <paramref name="length"/> 未读字节。</exception>
         public ArcBuffer ReadOwnedBuffer(int length)
         {
             if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
@@ -530,9 +530,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Skips the specified number of bytes.
+        /// 跳过指定的字节数 。
         /// </summary>
-        /// <param name="count">The number of bytes to skip.</param>
+        /// <param name="count">要跳过的字节数。</param>
         public void Skip(long count)
         {
             if (count < 0)
@@ -613,13 +613,13 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Creates a new reader beginning at the specified position.
+        /// 创建从指定位置开始的新读取器。
         /// </summary>
         /// <param name="position">
-        /// The position in the input stream to fork from.
+        /// 输入流到叉口的位置。
         /// </param>
         /// <param name="forked">
-        /// The forked reader instance.
+        /// 预言阅读器的例子。
         /// </param>
         public void ForkFrom(long position, out Reader<TInput> forked)
         {
@@ -690,32 +690,32 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Resumes the reader from the specified position after forked readers are no longer in use.
+        /// 将预告阅读器不再使用后, 读者从指定位置上恢复到已取消的读取器 。
         /// </summary>
         /// <param name="position">
-        /// The position to resume reading from.
+        /// 恢复读取的位置 。
         /// </param>
         public void ResumeFrom(long position)
         {
             if (IsReadOnlySequenceInput)
             {
-                // Nothing is required.
+                // 不需要任何要求。
             }
             else if (IsBufferSliceInput)
             {
-                // Nothing is required.
+                // 不需要任何要求。
             }
             else if (IsArcBufferInput)
             {
-                // Nothing is required.
+                // 不需要任何要求。
             }
             else if (IsSpanInput)
             {
-                // Nothing is required.
+                // 不需要任何要求。
             }
             else if (_input is ReaderInput input)
             {
-                // Seek the input stream.
+                // 搜索输入流 。
                 input.Seek(Position);
             }
             else
@@ -742,7 +742,7 @@ namespace Orleans.Serialization.Buffers
                 ref var typedInput = ref Unsafe.As<TInput, ReadOnlySequenceInput>(ref _input);
                 typedInput.PreviousBuffersSize += _bufferSize;
 
-                // If this is the first call to MoveNext then nextSequencePosition is invalid and must be moved to the second position.
+                // 如果这是第一个调用 MoveNext , 那么 nextSequencePosition 无效, 必须移到第二个位置 。
                 if (typedInput.NextSequencePosition.Equals(typedInput.Sequence.Start))
                 {
                     _ = typedInput.Sequence.TryGet(ref typedInput.NextSequencePosition, out _);
@@ -785,9 +785,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Reads a byte from the input.
+        /// 读取输入中的字节。
         /// </summary>
-        /// <returns>The byte which was read.</returns>
+        /// <returns>读到的字节</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte ReadByte()
         {
@@ -815,9 +815,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Returns the next byte from the input without advancing the reader.
+        /// 返回输入的下一个字节,而不向读者推进。
         /// </summary>
-        /// <returns>The next byte in the input.</returns>
+        /// <returns>输入中的下一个字节。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte PeekByte()
         {
@@ -852,15 +852,15 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Reads an <see cref="int"/> from the input.
+        /// 从输入读取 <see cref="int"/> 。
         /// </summary>
-        /// <returns>The <see cref="int"/> which was read.</returns>
+        /// <returns>下 <see cref="int"/> 后经宣读。</returns>
         public int ReadInt32() => (int)ReadUInt32();
 
         /// <summary>
-        /// Reads a <see cref="uint"/> from the input.
+        /// 从输入读取 <see cref="uint"/> 。
         /// </summary>
-        /// <returns>The <see cref="uint"/> which was read.</returns>
+        /// <returns>下 <see cref="uint"/> 后经宣读。</returns>
         public uint ReadUInt32()
         {
             if (IsReadOnlySequenceInput || IsSpanInput || IsBufferSliceInput || IsArcBufferInput)
@@ -896,15 +896,15 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Reads a <see cref="long"/> from the input.
+        /// 从输入读取 <see cref="long"/> 。
         /// </summary>
-        /// <returns>The <see cref="long"/> which was read.</returns>
+        /// <returns>下 <see cref="long"/> 后经宣读。</returns>
         public long ReadInt64() => (long)ReadUInt64();
 
         /// <summary>
-        /// Reads a <see cref="ulong"/> from the input.
+        /// 从输入读取 <see cref="ulong"/> 。
         /// </summary>
-        /// <returns>The <see cref="ulong"/> which was read.</returns>
+        /// <returns>下 <see cref="ulong"/> 后经宣读。</returns>
         public ulong ReadUInt64()
         {
             if (IsReadOnlySequenceInput || IsSpanInput || IsBufferSliceInput || IsArcBufferInput)
@@ -948,7 +948,7 @@ namespace Orleans.Serialization.Buffers
         private static void ThrowInsufficientData() => throw new InvalidOperationException("Insufficient data present in buffer.");
 
         /// <summary>
-        /// Reads the specified number of bytes into the provided writer.
+        /// 读取给提供作家指定的字节数 。
         /// </summary>
         public void ReadBytes<TBufferWriter>(scoped ref TBufferWriter writer, int count) where TBufferWriter : IBufferWriter<byte>
         {
@@ -975,10 +975,10 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Reads an array of bytes from the input.
+        /// 从输入中读取字节数组。
         /// </summary>
-        /// <param name="count">The length of the array to read.</param>
-        /// <returns>The array wihch was read.</returns>
+        /// <param name="count">要读取的数组长度。</param>
+        /// <returns>数组 wihch 已经读取。</returns>
         public byte[] ReadBytes(uint count)
         {
             if (count == 0)
@@ -1003,9 +1003,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Fills <paramref name="destination"/> with bytes read from the input.
+        /// 填充 <paramref name="destination"/> ,从输入中读取字节。
         /// </summary>
-        /// <param name="destination">The destination.</param>
+        /// <param name="destination">目的地</param>
         public void ReadBytes(scoped Span<byte> destination)
         {
             if (IsReadOnlySequenceInput || IsSpanInput || IsBufferSliceInput || IsArcBufferInput)
@@ -1048,11 +1048,11 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Tries the read the specified number of bytes from the input.
+        /// 从输入中输入指定字节数的读取。
         /// </summary>
-        /// <param name="length">The length.</param>
-        /// <param name="bytes">The bytes which were read.</param>
-        /// <returns><see langword="true"/> if the specified number of bytes were read from the input, <see langword="false"/> otherwise.</returns>
+        /// <param name="length">长度。</param>
+        /// <param name="bytes">读取的字节 。</param>
+        /// <returns><see langword="true"/> ,如果从输入中读取了指定的字节数量,则 <see langword="false"/> 。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(int length, out ReadOnlySpan<byte> bytes)
         {
@@ -1083,9 +1083,9 @@ namespace Orleans.Serialization.Buffers
         internal uint ReadVarUInt32NoInlining() => ReadVarUInt32();
 
         /// <summary>
-        /// Reads a variable-width <see cref="uint"/> from the input.
+        /// 从输入中读取变量宽 <see cref="uint"/> 。
         /// </summary>
-        /// <returns>The <see cref="uint"/> which was read.</returns>
+        /// <returns>下 <see cref="uint"/> 后经宣读。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe uint ReadVarUInt32()
         {
@@ -1098,8 +1098,8 @@ namespace Orleans.Serialization.Buffers
                     return ReadVarUInt32Slow();
                 }
 
-                // The number of zeros in the msb position dictates the number of bytes to be read.
-                // Up to a maximum of 10 for a 64-bit integer.
+                // msb 位置的零数决定了要读取的字节数。
+                // 64 位整数时最多可达10。
                 ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
 
                 ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
@@ -1124,10 +1124,10 @@ namespace Orleans.Serialization.Buffers
             var header = ReadByte();
             var numBytes = Orleans.Serialization.Buffers.Reader.GetVarIntByteCount(header);
 
-            // Widen to a ulong for the 5-byte case
+            // 5字节案件 宽到乌隆
             ulong result = header;
 
-            // Read additional bytes as needed
+            // 视需要读取额外字节
             var shiftBy = 8;
             var i = numBytes;
             while (--i > 0)
@@ -1141,9 +1141,9 @@ namespace Orleans.Serialization.Buffers
         }
 
         /// <summary>
-        /// Reads a variable-width <see cref="ulong"/> from the input.
+        /// 从输入中读取变量宽 <see cref="ulong"/> 。
         /// </summary>
-        /// <returns>The <see cref="ulong"/> which was read.</returns>
+        /// <returns>下 <see cref="ulong"/> 后经宣读。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadVarUInt64()
         {
@@ -1156,8 +1156,8 @@ namespace Orleans.Serialization.Buffers
                     return ReadVarUInt64Slow();
                 }
 
-                // The number of zeros in the msb position dictates the number of bytes to be read.
-                // Up to a maximum of 5 for a 32bit integer.
+                // msb 位置的零数决定了要读取的字节数。
+                // 32位整数最高为 5。
                 ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
 
                 ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
@@ -1198,10 +1198,10 @@ namespace Orleans.Serialization.Buffers
             var header = ReadByte();
             var numBytes = Orleans.Serialization.Buffers.Reader.GetVarIntByteCount(header);
 
-            // Widen to a ulong for the 5-byte case
+            // 5字节案件 宽到乌隆
             ulong result = header;
 
-            // Read additional bytes as needed
+            // 视需要读取额外字节
             if (numBytes < 9)
             {
                 var shiftBy = 8;
@@ -1219,7 +1219,7 @@ namespace Orleans.Serialization.Buffers
             {
                 result |= (ulong)ReadByte() << 8;
 
-                // If there was more than one byte worth of trailing zeros, read again now that we have more data.
+                // 如果有一个以上的字节值 的尾数零, 现在再读一遍,因为我们有 更多的数据。
                 numBytes = BitOperations.TrailingZeroCount(result) + 1;
 
                 if (numBytes == 9)

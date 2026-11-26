@@ -15,9 +15,9 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// Serializer for ISerializable value types.
+    /// 可用于可实现序列值类型的序列器。
     /// </summary>
-    /// <typeparam name="T">The type which this serializer can serialize.</typeparam>
+    /// <typeparam name="T">该序列器可序列化的类型 。</typeparam>
     internal class ValueTypeSerializer<T> : ValueTypeSerializer where T : struct
     {
         public delegate void ValueConstructor(ref T value, SerializationInfo info, StreamingContext context);

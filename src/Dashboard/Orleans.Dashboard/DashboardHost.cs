@@ -24,8 +24,8 @@ internal sealed partial class DashboardHost(
     private MeterProvider? _meterProvider;
 
     /// <summary>
-    /// Gets the interval between periodic telemetry exports. <see cref="Timeout.Infinite"/> disables periodic export,
-    /// so only explicit flushes collect telemetry.
+    /// 获得定期遥测出口之间的间隔。 <see cref="Timeout.Infinite"/> 禁用周期出口,
+    /// 所以只有清晰的冲水器 才能进行遥测
     /// </summary>
     internal int ExportIntervalMilliseconds { get; init; } = 1000;
 
@@ -38,7 +38,7 @@ internal sealed partial class DashboardHost(
 
     public void Participate(ISiloLifecycle lifecycle)
     {
-        // Observe client connections from the moment the gateway opens at the Active stage.
+        // 从门户在活动阶段打开那一刻起,观察客户端连接。
         lifecycle.Subscribe<DashboardHost>(ServiceLifecycleStage.BecomeActive, _ => StartOpenTelemetryConsumerAsync());
     }
 
@@ -81,7 +81,7 @@ internal sealed partial class DashboardHost(
                     return MetricStreamConfiguration.Drop;
                 }
 
-                // The dashboard displays silo-wide totals, so collect a single stream with histogram sums only.
+                // 仪表板显示 silo- 整个总数,因此只收集直方图数字的单流。
                 return instrument.GetType().IsGenericType && instrument.GetType().GetGenericTypeDefinition() == typeof(Histogram<>)
                     ? new ExplicitBucketHistogramConfiguration { TagKeys = [], Boundaries = [], RecordMinMax = false }
                     : null;
@@ -110,7 +110,7 @@ internal sealed partial class DashboardHost(
             }
             catch
             {
-                // Ignore.
+                // 忽略。 忽略。
             }
         }
     }
@@ -124,7 +124,7 @@ internal sealed partial class DashboardHost(
         }
         catch
         {
-            /* NOOP */
+            /* 诺 诺 */
         }
     }
 
@@ -147,7 +147,7 @@ internal sealed partial class DashboardHost(
         }
         catch
         {
-            /* NOOP */
+            /* 诺 诺 */
         }
 
         return "1.0.0.0";

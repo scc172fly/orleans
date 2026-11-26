@@ -118,7 +118,7 @@ namespace Orleans.Streams
             StreamHandshakeToken? expectedToken,
             StreamSequenceToken? token)
         {
-            // A DeliveryToken is recorded only after the complete delivery call succeeds.
+            // DeliveryToken 只有在完全发送信号成功后才记录。
             if (token is null
                 || !hasObserver
                 || !SubscriptionMarker.IsImplicitSubscription(subscriptionId.Guid)
@@ -158,13 +158,13 @@ namespace Orleans.Streams
 
         public async Task<StreamHandshakeToken?> DeliverBatch(IBatchContainer batch, StreamHandshakeToken? handshakeToken)
         {
-            // we validate expectedToken only for ordered (rewindable) streams
+            // 我们仅对定序(可倒放)流进行验证 expectedToken
             if (this.expectedToken != null)
             {
                 if (!this.expectedToken.Equals(handshakeToken))
                     return this.expectedToken;
 
-                // Check if this even already has been delivered
+                // 检查是否已经交付了此任务
                 if (IsRewindable)
                 {
                     if (this.expectedToken is DeliveryToken deliveryToken
@@ -221,7 +221,7 @@ namespace Orleans.Streams
                 if (!this.expectedToken.Equals(handshakeToken))
                     return this.expectedToken;
 
-                // Check if this even already has been delivered
+                // 检查是否已经交付了此任务
                 if (IsRewindable)
                 {
                     if (this.expectedToken is DeliveryToken deliveryToken
@@ -238,7 +238,7 @@ namespace Orleans.Streams
             }
             catch (InvalidCastException)
             {
-                // We got an illegal item on the stream -- close it with a Cast exception
+                // 我们在溪流上发现了一个非法物品 关闭它,但有一个卡斯特例外
                 throw new InvalidCastException("Received an item of type " + item.GetType().Name + ", expected " + typeof(T).FullName);
             }
 
@@ -259,7 +259,7 @@ namespace Orleans.Streams
                 await NextItems(new[] { Tuple.Create(typedItem, currentToken) }, streamProviderName, streamId, currentSubscriptionId);
             }
 
-            // check again, in case the expectedToken was changed indiretly via ResumeAsync()
+            // 复检查,如果 expectedToken 被不眠地通过 ResumeAsync()
             if (this.expectedToken != null)
             {
                 if (!this.expectedToken.Equals(handshakeToken))
@@ -310,8 +310,8 @@ namespace Orleans.Streams
 
         private async Task<bool> NextItem(T item, StreamSequenceToken token)
         {
-            // This method could potentially be invoked after Dispose() has been called, 
-            // so we have to ignore the request or we risk breaking unit tests AQ_01 - AQ_04.
+            // 在要求()放弃之后,有可能援引这种方法。 
+            // 所以我们必须忽略请求 或者我们冒着 破碎单位测试AQO1 - AQO4的风险
             if (this.observer == null || !IsValid)
                 return false;
 
@@ -321,8 +321,8 @@ namespace Orleans.Streams
 
         private async Task NextItems(IEnumerable<Tuple<T, StreamSequenceToken>> items, string? streamProviderName, StreamId streamId, Guid currentSubscriptionId)
         {
-            // This method could potentially be invoked after Dispose() has been called, 
-            // so we have to ignore the request or we risk breaking unit tests AQ_01 - AQ_04.
+            // 在要求()放弃之后,有可能援引这种方法。 
+            // 所以我们必须忽略请求 或者我们冒着 破碎单位测试AQO1 - AQO4的风险
             if (this.batchObserver == null || !IsValid)
                 return;
 

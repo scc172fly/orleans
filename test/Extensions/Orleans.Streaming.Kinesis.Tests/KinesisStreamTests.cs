@@ -11,7 +11,7 @@ using UnitTests.GrainInterfaces;
 namespace Orleans.Streaming.Kinesis.Tests
 {
     /// <summary>
-    /// Tests Kinesis streaming provider with various producer/consumer configurations between grains and clients.
+    /// 测试Kinesis流供应商在 grains 和客户之间不同的生产者/消费者配置。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]
@@ -165,7 +165,7 @@ namespace Orleans.Streaming.Kinesis.Tests
             await runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
         }
 
-        //------------------------- MANY to Many different grains ----------------------//
+        //和很多不同的人 grains ----------------------//
 
         [Fact]
         public async Task Kinesis_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
@@ -191,7 +191,7 @@ namespace Orleans.Streaming.Kinesis.Tests
             await runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
         }
 
-        //------------------------- MANY to Many Same grains ----------------------//
+        //和很多相同 grains ----------------------//
         [Fact]
         public async Task Kinesis_09_ManySame_ManyProducerGrainsManyConsumerGrains()
         {

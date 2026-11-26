@@ -1,174 +1,192 @@
 ---
-title: Version durable tasks
-description: Change durable task code while executions are pending, with DurableTask.GetVersion branches which each execution follows from its recorded version, and retire old versions safely.
+title: "版本耐久任务"
+description: "在等待处决期间,修改持久任务代码,每个执行分支都从记录版本中产生 DurableTask.GetVersion 处,并安全地淘汰旧版本。"
 ms.date: 10/16/2026
 ms.topic: how-to
 ---
 
-# Version durable tasks
+<a id="version-durable-tasks"></a>
 
-A durable task which is pending during a deployment resumes on the new code: the next
-activation runs the body again from the start, and each recorded operation returns its
-recorded outcome. `DurableTask.GetVersion` lets one body hold the code for every version
-of a change, and gives each execution the version which it follows: executions which
-started on earlier code keep their operations, and new executions take the new ones.
+# 版本耐久任务
 
-This page builds on [Replay and determinism](durable-tasks.md#replay-and-determinism) and
-[Task identity and references](durable-tasks-identity.md). Changes which only add
-operations after existing ones, or which add a new method, need no version; see
-[Version workflows safely](durable-tasks-operations.md#version-workflows-safely).
+部署期间将恢复执行新守则的持久任务,但这一任务尚未完成:下一个
+激活从开始再次运行身体, 每个被记录的操作都返回
+结果被记录。 `DurableTask.GetVersion` 允许一个机构持有每个版本的代码
+修改后,并给每个执行者以下版本:
+早先的代码开始 继续运行, 而新的处决采取新的。
 
-## Branch on a change's version
+本页以 [重弹和确定论](durable-tasks.md#replay-and-determinism) 和
+[任务身份和参考](durable-tasks-identity.md). 仅添加
+在现有操作后操作操作,或添加新方法的操作,不需要版本;见
+[安全版本工作流程](durable-tasks-operations.md#version-workflows-safely).
 
-The workflow below shipped orders through a warehouse. A later deployment books a carrier
-instead, and a deployment after that also notifies the customer. Each deployment keeps
-the earlier branches, and the check states the versions which the code supports:
+<a id="branch-on-a-changes-version"></a>
+
+## 更改版本的分支
+
+之后部署的作业记录簿上载有承运人
+之后的部署也通知客户。
+检查显示代码支持的版本:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskVersioningSnippets.cs" id="durable_tasks_versioning_branch" language="csharp":::
 
-The first check of a change in an execution decides the version, and records it beneath
-the execution as `$version:{name}`. Every later check of the change in the execution,
-and every replay, returns the recorded version:
+执行执行中更改的第一次检查决定版本,记录在下面
+执行时的 `$version:{name}`. 以后每检查一次执行的改变,
+和每次重放,返回记录版本:
 
-| Execution | Version |
+| 执行 执行 | 版本版本 |
 | --- | --- |
-| Reaches the check for the first time: a new execution, or one whose earlier runs stopped before this point | `maxSupported` |
-| Ran past this point on code without the check | `0`, the code before the change |
-| Recorded a version | The recorded version |
-| A step whose enclosing execution on the same grain recorded a version | The enclosing execution's version |
+| 第一次达到支票:新执行,或在此点之前停止的早期运行 | `maxSupported` |
+| 未经检查, 过此点时在代码中输入 | `0`,修改前的代码 |
+| 录音记录了版本 | 记录版本 |
+| 在同一 grain 上附有执行的一步,记录了一个版本 | 随函附上的处决版本 |
 
-A replay identifies an execution which ran past the check from its history: the replay
-reaches the check while operations which the earlier run recorded remain ahead of it.
-Place the check before the first operation which the change adds, removes, or alters, so
-that every execution reaches it with the operations which its version expects.
+重放识别执行时, 执行时已经从历史中跳过检查: 重放
+检查到达时,前一个运行记录中的操作仍会提前完成。
+将检查置于修改添加、删除或更改的第一个操作之前,这样
+每一个执行者都与它所期望的行动 一起到达它那里
 
-- A check inside a loop, or in several helpers, returns the first decision every time.
-- The record commits with the execution's next durable write, as a `DurableTask.RunInline`
-  effect's does, and a replay which ends before that write decides again from the same
-  history.
-- Version decisions are scoped to an invoked task's execution tree: a call to another
-  grain decides its own versions.
-- A decision applies to the execution which records it and to the steps beneath it. A
-  step which checks a change before its parent does records its own decision, which
-  doesn't bind the parent: the parent's later check decides from the parent's history.
-- A task whose cancellation was requested replays the request at the point where its
-  body first observed it, so its body takes its compensation path where the earlier run
-  took it. A check which only compensation reaches, and which no earlier run recorded,
-  finds the operations which the earlier run recorded ahead of it and decides `0`. Check
-  the change before the body branches on cancellation, such as at the start of the body,
-  when compensation depends on the version.
-- The check runs on the activation's scheduler, as `DurableTask.RunInline` does. Outside a
-  durable task, it returns `maxSupported`.
-- Names follow the rules for operation names: they're non-empty and don't contain `$`.
-  [ORLEANS0218](../diagnostics/orleans0218.md) reports names and ranges which aren't
-  constants.
+- 循环中的检查,或者在多个助手中,每次返回第一个决定。
+- 记录以 `DurableTask.RunInline`形式与处决的下一个耐久写作一同保存
+  和在写之前结束的重放,从同一
+  历史。
+- 版本决定的范围范围被扩大到援引任务执行树:呼叫另一树
+  grain 自行决定其版本。
+- 决定适用于记录该决定的执行和其下台步骤。
+  其父/母在记录自己的决定之前检查变更的一步,该步骤
+  父母双方没有约束性:父母后来的检查决定了父母的历史。
+- 一项任务, 要求取消该任务时被请求取消的任务, 当该任务发生时重放请求
+  身体首先观察了它, 所以身体就选择了赔偿路径 早期运行
+  一张只算补偿的支票,没有记录过
+  发现前一个运行期之前记录的操作,并决定 `0`。
+  机构分支之前的更改,例如,在机构开始时,
+  当补偿取决于版本时。
+- 激活调度器上的检查运行,与 `DurableTask.RunInline` 一样。
+  持久任务,返回 `maxSupported`。
+- 名字遵循操作名称规则:它们不是空的,也不包含 `$`。
+  [ORLEANS0218](../diagnostics/orleans0218.md) 报告名称和范围,但并非
+  常数。
 
-### Evolve a change
+<a id="evolve-a-change"></a>
 
-Each deployment of a change raises `maxSupported` and adds a branch:
+### 改变
 
-1. The first deployment checks `GetVersion("carrier-booking", 0, 1)`: version 1 books a
-   carrier, and version 0 keeps the warehouse.
-2. The next deployment checks `GetVersion("carrier-booking", 0, 2)`: version 2 adds the
-   notification, and executions which recorded version 1 keep booking without it.
+每次部署变更都产生 `maxSupported` ,并增加一个分支:
 
-An unrelated change elsewhere in the body gets its own name. Give each version's new
-operations new names, so their records never meet another version's records.
+1. 第一次部署检查 `GetVersion("carrier-booking", 0, 1)`:第一版a
+   载体和0版保存仓库
+2. 下一次部署检查 `GetVersion("carrier-booking", 0, 2)`:版本2添加
+   以及记录第一版的处决 总是不通知就订票
 
-### Declare a change once
+身体其他地方的一处无关的变化, 就会得到自己的名字。 给每个版本的新版本
+使用新名字,所以他们的记录永远无法与另一版本的记录相匹配。
 
-A `DurableVersion` holds a change's name and supported range in one declaration, as a
-`DurableSignal<T>` holds a signal's name. Every check of the change then states the same
-range, and a deployment which adds or retires a version edits the declaration:
+<a id="declare-a-change-once"></a>
+
+### 一次宣布变更
+
+`DurableVersion` 在一个声明中持有更改的名称和支持范围,作为
+`DurableSignal<T>` 持有信号的名称。每次检查更改,都会写相同
+范围, 添加或退出版本的部署编辑声明:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskVersioningSnippets.cs" id="durable_tasks_versioning_descriptor" language="csharp":::
 
-`Get()` returns the execution's version, and `IsAtLeast(version)` reports whether the
-execution follows `version` or a newer one.
+`Get()` 返回执行的版本, `IsAtLeast(version)` 报告是否
+执行后继 `version` 或新。
 
-## Retire a version
+<a id="retire-a-version"></a>
 
-Retire a version once no pending execution follows it:
+## 将版本用完
 
-1. Find the executions which follow it. Each execution holds its decision as the
-   `$version:{name}` record, whose response is the version, and the `VersionRecorded`
-   event reports each decision as it's recorded; see [Monitor versions](#monitor-versions).
-2. Raise `minSupported` above the version, and remove its branch:
+在收到未执行的处决后,将一个版本退役:
+
+1. 每一处决以其决定为
+   `$version:{name}` 记录,其答复为版本和 `VersionRecorded`
+   记录下来的每项决定都报告;见 [监视器版本](#monitor-versions)。
+2. 将 `minSupported` 提升到版本以上,并删除其分支:
 
    :::code source="../snippets/compiled-durable/Grains/DurableTaskVersioningSnippets.cs" id="durable_tasks_versioning_retired" language="csharp":::
 
-3. Once `minSupported` equals `maxSupported` and every pending execution follows that
-   version, remove the check. The records which executions hold stay in their trees
-   until the trees are deleted, and replays skip them.
+3. 一旦 `minSupported` 等于 `maxSupported` ,每执行一次待执行之后
+   版本,删除检查。 处决保存的记录 留在他们的树上
+   直到树被删除,重播时跳过它们。
 
-Give a later change a new name rather than reusing a retired one: an execution which ran
-past the retired check before it was added holds no record, and a new check under the
-old name would decide version `0` for it.
+稍后更改后给一个新名称, 而不是重复使用退休的名称: 执行时运行的处决
+之前的退休支票,在被添加前没有记录,
+旧名称将决定版本 `0` 。
 
-## Stalled executions
+<a id="stalled-executions"></a>
 
-An execution stalls when the running code can't replay it. The runtime cancels the
-attempt with one of two reasons, as it cancels the attempts of a stopping activation;
-see
-[Task cancellation and attempt cancellation](durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation):
+## 处决总数
 
-| Reason | Cause | Inner exception |
+当运行中的代码无法重放时执行拖挂。 运行时间取消
+以两个理由之一试图,因为它取消了停止引爆的尝试;
+见见
+[任务取消和任务取消](durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation):
+
+| 原因理由原因 | 原因原因原因 | 内内例外 |
 | --- | --- | --- |
-| `UnsupportedVersion` | The execution recorded a version outside the range which the running code supports. | A `DurableTaskVersionException`, which names the change, the recorded version, and the supported range |
-| `Diverged` | The replay requested another operation under a recorded ID, a recorded outcome no longer decodes, the task's stored request no longer decodes, or the body ended before the point where an earlier run observed the task's cancellation. See [Diagnose replay divergence](durable-tasks-operations.md#diagnose-replay-divergence). | An `InvalidOperationException` which names the recorded and the requested operations, the decoding failure, or the unreached cancellation point |
+| `UnsupportedVersion` | 执行记录了运行代码所支持范围以外的版本。 | A `DurableTaskVersionException`,其中列出更改、记录版本和所支持的范围 |
+| `Diverged` | 重播请求在已记录的ID下进行另一次操作,记录的结果不再编码,任务存储的请求不再编码,或者身体在较早运行时观察到任务取消之前结束。见 [诊断性重显示差异](durable-tasks-operations.md#diagnose-replay-divergence)。 | 标明所记录和要求操作、编码失败或未到达的取消点的 `InvalidOperationException` |
 
-The runtime:
+运行时间 :
 
-- Throws `DurableTaskAttemptCanceledException` from the operation which found the stall,
-  with the inner exception above. The attempt's later durable operations throw the same
-  cancellation, and `AttemptCancellationToken` is canceled,
-  so the attempt unwinds through its `finally` blocks.
-- Discards the attempt's result, whatever the body does with the exception.
-- Keeps the task pending. Callers which await it keep waiting.
-- Logs a warning and raises the `ExecutionStalled` event, which carries the `Reason` and
-  the `Exception`.
-- Keeps a wake-up for the grain every `DurableTaskOptions.StalledExecutionRetryInterval`,
-  one minute by default, so a later activation replays the task, for example on the silos
-  of the next deployment.
+- 将找到摊位的操作丢弃 `DurableTaskAttemptCanceledException` ,
+  尝试的后期耐久操作也同样
+  取消, 并且取消 `AttemptCancellationToken`
+  ,尝试通过它的 `finally` 区块来解开。
+- 丢弃尝试的结果, 无论身体做什么 除了例外。
+- 任务还在等待,等待的任务在等待
+- 记录警告和升起, `ExecutionStalled` 随带 `Reason` 和
+  排 `Exception`.
+- 保持唤醒 grain 间隔 `DurableTaskOptions.StalledExecutionRetryInterval`,
+  默认为一分钟, 所以稍后激活后重播放任务, 例如在 silos
+  下次部署的装备
 
-A version stall happens when a deployment raises `minSupported` while executions follow
-the retired version, or when code which supports fewer versions replays an execution,
-such as during a rollback. Deploy code which supports the recorded version, or code which
-matches the record of a diverged execution, and the execution resumes; or abort the task,
-see [Abort stuck tasks](durable-tasks-operations.md#abort-stuck-tasks).
+版本的停顿发生于部署增加 `minSupported` 而处决随后
+的代码,或者当支持较少版本的代码重播执行时
+安装支持记录版本的代码,或支持
+执行过程不一, 执行恢复; 或者中止任务,
+见 [中止已挂停的任务](durable-tasks-operations.md#abort-stuck-tasks)。
 
-### Rolling deployments
+<a id="rolling-deployments"></a>
 
-During a rolling deployment, a grain can activate on a silo which runs the previous
-code. That code stalls executions which recorded a version newer than its
-`maxSupported`, and resumes none of them until a silo with newer code activates the
-grain. Code from before a change's first check has no check, so it continues every
-execution on the code before the change, including executions which newer code started.
+### 滚滚部署
 
-Drain old executions first. Let a deployment which adds a change's first check, or raises
-`maxSupported`, complete on every silo before work depends on the new version, and let
-executions which earlier code started complete before a later deployment retires their
-version.
+在滚动部署期间, grain 可在前一个运行的 silo 上激活
+代码码,它阻止了死刑处决 记录的新版本比它的
+`maxSupported`,并且不恢复其中任何一项直到一个有较新代码的 silo 激活
+grain. 更改第一次检查前的代码没有检查, 所以它会继续每个
+包括处决, 新的代码开始。
 
-## Monitor versions
+排排旧处决先行。 让一个部署, 增加改变的第一次检查, 或者提高
+`maxSupported`,在工作取决于新版本之前完成每个 silo ,然后让
+而在后来部署之前,
+版本。
 
-The `DurableTaskEvents` listener reports each recorded decision and each stall. A
-monitor which counts decisions shows which versions executions still record, and logs
-stalls:
+<a id="monitor-versions"></a>
+
+## 监视器版本
+
+下 `DurableTaskEvents` 听众报告每个记录的决定和每个摊位。
+监控计数决定显示哪些版本的处决仍然记录,以及日志
+空格:
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskVersioningSnippets.cs" id="durable_tasks_versioning_monitor" language="csharp":::
 
-`VersionRecorded` reports the execution, the change's name, and the version: `0` for an
-execution which earlier code ran past the check. `ExecutionStalled` reports the stalled
-execution, the `Reason`, `UnsupportedVersion` or `Diverged`, and the `Exception` which
-describes the stall.
+`VersionRecorded` 报告执行、更改的名称和版本: `0`
+先前的代码执行时经过了检查。 `ExecutionStalled` 报告被停止
+执行, 和 `Reason`, `UnsupportedVersion` 或 `Diverged`和 `Exception` 减去
+描述摊位。
 
-## Choose versions or new methods
+<a id="choose-versions-or-new-methods"></a>
 
-- **Version in place** for a change within a body, such as a replaced step, a changed
-  argument, or an added notification, while executions are pending.
-- **Add a method** for a new workflow shape. Schedule new work with the new method, and
-  keep the old method until its pending tasks complete.
-- **Start a generation** for a workflow which runs indefinitely: each generation ends and
-  starts its successor as a detached task, such as `subscription-{id}-{generation}`, and a
-  new generation starts on the code which is current when it starts.
+## 选择版本或新方法
+
+- **版本已到位** ,用于在机构内部进行变更,例如替换的步数、变化
+  或附加通知,但处决尚待执行。
+- **添加新工作流程形状的方法** 。与新方法一起安排新的工作,以及
+  保留旧方法,直到完成待决任务。
+- 启动一个源**的** ,用于一个无限期运行的工作流程:每代目的和
+  以独立任务(如 `subscription-{id}-{generation}`)和
+  新一代的代码从开始时的当前代码开始。

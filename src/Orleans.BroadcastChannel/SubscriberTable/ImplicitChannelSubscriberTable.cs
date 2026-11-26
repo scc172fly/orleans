@@ -105,13 +105,13 @@ namespace Orleans.BroadcastChannel.SubscriberTable
         }
 
         /// <summary>
-        /// Retrieve a map of implicit subscriptionsIds to implicit subscribers, given a channel ID. This method throws an exception if there's no namespace associated with the channel ID.
+        /// 获取一个暗含 subscriptionsIds 的地图给默认用户, 并给其提供一个频道 ID。 如果没有与频道 ID 相关的命名空间, 此方法会丢出例外 。
         /// </summary>
-        /// <param name="channelId">A channel ID.</param>
-        /// <param name="grainFactory">The grain factory used to get consumer references.</param>
-        /// <returns>A set of references to implicitly subscribed grains. They are expected to support the broadcast channel consumer extension.</returns>
-        /// <exception cref="ArgumentException">The channel ID doesn't have an associated namespace.</exception>
-        /// <exception cref="InvalidOperationException">Internal invariant violation.</exception>
+        /// <param name="channelId">频道 ID。</param>
+        /// <param name="grainFactory">下 grain 工厂用来获取消费者参考资料。</param>
+        /// <returns>一套提及默示默认的提法 grains.它们预计将支持广播频道的消费者推广。</returns>
+        /// <exception cref="ArgumentException">频道 ID 没有相关的命名空间。</exception>
+        /// <exception cref="InvalidOperationException">内部的无变不化侵犯。</exception>
         internal Dictionary<Guid, IBroadcastChannelConsumerExtension> GetImplicitSubscribers(InternalChannelId channelId, IGrainFactory grainFactory)
         {
             var channelNamespace = channelId.GetNamespace();
@@ -149,7 +149,7 @@ namespace Orleans.BroadcastChannel.SubscriberTable
         }
 
         /// <summary>
-        /// Create a subscriptionId that is unique per grainId, grainType, namespace combination.
+        /// 创建 subscriptionId 唯一 grainId, grainType,命名空间组合。
         /// </summary>
         private Guid MakeSubscriptionGuid(GrainType grainType, InternalChannelId channelId)
         {
@@ -158,12 +158,12 @@ namespace Orleans.BroadcastChannel.SubscriberTable
             BinaryPrimitives.WriteUInt32LittleEndian(bytes[4..], channelId.ChannelId.GetUniformHashCode());
             BinaryPrimitives.WriteUInt32LittleEndian(bytes[8..], channelId.ChannelId.GetKeyIndex());
             BinaryPrimitives.WriteUInt32LittleEndian(bytes[12..], StableHash.ComputeHash(channelId.ProviderName));
-            bytes[15] |= 0x80; // set high bit of last byte (implicit subscription)
+            bytes[15] |= 0x80; // 设置高位的上一个字节( 暗含订阅)
             return new(bytes);
         }
 
         /// <summary>
-        /// Finds all implicit subscribers for the given channel namespace.
+        /// 查找给定频道命名空间的所有隐含用户。
         /// </summary>
         private static HashSet<BroadcastChannelSubscriber> FindImplicitSubscribers(string channelNamespace, List<BroadcastChannelSubscriberPredicate> predicates)
         {
@@ -180,11 +180,11 @@ namespace Orleans.BroadcastChannel.SubscriberTable
         }
 
         /// <summary>
-        /// Create a reference to a grain that we expect to support the broadcast channel consumer extension.
+        /// 创建一个 grain 的引用, 我们希望它能支持广播频道消费者推广。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to get consumer references.</param>
-        /// <param name="channelId">The channel ID to use for the grain ID construction.</param>
-        /// <param name="channelSubscriber">The GrainBindings for the grain to create</param>
+        /// <param name="grainFactory">下 grain 工厂用来获取消费者参考资料。</param>
+        /// <param name="channelId">用于 grain ID构建的通道 。</param>
+        /// <param name="channelSubscriber">下 GrainBindings 排排 grain 要创建</param>
         /// <returns></returns>
         private static IBroadcastChannelConsumerExtension MakeConsumerReference(
             IGrainFactory grainFactory,

@@ -1,4 +1,4 @@
--- For each deployment, there will be only one (active) membership version table version column which will be updated periodically.
+-- 每次部署将只有一个(现役)成员表格版本一栏,定期更新。
 CREATE TABLE "ORLEANSMEMBERSHIPVERSIONTABLE"
 (
     "DEPLOYMENTID" NVARCHAR2(150) NOT NULL ENABLE,
@@ -9,7 +9,7 @@ CREATE TABLE "ORLEANSMEMBERSHIPVERSIONTABLE"
 );
 /
 
--- Every silo instance has a row in the membership table.
+-- 每一 silo 例在会籍表有行。
 CREATE TABLE "ORLEANSMEMBERSHIPTABLE"
 (
     "DEPLOYMENTID" NVARCHAR2(150) NOT NULL ENABLE,

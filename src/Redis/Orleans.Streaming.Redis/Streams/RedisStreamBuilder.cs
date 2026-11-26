@@ -7,15 +7,15 @@ using Orleans.Streaming.Redis;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// Configures Redis streams on a silo.
+/// 配置配置 Redis 在一个溪流上 silo.
 /// </summary>
 public sealed class SiloRedisStreamConfigurator : SiloPersistentStreamConfigurator
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SiloRedisStreamConfigurator"/> class.
+    /// 初始化 <see cref="SiloRedisStreamConfigurator"/> 类的新实例。
     /// </summary>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="configureServicesDelegate">The delegate used to configure services.</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="configureServicesDelegate">代表用于配置服务。</param>
     public SiloRedisStreamConfigurator(string name, Action<Action<IServiceCollection>> configureServicesDelegate)
         : base(name, configureServicesDelegate, RedisStreamAdapterFactory.Create)
     {
@@ -29,21 +29,21 @@ public sealed class SiloRedisStreamConfigurator : SiloPersistentStreamConfigurat
     }
 
     /// <summary>
-    /// Configures the Redis streaming options.
+    /// 配置 Redis 流动选项。
     /// </summary>
-    /// <param name="configureOptions">The delegate used to configure the options.</param>
+    /// <param name="configureOptions">用于配置选项的代表。</param>
     public void ConfigureOptions(Action<RedisStreamingOptions, IServiceProvider> configureOptions) => RedisStreamingOptions.Configure(configureOptions);
 
     /// <summary>
-    /// Gets the options builder for <see cref="RedisStreamingOptions"/>.
+    /// 获取 <see cref="RedisStreamingOptions"/>的选项构建器。
     /// </summary>
     public OptionsBuilder<RedisStreamingOptions> RedisStreamingOptions => this.GetNamedOptionsBuilder<RedisStreamingOptions>();
 
     /// <summary>
-    /// Configures the Redis stream receiver options.
+    /// 配置 Redis 流接收器选项。
     /// </summary>
-    /// <param name="configureOptions">The delegate used to configure the named receiver options.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="configureOptions">代表用来配置命名的接收器选项。</param>
+    /// <returns>此配置。</returns>
     public SiloRedisStreamConfigurator ConfigureReceiver(Action<OptionsBuilder<RedisStreamReceiverOptions>> configureOptions)
     {
         ArgumentNullException.ThrowIfNull(configureOptions);
@@ -53,10 +53,10 @@ public sealed class SiloRedisStreamConfigurator : SiloPersistentStreamConfigurat
     }
 
     /// <summary>
-    /// Configures the number of Orleans queues used to partition streams.
+    /// 配置用于分区流的 Orleans 队列数量。
     /// </summary>
-    /// <param name="numOfPartitions">The number of stream queues.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="numOfPartitions">流队列数。</param>
+    /// <returns>此配置。</returns>
     public SiloRedisStreamConfigurator ConfigurePartitioning(int numOfPartitions = HashRingStreamQueueMapperOptions.DEFAULT_NUM_QUEUES)
     {
         this.Configure<HashRingStreamQueueMapperOptions>(builder => builder.Configure(options => options.TotalQueueCount = numOfPartitions));
@@ -64,10 +64,10 @@ public sealed class SiloRedisStreamConfigurator : SiloPersistentStreamConfigurat
     }
 
     /// <summary>
-    /// Configures the receiver cache size.
+    /// 配置接收器缓存大小 。
     /// </summary>
-    /// <param name="cacheSize">The cache size.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="cacheSize">缓存大小。</param>
+    /// <returns>此配置。</returns>
     public SiloRedisStreamConfigurator ConfigureCache(int cacheSize = SimpleQueueCacheOptions.DEFAULT_CACHE_SIZE)
     {
         this.Configure<SimpleQueueCacheOptions>(builder => builder.Configure(options => options.CacheSize = cacheSize));
@@ -76,15 +76,15 @@ public sealed class SiloRedisStreamConfigurator : SiloPersistentStreamConfigurat
 }
 
 /// <summary>
-/// Configures Redis streams on a client.
+/// 客户端上的配置 Redis 流。
 /// </summary>
 public sealed class ClusterClientRedisStreamConfigurator : ClusterClientPersistentStreamConfigurator
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ClusterClientRedisStreamConfigurator"/> class.
+    /// 初始化 <see cref="ClusterClientRedisStreamConfigurator"/> 类的新实例。
     /// </summary>
-    /// <param name="name">The stream provider name.</param>
-    /// <param name="builder">The client builder.</param>
+    /// <param name="name">流体提供者名称。</param>
+    /// <param name="builder">客户端构建器。</param>
     public ClusterClientRedisStreamConfigurator(string name, IClientBuilder builder)
         : base(name, builder, RedisStreamAdapterFactory.Create)
     {
@@ -97,21 +97,21 @@ public sealed class ClusterClientRedisStreamConfigurator : ClusterClientPersiste
     }
 
     /// <summary>
-    /// Configures the Redis streaming options.
+    /// 配置 Redis 流动选项。
     /// </summary>
-    /// <param name="configureOptions">The delegate used to configure the options.</param>
+    /// <param name="configureOptions">用于配置选项的代表。</param>
     public void ConfigureOptions(Action<RedisStreamingOptions, IServiceProvider> configureOptions) => RedisStreamingOptions.Configure(configureOptions);
 
     /// <summary>
-    /// Gets the options builder for <see cref="RedisStreamingOptions"/>.
+    /// 获取 <see cref="RedisStreamingOptions"/>的选项构建器。
     /// </summary>
     public OptionsBuilder<RedisStreamingOptions> RedisStreamingOptions => this.GetNamedOptionsBuilder<RedisStreamingOptions>();
 
     /// <summary>
-    /// Configures the number of Orleans queues used to partition streams.
+    /// 配置用于分区流的 Orleans 队列数量。
     /// </summary>
-    /// <param name="numOfPartitions">The number of stream queues.</param>
-    /// <returns>This configurator.</returns>
+    /// <param name="numOfPartitions">流队列数。</param>
+    /// <returns>此配置。</returns>
     public ClusterClientRedisStreamConfigurator ConfigurePartitioning(int numOfPartitions = HashRingStreamQueueMapperOptions.DEFAULT_NUM_QUEUES)
     {
         this.Configure<HashRingStreamQueueMapperOptions>(builder => builder.Configure(options => options.TotalQueueCount = numOfPartitions));

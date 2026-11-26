@@ -7,11 +7,11 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for silo role-based placement strategy in Orleans.
-    /// This placement strategy allows grains to be placed on specific silos
-    /// based on silo roles/names. This is useful for scenarios requiring
-    /// grain affinity to specific infrastructure (e.g., grains that need
-    /// access to local resources or should run on specialized hardware).
+    /// silo 角色定位战略测试 Orleans。
+    /// 这一安置战略允许 grains 置于具体 silos
+    /// 基于 silo 作用/名称。这对需要
+    /// grain 与特定基础设施的近似性(e.g., grains 需要
+    /// 获得当地资源或应使用专门硬件)。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -23,10 +23,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests placement failure when the requested silo role doesn't exist.
-        /// Verifies that attempting to place a grain on a non-existent silo role
-        /// throws an appropriate exception, ensuring the system fails fast
-        /// when misconfigured rather than silently placing grains incorrectly.
+        /// 当请求的 silo 角色不存在时测试定位失败 。
+        /// 证明试图将 grain 置于不存在的 silo 角色之上
+        /// 丢出适当的例外, 确保系统快速失效
+        /// 当错误配置而不是静默地放置错误的 grains 时。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task SiloRoleBasedPlacementDirector_CantFindSilo()
@@ -36,10 +36,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests successful placement on a silo with the requested role.
-        /// Verifies that grains configured for role-based placement are
-        /// correctly activated on silos matching the specified role,
-        /// demonstrating the basic functionality of targeted placement.
+        /// 测试成功放置在 silo 上并具有要求的作用。
+        /// 证明为基于角色的职位安排配置了 grains
+        /// 匹配指定角色时正确激活 silos ,
+        /// 展示有针对性的安置的基本功能。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task SiloRoleBasedPlacementDirector_CanFindSilo()

@@ -1,5 +1,5 @@
--- Apply this script for setup and repeatable upgrades after the shared Main script creates OrleansQuery.
--- Stop all silos using this database before applying it, then restart them to reload the queries.
+-- 在共享主脚本创建 OrleansQuery后应用此脚本设置和重复升级。
+-- 在应用前停止使用此数据库的所有 silos , 然后重新启动以重新装入查询 。
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS OrleansStorage
@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS OrleansStorage
     serviceid character varying(150)  NOT NULL,
     payloadbinary bytea,
     modifiedon timestamptz NOT NULL,
-    -- The next version wraps from 2147483647 back to 1 so a frequently written grain never overflows.
-    -- Orleans compares versions only for equality, so the version must change on every write but does not need to increase forever.
-    -- A stale version can only match again after 2147483647 further writes to the same grain.
+    -- 下一个版本的包页从2147483647返回到1,所以经常写 grain 永远不会溢出。
+    -- Orleans 比较版本时只为平等起见, 所以版本必须修改每本书写内容, 但不需要永久增加 。
+    -- 旧版本只能在2147483647进一步写成同本 grain后再次匹配。
     version integer
 );
 
@@ -42,24 +42,24 @@ AS $function$
 
     BEGIN
 
-    -- Grain state is not null, so the state must have been read from the storage before.
-    -- Let's try to update it.
+    -- Grain 状态并非无效, 因此该国必须已经读过之前存储处的文字 。
+    -- 让我们试着更新它。
     --
-    -- When Orleans is running in normal, non-split state, there will
-    -- be only one grain with the given ID and type combination only. This
-    -- grain saves states mostly serially if Orleans guarantees are upheld. Even
-    -- if not, the updates should work correctly due to version number.
+    -- 当 Orleans 在正常状态下运行时,如果该状态不分裂,将
+    -- 只有一个 grain ,只有给定的ID和类型组合。此
+    -- grain 如果 Orleans 保证得到坚持,则主要以序列形式保存国家。
+    -- 如果不是,由于版本号,更新应正确工作。
     --
-    -- In split brain situations there can be a situation where there are two or more
-    -- grains with the given ID and type combination. When they try to INSERT
-    -- concurrently, the table needs to be locked pessimistically before one of
-    -- the grains gets @GrainStateVersion = 1 in return and the other grains will fail
-    -- to update storage. The following arrangement is made to reduce locking in normal operation.
+    -- 在分裂的大脑情况下,可能出现两种或两种以上的情况
+    -- 与给定的ID和类型组合grains 。当他们尝试 INSERT 时
+    -- 同时,表格需要以悲观的方式锁在
+    -- grains 得到 @GrainStateVersion = 1 回报,而另一个 grains 将失败
+    -- 以更新存储。以下安排是为了减少正常操作中的锁定。
     --
-    -- If the version number explicitly returned is still the same, Orleans interprets it so the update did not succeed
-    -- and throws an InconsistentStateException.
+    -- 如果明确返回的版本号仍然相同, Orleans 解释其内容,更新没有成功
+    -- 抛下一箭, InconsistentStateException.
     --
-    -- See further information at https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence.
+    -- 见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence中的进一步资料。
     IF _GrainStateVersion IS NOT NULL
     THEN
         UPDATE OrleansStorage
@@ -85,8 +85,8 @@ AS $function$
         END IF;
     END IF;
 
-    -- The grain state has not been read. The following locks rather pessimistically
-    -- to ensure only one INSERT succeeds.
+    -- grain 状态尚未读取。 以下锁的锁定相当悲观
+    -- 确保只有一次国家清单专家审评组成功。
     IF _GrainStateVersion IS NULL
     THEN
         INSERT INTO OrleansStorage
@@ -115,7 +115,7 @@ AS $function$
             1
         WHERE NOT EXISTS
          (
-            -- There should not be any version of this grain state.
+            -- 不应有任何版本的 grain 状态。
             SELECT 1
             FROM OrleansStorage
             WHERE

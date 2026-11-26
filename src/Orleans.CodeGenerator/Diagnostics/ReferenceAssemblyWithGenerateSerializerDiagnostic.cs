@@ -3,32 +3,32 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when <c>GenerateSerializerAttribute</c> is applied to a type in a reference assembly.
+/// 定义在 <c>GenerateSerializerAttribute</c> 应用于参考组装中的类型时报告的诊断。
 /// </summary>
 public static class ReferenceAssemblyWithGenerateSerializerDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string DiagnosticId = DiagnosticRuleId.ReferenceAssemblyWithGenerateSerializer;
 
     /// <summary>
-    /// The diagnostic title.
+    /// 诊断标题
     /// </summary>
     public const string Title = "[GenerateSerializer] used in a reference assembly";
 
     /// <summary>
-    /// The diagnostic message format.
+    /// 诊断信息格式
     /// </summary>
     public const string MessageFormat = "The type {0} is marked with [GenerateSerializer] in a reference assembly";
 
     /// <summary>
-    /// The diagnostic description.
+    /// 诊断描述
     /// </summary>
     public const string Description = "The type {0} is marked with [GenerateSerializer] in a reference assembly. Serialization is likely to fail. Options: (1) Enable code generation on the target project directly; (2) Disable reference assemblies using <ProduceReferenceAssembly>false</ProduceReferenceAssembly> in the codegen project; (3) Use a different serializer or create surrogates. See https://aka.ms/orleans-serialization for details.";
 
     /// <summary>
-    /// The diagnostic category.
+    /// 诊断类别。
     /// </summary>
     public const string Category = "Usage";
 

@@ -7,10 +7,10 @@ namespace Orleans.Transactions.TestKit.xUnit
     public abstract class TocFaultTransactionTestRunnerxUnit : TocFaultTransactionTestRunner
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TocFaultTransactionTestRunnerxUnit"/> class.
+        /// 初始化 <see cref="TocFaultTransactionTestRunnerxUnit"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">The grain factory used to access test grains.</param>
-        /// <param name="output">The xUnit test output helper.</param>
+        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="output"> xUnit 测试输出助手。</param>
         protected TocFaultTransactionTestRunnerxUnit(IGrainFactory grainFactory, ITestOutputHelper output)
         : base(grainFactory, TestOutputHelperExtensions.GetWriteLine(output, nameof(output))) { }
 

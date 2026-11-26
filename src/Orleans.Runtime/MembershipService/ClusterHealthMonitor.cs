@@ -18,8 +18,8 @@ using static Orleans.Runtime.MembershipService.SiloHealthMonitor;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// Responsible for ensuring that this silo monitors other silos in the cluster.
-    /// This is the default, probe-based implementation of <see cref="IClusterHealthMonitor"/>.
+    /// 负责确保该 silo 监测组内的其他 silos 。
+    /// 这是 <see cref="IClusterHealthMonitor"/>的默认、基于探测的实施 。
     /// </summary>
     internal partial class ClusterHealthMonitor : IClusterHealthMonitor, ClusterHealthMonitor.ITestAccessor, IDisposable, IAsyncDisposable
     {
@@ -38,7 +38,7 @@ namespace Orleans.Runtime.MembershipService
         private Func<SiloHealthMonitor, ProbeResult, Task> onProbeResult;
 
         /// <summary>
-        /// Exposes private members of <see cref="ClusterHealthMonitor"/> for test purposes.
+        /// 为测试目的,进行 <see cref="ClusterHealthMonitor"/> 私人成员展览。
         /// </summary>
         internal interface ITestAccessor
         {
@@ -77,7 +77,7 @@ namespace Orleans.Runtime.MembershipService
         Func<SiloHealthMonitor, ProbeResult, Task> ITestAccessor.OnProbeResult { get => this.onProbeResult; set => this.onProbeResult = value; }
 
         /// <summary>
-        /// Gets the collection of monitored silos.
+        /// 获取被监控的 silos集合。
         /// </summary>
         public IReadOnlyDictionary<SiloAddress, SiloHealthMonitor> SiloMonitors => this.monitoredSilos;
 
@@ -151,7 +151,7 @@ namespace Orleans.Runtime.MembershipService
             }
             catch (OperationCanceledException) when (shutdownCancellation.IsCancellationRequested)
             {
-                // Ignore and continue shutting down.
+                // 忽略并继续关闭
             }
             catch (Exception exception) when (this.fatalErrorHandler.IsUnexpected(exception))
             {
@@ -204,7 +204,7 @@ namespace Orleans.Runtime.MembershipService
             ImmutableDictionary<SiloAddress, SiloHealthMonitor> monitoredSilos,
             DateTime now)
         {
-            // If this silo cannot evict peers, it should not be probing others.
+            // 如果此 silo 不能驱逐同行, 则不应该对其它方进行检验 。
             if (!membership.Entries.TryGetValue(this.localSiloDetails.SiloAddress, out var self)
                 || !CanEvictPeers(self.Status))
             {
@@ -214,16 +214,16 @@ namespace Orleans.Runtime.MembershipService
             var options = clusterMembershipOptions.CurrentValue;
             var numProbedSilos = options.NumProbedSilos;
 
-            // Go over every node excluding this one.
-            // Find up to NumProbedSilos silos after me, which are not suspected by anyone and add them to the probedSilos,
-            // In addition, every suspected silo you encounter on the way, add it to the probedSilos.
+            // 越过每一个节点,不包括这个
+            // 找到我之后的 NumProbedSilos silos ,但无人怀疑,并把他们添加到 probedSilos中,
+            // 此外,每个嫌疑人 silo 路上遇到的人,请添加到 probedSilos.
             var silosToWatch = new List<SiloAddress>();
             var additionalSilos = new List<SiloAddress>();
 
             var tmpList = new List<(SiloAddress SiloAddress, int HashCode)>();
             foreach (var (candidate, entry) in membership.Entries)
             {
-                // Watch shutting-down silos as well, so we can properly ensure they become dead.
+                // 监视关闭关闭 silos 也这样我们才能确保他们死
                 if (!CanBeEvictedByPeers(entry.Status))
                 {
                     continue;
@@ -231,13 +231,13 @@ namespace Orleans.Runtime.MembershipService
 
                 tmpList.Add((candidate, 0));
 
-                // Ignore the local silo.
+                // 忽略本地 silo。
                 if (candidate.IsSameLogicalSilo(this.localSiloDetails.SiloAddress))
                 {
                     continue;
                 }
 
-                // Monitor all suspected and stale silos.
+                // 监视所有可疑和失效 silos。
                 if (entry.GetFreshVotes(now, options.DeathVoteExpirationTimeout).Count > 0
                     || entry.HasMissedIAmAlives(options, now))
                 {
@@ -245,31 +245,31 @@ namespace Orleans.Runtime.MembershipService
                 }
             }
 
-            // Each silo monitors up to NumProbedSilos other silos.
-            // Monitoring is determined using multiple hash rings, each generated with a different seeded hash function.
-            // For each hash ring:
-            // 1. The hash values of all silos are updated based on the ring's seed and sorted to determine their positions.
-            // 2. The local silo finds its position in the sorted list and iterates over subsequent silos, wrapping around at the ends.
-            // 3. The first silo not already being monitored is selected and added to the monitoring set.
+            // 每个 silo 监测器直至 NumProbedSilos 其他 silos。
+            // 监测是通过多个散列环确定的,每个散列环的种子功能不同。
+            // 对于每个散列环:
+            // 1. 所有 silos 的散列值均根据环种更新,并分类以确定其位置。
+            // 2. 当地 silo 在分类列表中找到位置,并在随后的 silos上反复出现,在末尾打包。
+            // 3. 选择了第一个尚未监测的 silo ,并添加到监测系统中。
             //
-            // This approach probabilistically constructs an Expander Graph (https://en.wikipedia.org/wiki/Expander_graph).
-            // Expander graphs improve fault detection time when there are multiple concurrent failures by minimizing overlap
-            // in monitoring sets between any two silos and reducing dependency chains (e.g., avoiding cases where one failed
-            // silo must be evicted before another failed silo can be detected).
-            // The idea to use an expander graph is taken from "Stable and Consistent Membership at Scale with Rapid" by Lalith Suresh et al:
+            // 这一方法概率构建一个扩展图(https://en.wikipedia.org/wiki/Expander_graph)。
+            // 扩展图通过尽量减少重叠,在多重同时失败时,扩大图通过减少重叠来改进故障探测时间
+            // 在任何两个 silos 和减少依赖关系链(e.g)之间监测各组的监测系统,避免出现失败的情况
+            // silo 必须赶在发现其他失败 silo 之前) 。
+            // 使用扩展图的想法取自Lalith Suresh等人的“稳定、一致地参与快速规模”:
             // https://www.usenix.org/conference/atc18/presentation/suresh
             if (self.Status != SiloStatus.Joining)
             {
                 for (var ringNum = 0; ringNum < numProbedSilos; ++ringNum)
                 {
-                    // Update hash values with the current ring number.
+                    // 以当前环号更新散列值 。
                     for (var i = 0; i < tmpList.Count; i++)
                     {
                         var siloAddress = tmpList[i].SiloAddress;
                         tmpList[i] = (siloAddress, siloAddress.GetConsistentHashCode(ringNum));
                     }
 
-                    // Sort the candidates based on their updated hash values.
+                    // 根据候选人最新的散列值进行排序。
                     tmpList.Sort((x, y) => x.HashCode.CompareTo(y.HashCode));
 
                     var myIndex = tmpList.FindIndex(el => el.SiloAddress.Equals(self.SiloAddress));
@@ -280,7 +280,7 @@ namespace Orleans.Runtime.MembershipService
                             $"This silo {self.SiloAddress} status {self.Status} is not in its own local silo list! This is a bug!");
                     }
 
-                    // Starting at the local silo's index, find the first non-monitored silo and add it to the list.
+                    // 从本地 silo索引开始,找到第一个未监测的 silo 索引并将其添加到列表中。
                     for (var i = 0; i < tmpList.Count - 1; i++)
                     {
                         var candidate = tmpList[(myIndex + i + 1) % tmpList.Count].SiloAddress;
@@ -294,7 +294,7 @@ namespace Orleans.Runtime.MembershipService
                 }
             }
 
-            // Take new watched silos, but leave the probe counters for the old ones.
+            // 使用新的监视器 silos,但将探测器的柜台留给旧的。
             var newProbedSilos = ImmutableDictionary.CreateBuilder<SiloAddress, SiloHealthMonitor>();
             foreach (var silo in silosToWatch.Union(additionalSilos))
             {
@@ -352,7 +352,7 @@ namespace Orleans.Runtime.MembershipService
 
                 this.monitoredSilos = ImmutableDictionary<SiloAddress, SiloHealthMonitor>.Empty;
 
-                // Allow some minimum time for graceful shutdown.
+                // 允许有一定的最少时间 优雅地关闭。
                 var shutdownGracePeriod = Task.WhenAll(
                     Task.Delay(ClusterMembershipOptions.ClusteringShutdownGracePeriod, this.timeProvider, CancellationToken.None),
                     ct.WhenCancelled());
@@ -361,11 +361,11 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// Performs the default action when a new probe result is created.
+        /// 当创建新探测结果时执行默认动作 。
         /// </summary>
         private async Task OnProbeResultInternal(SiloHealthMonitor monitor, ProbeResult probeResult)
         {
-            // Do not act on probe results if shutdown is in progress.
+            // 如果关闭正在进行, 不要对调查结果采取行动 。
             if (this.shutdownCancellation.IsCancellationRequested)
             {
                 return;
@@ -395,9 +395,9 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// Checks whether a connection to the specified silo has received a message within the monitoring window
-        /// (the maximum probe cycle time multiplied by <see cref="ClusterMembershipOptions.NumMissedProbesLimit"/>).
-        /// If so, the silo is demonstrably alive and the vote should be suppressed.
+        /// 检查与指定 silo 的连接是否在监测窗口中收到消息
+        /// (探险的最大周期时间乘以 <see cref="ClusterMembershipOptions.NumMissedProbesLimit"/>)
+        /// 如果有, silo 显然还活着,表决应被压抑。
         /// </summary>
         private bool IsConnectionActiveWithinMonitoringWindow(SiloAddress targetSilo)
         {
@@ -493,7 +493,7 @@ namespace Orleans.Runtime.MembershipService
             await Task.WhenAll(tasks).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         }
 
-        // --- Logging methods ---
+        // -- -- 伐木方法 -- --
 
         [LoggerMessage(
             Level = LogLevel.Debug,

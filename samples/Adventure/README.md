@@ -7,57 +7,65 @@ products:
 page_type: sample
 name: "Orleans Text Adventure Game"
 urlFragment: "orleans-text-adventure-game"
-description: "An example of a text adventure game written in C# using Orleans."
+description: "以 C# 写成的文本冒险游戏的例子, 使用 Orleans。"
 ---
 
-# Orleans Text Adventure Game
+<a id="orleans-text-adventure-game"></a>
 
-Before there were graphical user interfaces, before the era of game consoles and massive-multiplayer games, there were VT100 terminals and there was [Colossal Cave Adventure](https://en.wikipedia.org/wiki/Colossal_Cave_Adventure), [Zork](https://en.wikipedia.org/wiki/Zork), and [Microsoft Adventure](https://en.wikipedia.org/wiki/Microsoft_Adventure). Possibly lame by today's standards, back then it was a magical world of monsters, chirping birds, and things you could pick up. It's the inspiration for this sample.
+# Orleans 文字冒险游戏
 
-## Demonstrates
+在有图形用户界面之前,在游戏控制台和大型多玩游戏时代之前, 有一些 VT100 终端, 还有 [冒险 巨岩洞](https://en.wikipedia.org/wiki/Colossal_Cave_Adventure)、 [佐克](https://en.wikipedia.org/wiki/Zork)和 [Microsoft 冒险](https://en.wikipedia.org/wiki/Microsoft_Adventure)。按照今天的标准,它可能很逊, 当时是一个由怪物、鸣叫鸟和你能接收到的东西组成的神奇世界。 这是这个样本的灵感。
 
-* How to structure an application (in this case, a game) using grains
-* How to connect an external client to an Orleans cluster (`ClientBuilder`)
+<a id="demonstrates"></a>
 
-The system consists of two parts: a server executable called *AdventureServer* and a client executable called *AdventureClient*. The server reads a game data file, `AdventureMap.json` by default, and initializes `RoomGrain` instances with that game data. The client connects to the server and interacts with the game using the `IPlayerGrain` interface. On the server, `IPlayerGrain` is implemented by `PlayerGrain`, so any calls to `IPlayerGrain` are routed to the corresponding `PlayerGrain` instance. Clients issue commands to the game by calling `IPlayerGrain.Play(command)`, where `command` is a string entered by the player at the command prompt. `PlayerGrain` interprets each command and executes it, possibly issuing calls to a `RoomGrain` to interact with the room.
+## 演示
 
-This is a simple game and there are only a few verbs which the game understands:
+* 如何使用 grains构建应用程序(在此情况下为游戏)
+* 如何连接外部客户端到 Orleans 集集 (`ClientBuilder`)
 
-* `look` - to examine the current room
-* `go <direction>` - to move to a different room.
-* `north`, `south`, `east`, `west` - shortcuts for `go north`, etc
-* `kill <target>` - kill a target
-* `drop <thing>` - drop something from the player's inventory
-* `take <thing>` - add an item from the current room to the player's inventory
-* `inv` or `inventory` - examine the player's inventory
-* `end` - exits the game
+系统由两部分组成:一个服务器可执行文件 *AdventureServer* 和客户端可执行文件 *AdventureClient*服务器读取游戏数据文件, `AdventureMap.json` 默认, 并初始化 `RoomGrain` 与游戏数据使用该游戏数据。客户端连接到服务器,并使用 `IPlayerGrain` 在服务器上, `IPlayerGrain` 执行的 `PlayerGrain`,因此任何呼吁 `IPlayerGrain` 选择的路线,相应的 `PlayerGrain` 对话框。客户通过调用对游戏发布命令 `IPlayerGrain.Play(command)`,其中 `command` 是玩家在命令提示时输入的字符串。 `PlayerGrain` 向 `RoomGrain` 与房间互动。
 
-## Sample prerequisites
+这是一个简单的游戏,只有几句动词可以让游戏理解:
 
-This sample is written in C# and targets .NET 10. It requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
+* `look` - 检查现有会议室
+* `go <direction>` - 搬到另一个房间
+* `north`、 `south`、 `east`、 `west` - `go north`等的快捷键
+* `kill <target>` - 杀死目标
+* `drop <thing>` - 从播放器的列表中丢弃一些东西
+* `take <thing>` - 在播放器的列表中添加当前房间的项目
+* `inv` 或 `inventory` - 审查播放器的清
+* `end` - 退出游戏
 
-## Building the sample
+<a id="sample-prerequisites"></a>
 
-To download and run the sample, follow these steps:
+## 抽样的前提条件
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
+本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+
+<a id="building-the-sample"></a>
+
+## 建立样本
+
+下载和运行样本时,请遵循以下步骤:
+
+1. 下载并解开样本的平面
+2. 视觉演播室(2022年或以后):
+    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
     2. Navigate to the folder that holds the unzipped sample code, and open the C# project (.csproj) file.
     3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. At the command line, type [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run).
+3. 从命令行 :
+   1. 导航到持有未设偏移样本代码的文件夹 。
+   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-To run the game, run the server by executing the following at the command prompt (opened to the base directory of the sample):
+要运行游戏,请在命令提示(打开到样本的基准目录)执行以下操作,以运行服务器:
 
 ``` bash
 dotnet run --project AdventureServer
 ```
 
-You should see the server startup and eventually print the line `Press any key to exit`.
+您应该看到服务器启动并打印行 `Press any key to exit`。
 
-In a separate terminal, execute the following to start the client and play the game:
+在单独的终端中执行以下操作以启动客户端并玩游戏:
 
 ``` bash
 dotnet run --project AdventureClient

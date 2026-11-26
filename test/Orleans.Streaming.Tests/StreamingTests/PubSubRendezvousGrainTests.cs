@@ -51,19 +51,19 @@ namespace UnitTests.StreamingTests
             var pubSubGrain = this.fixture.GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamId.ToString());
             var faultGrain = this.fixture.GrainFactory.GetGrain<IStorageFaultGrain>(nameof(PubSubRendezvousGrain));
 
-            // clean call, to make sure everything is happy and pubsub has state.
+            // 清点电话,确保一切都快乐 和酒吧有状态。
             await pubSubGrain.RegisterConsumer(GuidId.GetGuidId(Guid.NewGuid()), streamId, default, null!, TestContext.Current.CancellationToken);
             int consumers = await pubSubGrain.ConsumerCount(streamId, TestContext.Current.CancellationToken);
             Assert.Equal(1, consumers);
 
-            // inject fault
+            // 注射器错误
             await faultGrain.AddFaultOnWrite(pubSubGrain.GetGrainId(), new ApplicationException("Write"));
 
-            // expect exception when registering a new consumer
+            // 登记新消费者时预期例外
             await Assert.ThrowsAsync<OrleansException>(
                     () => pubSubGrain.RegisterConsumer(GuidId.GetGuidId(Guid.NewGuid()), streamId, default, null!, TestContext.Current.CancellationToken));
 
-            // pubsub grain should recover and still function
+            // 等子 grain 应恢复并保持功能
             await pubSubGrain.RegisterConsumer(GuidId.GetGuidId(Guid.NewGuid()), streamId, default, null!, TestContext.Current.CancellationToken);
             consumers = await pubSubGrain.ConsumerCount(streamId, TestContext.Current.CancellationToken);
             Assert.Equal(2, consumers);
@@ -77,7 +77,7 @@ namespace UnitTests.StreamingTests
             var pubSubGrain = this.fixture.GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamId.ToString());
             var faultGrain = this.fixture.GrainFactory.GetGrain<IStorageFaultGrain>(nameof(PubSubRendezvousGrain));
 
-            // Add two consumers so when we remove the first it does a storage write, not a storage clear.
+            // 添加两个消费者, 所以当我们删除第一个时它会写存储文件, 而不是一个储存清晰。
             GuidId subscriptionId1 = GuidId.GetGuidId(Guid.NewGuid());
             GuidId subscriptionId2 = GuidId.GetGuidId(Guid.NewGuid());
             await pubSubGrain.RegisterConsumer(subscriptionId1, streamId, default, null!, TestContext.Current.CancellationToken);
@@ -85,26 +85,26 @@ namespace UnitTests.StreamingTests
             int consumers = await pubSubGrain.ConsumerCount(streamId, TestContext.Current.CancellationToken);
             Assert.Equal(2, consumers);
 
-            // inject fault
+            // 注射器错误
             await faultGrain.AddFaultOnWrite(pubSubGrain.GetGrainId(), new ApplicationException("Write"));
 
-            // expect exception when unregistering a consumer
+            // 消费者不登记时的预期例外
             await Assert.ThrowsAsync<OrleansException>(
                     () => pubSubGrain.UnregisterConsumer(subscriptionId1, streamId, TestContext.Current.CancellationToken));
 
-            // pubsub grain should recover and still function
+            // 等子 grain 应恢复并保持功能
             await pubSubGrain.UnregisterConsumer(subscriptionId1, streamId, TestContext.Current.CancellationToken);
             consumers = await pubSubGrain.ConsumerCount(streamId, TestContext.Current.CancellationToken);
             Assert.Equal(1, consumers);
 
-            // inject clear fault, because removing last consumer should trigger a clear storage call.
+            // 输入明确的错误, 因为清除最后一个消费者应该触发一个清晰的存储电话。
             await faultGrain.AddFaultOnClear(pubSubGrain.GetGrainId(), new ApplicationException("Write"));
 
-            // expect exception when unregistering a consumer
+            // 消费者不登记时的预期例外
             await Assert.ThrowsAsync<OrleansException>(
                     () => pubSubGrain.UnregisterConsumer(subscriptionId2, streamId, TestContext.Current.CancellationToken));
 
-            // pubsub grain should recover and still function
+            // 等子 grain 应恢复并保持功能
             await pubSubGrain.UnregisterConsumer(subscriptionId2, streamId, TestContext.Current.CancellationToken);
             consumers = await pubSubGrain.ConsumerCount(streamId, TestContext.Current.CancellationToken);
             Assert.Equal(0, consumers);
@@ -704,8 +704,8 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// This test fails because the producer must be grain reference which is not implied by the IStreamProducerExtension in the producer management calls.
-        /// TODO: Fix rendezvous implementation.
+        /// 试验失败是因为生产商必须是 grain 中未暗示的提及 IStreamProducerExtension 生产者管理电话中。
+        /// 确定会合执行程序
         /// </summary>
         /// <returns></returns>
         [Fact(Skip = "This test fails because the producer must be grain reference which is not implied by the IStreamProducerExtension"), TestCategory("BVT"), TestCategory("Streaming"), TestCategory("PubSub")]
@@ -717,27 +717,27 @@ namespace UnitTests.StreamingTests
             var pubSubGrain = this.fixture.GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamId.ToString());
             var faultGrain = this.fixture.GrainFactory.GetGrain<IStorageFaultGrain>(nameof(PubSubRendezvousGrain));
 
-            // clean call, to make sure everything is happy and pubsub has state.
+            // 清点电话,确保一切都快乐 和酒吧有状态。
             await pubSubGrain.RegisterProducer(streamId, default, cancellationToken: cancellationToken);
             int producers = await pubSubGrain.ProducerCount(streamId, cancellationToken);
             Assert.Equal(1, producers);
 
-            // inject fault
+            // 注射器错误
             await faultGrain.AddFaultOnWrite(pubSubGrain.GetGrainId(), new ApplicationException("Write"));
 
-            // expect exception when registering a new producer
+            // 新生产商登记时预期例外
             await Assert.ThrowsAsync<OrleansException>(
                     () => pubSubGrain.RegisterProducer(streamId, default, cancellationToken: cancellationToken));
 
-            // pubsub grain should recover and still function
+            // 等子 grain 应恢复并保持功能
             await pubSubGrain.RegisterProducer(streamId, default, cancellationToken: cancellationToken);
             producers = await pubSubGrain.ProducerCount(streamId, cancellationToken);
             Assert.Equal(2, producers);
         }
 
         /// <summary>
-        /// This test fails because the producer must be grain reference which is not implied by the IStreamProducerExtension in the producer management calls.
-        /// TODO: Fix rendezvous implementation.
+        /// 试验失败是因为生产商必须是 grain 中未暗示的提及 IStreamProducerExtension 生产者管理电话中。
+        /// 确定会合执行程序
         /// </summary>
         [Fact(Skip = "This test fails because the producer must be grain reference which is not implied by the IStreamProducerExtension"), TestCategory("BVT"), TestCategory("Streaming"), TestCategory("PubSub")]
         public async Task UnregisterProducerFaultTest()
@@ -750,7 +750,7 @@ namespace UnitTests.StreamingTests
 
             IStreamProducerExtension firstProducer = new DummyStreamProducerExtension();
             IStreamProducerExtension secondProducer = new DummyStreamProducerExtension();
-            // Add two producers so when we remove the first it does a storage write, not a storage clear.
+            // 添加两个制片人, 所以当我们删除第一个时它写一个存储字, 而不是一个储存清除 。
             await pubSubGrain.RegisterProducer(
                 streamId,
                 firstProducer.GetGrainId(),
@@ -762,26 +762,26 @@ namespace UnitTests.StreamingTests
             int producers = await pubSubGrain.ProducerCount(streamId, cancellationToken);
             Assert.Equal(2, producers);
 
-            // inject fault
+            // 注射器错误
             await faultGrain.AddFaultOnWrite(pubSubGrain.GetGrainId(), new ApplicationException("Write"));
 
-            // expect exception when unregistering a producer
+            // 解除生产者注册时的预期例外
             await Assert.ThrowsAsync<OrleansException>(
                     () => pubSubGrain.UnregisterProducer(streamId, firstProducer.GetGrainId(), TestContext.Current.CancellationToken));
 
-            // pubsub grain should recover and still function
+            // 等子 grain 应恢复并保持功能
             await pubSubGrain.UnregisterProducer(streamId, firstProducer.GetGrainId(), TestContext.Current.CancellationToken);
             producers = await pubSubGrain.ProducerCount(streamId, TestContext.Current.CancellationToken);
             Assert.Equal(1, producers);
 
-            // inject clear fault, because removing last producers should trigger a clear storage call.
+            // 输入明确的错误,因为删除最后的生产商应触发清晰的存储信号。
             await faultGrain.AddFaultOnClear(pubSubGrain.GetGrainId(), new ApplicationException("Write"));
 
-            // expect exception when unregistering a consumer
+            // 消费者不登记时的预期例外
             await Assert.ThrowsAsync<OrleansException>(
                     () => pubSubGrain.UnregisterProducer(streamId, secondProducer.GetGrainId(), TestContext.Current.CancellationToken));
 
-            // pubsub grain should recover and still function
+            // 等子 grain 应恢复并保持功能
             await pubSubGrain.UnregisterProducer(streamId, secondProducer.GetGrainId(), TestContext.Current.CancellationToken);
             producers = await pubSubGrain.ConsumerCount(streamId, TestContext.Current.CancellationToken);
             Assert.Equal(0, producers);

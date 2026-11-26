@@ -1,7 +1,7 @@
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Test class used for complex object serialization testing
+/// 用于复杂物体序列化测试的试验类
 /// </summary>
 [GenerateSerializer]
 public record class TestPerson

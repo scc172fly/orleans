@@ -6,18 +6,18 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Extensions for <see cref="GrainId"/> keys.
+    /// <see cref="GrainId"/> 密钥的扩展名。
     /// </summary>
     public static class GrainIdKeyExtensions
     {
         /// <summary>
-        /// Creates an <see cref="IdSpan"/> representing a <see cref="long"/> key.
+        /// 创建 <see cref="IdSpan"/> ,代表 <see cref="long"/> 密钥。
         /// </summary>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <returns>
-        /// An <see cref="IdSpan"/> representing the provided key.
+        /// 代表所提供密钥的 <see cref="IdSpan"/> 。
         /// </returns>
         public static IdSpan CreateIntegerKey(long key)
         {
@@ -28,16 +28,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates an <see cref="IdSpan"/> representing a <see cref="long"/> key and key extension string.
+        /// 创建 <see cref="IdSpan"/> ,代表 <see cref="long"/> 键和密钥扩展字符串。
         /// </summary>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <param name="keyExtension">
-        /// The UTF-8 encoded key extension.
+        /// UTF-8 编码密钥扩展名 。
         /// </param>
         /// <returns>
-        /// An <see cref="IdSpan"/> representing the provided key and key extension.
+        /// 代表所提供的关键和关键扩展名的 <see cref="IdSpan"/> 。
         /// </returns>
         public static IdSpan CreateIntegerKey(long key, ReadOnlySpan<byte> keyExtension)
         {
@@ -56,16 +56,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates an <see cref="IdSpan"/> representing a <see cref="long"/> key and key extension string.
+        /// 创建 <see cref="IdSpan"/> ,代表 <see cref="long"/> 键和密钥扩展字符串。
         /// </summary>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <param name="keyExtension">
-        /// The key extension.
+        /// 关键扩展名 。
         /// </param>
         /// <returns>
-        /// An <see cref="IdSpan"/> representing the provided key and key extension.
+        /// 代表所提供的关键和关键扩展名的 <see cref="IdSpan"/> 。
         /// </returns>
         public static IdSpan CreateIntegerKey(long key, string? keyExtension)
         {
@@ -88,13 +88,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates an <see cref="IdSpan"/> representing a <see cref="Guid"/> key.
+        /// 创建 <see cref="IdSpan"/> ,代表 <see cref="Guid"/> 密钥。
         /// </summary>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <returns>
-        /// An <see cref="IdSpan"/> representing the provided key.
+        /// 代表所提供密钥的 <see cref="IdSpan"/> 。
         /// </returns>
         public static IdSpan CreateGuidKey(Guid key)
         {
@@ -105,16 +105,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates an <see cref="IdSpan"/> representing a <see cref="Guid"/> key and key extension string.
+        /// 创建 <see cref="IdSpan"/> ,代表 <see cref="Guid"/> 键和密钥扩展字符串。
         /// </summary>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <param name="keyExtension">
-        /// The UTF-8 encoded key extension.
+        /// UTF-8 编码密钥扩展名 。
         /// </param>
         /// <returns>
-        /// An <see cref="IdSpan"/> representing the provided key and key extension.
+        /// 代表所提供的关键和关键扩展名的 <see cref="IdSpan"/> 。
         /// </returns>
         public static IdSpan CreateGuidKey(Guid key, ReadOnlySpan<byte> keyExtension)
         {
@@ -130,16 +130,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates an <see cref="IdSpan"/> representing a <see cref="Guid"/> key and key extension string.
+        /// 创建 <see cref="IdSpan"/> ,代表 <see cref="Guid"/> 键和密钥扩展字符串。
         /// </summary>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <param name="keyExtension">
-        /// The key extension.
+        /// 关键扩展名 。
         /// </param>
         /// <returns>
-        /// An <see cref="IdSpan"/> representing the provided key and key extension.
+        /// 代表所提供的关键和关键扩展名的 <see cref="IdSpan"/> 。
         /// </returns>
         public static IdSpan CreateGuidKey(Guid key, string? keyExtension)
         {
@@ -159,19 +159,19 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Tries to parse the <see cref="GrainId.Key"/> portion of the provided grain id to extract a <see cref="long"/> key and <see cref="string"/> key extension.
+        /// 尝试解析 <see cref="GrainId.Key"/> 提供部分 grain 要提取 a 的id , <see cref="long"/> 键和 <see cref="string"/> 键扩展名。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <param name="keyExt">
-        /// The key extension.
+        /// 关键扩展名 。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> when the grain id was successfully parsed, <see langword="false" /> otherwise.
+        /// <see langword="true"/> 时 grain 成功解析了id, <see langword="false" /> 否则。
         /// </returns>
         public static bool TryGetIntegerKey(this GrainId grainId, out long key, out string? keyExt)
         {
@@ -187,16 +187,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Tries to parse the <see cref="GrainId.Key"/> portion of the provided grain id to extract a <see cref="long"/> key.
+        /// 尝试解析 <see cref="GrainId.Key"/> 提供部分 grain 要提取 a 的id , <see cref="long"/> 键。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <returns>
-        /// <see langword="true"/> when the grain id was successfully parsed, <see langword="false" /> otherwise.
+        /// <see langword="true"/> 时 grain 成功解析了id, <see langword="false" /> 否则。
         /// </returns>
         internal static bool TryGetIntegerKey(this GrainId grainId, out long key)
         {
@@ -208,11 +208,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns the <see cref="long"/> representation of a grain key.
+        /// 返回 <see cref="long"/> 表示的 grain 键。
         /// </summary>
-        /// <param name="grainId">The grain id.</param>
-        /// <param name="keyExt">The output parameter to return the extended key part of the grain primary key, if extended primary key was provided for that grain.</param>
-        /// <returns>A long representing the key for this grain.</returns>
+        /// <param name="grainId">下 grain id. 数据。</param>
+        /// <param name="keyExt">返回扩展键部分的输出参数 grain 初级关键,如果为此提供了扩展主关键 grain.</param>
+        /// <returns>此 grain的密钥的长代表。</returns>
         public static long GetIntegerKey(this GrainId grainId, out string? keyExt)
         {
             if (!grainId.TryGetIntegerKey(out var result, out keyExt))
@@ -224,10 +224,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns the <see cref="long"/> representation of a grain key.
+        /// 返回 <see cref="long"/> 表示的 grain 键。
         /// </summary>
-        /// <param name="grainId">The grain to find the key for.</param>
-        /// <returns>A <see cref="long"/> representing the key for this grain.</returns>
+        /// <param name="grainId">查找密钥的 grain 。</param>
+        /// <returns>A <see cref="long"/> 代表此 grain的键。</returns>
         public static long GetIntegerKey(this GrainId grainId)
         {
             if (!grainId.TryGetIntegerKey(out var result))
@@ -239,19 +239,19 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Tries to parse the <see cref="GrainId.Key"/> portion of the provided grain id to extract a <see cref="Guid"/> key and <see cref="string"/> key extension.
+        /// 尝试解析 <see cref="GrainId.Key"/> 提供部分 grain 要提取 a 的id , <see cref="Guid"/> 键和 <see cref="string"/> 键扩展名。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <param name="keyExt">
-        /// The key extension.
+        /// 关键扩展名 。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> when the grain id was successfully parsed, <see langword="false" /> otherwise.
+        /// <see langword="true"/> 时 grain 成功解析了id, <see langword="false" /> 否则。
         /// </returns>
         public static bool TryGetGuidKey(this GrainId grainId, out Guid key, out string? keyExt)
         {
@@ -272,16 +272,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Tries to parse the <see cref="GrainId.Key"/> portion of the provided grain id to extract a <see cref="Guid"/> key.
+        /// 尝试解析 <see cref="GrainId.Key"/> 提供部分 grain 要提取 a 的id , <see cref="Guid"/> 键。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         /// <param name="key">
-        /// The key.
+        /// 钥匙
         /// </param>
         /// <returns>
-        /// <see langword="true"/> when the grain id was successfully parsed, <see langword="false" /> otherwise.
+        /// <see langword="true"/> 时 grain 成功解析了id, <see langword="false" /> 否则。
         /// </returns>
         internal static bool TryGetGuidKey(this GrainId grainId, out Guid key)
         {
@@ -300,11 +300,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns the <see cref="Guid"/> representation of a grain primary key.
+        /// 返回 <see cref="Guid"/> 代表代表 grain 基本键。
         /// </summary>
-        /// <param name="grainId">The grain to find the primary key for.</param>
-        /// <param name="keyExt">The output parameter to return the extended key part of the grain primary key, if extended primary key was provided for that grain.</param>
-        /// <returns>A <see cref="Guid"/> representing the primary key for this grain.</returns>
+        /// <param name="grainId">查找主密钥的 grain 。</param>
+        /// <param name="keyExt">返回扩展键部分的输出参数 grain 初级关键,如果为此提供了扩展主关键 grain.</param>
+        /// <returns>A <see cref="Guid"/> 代表此 grain的主要关键字。</returns>
         public static Guid GetGuidKey(this GrainId grainId, out string? keyExt)
         {
             if (!grainId.TryGetGuidKey(out var result, out keyExt))
@@ -316,10 +316,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Returns the <see cref="Guid"/> representation of a grain primary key.
+        /// 返回 <see cref="Guid"/> 代表代表 grain 基本键。
         /// </summary>
-        /// <param name="grainId">The grain to find the primary key for.</param>
-        /// <returns>A <see cref="Guid"/> representing the primary key for this grain.</returns>
+        /// <param name="grainId">查找主密钥的 grain 。</param>
+        /// <returns>A <see cref="Guid"/> 代表此 grain的主要关键字。</returns>
         public static Guid GetGuidKey(this GrainId grainId)
         {
             if (!grainId.TryGetGuidKey(out var result))
@@ -331,18 +331,18 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Throws an exception indicating that a <see cref="Guid"/>-based grain id was incorrectly formatted.
+        /// 丢弃一个例外, 表明基于 <see cref="Guid"/>- 基 grain id的格式错误。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         private static void ThrowInvalidGuidKeyFormat(GrainId grainId) => throw new ArgumentException($"Value \"{grainId}\" is not in the correct format for a Guid key.", nameof(grainId));
 
         /// <summary>
-        /// Throws an exception indicating that a <see cref="long"/>-based grain id was incorrectly formatted.
+        /// 丢弃一个例外, 表明基于 <see cref="long"/>- 基 grain id的格式错误。
         /// </summary>
         /// <param name="grainId">
-        /// The grain id.
+        /// 下 grain id. 数据。
         /// </param>
         private static void ThrowInvalidIntegerKeyFormat(GrainId grainId) => throw new ArgumentException($"Value \"{grainId}\" is not in the correct format for an Integer key.", nameof(grainId));
     }

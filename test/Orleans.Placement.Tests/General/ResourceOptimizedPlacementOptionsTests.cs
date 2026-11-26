@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.General;
 
 /// <summary>
-/// Tests for resource optimized placement configuration options validation.
+/// 资源优化配置选项验证测试。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

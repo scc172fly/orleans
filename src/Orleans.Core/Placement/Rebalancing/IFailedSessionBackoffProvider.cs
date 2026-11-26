@@ -3,10 +3,10 @@ using Orleans.Internal;
 namespace Orleans.Placement.Rebalancing;
 
 /// <summary>
-/// Determines how long to wait between successive rebalancing sessions, if an aprior session has failed.
+/// 确定如果前一届会议失败,在相继的重新平衡会议之间要等多久。
 /// </summary>
 /// <remarks>
-/// A session is considered "failed" if n-consecutive number of cycles yielded no significant improvement
-/// to the cluster's entropy.
+/// 如果周期的连续周期数目没有显著改善,则将视为“失败”一课
+/// 组群的星体
 /// </remarks>
 public interface IFailedSessionBackoffProvider : IBackoffProvider { }

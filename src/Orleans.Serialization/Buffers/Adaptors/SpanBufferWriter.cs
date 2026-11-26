@@ -4,7 +4,7 @@ using System.Buffers;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// A special-purpose <see cref="IBufferWriter{T}"/> implementation for supporting <see cref="Span{T}"/> in <see cref="Writer{TBufferWriter}"/>.
+    /// 特别用途 <see cref="IBufferWriter{T}"/> 支持执行《公约》的 <see cref="Span{T}"/> 内 <see cref="Writer{TBufferWriter}"/>.
     /// </summary>
     public struct SpanBufferWriter : IBufferWriter<byte>
     {
@@ -12,9 +12,9 @@ namespace Orleans.Serialization.Buffers.Adaptors
         private int _bytesWritten;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SpanBufferWriter"/> struct.
+        /// 初始化 <see cref="SpanBufferWriter"/> 结构的新实例。
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
+        /// <param name="buffer">缓冲。</param>
         internal SpanBufferWriter(ReadOnlySpan<byte> buffer)
         {
             _maxLength = buffer.Length;
@@ -22,9 +22,9 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// Gets the number of bytes written.
+        /// 获取写入的字节数 。
         /// </summary>
-        /// <value>The number of bytes written.</value>
+        /// <value>写入的字节数。</value>
         public readonly int BytesWritten => _bytesWritten;
 
         /// <inheritdoc />

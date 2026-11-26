@@ -2,22 +2,22 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// The observable silo lifecycle.
+    /// 可观测到的 silo 生命周期。
     /// </summary>
     /// <remarks>
-    /// This type is usually used as the generic parameter in <see cref="ILifecycleParticipant{ISiloLifecycle}"/> as
-    /// a means of participating in the lifecycle stages of a silo.
+    /// 此类型通常在 <see cref="ILifecycleParticipant{ISiloLifecycle}"/> 中用作通用参数,
+    /// a 参与 silo生命周期阶段的手段。
     /// </remarks>
     /// <seealso cref="Orleans.ILifecycleObservable" />
     public interface ISiloLifecycle : ILifecycleObservable
     {
         /// <summary>
-        /// The highest lifecycle stage which has completed starting.
+        /// 完成最大生命周期阶段的启动。
         /// </summary>
         int HighestCompletedStage { get; }
 
         /// <summary>
-        /// The lowest lifecycle stage which has completed stopping.
+        /// 完成停止的最低生命周期阶段。
         /// </summary>
         int LowestStoppedStage { get; }
     }

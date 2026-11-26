@@ -49,16 +49,16 @@ public sealed class TripGrain : DurableGrain, ITripGrain
         string[] holds;
         try
         {
-            // Attached children: the trip owns both holds, its cancellation reaches them, and WhenAll returns only once
-            // both are terminal. The whole fan-out gives up after ten minutes, and its inputs are canceled and awaited.
+            // 随随身子女:旅行拥有两个持有,取消后他们就会被扣留, WhenAll 只返回一次
+            // 整个扇门在十分钟后就停止了,它的投入被取消并等待。
             holds = await DurableTask.WhenAll([flight.HoldSeatAsync(TripId), hotel.HoldRoomAsync(TripId)])
                 .WaitAsync(TimeSpan.FromMinutes(10))
                 .WithId("hold");
         }
         catch (Exception exception) when (exception is TimeoutException || DurableTask.Current.IsTaskCancellationRequested)
         {
-            // Shielded children run to completion although the trip's cancellation was requested, and the trip still
-            // owns and awaits them. Releasing a hold which was never taken returns false.
+            // 盾牌儿童虽然要求取消旅行,但即将完成,旅行仍
+            // 将自有财产和等待他们。解除一个从未被假借回人所未得的扣留。
             await DurableTask.WhenAll([flight.ReleaseSeatAsync(TripId), hotel.ReleaseRoomAsync(TripId)])
                 .WithId("release")
                 .Shielded();
@@ -66,7 +66,7 @@ public sealed class TripGrain : DurableGrain, ITripGrain
             return new TripResult(false, null, null, "The holds weren't confirmed in time.");
         }
 
-        // A detached task is an independent root: it outlives the trip, and the trip's cancellation doesn't reach it.
+        // 独立的任务是一个独立的根: 它比旅行长寿, 而取消旅行没有达到它。
         _ = GrainFactory.GetGrain<IItineraryGrain>(request.Traveler)
             .SendItineraryAsync(TripId, holds[0], holds[1])
             .Detached($"itinerary-{TripId:N}")
@@ -122,7 +122,7 @@ public sealed class ShippingLabelGrain(
 
     public async DurableTask<string> ShipAsync(string orderId)
     {
-        // The step records the label, so a replay doesn't buy another one.
+        // 台阶记录标签,所以重播不会买到另一个
         label.Value = await DurableTask.Run(cancellationToken => BuyLabelAsync(orderId, cancellationToken)).WithId("label");
         await DurableTask.Delay(TimeSpan.FromHours(4)).WithId("pickup-window");
         return label.Value;
@@ -130,7 +130,7 @@ public sealed class ShippingLabelGrain(
 
     private async Task<string> BuyLabelAsync(string orderId, CancellationToken cancellationToken)
     {
-        // Ordinary calls receive the task's CancellationToken, which task and attempt cancellation both cancel.
+        // 普通电话接收任务 CancellationToken,任务和尝试取消都取消。
         await _carrierRequests.WaitAsync(cancellationToken);
         try
         {
@@ -140,14 +140,14 @@ public sealed class ShippingLabelGrain(
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // Durable cleanup runs for task cancellation. Its calls receive the attempt's token, because the task's
-            // token is already canceled, and they end promptly if the host cancels the attempt during the cleanup.
+            // 持久清理运行程序将取消任务。 它的电话收到尝试的标记, 因为任务
+            // 已经取消该标记, 如果主机在清理过程中取消尝试, 则会立即终止 。
             using var voided = await carrier.DeleteAsync($"labels/{orderId}", DurableTask.Current.AttemptCancellationToken);
             throw;
         }
         finally
         {
-            // In-process cleanup runs for both kinds of cancellation.
+            // 两种取消的工艺中清理运行。
             _carrierRequests.Release();
         }
     }

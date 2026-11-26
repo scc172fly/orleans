@@ -10,93 +10,93 @@ using Orleans.Durable.Http;
 
 namespace Microsoft.AspNetCore.Builder;
 
-/// <summary>Makes route groups serve durable operations: long-running HTTP operations which durable tasks perform.</summary>
+/// <summary>使路线组为持久作业服务:长期执行的长效高端高端低端高端高端高端高端高端高端高端高端高端高端</summary>
 /// <remarks>
 /// <para>
-/// <see cref="WithDurableOperations"/> makes each endpoint of a group whose handler returns a durable grain call, such as
-/// <c>grain.PlaceOrderAsync(order)</c>, or a reference to an existing task, such as
-/// <c>grain.GetDurableTask&lt;T&gt;(id)</c>, start an operation which performs it, and maps the endpoints which observe,
-/// cancel, and signal the group's operations. Other endpoints of the group are unchanged.
+/// <see cref="WithDurableOperations"/> 给一个组的每个端点,如果该组的处理器返回了一个耐用 grain 调用,例如
+/// <c>grain.PlaceOrderAsync(order)</c>或提及现有任务,例如
+/// <c>grain.GetDurableTask&lt;T&gt;(id)</c>,启动一个操作来进行操作,绘制观察的终点图;
+/// 取消, 并信号该组的操作。 该组的其他端点没有变化 。
 /// </para>
 /// <para>
-/// An operation is named by the <c>Idempotency-Key</c> of the request which starts it, so a retried request reaches the
-/// operation which the first request started. Its key combines the group's scope, the request's values for the group's
-/// route parameters, such as an order's identifier, the caller's scope, which
-/// <see cref="DurableHttpOptions.GetCallerScope"/> returns, and the identifier. An operation host grain, which that key
-/// addresses, holds the operation, so requests which observe, cancel, or signal it reach it by its identifier alone, and
-/// only from its caller's scope. Authentication and authorization belong to the application, which configures them on the
-/// group's endpoints, such as with <c>RequireAuthorization</c> or endpoint filters.
+/// 操作由 <c>Idempotency-Key</c> 请求的启动时间,以便重新审理的请求到达
+/// 将该组的范围、该组的数值和该组的值合并在一起
+/// 调用器的范围,例如
+/// <see cref="DurableHttpOptions.GetCallerScope"/> 返回,并识别符号。操作主机 grain,该密钥
+/// 仅凭识别符号即可收到请求,
+/// 仅从其调用范围中设置。 验证和授权属于应用程序, 它在
+/// 组的端点, 如 <c>RequireAuthorization</c> 或端点过滤器 。
 /// </para>
 /// </remarks>
 public static class DurableHttpEndpointRouteBuilderExtensions
 {
     /// <summary>
-    /// Makes the group's endpoints which return durable work start operations, and maps the endpoints which serve the
-    /// group's operations under <c>{group}/operations</c>.
+    /// 使该组的终点点恢复持久的工作启动作业,并绘制为
+    /// 组在 <c>{group}/operations</c>下的业务。
     /// </summary>
-    /// <param name="group">The route group, such as <c>app.MapGroup("/orders/{orderId}")</c>.</param>
+    /// <param name="group">路线组,例如 <c>app.MapGroup("/orders/{orderId}")</c>.</param>
     /// <param name="scope">
-    /// The scope of the group's operations, such as <c>orders</c>, which is part of every operation's key, so it stays
-    /// equal while the group's routes change. Groups, and Nexus services, with equal scopes and route values address the
-    /// same operations.
+    /// 集团业务的范围,例如 <c>orders</c>等,是每个作业钥匙的一部分,因此它要留在
+    /// 群体和Nexus服务,其范围与路线值相同,处理的都是:
+    /// 同样的操作。
     /// </param>
-    /// <returns>The group, which maps the group's durable starts and signals, and configures its endpoints.</returns>
+    /// <returns>组,该组绘制了小组耐久启动和信号图,并配置了其终点。</returns>
     /// <remarks>
-    /// <para>A start, such as <c>POST {group}/place</c>, whose handler returns durable work, responds:</para>
+    /// <para>启动,例如 <c>POST {group}/place</c>,其处理器返回耐久工作,回应:</para>
     /// <list type="bullet">
     /// <item><description>
-    /// <c>200 OK</c> with the result, or <c>204 No Content</c> for work without one, when the operation has succeeded,
-    /// including within the wait which a <c>Prefer: wait=N</c> header requests.
+    /// <c>200 OK</c> ,结果为:或 <c>204 No Content</c> ,当操作成功时;
+    /// 包括等待时间在内的 <c>Prefer: wait=N</c> 标题请求。
     /// </description></item>
     /// <item><description>
-    /// <c>202 Accepted</c> with the operation's status monitor while it runs, including for a retry which arrives before it
-    /// completes: the retry reaches the running operation, as Azure repeatable requests and Stripe's v2 idempotency resume
-    /// work, where the IETF <c>Idempotency-Key</c> draft returns <c>409 Conflict</c>.
+    /// <c>202 Accepted</c> ,在运行期间有业务状态监测器,包括收到之前的重试
+    /// 完整:重试到达运行中的操作,因为 Azure 重复请求和Strake的 v2 应急恢复
+    /// 工作,其中IETTF <c>Idempotency-Key</c> 草案返回 <c>409 Conflict</c>。
     /// </description></item>
     /// <item><description>
-    /// <c>424 Failed Dependency</c> with the status monitor of an operation which failed or was canceled. An operation whose
-    /// work's grain refused the work without storing it fails with the <see cref="DurableOperationError.NotStartedCode"/>
-    /// error code, and a new key starts the work again. An operation whose work's grain didn't confirm the work fails with
-    /// the <see cref="DurableOperationError.OutcomeUnknownCode"/> error code: the work may have run, so a client checks its
-    /// effects before it starts the work again.
+    /// <c>424 Failed Dependency</c> 失败
+    /// 工作 grain 拒绝工作,但没有将工作与 <see cref="DurableOperationError.NotStartedCode"/>一起发生故障
+    /// 错误代码,而新密钥又重新开始工作。如果一个操作的工程 grain 没有确认工程失败
+    /// <see cref="DurableOperationError.OutcomeUnknownCode"/> 错误代码:工作可能已经运行,因此客户端会检查
+    /// 效果在它重新开始工作之前。
     /// </description></item>
     /// <item><description>
-    /// <c>400 Bad Request</c> for an invalid or missing key, and <c>422 Unprocessable Content</c> for a key which another
-    /// request used to start other work: a call of another method or on another grain, or a subscription to another
-    /// task. A retry whose arguments differ reaches the operation, as the durable task runtime identifies operations.
+    /// <c>400 Bad Request</c> 用于替换无效或缺失的密钥,以及 <c>422 Unprocessable Content</c> 另一关键
+    /// 启动其他工作时使用的请求: 另一种方法的呼叫或另一种 grain, 或订阅另一种
+    /// 任务。重试其参数不同而进入操作的,因为持久任务运行时间可以确定操作。
     /// </description></item>
     /// <item><description>
-    /// <c>503 Service Unavailable</c> with a <c>Retry-After</c> header when the request didn't reach the operation, which it
-    /// left unchanged, so the client sends it again with the same key.
+    /// <c>503 Service Unavailable</c> ,在请求未达到操作时有 <c>Retry-After</c> 页眉,但该请求没有到达操作,而它
+    /// 左转不变, 所以客户端会用相同的密钥再次发送它 。
     /// </description></item>
     /// </list>
     /// <para>
-    /// Each response which identifies an operation carries an <c>Operation-Location</c> header with its status monitor's
-    /// URL. The handler runs for each request, including retries, and only creates the work; the endpoint starts it.
+    /// 每项确定行动所在的对应措施都带有 <c>Operation-Location</c> 头及其状况监测器
+    /// URL 。 处理器运行每个请求,包括重试,并且只创建工作; 端点开始它。
     /// </para>
-    /// <para>The group serves its operations:</para>
+    /// <para>组为下列业务提供服务:</para>
     /// <list type="bullet">
     /// <item><description>
-    /// <c>GET {group}/operations/{operationId}</c> returns the status monitor. A <c>Prefer: wait=N</c> header long-polls: the
-    /// response waits until the operation is terminal or the wait elapses. A running operation's response carries a
-    /// <c>Retry-After</c> header.
+    /// <c>GET {group}/operations/{operationId}</c> 返回状态监视器。一个 <c>Prefer: wait=N</c> 头型长号单词:
+    /// 等待响应等待操作为终端或等待过折。运行中的操作响应包含
+    /// <c>Retry-After</c> 页眉之后。
     /// </description></item>
     /// <item><description>
-    /// <c>GET {group}/operations/{operationId}/events</c> streams the status monitor as server-sent <c>status</c> events
-    /// whose identifiers are their statuses: the current status, then the terminal status of a running operation, after
-    /// which the stream ends. A reconnect whose <c>Last-Event-ID</c> is a terminal status returns <c>204 No Content</c>,
-    /// which ends an <c>EventSource</c>'s reconnects.
+    /// <c>GET {group}/operations/{operationId}/events</c> 状态监视器的状态流 <c>status</c> 事件事件
+    /// 身份识别特征是其状态:现状,然后是运行中的操作的结束状态,随后是
+    /// 与该串流结束的溪流连接。 <c>Last-Event-ID</c> 是一个终端状态返回 <c>204 No Content</c>,
+    /// 以结束 <c>EventSource</c>的连接。
     /// </description></item>
     /// <item><description>
-    /// <c>POST {group}/operations/{operationId}:cancel</c> durably requests cancellation of a running operation, carrying
-    /// the optional <c>reason</c> of a JSON body, and returns <c>202 Accepted</c> with its status monitor; a terminal
-    /// operation returns <c>200 OK</c> unchanged. An operation which subscribes to an existing task ends its subscription
-    /// and reports that it was canceled, and the task, which other parties own, continues.
+    /// <c>POST {group}/operations/{operationId}:cancel</c> 可明显地请求取消运行中的操作,并携带
+    /// 可选 <c>reason</c> 排 年月a日, JSON 返回 <c>202 Accepted</c> 具有状况监测器;终端
+    /// 返回 <c>200 OK</c> ,不变。订阅现有任务的业务将结束其订阅
+    /// 并报告说,该合同被取消了,而其他缔约方自己承担的任务仍在继续。
     /// </description></item>
     /// </list>
-    /// <para>An operation which doesn't exist, or whose retention has ended, returns <c>404 Not Found</c>.</para>
+    /// <para>不存在或保留已经结束的操作返回 <c>404 Not Found</c>。</para>
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="scope"/> is empty.</exception>
+    /// <exception cref="ArgumentException"><paramref name="scope"/> 是空的。</exception>
     public static RouteGroupBuilder WithDurableOperations(this RouteGroupBuilder group, string scope)
     {
         ArgumentNullException.ThrowIfNull(group);
@@ -128,23 +128,23 @@ public static class DurableHttpEndpointRouteBuilderExtensions
     }
 
     /// <summary>
-    /// Maps <c>POST {group}/operations/{operationId}/signals/{name}</c>, in a group which
-    /// <see cref="WithDurableOperations"/> configures, which delivers <paramref name="signal"/> with the JSON request body
-    /// as its value to an operation's work.
+    /// 地图 <c>POST {group}/operations/{operationId}/signals/{name}</c>,组内
+    /// <see cref="WithDurableOperations"/> 配置,提供 <paramref name="signal"/> 和 JSON 请求机构
+    /// 因为它对一个操作工作的价值。
     /// </summary>
-    /// <typeparam name="T">The signal's value type.</typeparam>
-    /// <param name="endpoints">The group.</param>
-    /// <param name="signal">The signal, whose name completes the route.</param>
-    /// <returns>A builder which configures the endpoint.</returns>
+    /// <typeparam name="T">信号值类型。</typeparam>
+    /// <param name="endpoints">组。</param>
+    /// <param name="signal">信号,其名称完成路径。</param>
+    /// <returns>配置终点的构建器。</returns>
     /// <remarks>
-    /// The endpoint returns <c>204 No Content</c> once the work's task durably holds the value, including for a repeated
-    /// signal with an equal value, so a client retries a signal safely. A request without a body returns
-    /// <c>400 Bad Request</c>. A value which differs from the one the task holds, or an operation which completed without
-    /// the signal, returns <c>409 Conflict</c>, and an unknown operation returns <c>404 Not Found</c>. A request which
-    /// reaches an operation before its host records its work returns <c>503 Service Unavailable</c> with a
-    /// <c>Retry-After</c> header.
+    /// 端点返回 <c>204 No Content</c> ,一旦工作任务持久地持有价值,包括重复
+    /// 具有等值信号, 以相同值的信号, 所以客户端会安全重试一个信号。 没有返回身体的请求
+    /// <c>400 Bad Request</c>。与任务持有的值或未完成操作而完成的操作不同
+    /// 返回 <c>409 Conflict</c>,未知的操作返回 <c>404 Not Found</c>。
+    /// 工作返回之前的操作完成后,主机将记录到工作返回 <c>503 Service Unavailable</c> 具有 a 的
+    /// <c>Retry-After</c> 页眉之后。
     /// </remarks>
-    /// <exception cref="ArgumentException">The signal's name has characters other than URL-unreserved ones.</exception>
+    /// <exception cref="ArgumentException">信号的名称除 URL - 无保留的字符外,还有其它字符。</exception>
     public static IEndpointConventionBuilder MapDurableSignal<T>(this IEndpointRouteBuilder endpoints, DurableSignal<T> signal)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -161,10 +161,10 @@ public static class DurableHttpEndpointRouteBuilderExtensions
             .WithProblem(StatusCodes.Status503ServiceUnavailable);
     }
 
-    /// <summary>Executes the <paramref name="result"/> of an operation endpoint's handler.</summary>
+    /// <summary>执行操作端点处理器的 <paramref name="result"/> 。</summary>
     /// <remarks>
-    /// The endpoints which serve operations are request delegates, which bind their requests without reflection, so they
-    /// serve trimmed and NativeAOT applications.
+    /// 业务的终点是请代表提出请求,他们要求不考虑而约束其请求,因此他们
+    /// 修补和 NativeAOT 应用程序。
     /// </remarks>
     internal static async Task ExecuteAsync(HttpContext context, Task<IResult> result) => await (await result).ExecuteAsync(context);
 
@@ -180,7 +180,7 @@ public static class DurableHttpEndpointRouteBuilderExtensions
         where TBuilder : IEndpointConventionBuilder =>
         builder.WithResponse(statusCode, typeof(ProblemDetails), "application/problem+json");
 
-    /// <summary>Starts the durable work which an endpoint's handler returns as the operation which the request's key names.</summary>
+    /// <summary>启动持久工作,当端点的处理者返回时,该工作是请求方关键名称的操作。</summary>
     private static async ValueTask<object?> StartAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var httpContext = context.HttpContext;
@@ -201,7 +201,7 @@ public static class DurableHttpEndpointRouteBuilderExtensions
         var result = await next(context);
         if (result is not DurableTask work)
         {
-            // The handler answered without durable work, such as with a validation problem.
+            // 处理者回答说,没有持久工作,例如验证问题。
             return result;
         }
 

@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs;
 
 /// <summary>
-/// Serializer for <see cref="TimeOnly"/>.
+/// <see cref="TimeOnly"/>的序列器。
 /// </summary>
 [RegisterSerializer]
 public sealed class TimeOnlyCodec : IFieldCodec<TimeOnly>
@@ -21,7 +21,7 @@ public sealed class TimeOnlyCodec : IFieldCodec<TimeOnly>
     }
 
     /// <summary>
-    /// Writes a field without type info (expected type is statically known).
+    /// 写入没有类型信息( 期待的类型为静态) 的字段。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, TimeOnly value) where TBufferWriter : IBufferWriter<byte>
@@ -36,12 +36,12 @@ public sealed class TimeOnlyCodec : IFieldCodec<TimeOnly>
     TimeOnly IFieldCodec<TimeOnly>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
     /// <summary>
-    /// Reads a <see cref="TimeOnly"/> value.
+    /// 读取 <see cref="TimeOnly"/> 值。
     /// </summary>
-    /// <typeparam name="TInput">The reader input type.</typeparam>
-    /// <param name="reader">The reader.</param>
-    /// <param name="field">The field.</param>
-    /// <returns>The <see cref="TimeOnly"/> value.</returns>
+    /// <typeparam name="TInput">读者输入类型。</typeparam>
+    /// <param name="reader">读者</param>
+    /// <param name="field">字段。</param>
+    /// <returns>数值 <see cref="TimeOnly"/> 。</returns>
     [return: System.Diagnostics.CodeAnalysis.MaybeNull]
     public static TimeOnly ReadValue<TInput>(ref Reader<TInput> reader, Field field)
     {

@@ -6,7 +6,7 @@ using StackExchange.Redis;
 
 namespace Orleans.Docs.Snippets.Aspire.Silo;
 
-// This class contains example code for Orleans silo configuration with Aspire
+// 此类包含以 aspire 配置 Orleans silo 的示例代码
 public static class SiloProgram
 {
     // <silo_basic_config>
@@ -14,13 +14,13 @@ public static class SiloProgram
     {
         var builder = Host.CreateApplicationBuilder(args);
 
-        // Add Aspire service defaults (OpenTelemetry, health checks, etc.)
+        // 添加服务默认值(OpenTelemetry、健康检查等)
         builder.AddServiceDefaults();
 
-        // Add the Aspire Redis client for Orleans
+        // 添加指定对象 Redis 客户端的客户 Orleans
         builder.AddKeyedRedisClient("orleans-redis");
 
-        // Configure Orleans - Aspire injects all configuration automatically
+        // 配置 Orleans - 自动将所有配置都输入
         builder.UseOrleans();
 
         builder.Build().Run();
@@ -123,9 +123,9 @@ public static class SiloProgram
 
         builder.AddServiceDefaults();
 
-        // Configure Orleans manually because Aspire cannot automatically wire ADO.NET
-        // providers — provider type inference produces "SqlServerDatabase" instead of
-        // the "AdoNet" provider name Orleans expects.
+        // 配置 Orleans 手动操作, 因为 Aspire 不能自动电线 ADO.NET
+        // 供应商——提供者类型类型的推论产生 "SqlServerDatabase" 而不是
+        // "AdoNet" 供应商名称 Orleans 预期。
         builder.UseOrleans(siloBuilder =>
         {
             var connectionString = builder.Configuration.GetConnectionString("orleans-db")!;
@@ -167,8 +167,8 @@ public static class SiloProgram
     // </grain_directory_silo>
 }
 
-// Stub health check classes for documentation examples
-// In a real application, you would implement actual health check logic
+// 文献证明实例的斯塔布健康检查班
+// 实际应用中,您将执行实际健康检查逻辑
 
 internal class GrainHealthCheck : IHealthCheck
 {

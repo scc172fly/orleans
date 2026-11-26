@@ -6,31 +6,31 @@ using System.Text.Json.Serialization;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// Identifies one message by an application-supplied <see cref="HierarchicalKey"/>.
+/// 以应用程序供应方式 <see cref="HierarchicalKey"/>指明一条电文。
 /// </summary>
 /// <remarks>
-/// The receiver deduplicates messages by this identity, so applications reuse it when retrying a send.
-/// Equality, hashing, parsing, and formatting use the key's canonical escaped path.
+/// 接收器通过此身份复制信件, 所以在重试发送时应用再使用它 。
+/// 平等、散列、解析和格式化使用钥匙的卡通道。
 /// </remarks>
 [Immutable, Alias("Orleans.Durable.Messaging.MessageId")]
 [JsonConverter(typeof(MessageIdJsonConverter))]
 public readonly struct MessageId : ISpanFormattable, IEquatable<MessageId>, IParsable<MessageId>, ISpanParsable<MessageId>
 {
-    /// <summary>Creates a message identity from a hierarchical key.</summary>
-    /// <param name="key">The application identity of the message.</param>
+    /// <summary>从等级键创建信件身份。</summary>
+    /// <param name="key">电文的应用身份。</param>
     public MessageId(HierarchicalKey key) => Key = key;
 
-    /// <summary>Gets the hierarchical key which identifies the message.</summary>
+    /// <summary>获取识别电文的等级键。</summary>
     public HierarchicalKey Key { get; }
 
-    /// <summary>Gets whether this value is unset.</summary>
+    /// <summary>获取是否该值未设定。</summary>
     public bool IsDefault => Key.IsDefault;
 
-    /// <summary>Creates a message identity from literal segments in root-first order.</summary>
-    /// <param name="segments">The nonempty literal segments.</param>
-    /// <returns>The message identity.</returns>
-    /// <exception cref="ArgumentNullException">A segment is null.</exception>
-    /// <exception cref="ArgumentException">The input or a segment is empty, or a segment contains an unpaired surrogate.</exception>
+    /// <summary>从根一顺序的字面段创建信件身份。</summary>
+    /// <param name="segments">非空字区段。</param>
+    /// <returns>电文身份。</returns>
+    /// <exception cref="ArgumentNullException">段无效。</exception>
+    /// <exception cref="ArgumentException">输入或一个段为空,或者一个段含有未受偏移的代孕。</exception>
     public static MessageId Create(params ReadOnlySpan<string> segments) => new(HierarchicalKey.Create(segments));
 
     /// <inheritdoc/>
@@ -64,16 +64,16 @@ public readonly struct MessageId : ISpanFormattable, IEquatable<MessageId>, IPar
     /// <inheritdoc/>
     public override int GetHashCode() => Key.GetHashCode();
 
-    /// <summary>Compares message identities.</summary>
-    /// <param name="left">The first identity.</param>
-    /// <param name="right">The second identity.</param>
-    /// <returns>Whether the identities are equal.</returns>
+    /// <summary>比较信件身份。</summary>
+    /// <param name="left">第一个身份。</param>
+    /// <param name="right">第二个身份。</param>
+    /// <returns>身份是否相等。</returns>
     public static bool operator ==(MessageId left, MessageId right) => left.Equals(right);
 
-    /// <summary>Compares message identities for inequality.</summary>
-    /// <param name="left">The first identity.</param>
-    /// <param name="right">The second identity.</param>
-    /// <returns>Whether the identities differ.</returns>
+    /// <summary>比较不平等的信息身份。</summary>
+    /// <param name="left">第一个身份。</param>
+    /// <param name="right">第二个身份。</param>
+    /// <returns>身份是否不同。</returns>
     public static bool operator !=(MessageId left, MessageId right) => !left.Equals(right);
 
     /// <inheritdoc/>
@@ -86,10 +86,10 @@ public readonly struct MessageId : ISpanFormattable, IEquatable<MessageId>, IPar
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
         Key.TryFormat(destination, out charsWritten, format, provider);
 
-    /// <summary>Serializes message identities as canonical escaped JSON strings.</summary>
+    /// <summary>将信件身份序列成可控的逃出 JSON 字符串。</summary>
     public sealed class MessageIdJsonConverter : JsonConverter<MessageId>
     {
-        /// <summary>Creates a message identity JSON converter.</summary>
+        /// <summary>创建信件身份 JSON 转换器。</summary>
         public MessageIdJsonConverter() { }
 
         /// <inheritdoc/>

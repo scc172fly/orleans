@@ -11,28 +11,28 @@ using Orleans.TestingHost.Logging;
 
 namespace Orleans.TestingHost.Utils
 {
-    /// <summary> Collection of test utilities </summary>
+    /// <summary> 收集测试用设施 </summary>
     public static class TestingUtils
     {
         private static long uniquifier = Stopwatch.GetTimestamp();
 
         /// <summary>
-        /// Configure <paramref name="builder" /> with a <see cref="FileLoggerProvider" /> which logs to <paramref name="filePath" />
-        /// by default;
+        /// 配置配置 <paramref name="builder" /> 具有 a 的 <see cref="FileLoggerProvider" /> 日志的日志 <paramref name="filePath" />
+        /// 违约;
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="filePath">The file path.</param>
+        /// <param name="builder">建筑工。</param>
+        /// <param name="filePath">文件路径。</param>
         public static void ConfigureDefaultLoggingBuilder(ILoggingBuilder builder, string filePath)
         {
             builder.AddFile(filePath);
         }
 
         /// <summary>
-        /// Create trace file name for a specific node or client in a specific deployment
+        /// 在特定部署中为特定节点或客户端创建跟踪文件名
         /// </summary>
-        /// <param name="nodeName">Name of the node.</param>
-        /// <param name="clusterId">The cluster identifier.</param>
-        /// <returns>The new trace file name.</returns>
+        /// <param name="nodeName">节点的名称。</param>
+        /// <param name="clusterId">集束识别符号。</param>
+        /// <returns>新的追踪文件名称。</returns>
         public static string CreateTraceFileName(string nodeName, string clusterId)
         {
             const string traceFileFolder = "logs";
@@ -48,10 +48,10 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// Create the default logger factory, which would configure logger factory with a <see cref="FileLoggerProvider" /> that writes logs to <paramref name="filePath" /> and console.
-        /// by default;
+        /// 创建默认的日志工厂, 该工厂将配置一个 <see cref="FileLoggerProvider" /> 记录厂, 它将将日志写到 <paramref name="filePath" /> 和控台。
+        /// 违约;
         /// </summary>
-        /// <param name="filePath">The file path.</param>
+        /// <param name="filePath">文件路径。</param>
         /// <returns>ILoggerFactory.</returns>
         public static ILoggerFactory CreateDefaultLoggerFactory(string filePath)
         {
@@ -59,11 +59,11 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// Create the default logger factory, which would configure logger factory with a <see cref="FileLoggerProvider"/> that writes logs to <paramref name="filePath"/> and console.
-        /// by default;
+        /// 创建默认的日志工厂, 该工厂将配置一个 <see cref="FileLoggerProvider"/> 记录厂, 它将将日志写到 <paramref name="filePath"/> 和控台。
+        /// 违约;
         /// </summary>
-        /// <param name="filePath">the logger file path</param>
-        /// <param name="filters">log filters you want to configure your logging with</param>
+        /// <param name="filePath">日志器文件路径</param>
+        /// <param name="filters">日志过滤器</param>
         /// <returns></returns>
         public static ILoggerFactory CreateDefaultLoggerFactory(string filePath, LoggerFilterOptions filters)
         {
@@ -82,12 +82,12 @@ namespace Orleans.TestingHost.Utils
             }
         }
 
-        /// <summary>Run the predicate until it succeeds or times out.</summary>
-        /// <param name="predicate">The predicate to run</param>
-        /// <param name="timeout">The timeout value</param>
-        /// <param name="delayOnFail">The time to delay next call upon failure</param>
-        /// <returns>A task representing the operation.</returns>
-        /// <exception cref="TimeoutException">The predicate did not succeed before the timeout elapsed.</exception>
+        /// <summary>运行上游直到它成功或超时。</summary>
+        /// <param name="predicate">所运行的上游</param>
+        /// <param name="timeout">超时值</param>
+        /// <param name="delayOnFail">下次对失败通知的延迟时间</param>
+        /// <returns>代表操作的任务。</returns>
+        /// <exception cref="TimeoutException">延时之前,上游没有成功。</exception>
         public static Task WaitUntilAsync(Func<bool, Task<bool>> predicate, TimeSpan timeout, TimeSpan? delayOnFail = null)
             => WaitUntilAsync(predicate, timeout, delayOnFail, TimeProvider.System);
 
@@ -104,17 +104,17 @@ namespace Orleans.TestingHost.Utils
             return WaitUntilAsync((lastTry, _) => predicate(lastTry), timeout, delayOnFail, default, timeProvider, predicateName);
         }
 
-        /// <summary>Run the predicate until it succeeds or times out.</summary>
+        /// <summary>运行上游直到它成功或超时。</summary>
         /// <param name="predicate">
-        /// The predicate to run. The first argument indicates the final attempt, allowing the predicate to throw a detailed assertion failure.
-        /// The token is cancelled when the deadline expires or cancellation is requested.
+        /// 第一个论点表明最后的尝试,允许上游提出详细的断言失败。
+        /// 当最后期限到期或请求取消时, 命令会被取消 。
         /// </param>
-        /// <param name="timeout">The timeout value.</param>
-        /// <param name="delayOnFail">The delay before retrying after an unsuccessful attempt.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="predicateExpression">The expression supplied for <paramref name="predicate"/>.</param>
-        /// <returns>A task representing the operation.</returns>
-        /// <exception cref="TimeoutException">The predicate did not succeed before the timeout elapsed.</exception>
+        /// <param name="timeout">超时值。</param>
+        /// <param name="delayOnFail">尝试失败后重新尝试前的延误。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="predicateExpression">提供给 <paramref name="predicate"/>的表达式。</param>
+        /// <returns>代表操作的任务。</returns>
+        /// <exception cref="TimeoutException">延时之前,上游没有成功。</exception>
         public static Task WaitUntilAsync(
             Func<bool, CancellationToken, Task<bool>> predicate,
             TimeSpan timeout,
@@ -149,12 +149,12 @@ namespace Orleans.TestingHost.Utils
             }
         }
 
-        /// <summary>Runs the predicate until it succeeds or the monotonic deadline expires.</summary>
-        /// <param name="predicate">The predicate to run. The token is cancelled when the deadline expires or cancellation is requested.</param>
-        /// <param name="timeout">The timeout value.</param>
-        /// <param name="delayOnFail">The delay before retrying after an unsuccessful attempt.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><see langword="true"/> if the predicate succeeded before the deadline; otherwise, <see langword="false"/>.</returns>
+        /// <summary>运行上游,直到其成功或单声道最后期限到期。</summary>
+        /// <param name="predicate">要运行的上游。当最后期限到期或请求取消时,该符号将被取消 。</param>
+        /// <param name="timeout">超时值。</param>
+        /// <param name="delayOnFail">尝试失败后重新尝试前的延误。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <returns><see langword="true"/> 如果在最后期限之前成功,则该上游;否则, <see langword="false"/>。</returns>
         public static async Task<bool> WaitUntilSucceededAsync(
             Func<CancellationToken, Task<bool>> predicate,
             TimeSpan timeout,
@@ -283,11 +283,11 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// Multiply a timeout by a value
+        /// 乘以一个值的超时
         /// </summary>
-        /// <param name="time">The time.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>The resulting time span value.</returns>
+        /// <param name="time">时间。</param>
+        /// <param name="value">数值。</param>
+        /// <returns>由此得出的时间跨值。</returns>
         public static TimeSpan Multiply(TimeSpan time, double value)
         {
             double ticksD = checked(time.Ticks * value);

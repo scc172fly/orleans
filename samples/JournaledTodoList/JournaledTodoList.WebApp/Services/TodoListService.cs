@@ -29,7 +29,7 @@ public class TodoListService(IGrainFactory grainFactory)
 
         static string NormalizeListName(string name)
         {
-            // Replace spaces and special characters to ensure valid URL
+            // 替换空格和特殊字符以确保有效的 URL
             var normalized = name
                 .Trim()
                 .Replace(' ', '-')
@@ -37,7 +37,7 @@ public class TodoListService(IGrainFactory grainFactory)
                 .Replace('\\', '-')
                 .ToLowerInvariant();
 
-            // Encode remaining bits for good measure!
+            // 将剩余比特编码为好尺度!
             return HttpUtility.UrlEncode(normalized);
         }
     }

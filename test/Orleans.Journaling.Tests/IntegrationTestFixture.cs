@@ -8,12 +8,12 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Base class for journaling tests with common setup using InProcessTestCluster
+/// 使用 InProcessTestCluster用于用通用设置进行日记测试的基准类
 /// </summary>
 public class IntegrationTestFixture : IAsyncLifetime
 {
     public InProcessTestCluster Cluster { get; }
-    public IClusterClient Client => Cluster.Client!; // Fixture initialization deploys the client.
+    public IClusterClient Client => Cluster.Client!; // 定型初始化会部署客户
 
     public IntegrationTestFixture()
     {

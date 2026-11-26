@@ -6,29 +6,29 @@ using Orleans.TestingHost;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// Installs the <see cref="IdealizedReminderTable"/> oracle into an <see cref="InProcessTestCluster"/>.
+/// 将 <see cref="IdealizedReminderTable"/> 或“关卡”安装到“ <see cref="InProcessTestCluster"/>”。
 /// </summary>
 /// <remarks>
-/// A single oracle instance is shared by every silo in the cluster, mirroring the way the in-process cluster shares
-/// one grain directory and one membership table across silos. Sharing one instance is what makes cluster-level
-/// reminder behaviour deterministically observable: every silo's reminder service reads and writes the same
-/// introspectable state, and the test controls (blocking gates, injected failures, outage simulation and frozen
-/// reads) apply uniformly across the cluster.
+/// 组合体中每个 silo 都共享一个单一的甲骨文实例,这反映了流程中的集束份额的方式
+/// 单 grain 和成员表 silos共享一个实例,就是集群一级
+/// 明确可见的提醒行为:每个 silo提醒服务读写相同
+/// 内可预见状态和试验控制(阻挡门、注射失败、模拟停机和冻结)
+/// 在整个组别中统一适用。
 /// </remarks>
 public static class ReminderTestKitClusterBuilderExtensions
 {
     /// <summary>
-    /// Installs a shared <see cref="IdealizedReminderTable"/> as the reminder table of every silo in the cluster.
+    /// 安装一个共享的 <see cref="IdealizedReminderTable"/> 作为集件中每个 silo 的提醒表。
     /// </summary>
-    /// <param name="builder">The test cluster builder.</param>
-    /// <param name="table">An existing oracle to install, or <see langword="null"/> to create one.</param>
+    /// <param name="builder">测试组群构建器。</param>
+    /// <param name="table">安装的已有信箱,或创建一个 <see langword="null"/> 。</param>
     /// <param name="reminderTimeProvider">
-    /// An optional deterministic clock registered as the reminder subsystem's keyed
-    /// <see cref="TimeProvider"/> (<see cref="ReminderTimeProviderNames.Reminders"/>). Unrelated silo timers keep
-    /// using the ambient provider.
+    /// 以提醒子系统密钥注册的可选定时表
+    /// <see cref="TimeProvider"/> (<see cref="ReminderTimeProviderNames.Reminders"/>无关 silo 时间间隔
+    /// 使用环境提供者。
     /// </param>
-    /// <param name="configureReminderOptions">An optional <see cref="ReminderOptions"/> post-configuration callback.</param>
-    /// <returns>The installed oracle, which exposes the deterministic test controls and introspection.</returns>
+    /// <param name="configureReminderOptions">任选 <see cref="ReminderOptions"/> 后配置回调 。</param>
+    /// <returns>安装的触角,它暴露了确定性测试控制和反省。</returns>
     public static IdealizedReminderTable UseIdealizedReminderTable(
         this InProcessTestClusterBuilder builder,
         IdealizedReminderTable? table = null,
@@ -57,11 +57,11 @@ public static class ReminderTestKitClusterBuilderExtensions
     }
 
     /// <summary>
-    /// Installs the supplied <see cref="IdealizedReminderTable"/> as this silo's reminder table.
+    /// 安装所提供 <see cref="IdealizedReminderTable"/> 作为 silo的提醒表格。
     /// </summary>
-    /// <param name="builder">The silo builder.</param>
-    /// <param name="table">The oracle to install.</param>
-    /// <returns>The silo builder, for chaining.</returns>
+    /// <param name="builder">下 silo 建筑商</param>
+    /// <param name="table">装设神器</param>
+    /// <returns>用于链条的 silo 构建器。</returns>
     public static ISiloBuilder UseIdealizedReminderTable(this ISiloBuilder builder, IdealizedReminderTable table)
     {
         ArgumentNullException.ThrowIfNull(builder);

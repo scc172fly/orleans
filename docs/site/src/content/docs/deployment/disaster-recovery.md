@@ -1,64 +1,74 @@
 ---
-title: Backup, restore, and disaster recovery
-description: Protect Orleans application state and recover a cluster after regional or provider failure.
+title: "备份、恢复和灾后恢复"
+description: "保护 Orleans 申请状态,并在区域或供应商故障后回收集束。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
-# Backup, restore, and disaster recovery
+<a id="backup-restore-and-disaster-recovery"></a>
 
-An Orleans cluster contains several kinds of data with different recovery requirements. Inventory each provider and assign recovery point and recovery time objectives.
+# 备份、恢复和灾后恢复
 
-## Membership isn't grain state
+Orleans 组别包含若干种类的数据,有不同的回收要求,对每个供应商进行清点,并指定回收点和回收时间目标。
 
-The clustering provider stores ephemeral coordination records describing silos and gateways. It doesn't contain live grain activations and usually isn't the source of truth for application state.
+<a id="membership-isnt-grain-state"></a>
 
-| Data | Typical durability | Recovery concern |
+## 成员不是 grain 国家
+
+集群提供商存储描述 silos 和网关的时空协调记录。 它不包含实时 grain 启动,通常不是应用状态的真相来源。
+
+| 数据数据数据数据数据数据数据数据数据数据数据数据数据数据数据数据数据数据数据 | 典型耐久性 | 恢复问题 |
 | --- | --- | --- |
-| Cluster membership | Ephemeral | A new cluster can recreate membership; stale live rows can delay or block startup |
-| Grain state | Application-defined durable data | Back up, restore, and validate according to business requirements |
-| Reminders | Durable scheduling metadata | Preserve when scheduled work must survive cluster loss |
-| Stream provider state | Provider-specific | Protect checkpoints, subscriptions, and queued events as required |
-| External databases and side effects | Application-defined | Coordinate consistency and deduplication with grain state |
-| Telemetry and audit data | Operational or compliance data | Retain independently from the Orleans cluster |
+| 分组成员 | 时长 | 新集群可以重新创建成员; 旧的行可推迟或阻碍启动 |
+| Grain 状态 | 适用定义的耐久数据 | 根据业务要求备份、恢复和验证 |
+| 提醒提醒 | 持久列表元数据 | 定时工作必须保留,在集束损失中幸存 |
+| 流流供应国 | Provider-specific | 视需要保护检查站、订阅书和排队活动 |
+| 外部数据库和副作用 | Application-defined | 协调一致性和与 grain 状态的重复 |
+| 遥测和审计数据 | 业务或遵约数据 | 独立于 Orleans 群集单独留存 |
 
-Don't treat deleting a membership table as a grain-state restore. Don't restore membership rows from backup as a substitute for starting a new cluster.
+不要把删除会籍表视为 grain- state reform。 不要将备份中的会籍行恢复为启动新组的替代 。
 
-## Backup design
+<a id="backup-design"></a>
 
-- Use provider-native, consistent backup or replication features.
-- Encrypt backups and restrict restore permissions.
-- Record the service ID, provider configuration, schema version, application version, and backup timestamp.
-- Coordinate backups across stores when correctness spans grain state and external systems.
-- Retain deduplication or operation records for at least the maximum retry and replay window.
-- Test that reminders, streams, and secondary indexes recover with grain state where required.
+## 备份设计
 
-## Restore procedure
+- 使用供应商的本地、一致的备份或复制功能。
+- 加密备份并限制恢复权限 。
+- 记录服务编号、供应商配置、系统设计版本、应用程序版本和备份时间戳。
+- 当正确度跨越 grain 状态和外部系统时,要协调各仓库的备份。
+- 至少保留最大重试和重放窗口的重复或操作记录。
+- 测试是否在需要时以 grain 状态恢复提醒、流和二级指数。
 
-Document and rehearse these steps:
+<a id="restore-procedure"></a>
 
-1. Stop or fence writers to the affected state.
-1. Choose a restore point and identify expected data loss.
-1. Restore each durable provider into an isolated recovery environment.
-1. Use a new cluster ID so recovery silos don't join a surviving cluster accidentally.
-1. Start a small canary cluster and validate provider access, state deserialization, reminders, streams, and application invariants.
-1. Reconcile incomplete external side effects using operation IDs or business records.
-1. Add capacity, switch traffic deliberately, and monitor errors and dependency load.
-1. Preserve the failed environment until investigation and rollback decisions are complete.
+## 恢复程序
 
-If a restored clustering provider includes stale active members, follow the provider's Orleans membership cleanup procedure or use a fresh membership namespace. Never let recovery automation delete records from a cluster that might still be alive across a network partition.
+记录并排练这些步骤:
 
-## Regional recovery
+1. 或围篱作家到受影响的州。
+1. 选择恢复点并确定预期数据损失。
+1. 恢复每个耐久提供者的孤立复原环境。
+1. 使用新的集束识别码,这样恢复 silos 就不会意外加入幸存的集束。
+1. 启动一个小的金丝雀集群,验证供应商获取、国家机密失效、提醒、流和应用等功能。
+1. 使用业务识别码或商业记录调节不完整的外部副作用。
+1. 增加容量、故意交换流量和监测错误和依赖性负荷。
+1. 保护失败的环境,直到调查和回撤决定完成。
 
-Active-passive is simpler than active-active for stateful grains. A standby region should use an isolated cluster ID and must not process the same mutable grain keys unless the storage and application protocols explicitly support multi-writer operation.
+如果恢复的集群供应商包括了已停止活动的会员,则要遵循供应商 Orleans 成员清理程序,或者使用新的会籍名称空间。 绝不允许回收自动化删除可能仍然活跃在网络分割区之间的集散记录。
 
-Validate:
+<a id="regional-recovery"></a>
 
-- Provider replication lag and consistency.
-- DNS or ingress cutover time.
-- Credential, certificate, and configuration availability.
-- Capacity in the recovery region.
-- The behavior of outstanding requests whose outcome is unknown.
-- Failback after the primary region returns.
+## 区域恢复
 
-Run disaster recovery exercises. A backup that hasn't been restored and validated doesn't establish a recovery capability.
+主动被动比主动积极活动更简单,对于状态 grains。待命区域应使用孤立的集束识别码,并且不得处理相同的可变 grain 键,除非存储和应用协议明确支持多撰稿人操作。
+
+验证 :
+
+- 供应商复制滞后和一致性。
+- 或入侵时间的间隔
+- 证书、证明和配置可用性。
+- 恢复区域的能力。
+- 未答复请求的行为,结果不明。
+- 原地返回后又失手
+
+运行灾难恢复演习。一个尚未恢复和验证的备份不能建立恢复能力。

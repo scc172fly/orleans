@@ -30,11 +30,11 @@ namespace UnitTests.Grains
             logger.LogInformation("SetA={A}", a);
             A = a;
 
-            //If this were run with Task.Run there were no need for the added Unwrap call.
-            //However, Task.Run runs in ThreadPool and not in Orleans TaskScheduler, unlike Task.Factory.StartNew.
-            //See more at https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains.
-            //The extra task comes from the internal asynchronous lambda due to Task.Delay. For deeper
-            //insight, see at http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx.
+            //如果用 Task.Run 运行, 则不需要添加 Unlop 调用 。
+            //然而, Task.Run 运行中 ThreadPool 而不是在 Orleans TaskScheduler,与 Task.Factory.StartNew.
+            //更多信息: https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains。
+            //额外任务来自内部因 Task.Delay而出现的无同步的羊羔。
+            //洞察力,见 http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx。
             await Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(EventDelay);
@@ -46,11 +46,11 @@ namespace UnitTests.Grains
         {
             this.B = b;
 
-            //If this were run with Task.Run there were no need for the added Unwrap call.
-            //However, Task.Run runs in ThreadPool and not in Orleans TaskScheduler, unlike Task.Factory.StartNew.
-            //See more at https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains.
-            //The extra task comes from the internal asynchronous lambda due to Task.Delay. For deeper
-            //insight, see at http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx.
+            //如果用 Task.Run 运行, 则不需要添加 Unlop 调用 。
+            //然而, Task.Run 运行中 ThreadPool 而不是在 Orleans TaskScheduler,与 Task.Factory.StartNew.
+            //更多信息: https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains。
+            //额外任务来自内部因 Task.Delay而出现的无同步的羊羔。
+            //洞察力,见 http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx。
             await Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(EventDelay);

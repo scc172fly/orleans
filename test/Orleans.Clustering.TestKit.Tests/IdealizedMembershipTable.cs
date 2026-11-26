@@ -2,7 +2,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Clustering.TestKit.Tests;
 
-// Intentionally independent of the kit's snapshots, model transitions, and test-data copy routines.
+// 有意独立于工具包的快照、模型转换和测试数据复制常规。
 internal sealed class IdealizedMembershipBackend
 {
     internal readonly object Sync = new();
@@ -286,7 +286,7 @@ internal sealed class IdealizedMembershipTable(IdealizedMembershipBackend backen
         }
     }
 
-    // The interface retains these members for compatibility. Tests call only the Async APIs above.
+    // 接口保留了这些成员, 以保持兼容性。 测试仅要求上面的 Async API 。
     public Task InitializeMembershipTable(bool tryInitTableVersion) => InitializeMembershipTableAsync(tryInitTableVersion);
     public Task DeleteMembershipTableEntries(string clusterId) => DeleteMembershipTableEntriesAsync(clusterId);
     public Task CleanupDefunctSiloEntries(DateTimeOffset beforeDate) => CleanupDefunctSiloEntriesAsync(beforeDate);

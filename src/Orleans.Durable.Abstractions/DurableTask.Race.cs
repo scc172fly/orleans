@@ -3,29 +3,29 @@ namespace Orleans.Durable.Tasks;
 public abstract partial class DurableTask
 {
     /// <summary>
-    /// Creates a durable task which returns the input index of the first input task to complete, after requesting
-    /// cancellation of every other input and waiting until each is terminal.
+    /// 创建持久任务, 返回第一个输入任务要完成的输入索引
+    /// 取消其他输入, 等待每个输入结束 。
     /// </summary>
-    /// <param name="tasks">The input tasks, which are captured when this method is called.</param>
-    /// <returns>A combinator which, awaited within a durable execution, runs as part of that execution.</returns>
+    /// <param name="tasks">输入任务,当此方法被调用时将记录这些输入任务。</param>
+    /// <returns>组合器,在等待耐久处决期间作为执行的一部分运行。</returns>
     /// <remarks>
     /// <para>
-    /// The inputs are scheduled concurrently, and the winner is selected like
-    /// <see cref="WhenAny(IReadOnlyList{DurableTask})"/>'s: the input which completed first, which the host selects again on
-    /// replay. Every other input then receives a durable cancellation request carrying the reason
-    /// <c>Another task won the race.</c>, which its <see cref="DurableTaskContext.TaskCancellationReason"/> reports when the
-    /// request is the input's first. Cancellation is cooperative, so each other input decides its own outcome, and the
-    /// combinator completes once every input is terminal: no input outlives the race.
+    /// 输入时间排在同时,优胜者被选为
+    /// <see cref="WhenAny(IReadOnlyList{DurableTask})"/>'s:首先完成的输入,主机在
+    /// 重放。 所有其他输入随后收到含有理由的持久取消请求
+    /// <c>Another task won the race.</c>,而其 <see cref="DurableTaskContext.TaskCancellationReason"/> 汇报
+    /// 请求是输入的第一个。 取消是合作的, 所以对方的投入决定自己的结果, 而
+    /// 一旦每次输入为终端, 组合就会完成: 没有输入会超过比赛 。
     /// </para>
     /// <para>
-    /// A winner which failed or was canceled fails the combined task with its exception. The other inputs' outcomes don't
-    /// affect the combined task. Durable cancellation of the awaiting execution reaches the inputs, which are attached
-    /// children. Each input runs as a child identified by its input index under the combinator's operation identifier,
-    /// which also identifies a recorded selection: the segment assigned with <c>WithId</c>, or a segment generated in
-    /// execution order.
+    /// 失败或被取消的赢家除其例外, 无法完成合并任务。 其他输入的结果不
+    /// 长期取消等待执行的执行,最终投入已送达各投入,附后
+    /// 儿童。每个输入的运行方式都是儿童,根据组合器操作识别符以其输入索引确定的计算结果,
+    /// 也指明了所记录的选择:指定用于 <c>WithId</c>或
+    /// 命令。
     /// </para>
     /// </remarks>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> is empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> 是空的。</exception>
     public static DurableTask<int> Race(IReadOnlyList<DurableTask> tasks)
         => new CombinatorDurableTask<int>(ScheduledTask.RaceOperation, CreateCandidates(tasks), RaceCoreAsync);
 
@@ -34,8 +34,8 @@ public abstract partial class DurableTask
         => new CombinatorDurableTask<int>(ScheduledTask.RaceOperation, CreateCandidates(tasks), RaceCoreAsync);
 
     /// <summary>
-    /// Creates a durable task which returns the input index and result of the first input task to complete, after
-    /// requesting cancellation of every other input and waiting until each is terminal.
+    /// 创建持久任务, 返回第一个要完成的输入任务之后的输入索引和结果
+    /// 请求取消其他输入, 等待每个输入结束 。
     /// </summary>
     /// <inheritdoc cref="Race(IReadOnlyList{DurableTask})"/>
     public static DurableTask<(int Index, TResult Result)> Race<TResult>(IReadOnlyList<DurableTask<TResult>> tasks)
@@ -46,9 +46,9 @@ public abstract partial class DurableTask
         => new CombinatorDurableTask<(int Index, TResult Result)>(ScheduledTask.RaceOperation, CreateCandidates(tasks), RaceCoreAsync<TResult>);
 
     /// <summary>
-    /// Creates a combinator which races <paramref name="task"/>, at input index 0, with <paramref name="delay"/>, its
-    /// timeout, at input index 1, and completes with the outcome which <see cref="ScheduledTask.SettleTimeoutAsync"/>
-    /// derives.
+    /// 创建一个组合器,以运行 <paramref name="task"/>,输入指数0时 <paramref name="delay"/>, 其
+    /// 输入指数1时超时,与结果 <see cref="ScheduledTask.SettleTimeoutAsync"/>相补
+    /// 后向。
     /// </summary>
     internal static DurableTask WithTimeout(DurableTask task, DurableTask delay, string reason)
         => new CombinatorDurableTask(
@@ -81,8 +81,8 @@ public abstract partial class DurableTask
         return (index, response.GetResult<TResult>());
     }
 
-    // Cancellation reaches the inputs, which are attached children, so the race waits for their outcomes and stops waiting
-    // only when the host cancels the attempt.
+    // 取消会到达输入, 成为附属儿童, 所以种族等待结果,停止等待
+    // 只有当主机取消尝试时才会取消 。
     internal static async Task<(int Index, DurableTaskResponse Response)> RaceAsync(
         DurableTask[] inputs,
         DurableTaskContext context,

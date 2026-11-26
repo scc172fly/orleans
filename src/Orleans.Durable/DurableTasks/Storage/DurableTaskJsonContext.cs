@@ -5,8 +5,8 @@ using Orleans.Durable.Messaging;
 namespace Orleans.Durable.Tasks.Storage;
 
 /// <summary>
-/// Source-generated JSON metadata for the task state and pending invocations which the adapter stores in JSON journals,
-/// and for the task addresses which grains store in their own journaled state.
+/// Source-generated JSON 调适器存储的任务状态和待处理任务状态的元数据 JSON 杂志,
+/// 任务对象 grains 以自己的日记状态存储。
 /// </summary>
 [JsonSerializable(typeof(DurableTaskState))]
 [JsonSerializable(typeof(PendingInvocation))]

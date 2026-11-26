@@ -12,12 +12,12 @@ namespace Tester.StorageFacet.Infrastructure
         public Factory<IGrainContext, object> GetFactory(ParameterInfo parameter, ExampleStorageAttribute attribute)
         {
             IExampleStorageConfig config = attribute;
-            // set state name to parameter name, if not already specified
+            // 如果尚未指定, 则将状态名称设置为参数名称
             if (string.IsNullOrEmpty(config.StateName))
             {
                 config = new ExampleStorageConfig(parameter.Name!);
             }
-            // use generic type args to define collection type.
+            // 使用通用类型参数定义收藏类型。
             MethodInfo genericCreate = create.MakeGenericMethod(parameter.ParameterType.GetGenericArguments());
             object?[] args = new object?[] { attribute.StorageProviderName, config };
             return context => Create(context, genericCreate, args);

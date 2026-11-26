@@ -13,7 +13,7 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// Functionality for serializing and deserializing types.
+    /// 序列和分机类型功能。
     /// </summary>
     public sealed class TypeCodec
     {
@@ -24,9 +24,9 @@ namespace Orleans.Serialization.TypeSystem
         private readonly Func<Type, TypeKey> _getTypeKey;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TypeCodec"/> class.
+        /// 初始化 <see cref="TypeCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="typeConverter">The type converter.</param>
+        /// <param name="typeConverter">类型转换器。</param>
         public TypeCodec(TypeConverter typeConverter)
         {
             _typeConverter = typeConverter;
@@ -34,11 +34,11 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Writes a type with a length-prefix.
+        /// 以长度前缀写入类型。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="type">The type.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="type">类型。</param>
         public void WriteLengthPrefixed<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
             var key = _typeCache.GetOrAdd(type, _getTypeKey);
@@ -47,11 +47,11 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Writes a type.
+        /// 写一个类型。
         /// </summary>
-        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
-        /// <param name="writer">The writer.</param>
-        /// <param name="type">The type.</param>
+        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
+        /// <param name="writer">作家。</param>
+        /// <param name="type">类型。</param>
         public void WriteEncodedType<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
             var key = _typeCache.GetOrAdd(type, _getTypeKey);
@@ -62,11 +62,11 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Reads a type.
+        /// 读取类型 。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>The type if it was successfully read, <see langword="null" /> otherwise.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>如果成功读取了类型, <see langword="null" /> 否则。</returns>
         public unsafe Type? TryRead<TInput>(ref Reader<TInput> reader)
         {
             var version = reader.ReadByte();
@@ -83,7 +83,7 @@ namespace Orleans.Serialization.TypeSystem
                 typeName = reader.ReadBytes((uint)count);
             }
 
-            // Search through 
+            // 搜索通过 
             var candidateHashCode = hashCode;
             while (_typeKeyCache.TryGetValue(candidateHashCode, out var entry))
             {
@@ -98,11 +98,11 @@ namespace Orleans.Serialization.TypeSystem
                     return entry.Type;
                 }
 
-                // Try the next entry.
+                // 试试下一个条目
                 ++candidateHashCode;
             }
 
-            // Allocate a string for the type name.
+            // 为类型名称指定字符串。
             string typeNameString;
             fixed (byte* typeNameBytes = typeName)
             {
@@ -116,7 +116,7 @@ namespace Orleans.Serialization.TypeSystem
                 var key = new TypeKey(hashCode, typeName.ToArray());
                 while (!_typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
                 {
-                    // Insert the type at the first available position.
+                    // 在第一个可用位置插入类型。
                 }
             }
 
@@ -124,11 +124,11 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Reads a length-prefixed type.
+        /// 读取长度前缀类型。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <returns>Type.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <returns>类型。</returns>
         public unsafe Type ReadLengthPrefixed<TInput>(ref Reader<TInput> reader)
         {
             var count = (int)reader.ReadVarUInt32();
@@ -138,7 +138,7 @@ namespace Orleans.Serialization.TypeSystem
                 typeName = reader.ReadBytes((uint)count);
             }
 
-            // Allocate a string for the type name.
+            // 为类型名称指定字符串。
             string typeNameString;
             fixed (byte* typeNameBytes = typeName)
             {
@@ -150,13 +150,13 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// Tries to read a type for diagnostics purposes.
+        /// 尝试阅读一种类型,以便诊断。
         /// </summary>
-        /// <typeparam name="TInput">The reader input type.</typeparam>
-        /// <param name="reader">The reader.</param>
-        /// <param name="type">The type.</param>
-        /// <param name="typeString">The type name as a string.</param>
-        /// <returns><see langword="true" /> if a type was successfully read, <see langword="false" /> otherwise.</returns>
+        /// <typeparam name="TInput">读者输入类型。</typeparam>
+        /// <param name="reader">读者</param>
+        /// <param name="type">类型。</param>
+        /// <param name="typeString">以字符串为类型名称。</param>
+        /// <returns><see langword="true" /> 如果一个类型读得成功,则 <see langword="false" /> 。</returns>
         public unsafe bool TryReadForAnalysis<TInput>(ref Reader<TInput> reader, [NotNullWhen(true)] out Type? type, out string typeString)
         {
             var version = reader.ReadByte();
@@ -168,7 +168,7 @@ namespace Orleans.Serialization.TypeSystem
                 typeName = reader.ReadBytes((uint)count);
             }
 
-            // Allocate a string for the type name.
+            // 为类型名称指定字符串。
             string typeNameString;
             fixed (byte* typeNameBytes = typeName)
             {
@@ -185,7 +185,7 @@ namespace Orleans.Serialization.TypeSystem
         private static void ThrowUnsupportedVersion(byte version) => throw new NotSupportedException($"Type encoding version {version} is not supported");
 
         /// <summary>
-        /// Represents a named type for the purposes of serialization.
+        /// 指一个名称类型,用于序列化。
         /// </summary>
         internal readonly struct TypeKey
         {

@@ -5,14 +5,14 @@ using Xunit;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// Proves that the conformance suite actually detects contract violations, by running it against reminder tables
-/// which are intentionally wrong in exactly one way.
+/// 证明符合规定套套件确实通过对照提醒表对违反合同情况进行操作,从而发现违约情况
+/// 故意错误的方式,完全是一种。
 /// </summary>
 /// <remarks>
-/// Each faulty implementation is a thin decorator over a correct <see cref="IdealizedReminderTable"/> with a single
-/// mutation applied, so a detected failure can only be attributed to that mutation. The assertions also pin the
-/// diagnostic content required of every failure: provider, guarantee, operation, reminder identity, expected and
-/// observed results, ETags, and the hash range under test.
+/// 每次错误执行都是一个单对一个正确的 <see cref="IdealizedReminderTable"/> 的细小装饰符,有一个
+/// 应用突变,因此检测到的失败只能归因于该突变。
+/// 每项故障所需的诊断内容:提供者、担保、操作、提醒身份、预期和
+/// 观测结果、ETags和正在试验的散列范围。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -235,7 +235,7 @@ public sealed class FaultyReminderTableTests : IDisposable
     [Fact, TestCategory("ModelBased")]
     public async Task CorrectImplementation_PassesTheSameGeneratedSequences()
     {
-        // The negative tests above are only meaningful if the identical generated sequences pass for a correct table.
+        // 只有当相同的序列生成的顺序通过正确的表格时,上述负测试才有意义。
         var table = new IdealizedReminderTable("Control");
         var runner = new ReminderTableModelBasedTestRunner(
             table,
@@ -290,7 +290,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         : ReminderTableTestRunner(table, providerName);
 
     /// <summary>
-    /// A correct in-memory reminder table which each fault below mutates in exactly one way.
+    /// 正确的记忆提醒表,每个故障在下面的变异都以一种方式发生。
     /// </summary>
     private abstract class DecoratedReminderTable : IReminderTable
     {
@@ -324,7 +324,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         }
     }
 
-    /// <summary>Fault: every upsert reports the same ETag, so replacement is unobservable.</summary>
+    /// <summary>错误:每个上调报告相同的ETag, 因此替换不可观察。</summary>
     private sealed class ConstantETagReminderTable() : DecoratedReminderTable("ConstantETag")
     {
         private const string ConstantETag = "constant-etag";
@@ -388,7 +388,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         }
     }
 
-    /// <summary>Fault: point reads combine the current ETag with the schedule from a different concurrent write.</summary>
+    /// <summary>错误: 点读取将当前ETag与从不同同时写的列表合并。</summary>
     private sealed class TornConcurrentWriteReminderTable() : DecoratedReminderTable("TornConcurrentWrite")
     {
         private readonly object _gate = new();
@@ -437,7 +437,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         };
     }
 
-    /// <summary>Fault: removal ignores the supplied ETag, so stale-ETag removals succeed.</summary>
+    /// <summary>错误:删除忽略了所提供的ETag, 所以删除工作成功。</summary>
     private sealed class ETagIgnoringRemoveReminderTable() : DecoratedReminderTable("ETagIgnoringRemove")
     {
         public override async Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag)
@@ -447,7 +447,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         }
     }
 
-    /// <summary>Fault: range reads treat <c>begin</c> as inclusive.</summary>
+    /// <summary>错误: 范围读取将 <c>begin</c> 视为包含。</summary>
     private sealed class InclusiveBeginRangeReminderTable() : DecoratedReminderTable("InclusiveBeginRange")
     {
         public override async Task<ReminderTableData> ReadRows(uint begin, uint end)
@@ -461,7 +461,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         }
     }
 
-    /// <summary>Fault: range reads never wrap around zero.</summary>
+    /// <summary>错误: 范围读数从不环绕零。</summary>
     private sealed class NoWrapAroundRangeReminderTable() : DecoratedReminderTable("NoWrapAround")
     {
         public override async Task<ReminderTableData> ReadRows(uint begin, uint end)
@@ -475,7 +475,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         }
     }
 
-    /// <summary>Fault: the period is dropped on write.</summary>
+    /// <summary>错误: 时间段被书面删除。</summary>
     private sealed class PeriodLosingReminderTable() : DecoratedReminderTable("PeriodLosing")
     {
         public override Task<string?> UpsertRow(ReminderEntry entry) => Inner.UpsertRow(new ReminderEntry
@@ -488,7 +488,7 @@ public sealed class FaultyReminderTableTests : IDisposable
         });
     }
 
-    /// <summary>Fault: removal reports success without deleting the row.</summary>
+    /// <summary>错误:删除报告成功,但没有删除行。</summary>
     private sealed class ResurrectingReminderTable() : DecoratedReminderTable("Resurrecting")
     {
         public override Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag)
@@ -499,7 +499,7 @@ public sealed class FaultyReminderTableTests : IDisposable
 
     }
 
-    /// <summary>Fault: successful removal also deletes every unrelated reminder.</summary>
+    /// <summary>错误:成功删除也删除所有不相关的提醒。</summary>
     private sealed class CollateralDeletingReminderTable() : DecoratedReminderTable("CollateralDeleting")
     {
         public override async Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag)

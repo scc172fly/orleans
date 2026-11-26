@@ -176,7 +176,7 @@ public sealed class VolatileJournalStorageProviderTests
             Assert.False(second.IsCompactionRequested);
         }
 
-        // Each handle holds its own write precondition, so a handle reads the journal before writing after another handle.
+        // 每个手柄都有自己的写作先决条件, 因此手柄在读日记后再写。
         await second.ReadForWriteAsync();
         await second.AppendAsync(new ReadOnlySequence<byte>([2]), token);
         Assert.True(first.IsCompactionRequested);
@@ -274,7 +274,7 @@ public sealed class VolatileJournalStorageProviderTests
         Assert.All(handles, static handle => Assert.True(handle.IsCompactionRequested));
         Assert.False(other.IsCompactionRequested);
 
-        // Each handle reads the journal before writing, as a writer which takes over the journal does.
+        // 每一手柄在写作前读取日记,
         async Task AppendFromEachHandle(int count)
         {
             for (var index = 0; index < count; index++)

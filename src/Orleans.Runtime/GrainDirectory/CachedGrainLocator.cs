@@ -12,7 +12,7 @@ using Orleans.Internal;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// Implementation of <see cref="IGrainLocator"/> that uses <see cref="IGrainDirectory"/> stores.
+    /// 执行《公约》的执行情况 <see cref="IGrainLocator"/> 用途 <see cref="IGrainDirectory"/> 仓库。
     /// </summary>
     internal class CachedGrainLocator : IGrainLocator, ILifecycleParticipant<ISiloLifecycle>, CachedGrainLocator.ITestAccessor
     {
@@ -54,7 +54,7 @@ namespace Orleans.Runtime.GrainDirectory
                 ThrowUnsupportedGrainType(grainId);
             }
 
-            // Check cache first
+            // 先检查缓存
             if (TryLookupInCache(grainId, out var cachedResult))
             {
                 return cachedResult;
@@ -62,22 +62,22 @@ namespace Orleans.Runtime.GrainDirectory
 
             var entry = await GetGrainDirectory(grainId.Type).Lookup(grainId);
 
-            // Nothing found
+            // 未找到任何发现
             if (entry is null)
             {
                 return null;
             }
 
-            // Check if the entry is pointing to a dead silo
+            // 检查条目指向已死 silo
             if (IsKnownDeadSilo(entry))
             {
-                // Remove it from the directory
+                // 从目录中删除
                 await GetGrainDirectory(grainId.Type).Unregister(entry);
                 entry = null;
             }
             else
             {
-                // Add to the local cache and return it
+                // 添加到本地缓存并返回
                 this.cache.AddOrUpdate(entry, 0);
             }
 
@@ -111,18 +111,18 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (result is null)
             {
-                // If the registration failed, we return a null address
+                // 如果注册失败, 我们退回一个无效地址
                 return null;
             }
 
-            // Check if the entry point to a dead silo
+            // 检查已死单位的输入点 silo
             if (IsKnownDeadSilo(result))
             {
-                // Conditionally replace the outdated entry.
+                // 有条件地替换过时的条目。
                 result = await directory.Register(address, result, cancellationToken);
             }
 
-            // Cache update
+            // 缓存更新
             this.cache.AddOrUpdate(result!, (int)result!.MembershipVersion.Value);
 
             return result;
@@ -131,13 +131,13 @@ namespace Orleans.Runtime.GrainDirectory
 
         public async Task Unregister(GrainAddress address, UnregistrationCause cause)
         {
-            // Remove from local cache first so we don't return it anymore
+            // 先从本地缓存中移除, 这样我们不再归还它
             this.cache.Remove(address);
 
-            // Remove from grain directory which may take significantly longer
+            // 从 grain 目录中删除可能花费更长得多的时间
             await GetGrainDirectory(address.GrainId.Type).Unregister(address);
 
-            // There is the potential for a lookup to race with the Unregister and add the bad entry back to the cache.
+            // 有可能与Unregister赛跑, 并加入错误的条目回到缓存中。
             if (this.cache.LookUp(address.GrainId, out var entry, out _) && entry.Equals(address))
             {
                 this.cache.Remove(address);
@@ -180,7 +180,7 @@ namespace Orleans.Runtime.GrainDirectory
             var updates = this.clusterMembershipService.MembershipUpdates.WithCancellation(this.shutdownToken.Token);
             await foreach (var snapshot in updates)
             {
-                // Active filtering: detect dead silos and try to clean proactively the directory
+                // 活动过滤器: 检测已死 silos 并尝试主动清除目录
                 var changes = snapshot.CreateUpdate(previousSnapshot).Changes;
                 var deadSilos = changes
                     .Where(member => member.Status == SiloStatus.Dead)
@@ -231,7 +231,7 @@ namespace Orleans.Runtime.GrainDirectory
             _directoryInstruments.LookupsCacheIssued.Add(1);
             if (this.cache.LookUp(grainId, out address, out _))
             {
-                // If the silo is dead, remove the entry
+                // 如果 silo 已死,请删除条目
                 if (IsKnownDeadSilo(address))
                 {
                     address = default;
@@ -239,7 +239,7 @@ namespace Orleans.Runtime.GrainDirectory
                 }
                 else
                 {
-                    // Entry found and valid -> return it
+                    // 找到有效条目 - > 返回它
                     _directoryInstruments.LookupsCacheSuccesses.Add(1);
                     return true;
                 }

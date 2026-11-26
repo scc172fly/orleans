@@ -4,16 +4,16 @@ using System.Collections.Immutable;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Represents a cluster membership snapshot and changes from a previous snapshot.
+    /// 代表分组成员简况和前一简况的变动。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class ClusterMembershipUpdate
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClusterMembershipUpdate"/> class.
+        /// 初始化 <see cref="ClusterMembershipUpdate"/> 类的新实例。
         /// </summary>
-        /// <param name="snapshot">The snapshot.</param>
-        /// <param name="changes">The changes.</param>
+        /// <param name="snapshot">快照,快照,我给你的</param>
+        /// <param name="changes">更改。</param>
         public ClusterMembershipUpdate(ClusterMembershipSnapshot snapshot, ImmutableArray<ClusterMember> changes)
         {
             this.Snapshot = snapshot;
@@ -21,22 +21,22 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance has changes.
+        /// 获得一个值,以显示此实例是否有变化。
         /// </summary>
-        /// <value><see langword="true"/> if this instance has changes; otherwise, <see langword="false"/>.</value>
+        /// <value><see langword="true"/> 如果这种情况有变化;否则, <see langword="false"/>。</value>
         public bool HasChanges => !this.Changes.IsDefaultOrEmpty;
 
         /// <summary>
-        /// Gets the changes.
+        /// 换了零钱
         /// </summary>
-        /// <value>The changes.</value>
+        /// <value>更改。</value>
         [Id(0)]
         public ImmutableArray<ClusterMember> Changes { get; }
 
         /// <summary>
-        /// Gets the snapshot.
+        /// 拍到快照了 拍到照片了 拍到了
         /// </summary>
-        /// <value>The snapshot.</value>
+        /// <value>快照,快照,我给你的</value>
         [Id(1)]
         public ClusterMembershipSnapshot Snapshot { get; }
     }

@@ -1,44 +1,54 @@
 ---
-title: "ORLEANS0213: Return a task from asynchronous code in durable task bodies"
-description: Understand ORLEANS0213, which reports async void methods, local functions, and lambdas in durable task bodies, and fix them by returning and awaiting a task.
+title: "ORLEANS0213:从非同步代码返回长期任务机构的任务"
+description: "了解 ORLEANS0213,其中报告方法、地方功能和羊羔在持久任务机构内是无效的,并通过返回和等待任务来加以修正。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0213: Return a task from asynchronous code in durable task bodies
+<a id="orleans0213-return-a-task-from-asynchronous-code-in-durable-task-bodies"></a>
 
-| Property | Value |
+# ORLEANS0213:从非同步代码返回长期任务机构的任务
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-A durable task body declares an `async void` local function, or an `async` lambda which converts to a delegate that returns `void`, such as `Action`. [ORLEANS0222](orleans0222.md) reports such a lambda which `DurableTask.Run` or `DurableTask.RunInline` receives:
+## 原因原因原因
+
+持久任务机构宣布一个 `async void` 本地功能,或一个 `async` 羊羔,转换成返回 `void`的代表,例如 `Action`。 [ORLEANS0222](orleans0222.md) 报告有 `DurableTask.Run` 或 `DurableTask.RunInline` 收到的这种羊羔:
 
 :::code source="snippets/durable-tasks/Orleans0213.cs" id="orleans0213_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-A durable task body observes the operations which it awaits: their results, their failures, and their cancellation. Asynchronous `void` code can't be awaited. In the example:
+## 规则说明
 
-- The body returns, and the task's result commits, before the email is sent.
-- A failure to send escapes the body, so the task completes successfully, and the exception surfaces outside the task.
-- Durable operations which the code performs after its first `await` run after the body completed, outside the task's execution.
+一个持久任务机构观察它等待的行动:结果、失败和取消。 `void` 无法等待代码。 例如:
 
-For the rules and the replay model, see [Replay-safety rules](../grains/durable-tasks-replay-rules.md).
+- 返回物体, 以及任务结果在电子邮件发送前被执行 。
+- 不发送任务会从身体中脱逃, 任务就能顺利完成, 而例外则在任务之外出现 。
+- 代码在完成身体后第一次 `await` 运行之后,在任务执行之外进行的持久操作。
 
-## How to fix violations
+规则和重放模型见 [重演安全规则](../grains/durable-tasks-replay-rules.md)。
 
-**Return a `DurableTask` and await it as a step.** The body observes the step's outcome, and a replay returns its record:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**返回a `DurableTask` 并等待着它,** 身体观察步骤的结果,重播回回录记录:
 
 :::code source="snippets/durable-tasks/Orleans0213.cs" id="orleans0213_fix_step" language="csharp":::
 
-**Return a `Task` from callbacks.** Use `Func<Task>` instead of `Action` for asynchronous callbacks, and await the callback in a step:
+**从回调返回一个 `Task` 。** 使用 `Func<Task>` ,而不是 `Action` ,作为无同步回调,并等待在一步内回调:
 
 :::code source="snippets/durable-tasks/Orleans0213.cs" id="orleans0213_fix_func" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Don't suppress this diagnostic. An event handler whose signature requires `void` belongs outside the durable task body, where it can start a durable task through its grain.
+## 何时压缩
+
+事件处理者,需要签名 `void` 该机构可以通过其 grain.

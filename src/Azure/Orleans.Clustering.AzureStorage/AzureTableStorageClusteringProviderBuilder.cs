@@ -30,12 +30,12 @@ internal sealed class AzureTableStorageClusteringProviderBuilder : IProviderBuil
                 var serviceKey = configurationSection["ServiceKey"];
                 if (!string.IsNullOrEmpty(serviceKey))
                 {
-                    // Get a client by name.
+                    // 给客户取个名字
                     options.TableServiceClient = services.GetRequiredKeyedService<TableServiceClient>(serviceKey);
                 }
                 else
                 {
-                    // Construct a table service client from a connection string.
+                    // 构造一个连接字符串中的表格服务客户端。
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))
@@ -73,12 +73,12 @@ internal sealed class AzureTableStorageClusteringProviderBuilder : IProviderBuil
                 var serviceKey = configurationSection["ServiceKey"];
                 if (!string.IsNullOrEmpty(serviceKey))
                 {
-                    // Get a client by name.
+                    // 给客户取个名字
                     options.TableServiceClient = services.GetRequiredKeyedService<TableServiceClient>(serviceKey);
                 }
                 else
                 {
-                    // Construct a table service client from a connection string.
+                    // 构造一个连接字符串中的表格服务客户端。
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

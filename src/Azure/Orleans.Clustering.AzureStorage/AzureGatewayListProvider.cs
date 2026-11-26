@@ -36,13 +36,13 @@ namespace Orleans.AzureUtils
                 this.options,
                 cancellationToken);
         }
-        // no caching
+        // 无缓存
         public Task<IList<Uri>> GetGateways() => GetGatewaysAsync(CancellationToken.None);
 
         public Task<IList<Uri>> GetGatewaysAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // FindAllGatewayProxyEndpoints already returns a deep copied List<Uri>.
+            // FindAllGatewayProxyEndpoints 已经返回一个深度复制的清单<Uri>。
             return this.siloInstanceManager.FindAllGatewayProxyEndpoints(cancellationToken);
         }
 

@@ -1,15 +1,15 @@
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// Provides access to value type serializers.
+    /// 提供使用价值类型序列器的接入。
     /// </summary>
     public interface IValueSerializerProvider
     {
         /// <summary>
-        /// Gets the value serializer for the specified type.
+        /// 获取指定类型中的序列器值。
         /// </summary>
-        /// <typeparam name="TField">The value type.</typeparam>
-        /// <returns>A value serializer for the specified type.</returns>
+        /// <typeparam name="TField">值类型。</typeparam>
+        /// <returns>指定类型中的值序列器。</returns>
         IValueSerializer<TField> GetValueSerializer<TField>() where TField : struct;
     }
 }

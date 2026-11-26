@@ -11,7 +11,7 @@ using Xunit;
 namespace NonSilo.Tests.Directory;
 
 /// <summary>
-/// Tests for ring range collection operations including containment, intersection, and difference calculations.
+/// 环程采集作业测试,包括封闭、交叉和差异计算。
 /// </summary>
 [TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -367,12 +367,12 @@ public sealed class RingRangeCollectionTests
     [Fact]
     public void BoundaryValueAnalysis_SizingAndOverflow()
     {
-        // The almost-full range covers every point except 1.
+        // 几乎全部范围覆盖除1之外的每一点。
         var almostFull = Create(RingRange.Create(1, 0));
         Assert.Equal((ulong)uint.MaxValue, almostFull.Size);
         Assert.False(almostFull.IsFull);
 
-        // Together, the two non-overlapping ranges cover all 2^32 points.
+        // 两个不重叠的范围合计覆盖全部 2^32 个点。
         var half1 = RingRange.Create(0, 2_147_483_647u);
         var half2 = RingRange.Create(2_147_483_647u, 0);
 
@@ -381,7 +381,7 @@ public sealed class RingRangeCollectionTests
         Assert.Equal(1UL << 32, half1.Size + half2.Size);
         Assert.Equal(1UL << 32, fullCombined.Size);
 
-        // A five-point gap reduces the covered point count by five.
+        // 五点差距将涵盖点数减少五分。
         var withGap1 = RingRange.Create(0, 100);
         var withGap2 = RingRange.Create(105, 0);
         var collectionWithGap = Create(withGap1, withGap2);
@@ -419,10 +419,10 @@ public sealed class RingRangeCollectionTests
         var c1 = Create(RingRange.Create(10, 20));
         var c2 = Create(RingRange.Create(10, 20), RingRange.Create(30, 40));
 
-        // Difference when previous has fewer ranges (0 vs 1)
+        // 先前幅度(0比1)较小时的差异
         Assert.Equal(c1, c1.Difference(RingRangeCollection.Empty));
 
-        // Difference when current is empty vs non-empty previous (0 vs 1)
+        // 当当前是空与非空对前( 0 vs 1) 时的差异
         Assert.True(RingRangeCollection.Empty.Difference(c1).IsEmpty);
     }
 
@@ -522,23 +522,23 @@ public sealed class RingRangeCollectionTests
         Gen.Select(GenRingRangeCollection, GenRingRangeCollection, GenRingRangeCollection).Sample((c1, c2, c3) =>
         {
             var c1Same = c1;
-            // Reflexivity
+            // 弹性
             Assert.True(c1 == c1Same);
             Assert.True(c1.Equals(c1));
             Assert.True(c1.Equals((object)c1));
             Assert.False(c1 != c1Same);
 
-            // Symmetry
+            // 对对称
             Assert.Equal(c1 == c2, c2 == c1);
             Assert.Equal(c1.Equals(c2), c2.Equals(c1));
 
-            // Transitivity
+            // 转 转
             if (c1 == c2 && c2 == c3)
             {
                 Assert.True(c1 == c3);
             }
 
-            // HashCode consistency
+            // HashCode 一致性
             if (c1 == c2)
             {
                 Assert.Equal(c1.GetHashCode(), c2.GetHashCode());

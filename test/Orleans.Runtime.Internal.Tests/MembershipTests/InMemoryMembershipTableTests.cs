@@ -8,7 +8,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// Tests for the in-memory membership table used by development clustering.
+    /// 发展集群所使用的模拟会籍表测试。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -32,22 +32,22 @@ namespace UnitTests.MembershipTests
         {
             var tableVersion = table.ReadTableVersion();
 
-            // Add old dead entry (should be removed)
+            // 添加旧的死条目( 应删除)
             var deadEntry = CreateEntry(SiloStatus.Dead, daysOld: 10);
             Assert.True(table.Insert(deadEntry, tableVersion.Next()));
             tableVersion = table.ReadTableVersion();
 
-            // Non-dead entries remain part of the versioned membership view.
+            // 不死条目仍然是正式成员观点的一部分。
             var joiningEntry = CreateEntry(SiloStatus.Joining, daysOld: 10);
             Assert.True(table.Insert(joiningEntry, tableVersion.Next()));
             tableVersion = table.ReadTableVersion();
 
-            // Add old active entry (should NOT be removed)
+            // 添加旧的当前条目( 不应删除)
             var activeEntry = CreateEntry(SiloStatus.Active, daysOld: 10);
             Assert.True(table.Insert(activeEntry, tableVersion.Next()));
             tableVersion = table.ReadTableVersion();
 
-            // Add new entry with current timestamp (should NOT be removed regardless of status)
+            // 添加带有当前时间戳的新条目( 无论状态如何, 都不应该删除)
             var newEntry = CreateEntry(SiloStatus.Dead, daysOld: 0);
             Assert.True(table.Insert(newEntry, tableVersion.Next()));
             var beforeCleanup = table.ReadTableVersion();

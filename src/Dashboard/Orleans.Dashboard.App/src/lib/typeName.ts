@@ -81,7 +81,7 @@ function parseType(str: string): string {
   const s = stripAssemblyDetails(str.trim());
   if (!s) return s;
 
-  // Handle assembly-qualified generic arguments wrapped in [ ... ].
+  // 处理包装在[...]中的经过资格认证的通用辩词组装。
   if (s[0] === '[') {
     const wrappedEnd = findMatchingCloser(s, 0, '[', ']');
     if (wrappedEnd === s.length - 1) {
@@ -89,7 +89,7 @@ function parseType(str: string): string {
     }
   }
 
-  // Find first generic opener: '<' or '['
+  // 查找第一个通用开打开器: '<' 或'[']
   const lt = s.indexOf('<');
   const lb = s.indexOf('[');
   let opener = '';

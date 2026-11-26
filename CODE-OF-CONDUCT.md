@@ -1,6 +1,8 @@
-# Code of Conduct
+<a id="code-of-conduct"></a>
 
-This project has adopted the code of conduct defined by the Contributor Covenant
-to clarify expected behavior in our community.
+# 行为守则
 
-For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
+该项目通过了《协助者公约》规定的行为守则。
+来澄清我们社区中预期的行为
+
+详情请见 [.NET 基础行为守则](https://dotnetfoundation.org/code-of-conduct)。

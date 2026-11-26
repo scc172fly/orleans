@@ -9,18 +9,18 @@ using System;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// Extension method for <see cref="ISerializerBuilder"/>.
+/// <see cref="ISerializerBuilder"/>的扩展方法。
 /// </summary>
 public static class SerializationHostingExtensions
 {
     private static readonly ServiceDescriptor ServiceDescriptor = new(typeof(NewtonsoftJsonCodec), typeof(NewtonsoftJsonCodec));
 
     /// <summary>
-    /// Adds support for serializing and deserializing values using <see cref="JsonSerializer"/>.
+    /// 添加支持,以便使用 <see cref="JsonSerializer"/>进行序列化和去序化。
     /// </summary>
-    /// <param name="serializerBuilder">The serializer builder.</param>
-    /// <param name="isSupported">A delegate used to indicate which types should be serialized and copied by this codec.</param>
-    /// <param name="jsonSerializerSettings">The JSON serializer settings.</param>
+    /// <param name="serializerBuilder">序列器的构建器。</param>
+    /// <param name="isSupported">一位代表曾指出哪些类型应当按序号编号并抄录本编码器。</param>
+    /// <param name="jsonSerializerSettings"> JSON 序列器设置。</param>
     public static ISerializerBuilder AddNewtonsoftJsonSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool>? isSupported,
@@ -36,11 +36,11 @@ public static class SerializationHostingExtensions
             }));
 
     /// <summary>
-    /// Adds support for serializing and deserializing values using <see cref="JsonSerializer"/>.
+    /// 添加支持,以便使用 <see cref="JsonSerializer"/>进行序列化和去序化。
     /// </summary>
-    /// <param name="serializerBuilder">The serializer builder.</param>
-    /// <param name="isSupported">A delegate used to indicate which types should be serialized and copied by this codec.</param>
-    /// <param name="configureOptions">A delegate used to configure the options for the JSON serializer.</param>
+    /// <param name="serializerBuilder">序列器的构建器。</param>
+    /// <param name="isSupported">一位代表曾指出哪些类型应当按序号编号并抄录本编码器。</param>
+    /// <param name="configureOptions">代表用于配置 JSON 序列器的选项。</param>
     public static ISerializerBuilder AddNewtonsoftJsonSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool>? isSupported,
@@ -51,12 +51,12 @@ public static class SerializationHostingExtensions
             configureOptions);
 
     /// <summary>
-    /// Adds support for serializing and deserializing values using <see cref="JsonSerializer"/>.
+    /// 添加支持,以便使用 <see cref="JsonSerializer"/>进行序列化和去序化。
     /// </summary>
-    /// <param name="serializerBuilder">The serializer builder.</param>
-    /// <param name="isSerializable">A delegate used to indicate which types should be serialized by this codec.</param>
-    /// <param name="isCopyable">A delegate used to indicate which types should be copied by this codec.</param>
-    /// <param name="configureOptions">A delegate used to configure the options for the JSON serializer.</param>
+    /// <param name="serializerBuilder">序列器的构建器。</param>
+    /// <param name="isSerializable">代表用来表示该编码器应按哪些类型进行序列。</param>
+    /// <param name="isCopyable">一位代表曾指出该编码器应复制哪类代码。</param>
+    /// <param name="configureOptions">代表用于配置 JSON 序列器的选项。</param>
     public static ISerializerBuilder AddNewtonsoftJsonSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool>? isSerializable,

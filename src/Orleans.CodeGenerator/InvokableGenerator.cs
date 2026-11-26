@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Generates RPC stub objects called invokers.
+/// 生成RPC刺状物体,称为引用器。
 /// </summary>
 internal class InvokableGenerator(ProxyGenerationContext generationContext)
 {
@@ -219,10 +219,10 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
     private static string GetActivityName(InvokableMethodDescription methodDescription)
     {
-        // This property is intended to contain a value suitable for use as an OpenTelemetry Span Name for RPC calls.
-        // Therefore, the interface name and method name components must not include periods or slashes.
-        // In order to avoid that, we omit the namespace from the interface name.
-        // See: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md
+        // 此属性意在包含一个适合用作RPC调用 OpenTelemetry Span 名称的值。
+        // 因此,接口名称和方法名称组成部分不得包括间隔或斜线。
+        // 为了避免这种情况,我们从界面名称中略去命名空间。
+        // 见: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md
         var interfaceName = methodDescription.Method.ContainingType.ToDisplayName(methodDescription.TypeParameterSubstitutions, includeGlobalSpecifier: false, includeNamespace: false);
         var methodName = methodDescription.Method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         return $"{interfaceName}/{methodName}";
@@ -232,9 +232,9 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
         => baseClassType.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_IDisposable)
             && baseClassType.GetAllMembers<IMethodSymbol>("Dispose").FirstOrDefault(m => !m.IsAbstract && m.DeclaredAccessibility != Accessibility.Private) is { };
 
-    // The runtime scans the arguments of a request for GrainCancellationToken instances unless the request opts out.
-    // Opt out when no argument can hold one, so that the runtime does not box value-type arguments on every call.
-    // Methods without parameters are skipped since the scan is already free for them.
+    // 运行时扫描请求 GrainCancellationToken 实例的参数,除非请求选择退出。
+    // 选择退出, 当没有参数可以支持它时, 这样运行时间不会在每次调用时都输入价值类型的参数 。
+    // 由于没有参数的方法会被跳过, 因为扫描已经为他们自由了 。
     private bool OptsOutOfGrainCancellationTokenScan(InvokableMethodDescription method, INamedTypeSymbol baseClassType)
     {
         if (LibraryTypes.GrainCancellationTokenOrDefault is not { } grainCancellationToken
@@ -248,8 +248,8 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
         return true;
 
-        // A type parameter may be instantiated as GrainCancellationToken, and any type which GrainCancellationToken
-        // converts to (such as object or an interface it implements) may hold an instance at runtime.
+        // 类型参数可被当做 GrainCancellationToken,且可以作为 GrainCancellationToken的任何类型
+        // 转换为( 如对象或它所执行的接口) 时, 可能存在实例 。
         bool CanHoldGrainCancellationToken(ITypeSymbol type)
             => type is ITypeParameterSymbol
                 || LibraryTypes.Compilation.HasImplicitConversion(grainCancellationToken, type);
@@ -507,8 +507,8 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
         alias[1 + proxyBaseComponents.Length] = new(containingInterface);
 
-        // For grain extensions, also explicitly include the method's containing type.
-        // This is to distinguish between different extension methods with the same id (eg, alias) but different containing types.
+        // 对于 grain 扩展,还明确包括方法所含型号。
+        // 这是区分不同扩展方法,其代号相同(例如别名),但含有类型的不同。
         if (proxyBase.IsExtension)
         {
             alias[1 + proxyBaseComponents.Length + 1] = new(invokableId.Method.ContainingType);
@@ -581,7 +581,7 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
         foreach (var (methodName, methodArgument) in method.CustomInitializerMethods)
         {
-            // Attribute arguments are spelled by Roslyn's literal and enum formatting.
+            // 属性参数由Roslyn的字面和字符串格式化来拼写。
             var argument = methodArgument.ToExpression().NormalizeWhitespace().ToFullString();
             statements.Add($"{methodName}({argument});");
         }

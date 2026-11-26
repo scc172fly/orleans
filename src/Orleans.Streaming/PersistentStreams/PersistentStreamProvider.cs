@@ -14,60 +14,60 @@ using Orleans.Streams.Core;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Commands which can be handled by the <see cref="PersistentStreamProvider" />.
+    /// 由 <see cref="PersistentStreamProvider" />处理的命令。
     /// </summary>
     /// <seealso cref="IControllable"/>
     [Serializable]
     public enum PersistentStreamProviderCommand
     {
         /// <summary>
-        /// No command.
+        /// 无命令 。
         /// </summary>
         None,
 
         /// <summary>
-        /// Starts the agents.
+        /// 启动特工
         /// </summary>
         StartAgents,
 
         /// <summary>
-        /// Stops the agents.
+        /// 阻止特工
         /// </summary>
         StopAgents,
 
         /// <summary>
-        /// Retrieves agent state.
+        /// 获取代理状态。
         /// </summary>
         GetAgentsState,
 
         /// <summary>
-        /// Gets the number of running agents.
+        /// 获得运行代理商的数量。
         /// </summary>
         GetNumberRunningAgents,
 
         /// <summary>
-        /// The command start range for custom adapters.
+        /// 自定义适配器的命令启动区域 。
         /// </summary>
         AdapterCommandStartRange = 10000,
 
         /// <summary>
-        /// The command end range for custom adapters.
+        /// 自定义适配器的指令终端区域 。
         /// </summary>
         AdapterCommandEndRange = AdapterCommandStartRange + 9999,
 
         /// <summary>
-        /// The command start range for custom adapter factories.
+        /// 自定义适配器工厂的命令启动区域 。
         /// </summary>
         AdapterFactoryCommandStartRange = AdapterCommandEndRange + 1,
 
         /// <summary>
-        /// The command end range for custom adapter factories.
+        /// 自定义适配器工厂的指令终端区域 。
         /// </summary>
         AdapterFactoryCommandEndRange = AdapterFactoryCommandStartRange + 9999,
     }
 
     /// <summary>
-    /// Persistent stream provider that uses an adapter for persistence
+    /// 使用适应器进行持久性变换的持久性流提供商
     /// </summary>
     public partial class PersistentStreamProvider : IStreamProvider, IInternalStreamProvider, IControllable, IStreamSubscriptionManagerRetriever, ILifecycleParticipant<ILifecycleObservable>
     {
@@ -90,14 +90,14 @@ namespace Orleans.Providers.Streams.Common
         public bool IsRewindable { get { return queueAdapter.IsRewindable; } }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PersistentStreamProvider"/> class.
+        /// 初始化 <see cref="PersistentStreamProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="pubsubOptions">The stream pub/sub options.</param>
-        /// <param name="lifeCycleOptions">The stream lifecycle options.</param>
-        /// <param name="runtime">The provider runtime.</param>
-        /// <param name="deepCopier">The deep copier.</param>
-        /// <param name="logger">The logger.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="pubsubOptions">流管阴道/子选项。</param>
+        /// <param name="lifeCycleOptions">流流生命周期选项。</param>
+        /// <param name="runtime">提供商运行时间。</param>
+        /// <param name="deepCopier">深的复印机</param>
+        /// <param name="logger">日志器。</param>
         public PersistentStreamProvider(
             string name,
             StreamPubSubOptions pubsubOptions,
@@ -143,7 +143,7 @@ namespace Orleans.Providers.Streams.Common
                 {
                     this.pullingAgentManager = await siloRuntime.InitializePullingAgents(this.Name, this.adapterFactory, this.queueAdapter, token);
 
-                    // TODO: No support yet for DeliveryDisabled, only Stopped and Started
+                    // TODO: DeliveryDisabled的支持尚未支持, 仅停止并启动
                     if (this.lifeCycleOptions.StartupState == StreamLifecycleOptions.RunState.AgentsStarted)
                         await pullingAgentManager.StartAgents(token);
                 }
@@ -171,7 +171,7 @@ namespace Orleans.Providers.Streams.Common
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
-                    // The lifecycle deadline only bounds the observer; manager cleanup continues.
+                    // 生命周期的最后期限只对观察员有限制;经理清理工作仍在继续。
                     stopTask.Ignore();
                 }
             }
@@ -203,7 +203,7 @@ namespace Orleans.Providers.Streams.Common
 
         private IInternalAsyncObservable<T> GetConsumerInterfaceImpl<T>(IAsyncStream<T> stream)
         {
-            return new StreamConsumer<T>((StreamImpl<T>)stream, Name, this.runtime, this.runtime.PubSub(this.pubsubOptions.PubSubType)!, this.logger, IsRewindable); // Configured StreamPubSubType values always select a runtime.
+            return new StreamConsumer<T>((StreamImpl<T>)stream, Name, this.runtime, this.runtime.PubSub(this.pubsubOptions.PubSubType)!, this.logger, IsRewindable); // 配置的 StreamPubSubType 值总是选择运行时间。
         }
 
         /// <inheritdoc />
@@ -242,11 +242,11 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Creates a persistent stream provider.
+        /// 创建一个持续流提供商。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <returns>The persistent stream provider.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <returns>持续流源提供商。</returns>
         public static IStreamProvider Create(IServiceProvider services, string name)
         {
             var pubsubOptions = services.GetRequiredService<IOptionsMonitor<StreamPubSubOptions>>().Get(name);
@@ -255,12 +255,12 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Gets the named persistent stream provider as a participant in the specified lifecycle.
+        /// 获得指定为特定生命周期参与者的持久性流提供者。
         /// </summary>
-        /// <typeparam name="TLifecycle">The lifecycle type.</typeparam>
-        /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <returns>The lifecycle participant for the named stream provider.</returns>
+        /// <typeparam name="TLifecycle">生命周期类型。</typeparam>
+        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <returns>指定流提供者的生命周期参与者。</returns>
         public static ILifecycleParticipant<TLifecycle> ParticipateIn<TLifecycle>(IServiceProvider serviceProvider, string name)
             where TLifecycle : ILifecycleObservable
         {

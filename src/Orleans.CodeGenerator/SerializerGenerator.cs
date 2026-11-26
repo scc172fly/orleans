@@ -27,7 +27,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
     private bool UseHotReloadShape(ISerializableTypeDescription type)
         => HotReloadSafe && !type.IsEnumType && type.SupportsHotReloadMemberAddition;
 
-    /// <summary>Returns the codec declaration for <paramref name="type"/>, written without enclosing indentation.</summary>
+    /// <summary>返回编码器声明 <paramref name="type"/>,在不附带缩进的语句的情况下撰写。</summary>
     public string Generate(ISerializableTypeDescription type)
     {
         var writer = new SourceWriter();
@@ -42,7 +42,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
             return new UnionCodecGenerator(_generatorServices).CreateSerializerPlan(type, unionCases, typePlan);
         }
 
-        // A tagged closed type is both a field codec and the base codec used by its cases.
+        // 贴有标签的封闭型是实地编码和案件所用的基本编码。
         var closedTypeCaseCodecs = type is SerializableTypeDescription { IsAbstractType: true } closedType && closedType.GetClosedTypeCases() is { } closedTypeCases
             ? new UnionCodecGenerator(_generatorServices).GetCaseCodecs(closedTypeCases)
             : null;
@@ -174,8 +174,8 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         => $"OrleansGeneratedCodeHelper.GetService<{serviceType}>(this, {codecProvider})";
 
     /// <summary>
-    /// Returns the expression used to reference a codec or copier field, resolving the field on first use when it was
-    /// added by hot reload and therefore skipped by the already-executed constructor.
+    /// 返回用于引用编码或复印字段的表达式,当字段是
+    /// 添加到热再加, 因此被已经执行的构建器跳过 。
     /// </summary>
     internal static string GetCodecExpression(GeneratedFieldDescription field)
         => field.LazyInitialization
@@ -308,7 +308,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
                 continue;
             }
 
-            // Add a codec field for any field in the target which does not have a static codec.
+            // 目标中没有静态编码的字段, 添加一个编码字段。
             if (LibraryTypes.StaticCodecs.FindByUnderlyingType(member.Type) is not null)
                 continue;
 
@@ -349,11 +349,11 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
                 && (SymbolEqualityComparer.Default.Equals(t.ContainingAssembly, LibraryTypes.Compilation.Assembly) || t.ContainingAssembly.HasAttribute(LibraryTypes.TypeManifestProviderAttribute))
                 && t is not INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 0 })
             {
-                // Use the concrete generated type and avoid expensive interface dispatch (except for complex nested cases that will fall back to IFieldCodec<TField>)
+                // 使用混凝土生成的类型,避免昂贵的接口发送(复杂的嵌套案例除外,这些复杂案例将返回 IFieldCodec<TField>)
                 SimpleNameSyntax name;
                 if (t is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
                 {
-                    // Construct the full generic type name
+                    // 构造全通用类型名称
                     name = GenericName(Identifier(GetSimpleClassName(t.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => member.GetTypeSyntax(arg)))));
                 }
                 else
@@ -368,17 +368,17 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
             }
             else if (LibraryTypes.WellKnownCodecs.FindByUnderlyingType(t) is { } codec)
             {
-                // The codec is not a static codec and is also not a generic codec.
+                // 编码器不是静态编码器,也不是通用编码器。
                 codecType = codec.CodecType.ToTypeSyntax();
             }
             else if (t is INamedTypeSymbol { ConstructedFrom: { } unboundFieldType } named && LibraryTypes.WellKnownCodecs.FindByUnderlyingType(unboundFieldType) is { } genericCodec)
             {
-                // Construct the generic codec type using the field's type arguments.
+                // 使用字段类型参数构造通用编码类型。
                 codecType = genericCodec.CodecType.Construct([.. named.TypeArguments]).ToTypeSyntax();
             }
             else
             {
-                // Use the IFieldCodec<TField> interface
+                // 使用 IFieldCodec<TField> 接口
                 codecType = LibraryTypes.FieldCodec_1.ToTypeSyntax(member.TypeSyntax);
             }
 
@@ -408,7 +408,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
             && (SymbolEqualityComparer.Default.Equals(baseType.ContainingAssembly, LibraryTypes.Compilation.Assembly) || baseType.ContainingAssembly.HasAttribute(LibraryTypes.TypeManifestProviderAttribute))
             && baseType is not INamedTypeSymbol { IsGenericType: true })
         {
-            // Use the concrete generated type and avoid expensive interface dispatch (except for generic types that will fall back to IBaseCodec<T>)
+            // 使用混凝土生成的类型,避免昂贵的接口发送(可返回 IBaseCodec<T>的通用类型除外)
             return new(QualifiedName(ParseName(GetGeneratedNamespaceName(baseType)), IdentifierName(GetSimpleClassName(baseType.Name))), true);
         }
 
@@ -420,7 +420,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
 
     private static void WriteSerializeMethod(SourceWriter writer, SerializableTypeEmissionPlan type, List<MemberEmissionPlan> members, bool isAbstractSerializer)
     {
-        // An abstract base serializer contributes no member when it has nothing to write.
+        // 抽象的基底序列器在没有文字可写时,不为成员贡献任何力量。
         if (isAbstractSerializer && !type.HasComplexBaseType && !type.IncludePrimaryConstructorParameters && members.Count == 0
             && CountCallbacks(type, "OnSerializing") == 0 && CountCallbacks(type, "OnSerialized") == 0)
         {
@@ -444,7 +444,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
 
         WriteSerializationCallbacks(writer, type, "instance", "OnSerializing");
 
-        // Order members according to their FieldId, since fields must be serialized in order and FieldIds are serialized as deltas.
+        // 成员根据 FieldId命令,因为字段必须按序顺序排列,而且 FieldIds 按三角洲顺序排列。
         if (type.OmitDefaultMemberValues && members.Count > 0)
         {
             writer.WriteLine("uint previousFieldId = 0U;");
@@ -484,9 +484,9 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
                 previousFieldId = member.FieldId;
             }
 
-            // Codecs can either be static classes or injected into the constructor.
-            // Either way, the member signatures are the same.
-            // When a static codec is available, the expected type is known to be the static codec's field type.
+            // 编码器可以是静态分类,也可以是注入制造器。
+            // 无论哪种方式,成员签名是相同的。
+            // 当有静态编码器时,预期的类型为静态编码器的字段类型。
             Debug.Assert(member.Codec is not null);
             var getter = member.GetGetter("instance");
             var writeField = member.ExpectedType is { } expectedType
@@ -513,7 +513,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         var nonCtorMembers = type.IncludePrimaryConstructorParameters ? members.FindAll(static m => !m.IsPrimaryConstructorParameter) : members;
         var consumesEmptyObject = (members.Count == 0 || nonCtorMembers.Count == 0) && !type.IncludePrimaryConstructorParameters;
 
-        // An abstract base serializer contributes no member when it only consumes the end of the object.
+        // 抽象的基序列器只消耗物体的终点,它不会为成员贡献任何力量。
         if (isAbstractSerializer && consumesEmptyObject && !type.HasComplexBaseType
             && CountCallbacks(type, "OnDeserializing") == 0 && CountCallbacks(type, "OnDeserialized") == 0)
         {
@@ -571,7 +571,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         WriteSerializationCallbacks(writer, type, "instance", "OnDeserialized");
         writer.CloseBlock();
 
-        // Writes the field loop. An empty member set consumes the remaining fields in a block.
+        // 写入字段环。空成员集会在一个块中消耗剩余字段。
         static void WriteDeserializerLoop(SourceWriter writer, List<MemberEmissionPlan> members)
         {
             if (members.Count == 0)
@@ -591,8 +591,8 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
             var contiguousIds = members[members.Count - 1].FieldId == members.Count - 1;
             foreach (var member in members)
             {
-                // Codecs can either be static classes or injected into the constructor.
-                // Either way, the member signatures are the same.
+                // 编码器可以是静态分类,也可以是注入制造器。
+                // 无论哪种方式,成员签名是相同的。
                 Debug.Assert(member.Codec is not null);
                 writer.WriteLine($"if (id == {CodeText.Literal(member.FieldId)})");
                 writer.OpenBlock();
@@ -613,7 +613,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
                 writer.CloseBlock();
             }
 
-            // Consume any unknown fields
+            // 含有任何未知字段
             if (contiguousIds)
             {
                 writer.WriteLine("reader.ConsumeEndBaseOrEndObject(ref header);");
@@ -663,7 +663,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         }
         else
         {
-            // For types which are not sealed/value types, add some extra logic to support sub-types.
+            // 对于非密封/价值类型的类型,增加一些额外的逻辑以支持子类型。
             writer.WriteLine($"if ({ValueParameter} is null || {ValueParameter}.GetType() == typeof({type.Type}))");
             writer.OpenBlock();
             WriteInnerBody(writer, type);
@@ -794,8 +794,8 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
     }
 
     /// <summary>
-    /// Describes a generated accessor for an inaccessible member: a delegate field (initialized from <see cref="Initialization"/>)
-    /// or, without an initializer, an <c>UnsafeAccessor</c> method.
+    /// 描述无法进入成员生成的访问权限:代表字段(从 <see cref="Initialization"/>开始)
+    /// 或,在没有初始化器的情况下,采用 <c>UnsafeAccessor</c> 方法。
     /// </summary>
     internal sealed class FieldAccessorDescription(TypeSyntax containingType, TypeSyntax fieldType, string fieldName, string accessorName, string? initialization = null, bool lazyInitialization = false, bool isUnsafeFieldAccessor = false, bool containingTypeIsValueType = false) : GeneratedFieldDescription(fieldType, fieldName)
     {
@@ -807,7 +807,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         public bool IsUnsafeFieldAccessor { get; } = isUnsafeFieldAccessor;
         public bool ContainingTypeIsValueType { get; } = containingTypeIsValueType;
 
-        /// <summary>The expression which invokes this accessor, resolving a lazily initialized accessor on first use.</summary>
+        /// <summary>引用此存取器的表达式, 解决首次使用时的迷睡初始存取器。</summary>
         public string AccessExpression => LazyInitialization && Initialization is { } initialization
             ? $"({AccessorName} ??= {initialization})"
             : AccessorName;
@@ -827,17 +827,17 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         IMemberDescription Member { get; }
 
         /// <summary>
-        /// Gets syntax representing the type of this field.
+        /// 取得代表此字段类型的语法。
         /// </summary>
         TypeSyntax TypeSyntax { get; }
 
         /// <summary>
-        /// Returns the plan for reading this member's value from an instance of the containing type.
+        /// 返回从包含类型实例读取此成员值的计划。
         /// </summary>
         MemberAccessPlan GetGetter();
 
         /// <summary>
-        /// Returns the plan for assigning this member's value on an instance of the containing type.
+        /// 返回在包含类型实例中指定此成员值的计划。
         /// </summary>
         MemberAccessPlan GetSetter();
 
@@ -846,7 +846,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
     }
 
     /// <summary>
-    /// Represents a serializable member (field/property) of a type.
+    /// 代表一种类型的可连号成员(外地/财产)。
     /// </summary>
     internal class SerializableMethodMember(InvokableGenerator.MethodParameterFieldDescription member) : ISerializableMember
     {
@@ -858,7 +858,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         public bool IsShallowCopyable => LibraryTypes.IsShallowCopyable(Member.Parameter.Type) || Member.Parameter.HasAttribute(LibraryTypes.ImmutableAttribute);
 
         /// <summary>
-        /// Gets syntax representing the type of this field.
+        /// 取得代表此字段类型的语法。
         /// </summary>
         public TypeSyntax TypeSyntax => Member.TypeSyntax;
 
@@ -875,7 +875,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
     }
 
     /// <summary>
-    /// Represents a serializable member (field/property) of a type.
+    /// 代表一种类型的可连号成员(外地/财产)。
     /// </summary>
     internal class SerializableMember(IGeneratorServices generatorServices, IMemberDescription member) : ISerializableMember
     {
@@ -894,7 +894,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         public IMemberDescription Member { get; } = member;
 
         /// <summary>
-        /// Gets the underlying <see cref="Field"/> instance.
+        /// 获取基础 <see cref="Field"/> 实例。
         /// </summary>
         private IFieldSymbol? Field => (Member as IFieldDescription)?.Field;
 
@@ -905,55 +905,55 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
         public string MemberName => Field?.Name ?? Property?.Name ?? Member.Symbol.Name;
 
         /// <summary>
-        /// Gets the name of the accessor used to read the field.
+        /// 获取用于阅读字段的存取器的名称。
         /// </summary>
         private string GetterFieldName => GeneratedFieldNames.Accessor(UseUnsafeFieldAccessor ? "accessField" : "getField", Member);
 
         /// <summary>
-        /// Gets the name of the accessor used to write the field.
+        /// 获取用于写入字段的存取器的名称。
         /// </summary>
         private string SetterFieldName => GeneratedFieldNames.Accessor(UseUnsafeFieldAccessor ? "accessField" : "setField", Member);
 
         /// <summary>
-        /// Gets a value indicating if the member is a property.
+        /// 获得一个值, 显示成员是否是财产 。
         /// </summary>
         private bool IsProperty => Member.Symbol is IPropertySymbol;
 
         /// <summary>
-        /// Gets a value indicating whether or not this member represents an accessible field.
+        /// 获得一个值, 显示该成员是否代表一个可访问域 。
         /// </summary>
         private bool IsGettableField => Field is { } fieldInfo && _generatorServices.Compilation.IsSymbolAccessibleWithin(fieldInfo, Compilation.Assembly) && !IsObsolete;
 
         /// <summary>
-        /// Gets a value indicating whether or not this member represents an accessible, mutable field.
+        /// 获得一个值, 显示该成员是否代表一个可访问、 可变字段 。
         /// </summary>
         private bool IsSettableField => Field is { } fieldInfo && IsGettableField && !fieldInfo.IsReadOnly;
 
         /// <summary>
-        /// Gets a value indicating whether or not this member represents a property with an accessible, non-obsolete getter.
+        /// 获得一个值, 显示该成员是否代表拥有无障碍、 非过时获取器的属性 。
         /// </summary>
         private bool IsGettableProperty => Property?.GetMethod is { } getMethod && Compilation.IsSymbolAccessibleWithin(getMethod, Compilation.Assembly) && !IsObsolete;
 
         /// <summary>
-        /// Gets a value indicating whether or not this member represents a property with an accessible, non-obsolete setter.
+        /// 获得一个值, 显示该成员是否代表拥有无障碍、 非过期设置器的属性 。
         /// </summary>
         private bool IsSettableProperty => Property?.SetMethod is { } setMethod && Compilation.IsSymbolAccessibleWithin(setMethod, Compilation.Assembly) && !setMethod.IsInitOnly && !IsObsolete;
 
         /// <summary>
-        /// Gets syntax representing the type of this field.
+        /// 取得代表此字段类型的语法。
         /// </summary>
         public TypeSyntax TypeSyntax => Member.Type.TypeKind == TypeKind.Dynamic
             ? PredefinedType(Token(SyntaxKind.ObjectKeyword))
             : Member.GetTypeSyntax(Member.Type);
 
         /// <summary>
-        /// Gets the <see cref="Property"/> which this field is the backing property for, or
-        /// <see langword="null" /> if this is not the backing field of an auto-property.
+        /// 获取此字段作为支持属性的 <see cref="Property"/> ,或者
+        /// <see langword="null" /> 如果这不是自动财产的支持字段 。
         /// </summary>
         private IPropertySymbol? Property => field ??= field = Member.Symbol as IPropertySymbol ?? (Field is { } fieldSymbol ? PropertyUtility.GetMatchingProperty(fieldSymbol) : null);
 
         /// <summary>
-        /// Gets a value indicating whether or not this field is obsolete.
+        /// 获得一个值, 显示此字段是否过时 。
         /// </summary>
         private bool IsObsolete => Member.Symbol.HasAttribute(LibraryTypes.ObsoleteAttribute) ||
                                    Property != null && Property.HasAttribute(LibraryTypes.ObsoleteAttribute);
@@ -962,7 +962,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
 
         public MemberAccessPlan GetGetter()
         {
-            // If the field is the backing field for an accessible auto-property use the property directly.
+            // 如果字段是可获取的自动财产直接使用该财产的辅助字段。
             if (Property is { } property && IsGettableProperty)
             {
                 return MemberAccessPlan.ForMember(property.Name);
@@ -973,13 +973,13 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
                 return MemberAccessPlan.ForMember(field.Name);
             }
 
-            // Retrieve the field using the generated getter.
+            // 使用生成的获取器检索字段 。
             return new(MemberAccessKind.Invoke, GetGetterFieldDescription()!.AccessExpression, RefInstance: ContainingType?.IsValueType == true);
         }
 
         public MemberAccessPlan GetSetter()
         {
-            // If the field is the backing field for an accessible auto-property use the property directly.
+            // 如果字段是可获取的自动财产直接使用该财产的辅助字段。
             if (Property is { } property && IsSettableProperty)
             {
                 return MemberAccessPlan.ForMember(property.Name);
@@ -990,7 +990,7 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
                 return MemberAccessPlan.ForMember(field.Name);
             }
 
-            // If the symbol itself is a property but is not settable, then error out, since we do not know how to set it value
+            // 如果符号本身是一个属性,但不可设置,则错误出,因为我们不知道如何设定其值
             if (IsProperty && !IsPrimaryConstructorParameter)
             {
                 Location? location = default;
@@ -1048,11 +1048,11 @@ internal class SerializerGenerator(IGeneratorServices generatorServices)
             var delegateType = (setter ? (valueType ? library.ValueTypeSetter_2 : library.Action_2) : (valueType ? library.ValueTypeGetter_2 : library.Func_2))
                 .ToTypeSyntax(containingTypeSyntax, fieldType);
 
-            // The accessor field is initialized from a reflection-backed delegate.
+            // 访问器字段由反射支持的代表启动。
             var accessorMethod = setter ? (valueType ? "GetValueSetter" : "GetReferenceSetter") : (valueType ? "GetValueGetter" : "GetGetter");
             var initialization = $"({CodeText.Type(delegateType)})global::Orleans.Serialization.Utilities.FieldAccessor.{accessorMethod}(typeof({CodeText.Type(containingTypeSyntax)}), {CodeText.QuotedText(fieldName)})";
 
-            // Existing case, accessor is the field in both cases
+            // 现有情况,这两个案件都以存取人为实地
             return new(containingTypeSyntax, delegateType, accessorName, accessorName, initialization, lazyInitialization);
         }
     }

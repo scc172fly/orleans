@@ -28,7 +28,7 @@ namespace Orleans.Transactions.Azure.Tests
     }
 
     /// <summary>
-    /// Tests for Azure Table Storage implementation of transactional state storage.
+    /// 交易性国家储存的 Azure 表格存储实施测试。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

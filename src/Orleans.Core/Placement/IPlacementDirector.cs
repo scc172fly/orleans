@@ -5,31 +5,31 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// Interface for placement directors.
+    /// 安置主任的接口。
     /// </summary>
     public interface IPlacementDirector
     {
         /// <summary>
-        /// Gets the <see cref="PlacementTarget.RequestContextData"/> key used to store the placement hint, if present.
+        /// 获取用于存储位置提示的 <see cref="PlacementTarget.RequestContextData"/> 密钥,如果存在的话。
         /// </summary>
         public const string PlacementHintKey = nameof(PlacementHintKey);
 
         /// <summary>
-        /// Picks an appropriate silo to place the specified target on.
+        /// 选择适当的 silo 来将指定目标锁定。
         /// </summary>
-        /// <param name="strategy">The target's placement strategy.</param>
-        /// <param name="target">The grain being placed as well as information about the request which triggered the placement.</param>
-        /// <param name="context">The placement context.</param>
-        /// <returns>An appropriate silo to place the specified target on.</returns>
+        /// <param name="strategy">目标的安置策略</param>
+        /// <param name="target">所放置的 grain 以及触发该安置的请求的信息。</param>
+        /// <param name="context">职位安排背景。</param>
+        /// <returns>适当的 silo 将指定目标置于。</returns>
         Task<SiloAddress> OnAddActivation(
             PlacementStrategy strategy, PlacementTarget target, IPlacementContext context);
 
         /// <summary>
-        /// Gets the placement hint from the provided request context data, if present and valid.
+        /// 如果有且有效,则从请求中获取定位提示。
         /// </summary>
-        /// <param name="requestContextData">The request context data.</param>
-        /// <param name="compatibleSilos">The compatible silos.</param>
-        /// <returns>The placement hint, if present and valid, or <see langword="null"/> otherwise.</returns>
+        /// <param name="requestContextData">请求的上下文数据。</param>
+        /// <param name="compatibleSilos">兼容的 silos.</param>
+        /// <returns>设置提示,如果是现有和有效,或 <see langword="null"/> ,否则。</returns>
         public static SiloAddress? GetPlacementHint(Dictionary<string, object> requestContextData, SiloAddress[] compatibleSilos)
         {
             if (requestContextData is { Count: > 0 } data

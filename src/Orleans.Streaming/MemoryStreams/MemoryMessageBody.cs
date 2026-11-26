@@ -8,27 +8,27 @@ using Orleans.Serialization;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// Implementations of this interface are responsible for serializing MemoryMessageBody objects
+    /// 实施该接口负责对 MemoryMessageBody 对象进行序列排序
     /// </summary>
     public interface IMemoryMessageBodySerializer
     {
         /// <summary>
-        /// Serialize <see cref="MemoryMessageBody"/> to an array segment of bytes.
+        /// 将 <see cref="MemoryMessageBody"/> 序列化为字节的数组段。
         /// </summary>
-        /// <param name="body">The body.</param>
-        /// <returns>The serialized data.</returns>
+        /// <param name="body">尸体 尸体 尸体 尸体</param>
+        /// <returns>序列数据</returns>
         ArraySegment<byte> Serialize(MemoryMessageBody body);
 
         /// <summary>
-        /// Deserialize an array segment into a <see cref="MemoryMessageBody"/>
+        /// 将数组段降序成 <see cref="MemoryMessageBody"/>
         /// </summary>
-        /// <param name="bodyBytes">The body bytes.</param>
-        /// <returns>The deserialized message body.</returns>
+        /// <param name="bodyBytes">体字节。</param>
+        /// <returns>消散的通讯机体</returns>
         MemoryMessageBody Deserialize(ArraySegment<byte> bodyBytes);
     }
 
     /// <summary>
-    /// Default <see cref="IMemoryMessageBodySerializer"/> implementation.
+    /// 默认 <see cref="IMemoryMessageBodySerializer"/> 执行 。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     [SerializationCallbacks(typeof(Runtime.OnDeserializedCallbacks))]
@@ -38,9 +38,9 @@ namespace Orleans.Providers
         private Serializer<MemoryMessageBody> serializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultMemoryMessageBodySerializer" /> class.
+        /// 初始化 <see cref="DefaultMemoryMessageBodySerializer" /> 类的新实例。
         /// </summary>
-        /// <param name="serializer">The serializer.</param>
+        /// <param name="serializer">序列器。</param>
         public DefaultMemoryMessageBodySerializer(Serializer<MemoryMessageBody> serializer)
         {
             this.serializer = serializer;
@@ -55,7 +55,7 @@ namespace Orleans.Providers
         /// <inheritdoc />
         public MemoryMessageBody Deserialize(ArraySegment<byte> bodyBytes)
         {
-            // Serialize only accepts a non-null MemoryMessageBody.
+            // 序列只接受非中值 MemoryMessageBody。
             return serializer.Deserialize(bodyBytes)!;
         }
 
@@ -67,17 +67,17 @@ namespace Orleans.Providers
     }
 
     /// <summary>
-    /// Message body used by the in-memory stream provider.
+    /// 用于内线流提供者的邮件正文 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class MemoryMessageBody
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryMessageBody"/> class.
+        /// 初始化 <see cref="MemoryMessageBody"/> 类的新实例。
         /// </summary>
-        /// <param name="events">Events that are part of this message.</param>
-        /// <param name="requestContext">Context in which this message was sent.</param>        
+        /// 属于此信件内容的事件<param name="events">。</param>
+        /// <param name="requestContext">发送此信息的背景。</param>        
         public MemoryMessageBody(IEnumerable<object> events, Dictionary<string, object>? requestContext)
         {
             if (events == null) throw new ArgumentNullException(nameof(events));
@@ -86,13 +86,13 @@ namespace Orleans.Providers
         }
 
         /// <summary>
-        /// Gets the events in the message.
+        /// 获取消息中的事件。
         /// </summary>
         [Id(0)]
         public List<object> Events { get; }
 
         /// <summary>
-        /// Gets the message request context.
+        /// 获取信息请求的背景。
         /// </summary>
         [Id(1)]
         public Dictionary<string, object>? RequestContext { get; }

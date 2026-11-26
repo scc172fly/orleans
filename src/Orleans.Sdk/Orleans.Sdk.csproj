@@ -8,7 +8,7 @@
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IncludeSymbols>false</IncludeSymbols>
     <IncludeSource>false</IncludeSource>
-    <!-- This metapackage contains build assets and dependencies but no API assemblies. -->
+    <!-- 这种元包装包含建设资产和依赖性,但没有 API 集会。 -->
     <EnablePackageValidation>false</EnablePackageValidation>
     <IsOrleansFrameworkPart>false</IsOrleansFrameworkPart>
     <NoWarn>MSB3277</NoWarn>

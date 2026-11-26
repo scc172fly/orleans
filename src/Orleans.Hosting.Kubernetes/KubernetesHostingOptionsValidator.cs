@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Orleans.Hosting.Kubernetes
 {
     /// <summary>
-    /// Validates <see cref="KubernetesHostingOptions"/>.
+    /// 验证 <see cref="KubernetesHostingOptions"/>。
     /// </summary>
     internal class KubernetesHostingOptionsValidator : IValidateOptions<KubernetesHostingOptions>
     {

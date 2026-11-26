@@ -4,35 +4,35 @@ using Orleans.Serialization.Codecs;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// A codec which supports multiple types.
+    /// 支持多种类型代码化的编码器。
     /// </summary>
     public interface IGeneralizedCodec : IFieldCodec
     {
         /// <summary>
-        /// Determines whether the specified type is supported by this instance.
+        /// 确定指定类型是否得到此实例的支持。
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns><see langword="true" /> if the specified type is supported; otherwise, <see langword="false" />.</returns>
+        /// <param name="type">类型。</param>
+        /// <returns><see langword="true" /> ,如果支持了指定类型;否则, <see langword="false" />。</returns>
         bool IsSupportedType(Type type);
     }
 
     /// <summary>
-    /// Provides access to codecs for multiple types.
+    /// 提供多种类型代码的存取。
     /// </summary>
     public interface ISpecializableCodec
     {
         /// <summary>
-        /// Determines whether the specified type is supported by this instance.
+        /// 确定指定类型是否得到此实例的支持。
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns><see langword="true" /> if the specified type is supported; otherwise, <see langword="false" />.</returns>
+        /// <param name="type">类型。</param>
+        /// <returns><see langword="true" /> ,如果支持了指定类型;否则, <see langword="false" />。</returns>
         bool IsSupportedType(Type type);
 
         /// <summary>
-        /// Gets an <see cref="IFieldCodec"/> implementation which supports the specified type.
+        /// 获得支持指定类型的 <see cref="IFieldCodec"/> 执行。
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>An <see cref="IFieldCodec"/> implementation which supports the specified type.</returns>
+        /// <param name="type">类型。</param>
+        /// <returns>A 音 A <see cref="IFieldCodec"/> 支持指定类型的执行。</returns>
         IFieldCodec GetSpecializedCodec(Type type);
     }
 }

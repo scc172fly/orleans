@@ -67,7 +67,7 @@ internal class InMemoryTransportListener : MessageTransportListener
         {
             while (_acceptQueue.Reader.TryRead(out var item))
             {
-                // Acceptance and cancellation race through the same completion source.
+                // 通过同一完成源进行接受和取消竞争。
                 if (item.ConnectionAcceptedTcs.TrySetResult(true))
                 {
                     return item.Connection;
@@ -105,7 +105,7 @@ internal class InMemoryTransportListener : MessageTransportListener
             }
 
             completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            // Publish completion before cancellation callbacks can reenter shutdown.
+            // 在取消回馈可以重新关闭之前发布完成 。
             _unbindTask = completion.Task;
         }
 
@@ -118,7 +118,7 @@ internal class InMemoryTransportListener : MessageTransportListener
         _acceptQueue.Writer.TryComplete();
         while (_acceptQueue.Reader.TryRead(out var item))
         {
-            // Set the result to false to indicate that the listener has terminated.
+            // 设定结果为假以显示听众已终止。
             item.ConnectionAcceptedTcs.TrySetResult(false);
         }
 
@@ -126,7 +126,7 @@ internal class InMemoryTransportListener : MessageTransportListener
         {
             try
             {
-                // Cancellation callbacks run on the initiating caller's scheduler.
+                // 取消回调运行在启动呼叫器的调度器上
                 _disposedCts.Cancel();
             }
             finally

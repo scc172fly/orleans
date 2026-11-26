@@ -18,7 +18,7 @@ using StackExchange.Redis.Profiling;
 namespace Tester.Redis.Clustering
 {
     /// <summary>
-    /// Tests for Orleans membership table operations using Redis as the backing store.
+    /// 试验 Orleans 使用 Redis 做为后援商店
     /// </summary>
     [TestCategory("Redis"), TestCategory("Clustering"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

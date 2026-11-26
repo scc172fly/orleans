@@ -13,9 +13,9 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.AzureStorage
 {
     /// <summary>
-    /// Provides Azure Table Storage-backed transactional state storage.
+    /// 提供 Azure 表格存储支持的交易性国家储存。
     /// </summary>
-    /// <typeparam name="TState">The transactional state type.</typeparam>
+    /// <typeparam name="TState">交易状态类型。</typeparam>
     public partial class AzureTableTransactionalStateStorage<TState> : ITransactionalStateStorage<TState>
         where TState : class, new()
     {
@@ -35,12 +35,12 @@ namespace Orleans.Transactions.AzureStorage
         private bool _storeRequiresLoad;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureTableTransactionalStateStorage{TState}"/> class.
+        /// 初始化 <see cref="AzureTableTransactionalStateStorage{TState}"/> 类的新实例。
         /// </summary>
-        /// <param name="table">The client for the table which stores transactional state.</param>
-        /// <param name="partition">The partition key for the transactional state.</param>
-        /// <param name="JsonSettings">The settings used to serialize transactional state.</param>
-        /// <param name="logger">The logger.</param>
+        /// <param name="table">客户存储交易状态的表格</param>
+        /// <param name="partition">交易状态的分割键。</param>
+        /// <param name="JsonSettings">用于序列化交易状态的设置。</param>
+        /// <param name="logger">日志器。</param>
         public AzureTableTransactionalStateStorage(TableClient table, string partition, JsonSerializerSettings JsonSettings, ILogger<AzureTableTransactionalStateStorage<TState>> logger)
         {
             this.table = table;
@@ -48,8 +48,8 @@ namespace Orleans.Transactions.AzureStorage
             this.jsonSettings = JsonSettings;
             this.logger = logger;
 
-            // default values must be included
-            // otherwise, we get errors for explicitly specified default values
+            // 必须包含默认值
+            // 否则, 我们就会错误到 明确指定的默认值
             // (e.g.  Orleans.Transactions.Azure.Tests.TestState.state)
             this.jsonSettings.DefaultValueHandling = DefaultValueHandling.Include;
         }
@@ -65,7 +65,7 @@ namespace Orleans.Transactions.AzureStorage
                 {
                     LogDebugLoadedV0Fresh(partition);
 
-                    // first time load
+                    // 首次装载
                     _storeRequiresLoad = false;
                     return new TransactionalStorageLoadResponse<TState>();
                 }
@@ -92,11 +92,11 @@ namespace Orleans.Transactions.AzureStorage
                     {
                         var kvp = states[i];
 
-                        // pending states for already committed transactions can be ignored
+                        // 已经承诺交易的待处理状态可以忽略
                         if (kvp.Key <= key.CommittedSequenceId)
                             continue;
 
-                        // upon recovery, local non-committed transactions are considered aborted
+                        // 恢复后,当地非承付交易被视为中止
                         if (kvp.Value.TransactionManager == null)
                             break;
 
@@ -107,12 +107,12 @@ namespace Orleans.Transactions.AzureStorage
                             SequenceId = kvp.Key,
                             State = kvp.Value.GetState<TState>(this.jsonSettings),
                             TimeStamp = kvp.Value.TransactionTimestamp,
-                            TransactionId = kvp.Value.TransactionId!, // Persisted transaction rows always include an identifier.
+                            TransactionId = kvp.Value.TransactionId!, // 长期交易行总是包括一个识别符。
                             TransactionManager = tm
                         });
                     }
 
-                    // clear the state strings... no longer needed, ok to GC now
+                    // 清清国家线... 不再需要了,现在可以向GC
                     for (int i = 0; i < states.Count; i++)
                     {
                         var entity = states[i].Value;
@@ -135,7 +135,7 @@ namespace Orleans.Transactions.AzureStorage
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="metadata"/> 是 <see langword="null"/>.</exception>
         public async Task<string> Store(string? expectedETag, TransactionalStateMetaData metadata, List<PendingTransactionState<TState>>? statesToPrepare, long? commitUpTo, long? abortAfter)
         {
             ArgumentNullException.ThrowIfNull(metadata);
@@ -166,17 +166,17 @@ namespace Orleans.Transactions.AzureStorage
         {
             if (string.IsNullOrEmpty(key.ETag.ToString()) && string.IsNullOrEmpty(key.Metadata))
             {
-                // A split prepare can persist the fresh key before phase three publishes the incoming metadata.
-                // Until then, the key must represent the valid previous (empty) committed state.
+                // 分期准备可在第三阶段公布收到的元数据之前维持新钥匙。
+                // 在此之前,钥匙必须代表有效的先前(空)承诺状态。
                 key.Metadata = JsonConvert.SerializeObject(new TransactionalStateMetaData(), this.jsonSettings);
             }
 
-            // assemble all storage operations into a single batch
-            // these operations must commit in sequence, but not necessarily atomically
-            // so we can split this up if needed
+            // 将所有储存作业合并成一个批次
+            // 这些行动必须按顺序进行,但不一定是原子
+            // 以便我们分头处理
             var batchOperation = new BatchOperation(logger, key, table);
 
-            // first, clean up aborted records
+            // 首先,清理已中止的记录
             if (abortAfter.HasValue && states.Count != 0)
             {
                 while (states.Count > 0 && states[states.Count - 1].Key > abortAfter)
@@ -190,7 +190,7 @@ namespace Orleans.Transactions.AzureStorage
                 }
             }
 
-            // second, persist non-obsolete prepare records
+            // 第二,长期的不过期准备记录
             var obsoleteBefore = commitUpTo.HasValue ? commitUpTo.Value : key.CommittedSequenceId;
             if (statesToPrepare != null)
                 foreach (var s in statesToPrepare)
@@ -198,7 +198,7 @@ namespace Orleans.Transactions.AzureStorage
                     {
                         if (FindState(s.SequenceId, out var pos))
                         {
-                            // overwrite with new pending state
+                            // 覆盖新的待补状态
                             StateEntity existing = states[pos].Value;
                             existing.TransactionId = s.TransactionId;
                             existing.TransactionTimestamp = s.TimeStamp;
@@ -220,7 +220,7 @@ namespace Orleans.Transactions.AzureStorage
                         }
                     }
 
-            // third, persist metadata and commit position
+            // 第三个、持续元数据和承诺位置
             key.Metadata = JsonConvert.SerializeObject(metadata, this.jsonSettings);
             if (commitUpTo.HasValue && commitUpTo.Value > key.CommittedSequenceId)
             {
@@ -241,7 +241,7 @@ namespace Orleans.Transactions.AzureStorage
                 LogTraceUpdateWithCount(partition, KeyEntity.RK, this.key.CommittedSequenceId, metadata.CommitRecords.Count);
             }
 
-            // fourth, remove obsolete records
+            // 第四,删除过时记录
             if (states.Count > 0 && states[0].Key < obsoleteBefore)
             {
                 FindState(obsoleteBefore, out var pos);
@@ -291,15 +291,15 @@ namespace Orleans.Transactions.AzureStorage
                 (keyBefore, var loadedStates, var isPaginated, versionBefore, versionAfter) = await ReadSnapshot().ConfigureAwait(false);
                 if (!isPaginated)
                 {
-                    // A single Query Entities response is one strongly consistent storage operation.
+                    // 单一查询实体的答复是十分一致的储存作业。
                     return (keyBefore, loadedStates);
                 }
 
                 if (versionBefore is null && versionAfter is null)
                 {
-                    // Legacy partitions do not have boundary rows. During rolling upgrades, older
-                    // writers also leave existing boundaries stale, so torn reads remain allowed
-                    // until every writer is upgraded to advance them.
+                    // 遗留分区没有边界线。 在滚动升级期间,较长的
+                    // 作家也让现有的边界变得陈旧,
+                    // 直到每个作家升级 来推进他们
                     return (keyBefore, loadedStates);
                 }
 
@@ -404,8 +404,8 @@ namespace Orleans.Transactions.AzureStorage
 
                 if (batchOperation.Count == AzureTableConstants.MaxBatchSize - BoundaryRowCount - (BatchHasKey ? 0 : 1))
                 {
-                    // the key serves as a synchronizer, to prevent modification by multiple grains under edge conditions,
-                    // like duplicate activations or deployments. The boundary rows fence paginated reads.
+                    // 键起到同步器的作用,以防止在边缘条件下发生多次 grains 修改,
+                    // 边界线围栅的读数。
                     await Flush().ConfigureAwait(false);
                 }
             }

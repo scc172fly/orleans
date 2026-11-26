@@ -1,7 +1,7 @@
 namespace Presence.Grains;
 
 /// <summary>
-/// Observer interface for an external client, such as a console app or a web frontend, to receive updates to the score of a particular game.
+/// 外部客户端(如控制台应用程序或网络前端)的观察界面,以接收特定游戏分数的最新信息。
 /// </summary>
 public interface IGameObserver : IGrainObserver
 {

@@ -4,7 +4,7 @@ using UnitTests.GrainInterfaces;
 
 namespace UnitTests.Grains;
 
-[StatelessWorker(1)] // '1' to force interleaving, otherwise it just creates a new worker
+[StatelessWorker(1)] // 强迫交接,否则它就只创造了一个新的工人
 [MayInterleave(nameof(MayInterleaveMethod))]
 public class StatelessWorkerWithMayInterleaveGrain : Grain, IStatelessWorkerWithMayInterleaveGrain
 {

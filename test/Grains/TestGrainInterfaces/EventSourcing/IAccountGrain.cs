@@ -1,7 +1,7 @@
 namespace TestGrainInterfaces
 {
     /// <summary>
-    /// A grain that models a bank account
+    /// 模拟银行账户的 grain
     /// </summary>
     public interface IAccountGrain : IGrainWithStringKey
     {
@@ -14,24 +14,24 @@ namespace TestGrainInterfaces
         Task<IReadOnlyList<Transaction>> GetTransactionLog();
     }
 
-    // the classes below represent events/transactions on the account
-    // all fields are user-defined (none have a special meaning),
-    // so these can be any type of object you like, as long as they are serializable
-    // (so they can be sent over the wire and persisted in a log).
+    // 下面的分类代表账户上的事件/交易
+    // 全部字段都是自定义的(无特殊含义),
+    // 这些都是任何类型的物体 只要它们可以连号
+    // 以便他们被送到铁丝上,而永居其中。
 
     [Serializable]
     [GenerateSerializer]
     public abstract class Transaction
     {
-        /// <summary> A unique identifier for this transaction  </summary>
+        /// <summary> 此交易的独有标识符 </summary>
         [Id(0)]
         public Guid Guid { get; set; }
 
-        /// <summary> A description for this transaction  </summary>
+        /// <summary> 交易说明 </summary>
         [Id(1)]
         public string? Description { get; set; }
 
-        /// <summary> time on which the request entered the system  </summary>
+        /// <summary> 请求进入系统的时间  </summary>
         [Id(2)]
         public DateTime IssueTime { get; set; }
     }

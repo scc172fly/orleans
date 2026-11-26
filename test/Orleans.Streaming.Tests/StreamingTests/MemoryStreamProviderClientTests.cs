@@ -9,15 +9,15 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// Tests for client behavior with the MemoryStreamProvider.
+    /// 客户端行为测试 MemoryStreamProvider。
     /// 
-    /// MemoryStreamProvider is an in-memory streaming provider useful for:
-    /// - Unit testing streaming scenarios without external dependencies
-    /// - Development and prototyping
-    /// - Scenarios where persistence is not required
+    /// MemoryStreamProvider 是一个内线流提供商,用于:
+    /// - 没有任何外部依赖性的单位测试流程假设情况
+    /// - 发展和原型设计
+    /// - 不需要持久性的情况
     /// 
-    /// These tests focus on client disconnection scenarios to ensure
-    /// proper cleanup and recovery of stream producers and consumers.
+    /// 这些测试侧重于客户断开断开的假想,以确保
+    /// 妥善清理和回收流动生产者和消费者。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -25,9 +25,9 @@ namespace Tester.StreamingTests
     public class MemoryStreamProviderClientTests : OrleansTestingBase, IClassFixture<MemoryStreamProviderClientTests.Fixture>
     {
         /// <summary>
-        /// Test fixture that configures a cluster with MemoryStreamProvider.
-        /// Sets up both silo and client with the same stream provider configuration
-        /// to ensure proper communication.
+        /// 用于配置 MemoryStreamProvider集的测试设置。
+        /// 以相同的流提供配置设置 silo 和客户端
+        /// 确保适当的沟通。
         /// </summary>
         public class Fixture : BaseTestClusterFixture
         {
@@ -48,10 +48,10 @@ namespace Tester.StreamingTests
             }
 
             /// <summary>
-            /// Configures silos with:
-            /// - Memory grain storage for PubSub subscriptions
-            /// - Memory stream provider with specified partition count
-            /// - Reduced client drop timeout for faster test execution
+            /// 配置 silos , 其 :
+            /// - 内存 grain 储存用于 PubSub 订阅
+            /// - 内存流提供商,有指定的分区计数
+            /// - 降低客户的退学超时,以便更快地进行测试执行
             /// </summary>
             private class MySiloBuilderConfigurator : ISiloConfigurator
             {
@@ -74,11 +74,11 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// Tests stream producer behavior when the client is dropped/disconnected.
-        /// Verifies that:
-        /// - Stream production stops when client disconnects
-        /// - No orphaned producers remain in the system
-        /// - Other clients/grains can still use the stream
+        /// 当客户被丢弃/断开时, 测试串流生产者的行为 。
+        /// 证明:
+        /// - 客户断开时停止流生产
+        /// - 系统中没有孤儿生产者
+        /// - 其他客户/grains 仍然可以使用流
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("Streaming")]
         public async Task MemoryStreamProducerOnDroppedClientTest()
@@ -91,11 +91,11 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// Tests stream consumer behavior when the client is dropped/disconnected.
-        /// Verifies that:
-        /// - Consumer subscriptions are properly cleaned up
-        /// - Messages are not lost when a consumer disconnects
-        /// - Rebalancing occurs to redistribute stream processing
+        /// 测试客户被丢弃/断开时消费者的行为。
+        /// 证明:
+        /// - 消费者订阅的购买量得到妥善清理
+        /// - 消费者断开时,信息不会丢失
+        /// - 重新平衡,再分配流流处理
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("Streaming")]
         public async Task MemoryStreamConsumerOnDroppedClientTest()

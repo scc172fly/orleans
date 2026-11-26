@@ -9,7 +9,7 @@
     <OrleansBuildTimeCodeGen>false</OrleansBuildTimeCodeGen>
     <EnableOrleansContractsAnalyzer>false</EnableOrleansContractsAnalyzer>
     <OrleansPackageValidationBaselineSuffix>alpha.1</OrleansPackageValidationBaselineSuffix>
-    <!-- Validate framework assets while the first release establishes a package baseline. -->
+    <!-- 验证框架资产,而第一次释放则确定一揽子基准。 -->
     <OrleansPackageValidationBaselineVersion></OrleansPackageValidationBaselineVersion>
     <EnablePackageValidation>true</EnablePackageValidation>
     <VersionSuffix Condition="$(VersionSuffix) != ''">$(VersionSuffix).alpha.1</VersionSuffix>
@@ -21,12 +21,12 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <!-- The host enters covered regions (DurableTaskContext.EnterCoveredRegion, RunInCoveredFlowAsync), which stay internal. -->
+    <!-- 东道方进入内部的覆盖区域(DurableTaskContext.EnterCoveredRegion、 RunInCoveredFlowAsync)。 -->
     <InternalsVisibleTo Include="Orleans.Durable" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Supplies the [Alias] attributes which give persisted types stable wire names. -->
+    <!-- 提供[Alias]属性,这些属性具有持续的稳定电线名称。 -->
     <ProjectReference Include="..\Orleans.Serialization.Abstractions\Orleans.Serialization.Abstractions.csproj" />
     <ProjectReference Include="..\Orleans.Durable.Analyzers\Orleans.Durable.Analyzers.csproj"
                       ReferenceOutputAssembly="false"

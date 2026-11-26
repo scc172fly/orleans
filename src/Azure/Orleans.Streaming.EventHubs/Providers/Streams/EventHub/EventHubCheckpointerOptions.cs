@@ -6,53 +6,53 @@ using Orleans.Streams;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configures Azure Table Storage checkpoint persistence for an Event Hubs stream provider.
+    /// 配置 Azure 表存储一个事件枢纽流提供者的检查站持久性。
     /// </summary>
     public class AzureTableStreamCheckpointerOptions : AzureStorageOperationOptions
     {
         /// <summary>
-        /// Azure table name.
+        /// Azure 表格名称。
         /// </summary>
         public override string TableName { get; set; } = DEFAULT_TABLE_NAME;
         /// <summary>
-        /// The default Azure Table Storage table name.
+        /// 默认 Azure 表格存储表名称。
         /// </summary>
         public const string DEFAULT_TABLE_NAME = "Checkpoint";
 
         /// <summary>
-        /// Interval to write checkpoints.  Prevents spamming storage.
+        /// 隔间来写检查站,防止垃圾存储
         /// </summary>
         public TimeSpan PersistInterval { get; set; } = DEFAULT_CHECKPOINT_PERSIST_INTERVAL;
         /// <summary>
-        /// The default minimum interval between checkpoint writes.
+        /// 检查点之间默认的最低间隔 。
         /// </summary>
         public static readonly TimeSpan DEFAULT_CHECKPOINT_PERSIST_INTERVAL = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// Gets or sets the prefix applied to checkpoint partition keys.
+        /// 获取或设置用于检查站分区密钥的前缀。
         /// </summary>
         public string PartitionKeyPrefix { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the comparer used to prevent a checkpoint from moving backwards.
+        /// 获取或设置用来防止检查站向后移动的比较器。
         /// </summary>
         /// <remarks>
-        /// When this property is <see langword="null"/>, checkpoints are assumed to arrive in increasing order.
-        /// Use <see cref="StreamCheckpointComparers.Numeric"/> for numeric checkpoint values of arbitrary size.
+        /// 当该财产 <see langword="null"/>时,假定检查站会越来越频繁地抵达。
+        /// 使用 <see cref="StreamCheckpointComparers.Numeric"/> 来计算任意大小的数值。
         /// </remarks>
         public IComparer<string>? CheckpointComparer { get; set; }
     }
 
     /// <summary>
-    /// Validates <see cref="AzureTableStreamCheckpointerOptions"/>.
+    /// 验证 <see cref="AzureTableStreamCheckpointerOptions"/>。
     /// </summary>
     public class AzureTableStreamCheckpointerOptionsValidator : AzureStorageOperationOptionsValidator<AzureTableStreamCheckpointerOptions>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureTableStreamCheckpointerOptionsValidator"/> class.
+        /// 初始化 <see cref="AzureTableStreamCheckpointerOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options to validate.</param>
-        /// <param name="name">The options name.</param>
+        /// <param name="options">验证的选项。</param>
+        /// <param name="name">选项名称。</param>
         public AzureTableStreamCheckpointerOptionsValidator(AzureTableStreamCheckpointerOptions options, string name) : base(options, name)
         {
         }

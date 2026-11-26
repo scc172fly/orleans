@@ -13,10 +13,10 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="Dictionary{TKey, TValue}"/>.
+    /// <see cref="Dictionary{TKey, TValue}"/>的序列器。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class DictionaryCodec<TKey, TValue> : IFieldCodec<Dictionary<TKey, TValue>> where TKey : notnull
     {
@@ -28,11 +28,11 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<IEqualityComparer<TKey>>? _comparerCodec;
 
         /// <summary>
-        /// Initializes a serializer for dictionaries using <see cref="EqualityComparer{T}.Default"/>.
+        /// 初始化一个使用 <see cref="EqualityComparer{T}.Default"/>的词典序列器。
         /// </summary>
-        /// <param name="keyCodec">The key codec.</param>
-        /// <param name="valueCodec">The value codec.</param>
-        /// <remarks>Values and payloads specifying a custom comparer produce a <see cref="NotSupportedException"/>.</remarks>
+        /// <param name="keyCodec">密钥编码器。</param>
+        /// <param name="valueCodec">值代码。</param>
+        /// <remarks>指定自定义比较器的数值和有效载荷 <see cref="NotSupportedException"/>.</remarks>
         public DictionaryCodec(IFieldCodec<TKey> keyCodec, IFieldCodec<TValue> valueCodec)
         {
             _keyCodec = OrleansGeneratedCodeHelper.UnwrapService(this, keyCodec);
@@ -40,11 +40,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DictionaryCodec{TKey, TValue}"/> class.
+        /// 初始化 <see cref="DictionaryCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCodec">The key codec.</param>
-        /// <param name="valueCodec">The value codec.</param>
-        /// <param name="comparerCodec">The comparer codec.</param>
+        /// <param name="keyCodec">密钥编码器。</param>
+        /// <param name="valueCodec">值代码。</param>
+        /// <param name="comparerCodec">比较器编码器。</param>
         [ActivatorUtilitiesConstructor]
         public DictionaryCodec(
             IFieldCodec<TKey> keyCodec,
@@ -163,10 +163,10 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="Dictionary{TKey, TValue}"/>.
+    /// <see cref="Dictionary{TKey, TValue}"/>的复印机。
     /// </summary>
-    /// <typeparam name="TKey">The type of the t key.</typeparam>
-    /// <typeparam name="TValue">The type of the t value.</typeparam>
+    /// <typeparam name="TKey">t 密钥的类型。</typeparam>
+    /// <typeparam name="TValue">t 值的类型。</typeparam>
     [RegisterCopier]
     public sealed class DictionaryCopier<TKey, TValue> : IDeepCopier<Dictionary<TKey, TValue>>, IBaseCopier<Dictionary<TKey, TValue>> where TKey : notnull
     {
@@ -175,10 +175,10 @@ namespace Orleans.Serialization.Codecs
         private readonly ConstructorInfo _baseConstructor;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DictionaryCopier{TKey, TValue}"/> class.
+        /// 初始化 <see cref="DictionaryCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">The key copier.</param>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="keyCopier">钥匙复印机。</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public DictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = keyCopier;
@@ -238,10 +238,10 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Serializer for <see cref="Dictionary{TKey, TValue}"/>.
+    /// <see cref="Dictionary{TKey, TValue}"/>的序列器。
     /// </summary>
-    /// <typeparam name="TKey">The key type.</typeparam>
-    /// <typeparam name="TValue">The value type.</typeparam>
+    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class DictionaryBaseCodec<TKey, TValue> : IBaseCodec<Dictionary<TKey, TValue>> where TKey : notnull
     {
@@ -254,11 +254,11 @@ namespace Orleans.Serialization.Codecs
         private readonly ConstructorInfo _baseConstructor;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DictionaryCodec{TKey, TValue}"/> class.
+        /// 初始化 <see cref="DictionaryCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCodec">The key codec.</param>
-        /// <param name="valueCodec">The value codec.</param>
-        /// <param name="comparerCodec">The comparer codec.</param>
+        /// <param name="keyCodec">密钥编码器。</param>
+        /// <param name="valueCodec">值代码。</param>
+        /// <param name="comparerCodec">比较器编码器。</param>
         public DictionaryBaseCodec(
             IFieldCodec<TKey> keyCodec,
             IFieldCodec<TValue> valueCodec,
@@ -292,8 +292,8 @@ namespace Orleans.Serialization.Codecs
 
         void IBaseCodec<Dictionary<TKey, TValue>>.Deserialize<TInput>(ref Reader<TInput> reader, Dictionary<TKey, TValue> value)
         {
-            // If the dictionary has some values added by the default constructor, clear them.
-            // If those values are in the serialized payload, they will be added below.
+            // 如果字典中有一些值是默认构建符添加的,请清除这些值。
+            // 如果这些数值在序列式有效载荷中,则将添加到下文。
             value.Clear();
 
             TKey? key = default;

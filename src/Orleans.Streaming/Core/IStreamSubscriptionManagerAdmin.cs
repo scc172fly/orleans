@@ -1,25 +1,25 @@
 namespace Orleans.Streams.Core
 {
     /// <summary>
-    /// Functionality for retrieving a <see cref="IStreamSubscriptionManager"/> instance.
+    /// 检索 <see cref="IStreamSubscriptionManager"/> 实例的功能性。
     /// </summary>
     public interface IStreamSubscriptionManagerAdmin
     {
         /// <summary>
-        /// Gets the stream subscription manager.
+        /// 接通了水流订阅经理
         /// </summary>
-        /// <param name="managerType">Type of the manager.</param>
-        /// <returns>The <see cref="IStreamSubscriptionManager"/>.</returns>
+        /// <param name="managerType">经理的类型。</param>
+        /// <returns>下 <see cref="IStreamSubscriptionManager"/>.</returns>
         IStreamSubscriptionManager GetStreamSubscriptionManager(string managerType);
     }
 
     /// <summary>
-    /// Constants for <see cref="IStreamSubscriptionManagerAdmin.GetStreamSubscriptionManager(string)"/>.
+    /// <see cref="IStreamSubscriptionManagerAdmin.GetStreamSubscriptionManager(string)"/>的常数。
     /// </summary>
     public static class StreamSubscriptionManagerType
     {
         /// <summary>
-        /// The explicit subscription manager.
+        /// 明确的订阅经理。
         /// </summary>
         public const string ExplicitSubscribeOnly = "ExplicitSubscribeOnly";
     }

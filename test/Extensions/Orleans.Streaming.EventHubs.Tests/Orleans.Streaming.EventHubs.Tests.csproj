@@ -6,7 +6,7 @@
     <OrleansBuildTimeCodeGen>true</OrleansBuildTimeCodeGen>
     <IsAspireHost>false</IsAspireHost>
     <Nullable>enable</Nullable>
-    <!-- Aspire tooling is needed only by the inner builds which compile the integration tests. -->
+    <!-- 只需要内部建筑就有必要使用精密的工具来汇编集成测试。 -->
     <SkipAddAspireDefaultReferences Condition="'$(TargetFramework)' == ''">true</SkipAddAspireDefaultReferences>
   </PropertyGroup>
 

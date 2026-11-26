@@ -10,9 +10,9 @@ namespace Orleans.CodeGenerator.SyntaxGeneration;
 internal static class SymbolSyntaxExtensions
 {
     /// <summary>
-    /// Returns the System.String that represents the current TypedConstant.
+    /// 返回 System.String 代表当前 TypedConstant.
     /// </summary>
-    /// <returns>A System.String that represents the current TypedConstant.</returns>
+    /// <returns>A System.String 代表当前 TypedConstant.</returns>
     public static ExpressionSyntax ToExpression(this TypedConstant constant)
     {
         if (constant.IsNull)
@@ -39,14 +39,14 @@ internal static class SymbolSyntaxExtensions
         return ParseExpression(constant.ToCSharpString());
     }
 
-    // Decode the value of enum constant
+    // 解码 enum 常值值值
     private static ExpressionSyntax DisplayEnumConstant(TypedConstant constant)
     {
-        //string typeName = constant.Type.ToDisplayName();
+        //typeName 字符串 = constant.Type.ToDisplayName();
         var constantToDecode = ConvertToUInt64(constant.Value);
         ulong curValue = 0;
 
-        // Iterate through all the constant members in the enum type
+        // 以所有常任成员在星号类型中进行循环
         var members = constant.Type!.GetMembers();
         var type = constant.Type.ToTypeSyntax();
         ExpressionSyntax? result = null;
@@ -65,7 +65,7 @@ internal static class SymbolSyntaxExtensions
 
                 if ((memberValue & constantToDecode) == memberValue)
                 {
-                    // update the current value
+                    // 更新当前值
                     curValue = curValue | memberValue;
 
                     var valueExpression = type.Member(field.Name);

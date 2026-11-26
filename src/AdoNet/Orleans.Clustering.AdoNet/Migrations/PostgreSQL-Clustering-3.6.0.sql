@@ -1,8 +1,8 @@
--- Run this migration for upgrading the PostgreSQL clustering table and routines for deployments created before 3.6.0
+-- 运行此迁移以更新 PostgreSQL 群集表格和3.6.0之前创建的部署程序
 
 BEGIN;
 
--- Change date type
+-- 更改日期类型
 
 ALTER TABLE OrleansMembershipVersionTable
 ALTER COLUMN Timestamp TYPE TIMESTAMPTZ(3) USING Timestamp AT TIME ZONE 'UTC';
@@ -11,7 +11,7 @@ ALTER TABLE OrleansMembershipTable
 ALTER COLUMN StartTime TYPE TIMESTAMPTZ(3) USING StartTime AT TIME ZONE 'UTC',
 ALTER COLUMN IAmAliveTime TYPE TIMESTAMPTZ(3) USING IAmAliveTime AT TIME ZONE 'UTC';
 
--- Recreate routines
+-- 重建常规
 
 CREATE OR REPLACE FUNCTION update_i_am_alive_time(
     deployment_id OrleansMembershipTable.DeploymentId%TYPE,
@@ -22,8 +22,8 @@ CREATE OR REPLACE FUNCTION update_i_am_alive_time(
   RETURNS void AS
 $func$
 BEGIN
-    -- This is expected to never fail by Orleans, so return value
-    -- is not needed nor is it checked.
+    -- 预计这永远不会失败 Orleans, 所以返回值
+    -- 不需要也无需检查。
     UPDATE OrleansMembershipTable as d
     SET
         IAmAliveTime = i_am_alive_time

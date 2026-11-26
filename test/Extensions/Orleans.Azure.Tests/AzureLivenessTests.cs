@@ -6,7 +6,7 @@ using Xunit;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// Tests for silo liveness and membership functionality using Azure Table Storage as the membership table.
+    /// 试验 silo 使用寿命和成员资格功能 Azure 表格作为成员表储存。
     /// </summary>
     [TestCategory("Membership"), TestCategory("AzureStorage")]
     [TestSuite("Functional")]

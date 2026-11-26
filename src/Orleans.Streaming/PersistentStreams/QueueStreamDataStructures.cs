@@ -7,8 +7,8 @@ namespace Orleans.Streams
     [Serializable]
     internal enum StreamConsumerDataState
     {
-        Active, // Indicates that events are activly being delivered to this consumer.
-        Inactive, // Indicates that events are not activly being delivered to this consumers.  If adapter produces any events on this consumers stream, the agent will need begin delivering events
+        Active, // 表示事件正在被主动交付给该消费者。
+        Inactive, // 显示事件并非主动交付给消费者。 如果适应器在这个消费者流上产生任何活动,代理器将需要开始交付活动
     }
 
     [Serializable]
@@ -40,8 +40,8 @@ namespace Orleans.Streams
         public bool StartPositionIsProviderDefault;
 
         /// <summary>
-        /// The sequence token of the last batch processed (delivered or filtered) by this subscription.
-        /// Used by the pulling agent's periodic scan to compute the delivery-based checkpoint watermark.
+        /// 订阅此文件所处理的最后一批( 交付或过滤) 的序列符号 。
+        /// 由拉动剂定期扫描 用来计算以送货为基础的检查站水印
         /// </summary>
         [NonSerialized]
         public StreamSequenceToken? LastProcessedToken;
@@ -69,7 +69,7 @@ namespace Orleans.Streams
             if (Cursor is { } cursor)
             {
                 Cursor = null;
-                // kill cursor activity and ensure it does not start again on this consumer data.
+                // 杀死光标活动,并确保它不再从此消费数据开始。
                 try
                 {
                     cursor.Dispose();

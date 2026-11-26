@@ -12,28 +12,28 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// Interface for Membership Table.
+    /// 成员界面表
     /// </summary>
     /// <remarks>
-    /// Providers can implement the cancellation-aware Async methods to cancel their underlying operations.
-    /// The default implementations cancel the caller's wait while the tokenless operation completes,
-    /// and observe any exception from that operation.
-    /// Cancellation-aware RPC methods retain the existing operation aliases and serialized application arguments.
-    /// Cancellation is propagated separately from those arguments.
+    /// 供应商可以采用取消通知的自动合成方法,取消其基本业务。
+    /// 默认执行取消呼叫者等待, 而无一遗漏的操作完成时,
+    /// 并遵守该项行动的任何例外。
+    /// 承认取消RPC方法保留了现有的操作假名和序列应用论证。
+    /// 取消与这些论点分开宣传。
     /// </remarks>
     public interface IMembershipTable
     {
         /// <summary>
-        /// Initializes the membership table, will be called before all other methods
+        /// 将先要求采用其他所有方法,然后才请成员表格的初始化
         /// </summary>
-        /// <param name="tryInitTableVersion">whether an attempt will be made to init the underlying table</param>
-        /// <returns>A task representing the initialization operation.</returns>
+        /// <param name="tryInitTableVersion">是否试图将基础表格入内</param>
+        /// <returns>一项代表初始化操作的任务。</returns>
         [Obsolete("Use InitializeMembershipTableAsync instead.")]
         Task InitializeMembershipTable(bool tryInitTableVersion);
 
         /// <inheritdoc cref="InitializeMembershipTable(bool)"/>
-        /// <param name="tryInitTableVersion">Whether to initialize the underlying table version.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="tryInitTableVersion">是否初始化基础表格版本。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Alias("FB89E5E9")]
         async Task InitializeMembershipTableAsync(bool tryInitTableVersion, CancellationToken cancellationToken = default)
         {
@@ -46,16 +46,16 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Deletes all table entries of the given clusterId
+        /// 删除给定 clusterId的所有表格条目
         /// </summary>
-        /// <param name="clusterId">The identifier of the cluster whose entries are deleted.</param>
-        /// <returns>A task representing the deletion operation.</returns>
+        /// <param name="clusterId">条目被删除的组群标识符。</param>
+        /// <returns>代表删除操作的任务。</returns>
         [Obsolete("Use DeleteMembershipTableEntriesAsync instead.")]
         Task DeleteMembershipTableEntries(string clusterId);
 
         /// <inheritdoc cref="DeleteMembershipTableEntries(string)"/>
-        /// <param name="clusterId">The cluster whose entries are deleted.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="clusterId">条目被删除的组。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Alias("BF899C85")]
         async Task DeleteMembershipTableEntriesAsync(string clusterId, CancellationToken cancellationToken = default)
         {
@@ -68,16 +68,16 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Removes dead silo entries whose last known update precedes <paramref name="beforeDate"/>.
+        /// 删除已死 silo 其上次已知更新先于此条目的条目 <paramref name="beforeDate"/>.
         /// </summary>
-        /// <param name="beforeDate">The exclusive upper bound for the last known update time of entries to delete.</param>
-        /// <returns>A task representing the cleanup operation.</returns>
+        /// <param name="beforeDate">条目最后一次更新时要删除的独家上下限。</param>
+        /// <returns>一项代表清理行动的任务。</returns>
         [Obsolete("Use CleanupDefunctSiloEntriesAsync instead.")]
         Task CleanupDefunctSiloEntries(DateTimeOffset beforeDate);
 
         /// <inheritdoc cref="CleanupDefunctSiloEntries(DateTimeOffset)"/>
-        /// <param name="beforeDate">The exclusive upper bound for the last update time of entries to delete.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="beforeDate">条目最后一次更新时要删除的独家上下限。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Alias("7A519C2E")]
         async Task CleanupDefunctSiloEntriesAsync(DateTimeOffset beforeDate, CancellationToken cancellationToken = default)
         {
@@ -90,22 +90,22 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Reads membership information through the provider's legacy row-read operation.
+        /// 通过供应商的遗留行读取业务阅读会员信息。
         /// </summary>
         /// <remarks>
-        /// Use <see cref="ReadAllAsync"/> to obtain an atomic snapshot and
-        /// <see cref="MembershipTableData.TryGet"/> to select a silo and its entity tag.
-        /// Built-in providers report <see cref="NotSupportedException"/> for row reads.
+        /// 使用 <see cref="ReadAllAsync"/> 获取原子快照
+        /// <see cref="MembershipTableData.TryGet"/> 选择 silo 和实体标签。
+        /// 内置供应商报告 <see cref="NotSupportedException"/> 将行读取。
         /// </remarks>
-        /// <param name="key">The address of the silo whose membership information needs to be read.</param>
-        /// <returns>The membership information for a given silo: MembershipTableData consisting one MembershipEntry entry and
-        /// TableVersion, read atomically.</returns>
+        /// <param name="key">大会主席的地址 silo 需要阅读其成员资格信息。</param>
+        /// <returns>给定 silo: MembershipTableData 的成员资格信息,包括一个 MembershipEntry 条目和
+        /// TableVersion,从原子上读取。</returns>
         [Obsolete("Use ReadAllAsync and MembershipTableData.TryGet instead.")]
         Task<MembershipTableData> ReadRow(SiloAddress key);
 
         /// <inheritdoc cref="ReadRow(SiloAddress)"/>
-        /// <param name="key">The address of the silo to read.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="key">大会主席的地址 silo 改为。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Obsolete("Use ReadAllAsync and MembershipTableData.TryGet instead.")]
         [Alias("D851FB33")]
         async Task<MembershipTableData> ReadRowAsync(SiloAddress key, CancellationToken cancellationToken = default)
@@ -119,17 +119,17 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Atomically reads the full content of the Membership Table.
-        /// The returned MembershipTableData includes all MembershipEntry entry for all silos in the table and the 
-        /// TableVersion for this table. The MembershipEntries and the TableVersion have to be read atomically.
+        /// 原子读取成员表的全部内容。
+        /// 返回的 MembershipTableData 包括所有 MembershipEntry 全部条目 silos 表中和表格中的 
+        /// 本表格的TableVersion 。 MembershipEntries 和 TableVersion 必须从原子角度阅读。
         /// </summary>
-        /// <returns>The membership information for a given table: MembershipTableData consisting multiple MembershipEntry entries and
-        /// TableVersion, all read atomically.</returns>
+        /// <returns>某一表格的成员信息: MembershipTableData ,包括多个 MembershipEntry 条目和
+        /// TableVersion全部从原子上读取</returns>
         [Obsolete("Use ReadAllAsync instead.")]
         Task<MembershipTableData> ReadAll();
 
         /// <inheritdoc cref="ReadAll()"/>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Alias("00BCE16F")]
         async Task<MembershipTableData> ReadAllAsync(CancellationToken cancellationToken = default)
         {
@@ -142,27 +142,27 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Atomically tries to insert (add) a new MembershipEntry for one silo and also update the TableVersion.
-        /// If operation succeeds, the following changes would be made to the table:
-        /// 1) New MembershipEntry will be added to the table.
-        /// 2) The newly added MembershipEntry will have a provider-defined row eTag.
-        /// 3) TableVersion.Version in the table will be updated to the new TableVersion.Version.
-        /// 4) TableVersion etag in the table will be updated to the new unique automatically generated eTag.
-        /// All those changes to the table, insert of a new row and update of the table version and the associated etags, should happen atomically, or fail atomically with no side effects.
-        /// The operation should fail in each of the following conditions:
-        /// 1) A MembershipEntry for a given silo already exist in the table
-        /// 2) Update of the TableVersion failed since the given TableVersion etag (as specified by the TableVersion.VersionEtag property) did not match the TableVersion etag in the table.
+        /// 原子试图插入(添加)一个新的 MembershipEntry ,一个 silo ,并更新 TableVersion。
+        /// 如果操作成功,将对表格作如下修改:
+        /// (1) 表格中将增加新的 MembershipEntry 。
+        /// 2) 新增的 MembershipEntry 将有一个由供应商定义的行 eTag。
+        /// 3) TableVersion.Version 表格中的表格将更新到新的 TableVersion.Version.
+        /// 4) TableVersion 表中的牌将更新到新的独有自动生成 eTag。
+        /// 所有对表格的修改,插入新行和更新表格版本及相关的标签,应原生化或原子衰落,无副作用。
+        /// 操作在下列每一条件下均应失败:
+        /// 1) A MembershipEntry 给定 silo 表格中已经存在
+        /// (2) TableVersion 更新失败,因为给定 TableVersion etag(按 TableVersion.VersionEtag 属性指定)与表中的 TableVersion etag不匹配。
         /// </summary>
-        /// <param name="entry">MembershipEntry to be inserted.</param>
-        /// <param name="tableVersion">The new TableVersion for this table, along with its etag.</param>
-        /// <returns>True if the insert operation succeeded and false otherwise.</returns>
+        /// <param name="entry">MembershipEntry 插入。</param>
+        /// <param name="tableVersion">本表格的新 TableVersion 及其表单。</param>
+        /// <returns>如果插入操作成功且以其他方式虚假, 则正确。</returns>
         [Obsolete("Use InsertRowAsync instead.")]
         Task<bool> InsertRow(MembershipEntry entry, TableVersion tableVersion);
 
         /// <inheritdoc cref="InsertRow(MembershipEntry, TableVersion)"/>
-        /// <param name="entry">The membership entry to insert.</param>
-        /// <param name="tableVersion">The new table version and its expected etag.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="entry">插入成员条目。</param>
+        /// <param name="tableVersion">新表格版本及其预期的etag。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Alias("FEF3AC5A")]
         async Task<bool> InsertRowAsync(MembershipEntry entry, TableVersion tableVersion, CancellationToken cancellationToken = default)
         {
@@ -175,37 +175,37 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Atomically tries to update the MembershipEntry for one silo and also update the TableVersion.
-        /// If operation succeeds, the following changes would be made to the table:
-        /// 1) The MembershipEntry for this silo will be updated using the supplied entry.
-        /// 2) The row eTag for the updated MembershipEntry will reflect the provider's metadata or concurrency-token policy.
-        /// 3) TableVersion.Version in the table will be updated to the new TableVersion.Version.
-        /// 4) TableVersion etag in the table will be updated to the new unique automatically generated eTag.
-        /// All those changes to the table, update of a new row and update of the table version and the associated etags, should happen atomically, or fail atomically with no side effects.
-        /// The operation should fail in each of the following conditions:
-        /// 1) A MembershipEntry for a given silo does not exist in the table
-        /// 2) Update of the TableVersion failed since the given TableVersion etag (as specified by the TableVersion.VersionEtag property) did not match the TableVersion etag in the table.
-        /// 3) The provider validates a separate canonical row concurrency token and the supplied etag does not match it.
+        /// 原子试图更新 MembershipEntry 一对一 silo 更新 TableVersion.
+        /// 如果操作成功,将对表格作如下修改:
+        /// (1) 与 MembershipEntry 为此 silo 将使用所提供的条目更新。
+        /// (2) 横 eTag 更新的《公约》和《公约》 MembershipEntry 将反映供应商的元数据或货币汇率政策。
+        /// 3) TableVersion.Version 表格中的表格将更新到新的 TableVersion.Version.
+        /// 4) TableVersion 表中的牌将更新到新的独有自动生成 eTag。
+        /// 所有对表格的修改、新行更新以及表格版本和相关星格的更新,都应原生化地进行,否则原子衰落,无副作用。
+        /// 操作在下列每一条件下均应失败:
+        /// 1) A MembershipEntry 给定 silo 表格中不存在
+        /// (2) TableVersion 更新失败,因为给定 TableVersion etag(按 TableVersion.VersionEtag 属性指定)与表中的 TableVersion etag不匹配。
+        /// (3) 供应商确认另外一种金币行同价证券,而所提供的同价证券与该货币牌不符。
         /// </summary>
         /// <remarks>
-        /// Providers atomically require an existing row and validate <see cref="TableVersion.VersionEtag"/>.
-        /// A provider can use the row eTag as an additional heartbeat-neutral concurrency token or ignore it when
-        /// table-ETag validation protects the existing-row update. Additional row guards must remain satisfied
-        /// across heartbeat-only activity, preserving validation of previously read row and table inputs
-        /// while the row exists and the table ETag remains current.
+        /// 原生供应商要求现有一行并验证 <see cref="TableVersion.VersionEtag"/>。
+        /// 提供者可以使用行 eTag 作为额外的心心中中性同音符号,或者当
+        /// 表格-ETag 验证保护现有行更新。
+        /// 保持对先前读取的行和表格输入的验证
+        /// 时行存在,表格ETag仍然保持当前状态。
         /// </remarks>
-        /// <param name="entry">MembershipEntry to be updated.</param>
-        /// <param name="etag">The provider-defined row entity tag obtained from a membership read.</param>
-        /// <param name="tableVersion">The new TableVersion for this table, along with its etag.</param>
-        /// <returns>True if the update operation succeeded and false otherwise.</returns>
+        /// <param name="entry">MembershipEntry 待更新。</param>
+        /// <param name="etag">从成员处获得的由供应商定义的行实体标记读取。</param>
+        /// <param name="tableVersion">本表格的新 TableVersion 及其表单。</param>
+        /// <returns>如果更新操作成功且以其他方式虚假, 则正确。</returns>
         [Obsolete("Use UpdateRowAsync instead.")]
         Task<bool> UpdateRow(MembershipEntry entry, string etag, TableVersion tableVersion);
 
         /// <inheritdoc cref="UpdateRow(MembershipEntry, string, TableVersion)"/>
-        /// <param name="entry">The membership entry to update.</param>
-        /// <param name="etag">The provider-defined row entity tag obtained from a membership read.</param>
-        /// <param name="tableVersion">The new table version and its expected etag.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="entry">更新成员条目。</param>
+        /// <param name="etag">从成员处获得的由供应商定义的行实体标记读取。</param>
+        /// <param name="tableVersion">新表格版本及其预期的etag。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Alias("E06D3DBC")]
         async Task<bool> UpdateRowAsync(MembershipEntry entry, string etag, TableVersion tableVersion, CancellationToken cancellationToken = default)
         {
@@ -218,23 +218,23 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Updates the IAmAliveTime column of the MembershipEntry for this silo.
+        /// 更新 IAmAliveTime 列一 MembershipEntry 为此 silo.
         /// </summary>
         /// <remarks>
-        /// Each silo owns its heartbeat and writes the supplied timestamp directly to its IAmAliveTime column.
-        /// Preserves the other membership fields and the table version, including its ETag.
-        /// The returned row ETag may reflect backend-managed metadata and change with the heartbeat.
-        /// While the row exists and the table ETag remains current, heartbeat-only activity leaves previously
-        /// read row and table inputs usable by <see cref="UpdateRowAsync"/>.
+        /// 每个 silo 都有心跳,并将所提供的时间戳直接写到其 IAmAliveTime 列。
+        /// 保留其他会员字段和表格版本,包括其ETag。
+        /// 返回的行ETag 可能反映后端管理的元数据,并随心跳变化。
+        /// 虽然行存在,表ETag仍然时尚,但只心跳活动在先前
+        /// 读取 <see cref="UpdateRowAsync"/>所使用的行和表格输入。
         /// </remarks>
-        /// <param name="entry">The membership entry containing the updated <see cref="MembershipEntry.IAmAliveTime"/> value.</param>
-        /// <returns>A task representing the update operation.</returns>
+        /// <param name="entry">载有增订的 <see cref="MembershipEntry.IAmAliveTime"/> 值。</param>
+        /// <returns>代表更新操作的任务。</returns>
         [Obsolete("Use UpdateIAmAliveAsync instead.")]
         Task UpdateIAmAlive(MembershipEntry entry);
 
         /// <inheritdoc cref="UpdateIAmAlive(MembershipEntry)"/>
-        /// <param name="entry">The membership entry containing the updated liveness timestamp.</param>
-        /// <param name="cancellationToken">A token which cancels the operation.</param>
+        /// <param name="entry">包含更新活度时间戳的会员条目。</param>
+        /// <param name="cancellationToken">取消操作的标记。</param>
         [Alias("B1A52D2B")]
         async Task UpdateIAmAliveAsync(MembershipEntry entry, CancellationToken cancellationToken = default)
         {
@@ -248,35 +248,35 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Membership table interface for system target based implementation.
+    /// 系统目标实施成员表接口。
     /// </summary>
     public interface IMembershipTableSystemTarget : IMembershipTable, ISystemTarget
     {
     }
 
     /// <summary>
-    /// Represents the version of a membership table and the entity tag used for optimistic concurrency.
+    /// 表示成员表的版本和用于乐观货币的实体标记。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class TableVersion : ISpanFormattable, IEquatable<TableVersion>
     {
         /// <summary>
-        /// The version part of this TableVersion. Monotonically increasing number.
+        /// 此 TableVersion的版本部分。 单倍增长的数量 。
         /// </summary>
         [Id(0)]
         public int Version { get; }
 
         /// <summary>
-        /// The etag of this TableVersion, used for validation of table update operations.
+        /// 用于验证表格更新操作的 TableVersion。
         /// </summary>
         [Id(1)]
         public string VersionEtag { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TableVersion"/> class.
+        /// 初始化 <see cref="TableVersion"/> 类的新实例。
         /// </summary>
-        /// <param name="version">The membership table version.</param>
-        /// <param name="eTag">The entity tag used to validate updates to this version.</param>
+        /// <param name="version">成员表版本。</param>
+        /// <param name="eTag">用于验证本版本更新的实体标记。</param>
         public TableVersion(int version, string eTag)
         {
             Version = version;
@@ -284,10 +284,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Creates the next membership table version while retaining the current entity tag for concurrency validation.
+        /// 创建下一个会籍表版本,同时保留当前实体标签以进行同值货币验证。
         /// </summary>
-        /// <returns>The next membership table version.</returns>
-        /// <exception cref="OverflowException">The membership table version has reached <see cref="int.MaxValue"/>.</exception>
+        /// <returns>下一份成员表版本。</returns>
+        /// <exception cref="OverflowException">成员表的版本已达到 <see cref="int.MaxValue"/>.</exception>
         public TableVersion Next() => new(checked(Version + 1), VersionEtag);
 
         /// <inheritdoc />
@@ -307,54 +307,54 @@ namespace Orleans
         public bool Equals(TableVersion? other) => other is not null && Version == other.Version && VersionEtag == other.VersionEtag;
 
         /// <summary>
-        /// Determines whether two membership table versions are equal.
+        /// 确定两个成员表格版本是否相等。
         /// </summary>
-        /// <param name="left">The first membership table version to compare.</param>
-        /// <param name="right">The second membership table version to compare.</param>
-        /// <returns><see langword="true"/> if the versions and entity tags are equal; otherwise, <see langword="false"/>.</returns>
+        /// <param name="left">比较第一个成员表版本。</param>
+        /// <param name="right">比较第二个成员表版本。</param>
+        /// <returns><see langword="true"/> ,如果版本和实体标签相等;否则, <see langword="false"/>。</returns>
         public static bool operator ==(TableVersion? left, TableVersion? right) => EqualityComparer<TableVersion>.Default.Equals(left, right);
 
         /// <summary>
-        /// Determines whether two membership table versions are not equal.
+        /// 确定两个成员表格版本是否相等。
         /// </summary>
-        /// <param name="left">The first membership table version to compare.</param>
-        /// <param name="right">The second membership table version to compare.</param>
-        /// <returns><see langword="true"/> if the versions or entity tags differ; otherwise, <see langword="false"/>.</returns>
+        /// <param name="left">比较第一个成员表版本。</param>
+        /// <param name="right">比较第二个成员表版本。</param>
+        /// <returns><see langword="true"/> ,如果版本或实体标签不同;否则, <see langword="false"/>。</returns>
         public static bool operator !=(TableVersion? left, TableVersion? right) => !(left == right);
     }
 
     /// <summary>
-    /// Represents an atomic snapshot of membership entries and the membership table version.
+    /// 代表成员条目和成员表版本的原子简况。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class MembershipTableData
     {
         /// <summary>
-        /// Gets the membership entries and their provider-defined row entity tags.
+        /// 获取会员条目及其供应商定义的行实体标签。
         /// </summary>
         [Id(0)]
         public IReadOnlyList<Tuple<MembershipEntry, string>> Members { get; private set; }
 
         /// <summary>
-        /// Gets the version of the membership table snapshot.
+        /// 获取会员表快照版本。
         /// </summary>
         [Id(1)]
         public TableVersion Version { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MembershipTableData"/> class from multiple membership rows.
+        /// 初始化多个会籍行的 <see cref="MembershipTableData"/> 类新实例。
         /// </summary>
-        /// <param name="list">The membership entries and their entity tags.</param>
-        /// <param name="version">The version of the membership table snapshot.</param>
+        /// <param name="list">成员条目及其实体标签。</param>
+        /// <param name="version">成员表简况的版本。</param>
         public MembershipTableData(List<Tuple<MembershipEntry, string>> list, TableVersion version)
         {
-            // put deads at the end, just for logging.
+            // 死在尽头,只是用来伐木
             list.Sort(
                (x, y) =>
                {
-                   if (x.Item1.Status == SiloStatus.Dead) return 1; // put Deads at the end
-                   if (y.Item1.Status == SiloStatus.Dead) return -1; // put Deads at the end
+                   if (x.Item1.Status == SiloStatus.Dead) return 1; // 死尸在最后
+                   if (y.Item1.Status == SiloStatus.Dead) return -1; // 死尸在最后
                    return string.CompareOrdinal(x.Item1.SiloName, y.Item1.SiloName);
                });
             Members = list;
@@ -362,10 +362,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MembershipTableData"/> class from one membership row.
+        /// 从一排成员开始启用一个新的 <see cref="MembershipTableData"/> 等级实例。
         /// </summary>
-        /// <param name="tuple">The membership entry and its entity tag.</param>
-        /// <param name="version">The version of the membership table snapshot.</param>
+        /// <param name="tuple">成员入境及其实体标签。</param>
+        /// <param name="version">成员表简况的版本。</param>
         public MembershipTableData(Tuple<MembershipEntry, string> tuple, TableVersion version)
         {
             Members = new[] { tuple };
@@ -373,9 +373,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Initializes an empty instance of the <see cref="MembershipTableData"/> class.
+        /// 初始化 <see cref="MembershipTableData"/> 类的空实例。
         /// </summary>
-        /// <param name="version">The version of the membership table snapshot.</param>
+        /// <param name="version">成员表简况的版本。</param>
         public MembershipTableData(TableVersion version)
         {
             Members = Array.Empty<Tuple<MembershipEntry, string>>();
@@ -383,10 +383,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Finds the membership row for the specified silo.
+        /// 查找指定 silo的会籍行。
         /// </summary>
-        /// <param name="silo">The silo address to find.</param>
-        /// <returns>The membership entry and entity tag, or <see langword="null"/> if the silo is not present.</returns>
+        /// <param name="silo">查找的 silo 地址。</param>
+        /// <returns>成员入境和实体标签,或 <see langword="null"/> 如果 silo 不存在。</returns>
         public Tuple<MembershipEntry, string>? TryGet(SiloAddress silo)
         {
             foreach (var item in Members)
@@ -410,15 +410,15 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Creates a membership table snapshot which retains only the latest dead silo generation for each endpoint.
+        /// 创建成员表快照,只保留每个终点的最新死亡 silo 一代。
         /// </summary>
         /// <returns>
-        /// A membership table snapshot containing all non-dead entries and the latest dead entry for each endpoint.
+        /// 一份成员表快照,其中列出所有非死条目和每个终点的最新死亡条目。
         /// </returns>
         public MembershipTableData WithoutDuplicateDeads()
         {
             var dead = new Dictionary<IPEndPoint, Tuple<MembershipEntry, string>>();
-            // pick only latest Dead for each instance
+            // 仅选择每个实例的最新死亡
             foreach (var next in Members.Where(item => item.Item1.Status == SiloStatus.Dead))
             {
                 var ipEndPoint = next.Item1.SiloAddress.Endpoint;
@@ -429,13 +429,13 @@ namespace Orleans
                 }
                 else
                 {
-                    // later dead.
+                    // 之后就死了 已经死了
                     if (next.Item1.SiloAddress.Generation.CompareTo(prev.Item1.SiloAddress.Generation) > 0)
                         dead[ipEndPoint] = next;
                 }
             }
 
-            //now add back non-dead
+            //现在将不死后添加到后面
             List<Tuple<MembershipEntry, string>> all = dead.Values.ToList();
             all.AddRange(Members.Where(item => item.Item1.Status != SiloStatus.Dead));
             return new MembershipTableData(all, Version);
@@ -456,75 +456,75 @@ namespace Orleans
     }
 
     /// <summary>
-    /// Represents a silo's membership record.
+    /// 代表 silo的会员记录。
     /// </summary>
     [GenerateSerializer]
     [Serializable]
     public sealed class MembershipEntry : ISpanFormattable
     {
         /// <summary>
-        /// The silo unique identity (ip:port:epoch). Used mainly by the Membership Protocol.
+        /// silo 独特身份(ip:port:epo:och),主要用于《成员议定书》。
         /// </summary>
         [Id(0)]
         public SiloAddress SiloAddress { get; set; } = default!;
 
         /// <summary>
-        /// The silo status. Managed by the Membership Protocol.
+        /// silo 状态。 由成员议定书管理。
         /// </summary>
         [Id(1)]
         public SiloStatus Status { get; set; }
 
         /// <summary>
-        /// The list of silos that suspect this silo. Managed by the Membership Protocol.
+        /// 列表列表 silos 怀疑的 silo由《成员议定书》管理。
         /// </summary>
         [Id(2)]
         public List<Tuple<SiloAddress, DateTime>>? SuspectTimes { get; set; }
 
         /// <summary>
-        /// Silo to clients TCP port. Set on silo startup.
+        /// Silo 至客户端 TCP 端口。 设置在 silo 启动上 。
         /// </summary>    
         [Id(3)]
         public int ProxyPort { get; set; }
 
         /// <summary>
-        /// The DNS host name of the silo. Equals to Dns.GetHostName(). Set on silo startup.
+        /// DNS silo主机名。 等于 Dns.GetHostName()。 设置在 silo 启动时 。
         /// </summary>
         [Id(4)]
         public string HostName { get; set; } = default!;
 
         /// <summary>
-        /// the name of the specific silo instance within a cluster. 
-        /// If running in Azure - the name of this role instance. Set on silo startup.
+        /// 组合体中具体 silo 实例的名称。 
+        /// 如果在 Azure 运行 - 此角色实例的名称。 设置为 silo 启动 。
         /// </summary>
         [Id(5)]
         public string SiloName { get; set; } = default!;
 
         /// <summary>
-        /// Gets or sets the role name associated with the silo.
+        /// 获取或设置与 silo相关的角色名称。
         /// </summary>
         [Id(6)]
-        public string? RoleName { get; set; } // Optional - only for Azure role
+        public string? RoleName { get; set; } // 仅允许 - 只允许 Azure 角色
 
         /// <summary>
-        /// Gets or sets the silo's update zone.
+        /// 获取或设置 silo更新区域。
         /// </summary>
         [Id(7)]
-        public int UpdateZone { get; set; }  // Optional - only for Azure role
+        public int UpdateZone { get; set; }  // 仅允许 - 只允许 Azure 角色
 
         /// <summary>
-        /// Gets or sets the silo's fault zone.
+        /// 获取或设置 silo的断层区。
         /// </summary>
         [Id(8)]
-        public int FaultZone { get; set; }   // Optional - only for Azure role
+        public int FaultZone { get; set; }   // 仅允许 - 只允许 Azure 角色
 
         /// <summary>
-        /// Time this silo was started. For diagnostics and troubleshooting only.
+        /// 开始此 silo 时间。 只用于诊断和排除故障 。
         /// </summary>
         [Id(9)]
         public DateTime StartTime { get; set; }
 
         /// <summary>
-        /// the last time this silo reported that it is alive. For diagnostics and troubleshooting only.
+        /// 最后一次 silo 报告它还活着。只用于诊断和排除故障。
         /// </summary>
         [Id(10)]
         public DateTime IAmAliveTime { get; set; }
@@ -540,12 +540,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Gets the most recent time at which this entry is known to have been updated. This is the later of
-        /// <see cref="EffectiveIAmAliveTime"/> and the most recent time at which a silo voted to suspect this
-        /// silo (see <see cref="SuspectTimes"/>). Declaring a silo dead records a suspect vote, so this value
-        /// reflects a recent death declaration even when the silo last reported itself alive long ago. It is
-        /// used to retain the most-recently-updated defunct entries when cleaning up the membership table, so
-        /// that recently-declared-dead silos remain visible in membership snapshots.
+        /// 获取已知此条目更新的最新时间。 这是最近
+        /// <see cref="EffectiveIAmAliveTime"/> 和最近的时间 silo 投票怀疑此事
+        /// silo (见 <see cref="SuspectTimes"/>). 宣布一个 silo 死亡记录了可疑投票,所以这个数值
+        /// 最近一次死亡申报表明,即使上次的 silo 报告是很久以前就活着的。
+        /// 用于在清理会籍表时保留最近期更新的已过期条目,所以
+        /// 成员照片中仍然可以看到最近宣布死亡的 silos 。
         /// </summary>
         internal DateTime EffectiveUpdateTime
         {
@@ -569,29 +569,29 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Adds or updates a silo's vote to declare this silo unavailable.
+        /// 添加或更新 silo的投票,宣布该 silo 无法使用。
         /// </summary>
-        /// <param name="localSilo">The silo casting the vote.</param>
-        /// <param name="voteTime">The time at which the vote was cast.</param>
-        /// <param name="maxVotes">The maximum number of votes to retain.</param>
+        /// <param name="localSilo">下 silo 进行表决。</param>
+        /// <param name="voteTime">投票时间。</param>
+        /// <param name="maxVotes">保留票的上限。</param>
         public void AddOrUpdateSuspector(SiloAddress localSilo, DateTime voteTime, int maxVotes)
         {
             var allVotes = SuspectTimes ??= new List<Tuple<SiloAddress, DateTime>>();
 
-            // Find voting place:
-            //      update my vote, if I voted previously
-            //      OR if the list is not full - just add a new vote
-            //      OR overwrite the oldest entry.
+            // 查找投票地点:
+            //      投票之前如果我投票,我投票将更新我的投票结果
+            //      或如果名单不满 -- -- 仅增加一票
+            //      或覆盖最古老的条目。
             int indexToWrite = allVotes.FindIndex(voter => localSilo.Equals(voter.Item1));
             if (indexToWrite == -1)
             {
-                // My vote is not recorded. Find the most outdated vote if the list is full, and overwrite it
-                if (allVotes.Count >= maxVotes) // if the list is full
+                // 找到最过时的选票 如果名单满,并覆盖
+                if (allVotes.Count >= maxVotes) // 如果名单是完整
                 {
-                    // The list is full, so pick the most outdated value to overwrite.
+                    // 列表已满, 请选择最过时的值来覆盖 。
                     DateTime minVoteTime = allVotes.Min(voter => voter.Item2);
 
-                    // Only overwrite an existing vote if the local time is greater than the current minimum vote time.
+                    // 只有在地方时间超过目前最低投票时间时,才能覆盖现有投票。
                     if (voteTime >= minVoteTime)
                     {
                         indexToWrite = allVotes.FindIndex(voter => voter.Item2.Equals(minVoteTime));
@@ -611,10 +611,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Adds a silo's vote to declare this silo unavailable.
+        /// 添加 silo的投票,宣布此 silo 不可用。
         /// </summary>
-        /// <param name="suspectingSilo">The silo casting the vote.</param>
-        /// <param name="suspectingTime">The time at which the vote was cast.</param>
+        /// <param name="suspectingSilo">下 silo 进行表决。</param>
+        /// <param name="suspectingTime">投票时间。</param>
         public void AddSuspector(SiloAddress suspectingSilo, DateTime suspectingTime)
             => (SuspectTimes ??= new()).Add(Tuple.Create(suspectingSilo, suspectingTime));
 
@@ -659,13 +659,13 @@ namespace Orleans
 
             var result = ImmutableList.CreateBuilder<Tuple<SiloAddress, DateTime>>();
 
-            // Find the latest time from the set of suspect times and the local time.
-            // This prevents local clock skew from resulting in a different tally of fresh votes.
+            // 找到从疑犯时间和当地时间中 找到最新的时间
+            // 这使得当地时钟无法造成不同的新票计数。
             var recencyWindowEndTime = Max(now, SuspectTimes);
             foreach (var voter in this.SuspectTimes)
             {
-                // If now is smaller than otherVoterTime, than assume the otherVoterTime is fresh.
-                // This could happen if clocks are not synchronized and the other voter clock is ahead of mine.
+                // 如果现在小于 otherVoterTime,则比假设 otherVoterTime 新鲜。
+                // 如果时钟不同步,而其他选民的时钟比我提前,这种情况就可能发生。
                 var suspectTime = voter.Item2;
                 if (recencyWindowEndTime.Subtract(suspectTime) < expiration)
                 {
@@ -697,9 +697,9 @@ namespace Orleans
             => destination.TryWrite($"SiloAddress={SiloAddress} SiloName={SiloName} Status={Status}", out charsWritten);
 
         /// <summary>
-        /// Returns a detailed string representation of the membership entry.
+        /// 返回成员条目的详细字符串代表。
         /// </summary>
-        /// <returns>A detailed string representation of the membership entry.</returns>
+        /// <returns>成员入会的详细字符串代表。</returns>
         public string ToFullString()
         {
             var suspecters = SuspectTimes == null ? null : Utils.EnumerableToString(SuspectTimes.Select(tuple => tuple.Item1));

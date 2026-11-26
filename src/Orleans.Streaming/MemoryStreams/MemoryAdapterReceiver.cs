@@ -45,7 +45,7 @@ namespace Orleans.Providers
         {
             var watch = Stopwatch.StartNew();
             List<IBatchContainer> batches;
-            Task<List<MemoryMessageData>> task = null!; // Preserves the existing null-in-finally behavior if Dequeue throws synchronously.
+            Task<List<MemoryMessageData>> task = null!; // 如果德奎斯同步投出,则保留现有的最终无效行为。
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();

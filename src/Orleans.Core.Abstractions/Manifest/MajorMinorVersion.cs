@@ -3,16 +3,16 @@ using System;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// Represents a version with two components, a major (most-significant) component, and a minor (least-significant) component.
+    /// 代表一个版本,有两个组成部分:主要(最重大)部分和次要(最微小)部分。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public readonly struct MajorMinorVersion : IComparable<MajorMinorVersion>, IEquatable<MajorMinorVersion>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MajorMinorVersion"/> struct.
+        /// 初始化 <see cref="MajorMinorVersion"/> 结构的新实例。
         /// </summary>
-        /// <param name="majorVersion">The major version component.</param>
-        /// <param name="minorVersion">The minor version component.</param>
+        /// <param name="majorVersion">主版本组件。</param>
+        /// <param name="minorVersion">次要版本组件。</param>
         public MajorMinorVersion(long majorVersion, long minorVersion)
         {
             Major = majorVersion;
@@ -20,23 +20,23 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// Gets the zero value.
+        /// 得到零值。
         /// </summary>
         public static MajorMinorVersion Zero => new(0, 0);
 
         /// <summary>
-        /// Gets the minimum value.
+        /// 获得最低价值。
         /// </summary>
         public static MajorMinorVersion MinValue => new(long.MinValue, long.MinValue);
 
         /// <summary>
-        /// Gets the most significant version component.
+        /// 获得最重要的版本组件。
         /// </summary>
         [Id(0)]
         public long Major { get; }
 
         /// <summary>
-        /// Gets the least significant version component.
+        /// 获得最小的版本组件 。
         /// </summary>
         [Id(1)]
         public long Minor { get; }
@@ -60,13 +60,13 @@ namespace Orleans.Metadata
         public override int GetHashCode() => HashCode.Combine(Major, Minor);
 
         /// <summary>
-        /// Parses a <see cref="MajorMinorVersion"/>.
+        /// 分析 <see cref="MajorMinorVersion"/>。
         /// </summary>
         /// <param name="value">
-        /// The string representation.
+        /// 字符串代表。
         /// </param>
         /// <returns>
-        /// The parsed <see cref="MajorMinorVersion"/> value.
+        /// 分析 <see cref="MajorMinorVersion"/> 值。
         /// </returns>
         public static MajorMinorVersion Parse(string value)
         {
@@ -81,51 +81,51 @@ namespace Orleans.Metadata
         public override string ToString() => $"{Major}.{Minor}";
 
         /// <summary>
-        /// Compares the provided operands for equality.
+        /// 与所提供的平等目标相比较。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
         public static bool operator ==(MajorMinorVersion left, MajorMinorVersion right) => left.Equals(right);
 
         /// <summary>
-        /// Compares the provided operands for inequality.
+        /// 比较所提供的不平等域。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are not equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
         public static bool operator !=(MajorMinorVersion left, MajorMinorVersion right) => !left.Equals(right);
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is greater than or equal to the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 倘若左边的手术功过右的或等量,否则 <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is greater than or equal to the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形操作大于或等于右形操作,否则 <see langword="false"/>。</returns>
         public static bool operator >=(MajorMinorVersion left, MajorMinorVersion right) => left.CompareTo(right) >= 0;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is less than or equal to the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> ,如果左操作小于或等于右操作,否则 <see langword="false"/>。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is less than or equal to the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形操作小于或等于右形操作,否则 <see langword="false"/>。</returns>
         public static bool operator <=(MajorMinorVersion left, MajorMinorVersion right) => left.CompareTo(right) <= 0;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is greater than the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 倘若左边的手术胜过右边的手术,否则 <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is greater than the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左形大于右形,否则 <see langword="false"/>。</returns>
         public static bool operator >(MajorMinorVersion left, MajorMinorVersion right) => left.CompareTo(right) > 0;
 
         /// <summary>
-        /// Compares the provided operands and returns <see langword="true"/> if the left operand is less than the right operand, otherwise <see langword="false"/>.
+        /// 比较所提供的操作和返回 <see langword="true"/> 如果左边的手术功率低于右边的手术功率,那末, <see langword="false"/>.
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the left operand is less than the right operand, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果左边的手术功率低于右边的手术功率,那末, <see langword="false"/>.</returns>
         public static bool operator <(MajorMinorVersion left, MajorMinorVersion right) => left.CompareTo(right) < 0;
     }
 }

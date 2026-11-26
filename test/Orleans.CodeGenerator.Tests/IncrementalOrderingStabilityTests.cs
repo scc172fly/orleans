@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// Characterization tests for order-sensitive incremental source generator stability.
+/// 定序敏感增量源发电机稳定性的特性测试。
 /// </summary>
 public class IncrementalOrderingStabilityTests
 {

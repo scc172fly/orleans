@@ -9,12 +9,12 @@ using Orleans.LeaseProviders;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extension methods for configuring Azure Queue streaming and Azure Blob lease providers on an <see cref="ISiloBuilder"/>.
+    /// 配置 Azure 队列流和 Azure 布罗布租赁供应商在 <see cref="ISiloBuilder"/>上的扩展方法。
     /// </summary>
     public static class SiloBuilderExtensions
     {
         /// <summary>
-        /// Configure silo to use azure queue persistent streams.
+        /// 配置 silo 使用“ 紫色” 队列持久性流。
         /// </summary>
         public static ISiloBuilder AddAzureQueueStreams(this ISiloBuilder builder, string name,
             Action<SiloAzureQueueStreamConfigurator> configure)
@@ -25,7 +25,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure queue persistent streams with default settings
+        /// 配置 silo , 使用默认设置的“ zure” 队列持久性流
         /// </summary>
         public static ISiloBuilder AddAzureQueueStreams(this ISiloBuilder builder, string name, Action<OptionsBuilder<AzureQueueOptions>> configureOptions)
         {
@@ -34,13 +34,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use Azure Queue persistent streams with JSON serialization.
-        /// This feature is experimental and subject to change in future updates.
+        /// 配置 silo 使用 Azure 将 JSON 序列化的持久性流排成队列。
+        /// 这是试验性的,今后更新时会改变。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configure">Configuration delegate for the JSON-enabled Azure Queue stream provider.</param>
-        /// <returns>The silo builder for method chaining.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configure"> JSON- 启用的 Azure 队列流提供者配置代表。</param>
+        /// <returns>下 silo 方法链的建筑工。</returns>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static ISiloBuilder AddAzureQueueJsonStreams(this ISiloBuilder builder, string name,
             Action<SiloAzureQueueJsonStreamConfigurator> configure)
@@ -51,13 +51,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use Azure Queue persistent streams with JSON serialization and default settings.
-        /// This feature is experimental and subject to change in future updates.
+        /// 配置 silo 使用 Azure 将具有 JSON 序列化和默认设置的持久性流排队。
+        /// 这是试验性的,今后更新时会改变。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="configureOptions">Configuration delegate for Azure Queue options.</param>
-        /// <returns>The silo builder for method chaining.</returns>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="configureOptions">配置代表 Azure 队列选项。</param>
+        /// <returns>下 silo 方法链的建筑工。</returns>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static ISiloBuilder AddAzureQueueJsonStreams(this ISiloBuilder builder, string name, Action<OptionsBuilder<AzureQueueOptions>> configureOptions)
         {
@@ -66,7 +66,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure blob lease provider
+        /// 配置 silo 使用 azure blob 租赁供应商
         /// </summary>
         public static ISiloBuilder UseAzureBlobLeaseProvider(this ISiloBuilder builder, Action<OptionsBuilder<AzureBlobLeaseProviderOptions>> configureOptions)
         {
@@ -84,9 +84,9 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configure silo to use azure blob lease provider
+        /// 配置 silo 使用 azure blob 租赁供应商
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="configurator"/> or <paramref name="configureOptions"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="configurator"/> 或 <paramref name="configureOptions"/> 是 <see langword="null"/>。</exception>
         public static void UseAzureBlobLeaseProvider(this ISiloPersistentStreamConfigurator configurator, Action<OptionsBuilder<AzureBlobLeaseProviderOptions>> configureOptions)
         {
             ArgumentNullException.ThrowIfNull(configurator);

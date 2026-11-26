@@ -1,41 +1,55 @@
-# Orleans Dashboard - Separate Host Example
+<a id="orleans-dashboard---separate-host-example"></a>
 
-This example demonstrates how to host the Orleans Dashboard in a separate web application that connects to an Orleans cluster as a client.
+# Orleans 键盘 - 单独主机
 
-## Overview
+本示例显示如何将 Orleans 机头板作为单独的网络应用程序,作为客户连接到 Orleans 组群。
 
-This approach separates the dashboard web service from your silos.
+<a id="overview"></a>
 
-## Key Features
+## 概述
 
-- **Separate Process**: Dashboard web service runs independently from Orleans silos
-- **Client Connection**: Connects to the Orleans cluster as an Orleans client
-- **Standalone Silo**: Includes a separate silo host for demonstration
-- **Test Grains**: Includes test grains to generate activity for the dashboard
+此方法将仪表板网络服务与您的 silos区分开来。
 
-## How It Works
+<a id="key-features"></a>
 
-The example consists of two components:
+## 关键字属性
 
-1. **Silo Host**: A standalone Orleans silo that runs independently
-2. **Dashboard Web App**: A web application that connects as an Orleans client and hosts the dashboard
+- **独立进程**:Dashboard网络服务独立于 Orleans silos
+- **客户连接**:连接到 Orleans 以组为集合 Orleans 客户
+- **独立 Silo**:包括一个单独的 silo 证明东道主
+- **测试 Grains**:包括为仪表板生成活动而举行的测试 grains
 
-## Running the Example
+<a id="how-it-works"></a>
+
+## 如何运作
+
+实例由两个组成部分组成:
+
+1. **Silo 主机**:独立运行的独立 Orleans silo
+2. **达什板网页应用程序**:一个作为 Orleans 客户端连接并主持仪表板的网络应用程序
+
+<a id="running-the-example"></a>
+
+## 运行示例
 
 ```bash
 dotnet run
 ```
 
-The application will:
-1. Start an Orleans silo on ports 11111 (silo) and 30000 (gateway)
-2. Start the dashboard web application
-3. Generate test grain activity automatically
+申请将:
+1. 开始 Orleans silo 11111(港口港口和港口港 11111(silo和30000(起点)
+2. 启动仪表板网络应用程序
+3. 自动生成测试 grain 活动
 
-Once running, open your browser to the default ports (typically https://localhost:5001 or http://localhost:5000).
+一旦运行, 将浏览器打开到默认端口( 通常为 https://localhost:5001 或 http://localhost:5000) 。
 
-## Code Walkthrough
+<a id="code-walkthrough"></a>
 
-### Silo Host
+## 代码走过
+
+<a id="silo-host"></a>
+
+### Silo 主机
 
 ```csharp
 var siloHost = Host.CreateDefaultBuilder(args)
@@ -50,7 +64,9 @@ var siloHost = Host.CreateDefaultBuilder(args)
     .Build();
 ```
 
-### Dashboard Client
+<a id="dashboard-client"></a>
+
+### 仪表板客户
 
 ```csharp
 var dashboardBuilder = WebApplication.CreateBuilder(args);
@@ -74,7 +90,9 @@ await app.RunAsync();
 ```
 
 
-## Architecture
+<a id="architecture"></a>
+
+## 建筑结构架构
 
 ```
 ┌─────────────────┐
@@ -92,9 +110,13 @@ await app.RunAsync();
 └─────────────────┘
 ```
 
-## Customization
+<a id="customization"></a>
 
-### Connect to Remote Cluster
+## 自定义
+
+<a id="connect-to-remote-cluster"></a>
+
+### 连接到远程集
 
 ```csharp
 dashboardBuilder.UseOrleansClient(clientBuilder =>
@@ -109,30 +131,40 @@ dashboardBuilder.UseOrleansClient(clientBuilder =>
 });
 ```
 
-### Custom Route Prefix
+<a id="custom-route-prefix"></a>
+
+### 自定义路由前缀
 
 ```csharp
 app.MapOrleansDashboard(routePrefix: "/dashboard");
 ```
 
-### Add Authentication
+<a id="add-authentication"></a>
+
+### 添加认证
 
 ```csharp
 app.MapOrleansDashboard().RequireAuthorization();
 ```
 
-## Important Notes
+<a id="important-notes"></a>
+
+## 重要注释
 
 > [!WARNING]
-> The Orleans Dashboard is designed for **development and testing scenarios only**. It is not recommended for production deployments as it can have a significant performance impact on your cluster.
+> Orleans 机头板的设计仅用于 **开发和测试情景**。不建议进行生产部署,因为其能对您的组群产生显著性能影响。
 
-## Related Examples
+<a id="related-examples"></a>
 
-- **DashboardCohosted**: Shows how to host the dashboard within a silo
-- **DashboardToy**: Advanced example with .NET Aspire integration
+## 相关实例
 
-## Learn More
+- **DashboardCohosted**:显示如何在 silo内存放仪表板
+- **DashboardToy**:高级示例, .NET 临时整合
 
-- [Orleans Dashboard Documentation](../../../src/Dashboard/Orleans.Dashboard/README.md)
-- [Orleans Client Configuration](https://learn.microsoft.com/dotnet/orleans/host/configuration-guide/client-configuration)
-- [Microsoft Orleans Documentation](https://learn.microsoft.com/dotnet/orleans/)
+<a id="learn-more"></a>
+
+## 学习更多
+
+- [Orleans 机布文档](../../../src/Dashboard/Orleans.Dashboard/README.md)
+- [Orleans 客户端配置](https://learn.microsoft.com/dotnet/orleans/host/configuration-guide/client-configuration)
+- [Microsoft Orleans 文档](https://learn.microsoft.com/dotnet/orleans/)

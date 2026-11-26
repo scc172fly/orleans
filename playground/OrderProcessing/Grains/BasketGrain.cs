@@ -14,8 +14,8 @@ public interface IBasketGrain : IGrainWithStringKey
     Task<Guid?> CheckoutAsync(CheckoutRequest request);
 }
 
-// The buyer's basket. Checkout clears the basket and stages the order submission in one journal write,
-// which replaces eShop's integration event log and its transactional outbox.
+// 买主的篮子 清盘后分期提交订单
+// 替换 eShop的整合事件日志及其交易发件箱。
 public sealed class BasketGrain : DurableGrain, IBasketGrain
 {
     private static readonly TimeSpan CheckoutRetention = TimeSpan.FromDays(7);
@@ -60,9 +60,9 @@ public sealed class BasketGrain : DurableGrain, IBasketGrain
         return _items.Values.ToArray();
     }
 
-    // The request ID becomes the order ID. The basket remembers its checkouts for CheckoutRetention, so a retried
-    // checkout within that period returns the same order, even after later checkouts. A retry writes state first, so
-    // a checkout whose earlier write failed is persisted before its order ID is returned.
+    // 请求的ID 成为命令的ID。 篮子会记住它 CheckoutRetention的结结关, 所以重新审阅
+    // 此期间的结结出返回相同的顺序, 即使后来的结结出也返回同样的顺序。 重试写先状态, 所以
+    // 其早期写作失败的退步在返回命令编号前一直持续。
     public async Task<Guid?> CheckoutAsync(CheckoutRequest request)
     {
         if (_checkouts.ContainsKey(request.RequestId))

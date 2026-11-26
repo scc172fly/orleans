@@ -8,31 +8,31 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// Provides tests for field codecs which serialize value types.
+    /// 提供实地编码测试,将价值类型序列化。
     /// </summary>
-    /// <typeparam name="TField">The value type being serialized.</typeparam>
-    /// <typeparam name="TCodec">The field codec type.</typeparam>
+    /// <typeparam name="TField">正在序列化的价值类型 。</typeparam>
+    /// <typeparam name="TCodec">字段编码类型。</typeparam>
     public abstract class ValueTypeFieldCodecTester<TField, TCodec> : FieldCodecTester<TField, TCodec> where TField : struct where TCodec : class, IFieldCodec<TField>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValueTypeFieldCodecTester{TField, TCodec}"/> class.
+        /// 初始化 <see cref="ValueTypeFieldCodecTester{TField, TCodec}"/> 类的新实例。
         /// </summary>
-        /// <param name="output">The test output helper.</param>
+        /// <param name="output">测试输出助手。</param>
         protected ValueTypeFieldCodecTester(ITestOutputHelper output) : base(output)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValueTypeFieldCodecTester{TField, TCodec}"/> class.
+        /// 初始化 <see cref="ValueTypeFieldCodecTester{TField, TCodec}"/> 类的新实例。
         /// </summary>
-        /// <param name="output">The test output helper.</param>
-        /// <param name="fixture">The fixture which provides the shared serializer service provider.</param>
+        /// <param name="output">测试输出助手。</param>
+        /// <param name="fixture">提供共享序列器服务提供商的固定装置。</param>
         protected ValueTypeFieldCodecTester(ITestOutputHelper output, SerializationTesterFixture fixture) : base(output, fixture)
         {
         }
 
         /// <summary>
-        /// Verifies that each test value can be round-tripped using the registered value serializer.
+        /// 证明每个测试值都可使用注册的序列值转换器进行四舍五入。
         /// </summary>
         [Fact]
         public void ValueSerializerRoundTrip()
@@ -49,7 +49,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Verifies that each test value can be round-tripped using the value serializer provider.
+        /// 证明每种测试值都可以使用价值序列器供应商进行四舍五入。
         /// </summary>
         [Fact]
         public void DirectAccessValueSerializerRoundTrip()

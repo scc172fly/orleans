@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// A utility class that provides serial execution of async functions.
-    /// In can be used inside reentrant grain code to execute some methods in a non-reentrant (serial) way.
+    /// 提供连续执行同步函数的通用类。
+    /// 可在重录代码 grain 内用于以非重录(序列)方式执行某些方法。
     /// </summary>
     /// <typeparam name="TResult">
-    /// The underlying type returned from functions invoked by this executor.
+    /// 根由此执行器引用的函数返回的底型 。
     /// </typeparam>
     public class AsyncSerialExecutor<TResult>
     {
@@ -18,7 +18,7 @@ namespace Orleans
         private readonly InterlockedExchangeLock locker = new InterlockedExchangeLock();
 
         /// <summary>
-        /// A lock which relies on <see cref="Interlocked.Exchange(ref long, long)"/>
+        /// 依赖 <see cref="Interlocked.Exchange(ref long, long)"/>的锁定
         /// </summary>
         private class InterlockedExchangeLock
         {
@@ -27,10 +27,10 @@ namespace Orleans
             private int lockState = Unlocked;
 
             /// <summary>
-            /// Attempts to acquire the lock, returning <see langword="true"/> if the lock was acquired and <see langword="false"/> otherwise.
+            /// 试图获取锁,如果获得锁,则返回 <see langword="true"/> ,否则返回 <see langword="false"/> 。
             /// </summary>
             /// <returns>
-            /// <see langword="true"/> if the lock was acquired and <see langword="false"/> otherwise.
+            /// <see langword="true"/> ,如果锁定是购置的, <see langword="false"/> 以其他方式。
             /// </returns>
             public bool TryGetLock()
             {
@@ -38,7 +38,7 @@ namespace Orleans
             }
 
             /// <summary>
-            /// Releases the lock unconditionally.
+            /// 无条件释放锁。
             /// </summary>
             public void ReleaseLock()
             {
@@ -47,12 +47,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Submit the next function for execution. It will execute after all previously submitted functions have finished, without interleaving their executions.
-        /// Returns a promise that represents the execution of this given function. 
-        /// The returned promise will be resolved when the given function is done executing.
+        /// 提交下一个函数以供执行。它将在以前提交的所有职能完成后执行,而不中断处决。
+        /// 返回代表执行此指定函数的许诺。 
+        /// 返回的保证将在特定职能完成后解决。
         /// </summary>
-        /// <param name="func">The function to schedule for invocation.</param>
-        /// <returns>The result of the scheduled function invocation.</returns>
+        /// <param name="func">用于指定援引的函数。</param>
+        /// <returns>计划函数调用的结果。</returns>
         public Task<TResult> AddNext(Func<Task<TResult>> func)
         {
             var resolver = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -63,9 +63,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// Executes the next scheduled function.
+        /// 执行下个计划函数。
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         private async Task ExecuteNext()
         {
             while (!actions.IsEmpty)
@@ -105,20 +105,20 @@ namespace Orleans
     }
 
     /// <summary>
-    /// A utility class that provides serial execution of async functions.
-    /// In can be used inside reentrant grain code to execute some methods in a non-reentrant (serial) way.
+    /// 提供连续执行同步函数的通用类。
+    /// 可在重录代码 grain 内用于以非重录(序列)方式执行某些方法。
     /// </summary>
     public class AsyncSerialExecutor
     {
         private readonly AsyncSerialExecutor<bool> executor = new AsyncSerialExecutor<bool>();
 
         /// <summary>
-        /// Submits the next function for execution. It will execute after all previously submitted functions have finished, without interleaving their executions.
-        /// Returns a promise that represents the execution of this given function. 
-        /// The returned promise will be resolved when the given function is done executing.
+        /// 提交下一个函数以供执行。它将在以前提交的所有功能完成后执行,而不中断处决。
+        /// 返回代表执行此指定函数的许诺。 
+        /// 返回的保证将在特定职能完成后解决。
         /// </summary>
-        /// <param name="func">The function to schedule for invocation.</param>
-        /// <returns>The result of the scheduled function invocation.</returns>
+        /// <param name="func">用于指定援引的函数。</param>
+        /// <returns>计划函数调用的结果。</returns>
         public Task AddNext(Func<Task> func)
         {
             return this.executor.AddNext(() => Wrap(func));

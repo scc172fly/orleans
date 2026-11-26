@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// Tests for the controllable stream provider adapter, validating echo commands through adapter and factory interfaces.
+    /// 测试可控流供应商适配器,通过适配器和工厂界面验证回声指令。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

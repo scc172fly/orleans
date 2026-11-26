@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>Tests that each durable task diagnostic links to a documented index entry and page with its severity.</summary>
+/// <summary>测试每项持久任务诊断都与有记录的索引条目和页数及其严重程度挂钩。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DiagnosticHelpLinkTests
 {
@@ -29,7 +29,7 @@ public class DiagnosticHelpLinkTests
             Assert.Equal($"https://aka.ms/orleans/diagnostics#{id}", diagnostic.HelpLinkUri);
             Assert.False(string.IsNullOrWhiteSpace(diagnostic.Description.ToString()), $"{diagnostic.Id} has no description.");
 
-            // The help link's anchor is the index heading, whose entry links to the page and states the severity.
+            // 帮助链接的锁定是索引标题,其条目链接到页面并显示严重程度。
             var entry = Regex.Match(index, $@"^## {diagnostic.Id}\r?\n\r?\n\[[^\]]+\]\({id}\.md\) — (?<severity>\w+)\.", RegexOptions.Multiline);
             Assert.True(entry.Success, $"The diagnostics index has no entry for {diagnostic.Id} which links to {id}.md.");
             Assert.Equal(severity, entry.Groups["severity"].Value);

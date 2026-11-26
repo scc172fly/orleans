@@ -21,8 +21,8 @@ namespace Orleans.Runtime
         private readonly MessagingProcessingInstruments _messagingProcessingInstruments;
         private ISiloStatusOracle _siloStatusOracle = null!;
 
-        // Lock striping is used for activation creation to reduce contention
-        private const int LockCount = 32; // Must be a power of 2
+        // 使用锁带条纹来启动创建,以减少争议
+        private const int LockCount = 32; // 一定是2的能量
         private const int LockMask = LockCount - 1;
         private readonly Lock[] _locks = new Lock[LockCount];
 
@@ -45,13 +45,13 @@ namespace Orleans.Runtime
             _catalogInstruments = catalogInstruments;
             _messagingProcessingInstruments = messagingProcessingInstruments;
 
-            // Initialize lock striping array
+            // 初始化锁定条纹阵列
             for (var i = 0; i < LockCount; i++)
             {
                 _locks[i] = new();
             }
 
-            GC.GetTotalMemory(true); // need to call once w/true to ensure false returns OK value
+            GC.GetTotalMemory(true); // 需要拨打一次 w/ true / true 来保证虚假返回
 
             _messagingProcessingInstruments.RegisterActivationDataAllObserve(() =>
             {
@@ -70,10 +70,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gets the lock for a specific grain ID using consistent hashing.
+        /// 使用一致的散列获取指定 grain ID的锁。
         /// </summary>
-        /// <param name="grainId">The grain ID to get the lock for.</param>
-        /// <returns>The lock object for the specified grain ID.</returns>
+        /// <param name="grainId">用于获取锁定的 grain ID。</param>
+        /// <returns>指定 grain ID 的锁定对象。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Lock GetStripedLock(in GrainId grainId)
         {
@@ -83,7 +83,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Unregister message target and stop delivering messages to it
+        /// 取消对信件目标的登记, 停止发送给它的信件
         /// </summary>
         /// <param name="activation"></param>
         public void UnregisterMessageTarget(IGrainContext activation)
@@ -92,14 +92,14 @@ namespace Orleans.Runtime
             {
                 LogTraceUnregisteredActivation(activation);
 
-                // this should be removed once we've refactored the deactivation code path. For now safe to keep.
+                // 一旦我们重新设置了解除代码路径, 便应该删除此选项。 现在安全保存 。
                 activationCollector.TryCancelCollection(activation as ICollectibleGrainContext);
                 _catalogInstruments.OnActivationDestroyed(GetGrainTypeMetricName(activation));
             }
         }
 
         /// <summary>
-        /// FOR TESTING PURPOSES ONLY!!
+        /// 仅试验目的!
         /// </summary>
         /// <param name="grain"></param>
         internal int UnregisterGrainForTesting(GrainId grain)
@@ -112,18 +112,18 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// If activation already exists, return it.
-        /// Otherwise, creates a new activation, begins rehydrating it and activating it, then returns it.
+        /// 如果已经启动, 退回它 。
+        /// 否则,创造新的激活, 开始补水并启动它, 然后返回它。
         /// </summary>
         /// <remarks>
-        /// There is no guarantee about the validity of the activation which is returned.
-        /// Activations are responsible for handling any messages which they receive.
+        /// 无法保证所归还的激活的有效性。
+        /// 活动负责处理收到的任何信息。
         /// </remarks>
-        /// <param name="grainId">The grain identity.</param>
-        /// <param name="requestContextData">Optional request context data.</param>
-        /// <param name="migration">Optional migration state and requests. The returned activation receives the requests through ordinary admission,
-        /// before a new activation begins rehydrating and activating. Admission removes requests from the package.
-        /// If this returns null, the caller retains the requests. Failure disposes requests which were not admitted.</param>
+        /// <param name="grainId"> grain 身份。</param>
+        /// <param name="requestContextData">请求提供任择背景数据。</param>
+        /// <param name="migration">选择性移徙状态和申请。
+        /// 在新激活开始补水和启动之前。 接收会删除软件包中的请求 。
+        /// 如果返回无效, 调用者保留请求。 未处理未被接纳的请求。</param>
         public IGrainContext? GetOrCreateActivation(
             in GrainId grainId,
             Dictionary<string, object>? requestContextData,
@@ -160,7 +160,7 @@ namespace Orleans.Runtime
                         activations.RecordNewTarget(result);
                         created = true;
                     }
-                } // End lock
+                } // 结束锁定
 
                 if (result is null)
                 {
@@ -169,14 +169,14 @@ namespace Orleans.Runtime
 
                 if (!created)
                 {
-                    // Admission can reject a request and synchronously complete a caller, so deliver outside the catalog lock.
+                    // 入境可以拒绝申请,同时完成一个呼叫员的接通,所以在目录锁外交付。
                     ReceiveRequests(result, migration);
                     return result;
                 }
 
                 try
                 {
-                    // Start activation span with parent context from request if available
+                    // 启动激活时, 如果有请求, 启动时间与父上下文的启动间隔
                     var parentContext = requestContextData.TryGetActivityContext();
                     var activationActivity = parentContext.HasValue
                         ? ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.ActivateGrain, ActivityKind.Internal, parentContext.Value)
@@ -197,12 +197,12 @@ namespace Orleans.Runtime
 
                     _catalogInstruments.OnActivationCreated(GetGrainTypeMetricName(result));
 
-                    // Admit requests before rehydration can dispose the context and activation can register in the directory.
+                    // 在再水处理之前,在重新补充之前应接受申请,并可在目录中登记。
                     ReceiveRequests(result, migration);
                 }
                 finally
                 {
-                    // Creation commits us to scheduling activation. These calls transfer work to the context, which owns failures.
+                    // 促使我们承诺要安排启动时间 这些电话转换工作要靠背景来进行,因为环境本身就有故障
                     if (rehydrationContext is not null)
                     {
                         result.Rehydrate(rehydrationContext);
@@ -245,14 +245,14 @@ namespace Orleans.Runtime
                 {
                     foreach (var request in requests)
                     {
-                        // ReceiveMessage takes ownership even if processing the request subsequently fails.
+                        // ReceiveMessage 即使处理请求后失败,也拥有所有权。
                         admitted++;
                         destination.ReceiveMessage(request);
                     }
                 }
                 finally
                 {
-                    // Only the remaining suffix belongs to the package if admission fails partway through it.
+                    // 如果入场失败,只有剩下的后缀属于包件。
                     requests.RemoveRange(0, admitted);
                 }
             }
@@ -260,7 +260,7 @@ namespace Orleans.Runtime
             [MethodImpl(MethodImplOptions.NoInlining)]
             static IGrainContext? UnableToCreateActivation(Catalog self, GrainId grainId)
             {
-                // Did not find and did not start placing new
+                // 未找到, 也没有开始放置新
                 var status = self._siloStatusOracle.CurrentStatus;
                 var isTerminating = status.IsTerminating();
                 if (status is not SiloStatus.Active)
@@ -285,11 +285,11 @@ namespace Orleans.Runtime
                 grainLocator.InvalidateCache(grainId);
                 if (!isTerminating)
                 {
-                    // Unregister the target activation so we don't keep getting spurious messages.
-                    // The time delay (one minute, as of this writing) is to handle the unlikely but possible race where
-                    // this request snuck ahead of another request, with new placement requested, for the same activation.
-                    // If the activation registration request from the new placement somehow sneaks ahead of this deregistration,
-                    // we want to make sure that we don't unregister the activation we just created.
+                    // 解除目标启动的登记 这样我们就不会收到虚假信息
+                    // 时间的延迟(截至本文撰写时为一分钟)是为了处理不可能但可能进行的比赛,因为
+                    // 请求之前,请求启动同一程序,并请求新的位置。
+                    // 如果新安置的启动登记申请 不知怎么地在取消登记之前溜走了
+                    // 我们要确保我们不会解除刚发明的激活
                     var address = new GrainAddress { SiloAddress = self.Silo, GrainId = grainId };
                     _ = self.UnregisterNonExistentActivation(address);
                 }
@@ -319,7 +319,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Try to get runtime data for an activation
+        /// 尝试获取激活运行时间数据
         /// </summary>
         private bool TryGetGrainContext(GrainId grainId, [NotNullWhen(true)] out IGrainContext? data)
         {
@@ -328,9 +328,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Gracefully deactivates activations, waiting for them to complete
-        /// complete and commit outstanding transactions before deleting it.
-        /// To be called not from within Activation context, so can be awaited.
+        /// 优优美的解除引爆装置,等待它们完成
+        /// 完成并进行未结交易,然后删除。
+        /// 不得在启动范围内被召唤,因此可以等待。
         /// </summary>
         internal async Task DeactivateActivations(DeactivationReason reason, List<IGrainContext> list, CancellationToken cancellationToken)
         {
@@ -355,11 +355,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Deactivates every activation in the catalog and waits for their deactivation to complete.
+        /// 解除目录中每个激活的功能,等待其失效完成。
         /// </summary>
         /// <remarks>
-        /// An activation leaves the catalog in the final, synchronous step of its deactivation, unless it is abandoned as stuck,
-        /// so this also waits for deactivations which were already underway, including the migration of their queued requests.
+        /// 激活使目录处于最后同步的解除步骤,除非被弃置为卡住,
+        /// 等待已经启动的拆除,包括他们排队申请的迁移。
         /// </remarks>
         public async Task DeactivateAllActivations(CancellationToken cancellationToken)
         {
@@ -397,7 +397,7 @@ namespace Orleans.Runtime
                 if (TryGetGrainContext(activationAddress.GrainId, out var grainContext)
                     && grainContext.Address.Equals(activationAddress))
                 {
-                    // Deactivate synchronously makes the exact loser unroutable; teardown and deregistration continue asynchronously.
+                    // 停止活动同步使失败者无法通行;拆卸和取消登记继续无休止地进行。
                     grainContext.Deactivate(deactivationReason, CancellationToken.None);
                 }
             }
@@ -407,7 +407,7 @@ namespace Orleans.Runtime
 
         void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
         {
-            // Do nothing, just ensure that this instance is created so that it can register itself in the activation directory.
+            // 什么都不做, 只要确保创建此实例, 这样它就可以在激活目录中注册 。
             _siloStatusOracle = serviceProvider.GetRequiredService<ISiloStatusOracle>();
         }
 

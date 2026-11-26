@@ -44,7 +44,7 @@ public sealed class ClusteringTestKitDiagnosticsTests
     [Fact]
     public void CreateFailure_DoesNotIncludeConnectionSecrets()
     {
-        // No backend/options/connection object is accepted by the formatter.
+        // 格式化的事项不接受后端/选项/ 连接对象 。
         var failure = ClusteringTestKitDiagnostics.CreateFailure("Provider", "G01", "safe-cluster", "A1", 3, "HostName mismatch");
         Assert.Contains("safe-cluster", failure.Message);
         Assert.DoesNotContain("ConnectionString", failure.Message);

@@ -19,13 +19,13 @@ using Orleans.Serialization.Invocation;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// Hand-written fakes used exclusively by <c>DurableTaskGrainRuntimeTests</c>.
-/// Kept in a separate file from <c>TestFakes.cs</c> to avoid concurrent-edit conflicts with other test authors.
+/// 专门为 <c>DurableTaskGrainRuntimeTests</c>使用的手写假冒。
+/// 存放在与 <c>TestFakes.cs</c> 分开的文件中,以避免与其他测试作者同时编辑冲突。
 /// </summary>
 
 /// <summary>
-/// A recording fake for the internal <see cref="IDurableTaskMessageTransport"/> interface. Records every call so that
-/// tests can assert on the exact arguments passed by <see cref="Orleans.Durable.Tasks.Runtime.DurableTaskGrainRuntime"/>.
+/// 内部 <see cref="IDurableTaskMessageTransport"/> 接口的录音假。记录每通电话,以便
+/// 测试可以根据 <see cref="Orleans.Durable.Tasks.Runtime.DurableTaskGrainRuntime"/>通过的确切参数进行主张。
 /// </summary>
 internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTaskMessageTransport
 {
@@ -64,9 +64,9 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
     }
 
     /// <summary>
-    /// Creates an invocation with the transport's identity and a payload which identifies its request by method, so a
-    /// test request without a codec can be sent, and invocations of one method under one identity coalesce whatever their
-    /// arguments, as the runtime coalesces them.
+    /// 创建带有运输身份的援引和有效载荷,该有效载荷按方法确定其请求,因此
+    /// 无需编码器的测试请求可以发送,在一种身份下使用一种方法可合并
+    /// 参数,就像运行时间连接它们一样。
     /// </summary>
     private OutboxMessage CreateInvocationMessage(
         GrainId sender,
@@ -83,10 +83,10 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
     public OutboxMessage CreateInvocation(MessageId messageId, GrainId target, byte[] payload) =>
         Encoder.CreateInvocation(messageId, target, payload);
 
-    /// <summary>Gets the IDs of the invocations which the runtime staged by reference, in order.</summary>
+    /// <summary>获取运行时间参照所进行工作的时间的编号。</summary>
     public List<MessageId> SentInvocations { get; } = [];
 
-    /// <summary>Gets the ID of the invocation of <paramref name="taskId"/> which <paramref name="sender"/> sends to <paramref name="target"/>.</summary>
+    /// <summary>获得援引 <paramref name="taskId"/> 减去 <paramref name="sender"/> 发送到 <paramref name="target"/>.</summary>
     public MessageId GetInvocationMessageId(GrainId sender, GrainId target, TaskId taskId, TaskId? subscriberId) =>
         DurableTaskMessageTransport.CreateMessageId(
             sender,
@@ -124,7 +124,7 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
         DurableTaskResponse response) =>
         Encoder.CreateCompletionMessage(messageId, sender, destination, taskId, response);
 
-    /// <summary>Encodes messages as the adapter's transport does, without staging them.</summary>
+    /// <summary>将信息编码为适配器的传输方式,而不进行中转。</summary>
     private static readonly DurableTaskMessageTransport Encoder = MessagingTestHelpers.CreateTransport(new RecordingOutbox());
 
     public void SendCancellation(GrainId sender, GrainId target, TaskId taskId, string? reason = null)
@@ -151,10 +151,10 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
     }
 }
 
-/// <summary>A completion the runtime sent as a reference to its stored result, to the task <see cref="SubscriberId"/> of <see cref="Target"/>.</summary>
+/// <summary>完成运行时间, 发送时是参照其存储结果、 任务 <see cref="SubscriberId"/> 联 年 月 日 月 日 月 月 日 <see cref="Target"/>.</summary>
 internal sealed record RecordedCompletion(GrainId Sender, GrainId Target, TaskId TaskId, MessageId MessageId, TaskId SubscriberId)
 {
-    /// <summary>Materializes the completion from the runtime, as the outbox does for a delivery attempt.</summary>
+    /// <summary>使完成时间从运行时开始成为物质,就像发送尝试的发件箱那样。</summary>
     public DurableTaskCompletionMessage Materialize(DurableTaskGrainRuntime runtime)
     {
         Xunit.Assert.True(((IOutboxMessageSource)runtime).TryGetMessage(MessageId, out var message));
@@ -165,14 +165,14 @@ internal sealed record RecordedCompletion(GrainId Sender, GrainId Target, TaskId
 }
 
 /// <summary>
-/// A hand-written, real (non-mocked) implementation of <see cref="IDurableTaskRequest"/>.
+/// 手写、实际(不装)执行 <see cref="IDurableTaskRequest"/>.
 /// </summary>
 /// <remarks>
-/// A dynamic-proxy mock (e.g. NSubstitute's <c>Substitute.For&lt;IDurableTaskRequest&gt;()</c>) cannot be copied by a real
-/// Orleans <see cref="DeepCopier{T}"/>: Orleans' codec provider throws <c>CodecNotFoundException</c> for
-/// dynamic proxy types it has never seen (confirmed empirically). A plain hand-written class paired with the trivial
-/// <see cref="RuntimeTestDurableTaskRequestCopier"/> below avoids that problem entirely while still letting tests fully control
-/// and observe request behavior.
+/// 动态代理模拟( )e.g. 替代人 <c>Substitute.For&lt;IDurableTaskRequest&gt;()</c>)无法被真实的复制
+/// Orleans <see cref="DeepCopier{T}"/>: Orleans代码提供者扔 <c>CodecNotFoundException</c> 用于
+/// 普通手写类和小的组合
+/// <see cref="RuntimeTestDurableTaskRequestCopier"/> 完全避免了这个问题,同时仍然让测试完全控制
+/// 并遵守要求的行为。
 /// </remarks>
 internal class RuntimeTestDurableTaskRequest(
     Func<DurableTask>? createTask = null,
@@ -229,15 +229,15 @@ internal class RuntimeTestDurableTaskRequest(
 }
 
 /// <summary>
-/// A <see cref="RuntimeTestDurableTaskRequest"/> for another interface method: the runtime identifies a request's method by
-/// its invokable type, as it does for the invokables which the code generator emits once per method.
+/// 用于另一种接口方法的 <see cref="RuntimeTestDurableTaskRequest"/> :运行时间用
+/// 其可解释的类型, 就像它对于代码生成器按方法发出一次的可解释的可解释性。
 /// </summary>
 internal sealed class RuntimeTestOtherMethodRequest(Func<DurableTask>? createTask = null, params object?[] arguments)
     : RuntimeTestDurableTaskRequest(createTask, "ITestGrain", "OtherMethod", arguments);
 
 /// <summary>
-/// Trivial reference-preserving copier for <see cref="RuntimeTestDurableTaskRequest"/>, registered so that a real Orleans
-/// <see cref="DeepCopier{T}"/> can copy values which reference a <see cref="RuntimeTestDurableTaskRequest"/>.
+/// 用于 <see cref="RuntimeTestDurableTaskRequest"/>的三维参考保存复印机,已注册,以便有一个真实的 Orleans
+/// <see cref="DeepCopier{T}"/> 能够复制引用 <see cref="RuntimeTestDurableTaskRequest"/>的值。
 /// </summary>
 [RegisterCopier]
 internal sealed class RuntimeTestDurableTaskRequestCopier : IDeepCopier<RuntimeTestDurableTaskRequest>
@@ -246,9 +246,9 @@ internal sealed class RuntimeTestDurableTaskRequestCopier : IDeepCopier<RuntimeT
 }
 
 /// <summary>
-/// A hand-written <see cref="DurableTask"/> which also implements <see cref="ISchedulableTask"/>, allowing tests to fully
-/// control the "schedulable task" branch of <c>DurableTaskGrainRuntime.ScheduleChildAsync</c> without depending on ambient
-/// <see cref="DurableTaskContext.CurrentContext"/> state (unlike, e.g., <c>DurableTask.Delay</c>).
+/// 手写 <see cref="DurableTask"/> ,它也执行 <see cref="ISchedulableTask"/>,允许测试完全
+/// 控制“可排任务”的分支 <c>DurableTaskGrainRuntime.ScheduleChildAsync</c> 无需取决于环境
+/// <see cref="DurableTaskContext.CurrentContext"/> 状态(与 e.g不同., <c>DurableTask.Delay</c>)。
 /// </summary>
 internal sealed class TestSchedulableTask(
     Func<TaskId, CancellationToken, ValueTask<DurableTaskResponse>> scheduleAsync,

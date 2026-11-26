@@ -3,17 +3,17 @@ using System.Threading;
 namespace Orleans.Runtime.Internal;
 
 /// <summary>
-/// Suppresses the flow of <see cref="ExecutionContext"/> until it is disposed.
+/// 禁止 <see cref="ExecutionContext"/> 流动,直至处置为止。
 /// </summary>
 /// <remarks>
-/// Note that this is a ref-struct to avoid it being used in an async method.
+/// 请注意,这是避免在合成方法中使用的再加工装置。
 /// </remarks>
 public ref struct ExecutionContextSuppressor
 {
     private readonly bool _restoreFlow;
 
     /// <summary>
-    /// Initializes a new <see cref="ExecutionContextSuppressor"/> instance.
+    /// 初始化一个新的 <see cref="ExecutionContextSuppressor"/> 实例。
     /// </summary>
     public ExecutionContextSuppressor()
     {
@@ -29,7 +29,7 @@ public ref struct ExecutionContextSuppressor
     }
 
     /// <summary>
-    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// 执行与释放、释放或重新设置未管理的资源有关的应用程序界定的任务。
     /// </summary>
     public readonly void Dispose()
     {

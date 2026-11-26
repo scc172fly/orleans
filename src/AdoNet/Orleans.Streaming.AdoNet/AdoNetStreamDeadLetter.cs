@@ -1,7 +1,7 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// The model that represents a dead letter in an ADONET streaming provider.
+/// 代表ADONET流源提供商的一纸空文
 /// </summary>
 internal record AdoNetStreamDeadLetter(
     string ServiceId,

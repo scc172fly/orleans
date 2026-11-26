@@ -5,8 +5,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// Verifies that a replay which departs from its record stalls its attempt with
-/// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>, and the attempt rules which the abstraction owns.
+/// 证明,重播其记录与纪录不符的一幕使它的努力停滞不前
+/// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>以及抽象主义拥有的尝试规则
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -31,7 +31,7 @@ public class DurableTaskDivergenceTests
                 }
                 catch (InvalidOperationException)
                 {
-                    // A divergence isn't a failure which the body can handle.
+                    // 分裂不是身体能处理的失败
                 }
             }),
             context);
@@ -72,8 +72,8 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task CompletedWaitIsReadOnce()
     {
-        // A host can return a ValueTask backed by a pooled source, which reports another operation's result, or throws,
-        // when it is read twice.
+        // 东道方可以返回一个 ValueTask ,并由一个集合源支持,该来源报告另一业务的结果或抛出;
+        // 当它被读取两次时。
         var context = new ScriptedContext { SingleUseResult = DurableTaskResponse.FromResult(7) };
 
         var response = await DurableTaskRuntimeHelper.RunAsync(DurableTask.Run(async _ => await DurableTask.Run(static _ => 0)), context);
@@ -90,7 +90,7 @@ public class DurableTaskDivergenceTests
             DurableTask.WhenAll([DurableTask.Run(static _ => 1), DurableTask.Run(static _ => 2), DurableTask.Run(static _ => 3)]),
             context);
 
-        // Every input which started is terminal before the start failure, the first in input order, fails the combinator.
+        // 启动的每个输入都是启动失败前的终端, 第一个输入顺序中的第一个, 无法完成组合。
         Assert.Equal("start 1", Assert.IsType<InvalidOperationException>(response.Exception).Message);
         Assert.Equal(["root/$when-all-1/0", "root/$when-all-1/2"], context.Canceled.Select(static id => id.ToString()).Order(StringComparer.Ordinal));
         Assert.All(context.Handles.Values, static handle => Assert.True(handle.IsTerminal));
@@ -114,7 +114,7 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task HandleWaitEndsWhenTheAttemptIsCanceled()
     {
-        // The abstraction links the attempt's cancellation into every handle wait, so a host need not link it itself.
+        // 抽象将取消尝试与每次等待的手柄联系起来, 所以宿主不需要将其本身连接起来。
         var context = new ScriptedContext { PendingStarts = true };
 
         var running = DurableTaskRuntimeHelper.RunAsync(
@@ -134,8 +134,8 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task ChildStartEndsWhenTheAttemptIsCanceled()
     {
-        // The abstraction links the attempt's cancellation into every child start, so an awaited child whose start the
-        // host holds pending ends with the attempt, as its wait does.
+        // 抽象的将取消尝试的企图与每个孩子开始的时间联系起来,所以一个等待期儿童开始
+        // 等候时, 主机会像等待一样,尝试搁置待决的结束。
         var context = new ScriptedContext { HeldStarts = true };
 
         var running = DurableTaskRuntimeHelper.RunAsync(
@@ -152,7 +152,7 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task ChildStartReportsTheCallersCancellation()
     {
-        // The caller's token abandons a pending start, and the start reports that token while the attempt continues.
+        // 启动报告在尝试继续时也具有象征意义。
         var context = new ScriptedContext { HeldStarts = true };
         using var caller = new CancellationTokenSource();
         OperationCanceledException? observed = null;
@@ -184,7 +184,7 @@ public class DurableTaskDivergenceTests
         Assert.True(context.AttemptCancellationToken.IsCancellationRequested);
     }
 
-    /// <summary>A host whose children, selections, and results each test scripts.</summary>
+    /// <summary>宿主的孩子们,选择和结果 每个测试脚本。</summary>
     private sealed class ScriptedContext() : DurableTaskContext(RootId)
     {
         public TaskId? Selection { get; init; }
@@ -249,7 +249,7 @@ public class DurableTaskDivergenceTests
 
         public void OnCanceled(TaskId taskId) => Canceled.Add(taskId);
 
-        /// <summary>Holds a start until the token which the abstraction gave the host is canceled.</summary>
+        /// <summary>一直保持一个开始, 直到抽象给主机的符号被取消。</summary>
         private static async ValueTask<IScheduledTaskHandle> HoldAsync(CancellationToken cancellationToken)
         {
             await Task.Delay(Timeout.Infinite, cancellationToken);
@@ -288,7 +288,7 @@ public class DurableTaskDivergenceTests
         }
     }
 
-    /// <summary>A completed source which, like a pooled one, can be read once.</summary>
+    /// <summary>完整的源,就像集合的源一样,可以读一次。</summary>
     private sealed class SingleUseSource(DurableTaskResponse response) : IValueTaskSource<DurableTaskResponse>
     {
         private int _reads;

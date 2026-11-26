@@ -66,10 +66,10 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
     }
 
     /// <summary>
-    /// Adds a task to this activation.
-    /// If we're adding it to the run list and we used to be waiting, now we're runnable.
+    /// 添加任务到此激活 。
+    /// 如果我们把它加到运行名单里 我们过去总是等着 现在我们可以逃命了
     /// </summary>
-    /// <param name="task">The work item to add.</param>
+    /// <param name="task">要添加的工作项目。</param>
     public void EnqueueTask(Task task)
     {
 #if DEBUG
@@ -122,7 +122,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
     }
 
     /// <summary>
-    /// For debugger purposes only.
+    /// 只用于调试器目的 。
     /// </summary>
     internal IEnumerable<Task> GetScheduledTasks()
     {
@@ -132,9 +132,9 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
         }
     }
 
-    // Execute one or more turns for this activation.
-    // This method is always called in a single-threaded environment -- that is, no more than one
-    // thread will be in this method at once -- but other async threads may still be queueing tasks, etc.
+    // 执行一个或多个旋转键进行此激活 。
+    // 这种方法总是在一个单行环境中使用,也就是说,不超过一个
+    // 将同时使用此方法 -- -- 但其他的同步线索仍可能是排队任务等。
     public void Execute()
     {
         RuntimeContext.SetExecutionContext(GrainContext, out var originalContext);
@@ -143,7 +143,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
         try
         {
 
-            // Process multiple items -- drain the queue (up to max items) for this activation
+            // 处理多个项目 -- -- 排出此激活所需的队列( 最多到最大项)
             long loopStart, taskStart, taskEnd;
             loopStart = taskStart = taskEnd = Environment.TickCount64;
             do
@@ -153,7 +153,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
                 {
                     _state = WorkGroupStatus.Running;
 
-                    // Get the first Work Item on the list
+                    // 获取列表中的第一个工作项目
                     if (_workItems.Count > 0)
                     {
                         _currentTask = task = _workItems.Dequeue();
@@ -161,7 +161,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
                     }
                     else
                     {
-                        // If the list is empty, then we're done
+                        // 如果清单是空的,那我们就完了
                         break;
                     }
                 }
@@ -196,9 +196,9 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
         }
         finally
         {
-            // Now we're not Running anymore.
-            // If we left work items on our run list, we're Runnable, and need to go back on the silo run queue;
-            // If our run list is empty, then we're waiting.
+            // 现在我们不再逃亡了
+            // 如果我们把工作项目留在运行列表中, 我们是可以运行的, 需要回到 silo 运行队列;
+            // 如果我们的竞选名单是空的,那么我们就等着
             lock (_lockObj)
             {
                 if (_workItems.Count > 0)

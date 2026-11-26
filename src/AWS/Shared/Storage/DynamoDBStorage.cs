@@ -24,11 +24,11 @@ namespace Orleans.AWSUtils.Tests
 #elif TRANSACTIONS_DYNAMODB
 namespace Orleans.Transactions.DynamoDB
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// Wrapper around AWS DynamoDB SDK.
+    /// 环绕AWS DynamoDB SDK。
     /// </summary>
 #if TRANSACTIONS_DYNAMODB
     public partial class DynamoDBStorage
@@ -39,17 +39,17 @@ namespace Orleans.Transactions.DynamoDB
         private readonly string? _accessKey;
         private readonly string? _token;
         private readonly string? _profileName;
-        /// <summary> Secret key for this dynamoDB table </summary>
+        /// <summary> 此表 dynamoDB 的密钥 </summary>
         protected string? secretKey;
         private readonly string _service;
 
         /// <summary>
-        /// The default number of read capacity units for provisioned DynamoDB tables.
+        /// 提供 DynamoDB 表格的默认读能力单位数。
         /// </summary>
         public const int DefaultReadCapacityUnits = 10;
 
         /// <summary>
-        /// The default number of write capacity units for provisioned DynamoDB tables.
+        /// 提供 DynamoDB 表格的默认写能力单位数。
         /// </summary>
         public const int DefaultWriteCapacityUnits = 5;
         private readonly ProvisionedThroughput? _provisionedThroughput;
@@ -64,7 +64,7 @@ namespace Orleans.Transactions.DynamoDB
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Create a DynamoDBStorage instance
+        /// 创建 DynamoDBStorage 实例
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="accessKey"></param>
@@ -107,14 +107,14 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Create a DynamoDB table if it doesn't exist
+        /// 如果不存在 DynamoDB 表格, 创建该表
         /// </summary>
-        /// <param name="tableName">The name of the table</param>
-        /// <param name="keys">The keys definitions</param>
-        /// <param name="attributes">The attributes used on the key definition</param>
-        /// <param name="secondaryIndexes">(optional) The secondary index definitions</param>
-        /// <param name="ttlAttributeName">(optional) The name of the item attribute that indicates the item TTL (if null, ttl won't be enabled)</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="tableName">表格的名称</param>
+        /// <param name="keys">关键定义</param>
+        /// <param name="attributes">关键定义</param>所用属性
+        /// <param name="secondaryIndexes">(可选择)次级指数定义</param>
+        /// <param name="ttlAttributeName">(可选择的)项目属性的名称,该属性表示项目TTL(如果无效,ttl将不启用)</param>
+        /// <param name="cancellationToken">取消牌。</param>
         /// <returns></returns>
         [SuppressMessage("Design", "CA1002:Do not expose generic lists",
             Justification = "Retains the shipped signature and AWS SDK List<KeySchemaElement>, List<AttributeDefinition>, and List<GlobalSecondaryIndex> request contracts.")]
@@ -254,7 +254,7 @@ namespace Orleans.Transactions.DynamoDB
                 }
                 catch (ResourceInUseException)
                 {
-                    // The table has already been created.
+                    // 表格已经创建 。
                 }
 
                 TableDescription tableDescription = await TableWaitOnStatusAsync(tableName, TableStatus.CREATING, TableStatus.ACTIVE, cancellationToken: cancellationToken);
@@ -310,9 +310,9 @@ namespace Orleans.Transactions.DynamoDB
 
             try
             {
-                if ((request.ProvisionedThroughput?.ReadCapacityUnits ?? 0) != tableDescription.ProvisionedThroughput?.ReadCapacityUnits        // PROVISIONED Throughput read capacity change
-                    || (request.ProvisionedThroughput?.WriteCapacityUnits ?? 0) != tableDescription.ProvisionedThroughput?.WriteCapacityUnits   // PROVISIONED Throughput write capacity change
-                    || (tableDescription.ProvisionedThroughput?.ReadCapacityUnits != 0 && tableDescription.ProvisionedThroughput?.WriteCapacityUnits != 0 && this._useProvisionedThroughput == false /* from PROVISIONED to PAY_PER_REQUEST */))
+                if ((request.ProvisionedThroughput?.ReadCapacityUnits ?? 0) != tableDescription.ProvisionedThroughput?.ReadCapacityUnits        // 能力变化
+                    || (request.ProvisionedThroughput?.WriteCapacityUnits ?? 0) != tableDescription.ProvisionedThroughput?.WriteCapacityUnits   // 设计投入书写能力变化
+                    || (tableDescription.ProvisionedThroughput?.ReadCapacityUnits != 0 && tableDescription.ProvisionedThroughput?.WriteCapacityUnits != 0 && this._useProvisionedThroughput == false /* 至支付款 */))
                 {
                     await _ddbClient.UpdateTableAsync(request, cancellationToken);
                     tableDescription = await TableWaitOnStatusAsync(tableDescription.TableName, TableStatus.UPDATING, TableStatus.ACTIVE, cancellationToken: cancellationToken);
@@ -320,9 +320,9 @@ namespace Orleans.Transactions.DynamoDB
 
                 tableDescription = await TableUpdateTtlAsync(tableDescription, ttlAttributeName, cancellationToken);
 
-                // Wait for all table indexes to become ACTIVE.
-                // We can only have one GSI in CREATING state at one time.
-                // We also wait for all indexes to finish UPDATING as the table is not ready to receive queries from Orleans until all indexes are created.
+                // 等待所有表格指数成为主动。
+                // 我们只能同时有一个在 侵蚀状态的GSI
+                // 我们还等待所有索引完成更新,因为在所有索引建立之前,表格无法接收 Orleans 的查询。
                 List<GlobalSecondaryIndexDescription>? globalSecondaryIndexes = tableDescription.GlobalSecondaryIndexes;
                 if (globalSecondaryIndexes != null)
                 {
@@ -376,12 +376,12 @@ namespace Orleans.Transactions.DynamoDB
                 AttributeDefinitions = attributes
             }, cancellationToken);
 
-            // Adding a GSI to a table is an eventually consistent operation and we might miss the table UPDATING status if we query the table status imediatelly after the table update call.
-            // Creating a GSI takes significantly longer than 1 second and therefore this delay does not add time to the total duration of this method.
+            // 将GSI添加到表格中,最终是一种一致的操作,如果我们在表格更新电话之后即时查询表格状态,我们可能会错过表格更新状态。
+            // 建立GSI需要的时间大大超过1秒,因此这一拖延不会增加这种方法总持续时间。
             await Task.Delay(1000, cancellationToken);
 
-            // When adding a GSI, the table briefly changes its status to UPDATING. The GSI creation process usually takes longer.
-            // For this reason, we will wait for both the table and the index to become ACTIVE before marking the operation as complete.
+            // 在添加 GSI 时,表格简单将其状态改为更新。 GIS 创建过程通常需要更长的时间。
+            // 因此,我们将等待表格和索引成为主动的指数,然后将行动标记为完整。
             await TableWaitOnStatusAsync(tableName, TableStatus.UPDATING, TableStatus.ACTIVE, cancellationToken: cancellationToken);
             await TableIndexWaitOnStatusAsync(tableName, secondaryIndex.IndexName, IndexStatus.CREATING, IndexStatus.ACTIVE, cancellationToken: cancellationToken);
         }
@@ -390,11 +390,11 @@ namespace Orleans.Transactions.DynamoDB
         {
             var describeTimeToLive = (await _ddbClient.DescribeTimeToLiveAsync(tableDescription.TableName, cancellationToken)).TimeToLiveDescription;
 
-            // We can only handle updates to the table TTL from DISABLED to ENABLED.
-            // This is because updating the TTL attribute requires (1) disabling the table TTL and (2) re-enabling it with the new TTL attribute.
-            // As per the below details page for this API: "It can take up to one hour for the change to fully process. Any additional UpdateTimeToLive calls for the same table during this one hour duration result in a ValidationException."
+            // 我们只能处理从无法满足到适应的TTL更新。
+            // 这是因为更新TTL属性需要(1) 使表TTL失效,(2) 用新的TTL属性重新启用。
+            // 依此 API的以下详细页:“更改可以花一个小时才能完全处理。在此一小时期间,任何额外的 UpdateTimeToLive 要求在同一张表格中填写,结果产生 ValidationException”。
             // https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateTimeToLive.html
-            // However if the TTL is already set on the correct attribute, the attribute value is updated every time a record is written, thus the configuration is already correct and warning doesn't need to be logged.
+            // 但是如果TTL已经设置在正确的属性上,则每次写入记录时都会更新属性值,因此配置已经正确,无需登录警告。
             if (describeTimeToLive.TimeToLiveStatus != TimeToLiveStatus.DISABLED && describeTimeToLive.AttributeName != ttlAttributeName)
             {
                 LogWarningTtlNotDisabled(_logger, tableDescription.TableName);
@@ -418,9 +418,9 @@ namespace Orleans.Transactions.DynamoDB
             }
             catch (AmazonDynamoDBException ddbEx)
             {
-                // We need to swallow this exception as there is no API exposed to determine if the below issue will occur before calling UpdateTimeToLive(Async)
-                // "Time to live has been modified multiple times within a fixed interval".
-                // We can arrive at this situation if the TTL feature was recently disabled on the target table.
+                // 我们需要吞下这一例外,因为没有 API 接触以确定在调用 UpdateTimeToLive(Async)之前是否将出现以下问题
+                // "在固定间隔内,生命时间被多次修改"
+                // 如果目标表格上最近有TTL功能被禁用,我们就可以得出这种情况。
                 LogErrorUpdateTtlException(_logger, ddbEx, tableDescription.TableName, ttlAttributeName);
                 return tableDescription;
             }
@@ -473,9 +473,9 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Delete a table from DynamoDB
+        /// 删除 DynamoDB中的表格
         /// </summary>
-        /// <param name="tableName">The name of the table to delete</param>
+        /// <param name="tableName">删除表格的名称</param>
         /// <returns></returns>
         public Task DeleTableAsync(string tableName)
         {
@@ -491,22 +491,22 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Create or Replace an entry in a DynamoDB Table
+        /// 创建或替换 DynamoDB 表格中的条目
         /// </summary>
-        /// <param name="tableName">The name of the table to put an entry</param>
-        /// <param name="fields">The fields/attributes to add or replace in the table</param>
-        /// <param name="conditionExpression">Optional conditional expression</param>
-        /// <param name="conditionValues">Optional field/attribute values used in the conditional expression</param>
+        /// <param name="tableName">用于输入条目的表格名称</param>
+        /// <param name="fields">表格中添加或替换的字段/属性</param>
+        /// <param name="conditionExpression">选择性有条件表达式</param>
+        /// <param name="conditionValues">有条件表达式</param>中使用的任择字段/属性值
         /// <returns></returns>
         public Task PutEntryAsync(string tableName, Dictionary<string, AttributeValue> fields, string conditionExpression = "", Dictionary<string, AttributeValue>? conditionValues = null)
             => PutEntryAsync(tableName, fields, CancellationToken.None, conditionExpression, conditionValues);
 
-        /// <summary>Creates or replaces an entry using the supplied cancellation token.</summary>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="fields">The fields to write.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="conditionExpression">The optional conditional expression.</param>
-        /// <param name="conditionValues">The conditional expression values.</param>
+        /// <summary>使用所提供取消的标记创建或替换条目。</summary>
+        /// <param name="tableName">表格名称。</param>
+        /// <param name="fields">要写入的字段。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="conditionExpression">任择条件表达式。</param>
+        /// <param name="conditionValues">条件表达式值。</param>
         public Task PutEntryAsync(string tableName, Dictionary<string, AttributeValue> fields, CancellationToken cancellationToken, string conditionExpression = "", Dictionary<string, AttributeValue>? conditionValues = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -531,31 +531,31 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Create or update an entry in a DynamoDB Table
+        /// 在 DynamoDB 表格中创建或更新条目
         /// </summary>
-        /// <param name="tableName">The name of the table to upsert an entry</param>
-        /// <param name="keys">The table entry keys for the entry</param>
-        /// <param name="fields">The fields/attributes to add or updated in the table</param>
-        /// <param name="conditionExpression">Optional conditional expression</param>
-        /// <param name="conditionValues">Optional field/attribute values used in the conditional expression</param>
-        /// <param name="extraExpression">Additional expression that will be added in the end of the upsert expression</param>
-        /// <param name="extraExpressionValues">Additional field/attribute that will be used in the extraExpression</param>
-        /// <remarks>The fields dictionary item values will be updated with the values returned from DynamoDB</remarks>
+        /// <param name="tableName">上调条目的表格名称</param>
+        /// <param name="keys">条目的表格条目键</param>
+        /// <param name="fields">表格中要添加或更新的字段/属性</param>
+        /// <param name="conditionExpression">选择性有条件表达式</param>
+        /// <param name="conditionValues">有条件表达式</param>中使用的任择字段/属性值
+        /// <param name="extraExpression">上升标准表达式结尾处添加的额外表达式</param>
+        /// <param name="extraExpressionValues">用于 extraExpression</param>
+        /// <remarks>字段字典项目值将更新,并使用从 DynamoDB</remarks>返回的数值
         /// <returns></returns>
         public Task UpsertEntryAsync(string tableName, Dictionary<string, AttributeValue> keys, Dictionary<string, AttributeValue> fields,
             string conditionExpression = "", Dictionary<string, AttributeValue>? conditionValues = null, string extraExpression = "",
             Dictionary<string, AttributeValue>? extraExpressionValues = null)
             => UpsertEntryAsync(tableName, keys, fields, CancellationToken.None, conditionExpression, conditionValues, extraExpression, extraExpressionValues);
 
-        /// <summary>Creates or updates an entry using the supplied cancellation token.</summary>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="keys">The entry keys.</param>
-        /// <param name="fields">The fields to write, updated with values returned by DynamoDB.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="conditionExpression">The optional conditional expression.</param>
-        /// <param name="conditionValues">The conditional expression values.</param>
-        /// <param name="extraExpression">The additional update expression.</param>
-        /// <param name="extraExpressionValues">The additional expression values.</param>
+        /// <summary>使用已提供的取消符创建或更新条目。</summary>
+        /// <param name="tableName">表格名称。</param>
+        /// <param name="keys">条目键。</param>
+        /// <param name="fields">需要写入的字段,以 DynamoDB返回的数值更新。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="conditionExpression">任择条件表达式。</param>
+        /// <param name="conditionValues">条件表达式值。</param>
+        /// <param name="extraExpression">附加更新表达式。</param>
+        /// <param name="extraExpressionValues">附加表达式值。</param>
         public async Task UpsertEntryAsync(string tableName, Dictionary<string, AttributeValue> keys, Dictionary<string, AttributeValue> fields,
             CancellationToken cancellationToken, string conditionExpression = "", Dictionary<string, AttributeValue>? conditionValues = null,
             string extraExpression = "", Dictionary<string, AttributeValue>? extraExpressionValues = null)
@@ -600,13 +600,13 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Creates a DynamoDB update expression and its expression attribute values.
+        /// 创建 DynamoDB 更新表达式及其表达式属性值。
         /// </summary>
-        /// <param name="fields">The attributes to assign in the update expression.</param>
-        /// <param name="conditionValues">The values referenced by the condition expression.</param>
-        /// <param name="extraExpression">An additional update expression appended after the attribute assignments.</param>
-        /// <param name="extraExpressionValues">The values referenced by <paramref name="extraExpression"/>.</param>
-        /// <returns>The update expression and all expression attribute values used by the update and condition expressions.</returns>
+        /// <param name="fields">更新表达式中指定属性。</param>
+        /// <param name="conditionValues">条件表达式引用的值。</param>
+        /// <param name="extraExpression">属性分配后附加的另外一个更新表达式。</param>
+        /// <param name="extraExpressionValues">引用的数值 <paramref name="extraExpression"/>.</param>
+        /// <returns>更新表达式和所有表达式属性值,用于更新和条件表达式。</returns>
         public (string updateExpression, Dictionary<string, AttributeValue> expressionAttributeValues)
             ConvertUpdate(Dictionary<string, AttributeValue> fields,
                 Dictionary<string, AttributeValue>? conditionValues = null,
@@ -657,12 +657,12 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Delete an entry from a DynamoDB table
+        /// 删除 DynamoDB 表格中的条目
         /// </summary>
-        /// <param name="tableName">The name of the table to delete an entry</param>
-        /// <param name="keys">The table entry keys for the entry to be deleted</param>
-        /// <param name="conditionExpression">Optional conditional expression</param>
-        /// <param name="conditionValues">Optional field/attribute values used in the conditional expression</param>
+        /// <param name="tableName">删除条目的表格名称</param>
+        /// <param name="keys">删除条目的表格项键</param>
+        /// <param name="conditionExpression">选择性有条件表达式</param>
+        /// <param name="conditionValues">有条件表达式</param>中使用的任择字段/属性值
         /// <returns></returns>
         public Task DeleteEntryAsync(string tableName, Dictionary<string, AttributeValue> keys, string conditionExpression = "", Dictionary<string, AttributeValue>? conditionValues = null)
             => DeleteEntryAsync(tableName, keys, CancellationToken.None, conditionExpression, conditionValues);
@@ -697,18 +697,18 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Delete multiple entries from a DynamoDB table (Batch delete)
+        /// 删除 DynamoDB 表格中的多个条目(批次删除)
         /// </summary>
-        /// <param name="tableName">The name of the table to delete entries</param>
-        /// <param name="toDelete">List of key values for each entry that must be deleted in the batch</param>
+        /// <param name="tableName">删除条目的表格名称</param>
+        /// <param name="toDelete">批批中必须删除的每个条目的关键值列表</param>
         /// <returns></returns>
         public Task DeleteEntriesAsync(string tableName, IReadOnlyCollection<Dictionary<string, AttributeValue>> toDelete)
             => DeleteEntriesAsync(tableName, toDelete, CancellationToken.None);
 
-        /// <summary>Deletes a batch of entries using the supplied cancellation token.</summary>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="toDelete">The keys of the entries to delete.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <summary>使用已提供的取消符号删除一批条目。</summary>
+        /// <param name="tableName">表格名称。</param>
+        /// <param name="toDelete">要删除条目的密钥。</param>
+        /// <param name="cancellationToken">取消牌。</param>
         public async Task DeleteEntriesAsync(string tableName, IReadOnlyCollection<Dictionary<string, AttributeValue>> toDelete, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -748,24 +748,24 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Read an entry from a DynamoDB table
+        /// 从 DynamoDB 表格中读取条目
         /// </summary>
-        /// <typeparam name="TResult">The result type</typeparam>
-        /// <param name="tableName">The name of the table to search for the entry</param>
-        /// <param name="keys">The table entry keys to search for</param>
-        /// <param name="resolver">Function that will be called to translate the returned fields into a concrete type. This Function is only called if the result is != null</param>
-        /// <returns>The object translated by the resolver function</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="TResult">结果类型</typeparam>
+        /// <param name="tableName">查找条目的表格名称</param>
+        /// <param name="keys">搜索</param>的表格条目键
+        /// <param name="resolver">函数将被调用,将返回的字段转换为具体类型。此函数仅在结果为 != null</param>时才被调用。
+        /// <returns>由解析函数翻译的对象</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> 是 <see langword="null"/>.</exception>
         public Task<TResult?> ReadSingleEntryAsync<TResult>(string tableName, Dictionary<string, AttributeValue> keys, Func<Dictionary<string, AttributeValue>, TResult> resolver) where TResult : class
             => ReadSingleEntryAsync(tableName, keys, resolver, CancellationToken.None);
 
-        /// <summary>Reads an entry using the supplied cancellation token.</summary>
-        /// <typeparam name="TResult">The result type.</typeparam>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="keys">The entry keys.</param>
-        /// <param name="resolver">Converts the returned fields to the result.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> is <see langword="null"/>.</exception>
+        /// <summary>使用已提供的取消符读取条目。</summary>
+        /// <typeparam name="TResult">结果类型。</typeparam>
+        /// <param name="tableName">表格名称。</param>
+        /// <param name="keys">条目键。</param>
+        /// <param name="resolver">将返回的字段转换为结果。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> 是 <see langword="null"/>.</exception>
         public async Task<TResult?> ReadSingleEntryAsync<TResult>(string tableName, Dictionary<string, AttributeValue> keys, Func<Dictionary<string, AttributeValue>, TResult> resolver, CancellationToken cancellationToken) where TResult : class
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -799,34 +799,34 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Query for multiple entries in a DynamoDB table by filtering its keys
+        /// 通过过滤其密钥查询 DynamoDB 表格中多个条目
         /// </summary>
-        /// <typeparam name="TResult">The result type</typeparam>
-        /// <param name="tableName">The name of the table to search for the entries</param>
-        /// <param name="keys">The table entry keys to search for</param>
-        /// <param name="keyConditionExpression">the expression that will filter the keys</param>
-        /// <param name="resolver">Function that will be called to translate the returned fields into a concrete type. This Function is only called if the result is != null and will be called for each entry that match the query and added to the results list</param>
-        /// <param name="indexName">In case a secondary index is used in the keyConditionExpression</param>
-        /// <param name="scanIndexForward">In case an index is used, show if the seek order is ascending (true) or descending (false)</param>
-        /// <param name="lastEvaluatedKey">The primary key of the first item that this operation will evaluate. Use the value that was returned for LastEvaluatedKey in the previous operation</param>
-        /// <param name="consistentRead">Determines the read consistency model. Note that if a GSI is used, this must be false.</param>
-        /// <returns>The collection containing a list of objects translated by the resolver function and the LastEvaluatedKey for paged results</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="TResult">结果类型</typeparam>
+        /// <param name="tableName">查找条目的表格名称</param>
+        /// <param name="keys">搜索</param>的表格条目键
+        /// <param name="keyConditionExpression">将过滤密钥的表达式</param>
+        /// <param name="resolver">函数将被调用,将返回的字段转换成具体类型。此函数仅在结果为 != null时才被调用,并且每个条目都将被调用,因为每一个条目与查询匹配并添加到结果列表</param>
+        /// <param name="indexName">使用二级指数的 keyConditionExpression</param>
+        /// <param name="scanIndexForward">如果使用索引,请显示请求令是升(正)升(正)还是降(假)</param>
+        /// <param name="lastEvaluatedKey">此操作将评价的第一个项目的主要键。 使用上次操作中返回的 LastEvaluatedKey 数值</param>
+        /// <param name="consistentRead">确定读取一致性模式。请注意,如果使用 GSII, 则该模型必须是假的。</param>
+        /// <returns>收藏品,其中列有由解析器函数翻译的对象和按页标结果的 LastEvaluatedKey 的</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> 是 <see langword="null"/>.</exception>
         public Task<(List<TResult> results, Dictionary<string, AttributeValue>? lastEvaluatedKey)> QueryAsync<TResult>(string tableName, Dictionary<string, AttributeValue> keys, string keyConditionExpression, Func<Dictionary<string, AttributeValue>, TResult> resolver, string indexName = "", bool scanIndexForward = true, Dictionary<string, AttributeValue>? lastEvaluatedKey = null, bool consistentRead = true) where TResult : class
             => QueryAsync(tableName, keys, keyConditionExpression, resolver, CancellationToken.None, indexName, scanIndexForward, lastEvaluatedKey, consistentRead);
 
-        /// <summary>Queries a page of entries using the supplied cancellation token.</summary>
-        /// <typeparam name="TResult">The result type.</typeparam>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="keys">The key condition values.</param>
-        /// <param name="keyConditionExpression">The expression filtering the keys.</param>
-        /// <param name="resolver">Converts each entry to the result type.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="indexName">The optional secondary index name.</param>
-        /// <param name="scanIndexForward">Whether the index is read in ascending order.</param>
-        /// <param name="lastEvaluatedKey">The previous page's continuation key.</param>
-        /// <param name="consistentRead">Whether reads must be strongly consistent.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> is <see langword="null"/>.</exception>
+        /// <summary>使用所提供取消的符号查询条目的页面。</summary>
+        /// <typeparam name="TResult">结果类型。</typeparam>
+        /// <param name="tableName">表格名称。</param>
+        /// <param name="keys">关键条件值。</param>
+        /// <param name="keyConditionExpression">键的表达式过滤。</param>
+        /// <param name="resolver">将每个条目转换为结果类型。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="indexName">选用的次要索引名称。</param>
+        /// <param name="scanIndexForward">索引是否按升序阅读。</param>
+        /// <param name="lastEvaluatedKey">上页的续页密钥 。</param>
+        /// <param name="consistentRead">读作必须严格一致。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> 是 <see langword="null"/>.</exception>
         public async Task<(List<TResult> results, Dictionary<string, AttributeValue>? lastEvaluatedKey)> QueryAsync<TResult>(string tableName, Dictionary<string, AttributeValue> keys, string keyConditionExpression, Func<Dictionary<string, AttributeValue>, TResult> resolver, CancellationToken cancellationToken, string indexName = "", bool scanIndexForward = true, Dictionary<string, AttributeValue>? lastEvaluatedKey = null, bool consistentRead = true) where TResult : class
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -871,34 +871,34 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Query for multiple entries in a DynamoDB table by filtering its keys
+        /// 通过过滤其密钥查询 DynamoDB 表格中多个条目
         /// </summary>
-        /// <typeparam name="TResult">The result type</typeparam>
-        /// <param name="tableName">The name of the table to search for the entries</param>
-        /// <param name="keys">The table entry keys to search for</param>
-        /// <param name="keyConditionExpression">the expression that will filter the keys</param>
-        /// <param name="resolver">Function that will be called to translate the returned fields into a concrete type. This Function is only called if the result is != null and will be called for each entry that match the query and added to the results list</param>
-        /// <param name="indexName">In case a secondary index is used in the keyConditionExpression</param>
-        /// <param name="scanIndexForward">In case an index is used, show if the seek order is ascending (true) or descending (false)</param>
-        /// <param name="consistentRead">Determines the read consistency model. Note that if a GSI is used, this must be false.</param>
-        /// <returns>The collection containing a list of objects translated by the resolver function</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="TResult">结果类型</typeparam>
+        /// <param name="tableName">查找条目的表格名称</param>
+        /// <param name="keys">搜索</param>的表格条目键
+        /// <param name="keyConditionExpression">将过滤密钥的表达式</param>
+        /// <param name="resolver">函数将被调用,将返回的字段转换成具体类型。此函数仅在结果为 != null时才被调用,并且每个条目都将被调用,因为每一个条目与查询匹配并添加到结果列表</param>
+        /// <param name="indexName">使用二级指数的 keyConditionExpression</param>
+        /// <param name="scanIndexForward">如果使用索引,请显示请求令是升(正)升(正)还是降(假)</param>
+        /// <param name="consistentRead">确定读取一致性模式。请注意,如果使用 GSII, 则该模型必须是假的。</param>
+        /// <returns>收藏含有由分辨率函数翻译的物体列表</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> 是 <see langword="null"/>.</exception>
         public Task<List<TResult>> QueryAllAsync<TResult>(string tableName, Dictionary<string, AttributeValue> keys,
                 string keyConditionExpression, Func<Dictionary<string, AttributeValue>, TResult> resolver,
                 string indexName = "", bool scanIndexForward = true, bool consistentRead = true) where TResult : class
             => QueryAllAsync(tableName, keys, keyConditionExpression, resolver, CancellationToken.None, indexName, scanIndexForward, consistentRead);
 
-        /// <summary>Queries all matching entries using the supplied cancellation token.</summary>
-        /// <typeparam name="TResult">The result type.</typeparam>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="keys">The key condition values.</param>
-        /// <param name="keyConditionExpression">The expression filtering the keys.</param>
-        /// <param name="resolver">Converts each entry to the result type.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="indexName">The optional secondary index name.</param>
-        /// <param name="scanIndexForward">Whether the index is read in ascending order.</param>
-        /// <param name="consistentRead">Whether reads must be strongly consistent.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> is <see langword="null"/>.</exception>
+        /// <summary>使用已提供的取消符号查询所有匹配条目。</summary>
+        /// <typeparam name="TResult">结果类型。</typeparam>
+        /// <param name="tableName">表格名称。</param>
+        /// <param name="keys">关键条件值。</param>
+        /// <param name="keyConditionExpression">键的表达式过滤。</param>
+        /// <param name="resolver">将每个条目转换为结果类型。</param>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="indexName">选用的次要索引名称。</param>
+        /// <param name="scanIndexForward">索引是否按升序阅读。</param>
+        /// <param name="consistentRead">读作必须严格一致。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> 是 <see langword="null"/>.</exception>
         public async Task<List<TResult>> QueryAllAsync<TResult>(string tableName, Dictionary<string, AttributeValue> keys,
                 string keyConditionExpression, Func<Dictionary<string, AttributeValue>, TResult> resolver,
                 CancellationToken cancellationToken, string indexName = "", bool scanIndexForward = true, bool consistentRead = true) where TResult : class
@@ -925,15 +925,15 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Scan a DynamoDB table by querying the entry fields.
+        /// 通过查询条目字段扫描 DynamoDB 表格。
         /// </summary>
-        /// <typeparam name="TResult">The result type</typeparam>
-        /// <param name="tableName">The name of the table to search for the entries</param>
-        /// <param name="attributes">The attributes used on the expression</param>
-        /// <param name="expression">The filter expression</param>
-        /// <param name="resolver">Function that will be called to translate the returned fields into a concrete type. This Function is only called if the result is != null and will be called for each entry that match the query and added to the results list</param>
-        /// <returns>The collection containing a list of objects translated by the resolver function</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> is <see langword="null"/>.</exception>
+        /// <typeparam name="TResult">结果类型</typeparam>
+        /// <param name="tableName">查找条目的表格名称</param>
+        /// <param name="attributes">表达式</param>上使用的属性
+        /// <param name="expression">过滤表达式</param>
+        /// <param name="resolver">函数将被调用,将返回的字段转换成具体类型。此函数仅在结果为 != null时才被调用,并且每个条目都将被调用,因为每一个条目与查询匹配并添加到结果列表</param>
+        /// <returns>收藏含有由分辨率函数翻译的物体列表</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="resolver"/> 是 <see langword="null"/>.</exception>
         public Task<List<TResult>> ScanAsync<TResult>(string tableName, Dictionary<string, AttributeValue> attributes, string expression, Func<Dictionary<string, AttributeValue>, TResult> resolver) where TResult : class =>
             ScanAsync(tableName, attributes, expression, resolver, CancellationToken.None);
 
@@ -942,10 +942,10 @@ namespace Orleans.Transactions.DynamoDB
             cancellationToken.ThrowIfCancellationRequested();
             ArgumentNullException.ThrowIfNull(resolver);
 
-            // From the Amazon documentation:
-            // "A single Scan operation will read up to the maximum number of items set
-            // (if using the Limit parameter) or a maximum of 1 MB of data and then apply
-            // any filtering to the results using FilterExpression."
+            // 亚马逊文件:
+            // 一次扫描操作将读取最多数量的项目
+            // (如果使用限制参数)或数据的最大值为1MB,然后应用
+            // 使用 FilterExpression过滤结果。”
             // https://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/DynamoDBv2/MDynamoDBScanAsyncStringDictionary!String,%20Condition!CancellationToken.html
 
             try
@@ -1004,10 +1004,10 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Crete or replace multiple entries in a DynamoDB table (Batch put)
+        /// 切换或替换 DynamoDB 表格中的多个条目(批次放)
         /// </summary>
-        /// <param name="tableName">The name of the table to search for the entry</param>
-        /// <param name="toCreate">List of key values for each entry that must be created or replaced in the batch</param>
+        /// <param name="tableName">查找条目的表格名称</param>
+        /// <param name="toCreate">批量中必须创建或替换的每一条目的关键值列表</param>
         /// <returns></returns>
         public Task PutEntriesAsync(string tableName, IReadOnlyCollection<Dictionary<string, AttributeValue>> toCreate)
         {
@@ -1042,22 +1042,22 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Transactionally reads entries from a DynamoDB table
+        /// 交易读取 DynamoDB 表格中的条目
         /// </summary>
-        /// <typeparam name="TResult">The result type</typeparam>
-        /// <param name="tableName">The name of the table to search for the entry</param>
-        /// <param name="keys">The table entry keys to search for</param>
-        /// <param name="resolver">Function that will be called to translate the returned fields into a concrete type. This Function is only called if the result is != null</param>
-        /// <returns>The object translated by the resolver function</returns>
+        /// <typeparam name="TResult">结果类型</typeparam>
+        /// <param name="tableName">查找条目的表格名称</param>
+        /// <param name="keys">搜索</param>的表格条目键
+        /// <param name="resolver">函数将被调用,将返回的字段转换为具体类型。此函数仅在结果为 != null</param>时才被调用。
+        /// <returns>由解析函数翻译的对象</returns>
         public Task<IEnumerable<TResult>> GetEntriesTxAsync<TResult>(string tableName, IEnumerable<Dictionary<string, AttributeValue>> keys, Func<Dictionary<string, AttributeValue>, TResult> resolver) where TResult : class
             => GetEntriesTxAsync(tableName, keys, resolver, CancellationToken.None);
 
-        /// <summary>Transactionally reads entries using the supplied cancellation token.</summary>
-        /// <typeparam name="TResult">The result type.</typeparam>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="keys">The keys of the entries to read.</param>
-        /// <param name="resolver">Converts each entry to the result type.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <summary>使用已提供的取消符号对条目进行交易读取。</summary>
+        /// <typeparam name="TResult">结果类型。</typeparam>
+        /// <param name="tableName">表格名称。</param>
+        /// <param name="keys">条目要读取的密钥。</param>
+        /// <param name="resolver">将每个条目转换为结果类型。</param>
+        /// <param name="cancellationToken">取消牌。</param>
         public async Task<IEnumerable<TResult>> GetEntriesTxAsync<TResult>(string tableName, IEnumerable<Dictionary<string, AttributeValue>> keys, Func<Dictionary<string, AttributeValue>, TResult> resolver, CancellationToken cancellationToken) where TResult : class
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -1087,22 +1087,22 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Transactionally performs write requests
+        /// 交易执行写书请求
         /// </summary>
-        /// <param name="puts">Any puts to be performed</param>
-        /// <param name="updates">Any updated to be performed</param>
-        /// <param name="deletes">Any deletes to be performed</param>
-        /// <param name="conditionChecks">Any condition checks to be performed</param>
+        /// <param name="puts">任何要执行的定额</param>
+        /// <param name="updates">任何更新待执行</param>
+        /// <param name="deletes">任何要执行的删除</param>
+        /// <param name="conditionChecks">任何需要进行的条件检查</param>
         /// <returns></returns>
         public Task WriteTxAsync(IEnumerable<Put>? puts = null, IEnumerable<Update>? updates = null, IEnumerable<Delete>? deletes = null, IEnumerable<ConditionCheck>? conditionChecks = null)
             => WriteTxAsync(CancellationToken.None, puts, updates, deletes, conditionChecks);
 
-        /// <summary>Transactionally writes entries using the supplied cancellation token.</summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <param name="puts">The entries to put.</param>
-        /// <param name="updates">The updates to perform.</param>
-        /// <param name="deletes">The deletes to perform.</param>
-        /// <param name="conditionChecks">The conditions to check.</param>
+        /// <summary>使用提供的取消符号进行交易性写入条目。</summary>
+        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="puts">要放置的条目。</param>
+        /// <param name="updates">要执行的更新。</param>
+        /// <param name="deletes">删除要执行的删除。</param>
+        /// <param name="conditionChecks">检查的条件。</param>
         public Task WriteTxAsync(CancellationToken cancellationToken, IEnumerable<Put>? puts = null, IEnumerable<Update>? updates = null, IEnumerable<Delete>? deletes = null, IEnumerable<ConditionCheck>? conditionChecks = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -1141,9 +1141,9 @@ namespace Orleans.Transactions.DynamoDB
         }
 
         /// <summary>
-        /// Transactionally performs write requests
+        /// 交易执行写书请求
         /// </summary>
-        /// <param name="transactItems">Transact write items to be performed</param>
+        /// <param name="transactItems">要执行的笔记交易项</param>
         /// <returns></returns>
         [SuppressMessage("Design", "CA1002:Do not expose generic lists",
             Justification = "Retains the shipped List<TransactWriteItem> signature and passes the AWS SDK request collection unchanged.")]

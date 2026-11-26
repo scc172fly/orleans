@@ -13,17 +13,17 @@ using Tester.ZooKeeperUtils;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// Tests for operation of Orleans SiloInstanceManager using ZookeeperStore - Requires access to external Zookeeper storage
+    /// 试验试验的试验 Orleans SiloInstanceManager 使用 ZookeeperStore - 需要进入外部动物园管理员仓库
     /// 
-    /// Apache ZooKeeper provides a hierarchical namespace for distributed coordination.
-    /// Orleans uses ZooKeeper for:
-    /// - Distributed membership management using znodes (ZooKeeper nodes)
-    /// - Leader election and distributed consensus
-    /// - Ephemeral nodes for automatic cleanup on silo failure
-    /// - Watch notifications for membership changes
+    /// Apache ZooKeeper 提供了一个用于分布式协调的等级命名空间。
+    /// Orleans 使用 ZooKeeper 用于:
+    /// - 使用znodes(ZooKeeper 节点)分配成员管理
+    /// - 领导人选举和散发协商一致
+    /// - silo 故障时自动清理的短节点
+    /// - 监督成员变更通知
     /// 
-    /// These tests verify the ZooKeeper-based membership provider handles all
-    /// membership operations correctly, including node failures and network partitions.
+    /// 这些测试核查 ZooKeeper- 以会员为基础的提供商处理所有事务
+    /// 正确加入操作, 包括节点故障和网络分割 。
     /// </summary>
     [TestCategory("Membership"), TestCategory("ZooKeeper")]
     [TestSuite("Functional")]
@@ -44,9 +44,9 @@ namespace UnitTests.MembershipTests
         }
 
         /// <summary>
-        /// Creates a ZooKeeper-based membership table for testing.
-        /// Configures the ZooKeeper connection and creates the membership
-        /// table that uses ZooKeeper's hierarchical namespace for storage.
+        /// 创建用于测试的 ZooKeeper- 基于成员表。
+        /// 配置 ZooKeeper 连接并创建成员
+        /// 表格使用 ZooKeeper的等级名称空间存储。
         /// </summary>
         protected override IMembershipTable CreateMembershipTable(ILogger logger)
             => CreateMembershipTable(logger, _clusterOptions);
@@ -81,9 +81,9 @@ namespace UnitTests.MembershipTests
         }
 
         /// <summary>
-        /// Creates a ZooKeeper-based gateway list provider.
-        /// This provider uses ZooKeeper watches to maintain an up-to-date
-        /// list of available gateways for client connections.
+        /// 创建基于 ZooKeeper- 的网关列表提供者。
+        /// 此提供者使用 ZooKeeper 手表来保持更新
+        /// 列表中列出客户端连接的现有网关。
         /// </summary>
         protected override IGatewayListProvider CreateGatewayListProvider(ILogger logger)
         {
@@ -116,9 +116,9 @@ namespace UnitTests.MembershipTests
         }
 
         /// <summary>
-        /// Tests inserting a silo entry as a ZooKeeper znode.
-        /// Verifies that the membership data is correctly serialized
-        /// and stored in ZooKeeper's hierarchical structure.
+        /// 测试将 silo 条目插入为 ZooKeeper znode。
+        /// 证明成员数据已正确按序号排列
+        /// 并储存在 ZooKeeper的等级结构中。
         /// </summary>
         [Fact]
         public async Task MembershipTable_ZooKeeper_InsertRow()
@@ -145,9 +145,9 @@ namespace UnitTests.MembershipTests
         }
 
         /// <summary>
-        /// Tests concurrent updates using ZooKeeper's versioning.
-        /// Verifies that ZooKeeper's optimistic concurrency control
-        /// correctly handles simultaneous updates from multiple silos.
+        /// 使用 ZooKeeper的版本测试同时更新。
+        /// 证明 ZooKeeper的乐观同货币控制
+        /// 正确处理多个 silos的同步更新。
         /// </summary>
         [Fact]
         public async Task MembershipTable_ZooKeeper_UpdateRowInParallel()
@@ -156,9 +156,9 @@ namespace UnitTests.MembershipTests
         }
 
         /// <summary>
-        /// Tests heartbeat updates using ZooKeeper.
-        /// Verifies that ephemeral nodes and session timeouts
-        /// work correctly for detecting failed silos.
+        /// 使用 ZooKeeper测试心跳更新。
+        /// 证明短节点和会话超时
+        /// 正确检测失败 silos。
         /// </summary>
         [Fact]
         public async Task MembershipTable_ZooKeeper_UpdateIAmAlive()

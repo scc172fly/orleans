@@ -26,7 +26,7 @@ namespace UnitTests.Grains
     }
 
     /// <summary>
-    /// Grain implementation for testing IAsyncEnumerable activity tracing.
+    /// Grain 测试应用 IAsyncEnumerable 活动追踪。
     /// </summary>
     public class AsyncEnumerableActivityGrain : Grain, IAsyncEnumerableActivityGrain
     {
@@ -48,7 +48,7 @@ namespace UnitTests.Grains
 
                 yield return data;
 
-                // Small delay to allow for proper activity propagation
+                // 进行小规模拖延,以便适当开展宣传活动
                 await Task.Yield();
             }
         }

@@ -14,7 +14,7 @@ using Xunit;
 namespace Tester.HeterogeneousSilosTests
 {
     /// <summary>
-    /// Tests for heterogeneous silo configurations including grain type exclusion and type resolution merging.
+    /// 异式 silo 配置测试,包括 grain 类型排除和类型分辨率合并。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -50,7 +50,7 @@ namespace Tester.HeterogeneousSilosTests
                     {
                         var cfg = hostBuilder.GetConfiguration();
 
-                        // The blocklist is only intended for the primary silo in these tests.
+                        // 块状清单仅用于这些试验中初级 silo 。
                         if (string.Equals(siloOptions.Value.SiloName, Silo.PrimarySiloName, StringComparison.Ordinal))
                         {
                             var typeNames = cfg["BlockedGrainTypes"]!.Split('|').ToList();
@@ -87,11 +87,11 @@ namespace Tester.HeterogeneousSilosTests
         {
             SetupAndDeployCluster(typeof(RandomPlacement), typeof(TestGrain));
 
-            // Should fail
+            // 未能实现
             var exception = Assert.Throws<ArgumentException>(() => this.cluster!.GrainFactory!.GetGrain<ITestGrain>(0));
             Assert.Contains("Could not find an implementation for interface", exception.Message);
 
-            // Should not fail
+            // 不应失败
             this.cluster!.GrainFactory!.GetGrain<ISimpleGrainWithAsyncMethods>(0);
         }
 
@@ -101,7 +101,7 @@ namespace Tester.HeterogeneousSilosTests
         {
             await MergeGrainResolverTestsImpl<ITestGrain>(typeof(RandomPlacement), true, this.CallITestGrainMethod, typeof(TestGrain));
             await MergeGrainResolverTestsImpl<ITestGrain>(typeof(PreferLocalPlacement), true, this.CallITestGrainMethod, typeof(TestGrain));
-            // TODO Check ActivationCountBasedPlacement in tests
+            // 测试中的待办 检查 ActivationCountBasedPlacement
             //await MergeGrainResolverTestsImpl("ActivationCountBasedPlacement", typeof(TestGrain));
         }
 
@@ -110,7 +110,7 @@ namespace Tester.HeterogeneousSilosTests
         {
             await MergeGrainResolverTestsImpl<ITestGrain>(typeof(RandomPlacement), false, this.CallITestGrainMethod, typeof(TestGrain));
             await MergeGrainResolverTestsImpl<ITestGrain>(typeof(PreferLocalPlacement), false, this.CallITestGrainMethod, typeof(TestGrain));
-            // TODO Check ActivationCountBasedPlacement in tests
+            // 测试中的待办 检查 ActivationCountBasedPlacement
             //await MergeGrainResolverTestsImpl("ActivationCountBasedPlacement", typeof(TestGrain));
         }
 
@@ -181,26 +181,26 @@ namespace Tester.HeterogeneousSilosTests
         {
             SetupAndDeployCluster(defaultPlacementStrategy, blackListedTypes);
 
-            // Should fail
+            // 未能实现
             var exception = Assert.Throws<ArgumentException>(() => this.cluster!.GrainFactory!.GetGrain<T>(0));
             Assert.Contains("Could not find an implementation for interface", exception.Message);
 
-            // Start a new silo with TestGrain
+            // 开始新 silo 与 TestGrain
             await cluster!.StartAdditionalSiloAsync();
             await WaitForClusterStateToStabilizeAsync(restartClient);
 
             for (var i = 0; i < 5; i++)
             {
-                // Success
+                // 成功成功
                 var g = this.cluster.GrainFactory!.GetGrain<T>(i);
                 await func(g);
             }
 
-            // Stop the latest silos
+            // 停止最近的 silos
             await cluster.StopSecondarySilosAsync();
             await WaitForClusterStateToStabilizeAsync(restartClient);
 
-            // Should fail
+            // 未能实现
             exception = Assert.Throws<ArgumentException>(() => this.cluster.GrainFactory!.GetGrain<T>(0));
             Assert.Contains("Could not find an implementation for interface", exception.Message);
         }

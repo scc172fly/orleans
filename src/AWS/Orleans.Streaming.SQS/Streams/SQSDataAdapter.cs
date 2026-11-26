@@ -8,7 +8,7 @@ using SQSMessage = Amazon.SQS.Model.Message;
 namespace Orleans.Streaming.SQS.Streams;
 
 /// <summary>
-/// Default SQS Stream data adapter.  Users may subclass to override event data to stream mapping.
+/// 默认 SQS 流数据适配器。 用户可以将事件数据覆盖为流图的子类 。
 /// </summary>
 
 public class SQSDataAdapter : ISQSDataAdapter
@@ -16,20 +16,20 @@ public class SQSDataAdapter : ISQSDataAdapter
     private readonly Serialization.Serializer serializer;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SQSDataAdapter"/> class.
+    /// 初始化 <see cref="SQSDataAdapter"/> 类的新实例。
     /// </summary>
-    /// <param name="serializer">The serializer used to serialize and deserialize stream batches.</param>
+    /// <param name="serializer">用于串行和分批清除流体的序列器。</param>
     public SQSDataAdapter(Serialization.Serializer serializer)
     {
         this.serializer = serializer;
     }
 
     /// <summary>
-    /// Converts an SQS message to an Orleans stream batch.
+    /// 将 SQS 消息转换为 Orleans 串流批量。
     /// </summary>
-    /// <param name="sqsMessage">The SQS message to convert.</param>
-    /// <param name="sequenceId">The locally assigned sequence number for the stream batch.</param>
-    /// <returns>The stream batch represented by <paramref name="sqsMessage"/>.</returns>
+    /// <param name="sqsMessage">SQS 信件要转换。</param>
+    /// <param name="sequenceId">流批量的本地分配序列号 。</param>
+    /// <returns>流组代表的批次 <paramref name="sqsMessage"/>.</returns>
     public virtual IBatchContainer FromQueueMessage(SQSMessage sqsMessage, long sequenceId)
     {
         return SQSBatchContainer.FromSQSMessage(
@@ -39,15 +39,15 @@ public class SQSDataAdapter : ISQSDataAdapter
     }
 
     /// <summary>
-    /// Converts a batch of Orleans stream events to an SQS message.
+    /// 将批量的 Orleans 流事件转换成 SQS 消息。
     /// </summary>
-    /// <typeparam name="T">The type of the stream events.</typeparam>
-    /// <param name="streamId">The stream identifier.</param>
-    /// <param name="events">The stream events to include in the message.</param>
-    /// <param name="token">The stream sequence token, which must be <see langword="null"/>.</param>
-    /// <param name="requestContext">The request context to include in the message.</param>
-    /// <returns>An SQS message containing the serialized stream batch.</returns>
-    /// <exception cref="ArgumentException"><paramref name="token"/> is not <see langword="null"/>.</exception>
+    /// <typeparam name="T">流活动的类型。</typeparam>
+    /// <param name="streamId">流体识别符号。</param>
+    /// <param name="events">信件中要包含的流事件。</param>
+    /// <param name="token">流序序列符号, 必须是 <see langword="null"/>。</param>
+    /// <param name="requestContext">请求在电文中包含上下文。</param>
+    /// <returns>包含串联流批量的 SQS 信息。</returns>
+    /// <exception cref="ArgumentException"><paramref name="token"/> 不是 <see langword="null"/>。</exception>
     public virtual SQSMessage ToQueueMessage<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
     {
         if (token != null) throw new ArgumentException("SQS streams currently does not support non-null StreamSequenceToken.", nameof(token));

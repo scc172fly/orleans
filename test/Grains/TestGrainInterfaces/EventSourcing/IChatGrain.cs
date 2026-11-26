@@ -3,20 +3,20 @@ using System.Xml.Linq;
 namespace TestGrainInterfaces
 {
     /// <summary>
-    /// The grain interface for the chat grain.
+    /// 下 grain 聊天对话框的界面 grain.
     /// </summary>
     public interface IChatGrain : IGrainWithStringKey
     {
-        /// <summary> Return the current content of the chat room. </summary>
+        /// <summary> 返回聊天室当前内容 。 </summary>
         Task<XDocument> GetChat();
 
-        /// <summary> Add a new post. </summary>
+        /// <summary> 增加一个新的员额。 </summary>
         Task Post(Guid guid, string user, string text);
 
-        /// <summary> Delete a specific post. </summary>
+        /// <summary> 删除具体员额。 </summary>
         Task Delete(Guid guid);
 
-        /// <summary> Edit a specific post. </summary>
+        /// <summary> 编辑一个特定职位。 </summary>
         Task Edit(Guid guid, string text);
     }
 }

@@ -4,8 +4,8 @@ using System.Text.RegularExpressions;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// <see cref="IStreamNamespacePredicate"/> implementation allowing to filter stream namespaces by regular
-    /// expression.
+    /// <see cref="IStreamNamespacePredicate"/> 执行允许通过常规过滤流命名空间
+    /// 表达式。
     /// </summary>
     public class RegexStreamNamespacePredicate : IStreamNamespacePredicate
     {
@@ -13,14 +13,14 @@ namespace Orleans.Streams
         private readonly Regex regex;
 
         /// <summary>
-        /// Returns a pattern used to describe this instance. The pattern will be parsed by an <see cref="IStreamNamespacePredicateProvider"/> instance on each node.
+        /// 返回用于描述此实例的图案。该图案将在每个节点上用 <see cref="IStreamNamespacePredicateProvider"/> 例进行解析。
         /// </summary>
         public string PredicatePattern => $"{Prefix}{regex}";
 
         /// <summary>
-        /// Creates an instance of <see cref="RegexStreamNamespacePredicate"/> with the specified regular expression.
+        /// 创建有指定正则表达式的 <see cref="RegexStreamNamespacePredicate"/> 实例。
         /// </summary>
-        /// <param name="regex">The stream namespace regular expression.</param>
+        /// <param name="regex">流名空间正则表达式。</param>
         public RegexStreamNamespacePredicate(string regex)
         {
             ArgumentNullException.ThrowIfNull(regex);

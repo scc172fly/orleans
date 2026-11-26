@@ -7,20 +7,20 @@ using Orleans.Runtime;
 namespace Orleans.Streams.PubSub
 {
     /// <summary>
-    /// Extension methods for <see cref="IStreamSubscriptionManager"/>.
+    /// <see cref="IStreamSubscriptionManager"/>的推广方法。
     /// </summary>
     public static class StreamSubscriptionManagerExtensions
     {
         /// <summary>
-        /// Subscribes the specified grain to the specified stream.
+        /// 将指定的 grain 订阅到指定的流。
         /// </summary>
-        /// <typeparam name="TGrainInterface">The grain interface type.</typeparam>
-        /// <param name="manager">The manager.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="grainId">The grain to subscribe.</param>
-        /// <returns>The newly added subscription.</returns>
+        /// <typeparam name="TGrainInterface"> grain 接口类型。</typeparam>
+        /// <param name="manager">经理</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="grainId">下 grain 要订阅。</param>
+        /// <returns>新增加的订阅。</returns>
         public static Task<StreamSubscription> AddSubscription<TGrainInterface>(
             this IStreamSubscriptionManager manager,
             IGrainFactory grainFactory,
@@ -33,20 +33,20 @@ namespace Orleans.Streams.PubSub
             ArgumentNullException.ThrowIfNull(grainFactory);
 
             var grainRef = grainFactory.GetGrain(grainId) as GrainReference;
-            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain always returns a GrainReference-derived reference.
+            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain 总是返回 GrainReference- 源参考。
         }
 
         /// <summary>
-        /// Subscribes the specified grain to the specified stream.
+        /// 将指定的 grain 订阅到指定的流。
         /// </summary>
-        /// <typeparam name="TGrainInterface">An interface which the grain is the primary implementation of.</typeparam>
-        /// <param name="manager">The manager.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="primaryKey">The grain's primary key.</param>
-        /// <param name="grainClassNamePrefix">The grain class name prefix.</param>
-        /// <returns>The newly added subscription.</returns>
+        /// <typeparam name="TGrainInterface">界面的界面 grain 它们是主要执行。</typeparam>
+        /// <param name="manager">经理</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="primaryKey"> grain主密钥。</param>
+        /// <param name="grainClassNamePrefix"> grain 类名称前缀。</param>
+        /// <returns>新增加的订阅。</returns>
         public static Task<StreamSubscription> AddSubscription<TGrainInterface>(
             this IStreamSubscriptionManager manager,
             IGrainFactory grainFactory,
@@ -60,20 +60,20 @@ namespace Orleans.Streams.PubSub
             ArgumentNullException.ThrowIfNull(grainFactory);
 
             var grainRef = grainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix) as GrainReference;
-            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain always returns a GrainReference-derived reference.
+            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain 总是返回 GrainReference- 源参考。
         }
 
         /// <summary>
-        /// Subscribes the specified grain to the specified stream.
+        /// 将指定的 grain 订阅到指定的流。
         /// </summary>
-        /// <typeparam name="TGrainInterface">An interface which the grain is the primary implementation of.</typeparam>
-        /// <param name="manager">The manager.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="primaryKey">The grain's primary key.</param>
-        /// <param name="grainClassNamePrefix">The grain class name prefix.</param>
-        /// <returns>The newly added subscription.</returns>
+        /// <typeparam name="TGrainInterface">界面的界面 grain 它们是主要执行。</typeparam>
+        /// <param name="manager">经理</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="primaryKey"> grain主密钥。</param>
+        /// <param name="grainClassNamePrefix"> grain 类名称前缀。</param>
+        /// <returns>新增加的订阅。</returns>
         public static Task<StreamSubscription> AddSubscription<TGrainInterface>(
             this IStreamSubscriptionManager manager,
             IGrainFactory grainFactory,
@@ -87,20 +87,20 @@ namespace Orleans.Streams.PubSub
             ArgumentNullException.ThrowIfNull(grainFactory);
 
             var grainRef = grainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix) as GrainReference;
-            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain always returns a GrainReference-derived reference.
+            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain 总是返回 GrainReference- 源参考。
         }
 
         /// <summary>
-        /// Subscribes the specified grain to the specified stream.
+        /// 将指定的 grain 订阅到指定的流。
         /// </summary>
-        /// <typeparam name="TGrainInterface">An interface which the grain is the primary implementation of.</typeparam>
-        /// <param name="manager">The manager.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="primaryKey">The grain's primary key.</param>
-        /// <param name="grainClassNamePrefix">The grain class name prefix.</param>
-        /// <returns>The newly added subscription.</returns>
+        /// <typeparam name="TGrainInterface">界面的界面 grain 它们是主要执行。</typeparam>
+        /// <param name="manager">经理</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="primaryKey"> grain主密钥。</param>
+        /// <param name="grainClassNamePrefix"> grain 类名称前缀。</param>
+        /// <returns>新增加的订阅。</returns>
         public static Task<StreamSubscription> AddSubscription<TGrainInterface>(
             this IStreamSubscriptionManager manager,
             IGrainFactory grainFactory,
@@ -114,21 +114,21 @@ namespace Orleans.Streams.PubSub
             ArgumentNullException.ThrowIfNull(grainFactory);
 
             var grainRef = grainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix) as GrainReference;
-            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain always returns a GrainReference-derived reference.
+            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain 总是返回 GrainReference- 源参考。
         }
 
         /// <summary>
-        /// Subscribes the specified grain to the specified stream.
+        /// 将指定的 grain 订阅到指定的流。
         /// </summary>
-        /// <typeparam name="TGrainInterface">An interface which the grain is the primary implementation of.</typeparam>
-        /// <param name="manager">The manager.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="primaryKey">The grain's primary key.</param>
-        /// <param name="keyExtension">The grain's key extension.</param>
-        /// <param name="grainClassNamePrefix">The grain class name prefix.</param>
-        /// <returns>The newly added subscription.</returns>
+        /// <typeparam name="TGrainInterface">界面的界面 grain 它们是主要执行。</typeparam>
+        /// <param name="manager">经理</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="primaryKey"> grain主密钥。</param>
+        /// <param name="keyExtension"> grain的密钥扩展名。</param>
+        /// <param name="grainClassNamePrefix"> grain 类名称前缀。</param>
+        /// <returns>新增加的订阅。</returns>
         public static Task<StreamSubscription> AddSubscription<TGrainInterface>(
             this IStreamSubscriptionManager manager,
             IGrainFactory grainFactory,
@@ -143,21 +143,21 @@ namespace Orleans.Streams.PubSub
             ArgumentNullException.ThrowIfNull(grainFactory);
 
             var grainRef = grainFactory.GetGrain<TGrainInterface>(primaryKey, keyExtension, grainClassNamePrefix) as GrainReference;
-            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain always returns a GrainReference-derived reference.
+            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain 总是返回 GrainReference- 源参考。
         }
 
         /// <summary>
-        /// Subscribes the specified grain to the specified stream.
+        /// 将指定的 grain 订阅到指定的流。
         /// </summary>
-        /// <typeparam name="TGrainInterface">An interface which the grain is the primary implementation of.</typeparam>
-        /// <param name="manager">The manager.</param>
-        /// <param name="grainFactory">The grain factory.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="primaryKey">The grain's primary key.</param>
-        /// <param name="keyExtension">The grain's key extension.</param>
-        /// <param name="grainClassNamePrefix">The grain class name prefix.</param>
-        /// <returns>The newly added subscription.</returns>
+        /// <typeparam name="TGrainInterface">界面的界面 grain 它们是主要执行。</typeparam>
+        /// <param name="manager">经理</param>
+        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="primaryKey"> grain主密钥。</param>
+        /// <param name="keyExtension"> grain的密钥扩展名。</param>
+        /// <param name="grainClassNamePrefix"> grain 类名称前缀。</param>
+        /// <returns>新增加的订阅。</returns>
         public static Task<StreamSubscription> AddSubscription<TGrainInterface>(
             this IStreamSubscriptionManager manager,
             IGrainFactory grainFactory,
@@ -172,24 +172,24 @@ namespace Orleans.Streams.PubSub
             ArgumentNullException.ThrowIfNull(grainFactory);
 
             var grainRef = grainFactory.GetGrain<TGrainInterface>(primaryKey, keyExtension, grainClassNamePrefix) as GrainReference;
-            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain always returns a GrainReference-derived reference.
+            return manager.AddSubscription(streamProviderName, streamId, grainRef!); // GetGrain 总是返回 GrainReference- 源参考。
         }
 
         /// <summary>
-        /// Returns the <see cref="IStreamSubscriptionManager"/> for the provided stream provider.
+        /// 返回提供流提供者的 <see cref="IStreamSubscriptionManager"/> 。
         /// </summary>
-        /// <param name="streamProvider">The stream provider.</param>
-        /// <param name="manager">The manager.</param>
-        /// <returns><see langword="true" /> if the stream subscription manager could be retrieved, <see langword="false" /> otherwise.</returns>
+        /// <param name="streamProvider">流源提供者。</param>
+        /// <param name="manager">经理</param>
+        /// <returns><see langword="true" /> 如果可以检索流订阅管理器, <see langword="false" /> 否则。</returns>
         public static bool TryGetStreamSubscriptionManager(this IStreamProvider streamProvider, [NotNullWhen(true)] out IStreamSubscriptionManager? manager)
         {
             manager = null;
             if (streamProvider is IStreamSubscriptionManagerRetriever)
             {
                 var streamSubManagerRetriever = streamProvider as IStreamSubscriptionManagerRetriever;
-                manager = streamSubManagerRetriever!.GetStreamSubscriptionManager(); // Guaranteed non-null by the preceding `is` check; return value itself may be null (implicit-only providers).
-                //implicit only stream provider don't have a subscription manager configured 
-                //so manager can be null;
+                manager = streamSubManagerRetriever!.GetStreamSubscriptionManager(); // 由前一次 `is` 检查保证不中标;返回值本身可能是无效的(仅含暗号提供者)。
+                //只有隐含流流提供方没有配置订阅管理器 
+                //使经理人可以无效;
                 return manager != null;
             }
             return false;

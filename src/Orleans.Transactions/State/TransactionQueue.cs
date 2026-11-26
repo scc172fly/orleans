@@ -40,7 +40,7 @@ namespace Orleans.Transactions.State
 
         private int failCounter;
 
-        // collection tasks
+        // 任务收藏任务
         private readonly Dictionary<DateTime, PreparedMessages> unprocessedPreparedMessages;
         private class PreparedMessages
         {
@@ -92,7 +92,7 @@ namespace Orleans.Transactions.State
             onDeactivating.Cancel(throwOnFirstException: false);
 #pragma warning restore CA1849
 
-            // Storage cycles and shutdown run on the activation scheduler. Canceled cycles return before accessing storage.
+            // 启动调度器上的存储周期和关闭运行。 进入存储前, 取消的周期返回 。
             return cancellationToken.IsCancellationRequested
                 ? Task.CompletedTask
                 : storageWorker.WaitForCurrentWorkToBeServiced().WaitAsync(cancellationToken);
@@ -105,18 +105,18 @@ namespace Orleans.Transactions.State
                 LogTraceStartTwoPhaseCommit(record.TransactionId, new(record.Timestamp));
                 commitQueue.Add(record);
 
-                // additional actions for each commit type
+                // 每个承诺类型的额外动作
                 switch (record.Role)
                 {
                     case CommitRole.ReadOnly:
                         {
-                            // no extra actions needed
+                            // 无需采取额外行动
                             break;
                         }
 
                     case CommitRole.LocalCommit:
                         {
-                            // process prepared messages received ahead of time
+                            // 预发信息预发信息
                             if (unprocessedPreparedMessages.TryGetValue(record.Timestamp, out PreparedMessages? info))
                             {
                                 if (info.Status == TransactionalStatus.Ok)
@@ -137,11 +137,11 @@ namespace Orleans.Transactions.State
                     case CommitRole.RemoteCommit:
                         {
 
-                            // optimization: can immediately proceed if dependency is implied
+                            // 优化:如果有依赖关系,可以立即着手
                             bool behindRemoteEntryBySameTM = false;
-                            /* disabled - jbragg - TODO - revisit
+                            /* 残疾 - jbragg - TODO - 重新检查
                             commitQueue.Count >= 2
-                            && commitQueue[commitQueue.Count - 2] is TransactionRecord<TState> rce
+                            * commitQueue[commitQueue.Count -2]是 TransactionRecord<TState> rce
                             && rce.Role == CommitRole.RemoteCommit
                             && rce.TransactionManager.Equals(record.TransactionManager);
                             */
@@ -174,7 +174,7 @@ namespace Orleans.Transactions.State
                                 if (behindRemoteEntryBySameTM)
                                 {
                                     LogTraceSendingImmediatePrepared(record);
-                                    // can send prepared message immediately after persisting prepare record
+                                    // 可在持续准备记录后立即发送预发信息
                                     record.TransactionManager.Reference.AsReference<ITransactionManagerExtension>()
                                           .Prepared(
                                               record.TransactionManager.Name,
@@ -257,7 +257,7 @@ namespace Orleans.Transactions.State
             }
             else
             {
-                // this message has arrived ahead of the commit request - we need to remember it
+                // 这份信息是提前发出,
                 if (!this.unprocessedPreparedMessages.TryGetValue(timeStamp, out PreparedMessages? info))
                 {
                     this.unprocessedPreparedMessages[timeStamp] = info = new PreparedMessages(status);
@@ -280,7 +280,7 @@ namespace Orleans.Transactions.State
                     remainingCount: null,
                     identity: diagnosticIdentity);
 
-                // TODO fix memory leak if corresponding commit messages never arrive
+                // 如果相应的提交信件无法到达, 则要修正内存泄漏 TODO
             }
         }
 
@@ -292,7 +292,7 @@ namespace Orleans.Transactions.State
             var valid = status == TransactionalStatus.Ok;
 
             record.Timestamp = timeStamp;
-            record.Role = CommitRole.RemoteCommit; // we are not the TM
+            record.Role = CommitRole.RemoteCommit; // 我们不是TM
             record.TransactionManager = transactionManager;
             record.LastSent = null;
             record.PrepareIsPersisted = false;
@@ -315,7 +315,7 @@ namespace Orleans.Transactions.State
             {
                 case CommitRole.NotYetDetermined:
                     {
-                        // cannot notify anyone. TA will detect broken lock during prepare.
+                        // 无法通知任何人。 TA 在准备时会检测到坏锁
                         break;
                     }
                 case CommitRole.RemoteCommit:
@@ -325,7 +325,7 @@ namespace Orleans.Transactions.State
                         entry.ConfirmationResponsePromise?.TrySetException(new OrleansException($"Confirm failed: Status {status}"));
 
                         if (entry.LastSent.HasValue)
-                            return; // cannot abort anymore if we already sent prepare-ok message
+                            return; // 如果我们已经发送了准备- ok 消息, 则无法中止此信件
 
                         LogTraceAbortingViaPrepared(status, entry);
                         entry.TransactionManager.Reference.AsReference<ITransactionManagerExtension>()
@@ -526,12 +526,12 @@ namespace Orleans.Transactions.State
         {
             if (this.commitQueue.Find(transactionId, timeStamp) != -1)
             {
-                // no need to take special action now - the transaction is still
-                // in the commit queue and its status is not yet determined.
-                // confirmation or cancellation will be sent after committing or aborting.
+                // 交易目前仍没有发生
+                // 中进行队列,其状态尚未确定。
+                // 确定或取消确认将在承诺或中止后发送。
 
                 LogTraceReceivedPingIrrelevant(transactionId);
-                this.storageWorker.Notify(); // just in case the worker fell asleep or something
+                this.storageWorker.Notify(); // 以防工人睡着了什么的
             }
             else
             {
@@ -539,7 +539,7 @@ namespace Orleans.Transactions.State
                 {
                     LogTraceReceivedPingUnknown(transactionId);
 
-                    // we never heard of this transaction - so it must have aborted
+                    // 我们从未听说过这个交易,所以它必须中止了
                     await SendCancel(
                         resource,
                         transactionId,
@@ -554,7 +554,7 @@ namespace Orleans.Transactions.State
         {
             LogTraceNotifyOfConfirm(transactionId, new(timeStamp));
 
-            // find in queue
+            // 在队列中查找
             var pos = commitQueue.Find(transactionId, timeStamp);
 
             if (pos == -1)
@@ -567,7 +567,7 @@ namespace Orleans.Transactions.State
                     queueEntryFound: false,
                     succeeded: true,
                     identity: diagnosticIdentity);
-                return; // must have already been confirmed
+                return; // 已经确认
             }
 
             var remoteEntry = commitQueue[pos];
@@ -578,13 +578,13 @@ namespace Orleans.Transactions.State
                 throw new InvalidOperationException($"Wrong commit type: {remoteEntry.Role}");
             }
 
-            // setting this field makes this entry ready for batching
+            // 设置此字段,使此条目可以进行批量
 
             remoteEntry.ConfirmationResponsePromise ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             storageWorker.Notify();
 
-            // now we wait for the batch to finish
+            // 等批量完成
 
             var confirmStatus = TransactionalStatus.Ok;
             try
@@ -614,13 +614,13 @@ namespace Orleans.Transactions.State
         public async Task NotifyOfCancel(Guid transactionId, DateTime timeStamp, TransactionalStatus status)
         {
             LogTraceNotifyOfCancel(nameof(NotifyOfCancel), transactionId, new(timeStamp), status);
-            // find in queue
+            // 在队列中查找
             var pos = commitQueue.Find(transactionId, timeStamp);
 
             if (pos == -1)
             {
-                // Cancel can overtake the one-way prepare message. Release the pre-prepare lock so a
-                // late prepare observes a broken lock and completes without persisting a remote commit.
+                // 取消可超过单行准备信件。 释放预准备前锁, 这样可以
+                // 晚点准备观察一个破锁和完成,而不持续远程操作。
                 this.RWLock.Rollback(transactionId);
                 this.RWLock.Notify();
                 TransactionDiagnosticEvents.EmitTransactionCancelCompleted(
@@ -657,7 +657,7 @@ namespace Orleans.Transactions.State
         }
 
         /// <summary>
-        /// called on activation, and when recovering from storage conflicts or other exceptions.
+        /// 要求启动,并在从储存冲突或其他例外情况中恢复时。
         /// </summary>
         public async Task NotifyOfRestore()
         {
@@ -673,7 +673,7 @@ namespace Orleans.Transactions.State
         }
 
         /// <summary>
-        /// Ensures queue is ready to process requests.
+        /// 确保队列准备处理请求。
         /// </summary>
         /// <returns></returns>
         public Task Ready(Guid? transactionId = null)
@@ -753,10 +753,10 @@ namespace Orleans.Transactions.State
 
             LogDebugLoad(stableSequenceNumber, loadresponse.PendingStates.Count, storageBatch.MetaData.CommitRecords.Count);
 
-            // ensure clock is consistent with loaded state
+            // 确保时钟与装入状态一致
             this.Clock.Merge(storageBatch.MetaData.TimeStamp);
 
-            // resume prepared transactions (not TM)
+            // 恢复已准备交易(不是TM)
             var recoveredPendingCount = 0;
             foreach (var pr in loadresponse.PendingStates.OrderBy(ps => ps.TimeStamp))
             {
@@ -778,7 +778,7 @@ namespace Orleans.Transactions.State
                         LastSent = default(DateTime),
                         IsRestoredRemoteCommit = true,
                         ConfirmationResponsePromise = null,
-                        NumberWrites = 1 // was a writing transaction
+                        NumberWrites = 1 // 书面交易
                     });
                     this.stableSequenceNumber = pr.SequenceId;
                     recoveredPendingCount++;
@@ -793,7 +793,7 @@ namespace Orleans.Transactions.State
                 }
             }
 
-            // resume committed transactions (on TM)
+            // 恢复已执行交易(TM)
             foreach (var kvp in storageBatch.MetaData.CommitRecords)
             {
                 LogDebugRecoverCommitConfirmation(kvp.Key);
@@ -808,13 +808,13 @@ namespace Orleans.Transactions.State
                 transactionIds,
                 diagnosticIdentity);
 
-            // check for work
+            // 工作支票
             this.storageWorker.Notify();
             this.RWLock.Notify();
         }
 
         /// <summary>
-        /// Returns the most recently committed state, excluding commit-queue entries which may still abort.
+        /// 返回最近承诺的状态, 不包括仍可能中止的投递队列条目 。
         /// </summary>
         public void GetCommittedState(out TState state, out long sequenceNumber)
         {
@@ -861,30 +861,30 @@ namespace Orleans.Transactions.State
 
                 try
                 {
-                    // count committable entries at the bottom of the commit queue
+                    // 承诺队列底端可计算的承诺条目
                     int committableEntries = 0;
                     while (committableEntries < commitQueue.Count && commitQueue[committableEntries].ReadyToCommit)
                     {
                         committableEntries++;
                     }
 
-                    // process all committable entries, assembling a storage batch
+                    // 全部可承诺条目, 组装存储批次
                     if (committableEntries > 0)
                     {
-                        // process all committable entries, adding storage events to the storage batch
+                        // 处理所有可承诺条目, 在存储批次中添加存储事件
                         CollectEventsForBatch(committableEntries);
                         LogDebugBatchCommit(committableEntries, commitQueue.Count - committableEntries, new(commitQueue, committableEntries));
                     }
                     else
                     {
-                        // send or re-send messages and detect timeouts
+                        // 发送或重新发送信件并检测超时
                         await CheckProgressOfCommitQueue();
                     }
 
-                    // store the current storage batch, if it is not empty
+                    // 如果当前存储批次不是空的, 保存此当前存储批次
                     if (this.storageBatch.BatchSize > 0)
                     {
-                        // get the next batch in place so it can be filled while we store the old one
+                        // 下一批放好,装上后一批装填充 旧的我们存着
                         batchBeingSentToStorage = this.storageBatch;
                         this.storageBatch = new StorageBatch<TState>(batchBeingSentToStorage);
 
@@ -892,11 +892,11 @@ namespace Orleans.Transactions.State
                         {
                             if (await batchBeingSentToStorage.CheckStorePreConditions())
                             {
-                                // Once Store is invoked, failures are ambiguous: the write may have failed, or it may
-                                // have succeeded and only the response failed/timed out. Recover from storage to resolve it.
+                                // 一旦援引了存储器,故障就模糊不清:该书写可能失败,或有可能
+                                // 成功, 只有响应失败/ 超时。 从存储中恢复解决它 。
                                 writeAttempted = true;
 
-                                // perform the actual store, and record the e-tag
+                                // 实际存储,并记录电子标签
                                 this.storageBatch.ETag = await batchBeingSentToStorage.Store(storage);
                                 failCounter = 0;
                             }
@@ -955,22 +955,22 @@ namespace Orleans.Transactions.State
 
                     if (committableEntries > 0)
                     {
-                        // update stable state
+                        // 更新稳定状态
                         var lastCommittedEntry = commitQueue[committableEntries - 1];
                         this.stableState = lastCommittedEntry.State;
                         this.stableSequenceNumber = lastCommittedEntry.SequenceNumber;
                         LogTraceStableStateVersion(stableSequenceNumber);
 
-                        // remove committed entries from commit queue
+                        // 从已承诺的队列中删除已执行条目
                         commitQueue.RemoveFromFront(committableEntries);
-                        storageWorker.Notify();  // we have to re-check for work
+                        storageWorker.Notify();  // 工作要重新检查
                     }
 
                     if (batchBeingSentToStorage != null)
                     {
                         batchBeingSentToStorage.Complete(success: true);
                         batchCompletedSuccessfully = true;
-                        storageWorker.Notify();  // we have to re-check for work
+                        storageWorker.Notify();  // 工作要重新检查
                     }
                 }
                 catch (Exception exception)
@@ -982,7 +982,7 @@ namespace Orleans.Transactions.State
                         throw;
                     }
 
-                    // If a write was attempted, the durable outcome is unknown and recovery must resolve it.
+                    // 如果有人试图写作,则无法知道持久结果,而恢复必须解决。
                     recoveryInitiated = true;
                     await AbortAndRestore(TransactionalStatus.UnknownException, exception, storageOutcomeInDoubt: writeAttempted);
                 }
@@ -1026,9 +1026,9 @@ namespace Orleans.Transactions.State
                 {
                     if (storageOutcomeInDoubt)
                     {
-                        // The storage write may have committed before the exception surfaced, or a later action may
-                        // have failed after the write completed. Do not send abort/cancel messages from stale
-                        // in-memory state; restore from storage and let recovery confirm or abort.
+                        // 可能在例外出现之前,或事后行动之前,可能已经作过储存书,也可能在
+                        // 写完成后失败。 不要从废件发送中止/ 取消信件
+                        // 处于模拟状态; 从存储中恢复, 让回收确认或中止 。
                         CompleteInDoubtEntryLocally(entry, status, exception);
                     }
                     else
@@ -1210,7 +1210,7 @@ namespace Orleans.Transactions.State
                 {
                     case CommitRole.LocalCommit:
                         {
-                            // check for timeout periodically
+                            // 定期超时检查
                             if (bottom.WaitingSince + this.options.PrepareTimeout <= now)
                             {
                                 TransactionDiagnosticEvents.EmitPrepareTimedOut(
@@ -1234,7 +1234,7 @@ namespace Orleans.Transactions.State
                         {
                             if (bottom.PrepareIsPersisted && !bottom.LastSent.HasValue)
                             {
-                                // send PreparedMessage to remote TM
+                                // 发送 PreparedMessage 到远程TM
                                 bottom.TransactionManager.Reference.AsReference<ITransactionManagerExtension>()
                                       .Prepared(
                                           bottom.TransactionManager.Name,
@@ -1258,7 +1258,7 @@ namespace Orleans.Transactions.State
 
                                 if (bottom.IsReadOnly)
                                 {
-                                    storageWorker.Notify(); // we are ready to batch now
+                                    storageWorker.Notify(); // 准备分批
                                 }
                                 else
                                 {
@@ -1275,7 +1275,7 @@ namespace Orleans.Transactions.State
                             }
                             else if (!bottom.IsReadOnly && bottom.LastSent.HasValue)
                             {
-                                // send ping messages periodically to reactivate crashed TMs
+                                // 定期发送 ping 信件以重新启动崩溃的 TMs
 
                                 if (bottom.GetNextRemotePingAt(this.options.RemoteTransactionPingFrequency) <= now)
                                 {
@@ -1322,7 +1322,7 @@ namespace Orleans.Transactions.State
 
         private void CollectEventsForBatch(int batchsize)
         {
-            // collect events for batch
+            // 批次收集事件
             for (int i = 0; i < batchsize; i++)
             {
                 TransactionRecord<TState> entry = commitQueue[i];
@@ -1340,13 +1340,13 @@ namespace Orleans.Transactions.State
                         {
                             if (entry.ConfirmationResponsePromise == null)
                             {
-                                // this is a read-only participant that has sent
-                                // its prepared message.
-                                // So we are really done and need not store or do anything.
+                                // 这是只读的参与者,他已派遣
+                                // 其预先准备的信息。
+                                // 所以,我们真的做得很好,不需要储存或做任何事情。
                             }
                             else
                             {
-                                // we must confirm in storage, and then respond to TM so it can collect
+                                // 我们必须确认在储存中,然后对TMTM作出反应,以便它能收集
                                 this.storageBatch.Confirm(entry.SequenceNumber);
                                 this.storageBatch.FollowUpAction(success =>
                                 {
@@ -1365,7 +1365,7 @@ namespace Orleans.Transactions.State
 
                     case CommitRole.ReadOnly:
                         {
-                            // we are a participant of a read-only transaction. Must store timestamp and then respond.
+                            // 我们参与的是只读交易。 必须保存时间戳并回复 。
                             this.storageBatch.Read(entry.Timestamp);
                             this.storageBatch.FollowUpAction(success =>
                             {
@@ -1395,7 +1395,7 @@ namespace Orleans.Transactions.State
             this.storageBatch.Commit(entry.TransactionId, entry.Timestamp, entry.WriteParticipants);
             this.storageBatch.Confirm(entry.SequenceNumber);
 
-            // after store, send response back to TA
+            // 商店后,发回给TA
             this.storageBatch.FollowUpAction(success =>
             {
                 if (!success)
@@ -1409,7 +1409,7 @@ namespace Orleans.Transactions.State
 
             if (entry.WriteParticipants.Count > 1)
             {
-                // after committing, we need to run a task to confirm and collect
+                // 承诺后,我们需要执行一项任务 确认和收集
                 this.storageBatch.FollowUpAction(success =>
                 {
                     if (!success)
@@ -1423,7 +1423,7 @@ namespace Orleans.Transactions.State
             }
             else
             {
-                // there are no remote write participants to notify, so we can finish it all in one shot
+                // 没有任何远程写作参与者可以通知, 所以我们可以一次性完成全部
                 this.storageBatch.Collect(entry.TransactionId);
             }
         }
@@ -1431,7 +1431,7 @@ namespace Orleans.Transactions.State
         private async Task AbortCommits(TransactionalStatus status, int from = 0)
         {
             List<Task> pending = new List<Task>();
-            // emtpy the back of the commit queue, starting at specified position
+            // 以指定位置开始,在承诺的队列后部进行仿制
             for (int i = from; i < commitQueue.Count; i++)
             {
                 pending.Add(NotifyOfAbort(commitQueue[i], i == from ? status : TransactionalStatus.CascadingAbort, exception: null));

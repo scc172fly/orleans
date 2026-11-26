@@ -19,7 +19,7 @@ public class InMemoryTransportTests
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));
-        // Do not bind: hub registration would add a cancellation callback and mask the no-callback regression.
+        // 不受约束:枢纽登记会增加取消回召,并掩盖不回退倒退。
         await using var listener = new InMemoryTransportListener(
             "test", new IPEndPoint(IPAddress.Loopback, 12349).ToString(), new InMemoryTransportConnectionHub());
         var token = listener.OnDisposed;

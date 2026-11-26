@@ -14,7 +14,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// Tests for Orleans membership table operations using PostgreSQL as the storage backend.
+    /// 试验 Orleans 使用 PostgreSQL 以存储后端为缓存后端。
     /// </summary>
     [TestCategory("Membership"), TestCategory("PostgreSql"), TestCategory("Functional")]
     [TestSuite("Functional")]

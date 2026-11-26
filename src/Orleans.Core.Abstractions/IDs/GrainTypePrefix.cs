@@ -4,100 +4,100 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Prefixes and corresponding helper methods for <see cref="GrainType"/>.
+    /// <see cref="GrainType"/>的前缀和相应的辅助工具方法。
     /// </summary>
     public static class GrainTypePrefix
     {
         /// <summary>
-        /// The prefix for system types.
+        /// 系统类型前缀 。
         /// </summary>
         public const string SystemPrefix = "sys.";
 
         /// <summary>
-        /// The prefix for system targets.
+        /// 系统目标的前缀 。
         /// </summary>
         public const string SystemTargetPrefix = SystemPrefix + "svc.";
 
         /// <summary>
-        /// A span representation of <see cref="SystemTargetPrefix" />.
+        /// 代表 <see cref="SystemTargetPrefix" />的跨度。
         /// </summary>
         public static readonly ReadOnlyMemory<byte> SystemTargetPrefixBytes = Encoding.UTF8.GetBytes(SystemTargetPrefix);
 
         /// <summary>
-        /// The prefix for grain service types.
+        /// grain 服务类型的前缀。
         /// </summary>
         public const string GrainServicePrefix = SystemTargetPrefix + "user.";
 
         /// <summary>
-        /// A span representation of <see cref="ClientPrefix" />.
+        /// 代表 <see cref="ClientPrefix" />的跨度。
         /// </summary>
         public static readonly ReadOnlyMemory<byte> GrainServicePrefixBytes = Encoding.UTF8.GetBytes(GrainServicePrefix);
 
         /// <summary>
-        /// The prefix for clients.
+        /// 客户端的前缀 。
         /// </summary>
         public const string ClientPrefix = SystemPrefix + "client";
 
         /// <summary>
-        /// A span representation of <see cref="ClientPrefix" />.
+        /// 代表 <see cref="ClientPrefix" />的跨度。
         /// </summary>
         public static readonly ReadOnlyMemory<byte> ClientPrefixBytes = Encoding.UTF8.GetBytes(ClientPrefix);
 
         /// <summary>
-        /// The prefix used to represent a grain client.
+        /// 用于代表 grain 客户端的前缀。
         /// </summary>
         public static readonly GrainType ClientGrainType = GrainType.Create(ClientPrefix);
 
         /// <summary>
-        /// The prefix for legacy grains.
+        /// 遗留问题的前缀 grains。
         /// </summary>
         public const string LegacyGrainPrefix = SystemPrefix + "grain.v1.";
 
         /// <summary>
-        /// A span representation of <see cref="LegacyGrainPrefixBytes" />.
+        /// 代表 <see cref="LegacyGrainPrefixBytes" />的跨度。
         /// </summary>
         public static readonly ReadOnlyMemory<byte> LegacyGrainPrefixBytes = Encoding.UTF8.GetBytes(LegacyGrainPrefix);
 
         /// <summary>
-        /// Returns <see langword="true"/> if the type is a client, <see langword="false"/> if not.
+        /// 返回 <see langword="true"/> 如果该类型是客户端, <see langword="false"/> 情况并非如此。
         /// </summary>
-        /// <param name="type">The grain type.</param>
-        /// <returns><see langword="true"/> if the type is a client, <see langword="false"/> if not.</returns>
+        /// <param name="type"> grain 类型。</param>
+        /// <returns><see langword="true"/> 如果该类型是客户端, <see langword="false"/> 如果不是。</returns>
         public static bool IsClient(this in GrainType type) => type.AsSpan().StartsWith(ClientPrefixBytes.Span);
 
         /// <summary>
-        /// Returns <see langword="true"/> if the type is a system target, <see langword="false"/> if not.
+        /// 返回 <see langword="true"/> 如果该类型是系统目标, <see langword="false"/> 情况并非如此。
         /// </summary>
-        /// <param name="type">The grain type.</param>
-        /// <returns><see langword="true"/> if the type is a system target, <see langword="false"/> if not.</returns>
+        /// <param name="type"> grain 类型。</param>
+        /// <returns><see langword="true"/> 如果该类型是系统目标,则 <see langword="false"/> 。</returns>
         public static bool IsSystemTarget(this in GrainType type) => type.AsSpan().StartsWith(SystemTargetPrefixBytes.Span);
 
         /// <summary>
-        /// Returns <see langword="true"/> if the type is a legacy grain, <see langword="false"/> if not.
+        /// 返回 <see langword="true"/> 如果类型是遗产 grain, <see langword="false"/> 情况并非如此。
         /// </summary>
-        /// <param name="type">The grain type.</param>
-        /// <returns><see langword="true"/> if the type is a legacy grain, <see langword="false"/> if not.</returns>
+        /// <param name="type"> grain 类型。</param>
+        /// <returns><see langword="true"/> 如果类型是遗产 grain, <see langword="false"/> 情况并非如此。</returns>
         public static bool IsLegacyGrain(this in GrainType type) => type.AsSpan().StartsWith(LegacyGrainPrefixBytes.Span);
 
         /// <summary>
-        /// Returns <see langword="true"/> if the type is a grain service, <see langword="false"/> if not.
+        /// 返回 <see langword="true"/> 如果类型是 a grain 服务, <see langword="false"/> 情况并非如此。
         /// </summary>
-        /// <param name="type">The grain type.</param>
-        /// <returns><see langword="true"/> if the type is a grain service, <see langword="false"/> if not.</returns>
+        /// <param name="type"> grain 类型。</param>
+        /// <returns><see langword="true"/> 如果该类型是 grain 服务,如果不是,则 <see langword="false"/> 。</returns>
         public static bool IsGrainService(this in GrainType type) => type.AsSpan().StartsWith(GrainServicePrefixBytes.Span);
 
         /// <summary>
-        /// Returns <see langword="true"/> if the id represents a client, <see langword="false"/> if not.
+        /// 返回 <see langword="true"/> 如果该身份代表客户, <see langword="false"/> 情况并非如此。
         /// </summary>
-        /// <param name="id">The grain id.</param>
-        /// <returns><see langword="true"/> if the type is a client, <see langword="false"/> if not.</returns>
+        /// <param name="id">下 grain id. 数据。</param>
+        /// <returns><see langword="true"/> 如果该类型是客户端, <see langword="false"/> 如果不是。</returns>
         public static bool IsClient(this in GrainId id) => id.Type.IsClient();
 
         /// <summary>
-        /// Returns <see langword="true"/> if the id represents a system target, <see langword="false"/> if not.
+        /// 返回 <see langword="true"/> 如果该ID代表系统目标, <see langword="false"/> 情况并非如此。
         /// </summary>
-        /// <param name="id">The grain id.</param>
-        /// <returns><see langword="true"/> if the type is a system target, <see langword="false"/> if not.</returns>
+        /// <param name="id">下 grain id. 数据。</param>
+        /// <returns><see langword="true"/> 如果该类型是系统目标,则 <see langword="false"/> 。</returns>
         public static bool IsSystemTarget(this in GrainId id) => id.Type.IsSystemTarget();
     }
 }

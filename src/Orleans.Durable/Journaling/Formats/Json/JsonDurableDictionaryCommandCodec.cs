@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace Orleans.Durable.Journaling.Json;
 
 /// <summary>
-/// JSON codec for durable dictionary journal entries.
+/// 耐久字典日记条目的JSON 编码。
 /// </summary>
 /// <example>
 /// <code>

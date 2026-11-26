@@ -1,7 +1,7 @@
 Imports Orleans
 
 ''' <summary>
-''' Orleans grain implementation class Grain1
+''' Orleans grain 执行类
 ''' </summary>
 Public Class HelloGrain
     Inherits Grain

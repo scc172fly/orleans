@@ -14,7 +14,7 @@ namespace Orleans.Runtime.GrainDirectory;
 internal sealed class DirectoryMembershipSnapshot
 {
     /// <summary>
-    /// The default hash function for directory ring boundaries, matching the <see cref="LocalGrainDirectory"/> partitioning scheme.
+    /// 目录环边框的默认散列函数,与 <see cref="LocalGrainDirectory"/> 分区方案匹配。
     /// </summary>
     internal static readonly Func<SiloAddress, int, ImmutableArray<uint>> DefaultGetRingBoundaries = static (silo, count) =>
     {
@@ -40,7 +40,7 @@ internal sealed class DirectoryMembershipSnapshot
         var sortedActiveMembers = ImmutableArray.CreateBuilder<SiloAddress>(snapshot.Members.Count(static m => m.Value.Status == SiloStatus.Active));
         foreach (var member in snapshot.Members)
         {
-            // Only active members are part of directory membership.
+            // 只有现役成员是名录成员的一部分。
             if (member.Value.Status == SiloStatus.Active)
             {
                 sortedActiveMembers.Add(member.Key);
@@ -89,7 +89,7 @@ internal sealed class DirectoryMembershipSnapshot
             return left.MemberIndex.CompareTo(right.MemberIndex);
         });
 
-        // Remove empty ranges caused by hash collisions.
+        // 删除散列碰撞造成的空区域 。
         if (hashIndexPairs.Count > 1)
         {
             for (var i = 1; i < hashIndexPairs.Count;)
@@ -231,14 +231,14 @@ internal sealed class DirectoryMembershipSnapshot
         var (nextStart, _, _) = _ringBoundaries[(index + 1) % _ringBoundaries.Length];
         if (entryStart == nextStart)
         {
-            // Handle hash collisions by making subsequent adjacent ranges empty.
+            // 处理散列碰撞,使随后的相邻区域空闲。
             if (_ringBoundaries.Length == 1)
             {
                 return RingRange.Full;
             }
             else
             {
-                // Handle hash collisions by making subsequent adjacent ranges empty.
+                // 处理散列碰撞,使随后的相邻区域空闲。
                 return RingRange.Empty;
             }
         }

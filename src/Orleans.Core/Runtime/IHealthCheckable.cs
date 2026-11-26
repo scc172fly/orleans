@@ -4,16 +4,16 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Interface for services which can be probed for health status.
+    /// 服务界面的接口,可以检测到健康状况。
     /// </summary>
     public interface IHealthCheckable
     {
         /// <summary>
-        /// Returns a value indicating the health of this instance.
+        /// 返回表示此实例健康的值。
         /// </summary>
-        /// <param name="lastCheckTime">The last time which this instance health was checked.</param>
-        /// <param name="reason">If this method returns <see langword="false"/>, this parameter will describe the reason for that verdict.</param>
-        /// <returns><see langword="true"/> if the instance is healthy, <see langword="false"/> otherwise.</returns>
+        /// <param name="lastCheckTime">最后一次检查此例健康。</param>
+        /// <param name="reason">如果此方法返回 <see langword="false"/>, 这个参数将描述做出该裁决的原因。</param>
+        /// <returns><see langword="true"/> 如果情况健康,则 <see langword="false"/> 。</returns>
         bool CheckHealth(DateTime lastCheckTime, [NotNullWhen(false)] out string? reason);
     }
 }

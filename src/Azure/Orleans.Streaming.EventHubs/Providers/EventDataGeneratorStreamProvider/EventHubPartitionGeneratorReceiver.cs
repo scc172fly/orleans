@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 namespace Orleans.Streaming.EventHubs.Testing
 {
     /// <summary>
-    /// Eventhub receiver which configured with data generator
+    /// 配置数据生成器的偶形接收器
     /// </summary>
     public class EventHubPartitionGeneratorReceiver : IEventHubReceiver
     {
         private readonly IDataGenerator<EventData> generator;
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="generator"></param>
         public EventHubPartitionGeneratorReceiver(IDataGenerator<EventData> generator)
@@ -33,13 +33,13 @@ namespace Orleans.Streaming.EventHubs.Testing
             CancellationToken cancellationToken)
         {
             IEnumerable<EventData>? events;
-            //mimic real life response time
+            //模拟真实生活反应时间
             await Task.Delay(TimeSpan.FromMilliseconds(30), cancellationToken);
             if (generator.TryReadEvents(maxCount, out events))
             {
                 return events;
             }
-            //if no events generated, wait for waitTime to pass
+            //如果未产生事件,请等待 waitTime 通过
             await Task.Delay(waitTime, cancellationToken);
             return new List<EventData>().AsEnumerable();
         }

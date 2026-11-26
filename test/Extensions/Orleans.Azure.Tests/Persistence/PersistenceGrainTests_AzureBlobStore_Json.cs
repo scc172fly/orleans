@@ -5,7 +5,7 @@ using Xunit;
 namespace Tester.AzureUtils.Persistence;
 
 /// <summary>
-/// PersistenceGrainTests using AzureStore - Requires access to external Azure blob storage
+/// PersistenceGrainTests 使用 AzureStore - 需要外部进入 Azure 浮囊储存
 /// </summary>
 [TestCategory("Persistence"), TestCategory("AzureStorage")]
 [TestSuite("Functional")]

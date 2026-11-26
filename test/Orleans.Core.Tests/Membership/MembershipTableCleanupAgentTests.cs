@@ -15,7 +15,7 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// Tests for membership table cleanup agent functionality including enabled/disabled scenarios and defunct silo cleanup.
+    /// 成员表格清理代理功能测试,包括启用/残疾假想和取消 silo 清除。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -158,12 +158,12 @@ namespace NonSilo.Tests.Membership
             var options = new ClusterMembershipOptions { DefunctSiloCleanupPeriod = null, MaxDefunctSiloEntries = 1 };
             var membershipManager = new TestMembershipManager();
 
-            // This entry reported itself alive most recently, but was not suspected recently.
+            // 这份记录最近报告自己还活着,但最近没有被怀疑。
             var newerAliveEntry = Entry(Silo("127.0.0.1:500@100"), SiloStatus.Dead, now.AddHours(-3));
 
-            // This entry last reported itself alive long ago, but was declared dead (suspected) very recently.
-            // It is therefore the most-recently-updated defunct entry and should be retained even though its
-            // IAmAliveTime is the oldest.
+            // 上一个条目早在很久以前就报告自己还活着,但最近(怀疑)被宣布死亡。
+            // 因此,它是最近期更新的过时的已过期条目,即使其
+            // IAmAliveTime 年龄最大
             var recentlySuspectedEntry = Entry(recentlySuspectedSilo, SiloStatus.Dead, now.AddHours(-10));
             recentlySuspectedEntry.AddSuspector(this.localSilo, now.AddHours(-2).UtcDateTime);
 
@@ -199,7 +199,7 @@ namespace NonSilo.Tests.Membership
             var expiredEntry = Entry(Silo("127.0.0.1:500@100"), SiloStatus.Dead, now - options.DefunctSiloMinimumRetention - TimeSpan.FromTicks(1));
             var recentEntry = Entry(Silo("127.0.0.1:600@100"), SiloStatus.Dead, now - options.DefunctSiloMinimumRetention);
 
-            // A silo which joined long ago but was declared dead recently is retained.
+            // 很久以前加入但最近宣布死亡的 silo 保留。
             var recentlyDeclaredDeadEntry = Entry(Silo("127.0.0.1:700@100"), SiloStatus.Dead, now.AddDays(-1));
             recentlyDeclaredDeadEntry.AddSuspector(this.localSilo, now.AddMinutes(-1).UtcDateTime);
             var table = new InMemoryMembershipTable(
@@ -273,7 +273,7 @@ namespace NonSilo.Tests.Membership
             await membershipManager.PublishAndWaitForProcessing(Snapshot(Entry(this.localSilo, SiloStatus.Active, now)), cancellationToken);
             table.ClearCalls();
 
-            // An entry past DefunctSiloExpiration but within the minimum retention period does not trigger cleanup.
+            // 条目超过 DefunctSiloExpiration ,但保留期最小值内不触发清理。
             await membershipManager.PublishAndWaitForProcessing(Snapshot(
                 Entry(this.localSilo, SiloStatus.Active, now),
                 Entry(Silo("127.0.0.1:500@100"), SiloStatus.Dead, now.AddMinutes(-30))), cancellationToken);

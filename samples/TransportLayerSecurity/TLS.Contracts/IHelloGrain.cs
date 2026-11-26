@@ -1,7 +1,7 @@
 namespace HelloWorld.Interfaces;
 
 /// <summary>
-/// Orleans grain communication interface IHello
+/// Orleans grain 通讯接口
 /// </summary>
 public interface IHelloGrain : Orleans.IGrainWithIntegerKey
 {

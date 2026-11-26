@@ -7,21 +7,21 @@ using Orleans.Runtime.ReminderService;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> extensions.
+    /// <see cref="IServiceCollection"/> 扩展。
     /// </summary>
     public static class AzureStorageReminderServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds reminder storage backed by Azure Table Storage.
+        /// 添加由 Azure 表存储支持的提醒存储。
         /// </summary>
         /// <param name="services">
-        /// The service collection.
+        /// 服务收藏
         /// </param>
         /// <param name="configure">
-        /// The delegate used to configure the reminder store.
+        /// 代表用于配置提醒存储器 。
         /// </param>
         /// <returns>
-        /// The provided <see cref="IServiceCollection"/>, for chaining.
+        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
         /// </returns>
         public static IServiceCollection UseAzureTableReminderService(this IServiceCollection services, Action<AzureTableReminderStorageOptions> configure)
         {
@@ -33,16 +33,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds reminder storage backed by Azure Table Storage.
+        /// 添加由 Azure 表存储支持的提醒存储。
         /// </summary>
         /// <param name="services">
-        /// The service collection.
+        /// 服务收藏
         /// </param>
         /// <param name="configureOptions">
-        /// The configuration delegate.
+        /// 组合代表
         /// </param>
         /// <returns>
-        /// The provided <see cref="IServiceCollection"/>, for chaining.
+        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
         /// </returns>
         public static IServiceCollection UseAzureTableReminderService(this IServiceCollection services, Action<OptionsBuilder<AzureTableReminderStorageOptions>> configureOptions)
         {
@@ -55,16 +55,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Adds reminder storage backed by Azure Table Storage.
+        /// 添加由 Azure 表存储支持的提醒存储。
         /// </summary>
         /// <param name="services">
-        /// The service collection.
+        /// 服务收藏
         /// </param>
         /// <param name="connectionString">
-        /// The storage connection string.
+        /// 存储连接字符串
         /// </param>
         /// <returns>
-        /// The provided <see cref="IServiceCollection"/>, for chaining.
+        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
         /// </returns>
         public static IServiceCollection UseAzureTableReminderService(this IServiceCollection services, string connectionString)
         {

@@ -4,7 +4,7 @@ namespace UnitTests.GrainInterfaces
     public interface IMultifacetWriter : IGrainWithIntegerKey
     {
         Task SetValue(int x);
-        //event ValueUpdateEventHandler ValueReadEvent;
-        //event ValueUpdateEventHandler CommonEvent;
+        //事件 ValueUpdateEventHandler ValueReadEvent;
+        //事件 ValueUpdateEventHandler CommonEvent;
     }
 }

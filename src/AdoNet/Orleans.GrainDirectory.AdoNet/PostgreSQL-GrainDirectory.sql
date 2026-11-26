@@ -1,34 +1,34 @@
 /*
-Orleans Grain Directory.
-This table stores the location of all grains in the cluster.
+Orleans Grain 目录。
+此表格存储集中所有 grains 的位置。
 
-NOTE:
-The combination of ClusterId, ProviderId, and GrainId forms the primary key for the OrleansGrainDirectory table.
-Together, these columns reach the maximum allowed key size for PostgreSQL indexes (2704 bytes).
-Care should be taken not to increase the length of these columns, as it may exceed PostgreSQL's key size limitation.
+注:
+ClusterId、 ProviderId和 GrainId 的组合构成 OrleansGrainDirectory 表格的主要关键字。
+这些列加起来达到 PostgreSQL 指数(2704字节)允许的最大关键字大小。
+应注意不要增加这些栏目长度,因为其可能超过 PostgreSQL的关键尺寸限制。
 
 */
 CREATE TABLE OrleansGrainDirectory
 (
-    /* Identifies the cluster instance */
+    /* 确定群集实例 */
     ClusterId VARCHAR(150) NOT NULL,
 
-    /* Identifies the grain directory provider */
+    /* 指定 grain 目录提供者 */
     ProviderId VARCHAR(150) NOT NULL,
 
-    /* Holds the grain id in text form */
+    /* 以文本格式持有 grain id */
     GrainId VARCHAR(2404) NOT NULL,
 
-    /* Holds the silo address where the grain is located */
+    /* 握住 silo 地址 grain 位于 */
     SiloAddress VARCHAR(100) NOT NULL,
 
-    /* Holds the activation id in the silo where it is located */
+    /* 将激活id 保存在 silo 所在位置 */
     ActivationId VARCHAR(100) NOT NULL,
 
-    /* Holds the time at which the grain was added to the directory */
+    /* 持有将 grain 添加到目录的时间 */
     CreatedOn TIMESTAMPTZ NOT NULL,
 
-    /* Identifies a unique grain activation */
+    /* 指定一个独有的 grain 激活 */
     CONSTRAINT PK_OrleansGrainDirectory PRIMARY KEY
     (
         ClusterId,
@@ -37,7 +37,7 @@ CREATE TABLE OrleansGrainDirectory
     )
 );
 
-/* Registers a new grain activation */
+/* 注册新的 grain 激活 */
 CREATE OR REPLACE FUNCTION RegisterGrainActivation(
     _ClusterId VARCHAR(150),
     _ProviderId VARCHAR(150),
@@ -102,7 +102,7 @@ SELECT
 	'START TRANSACTION; SELECT * FROM RegisterGrainActivation (@ClusterId, @ProviderId, @GrainId, @SiloAddress, @ActivationId); COMMIT;'
 ;
 
-/* Unregisters an existing grain activation */
+/* 取消现有 grain 激活的不登记 */
 CREATE OR REPLACE FUNCTION UnregisterGrainActivation(
     _ClusterId VARCHAR(150),
     _ProviderId VARCHAR(150),
@@ -139,7 +139,7 @@ SELECT
 	'SELECT * FROM UnregisterGrainActivation (@ClusterId, @ProviderId, @GrainId, @ActivationId)'
 ;
 
-/* Looks up an existing grain activation */
+/* 查看已有的 grain 激活 */
 CREATE OR REPLACE FUNCTION LookupGrainActivation(
     _ClusterId VARCHAR(150),
     _ProviderId VARCHAR(150),
@@ -185,7 +185,7 @@ SELECT
     'SELECT * FROM LookupGrainActivation(@ClusterId, @ProviderId, @GrainId)'
 ;
 
-/* Unregisters all grain activations in the specified silos */
+/* 全部不登记者 grain 指定 silos */
 CREATE OR REPLACE FUNCTION UnregisterGrainActivations(
     _ClusterId VARCHAR(150),
     _ProviderId VARCHAR(150),

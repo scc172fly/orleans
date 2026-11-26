@@ -11,7 +11,7 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// Services and settings shared by every messaging activation in the silo.
+/// silo中每个信息启动共享的服务与设置。
 /// </summary>
 internal sealed class MessagingShared
 {
@@ -39,7 +39,7 @@ internal sealed class MessagingShared
 
     public TimeProvider TimeProvider { get; }
 
-    /// <summary>Gets the durable jobs clock, which defines the time domain of wake-up due times.</summary>
+    /// <summary>获得确定觉醒到期时间的时间范围的长期工作时钟。</summary>
     public TimeProvider JobTimeProvider { get; }
 
     public ILocalDurableJobManager JobManager { get; }
@@ -56,7 +56,7 @@ internal sealed class MessagingShared
 
     public IDurableValueCommandCodec<InboxCommand> InboxCodec { get; }
 
-    /// <summary>Gets the metric tag for a grain type, shared by all of its activations.</summary>
+    /// <summary>获得一个 grain 类型通用标记,所有激活都共享该标志。</summary>
     public string GetGrainTypeTag(GrainType grainType) => _grainTypeTags.GetOrAdd(grainType, static type => type.ToString());
 
     public IDurableValueCommandCodec<OutboxCommand> OutboxCodec { get; }

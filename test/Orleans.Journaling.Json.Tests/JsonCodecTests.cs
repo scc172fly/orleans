@@ -13,7 +13,7 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Json.Tests;
 
 /// <summary>
-/// Round-trip and JSON-format tests for the direct JSON codecs.
+/// 往返和 JSON- 直接试验的 JSON 代码化
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -675,7 +675,7 @@ public class JsonCodecTests
         var codec = new RecordingJsonDurableValueCommandCodec();
         var state = new RecordingState(codec);
 
-        // Dispatch path: codec.Apply -> EnsureEnd must reject any token after the closing ']'.
+        // 调度路径: codec.Apply - > EnsureEnd 在关闭“ ] ” 后必须拒绝任何标记 。
         var exception = Assert.Throws<InvalidOperationException>(() =>
             ReadOne(format, """[8,["set",42]][9,["set",43]]""" + "\n", state));
 
@@ -688,7 +688,7 @@ public class JsonCodecTests
         var format = new JsonLinesJournalFormat();
         var state = new NoOpState();
 
-        // Validate the complete record even when the state machine ignores its payload.
+        // 即使国家机器无视其有效载荷,也验证完整记录。
         var exception = Assert.Throws<InvalidOperationException>(() =>
             ReadOne(format, """[8,["set",42]][9,["set",43]]""" + "\n", state));
 
@@ -700,7 +700,7 @@ public class JsonCodecTests
     {
         var format = new JsonLinesJournalFormat();
 
-        // The dispatch parser must reject trailing JSON after the entry array.
+        // 调度分析器必须拒绝在条目数组之后的尾行 JSON 。
         var exception = Assert.Throws<InvalidOperationException>(() =>
             Read(format, """[8,["set",42]][9,["set",43]]""" + "\n"));
 

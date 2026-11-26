@@ -3,7 +3,7 @@ using Orleans.Caching;
 namespace TestExtensions;
 
 /// <summary>
-/// A test helper that subscribes to <see cref="ConcurrentLruCache{K, V}"/> expiration cleanup events.
+/// 订阅 <see cref="ConcurrentLruCache{K, V}"/> 过期清理事件的测试助手。
 /// </summary>
 public sealed class ConcurrentLruCacheExpirationCleanupListener : IDisposable
 {
@@ -13,9 +13,9 @@ public sealed class ConcurrentLruCacheExpirationCleanupListener : IDisposable
     private readonly Queue<TaskCompletionSource<int>> _waiters = [];
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConcurrentLruCacheExpirationCleanupListener"/> class.
+    /// 初始化 <see cref="ConcurrentLruCacheExpirationCleanupListener"/> 类的新实例。
     /// </summary>
-    /// <param name="targetCache">The cache to listen for.</param>
+    /// <param name="targetCache">要收听的缓存 。</param>
     public ConcurrentLruCacheExpirationCleanupListener(object targetCache)
     {
         _targetCache = targetCache;
@@ -23,10 +23,10 @@ public sealed class ConcurrentLruCacheExpirationCleanupListener : IDisposable
     }
 
     /// <summary>
-    /// Waits for the next expiration cleanup event.
+    /// 等待下一次到期清理事件。
     /// </summary>
-    /// <param name="timeout">The maximum time to wait. Defaults to 10 seconds.</param>
-    /// <returns>The number of items removed by the cleanup.</returns>
+    /// <param name="timeout">等待的最长时间。 默认为 10 秒 。</param>
+    /// <returns>清理后移除的项目数量。</returns>
     public Task<int> WaitForCleanupAsync(TimeSpan? timeout = null)
     {
         lock (_events)

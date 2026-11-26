@@ -489,7 +489,7 @@ internal static class TransactionDiagnosticEvents
             ImmutableArray<Guid> transactionIds,
             TransactionDiagnosticIdentity identity)
         {
-            // Observer exceptions intentionally propagate so tests can inject post-write faults.
+            // 观察者例外故意宣传,以便测试能够注入写字后的缺陷。
             var evt = new StorageWriteCompleted(resource, eTag, batchSize, commitCount, transactionIds);
             evt.SetContext(identity, TransactionProtocolRole.Unknown, TransactionPhase.StorageWrite);
             Listener.Write(nameof(StorageWriteCompleted), evt);
@@ -1082,7 +1082,7 @@ internal static class TransactionDiagnosticEvents
         }
         catch
         {
-            // Recovery diagnostics are observational and must not affect transaction processing.
+            // 恢复诊断是观察性的,不得影响交易处理。
             return false;
         }
     }
@@ -1102,7 +1102,7 @@ internal static class TransactionDiagnosticEvents
         }
         catch (Exception)
         {
-            // Recovery diagnostics are observational. StorageWriteCompleted remains the sole fault-injection event.
+            // 恢复诊断是观察性的。 StorageWriteCompleted 仍然是唯一的错误注射事件。
         }
     }
 

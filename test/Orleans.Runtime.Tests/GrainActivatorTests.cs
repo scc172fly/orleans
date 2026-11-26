@@ -12,17 +12,17 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests for custom grain activators, which allow complete control over grain instantiation and disposal.
+    /// 测试自定义 grain 活化器,允许对 grain 即时和处置进行完全控制。
     /// 
-    /// Orleans uses IGrainActivator to create and destroy grain instances. By default, it uses
-    /// dependency injection, but applications can provide custom activators for scenarios like:
-    /// - Object pooling for expensive grain instances
-    /// - Custom initialization logic that can't be done in constructors
-    /// - Integration with third-party DI containers
-    /// - Specialized cleanup during grain deactivation
+    /// Orleans 使用 IGrainActivator 创建和销毁 grain 实例。默认情况下,它使用
+    /// 辅助注射,但应用可以提供定制的活性动力,用于下列情景:
+    /// - 将目标集中用于昂贵的 grain 案例
+    /// - 建筑商不能做到的自定义初始化逻辑
+    /// - 与第三方DI集装箱合并
+    /// - 期间专门化清理 grain 停止停用
     /// 
-    /// This test demonstrates implementing a custom activator that bypasses DI entirely
-    /// and tracks the number of disposed instances.
+    /// 此测试显示, 使用完全绕过DI 的自定义活性器
+    /// 并跟踪已处理案件的数量。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -46,8 +46,8 @@ namespace UnitTests.General
                 {
                     hostBuilder.ConfigureServices(services =>
                     {
-                        // Register our custom grain activator as a grain type component configurator
-                        // This allows it to selectively apply to specific grain types
+                        // 注册我们的自定义 grain 激活器, 将其作为 grain 类型部件配置
+                        // 从而允许它有选择性地适用于特定 grain 类型
                         services.AddSingleton<IConfigureGrainTypeComponents, HardcodedGrainActivator>();
                         services.AddSingleton<IConfigureGrainContextProvider, ActivationOrderingConfiguratorProvider>();
                     });
@@ -61,9 +61,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Verifies that custom grain activators can create grain instances without using DI.
-        /// The custom activator injects a hardcoded value that proves it was used instead
-        /// of the default DI-based activation.
+        /// 证明自定义 grain 启动器可在不使用DI的情况下创建 grain 实例。
+        /// 自定义活性器输入一个硬编码值,以证明它被使用
+        /// 的默认 DI 激活。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task CanUseCustomGrainActivatorToCreateGrains()
@@ -74,10 +74,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Tests that custom grain activators receive disposal notifications when grains are deactivated.
-        /// This is critical for resource cleanup scenarios like returning objects to pools,
-        /// closing connections, or updating metrics. The test verifies the disposal count
-        /// increases after explicit deactivation.
+        /// 测试自定义 grain 启动器在 grains 被停用时收到处置通知。
+        /// 这对于资源清理方案至关重要,例如将对象退回集合体,
+        /// 测试验证处置清点
+        /// 明确停用后增加。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task CanUseCustomGrainActivatorToReleaseGrains()
@@ -113,18 +113,18 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// Custom grain activator that bypasses dependency injection entirely.
-        /// Implements both IGrainActivator (for creation/disposal) and IConfigureGrainTypeComponents
-        /// (to register itself for specific grain types). This demonstrates how to:
-        /// - Create grains with custom logic instead of DI
-        /// - Track lifecycle events like disposal
-        /// - Selectively apply to specific grain types using the grain class map
+        /// 自定义 grain 活动器,完全绕过依赖注射。
+        /// 既执行 IGrainActivator (用于创建/处置)又执行 IConfigureGrainTypeComponents
+        /// (登记具体 grain 类型)。
+        /// - 以自定义逻辑而不是DI 创建 grains
+        /// - 处理等轨道生命周期事件
+        /// - 选择性地适用于特定 grain 使用类型 grain 类图
         /// </summary>
         private class HardcodedGrainActivator : IGrainActivator, IConfigureGrainTypeComponents
         {
             public const string HardcodedValue = "Hardcoded Test Value";
             private readonly GrainClassMap _grainClassMap;
-            private int _released;  // Tracks number of disposed grain instances
+            private int _released;  // 处置 grain 实例的音轨数
 
             public HardcodedGrainActivator(GrainClassMap grainClassMap)
             {
@@ -133,8 +133,8 @@ namespace UnitTests.General
 
             public void Configure(GrainType grainType, GrainProperties properties, GrainTypeSharedContext shared)
             {
-                // Selectively register this activator only for ExplicitlyRegisteredSimpleDIGrain types
-                // Other grain types will continue using the default DI-based activator
+                // 选择注册此激活器, 只为 ExplicitlyRegisteredSimpleDIGrain 类型
+                // grain 其它类型将继续使用默认的基于 DI 的驱动器
                 if (_grainClassMap.TryGetGrainClass(grainType, out var grainClass) && grainClass == typeof(ExplicitlyRegisteredSimpleDIGrain))
                 {
                     shared.SetComponent<IGrainActivator>(this);
@@ -145,16 +145,16 @@ namespace UnitTests.General
             {
                 ActivationOrderingState.Instance.ObserveConstruction(context);
 
-                // Custom instantiation logic - creates grain with hardcoded dependencies
-                // In real scenarios, this could get objects from a pool, perform complex
-                // initialization, or integrate with external systems
+                // 自定义即时逻辑 - 创建 grain , 具有硬编码的依赖性
+                // 实际情况下,这可以从一个池子里得到物体, 进行复杂的工作
+                // 初始化或与外部系统整合
                 return new ExplicitlyRegisteredSimpleDIGrain(new InjectedService(NullLoggerFactory.Instance), HardcodedValue, _released);
             }
 
             public ValueTask DisposeInstance(IGrainContext context, object instance)
             {
-                // Called when grain is deactivated - perfect for cleanup, returning to pools,
-                // or updating metrics. The count allows tests to verify disposal happened.
+                // 停止使用 grain 时调用,完全可以清理,可返回水池;
+                // 计算允许测试来核查处置情况。
                 ++_released;
                 return default;
             }

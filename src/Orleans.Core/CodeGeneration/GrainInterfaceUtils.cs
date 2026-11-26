@@ -9,16 +9,16 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.CodeGeneration
 {
     /// <summary>
-    /// Utilities for grain interface types.
+    /// grain 接口类型的公用事业。
     /// </summary>
     internal static class GrainInterfaceUtils
     {
         /// <summary>
-        /// Gets all grain interface methods for a specified type, which may be a class.
+        /// 获取指定类型( 可能是类) 的所有 grain 接口方法 。
         /// </summary>
-        /// <param name="grainType">The grain type.</param>
-        /// <param name="bAllMethods">Whether to get all methods or only declared methods.</param>
-        /// <returns>All grain interface methods for a specified type.</returns>
+        /// <param name="grainType"> grain 类型。</param>
+        /// <param name="bAllMethods">是否要获取所有方法或仅声明的方法。</param>
+        /// <returns>指定类型的全部 grain 接口方法。</returns>
         public static MethodInfo[] GetMethods(Type grainType, bool bAllMethods = true)
         {
             var methodInfos = new List<MethodInfo>();

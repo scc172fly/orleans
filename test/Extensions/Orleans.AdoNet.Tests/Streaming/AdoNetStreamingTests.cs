@@ -15,7 +15,7 @@ using static System.String;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// Cluster streaming tests for ADO.NET Streaming against SQL Server.
+/// 用于以下目的的集群流测试 ADO.NET 与 SQL 服务器
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -25,7 +25,7 @@ public class SqlServerAdoNetStreamingTests() : AdoNetStreamingTests(AdoNetInvari
 }
 
 /// <summary>
-/// Cluster streaming tests for ADO.NET Streaming against MySQL.
+/// ADO.NET 流对 MySQL的分组流测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -39,7 +39,7 @@ public class MySqlAdoNetStreamingTests : AdoNetStreamingTests
 }
 
 /// <summary>
-/// Cluster streaming tests for ADO.NET Streaming against PostgreSQL.
+/// ADO.NET 流对 PostgreSQL的分组流测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -49,7 +49,7 @@ public class PostgreSqlAdoNetStreamingTests() : AdoNetStreamingTests(AdoNetInvar
 }
 
 /// <summary>
-/// Cluster streaming tests for ADO.NET Streaming.
+/// ADO.NET 流的集群流测试。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestSuite("Functional")]
@@ -73,7 +73,7 @@ public abstract class AdoNetStreamingTests : TestClusterPerTest
 
     public override async ValueTask InitializeAsync()
     {
-        // set up the adonet environment before the base initializes
+        // 在基初始化前设置 adonet 环境
         var cancellationToken = TestContext.Current.CancellationToken;
         _testing = await RelationalStorageForTesting.SetupInstance(
             _invariant,
@@ -82,7 +82,7 @@ public abstract class AdoNetStreamingTests : TestClusterPerTest
 
         Assert.SkipWhen(IsNullOrEmpty(_testing.CurrentConnectionString), $"Database '{TestDatabaseName}' not initialized");
 
-        // base initialization must only happen after the above
+        // 初始化必须在上述时间之后才开始
         await base.InitializeAsync();
         if (!PreconditionsMet)
         {
@@ -90,7 +90,7 @@ public abstract class AdoNetStreamingTests : TestClusterPerTest
         }
         await WaitForStreamingProviderReadyAsync(cancellationToken);
 
-        // the runner must only be created after base initialization
+        // 仅必须在基初始化后创建运行者
         _runner = new SingleStreamTestRunner(HostedCluster, AdoNetStreamProviderName);
     }
 
@@ -160,7 +160,7 @@ public abstract class AdoNetStreamingTests : TestClusterPerTest
     [Fact, TestCategory("Functional")]
     public Task AdoNet_04_OneProducerClientOneConsumerClient() => _runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
 
-    //------------------------ MANY to Many different grains ----------------------------------//
+    //和很多不同的人 grains ----------------------------------//
 
     [Fact, TestCategory("Functional")]
     public Task AdoNet_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains() => _runner.StreamTest_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains(TestContext.Current.CancellationToken);
@@ -174,7 +174,7 @@ public abstract class AdoNetStreamingTests : TestClusterPerTest
     [Fact, TestCategory("Functional")]
     public Task AdoNet_08_ManyDifferent_ManyProducerClientsManyConsumerClients() => _runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
 
-    //------------------------ MANY to Many Same grains ---------------------------------------//
+    //和... 和很多相同 grains ---------------------------------------//
 
     [Fact, TestCategory("Functional")]
     public Task AdoNet_09_ManySame_ManyProducerGrainsManyConsumerGrains() => _runner.StreamTest_09_ManySame_ManyProducerGrainsManyConsumerGrains(TestContext.Current.CancellationToken);

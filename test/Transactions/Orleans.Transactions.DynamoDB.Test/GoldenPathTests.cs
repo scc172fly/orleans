@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// Tests for transaction golden path scenarios with DynamoDB.
+    /// 使用 DynamoDB测试交易金路图情景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

@@ -1,27 +1,27 @@
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Identifies whether a stream provider is read-only, read-write, or write-only.
+    /// 指定流数据提供者是只读、读写还是只写。
     /// </summary>
     public enum StreamProviderDirection
     {
         /// <summary>
-        /// None.
+        /// 无。
         /// </summary>
         None,
 
         /// <summary>
-        /// This provider can receive messages but cannot send them.
+        /// 此提供者可以接收信件, 但无法发送 。
         /// </summary>
         ReadOnly,
 
         /// <summary>
-        /// This provider can send messages but cannot receive them.
+        /// 此提供者可以发送信件但无法接收 。
         /// </summary>
         WriteOnly,
 
         /// <summary>
-        /// This provider can both send and receive messages.
+        /// 该提供者既可以发送也可以接收信息。
         /// </summary>
         ReadWrite
     }

@@ -29,7 +29,7 @@ internal readonly struct GeneratedSourceEntry(string hintName, string source) : 
     }
 }
 
-// Source can accompany a diagnostic so invalid implementations retain their editor type-checking declarations.
+// 来源可以伴随诊断结果,这样无效的实施就保留其编辑的字型检查申报。
 internal readonly struct SourceOutputResult(GeneratedSourceEntry? sourceEntry, Diagnostic? diagnostic) : IEquatable<SourceOutputResult>
 {
     public GeneratedSourceEntry? SourceEntry { get; } = sourceEntry;
@@ -55,7 +55,7 @@ internal readonly struct SourceOutputResult(GeneratedSourceEntry? sourceEntry, D
     }
 }
 
-// The declaration completes the authored partial type; the implementation provides its runtime registrations.
+// 申报完成部分作者的类别;实施提供其运行时间登记。
 internal readonly record struct SerializerContextOutput(SourceOutputResult Declaration, SourceOutputResult Implementation);
 
 internal readonly struct ReferenceAssemblyDataResult(
@@ -66,7 +66,7 @@ internal readonly struct ReferenceAssemblyDataResult(
     public ReferenceAssemblyModel Model { get; } = model;
     public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics.IsDefault ? [] : diagnostics;
 
-    // Diagnostics about generated metadata are reported only when implementation outputs are emitted.
+    // 只有在发布执行产出时,才会报告对生成元数据的诊断。
     public ImmutableArray<Diagnostic> ImplementationDiagnostics { get; } = implementationDiagnostics.IsDefault ? [] : implementationDiagnostics;
 
     public static ReferenceAssemblyDataResult FromModelAndDiagnostics(
@@ -168,7 +168,7 @@ internal readonly struct ProxyOutputPreparationResult(
     public static ProxyOutputPreparationResult FromDiagnostic(Diagnostic diagnostic)
         => new([], [], [diagnostic]);
 
-    // Diagnostics retain the current compilation's source trees even when their messages and spans match.
+    // 诊断保留当前汇编的源树, 即使它们的讯息和范围匹配。
     public bool Equals(ProxyOutputPreparationResult other)
         => StructuralEquality.SequenceEqual(ProxyOutputModels, other.ProxyOutputModels)
             && StructuralEquality.SequenceEqual(SourceOutputs, other.SourceOutputs)
@@ -244,7 +244,7 @@ internal static class SourceGeneratorDiagnosticComparer
             return false;
         }
 
-        // A source location retains its syntax tree, so diagnostics from different trees cannot be reused after an edit.
+        // 源的位置保留其语法树,因此在编辑后无法再重新使用不同树的诊断。
         return left.Location.Equals(right.Location)
             && string.Equals(left.Id, right.Id, StringComparison.Ordinal)
             && left.Severity == right.Severity

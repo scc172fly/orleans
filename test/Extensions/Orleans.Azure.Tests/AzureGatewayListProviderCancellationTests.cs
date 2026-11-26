@@ -131,7 +131,7 @@ public class AzureGatewayListProviderCancellationTests
 
     private static SdkTableClient InitializedTable() => new();
 
-    // A handwritten SDK seam avoids dynamic proxies over an internal table-entity type.
+    // 手写SDK接缝避免了内部表实体类型的动态代理。
     private sealed class SdkTableClient : TableClient
     {
         public int CreateCalls { get; private set; }

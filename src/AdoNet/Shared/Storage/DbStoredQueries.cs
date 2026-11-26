@@ -22,12 +22,12 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// This class implements the expected contract between Orleans and the underlying relational storage.
-    /// It makes sure all the stored queries are present and 
+    /// 本类执行 Orleans 与相关关系储存之间的预期合同。
+    /// 它确保所有储存的查询都在场,并且 
     /// </summary>
     internal class DbStoredQueries
     {
@@ -47,60 +47,60 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// The query that's used to get all the stored queries.
-        /// this will probably be the same for all relational dbs.
+        /// 用来接收所有存储查询的查询
+        /// 对所有关系带的分包来说,这很可能是一样的。
         /// </summary>
         internal const string GetQueriesKey = "SELECT QueryKey, QueryText FROM OrleansQuery";
 
 #if CLUSTERING_ADONET || TESTER_SQLUTILS
 
         /// <summary>
-        /// A query template to retrieve gateway URIs.
+        /// 获取网关 URI 的查询模板 。
         /// </summary>        
         internal string GatewaysQueryKey => queries[nameof(GatewaysQueryKey)];
 
         /// <summary>
-        /// A query template to retrieve a single row of membership data.
+        /// 检索一行会员数据的查询模板。
         /// </summary>        
         internal string MembershipReadRowKey => queries[nameof(MembershipReadRowKey)];
 
         /// <summary>
-        /// A query template to retrieve all membership data.
+        /// 获取全部会籍数据的查询模板 。
         /// </summary>        
         internal string MembershipReadAllKey => queries[nameof(MembershipReadAllKey)];
 
         /// <summary>
-        /// A query template to insert a membership version row.
+        /// 插入会籍版本行的查询模板 。
         /// </summary>
         internal string InsertMembershipVersionKey => queries[nameof(InsertMembershipVersionKey)];
 
         /// <summary>
-        /// A query template to update "I Am Alive Time".
+        /// 更新“ 我活着的时间”的查询模板。
         /// </summary>
         internal string UpdateIAmAlivetimeKey => queries[nameof(UpdateIAmAlivetimeKey)];
 
         /// <summary>
-        /// A query template to insert a membership row.
+        /// 插入会籍行的查询模板。
         /// </summary>
         internal string InsertMembershipKey => queries[nameof(InsertMembershipKey)];
 
         /// <summary>
-        /// A query template to update a membership row.
+        /// 更新会籍行的查询模板 。
         /// </summary>
         internal string UpdateMembershipKey => queries[nameof(UpdateMembershipKey)];
 
         /// <summary>
-        /// A query template to delete membership entries.
+        /// 用于删除会籍条目的查询模板 。
         /// </summary>
         internal string DeleteMembershipTableEntriesKey => queries[nameof(DeleteMembershipTableEntriesKey)];
 
         /// <summary>
-        /// A query template to cleanup defunct silo entries.
+        /// 清理已取消的查询模板 silo 条目 。
         /// </summary>
         internal string CleanupDefunctSiloEntriesKey => queries[nameof(CleanupDefunctSiloEntriesKey)];
 
         /// <summary>
-        /// Gets the optional query for deleting a dead row whose captured activity values still match.
+        /// 获取删除一个其捕获活动值仍然匹配的死行的可选查询。
         /// </summary>
         internal string? GetCleanupDefunctSiloEntryQuery() => queries.GetValueOrDefault("CleanupDefunctSiloEntryKey");
 
@@ -109,37 +109,37 @@ namespace Orleans.Tests.SqlUtils
 #if REMINDERS_ADONET || TESTER_SQLUTILS || ORLEANS_REMINDERS_PROVIDER
 
         /// <summary>
-        /// A query template to read reminder entries.
+        /// 读取提醒条目的查询模板 。
         /// </summary>
         internal string ReadReminderRowsKey => queries[nameof(ReadReminderRowsKey)];
 
         /// <summary>
-        /// A query template to read reminder entries with ranges.
+        /// 用于阅读带范围提醒条目的查询模板。
         /// </summary>
         internal string ReadRangeRows1Key => queries[nameof(ReadRangeRows1Key)];
 
         /// <summary>
-        /// A query template to read reminder entries with ranges.
+        /// 用于阅读带范围提醒条目的查询模板。
         /// </summary>
         internal string ReadRangeRows2Key => queries[nameof(ReadRangeRows2Key)];
 
         /// <summary>
-        /// A query template to read a reminder entry with ranges.
+        /// 用于阅读带范围提醒条目的查询模板。
         /// </summary>
         internal string ReadReminderRowKey => queries[nameof(ReadReminderRowKey)];
 
         /// <summary>
-        /// A query template to upsert a reminder row.
+        /// 将提醒行上传到一个查询模板 。
         /// </summary>
         internal string UpsertReminderRowKey => queries[nameof(UpsertReminderRowKey)];
 
         /// <summary>
-        /// A query template to delete a reminder row.
+        /// 用于删除提醒行的查询模板。
         /// </summary>
         internal string DeleteReminderRowKey => queries[nameof(DeleteReminderRowKey)];
 
         /// <summary>
-        /// A query template to delete all reminder rows.
+        /// 用于删除所有提醒行的查询模板。
         /// </summary>
         internal string DeleteReminderRowsKey => queries[nameof(DeleteReminderRowsKey)];
 
@@ -148,32 +148,32 @@ namespace Orleans.Tests.SqlUtils
 #if STREAMING_ADONET || TESTER_SQLUTILS
 
         /// <summary>
-        /// A query template to enqueue a message into the stream table.
+        /// 将信件输入流表的查询模板 。
         /// </summary>
         internal string QueueStreamMessageKey => queries[nameof(QueueStreamMessageKey)];
 
         /// <summary>
-        /// A query template to dequeue messages from the stream table.
+        /// 查询模板, 以从流表中删除信件 。
         /// </summary>
         internal string GetStreamMessagesKey => queries[nameof(GetStreamMessagesKey)];
 
         /// <summary>
-        /// A query template to confirm message delivery from the stream table.
+        /// 用于确认从流表发送信息的信息的查询模板 。
         /// </summary>
         internal string ConfirmStreamMessagesKey => queries[nameof(ConfirmStreamMessagesKey)];
 
         /// <summary>
-        /// A query template to evict a single message (by moving it to dead letters).
+        /// 将单个信息移出查询模板( 将其移至死信) 。
         /// </summary>
         internal string FailStreamMessageKey => queries[nameof(FailStreamMessageKey)];
 
         /// <summary>
-        /// A query template to batch evict messages (by moving them to dead letters).
+        /// 批量解密信件的查询模板( 将其移动到死信) 。
         /// </summary>
         internal string EvictStreamMessagesKey => queries[nameof(EvictStreamMessagesKey)];
 
         /// <summary>
-        /// A query template to evict expired dead letters (by deleting them).
+        /// 将过期的已过期信件( 删除) 解密查询模板 。
         /// </summary>
         internal string EvictStreamDeadLettersKey => queries[nameof(EvictStreamDeadLettersKey)];
 
@@ -182,22 +182,22 @@ namespace Orleans.Tests.SqlUtils
 #if GRAINDIRECTORY_ADONET || TESTER_SQLUTILS
 
         /// <summary>
-        /// A query template to register a grain activation.
+        /// 用于登记 grain 激活的查询模板。
         /// </summary>
         internal string RegisterGrainActivationKey => queries[nameof(RegisterGrainActivationKey)];
 
         /// <summary>
-        /// A query template to unregister a grain activation.
+        /// 解登记 grain 激活的查询模板 。
         /// </summary>
         internal string UnregisterGrainActivationKey => queries[nameof(UnregisterGrainActivationKey)];
 
         /// <summary>
-        /// A query template to lookup a grain activation.
+        /// 要查找 grain 激活的查询模板 。
         /// </summary>
         internal string LookupGrainActivationKey => queries[nameof(LookupGrainActivationKey)];
 
         /// <summary>
-        /// A query template to unregister all grain activations for a set of silos.
+        /// 全部解登记查询模板 grain 一组 silos.
         /// </summary>
         internal string UnregisterGrainActivationsKey => queries[nameof(UnregisterGrainActivationsKey)];
 
@@ -214,12 +214,12 @@ namespace Orleans.Tests.SqlUtils
 
             internal static Tuple<MembershipEntry?, int> GetMembershipEntry(IDataRecord record)
             {
-                //TODO: This is a bit of hack way to check in the current version if there's membership data or not, but if there's a start time, there's member.            
+                //这是在目前版本中检查 是否有会员数据, 但如果有开始的时间, 有会员。            
                 DateTime? startTime = record.GetDateTimeValueOrDefault(nameof(Columns.StartTime));
                 MembershipEntry? entry = null;
                 if (startTime.HasValue)
                 {
-                    // Legacy membership schemas can omit SiloName, but MembershipEntry retains the value as-is for compatibility.
+                    // 遗留成员制可以省略 SiloName,但 MembershipEntry 保留兼容性的价值。
                     entry = new MembershipEntry
                     {
                         SiloAddress = GetSiloAddress(record, nameof(Columns.Port)),
@@ -248,8 +248,8 @@ namespace Orleans.Tests.SqlUtils
             }
 
             /// <summary>
-            /// This method is for compatibility with membership tables that
-            /// do not contain a SiloName field
+            /// 这种方法是为了与成员表的兼容性,
+            /// 字段中不包含 SiloName
             /// </summary>
             private static string? TryGetSiloName(IDataRecord record)
             {
@@ -279,8 +279,8 @@ namespace Orleans.Tests.SqlUtils
 
             private static SiloAddress GetSiloAddress(IDataRecord record, string portName)
             {
-                //Use the GetInt32 method instead of the generic GetValue<TValue> version to retrieve the value from the data record
-                //GetValue<int> causes an InvalidCastException with orcale data provider. See https://github.com/dotnet/orleans/issues/3561
+                //使用 GetInt32 方法,而不是通用 GetValue<TValue> 版本,从数据记录中检索值
+                //GetValue<int> 导致有或卡数据提供者的 InvalidCastException 。见 https://github.com/dotnet/orleans/issues/3561
                 int port = record.GetInt32(portName);
                 int generation = record.GetInt32(nameof(Columns.Generation));
                 string address = record.GetValue<string>(nameof(Columns.Address));
@@ -365,7 +365,7 @@ namespace Orleans.Tests.SqlUtils
             }
 
             /// <summary>
-            /// Workaround for SiloAddress in the Grain Directory clashing with the existing property.
+            /// 工作周 SiloAddress 中在 Grain 目录与现有属性发生冲突 。
             /// </summary>
             internal string SiloAddressAsString
             {
@@ -468,7 +468,7 @@ namespace Orleans.Tests.SqlUtils
                 {
                     if (value.TotalMilliseconds <= int.MaxValue)
                     {
-                        // Original casting when old schema is used.  Here to maintain backwards compatibility
+                        // 使用旧的原制式时原始铸造。 这里用于保持后向兼容性
                         Add(nameof(Period), (int)value.TotalMilliseconds);
                     }
                     else

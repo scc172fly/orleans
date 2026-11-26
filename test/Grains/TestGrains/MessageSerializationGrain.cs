@@ -17,7 +17,7 @@ namespace UnitTests.Grains
         {
             var otherGrain = await GetGrainOnOtherSilo();
 
-            // Message that grain in a way which should fail.
+            // 信息 grain 失败的方式
             await otherGrain.SendUndeserializable(new UndeserializableType(35));
         }
 
@@ -25,7 +25,7 @@ namespace UnitTests.Grains
         {
             var otherGrain = await GetGrainOnOtherSilo();
 
-            // Message that grain in a way which should fail.
+            // 信息 grain 失败的方式
             await otherGrain.GetUnserializable();
         }
 
@@ -33,7 +33,7 @@ namespace UnitTests.Grains
         {
             var otherGrain = await GetGrainOnOtherSilo();
 
-            // Message that grain in a way which should fail.
+            // 信息 grain 失败的方式
             await otherGrain.SendUnserializable(new UnserializableType());
         }
 
@@ -41,7 +41,7 @@ namespace UnitTests.Grains
         {
             var otherGrain = await GetGrainOnOtherSilo();
 
-            // Message that grain in a way which should fail.
+            // 信息 grain 失败的方式
             await otherGrain.GetUndeserializable();
         }
 
@@ -55,7 +55,7 @@ namespace UnitTests.Grains
         {
             if (this.grainOnOtherSilo != null) return this.grainOnOtherSilo;
 
-            // Find a grain on another silo.
+            // 查找 grain 在一个 silo.
             IMessageSerializationGrain otherGrain;
             var id = this.GetPrimaryKeyLong();
             var currentSiloIdentity = await this.GetSiloIdentity();

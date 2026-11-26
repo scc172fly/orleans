@@ -1,16 +1,24 @@
-# Microsoft Orleans Clustering Provider for Azure Storage
+<a id="microsoft-orleans-clustering-provider-for-azure-storage"></a>
 
-## Introduction
-Microsoft Orleans Clustering Provider for Azure Storage allows Orleans silos to organize themselves as a cluster using Azure Table Storage. This provider enables silos to discover each other, maintain cluster membership, and detect and handle failures.
+# Microsoft Orleans 集束器 Azure 储存
 
-## Getting Started
-To use this package, install it via NuGet:
+<a id="introduction"></a>
+
+## 简介
+Microsoft Orleans 储存 Azure 的集束提供商允许 Orleans silos 使用 Azure 表格存储将自己组织成一个组群。该提供商使 silos 能够相互发现,保持组群成员身份,并检测和处理故障。
+
+<a id="getting-started"></a>
+
+## 入门
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Clustering.AzureStorage
 ```
 
-## Example - Configuring Azure Storage Clustering
+<a id="example---configuring-azure-storage-clustering"></a>
+
+## 示例 - 配置 Azure 存储封存集束
 
 ```csharp
 using Microsoft.Extensions.Hosting;
@@ -62,7 +70,9 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-## Example - Configuring Client to Connect to Cluster
+<a id="example---configuring-client-to-connect-to-cluster"></a>
+
+## 示例 - 配置客户端连接到集群
 
 ```csharp
 using Microsoft.Extensions.Hosting;
@@ -106,15 +116,19 @@ Console.WriteLine($"Grain response: {response}");
 await host.WaitForShutdownAsync();
 ```
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Clustering providers](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
-- [Typical configurations](https://dotnet.github.io/orleans/docs/host/configuration-guide/typical-configurations/)
+<a id="documentation"></a>
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [集群集供应商](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
+- [典型配置](https://dotnet.github.io/orleans/docs/host/configuration-guide/typical-configurations/)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

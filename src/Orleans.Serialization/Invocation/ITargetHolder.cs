@@ -1,20 +1,20 @@
 namespace Orleans.Serialization.Invocation;
 
 /// <summary>
-/// Represents an object which holds an invocation target as well as target extensions.
+/// 表示标有招揽目标以及目标扩展对象。
 /// </summary>
 public interface ITargetHolder
 {
     /// <summary>
-    /// Gets the target instance.
+    /// 获得目标实例。
     /// </summary>
-    /// <returns>The target.</returns>
+    /// <returns>目标。</returns>
     object? GetTarget();
 
     /// <summary>
-    /// Gets the component with the specified type.
+    /// 获取指定类型部件的组件。
     /// </summary>
-    /// <param name="componentType">The component type.</param>
-    /// <returns>The component with the specified type.</returns>
+    /// <param name="componentType">组件类型。</param>
+    /// <returns>带有指定类型的组成部分。</returns>
     object? GetComponent(Type componentType);
 }

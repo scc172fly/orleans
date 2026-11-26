@@ -15,7 +15,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// Tests for the controllable stream generator provider functionality, validating stream generation behavior and control commands.
+    /// 测试可控流源发电机提供功能的功能,验证流生成行为和控制命令。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -113,8 +113,8 @@ namespace UnitTests.StreamingTests
             var report = await reporter.GetReport(GeneratedStreamTestConstants.StreamProviderName, generatorConfig.StreamNamespace, cancellationToken);
             if (assertIsTrue)
             {
-                // one stream per queue
-                Assert.Equal(TotalQueueCount, report.Count); // stream count
+                // 每个队列一串
+                Assert.Equal(TotalQueueCount, report.Count); // 数流数
                 foreach (int eventsPerStream in report.Values)
                 {
                     Assert.Equal(generatorConfig.EventsInStream, eventsPerStream);

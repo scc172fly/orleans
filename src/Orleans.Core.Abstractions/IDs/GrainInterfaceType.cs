@@ -4,19 +4,19 @@ using Orleans.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Uniquely identifies a grain interface.
+    /// 唯一指定 grain 接口。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public readonly struct GrainInterfaceType : IEquatable<GrainInterfaceType>, ISpanFormattable
     {
         /// <summary>
-        /// The underlying value.
+        /// 基本价值。
         /// </summary>
         [Id(0)]
         private readonly IdSpan _value;
 
         /// <summary>
-        /// Creates a <see cref="GrainInterfaceType"/> instance.
+        /// 创建 <see cref="GrainInterfaceType"/> 实例。
         /// </summary>
         public GrainInterfaceType(string value)
         {
@@ -25,22 +25,22 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a <see cref="GrainInterfaceType"/> instance.
+        /// 创建 <see cref="GrainInterfaceType"/> 实例。
         /// </summary>
         public GrainInterfaceType(IdSpan value) => _value = value;
 
         /// <summary>
-        /// Returns the <see cref="IdSpan"/> value underlying this instance.
+        /// 返回此实例的 <see cref="IdSpan"/> 值。
         /// </summary>
         public IdSpan Value => _value;
 
         /// <summary>
-        /// Returns true if this value is equal to the <see langword="default"/> instance.
+        /// 如果此值等于 <see langword="default"/> 实例,则返回 True。
         /// </summary>
         public bool IsDefault => _value.IsDefault;
 
         /// <summary>
-        /// Creates a <see cref="GrainInterfaceType"/> instance.
+        /// 创建 <see cref="GrainInterfaceType"/> 实例。
         /// </summary>
         public static GrainInterfaceType Create(string value) => new GrainInterfaceType(value);
 
@@ -54,7 +54,7 @@ namespace Orleans.Runtime
         public override int GetHashCode() => _value.GetHashCode();
 
         /// <summary>
-        /// Returns a UTF8 interpretation of the current instance.
+        /// 返回当前实例的 UTF8 解释。
         /// </summary>
         /// <returns></returns>
         public override string ToString() => _value.ToString();
@@ -65,56 +65,56 @@ namespace Orleans.Runtime
             => _value.TryFormat(destination, out charsWritten);
 
         /// <summary>
-        /// Compares the provided operands for equality.
+        /// 与所提供的平等目标相比较。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
         public static bool operator ==(GrainInterfaceType left, GrainInterfaceType right) => left.Equals(right);
 
         /// <summary>
-        /// Compares the provided operands for inequality.
+        /// 比较所提供的不平等域。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are not equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
         public static bool operator !=(GrainInterfaceType left, GrainInterfaceType right) => !left.Equals(right);
     }
 
     /// <summary>
-    /// Gets a <see cref="GrainInterfaceType"/> for an interface.
+    /// 获取一个接口的 <see cref="GrainInterfaceType"/> 。
     /// </summary>
     public interface IGrainInterfaceTypeProvider
     {
         /// <summary>
-        /// Gets the <see cref="GrainInterfaceType"/> corresponding to the specified <paramref name="type"/>.
+        /// 得到 <see cref="GrainInterfaceType"/> 对应指定 <paramref name="type"/>.
         /// </summary>
-        /// <param name="type">The grain interface type instance.</param>
-        /// <param name="grainInterfaceType">The resulting grain interface type identifier.</param>
+        /// <param name="type"> grain 接口类型实例。</param>
+        /// <param name="grainInterfaceType">由此结果 grain 界面类型识别符号。</param>
         /// <returns>
-        /// <see langword="true"/> if a <see cref="GrainInterfaceType"/> corresponding to the provided type was found, otherwise <see langword="false"/>.
+        /// <see langword="true"/> ,如果发现与规定类型相应的 <see cref="GrainInterfaceType"/> ,否则 <see langword="false"/>。
         /// </returns>
         /// <remarks>
-        /// Implementations must return a stable success result and identifier for each CLR interface type
-        /// for the lifetime of the resolver using this provider. The resolver caches resolved identities,
-        /// including closed generic interface types. Implementations must support concurrent calls;
-        /// concurrent cache misses can invoke this method more than once for the same type.
+        /// 实施必须恢复稳定的成功结果和每个CLR接口类型标识符
+        /// 使用此提供者的解决者寿命。 解决者缓存解决了身份,
+        /// 包括封闭通用接口类型。 执行必须支持同时通话;
+        /// 同步缓存误差可多次对同类型使用此方法 。
         /// </remarks>
         bool TryGetGrainInterfaceType(Type type, out GrainInterfaceType grainInterfaceType);
     }
 
     /// <summary>
-    /// Gets a <see cref="GrainInterfaceType"/> from attributes implementing <see cref="IGrainInterfaceTypeProviderAttribute"/>.
+    /// 得到a <see cref="GrainInterfaceType"/> 属性执行中的属性 <see cref="IGrainInterfaceTypeProviderAttribute"/>.
     /// </summary>
     public class AttributeGrainInterfaceTypeProvider : IGrainInterfaceTypeProvider
     {
         /// <summary>
-        /// The service provider.
+        /// 服务供应商。
         /// </summary>
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Creates a <see cref="AttributeGrainInterfaceTypeProvider"/> instance.
+        /// 创建 <see cref="AttributeGrainInterfaceTypeProvider"/> 实例。
         /// </summary>
         public AttributeGrainInterfaceTypeProvider(IServiceProvider serviceProvider)
         {
@@ -139,45 +139,45 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// An <see cref="Attribute"/> which implements this specifies the <see cref="GrainInterfaceType"/> of the
-    /// type which it is attached to.
+    /// A 音 A <see cref="Attribute"/> 执行此指定 <see cref="GrainInterfaceType"/> 会 议 排排排排排排排排排排排排排排排排排
+    /// 类型。
     /// </summary>
     public interface IGrainInterfaceTypeProviderAttribute
     {
         /// <summary>
-        /// Gets the grain interface identifier.
+        /// 获取 grain 接口标识符。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="type">The grain interface type.</param>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="type"> grain 接口类型。</param>
         /// <returns>
-        /// The <see cref="GrainInterfaceType"/> corresponding to the provided type.
+        /// 与所提供类型相应的 <see cref="GrainInterfaceType"/> 。
         /// </returns>
         /// <remarks>
-        /// The identifier must remain stable for each CLR interface type for the lifetime of the resolver
-        /// using this attribute. Implementations must support concurrent calls, including repeated calls
-        /// for the same type during concurrent identity resolution.
+        /// 解决者寿命期间,每个CLR接口类型的身份识别特征必须保持稳定
+        /// 执行必须支持同时通话,包括重复通话
+        /// 同一类型身份识别时,可同时使用。
         /// </remarks>
         GrainInterfaceType GetGrainInterfaceType(IServiceProvider services, Type type);
     }
 
     /// <summary>
-    /// When applied to a grain interface, specifies the <see cref="GrainInterfaceType"/>.
+    /// 当应用到 grain 接口时,指定 <see cref="GrainInterfaceType"/>。
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false)]
     public sealed class GrainInterfaceTypeAttribute : Attribute, IGrainInterfaceTypeProviderAttribute
     {
         /// <summary>
-        /// The grain interface type.
+        /// grain 接口类型。
         /// </summary>
         private readonly GrainInterfaceType _value;
 
         /// <summary>
-        /// Creates a <see cref="GrainInterfaceTypeAttribute"/> instance.
+        /// 创建 <see cref="GrainInterfaceTypeAttribute"/> 实例。
         /// </summary>
-        /// <param name="value">A non-empty identity containing no quotes, whitespace, control characters, or reserved type-name delimiters (<c>[](),*&amp;</c>).</param>
-        /// <remarks>Generic arity suffixes must be decimal integers at the end of each nested type name, totaling at most 64.</remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="value"/> is empty, contains a quote, whitespace, a control character, or a reserved type-name delimiter, or has an invalid generic arity suffix.</exception>
+        /// <param name="value">不含引号、空白空间、控制字符或保留类型名称分隔符的非空白身份(<c>[](),*&amp;</c>).</param>
+        /// <remarks>通用数后缀必须是每个嵌套类型名称结尾的十进制整数,总计最多64个</remarks>。
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value"/> 是空的, 含有引号、 空白、 控制字符或保留类型名称分隔符, 或者无效的通用性等字尾。</exception>
         public GrainInterfaceTypeAttribute(string value)
         {
             IdentityNameValidator.Validate(value, nameof(value));

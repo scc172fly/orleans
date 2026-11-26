@@ -4,6 +4,6 @@ using SQSMessage = Amazon.SQS.Model.Message;
 namespace Orleans.Streaming.SQS.Streams;
 
 /// <summary>
-/// Converts Orleans stream batches to and from Amazon SQS messages.
+/// 转换 Orleans 流集到亚马逊 SQS 信息。
 /// </summary>
 public interface ISQSDataAdapter : IQueueDataAdapter<SQSMessage, IBatchContainer>;

@@ -18,11 +18,11 @@ namespace Orleans.Transactions.AzureStorage
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage
 #else
-// No default namespace intentionally to cause compile errors if something is not defined
+// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
 #endif
 {
     /// <summary>
-    /// Configures batching, retry, and timeout behavior for Azure Table Storage operations.
+    /// 配置 Azure 表存储操作的批量、重试和超时行为。
     /// </summary>
     public class AzureStoragePolicyOptions
     {
@@ -31,33 +31,33 @@ namespace Orleans.GrainDirectory.AzureStorage
         private TimeSpan? maxPauseBetweenOperationRetries;
 
         /// <summary>
-        /// Gets or sets the maximum number of entities included in a bulk update or delete operation.
+        /// 获取或设定批量更新或删除操作中包含的实体的最大数量。
         /// </summary>
         public int MaxBulkUpdateRows { get; set; } = 100;
 
         /// <summary>
-        /// Gets or sets the legacy creation retry count used to calculate the default <see cref="CreationTimeout"/>.
+        /// 获取或设置用于计算默认 <see cref="CreationTimeout"/>的创建遗产重试数。
         /// </summary>
         public int MaxCreationRetries { get; set; } = 60;
 
-        // Defaults match Azure Storage SDK retry settings.
+        // 默认值匹配 Azure 存储 SDK 重试设置 。
         /// <summary>
-        /// The maximum number of operation retry attempts.
+        /// 最大操作次数重试尝试。
         /// </summary>
         public int MaxOperationRetries { get; set; } = 5;
 
         /// <summary>
-        /// Gets or sets the legacy creation retry delay used to calculate the default <see cref="CreationTimeout"/>.
+        /// 获取或设置用于计算默认 <see cref="CreationTimeout"/>的创建遗留数据的延迟时间。
         /// </summary>
         public TimeSpan PauseBetweenCreationRetries { get; set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
-        /// The base delay used by the Azure SDK exponential retry policy.
+        /// 基数的延迟 Azure SDK指数重试政策
         /// </summary>
         public TimeSpan PauseBetweenOperationRetries { get; set; } = TimeSpan.FromSeconds(0.8);
 
         /// <summary>
-        /// The maximum delay used by the Azure SDK exponential retry policy.
+        /// 使用的最大延迟时间 Azure SDK指数重试政策
         /// </summary>
         public TimeSpan MaxPauseBetweenOperationRetries
         {
@@ -73,10 +73,10 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Gets or sets the timeout value included in table-creation timeout diagnostics.
+        /// 获取或设定包含在创建表格超时诊断中的超时值。
         /// </summary>
         /// <remarks>
-        /// The default is three times the product of <see cref="PauseBetweenCreationRetries"/> and <see cref="MaxCreationRetries"/>.
+        /// 默认值是 <see cref="PauseBetweenCreationRetries"/> 和 <see cref="MaxCreationRetries"/>产物的三倍。
         /// </remarks>
         public TimeSpan CreationTimeout
         {
@@ -85,7 +85,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// Gets or sets the duration after which a table operation is reported as slow.
+        /// 获取或设置表格操作报告缓慢的时间段。
         /// </summary>
         public TimeSpan OperationTimeout
         {

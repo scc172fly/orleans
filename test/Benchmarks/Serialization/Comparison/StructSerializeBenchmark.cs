@@ -16,7 +16,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// Compares Orleans serialization performance against other popular serializers for struct types.
+/// 将 Orleans 序列化性能与其他流行的制动器类定序质变比。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -107,7 +107,7 @@ public class StructSerializeBenchmark
         return HyperionBuffer.Length;
     }
 
-    //[Benchmark]
+    //[基准]
     public int ZeroFormatter()
     {
         var bytes = ZeroFormatterSerializer.Serialize(Input);

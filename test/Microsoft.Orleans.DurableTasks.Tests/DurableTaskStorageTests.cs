@@ -122,7 +122,7 @@ public sealed class DurableTaskStorageTests
         Assert.NotNull(typedState.RequestPayload);
         Assert.NotNull(typedState.ResultPayload);
 
-        // Replacing a payload discards the cached value, so the next access decodes the stored payload.
+        // 替换有效载荷会丢弃缓存值,因此下一次访问将存储的有效载荷解码。
         typedState.ResultPayload = typedState.ResultPayload;
         var decoded = Assert.IsType<DurableTaskResponse<int>>(typedState.Result);
         Assert.NotSame(response, decoded);
@@ -140,11 +140,11 @@ public sealed class DurableTaskStorageTests
         storage.SetResponse(taskId, state, DurableTaskResponse.FromResult(42));
         storage.AddCompletionDestination(taskId, state, destination);
 
-        // A stored result which no longer decodes, such as one whose type was removed.
+        // 储存的结果不再解码,例如其类型被删除。
         var typedState = Assert.IsType<DurableTaskState>(state);
         typedState.ResultPayload = [0xFF, 0xFF, 0xFF, 0xFF];
 
-        // The outbox dead-letters the completion which it can't materialize, and the runtime retires it.
+        // 发信箱的废纸字母 完成它无法实现, 而运行时间退休了。
         storage.RemoveCompletionDestination(taskId, state, destination);
         storage.RetainResult(taskId, state);
 
@@ -168,13 +168,13 @@ public sealed class DurableTaskStorageTests
             storage.GetOrCreateTask(taskId, DurableTaskRecordKind.LocalStep, request: null);
         }
 
-        // Identifiers between a task and its nearest stored descendants, such as a combinator's operation, aren't stored.
+        // 任务和它最近的储存子孙之间的识别器,例如组合器的操作, 都没有被存储。
         Assert.Equal(
             new HashSet<TaskId> { childId, operationChildId, nestedOperationChildId },
             storage.GetChildren(rootId).Select(child => child.Id).ToHashSet());
         Assert.Equal([grandchildId], storage.GetChildren(childId).Select(child => child.Id));
 
-        // A removed task's stored descendants become children of its nearest stored ancestor.
+        // 被清除的任务的存储后代 成为它最接近的存储祖先的孩子
         Assert.True(storage.RemoveTask(childId));
         Assert.Equal(
             new HashSet<TaskId> { grandchildId, operationChildId, nestedOperationChildId },
@@ -209,7 +209,7 @@ public sealed class DurableTaskStorageTests
 
         await using (var activation = await harness.ActivateAsync(cancellationToken))
         {
-            // The hierarchy index is built from the recovered tasks.
+            // 等级指数是根据回收的任务建立的。
             var storage = activation.Storage;
             Assert.Equal(
                 new HashSet<TaskId> { deletedId, retainedId },
@@ -385,7 +385,7 @@ public sealed class DurableTaskStorageTests
             await recovery.Storage.WriteAsync(cancellationToken);
         }
 
-        // The deletion is journaled.
+        // 删除内容已日记。
         await using var deleted = await harness.ActivateAsync(cancellationToken);
         Assert.False(deleted.Storage.TryGetTask(taskId, out _));
         Assert.Empty(deleted.Storage.Tasks);
@@ -431,7 +431,7 @@ public sealed class DurableTaskStorageTests
             resultPayload = Assert.IsType<DurableTaskState>(state).ResultPayload!;
         }
 
-        // One state entry carries the fingerprint, and the result's payload is journaled once.
+        // 其中一个州输入带有指纹,结果的有效载荷被日记一次。
         var journal = await ReadJournalAsync(harness, cancellationToken);
         Assert.Equal(1, CountOccurrences(journal, "$record-kind"u8));
         Assert.Equal(1, CountPayload(journal, resultPayload));
@@ -452,7 +452,7 @@ public sealed class DurableTaskStorageTests
         return consumer.Bytes.ToArray();
     }
 
-    // The JSON journal format writes a byte array as a base64 string.
+    // JSON 日记格式将字节数组写成基数64字符串。
     private static int CountPayload(byte[] journal, byte[] payload) =>
         CountOccurrences(journal, payload) + CountOccurrences(journal, System.Text.Encoding.UTF8.GetBytes(Convert.ToBase64String(payload)));
 

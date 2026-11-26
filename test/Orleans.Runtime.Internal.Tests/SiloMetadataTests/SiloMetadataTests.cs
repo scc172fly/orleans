@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.SiloMetadataTests;
 
 /// <summary>
-/// Tests for silo metadata configuration, retrieval, and synchronization across cluster.
+/// 测试 silo 元数据配置、检索和同步跨组的测试。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -215,7 +215,7 @@ public static class SiloMetadataTestExtensions
                 remoteMetadata.Add(otherSilo.SiloAddress, metadata);
             }
 
-            //Assert that the two dictionaries have the same keys and the values for those keys are the same
+            //断言这两个字典有相同的键盘,而这两个关键词的值是相同的
             Assert.Equal(exampleSiloMetadata.Count, remoteMetadata.Count);
             foreach (var kvp in exampleSiloMetadata)
             {

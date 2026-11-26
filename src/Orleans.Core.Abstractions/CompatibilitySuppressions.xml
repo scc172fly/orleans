@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- GetUniformHashCodes returns cached ImmutableArray<uint> storage instead of a mutable uint[] array. -->
+<!-- GetUniformHashCodes 返回缓存 ImmutableArray<uint> 存储,而不是可变的昆特数组。 -->
 <Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>

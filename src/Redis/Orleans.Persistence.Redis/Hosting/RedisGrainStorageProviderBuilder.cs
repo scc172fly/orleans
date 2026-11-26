@@ -26,14 +26,14 @@ internal sealed class RedisGrainStorageProviderBuilder : IProviderBuilder<ISiloB
                 var serviceKey = configurationSection["ServiceKey"];
                 if (!string.IsNullOrEmpty(serviceKey))
                 {
-                    // Get a connection multiplexer instance by name.
+                    // 获取连接多路驱动方实例的名称 。
                     var multiplexer = services.GetRequiredKeyedService<IConnectionMultiplexer>(serviceKey);
                     options.CreateMultiplexer = _ => Task.FromResult((Multiplexer: multiplexer, IsShared: true));
                     options.ConfigurationOptions = new ConfigurationOptions();
                 }
                 else
                 {
-                    // Construct a connection multiplexer from a connection string.
+                    // 构造连接字符串中的连接多路驱动器。
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

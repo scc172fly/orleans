@@ -5,22 +5,22 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Base class for consul-cluster-options.
+    /// 领事-集群备选方案的基础类。
     /// </summary>
     public class ConsulClusteringOptions
     {
         /// <summary>
-        /// Consul KV root folder name.
+        /// 领事 KV 根文件夹名 。
         /// </summary>
         public string? KvRootFolder { get; set; }
 
         /// <summary>
-        /// Factory for the used Consul-Client.
+        /// 旧领事服务员工厂
         /// </summary>
         public Func<IConsulClient> CreateClient { get; private set; }
 
         /// <summary>
-        /// Configures the <see cref="CreateClient"/> using the provided callback.
+        /// 使用所提供的回调配置 <see cref="CreateClient"/> 。
         /// </summary>
         public void ConfigureConsulClient(Func<IConsulClient> createClientCallback)
         {
@@ -28,7 +28,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Configures the <see cref="CreateClient"/> using the consul-address and a acl-token.
+        /// 使用领事地址和按键配置 <see cref="CreateClient"/> 。
         /// </summary>
         public void ConfigureConsulClient(Uri address, string? aclClientToken = null)
         {
@@ -42,7 +42,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConsulClusteringOptions"/> class using the default Consul client configuration.
+        /// 使用默认的领事客户配置初始化 <see cref="ConsulClusteringOptions"/> 类的新实例。
         /// </summary>
         public ConsulClusteringOptions()
         {
@@ -59,16 +59,16 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Validates Consul clustering options.
+    /// 核实顾问集群备选方案。
     /// </summary>
-    /// <typeparam name="TOptions">The type of options to validate.</typeparam>
+    /// <typeparam name="TOptions">验证的选项类型。</typeparam>
     public class ConsulClusteringOptionsValidator<TOptions> : IConfigurationValidator where TOptions : ConsulClusteringOptions
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConsulClusteringOptionsValidator{TOptions}"/> class.
+        /// 初始化 <see cref="ConsulClusteringOptionsValidator{TOptions}"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options to validate.</param>
-        /// <param name="name">The configured options name.</param>
+        /// <param name="options">验证的选项。</param>
+        /// <param name="name">配置的选项名称。</param>
         public ConsulClusteringOptionsValidator(TOptions options, string? name = null)
         {
             Options = options;
@@ -76,12 +76,12 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Gets the options to validate.
+        /// 获取选项来验证 。
         /// </summary>
         public TOptions Options { get; }
 
         /// <summary>
-        /// Gets the configured options name.
+        /// 获取配置的选项名称。
         /// </summary>
         public string? Name { get; }
 

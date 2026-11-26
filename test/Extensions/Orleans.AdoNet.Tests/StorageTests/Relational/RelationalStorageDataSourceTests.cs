@@ -433,7 +433,7 @@ public sealed class RelationalStorageDataSourceTests
             await cancellationStarted.Task.WaitAsync(TestContext.Current.CancellationToken);
             releaseSelector.SetResult();
 
-            // Cleanup yields the calling thread while the provider's cancellation callback is still running.
+            // 清理生成调用线索, 而服务商的取消回馈仍在运行中 。
             var operation = await readReturned.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
             Assert.False(operation.IsCompleted);
             Assert.False(connection.IsDisposed);

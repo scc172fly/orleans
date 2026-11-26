@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// Tests for object pool allocation, recycling, and resource management.
+    /// 目标集合分配、回收利用和资源管理测试。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -42,13 +42,13 @@ namespace UnitTests.OrleansRuntime.Streams
         {
             var accumulator = new Accumulator();
             IObjectPool<TestPooledResource> pool = new ObjectPool<TestPooledResource>(() => new TestPooledResource(accumulator));
-            // Allocate and free 10 items
+            // 分配和免费10项
             for (int i = 0; i < 10; i++)
             {
                 TestPooledResource resource = pool.Allocate();
                 resource.Dispose();
             }
-            // only 1 at a time was ever allocated, so max allocated should be 1
+            // 分配的时间只一次一个,所以最大分配时间应为1
             Assert.Equal(1, accumulator.MaxAllocated);
         }
 
@@ -58,23 +58,23 @@ namespace UnitTests.OrleansRuntime.Streams
             var accumulator = new Accumulator();
             IObjectPool<TestPooledResource> pool = new ObjectPool<TestPooledResource>(() => new TestPooledResource(accumulator));
 
-            // Allocate 10 items
+            // 分配10项
             var resources = Enumerable.Range(0, 10).Select(i => pool.Allocate()).ToList();
 
-            // free 10
+            // 空闲 10
             resources.ForEach(r => r.Dispose());
 
-            // pool was pre-populated with 10, so max allocated should be 10
+            // 预先人口集中的池中10人,分配的最大数应为10
             Assert.Equal(10, accumulator.MaxAllocated);
 
-            // Allocate and free 10 items
+            // 分配和免费10项
             for (int i = 0; i < 10; i++)
             {
                 TestPooledResource resource = pool.Allocate();
                 resource.Dispose();
             }
 
-            // only 1 at a time was ever allocated, but pool was pre-populated with 10, so max allocated should be 10
+            // 一次只分配一个,但池子预先容纳了10人,所以最多分配10人
             Assert.Equal(10, accumulator.MaxAllocated);
         }
 
@@ -87,28 +87,28 @@ namespace UnitTests.OrleansRuntime.Streams
 
             for (int i = 0; i < 5; i++)
             {
-                // Allocate WorkngSet items
+                // 分配 WorkngSet 项目
                 var resources = Enumerable.Range(0, WorkngSet).Select(v => pool.Allocate()).ToList();
 
-                resources.Reverse(); // reversing alloca to maintain order when disposed
+                resources.Reverse(); // e. 处理时维持秩序
 
-                // free WorkngSet
+                // 空 WorkngSet
                 resources.ForEach(r => r.Dispose());
 
-                // pool was pre-populated with WorkngSet, so max allocated should be 10
+                // 预 WorkngSet,因此最大分配量应为10
                 Assert.Equal(WorkngSet, accumulator.MaxAllocated);
 
-                // Allocate and free 5 items
+                // 分配和免费5项
                 for (int j = 0; j < 5; j++)
                 {
                     TestPooledResource resource = pool.Allocate();
-                    int expectedAllocationCount = (i * (5 + 1)) // allocations accumulated in previous loops
-                                                  + (j + 1); // allocations accumulated in this loop
+                    int expectedAllocationCount = (i * (5 + 1)) // 先前循环中累积的分配款
+                                                  + (j + 1); // 在此循环中累积的批量
                     Assert.Equal(expectedAllocationCount, resource.AllocationCount);
                     resource.Dispose();
                 }
 
-                // only 1 at a time was ever allocated, but pool was pre-populated with WorkngSet, so max allocated should be 10
+                // 一次只分配1个,但池储预先 WorkngSet,所以最多分配10个
                 Assert.Equal(WorkngSet, accumulator.MaxAllocated);
             }
         }

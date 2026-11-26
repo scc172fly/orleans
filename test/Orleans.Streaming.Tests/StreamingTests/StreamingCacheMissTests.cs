@@ -9,17 +9,17 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// Tests for stream caching behavior and cache miss scenarios.
+    /// 测试流的缓冲行为和缓存误差情景
     /// 
-    /// Orleans streaming providers use caching to improve performance by:
-    /// - Batching messages for delivery
-    /// - Avoiding repeated deserialization
-    /// - Enabling recovery from temporary failures
+    /// Orleans 流动提供者使用缓存来改进业绩,具体做法是:
+    /// - 发送相隔信息
+    /// - 避免反复的消毒
+    /// - 使暂时失灵后能恢复
     /// 
-    /// These tests verify correct behavior when:
-    /// - Events are evicted from cache due to age or memory pressure
-    /// - Filtered events interact with cache eviction
-    /// - Multiple streams compete for cache space
+    /// 测试证实正确行为,当:
+    /// - 由于年龄或记忆压力,事件被从缓存处逐出
+    /// - 过滤事件与缓冲驱逐行动发生互动
+    /// - 多个流竞争夺缓存空间
     /// </summary>
     public abstract class StreamingCacheMissTests : TestClusterPerTest
     {
@@ -30,9 +30,9 @@ namespace Tester.StreamingTests
         private readonly ITestOutputHelper output;
 
         /// <summary>
-        /// Custom stream filter that only delivers messages where the first byte equals 1.
-        /// Used to test interaction between filtering and cache eviction - filtered
-        /// messages should not trigger grain activation or affect cache behavior.
+        /// 自定义流过滤器, 仅发送第一个字节等于 1 的信件 。
+        /// 用于测试过滤器和缓存驱逐之间的相互作用
+        /// 信件不应触发 grain 激活或影响缓存行为。
         /// </summary>
         protected class CustomStreamFilter : IStreamFilter
         {
@@ -49,12 +49,12 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// Tests that grains correctly handle events that were evicted from cache.
-        /// Scenario:
-        /// 1. Send an event that gets cached
-        /// 2. Wait for cache expiration and trigger eviction
-        /// 3. Send another event
-        /// Verifies that both events are delivered despite cache eviction.
+        /// 测试 grains 正确处理被缓存删除的事件 。
+        /// 假设情景:
+        /// 1. 发送一个被缓存的事件
+        /// 2. 等待缓存失效和触发驱逐
+        /// 3. 发送另一事件
+        /// 证明尽管暗藏地被驱赶,但这两个事件还是发生了。
         /// </summary>
         [Fact]
         public virtual async Task PreviousEventEvictedFromCacheTest()
@@ -64,31 +64,31 @@ namespace Tester.StreamingTests
             cts.CancelAfter(TimeSpan.FromSeconds(30));
             var streamProvider = this.Client.GetStreamProvider(StreamProviderName);
 
-            // Tested stream and corresponding grain
+            // 测试的流和相应的 grain
             var key = Guid.NewGuid();
             var stream = streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), key);
             var grain = this.Client.GetGrain<IImplicitSubscriptionCounterGrain>(key);
             var streamId = StreamId.Create(nameof(IImplicitSubscriptionCounterGrain), key);
 
-            // We need multiple streams, so at least another one will be handled by the same PullingAgent than "stream"
-            // This ensures cache pressure and increases likelihood of eviction
+            // 我们需要多个流, 所以至少另外一条流会由与“ 流” 相同的 PullingAgent 处理
+            // 这确保了缓冲压力,增加了驱逐的可能性
             var otherStreams = new List<IAsyncStream<byte[]>>();
             for (var i = 0; i < 20; i++)
                 otherStreams.Add(streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), Guid.NewGuid()));
 
-            // Data that will be sent to the grains
+            // 将发送到 grains的数据
             var interestingData = new byte[1024];
             interestingData[0] = 1;
 
-            // Should be delivered
+            // 交付
             await stream.OnNextAsync(interestingData);
 
-            // Wait for cache expiration time to pass
-            // Then send events to other streams to trigger cache cleaning/eviction
+            // 等待缓存过期时间过错
+            // 然后将事件发送到其他流以触发缓存清理/ 动作
             await Task.Delay(DataMaxAgeInCache + TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
             await Task.WhenAll(otherStreams.Select(s => s.OnNextAsync(interestingData)));
 
-            // Should be delivered
+            // 交付
             await stream.OnNextAsync(interestingData);
             await observer.WaitForItemDeliveryCountAsync(streamId, 2, StreamProviderName, cts.Token);
             await WaitForEventCounterAsync(grain, 2);
@@ -98,11 +98,11 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// Tests cache eviction behavior with filtered events.
-        /// Verifies that:
-        /// - Filtered events don't prevent cache eviction
-        /// - Non-filtered events are still delivered after cache eviction
-        /// - Filter state doesn't interfere with cache management
+        /// 测试缓存驱逐行为及过滤事件。
+        /// 证明:
+        /// - 过滤事件无法阻止缓冲驱逐
+        /// - 缓冲驱逐后,仍然发生未过滤事件
+        /// - 过滤状态不会干扰缓存管理
         /// </summary>
         [Fact]
         public virtual async Task PreviousEventEvictedFromCacheWithFilterTest()
@@ -112,35 +112,35 @@ namespace Tester.StreamingTests
             cts.CancelAfter(TimeSpan.FromSeconds(30));
             var streamProvider = this.Client.GetStreamProvider(StreamProviderName);
 
-            // Tested stream and corresponding grain
+            // 测试的流和相应的 grain
             var key = Guid.NewGuid();
             var stream = streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), key);
             var grain = this.Client.GetGrain<IImplicitSubscriptionCounterGrain>(key);
             var streamId = StreamId.Create(nameof(IImplicitSubscriptionCounterGrain), key);
 
-            // We need multiple streams, so at least another one will be handled by the same PullingAgent than "stream"
-            // This ensures cache pressure and increases likelihood of eviction
+            // 我们需要多个流, 所以至少另外一条流会由与“ 流” 相同的 PullingAgent 处理
+            // 这确保了缓冲压力,增加了驱逐的可能性
             var otherStreams = new List<IAsyncStream<byte[]>>();
             for (var i = 0; i < 20; i++)
                 otherStreams.Add(streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), Guid.NewGuid()));
 
-            // Data that will always be filtered
+            // 总是被过滤的数据
             var skippedData = new byte[1024];
             skippedData[0] = 2;
 
-            // Data that will be sent to the grains
+            // 将发送到 grains的数据
             var interestingData = new byte[1024];
             interestingData[0] = 1;
 
-            // Send filtered data that should not reach the grain
+            // 发送不应达到 grain的过滤过数据
             await stream.OnNextAsync(skippedData);
 
-            // Wait for cache expiration and trigger eviction with more filtered events
-            // This tests that filtered events in cache don't affect delivery guarantees
+            // 等待缓存过期并触发驱逐,且有更多过滤事件
+            // 检测缓存中过滤事件的测试 不影响交付保证
             await Task.Delay(DataMaxAgeInCache + TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
             await Task.WhenAll(otherStreams.Select(s => s.OnNextAsync(skippedData)));
 
-            // Should be delivered
+            // 交付
             await stream.OnNextAsync(interestingData);
             await observer.WaitForItemDeliveryCountAsync(streamId, 1, StreamProviderName, cts.Token);
             await WaitForEventCounterAsync(grain, 1);

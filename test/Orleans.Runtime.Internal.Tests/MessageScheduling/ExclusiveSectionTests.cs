@@ -10,9 +10,9 @@ using Xunit;
 namespace UnitTests.MessageScheduling;
 
 /// <summary>
-/// Verifies the exclusive sections which <see cref="IGrainRequestAdmission.EnterExclusiveSectionAsync"/> opens: while a section
-/// is open, the activation starts only requests which always interleave and requests on the holder's call chain, and sections
-/// open one at a time, in the order in which they're requested.
+/// 核证 <see cref="IGrainRequestAdmission.EnterExclusiveSectionAsync"/> 打开的专有部分:而一个部分
+/// 开关,启动程序只开始请求,总是在持单人的呼叫链和部分上中断或请求。
+/// 一次打开一个,按请求顺序
 /// </summary>
 [TestSuite("BVT"), TestProvider("None"), TestArea("Runtime"), TestCategory("BVT")]
 public class ExclusiveSectionTests(ExclusiveSectionTests.Fixture fixture) : IClassFixture<ExclusiveSectionTests.Fixture>
@@ -136,13 +136,13 @@ public class ExclusiveSectionTests(ExclusiveSectionTests.Fixture fixture) : ICla
         var caller = fixture.GrainFactory.GetGrain<IExclusiveSectionCallerGrain>(Guid.NewGuid());
         await Run(grain.OpenSection("a", allowCallChainReentrancy: true));
 
-        // The callback carries the call chain of a reentrant section which another request on this activation opened.
+        // 调回带有一个重新响应部分的呼叫链, 开启了关于此激活的另一请求 。
         var releaseCallback = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         log.CallbackRelease = releaseCallback;
         var call = grain.CallBackInReentrantSection(caller, "b");
         try
         {
-            // The outer interleaving request can queue before the callback exists. Wait until the caller receives it.
+            // 外隔请求可以在回调存在之前排队。 等待呼叫者收到它 。
             await Run(log.WaitAsync("b:received"));
             await Run(grain.InterleavingPing("before-callback"));
             Assert.Equal(0, fixture.GetActivation(grain).WaitingCount);
@@ -195,11 +195,11 @@ public class ExclusiveSectionTests(ExclusiveSectionTests.Fixture fixture) : ICla
         }
 
         /// <summary>
-        /// Asserts that the activation holds back the request which records <paramref name="name"/>, once it waits.
+        /// 声明激活会延缓记录 <paramref name="name"/>的请求,一旦等待。
         /// </summary>
         /// <remarks>
-        /// The activation evaluates waiting requests in arrival order, so by the time it starts the barrier, which always
-        /// interleaves and is sent after the held request waits, it has evaluated the held request.
+        /// 启动程序按抵达顺序评估等待申请,因此在启动障碍物时,该屏物始终
+        /// 假期在搁置请求后发出,对搁置的请求进行了评估。
         /// </remarks>
         public async Task AssertHeldAsync(IExclusiveSectionGrain grain, ExclusiveSectionLog log, string name, string? barrier = null)
         {
@@ -244,7 +244,7 @@ public sealed class ExclusiveSectionProbe
 }
 
 /// <summary>
-/// The events which one test grain records, in order, and the exceptions with which its section waits ended.
+/// 测试的事件 grain 记录上的所有细节 以及等待其部分的例外
 /// </summary>
 public sealed class ExclusiveSectionLog
 {
@@ -329,7 +329,7 @@ public sealed class ExclusiveSectionCallerGrain(ExclusiveSectionProbe probe) : G
 
 public sealed class ExclusiveSectionGrain(ExclusiveSectionProbe probe) : Grain, IExclusiveSectionGrain
 {
-    // Sections are stored from continuations which run off the activation's scheduler.
+    // 部分从启动调度器上运行的连续线中存储。
     private readonly ConcurrentDictionary<string, IDisposable> _sections = new();
 
     private ExclusiveSectionLog Log => probe.GetLog(this.GetPrimaryKey());
@@ -414,14 +414,14 @@ public sealed class ExclusiveSectionGrain(ExclusiveSectionProbe probe) : Grain, 
         return Task.CompletedTask;
     }
 
-    // Requests a section from code which isn't a grain method, and records it once it opens or its wait faults.
+    // 要求从代码中提取一个不是 grain 方法的部分,并在打开或等待错误时记录下来。
     private Task RunSectionAsync(string name)
     {
         var log = Log;
         var entering = Admission.EnterExclusiveSectionAsync(CancellationToken.None).AsTask();
         log.Record($"{name}:requested");
 
-        // The continuation runs on the thread pool, so it runs even once the activation's scheduler stops running its work.
+        // 继续运行在线性池上 所以即使在启动的调度器停止运行后 它也会运行
         return entering.ContinueWith(
             task =>
             {

@@ -1060,7 +1060,7 @@ describe('DocFX conversion', () => {
     }).sort((left, right) => left - right);
 
     expect(collectMarkdownLinks(longInput)).toEqual([]);
-    // Equal total input should take comparable time; quadratic growth would approach an 8x ratio.
+    // 投入总和相等应需可比时间;二次增长将接近8x比率。
     expect(ratios[4]).toBeLessThan(2.5);
   });
 

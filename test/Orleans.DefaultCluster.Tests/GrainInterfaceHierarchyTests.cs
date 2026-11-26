@@ -5,10 +5,10 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Tests for Orleans' support of grain interface inheritance hierarchies.
-    /// Validates that grains can properly implement interfaces that extend other interfaces,
-    /// support multiple inheritance paths, and correctly expose methods from all levels
-    /// of the interface hierarchy.
+    /// 测试 Orleans支持 grain 界面继承等级。
+    /// 验证 grains 能够正确安装扩展其他接口的界面,
+    /// 支持多个继承路径,正确暴露各级的方法
+    /// 界面等级。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -25,9 +25,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests a grain implementing a simple interface hierarchy.
-        /// Validates basic interface inheritance where a grain implements an interface
-        /// that extends a base interface.
+        /// 测试一个 grain ,以实施简单的界面等级。
+        /// 在 grain 实施接口时验证基本界面继承
+        /// 来扩展一个基界面。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingGrainEmptyTest()
@@ -37,9 +37,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests a grain implementing an extended interface hierarchy.
-        /// Validates that grains can implement interfaces that add additional methods
-        /// to their base interface, exposing both sets of functionality.
+        /// 测试一个 grain ,以实施扩展的界面等级。
+        /// 验证 grains 能够实施添加额外方法的接口
+        /// 暴露了两组功能
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingGrainEmptyWithMoreTest()
@@ -50,9 +50,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests a grain implementing an interface with multiple method extensions.
-        /// Validates proper method resolution when interfaces extend base interfaces
-        /// with additional functionality.
+        /// 测试一个 grain ,与多方法扩展执行接口。
+        /// 当接口扩展基界面时验证正确的方法解析
+        /// 具有额外功能。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingWithMoreEmptyGrainTest()
@@ -63,9 +63,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests a grain with a different interface extension pattern.
-        /// Validates that grains correctly implement alternative method sets
-        /// when extending base interfaces.
+        /// 以不同的界面扩展模式测试 grain 。
+        /// 验证 grains 正确执行替代方法成套套件
+        /// 当扩展基界面时。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingWithMoreGrainTest()
@@ -76,9 +76,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests a grain implementing multiple interface inheritance paths.
-        /// Validates that grains can implement complex interface hierarchies where
-        /// multiple interfaces are combined, exposing all inherited methods.
+        /// 测试一个 grain 执行多个接口继承路径。
+        /// 验证 grains 可以在以下位置执行复杂的界面等级结构
+        /// 多个界面被组合起来,暴露了所有继承的方法。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingCombinedGrainTest()
@@ -90,9 +90,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// Tests state management across different interface hierarchy implementations.
-        /// Validates that grains with different interface hierarchies maintain independent
-        /// state and that state operations work correctly through inherited interfaces.
+        /// 测试州管理在不同界面等级体系执行中的管理情况。
+        /// 验证 grains 与不同界面等级结构保持独立
+        /// 并且国家业务通过继承的接口正确运作。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingValidateSingleGrainTest()

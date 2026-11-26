@@ -73,8 +73,8 @@ public sealed class MessagingRoutingAndDeadLetterTests : MessagingBehaviorTestBa
 
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, malformed));
 
-        // Each attempt fails its activation, so with this fixture's zero InboxRetryTimeout the second recovery
-        // dead-letters the message.
+        // 每次尝试都失败, 无法激活, 所以如果使用此固定质的零 InboxRetryTimeout , 第二个恢复
+        // 写信的字
         var poisoned = await Fixture.WaitForDeadLetterCountAsync(receiver, 1);
         Assert.Empty(poisoned.Effects);
         var deadLetter = Assert.Single(poisoned.InboxDeadLetters);

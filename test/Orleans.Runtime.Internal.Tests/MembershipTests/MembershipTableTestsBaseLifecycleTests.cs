@@ -277,7 +277,7 @@ public sealed class MembershipTableTestsBaseLifecycleTests
         return Substitute.ForPartsOf<LegacyFixtureHarness>(table, gateway, events);
     }
 
-    // Only a runtime proxy is concrete, so the inherited conformance facts are not discoverable test cases.
+    // 只有运行时间代理物是具体的,因此继承的符合性事实不是可发现的测试案例。
     public abstract class LegacyFixtureHarness(
         IMembershipTable table, IGatewayListProvider gateway, List<string> events)
         : MembershipTableTestsBase(new ConnectionStringFixture(), null!, new LoggerFilterOptions())

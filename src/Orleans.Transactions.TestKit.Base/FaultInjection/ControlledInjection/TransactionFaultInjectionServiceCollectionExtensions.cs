@@ -13,12 +13,12 @@ using Orleans.Transactions.TestKit.Base.FaultInjection.ControlledInjection;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// <see cref="IServiceCollection"/> extensions.
+/// <see cref="IServiceCollection"/> 扩展。
 /// </summary>
 public static class TransactionFaultInjectionServiceCollectionExtensions
 {
     /// <summary>
-    /// Configure cluster to use the distributed TM algorithm
+    /// 配置组群集, 使用分布式TM算法
     /// </summary>
     public static IServiceCollection UseControlledFaultInjectionTransactionState(this IServiceCollection services)
     {

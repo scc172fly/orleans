@@ -4,12 +4,12 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Tests for DurableDictionary, a persistent dictionary implementation that uses Orleans' journaling
-/// infrastructure to maintain state across grain activations and system restarts.
+/// DurableDictionary测试,这是使用 Orleans日记的持久字典执行测试
+/// 基础设施,以维持 grain 启动和系统重新启动的状态。
 /// 
-/// DurableDictionary is part of Orleans' event sourcing capabilities, providing a dictionary
-/// data structure that automatically persists all operations (add, update, remove) to a
-/// durable journal. This ensures that the dictionary state can be recovered after failures.
+/// DurableDictionary 是 Orleans事件采购能力的一部分,提供字典
+/// 自动持续所有操作(添加、更新、删除)的
+/// 永久日记。 这样可以确保字典状态在失败后能够恢复。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -17,15 +17,15 @@ namespace Orleans.Durable.Journaling.Tests;
 public class DurableDictionaryTests : JournalingTestBase
 {
     /// <summary>
-    /// Tests basic dictionary operations including add, update, remove, and indexer access.
-    /// Verifies that the DurableDictionary behaves like a standard dictionary while
-    /// persisting state changes through the state manager.
+    /// 测试基本字典操作,包括添加、更新、删除和索引存取。
+    /// 证明 DurableDictionary 行为与标准字典一样,而
+    /// 通过国家管理人员持续进行国家变革。
     /// </summary>
     [Fact]
     public async Task DurableDictionary_BasicOperations_Test()
     {
-        // Arrange - Create a durable dictionary with string keys and int values
-        // The dictionary requires codecs for serializing keys and values to the journal
+        // 排列 - 创建耐久词典,带有字符串键和内值
+        // 字典要求日记的序列密钥和值需要编码器
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var keyCodec = CodecProvider.GetCodec<string>();
@@ -33,64 +33,64 @@ public class DurableDictionaryTests : JournalingTestBase
         var dictionary = new DurableDictionary<string, int>("testDict", sut.Manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(keyCodec, valueCodec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act - Add items to the dictionary
-        // Each operation is journaled but not persisted until WriteStateAsync is called
+        // 动作 - 在字典中添加项目
+        // 每个操作都日记, 直至调 WriteStateAsync 时才持续
         dictionary.Add("one", 1);
         dictionary.Add("two", 2);
         dictionary.Add("three", 3);
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(3, dictionary.Count);
         Assert.Equal(1, dictionary["one"]);
         Assert.Equal(2, dictionary["two"]);
         Assert.Equal(3, dictionary["three"]);
 
-        // Act - Update item
+        // 法案 - 更新项目
         dictionary["two"] = 22;
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(22, dictionary["two"]);
 
-        // Act - Remove item
+        // 动作 - 删除项目
         var removed = dictionary.Remove("three");
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.True(removed);
         Assert.Equal(2, dictionary.Count);
         Assert.False(dictionary.ContainsKey("three"));
     }
 
     /// <summary>
-    /// Tests that dictionary state is correctly persisted and can be recovered.
-    /// Creates a dictionary, adds items, then creates a new dictionary instance
-    /// using the same storage to verify state recovery.
+    /// 测试词典状态是否正确持续, 并可以恢复 。
+    /// 创建字典,添加项目,然后创建一个新的词典实例
+    /// 利用同样的储存核查国家恢复情况。
     /// </summary>
     [Fact]
     public async Task DurableDictionary_Persistence_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var keyCodec = CodecProvider.GetCodec<string>();
         var valueCodec = CodecProvider.GetCodec<int>();
         var dictionary1 = new DurableDictionary<string, int>("testDict", sut.Manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(keyCodec, valueCodec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act - Add items and persist
+        // - 增加项目和持续
         dictionary1.Add("one", 1);
         dictionary1.Add("two", 2);
         dictionary1.Add("three", 3);
         await sut.Manager.WriteStateAsync(CancellationToken.None);
 
-        // Create a new manager with the same storage to simulate recovery after restart
-        // This tests the journaling system's ability to replay operations and restore state
+        // 创建一个具有相同存储器的新管理器, 以模拟重新启动后恢复的模拟
+        // 测试日记系统重播操作和恢复状态的能力
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var dictionary2 = new DurableDictionary<string, int>("testDict", sut2.Manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(keyCodec, valueCodec, SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Assert - Dictionary should be recovered
+        // 声响 - 应回收词典
         Assert.Equal(3, dictionary2.Count);
         Assert.Equal(1, dictionary2["one"]);
         Assert.Equal(2, dictionary2["two"]);
@@ -98,14 +98,14 @@ public class DurableDictionaryTests : JournalingTestBase
     }
 
     /// <summary>
-    /// Tests that the dictionary correctly handles complex key types.
-    /// Verifies that custom key objects with multiple properties are properly
-    /// serialized, stored, and used for lookups.
+    /// 测试字典正确处理复杂关键类型。
+    /// 证明具有多个属性的自定义键对象适当
+    /// 序列、储存和用于调查。
     /// </summary>
     [Fact]
     public async Task DurableDictionary_ComplexKeys_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var keyCodec = CodecProvider.GetCodec<TestKey>();
@@ -113,7 +113,7 @@ public class DurableDictionaryTests : JournalingTestBase
         var dictionary = new DurableDictionary<TestKey, string>("complexDict", manager, new OrleansBinaryDurableDictionaryCommandCodec<TestKey, string>(keyCodec, valueCodec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act
+        // 法案法
         var key1 = new TestKey { Id = 1, Name = "Key1" };
         var key2 = new TestKey { Id = 2, Name = "Key2" };
 
@@ -121,21 +121,21 @@ public class DurableDictionaryTests : JournalingTestBase
         dictionary.Add(key2, "Value2");
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(2, dictionary.Count);
         Assert.Equal("Value1", dictionary[key1]);
         Assert.Equal("Value2", dictionary[key2]);
     }
 
     /// <summary>
-    /// Tests that the dictionary correctly handles complex value types.
-    /// Verifies that custom objects with multiple properties can be stored
-    /// and retrieved, and that mutations to retrieved objects are persisted.
+    /// 测试字典正确处理复杂值类型。
+    /// 证明具有多个属性的自定义对象可以存储
+    /// 并且被回收, 并保持了变异 来检索物体。
     /// </summary>
     [Fact]
     public async Task DurableDictionary_ComplexValues_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var keyCodec = CodecProvider.GetCodec<string>();
@@ -143,7 +143,7 @@ public class DurableDictionaryTests : JournalingTestBase
         var dictionary = new DurableDictionary<string, TestPerson>("peopleDict", manager, new OrleansBinaryDurableDictionaryCommandCodec<string, TestPerson>(keyCodec, valueCodec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Act
+        // 法案法
         var person1 = new TestPerson { Id = 1, Name = "John", Age = 30 };
         var person2 = new TestPerson { Id = 2, Name = "Jane", Age = 25 };
 
@@ -151,27 +151,27 @@ public class DurableDictionaryTests : JournalingTestBase
         dictionary.Add("person2", person2);
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(2, dictionary.Count);
         Assert.Equal("John", dictionary["person1"].Name);
         Assert.Equal(25, dictionary["person2"].Age);
 
-        // Act - Update
+        // 法案 - 更新
         dictionary["person1"].Age = 31;
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Equal(31, dictionary["person1"].Age);
     }
 
     /// <summary>
-    /// Tests the Clear operation which removes all items from the dictionary.
-    /// Verifies that the clear operation is properly journaled and persisted.
+    /// 测试清除操作,该操作从字典中删除所有项目。
+    /// 证明明确操作是适当日记和持续进行的。
     /// </summary>
     [Fact]
     public async Task DurableDictionary_Clear_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var keyCodec = CodecProvider.GetCodec<string>();
@@ -179,29 +179,29 @@ public class DurableDictionaryTests : JournalingTestBase
         var dictionary = new DurableDictionary<string, int>("clearDict", manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(keyCodec, valueCodec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Add items
+        // 添加项目
         dictionary.Add("one", 1);
         dictionary.Add("two", 2);
         dictionary.Add("three", 3);
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Act - Clear
+        // 动作 - 清除
         dictionary.Clear();
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Assert
+        // 发货
         Assert.Empty(dictionary);
     }
 
     /// <summary>
-    /// Tests enumeration capabilities of the durable dictionary.
-    /// Verifies that the dictionary supports standard enumeration patterns
-    /// and provides access to Keys and Values collections.
+    /// 耐久词典的查点能力。
+    /// 证明字典支持标准查点模式
+    /// 并提供访问钥匙和价值收藏的便利。
     /// </summary>
     [Fact]
     public async Task DurableDictionary_Enumeration_Test()
     {
-        // Arrange
+        // 排列排列
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var keyCodec = CodecProvider.GetCodec<string>();
@@ -209,7 +209,7 @@ public class DurableDictionaryTests : JournalingTestBase
         var dictionary = new DurableDictionary<string, int>("enumDict", manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(keyCodec, valueCodec, SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // Add items
+        // 添加项目
         var expectedPairs = new Dictionary<string, int>
         {
             { "one", 1 },
@@ -224,20 +224,20 @@ public class DurableDictionaryTests : JournalingTestBase
 
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // Act & Assert - Test enumeration
+        // Acout & assert - 测试点查
         var actualPairs = dictionary.ToDictionary(kv => kv.Key, kv => kv.Value);
         Assert.Equal(expectedPairs, actualPairs);
 
-        // Test Keys and Values collections
+        // 测试键和价值收藏
         Assert.Equal(expectedPairs.Keys, dictionary.Keys);
         Assert.Equal(expectedPairs.Values, dictionary.Values);
     }
 }
 
 /// <summary>
-/// Test key type used to verify that complex keys with multiple properties
-/// can be used in durable dictionaries. The GenerateSerializer attribute ensures
-/// Orleans can serialize this type for journaling.
+/// 用于验证具有多个属性的复杂密钥的测试键类型
+/// 可用于耐久词典。 GenerateSerializer 属性确保
+/// Orleans 可以将这种类型序列化, 用于日记 。
 /// </summary>
 [GenerateSerializer]
 public record class TestKey

@@ -5,43 +5,43 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// Maps the tasks which grains invoke on other grains to the identifiers under which their targets store them, and the
-/// nodes of a grain's execution trees to the wire identifiers which other grains address.
+/// 映射 grains 在其他 grains 上援引的、其目标储存这些识别符号的任务,以及
+/// 将 grain的处决树与其它 grains 地址的线条识别符相连接。
 /// </summary>
 /// <remarks>
 /// <para>
-/// A root task identifier names a new run each time a grain stores its invocation after deleting an earlier run, and
-/// each run has its own incarnation, a nonce. A message which names a node of an execution tree, such as a call to
-/// another grain or a subscription, names it by its wire identifier, <c>{incarnation:N}/{nodeId}</c>: the incarnation of
-/// the node's tree, formatted as 32 hexadecimal digits, as the root segment, followed by the node's own segments, such as
-/// <c>9f3c…e1/place-order/reserve</c>. Each run therefore sends its own messages, which Messaging's deduplication keeps
-/// apart from an earlier run's, and a reply which names an earlier run's node is recognized as stale. The wire identifier
-/// is a pure function of the run and the node, so replays and redeliveries within a run reach the same task.
+/// 根任务标识符在删除早期运行后每次 grain 保存其引用时都指定新运行,并且
+/// 每个运行的每个运行都有自己的化身, 是一个非。 一条信息, 命名执行树节点, 比如呼叫
+/// 另外一个 grain 或订阅,用其有线识别码命名, <c>{incarnation:N}/{nodeId}</c>: the incarnation of
+/// 结点树,以32十六进制数字格式格式,作为根段根段,然后是节点本身的段,例如
+/// <c>9f3c…e1/place-order/reserve</c>。因此,每个运行者都发送自己的信息,而通信的重复则保持了这些信息
+/// 除了前运行点之外, 命名前运行节点的回复会被确认为已老化。 线标识符
+/// 是运行和节点的纯函数, 在一个运行中进行重播和再放映, 以达到相同的任务。
 /// </para>
 /// <para>
-/// A grain invokes another grain's task as a child of one of its own executions. Root identifiers are scoped per grain,
-/// so two callers can invoke children with the same identifier on one target. The target stores each under its
-/// caller's scope, <c>$caller/{callerGrainId}/{wireId}</c>, so two callers, and two runs of one caller, never share
-/// state, and maps the caller's identifier at the boundary: the invocation, cancellation, and abort which the caller
-/// sends address its child's wire identifier, and the completion which the target sends names that wire identifier as
-/// its subscriber. A root identifier, which a detached start sends, addresses the target's root task itself.
+/// A grain 援引了另一个 grain的任务,即作为自己处决的儿童。根识别码是按 grain测算的,
+/// 目标商店
+/// 呼叫者的范围 <c>$caller/{callerGrainId}/{wireId}</c>,所以两个来电人, 两个跑的打一个, 从来没有分享
+/// 状态,并绘制在边界的调用者识别特征地图:调用者使用的援引、取消和中止
+/// 目标发送的完成时 将线识别号命名为
+/// 用户。 由独立启动发送的根标识符本身会处理目标的根任务 。
 /// </para>
 /// <para>
-/// The scope's root, <see cref="Root"/>, is reserved: only invocations from other grains create tasks beneath it, so no
-/// other task shares an identifier with a scoped one. Root tasks, which clients and detached starts create, and the
-/// operations of each execution keep their identifiers.
+/// 范围根 <see cref="Root"/>被保留:只有从其它 grains 中引用来创建任务, 所以没有
+/// 与范围任务共享一个标识符。
+/// 每项执行操作都保留其识别资料。
 /// </para>
 /// </remarks>
 internal static class CallerScope
 {
-    // An incarnation's "N" format: 32 hexadecimal digits.
+    // 化身的“ N” 格式: 32 个十六进制数字 。
     private const int IncarnationLength = 32;
 
-    /// <summary>The reserved root under which a grain stores the tasks which other grains invoke.</summary>
+    /// <summary>a 用于 grain 保存其他任务 grains 援引。</summary>
     public static TaskId Root { get; } = TaskId.CreateRoot("$caller");
 
     /// <summary>
-    /// Returns the wire identifier of the node <paramref name="nodeId"/> of the execution tree whose run is
+    /// 返回运行的行树的节点 <paramref name="nodeId"/> 的线条识别符
     /// <paramref name="incarnation"/>: <c>{incarnation:N}/{nodeId}</c>.
     /// </summary>
     public static TaskId GetWireId(Guid incarnation, TaskId nodeId)
@@ -52,9 +52,9 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// Parses a wire identifier which <see cref="GetWireId"/> formatted into its run's incarnation and its node.
+    /// 分割一个 <see cref="GetWireId"/> 格式化成其运行的化身和节点的线条识别符。
     /// </summary>
-    /// <returns><see langword="false"/> when <paramref name="wireId"/> isn't a wire identifier.</returns>
+    /// <returns><see langword="false"/> 何时 <paramref name="wireId"/> 并不是一个线条识别器。</returns>
     public static bool TryParseWireId(TaskId wireId, out Guid incarnation, out TaskId nodeId)
     {
         incarnation = default;
@@ -67,16 +67,16 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// Returns the target's identifier of the task <paramref name="taskId"/> which a message from
-    /// <paramref name="caller"/> addresses: the target's root task itself, or the caller's child, whose wire identifier
-    /// <paramref name="taskId"/> is, under the caller's scope.
+    /// 返回任务 <paramref name="taskId"/> 的目标标识符,该任务是来自
+    /// <paramref name="caller"/> 地址:目标的根任务本身,或打电话者的孩子,其线路识别码
+    /// <paramref name="taskId"/> 属于呼叫者的范围。
     /// </summary>
     public static TaskId Resolve(GrainId caller, TaskId taskId) =>
         taskId.Parent().IsDefault ? taskId : GetTaskId(caller, taskId);
 
     /// <summary>
-    /// Returns the identifier under which a target stores the child which <paramref name="caller"/> invoked, whose wire
-    /// identifier is <paramref name="callerTaskId"/>.
+    /// 返回一个目标存储孩子的识别符,该目标存储的孩子被 <paramref name="caller"/> 引用,其电线
+    /// 身份识别符号是 <paramref name="callerTaskId"/>。
     /// </summary>
     public static TaskId GetTaskId(GrainId caller, TaskId callerTaskId)
     {
@@ -86,9 +86,9 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// Returns the identifier which <paramref name="caller"/> addresses for the task <paramref name="taskId"/> which it
-    /// invoked: its child's wire identifier, or <paramref name="taskId"/> when <paramref name="caller"/> didn't invoke it
-    /// under its scope.
+    /// 返回哪个身份识别符 <paramref name="caller"/> 任务所在地址 <paramref name="taskId"/> 中,该列所
+    /// 儿童被援引:儿童的电线识别特征,或 <paramref name="taskId"/> 何时 <paramref name="caller"/> 并没有援引它
+    /// 范围范围内的。
     /// </summary>
     public static TaskId GetCallerTaskId(GrainId caller, TaskId taskId)
     {
@@ -103,8 +103,8 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// Throws when <paramref name="taskId"/> is the reserved root of the caller scopes or lies beneath it, which only
-    /// invocations from other grains create.
+    /// 当 <paramref name="taskId"/> 是调用者范围或下方的预留根时投出,而该根仅是
+    /// 其它 grains 创建的引用 。
     /// </summary>
     public static void ThrowIfReserved(TaskId taskId)
     {

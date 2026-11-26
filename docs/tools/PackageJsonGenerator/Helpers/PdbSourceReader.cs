@@ -1,5 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// 根据一项或多项协定获得 .NET 基金会许可证。
+// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
 
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -9,9 +9,9 @@ using System.Text;
 namespace PackageJsonGenerator.Helpers;
 
 /// <summary>
-/// Reads source file paths and line ranges from an embedded portable PDB.
-/// Builds a lookup from metadata token → (file, startLine, endLine) that
-/// <see cref="CanonicalModelBuilder"/> uses to populate SourceFile/SourceLines.
+/// 读取源文件路径和行距, 范围来自嵌入式的便携式 PDB 。
+/// 构建一个从元数据符号 `( 文件、 startLine、 endLine中创建的查找
+/// <see cref="CanonicalModelBuilder"/> 用于填充 SourceFile/SourceLines。
 /// </summary>
 internal sealed class PdbSourceReader : IDisposable
 {
@@ -21,29 +21,29 @@ internal sealed class PdbSourceReader : IDisposable
     private readonly MetadataReader _peMetadata;
 
     /// <summary>
-    /// Per-method source info keyed by MethodDef row number.
+    /// 以 MethodDef 行号为键入的每条方法源信息。
     /// </summary>
     private readonly Dictionary<int, MethodSourceInfo> _methodSources = [];
 
     /// <summary>
-    /// Per-type aggregated source info keyed by TypeDef row number.
+    /// 以 TypeDef 行号为键入的每类集成源信息。
     /// </summary>
     private readonly Dictionary<int, MethodSourceInfo> _typeSources = [];
 
     /// <summary>
-    /// Maps normalized full type names (generics stripped) to their TypeDef handles.
-    /// Enables O(1) lookup that correctly handles nested types and generic arity.
+    /// 地图将全型名称(通用脱光)与 TypeDef 把手正常化。
+    /// 启用 O(1) 查找, 正确处理嵌套类型和通用正数 。
     /// </summary>
     private readonly Dictionary<string, TypeDefinitionHandle> _normalizedNameToHandle = [];
 
     /// <summary>
-    /// Maps namespaces to their source directory paths, derived from types that have PDB source info.
-    /// Used as a fallback to infer source file paths for types without method bodies.
+    /// 映射源目录路径的命名空间,这些路径来自有 PDB 源信息的类型。
+    /// 用作没有方法体类型源文件路径的回溯。
     /// </summary>
     private readonly Dictionary<string, string> _namespaceToDirs = [];
 
     /// <summary>
-    /// The common base directory for source files in this assembly (e.g. "src/Orleans.Core/").
+    /// 组件中源文件的共同基准目录 (e.g. "src/Orleans.Core/")。
     /// </summary>
     private string? _baseDir;
 
@@ -68,7 +68,7 @@ internal sealed class PdbSourceReader : IDisposable
         }
         else
         {
-            // Try standalone PDB
+            // 尝试独立 PDB
             var pdbPath = Path.ChangeExtension(assemblyPath, ".pdb");
             if (File.Exists(pdbPath))
             {
@@ -131,8 +131,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Builds a dictionary mapping normalized full type names to their TypeDef handles.
-    /// This enables O(1) lookup that correctly handles nested types and generic arity.
+    /// 构建一个词典映射, 将全型号名称标准化到 TypeDef 控件上。
+    /// 这样可以进行 O(1) 查找, 正确处理嵌套类型和通用正数 。
     /// </summary>
     private void BuildNameIndex()
     {
@@ -145,8 +145,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Builds namespace → directory mappings from types that have known source file paths.
-    /// Also determines the common base directory for the assembly's source files.
+    /// 根据源文件路径已知的类型建立命名空间到目录的映射。
+    /// 确定集会源文件的共同基准目录。
     /// </summary>
     private void BuildNamespaceDirMapping()
     {
@@ -156,7 +156,7 @@ internal sealed class PdbSourceReader : IDisposable
             var typeDef = _peMetadata.GetTypeDefinition(handle);
             var ns = _peMetadata.GetString(typeDef.Namespace);
 
-            // For nested types, walk up to the containing type's namespace
+            // 对于嵌套类型,步行到包含型号的命名空间
             if (string.IsNullOrEmpty(ns))
             {
                 var parent = typeDef.GetDeclaringType();
@@ -179,7 +179,7 @@ internal sealed class PdbSourceReader : IDisposable
             }
         }
 
-        // Determine the common base directory (e.g. "src/Orleans.Core/")
+        // 确定共同基准目录 (e.g) 。 “src/Orleans.Core/”
         var baseDirs = _typeSources.Values
             .Select(s => s.File)
             .Where(f => f.StartsWith("src/", StringComparison.Ordinal))
@@ -199,8 +199,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Builds the full metadata name for a type, correctly handling nested types
-    /// by walking the declaring type chain.
+    /// 构建类型的全部元数据名称,正确处理嵌套类型
+    /// 沿着申报型号的链条走。
     /// </summary>
     private string GetFullMetadataName(TypeDefinitionHandle handle)
     {
@@ -218,10 +218,10 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Normalizes Roslyn generic type syntax to PE metadata arity notation so
-    /// names with different arities remain distinct.
-    /// <c>InteractionResult`1</c> and <c>InteractionResult&lt;T&gt;</c> both normalize
-    /// to <c>InteractionResult`1</c>.
+    /// 将Roslyn通用语法的普通化 化为PE元数据对等符号
+    /// 具有不同异位名称的地名保持区别。
+    /// <c>InteractionResult`1</c> 和 <c>InteractionResult&lt;T&gt;</c> 两者都实现正常化
+    /// 至 <c>InteractionResult`1</c>.
     /// </summary>
     internal static string NormalizeGenericName(string name)
     {
@@ -289,9 +289,9 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Aggregates source info from all methods in the given type and its nested types.
-    /// Nested types include compiler-generated state machines for async/iterator methods
-    /// whose sequence points map back to the enclosing type's source file.
+    /// 以给定类型及其嵌套类型中的所有方法提供的源信息。
+    /// 括号类型包括编译器生成的用于合成/编辑方法的国家机器
+    /// 其序列点映射回附于附件类型源文件的源文件。
     /// </summary>
     private void AggregateMethodSources(TypeDefinition typeDef, ref string? file, ref int minLine, ref int maxLine)
     {
@@ -314,9 +314,9 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Looks up source info for a type by its full name (as produced by Roslyn's ToDisplayString).
-    /// Handles nested types and generic type names via normalized name matching.
-    /// Returns null if no PDB info available.
+    /// 查找一种类型的源信息,其全名(由Roslyn的 ToDisplayString制作)
+    /// 通过身份正常匹配处理嵌套类型和通用型名 。
+    /// 如果没有可用的 PDB 信息,返回无效 。
     /// </summary>
     public MethodSourceInfo? GetTypeSource(string fullMetadataName)
     {
@@ -333,35 +333,35 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// For types that have no PDB sequence points (interfaces, enums, delegates, const-only classes),
-    /// infers a probable source file path from the namespace→directory mapping and type name.
-    /// Returns just the file path (no line numbers), or null if inference isn't possible.
+    /// 对于没有 PDB 序列点的类型(界面、 enums、 代表、 仅含Const- slears) ,
+    /// 推导出从命名空间指令映射和类型名称中得出的可能的源文件路径。
+    /// 返回文件路径( 无行号) , 如果无法推断则返回无效 。
     /// </summary>
     public string? InferTypeSourceFile(string fullName, string namespaceName)
     {
         if (string.IsNullOrEmpty(namespaceName)) return null;
 
-        // Strip namespace prefix to get the type path
+        // 获取类型路径的条形命名空间前缀
         var typePath = fullName.Length > namespaceName.Length + 1
             ? fullName[(namespaceName.Length + 1)..]
             : fullName;
 
-        // Normalize away generic parameters
+        // 将通用参数正常化
         typePath = StripGenericArity(typePath);
 
-        // For nested types, use the outermost type's name as the file name
+        // 对于嵌套类型,使用最外的类型名称作为文件名
         var topLevelName = typePath.Contains('.')
             ? typePath[..typePath.IndexOf('.')]
             : typePath;
         var fileName = $"{topLevelName}.cs";
 
-        // Try direct namespace → directory lookup first
+        // 先尝试按命名空间直接查找目录
         if (_namespaceToDirs.TryGetValue(namespaceName, out var dir))
         {
             return $"{dir}{fileName}";
         }
 
-        // Fallback: construct the path from the base directory + relative namespace
+        // 后退: 从基准目录+相对命名空间构建路径
         if (_baseDir is not null)
         {
             var assemblyName = _baseDir.TrimEnd('/');
@@ -390,14 +390,14 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Looks up source info for a member within a type by matching the type name and member name.
-    /// When <paramref name="parameterNames"/> is provided, attempts to match a specific overload
-    /// by comparing parameter names from PE metadata.
+    /// 查找类型内成员的类型名和成员名的源信息。
+    /// 当提供 <paramref name="parameterNames"/> 时,试图匹配特定超载
+    /// 比较PE元数据中的参数名称。
     /// <para>
-    /// Returns an exact line range only when a single method is confidently matched (unique
-    /// parameter-name match or single method with that name). When multiple methods match
-    /// ambiguously, returns a file-only result (<see cref="MethodSourceInfo.StartLine"/> == 0)
-    /// so callers can fall back to a file-level link rather than a misleading range.
+    /// 只有在单一方法有自信匹配时才会返回精确的行范围(唯一
+    /// 参数- name 匹配或使用该名称的单方法。当多个方法匹配
+    /// 模糊地返回只使用文件的结果 (<see cref="MethodSourceInfo.StartLine"/> = 0)
+    /// 以便呼叫者可以返回到文件级链接,而不是误导范围。
     /// </para>
     /// </summary>
     public MethodSourceInfo? GetMemberSource(string typeFullMetadataName, string memberName, IReadOnlyList<string>? parameterNames = null)
@@ -411,7 +411,7 @@ internal sealed class PdbSourceReader : IDisposable
         var typeDef = _peMetadata.GetTypeDefinition(typeHandle);
         var tname = _peMetadata.GetString(typeDef.Name);
 
-        // Search methods — track all matches for confidence assessment
+        // 搜索方法——跟踪所有匹配的建立信任措施评估
         string? file = null;
         int minLine = int.MaxValue, maxLine = 0;
         int methodMatchCount = 0;
@@ -423,7 +423,7 @@ internal sealed class PdbSourceReader : IDisposable
             var methodDef = _peMetadata.GetMethodDefinition(methodHandle);
             var mname = _peMetadata.GetString(methodDef.Name);
 
-            // Match method name (constructors: .ctor → member name will be type name or ".ctor")
+            // 匹配方法名称( 构件: .ctor {} 成员名称将是类型名称或“. ctor”)
             bool isMatch = mname == memberName
                 || (memberName == ".ctor" && mname == ".ctor")
                 || (mname == ".ctor" && memberName == tname)
@@ -439,35 +439,35 @@ internal sealed class PdbSourceReader : IDisposable
 
             methodMatchCount++;
 
-            // Track parameter-name matches for overload resolution
+            // 超载分辨率的音轨参数名匹配
             if (parameterNames is not null && ParameterNamesMatch(methodDef, parameterNames))
             {
                 paramExactMatch = info;
                 paramMatchCount++;
             }
 
-            // Accumulate for merged fallback range
+            // 合并后退后范围累积
             file ??= info.File;
             if (info.StartLine < minLine) minLine = info.StartLine;
             if (info.EndLine > maxLine) maxLine = info.EndLine;
         }
 
-        // Also search fields (for const/static fields)
+        // 搜索字段( 对于粘结/静态字段)
         foreach (var fieldHandle in typeDef.GetFields())
         {
             var fieldDef = _peMetadata.GetFieldDefinition(fieldHandle);
             var fname = _peMetadata.GetString(fieldDef.Name);
             if (fname != memberName) continue;
 
-            // Fields don't have sequence points — return file-only (no line range).
+            // 字段没有序列点——只返回文件(无行范围)。
             if (_typeSources.TryGetValue(MetadataTokens.GetRowNumber(typeHandle), out var typeInfo))
             {
                 return new MethodSourceInfo(typeInfo.File, 0, 0);
             }
         }
 
-        // Check compiler-generated nested types (async state machines, iterators)
-        // whose names follow the pattern <MemberName>d__N or similar.
+        // 检查编译器生成的嵌套类型( 同步状态机器、 循环器)
+        // 其姓名遵循模式 <MemberName>d__N或类似的。
         if (file is null)
         {
             foreach (var nestedHandle in typeDef.GetNestedTypes())
@@ -492,20 +492,20 @@ internal sealed class PdbSourceReader : IDisposable
             }
         }
 
-        // Return based on confidence level:
-        // 1. Unique parameter-name match → confident
+        // 基于信任度的回报率:
+        // 1. 唯一参数名匹配
         if (paramExactMatch is not null && paramMatchCount == 1)
         {
             return paramExactMatch;
         }
 
-        // 2. Single method matched by name (no overloads) → confident
+        // 2. 单一方法,名称匹配(无超载)
         if (methodMatchCount == 1 && file is not null)
         {
             return new MethodSourceInfo(file, minLine, maxLine);
         }
 
-        // 3. Multiple methods or ambiguous match → return file only (no line range)
+        // 3. 多方法或模糊匹配 `回程文件'(无行范围)
         if (file is not null)
         {
             return new MethodSourceInfo(file, 0, 0);
@@ -515,8 +515,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Checks whether a method definition's parameter names match the expected names exactly.
-    /// Skips sequence number 0 (the return value pseudo-parameter).
+    /// 检查方法定义的参数名称是否与预期的名称完全匹配。
+    /// 跳过序列编号 0 (返回值伪参数) 。
     /// </summary>
     private bool ParameterNamesMatch(MethodDefinition methodDef, IReadOnlyList<string> expectedNames)
     {
@@ -539,7 +539,7 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// Strips the deterministic build path prefix (e.g. "/_/") from source paths.
+    /// 从源路径中切除确定性构建路径前缀(e.g. "/_/") 。
     /// </summary>
     internal static string CleanPath(string path)
     {
@@ -572,11 +572,11 @@ internal sealed class PdbSourceReader : IDisposable
 }
 
 /// <summary>
-/// Source file and line range info.
-/// When <see cref="StartLine"/> is 0, the range is unknown and only the file path is meaningful.
+/// 源文件和行范围信息。
+/// <see cref="StartLine"/> 是 0时, 范围未知, 只有文件路径才有意义 。
 /// </summary>
 internal sealed record MethodSourceInfo(string File, int StartLine, int EndLine)
 {
-    /// <summary>Returns a GitHub-friendly line range like "15-200".</summary>
+    /// <summary>返回 GitHub- 友好线条范围,如“15-200”。</summary>
     public string ToLineRange() => $"{StartLine}-{EndLine}";
 }

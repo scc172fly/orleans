@@ -1,74 +1,80 @@
-# Sequential messaging throughput
+<a id="sequential-messaging-throughput"></a>
 
-`SequentialMessagingBenchmark` circulates one message chain through **2, 4, or 8
-non-reentrant grains on one in-process silo**. Each handler applies one journaled
-counter increment, stages the next envelope, and calls `Complete()` synchronously.
-Journal acknowledgement releases the outgoing intent for the next hop.
+# 序列通信传输流量
 
-Each invocation performs **1,024 delivered and acknowledged handler steps**. A
-journal hook observes actual successful acknowledgement for every distinct hop.
-The driver awaits all 1,024 acknowledgements; cleanup verifies exact total and
-per-grain business-effect counts. The measured path includes envelope construction
-and ordinary application serialization, scheduling, inbox acceptance, handler execution, journal writes,
-dispatch, receiver-local command deduplication, and the completion observer. It excludes cluster
-startup, activation, ring configuration, warm-up, validation queries, and shutdown.
+`SequentialMessagingBenchmark` 通过 **2、4或8, 传递一个信息链
+non-reentrant grains 在一个在过程内 silo**。每个处理者都使用一份日记
+反增量,分步下一个信封,同步调用 `Complete()` 。
+日记确认释放出下一跳的意向
 
-The benchmark uses the production messaging and Durable Jobs implementations with
-volatile journal storage and in-memory job storage. This measures the framework's
-single-chain throughput with low-latency local storage. Persistent provider latency,
-cross-silo networking, and concurrent independent chains are separate comparison
-axes.
+每个职业都履行 **1 024个交付和确认的处理器步骤**。
+观察每个不同跳跃的实际成功确认。
+司机等待所有1 024份确认书;清理核实准确的总数
+-grain 商业效果计数。测量路径包括信封构造
+以及普通应用程序的序列化、时间安排、收件箱接收、处理员执行、日记
+发送、接收器-当地指令重复和完成观察员。
+启动、激活、环形配置、暖气、验证查询和关闭。
 
-Acknowledged intents and completed remote deliveries wake the activation's pump
-immediately. Durable Jobs supplies recovery and retry deadlines: a write schedules a
-wake-up only when the grain has none due within the pump's one-second recheck delay,
-so a busy chain performs about one Durable Jobs operation per idle-to-busy transition
-rather than one per message. In-memory job storage makes those operations cheap, so
-compare against persistent job storage to measure their cost. The benchmark uses
-volatile storage's default snapshot limits: **100 appends or 1 MiB**, whichever is
-reached first. Record the storage settings when comparing builds.
+基准利用生产信息发布和可持久就业实施
+运行框架
+长期提供商的延迟,
+跨silo 联网,同时独立链路是独立的单独比较
+轴。
 
-Iteration setup recreates the cluster and warms one complete chain. Each iteration
-contains one measured invocation, keeping journal and deduplication history bounded
-and comparable. The benchmark uses real time and normal pumps. BDN controls
-iteration repetition; there is no polling or manually driven pump.
+主动启动泵的启动后,确认意向和完成远程交付
+立即恢复和重新试用最后期限:
+仅在以下时间才醒起来 grain 泵的一秒重校延迟内没有
+如此繁忙的连锁链在无所事事的到大忙人过渡期间 完成一个“持久工作”作业
+而不是每个信息一个。 在模拟工作存储中,这些操作成本低廉,所以
+对照持久性工作储存比较,以衡量成本。
+挥发性存储默认快手限制: **100个附件或1 MiB**,以
+。 在比较构建时记录存储设置 。
+
+迭代设置重建聚集,温暖整个链条。
+包含一个测量的引用, 保持日记和重复历史
+基准使用实时和正常泵。
+迭代重复;没有投票或人工驱动泵。
 
 <a id="opaque-encoding-and-memory"></a>
 
-## Typed subjects, command identity, and memory
+<a id="typed-subjects-command-identity-and-memory"></a>
 
-The dispatcher decodes `SequentialMessage` using a keyed
-`MessageType<SequentialMessage>` binding for `benchmarks.sequential-hop.v1`.
-Its registration stores the grain as state and invokes a static synchronous
-delegate. Typed outbox `Send` encodes and stages the next hop before business
-counter updates. Each envelope contains a command ID, encoded payload, subject,
-and optional sender header. The outgoing message adds
-the receiver; incoming messages derive it from the receiving grain.
-Normal inbox/outbox delivery traverses the
-production pipeline, and the journal hook observes every actual acknowledgement.
+## 输入对象、命令身份和内存
 
-Each invocation assigns a run ID once. Hop IDs are fixed-depth
-`runs/{run-id}/hops/{hop-number}` keys; numeric components use invariant formatting.
-All 1,024 hops have distinct command IDs, and retries retain the same hop ID. The
-next hop constructs its key from the run and hop rather than extending a parent
-chain. The warm-up invocation uses its own run ID.
+使用密钥解码器的发件人解码 `SequentialMessage`
+`MessageType<SequentialMessage>` 具有 `benchmarks.sequential-hop.v1`.
+其注册登记将 grain 作为州储存,并援引了静态同步
+。在业务前输入发件箱 `Send` 编码并分期进行下一跳
+每个信封都包含一个指令编号 编码有效载荷,主体
+和可选发件人头。
+接收者; 收到的信息来自接收方 grain。
+普通箱/发箱交付
+并观察每一件实际确认。
 
-Typed encoding prepares the payload and sender-header arrays for each hop.
-Outbox dictionaries, handler contexts, and admission operations keep managed
-references while their work is active. Payload contents remain immutable through
-retries. Ordinary serialization preserves the original bytes and reconstructs
-managed arrays at decoded boundaries.
+每个职业都指定一次运行的ID。
+`runs/{run-id}/hops/{hop-number}` 键; 数字组件使用变量格式。
+所有的1 024个跳跃都有不同的命令身份, 重试保留相同的跳动身份。
+下一跳跳从运行和跳而不是扩展父键构建它的密钥
+。 热身的援引使用自己的运行身份识别码。
 
-Budget payload/header allocations and live pending encoded bytes separately from
-journal storage, serialization buffers, and application state. The measurement
-includes per-hop array allocation and GC costs; the live-memory budget includes
-overlapping state, handler, admission, and delivery lifetimes.
+输入编码为每次跳动准备有效载荷和发件人信头阵列。
+管理发箱字典、处理人背景和接收操作
+工作时的引用。
+普通序列保留原字节并重建
+在解码边界处管理数组。
 
-Compare revisions on the same machine with matching workload and retention settings.
+预算有效载荷/头目分配额,待用已编码的字节与
+日记存储、序列缓冲器和应用状态。
+包括每霍阵阵阵阵阵阵阵分配和GC成本;
+状态、处理器、入场和交付寿命。
 
-## Run
+将在同一台机器上的修订与工作量和保留设置相匹配进行比较。
 
-From the repository root:
+<a id="run"></a>
+
+## 运行运行
+
+从仓库根 :
 
 ```powershell
 dotnet build test\Benchmarks\Benchmarks.csproj --configuration Release --framework net11.0
@@ -76,24 +82,24 @@ dotnet run --project test\Benchmarks\Benchmarks.csproj --configuration Release -
 dotnet run --project test\Benchmarks\Benchmarks.csproj --configuration Release --framework net11.0 --no-build -- Messaging.Sequential --filter "*SequentialMessagingBenchmark*" --buildTimeout 600 --noOverwrite
 ```
 
-The build timeout covers BDN's isolated rebuild of the benchmark project's complete
-dependency graph, including the Dashboard frontend. Measurement begins after build
-and setup complete.
+建设超时覆盖BDN孤立重建基准项目完成后的建筑超时
+包括 Dashboard 前端的软性图, 包括 Dashboard 前端。 度量从构建后开始
+并设置完成。
 
-Use `--job Short` for development measurements. Read BDN's `*-report-github.md`
-and compare the grain-count rows on the same machine/runtime. `OperationsPerInvoke`
-normalizes `Mean` to one acknowledged message: **messages/second = 1 / Mean in
-seconds**. Multiply `Mean` by 1,024 for chain duration. Dry output validates
-execution and is excluded from performance conclusions.
+使用 `--job Short` 阅读 BDN 的 `*-report-github.md`
+并比较同一机器/运行时的 grain-计数行。 `OperationsPerInvoke`
+将 `Mean` 与一个确认的消息( **信件/第二=1/平均值)对齐
+秒数秒**乘法 `Mean` 链长1 024x1 024。干输出验证
+并且不执行,不列入业绩结论。
 
-Add `--memory` to measure managed allocations per acknowledged message. Compare
-the same grain count, chain length, job preset, and snapshot thresholds. The
-retained-state budget includes command completion history, application state,
-and the bounded append history between snapshots.
+添加 `--memory` 以衡量每个已确认信息的管理下分配额。比较
+相同的 grain 计数、链长、工作预设和快速阈值。
+保留的国家预算中包括指挥完成历史、应用状态、
+和被绑定的附加历史 在相片之间。
 
-Keep invocation length fixed for comparisons: the warm chain contributes to the
-retained state captured by later snapshots.
+保持固定的工时长度,以进行比较:温暖链有助于
+保留状态,以事后的图片记录。
 
-Record commit, runtime, hardware, storage configuration, and job preset with
-measurements. Since setup and cleanup have a fixed cost per iteration, the default
-run takes longer than its reported measurement time.
+记录承诺、运行时间、硬件、存储配置和工作预设
+由于设置和清理每个迭代都有固定成本,默认
+运行所需时间比报告的测量时间长。

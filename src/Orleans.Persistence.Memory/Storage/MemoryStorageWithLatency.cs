@@ -10,44 +10,44 @@ namespace Orleans.Storage
 {
 
     /// <summary>
-    /// Options for the <see cref="MemoryGrainStorageWithLatency"/> storage provider.
+    /// <see cref="MemoryGrainStorageWithLatency"/> 存储提供者的选项。
     /// </summary>
     public class MemoryStorageWithLatencyOptions : MemoryGrainStorageOptions
     {
         /// <summary>
-        /// The default latency.
+        /// 默认的延迟时间 。
         /// </summary>
         public static readonly TimeSpan DefaultLatency = TimeSpan.FromMilliseconds(200);
 
         /// <summary>
-        /// Gets or sets the latency.
+        /// 固定或固定延绳
         /// </summary>
-        /// <value>The latency.</value>
+        /// <value>潜伏期</value>
         public TimeSpan Latency { get; set; } = DefaultLatency;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to mock calls instead of issuing real storage calls.
+        /// 获取或设定一个数值,表明是否要模拟电话而不是发布真正的存储电话。
         /// </summary>
-        /// <value><see langword="true" /> if the provider should mock calls; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果提供者应模拟电话,否则, <see langword="false" />。</value>
         public bool MockCallsOnly { get; set; }
     }
 
     /// <summary>
-    /// This is a simple in-memory implementation of a storage provider which presents fixed latency of storage calls.
-    /// This class is useful for system testing and investigation of the effects of storage latency.
+    /// 这是对储存供应商的简单即时实施,提供固定的存储电话。
+    /// 这一类可用于系统测试和研究储存潜伏的影响。
     /// </summary>
     /// <remarks>
-    /// This storage provider is ONLY intended for simple in-memory Test scenarios.
-    /// This class should NOT be used in Production environment, 
-    ///  because [by-design] it does not provide any resilience 
-    ///  or long-term persistence capabilities.
+    /// 这个存储提供者只用于简单的模拟试验情景。
+    /// 这一类不应用于生产环境, 
+    ///  由于[按设计 无法提供任何抗御力 
+    ///  或长期持久性能力。
     /// </remarks>
     [DebuggerDisplay("MemoryStore:{Name},WithLatency:{latency}")]
     public class MemoryGrainStorageWithLatency : IGrainStorage, IDisposable
     {
         private readonly MemoryGrainStorage baseGranStorage;
         private readonly MemoryStorageWithLatencyOptions options;
-        /// <summary> Default constructor. </summary>
+        /// <summary> 默认构建器。 </summary>
         public MemoryGrainStorageWithLatency(
             string name,
             MemoryStorageWithLatencyOptions options,
@@ -66,21 +66,21 @@ namespace Orleans.Storage
             this.options = options;
         }
 
-        /// <summary> Read state data function for this storage provider. </summary>
+        /// <summary> 为此存储提供者读取国家数据函数。 </summary>
         /// <see cref="IGrainStorage.ReadStateAsync{T}(string, GrainId, IGrainState{T})"/>
         public Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             return MakeFixedLatencyCall(() => baseGranStorage.ReadStateAsync(grainType, grainId, grainState));
         }
 
-        /// <summary> Write state data function for this storage provider. </summary>
+        /// <summary> 为此存储提供者写入状态数据函数 。 </summary>
         /// <see cref="IGrainStorage.WriteStateAsync{T}(string, GrainId, IGrainState{T})"/>
         public Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             return MakeFixedLatencyCall(() => baseGranStorage.WriteStateAsync(grainType, grainId, grainState));
         }
 
-        /// <summary> Delete / Clear state data function for this storage provider. </summary>
+        /// <summary> 删除此存储提供者的 / 清除状态数据函数。 </summary>
         /// <see cref="IGrainStorage.ClearStateAsync{T}(string, GrainId, IGrainState{T})"/>
         public Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
@@ -88,7 +88,7 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Releases the resources owned by this storage provider.
+        /// 释放出该储存提供者拥有的资源。
         /// </summary>
         public void Dispose()
         {
@@ -97,10 +97,10 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// Releases the resources owned by this storage provider.
+        /// 释放出该储存提供者拥有的资源。
         /// </summary>
         /// <param name="disposing">
-        /// <see langword="true" /> to release managed resources; otherwise, <see langword="false" />.
+        /// <see langword="true" /> 释放管理的资源;否则, <see langword="false" />。
         /// </param>
         protected virtual void Dispose(bool disposing)
         {
@@ -118,12 +118,12 @@ namespace Orleans.Storage
             {
                 if (this.options.MockCallsOnly)
                 {
-                    // Simulated call with slight delay
+                    // 稍有延迟,模拟通话
                     await Task.Delay(10);
                 }
                 else
                 {
-                    // Make the real call
+                    // 做真正的决定
                     await action();
                 }
             }
@@ -134,8 +134,8 @@ namespace Orleans.Storage
 
             do
             {
-                // Work out the remaining time to wait so that this operation exceeds the required Latency.
-                // Also adds an extra fudge factor to account for any system clock resolution edge cases.
+                // 确定余下的等待时间,使这一操作超过所需的延迟时间。
+                // 并增加一个额外减速系数,以计算任何系统时钟解决方案边缘案例。
                 var extraDelay = TimeSpan.FromTicks(
                      5 * TimeSpan.TicksPerMillisecond + this.options.Latency.Ticks - sw.Elapsed.Ticks);
 
@@ -152,7 +152,7 @@ namespace Orleans.Storage
             Debug.Assert(sw.Elapsed >= this.options.Latency, "sw.Elapsed >= this.options.Latency");
             if (error != null)
             {
-                // Wrap in AggregateException so that the original error stack trace is preserved.
+                // 以 AggregateException 换行,以便保存原始错误堆栈跟踪。
                 throw new AggregateException(error);
             }
         }

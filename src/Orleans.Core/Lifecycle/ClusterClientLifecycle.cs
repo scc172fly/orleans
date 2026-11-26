@@ -10,13 +10,13 @@ using Orleans.Core.Diagnostics;
 namespace Orleans
 {
     /// <summary>
-    /// Implementation of <see cref="IClusterClientLifecycle"/>.
+    /// <see cref="IClusterClientLifecycle"/>的履行。
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="ClusterClientLifecycle"/> class.
+    /// 初始化 <see cref="ClusterClientLifecycle"/> 类的新实例。
     /// </remarks>
-    /// <param name="logger">The logger.</param>
-    /// <param name="localClientDetails">Optional local client details for diagnostic events.</param>
+    /// <param name="logger">日志器。</param>
+    /// <param name="localClientDetails">诊断事件可选本地客户端细节 。</param>
     internal class ClusterClientLifecycle(ILogger logger, LocalClientDetails localClientDetails) : LifecycleSubject(logger), IClusterClientLifecycle
     {
         private static readonly ImmutableDictionary<int, string> StageNames = GetStageNames(typeof(ServiceLifecycleStage));

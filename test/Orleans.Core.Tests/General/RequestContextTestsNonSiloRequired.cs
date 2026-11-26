@@ -8,7 +8,7 @@ using Tester;
 namespace UnitTests.General
 {
     /// <summary>
-    /// Tests for request context functionality including multi-threading, activity ID propagation, and import/export operations.
+    /// 请求中环境功能测试,包括多行、活动识别传播和进出口业务。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestSuite("Functional")]
@@ -92,9 +92,9 @@ namespace UnitTests.General
             ;
             Assert.True(headers.ContainsKey(RequestContext.CALL_CHAIN_REENTRANCY_HEADER), "ActivityId #1 should be present " + headers.ToStrings(separator: ","));
             object result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result);// ActivityId #1 should not be null
-            Assert.Equal(activityId, result);  // "E2E ActivityId #1 not propagated correctly"
-            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "Original E2E ActivityId #1 should not have changed"
+            Assert.NotNull(result);// ActivityId # 1 不应该无效
+            Assert.Equal(activityId, result);  // E2E ActivityId # 1 未正确传播 。
+            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "原件E2E ActivityId #1本不应该改变"
             TestCleanup();
 
             RequestContextTestUtils.SetActivityId(nullActivityId);
@@ -118,10 +118,10 @@ namespace UnitTests.General
             ;
             Assert.True(headers.ContainsKey(RequestContext.CALL_CHAIN_REENTRANCY_HEADER), "ActivityId #2 should be present " + headers.ToStrings(separator: ","));
             result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result); // ActivityId #2 should not be null
-            Assert.Equal(activityId2, result);  // "E2E ActivityId #2 not propagated correctly"
+            Assert.NotNull(result); // ActivityId #2 不应该无效
+            Assert.Equal(activityId2, result);  // E2E ActivityId # 2 未正确传播
 
-            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId());  // "Original E2E ActivityId #2 should not have changed"
+            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId());  // "原件E2E ActivityId #2本不应该改变"
             TestCleanup();
         }
 
@@ -151,11 +151,11 @@ namespace UnitTests.General
                 headers.Add(kvp.Key, kvp.Value);
             }
             ;
-            Assert.NotNull(actId); // "ActivityId #1 should be present " + headers.ToStrings(separator: ",")
+            Assert.NotNull(actId); // "ActivityId #1应该存在 " + headers.ToStrings(分隔符:")
             object result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result);// "ActivityId #1 should not be null"
-            Assert.Equal(activityId, result);  // "E2E ActivityId #1 not propagated correctly"
-            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "Original E2E ActivityId #1 should not have changed"
+            Assert.NotNull(result);// "ActivityId #1 不应该无效"
+            Assert.Equal(activityId, result);  // E2E ActivityId # 1 未正确传播 。
+            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "原件E2E ActivityId #1本不应该改变"
             TestCleanup();
 
             RequestContextTestUtils.SetActivityId(nullActivityId);
@@ -178,12 +178,12 @@ namespace UnitTests.General
                 headers.Add(kvp.Key, kvp.Value);
             }
             ;
-            Assert.NotNull(actId); // "ActivityId #2 should be present " + headers.ToStrings(separator: ",")
+            Assert.NotNull(actId); // "ActivityId #2应该存在 " + headers.ToStrings(分隔符:")
             result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result); // "ActivityId #2 should not be null"
-            Assert.Equal(activityId2, result);// "E2E ActivityId #2 not propagated correctly
+            Assert.NotNull(result); // "ActivityId #2不应该是无效的"
+            Assert.Equal(activityId2, result);// E2E ActivityId #2没有正确传播
 
-            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId()); // "Original E2E ActivityId #2 should not have changed"
+            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId()); // "原件E2E ActivityId #2本不应该改变"
             TestCleanup();
         }
 
@@ -196,7 +196,7 @@ namespace UnitTests.General
             string data1 = "Main";
 
             RequestContext.Set(name1, data1);
-            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-Main"
+            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-主"
 
             Task[] promises = new Task[NumLoops];
             for (int i = 0; i < NumLoops; i++)
@@ -207,17 +207,17 @@ namespace UnitTests.General
                     await Task.Delay(5, TestContext.Current.CancellationToken);
                     Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-Task.Run-0"
                     await Task.Delay(5, TestContext.Current.CancellationToken);
-                    // Set New value
+                    // 设定新值
                     RequestContext.Set(name1, str);
-                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-1-" + str
+                    Assert.Equal(str, RequestContext.Get(name1));  // “RC.GetData-Task.Run-1-”+吨
                     await Task.Delay(5, TestContext.Current.CancellationToken);
-                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-2-" + str
+                    Assert.Equal(str, RequestContext.Get(name1));  // “RC.GetData-Task.Run-2”+字符
                     await Task.Delay(5, TestContext.Current.CancellationToken);
-                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-3-" + str
+                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-3 -"+吨
                 }, TestContext.Current.CancellationToken);
             }
             await Task.WhenAll(promises);
-            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-Main-Final"
+            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData- 终极主"
         }
 
     }

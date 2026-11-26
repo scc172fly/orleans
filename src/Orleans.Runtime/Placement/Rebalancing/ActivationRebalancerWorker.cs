@@ -16,7 +16,7 @@ using Orleans.Runtime.Diagnostics;
 
 namespace Orleans.Runtime.Placement.Rebalancing;
 
-// See: https://www.ledjonbehluli.com/posts/orleans_adaptive_rebalancing/
+// 见: https://www.ledjonbehluli.com/posts/orleans_adaptive_rebalancing/
 
 [KeepAlive, Immovable]
 internal sealed partial class ActivationRebalancerWorker(
@@ -40,19 +40,19 @@ internal sealed partial class ActivationRebalancerWorker(
     private enum StopReason
     {
         /// <summary>
-        /// A new session is about to start.
+        /// 新的会话即将开始。
         /// </summary>
         SessionStarting,
         /// <summary>
-        /// Current session has stagnated.
+        /// 本届会议停滞不前。
         /// </summary>
         SessionStagnated,
         /// <summary>
-        /// Current session has completed successfully till end
+        /// 本届会议顺利结束, 直至结束
         /// </summary>
         SessionCompleted,
         /// <summary>
-        /// Rebalancer was asked to suspend activity.
+        /// 要求恢复平衡者暂停活动。
         /// </summary>
         RebalancerSuspended
     }
@@ -91,7 +91,7 @@ internal sealed partial class ActivationRebalancerWorker(
         _triggerTimer = this.RegisterGrainTimer(TriggerRebalancing, new()
         {
             Interleave = true,
-            Period = 0.5 * _options.SessionCyclePeriod, // Make trigger-period half that of the session cycle-period.
+            Period = 0.5 * _options.SessionCyclePeriod, // 触发期为届会周期的一半。
             DueTime = _options.RebalancerDueTime
         });
 
@@ -148,7 +148,7 @@ internal sealed partial class ActivationRebalancerWorker(
         GrainContext.Scheduler.QueueAction(() =>
         {
             _siloStatistics.Remove(silo);
-            _rebalancingStatistics.Remove(silo); // Remove that silo's rebalancing stats, as it has been removed.
+            _rebalancingStatistics.Remove(silo); // 删除已删除的 silo重新平衡数据。
         });
     }
 
@@ -281,7 +281,7 @@ internal sealed partial class ActivationRebalancerWorker(
 
         if (entropyDeviation < allowedDeviation)
         {
-            // The deviation from maximum is practically considered "0" i.e: we've reached maximum.
+            // 偏离最大值实际上被认为是“0” i.e:我们已经达到了最高值。
             LogMaxEntropyDeviationReached(entropyDeviation, currentEntropy, maximumEntropy, allowedDeviation);
             cycleStopwatch.Stop();
             ActivationRebalancerEvents.EmitCycleStop(localSiloDetails.SiloAddress, cycleNumber, activationsMigrated, entropyDeviation, cycleStopwatch.Elapsed, sessionCompleted: true);
@@ -290,20 +290,20 @@ internal sealed partial class ActivationRebalancerWorker(
             return;
         }
 
-        // We use the normalized, absolute entropy change, because it is more useful for understanding how significant
-        // the change is, relative to the maximum possible. Values closer to 1 reflect higher significance than those closer to 0.
-        // Since max entropy is a function of the natural log of the cluster's size, this value is very robust against changes
-        // in silo number within the cluster.
+        // 我们使用正常化的绝对星球变化,因为更有助于了解
+        // 相对于最大可能值而言,变化比最大可能值大。接近1值的数值比接近0值的值要重要得多。
+        // 由于最大引温是该组群大小自然日志的函数,因此这一值在变化时非常坚固
+        // 组内 silo 编号。
 
         var entropyChange = Math.Abs((currentEntropy - _previousEntropy) / maximumEntropy);
         Debug.Assert(entropyChange is >= 0 and <= 1);
 
         if (entropyChange < _options.EntropyQuantum)
         {
-            // Entropy change is too low to be considered an improvement, chances are we are reaching the maximum, or the system
-            // is dynamically changing too fast i.e. new activations are being created at a high rate with an imbalanced distribution,
-            // we need to start "cooling-down". As a matter of fact, entropy could also become negative if the current entropy is less
-            // than the previous, due to many activation changes happening during this and the previous cycle.
+            // 宇宙变化太低,不能认为是改进,我们有可能达到最大程度,或系统
+            // 变化动态太快 i.e。正在以高速度创建新的启动,分布不平衡;
+            // 事实上,如果目前的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的
+            // 与前一个周期相比,由于本周期和上一个周期发生许多启动变化。
 
             LogInsufficientEntropyQuantum(entropyChange, _options.EntropyQuantum);
 
@@ -572,7 +572,7 @@ internal sealed partial class ActivationRebalancerWorker(
         var suspendUntil = now + (long)(Runtime.TimeProvider.TimestampFrequency * duration.TotalSeconds);
         if (suspendUntil < now)
         {
-            // Clamp overflow at max value.
+            // 顶值的夹板溢出
             suspendUntil = long.MaxValue;
         }
 

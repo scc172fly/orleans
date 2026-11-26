@@ -131,8 +131,8 @@ else
 
     private void UpdateResults(PollState results)
     {
-        // We use InvokeAsync to schedule our update on the UI thread,
-        // instead of updating it from a background thread, which is not allowed
+        // 我们用 InvokeAsync 来安排UI线上的最新消息
+        // 而不是从不允许的背景线上更新它
         InvokeAsync(() =>
         {
             _results = results;

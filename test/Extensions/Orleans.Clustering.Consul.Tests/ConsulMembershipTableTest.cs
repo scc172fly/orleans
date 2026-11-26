@@ -14,19 +14,19 @@ using Xunit;
 namespace Consul.Tests
 {
     /// <summary>
-    /// Tests for operation of Orleans Membership Table using Consul - Requires access to external Consul cluster
+    /// 使用领事的 Orleans 成员表运行测试----需要访问外部领事群
     /// 
-    /// Consul provides a distributed key-value store that Orleans uses for:
-    /// - Cluster membership management
-    /// - Service discovery
-    /// - Health checking and failure detection
+    /// 领事提供分布式钥匙价值商店 Orleans 用于:
+    /// - 群组成员管理
+    /// - 服务发现
+    /// - 检查健康和检查故障
     /// 
-    /// These tests verify that the Consul-based membership provider correctly implements
-    /// all required membership table operations including:
-    /// - Reading and writing silo entries
-    /// - Updating liveness information (I Am Alive)
-    /// - Gateway discovery for clients
-    /// - Cleanup of defunct silo entries
+    /// 这些测试核实,驻领事机构成员提供商是否正确地执行了这些测试
+    /// 需要的所有成员名单业务包括:
+    /// - 读写 silo 条目
+    /// - 更新生命信息(我活着)
+    /// - 为客户发现网关
+    /// - 清理已关闭的条目 silo
     /// </summary>
     [TestCategory("Membership"), TestCategory("Consul")]
     [TestSuite("Functional")]
@@ -49,9 +49,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// Creates a Consul-based membership table for testing.
-        /// Configures the Consul client with the test server address
-        /// and creates the membership table implementation.
+        /// 创建以领事为基础的成员表,供测试。
+        /// 配置Conser Consul 客户端,使用测试服务器地址
+        /// 并创建成员表执行情况。
         /// </summary>
         protected override IMembershipTable CreateMembershipTable(ILogger logger)
             => CreateMembershipTable(logger, _clusterOptions);
@@ -106,9 +106,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// Creates a Consul-based gateway list provider for testing.
-        /// This provider allows clients to discover available gateways
-        /// by querying the Consul service registry.
+        /// 创建一个基于领事的网关列表提供者,供测试。
+        /// 此服务提供商允许客户发现可用的网关
+        /// 查询领事服务登记处。
         /// </summary>
         protected override IGatewayListProvider CreateGatewayListProvider(ILogger logger)
         {
@@ -138,9 +138,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// Tests gateway discovery through Consul.
-        /// Verifies that clients can retrieve the list of available
-        /// gateway silos from the Consul service registry.
+        /// 通过领事测试网关发现
+        /// 证明客户可以检索现有清单
+        /// 领事服务登记处的网关 silos 。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_GetGateways()
@@ -149,9 +149,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// Tests reading from an empty membership table.
-        /// Verifies that the provider correctly handles the case
-        /// when no silos have registered yet.
+        /// 测试空席位表的读取。
+        /// 证明提供者处理案件正确
+        /// 时无 silos 登记者尚未登记。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_ReadAll_EmptyTable()
@@ -190,9 +190,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// Tests the "I Am Alive" heartbeat mechanism.
-        /// Verifies that silos can update their liveness timestamp
-        /// in Consul to indicate they are still running.
+        /// 测试"我活着"的心跳机制
+        /// 证明 silos 能够更新其活性时间戳
+        /// 以表示他们仍在运行。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_UpdateIAmAlive()
@@ -201,10 +201,10 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// Tests cleanup of dead silo entries.
-        /// Verifies that the membership table can remove entries
-        /// for silos that have been declared dead to prevent
-        /// the table from growing indefinitely.
+        /// 测试已死亡的条目的清理 silo 。
+        /// 证明成员表可以删除条目
+        /// 用于 silos 被宣布为已死亡以防止
+        /// 桌子从无限长长。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_CleanupDefunctSiloEntries()

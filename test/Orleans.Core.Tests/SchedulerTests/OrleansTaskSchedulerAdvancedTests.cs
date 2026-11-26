@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.SchedulerTests
 {
     /// <summary>
-    /// Advanced tests for Orleans task scheduler functionality.
+    /// 高级测试 Orleans 任务调度器功能。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -49,7 +49,7 @@ namespace UnitTests.SchedulerTests
                             Assert.False(insideTask, $"Starting new task when I am already inside task of iteration {n}");
                             insideTask = true;
 
-                            // Exacerbate the chance of a data race in the event that two of these tasks run concurrently.
+                            // 如果其中两项任务同时进行,则会加速数据竞赛的可能性。
                             var k = n;
                             gates[taskNum].Wait();
                             n = k + 1;
@@ -62,7 +62,7 @@ namespace UnitTests.SchedulerTests
                     }
                     tasksTask.SetResult(tasks);
 
-                    // Release all gates in sequence to ensure sequential execution
+                    // 释放所有门,按顺序排列,以确保相继执行
                     for (var i = 0; i < 10; i++)
                     {
                         gates[i].Release();
@@ -71,9 +71,9 @@ namespace UnitTests.SchedulerTests
 
             await Task.WhenAll(await tasksTask.Task);
 
-            // N should be 10, because all tasks should execute serially
+            // N应为10,因为所有任务都应连续执行
             Assert.True(n != 0, "Work items did not get executed");
-            Assert.Equal(10, n);  // "Work items executed concurrently"
+            Assert.Equal(10, n);  // “同时执行的工作项目”
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Scheduler")]
@@ -117,7 +117,7 @@ namespace UnitTests.SchedulerTests
                     task1.Ignore();
                     task2.Ignore();
 
-                    // Release the gate to allow task1 to complete
+                    // 释放大门,让任务1 完成
                     gate.Release();
                 });
 
@@ -132,15 +132,15 @@ namespace UnitTests.SchedulerTests
             }
 
             Assert.True(n != 0, "Work items did not get executed");
-            Assert.Equal(15, n);  // "Work items executed out of order"
+            Assert.Equal(15, n);  // “工作项目执行不合秩序”
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Scheduler")]
         public async Task Sched_AC_Turn_Execution_Order()
         {
-            // Can we add a unit test that basicaly checks that any turn is indeed run till completion before any other turn?
-            // For example, you have a  long running main turn and in the middle it spawns a lot of short CWs (on Done promise) and StartNew.
-            // You test that no CW/StartNew runs until the main turn is fully done. And run in stress.
+            // 能否加上一个单位测试,基本检查任何转弯是否真的在任何其他转弯之前一直运行到完成?
+            // 例如,你有一个长长的运行主转弯,中间它产生许多短的(承诺)和 StartNew。
+            // 您测试在主转弯完全完成之前没有 CW/StartNew 运行。 然后按压力运行 。
 
             var context = UnitTestSchedulingContext.Create(_loggerFactory);
 
@@ -166,12 +166,12 @@ namespace UnitTests.SchedulerTests
                 var task22 = task21.ContinueWith((_) => { SubProcess2(22); result2.SetResult(true); });
                 task22.Ignore();
 
-                // Wait for the gate to ensure ordering
+                // 等待门的开关确保定点
                 mainTurnGate.Task.Wait();
                 mainDone = true;
             });
 
-            // Release the gate to allow main turn to complete
+            // 释放大门,让主转弯完成
             mainTurnGate.SetResult(true);
 
             try { await result1.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken); }
@@ -179,10 +179,10 @@ namespace UnitTests.SchedulerTests
             try { await result2.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken); }
             catch (TimeoutException) { Assert.Fail("Timeout-2"); }
 
-            Assert.NotEqual(0, stageNum1); // "Work items did not get executed-1"
-            Assert.NotEqual(0, stageNum2);  // "Work items did not get executed-2"
-            Assert.Equal(14, stageNum1);  // "Work items executed out of order-1"
-            Assert.Equal(22, stageNum2);  // "Work items executed out of order-2"
+            Assert.NotEqual(0, stageNum1); // “工作项目没有被执行-1”
+            Assert.NotEqual(0, stageNum2);  // “工作项目未执行 2”
+            Assert.Equal(14, stageNum1);  // "工作项目执行 超出订单-1
+            Assert.Equal(22, stageNum2);  // "工作项目 执行超出订单2"
 
             void SubProcess1(int n)
             {
@@ -232,7 +232,7 @@ namespace UnitTests.SchedulerTests
                 TaskCreationOptions.DenyChildAttach,
                 context.WorkItemGroup.TaskScheduler);
 
-            // Check that the WorkItemGroup is functioning.
+            // 检查 WorkItemGroup 是否正常运行。
             await await ScheduleTask();
 
             var taskAfterStopped = ScheduleTask();
@@ -243,8 +243,8 @@ namespace UnitTests.SchedulerTests
 
             await await taskAfterStopped;
 
-            // Wait for the WorkItemGroup to upgrade the warning to an error and try again.
-            // This delay is based upon SchedulingOptions.StoppedActivationWarningInterval.
+            // 等待 WorkItemGroup 将警告升级为错误并重试。
+            // 延误基于 SchedulingOptions.StoppedActivationWarningInterval。
             await Task.Delay(TimeSpan.FromMilliseconds(300), TestContext.Current.CancellationToken);
 
             taskAfterStopped = ScheduleTask();
@@ -259,9 +259,9 @@ namespace UnitTests.SchedulerTests
         [Fact, TestCategory("Functional"), TestCategory("Scheduler")]
         public async Task Sched_Task_Turn_Execution_Order()
         {
-            // A unit test that checks that any turn is indeed run till completion before any other turn?
-            // For example, you have a long running main turn and in the middle it spawns a lot of short CWs (on Done promise) and StartNew.
-            // You test that no CW/StartNew runs until the main turn is fully done. And run in stress.
+            // 检查任何转弯是否真的运行到完成的单位测试, 在任何其他转弯之前?
+            // 例如,你有一个长长的运行主转弯,中间它产生许多短的(承诺)和 StartNew。
+            // 您测试在主转弯完全完成之前没有 CW/StartNew 运行。 然后按压力运行 。
 
             var context = UnitTestSchedulingContext.Create(_loggerFactory);
             var activationScheduler = context.WorkItemGroup.TaskScheduler;
@@ -291,7 +291,7 @@ namespace UnitTests.SchedulerTests
                     Log(3, "Inside wrapper Task Id=" + Task.CurrentId);
                     Assert.Equal(activationScheduler, TaskScheduler.Current);  // "TaskScheduler.Current #1"
 
-                    // Execution chain #1
+                    // 执行链 #1
                     Log(4, "Wrapper Task Id=" + Task.CurrentId + " creating Task chain");
                     var task1 = Task.Factory.StartNew(() =>
                     {
@@ -322,7 +322,7 @@ namespace UnitTests.SchedulerTests
                         result1.SetResult(true);
                     });
 
-                    // Execution chain #2
+                    // 执行链 #2
                     Log(9, "Wrapper Task " + Task.CurrentId + " creating AC chain");
                     var promise2 = Task.Factory.StartNew(() =>
                     {
@@ -373,9 +373,9 @@ namespace UnitTests.SchedulerTests
 
             Log(17, "Waiting for ClosureWorkItem to spawn wrapper Task");
             wrapper = await wrapperCreated.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
-            Assert.NotNull(wrapper); // Wrapper Task was not created
+            Assert.NotNull(wrapper); // 未创建任务
 
-            // Release gates to allow execution to proceed
+            // 释放大门,以便行刑
             wrapperGate.SetResult(true);
             mainTurnGate.SetResult(true);
 
@@ -385,15 +385,15 @@ namespace UnitTests.SchedulerTests
             Assert.True(wrapper.IsCompleted, "Wrapper Task should be completed");
 
             Log(20, "Waiting for TaskWorkItem to complete");
-            // Wait for mainDone using a reasonable timeout
+            // 使用合理的超时等待 mainDone
             for (var i = 0; i < 100 && !mainDone; i++)
             {
                 await Task.Delay(10, TestContext.Current.CancellationToken);
             }
             Log(21, "Done waiting for TaskWorkItem to complete MainDone=" + mainDone);
             Assert.True(mainDone, "Main Task should be completed");
-            Assert.NotNull(finalTask1); // Task chain #1 not created
-            Assert.NotNull(finalPromise2); // Task chain #2 not created
+            Assert.NotNull(finalTask1); // 未创建任务链 # 1
+            Assert.NotNull(finalPromise2); // 未创建任务链 # 2
 
             Log(22, "Waiting for final task #1 to complete");
             await finalTask1.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
@@ -408,10 +408,10 @@ namespace UnitTests.SchedulerTests
             Assert.True(finalPromise2.IsCompleted, "Final Task completed");
             Assert.True(await result2.Task, "Timeout-2");
 
-            Assert.NotEqual(0, stageNum1);  // "Work items did not get executed-1"
-            Assert.Equal(14, stageNum1);  // "Work items executed out of order-1"
-            Assert.NotEqual(0, stageNum2);  // "Work items did not get executed-2"
-            Assert.Equal(22, stageNum2);  // "Work items executed out of order-2"
+            Assert.NotEqual(0, stageNum1);  // “工作项目没有被执行-1”
+            Assert.Equal(14, stageNum1);  // "工作项目执行 超出订单-1
+            Assert.NotEqual(0, stageNum2);  // “工作项目未执行 2”
+            Assert.Equal(22, stageNum2);  // "工作项目 执行超出订单2"
 
 
         }
@@ -492,9 +492,9 @@ namespace UnitTests.SchedulerTests
 
             Log(13, "Waiting for ClosureWorkItem to spawn wrapper Task");
             wrapper = await wrapperCreated.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
-            Assert.NotNull(wrapper); // Wrapper Task was not created
+            Assert.NotNull(wrapper); // 未创建任务
 
-            // Release gates to allow execution to proceed
+            // 释放大门,以便行刑
             wrapperGate.SetResult(true);
             mainTurnGate.SetResult(true);
 
@@ -504,14 +504,14 @@ namespace UnitTests.SchedulerTests
             Assert.True(wrapper.IsCompleted, "Wrapper Task should be completed");
 
             Log(16, "Waiting for TaskWorkItem to complete");
-            // Wait for mainDone using a reasonable timeout
+            // 使用合理的超时等待 mainDone
             for (var i = 0; i < 100 && !mainDone; i++)
             {
                 await Task.Delay(10, TestContext.Current.CancellationToken);
             }
             Log(17, "Done waiting for TaskWorkItem to complete MainDone=" + mainDone);
             Assert.True(mainDone, "Main Task should be completed");
-            Assert.NotNull(finalPromise); // AC chain not created
+            Assert.NotNull(finalPromise); // 未创建 AC 链条
 
             Log(18, "Waiting for final AC promise to complete");
             await finalPromise.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
@@ -520,8 +520,8 @@ namespace UnitTests.SchedulerTests
             Assert.True(finalPromise.IsCompleted, "Final AC completed");
             Assert.True(await result.Task, "Timeout-1");
 
-            Assert.NotEqual(0, stageNum1);  // "Work items did not get executed-1"
-            Assert.Equal(3, stageNum1);  // "Work items executed out of order-1"
+            Assert.NotEqual(0, stageNum1);  // “工作项目没有被执行-1”
+            Assert.Equal(3, stageNum1);  // "工作项目执行 超出订单-1
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Scheduler")]
@@ -541,14 +541,14 @@ namespace UnitTests.SchedulerTests
                 var task4 = task3.ContinueWith((_) => { n = n - 2; output.WriteLine("===> 4"); result.SetResult(true); });
                 task4.Ignore();
 
-                // Release the gate to allow task1 to complete
+                // 释放大门,让任务1 完成
                 gate.Release();
             });
             // ReSharper restore AccessToModifiedClosure
 
             await result.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
             Assert.True(n != 0, "Work items did not get executed");
-            Assert.Equal(1, n);  // "Work items executed out of order"
+            Assert.Equal(1, n);  // “工作项目执行不合秩序”
         }
 
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
@@ -577,14 +577,14 @@ namespace UnitTests.SchedulerTests
                 tasks = new Task<int>[] { task1, task2, task3, task4 };
                 result.SetResult(true);
 
-                // Release all gates in sequence
+                // 全部门按顺序释放
                 for (var i = 0; i < 4; i++)
                 {
                     gates[i].Release();
                 }
             });
 
-            await result.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken); // Wait for main (one that creates tasks) work item to finish.
+            await result.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken); // 等待主项( 创建任务的项目) 工作项目完成 。
 
             var promise = Task<int[]>.Factory.ContinueWhenAll(tasks, (res) =>
             {
@@ -597,7 +597,7 @@ namespace UnitTests.SchedulerTests
 #pragma warning disable xUnit1031 // Do not use blocking task operations in test method
                     var val = t.Result;
 #pragma warning restore xUnit1031 // Do not use blocking task operations in test method
-                    Assert.Equal(taskNum, val);  // "Value returned by Task " + taskNum
+                    Assert.Equal(taskNum, val);  // " 任务返回的价值 " + taskNum
                     output.Add(val);
                     taskNum++;
                 }
@@ -608,9 +608,9 @@ namespace UnitTests.SchedulerTests
             await promise.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
 
             Assert.True(n != 0, "Work items did not get executed");
-            Assert.Equal(12, n);  // "Not all work items executed"
+            Assert.Equal(12, n);  // "并非所有工作项目都执行"
             var ms = stopwatch.ElapsedMilliseconds;
-            // Since we removed sleeps, execution should be much faster - just verify it completed
+            // 因为我们摘除睡眠后,执行应该更快得多——只需核实完成
             Assert.True(ms < 8000, "Wait time too long: " + ms);
         }
 
@@ -659,13 +659,13 @@ namespace UnitTests.SchedulerTests
             task2.Ignore();
             task3.Ignore();
 
-            // Release the gate to allow task1 to throw
+            // 释放大门,允许任务1 丢弃
             gate.Release();
 
             await result1.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
             await result2.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
-            Assert.True(failed1);  // "First ContinueWith did not fire error handler."
-            Assert.True(failed2);  // "Second ContinueWith did not fire error handler."
+            Assert.True(failed1);  // "第一 ContinueWith 没有发射错误处理器"
+            Assert.True(failed2);  // 第二 ContinueWith 没有发射错误处理器
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Scheduler")]
@@ -719,7 +719,7 @@ namespace UnitTests.SchedulerTests
                     Assert.False(task.IsFaulted, "Faulted with Exception=" + task.Exception);
                 });
 
-                // Release the gate to allow task1 to complete
+                // 释放大门,让任务1 完成
                 gate.Release();
             });
             wrapper.Start(context.WorkItemGroup.TaskScheduler);
@@ -728,10 +728,10 @@ namespace UnitTests.SchedulerTests
             Assert.False(wrapper.IsFaulted, "Wrapper Task Faulted with Exception=" + wrapper.Exception);
             Assert.True(wrapper.IsCompleted, "Wrapper Task completed");
             await result.Task.WaitAsync(WaitTimeout, TestContext.Current.CancellationToken);
-            Assert.NotNull(endOfChain); // End of chain Task created successfully
+            Assert.NotNull(endOfChain); // 成功创建了链条尾端任务
             Assert.False(endOfChain.IsFaulted, "Task chain Faulted with Exception=" + endOfChain.Exception);
             Assert.True(n != 0, "Work items did not get executed");
-            Assert.Equal(1, n);  // "Work items executed out of order"
+            Assert.Equal(1, n);  // “工作项目执行不合秩序”
         }
 
         private void Log(int level, string what)
@@ -745,9 +745,9 @@ namespace UnitTests.SchedulerTests
 
         private static void CheckRuntimeContext(IGrainContext context)
         {
-            Assert.NotNull(RuntimeContext.Current); // Runtime context should not be null
-            Assert.NotNull(RuntimeContext.Current); // Activation context should not be null
-            Assert.Equal(context, RuntimeContext.Current);  // "Activation context"
+            Assert.NotNull(RuntimeContext.Current); // 运行时间环境不应无效
+            Assert.NotNull(RuntimeContext.Current); // 启动环境不应无效
+            Assert.Equal(context, RuntimeContext.Current);  // “启动环境”
         }
     }
 }

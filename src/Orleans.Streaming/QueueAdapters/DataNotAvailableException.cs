@@ -5,35 +5,35 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Exception indicates that the requested data is not available.
+    /// 例外是指没有所要求的数据。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class DataNotAvailableException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataNotAvailableException"/> class.
+        /// 初始化 <see cref="DataNotAvailableException"/> 类的新实例。
         /// </summary>
         public DataNotAvailableException() : this("Data not found") { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataNotAvailableException"/> class.
+        /// 初始化 <see cref="DataNotAvailableException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public DataNotAvailableException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataNotAvailableException"/> class.
+        /// 初始化 <see cref="DataNotAvailableException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="inner">内心</param>
         public DataNotAvailableException(string message, Exception inner) : base(message, inner) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataNotAvailableException"/> class.
+        /// 初始化 <see cref="DataNotAvailableException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         protected DataNotAvailableException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -42,35 +42,35 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// Indicates that the queue message cache is full.
+    /// 表示队列信件缓存已满 。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class CacheFullException : OrleansException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CacheFullException"/> class.
+        /// 初始化 <see cref="CacheFullException"/> 类的新实例。
         /// </summary>
         public CacheFullException() : this("Queue message cache is full") { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CacheFullException"/> class.
+        /// 初始化 <see cref="CacheFullException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
+        /// <param name="message">电文。</param>
         public CacheFullException(string message) : base(message) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CacheFullException"/> class.
+        /// 初始化 <see cref="CacheFullException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
+        /// <param name="message">电文。</param>
+        /// <param name="inner">内心</param>
         public CacheFullException(string message, Exception inner) : base(message, inner) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CacheFullException"/> class.
+        /// 初始化 <see cref="CacheFullException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">The serialization info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">序列号信息。</param>
+        /// <param name="context">上下文。</param>
         [Obsolete]
         private CacheFullException(SerializationInfo info, StreamingContext context)
             : base(info, context)

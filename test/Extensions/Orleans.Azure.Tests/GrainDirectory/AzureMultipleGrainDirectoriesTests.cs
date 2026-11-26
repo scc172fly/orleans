@@ -6,7 +6,7 @@ using UnitTests.Grains.Directories;
 namespace Tester.Directories
 {
     /// <summary>
-    /// Tests for custom grain directory functionality using Azure Table Storage as the directory backend.
+    /// 自定义测试 grain 使用 Azure 表格存储为目录后端 。
     /// </summary>
     [TestCategory("AzureStorage")]
     [TestSuite("Functional")]

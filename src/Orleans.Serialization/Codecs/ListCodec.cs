@@ -11,9 +11,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// Serializer for <see cref="List{T}"/>.
+    /// <see cref="List{T}"/>的序列器。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
     public sealed class ListCodec<T> : IFieldCodec<List<T>>, IBaseCodec<List<T>>
     {
@@ -22,9 +22,9 @@ namespace Orleans.Serialization.Codecs
         private readonly IFieldCodec<T> _fieldCodec;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ListCodec{T}"/> class.
+        /// 初始化 <see cref="ListCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">The field codec.</param>
+        /// <param name="fieldCodec">字段编码。</param>
         public ListCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -126,8 +126,8 @@ namespace Orleans.Serialization.Codecs
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(value);
 
-            // If the value has some values added by the constructor, clear them.
-            // If those values are in the serialized payload, they will be added below.
+            // 如果该值有建筑商添加的某种值,请清除这些值。
+            // 如果这些数值在序列式有效载荷中,则将添加到下文。
             value.Clear();
 
             uint fieldId = 0;
@@ -162,18 +162,18 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// Copier for <see cref="List{T}"/>.
+    /// <see cref="List{T}"/>的复印机。
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
     public sealed class ListCopier<T> : IDeepCopier<List<T>>, IBaseCopier<List<T>>
     {
         private readonly IDeepCopier<T> _copier;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ListCopier{T}"/> class.
+        /// 初始化 <see cref="ListCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">The value copier.</param>
+        /// <param name="valueCopier">价值复印机。</param>
         public ListCopier(IDeepCopier<T> valueCopier)
         {
             _copier = OrleansGeneratedCodeHelper.UnwrapService(this, valueCopier);

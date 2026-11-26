@@ -420,7 +420,7 @@ public sealed class TypedOutboxExtensionsTests
         var key = variation switch
         {
             "messageId" or "unset-parent" => default,
-            // Reply adds seven UTF8 bytes ("/result").
+            // 答复中增加了7个 UTF8 字节(“/结果”)。
             "bytes" => MessageId.Create(new string('k', reply ? 1018 : 1025)),
             "multibyte-bytes" => MessageId.Create(new string('\u20ac', reply ? 339 : 341) + (reply ? "a" : "ab")),
             _ => CommandId
@@ -466,7 +466,7 @@ public sealed class TypedOutboxExtensionsTests
         Assert.Empty(realOutbox.Messages);
         Assert.Equal(0, realOutbox.Count);
         if (context is not null) Assert.Equal(0, context.CompletionCount);
-        // Positive control: same codec still encodes and stages after rejection.
+        // 积极控制:相同的编码仍然在编码和拒绝后阶段进行编码。
         var positive = new StoringOutbox();
         Invoke(positive,
             new MessageType<string>(Subject, new Serializer<string>(codec, sessions)),

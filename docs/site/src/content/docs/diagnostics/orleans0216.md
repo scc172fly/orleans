@@ -1,40 +1,50 @@
 ---
-title: "ORLEANS0216: Post durable tasks from grains or durable task bodies"
-description: Understand ORLEANS0216, which reports code which posts a durable task where no durable outbox can stage the start, and fix it with ScheduleAsync or a post from a durable grain.
+title: "ORLEANS0216: grains 或持久任务机构的长期任务后的任务"
+description: "理解 ORLEANS0216,其中报告代码,在没有耐用发件箱可以启动的持久任务中,该代码会发布一个长期的任务,并用 ScheduleAsync 或从耐用 grain中找到一个员额来解决这个问题。"
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
-# ORLEANS0216: Post durable tasks from grains or durable task bodies
+<a id="orleans0216-post-durable-tasks-from-grains-or-durable-task-bodies"></a>
 
-| Property | Value |
+# ORLEANS0216: grains 或持久任务机构的长期任务后的任务
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-Code outside a grain and outside a durable task body calls `Post` on a durable task definition or configuration, for example in a client or a web endpoint:
+## 原因原因原因
+
+在 grain 之外和在持久任务机构外,如客户或网络端点中,代码要求 `Post` 确定耐久的任务定义或配置:
 
 :::code source="snippets/durable-tasks/Orleans0216.cs" id="orleans0216_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-`Post` is synchronous: it stages the start in the durable outbox of the grain which runs the calling code, and the start commits with that grain's next journal write, together with the state changes which the calling code made. A grain method, a durable task body, and a `DurableTask.Run` delegate run in a grain. A client has no durable outbox, so `Post` throws `InvalidOperationException` there, and the checkout fails.
+## 规则说明
 
-For how tasks start, see [Starting and observing tasks](../grains/durable-tasks.md#starting-and-observing-tasks).
+`Post` 同步: 它在耐用发件箱中开始 grain 运行调用代码的调用代码, 并以此开始承诺 grain下一期日记的写作, 以及调用代码所修改的状态。 A grain 方法、耐久任务机构以及 `DurableTask.Run` 代表在 grain客户没有耐久的发信箱,所以 `Post` 扔弃 `InvalidOperationException` 在那里,结账失败了。
 
-## How to fix violations
+任务开始方式见 [开始和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
 
-**Schedule the task with `ScheduleAsync`.** It completes once the task's grain has accepted and stored the task, and returns the task's handle. Name the task with `WithId`, so a retry after an ambiguous failure, such as a timeout, reaches the same task:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**任务安排 `ScheduleAsync`.** 任务完成后,它就会完成 grain 已经接受并保存了任务,返回任务控件。 `WithId`,因此在模棱两可的失败(如超时)发生后重试,达到同样的任务:
 
 :::code source="snippets/durable-tasks/Orleans0216.cs" id="orleans0216_fix_schedule" language="csharp":::
 
-**Post from a durable grain.** An ordinary method of a durable grain posts the start, which commits atomically with the grain's state changes in its next journal write:
+**员额的空缺 grain.** 耐久性的一般方法 grain 以原子方式对 grain下一期日记的状态变化:
 
 :::code source="snippets/durable-tasks/Orleans0216.cs" id="orleans0216_fix_grain" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic in a helper which only grains or durable task bodies call, such as a static method which a workflow uses to start follow-up work.
+## 何时压缩
+
+禁止仅 grains 或持久任务机构所呼唤的辅助人员诊断,例如工作流程用于启动后续工作的静态方法。

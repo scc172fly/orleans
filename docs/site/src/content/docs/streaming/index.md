@@ -1,45 +1,51 @@
 ---
-title: Streaming with Orleans
-description: Understand Orleans streams and choose the right messaging abstraction for an Orleans application.
+title: "与 Orleans串流"
+description: "理解 Orleans 流,选择一个 Orleans 应用程序的右线电文抽象。"
 ms.date: 08/02/2026
 ms.topic: overview
 ---
 
-# Streaming with Orleans
+<a id="streaming-with-orleans"></a>
+
+# 与 Orleans串流
 
 <a id="why-should-i-care"></a>
 
-Orleans streams are typed, logical, multicast channels. Producers and consumers address a stream by provider name and <xref:Orleans.Runtime.StreamId>; they don't need references to one another. A stream can have many producers and many subscriptions, and every published item is offered to every subscription on that stream.
+Orleans 流是输入的、符合逻辑的、多播频道。制片人和消费者用提供者的名称和 <xref:Orleans.Runtime.StreamId>来回答一个流,他们不需要相互引用。流可以有很多制作人和许多订阅者,每个已出版的项目都提供给该流上的每一个订阅者。
 
-The stream is a virtual address. Its transport, retention, retry behavior, ordering, and ability to replay are supplied by the configured [stream provider](stream-providers.md). A stream handle alone doesn't make data durable.
+流是一个虚拟地址。 它的传输、 保留、 重试行为、 命令和重播能力由配置 [串流提供商](stream-providers.md)提供。 流控单靠一个流控无法使数据持久 。
 
-Use streams when events should fan out to independently managed consumers, when subscriptions should outlive a grain activation, or when an external queue or event log should feed grains. For request/response calls, specific connected-client callbacks, or low-overhead best-effort fan-out, another Orleans messaging abstraction can be a better fit. See [grain observers](../grains/observers.md) for direct client callbacks and [Choose an Orleans messaging abstraction](streams-why.md) for the full decision model.
+当事件向独立管理的消费者传播时,当订阅时间比 grain 激活时间长时,或者当外部队列或事件日志应填入 grains时,使用流。对于请求/回复电话、特定的连接客户回击或低管理端最佳扇门外出,另一个 Orleans 短信抽象信息可能更合适。直接客户回调请见 [grain 观察员](../grains/observers.md) ,完整决定模型见 [选择 Orleans 短信抽象](streams-why.md) 。
 
-## Programming model
+<a id="programming-model"></a>
 
-- A <xref:Orleans.Runtime.StreamId> consists of a namespace and a key. The provider name selects the configured transport.
-- <xref:Orleans.Streams.IAsyncStream`1> is both a producer and consumer handle. Getting a handle is a local operation; publishing and subscribing perform work.
-- Streams are multicast. Multiple producers can publish to one stream, and each active subscription receives each item.
-- Subscriptions can be [explicit or implicit](streams-programming-apis.md#explicit-and-implicit-subscriptions).
-- Delivery guarantees, ordering, and replay are [provider-specific](delivery-semantics.md).
-- Explicit subscription records can be durable only when `PubSubStore` uses [durable grain storage](pubsub-storage.md).
+## 方案拟订模式
 
-## Get started
+- <xref:Orleans.Runtime.StreamId> 由命名空间和密钥组成。服务商名称选择配置的运输方式。
+- <xref:Orleans.Streams.IAsyncStream`1> 既是一个生产者又是一个消费者的处理器。获得一个处理器是当地的业务;出版和订阅进行工作。
+- 串流是多播的。 多制片人可以发布到一个流, 每个活动订阅都接收每个项目 。
+- 订阅可以是 [明示或默示](streams-programming-apis.md#explicit-and-implicit-subscriptions)。
+- 交货担保、订购和重播是 [provider-specific](delivery-semantics.md)。
+- 只有在 `PubSubStore` 使用 [耐久 grain 储存](pubsub-storage.md)时,明确的订阅记录才能持久。
+
+<a id="get-started"></a>
+
+## 开始
 
 <a id="quick-start-sample"></a>
 <a id="stream-providers"></a>
 <a id="stream-semantics"></a>
 <a id="code-samples"></a>
 
-1. Follow the [streaming quickstart](streams-quick-start.md) with the in-memory provider.
-1. Learn stream [identity, production, consumption, and subscription APIs](streams-programming-apis.md).
-1. Choose how new persistent-stream subscriptions [begin with live or locally cached messages](subscription-start-positions.md).
-1. Choose a [provider](stream-providers.md) for the required durability and replay behavior.
-1. Plan for [delivery, ordering, replay, and recovery](delivery-semantics.md).
-1. Configure [PubSub storage](pubsub-storage.md) and [operations](streaming-operations.md) for production.
+1. 与原始提供者一起追逐 [快速启动流](streams-quick-start.md) 。
+1. 学习流 [身份、生产、消费和订阅](streams-programming-apis.md)。
+1. 选择新的持续流订阅方式 [以现场或本地缓存信件开头](subscription-start-positions.md)。
+1. 选择所需的耐久性和重播行为 [提供商](stream-providers.md) 。
+1. [交付、订购、重放和回收](delivery-semantics.md)计划。
+1. 用于生产 的 配置 [PubSub 储存](pubsub-storage.md) 和 [业务业务](streaming-operations.md) 。
 
-For best-effort implicit fan-out without queueing or replay, see [broadcast channels](broadcast-channel.md).
+最佳努力不排队或重播,暗含的扇子外出,见 [广播频道](broadcast-channel.md)。
 
 <a id="streams-implementation"></a>
 
-For the runtime architecture behind persistent streams, see [Orleans streams implementation](../implementation/streams-implementation/index.md).
+持久性流后面的运行时结构见 [Orleans 流执行](../implementation/streams-implementation/index.md)。

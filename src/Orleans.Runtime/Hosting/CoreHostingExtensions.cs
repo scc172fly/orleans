@@ -16,11 +16,11 @@ using Orleans.Runtime.MembershipService;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Extensions for <see cref="ISiloBuilder"/> instances.
+    /// <see cref="ISiloBuilder"/> 实例的扩展 。
     /// </summary>
     public static class CoreHostingExtensions
     {
-        // Runtime-owned descriptor identities keep alias registration, lifecycle participation, and opt-out cleanup together.
+        // 使用时间自主的描述性身份将别名登记、生命周期参与和选择退出清理结合在一起。
         private static readonly ServiceDescriptor DirectoryDescriptor = ServiceDescriptor.Singleton<DistributedGrainDirectory, DistributedGrainDirectory>();
         private static readonly ServiceDescriptor DirectoryLifecycleDescriptor =
             ServiceDescriptor.Singleton<ILifecycleParticipant<ISiloLifecycle>>(static sp => sp.GetRequiredService<DistributedGrainDirectory>());
@@ -36,12 +36,12 @@ namespace Orleans.Hosting
         });
 
         /// <summary>
-        /// Add <see cref="Activity.Current"/> propagation through grain calls.
-        /// Note: according to <see cref="ActivitySource.StartActivity(string, ActivityKind)"/> activity will be created only when any listener for activity exists <see cref="ActivitySource.HasListeners()"/> and <see cref="ActivityListener.Sample"/> returns <see cref="ActivitySamplingResult.PropagationData"/>.
+        /// 添加添加添加 <see cref="Activity.Current"/> 通过 grain 电话
+        /// 注:根据 <see cref="ActivitySource.StartActivity(string, ActivityKind)"/> 活动,只有在存在任何活动听众时才会创建 <see cref="ActivitySource.HasListeners()"/> 和 <see cref="ActivityListener.Sample"/> 返回 <see cref="ActivitySamplingResult.PropagationData"/>。
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <returns>The builder.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+        /// <param name="builder">建筑工。</param>
+        /// <returns>建筑工。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
         public static ISiloBuilder AddActivityPropagation(this ISiloBuilder builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
@@ -53,17 +53,17 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the silo to use development-only clustering and listen on localhost.
+        /// 配置 silo ,以使用开发专用组合和收听本地主机。
         /// </summary>
-        /// <param name="builder">The silo builder.</param>
-        /// <param name="siloPort">The silo port.</param>
-        /// <param name="gatewayPort">The gateway port.</param>
+        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="siloPort"> silo 端口。</param>
+        /// <param name="gatewayPort">网关端口。</param>
         /// <param name="primarySiloEndpoint">
-        /// The endpoint of the primary silo, or <see langword="null"/> to use this silo as the primary.
+        /// 初级 silo或 <see langword="null"/> 的终点,将此 silo 作为初级。
         /// </param>
-        /// <param name="serviceId">The service id.</param>
-        /// <param name="clusterId">The cluster id.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="serviceId">服务代号。</param>
+        /// <param name="clusterId">组号 ID 。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder UseLocalhostClustering(
             this ISiloBuilder builder,
             int siloPort = EndpointOptions.DEFAULT_SILO_PORT,
@@ -82,7 +82,7 @@ namespace Orleans.Hosting
             builder.UseDevelopmentClustering(optionsBuilder => ConfigurePrimarySiloEndpoint(optionsBuilder, primarySiloEndpoint));
             builder.ConfigureServices(services =>
             {
-                // If the caller did not override service id or cluster id, configure default values as a fallback.
+                // 如果调用者没有覆盖服务 ID 或群集 id, 请将默认值配置为后退 。
                 if (string.Equals(serviceId, ClusterOptions.DevelopmentServiceId, StringComparison.Ordinal) && string.Equals(clusterId, ClusterOptions.DevelopmentClusterId, StringComparison.Ordinal))
                 {
                     services.PostConfigure<ClusterOptions>(options =>
@@ -105,20 +105,20 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the silo to use development-only clustering.
+        /// 配置 silo 使用只开发的组合。
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="primarySiloEndpoint">
-        /// The endpoint of the primary silo, or <see langword="null"/> to use this silo as the primary.
+        /// 初级 silo或 <see langword="null"/> 的终点,将此 silo 作为初级。
         /// </param>
-        /// <returns>The silo builder.</returns>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder UseDevelopmentClustering(this ISiloBuilder builder, IPEndPoint? primarySiloEndpoint)
         {
             return builder.UseDevelopmentClustering(optionsBuilder => ConfigurePrimarySiloEndpoint(optionsBuilder, primarySiloEndpoint));
         }
 
         /// <summary>
-        /// Configures the silo to use development-only clustering.
+        /// 配置 silo 使用只开发的组合。
         /// </summary>
         public static ISiloBuilder UseDevelopmentClustering(
             this ISiloBuilder builder,
@@ -128,7 +128,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the silo to use development-only clustering.
+        /// 配置 silo 使用只开发的组合。
         /// </summary>
         public static ISiloBuilder UseDevelopmentClustering(
             this ISiloBuilder builder,
@@ -162,15 +162,15 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Selects the legacy grain directory as the default for grain types without an explicit directory selection.
+        /// 选择遗留 grain 目录作为 grain 类型中的默认值,无需明确选择目录。
         /// </summary>
-        /// <param name="siloBuilder">The silo builder.</param>
-        /// <returns>The provided silo builder.</returns>
+        /// <param name="siloBuilder">下 silo 建筑商</param>
+        /// <returns>提供的情况 silo 建筑商</returns>
         /// <remarks>
-        /// Configure every silo with this option to defer migration to the distributed grain directory.
-        /// Migration from the legacy directory to the distributed directory is one-way.
+        /// 配置每个 silo , 并在此选项下推迟迁移到分布的 grain 目录 。
+        /// 从遗留目录迁移到分布目录是单向的。
         /// </remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 是 <see langword="null"/>.</exception>
         public static ISiloBuilder UseLegacyGrainDirectory(this ISiloBuilder siloBuilder)
         {
             ArgumentNullException.ThrowIfNull(siloBuilder);
@@ -190,19 +190,19 @@ namespace Orleans.Hosting
                 }
             }
 
-            // Removing unused distributed services lets the legacy directory install its compatibility endpoints.
+            // 删除未使用的分布式服务后,遗留目录可以安装兼容端点。
             services.Remove(DirectoryDescriptor);
             services.Remove(DirectoryLifecycleDescriptor);
             services.Remove(DirectoryMembershipDescriptor);
         }
 
         /// <summary>
-        /// Configures the distributed grain directory.
+        /// 配置分布的 grain 目录。
         /// </summary>
-        /// <param name="siloBuilder">The silo builder to register the directory implementation with.</param>
-        /// <param name="name">The name to register the directory under, or null to register it as the default. Multiple names share one directory instance.</param>
-        /// <returns>The provided silo builder.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> is <see langword="null"/>.</exception>
+        /// <param name="siloBuilder">用于登记目录实施情况的 silo 构建器。</param>
+        /// <param name="name">将目录注册在下面或空, 将其登记为默认。多个名称共享一个目录实例 。</param>
+        /// <returns>提供的情况 silo 建筑商</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 是 <see langword="null"/>.</exception>
         public static ISiloBuilder AddDistributedGrainDirectory(this ISiloBuilder siloBuilder, string? name = null)
         {
             ArgumentNullException.ThrowIfNull(siloBuilder);
@@ -217,7 +217,7 @@ namespace Orleans.Hosting
                 services.RemoveDefaultGrainDirectory();
             }
 
-            // Distributed Grain Directory
+            // 分发 Grain 目录
             services.AddOptions<GrainDirectoryOptions>();
             services.TryAdd(DirectoryMembershipDescriptor);
             if (!services.Contains(DirectoryDescriptor))

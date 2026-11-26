@@ -17,7 +17,7 @@ using System.Globalization;
 namespace ServiceBus.Tests.EvictionStrategyTests
 {
     /// <summary>
-    /// Tests for EventHub cache purge logic and eviction strategy behavior under pressure conditions.
+    /// 测试 EventHub 缓存清除逻辑和压力条件下的驱逐战略行为。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming")]
     [TestSuite("BVT")]
@@ -40,7 +40,7 @@ namespace ServiceBus.Tests.EvictionStrategyTests
 
         public EHPurgeLogicTests()
         {
-            //an mock eh settings
+            //模拟 eh 设置
             this.ehSettings = new EventHubPartitionSettings
             {
                 Hub = new EventHubOptions(),
@@ -48,12 +48,12 @@ namespace ServiceBus.Tests.EvictionStrategyTests
                 ReceiverOptions = new EventHubReceiverOptions()
             };
 
-            //set up cache pressure monitor and purge predicate
+            //建立缓存压力监视器并清洗前置
             this.environmentStatisticsProvider = new EnvironmentStatisticsProvider();
             this.cachePressureInjectionMonitor = new CachePressureInjectionMonitor();
             this.purgePredicate = new PurgeDecisionInjectionPredicate(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(30));
 
-            // set up serialization env
+            // 设置序列化信封
             var serviceProvider = new ServiceCollection()
                 .AddMetrics()
                 .AddSingleton<OrleansInstruments>()
@@ -62,7 +62,7 @@ namespace ServiceBus.Tests.EvictionStrategyTests
             this.serializer = serviceProvider.GetRequiredService<Serializer>();
             this.instruments = serviceProvider.GetRequiredService<OrleansInstruments>();
 
-            //set up buffer pool, small buffer size make it easy for cache to allocate multiple buffers
+            //设置缓冲池, 小缓冲体大小使缓存便于分配多个缓冲器
             var oneKB = 1024;
             this.bufferPool = new ObjectPool<FixedSizeBuffer>(() => new FixedSizeBuffer(oneKB));
         }
@@ -72,20 +72,20 @@ namespace ServiceBus.Tests.EvictionStrategyTests
         {
             InitForTesting();
             var tasks = new List<Task>();
-            //add items into cache, make sure will allocate multiple buffers from the pool
+            //添加项目到缓存中, 确保从集合中分配多个缓冲
             int itemAddToCache = 100;
             foreach (var cache in this.cacheList)
                 tasks.Add(AddDataIntoCache(cache, itemAddToCache, TestContext.Current.CancellationToken));
             await Task.WhenAll(tasks);
 
-            //set cachePressureMonitor to be underPressure
+            //[已设 cachePressureMonitor 将 underPressure
             this.cachePressureInjectionMonitor.isUnderPressure = true;
-            //set purgePredicate to be ShouldPurge
+            //[已设 purgePredicate 将 ShouldPurge
             this.purgePredicate.ShouldPurge = true;
             this.receiver1.TryPurgeFromCache(out _);
             this.receiver2.TryPurgeFromCache(out _);
 
-            //Assert
+            //发货
             int expectedItemCountInCacheList = itemAddToCache + itemAddToCache;
             Assert.Equal(expectedItemCountInCacheList, GetItemCountInAllCache(this.cacheList));
         }
@@ -95,22 +95,22 @@ namespace ServiceBus.Tests.EvictionStrategyTests
         {
             InitForTesting();
             var tasks = new List<Task>();
-            //add items into cache
+            //将项目添加到缓存
             int itemAddToCache = 100;
             foreach (var cache in this.cacheList)
                 tasks.Add(AddDataIntoCache(cache, itemAddToCache, TestContext.Current.CancellationToken));
             await Task.WhenAll(tasks);
 
-            //set cachePressureMonitor to be underPressure
+            //[已设 cachePressureMonitor 将 underPressure
             this.cachePressureInjectionMonitor.isUnderPressure = false;
-            //set purgePredicate to be ShouldPurge
+            //[已设 purgePredicate 将 ShouldPurge
             this.purgePredicate.ShouldPurge = false;
 
-            //perform purge
+            //执行清洗
             this.receiver1.TryPurgeFromCache(out _);
             this.receiver2.TryPurgeFromCache(out _);
 
-            //Assert
+            //发货
             int expectedItemCountInCacheList = itemAddToCache + itemAddToCache;
             Assert.Equal(expectedItemCountInCacheList, GetItemCountInAllCache(this.cacheList));
         }
@@ -120,24 +120,24 @@ namespace ServiceBus.Tests.EvictionStrategyTests
         {
             InitForTesting();
             var tasks = new List<Task>();
-            //add items into cache
+            //将项目添加到缓存
             int itemAddToCache = 100;
             foreach (var cache in this.cacheList)
                 tasks.Add(AddDataIntoCache(cache, itemAddToCache, TestContext.Current.CancellationToken));
             await Task.WhenAll(tasks);
 
-            //set cachePressureMonitor to be underPressure
+            //[已设 cachePressureMonitor 将 underPressure
             this.cachePressureInjectionMonitor.isUnderPressure = false;
-            //set purgePredicate to be ShouldPurge
+            //[已设 purgePredicate 将 ShouldPurge
             this.purgePredicate.ShouldPurge = true;
 
-            //perform purge
+            //执行清洗
             this.receiver1.TryPurgeFromCache(out _);
             this.receiver2.TryPurgeFromCache(out _);
 
-            //Assert
+            //发货
             int expectedItemCountInCaches = 0;
-            //items got purged
+            //被清除的项目
             Assert.Equal(expectedItemCountInCaches, GetItemCountInAllCache(this.cacheList));
         }
 
@@ -146,22 +146,22 @@ namespace ServiceBus.Tests.EvictionStrategyTests
         {
             InitForTesting();
             var tasks = new List<Task>();
-            //add items into cache
+            //将项目添加到缓存
             int itemAddToCache = 100;
             foreach (var cache in this.cacheList)
                 tasks.Add(AddDataIntoCache(cache, itemAddToCache, TestContext.Current.CancellationToken));
             await Task.WhenAll(tasks);
 
-            //set up condition so that purge will be performed
+            //设置条件, 以便进行清洗
             this.cachePressureInjectionMonitor.isUnderPressure = false;
             this.purgePredicate.ShouldPurge = true;
 
-            //Each cache should each have buffers allocated
+            //每个缓冲点应各配有缓冲
             this.evictionStrategyList.ForEach(strategy => Assert.True(strategy.InUseBuffers.Count > 0));
 
-            //perform purge
+            //执行清洗
 
-            //after purge, inUseBuffers should be purged and return to the pool
+            //清洗后, inUseBuffers 应清理完并返回池塘
             var expectedPurgedBuffers = new List<FixedSizeBuffer>();
             this.evictionStrategyList.ForEach(strategy =>
             {
@@ -174,7 +174,7 @@ namespace ServiceBus.Tests.EvictionStrategyTests
             this.receiver1.TryPurgeFromCache(out ignore);
             this.receiver2.TryPurgeFromCache(out ignore);
 
-            //Each cache should have all buffers purged
+            //每个缓冲处应该清除所有缓冲
             this.evictionStrategyList.ForEach(strategy => Assert.Empty(strategy.InUseBuffers));
             var oldBuffersInCaches = new List<FixedSizeBuffer>();
             this.evictionStrategyList.ForEach(strategy =>
@@ -182,21 +182,21 @@ namespace ServiceBus.Tests.EvictionStrategyTests
                 foreach (var inUseBuffer in strategy.InUseBuffers)
                     oldBuffersInCaches.Add(inUseBuffer);
             });
-            //add items into cache again
+            //再次将项目添加到缓存中
             itemAddToCache = 100;
             foreach (var cache in this.cacheList)
                 tasks.Add(AddDataIntoCache(cache, itemAddToCache, TestContext.Current.CancellationToken));
             await Task.WhenAll(tasks);
-            //block pool should have purged buffers returned by now, and used those to allocate buffer for new item
+            //积块集合应已经清除缓冲冲器现已返回,并用这些缓冲器为新项目分配缓冲
             var newBufferAllocated = new List<FixedSizeBuffer>();
             this.evictionStrategyList.ForEach(strategy =>
             {
                 foreach (var inUseBuffer in strategy.InUseBuffers)
                     newBufferAllocated.Add(inUseBuffer);
             });
-            //remove old buffer in cache, to get newly allocated buffers after purge
+            //删除缓存中的旧缓冲器, 以在清洗后获得新分配的缓冲器
             newBufferAllocated.RemoveAll(buffer => oldBuffersInCaches.Contains(buffer));
-            //purged buffer should return to the pool after purge, and used to allocate new buffer
+            //清洗后,清理缓冲应返回池中,并用于分配新的缓冲
             expectedPurgedBuffers.ForEach(buffer => Assert.Contains(buffer, newBufferAllocated));
         }
 

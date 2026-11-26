@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>Tests the replay contract of <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>.</summary>
+/// <summary>测试 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>的重播合同。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -163,8 +163,8 @@ public class DurableTaskRunInlineTests
         var host = new TestHost(Now);
         var runs = 0;
 
-        // Asynchronous delegates don't compile; a delegate whose result type is asynchronous through generic code is
-        // rejected when it runs, inside and outside a durable task.
+        // 代表的不同步不会汇编;结果类型通过通用代码是无同步的代表就是
+        // 当它运行时,在其中和之外被拒一次。
         var response = await DurableTaskRuntimeHelper.RunAsync(
             DurableTask.Run(_ => RunInline<ValueTask<int>>(() => ValueTask.FromResult(++runs))),
             host.CreateContext(TaskId.CreateRoot("root")));
@@ -205,8 +205,8 @@ public class DurableTaskRunInlineTests
 
         var response = await DurableTaskRuntimeHelper.RunAsync(Body(), host.CreateContext(TaskId.CreateRoot("root")));
 
-        // An occurrence of a name has the same identifier whichever kind of operation uses it, so a host can detect a
-        // deployment which changes the kind of an occurrence.
+        // 出现名称时,无论使用何种操作类型的名称都具有相同的识别特征,因此主机可以检测到
+        // 设置,可以改变发生事件的类型。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, response.Status);
         Assert.Equal(
             ["root/step", "root/step$4"],
@@ -285,8 +285,8 @@ public class DurableTaskRunInlineTests
         var first = await DurableTaskRuntimeHelper.RunAsync(Body(), host.CreateContext(TaskId.CreateRoot("root")));
         var replayed = await DurableTaskRuntimeHelper.RunAsync(Body(), host.CreateContext(TaskId.CreateRoot("root")));
 
-        // Named operations don't advance the generated count, so the unnamed operations are $child-1, $child-2, and
-        // $child-3 in the order in which the body creates them, and each replay finds the same records.
+        // 命名的操作不会推进生成的计数, 所以未命名的操作是 $1, $2,
+        // 以身体创造的顺序 以3美元为单位 每个重播都找到相同的记录
         Assert.Equal([1, 2, 3], first.GetResult<int[]>());
         Assert.Equal([1, 2, 3], replayed.GetResult<int[]>());
         Assert.Equal(2, effectRuns);
@@ -396,8 +396,8 @@ public class DurableTaskRunInlineTests
         var taskId = TaskId.CreateRoot("root");
         var runs = 0;
 
-        // The enclosing effect's record holds the nested effect's outcome, so a replay, which runs neither, assigns the
-        // body's later effect the same identifier and returns its own recorded value.
+        // 附加效应记录维持嵌套效应的结果 所以一个不同时运行的重放
+        // 后天效果相同识别符 返回自己的记录值
         (Guid Audit, int Charge, int Next) Body()
         {
             var pay = DurableTask.RunInline("pay", () => (Audit: DurableTask.RunInline(Guid.NewGuid), Charge: ++runs));
@@ -438,8 +438,8 @@ public class DurableTaskRunInlineTests
         var first = await RunAsync(host, taskId, Body);
         var replayed = await RunAsync(host, taskId, Body);
 
-        // Each failure is the effect's recorded outcome, so a replay observes it without running the effect, and the
-        // failed operations took no identifiers: the unnamed effect which follows them is the first.
+        // 每一个失败都是效果记录的结果 所以重放时没有运行效果
+        // 操作失败时没有使用标识符:之后的未命名效果是第一个。
         Assert.All(first.Failures, static failure => Assert.Contains("ORLEANS0227", failure, StringComparison.Ordinal));
         Assert.Equal(first.Failures, replayed.Failures);
         Assert.Equal((1, 1), (first.Next, replayed.Next));
@@ -459,7 +459,7 @@ public class DurableTaskRunInlineTests
         return response.GetResult<T>();
     }
 
-    /// <summary>A host which runs effects and logs their records, or which doesn't support them.</summary>
+    /// <summary>运行效果并记录其记录的主机,或者不支持这些主机。</summary>
     private sealed class EffectContext(TaskId taskId, List<string>? log) : DurableTaskContext(taskId)
     {
         public override DateTimeOffset UtcNow => Now;

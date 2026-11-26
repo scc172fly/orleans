@@ -1,50 +1,60 @@
 ---
-title: External tasks and grain scheduling
-description: Safely use asynchronous libraries, CPU work, and blocking APIs from Orleans grains.
+title: "外部任务和 grain 时间安排"
+description: "安全使用非同步图书馆、CPU工作,并阻止 Orleans grains的API。"
 ms.date: 10/15/2026
 ms.topic: concept-article
 ---
 
-# External tasks and grain scheduling
+<a id="external-tasks-and-grain-scheduling"></a>
 
-Normal `await` keeps grain code in the activation's turn-based scheduling model. The continuation resumes on the grain scheduler, so it can safely access grain state:
+# 外部任务和 grain 时间安排
+
+正常 `await` 在激活的转键列表模式中保留 grain 代码。 继续恢复在 grain 调度器上, 这样它就可以安全访问 grain 状态 :
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="refresh_from_repository":::
-Async libraries don't need <xref:System.Threading.Tasks.Task.Run*>. Await them directly.
+Async图书馆不需要 <xref:System.Threading.Tasks.Task.Run*>。直接等待它们。
 
-## Don't block the grain scheduler
+<a id="dont-block-the-grain-scheduler"></a>
 
-Never wait synchronously on incomplete tasks using <xref:System.Threading.Tasks.Task`1.Result>, <xref:System.Threading.Tasks.Task.Wait*>, <xref:System.Threading.Tasks.Task.WaitAll*>, or `GetAwaiter().GetResult()`. Blocking can deadlock the activation and starve the .NET thread pool.
+## 不要挡住 grain 排排程器
 
-Avoid `async void`, including async lambdas passed to APIs expecting <xref:System.Action`1>. Exceptions can't be observed through a returned task and can terminate the process.
+使用 <xref:System.Threading.Tasks.Task`1.Result>、 <xref:System.Threading.Tasks.Task.Wait*>、 <xref:System.Threading.Tasks.Task.WaitAll*>或 `GetAwaiter().GetResult()`,永远不要同步等待完成不完整的任务。堵塞可能会使激活陷入僵局,并使 .NET 线性集合断绝。
 
-## Use Task.Run narrowly
+避免 `async void`,包括传递给API的单体羊羔 <xref:System.Action`1>。例外情况无法通过返回的任务来观察,而且可以终止过程。
 
-<xref:System.Threading.Tasks.Task.Run*> executes on the .NET thread pool outside the Orleans scheduler. Use it only for:
+<a id="use-taskrun-narrowly"></a>
 
-- An unavoidable synchronous blocking API.
-- CPU-heavy work that doesn't access grain state.
+## 缩略使用 Task.Run
 
-Capture immutable input, do the external work, then update grain state after awaiting:
+<xref:System.Threading.Tasks.Task.Run*> 上 .NET 外的线形圆 Orleans 调度器。仅用于:
+
+- 无法避免同步的屏蔽 API。
+- 无法访问 grain 状态的CPU重工作 。
+
+获取不可变的输入, 做外部工作, 然后在等待后更新 grain 状态 :
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="compress_on_thread_pool":::
-Don't read or mutate grain fields inside the <xref:System.Threading.Tasks.Task.Run*> delegate. That code isn't protected by the grain scheduler.
+不要读或变异 grain 字段内 <xref:System.Threading.Tasks.Task.Run*> 代表的代码不受 grain 排程器
 
 ## ConfigureAwait
 
-Don't use `ConfigureAwait(false)` directly in grain methods. It can resume the continuation outside the activation scheduler. General-purpose libraries can use `ConfigureAwait(false)` internally; grain code returns to its scheduler when it normally awaits the library's task. For more information about context capture in .NET, see the [ConfigureAwait FAQ](https://devblogs.microsoft.com/dotnet/configureawait-faq/).
+不要用 `ConfigureAwait(false)` 直接在 grain 可在启动调度器之外恢复继续使用。 `ConfigureAwait(false)` 内部; grain 通常等待图书馆的任务时返回到调度器的排程程序代码。如果需要更多信息,请查看 .NET,则见 [ConfigureAwait 求求通](https://devblogs.microsoft.com/dotnet/configureawait-faq/).
 
-## Start activation-scheduled work
+<a id="start-activation-scheduled-work"></a>
 
-<xref:System.Threading.Tasks.TaskFactory.StartNew*> without an explicit scheduler uses <xref:System.Threading.Tasks.TaskScheduler.Current?displayProperty=nameWithType>, which is the Orleans scheduler in grain code. This is rarely needed; ordinary async methods are clearer. For the .NET scheduling differences, see [Task.Run vs Task.Factory.StartNew](https://devblogs.microsoft.com/dotnet/task-run-vs-task-factory-startnew/).
+## 启动启动计划的工作
 
-If an advanced integration passes an async delegate to <xref:System.Threading.Tasks.TaskFactory.StartNew*>, unwrap the nested task:
+<xref:System.Threading.Tasks.TaskFactory.StartNew*> 没有明确的调度器使用 <xref:System.Threading.Tasks.TaskScheduler.Current?displayProperty=nameWithType>,即 Orleans 调度器 grain 代码。这几乎是需要的;普通的自动同步方法更清楚。 .NET 时间安排上的差别,见 [Task.Run 和 Task.Factory.StartNew](https://devblogs.microsoft.com/dotnet/task-run-vs-task-factory-startnew/).
+
+如果高级整合将一个助理代表传递到 <xref:System.Threading.Tasks.TaskFactory.StartNew*>,则卸载嵌套的任务:
 
 :::code language="csharp" source="../snippets/compiled/Grains/GeneralSnippets.cs" id="start_async_worker":::
-To apply the result of a background callback to grain state, use <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>. It runs the callback as a request on the activation. See [Run background work as a grain request](request-scheduling.md#run-background-work-as-a-grain-request).
+要将背景回调结果应用到 grain 状态, 请使用 <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>。 它在激活时作为请求执行回调 。 见 [将背景工作作为 grain 请求运行](request-scheduling.md#run-background-work-as-a-grain-request)。
 
-Keep background work under an observed runtime mechanism. Use [grain timers](timers.md), [reminders](reminders.md), a durable job abstraction, or a hosted service according to the required lifetime and reliability.
+将背景工作置于一个观测运行时间机制之下。使用 [grain 计时器](timers.md)、 [催复提醒](reminders.md)、耐久的工作抽取或根据所需的寿命和可靠性提供托管服务。
 
-## Reentrancy still applies
+<a id="reentrancy-still-applies"></a>
 
-Awaiting external work doesn't let another request run on a non-reentrant grain. Marking a grain reentrant or enabling interleaving can improve throughput while calls wait for I/O, but state can change between turns. See [Request scheduling](request-scheduling.md).
+## 保留仍适用
+
+等待外部工作时, 无法让其他请求运行在未重新输入 grain上。 标记一个 grain 重输入或促成中断可以改善传输量, 而呼叫等待 I/ O 时, 但状态可以在交替之间发生变化 。 见 [请求安排](request-scheduling.md)。

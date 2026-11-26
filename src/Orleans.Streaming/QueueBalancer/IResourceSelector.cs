@@ -3,18 +3,18 @@ using System.Collections.Generic;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// IResourceSelector selects a certain amount of resources from a resource list
+    /// IResourceSelector 从资源列表中选择一定量的资源
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal interface IResourceSelector<T>
     {
         /// <summary>
-        /// Number of resources
+        /// 资源数
         /// </summary>
         int Count { get; }
 
         /// <summary>
-        /// Try to select certain count of resources from resource list, which doesn't overlap with existing selection
+        /// 尝试从资源列表中选择一定的资源计数, 与现有的选择不相重叠
         /// </summary>
         /// <param name="newSelectionCount"></param>
         /// <param name="existingSelection"></param>

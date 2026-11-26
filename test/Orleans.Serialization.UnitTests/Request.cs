@@ -58,7 +58,7 @@ namespace Orleans.Serialization.Invocation
             }
         }
 
-        // Generated
+        // 生成
         protected abstract ValueTask InvokeInner();
     }
 
@@ -96,7 +96,7 @@ namespace Orleans.Serialization.Invocation
             }
         }
 
-        // Generated
+        // 生成
         protected abstract ValueTask<TResult> InvokeInner();
     }
 
@@ -135,7 +135,7 @@ namespace Orleans.Serialization.Invocation
             }
         }
 
-        // Generated
+        // 生成
         protected abstract Task<TResult> InvokeInner();
     }
 
@@ -175,7 +175,7 @@ namespace Orleans.Serialization.Invocation
             }
         }
 
-        // Generated
+        // 生成
         protected abstract Task InvokeInner();
     }
 
@@ -195,7 +195,7 @@ namespace Orleans.Serialization.Invocation
             }
         }
 
-        // Generated
+        // 生成
         protected abstract void InvokeInner();
     }
 }

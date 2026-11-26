@@ -5,29 +5,29 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// Responsible for probing remote silos for responsiveness.
+    /// 负责对远程 silos 进行响应性调查。
     /// </summary>
     internal interface IRemoteSiloProber
     {
         /// <summary>
-        /// Probes the specified <paramref name="silo"/> for responsiveness.
+        /// 检测到指定的反应 <paramref name="silo"/> 。
         /// </summary>
-        /// <param name="silo">The silo to probe.</param>
-        /// <param name="probeNumber">The probe identifier for diagnostic purposes.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="silo">用于探测的 silo 。</param>
+        /// <param name="probeNumber">用于诊断目的的探测识别符号。</param>
+        /// <param name="cancellationToken">取消牌。</param>
         /// <returns>
-        /// A <see cref="Task"/> which completes when the probe returns successfully and faults when the probe fails.
+        /// 一种 <see cref="Task"/> ,当探测器成功返回时完成,而一旦探测器失败,故障就会发生。
         /// </returns>
         Task Probe(SiloAddress silo, int probeNumber, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Probes the specified <paramref name="target"/> indirectly, via <paramref name="intermediary"/>.
+        /// 检测指定 <paramref name="target"/> 间接、通过 <paramref name="intermediary"/>.
         /// </summary>
-        /// <param name="intermediary">The silo which will perform a direct probe.</param>
-        /// <param name="target">The silo which will be probed.</param>
-        /// <param name="probeTimeout">The timeout which the <paramref name="intermediary" /> should apply to the probe.</param>
-        /// <param name="probeNumber">The probe number for diagnostic purposes.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="intermediary">下 silo 将进行直接探测</param>
+        /// <param name="target">下 silo 将被考查的。</param>
+        /// <param name="probeTimeout">超时 <paramref name="intermediary" /> 应用到探测器上</param>
+        /// <param name="probeNumber">用于诊断目的的探测号。</param>
+        /// <param name="cancellationToken">取消牌。</param>
         Task<IndirectProbeResponse> ProbeIndirectly(SiloAddress intermediary, SiloAddress target, TimeSpan probeTimeout, int probeNumber, CancellationToken cancellationToken = default);
     }
 }

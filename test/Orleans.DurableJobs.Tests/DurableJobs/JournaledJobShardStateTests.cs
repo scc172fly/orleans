@@ -232,9 +232,9 @@ public class JournaledJobShardStateTests
         var start = DateTimeOffset.UtcNow;
         var state = new JournaledJobShardState(shardId, start, start.AddHours(1));
 
-        // A default-constructed record has Kind == DurableJobShardJournalRecordKind.None.
-        // This simulates an uninitialized record or a JSON payload where 'kind' was omitted
-        // because the serializer is configured to skip default-valued properties.
+        // 默认构建的记录有 Kind = DurableJobShardJournalRecordKind.None。
+        // 此模拟未初始化的记录或 JSON 有效载荷, 此处省略“ 种类”
+        // 因为序列器的配置是用来跳过默认估值属性的。
         var record = new DurableJobShardJournalRecord();
 
         var exception = Assert.Throws<InvalidOperationException>(() => state.Apply(record));

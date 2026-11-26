@@ -9,80 +9,80 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Durable.Http;
 
 /// <summary>
-/// Hosts one HTTP operation: a root task which subscribes to the task that performs the operation's work, and completes
-/// with that task's response.
+/// HTTP 操作的主机为 HTTP 操作: 根任务, 根任务订阅执行运行操作的任务并完成
+/// 与这项任务的回应。
 /// </summary>
 /// <remarks>
 /// <para>
-/// The grain's key is the operation's key, which derives from its scope, its caller, and its identifier, so every request
-/// which names the operation reaches this grain without knowing which grain runs the operation's work. The root task's
-/// result is the work's terminal response, including a failure or cancellation, so the operation reports it exactly.
+/// grain的密钥是操作的密钥,关键出自其范围、调用者及其识别符号,因此每个请求
+/// 哪个名称的操作名称将实现此 grain ,而不知道是哪个 grain 运行该操作的工作。
+/// 结果是工作终端的反应,包括故障或注销,因此操作报告准确无误。
 /// </para>
 /// <para>
-/// The work is a task on its grain: a durable grain call, which the host starts as a detached root named by the
-/// operation's key, or an existing task, which a reference names. The host's journal records the work once its grain
-/// holds the task, and is the only record of it: requests which signal or cancel the operation read the work from the
-/// journal and address its task directly.
+/// 工作是其 grain上的一项任务:一个耐用 grain 调用,主机以该调用点名的分离根开始
+/// 或现有任务中的某个引用名称。主机日志将工作记录在 grain
+/// 请求哪个信号或取消操作
+/// 并直接处理它的任务。
 /// </para>
 /// </remarks>
 [Alias("Orleans.Durable.Http.IDurableOperationGrain")]
 internal interface IDurableOperationGrain : IGrainWithStringKey
 {
-    /// <summary>Runs <paramref name="call"/> as the operation's work, and returns its terminal response.</summary>
+    /// <summary>运行 <paramref name="call"/> 作为操作的工作,并返回其终端响应。</summary>
     /// <param name="call">
-    /// A generated durable grain-call request, which the call serializes by its own type. Requests are immutable once
-    /// created, so the call passes it without a copy.
+    /// 生成的耐久 grain-呼叫请求,该呼叫按其类型顺序排列。
+    /// 创建,所以呼叫通过它 没有副本。
     /// </param>
     [Alias("Run")]
     DurableTask<DurableTaskResponse> RunAsync([Immutable] DurableTask call);
 
-    /// <summary>Subscribes to the existing task at <paramref name="address"/>, and returns its terminal response.</summary>
+    /// <summary>订阅 <paramref name="address"/>的现有任务,并返回其终端响应。</summary>
     [Alias("Subscribe")]
     DurableTask<DurableTaskResponse> SubscribeAsync(DurableTaskAddress address);
 
     /// <summary>
-    /// Returns the operation's work once the host's journal durably records it, or <see langword="null"/> when it doesn't
-    /// within <paramref name="timeout"/>, or the activation stops first.
+    /// 一旦主机日记可持久记录,或当不记录时返回 <see langword="null"/> ,则返回操作的作品
+    /// <paramref name="timeout"/>内,或启动先停止。
     /// </summary>
     /// <remarks>
-    /// The journal records the work once its grain holds the task, so a request which then signals or cancels the work
-    /// reaches it. An operation whose host failed to start its work records it as <see cref="DurableOperationWorkKind.NotStarted"/>.
+    /// 日记在工作(Q0Q)时记录工作,一旦该工作由它 grain 承担,即提出请求,然后发出信号或取消工作
+    /// 操作,如果主机未能将工作记录为 <see cref="DurableOperationWorkKind.NotStarted"/>。
     /// </remarks>
     [Alias("WaitForWork"), Orleans.Concurrency.AlwaysInterleave]
     Task<DurableOperationWork?> WaitForWorkAsync(TimeSpan timeout);
 }
 
-/// <summary>Identifies the kind of an operation's work.</summary>
+/// <summary>确定行动的工作类型</summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Http.DurableOperationWorkKind")]
 internal enum DurableOperationWorkKind
 {
-    /// <summary>A durable grain call, which the operation runs.</summary>
+    /// <summary>耐性 grain 呼叫,操作运行。</summary>
     Run,
 
     /// <summary>
-    /// A durable grain call which the operation's host failed to start on its grain: the call never ran, or whether it
-    /// ran is unknown, as the operation's error reports.
+    /// 耐性 grain 操作主机无法启动此操作的 grain:呼声从未运行,或是否
+    /// 未知运行的错误报告,因此该选项被设置为未知。
     /// </summary>
     NotStarted,
 
-    /// <summary>An existing task, which the operation subscribes to and which other parties own.</summary>
+    /// <summary>混合行动所认同的、其他当事方拥有的现有任务。</summary>
     Subscription,
 }
 
-/// <summary>Identifies an operation's work: what the operation performs, and the task which performs it.</summary>
-/// <param name="Kind">The kind of work.</param>
-/// <param name="Target">The grain which holds the work's task.</param>
+/// <summary>确定操作的工作:操作进行什么,以及执行的任务。</summary>
+/// <param name="Kind">那种工作</param>
+/// <param name="Target">下 grain 工作的任务。</param>
 /// <param name="Method">
-/// For a call, the identity of the interface method which it invokes, the formatted type of its invokable; otherwise empty.
+/// 调用时,它所引用的界面方法的身份、其可援引的格式类型;否则是空的。
 /// </param>
 /// <param name="TaskId">
-/// The work's task on <paramref name="Target"/>, or <see langword="null"/> for a call which a request describes before its
-/// task exists, and for work which never started.
+/// 工作任务: <paramref name="Target"/>,或 <see langword="null"/> ,要求发出一项通知,而请求在
+/// 任务存在, 并且工作从来就没有开始过。
 /// </param>
 /// <remarks>
-/// Work is the same as other work when it calls the same method on the same grain, or subscribes to the same task, as
-/// the durable task runtime identifies operations: by what they perform, not by how their arguments serialize.
+/// 当工作在相同的 grain上调用同一方法或订阅相同任务时,与其他工作相同。
+/// 持久任务运行时间确定操作:根据它们的工作,而不是依据其论点如何顺序排列。
 /// </remarks>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Http.DurableOperationWork")]
@@ -92,13 +92,13 @@ internal sealed record DurableOperationWork(
     [property: Id(2)] string Method,
     [property: Id(3)] TaskId? TaskId)
 {
-    /// <summary>Gets the address of the work's task, or <see langword="null"/> for work which never started.</summary>
+    /// <summary>获得工作任务地址,或 <see langword="null"/> 工作从来就没有开始过</summary>
     public DurableTaskAddress? Address => TaskId is { } taskId ? new(Target, taskId) : null;
 
-    /// <summary>Gets whether the operation subscribes to an existing task, which other parties own.</summary>
+    /// <summary>了解操作是否同意其他当事方拥有的现有任务。</summary>
     public bool IsSubscription => Kind == DurableOperationWorkKind.Subscription;
 
-    /// <summary>Returns the work which <paramref name="work"/>, a call or a reference to an existing task, describes.</summary>
+    /// <summary>返回 <paramref name="work"/>,即呼叫或提及现有任务,请描述。</summary>
     public static DurableOperationWork Describe(DurableTask work) => work switch
     {
         IDurableTaskReference reference => new(DurableOperationWorkKind.Subscription, reference.Target, string.Empty, reference.Id),
@@ -107,16 +107,16 @@ internal sealed record DurableOperationWork(
             $"A durable operation runs a durable grain call, such as 'grain.MethodAsync(...)', or subscribes to an existing task, which 'grain.GetDurableTask<T>(id)' references, not '{work.GetType()}'."),
     };
 
-    /// <summary>Returns whether this work performs what <paramref name="other"/> performs.</summary>
+    /// <summary>返回这项工作是否履行 <paramref name="other"/> 履行的工作。</summary>
     public bool IsSameWorkAs(DurableOperationWork other) => IsSubscription
         ? other.IsSubscription && Target == other.Target && TaskId == other.TaskId
         : !other.IsSubscription && Target == other.Target && Method == other.Method;
 
     /// <summary>
-    /// Formats the work as <c>{kind}{grain length}:{grain}{method length}:{method}{task}</c>, where the kind is <c>r</c>,
-    /// <c>n</c>, or <c>s</c>, which <see cref="Parse"/> reads.
+    /// 将工作格式化为 <c>{kind}{grain length}:{grain}{method length}:{method}{task}</c>,其中的类型是 <c>r</c>,
+    /// <c>n</c>,或 <c>s</c>, 其中 <see cref="Parse"/> 读起来。
     /// </summary>
-    /// <remarks>The journal stores the text, which every journal format serializes without application configuration.</remarks>
+    /// <remarks>该日记存储文本, 每份日记格式都将文字序列化, 而不配置应用程序 。</remarks>
     public string Format()
     {
         var kind = Kind switch
@@ -156,17 +156,17 @@ internal sealed class DurableOperationGrain(
     [FromKeyedServices("work")] IDurableValue<string?> work,
     IGrainFactory grainFactory) : DurableGrain, IDurableOperationGrain
 {
-    /// <summary>The root identifier of the operation's task on its host.</summary>
+    /// <summary>运行所在主机上任务根标识符。</summary>
     public const string RootId = "operation";
 
-    /// <summary>The identifier segment of the host's subscription to the operation's work.</summary>
+    /// <summary>东道方订阅业务工作的识别数据部分。</summary>
     private const string SubscriptionId = "work";
 
     public async DurableTask<DurableTaskResponse> RunAsync(DurableTask call)
     {
-        // The call runs as a root on its grain, named by the operation's key, which is unique among the operations that
-        // call the grain. Scheduling returns once the grain holds it, so the work which the journal then records is
-        // reachable by the requests which signal or cancel it.
+        // 调用以根根运行 grain,以操作的钥匙命名,这是在
+        // 调用 grain。一旦有 grain ,时间安排将返回它,因此日记记录的工作就是
+        // 发出或取消该信号的请求可以满足。
         var described = DurableOperationWork.Describe(call);
         ScheduledTask root;
         try
@@ -175,8 +175,8 @@ internal sealed class DurableOperationGrain(
         }
         catch (Exception exception) when (DurableOperationStartException.FromScheduleFailure(exception) is { } failure)
         {
-            // The journal records that the work wasn't started with the operation's failure, so requests which wait for
-            // the work end.
+            // 日记记录说工作不是从手术失败开始 所以请求等待
+            // 工作结束。
             work.Value = (described with { Kind = DurableOperationWorkKind.NotStarted }).Format();
             throw failure;
         }
@@ -194,8 +194,8 @@ internal sealed class DurableOperationGrain(
         using var cancellation = new CancellationTokenSource(timeout);
         try
         {
-            // The committed watch delivers the journal's value once its write is acknowledged, and ends when the
-            // activation stops, so the answer is always durable.
+            // 承诺的日志一旦被认可,即提供日记的价值,当日记一经确认,即结束
+            // 启动停止,所以答案总是持久的。
             await foreach (var change in work.WatchAsync(cancellation.Token))
             {
                 if (change.Value is { } value)
@@ -213,7 +213,7 @@ internal sealed class DurableOperationGrain(
 
     private async DurableTask<DurableTaskResponse> SubscribeCoreAsync(DurableOperationWork operationWork)
     {
-        // The work rides with the subscription's journal write. A replay assigns the same value, so it writes nothing new.
+        // 工作骑行时使用订阅日记写。 重播会指定相同值, 所以它没有写新内容 。
         var value = operationWork.Format();
         if (work.Value != value)
         {

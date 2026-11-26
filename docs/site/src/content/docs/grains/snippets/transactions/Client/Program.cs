@@ -17,12 +17,12 @@ var random = Random.Shared;
 
 while (!Console.KeyAvailable)
 {
-    // Choose some random accounts to exchange money
+    // 选择一些随机账户来换钱
     var fromIndex = random.Next(accountNames.Length);
     var toIndex = random.Next(accountNames.Length);
     while (toIndex == fromIndex)
     {
-        // Avoid transferring to/from the same account, since it would be meaningless
+        // 避免向同一账户转帐/转出同一账户,因为这样做毫无意义
         toIndex = (toIndex + 1) % accountNames.Length;
     }
 
@@ -31,7 +31,7 @@ while (!Console.KeyAvailable)
     var fromAccount = client.GetGrain<IAccountGrain>(fromKey);
     var toAccount = client.GetGrain<IAccountGrain>(toKey);
 
-    // Perform the transfer and query the results
+    // 执行传输并查询结果
     try
     {
         var transferAmount = random.Next(200);
@@ -65,7 +65,7 @@ while (!Console.KeyAvailable)
         Console.WriteLine();
     }
 
-    // Sleep and run again
+    // 睡着再跑
     await Task.Delay(TimeSpan.FromMilliseconds(200));
 }
 // </transactions_client_program>

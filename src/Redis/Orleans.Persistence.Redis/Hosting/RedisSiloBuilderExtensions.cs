@@ -6,12 +6,12 @@ using Orleans.Providers;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="ISiloBuilder"/> extensions.
+    /// <see cref="ISiloBuilder"/> 扩展。
     /// </summary>
     public static class RedisSiloBuilderExtensions
     {
         /// <summary>
-        /// Configures Redis as the default grain storage provider.
+        /// 配置 Redis 作为默认的 grain 存储提供者 。
         /// </summary>
         public static ISiloBuilder AddRedisGrainStorageAsDefault(this ISiloBuilder builder, Action<RedisStorageOptions> configureOptions)
         {
@@ -19,7 +19,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures Redis as a grain storage provider.
+        /// 配置 Redis 作为 grain 存储提供者的配置。
         /// </summary>
         public static ISiloBuilder AddRedisGrainStorage(this ISiloBuilder builder, string name, Action<RedisStorageOptions> configureOptions)
         {
@@ -27,13 +27,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures Redis as the default grain storage provider.
+        /// 配置 Redis 作为默认的 grain 存储提供者 。
         /// </summary>
         public static ISiloBuilder AddRedisGrainStorageAsDefault(this ISiloBuilder builder)
             => builder.AddRedisGrainStorageAsDefault(configureOptionsBuilder: null);
 
         /// <summary>
-        /// Configures Redis as the default grain storage provider.
+        /// 配置 Redis 作为默认的 grain 存储提供者 。
         /// </summary>
         public static ISiloBuilder AddRedisGrainStorageAsDefault(this ISiloBuilder builder, Action<OptionsBuilder<RedisStorageOptions>>? configureOptionsBuilder)
         {
@@ -41,13 +41,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures Redis as a grain storage provider.
+        /// 配置 Redis 作为 grain 存储提供者的配置。
         /// </summary>
         public static ISiloBuilder AddRedisGrainStorage(this ISiloBuilder builder, string name)
             => builder.AddRedisGrainStorage(name, configureOptionsBuilder: null);
 
         /// <summary>
-        /// Configures Redis as a grain storage provider.
+        /// 配置 Redis 作为 grain 存储提供者的配置。
         /// </summary>
         public static ISiloBuilder AddRedisGrainStorage(this ISiloBuilder builder, string name, Action<OptionsBuilder<RedisStorageOptions>>? configureOptionsBuilder)
         {

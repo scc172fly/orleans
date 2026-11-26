@@ -16,7 +16,7 @@ using Xunit;
 namespace UnitTests.Manifest;
 
 /// <summary>
-/// Covers manifest-update diagnostic snapshots and their concurrent state transitions.
+/// 包括最新诊断快照及其同时进行的状态过渡。
 /// </summary>
 public partial class ClusterManifestProviderTests
 {
@@ -86,18 +86,18 @@ public partial class ClusterManifestProviderTests
         var attemptStartedAt = timeProvider.GetUtcNow().UtcDateTime;
         var update = UpdateManifestAsync(provider, snapshot, cancellationToken);
 
-        // The attempt-start snapshot is stamped before fetches are dispatched. The failing peer's fetch may
-        // already have completed and been removed by the time this is observed (its failure is effectively
-        // synchronous), so only the still-outstanding slow peer is guaranteed to remain visible here.
+        // 尝试启动快照在发送抓取前盖上印章。 失败的对等点抓取可能
+        // 观察发现该功能时已经完成并被移除(其失败是有效的)
+        // 也只有仍未结的慢端点才能保证保持可见度。
         var started = provider.LastAttemptDiagnostics;
         Assert.NotNull(started);
         Assert.Equal(snapshot.Version, started!.MembershipVersion);
         Assert.Equal(attemptStartedAt, started.AttemptStartedAt);
         Assert.Contains(slowPeer, started.PendingSilos);
 
-        // Poll for the failing peer's fetch to conclude. This specifically verifies the fix for the rubber-duck
-        // finding that pending state was previously only updated once per whole attempt (after Task.WhenAll),
-        // rather than incrementally as each individual fetch concludes.
+        // 失败的同行点获取失败的对等点的抓取结果的 Poll 将得出结论。 这具体验证了橡胶桶的修复方法
+        // 发现先前仅对全部尝试(在 Task.WhenAll之后)一次更新的待决状态,
+        // 而不是随着每个个人获取的结束而逐步增加。
         ManifestUpdateAttemptDiagnostics? diagnostics = null;
         var deadline = DateTime.UtcNow.AddSeconds(10);
         while (DateTime.UtcNow < deadline)
@@ -116,13 +116,13 @@ public partial class ClusterManifestProviderTests
         Assert.Equal(failure.Message, diagnostics.LastFailureMessage);
         Assert.NotNull(diagnostics.LastFailureAt);
 
-        // The failing peer's fetch concluded (removed from pending), while the still-outstanding slow peer's
-        // fetch has not: pending state reflects each fetch's own completion, not the whole attempt's.
+        // 失败的同侪取回结束( 从待处理部分移走), 而仍然未结的慢同侪取回
+        // 抓取没有: 等待状态反映每个抓取的完成情况, 不是整个尝试 。
         Assert.DoesNotContain(failingPeer, diagnostics.PendingSilos);
         Assert.Contains(slowPeer, diagnostics.PendingSilos);
 
-        // Completing the slow peer's fetch removes it from pending too, even though the attempt as a whole
-        // still fails overall (because the failing peer never produced a manifest for this attempt).
+        // 完成慢端端点的抓取, 也从未处理中移除了它, 尽管整个尝试
+        // 整体而言,仍然失败(因为失败的同伴从未为这一尝试提供证明)。
         slowFetch.SetResult(CreateGrainManifest());
         Assert.False(await update);
         var final = provider.LastAttemptDiagnostics;
@@ -152,7 +152,7 @@ public partial class ClusterManifestProviderTests
         var installAttempt = true;
         membership.CurrentSnapshot.Returns(_ =>
         {
-            // Advance the attempt and publication between the snapshot's diagnostic and manifest reads.
+            // 将照片的诊断和表单之间 提前尝试和公布
             if (installAttempt)
             {
                 installAttempt = false;
@@ -222,7 +222,7 @@ public partial class ClusterManifestProviderTests
         var completePreviousFetch = true;
         timeProvider.GetUtcNow().Returns(_ =>
         {
-            // Complete the old fetch after its diagnostics were read, while the new record is constructed.
+            // 读取诊断结果后完成旧的提取, 而新记录则被构建 。
             if (completePreviousFetch)
             {
                 completePreviousFetch = false;

@@ -3,23 +3,23 @@ using System;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// The [Orleans.Providers.StorageProvider] attribute is used to define which storage provider to use for persistence of grain state.
+    /// Orleans.Providers.StorageProvider属性用于确定哪些储存供应商可用于 grain 状态的持久性。
     /// <para>
-    /// Specifying [Orleans.Providers.StorageProvider] property is recommended for all grains which extend Grain&lt;T&gt;.
-    /// If no [Orleans.Providers.StorageProvider] attribute is  specified, then a "Default" storage provider will be used.
-    /// If a suitable storage provider cannot be located for this grain, then the grain will fail to load into the Silo.
+    /// 指定[Orleans.Providers.StorageProvider......财产是建议所有各方 grains 延伸 Grain&lt;T&gt;.
+    /// 如果未指定 [Orleans.Providers.StorageProvider] 属性,则将使用“默认”存储提供者。
+    /// 如果无法找到合适的储存提供商 grain,然后 grain 无法装入 Silo.
     /// </para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class StorageProviderAttribute : Attribute
     {
         /// <summary>
-        /// Gets or sets the name of the provider to be used for persisting of grain state.
+        /// 获取或设置用于持续状态 grain 的提供者的名称。
         /// </summary>
         public string ProviderName { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StorageProviderAttribute"/> class.
+        /// 初始化 <see cref="StorageProviderAttribute"/> 类的新实例。
         /// </summary>
         public StorageProviderAttribute()
         {
@@ -28,26 +28,26 @@ namespace Orleans.Providers
     }
 
     /// <summary>
-    /// The [Orleans.Providers.LogConsistencyProvider] attribute is used to define which consistency provider to use for grains using the log-view state abstraction.
+    /// Orleans.Providers.LogConsistencyProvider属性用于界定使用日志状态抽象法在 grains 中使用的哪个一致性提供者。
     /// <para>
-    /// Specifying [Orleans.Providers.LogConsistencyProvider] property is recommended for all grains that derive
-    /// from LogConsistentGrain, such as JournaledGrain.
-    /// If no [Orleans.Providers.LogConsistencyProvider] attribute is  specified, then the runtime tries to locate
-    /// one as follows. First, it looks for a
-    /// "Default" provider in the configuration file, then it checks if the grain type defines a default.
-    /// If a consistency provider cannot be located for this grain, then the grain will fail to load into the Silo.
+    /// 指定[Orleans.Providers.LogConsistencyProvider......财产是建议所有各方 grains 产生
+    /// LogConsistentGrain,例如 JournaledGrain。
+    /// 如果未指定 [Orleans.Providers.LogConsistencyProvider]属性,运行时间将尝试查找
+    /// 如下一一。首先,它寻找
+    /// 配置文件中的“ 默认” 提供者, 然后检查 grain 类型是否定义了默认值 。
+    /// 如果无法找到该 grain的一致提供商,则 grain 将无法装入 Silo。
     /// </para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class LogConsistencyProviderAttribute : Attribute
     {
         /// <summary>
-        /// Gets or sets name of the provider to be used for consistency.
+        /// 用于一致性的提供者的组名或组名。
         /// </summary>
         public string ProviderName { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogConsistencyProviderAttribute"/> class.
+        /// 初始化 <see cref="LogConsistencyProviderAttribute"/> 类的新实例。
         /// </summary>
         public LogConsistencyProviderAttribute()
         {

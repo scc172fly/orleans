@@ -10,7 +10,7 @@ using Xunit;
 namespace Tester.Redis.GrainDirectory
 {
     /// <summary>
-    /// Tests for Orleans grain directory functionality using Redis as the directory storage backend.
+    /// 试验 Orleans grain 使用 Redis 作为目录存储后端 。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Directory"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

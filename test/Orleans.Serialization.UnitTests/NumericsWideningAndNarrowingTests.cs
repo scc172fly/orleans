@@ -9,23 +9,23 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Tests for numeric type conversion support in Orleans serialization.
+/// 在 Orleans 序列化中测试数字型转换支持。
 /// 
-/// Orleans provides version-tolerant serialization for numeric types, allowing:
-/// - Widening conversions (e.g., int to long) without data loss
-/// - Narrowing conversions (e.g., long to int) with appropriate handling
-/// - Cross-version compatibility when numeric field types change
+/// Orleans 提供数字型号的耐版本序列化,允许:
+/// - 扩大转换(e.g.,整数长)而不损失数据
+/// - 以适当处理方式缩小转换(e.g.)
+/// - 数字字段类型改变时的交叉转换兼容性
 /// 
-/// This feature is crucial for:
-/// - Schema evolution where numeric precision requirements change
-/// - Gradual migrations of data types in distributed systems
-/// - Maintaining compatibility during rolling upgrades
+/// 这一特性对于以下各方面至关重要:
+/// - 数字精确要求变化的气相变化
+/// - 分布系统中数据类型逐渐迁移
+/// - 在滚动升级期间保持兼容性
 /// 
-/// The serialization system automatically handles:
-/// - Conversions between signed/unsigned integers of different sizes
-/// - Floating-point precision changes
-/// - Safe conversions that preserve values within target type ranges
-/// - Appropriate handling of overflow/underflow scenarios
+/// 序列系统自动处理:
+/// - 不同大小的签名/无符号整数之间的转换
+/// - 浮动点精确度变化
+/// - 安全转换,在目标类型范围内保留价值
+/// - 适当处理溢出/流量减少情况
 /// </summary>
 [Trait("Suite", "BVT")]
 [Trait("Provider", "None")]
@@ -44,7 +44,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// Tests that unsigned integers can be widened and narrowed and maintain compatibility.
+    /// 测试无符号整数可以扩大和缩小并保持兼容性。
     /// </summary>
     [Fact]
     public void UnsignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -65,7 +65,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// Tests that signed integers can be widened and narrowed and maintain compatibility.
+    /// 签名的整数可以扩大和缩小并保持兼容性。
     /// </summary>
     [Fact]
     public void SignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -86,7 +86,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// Tests that floating point numbers can be widened and narrowed and maintain compatibility.
+    /// 测试浮点数可以扩大和缩小并保持兼容性。
     /// </summary>
     [Fact]
     public void FloatWideningAndNarrowingVersionToleranceTests()
@@ -127,7 +127,7 @@ public class NumericsWideningAndNarrowingTests
         var values = new List<N>
         {
             N.MinValue,
-            // All numeric types exercised by this suite are value types, so default is non-null.
+            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
             default!,
             N.MaxValue / two,
             N.MaxValue,
@@ -147,7 +147,7 @@ public class NumericsWideningAndNarrowingTests
         var values = (new N[]
         {
             N.MinValue,
-            // All numeric types exercised by this suite are value types, so default is non-null.
+            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
             default!,
             N.MaxValue / two,
             N.MaxValue,
@@ -186,7 +186,7 @@ public class NumericsWideningAndNarrowingTests
         {
             N.MinValue + buffer,
             N.MinValue / two,
-            // All numeric types exercised by this suite are value types, so default is non-null.
+            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
             default!,
             N.MaxValue / two,
             N.MaxValue - buffer,
@@ -208,7 +208,7 @@ public class NumericsWideningAndNarrowingTests
         {
             N.MinValue + buffer,
             N.MinValue / two,
-            // All numeric types exercised by this suite are value types, so default is non-null.
+            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
             default!,
             N.MaxValue / two,
             N.MaxValue - buffer,
@@ -232,7 +232,7 @@ public class NumericsWideningAndNarrowingTests
         where TLeft : INumber<TLeft>, IMinMaxValue<TLeft>
         where TRight : INumber<TRight>, IMinMaxValue<TRight>
     {
-        // Round-trip the value, converting it along the way.
+        // 转折价值, 沿途转换。
         var payload = _serializer.SerializeToArray(leftValue);
         var result = _serializer.Deserialize<TRight>(payload)!;
 
@@ -248,7 +248,7 @@ public class NumericsWideningAndNarrowingTests
         where TLeft : INumber<TLeft>, IMinMaxValue<TLeft>
         where TRight : INumber<TRight>, IMinMaxValue<TRight>
     {
-        // Wrap the value and round-trip the wrapped value, converting it along the way.
+        // 折叠值和圆曲折包装值,并沿途转换。
         var payload = _serializer.SerializeToArray(new ValueHolder<TLeft> { Value = leftValue });
         var result = _serializer.Deserialize<ValueHolder<TRight>>(payload)!.Value;
 
@@ -264,7 +264,7 @@ public class NumericsWideningAndNarrowingTests
     public sealed class ValueHolder<T>
     {
         [Id(0)]
-        // Tests initialize this member directly or through deserialization before reading it.
+        // 直接或通过消毒测试或先进行初始化,然后阅读。
         public T Value = default!;
     }
 }
@@ -278,7 +278,7 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Ensures that numeric fields (integers, floats, etc) can be widened and narrowed in a version tolerant manner.
+/// 确保以容忍的方式扩大和缩小数字字段(整数字段、浮点等)。
 /// </summary>
 public class NumericsWideningAndNarrowingTests
 {
@@ -309,7 +309,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// Tests that unsigned integers can be widened and narrowed and maintain compatibility.
+    /// 测试无符号整数可以扩大和缩小并保持兼容性。
     /// </summary>
     [Fact]
     public void UnsignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -325,7 +325,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// Tests that signed integers can be widened and narrowed and maintain compatibility.
+    /// 签名的整数可以扩大和缩小并保持兼容性。
     /// </summary>
     [Fact]
     public void SignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -341,7 +341,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// Tests that floating point numbers can be widened and narrowed and maintain compatibility.
+    /// 测试浮点数可以扩大和缩小并保持兼容性。
     /// </summary>
     [Fact]
     public void FloatWideningAndNarrowingVersionToleranceTests()
@@ -467,7 +467,7 @@ public class NumericsWideningAndNarrowingTests
 
     private void RoundTripValueDirectly<TLeft, TRight>(TLeft leftValue, INumber<TLeft> left, INumber<TRight> right)
     {
-        // Round-trip the value, converting it along the way.
+        // 转折价值, 沿途转换。
         var payload = _serializer.SerializeToArray(leftValue);
         var result = _serializer.Deserialize<TRight>(payload);
 
@@ -481,9 +481,9 @@ public class NumericsWideningAndNarrowingTests
 
     private void RoundTripValueIndirectly<TLeft, TRight>(TLeft leftValue, INumber<TLeft> left, INumber<TRight> right)
     {
-        // Wrap the value and round-trip the wrapped value, converting it along the way.
+        // 折叠值和圆曲折包装值,并沿途转换。
         var payload = _serializer.SerializeToArray(new ValueHolder<TLeft> { Value = leftValue });
-        var result = _serializer.Deserialize<ValueHolder<TRight>>(payload)!.Value; // The payload was serialized from a ValueHolder above.
+        var result = _serializer.Deserialize<ValueHolder<TRight>>(payload)!.Value; // 有效载荷从 ValueHolder 上文。
 
         var asRight = right.CreateTruncating(leftValue);
         Assert.Equal(asRight, result);

@@ -45,7 +45,7 @@ public sealed class InboxLifecycleBehaviorTests : MessagingBehaviorTestBase
         var context = Fixture.GetGrainContext(receiver);
         var envelope = CreateEnvelope(receiver, NewMessage(96, "queued"), "messages/queued");
 
-        // Deactivation cancels any handler the original activation starts, leaving the message to recovery.
+        // 取消激活会取消任何处理器, 初始启动程序开始, 将信件保留到恢复 。
         using (Fixture.HandlerProbe.Arm(receiver.GetGrainId(), "messages/queued"))
         {
             DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await receiver.AcceptAndDeactivateAsync(envelope));

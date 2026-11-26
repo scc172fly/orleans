@@ -3,36 +3,36 @@ using System;
 namespace Orleans.Providers.Streams.Generator
 {
     /// <summary>
-    /// Event use in generated streams
+    /// 生成流中事件使用
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class GeneratedEvent
     {
         /// <summary>
-        /// Generated event type
+        /// 生成事件类型
         /// </summary>
         public enum GeneratedEventType
         {
             /// <summary>
-            /// Filler event
+            /// 填充事件
             /// </summary>
             Fill,
 
             /// <summary>
-            /// Event that should trigger reporting
+            /// 触发报告的活动
             /// </summary>
             Report
         }
 
         /// <summary>
-        /// Gets or sets the event type.
+        /// 获取或设置事件类型。
         /// </summary>
         [Id(0)]
         public GeneratedEventType EventType { get; set; }
 
         /// <summary>
-        /// Gets or sets the payload.
+        /// 获取或设置有效载荷。
         /// </summary>
         [Id(1)]
         public int[]? Payload { get; set; }

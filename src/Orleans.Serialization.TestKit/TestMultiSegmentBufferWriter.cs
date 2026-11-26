@@ -8,7 +8,7 @@ using System.Linq;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// Provides a buffer writer which stores committed bytes in multiple segments for serialization tests.
+    /// 提供一位缓冲作家,将承诺的字节储存在多个段次中进行序列测试。
     /// </summary>
     [ExcludeFromCodeCoverage]
     public class TestMultiSegmentBufferWriter : IBufferWriter<byte>, IOutputBuffer
@@ -18,9 +18,9 @@ namespace Orleans.Serialization.TestKit
         private byte[] _current = Array.Empty<byte>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestMultiSegmentBufferWriter"/> class.
+        /// 初始化 <see cref="TestMultiSegmentBufferWriter"/> 类的新实例。
         /// </summary>
-        /// <param name="maxAllocationSize">The maximum size of an individual buffer allocation.</param>
+        /// <param name="maxAllocationSize">个人缓冲分配的最大规模。</param>
         public TestMultiSegmentBufferWriter(int maxAllocationSize)
         {
             _maxAllocationSize = maxAllocationSize;
@@ -39,10 +39,10 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Gets writable memory, capped by the configured maximum allocation size.
+        /// 获取可写内存, 以配置的最大分配大小限制 。
         /// </summary>
-        /// <param name="sizeHint">The requested minimum size before applying the allocation cap.</param>
-        /// <returns>The memory available for writing.</returns>
+        /// <param name="sizeHint">适用分配上限前要求的最低尺寸。</param>
+        /// <returns>可供写入的内存。</returns>
         public Memory<byte> GetMemory(int sizeHint = 0)
         {
             if (sizeHint == 0)
@@ -62,10 +62,10 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// Gets a writable span, capped by the configured maximum allocation size.
+        /// 获得可写宽, 以配置的最大分配大小为上限。
         /// </summary>
-        /// <param name="sizeHint">The requested minimum size before applying the allocation cap.</param>
-        /// <returns>The span available for writing.</returns>
+        /// <param name="sizeHint">适用分配上限前要求的最低尺寸。</param>
+        /// <returns>可用于撰写的间隔。</returns>
         public Span<byte> GetSpan(int sizeHint)
         {
             if (sizeHint == 0)
@@ -89,9 +89,9 @@ namespace Orleans.Serialization.TestKit
         public ReadOnlySequence<byte> GetReadOnlySequence(int maxSegmentSize) => _committed.SelectMany(b => b).Batch(maxSegmentSize).ToReadOnlySequence();
 
         /// <summary>
-        /// Returns all committed buffers followed by the current uncommitted buffer.
+        /// 返回所有承诺的缓冲带,然后返回当前未承付的缓冲带。
         /// </summary>
-        /// <returns>A read-only sequence containing all allocated buffers.</returns>
+        /// <returns>包含所有指定缓冲的只读序列。</returns>
         public ReadOnlySequence<byte> PeekAllBuffers() => _committed.Concat(new[] { _current }).ToReadOnlySequence();
     }
 }

@@ -14,23 +14,23 @@ using Xunit;
 namespace Orleans.Connections.Security.Tests
 {
     /// <summary>
-    /// Tests for TLS (Transport Layer Security) support in Orleans connections.
+    /// 在 Orleans 连接中测试 TLS (运输层安全)支持。
     ///
-    /// Orleans supports TLS encryption for:
-    /// - Client-to-silo connections (gateway connections)
-    /// - Silo-to-silo connections (membership protocol)
+    /// Orleans 支持 TLS 加密, 用于:
+    /// - 客户对silo 连接(开关连接)
+    /// - Silo-- -- 至silo 连接(成员协议)
     ///
-    /// Key features tested:
-    /// - Certificate creation and encoding/decoding
-    /// - Mutual TLS authentication (mTLS) with client certificates
-    /// - Different certificate validation modes
-    /// - End-to-end encrypted communication
+    /// 测试的关键特征:
+    /// - 证书创建和编码/编码
+    /// - 与客户证书的 TLS 相互认证(mTLS)
+    /// - 不同的证书认证方式
+    /// - 端对端加密通信
     ///
-    /// TLS is essential for:
-    /// - Securing Orleans deployments in untrusted networks
-    /// - Meeting compliance requirements (HIPAA, PCI-DSS, etc.)
-    /// - Preventing man-in-the-middle attacks
-    /// - Authenticating clients and silos
+    /// TLS 至关重要, 用于:
+    /// - 确保 Orleans 部署不受信任的网络
+    /// - 遵守合规要求(HIPAA、PCI-DSS等)
+    /// - 防止中中继人攻击
+    /// - 验证客户和 silos
     /// </summary>
     [TestCategory("BVT")]
     [Trait("Category", "BVT")]
@@ -45,11 +45,11 @@ namespace Orleans.Connections.Security.Tests
         private static readonly ConcurrentBag<ITlsHandshakeFeature> ServerHandshakeFeatures = new();
 
         /// <summary>
-        /// Tests the certificate utility functions for creating self-signed certificates.
-        /// Verifies that certificates can be:
-        /// - Created with specific OIDs (Object Identifiers) for client/server authentication
-        /// - Encoded to Base64 for configuration storage
-        /// - Decoded back to the original certificate
+        /// 测试证书使用功能以创建自签名证书。
+        /// 证明证书可以:
+        /// - 与客户/服务器认证所需的特定 OID(目标识别器)创建
+        /// - 编码为Base64,用于配置存储
+        /// - 重新编码到原始证书
         /// </summary>
         [Fact]
         public void CanCreateCertificates()
@@ -131,12 +131,12 @@ namespace Orleans.Connections.Security.Tests
         }
 
         /// <summary>
-        /// Configures TLS for Orleans clients in the test cluster.
-        /// Sets up:
-        /// - Client certificate for mutual TLS
-        /// - SSL protocols (TLS 1.2)
-        /// - Certificate validation policies
-        /// - Target host name for certificate validation
+        /// 配置测试组群 Orleans 客户端的 TLS 。
+        /// 设置 :
+        /// - 相互 TLS 客户证书
+        /// - SSL协议(TLS 1.2)
+        /// - 证书验证政策
+        /// - 验证证书认证的目标主机名
         /// </summary>
         private class TlsClientConfigurator : IClientBuilderConfigurator
         {
@@ -150,17 +150,17 @@ namespace Orleans.Connections.Security.Tests
 
                 clientBuilder.UseTls(options =>
                 {
-                    // Use TLS 1.2 for secure communication
+                    // 安全通信使用 TLS 1.2
                     options.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
-                    // Allow any certificate for testing (in production, validate properly)
+                    // 允许任何测试证书(在生产、适当验证)
                     options.AllowAnyRemoteCertificate();
-                    // Client's certificate for mutual TLS
+                    // 共同 TLS 客户端证书
                     options.LocalCertificate = localCertificate;
-                    // Require server to present a certificate
+                    // 需要服务器提交证书
                     options.RemoteCertificateMode = RemoteCertificateMode.RequireCertificate;
-                    // Configure whether server requires client certificate
+                    // 配置服务器是否需要客户端证书
                     options.ClientCertificateMode = certificateMode;
-                    // Set target host for certificate validation
+                    // 设定证书验证的目标主机
                     options.OnAuthenticateAsClient = (connection, sslOptions) =>
                     {
                         sslOptions.TargetHost = CertificateSubjectName;
@@ -170,12 +170,12 @@ namespace Orleans.Connections.Security.Tests
         }
 
         /// <summary>
-        /// Configures TLS for Orleans silos in the test cluster.
-        /// Sets up:
-        /// - Server certificate for TLS
-        /// - Client certificate requirements
-        /// - SSL protocol versions
-        /// - Certificate validation policies
+        /// 配置测试组群 Orleans silos 的 TLS 。
+        /// 设置 :
+        /// - TLS 服务器证书
+        /// - 客户证书要求
+        /// - SSL 协议版本
+        /// - 证书验证政策
         /// </summary>
         private class TlsServerConfigurator : IHostConfigurator
         {
@@ -192,15 +192,15 @@ namespace Orleans.Connections.Security.Tests
                 {
                     siloBuilder.UseTls(localCertificate, options =>
                     {
-                        // Use TLS 1.2 for secure communication
+                        // 安全通信使用 TLS 1.2
                         options.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
-                        // Allow any certificate for testing (in production, validate properly)
+                        // 允许任何测试证书(在生产、适当验证)
                         options.AllowAnyRemoteCertificate();
-                        // Allow but don't require remote certificates (for silo-to-silo)
+                        // 允许但不需要远程证书( silo- - -silo)
                         options.RemoteCertificateMode = RemoteCertificateMode.AllowCertificate;
-                        // Configure client certificate requirements based on test parameters
+                        // 基于测试参数的配置客户证书要求
                         options.ClientCertificateMode = certificateMode;
-                        // Set target host when acting as client (silo-to-silo connections)
+                        // 以客户端身份行事时设定目标主机(silo- - -silo 连接)
                         options.OnAuthenticateAsClient = (connection, sslOptions) =>
                         {
                             sslOptions.TargetHost = CertificateSubjectName;
@@ -249,16 +249,16 @@ namespace Orleans.Connections.Security.Tests
         }
 
         /// <summary>
-        /// End-to-end test of TLS communication with various certificate configurations.
-        /// Tests different combinations of:
-        /// - Certificate OIDs (null, server-only, or both client and server authentication)
-        /// - Certificate modes (NoCertificate, AllowCertificate, RequireCertificate)
+        /// TLS与各种证书配置的通信端至端测试。
+        /// 测试下列不同组合:
+        /// - 证书 OIDs(无效、仅服务器或客户端和服务器验证)
+        /// - 证书模式(NoCertificate、 AllowCertificate、 RequireCertificate)
         ///
-        /// Verifies that:
-        /// - TLS connections are established successfully
-        /// - Grain calls work over encrypted connections
-        /// - Different authentication modes are properly enforced
-        /// - Data integrity is maintained (echo test)
+        /// 证明:
+        /// - 成功建立 TLS 连接
+        /// - Grain 电话工作通过加密连接
+        /// - 适当实行不同的认证模式
+        /// - 数据完整性得到维护(测试经济情况)
         /// </summary>
         [Theory]
         [InlineData(null, RemoteCertificateMode.AllowCertificate, ConnectionTransportType.InMemory)]
@@ -298,11 +298,11 @@ namespace Orleans.Connections.Security.Tests
                     .AddClientBuilderConfigurator<TlsClientConfigurator>();
                 builder.Options.ConnectionTransport = connectionTransport;
 
-                // Create a self-signed certificate with specified OIDs
+                // 创建自签名证书, 带有指定的 OIDs
                 var certificate = TestCertificateHelper.CreateSelfSignedCertificate(
                     CertificateSubjectName, oids);
 
-                // Pass certificate through configuration (simulates real deployment)
+                // 通过配置(模拟实际部署)发放通行证
                 var encodedCertificate = TestCertificateHelper.ConvertToBase64(certificate);
                 builder.Properties[CertificateConfigKey] = encodedCertificate;
                 builder.Properties[ClientCertificateModeKey] = certificateMode.ToString();
@@ -312,8 +312,8 @@ namespace Orleans.Connections.Security.Tests
 
                 var client = testCluster.Client;
 
-                // Test that grain calls work over TLS-encrypted connections
-                var grain = client!.GetGrain<IPingGrain>("pingu"); // DeployAsync initializes the client.
+                // 测试 grain 调用 TLS- 加密连接的工作
+                var grain = client!.GetGrain<IPingGrain>("pingu"); // DeployAsync 初始化客户端。
                 var expected = "secret chit chat";
                 var actual = await grain.Echo(expected);
                 Assert.Equal(expected, actual);
@@ -336,8 +336,8 @@ namespace Orleans.Connections.Security.Tests
     }
 
     /// <summary>
-    /// Simple test grain interface for verifying TLS connections.
-    /// The echo method ensures data integrity over encrypted connections.
+    /// 用于核查 TLS 连接的简单测试 grain 界面。
+    /// 回声方法确保数据的完整性,而不是加密连接。
     /// </summary>
     public interface IPingGrain : IGrainWithStringKey
     {
@@ -345,8 +345,8 @@ namespace Orleans.Connections.Security.Tests
     }
 
     /// <summary>
-    /// Test grain implementation that echoes back the input.
-    /// Used to verify that data is correctly transmitted over TLS connections.
+    /// 测试 grain 执行,回溯输入。
+    /// 用于核实数据通过 TLS 连接正确传输 。
     /// </summary>
     public class PingGrain : Grain, IPingGrain
     {

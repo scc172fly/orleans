@@ -14,21 +14,21 @@ using Xunit;
 namespace UnitTests
 {
     /// <summary>
-    /// Tests that grain activation can recover from invalid grain directory entries.
+    /// 测试 grain 激活可从无效的 grain 目录条目中恢复。
     /// 
-    /// The grain directory can contain stale or "poison" entries that point to
-    /// non-existent activations. This can happen due to:
-    /// - Silo crashes before cleaning up directory entries
-    /// - Network partitions causing inconsistent state
-    /// - Race conditions during activation/deactivation
+    /// grain 目录目录中可包含指向
+    /// 不存在激活。 可能因为:
+    /// - Silo 清理目录条目前撞车
+    /// - 造成状态不一致的网络分割区
+    /// - 启动/停止作用期间的种族条件
     /// 
-    /// Orleans must be resilient to these scenarios by:
-    /// - Detecting invalid entries during activation
-    /// - Retrying registration with proper previousRegistration parameter
-    /// - Forwarding calls to the correct silo based on directory entries
+    /// Orleans 必须具备适应这些假设情景的能力,具体做法是:
+    /// - 在激活期间检测无效条目
+    /// - 使用适当的 previousRegistration 参数重新进行注册
+    /// - 根据目录条目向正确的 silo 转发呼叫
     /// 
-    /// These tests verify Orleans can recover from poison directory entries
-    /// and maintain the single activation constraint.
+    /// 这些测试核实 Orleans 可从毒物目录条目中回收
+    /// 并保持单一引爆约束。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -40,16 +40,16 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// Tests recovery when the grain directory contains an invalid entry pointing
-        /// to the same silo where activation will occur.
+        /// 当 grain 目录包含无效条目指时测试恢复
+        /// 至启动地点的 silo 。
         /// 
-        /// Scenario:
-        /// 1. Insert a "poison" directory entry pointing to a non-existent activation on the primary silo
-        /// 2. Attempt to activate the grain on the same silo
-        /// 3. The activation should detect the invalid entry (same silo, different activation ID)
-        /// 4. Retry registration with the poison entry as previousRegistration to update it
+        /// 假设情景:
+        /// 1. 插入一个“poison”目录条目,指在主 silo上不存在激活
+        /// 2. 试图启动 grain 在同一 silo
+        /// 3. 激活应检测无效条目(相同 silo,不同激活识别码)
+        /// 4. 将毒物条目重新登记为 previousRegistration ,以更新该条目
         /// 
-        /// This tests the local silo's ability to self-heal invalid directory state.
+        /// 此测试本地 silo自我健康无效目录状态的能力 。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task ReactivateGrainWithPoisonGrainDirectoryEntry_LocalSilo()
@@ -59,17 +59,17 @@ namespace UnitTests
             var primarySiloAddress = primarySilo.SiloAddress;
             var grain = GrainFactory.GetGrain<IGuidTestGrain>(Guid.NewGuid());
 
-            // Create a poison directory entry:
-            // - Points to the correct silo (primary)
-            // - But with a fake activation ID that doesn't exist
-            // This simulates a stale entry from a crashed/deactivated grain
+            // 创建毒物目录条目 :
+            // - 正确点 silo (主)
+            // - 但是假的启动身份证明并不存在
+            // 此模拟从崩溃/ 停止激活 grain中生成的删除条目
             var grainLocator = primarySilo.SiloHost.Services.GetRequiredService<GrainLocator>();
             var badAddress = GrainAddress.GetAddress(primarySiloAddress, grain.GetGrainId(), ActivationId.NewId());
             await grainLocator.Register(badAddress, previousRegistration: null, cancellationToken);
 
             {
-                // Force placement on the primary silo using placement hint
-                // Despite the poison entry, the grain should successfully activate
+                // 使用安插提示在主 silo 上强制放置
+                // 尽管有毒物条目, grain 仍应成功激活
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, primarySiloAddress);
                 var silo = await grain.GetSiloAddress();
                 Assert.Equal(primarySiloAddress, silo);
@@ -77,16 +77,16 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// Tests recovery when activation is attempted on a different silo than the poison entry.
+        /// 当尝试在与毒物条目不同的 silo 上进行激活时,测试恢复。
         /// 
-        /// Scenario:
-        /// 1. Insert poison entry pointing to primary silo
-        /// 2. Attempt to activate on secondary silo
-        /// 3. Secondary silo sees the directory entry and forwards the call to primary
-        /// 4. Primary silo detects invalid entry and updates it during activation
+        /// 假设情景:
+        /// 1. 插入指向初级 silo的毒物条目
+        /// 2. 试图在二级启动 silo
+        /// 3. 中级 silo 查看目录条目,并将电话转发给初级
+        /// 4. 初级 silo 检测无效条目并在激活期间更新
         /// 
-        /// This tests cross-silo coordination and forwarding behavior when dealing
-        /// with invalid directory entries, ensuring calls reach the right silo.
+        /// 交易时的跨silo 协调和传递行为
+        /// 含有无效的目录条目, 确保呼叫到达右 silo。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task ReactivateGrainWithPoisonGrainDirectoryEntry_RemoteSilo()
@@ -97,19 +97,19 @@ namespace UnitTests
             var primarySiloAddress = primarySilo.SiloAddress;
             var grain = GrainFactory.GetGrain<IGuidTestGrain>(Guid.NewGuid());
 
-            // Create poison entry pointing to primary silo with fake activation ID
-            // This tests the forwarding mechanism: secondary silo will see this entry
-            // and forward the request to primary, where recovery will occur
+            // 创建指向初级 silo 的毒物条目,并使用假活化身份识别
+            // 测试转发机制:二级 silo 将看到此条目
+            // 并将请求转交将恢复工作地点的初级机构
             var grainLocator = primarySilo.SiloHost.Services.GetRequiredService<GrainLocator>();
             var badAddress = GrainAddress.GetAddress(primarySiloAddress, grain.GetGrainId(), ActivationId.NewId());
             await grainLocator.Register(badAddress, previousRegistration: null, cancellationToken);
 
             {
-                // Attempt placement on secondary silo, but the directory entry
-                // will cause forwarding to primary silo. This verifies:
-                // 1. Secondary recognizes it shouldn't activate due to existing entry
-                // 2. Call is forwarded to primary based on directory
-                // 3. Primary recovers from poison entry and activates successfully
+                // 尝试在中学 silo上放置位置,但目录条目
+                // 将会导致向初级 silo转运。
+                // 1. 中等教育确认由于现有条目,它不应启动
+                // 2. 电话根据名录发送至主线
+                // 3. 成功从毒物入和启动中初步恢复
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, secondarySiloAddress);
                 var silo = await grain.GetSiloAddress();
                 Assert.Equal(primarySiloAddress, silo);

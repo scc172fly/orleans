@@ -7,13 +7,13 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// A request queued on an activation by <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>.
+/// 启动时排队的请求 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>。
 /// </summary>
 /// <remarks>
-/// The request receives its own response, so queuing a request allocates only this object and its message.
-/// Cancellation applies while the request is queued. Once the callback starts, the task reflects the callback's outcome.
-/// When a call filter completes the invocation without running the callback, the task reflects the filter's outcome.
-/// Call filters observe the request as <see cref="IGrainRequestInvoker.RunRequestAsync"/>.
+/// 请求得到自己的答复,所以排队提出请求只分配此对象及其信息。
+/// 请求排队时, 取消适用。 一旦回调开始, 任务将反映回调的结果 。
+/// 当呼叫过滤器完成该任务而不执行回调时,任务将反映过滤器的结果。
+/// 呼叫过滤器将请求作为 <see cref="IGrainRequestInvoker.RunRequestAsync"/>来观察 。
 /// </remarks>
 internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResult>, IGrainRequestInvoker, ILocalRequest
 {
@@ -36,11 +36,11 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
         var cancellationToken = _registration.Token;
         if (Task.IsCompleted)
         {
-            // The request was canceled while it was queued.
+            // 请求在排队时被取消了 。
             return new(Response.Completed);
         }
 
-        // Unregistering succeeds while cancellation is still running earlier callbacks, so check the token too.
+        // 取消时正在运行早期回调, 取消注册成功, 请检查牌子 。
         if (cancellationToken.CanBeCanceled && (!_registration.Unregister() || cancellationToken.IsCancellationRequested))
         {
             TrySetCanceled(cancellationToken);
@@ -91,7 +91,7 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
 
     void ILocalRequest.Complete(Response response)
     {
-        // The task keeps its first outcome: the callback's, a cancellation, or a call filter's which completed the invocation without running the callback.
+        // 任务保留着它的第一个结果:回调的结果,取消的结果,或者一个不运行回拨而完成传召的呼叫过滤器的结果。
         if (Task.IsCompleted)
         {
             return;
@@ -115,7 +115,7 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
     {
     }
 
-    // Declared for call filters, which inspect the interface and implementation methods.
+    // 宣布使用电话过滤器,检查接口和执行方法。
     Task IGrainRequestInvoker.RunRequestAsync(CancellationToken cancellationToken) => throw new InvalidOperationException();
 
     public int GetArgumentCount() => 0;
@@ -144,14 +144,14 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
 }
 
 /// <summary>
-/// The interface which call filters observe for requests queued by <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>.
+/// 用于观察排队 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>的请求的调用过滤器的界面。
 /// </summary>
 internal interface IGrainRequestInvoker
 {
     internal static readonly MethodInfo MethodInfo = typeof(IGrainRequestInvoker).GetMethod(nameof(RunRequestAsync), BindingFlags.Instance | BindingFlags.Public)!;
 
     /// <summary>
-    /// Runs the request callback.
+    /// 运行请求回调。
     /// </summary>
     Task RunRequestAsync(CancellationToken cancellationToken = default);
 }

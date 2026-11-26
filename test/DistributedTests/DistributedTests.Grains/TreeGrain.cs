@@ -19,7 +19,7 @@ public class TreeGrain : Grain, ITreeGrain
         var childBase = (id + 1) * FanOutFactor;
         for (var i = 1; i <= numChildren; i++)
         {
-            // This grain uses a compound key, so the key extension (forestName) is always present.
+            // 此 grain 使用复数键, 因此密钥扩展名(forestName)总是存在。
             var child = GrainFactory.GetGrain<ITreeGrain>(childBase + i, keyExtension: forestName!);
             _children.Add(child);
         }
@@ -34,7 +34,7 @@ public class TreeGrain : Grain, ITreeGrain
             tasks.Add(child.Ping(cancellationToken));
         }
 
-        // Wait for the tasks to complete.
+        // 等待任务完成
         foreach (var task in tasks)
         {
             await task;

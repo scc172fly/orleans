@@ -16,8 +16,8 @@ using Xunit;
 namespace DurableOrderProcessing.Tests;
 
 /// <summary>
-/// Hosts the playground: an in-process cluster which runs the order workflows, and a test server which serves the API
-/// and the simulated payment gateway. The silo calls the gateway on the test server through the payment client.
+/// 操场主机:运行订单工作流程的流程中集集和一个为 API服务的测试服务器
+/// 和模拟付款网关。 silo 通过支付客户端在测试服务器上调用网关。
 /// </summary>
 public sealed class OrderProcessingFixture : IAsyncLifetime
 {
@@ -41,7 +41,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
                 .ConfigureHttpClient(static client => client.BaseAddress = new Uri("http://localhost/gateway/"))
                 .ConfigurePrimaryHttpMessageHandler(() => new NetworkHandler(Server.CreateHandler())));
 
-            // Orders validate at once and wait for a payment until a test cancels it.
+            // 命令立即生效,等待付款直到测试取消为止。
             silo.Services.Configure<OrderingOptions>(static options =>
             {
                 options.GracePeriod = TimeSpan.Zero;
@@ -82,7 +82,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
         Http = _app.GetTestClient();
     }
 
-    /// <summary>Fills the buyer's basket with one unit of each product.</summary>
+    /// <summary>向买方篮子填充每件产品的一个单位。</summary>
     public async Task FillBasketAsync(string buyerId, params int[] productIds)
     {
         foreach (var productId in productIds)
@@ -92,7 +92,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
         }
     }
 
-    /// <summary>Sends a checkout of the buyer's basket as the order which <paramref name="orderId"/> names.</summary>
+    /// <summary>发送买方篮子的支票作为订单 <paramref name="orderId"/> 姓名。</summary>
     public Task<HttpResponseMessage> CheckoutAsync(string buyerId, Guid orderId, string cardNumber = "4111111111111111", bool loseResponse = false)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/orders") { Content = JsonContent.Create(Checkout(buyerId, cardNumber)) };
@@ -108,7 +108,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
     public static CheckoutRequest Checkout(string buyerId, string cardNumber) =>
         new(buyerId, new Address("15703 NE 61st Ct", "Redmond", "WA", "U.S.", "98052"), cardNumber);
 
-    /// <summary>Waits for the order's history to reach <paramref name="status"/>, and returns that snapshot.</summary>
+    /// <summary>等待订单历史达到 <paramref name="status"/>,并返回快照。</summary>
     public async Task<OrderDetails> WaitForStatusAsync(Guid orderId, OrderStatus status)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
@@ -133,7 +133,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
         throw new InvalidOperationException($"Order {orderId} ended as {last?.Order.Status} without reaching {status}.");
     }
 
-    /// <summary>Long-polls the order's operation until it is terminal, and returns its status monitor.</summary>
+    /// <summary>命令的运行长时间直到它到达终点,并返回其状态监测器。</summary>
     public async Task<JsonElement> WaitForOperationAsync(Guid orderId)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -163,9 +163,9 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Reports a request which the test server's application aborted, which the test server fails with an
-    /// <see cref="OperationCanceledException"/> or an <see cref="IOException"/>, as an <see cref="HttpRequestException"/>,
-    /// as the sockets handler reports a reset connection, so the payment client's resilience handler retries it.
+    /// 测试服务器的应用程序中止,而测试服务器与
+    /// <see cref="OperationCanceledException"/> 或 <see cref="IOException"/>,作为 <see cref="HttpRequestException"/>,
+    /// 当套接字处理器报告重置连接时, 付款客户端的复原力处理器将重新检修它 。
     /// </summary>
     private sealed class NetworkHandler(HttpMessageHandler inner) : DelegatingHandler(inner)
     {

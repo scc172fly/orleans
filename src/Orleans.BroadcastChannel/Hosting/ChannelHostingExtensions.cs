@@ -8,17 +8,17 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extension methods for configuring and resolving broadcast channel providers.
+    /// 提供扩大方法,用于配置和解决广播频道供应商。
     /// </summary>
     public static class ChannelHostingExtensions
     {
         /// <summary>
-        /// Add a new broadcast channel to the silo.
+        /// 在 silo中添加一个新的广播频道。
         /// </summary>
-        /// <param name="this">The builder.</param>
-        /// <param name="name">The name of the provider</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="this">建筑工。</param>
+        /// <param name="name">提供者的名称</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddBroadcastChannel(this ISiloBuilder @this, string name, Action<BroadcastChannelOptions> configureOptions)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));
@@ -31,12 +31,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Add a new broadcast channel to the silo.
+        /// 在 silo中添加一个新的广播频道。
         /// </summary>
-        /// <param name="this">The builder.</param>
-        /// <param name="name">The name of the provider</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The silo builder.</returns>
+        /// <param name="this">建筑工。</param>
+        /// <param name="name">提供者的名称</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>下 silo 建筑商</returns>
         public static ISiloBuilder AddBroadcastChannel(this ISiloBuilder @this, string name, Action<OptionsBuilder<BroadcastChannelOptions>>? configureOptions = null)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));
@@ -48,12 +48,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Add a new broadcast channel to the client.
+        /// 向客户添加一个新的广播频道。
         /// </summary>
-        /// <param name="this">The builder.</param>
-        /// <param name="name">The name of the provider</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The client builder.</returns>
+        /// <param name="this">建筑工。</param>
+        /// <param name="name">提供者的名称</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddBroadcastChannel(this IClientBuilder @this, string name, Action<BroadcastChannelOptions> configureOptions)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));
@@ -65,12 +65,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Add a new broadcast channel to the client.
+        /// 向客户添加一个新的广播频道。
         /// </summary>
-        /// <param name="this">The builder.</param>
-        /// <param name="name">The name of the provider</param>
-        /// <param name="configureOptions">The configuration delegate.</param>
-        /// <returns>The client builder.</returns>
+        /// <param name="this">建筑工。</param>
+        /// <param name="name">提供者的名称</param>
+        /// <param name="configureOptions">配置代表。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddBroadcastChannel(this IClientBuilder @this, string name, Action<OptionsBuilder<BroadcastChannelOptions>>? configureOptions = null)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));
@@ -81,11 +81,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Gets a named broadcast channel provider.
+        /// 得到了一个叫广播频道供应商。
         /// </summary>
-        /// <param name="this">The client.</param>
-        /// <param name="name">The name of the provider</param>
-        /// <returns>The named broadcast channel provider.</returns>
+        /// <param name="this">客户。</param>
+        /// <param name="name">提供者的名称</param>
+        /// <returns>名为广播频道供应商。</returns>
         public static IBroadcastChannelProvider GetBroadcastChannelProvider(this IClusterClient @this, string name)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));

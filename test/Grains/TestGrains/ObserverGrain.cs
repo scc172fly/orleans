@@ -4,7 +4,7 @@ namespace UnitTests.Grains
 {
     public class ObserverGrain : Grain, IObserverGrain, ISimpleGrainObserver
     {
-        protected ISimpleGrainObserver Observer { get; set; } = null!; // supports only a single observer
+        protected ISimpleGrainObserver Observer { get; set; } = null!; // 只支持一个观察员
 
         protected ISimpleObserverableGrain Target { get; set; } = null!;
 

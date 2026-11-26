@@ -4,40 +4,40 @@ using System.Runtime.Serialization;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// Indicates that a transport connection was terminated before initialization or a pending operation could complete.
+/// 表示在启动之前或即将完成的操作完成之前,运输连接已经终止。
 /// </summary>
 [Serializable]
 public class ConnectionAbortedException : Exception
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConnectionAbortedException"/> class.
+    /// 初始化 <see cref="ConnectionAbortedException"/> 类的新实例。
     /// </summary>
     public ConnectionAbortedException()
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConnectionAbortedException"/> class with a message describing the failure.
+    /// 初始化 <see cref="ConnectionAbortedException"/> 类的新实例,并使用描述失败的电文。
     /// </summary>
-    /// <param name="message">The message describing the failure.</param>
+    /// <param name="message">描述失败的电文。</param>
     public ConnectionAbortedException(string? message) : base(message)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConnectionAbortedException"/> class with a message and the underlying cause.
+    /// 初始化 <see cref="ConnectionAbortedException"/> 类的新实例,其中含有一条消息和根本原因。
     /// </summary>
-    /// <param name="message">The message describing the failure.</param>
-    /// <param name="innerException">The exception which caused the connection to be aborted.</param>
+    /// <param name="message">描述失败的电文。</param>
+    /// <param name="innerException">导致断开连接的例外。</param>
     public ConnectionAbortedException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConnectionAbortedException"/> class from serialized data.
+    /// 从序列数据初始化了 <see cref="ConnectionAbortedException"/> 类的新实例。
     /// </summary>
-    /// <param name="info">The serialized exception data.</param>
-    /// <param name="context">The serialization context.</param>
+    /// <param name="info">序列的例外数据。</param>
+    /// <param name="context">序列化背景。</param>
     [Obsolete]
     protected ConnectionAbortedException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
@@ -45,7 +45,7 @@ public class ConnectionAbortedException : Exception
 }
 
 /// <summary>
-/// Indicates that a connection closed normally.
+/// 表示连接正常关闭。
 /// </summary>
 [Serializable]
 public class ConnectionClosedException : Exception

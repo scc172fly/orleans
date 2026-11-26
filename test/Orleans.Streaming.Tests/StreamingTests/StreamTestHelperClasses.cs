@@ -149,7 +149,7 @@ namespace UnitTests.StreamingTests
                                 }
                                 catch
                                 {
-                                    // Ignore
+                                    // 忽略忽略
                                 }
                             } while (await timer.WaitForNextTickAsync());
                         });
@@ -253,7 +253,7 @@ namespace UnitTests.StreamingTests
             {
                 if (grainIds != null)
                 {
-                    // we deduplicate the grain references to ensure that IEnumerable.Distinct() works as intended.
+                    // 重复 grain 参引,以确保 IEnumerable.Distinct()按预期工作。
                     if (dedup.ContainsKey(grainIds[i]))
                         grains[i] = dedup[grainIds[i]];
                     else
@@ -288,7 +288,7 @@ namespace UnitTests.StreamingTests
             var dedup = new Dictionary<int, IStreaming_ConsumerGrain>();
             for (var i = 0; i < grainCount; ++i)
             {
-                // we deduplicate the grain references to ensure that IEnumerable.Distinct() works as intended.
+                // 重复 grain 参引,以确保 IEnumerable.Distinct()按预期工作。
                 if (dedup.ContainsKey(grainIds[i]))
                     grains[i] = dedup[grainIds[i]];
                 else
@@ -351,8 +351,8 @@ namespace UnitTests.StreamingTests
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 Task t = target.BecomeConsumer(streamId, providerToUse, null!);
-                // Consider: remove this await, let the calls go in parallel. 
-                // Have to do it for now to prevent multithreaded scheduler bug from happening.
+                // 考虑:删除这一等待,让电话同时进行。 
+                // 为了防止多行调度器错误发生, 现在必须先这样做。
                 // await t;
                 tasks.Add(t);
             }
@@ -480,7 +480,7 @@ namespace UnitTests.StreamingTests
             {
                 if (grainIds != null)
                 {
-                    // we deduplicate the grain references to ensure that IEnumerable.Distinct() works as intended.
+                    // 重复 grain 参引,以确保 IEnumerable.Distinct()按预期工作。
                     if (dedup.ContainsKey(grainIds[i]))
                         grains[i] = dedup[grainIds[i]];
                     else
@@ -515,7 +515,7 @@ namespace UnitTests.StreamingTests
             var dedup = new Dictionary<int, IStreaming_ProducerGrain>();
             for (var i = 0; i < grainCount; ++i)
             {
-                // we deduplicate the grain references to ensure that IEnumerable.Distinct() works as intended.
+                // 重复 grain 参引,以确保 IEnumerable.Distinct()按预期工作。
                 if (dedup.ContainsKey(grainIds[i]))
                     grains[i] = dedup[grainIds[i]];
                 else
@@ -597,7 +597,7 @@ namespace UnitTests.StreamingTests
 
             if (_targets.Length != 1)
                 throw new InvalidOperationException("This method is only supported for singular producer cases");
-            // disabled temporarily.
+            // 暂时残疾。
             // return _targets[0].AddNewConsumerGrain();
             Guid consumerGrainId = Guid.NewGuid();
             await _targets[0].AddNewConsumerGrain(consumerGrainId);
@@ -624,8 +624,8 @@ namespace UnitTests.StreamingTests
         {
             get
             {
-                // This method is used by the test code to verify that the object has in fact been disposed properly,
-                // so we choose not to throw if the object has already been disposed.
+                // 试验代码使用这种方法来核实物体是否确实得到妥善处置,
+                // 所以如果对象已经处理完毕,我们决定不扔。
                 return GetProducerCount();
             }
         }

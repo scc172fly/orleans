@@ -3,7 +3,7 @@ using System.Buffers;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// An implementation of <see cref="IBufferWriter{T}"/> for writing to a <see cref="Stream"/>, using pooled arrays as an intermediate buffer.
+    /// 执行《公约》执行 <see cref="IBufferWriter{T}"/> 将写到 <see cref="Stream"/>,将集合阵列用作中间缓冲。
     /// </summary>
     public struct PoolingStreamBufferWriter : IBufferWriter<byte>, IDisposable
     {
@@ -12,10 +12,10 @@ namespace Orleans.Serialization.Buffers.Adaptors
         private const int MinRequestSize = 256;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PoolingStreamBufferWriter"/> struct.
+        /// 初始化 <see cref="PoolingStreamBufferWriter"/> 结构的新实例。
         /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <param name="sizeHint">The size hint.</param>
+        /// <param name="stream">流。</param>
+        /// <param name="sizeHint">大小提示。</param>
         internal PoolingStreamBufferWriter(Stream stream, int sizeHint)
         {
             _stream = stream;

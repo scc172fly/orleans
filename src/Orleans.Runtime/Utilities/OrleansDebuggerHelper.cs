@@ -3,16 +3,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Runtime.Utilities
 {
     /// <summary>
-    /// Utility methods for aiding debugger sessions.
+    /// 协助调试器会议的有效方法。
     /// </summary>
     public static class OrleansDebuggerHelper
     {
         /// <summary>
-        /// Returns the grain instance corresponding to the provided <paramref name="grainReference"/> if it is activated on current silo.
+        /// 返回 grain 与所提供的对应的事例 <paramref name="grainReference"/> 如果当前时激活 silo.
         /// </summary>
-        /// <param name="grainReference">The grain reference.</param>
+        /// <param name="grainReference">下 grain 参考。</param>
         /// <returns>
-        /// The grain instance corresponding to the provided <paramref name="grainReference"/> if it is activated on current silo, or <see langword="null"/> otherwise.
+        /// grain 实例与所提供的 <paramref name="grainReference"/> 对应,如果在目前 silo或 <see langword="null"/> 时启动。
         /// </returns>
         public static object? GetGrainInstance(object? grainReference)
         {

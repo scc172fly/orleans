@@ -10,24 +10,24 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Http;
 
 /// <summary>
-/// Adds an <c>Idempotency-Key</c> header which identifies the running durable task to each request that a durable task
-/// sends, so every attempt and replay of the task sends the same key.
+/// 添加一个 <c>Idempotency-Key</c> 标题,为每次要求一项耐久任务的请求指定运行中的持久任务
+/// 发送, 所以任务每次尝试和重播都会发出相同的密钥 。
 /// </summary>
 /// <remarks>
 /// <para>
-/// The key is a hash of the service, the grain which runs the task, the task's identifier, and its
-/// <see cref="DurableTaskContext.Incarnation"/>: 43 URL-safe base64 characters which are equal for every attempt and
-/// replay of one run of the task, and distinct for every other task, including a later run of the same task identifier,
-/// whose earlier keys a server may still hold. A step which sends one request,
-/// such as <c>DurableTask.Run(ct =&gt; client.PostAsJsonAsync(...))</c>, therefore makes that request idempotent at
-/// servers which honor the header, including a retry of the step after a failure or a deactivation. A step which sends
-/// several requests to different operations gives each its own step, such as with
-/// <see cref="DurableTaskExtensions.WithId{TResult}(DurableTask{TResult}, string)"/>, or sets their keys itself.
+/// 关键是服务的散列、执行任务的 grain 、任务识别符号及其
+/// <see cref="DurableTaskContext.Incarnation"/>:43个URL安全基数64字符,每件尝试和
+/// 重放一个运行的任务, 并区分为其它任务, 包括后一个运行的相同任务标识符,
+/// 服务器可能仍然可以持有其先前的密钥。 发送一个请求的一步,
+/// 诸如 <c>DurableTask.Run(ct =&gt; client.PostAsJsonAsync(...))</c>因此,在
+/// 服务器,该服务器将尊重信头的服务器,包括失败或停止功能后步骤的重试。
+/// 不同行动的若干次请求,每个步骤都有自己的步骤,例如:
+/// <see cref="DurableTaskExtensions.WithId{TResult}(DurableTask{TResult}, string)"/>,或设置他们的键本身。
 /// </para>
 /// <para>
-/// A request with a safe method, such as <c>GET</c>, a request which already carries the header, and a request which code
-/// outside a durable task sends are unchanged. Register the
-/// handler before handlers which retry requests, so their retries carry the key.
+/// 带有安全方法的请求,如 <c>GET</c>、已经随信头发出的请求和要求编码
+/// 一项持久任务外发送的,无变化。
+/// 处理器在重新输入请求的处理器前, 其重试时会携带密钥 。
 /// </para>
 /// </remarks>
 public sealed class DurableIdempotencyKeyHandler(IGrainContextAccessor grainContextAccessor, IOptions<ClusterOptions> clusterOptions)
@@ -51,7 +51,7 @@ public sealed class DurableIdempotencyKeyHandler(IGrainContextAccessor grainCont
 
     private void AddKey(HttpRequestMessage request)
     {
-        // Safe methods are idempotent by definition, so their requests carry no key.
+        // 安全方法顾名思义是无能的,因此其请求没有钥匙。
         if (request.Method == HttpMethod.Get || request.Method == HttpMethod.Head || request.Method == HttpMethod.Options || request.Method == HttpMethod.Trace
             || request.Headers.Contains(DurableHttpHeaders.IdempotencyKey)
             || !DurableTaskContext.TryGetCurrent(out var task))
@@ -59,7 +59,7 @@ public sealed class DurableIdempotencyKeyHandler(IGrainContextAccessor grainCont
             return;
         }
 
-        // Task identifiers are unique within their grain, so the key covers the grain which runs the task.
+        // 任务识别符在 grain中是独一无二的,因此键包含执行任务的 grain 。
         var grainId = grainContextAccessor.GrainContext.GrainId;
         if (grainId.IsClient())
         {

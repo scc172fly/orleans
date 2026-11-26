@@ -1,47 +1,57 @@
 ---
-title: "ORLEANS0212: Filter cancellation handlers by IsTaskCancellationRequested"
-description: Understand ORLEANS0212, which reports a handler which catches cancellation around durable operations without filtering by DurableTask.Current.IsTaskCancellationRequested, and fix it with a filter or a rethrow.
+title: "ORLEANS0212: IsTaskCancellationRequested中的过滤器取消处理器"
+description: "理解 ORLEANS0212, 该操作报告处理器在不通过 DurableTask.Current.IsTaskCancellationRequested过滤的情况下,在耐用操作周围捕获取消的处理器, 并使用过滤器或重新丢转来修正它。"
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
-# ORLEANS0212: Filter cancellation handlers by IsTaskCancellationRequested
+<a id="orleans0212-filter-cancellation-handlers-by-istaskcancellationrequested"></a>
 
-| Property | Value |
+# ORLEANS0212: IsTaskCancellationRequested中的过滤器取消处理器
+
+| 财产 | 价值值值 |
 | --- | --- |
-| Severity | Warning |
-| Category | Usage |
-| Code fix | None |
+| 严重性 | 警告 |
+| 类别类 | 用法 |
+| 代码修正 | 无无无无 |
 
-## Cause
+<a id="cause"></a>
 
-A `try` block in a durable task body contains durable operations, and one of its `catch` clauses catches `OperationCanceledException`, a type it derives from, or a type which derives from it, has no filter which reads `DurableTaskContext.IsTaskCancellationRequested`, and doesn't rethrow:
+## 原因原因原因
+
+A `try` 在一个持久任务机构内,一个长期任务机构有耐久的业务,其 `catch` 条款的渔获量 `OperationCanceledException`,它从某类型或从该类型产生的类型没有过滤器,且 `DurableTaskContext.IsTaskCancellationRequested`并且不会再次发射:
 
 :::code source="snippets/durable-tasks/Orleans0212.cs" id="orleans0212_violation" language="csharp":::
 
-## Rule description
+<a id="rule-description"></a>
 
-A durable task observes two kinds of cancellation through `OperationCanceledException`:
+## 规则说明
 
-- **Task cancellation** is durable: a caller requests it, such as with `CancelAsync` on the task's handle, and the host records it with the task, together with the point at which each execution first observes it. A replay observes it at that same point, and the body decides the task's outcome, for example by compensating.
-- **Attempt cancellation** stops the current run of the body, for example when the activation stops, or the task is aborted or deleted. The attempt's later durable operations throw `DurableTaskAttemptCanceledException`, and its changes to journaled state commit with the grain's next journal write. A stopping activation's task continues in a new attempt.
+一项持久任务通过 `OperationCanceledException`观察到两种取消:
 
-An unfiltered handler treats both alike. When the host cancels the attempt during the hold period, the handler in the example compensates for a booking which nobody canceled: its state change commits, and an external call which it makes, such as releasing the room in a booking system, takes effect, while the next attempt replays the task and confirms the booking.
+- **任务取消** 是持久的:一个打电话者要求它,例如对任务处理的 `CancelAsync` ,主机记录任务,以及每次执行时首先观察的任务。重播在同一点观察任务,而机构决定任务结果,例如通过补偿。
+- **取消企图** 停止正文当前运行, 例如激活停止时停止, 或者任务中止或删除时停止。 此尝试的后期持久操作会扔弃 `DurableTaskAttemptCanceledException`,以及它更改了日记状态 grain下一期日记的写。停止激活的任务将再次继续。
 
-`DurableTask.Current.IsTaskCancellationRequested` is `true` only for task cancellation, in the canceled attempt and in every later attempt.
+未经过滤的处理器对两者一视同仁。 当主机在搁置期内取消尝试时, 示例中的处理器可以补偿一个没有人取消的预订: 它的状态改变承诺, 以及它发出的外部呼叫( 如将房间放入订票系统) 生效, 而下一次尝试重播任务并确认预定 。
 
-For compensation, see [Compensate inline when the workflow is canceled](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled).
+`DurableTask.Current.IsTaskCancellationRequested` 是 `true` 仅用于取消任务,在取消尝试中和以后每一次尝试中。
 
-## How to fix violations
+赔偿,见 [当工作流程取消时进行内线补偿](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled)。
 
-**Filter the handler.** The handler then runs for task cancellation, and the exception of attempt cancellation ends the run. Shield compensating children with `Shielded()`, so they run although the task's cancellation was requested:
+<a id="how-to-fix-violations"></a>
+
+## 如何纠正违反情况
+
+**过滤处理器。** 操作者然后跑去取消任务,但尝试取消的例外情况结束。 `Shielded()`,因此它们运行,尽管任务取消是请求:
 
 :::code source="snippets/durable-tasks/Orleans0212.cs" id="orleans0212_fix_filter" language="csharp":::
 
-**Rethrow after compensating.** A handler which ends with `throw;` lets every cancellation end the run, and the task ends canceled after task cancellation:
+**补偿后重新进行重写。** 一个处理器, 以 `throw;` 结束, 使每个取消的操作都结束运行, 任务在任务取消后终止 :
 
 :::code source="snippets/durable-tasks/Orleans0212.cs" id="orleans0212_fix_rethrow" language="csharp":::
 
-## When to suppress
+<a id="when-to-suppress"></a>
 
-Suppress the diagnostic when the handler's code is correct for both task cancellation and attempt cancellation, for example a handler which only records a log entry through a replay-safe logger.
+## 何时压缩
+
+当处理器代码对任务取消和尝试取消来说正确时, 即禁止诊断, 例如一个处理器只通过重放安全记录器记录日志条目 。

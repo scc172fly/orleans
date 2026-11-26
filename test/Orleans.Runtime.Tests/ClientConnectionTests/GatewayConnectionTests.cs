@@ -41,7 +41,7 @@ namespace Tester
     }
 
     /// <summary>
-    /// Tests for gateway connection handling including reconnection behavior and cluster mismatch scenarios.
+    /// 网关连接处理测试,包括再连接行为和群集错配情景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -118,15 +118,15 @@ namespace Tester
         [Fact, TestCategory("Functional")]
         public async Task NoReconnectionToGatewayNotReturnedByManager()
         {
-            // Use a timeout shorter than OpenConnectionTimeout (5s) so that calls to
-            // the fake gateway produce a TimeoutException, but long enough that
-            // legitimate grain calls on slow CI machines don't spuriously timeout.
+            // 使用短于 OpenConnectionTimeout (5s)的超时时间,以便调用
+            // 假的网关产生 TimeoutException,但足够长
+            // 使用慢速的光机的正当 grain 通话不会虚假超时。
             this.runtimeClient.SetResponseTimeout(TimeSpan.FromSeconds(3));
 
             var connectionCount = 0;
             var timeoutCount = 0;
 
-            // The cluster-owned allocator reserves the port for the lifetime of the fixture.
+            // 集束拥有的分层机将港口保留到固定装置使用寿命期间。
             var (_, gatewayPort) = this.HostedCluster.PortAllocator.AllocateConsecutivePortPairs(1);
             var endpoint = new IPEndPoint(IPAddress.Loopback, gatewayPort);
             var evt = new SocketAsyncEventArgs();
@@ -144,7 +144,7 @@ namespace Tester
                 socket.Listen(1);
                 socket.AcceptAsync(evt);
 
-                // Add the fake gateway and wait for the client to refresh its gateway list.
+                // 添加假的网关,等待客户更新其网关列表。
                 gatewayManager.Gateways.Add(endpoint.ToGatewayUri());
                 var gatewayAddress = endpoint.ToGatewayUri().ToGatewayAddress()!;
                 await TestingUtils.WaitUntilAsync(
@@ -152,7 +152,7 @@ namespace Tester
                     TimeSpan.FromSeconds(3),
                     TimeSpan.FromMilliseconds(20), TestContext.Current.CancellationToken);
 
-                // Make a bunch of calls
+                // 打电话打很多电话
                 for (var i = 0; i < 100; i++)
                 {
                     try
@@ -168,7 +168,7 @@ namespace Tester
                 socket.Close();
             }
 
-            // Check that we only connected once to the fake GW
+            // 检查我们只连接一次到假GW
             Assert.Equal(1, connectionCount);
             Assert.True(timeoutCount >= 1, $"Expected at least 1 timeout but got {timeoutCount}");
         }
@@ -176,8 +176,8 @@ namespace Tester
         [Fact, TestCategory("Functional")]
         public async Task ConnectionFromDifferentClusterIsRejected()
         {
-            // Arange
-            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // The fixture deploys the client.
+            // 分布
+            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // 固定装置会部署客户
             var gwEndpoint = gateways.First().ToIPEndPoint()!;
             var exceptions = new List<Exception>();
 
@@ -188,7 +188,7 @@ namespace Tester
                 return Task.FromResult(false);
             }
 
-            // Close current client connection
+            // 关闭当前客户端连接
             await this.HostedCluster.StopClusterClientAsync(TestContext.Current.CancellationToken);
             var hostBuilder = new HostBuilder().UseOrleansClient(
                 (ctx, clientBuilder) =>

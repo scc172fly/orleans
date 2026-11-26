@@ -14,7 +14,7 @@ using static System.String;
 namespace Tester.AdoNet.GrainDirectory;
 
 /// <summary>
-/// Tests for <see cref="AdoNetGrainDirectory"/> against SQL Server.
+/// 试验 <see cref="AdoNetGrainDirectory"/> 日 和 SQL 服务器
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("SqlServer")]
@@ -24,7 +24,7 @@ public class SqlServerAdoNetGrainDirectoryTests() : AdoNetGrainDirectoryTests(Ad
 }
 
 /// <summary>
-/// Tests for <see cref="AdoNetGrainDirectory"/> against PostgreSQL.
+/// 试验 <see cref="AdoNetGrainDirectory"/> 日 和 PostgreSQL.
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("PostgreSql")]
@@ -38,7 +38,7 @@ public class PostgreSqlAdoNetGrainDirectoryTests : AdoNetGrainDirectoryTests
 }
 
 /// <summary>
-/// Tests for <see cref="AdoNetGrainDirectory"/> against MySQL.
+/// 试验 <see cref="AdoNetGrainDirectory"/> 日 和 MySQL.
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("MySql")]
@@ -52,7 +52,7 @@ public class MySqlAdoNetGrainDirectoryTests : AdoNetGrainDirectoryTests
 }
 
 /// <summary>
-/// Tests for <see cref="AdoNetGrainDirectory"/>.
+/// <see cref="AdoNetGrainDirectory"/>测试。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
@@ -80,12 +80,12 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     /// <summary>
-    /// Tests that a grain activation is registered.
+    /// 测试 grain 激活是否被注册。
     /// </summary>
     [Fact]
     public async Task AdoNetGrainDirectory_RegistersActivation()
     {
-        // arrange
+        // 安排
         var options = new AdoNetGrainDirectoryOptions
         {
             Invariant = invariant,
@@ -101,7 +101,7 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
 
         await _storage.ExecuteAsync("DELETE FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
 
-        // act
+        // 行为
         var address = new GrainAddress
         {
             GrainId = GrainId.Create("MyGrainType", "MyGrainKey"),
@@ -110,7 +110,7 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
         };
         var result = await directory.Register(address);
 
-        // assert
+        // 平面
         Assert.NotNull(result);
         Assert.Equal(address.GrainId, result.GrainId);
         Assert.Equal(address.SiloAddress, result.SiloAddress);
@@ -126,12 +126,12 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
     }
 
     /// <summary>
-    /// Tests that a grain activation is unregistered.
+    /// 测试 grain 激活是否未注册。
     /// </summary>
     [Fact]
     public async Task AdoNetGrainDirectory_UnregistersActivation()
     {
-        // arrange
+        // 安排
         var options = new AdoNetGrainDirectoryOptions
         {
             Invariant = invariant,
@@ -155,21 +155,21 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
         };
         await directory.Register(address);
 
-        // act
+        // 行为
         await directory.Unregister(address);
 
-        // assert
+        // 平面
         var saved = await _storage.ReadAsync<AdoNetGrainDirectoryEntry>("SELECT * FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
         Assert.Empty(saved);
     }
 
     /// <summary>
-    /// Tests that a grain activation can be looked up.
+    /// 测试 grain 激活可被检查。
     /// </summary>
     [Fact]
     public async Task AdoNetGrainDirectory_LooksUpActivation()
     {
-        // arrange
+        // 安排
         var options = new AdoNetGrainDirectoryOptions
         {
             Invariant = invariant,
@@ -196,10 +196,10 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
         };
         await directory.Register(address);
 
-        // act
+        // 行为
         var result = await directory.Lookup(grainId);
 
-        // assert
+        // 平面
         Assert.NotNull(result);
         Assert.Equal(grainId, result.GrainId);
         Assert.Equal(siloAddress, result.SiloAddress);
@@ -207,12 +207,12 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
     }
 
     /// <summary>
-    /// Tests that grain activations can be unregistered for a set of silos.
+    /// 测试 grain 激活可登记为一组 silos。
     /// </summary>
     [Fact]
     public async Task AdoNetGrainDirectory_UnregistersActivationsForSilos()
     {
-        // arrange
+        // 安排
         var options = new AdoNetGrainDirectoryOptions
         {
             Invariant = invariant,
@@ -243,24 +243,24 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
             await directory.Register(addresses[i]);
         }
 
-        // act
+        // 行为
         await directory.UnregisterSilos([siloAddresses[0], siloAddresses[2], siloAddresses[4]]);
 
-        // assert
+        // 平面
         var results = await _storage.ReadAsync<AdoNetGrainDirectoryEntry>("SELECT * FROM OrleansGrainDirectory ORDER BY GrainId", TestContext.Current.CancellationToken);
         var resultAddresses = results.Select(entry => entry.ToGrainAddress()).ToArray();
         Assert.Equal([addresses[1], addresses[3]], resultAddresses);
     }
 
     /// <summary>
-    /// Tests that a grain activation can be looked up.
+    /// 测试 grain 激活可被检查。
     /// </summary>
     [TestSuite("Stress")]
     [TestCategory("Stress")]
     [Fact]
     public async Task AdoNetGrainDirectory_ChaosTest()
     {
-        // arrange
+        // 安排
         var options = new AdoNetGrainDirectoryOptions
         {
             Invariant = invariant,
@@ -276,7 +276,7 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
 
         await _storage.ExecuteAsync("DELETE FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
 
-        // act
+        // 行为
         await Parallel.ForAsync(0, 10000, new ParallelOptions
         {
             MaxDegreeOfParallelism = concurrency,
@@ -294,21 +294,21 @@ public abstract class AdoNetGrainDirectoryTests(string invariant, int concurrenc
             };
             var lookups = Random.Shared.Next(10);
 
-            // simulate the lifecycle including unstable overlapping operations
+            // 模拟生命周期,包括不稳定的重叠操作
             var registered = await directory.Register(address);
             for (var j = 0; j < lookups; j++)
             {
                 var result = await directory.Lookup(grainId);
             }
 
-            // it is possible that the registration failed due to some other concurrent operation
+            // 登记可能由于其他一些同时运作而未能登记
             if (registered is not null)
             {
                 await directory.Unregister(registered);
             }
         });
 
-        // assert
+        // 平面
         var remaining = await _storage.ReadAsync<AdoNetGrainDirectoryEntry>("SELECT * FROM OrleansGrainDirectory", TestContext.Current.CancellationToken);
         Assert.Empty(remaining);
     }

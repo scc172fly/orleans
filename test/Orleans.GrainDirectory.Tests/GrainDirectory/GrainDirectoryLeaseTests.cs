@@ -62,13 +62,13 @@ public class GrainDirectoryLeaseTests
             await leaseCreated;
             var directory = primary.ServiceProvider.GetRequiredService<GrainDirectoryResolver>().DefaultGrainDirectory!;
 
-            // Bypass the catalog and hit the directory directly to observe lease hold behavior.
+            // 绕过目录,直接点击目录 观察租赁持有行为。
             var fakeAddress = GrainAddress.NewActivationAddress(primary.SiloAddress, leaseGrain.GetGrainId());
 
-            // A stale deregistration must not remove the dead activation's lease tombstone.
+            // 无法取消登记 不得去除死亡引爆装置的 租用墓碑
             await directory.Unregister(fakeAddress, cancellationToken);
 
-            // The registration should block while the lease hold is active.
+            // 在租约持有有效期间,登记应停止。
             var retryDelayScheduled = WaitForLeaseRetryScheduledAsync(
                 events,
                 primary.SiloAddress,
@@ -78,12 +78,12 @@ public class GrainDirectoryLeaseTests
             await retryDelayScheduled;
             Assert.False(registerTask.IsCompleted, "Registration should be blocked by the lease hold.");
 
-            // The diagnostic event is emitted after the retry delay is armed, so advancing time cannot race timer creation.
+            // 诊断事件是在重试延迟被武装后释放出来的,因此推进时间不能产生赛跑定时器。
             timeProvider.Advance(RangeLeaseDuration);
             var result = await registerTask.WaitAsync(EventTimeout, cancellationToken);
             Assert.NotNull(result);
 
-            // The grain should now reactivate on the primary since it's the only silo alive.
+            // 现在应该重新启动主菜的 grain 因为它是唯一一个活着的 silo
             Assert.Equal(primary.SiloAddress, await leaseGrain.GetAddress());
         }
         finally
@@ -177,14 +177,14 @@ public class GrainDirectoryLeaseTests
             var leaseGrain = cluster.Client.GetGrain<ILeaseTestGrain>(10);
             Assert.Equal(secondary.SiloAddress, await leaseGrain.GetAddress());
 
-            // Graceful shutdown transitions through ShuttingDown → Dead,
-            // which does not create a silo lease hold.
+            // 优优优关闭过渡 ShuttingDown 死了,我死了,我死了,我死了
+            // 中未创建 silo 租赁搁置。
             await cluster.StopSiloAsync(secondary, cancellationToken);
 
             var directory = primary.ServiceProvider.GetRequiredService<GrainDirectoryResolver>().DefaultGrainDirectory!;
             var fakeAddress = GrainAddress.NewActivationAddress(primary.SiloAddress, leaseGrain.GetGrainId());
 
-            // Should succeed immediately — no lease hold for graceful shutdown.
+            // 应立即成功——没有优雅关闭的租约。
             var result = await directory.Register(fakeAddress, cancellationToken);
             Assert.NotNull(result);
             Assert.Equal(primary.SiloAddress, result.SiloAddress);
@@ -294,13 +294,13 @@ public class GrainDirectoryLeaseTests
             var leaseGrain = cluster.Client.GetGrain<ILeaseTestGrain>(20);
             Assert.Equal(secondary.SiloAddress, await leaseGrain.GetAddress());
 
-            // Ungraceful kill, but leases are disabled (duration = Zero).
+            // 杀人不易,但租约是残废的(期限=零)。
             await KillSiloAndWaitForDirectoryMembershipAsync(cluster, primary, secondary, cancellationToken);
 
             var directory = primary.ServiceProvider.GetRequiredService<GrainDirectoryResolver>().DefaultGrainDirectory!;
             var fakeAddress = GrainAddress.NewActivationAddress(primary.SiloAddress, leaseGrain.GetGrainId());
 
-            // Should succeed immediately — lease holds are disabled.
+            // 应立即成功——租赁搁置被禁用。
             var result = await directory.Register(fakeAddress, cancellationToken);
             Assert.NotNull(result);
             Assert.Equal(primary.SiloAddress, result.SiloAddress);
@@ -340,8 +340,8 @@ public class GrainDirectoryLeaseTests
 
             var directory = primary.ServiceProvider.GetRequiredService<GrainDirectoryResolver>().DefaultGrainDirectory!;
 
-            // Lookup should return null: the entry is retained for the lease hold,
-            // but the silo is dead so the directory filters it out.
+            // 查询应该返回无效: 保留条目用于租赁持有,
+            // 但 silo 已经死亡,所以目录过滤出来。
             var result = await directory.Lookup(leaseGrain.GetGrainId(), cancellationToken);
             Assert.Null(result);
         }
@@ -364,7 +364,7 @@ public class GrainDirectoryLeaseTests
             var primary = cluster.Silos[0];
             var secondary = cluster.Silos[1];
 
-            // Place multiple grains on the secondary silo.
+            // 多个位置 grains 中学 silo.
             RequestContext.Set(IPlacementDirector.PlacementHintKey, secondary.SiloAddress);
             var grain1 = cluster.Client.GetGrain<ILeaseTestGrain>(41);
             var grain2 = cluster.Client.GetGrain<ILeaseTestGrain>(42);
@@ -383,7 +383,7 @@ public class GrainDirectoryLeaseTests
 
             var directory = primary.ServiceProvider.GetRequiredService<GrainDirectoryResolver>().DefaultGrainDirectory!;
 
-            // All grains on the dead silo should be blocked by the lease hold.
+            // 全部 grains 死在死者的亡命中 silo 租借证应封住。
             var blockedTasks = new[]
             {
                 WaitForLeaseRetryScheduledAsync(events, primary.SiloAddress, grain1.GetGrainId(), cancellationToken),
@@ -405,7 +405,7 @@ public class GrainDirectoryLeaseTests
             Assert.False(task2.IsCompleted, "Registration for grain2 should be blocked by the lease hold.");
             Assert.False(task3.IsCompleted, "Registration for grain3 should be blocked by the lease hold.");
 
-            // After the lease expires, all registrations should complete.
+            // 租约期满后,所有登记工作均应完成。
             timeProvider.Advance(RangeLeaseDuration);
             var registrations = await Task.WhenAll(task1, task2, task3).WaitAsync(EventTimeout, cancellationToken);
 

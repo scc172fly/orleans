@@ -9,19 +9,19 @@ using Orleans.Serialization.Utilities.Internal;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// Extension method for <see cref="ISerializerBuilder"/>.
+/// <see cref="ISerializerBuilder"/>的扩展方法。
 /// </summary>
 public static class SerializationHostingExtensions
 {
     private static readonly ServiceDescriptor ServiceDescriptor = new(typeof(MessagePackCodec), typeof(MessagePackCodec));
 
     /// <summary>
-    /// Adds support for serializing and deserializing values using <see cref="MessagePackSerializer"/>.
+    /// 添加支持,以便使用 <see cref="MessagePackSerializer"/>进行序列化和去序化。
     /// </summary>
-    /// <param name="serializerBuilder">The serializer builder.</param>
-    /// <param name="isSerializable">A delegate used to indicate which types should be serialized by this codec.</param>
-    /// <param name="isCopyable">A delegate used to indicate which types should be copied by this codec.</param>
-    /// <param name="messagePackSerializerOptions">The MessagePack serializer options.</param>
+    /// <param name="serializerBuilder">序列器的构建器。</param>
+    /// <param name="isSerializable">代表用来表示该编码器应按哪些类型进行序列。</param>
+    /// <param name="isCopyable">一位代表曾指出该编码器应复制哪类代码。</param>
+    /// <param name="messagePackSerializerOptions"> MessagePack 序列器选项。</param>
     public static ISerializerBuilder AddMessagePackSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool>? isSerializable = null,
@@ -42,12 +42,12 @@ public static class SerializationHostingExtensions
     }
 
     /// <summary>
-    /// Adds support for serializing and deserializing values using <see cref="MessagePackSerializer"/>.
+    /// 添加支持,以便使用 <see cref="MessagePackSerializer"/>进行序列化和去序化。
     /// </summary>
-    /// <param name="serializerBuilder">The serializer builder.</param>
-    /// <param name="isSerializable">A delegate used to indicate which types should be serialized by this codec.</param>
-    /// <param name="isCopyable">A delegate used to indicate which types should be copied by this codec.</param>
-    /// <param name="configureOptions">A delegate used to configure the options for the MessagePack codec.</param>
+    /// <param name="serializerBuilder">序列器的构建器。</param>
+    /// <param name="isSerializable">代表用来表示该编码器应按哪些类型进行序列。</param>
+    /// <param name="isCopyable">一位代表曾指出该编码器应复制哪类代码。</param>
+    /// <param name="configureOptions">用于配置 MessagePack 编码器选项的代表。</param>
     public static ISerializerBuilder AddMessagePackSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool>? isSerializable,

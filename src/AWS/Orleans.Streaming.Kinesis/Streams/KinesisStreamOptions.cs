@@ -4,12 +4,12 @@ using Orleans.Runtime;
 namespace Orleans.Streaming.Kinesis
 {
     /// <summary>
-    /// Configures the Kinesis persistent stream provider.
+    /// 配置 Kinesis 持久性流提供者 。
     /// </summary>
     public class KinesisStreamOptions
     {
         /// <summary>
-        /// Connection string for AWS Kinesis. Format: "Service;AccessKey;SecretKey;Region" or "Service" for default credentials.
+        /// AWS Kinesis 的连接字符串。 格式 : “ service;AccessKey;SecretKey; region” 或“ services” , 用于默认的证书 。
         /// </summary>
         [Redact]
         public string? ConnectionString
@@ -53,45 +53,45 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// Optional Access Key string for Kinesis.
+        /// Kinesis 的可选访问密钥字符串 。
         /// </summary>
         [Redact]
         public string? AccessKey { get; set; }
 
         /// <summary>
-        /// Optional Secret key for Kinesis.
+        /// Kinesis 的可选秘密密钥 。
         /// </summary>
         [Redact]
         public string? SecretKey { get; set; }
 
         /// <summary>
-        /// Kinesis service endpoint URL, such as "https://kinesis.us-west-2.amazonaws.com" or a URL for the development endpoint.
+        /// Kinesis 服务端点 URL, 如 "https://kinesis.us-west-2.amazonaws.com" 或开发端点的 URL。
         /// </summary>
         public string? Service { get; set; }
 
         /// <summary>
-        /// AWS Region name, such as "us-west-2".
+        /// AWS地区名称,例如“us-west-2”。
         /// </summary>
         public string? Region { get; set; }
 
         /// <summary>
-        /// Name of the Kinesis Stream.
+        /// 肯尼斯流的名字
         /// </summary>
         public string StreamName { get; set; } = "OrleansTestStream";
 
         /// <summary>
-        /// Gets or sets the minimum interval between calls to Kinesis <c>GetRecords</c> for a shard.
+        /// 获取或设定打给 Kinesis <c>GetRecords</c> 的硬块断面时的最低间隔。
         /// </summary>
         /// <remarks>
-        /// Kinesis allows at most five <c>GetRecords</c> transactions per second for each open shard.
+        /// Kinesis 允许每个打开的碎片每秒最多5个 <c>GetRecords</c> 交易。
         /// </remarks>
         public TimeSpan GetRecordsInterval { get; set; } = TimeSpan.FromMilliseconds(200);
 
         /// <summary>
-        /// Gets or sets the interval between checks for shard topology changes.
+        /// 获取或设置检查硬质地形变化之间的间隔。
         /// </summary>
         /// <remarks>
-        /// Live resharding is not supported. When topology changes, receivers stop and require the provider to be restarted.
+        /// 不支持重新使用活体硬化。 当地形变化时, 接收器停止并要求重新启动提供者 。
         /// </remarks>
         public TimeSpan TopologyCheckInterval { get; set; } = TimeSpan.FromMinutes(1);
     }

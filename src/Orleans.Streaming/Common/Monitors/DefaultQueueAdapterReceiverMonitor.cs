@@ -7,7 +7,7 @@ using Orleans.Runtime;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Queue adapter receiver monitor used as a default option in GeneratorStreamprovider and MemoryStreamProvider
+    /// GeneratorStreamprovider 和 MemoryStreamProvider中用作默认选项的调配器接收器显示器
     /// </summary>
     public class DefaultQueueAdapterReceiverMonitor : IQueueAdapterReceiverMonitor
     {
@@ -29,10 +29,10 @@ namespace Orleans.Providers.Streams.Common
         private long _messagesReceived;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultQueueAdapterReceiverMonitor"/> class.
+        /// 初始化 <see cref="DefaultQueueAdapterReceiverMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">The dimensions attached to metrics reported by this monitor.</param>
-        /// <param name="instruments">The Orleans runtime instruments.</param>
+        /// <param name="dimensions">该监测仪报告的计量尺度的尺寸。</param>
+        /// <param name="instruments">下 Orleans 运行工具。</param>
         protected DefaultQueueAdapterReceiverMonitor(KeyValuePair<string, object>[] dimensions, OrleansInstruments instruments)
             : this(dimensions, GetMeter(instruments))
         {
@@ -40,9 +40,9 @@ namespace Orleans.Providers.Streams.Common
 
         private DefaultQueueAdapterReceiverMonitor(KeyValuePair<string, object>[] dimensions, Meter meter)
         {
-            // The tag values are never actually null here; the cast only widens the nullability annotation of the array element
-            // type to satisfy the (nullable-annotated) System.Diagnostics.Metrics APIs below, which is safe since the underlying
-            // CLR array type is identical regardless of the element's nullable annotation.
+            // 标记值从不在这里实际无效; 投影只会扩大数组元素的无效性注释
+            // 满足以下(可附加说明的) System.Diagnostics.Metrics API的,自下
+            // CLR 阵列类型相同,不管元素的无效注解。
             _dimensions = (KeyValuePair<string, object?>[])(object)dimensions;
             _initializationFailureCounter = meter.CreateCounter<long>(InstrumentNames.STREAMS_QUEUE_INITIALIZATION_FAILURES);
             _initializationCallTimeCounter = meter.CreateCounter<long>(InstrumentNames.STREAMS_QUEUE_INITIALIZATION_DURATION);
@@ -62,10 +62,10 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultQueueAdapterReceiverMonitor"/> class.
+        /// 初始化 <see cref="DefaultQueueAdapterReceiverMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">The receiver metric dimensions.</param>
-        /// <param name="instruments">The Orleans runtime instruments.</param>
+        /// <param name="dimensions">接收量度维度。</param>
+        /// <param name="instruments">下 Orleans 运行工具。</param>
         public DefaultQueueAdapterReceiverMonitor(ReceiverMonitorDimensions dimensions, OrleansInstruments instruments)
             : this(CreateDimensions(dimensions), GetMeter(instruments))
         {

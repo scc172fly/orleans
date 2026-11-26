@@ -19,10 +19,10 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Tests for hosted client functionality in Orleans.
-    /// A hosted client is an Orleans client that runs within the same process as the silo,
-    /// enabling in-process communication between application code and grains.
-    /// This pattern is common in ASP.NET Core applications hosting Orleans.
+    /// Orleans主机客户端功能测试。
+    /// 主机客户端是 Orleans 客户端, 与 silo运行在同一程序内,
+    /// 启用应用程序代码与 grains之间的进程内通信。
+    /// 这种模式在 ASP.NET 核心应用程序托管 Orleans.
     /// </summary>
     [TestCategory("BVT"), TestCategory("HostedClient")]
     [TestSuite("BVT")]
@@ -90,9 +90,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests basic grain invocation from a hosted client.
-        /// Verifies that an in-process client can successfully communicate with grains
-        /// running in the same process, demonstrating the core hosted client pattern.
+        /// 向主机客户进行基本 grain 调用测试。
+        /// 证明在处理过程中的客户端能够成功与 grains进行通信
+        /// 在同一过程中运行,展示核心托管客户端模式。
         /// </summary>
         [Fact]
         public async Task HostedClient_GrainCallTest()
@@ -106,10 +106,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests timeout behavior for grain calls from a hosted client.
-        /// Verifies that response timeouts are properly enforced and that
-        /// the runtime correctly tracks running requests during timeout scenarios.
-        /// This ensures reliability when grains become unresponsive.
+        /// 测试主机客户端调用 grain 的超时行为。
+        /// 证明反应超时执行得当,而且
+        /// 运行时间正确跟踪在超时情况下运行请求的轨迹。
+        /// 这在 grains 变得不反应时确保可靠性。
         /// </summary>
         [Fact]
         public async Task HostedClient_TimeoutTest()
@@ -137,7 +137,7 @@ namespace DefaultCluster.Tests.General
                 Assert.False(assertionTask.IsCompleted);
                 Assert.Equal(expected: 1, actual: runtimeClient.GetRunningRequestsCount(stuckGrainType));
 
-                // Callback expiry is checked at least once per second.
+                // 返回到期时至少每秒检查一次。
                 _messagingTimeProvider.Advance(timeout + TimeSpan.FromSeconds(1));
                 await assertionTask.WaitAsync(cancellationToken);
 
@@ -150,10 +150,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests reference equality semantics for objects passed through grain calls.
-        /// Verifies that immutable objects (strings, grain references) maintain reference equality,
-        /// while mutable objects (arrays) are copied. Also demonstrates the Immutable<T> wrapper
-        /// for preserving reference equality of mutable objects when needed.
+        /// 测试通过 grain 调用对象的平等语义。
+        /// 证明不可变物体(字符串、 grain 参考)保持参考平等,
+        /// 复制可变对象(数组)时。请同时显示不可变<T> 包装器
+        /// 以在必要时维护可变物的参考平等。
         /// </summary>
         [Fact]
         public async Task HostedClient_ReferenceEquality_GrainCallTest()
@@ -161,31 +161,31 @@ namespace DefaultCluster.Tests.General
             var client = _host.Services.GetRequiredService<IClusterClient>();
             var grain = client.GetGrain<IGrainWithGenericMethods>(Guid.NewGuid());
 
-            // Strings are immutable.
+            // 弦是不可改变的
             object expected = new string('*', 5);
             var actual = await grain.RoundTrip(expected);
             Assert.Same(expected, actual);
 
-            // Grain references are immutable.
+            // Grain 引用是不可更改的。
             actual = await grain.RoundTrip(grain);
             Assert.Same(grain, actual);
 
-            // Arrays are not immutable, so a copy is expected.
+            // 阵列并非不可改变, 所以要复制一份 。
             var collection = new int[] { 1, 3, 9 };
             actual = await grain.RoundTrip(collection);
             Assert.NotSame(expected, actual);
 
-            // Immutable<T> should round-trip without any copying.
+            // 不可更改的<T> 应绕行,不得复制。
             var expectedImmutable = new Immutable<int[]>(collection);
             var actualImmutable = await grain.RoundTrip(expectedImmutable);
             Assert.Same(expectedImmutable.Value, actualImmutable.Value);
         }
 
         /// <summary>
-        /// Tests the observer pattern from a hosted client.
-        /// Demonstrates how clients can register observer objects to receive
-        /// notifications from grains, enabling push-based communication patterns.
-        /// Verifies that callbacks are properly invoked with the correct context.
+        /// 从托管客户测试观察者模式 。
+        /// 证明客户如何登记观察员收到的物品
+        /// grains通知,有利于基于推力的通信模式。
+        /// 证明在正确的背景下适当援引回调。
         /// </summary>
         [Fact]
         public async Task HostedClient_ObserverTest()
@@ -214,7 +214,7 @@ namespace DefaultCluster.Tests.General
 
                     if (callbackCounter[0] == 1)
                     {
-                        // Allow for callbacks occurring in any order
+                        // 允许按任何顺序进行回调
                         Assert.True(callbacksReceived[0] || callbacksReceived[1]);
                     }
                     else if (callbackCounter[0] == 2)
@@ -241,10 +241,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Tests streaming functionality from a hosted client.
-        /// Verifies that clients can subscribe to Orleans streams and receive
-        /// messages published to those streams, demonstrating the streaming
-        /// abstraction for event-driven communication patterns.
+        /// 从主机客户端测试流功能 。
+        /// 证明客户可以订阅 Orleans 流并接收
+        /// 向这些流发布信息,演示流
+        /// 由事件驱动的通信模式的抽象。
         /// </summary>
         [Fact]
         public async Task HostedClient_StreamTest()

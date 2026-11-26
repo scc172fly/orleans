@@ -24,7 +24,7 @@ namespace UnitTests.Grains
 
             if (!State.IsProducer) throw new InvalidOperationException("Not a Producer");
 
-            // Whitebox testing
+            // 白箱测试
             var cleanup = State.Stream as IStreamControl;
             await cleanup!.Cleanup(true, false);
 
@@ -64,7 +64,7 @@ namespace UnitTests.Grains
 
         public virtual async Task TestBecomeConsumerSlim(Guid streamIdGuid, string providerName)
         {
-            // TODO NOT SURE THIS FUNCTION MAKESE ANY SENSE
+            // 无法确保这一功能产生任何影响
             var streamId = StreamId.Create(null!, streamIdGuid);
             InitStream(streamId, providerName);
             var observer = new MyStreamObserver<int>(logger);

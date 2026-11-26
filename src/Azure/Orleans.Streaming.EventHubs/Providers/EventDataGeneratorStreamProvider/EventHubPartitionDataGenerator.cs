@@ -12,7 +12,7 @@ using Orleans.Serialization;
 namespace Orleans.Streaming.EventHubs.Testing
 {
     /// <summary>
-    /// Generate data for one stream
+    /// 生成一个流的数据
     /// </summary>
     public partial class SimpleStreamEventDataGenerator : IStreamDataGenerator<EventData>
     {
@@ -29,12 +29,12 @@ namespace Orleans.Streaming.EventHubs.Testing
         private readonly Serializer serializer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleStreamEventDataGenerator"/> class.
+        /// 初始化 <see cref="SimpleStreamEventDataGenerator"/> 类的新实例。
         /// </summary>
-        /// <param name="streamId">The stream to generate events for.</param>
-        /// <param name="logger">The logger.</param>
-        /// <param name="deepCopier">The request context copier.</param>
-        /// <param name="serializer">The serializer used to encode generated events.</param>
+        /// <param name="streamId">要生成事件的串流。</param>
+        /// <param name="logger">日志器。</param>
+        /// <param name="deepCopier">请求的上下文复印机。</param>
+        /// <param name="serializer">用于编码生成事件的序列器。</param>
         public SimpleStreamEventDataGenerator(StreamId streamId, ILogger<SimpleStreamEventDataGenerator> logger, DeepCopier deepCopier, Serializer serializer)
         {
             this.StreamId = streamId;
@@ -58,11 +58,11 @@ namespace Orleans.Streaming.EventHubs.Testing
             {
                 this.SequenceNumberCounter.Increment();
 
-                // Create an EventData instance with an empty body. The body will be set later
-                // from the batch container's context. Because there is a need to explicitly set
-                // broker-owned properties such as the offset, sequence number, and partition key,
-                // an instance is created using the model factory, which avoids the need to set
-                // directly via the underlying AMQP message.
+                // 以空体创建 EventData 实例。此主体稍后会设置
+                // 由于需要明确规定
+                // 经纪人拥有的财产,如冲抵、序列号和分隔键,
+                // a 实例是使用模型工厂创建的,这样就不需要设置
+                // 直接通过基本AMQP信息。
                 var eventData = EventHubsModelFactory.EventData(
                         eventBody: BinaryData.Empty,
                         partitionKey: StreamId.GetKeyAsString(),
@@ -90,10 +90,10 @@ namespace Orleans.Streaming.EventHubs.Testing
         }
 
         /// <summary>
-        /// Creates a factory for stream-specific event data generators.
+        /// 创建了一座工厂,用于特定流事件数据生成器。
         /// </summary>
-        /// <param name="services">The service provider used to activate generators.</param>
-        /// <returns>A factory which creates an event data generator for a stream.</returns>
+        /// <param name="services">用于启动发电机的服务提供商。</param>
+        /// <returns>工厂,为流创建事件数据生成器。</returns>
         public static Func<StreamId, IStreamDataGenerator<EventData>> CreateFactory(IServiceProvider services)
         {
             return (streamId) => ActivatorUtilities.CreateInstance<SimpleStreamEventDataGenerator>(services, streamId);
@@ -107,11 +107,11 @@ namespace Orleans.Streaming.EventHubs.Testing
     }
 
     /// <summary>
-    /// EHPartitionDataGenerator generate data for a EH partition, which can include data from different streams
+    /// EHPartitionDataGenerator 生成 EH 分区数据,其中可包括来自不同流流的数据
     /// </summary>
     public partial class EventHubPartitionDataGenerator : IDataGenerator<EventData>, IStreamDataGeneratingController
     {
-        //differnt stream in the same partition should use the same sequenceNumberCounter
+        //在同一分区中, 同一分隔段的相差流应该使用相同的 sequenceNumberCounter
         private readonly EventDataGeneratorStreamOptions options;
         private readonly IntCounter sequenceNumberCounter = new IntCounter();
         private readonly ILogger logger;
@@ -119,7 +119,7 @@ namespace Orleans.Streaming.EventHubs.Testing
         private readonly List<IStreamDataGenerator<EventData>> generators;
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="options"></param>
         /// <param name="generatorFactory"></param>
@@ -165,7 +165,7 @@ namespace Orleans.Streaming.EventHubs.Testing
             batchCount = batchCount == 0 ? batchCount + 1 : batchCount;
             while (eventDataList.Count < maxCount)
             {
-                //if reach to the end of the list, reset iterator to the head
+                //如果达到列表末尾,则将替换器重新设置到头部
                 if (!iterator.MoveNext())
                 {
                     iterator.Reset();

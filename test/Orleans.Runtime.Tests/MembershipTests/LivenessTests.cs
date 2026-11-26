@@ -12,7 +12,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// Base class for testing silo liveness detection and membership management during silo failures and restarts.
+    /// 测试基准等级 silo 身份检测和会员管理 silo 失败和重新开始。
     /// </summary>
     public abstract class LivenessTestsBase : TestClusterPerTest
     {
@@ -134,12 +134,12 @@ namespace UnitTests.MembershipTests
         private async Task TestTraffic()
         {
             logger.LogInformation("\n\n\n\nAbout to start sending msg to grain again.\n\n\n");
-            // same grains
+            // 相同 grains
             for (int i = 0; i < numGrains; i++)
             {
                 await SendTraffic(i + 1);
             }
-            // new random grains
+            // 新建随机 grains
             for (int i = 0; i < numGrains; i++)
             {
                 await SendTraffic(Random.Shared.Next(10000));
@@ -176,7 +176,7 @@ namespace UnitTests.MembershipTests
     }
 
     /// <summary>
-    /// Tests silo liveness detection using membership grain with specific gateway preferences.
+    /// 测试 silo 使用会员身份进行生命体检测 grain 具有特定网关优惠。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -224,8 +224,8 @@ namespace UnitTests.MembershipTests
             await Do_Liveness_OracleTest_2(2, false, true);
         }
 
-        //[Fact, TestCategory("Functional"), TestCategory("Membership")]
-        /*public async Task Liveness_Grain_5_ShutdownRestartZeroLoss()
+        //[事实, TestCategory(“职能”), TestCategory(“委员”)]
+        /*公共用户 Async 任务 Liveness_ Grain_5_Shutdown Restart ZeroLos ()
         {
             await Do_Liveness_OracleTest_3();
         }*/

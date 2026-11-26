@@ -4,34 +4,34 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// Functionality for handling stream failures.
+    /// 处理流流故障的功能。
     /// </summary>
     public interface IStreamFailureHandler
     {
         /// <summary>
-        /// Gets a value indicating whether the subscription should fault when there is an error.
+        /// 获得一个值,显示在错误发生时订阅是否应该失败。
         /// </summary>
-        /// <value><see langword="true" /> if the subscription should fault when there is an error; otherwise, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 如果订阅错误时发生故障,则该用户应出错;否则, <see langword="false" />。</value>
         bool ShouldFaultSubsriptionOnError { get; }
 
         /// <summary>
-        /// Called once all measures to deliver an event to a consumer have been exhausted.
+        /// 一旦用尽了向消费者提供活动的所有措施,便要求采取一切措施。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="streamIdentity">The stream identity.</param>
-        /// <param name="sequenceToken">The sequence token.</param>
-        /// <returns>A <see cref="Task"/> representing the operation.</returns>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="streamIdentity">流体身份。</param>
+        /// <param name="sequenceToken">序列符号。</param>
+        /// <returns>A <see cref="Task"/> 代表操作。</returns>
         Task OnDeliveryFailure(GuidId subscriptionId, string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken);
 
         /// <summary>
-        /// Should be called when establishing a subscription failed.
+        /// 建立订阅失败时应该调用 。
         /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        /// <param name="streamProviderName">Name of the stream provider.</param>
-        /// <param name="streamIdentity">The stream identity.</param>
-        /// <param name="sequenceToken">The sequence token.</param>
-        /// <returns>A <see cref="Task" /> representing the operation.</returns>
+        /// <param name="subscriptionId">订阅标识符。</param>
+        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="streamIdentity">流体身份。</param>
+        /// <param name="sequenceToken">序列符号。</param>
+        /// <returns>A <see cref="Task" /> 代表操作。</returns>
         Task OnSubscriptionFailure(GuidId subscriptionId, string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken);
     }
 }

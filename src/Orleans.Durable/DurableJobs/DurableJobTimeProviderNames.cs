@@ -1,13 +1,13 @@
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// Service key used to resolve the durable jobs subsystem's <see cref="System.TimeProvider"/> from keyed dependency
-/// injection. See <see cref="Orleans.Runtime.TimeProviderNames"/> for the core runtime areas.
+/// 用于解决长效工作子系统(Q0Q)的按键依赖性 <see cref="System.TimeProvider"/> 的服务关键
+/// 。请参见核心运行时间区域 <see cref="Orleans.Runtime.TimeProviderNames"/> 。
 /// </summary>
 public static class DurableJobTimeProviderNames
 {
     /// <summary>
-    /// The clock used by the durable jobs subsystem.
+    /// 持久工作子系统使用的时钟
     /// </summary>
     public const string DurableJobs = "Orleans.DurableJobs";
 }

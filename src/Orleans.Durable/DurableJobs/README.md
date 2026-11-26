@@ -1,34 +1,46 @@
-# Microsoft Orleans Durable Jobs
+<a id="microsoft-orleans-durable-jobs"></a>
 
-## Introduction
-Microsoft Orleans Durable Jobs provides a distributed, scalable system for scheduling one-time jobs that execute at a specific time. Unlike Orleans Reminders which are designed for recurring tasks, Durable Jobs are ideal for one-time future events such as appointment notifications, delayed processing, scheduled workflow steps, and time-based triggers.
+# Microsoft Orleans 持久工作
 
-**Key Features:**
-- **At Least One-time Execution**: Jobs are scheduled to run at least once
-- **Persistent**: Jobs survive grain deactivation and silo restarts
-- **Distributed**: Jobs are automatically distributed and rebalanced across silos
-- **Reliable**: Failed jobs can be automatically retried with configurable policies
-- **Rich Metadata**: Associate custom metadata with each job
-- **Durably cancellable**: Cancellation requests prevent future attempts; an already-running attempt may still complete
+<a id="introduction"></a>
 
-## Getting Started
+## 简介
+Microsoft Orleans 持久就业为安排在特定时间执行的一次性工作提供了分布式、可扩展的制度。 Orleans 为经常性任务设计的提醒, " 持久工作 " 是未来一次性活动的理想,如任用通知、延迟处理、排定工作流程步骤和时间触发。
 
-### Installation
-To use this package, install it via NuGet:
+**关键字特性:**
+- **至少有一次一次性执行**:工作计划至少运行一次
+- **持久性**:工作在 grain 停止和 silo 重新开始后得以生存
+- **分配**:任务在 silos之间自动分布和重新平衡
+- **可靠**:失败的工作可以自动地用可配置的政策重新审理。
+- **丰富元元数据**:每项工作的相关自定义元数据
+- **易可耐久可撤销**:取消请求阻止今后尝试;已经进行的尝试可能仍然完成
+
+<a id="getting-started"></a>
+
+## 入门
+
+<a id="installation"></a>
+
+### 安装
+要使用此软件包, 请通过 NuGet安装 :
 
 ```shell
 dotnet add package Microsoft.Orleans.Durable --prerelease
 ```
 
-For production scenarios with persistence, also install a storage provider:
+对于具有持久性的生产设想情况,还应安装一个储存供应商:
 
 ```shell
 dotnet add package Microsoft.Orleans.Durable.AzureStorage --prerelease
 ```
 
-### Configuration
+<a id="configuration"></a>
 
-#### Using In-Memory Storage (Development/Testing)
+### 配置
+
+<a id="using-in-memory-storage-developmenttesting"></a>
+
+#### 使用内存储(开发/测试)
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -46,7 +58,9 @@ builder.UseOrleans(siloBuilder =>
 await builder.Build().RunAsync();
 ```
 
-#### Using Azure Storage (Production)
+<a id="using-azure-storage-production"></a>
+
+#### 使用 Azure 存储(生产)
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -68,7 +82,9 @@ builder.UseOrleans(siloBuilder =>
 await builder.Build().RunAsync();
 ```
 
-#### Advanced Configuration
+<a id="advanced-configuration"></a>
+
+#### 高级配置
 ```csharp
 builder.UseOrleans(siloBuilder =>
 {
@@ -105,13 +121,15 @@ builder.UseOrleans(siloBuilder =>
 });
 ```
 
-## Select named journal storage
+<a id="select-named-journal-storage"></a>
 
-`UseJournaledDurableJobs` on `ISiloBuilder` or `IServiceCollection` installs the
-journaled shard manager and Durable Jobs JSON metadata independently of the
-storage backend. Register a catalog-capable journal provider, then select it
-with `DurableJobsOptions.ActiveProviderName`. The default name is `"Default"`.
-`DrainingProviderNames` is initially empty.
+## 选择命名日记存储
+
+`UseJournaledDurableJobs` 日期 时 `ISiloBuilder` 或 `IServiceCollection` 安装
+日记硬管理器和持久工作 JSON 独立运行元数据
+存储后端后端 。 注册一个目录化日记账提供者, 然后选择它
+与 `DurableJobsOptions.ActiveProviderName`。默认名称是 `"Default"`。
+`DrainingProviderNames` 初始为空 。
 
 ```csharp
 siloBuilder
@@ -132,177 +150,189 @@ siloBuilder
     });
 ```
 
-Named Blob, Table, Redis, S3, and volatile registrations bind storage, catalog,
-and state-manager factory to the same configured namespace. Explicit names
-leave the default provider for grain journaling independent. Keep each physical
-namespace registered under one selected name. `UseInMemoryDurableJobs`,
-`UseAzureBlobDurableJobs`, and `UseAzureTableDurableJobs` remain convenience
-compositions for the default binding. Volatile storage retains jobs for the
-lifetime of its process; use persistent storage for restart recovery.
+命名的Blob、表 Redis、S3和挥发性登记,装订储存、目录、
+以及同一配置命名空间的州管理工厂。
+将默认提供者留为 grain 日记帐独立设置。保持每个物理
+以一个选定名称注册的命名空间。 `UseInMemoryDurableJobs`,
+`UseAzureBlobDurableJobs`和 `UseAzureTableDurableJobs` 仍为方便
+默认绑定的设置构成。
+使用持续储存恢复。
 
-The `"Default"` storage binding retains the existing unnamed backend-options
-pipeline; non-default bindings such as `"jobs-a"` use named backend options.
+`"Default"` 存储套件保留现有的未命名后端选项
+管道; 非默认连接, 如 `"jobs-a"` 使用命名后端选项 。
 
-Most deployments select one provider. An uncached known-shard lookup then
-reads that provider's metadata directly, irrespective of other journal providers
-registered for grain state. During migration, discovery covers the write and
-draining providers, and uncached known-ID lookups read the write provider first,
-then draining providers as needed. An unavailable provider surfaces a lookup
-failure; absence requires successful checks across all selected providers.
+大多数部署都选择一个提供者。 然后进行不刻录的已知硬查找
+其内容如下:不论其他日记提供者如何,供应商的元数据直接来自提供商。
+注册为 grain 状态。在迁移过程中,发现涵盖文字和
+排水提供者,和不刻板的已知ID查寻 读写提供者先,
+无法使用的提供者会显示一个搜索
+失败; 缺勤要求对所有选定的提供者进行成功检查。
 
-New schedules use shards created in the write provider. Existing shards retain
-their original provider for ownership, replay, execution, retry, rescheduling,
-cancellation, compaction, and deletion. Timestamp/GUID shard IDs,
-`jobs/shards/<id>` paths, and provider-independent serialized `DurableJob`
-handles stay unchanged. A shard has one authoritative storage location
-throughout its lifetime.
+新计划使用在写器提供者中创建的碎片。
+原供应商 拥有、重播、执行、再试、重新安排
+取消、压缩和删除。时间戳/ GUID 碎片代号,
+`jobs/shards/<id>` 路径和自供应商独立连号 `DurableJob`
+将控件保持不变。 碎片有一个权威存储位置
+整个生命期。
 
-### Cut over and retire a provider
+<a id="cut-over-and-retire-a-provider"></a>
 
-Bindings are fixed at startup. For an A-to-B migration:
+### 裁员并退休
 
-1. Deploy both bindings and select A for writes and B for draining on **every**
-   scheduling silo before any silo creates B work.
-2. Roll out B for writes and A for draining. A-configured silos can still create
-   A shards during this rollout. Cutover finishes when every scheduling silo
-   uses B and prior scheduling calls have finished. Pause application scheduling
-   during the change if a strict cutover boundary is required.
-3. Retain mutation permissions on A. Draining requires listing, reads, claims,
-   durable updates, retries, cancellation, compaction, and deletion.
-4. After all writers have cut over, inspect A's complete namespace using
+启动时定有装订条件。
+
+1. 部署绑定和选择 A 进行写作和 B , 排入 **每一**
+   时间安排 silo 之前的 silo B创造工作。
+2. 将 B 推出为写作, A 展开为排水。 A 配置 silos 仍然可以创建
+   展开期间的碎片。 每次排程时, 剪切完成 silo
+   B和先前的日程安排电话已经打完。
+   如果需要严格的切换边界,则在更改期间进行。
+3. 排水要求列出, 写明, 索赔,
+   耐久更新、重试、取消、压缩和删除。
+4. 在所有作家都切开后,
    `IDurableJobsStorageInspector.InspectAsync("jobs-a", cancellationToken)`.
-   Resolve all remaining shards, including future-dated, owned, poisoned, and
-   unrecognized entries. Repeat successful inventories according to the
-   backend's live-listing behavior.
-5. Remove A from `DrainingProviderNames` only after a verified full drain.
-   Retire the binding/storage only when its other consumers have also finished.
+   解决所有剩余的碎片,包括未来日期、自有、有毒和
+   重复根据《公约》第19条提出的成功库存清单
+   后端的现场列名行为。
+5. 只有在经过核实的完整排出量后才能从 `DrainingProviderNames` 删除 A。
+   只有在其他消费者也完成之后,才将装订/储存设备退役。
 
-The inspector returns `DurableJobsStorageStatus` with `ProviderName`,
+检查员返回 `DurableJobsStorageStatus` ,与 `ProviderName`
 `IsWriteProvider`, `ShardCount`, `OwnedShardCount`, `PoisonedShardCount`,
-`UnrecognizedShardCount`, and nullable `OldestShardStartTime` /
-`NewestShardStartTime`. It reads a complete catalog snapshot through the calling
-process using read-only catalog and metadata operations. Failures fault the
-call: display **unknown** when inspection fails. Counts describe shards, each
-of which can contain many jobs; owned/poisoned counts can overlap. Retirement
-requires successful full-zero inventory plus completed cluster-wide writer
-cutover.
+`UnrecognizedShardCount`,和无效 `OldestShardStartTime` /
+`NewestShardStartTime`。它读到完整的目录简况
+使用只读化目录和元数据操作的进程。
+检查失败时, 显示 **未知** 。 计数描述碎片, 每一个
+其中有许多工作可以包含许多;拥有/投入的计算可能重叠。
+要求成功完成全零库存,加上完成的集束范围作家
+切开。
 
-To roll back, keep both providers selected and switch writes to A with B
-draining. Existing B jobs continue in B. Preserve storage namespaces and
-compatible journal readers throughout the migration.
+若要倒回, 保留两个提供者选择, 并切换给 A 和 B 的 A 写入
+B. 保留储存命名空间和
+在整个移民过程中,
 
-See the [restart-based migration sample](../../samples/DurableJobsMigration/README.md)
-for durable Azure emulator storage, retained-handle cancellation, and local
-inventory checks, and the [migration guide](../../docs/site/src/content/docs/grains/journaling/durable-jobs-migration.md)
-for deployment and monitoring details.
+见 [重新开动的移徙抽样](../../samples/DurableJobsMigration/README.md)
+耐久 Azure 模拟器储存、留存的手吊注销和当地
+清单核实和 [移徙指南](../../docs/site/src/content/docs/grains/journaling/durable-jobs-migration.md)
+用于部署和监测细节。
 
-## Shard discovery and lookahead
+<a id="shard-discovery-and-lookahead"></a>
 
-Each silo discovers shards whose start time is within `DurableJobsOptions.ShardLoadLookaheadPeriod`
-of its current Durable Jobs time-provider clock. The default lookahead is ten minutes.
-A discovered shard starts processing once its start time enters `ShardActivationBufferPeriod`.
-`DurableJobsOptions.ShardCheckInterval` controls periodic discovery and writable-shard cleanup
-checks, with a default of five minutes. A silo joining or leaving the active set also triggers
-a check, as does a silo being declared dead, so the dead silo's shards are adopted as soon as
-membership declares it dead.
-The lookahead accepts non-negative durations; zero selects shards whose start time is at or
-before the current time. The discovery horizon is capped at `DateTimeOffset.MaxValue`.
-The check interval accepts durations from 1 to 4294967294 milliseconds.
+## 硬发现和眼神
 
-Shard journals use names such as
-`jobs/shards/20260909T1200000000000Z-<unique-id>`. The fixed-width UTC start time
-precedes the unique suffix, so ordinal name order is shard-start-time order. Each sweep
-lists the raw `jobs/shards/` prefix with an inclusive `JournalCatalogListOptions.MaxId` bound covering the lookahead
-horizon. The range includes every earlier start time, including jobs overdue after a long
-outage. Future shard identities are filtered by the catalog before candidate metadata reads.
+silo 发现启动时间在 `DurableJobsOptions.ShardLoadLookaheadPeriod`之内的碎片
+默认的外观是十分钟。
+发现碎片一旦进入 `ShardActivationBufferPeriod`,便开始处理。
+`DurableJobsOptions.ShardCheckInterval` 控制定期发现和可写硬化清除
+输入或退出活动集的 A silo 也触发
+支票和 silo 被宣布死亡,故死人是死的 silo碎片一旦在《公约》
+成员宣布它已死亡。
+外观头部接受非负向期限; 零选择起始时间在或
+在当前时间之前。发现视野以 `DateTimeOffset.MaxValue`上限。
+检查间隔允许1至4294967294毫秒的长度。
 
-Each periodic or membership check starts a fresh, locally scoped sweep over every selected
-provider. Candidates share an oldest-first ordering and aggregate claim budget.
-Discovery enumerates the selected catalogs in configured order, requesting metadata and
-buffering each provider's candidates until that enumeration succeeds. Once all selected
-catalogs have completed or faulted, discovery orders and deduplicates the successful
-results, then uses each supplied
-ownership snapshot with an ETag or reads current metadata when that snapshot is unavailable.
-For a snapshot naming the local silo as owner, discovery reuses the cached shard or reads
-current metadata on a cache miss. The refreshed descriptor determines eligibility, ownership,
-and any required conditional claim before a new instance is opened.
-Claims run oldest first and require the snapshot's ETag for conditional updates, so a
-concurrent ownership change rejects a stale claim. Providers used for Durable Jobs supply
-metadata ETags and enforce conditional updates; a missing ETag surfaces as a discovery error.
-Assigned shards are delivered as they are opened, allowing execution to proceed while later
-candidates are evaluated. The claim budget limits new claims;
-locally owned shards remain eligible after that budget is exhausted.
+硬化日记用名称, 例如
+`jobs/shards/20260909T1200000000000Z-<unique-id>`. 世界协调时的固定宽开工时间
+位于独一后缀前, 所以正序名称顺序是 散开启动时间顺序。 每次扫描
+列表的生 `jobs/shards/` 包含一个包含 `JournalCatalogListOptions.MaxId` 环绕着眼线的,
+范围包括每个较早的启动时间,包括长期逾期未完成的工作
+未来散落区。 在候选元数据读取前, 由目录过滤未来的散存身份 。
 
-Recovering a shard replays its jobs, verifies local ownership, and durably appends a
-bounded owner record in a separate journal stream before publishing the instance.
-Its size depends on the silo address, so recovery works for shards larger than a
-provider's single-append limit. This content commit establishes the
-new writer's storage concurrency boundary: earlier owners' pending writes fail
-against the changed journal, and the new owner progresses from the recovered
-state. Ownership is verified again after the commit to detect a superseding
-claim during opening. Concurrent local opens share one recovery and use the
-same canonical instance. Newly created journals start with their first writer.
-Each caller's cancellation ends its own wait. An active joiner retries a shared
-open canceled by its initiating caller after that attempt finishes cleanup.
-Persistent journal providers enforce conditional content mutations; ordinary metadata annotations and
-same-owner closure retain their metadata-only retry behavior.
+每次定期或会员资格检查都开始对每个选定的
+供应商候选人拥有最先定购的和索赔总预算。
+发现按配置顺序列出选定目录,请求元数据
+缓冲每个供应商的候选人,直到该查点成功为止。
+完成或错误、发现命令和复制成功
+结果,然后使用每份提供
+与ETag 进行自有快照,或在无法获取时读取当前元数据。
+当地民众的简快照片 silo 发现后再用隐藏的碎片或读作
+更新描述符决定了资格、所有权,
+以及任何在开审新案之前必须提出的有条件债权。
+最老的索赔先处理,要求快照的ETag 有条件更新,所以
+用于提供持久就业的供应商
+元数据ETags和强制实施有条件更新;缺少的ETag表面是一个发现错误。
+指定碎片在打开时交付,允许在稍后期间执行
+索赔预算限制新的索赔;
+预算用完后,当地拥有的碎片仍符合资格。
 
-Catalog providers apply raw-prefix and range constraints using their storage capabilities.
-The timestamp representation also supports narrower day/hour prefixes and inclusive `MinId`
-and `MaxId` intervals for callers selecting a specific time window. Recovery starts at the
-shard namespace's beginning so that all overdue jobs remain eligible.
-Azure Table's default mapping uses indexed key ranges. Azure Blob and ordered general-purpose
-S3 listings can seek lower bounds and stop at upper bounds. S3 Express and Redis filter time
-bounds during their provider-defined traversal. Discovery orders the selected names itself
-to provide consistent oldest-first processing across providers. Storage listing work and request
-latency remain provider-dependent. Blob, Table, and Volatile catalogs supply metadata snapshots
-alongside identities; S3 and Redis require separate candidate metadata reads.
+回收一个碎片重现工作,核实当地所有权,并长期附加
+将所有者记录在单独日记流中,
+其大小取决于 silo 重度大于
+提供者的单附加件限制。 此内容承诺建立
+新的作家存储的同货币边界:
+与日记数对照的更改,新的所有人从回收的中得到进步
+状态。在承诺检测超置后,再次核实所有权
+当地同时开启一个股份
+新的日记从第一位作家开始
+每一个打电话者的取消都结束了自己的等待。 一个活跃的加入者重新输入共享
+尝试完成清理后, 其启动电话已取消打开 。
+持续性日记账提供者实施有条件内容突变;普通元数据说明和
+同样的所有者关闭保留了他们仅使用元数据重试的行为。
 
-The sweep owns its enumeration and selected identity set until completion. During migration,
-a catalog failure discards that provider's partial results; an assignment failure skips its
-remaining candidates. Errors are reported with the provider name, and a later check retries
-with a fresh sweep. Recovery latency includes every selected catalog's listing requests
-and storage-client retry delays. Configure request timeouts and retry limits on the storage
-clients to match the recovery latency requirements. Shards
-already delivered to the local manager are tracked before cancellation is observed and
-continue through their execution lifecycle.
-Cancellation flows through listing, metadata, and journal operations.
+数据表提供者使用其储存能力,应用原始前缀和范围限制。
+时间戳表还支持较窄的日/小时前缀和包容性 `MinId`
+选择特定时间窗口的调用器间隔和 `MaxId` 间隔。
+硬化命名空间开始启动, 所有逾期未完成的工作都有资格获得。
+Azure 表格默认绘图使用索引化关键区域。 Azure 并订购普通用途
+S3 列表可以寻求下限,停在上界。 S3 Express 和 Redis 过滤时间
+发现命令选中的名称本身
+存储列表工作和请求
+长期性仍依赖供应商。 Blob、表和多波动目录提供元数据快照
+身份; S3和 Redis 要求单独列出候选元数据。
 
-Shorter lookahead periods reduce early loading of recovered shards. Shorter check intervals
-increase sweep frequency and reduce the wait for newly inserted or newly eligible shards.
-The public `JobShardManager.AssignJobShardsAsync` method collects the same ordered discovery
-stream into its full-result list.
+搜索者拥有其查点和选定身份组,直至完成。
+一份目录上的不合格弃置,其部分结果为供应商的部分结果;转让失败跳过其
+剩余候选人。错误随供应商名称报告,以后核对重试
+恢复的延迟期包括每个选定的目录列表请求
+配置请求超时和重试限制
+客户符合回收延迟要求。
+已经送交当地管理人员,在观察到取消之前跟踪记录,并
+继续使用其执行寿命周期。
+通过上市、元数据和日记业务的注销流动。
 
-## Shutdown lifecycle
+短期外观期缩短,减少早期装载已回收碎片。
+增加扫描频率,减少等待新插入或新符合条件的碎片的时间。
+公共 `JobShardManager.AssignJobShardsAsync` 方法收集的相同命令发现的
+将全部结果列表中的数据输入。
 
-Scheduling, cancellation requests, and activation use the shared
-`Orleans.Internal.AdmissionGate` utility from `Orleans.Core` for lock-free admission.
-Callers keep the returned readonly token in a `using` local and check `Entered` before
-starting work; disposal releases the admission.
-Each admitted token has one owner which disposes it exactly once. An atomic increment
-reserves a count and observes the closing flag in the same operation; attempts which
-observe closure release their count immediately. A preliminary check rejects callers
-which observe closure before incrementing, so further arrivals leave the drain count
-unchanged. Scheduling and cancellation requests hold admission through completion,
-including ownership lookup and remote cancellation routing. Activation holds admission
-until its execution task is published and queued.
-Shutdown atomically sets the closing flag through `CloseAsync`, signals cancellation to
-in-flight requests, and awaits these operations before snapshotting the running shards
-and canceling execution. Callback failures are logged while shutdown continues draining
-requests, awaiting execution, and releasing shards.
+<a id="shutdown-lifecycle"></a>
 
-Successful scheduling and cancellation writes retain their result, and successful shard
-creations remain owned even when cancellation races with their completion. Shutdown then
-awaits the active sweep and every admitted shard's execution and cleanup. It unregisters
-cached shards which remained inactive using the shutdown token, then disposes them. The
-journaled provider releases populated shards for another silo to claim and deletes empty
-shards, including creations which completed after request cancellation.
+## 关闭关闭寿命周期
 
-## Usage Examples
+安排日程、取消申请和启动使用共享
+`Orleans.Internal.AdmissionGate` 功用来源 `Orleans.Core` 进入无锁门。
+调用者将返回的只读数符号保留在本地 `using` ,并检查 `Entered`
+开始工作; 处置释放入场。
+每个确认的代号都有一个拥有者 来处理它一次
+在同一行动中保留一个计数,并观察关闭旗;
+初步检查拒绝者
+也就是说,在加加薪前要关闭,所以更多的抵达者将留下排水量。
+时间安排和取消申请的审批工作将持续到完成,
+包括所有权查寻和远程取消路径。
+直至其执行任务公布并排队。
+关闭关闭时以原子方式设置关闭的旗帜,通过 `CloseAsync`、取消信号到
+飞行请求,等待这些行动,然后拍下运行的碎片
+并取消执行。 在关闭继续耗水的同时, 记录回回复失败
+请求,等待执行,释放碎片。
 
-### Basic Job Scheduling
+成功安排和取消时写着保留结果,
+即使取消的竞赛随着完成而争盘, 创建仍然拥有所有 。 然后关闭
+等待着主动扫荡和每一个被承认的碎片的处决和清理。它不登记
+缓存的碎片, 使用关闭标记仍然不活动, 然后将其处理 。
+日记提供商释放了另一个 silo 用于要求和删除空的覆盖的碎片
+碎片,包括在请求取消后完成的创建。
 
-#### 1. Implement the IDurableJobHandler Interface
+<a id="usage-examples"></a>
+
+## 使用率示例
+
+<a id="basic-job-scheduling"></a>
+
+### 基本工作时间安排
+
+<a id="1-implement-the-idurablejobhandler-interface"></a>
+
+#### 1. 实施 IDurableJobHandler 接口
 ```csharp
 using Orleans;
 using Orleans.Durable.Jobs;
@@ -390,7 +420,9 @@ public class NotificationGrain : Grain, INotificationGrain, IDurableJobHandler
 }
 ```
 
-#### 2. Order Workflow with Multiple Jobs
+<a id="2-order-workflow-with-multiple-jobs"></a>
+
+#### 2. 多种工作有秩序的工作流程
 ```csharp
 public interface IOrderGrain : IGrainWithGuidKey
 {
@@ -505,9 +537,13 @@ public class OrderGrain : Grain, IOrderGrain, IDurableJobHandler
 }
 ```
 
-### Advanced Scenarios
+<a id="advanced-scenarios"></a>
 
-#### Job with Retry Logic
+### 高级方案
+
+<a id="job-with-retry-logic"></a>
+
+#### 重试逻辑任务
 ```csharp
 public class PaymentProcessorGrain : Grain, IDurableJobHandler
 {
@@ -541,7 +577,9 @@ public class PaymentProcessorGrain : Grain, IDurableJobHandler
 }
 ```
 
-#### Tracking Job Completion
+<a id="tracking-job-completion"></a>
+
+#### 跟踪工作完成情况
 ```csharp
 public class WorkflowGrain : Grain, IDurableJobHandler
 {
@@ -587,16 +625,22 @@ public class WorkflowGrain : Grain, IDurableJobHandler
 }
 ```
 
-## How It Works
+<a id="how-it-works"></a>
 
-### Architecture Overview
-1. **Job Sharding**: Jobs are partitioned into time-based shards (default: 1-minute windows)
-2. **Shard Ownership**: Each shard is owned by a single silo for execution
-3. **Automatic Rebalancing**: When a silo fails, its shards are automatically reassigned to healthy silos
-4. **Ordered Execution**: Within a shard, jobs are processed in order of their due time
-5. **Concurrency Control**: The `MaxConcurrentJobsPerSilo` setting limits concurrent job execution
+## 如何运作
 
-### Job Lifecycle
+<a id="architecture-overview"></a>
+
+### 架构概览
+1. **裁断工作**:任务被分割成基于时间的碎片(默认值:1分钟窗口)
+2. **硬片所有权**:每块碎片都由单一 silo 拥有,供执行
+3. **自动重新平衡**:当一个 silo 失败时,其碎片会自动被重新分配给健康 silos
+4. **命令执行**:在碎片内,按适当时间处理工作
+5. **货币货币管制**: : 国家 `MaxConcurrentJobsPerSilo` 设置同时执行职务的限制
+
+<a id="job-lifecycle"></a>
+
+### 工作生命周期
 ```
 ┌─────────────┐
 │  Scheduled  │ ──▶ Job is created and added to appropriate shard
@@ -619,24 +663,28 @@ public class WorkflowGrain : Grain, IDurableJobHandler
                         • No Retry: Job is removed
 ```
 
-## Configuration Reference
+<a id="configuration-reference"></a>
+
+## 配置引用
 
 ### DurableJobsOptions
 
-| Property | Type | Default | Description |
+| 财产 | 类型类型 | 默认默认 | 说明 |
 |----------|------|---------|-------------|
-| `ShardDuration` | `TimeSpan` | 1 minute | Duration of each job shard. Smaller values reduce latency but increase overhead. |
-| `MaxConcurrentJobsPerSilo` | `int` | 100 | Maximum number of jobs that can execute simultaneously on a silo. |
-| `ShouldRetry` | `Func<IJobRunContext, Exception, DateTimeOffset?>` | 3 retries with exp. backoff | Determines if a failed job should be retried. Return the new due time or `null` to not retry. |
+| `ShardDuration` | `TimeSpan` | 1分钟1分 | 每一工作强度的长度。 较小值会减少潜伏,但增加管理费用。 |
+| `MaxConcurrentJobsPerSilo` | `int` | 100 | 最多可同时执行 silo的作业数。 |
+| `ShouldRetry` | `Func<IJobRunContext, Exception, DateTimeOffset?>` | 3次重试,并进行删除。 | 确定是否要重新尝试一个失败的工作。 返回新的到期时间或 `null` 以不重试 。 |
 
-## Best Practices
+<a id="best-practices"></a>
 
-1. **Set Reasonable Concurrency Limits**: Prevent resource exhaustion
+## 最佳做法
+
+1. **设定合理合理的货币限额**防止资源耗用
    ```csharp
    options.MaxConcurrentJobsPerSilo = 100; // Adjust based on your workload
    ```
 
-2. **Implement Idempotent Job Handlers**: Jobs may be retried, ensure handlers are idempotent
+2. **实施具有能力的专家工作处理员**:可以重新找工作,确保操作员是一等的
    ```csharp
    public async Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
    {
@@ -650,7 +698,7 @@ public class WorkflowGrain : Grain, IDurableJobHandler
    }
    ```
 
-3. **Use Metadata Wisely**: Keep metadata lightweight
+3. **明智使用元数据**:保持元数据的轻量
    ```csharp
    // Good: Store IDs
    var metadata = new Dictionary<string, string> { ["OrderId"] = "12345" };
@@ -659,7 +707,7 @@ public class WorkflowGrain : Grain, IDurableJobHandler
    var metadata = new Dictionary<string, string> { ["Order"] = JsonSerializer.Serialize(largeOrder) };
    ```
 
-4. **Handle Cancellation**: Respect the cancellation token
+4. **处理取消**:尊重注销符号
    ```csharp
    public async Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
    {
@@ -667,14 +715,18 @@ public class WorkflowGrain : Grain, IDurableJobHandler
    }
    ```
 
-## Documentation
-For more comprehensive documentation, please refer to:
-- [Microsoft Orleans Documentation](https://dotnet.github.io/orleans/docs/)
-- [Timers and Reminders](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)
+<a id="documentation"></a>
 
-## Feedback & Contributing
-- If you have any issues or would like to provide feedback, please [open an issue on GitHub](https://github.com/dotnet/orleans/issues)
-- Join our community on [Discord](https://aka.ms/orleans-discord)
-- Follow the [@msftorleans](https://twitter.com/msftorleans) Twitter account for Orleans announcements
-- Contributions are welcome! Please review our [contribution guidelines](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- This project is licensed under the [MIT license](https://github.com/dotnet/orleans/blob/main/LICENSE)
+## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
+关于更全面的文件,请参见:
+- [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+- [计时和提醒](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)
+
+<a id="feedback--contributing"></a>
+
+## 反馈和贡献
+- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
+- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
+- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
+- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证

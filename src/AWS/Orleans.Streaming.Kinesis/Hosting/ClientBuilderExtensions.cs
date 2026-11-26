@@ -4,17 +4,17 @@ using Orleans.Streaming.Kinesis;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// Provides extension methods for configuring Amazon Kinesis Data Streams-backed persistent streams on Orleans clients.
+    /// 提供用于配置 Orleans 客户的亚马逊 Kinesis数据流支持的持续流的扩展方法。
     /// </summary>
     public static class ClientBuilderExtensions
     {
         /// <summary>
-        /// Configures the client to use an Amazon Kinesis Data Streams-backed persistent stream provider.
+        /// 配置客户端使用亚马逊 Kinesis 数据流支持的持久性流提供商 。
         /// </summary>
-        /// <param name="builder">The client builder.</param>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="configureOptions">The delegate used to configure the Kinesis options.</param>
-        /// <returns>The client builder.</returns>
+        /// <param name="builder">客户端构建器。</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="configureOptions">代表用于配置 Kinesis 选项。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddKinesisStreams(this IClientBuilder builder, string name, Action<KinesisStreamOptions> configureOptions)
         {
             builder.AddKinesisStreams(name, b =>
@@ -23,12 +23,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// Configures the client to use an Amazon Kinesis Data Streams-backed persistent stream provider.
+        /// 配置客户端使用亚马逊 Kinesis 数据流支持的持久性流提供商 。
         /// </summary>
-        /// <param name="builder">The client builder.</param>
-        /// <param name="name">The name of the stream provider.</param>
-        /// <param name="configure">The delegate used to configure the stream provider.</param>
-        /// <returns>The client builder.</returns>
+        /// <param name="builder">客户端构建器。</param>
+        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="configure">用于配置流提供方的代表。</param>
+        /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddKinesisStreams(this IClientBuilder builder, string name, Action<ClusterClientKinesisStreamConfigurator> configure)
         {
             var configurator = new ClusterClientKinesisStreamConfigurator(name, builder);

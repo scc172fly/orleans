@@ -5,15 +5,15 @@ using Orleans.Runtime;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>Calls a receiver's inbox for one outbox delivery attempt.</summary>
-/// <remarks>Tests replace the transport to inject delivery faults.</remarks>
+/// <summary>呼叫一个发件箱发送尝试的接收器收件箱。</summary>
+/// <remarks>试验取代了输射投射故障的运输。</remarks>
 internal interface IOutboxTransport
 {
-    /// <summary>Delivers <paramref name="message"/> to the inbox of <paramref name="receiver"/>.</summary>
+    /// <summary>交付交付 <paramref name="message"/> 框中 <paramref name="receiver"/>.</summary>
     ValueTask<DeliveryResult> DeliverAsync(GrainId receiver, InboxMessage message, CancellationToken cancellationToken);
 }
 
-/// <summary>Delivers outbox messages through grain calls to the receivers' messaging extensions.</summary>
+/// <summary>通过 grain 呼叫接收器的通讯扩展</summary>
 internal sealed class GrainOutboxTransport(IGrainFactory grainFactory) : IOutboxTransport
 {
     public ValueTask<DeliveryResult> DeliverAsync(GrainId receiver, InboxMessage message, CancellationToken cancellationToken) =>

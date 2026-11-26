@@ -4,38 +4,38 @@ using System.Collections.Immutable;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// Describes the proxy base for an invokable method, including whether the proxy is a grain reference or extension, and what invokable base types should be used for a given return type.
+/// 描述可引用方法的代用基数,包括代理值是 grain 参考或扩展,以及对于特定返回类型应使用何种可引用基数类型。
 /// </summary>
 internal sealed class InvokableMethodProxyBase(ProxyGenerationContext generationContext, InvokableMethodProxyBaseId descriptor, Dictionary<INamedTypeSymbol, INamedTypeSymbol> invokableBaseTypes) : IEquatable<InvokableMethodProxyBase>
 {
 
     /// <summary>
-    /// Gets the proxy generation context.
+    /// 获取代理代用生成背景 。
     /// </summary>
     public ProxyGenerationContext GenerationContext { get; } = generationContext;
 
     /// <summary>
-    /// Gets the proxy base id.
+    /// 获取代理服务器的识别码 。
     /// </summary>
     public InvokableMethodProxyBaseId Key { get; } = descriptor;
 
     /// <summary>
-    /// Gets the proxy base type, eg <c>GrainReference</c>.
+    /// 获取代理服务器基类型,例如 <c>GrainReference</c>。
     /// </summary>
     public INamedTypeSymbol ProxyBaseType => Key.ProxyBaseType;
 
     /// <summary>
-    /// Gets a value indicating whether this descriptor represents an extension.
+    /// 获得一个值,以显示该描述符是否代表扩展名。
     /// </summary>
     public bool IsExtension => Key.IsExtension;
 
     /// <summary>
-    /// Gets the components of the compound type alias used to refer to this proxy base.
+    /// 获取用于指此代理基点的化合物型别名的组件。
     /// </summary>
     public ImmutableArray<CompoundTypeAliasComponent> CompositeAliasComponents => Key.CompositeAliasComponents;
 
     /// <summary>
-    /// Gets the dictionary of invokable base types. This indicates what invokable base type (eg, ValueTaskRequest) should be used for a given return type (eg, ValueTask).
+    /// 获取可引用基型类型的词典。这表示何为可引用基类(例如, ValueTaskRequest)应该用于给定的返回类型(例如, ValueTask).
     /// </summary>
     public IReadOnlyDictionary<INamedTypeSymbol, INamedTypeSymbol> InvokableBaseTypes { get; } = invokableBaseTypes ?? throw new ArgumentNullException(nameof(invokableBaseTypes));
 

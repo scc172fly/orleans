@@ -15,7 +15,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// Compares Orleans deserialization performance against other popular serializers for struct types.
+/// 将 Orleans 的消毒性能与其他流行的制动器类中转器作比较。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -122,7 +122,7 @@ public class StructDeserializeBenchmark
         return SumResult(HyperionSerializer.Deserialize<IntStruct>(HyperionInput, HyperionSession));
     }
 
-    //[Benchmark]
+    //[基准]
     public int ZeroFormatter() => SumResult(ZeroFormatterSerializer.Deserialize<IntStruct>(ZeroFormatterInput));
 
     [Benchmark]

@@ -6,38 +6,38 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// This is a tightly packed cached structure containing a queue message.
-    /// It should only contain value types.
+    /// 这是一个密布的缓存结构, 包含队列信件 。
+    /// 它只应包含价值类型。
     /// </summary>
     public struct CachedMessage : IEquatable<CachedMessage>
     {
         /// <summary>
-        /// Identity of the stream this message is a part of.
+        /// 此信件是流的特性的一部分 。
         /// </summary>
         public StreamId StreamId;
 
         /// <summary>
-        /// Sequence number. Position of event in queue.
+        /// 序列号。 事件位置在队列中 。
         /// </summary>
         public long SequenceNumber;
 
         /// <summary>
-        /// Event index. Index in batch.
+        /// 事件指数,分批指数
         /// </summary>
         public int EventIndex;
 
         /// <summary>
-        /// Time event was written to the queuing system.
+        /// 时间事件被写入排队系统。
         /// </summary>
         public DateTime EnqueueTimeUtc;
 
         /// <summary>
-        /// Time event was read from the queuing system into this cache.
+        /// 时间事件从排队系统读取到此缓存 。
         /// </summary>
         public DateTime DequeueTimeUtc;
 
         /// <summary>
-        /// Segment containing the serialized event data.
+        /// 包含序列事件数据的段。
         /// </summary>
         public ArraySegment<byte> Segment;
 
@@ -58,27 +58,27 @@ namespace Orleans.Providers.Streams.Common
             HashCode.Combine(StreamId, SequenceNumber, EventIndex, EnqueueTimeUtc, DequeueTimeUtc, Segment);
 
         /// <summary>
-        /// Determines whether two cached messages are equal.
+        /// 确定两个缓存信件是否相等。
         /// </summary>
         public static bool operator ==(CachedMessage left, CachedMessage right) => left.Equals(right);
 
         /// <summary>
-        /// Determines whether two cached messages are unequal.
+        /// 确定两个缓存信件是否不平等 。
         /// </summary>
         public static bool operator !=(CachedMessage left, CachedMessage right) => !left.Equals(right);
     }
 
     /// <summary>
-    /// Extensions for <see cref="CachedMessage"/>.
+    /// <see cref="CachedMessage"/>的扩展期。
     /// </summary>
     public static class CachedMessageExtensions
     {
         /// <summary>
-        /// Compares the specified cached message.
+        /// 比较指定的缓存信件。
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <param name="token">The token.</param>
-        /// <returns>A value indicating the relative order of the token to the cached message.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <param name="token">牌子。</param>
+        /// <returns>表示标记牌的相对顺序的值,以显示缓存信件的相对顺序。</returns>
         public static int Compare(this ref CachedMessage cachedMessage, StreamSequenceToken token)
         {
             return cachedMessage.SequenceNumber != token.SequenceNumber
@@ -87,11 +87,11 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Compares the stream identifier of a cached message.
+        /// 比较缓存信件的流标识符 。
         /// </summary>
-        /// <param name="cachedMessage">The cached message.</param>
-        /// <param name="streamId">The stream identifier.</param>
-        /// <returns><see langword="true"/> if streamId is equal to the <see cref="CachedMessage.StreamId"/> value; otherwise <see langword="false"/>.</returns>
+        /// <param name="cachedMessage">缓存信件。</param>
+        /// <param name="streamId">流体识别符号。</param>
+        /// <returns><see langword="true"/> 如果 streamId 等于 <see cref="CachedMessage.StreamId"/> 值;否则 <see langword="false"/>。</returns>
         public static bool CompareStreamId(this ref CachedMessage cachedMessage, StreamId streamId) => cachedMessage.StreamId.Equals(streamId);
     }
 }

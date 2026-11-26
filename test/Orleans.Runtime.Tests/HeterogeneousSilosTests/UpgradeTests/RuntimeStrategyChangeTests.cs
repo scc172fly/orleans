@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.HeterogeneousSilosTests.UpgradeTests
 {
     /// <summary>
-    /// Tests for runtime changes to versioning strategies including compatibility and selector strategy modifications.
+    /// 测试对版本战略的运行时间变化,包括兼容性和选择策略修改。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]
@@ -34,7 +34,7 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
             var grainV2 = Client.GetGrain<IVersionUpgradeTestGrain>(1);
             Assert.Equal(2, await grainV2.GetVersion());
 
-            // Current policy "AllVersionsCompatible" -> no downgrade
+            // 当前政策 "AllVersionsCompatible" - > 不降级
             Assert.Equal(2, await grainV1.ProxyGetVersion(grainV2));
             Assert.Equal(2, await grainV2.GetVersion());
             Assert.Equal(1, await grainV1.GetVersion());
@@ -44,25 +44,25 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
                 StrictVersionCompatible.Singleton,
                 TestContext.Current.CancellationToken);
 
-            // Current policy "StrictVersionCompatible" -> Downgrade mandatory
+            // 现行政策 "StrictVersionCompatible" - > 强制性降级
             Assert.Equal(1, await grainV1.ProxyGetVersion(grainV2));
             Assert.Equal(1, await grainV2.GetVersion());
             Assert.Equal(1, await grainV1.GetVersion());
 
-            // Since this client is V1, only V1 should be activated, even with the "LatestVersion" rule
+            // 由于客户端是V1, 即使有 "LatestVersion规则 " , 但仅应激活V1
             for (var i = 2; i < 102; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
                 Assert.Equal(1, await grain.GetVersion());
             }
 
-            // Fallback to AllVersionsCompatible
+            // 返回到 AllVersionsCompatible
             await ManagementGrain.SetCompatibilityStrategy(
                 ifaceId,
                 null!,
                 TestContext.Current.CancellationToken);
 
-            // Now we should activate only v2
+            // 现在我们只应该激活 v2
             for (var i = 102; i < 202; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
@@ -77,15 +77,15 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
             var resolver = this.Client.ServiceProvider.GetService<GrainInterfaceTypeResolver>()!;
             var ifaceId = resolver.GetGrainInterfaceType(typeof(IVersionUpgradeTestGrain));
 
-            // Only V1 exists
+            // 只有V1存在
             var grainV1 = Client.GetGrain<IVersionUpgradeTestGrain>(0);
             Assert.Equal(1, await grainV1.GetVersion());
 
             await StartSiloV2();
 
-            // Don't touch to V1
+            // 别碰V1
             Assert.Equal(1, await grainV1.GetVersion());
-            // But only activate V2
+            // 但只激活 V2
             for (int i = 1; i < 101; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
@@ -97,14 +97,14 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
                 MinimumVersion.Singleton,
                 TestContext.Current.CancellationToken);
 
-            // Don't touch to existing activation
+            // 别碰现有的激活
             Assert.Equal(1, await grainV1.GetVersion());
             for (int i = 1; i < 101; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
                 Assert.Equal(2, await grain.GetVersion());
             }
-            // But only activate V1
+            // 但只激活 V1
             for (int i = 101; i < 201; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
@@ -119,14 +119,14 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
 
             await StartSiloV1();
 
-            // Only V1 exists
+            // 只有V1存在
             var grainV1 = new IVersionUpgradeTestGrain[2];
             grainV1[0] = Client.GetGrain<IVersionUpgradeTestGrain>(0);
             grainV1[1] = Client.GetGrain<IVersionUpgradeTestGrain>(1);
             Assert.Equal(1, await grainV1[0].GetVersion());
             Assert.Equal(1, await grainV1[1].GetVersion());
 
-            // Change default to backward compatible
+            // 将默认更改为后向兼容
             await ManagementGrain.SetCompatibilityStrategy(
                 BackwardCompatible.Singleton,
                 TestContext.Current.CancellationToken);
@@ -136,14 +136,14 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
             var grainV2 = Client.GetGrain<IVersionUpgradeTestGrain>(2);
             Assert.Equal(2, await grainV2.GetVersion());
 
-            // Should provoke "upgrade"
+            // 应该是引起"升级"
             Assert.Equal(2, await grainV2.ProxyGetVersion(grainV1[0]));
             Assert.Equal(2, await grainV1[0].GetVersion());
 
-            // Change default to backward compatible
+            // 将默认更改为后向兼容
             await ManagementGrain.SetCompatibilityStrategy(null!, TestContext.Current.CancellationToken);
 
-            // Should not provoke upgrade
+            // 不应引起升级
             Assert.Equal(1, await grainV2.ProxyGetVersion(grainV1[1]));
             Assert.Equal(1, await grainV1[1].GetVersion());
         }
@@ -155,34 +155,34 @@ namespace Tester.HeterogeneousSilosTests.UpgradeTests
 
             await StartSiloV1();
 
-            // Only V1 exists
+            // 只有V1存在
             var grainV1 = Client.GetGrain<IVersionUpgradeTestGrain>(0);
             Assert.Equal(1, await grainV1.GetVersion());
 
             await StartSiloV2();
 
-            // Change default to minimum version
+            // 将默认值更改为最小版本
             await ManagementGrain.SetSelectorStrategy(
                 MinimumVersion.Singleton,
                 TestContext.Current.CancellationToken);
 
-            // But only activate V1
+            // 但只激活 V1
             for (int i = 0; i < 100; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
                 Assert.Equal(1, await grain.GetVersion());
             }
 
-            // Change default to latest version
+            // 将默认值更改为最新版本
             await ManagementGrain.SetSelectorStrategy(null!, TestContext.Current.CancellationToken);
 
-            // Don't touch to existing activation
+            // 别碰现有的激活
             for (int i = 0; i < 100; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);
                 Assert.Equal(1, await grain.GetVersion());
             }
-            // But only activate V2
+            // 但只激活 V2
             for (int i = 100; i < 200; i++)
             {
                 var grain = Client.GetGrain<IVersionUpgradeTestGrain>(i);

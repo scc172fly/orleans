@@ -42,7 +42,7 @@ public sealed class FormatMigrationClusterTests
             await cluster.DeployAsync(TestContext.Current.CancellationToken);
             var binarySilo = Assert.Single(cluster.Silos);
             var grainId = Guid.NewGuid();
-            var grain = cluster.Client!.GetGrain<ITestDurableGrain>(grainId); // DeployAsync initializes the client.
+            var grain = cluster.Client!.GetGrain<ITestDurableGrain>(grainId); // DeployAsync 初始化客户端。
 
             await grain.SetTestValues("binary", 1);
             Assert.Equal("binary", await grain.GetName());

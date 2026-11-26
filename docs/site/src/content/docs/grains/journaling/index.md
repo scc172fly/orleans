@@ -1,81 +1,93 @@
 ---
-title: Orleans Journaling overview
-description: Understand the experimental Orleans Journaling programming model for durable grain values and collections.
+title: "Orleans 日刊概览"
+description: "理解实验 Orleans 将《公约》 grain 和收藏的数值。"
 ms.date: 08/21/2026
 ms.topic: overview
 ---
 
-# Orleans Journaling overview
+<a id="orleans-journaling-overview"></a>
 
-Orleans Journaling is an experimental persistence model that records mutations to durable values and collections in an ordered per-grain journal. When a grain activates, Orleans replays that journal to reconstruct its in-memory state. A single write can persist changes from multiple durable states owned by the grain.
+# Orleans 日刊概览
+
+Orleans 日记是一种实验性持久性模型,记录在每份grain 日记上与耐久值和收藏的突变。当一个 grain 启动时, Orleans 重播该日记以重建其模拟状态。单篇文字可以持续来自 grain拥有的多个耐久国的变化。
 
 > [!IMPORTANT]
-> `Microsoft.Orleans.Durable`, which contains Journaling, and its storage-provider packages are pre-release alpha packages which target .NET 11 (`net11.0`). Evaluate them with an explicit upgrade, rollback, backup, and recovery plan because APIs and storage formats can change before stabilization.
+> `Microsoft.Orleans.Durable`,其中载有《日刊》,其储存提供者包件是前释放的阿尔法包件,目标是 .NET 11(`net11.0`)。 以明确的升级、回滚、备份和回收计划来评估它们,因为单价单和存储格式在稳定之前可以改变。
 
-## Programming model
+<a id="programming-model"></a>
 
-Application code uses <xref:Orleans.Durable.Journaling.IDurableStateManager> to declare named durable states during construction or synchronous activation setup and acknowledge their writes. The standard manager enrolls itself in the lifecycle during grain-bound construction, before resolution returns, so declared state recovers before application activation and requests. This works with an ordinary <xref:Orleans.Grain>, an application-owned grain base, or a reusable activation-scoped feature. <xref:Orleans.Durable.Journaling.DurableGrain> remains a convenience base exposing the same application manager and a protected write helper. Keyed injection and programmatic access resolve the same named state object.
+## 方案拟订模式
 
-Orleans currently provides:
+应用代码使用 <xref:Orleans.Durable.Journaling.IDurableStateManager> 来宣布在建设或同步启动装置期间被命名的耐用状态,并承认其写作。标准管理员在 grain-受约束的建造过程中、在解析返回之前,注册生命周期,因此申报状态在申请激活和请求之前恢复。这与一个普通 <xref:Orleans.Grain>、应用程序所属 grain 基地或可重复使用的激活范围特征有关。 <xref:Orleans.Durable.Journaling.DurableGrain> 仍然是一个方便基础,暴露了同一应用程序管理员和保护性书写助手。键入式注射和方案访问解决了同名州标。
+
+Orleans 目前规定:
 
 - <xref:Orleans.Durable.Journaling.IDurableValue`1>
 - <xref:Orleans.Durable.Journaling.IDurableDictionary`2>
 - <xref:Orleans.Durable.Journaling.IDurableList`1>
 - <xref:Orleans.Durable.Journaling.IDurableQueue`1>
 - <xref:Orleans.Durable.Journaling.IDurableSet`1>
-- <xref:Orleans.Durable.Journaling.IDurableLog`1>, an append-only log with sequence numbers and streaming drafts
+- <xref:Orleans.Durable.Journaling.IDurableLog`1>,仅附加的日志,带有序列号和流成草稿
 - <xref:Orleans.Durable.Journaling.IDurableTaskCompletionSource`1>
-- <xref:Orleans.Runtime.IPersistentState`1> backed by the grain's journal
+- <xref:Orleans.Runtime.IPersistentState`1> 后 grain日记
 
-Declare states with <xref:Orleans.Durable.Journaling.IDurableStateManager.GetOrAddState*> or the typed <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions> helpers before initialization. After recovery, calls resolve existing states and application methods can use their contents. A request to create a missing state after initialization fails immediately.
+声明在启动前有 <xref:Orleans.Durable.Journaling.IDurableStateManager.GetOrAddState*> 或输入的 <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions> 帮助器。恢复后,调用解决现有状态,应用方法可以使用其内容。启动后创建缺失状态的请求立即失败 。
 
-Mutations update the activation's in-memory state and add encoded operations to its pending journal buffer. Await <xref:Orleans.Durable.Journaling.IDurableStateManager.WriteStateAsync*> at the application durability point. The returned task completes after the storage provider acknowledges the append or snapshot replacement.
+突变更新激活的模拟状态, 并在待处理日记缓冲中添加编码操作。 在应用程序耐久点等待 <xref:Orleans.Durable.Journaling.IDurableStateManager.WriteStateAsync*> 。 返回的任务在存储提供者确认附件或快照替换后完成 。
 
-Prepare fallible work in operation-local data and stage mutations once they are safe to commit. Interleaved
-calls share the pending journal. A failed journal operation fences the manager and requests grain deactivation;
-a fresh activation reconstructs the durable outcome before processing resumes.
+在当地数据操作中进行可编造的可编造的可编造工作,一旦安全发生变化,就逐步变异。
+共享未完成日记账的调用。 失败的日记账操作将管理者围住,并要求 grain 停止使用;
+重新激活程序在恢复处理之前重建持久结果。
 
-Each named state has a stable stream identity within the grain journal. Keep those names stable across deployments so recovery can bind stored operations to the intended state.
+每个被点名的国家在 grain 日记内都有稳定的流特性。 保持这些名称在部署中保持稳定, 这样回收就可以将存储的操作与预定状态捆绑在一起 。
 
-Grains can expose watch streams over their durable values and logs. Streams deliver changes after their journal write is acknowledged, and log readers can also receive volatile drafts. See [Observe state and stream drafts](observe-state.md).
+Grains 可以曝光监视流, 显示其耐久值和日志。 串流在确认日记写作后会提供更改, 日志阅读器也可以接收波动草稿。 见 [观察州和河汇草案](observe-state.md)。
 
-## Journal lifecycle
+<a id="journal-lifecycle"></a>
 
-1. Resolving the grain-scoped manager enrolls it in the lifecycle. Constructor injection and shared setup register states before lifecycle startup.
-1. During the setup-state stage, Orleans reads the journal in order and replays each state stream before application activation and requests.
-1. Grain code synchronously mutates durable values and collections during a grain turn.
-1. `WriteStateAsync` gathers pending operations for the manager and submits one atomic journal append or replacement to storage.
-1. The storage provider can request compaction when its configured size or row threshold is reached. The next write creates a snapshot of the current durable states and atomically replaces the journal.
-1. A later activation replays the latest snapshot and subsequent operations to restore the same durable state.
+## 期刊生命周期
 
-Registering a provider makes the services available; activations which resolve the manager trigger per-grain journal I/O. For the detailed guarantees and caller-owned manager lifetimes, see [Runtime behavior and consistency](runtime-behavior.md).
+1. 解决 grain- 范围管理器在生命周期启动前先将它注册到生命周期。 构造注入和共享设置登记系统都处于生命周期启动之前的位置 。
+1. 在设置状态阶段, Orleans 按顺序读读日记,并在启动应用程序和请求之前重播每个州流。
+1. Grain 代码同步变化, 在 grain 转弯
+1. `WriteStateAsync` 收集经理待处理的业务,并提交一份原子日记附件或储存替换文件。
+1. 存储提供者可以在配置大小或行阈值达到时请求压缩。 下一篇书可以创建当前耐久状态的快照, 原子取代日记 。
+1. 稍后启动后重播最新快照和随后的行动,以恢复同样的持久性状态。
 
-## Journal formats
+注册供应商可提供服务;启动程序解决经理每 --grain 日记 I/O触发的问题。 关于详细担保和电话管理人拥有的经理终身,见 [运行时行为和一致性](runtime-behavior.md)。
 
-JSON Lines is the default write format. Each line contains a state stream identifier and one encoded operation. Configure source-generated <xref:System.Text.Json.Serialization.JsonSerializerContext> metadata for journaled key, value, and state types when using trimming or Native AOT.
+<a id="journal-formats"></a>
 
-The earlier Orleans binary format remains registered so deployments can read existing data. Providers store the journal format key with the journal. When the configured write format differs from the stored format, recovery uses the stored reader and the next write snapshots the journal in the configured format.
+## 日记格式
 
-See [Configure Journaling](configuration.md) for format and migration guidance.
+JSON 线条是默认的写格式。 每行包含一个状态流标识符和一个编码操作。 配置源生成 <xref:System.Text.Json.Serialization.JsonSerializerContext> 用于使用剪辑或本地自动输出时的日记密钥、值和状态类型的元数据。
 
-## Journaling and Event Sourcing
+较早的 Orleans 二进制格式仍然被注册, 这样部署就可以读取现有数据。 供应商会将日记格式键与日记一起存储。 当配置的写入格式不同于所储存的格式时, 回收使用已保存的读者, 下次则以所配置的格式写入快照。
 
-Orleans offers two separate journal-oriented programming models:
+格式和移徙指南见 [配置日记](configuration.md) 。
 
-| Model | Application state model | Persistence coordination |
+<a id="journaling-and-event-sourcing"></a>
+
+## 日刊和事件
+
+Orleans 提供两种单独的面向日记账的方案编制模式:
+
+| 型 型 | 应用国家模型 | 持久性协调 |
 | --- | --- | --- |
-| Orleans Journaling | Mutable durable values and collections composed with a grain or feature through `IDurableStateManager` | One per-grain journal managed by `Microsoft.Orleans.Durable` |
-| [Orleans Event Sourcing](../event-sourcing/index.md) | Application-defined events applied to `JournaledGrain<TState, TEvent>` | Log-consistency providers confirm, persist, and synchronize events |
+| Orleans 日刊 | 可变耐久值和收藏,由 grain 或特性组成,通过 `IDurableStateManager` | 一人一个grain 由 `Microsoft.Orleans.Durable` |
+| [Orleans 事件抛星](../event-sourcing/index.md) | 应用到 `JournaledGrain<TState, TEvent>` 的应用程序定义的事件  | 逻辑一致性提供者确认、持续和同步事件 |
 
-Choose Journaling when evaluating operation-based persistence for built-in mutable state structures. Choose Event Sourcing when domain events, event history, and the supported log-consistency programming model are application requirements.
+在评价内建变异状态结构基于操作的持久性时选择日记。 当域事件、事件历史和所支持的对线一致性编程模式是应用要求时, 选择事件递增 。
 
-## Articles
+<a id="articles"></a>
 
-- [Use durable state](durable-state.md)
-- [Observe state and stream drafts](observe-state.md)
-- [Runtime behavior and consistency](runtime-behavior.md)
-- [Configure Journaling](configuration.md)
-- [Azure Storage providers](azure-storage.md)
-- [Redis journal storage](redis-journal-storage.md)
-- [Operate and troubleshoot Journaling](operations.md)
-- [Run Journaling samples](samples.md)
+## 条款条款条款条款条款条款条条条条条条条条条条条条条
+
+- [使用耐久状态](durable-state.md)
+- [观察州和河汇草案](observe-state.md)
+- [运行时行为和一致性](runtime-behavior.md)
+- [配置日记](configuration.md)
+- [Azure 储存供应商](azure-storage.md)
+- [Redis 日记账存储](redis-journal-storage.md)
+- [操作和排除故障](operations.md)
+- [清点运行样本](samples.md)

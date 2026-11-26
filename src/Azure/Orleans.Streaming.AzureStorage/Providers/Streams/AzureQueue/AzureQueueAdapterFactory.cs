@@ -9,7 +9,7 @@ using Orleans.Streams;
 
 namespace Orleans.Providers.Streams.AzureQueue
 {
-    /// <summary> Factory class for Azure Queue based stream provider.</summary>
+    /// <summary> 厂家类,用于 Azure 基于队列的流提供者。</summary>
     public class AzureQueueAdapterFactory : IQueueAdapterFactory
     {
         private readonly string providerName;
@@ -20,18 +20,18 @@ namespace Orleans.Providers.Streams.AzureQueue
         private readonly SimpleQueueAdapterCache adapterCache;
 
         /// <summary>
-        /// Application level failure handler override.
+        /// 应用级别故障处理器控制
         /// </summary>
         protected Func<QueueId, Task<IStreamFailureHandler>> StreamFailureHandlerFactory { private get; set; } = null!;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AzureQueueAdapterFactory"/> class.
+        /// 初始化 <see cref="AzureQueueAdapterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="name">The stream provider name.</param>
-        /// <param name="options">The Azure Queue stream provider options.</param>
-        /// <param name="cacheOptions">The queue cache options.</param>
-        /// <param name="dataAdapter">The adapter used to convert between stream batches and Azure Queue messages.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <param name="options"> Azure 队列流提供者选项。</param>
+        /// <param name="cacheOptions">队列缓存选项。</param>
+        /// <param name="dataAdapter">用于在流批次和 Azure 排队消息。</param>
+        /// <param name="loggerFactory">伐木厂</param>
         public AzureQueueAdapterFactory(
             string name,
             AzureQueueOptions options,
@@ -47,14 +47,14 @@ namespace Orleans.Providers.Streams.AzureQueue
             this.adapterCache = new SimpleQueueAdapterCache(cacheOptions, this.providerName, this.loggerFactory);
         }
 
-        /// <summary> Init the factory.</summary>
+        /// <summary> 工厂开工了</summary>
         public virtual void Init()
         {
             this.StreamFailureHandlerFactory = this.StreamFailureHandlerFactory ??
                     ((qid) => Task.FromResult<IStreamFailureHandler>(new NoOpStreamDeliveryFailureHandler()));
         }
 
-        /// <summary>Creates the Azure Queue based adapter.</summary>
+        /// <summary>创建 Azure 队列基调适器。</summary>
         public virtual Task<IQueueAdapter> CreateAdapter()
         {
             var adapter = new AzureQueueAdapter(
@@ -66,20 +66,20 @@ namespace Orleans.Providers.Streams.AzureQueue
             return Task.FromResult<IQueueAdapter>(adapter);
         }
 
-        /// <summary>Creates the adapter cache.</summary>
+        /// <summary>创建适配器缓存。</summary>
         public virtual IQueueAdapterCache GetQueueAdapterCache()
         {
             return adapterCache;
         }
 
-        /// <summary>Creates the factory stream queue mapper.</summary>
+        /// <summary>创建工厂流队列映像仪。</summary>
         public IStreamQueueMapper GetStreamQueueMapper()
         {
             return streamQueueMapper;
         }
 
         /// <summary>
-        /// Creates a delivery failure handler for the specified queue.
+        /// 为指定的队列创建发送失败处理器 。
         /// </summary>
         /// <param name="queueId"></param>
         /// <returns></returns>
@@ -89,11 +89,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// Creates and initializes an adapter factory using the named options and services.
+        /// 利用指定的选项和服务创建和启动一个适应工厂。
         /// </summary>
-        /// <param name="services">The service provider.</param>
-        /// <param name="name">The stream provider name.</param>
-        /// <returns>The initialized adapter factory.</returns>
+        /// <param name="services">服务供应商。</param>
+        /// <param name="name">流体提供者名称。</param>
+        /// <returns>初始化适配器厂。</returns>
         public static AzureQueueAdapterFactory Create(IServiceProvider services, string name)
         {
             var azureQueueOptions = services.GetOptionsByName<AzureQueueOptions>(name);

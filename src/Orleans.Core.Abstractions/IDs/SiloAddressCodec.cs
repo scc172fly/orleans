@@ -11,7 +11,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Runtime.Serialization
 {
     /// <summary>
-    /// Serializer and deserializer for <see cref="SiloAddress"/> instances.
+    /// <see cref="SiloAddress"/> 实例的序列化和消毒。
     /// </summary>
     [RegisterSerializer]
     public sealed class SiloAddressCodec : IFieldCodec<SiloAddress>

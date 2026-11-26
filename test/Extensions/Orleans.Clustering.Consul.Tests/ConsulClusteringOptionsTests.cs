@@ -35,7 +35,7 @@ namespace Consul.Tests
         {
             var options = new ConsulClusteringOptions();
 
-            // ensure we set a default value.
+            // 保证我们设置默认值。
             var actual = options.CreateClient;
 
             Assert.NotNull(actual);
@@ -47,7 +47,7 @@ namespace Consul.Tests
             var options = new ConsulClusteringOptions();
             Func<IConsulClient> callback = null!;
 
-            // ensure we check the callback.
+            // 保证我们检查回调
             void shouldThrow() => options.ConfigureConsulClient(callback);
 
             Assert.Throws<ArgumentNullException>(shouldThrow);
@@ -60,7 +60,7 @@ namespace Consul.Tests
             var options = new ConsulClusteringOptions();
             IConsulClient callback() => fakeConsul;
 
-            //we can inject the consul
+            //我们可以给领事打个针
             options.ConfigureConsulClient(callback);
 
             var actual = options.CreateClient();
@@ -75,7 +75,7 @@ namespace Consul.Tests
 
             var options = new ConsulClusteringOptions();
 
-            //we can configure the default consult client
+            //我们可以配置默认的咨询客户端
             options.ConfigureConsulClient(address, token);
 
             var client = (ConsulClient)options.CreateClient();
@@ -90,7 +90,7 @@ namespace Consul.Tests
             var address = new Uri("http://localhost:8501");
             var options = new ConsulClusteringOptions();
 
-            //we can configure the default consult client
+            //我们可以配置默认的咨询客户端
             options.ConfigureConsulClient(address);
 
             var client = (ConsulClient)options.CreateClient();
@@ -100,7 +100,7 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// Fake Client with no function.
+        /// 假客户端无功能 。
         /// </summary>
         private class FakeConsul : IConsulClient
         {

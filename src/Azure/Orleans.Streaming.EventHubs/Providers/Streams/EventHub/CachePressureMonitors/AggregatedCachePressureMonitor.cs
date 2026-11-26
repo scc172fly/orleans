@@ -7,19 +7,19 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// Aggregated cache pressure monitor
+    /// 累积缓存压力监测器
     /// </summary>
     public partial class AggregatedCachePressureMonitor : List<ICachePressureMonitor>, ICachePressureMonitor
     {
         private bool isUnderPressure;
         private readonly ILogger logger;
         /// <summary>
-        /// Cache monitor which is used to report cache related metrics
+        /// 用于报告缓存相关度量的缓存监测器
         /// </summary>
         public ICacheMonitor? CacheMonitor { set; private get; }
 
         /// <summary>
-        /// Constructor
+        /// 构造建构器
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="monitor"></param>
@@ -31,7 +31,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Record cache pressure to every monitor in this aggregated cache monitor group
+        /// 记录这个总密藏缓存监控组中每个监视器的缓存压力
         /// </summary>
         /// <param name="cachePressureContribution"></param>
         public void RecordCachePressureContribution(double cachePressureContribution)
@@ -43,7 +43,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// Add one monitor to this aggregated cache monitor group
+        /// 添加一个监视器到此汇总缓存监测组
         /// </summary>
         /// <param name="monitor"></param>
         public void AddCachePressureMonitor(ICachePressureMonitor monitor)
@@ -52,7 +52,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// If any monitor in this aggregated cache monitor group is under pressure, then return true
+        /// 如果这个总密藏监测组的任何监测员受到压力,那么返回真实
         /// </summary>
         /// <param name="utcNow"></param>
         /// <returns></returns>

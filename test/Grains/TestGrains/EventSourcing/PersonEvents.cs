@@ -2,10 +2,10 @@ using TestGrainInterfaces;
 
 namespace TestGrains
 {
-    // We list all the events supported by the JournaledPersonGrain 
+    // 我们列出得到 JournaledPersonGrain支持的所有事件 
 
-    // we chose to have all these events implement the following marker interface
-    // (this is optional, but gives us a bit more typechecking)
+    // 我们选择让所有这些活动 都执行以下标记界面
+    // (这是可选的,但让我们多打几下)
     public interface IPersonEvent { }
 
     [Serializable]

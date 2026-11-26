@@ -4,24 +4,24 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Configuration options for the simple queue cache.
+    /// 简单队列缓存的配置选项 。
     /// </summary>
     public class SimpleQueueCacheOptions
     {
         /// <summary>
-        /// Gets or sets the size of the cache.
+        /// 获取或设置缓存大小 。
         /// </summary>
-        /// <value>The size of the cache.</value>
+        /// <value>缓存的大小。</value>
         public int CacheSize { get; set; } = DEFAULT_CACHE_SIZE;
 
         /// <summary>
-        /// The default value of <see cref="CacheSize"/>.
+        /// 默认值 <see cref="CacheSize"/>。
         /// </summary>
         public const int DEFAULT_CACHE_SIZE = 4096;
     }
 
     /// <summary>
-    /// Validates <see cref="SimpleQueueCacheOptions"/>.
+    /// 验证 <see cref="SimpleQueueCacheOptions"/>。
     /// </summary>
     public class SimpleQueueCacheOptionsValidator : IConfigurationValidator
     {
@@ -29,10 +29,10 @@ namespace Orleans.Configuration
         private readonly string name;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleQueueCacheOptionsValidator"/> class.
+        /// 初始化 <see cref="SimpleQueueCacheOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options.</param>
-        /// <param name="name">The name.</param>
+        /// <param name="options">选项。</param>
+        /// <param name="name">名称。</param>
         private SimpleQueueCacheOptionsValidator(SimpleQueueCacheOptions options, string name)
         {
             this.options = options;
@@ -47,11 +47,11 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Creates a new <see cref="SimpleQueueCacheOptionsValidator"/> instance.
+        /// 创建新的 <see cref="SimpleQueueCacheOptionsValidator"/> 实例。
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="name">The provider name.</param>
-        /// <returns>A new <see cref="SimpleQueueCacheOptionsValidator"/> instance.</returns>
+        /// <param name="services">服务。</param>
+        /// <param name="name">提供者名称。</param>
+        /// <returns>一个新的 <see cref="SimpleQueueCacheOptionsValidator"/> 实例。</returns>
         public static IConfigurationValidator Create(IServiceProvider services, string name)
         {
             SimpleQueueCacheOptions queueCacheOptions = services.GetOptionsByName<SimpleQueueCacheOptions>(name);

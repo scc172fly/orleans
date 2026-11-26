@@ -17,35 +17,35 @@ internal sealed partial class Inbox
     private readonly Dictionary<MessageId, InboxDeadLetterRecord> _deadLetters = [];
     private JournalStreamWriter _writer;
 
-    // Forgetting an identity requires a durable floor which excludes its send time.
+    // 忘记一个身份需要持久的底线,排除其发送时间。
     private DateTimeOffset _admissionFloor = DateTimeOffset.MinValue;
     private DateTimeOffset _capturedAdmissionFloor = DateTimeOffset.MinValue;
     private DateTimeOffset _durableAdmissionFloor = DateTimeOffset.MinValue;
 
-    // Acceptances and completions are durable once a completed write captured their sequence number.
+    // 一旦完成的写作记录了其序列号,接受和完成是持久的。
     private long _lastSequence;
     private long _capturedSequence;
     private long _durableSequence;
     private long _lastCompletionSequence;
     private bool _capturedSnapshot;
 
-    // Whether the last inbox command in the journal records that an activation stopped without an interrupted attempt.
+    // 日记中最后一个收件箱命令是否记录激活停止但未中断尝试。
     private bool _stoppedCleanly;
 
-    // Whether this activation finished its recovery bookkeeping, so its stop can be recorded as clean.
+    // 激活是否完成回收簿, 停止可以记录为干净 。
     private bool _recovered;
 
-    // The earliest due time, on the Durable Jobs clock, of accepted or retrying messages staged since the last capture.
+    // 上一次捕捉以来,在 " 持久工作钟 " 上,接收或重新输入的信息最早应到的时间。
     private DateTimeOffset? _stagedWakeup;
 
     private bool IsDurable(InboxEntry entry) => entry.Sequence <= _durableSequence;
 
-    // Whether every processed record which deduplication relies on is durable.
+    // 每一份重复依赖的经过处理的记录是否都具有耐久性。
     private bool AreCompletionsDurable => _lastCompletionSequence <= _durableSequence;
 
-    // Every journal write prepares every state, so a write which makes a message or registered work pending ensures
-    // its wake-up before it can become durable. After messaging fails, in-memory state may hold changes which must not
-    // commit, such as a failed handler's, so every later write fails and recovery starts from the journal.
+    // 每份期刊的写作都准备每个州,所以在发布信息或登记工作之后进行写作就能确保
+    // 信息发送失败后,记忆状态可能引发一定不能改变的变化
+    // 进行, 如处理失败的操作器, 所以每以后写出失败, 并从日记开始回收 。
     ValueTask IStateMachine.PrepareWriteAsync(CancellationToken cancellationToken)
     {
         if (_pump.IsFailed)
@@ -76,7 +76,7 @@ internal sealed partial class Inbox
     {
         _durableSequence = _capturedSequence;
         _durableAdmissionFloor = _capturedAdmissionFloor;
-        // Floor-only appends stay constant-time; snapshots reclaim history after their admission floor is durable.
+        // 仅限楼层的附件保持固定时间;照片在入场底之后重现历史,是耐久的。
         if (_capturedSnapshot) CompactProcessed();
         _pump.Signal();
     }
@@ -131,7 +131,7 @@ internal sealed partial class Inbox
 
     void IStateMachine.OnRecoveryCompleted()
     {
-        // Admission validated every message, and replay keys each entry by its own message ID.
+        // 接收确认所有信息, 并用自己的信息识别符重放每个条目的密钥 。
         Debug.Assert(_messages.All(static pair => pair.Key == pair.Value.Message.Envelope.MessageId));
         Debug.Assert(_deadLetters.All(static pair => pair.Key == pair.Value.Message.Envelope.MessageId));
 
@@ -144,8 +144,8 @@ internal sealed partial class Inbox
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter writer)
     {
-        // The floor and compacted history commit atomically. Keep the in-memory records until acknowledgement, so
-        // an interleaving delivery still deduplicates while the snapshot's admission floor is not yet durable.
+        // 地板和紧凑历史以原子形式进行。保存记忆记录直到确认,所以
+        // 交接交货仍然很复杂,
         var floor = GetAdmissionFloor(Shared.JobTimeProvider.GetUtcNow());
         Shared.InboxCodec.WriteSet(new InboxCommand.Snapshot(
             _messages.Values.ToArray(),
@@ -165,7 +165,7 @@ internal sealed partial class Inbox
         {
             case InboxCommand.Accept { Message: var message }:
                 _messages.Add(message.Envelope.MessageId, new InboxEntry { Message = message, State = new(), Sequence = ++_lastSequence });
-                // A reused identity starts a new command, which replaces the earlier command's records.
+                // 重新使用身份后,将启动新的命令,取代以前的命令记录。
                 _processed.Remove(message.Envelope.MessageId);
                 _deadLetters.Remove(message.Envelope.MessageId);
                 ReportDepth(1);
@@ -219,10 +219,10 @@ internal sealed partial class Inbox
 
 }
 
-/// <summary>A change to the inbox's journaled state.</summary>
+/// <summary>更改收件箱的日记状态。</summary>
 /// <remarks>
-/// Case identifiers follow declaration order and are part of the journal format. In JSON, each case leads with its
-/// <c>kind</c>, which <see cref="InboxCommandClassifier"/> reads to select the case.
+/// 案件识别特征遵循申报顺序,是日记格式的一部分。 JSON,每个案件都与
+/// <c>kind</c>,其 <see cref="InboxCommandClassifier"/> 读作选择案件。
 /// </remarks>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand")]
 [JsonUnion(TypeClassifier = typeof(InboxCommandClassifier))]
@@ -255,7 +255,7 @@ internal union InboxCommand(
         public string Kind => "retry";
     }
 
-    /// <summary>Records a message's processed outcome, replacing any earlier record and dead letter of it.</summary>
+    /// <summary>记录信息处理的结果 替换任何早期的记录和死亡的文字</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.Complete")]
     internal sealed class Complete(MessageId messageId, DateTimeOffset sentAt, InboxDeadLetterRecord? deadLetter, InboxRejection? rejection)
     {
@@ -277,7 +277,7 @@ internal union InboxCommand(
         public string Kind => "removeDeadLetters";
     }
 
-    /// <summary>Replaces the inbox's state.</summary>
+    /// <summary>替换收件箱状态。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.Snapshot")]
     internal sealed class Snapshot(InboxEntry[] messages, InboxProcessedEntry[] processed, InboxDeadLetterRecord[] deadLetters, DateTimeOffset admissionFloor, bool stoppedCleanly)
     {
@@ -300,7 +300,7 @@ internal union InboxCommand(
         public string Kind => "advanceAdmissionFloor";
     }
 
-    /// <summary>Records that an activation stopped with no handler attempt interrupted, so recovery charges none.</summary>
+    /// <summary>记录显示启动停止 没有操作器中断 所以恢复费没有</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.CleanStop")]
     internal sealed class CleanStop
     {
@@ -310,7 +310,7 @@ internal union InboxCommand(
         public string Kind => "cleanStop";
     }
 
-    /// <summary>Records that a recovered activation consumed a clean stop, so a later unclean stop is charged.</summary>
+    /// <summary>记录显示,一个回收的活化装置 消耗了一个干净的站 所以一个后来不干净的站点被充电</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.Resume")]
     internal sealed class Resume
     {
@@ -321,7 +321,7 @@ internal union InboxCommand(
     }
 }
 
-/// <summary>Selects an <see cref="InboxCommand"/> case from the <c>kind</c> which each JSON case leads with.</summary>
+/// <summary>选择 <see cref="InboxCommand"/> 由 <c>kind</c> 中各 JSON 使用案件线索。</summary>
 internal sealed class InboxCommandClassifier : JsonTypeClassifierFactory
 {
     public override bool CanClassify(JsonTypeClassifierContext context) => context.DeclaringType == typeof(InboxCommand);
@@ -369,7 +369,7 @@ internal sealed class InboxProcessedEntry
     [JsonIgnore] public long Sequence { get; init; }
 }
 
-/// <summary>The answer which an inbox sink gave when it rejected a message on delivery.</summary>
+/// <summary>收件箱汇在发送时拒绝发来电时给出的答案。</summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxRejection")]
 internal sealed class InboxRejection
 {

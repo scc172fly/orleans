@@ -9,7 +9,7 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// Exercises how clients, ordinary grain methods, and durable executions start tasks, and in-grain task management through
+/// 如何开始使用客户、普通 grain 方法和持久处决方法,以及如何在-grain 任务管理中通过
 /// <see cref="IDurableTaskManager"/>.
 /// </summary>
 public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLifetime
@@ -62,7 +62,7 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
         var response = await posted.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken);
         Assert.Equal(42, response.GetResult<int>());
 
-        // The starter retains no task for the posted call.
+        // 启动器对已张贴的呼叫没有保留任务 。
         Assert.Empty(await GetTaskIdsAsync(starter, cancellationToken));
     }
 
@@ -91,7 +91,7 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
         var response = await detached.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken);
         Assert.Equal(10, response.GetResult<int>());
 
-        // The starter retains the client-scheduled workflow with the record in its tree, but no task for the detached call.
+        // 启动程序保留客户端计划流程, 记录在其树上, 但没有任务用于独立调用 。
         var starterTasks = await GetTaskIdsAsync(starter, cancellationToken);
         Assert.Equal(2, starterTasks.Count);
         Assert.Contains(TaskId.CreateRoot("workflow"), starterTasks);
@@ -108,15 +108,15 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
 
         var workflow = await starter.AwaitDetachedEchoesAsync(workerKey, 3).WithId("workflow").ScheduleAsync(cancellationToken);
 
-        // The awaited detached task derives its root ID from the starting grain and the workflow, and the scheduled one uses
-        // its name.
+        // 等待的分离任务从起始 grain 和工作流程以及预定用途中产生根代号
+        // 其名称。
         Assert.Equal(6 + 8, await workflow.WaitAsync(Timeout, cancellationToken));
         var worker = _fixture.Client.GetGrain<IDurableTaskWorkerGrain>(workerKey);
         Assert.Equal(6, (await worker.GetDurableTask<int>(GetDetachedRootId(starter, "workflow", "$child-1")).GetResponseAsync(cancellationToken)).GetResult<int>());
         Assert.Equal(8, (await worker.GetDurableTask<int>("scheduled-echo").GetResponseAsync(cancellationToken)).GetResult<int>());
 
-        // Outside a durable execution, awaiting a reference waits for the task's result, and the reference reads its task
-        // and grain without its result type.
+        // 在一个持久性执行之外,等待参考结果的持久执行,等待任务结果,该参考内容为任务
+        // 和无结果型号的 grain 。
         var scheduled = worker.GetDurableTask<int>("scheduled-echo");
         Assert.Equal(8, await scheduled);
         IDurableTaskReference untyped = scheduled;
@@ -134,8 +134,8 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
         var workflow = await starter.ReportTargetTaskIdsAsync(workerKey).WithId("workflow").ScheduleAsync(cancellationToken);
         var ids = await workflow.WaitAsync(Timeout, cancellationToken);
 
-        // The detached start's handle names the worker's root task, which the workflow observes through it, and which a
-        // client reads through it. The call's handle names the task which the worker stores under the starter's scope.
+        // 独立启动程序处理 指定工人的根任务, 工作流程通过它观察,
+        // 用户通过它读取。 电话的手柄指定了工人在初始范围下储存的工作。
         var detachedRootId = GetDetachedRootId(starter, "workflow", "$child-1");
         Assert.Equal(detachedRootId, ids.DetachedTarget);
         Assert.NotEqual(ids.DetachedTarget, ids.Detached);
@@ -159,8 +159,8 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
 
         Assert.Contains("different request", await workflow.WaitAsync(Timeout, cancellationToken), StringComparison.Ordinal);
 
-        // The worker records the conflicting invocation as processed with the conflict's code, which the starter's outbox
-        // reports as DurableTaskConflictException, and dead-letters nothing.
+        // 工人记录了冲突代码处理的 矛盾性职业
+        // 以 DurableTaskConflictException报告,无任何死字。
         Assert.Empty(await worker.GetInboxDeadLetterReasonsAsync());
     }
 
@@ -173,10 +173,10 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
         var worker = _fixture.Client.GetGrain<IDurableTaskWorkerGrain>(workerKey);
         await worker.EchoAsync(1).WithId("taken").ScheduleAsync(cancellationToken);
 
-        // A task's identity is its method, not its arguments, so the start reaches the stored task.
+        // 任务的身份是它的方法,而不是其论点,所以开始就达到了存储的任务。
         var workflow = await starter.ScheduleEchoAsync(workerKey, "taken", 2).WithId("workflow").ScheduleAsync(cancellationToken);
 
-        // The echo doubles its argument, so the result is the stored task's, which echoed 1.
+        // 反响是其论点的两倍,因此结果就是存储的任务,结果又回响了1。
         Assert.Equal("echoed 2", await workflow.WaitAsync(Timeout, cancellationToken));
         Assert.Equal(2, (await worker.GetDurableTask<int>("taken").GetResponseAsync(cancellationToken)).GetResult<int>());
         Assert.Empty(await worker.GetInboxDeadLetterReasonsAsync());
@@ -205,7 +205,7 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
         var cancellationToken = TestContext.Current.CancellationToken;
         var starter = _fixture.Client.GetGrain<IDurableTaskStartingGrain>(Guid.NewGuid());
 
-        // An outcome which can't be stored faults its task with the serialization failure, which commits like any result.
+        // 无法存储的结果 与序列化失败的任务有误 这造成了任何结果
         var result = await starter.ReturnUnserializableAsync().WithId("unserializable-result").ScheduleAsync(cancellationToken);
         var resultResponse = await result.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken);
         Assert.Equal(DurableTaskStatus.Failed, resultResponse.Status);
@@ -216,14 +216,14 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
         Assert.Equal(DurableTaskStatus.Failed, exceptionResponse.Status);
         Assert.Contains(typeof(InvalidOperationException).FullName!, Assert.IsType<SerializerException>(exceptionResponse.Exception).Message, StringComparison.Ordinal);
 
-        // The grain keeps committing its other work.
+        // 下 grain 继续从事其他工作。
         var later = await starter.TripleAsync(2).WithId("later").ScheduleAsync(cancellationToken);
         Assert.Equal(6, await later.WaitAsync(Timeout, cancellationToken));
     }
 
     /// <summary>
-    /// Derives the root ID of a detached task which <paramref name="host"/>'s execution <paramref name="executionId"/> starts
-    /// as its operation <paramref name="segment"/>: one segment holding <c>{HostId}/{Id}/{segment}</c>, each part escaped.
+    /// 生成一个分离任务( 包括 <paramref name="host"/>执行 <paramref name="executionId"/> 开始
+    /// 其业务的运作情况 <paramref name="segment"/>:分部分举行 <c>{HostId}/{Id}/{segment}</c>每一部分都逃脱了
     /// </summary>
     private static TaskId GetDetachedRootId(IAddressable host, string executionId, string segment) =>
         TaskId.CreateRoot($"{TaskId.CreateRoot(host.GetGrainId().ToString())}/{TaskId.CreateRoot(executionId).Child(segment)}");
@@ -240,14 +240,14 @@ public abstract class DurableTaskStartTests(string journalFormatKey) : IAsyncLif
     }
 }
 
-/// <summary>Runs task start coverage with task state stored in the default JSON journal format.</summary>
+/// <summary>运行任务启动覆盖,任务状态以默认 JSON 日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskStartTests() : DurableTaskStartTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>Runs task start coverage with task state stored in the Orleans binary journal format.</summary>
+/// <summary>运行任务启动覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -258,26 +258,26 @@ public interface IDurableTaskStartingGrain : IGrainWithGuidKey
 {
     Task PostEchoAsync(Guid workerKey, int value, string rootId);
 
-    // A request which awaits a task of its own grain interleaves, since the task's segments are requests to the grain.
+    // 等待自身 grain 间断任务的请求,因为任务各部分是向 grain提出的请求。
     [AlwaysInterleave]
     Task<(int Own, int Other)> ScheduleAndAwaitAsync(Guid workerKey, int value);
 
     DurableTask<int> TripleAsync(int value);
 
-    /// <summary>Completes with a value of a type which has no codec.</summary>
+    /// <summary>完成时,其值为没有编码器的类型。</summary>
     DurableTask<object> ReturnUnserializableAsync();
 
-    /// <summary>Fails with an exception whose data holds a value of a type which has no codec.</summary>
+    /// <summary>失当,但数据具有无编码器类型值的除外。</summary>
     DurableTask<int> ThrowUnserializableAsync();
 
     DurableTask PostEchoInWorkflowAsync(Guid workerKey, int value, string rootId);
 
     DurableTask<int> AwaitDetachedEchoesAsync(Guid workerKey, int value);
 
-    /// <summary>Starts the worker's <c>WaitForCancellationAsync</c> under <paramref name="rootId"/>, which a test takes with another method.</summary>
+    /// <summary>工人开始 <c>WaitForCancellationAsync</c> 下 <paramref name="rootId"/>,测试要用另一种方法进行。</summary>
     DurableTask<string> ScheduleConflictingStartAsync(Guid workerKey, string rootId);
 
-    /// <summary>Starts the worker's echo of <paramref name="value"/> under <paramref name="rootId"/>, and awaits it.</summary>
+    /// <summary>工人开始回响 <paramref name="value"/> 下 <paramref name="rootId"/>等待着它</summary>
     DurableTask<string> ScheduleEchoAsync(Guid workerKey, string rootId, int value);
 
     DurableTask<TargetTaskIds> ReportTargetTaskIdsAsync(Guid workerKey);
@@ -297,7 +297,7 @@ public sealed record TargetTaskIds(
     [property: Id(4)] TaskId Call,
     [property: Id(5)] TaskId CallTarget);
 
-/// <summary>A value of a type which has no codec, so it doesn't serialize.</summary>
+/// <summary>一种没有编码的值,所以不序列。</summary>
 public sealed class UnserializableValue;
 
 [GrainType("durable-task-starting-test")]
@@ -312,7 +312,7 @@ public sealed class DurableTaskStartingGrain(IDurableTaskManager tasks, DurableT
 
     public async Task<(int Own, int Other)> ScheduleAndAwaitAsync(Guid workerKey, int value)
     {
-        // The grain schedules its own task through its runtime, so the call doesn't wait for the grain itself.
+        // 下 grain 任务在运行时安排,所以电话不会等待 grain 本身。
         var own = await this.AsReference<IDurableTaskStartingGrain>().TripleAsync(2).ScheduleAsync();
         var other = await GrainFactory.GetGrain<IDurableTaskWorkerGrain>(workerKey).EchoAsync(value).ScheduleAsync();
         return (await own, await other);

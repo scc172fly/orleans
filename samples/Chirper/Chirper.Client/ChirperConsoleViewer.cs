@@ -5,19 +5,19 @@ using Spectre.Console;
 namespace Chirper.Client;
 
 /// <summary>
-/// Implements an <see cref="IChirperViewer"/> that outputs notifications to the console.
+/// 执行输出通知给控制台的 <see cref="IChirperViewer"/> 。
 /// </summary>
 public sealed class ChirperConsoleViewer : IChirperViewer
 {
     /// <summary>
-    /// The user name of the account being observed.
+    /// 所观察到账户的用户名。
     /// </summary>
     private readonly string _userName;
 
     /// <summary>
-    /// Creates a new <see cref="IChirperViewer"/> that outputs notifications to the console.
+    /// 创建一个新的 <see cref="IChirperViewer"/> ,向控制台发送输出通知。
     /// </summary>
-    /// <param name="userName">The user name of the account being observed.</param>
+    /// <param name="userName">所观察到账户的用户名。</param>
     public ChirperConsoleViewer(string userName) =>
         _userName = userName ?? throw new ArgumentNullException(nameof(userName));
 

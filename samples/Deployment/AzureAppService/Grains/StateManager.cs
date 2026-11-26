@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT License.
+// 持麻省理工学院执照
 
 using Orleans.Core;
 
 namespace Orleans.ShoppingCart.Grains;
 
 /// <summary>
-/// A helper class which wraps a grain state instance and ensures that only a single write operation is outstanding at any moment in time.
+/// 辅助类,该类包扎 grain 国家实例并确保在任何时间的任何时候只有一个未完成的写作操作。
 /// </summary>
-/// <param name="state">The grain state.</param>
+/// <param name="state">下 grain 状态。</param>
 internal sealed class StateManager(IStorage state)
 {
     /// <summary>
-    /// Allows state writing to happen in the background.
+    /// 允许在背景中进行状态写入 。
     /// </summary>
     private Task? _pendingOperation;
 
-    // When reentrant grain is doing WriteStateAsync, etag violations are possible due to concurrent writes.
-    // The solution is to serialize and batch writes, and make sure only a single write is outstanding at any moment in time.
+    // 当Reentrant grain 正在做 WriteStateAsync时,由于同时写作,有可能出现侵权行为。
+    // 解决问题的方法就是进行序列化和批量写作,确保在任何时候只收到一份单封未完成的书。
     public async ValueTask WriteStateAsync()
     {
         await PerformOperationAsync(static state => state.WriteStateAsync());
@@ -32,12 +32,12 @@ internal sealed class StateManager(IStorage state)
     {
         if (_pendingOperation is Task currentWriteStateOperation)
         {
-            // await the outstanding write, but ignore it since it doesn't include our changes
+            // 等待着未完成的写作, 但忽略它, 因为其中不包括我们的更改
             await currentWriteStateOperation.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
             if (_pendingOperation == currentWriteStateOperation)
             {
-                // only null out the outstanding operation if it's the same one as the one we awaited, otherwise
-                // another request might have already done so.
+                // 唯一能取消未完成行动 条件是它和我们期待的一样 否则
+                // 另一项请求可能已经提出。
                 _pendingOperation = null;
             }
         }
@@ -45,15 +45,15 @@ internal sealed class StateManager(IStorage state)
         Task operation;
         if (_pendingOperation is null)
         {
-            // If after the initial write is completed, no other request initiated a new write operation, do it now.
+            // 如果在初始写作完成后,没有其他请求启动新的写作操作,请立即进行。
             operation = performOperation(state);
             _pendingOperation = operation;
         }
         else
         {
-            // If there were many requests enqueued to persist state, there is no reason to enqueue a new write
-            // operation for each, since any write (after the initial one that we already awaited) will have cumulative
-            // changes including the one requested by our caller. Just await the new outstanding write.
+            // 如果有许多要求被排在了持续状态的呼声中,就没有理由写新书
+            // 每个操作的操作, 因为任何写作( 之前我们期待的首部) 都将累积
+            // 包括我们打电话者要求的更改。 等待新的未写 。
             operation = _pendingOperation;
         }
 
@@ -65,8 +65,8 @@ internal sealed class StateManager(IStorage state)
         {
             if (_pendingOperation == operation)
             {
-                // only null out the outstanding operation if it's the same one as the one we awaited, otherwise
-                // another request might have already done so.
+                // 唯一能取消未完成行动 条件是它和我们期待的一样 否则
+                // 另一项请求可能已经提出。
                 _pendingOperation = null;
             }
         }

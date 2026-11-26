@@ -3,13 +3,13 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// Represents a schedule of a request under a task identifier which the target grain already associates with a different
-/// operation, such as a different method or caller.
+/// 目标 grain 已经与另一个任务标识符
+/// 操作,例如使用不同的方法或呼叫。
 /// </summary>
 /// <remarks>
-/// A task identifier deduplicates schedules of the same method and caller. Repeated starts of that operation return the
-/// stored task, including when the arguments differ. A start with a different method or caller receives this exception,
-/// and the existing task is unchanged.
+/// 任务识别任务标识符重复使用同一方法和调用器的日程表。
+/// 存储任务,包括当参数不同时。从不同的方法开始或打电话者收到此例外,
+/// 现有任务不变。
 /// </remarks>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Tasks.DurableTaskConflictException")]
@@ -19,16 +19,16 @@ public sealed class DurableTaskConflictException : InvalidOperationException
     {
     }
 
-    /// <summary>Initializes an exception for <paramref name="taskId"/>.</summary>
-    /// <param name="taskId">The task identifier which the target associates with another operation.</param>
-    /// <param name="message">A description of the recorded and the requested operations.</param>
+    /// <summary>初始化 <paramref name="taskId"/>的例外。</summary>
+    /// <param name="taskId">目标与另一操作相关的任务标识符。</param>
+    /// <param name="message">记录和要求的行动说明。</param>
     public DurableTaskConflictException(TaskId taskId, string message)
         : base(message)
     {
         TaskId = taskId;
     }
 
-    /// <summary>Gets the task identifier which the target associates with another operation.</summary>
+    /// <summary>获取目标与另一操作相关的任务标识符。</summary>
     [Id(0)]
     public TaskId TaskId { get; private set; }
 }

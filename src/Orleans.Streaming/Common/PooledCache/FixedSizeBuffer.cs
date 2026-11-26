@@ -4,8 +4,8 @@ using System;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Manages a contiguous block of memory.
-    /// Calls purge action with itself as the purge request when it's signaled to purge.
+    /// 管理一个毗连的内存块。
+    /// 要求清洗行动本身作为清洗请求 当它发出清洗信号时
     /// </summary>
     public class FixedSizeBuffer : PooledResource<FixedSizeBuffer>
     {
@@ -13,19 +13,19 @@ namespace Orleans.Providers.Streams.Common
         private int count;
 
         /// <summary>
-        /// Buffer size in bytes.
+        /// 以字节计的缓冲大小 。
         /// </summary>
         public readonly int SizeInByte;
 
         /// <summary>
-        /// Unique identifier of this buffer.
+        /// 此缓冲符的独特标识 。
         /// </summary>
         public object Id => buffer;
 
         /// <summary>
-        /// Manages access to a fixed size byte buffer.
+        /// 管理对固定字节缓冲的访问。
         /// </summary>
-        /// <param name="blockSizeInByte">The block size, in bytes.</param>
+        /// <param name="blockSizeInByte">区块大小,以字节为单位。</param>
         public FixedSizeBuffer(int blockSizeInByte)
         {
             if (blockSizeInByte < 0)
@@ -38,12 +38,12 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Try to get a segment with a buffer of the specified size from this block.
-        /// Fail if there is not enough space available
+        /// 尝试从此块中获取一个带有指定大小缓冲的段。
+        /// 如果没有足够的空间,则不能
         /// </summary>
-        /// <param name="size">The size.</param>
-        /// <param name="value">The segment.</param>
-        /// <returns><see langword="true"/> if the segment was retrieved; otherwise <see langword="false"/>.</returns>
+        /// <param name="size">大小。</param>
+        /// <param name="value">段</param>
+        /// <returns><see langword="true"/> ,如果该段被收回;否则 <see langword="false"/>。</returns>
         public bool TryGetSegment(int size, out ArraySegment<byte> value)
         {
             value = default;

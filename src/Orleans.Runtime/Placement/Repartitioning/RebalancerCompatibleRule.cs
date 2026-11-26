@@ -12,7 +12,7 @@ namespace Orleans.Runtime.Placement.Repartitioning;
 
 
 /// <summary>
-/// Tolerance rule which is aware of the cluster size, and if rebalancer is enabled, it scales with the clusters imbalance.
+/// 宽容规则意识到集群规模,如果能够重新平衡,它会与集群失衡相适应。
 /// </summary>
 /// <remarks>https://www.ledjonbehluli.com/posts/orleans_repartioner_rebalancer_coexistence/</remarks>
 internal class RebalancerCompatibleRule(IServiceProvider provider) :
@@ -23,7 +23,7 @@ internal class RebalancerCompatibleRule(IServiceProvider provider) :
     private readonly Dictionary<SiloAddress, SiloStatus> _silos = [];
 
     private uint _pairwiseImbalance;
-    private double _clusterImbalance; // If rebalancer is not registered this has no effect on computing the tolerance.
+    private double _clusterImbalance; // 如果再平衡器没有注册,这对计算耐受度没有任何影响。
 
     private readonly ISiloStatusOracle _oracle = provider.GetRequiredService<ISiloStatusOracle>();
     private readonly IActivationRebalancer? _rebalancer = provider.GetService<IActivationRebalancer>();
@@ -61,7 +61,7 @@ internal class RebalancerCompatibleRule(IServiceProvider provider) :
         if (percentageOfBaseline < 10d) percentageOfBaseline = 10d;
 
         var pairwiseImbalance = (uint)Math.Round(10.1d * percentageOfBaseline, 0);
-        var toleranceFactor = Math.Cos(Math.PI * _clusterImbalance / 2);  // This will always be 1 if rebalancer is not registered.
+        var toleranceFactor = Math.Cos(Math.PI * _clusterImbalance / 2);  // 如果再平衡器没有注册, 则总是 1 。
 
         _pairwiseImbalance = (uint)Math.Max(pairwiseImbalance * toleranceFactor, 0);
     }

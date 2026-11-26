@@ -10,7 +10,7 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// Implementation of <see cref="IGrainLocator"/> that uses the in memory distributed directory of Orleans
+    /// 执行《公约》的执行情况 <see cref="IGrainLocator"/> 用于内存分布目录中的 Orleans
     /// </summary>
     internal class DhtGrainLocator : IGrainLocator
     {
@@ -36,7 +36,7 @@ namespace Orleans.Runtime.GrainDirectory
         {
             EnsureInitialized();
 
-            // If this ever gets more complicated, we can use a list or internally manage things within a single worker.
+            // 如果事情变得复杂, 我们可以使用列表或内部管理 单一工人。
             var worker = cause switch
             {
                 UnregistrationCause.Force => _forceWorker,
@@ -48,9 +48,9 @@ namespace Orleans.Runtime.GrainDirectory
 
             void EnsureInitialized()
             {
-                // Unfortunately, for now we need to perform this initialization lazily, since a SystemTarget does not become valid
-                // until it's registered with the Catalog (see Catalog.RegisterSystemTarget), which can happen after this instance
-                // is constructed.
+                // 不幸的是,我们现在需要拉着时间进行初始化工作,因为 SystemTarget 不有效
+                // 直至它注册到目录(见 Catalog.RegisterSystemTarget),此例之后即可
+                // 已经构建。
                 if (_forceWorker is not null && _neaWorker is not null)
                 {
                     return;
@@ -120,7 +120,7 @@ namespace Orleans.Runtime.GrainDirectory
 
                 while (await reader.WaitToReadAsync())
                 {
-                    // Process a batch of work.
+                    // a 处理批次工作。
                     try
                     {
                         operations.Clear();

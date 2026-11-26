@@ -1,14 +1,16 @@
-# Google Cloud emulators
+<a id="google-cloud-emulators"></a>
 
-Firebase does not publish an official Emulator Suite container. Use the official Firebase CLI package instead.
+# Google 云模拟器
 
-Install Java 21 and Firebase CLI version 15.24.0:
+消防基地不公布正式模拟器套装容器。 使用官方消防基地 CLI 软件包代替。
+
+安装 Java 21 和 Firebase CLI 版本 15.2.40.:
 
 ```shell
 npm install --global firebase-tools@15.24.0
 ```
 
-From this directory, start the configured emulators:
+从此目录开始配置的模拟器 :
 
 ```shell
 firebase emulators:start --only firestore,pubsub,storage --project orleans-test

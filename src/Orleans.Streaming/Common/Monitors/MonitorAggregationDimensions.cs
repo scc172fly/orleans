@@ -1,42 +1,42 @@
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// Aggregation dimensions for receiver monitor.
+    /// 接收器监测器的聚合尺寸。
     /// </summary>
     public class ReceiverMonitorDimensions
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiverMonitorDimensions"/> class.
+        /// 初始化 <see cref="ReceiverMonitorDimensions"/> 类的新实例。
         /// </summary>
-        /// <param name="queueId">The queue identifier.</param>
+        /// <param name="queueId">队列标识符。</param>
         public ReceiverMonitorDimensions(string queueId)
         {
             this.QueueId = queueId;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReceiverMonitorDimensions"/> class.
+        /// 初始化 <see cref="ReceiverMonitorDimensions"/> 类的新实例。
         /// </summary>
         public ReceiverMonitorDimensions()
         {
         }
 
         /// <summary>
-        /// Gets the queue identifier.
+        /// 获取队列标识符。
         /// </summary>
-        public string QueueId { get; set; } = null!; // Set by constructor or object initializer.
+        public string QueueId { get; set; } = null!; // 由构建器或对象初始化器设置 。
     }
 
     /// <summary>
-    /// Aggregation dimensions for cache monitor.
+    /// 缓存监视器的聚合维度
     /// </summary>
     public class CacheMonitorDimensions : ReceiverMonitorDimensions
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CacheMonitorDimensions"/> class.
+        /// 初始化 <see cref="CacheMonitorDimensions"/> 类的新实例。
         /// </summary>
-        /// <param name="queueId">The queue identifier.</param>
-        /// <param name="blockPoolId">The block pool identifier.</param>
+        /// <param name="queueId">队列标识符。</param>
+        /// <param name="blockPoolId">块集合识别符号。</param>
         public CacheMonitorDimensions(string queueId, string blockPoolId)
             : base(queueId)
         {
@@ -44,30 +44,30 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// Gets or sets the block pool identifier.
+        /// 获取或设置街区池识别码。
         /// </summary>
-        /// <value>The block pool identifier.</value>
+        /// <value>块集合识别符号。</value>
         public string BlockPoolId { get; set; }
     }
 
     /// <summary>
-    /// Aggregation dimensions for block pool monitors.
+    /// 区块池监测器的聚合尺寸。
     /// </summary>
     public class BlockPoolMonitorDimensions
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="BlockPoolMonitorDimensions"/> class.
+        /// 初始化 <see cref="BlockPoolMonitorDimensions"/> 类的新实例。
         /// </summary>
-        /// <param name="blockPoolId">The block pool identifier.</param>
+        /// <param name="blockPoolId">块集合识别符号。</param>
         public BlockPoolMonitorDimensions(string blockPoolId)
         {
             this.BlockPoolId = blockPoolId;
         }
 
         /// <summary>
-        /// Gets or sets the block pool identifier.
+        /// 获取或设置街区池识别码。
         /// </summary>
-        /// <value>The block pool identifier.</value>
+        /// <value>块集合识别符号。</value>
         public string BlockPoolId { get; set; }
     }
 }

@@ -8,17 +8,17 @@ using Orleans.Serialization.Configuration;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Contains grain type descriptions.
+    /// 包含 grain 型号描述。
     /// </summary>
     public class GrainTypeOptions
     {
         private readonly HashSet<Type> _classes = new();
 
         /// <summary>
-        /// Gets a collection of metadata about grain classes.
+        /// 收集 grain 类的元数据。
         /// </summary>
         /// <remarks>
-        /// Use <see cref="AddClass(Type)"/> to register grain classes with public constructors preserved for activation.
+        /// 使用 <see cref="AddClass(Type)"/> 将 grain 类与公共建筑机组登记,供激活。
         /// </remarks>
         public HashSet<Type> Classes
         {
@@ -27,10 +27,10 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// Adds a grain class and preserves its public constructors and implemented interfaces for activation.
+        /// 添加一个 grain 类,并保存其公共建筑器和启用的界面。
         /// </summary>
-        /// <param name="grainClass">The grain implementation class.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> is <see langword="null"/>.</exception>
+        /// <param name="grainClass">下 grain 执行类别。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> 是 <see langword="null"/>.</exception>
         public void AddClass(
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] Type grainClass)
             => _classes.Add(grainClass ?? throw new ArgumentNullException(nameof(grainClass)));
@@ -38,22 +38,22 @@ namespace Orleans.Configuration
         internal HashSet<Type> GrainClasses => _classes;
 
         /// <summary>
-        /// Gets a collection of metadata about grain interfaces.
+        /// 获取关于 grain 接口的元数据集。
         /// </summary>
         public HashSet<Type> Interfaces { get; } = new();
     }
 
     /// <summary>
-    /// The default configuration provider for <see cref="GrainTypeOptions"/>.
+    /// <see cref="GrainTypeOptions"/>的默认配置提供者。
     /// </summary>
     internal sealed class DefaultGrainTypeOptionsProvider : IConfigureOptions<GrainTypeOptions>
     {
         private readonly TypeManifestOptions _typeManifestOptions;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultGrainTypeOptionsProvider"/> class.
+        /// 初始化 <see cref="DefaultGrainTypeOptionsProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="typeManifestOptions">The type manifest options.</param>
+        /// <param name="typeManifestOptions">类型列表选项。</param>
         public DefaultGrainTypeOptionsProvider(IOptions<TypeManifestOptions> typeManifestOptions) => _typeManifestOptions = typeManifestOptions.Value;
 
         /// <inheritdoc />
@@ -97,7 +97,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// Validates <see cref="GrainTypeOptions"/>.
+    /// 验证 <see cref="GrainTypeOptions"/>。
     /// </summary>
     public sealed class GrainTypeOptionsValidator : IConfigurationValidator
     {
@@ -105,10 +105,10 @@ namespace Orleans.Configuration
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GrainTypeOptionsValidator"/> class.
+        /// 初始化 <see cref="GrainTypeOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">The options.</param>
-        /// <param name="serviceProvider">The service provider.</param>
+        /// <param name="options">选项。</param>
+        /// <param name="serviceProvider">服务供应商。</param>
         public GrainTypeOptionsValidator(IOptions<GrainTypeOptions> options, IServiceProvider serviceProvider)
         {
             _options = options;

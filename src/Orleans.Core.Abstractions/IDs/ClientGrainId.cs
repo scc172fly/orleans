@@ -3,27 +3,27 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Identifies a client.
+    /// 确定客户身份。
     /// </summary>
     internal readonly struct ClientGrainId : IEquatable<ClientGrainId>, IComparable<ClientGrainId>, ISpanFormattable
     {
         /// <summary>
-        /// Creates a new <see cref="ClientGrainId"/> instance.
+        /// 创建新的 <see cref="ClientGrainId"/> 实例。
         /// </summary>
         private ClientGrainId(GrainId grainId) => this.GrainId = grainId;
 
         /// <summary>
-        /// Gets the underlying <see cref="GrainId"/>.
+        /// 获取底部 <see cref="GrainId"/>。
         /// </summary>
         public readonly GrainId GrainId;
 
         /// <summary>
-        /// Creates a new <see cref="ClientGrainId"/> instance.
+        /// 创建新的 <see cref="ClientGrainId"/> 实例。
         /// </summary>
         public static ClientGrainId Create() => Create(GrainIdKeyExtensions.CreateGuidKey(Guid.NewGuid()));
 
         /// <summary>
-        /// Creates a new <see cref="ClientGrainId"/> instance.
+        /// 创建新的 <see cref="ClientGrainId"/> 实例。
         /// </summary>
         public static ClientGrainId Create(string id)
         {
@@ -32,12 +32,12 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// Creates a new <see cref="ClientGrainId"/> instance.
+        /// 创建新的 <see cref="ClientGrainId"/> 实例。
         /// </summary>
         public static ClientGrainId Create(IdSpan id) => new ClientGrainId(new GrainId(GrainTypePrefix.ClientGrainType, id));
 
         /// <summary>
-        /// Converts the provided <see cref="GrainId"/> to a <see cref="ClientGrainId"/>. A return value indicates whether the operation succeeded.
+        /// 将提供的 <see cref="GrainId"/> 转换为 <see cref="ClientGrainId"/>。返回值表示操作是否成功。
         /// </summary>
         public static bool TryParse(GrainId grainId, out ClientGrainId clientId)
         {
@@ -47,7 +47,7 @@ namespace Orleans.Runtime
                 return false;
             }
 
-            // Strip the observer id, if present.
+            // 观察员身份(如果在场)。
             var key = grainId.Key.AsSpan();
             if (key.IndexOf((byte)ObserverGrainId.SegmentSeparator) is int index && index >= 0)
             {
@@ -80,19 +80,19 @@ namespace Orleans.Runtime
         public int CompareTo(ClientGrainId other) => this.GrainId.CompareTo(other.GrainId);
 
         /// <summary>
-        /// Compares the provided operands for equality.
+        /// 与所提供的平等目标相比较。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
         public static bool operator ==(ClientGrainId left, ClientGrainId right) => left.Equals(right);
 
         /// <summary>
-        /// Compares the provided operands for inequality.
+        /// 比较所提供的不平等域。
         /// </summary>
-        /// <param name="left">The left operand.</param>
-        /// <param name="right">The right operand.</param>
-        /// <returns><see langword="true"/> if the provided values are not equal, otherwise <see langword="false"/>.</returns>
+        /// <param name="left">左侧操作。</param>
+        /// <param name="right">右侧操作。</param>
+        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
         public static bool operator !=(ClientGrainId left, ClientGrainId right) => !(left == right);
     }
 }

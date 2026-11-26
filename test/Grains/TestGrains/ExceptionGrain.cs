@@ -5,9 +5,9 @@ namespace UnitTests.Grains
     public class ExceptionGrain : Grain, IExceptionGrain
     {
         /// <summary>
-        /// Returns a canceled <see cref="Task"/>.
+        /// 返回已取消 <see cref="Task"/>。
         /// </summary>
-        /// <returns>A canceled <see cref="Task"/>.</returns>
+        /// <returns>一个取消的 <see cref="Task"/>。</returns>
         public Task Canceled()
         {
             var tcs = new TaskCompletionSource<int>();

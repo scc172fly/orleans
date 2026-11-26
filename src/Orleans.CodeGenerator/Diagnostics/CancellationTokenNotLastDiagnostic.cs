@@ -3,27 +3,27 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// Defines the diagnostic reported when an RPC method has a cancellation token parameter which is not last.
+/// 当 RPC 方法有非持续取消的代号参数时,定义所报告诊断。
 /// </summary>
 public static class CancellationTokenNotLastDiagnostic
 {
     /// <summary>
-    /// The diagnostic identifier.
+    /// 诊断识别器
     /// </summary>
     public const string DiagnosticId = DiagnosticRuleId.CancellationTokenNotLast;
 
     /// <summary>
-    /// The diagnostic title.
+    /// 诊断标题
     /// </summary>
     public const string Title = "CancellationToken should be the last RPC parameter";
 
     /// <summary>
-    /// The diagnostic message format.
+    /// 诊断信息格式
     /// </summary>
     public const string MessageFormat = "CancellationToken parameter '{0}' on RPC method '{1}' should be the last parameter";
 
     /// <summary>
-    /// The diagnostic category.
+    /// 诊断类别。
     /// </summary>
     public const string Category = "Usage";
 
