@@ -43,7 +43,7 @@ const badges = [
       {member.hasSet && <span>{member.isInitOnly ? 'init' : 'set'}</span>}
     </div>
   </header>
-  {source && <a class="api-member-source" href={source}>View source</a>}
+  {source && <a class="api-member-source" href={source}>查看源码</a>}
   <Code code={buildMemberSignature(member)} lang="csharp" />
   {
     member.docs?.summary && (
@@ -60,7 +60,7 @@ const badges = [
   {
     member.parameters?.length && (
       <section>
-        <h3>Parameters</h3>
+        <h3>参数</h3>
         <dl>
           {member.parameters.map((parameter) => (
             <div>
@@ -85,7 +85,7 @@ const badges = [
   {
     member.docs?.returns && (
       <section>
-        <h3>Returns</h3>
+        <h3>返回值</h3>
         <ApiDocContent
           content={member.docs.returns}
           packages={packages}
@@ -98,7 +98,7 @@ const badges = [
   {
     member.docs?.value && (
       <section>
-        <h3>Property value</h3>
+        <h3>属性值</h3>
         <ApiDocContent
           content={member.docs.value}
           packages={packages}
@@ -111,7 +111,7 @@ const badges = [
   {
     member.docs?.exceptions?.length && (
       <section>
-        <h3>Exceptions</h3>
+        <h3>异常</h3>
         <dl>
           {member.docs.exceptions.map((exception) => (
             <div>
@@ -135,7 +135,7 @@ const badges = [
   {
     member.docs?.examples?.length && (
       <section>
-        <h3>Examples</h3>
+        <h3>示例</h3>
         {member.docs.examples.map((example) => (
           <>
             <ApiDocContent

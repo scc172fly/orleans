@@ -38,7 +38,7 @@ Orleans 启动和停止运行时组件,通过一个有顺序的可见生命周�
 有些常数有意共享或括号很紧的值, 因为它们的启动和关闭语义不同。 将命名的常数作为订购合同; 不要将其数字值复制到应用代码中 。
 
 > [!IMPORTANT]
-> <xref:Orleans.ServiceLifecycleStage.BecomeActive> is reserved for the membership and gateway transition. Application components normally use <xref:Orleans.ServiceLifecycleStage.ApplicationServices> or <xref:Orleans.ServiceLifecycleStage.Active>.
+> <xref:Orleans.ServiceLifecycleStage.BecomeActive> 保留给集群成员关系和网关的状态转换。应用组件通常使用 <xref:Orleans.ServiceLifecycleStage.ApplicationServices> 或 <xref:Orleans.ServiceLifecycleStage.Active>。
 
 <a id="silo-lifecycle-participation"></a>
 

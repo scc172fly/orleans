@@ -45,7 +45,7 @@ const headings = [...namespaces.keys()].map((namespace) => ({
 <StarlightPage
   frontmatter={{
     title: pkg.package.name,
-    description: `${pkg.package.name} ${pkg.package.version} API reference.`,
+    description: `${pkg.package.name} ${pkg.package.version} API 参考。`,
     editUrl: false,
     prev: false,
     next: false,
@@ -57,8 +57,8 @@ const headings = [...namespaces.keys()].map((namespace) => ({
 >
   <ApiBreadcrumbs
     items={[
-      { label: 'Documentation', href: withBase(base, '/') },
-      { label: 'API reference', href: withBase(base, '/docs/api/csharp/') },
+      { label: '文档', href: withBase(base, '/') },
+      { label: 'API 参考', href: withBase(base, '/docs/api/csharp/') },
       { label: pkg.package.name },
     ]}
   />

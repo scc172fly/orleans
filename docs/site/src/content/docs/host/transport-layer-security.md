@@ -12,7 +12,7 @@ ms.topic: how-to
 Orleans 能够保护客户端到silo 和 silo- 来...silo 与运输层安全(TLS)连接。 TLS加密通信,认证端点作为 TLS 服务器。mTLS还要求并认证作为 TLS 客户端的终点。
 
 > [!IMPORTANT]
-> <xref:Orleans.Connections.Transport.Security.TlsOptions.RemoteCertificateMode> defaults to `RequireCertificate`. On a silo's inbound connections, this default requires the connecting silo or Orleans client to present a certificate. To configure server-authenticated TLS without client certificates, explicitly set it to `NoCertificate` on every silo.
+> <xref:Orleans.Connections.Transport.Security.TlsOptions.RemoteCertificateMode> 默认为 `RequireCertificate`。对于 Silo 的入站连接，此设置要求连接方 Silo 或 Orleans 客户端出示证书。若只验证 TLS 服务端身份，请在每个 Silo 上明确设为 `NoCertificate`。
 
 TRS API 包含在 Orleans 服务器和客户包中。
 
@@ -106,7 +106,7 @@ silo 提供服务器证书。连接客户端和 silos 验证其链条、有效�
 默认平台验证在 <xref:Orleans.Connections.Transport.Security.TlsOptions.RemoteCertificateValidation> 不设置时适用。 如果您提供回调, 请保持正常的链条和名称检查, 并只添加您所需的具体部署策略。 返回 `true` 的回调会无条件地破坏对等认证 。
 
 > [!WARNING]
-> <xref:Orleans.Connections.Transport.Security.TlsOptions.AllowAnyRemoteCertificate> is suitable only for isolated local development. It accepts any remote certificate and therefore doesn't protect against impersonation or an active man-in-the-middle.
+> <xref:Orleans.Connections.Transport.Security.TlsOptions.AllowAnyRemoteCertificate> 仅适用于隔离的本地开发环境。它会接受任何远程证书，因而无法防止身份冒充或主动中间人攻击。
 
 <a id="establish-certificate-trust"></a>
 

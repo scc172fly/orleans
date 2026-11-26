@@ -8,9 +8,9 @@ interface Props {
 const { nuget, source, markdown } = Astro.props;
 ---
 
-<nav class="api-links" aria-label="API resources">
+<nav class="api-links" aria-label="API 资源">
   {nuget && <a href={nuget}>NuGet</a>}
-  {source && <a href={source}>Source</a>}
+  {source && <a href={source}>源码</a>}
   {markdown && <a href={markdown}>Markdown</a>}
 </nav>
 

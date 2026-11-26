@@ -68,7 +68,7 @@ const headings = [
 <StarlightPage
   frontmatter={{
     title: `${typeName}.${memberName}`,
-    description: `${memberName} ${member.kind} on ${typeName} in ${pkg.package.name}.`,
+    description: `${memberName} ${member.kind}，所属类型为 ${typeName}，位于 ${pkg.package.name}。`,
     editUrl: false,
     prev: false,
     next: false,
@@ -80,8 +80,8 @@ const headings = [
 >
   <ApiBreadcrumbs
     items={[
-      { label: 'Documentation', href: withBase(base, '/') },
-      { label: 'API reference', href: withBase(base, '/docs/api/csharp/') },
+      { label: '文档', href: withBase(base, '/') },
+      { label: 'API 参考', href: withBase(base, '/docs/api/csharp/') },
       { label: pkg.package.name, href: withBase(base, packagePath(pkg.package.name)) },
       { label: typeName, href: withBase(base, typePath(pkg.package.name, type)) },
       {

@@ -76,13 +76,13 @@ description: "使用 Microsoft Orleans建造的卡尼卡购物车样品应用软
 
 1. 创建 Azure 宇宙 DB NoSQL 账户。
     1. 创建名为 `Orleans`的数据库。
-    1. Within the `Orleans` database, create a container named `OrleansStorage` with a partition key path of `/PartitionKey`.
-    1. Create another container named `OrleansCluster` within the `Orleans` database. Ensure this container has a partition key path of `/ClusterId`.
-    1. Get the connection string.
+    1. 在 `Orleans` 数据库中创建 `OrleansStorage` 容器，分区键路径为 `/PartitionKey`。
+    1. 在 `Orleans` 数据库中再创建一个 `OrleansCluster` 容器，分区键路径为 `/ClusterId`。
+    1. 获取连接字符串。
 1. 创建一个 Azure 容器应用程序,作为您部署的目标。
     1. 确保目标进港为 `8080`。更多信息,请参见 [默认缺缺缺 ASP.NET 核心端口改为8080](https://learn.microsoft.com/dotnet/core/compatibility/containers/8.0/aspnet-port)。
-    1. Create a secret in the Container App for the Azure Cosmos DB for NoSQL account's connection string.
-    1. Create an environment variable in the Container App's container named `ORLEANS_AZURE_COSMOS_DB_CONNECTION_STRING`. Reference the secret you just created.
+    1. 在容器应用中创建机密，保存 Azure Cosmos DB for NoSQL 帐户的连接字符串。
+    1. 在容器应用的容器中创建环境变量 `ORLEANS_AZURE_COSMOS_DB_CONNECTION_STRING`，引用刚创建的机密。
 1. 将应用程序部署到 Azure 集装箱应用服务。更多信息,请见 [Azure 集装箱集装箱](https://learn.microsoft.com/azure/container-apps/code-to-cloud-options)。
 
 <a id="build-docker-image-locally"></a>

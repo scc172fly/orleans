@@ -13,33 +13,33 @@ const samples = [...preparedGallery.items].sort(
   {
     preparedGallery.missing ? (
       <div class="sample-gallery__empty">
-        <h2>Sample catalog not available yet</h2>
+        <h2>示例目录暂不可用</h2>
         <p>
-          This development branch does not contain <code>samples/gallery.json</code>. The gallery
-          will populate automatically when the catalog is available.
+          当前开发分支缺少 <code>samples/gallery.json</code>. 示例库
+          会在目录可用后自动显示内容。
         </p>
       </div>
     ) : preparedGallery.items.length === 0 ? (
       <div class="sample-gallery__empty">
-        <h2>No samples published</h2>
-        <p>The sample catalog is present but does not contain any entries.</p>
+        <h2>尚未发布示例</h2>
+        <p>示例目录为空。</p>
       </div>
     ) : (
       <>
         <form class="sample-search" data-sample-filters role="search">
           <div>
-            <label class="sr-only" for="sample-search">Search samples</label>
+            <label class="sr-only" for="sample-search">搜索示例</label>
             <input
               id="sample-search"
               name="query"
               type="search"
-              placeholder="Search samples by name, technology, or scenario"
+              placeholder="按名称、技术或场景搜索示例"
               data-sample-query
             />
           </div>
         </form>
         <p class="sample-gallery__status" data-sample-status aria-live="polite">
-          {samples.length} samples
+          共 {samples.length} 个示例
         </p>
         <ul class="sample-gallery__list" data-sample-list>
           {samples.map((sample) => (
@@ -84,7 +84,7 @@ const samples = [...preparedGallery.items].sort(
 
       if (status) {
         status.textContent =
-          visible === samples.length ? `${samples.length} samples` : `${visible} matching samples`;
+          visible === samples.length ? `共 ${samples.length} 个示例` : `找到 ${visible} 个匹配的示例`;
       }
     };
 

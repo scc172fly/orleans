@@ -91,10 +91,10 @@ public static class ServiceCollectionExtensions
     /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> 无效。</exception>
     /// <example>
     /// <code>
-    /// // Basic usage
+    /// // 基本用法
     /// app.MapOrleansDashboard();
     ///
-    /// // With authentication
+    /// // 使用身份验证
     /// app.MapOrleansDashboard().RequireAuthorization();
     ///
     /// // 使用自定义基路径

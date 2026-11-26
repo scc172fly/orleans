@@ -126,8 +126,8 @@ Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -like "*fakedomai
 1. 下载并解开样本的平面
 2. 视觉演播室(2022年或以后):
     1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. Navigate to the folder that holds the unzipped sample code, and open the solution file.
-    3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
+    2. 打开解压后的示例目录，再打开其中的解决方案文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
 3. 从命令行 :
    1. 导航到持有未设偏移样本代码的文件夹 。
    2. 运行 `.\run.cmd` (窗口) 或 `./run.sh` (林克斯/macOS)。

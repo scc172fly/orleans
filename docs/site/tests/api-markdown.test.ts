@@ -71,17 +71,17 @@ describe('native API Markdown companions', () => {
     const markdown = renderMemberKindMarkdown(pkg, grain, 'method', '/orleans/');
 
     expect(markdown).toContain(`## GetPrimaryKey(String) {#${primaryKeySlug}}`);
-    expect(markdown).toContain('### Parameters');
+    expect(markdown).toContain('### 参数');
     expect(markdown).toContain('Receives the key extension.');
-    expect(markdown).toContain('### Returns');
+    expect(markdown).toContain('### 返回值');
     expect(markdown).toContain('The grain identifier.');
-    expect(markdown).toContain('### Exceptions');
+    expect(markdown).toContain('### 异常');
     expect(markdown).toContain('System.InvalidOperationException');
-    expect(markdown).toContain('### Examples');
+    expect(markdown).toContain('### 示例');
     expect(markdown).toContain('var id = grain.GetPrimaryKey');
     expect(markdown).toContain('#L42-L48');
     expect(markdown).toContain(
-      `[Dedicated page](/orleans/docs/api/csharp/microsoft.orleans.core/orleans.grain-1/methods/${primaryKeySlug}/)`,
+      `[成员详情](/orleans/docs/api/csharp/microsoft.orleans.core/orleans.grain-1/methods/${primaryKeySlug}/)`,
     );
   });
 
@@ -97,9 +97,9 @@ describe('native API Markdown companions', () => {
       '# Grain&lt;TState&gt;.GetPrimaryKey(String)',
     );
     expect(markdown).toContain(
-      '[Methods](/orleans/docs/api/csharp/microsoft.orleans.core/orleans.grain-1/methods/)',
+      '[方法](/orleans/docs/api/csharp/microsoft.orleans.core/orleans.grain-1/methods/)',
     );
-    expect(markdown).not.toContain('[Dedicated page]');
+    expect(markdown).not.toContain('[成员详情]');
     expect(markdown).toContain('Receives the key extension.');
   });
 

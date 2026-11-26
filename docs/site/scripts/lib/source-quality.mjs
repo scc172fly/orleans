@@ -382,7 +382,7 @@ export function validateNavigation({
     }
   }
 
-  const architecture = tocItems.find((item) => item.name === 'Architecture and internals');
+  const architecture = tocItems.find((item) => ['Architecture and internals', '架构与内部实现'].includes(item.name));
   const architectureLinks = architecture ? flattenToc(architecture.items ?? []) : [];
   if (
     !architecture ||
@@ -399,7 +399,7 @@ export function validateNavigation({
     );
   }
 
-  const eventSourcing = findGroup(tocItems, 'Event Sourcing');
+  const eventSourcing = findGroup(tocItems, '事件溯源') ?? findGroup(tocItems, 'Event Sourcing');
   const eventSourcingLinks = eventSourcing ? flattenToc(eventSourcing.items ?? []) : [];
   if (
     !eventSourcing ||

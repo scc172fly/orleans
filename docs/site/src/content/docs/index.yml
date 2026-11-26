@@ -1,12 +1,12 @@
 ### YamlMime:Hub
 
-title: Microsoft Orleans documentation
-summary: Learn to use the Orleans SDK for .NET. Browse API reference, sample code, tutorials, quickstarts, conceptual articles and more.
+title: "Microsoft Orleans 文档"
+summary: "了解如何使用 .NET Orleans SDK，浏览 API 参考、示例代码、教程、快速入门和概念文档。"
 brand: dotnet
 
 metadata:
-    title: Microsoft Orleans documentation
-    description: Samples, tutorials, and education for .NET Orleans. Microsoft's cloud native and distributed systems platform.
+    title: "Microsoft Orleans 文档"
+    description: "Microsoft 的 .NET 云原生分布式系统平台。提供示例、教程和学习资料。"
     ms.topic: hub-page
     ms.service: dotnet-orleans
     ms.date: 08/12/2026
@@ -15,254 +15,254 @@ highlightedContent:
     # itemType: architecture | concept | deploy | download | get-started | how-to-guide | learn | overview | quickstart | reference | tutorial | whats-new
     items:
         - itemType: overview
-          title: Introduction to Orleans
+          title: "Orleans 简介"
           url: overview.md
         - itemType: deploy
-          title: Deploy Orleans apps
+          title: "部署 Orleans 应用"
           url: deployment/index.md
         - itemType: overview
-          title: Secure Orleans applications
+          title: "保护 Orleans 应用"
           url: security/index.md
         - itemType: quickstart
-          title: Orleans Hello World
+          title: "Orleans Hello World 入门"
           url: tutorials-and-samples/hello-world.md
         - itemType: whats-new
-          title: Migration guide
+          title: "迁移指南"
           url: migration-guide.md
         - itemType: concept
-          title: Why Orleans?
+          title: "为何使用 Orleans？"
           url: benefits.md
         - itemType: get-started
-          title: Develop a grain
+          title: "开发 Grain"
           url: grains/index.md
         - itemType: overview
-          title: Orleans transactions
+          title: "Orleans 事务"
           url: grains/transactions.md
         - itemType: how-to-guide
-          title: Orleans how-to guides
+          title: "Orleans 操作指南"
           url: how-to/index.md
         - itemType: architecture
-          title: Orleans architecture and internals
+          title: "Orleans 架构与内部实现"
           url: implementation/index.md
         - itemType: reference
-          title: C# API reference
+          title: "C# API 参考"
           url: https://scc172fly.github.io/orleans/docs/api/csharp/
 
 conceptualContent:
-    title: Featured content
-    summary: Learn to develop cloud native .NET Orleans apps.
+    title: "精选内容"
+    summary: "学习开发采用 Orleans 的云原生 .NET 应用。"
     # itemType: architecture | concept | deploy | download | get-started | how-to-guide | learn | overview | quickstart | reference | tutorial | video | whats-new
     items:
-        - title: Get started with Orleans
+        - title: "Orleans 入门"
           links:
               - itemType: overview
-                text: Grain lifecycle
+                text: "Grain 生命周期"
                 url: grains/grain-lifecycle.md
               - itemType: overview
-                text: Grain identity
+                text: "Grain 标识"
                 url: grains/grain-identity.md
               - itemType: overview
-                text: Grain placement
+                text: "Grain 放置"
                 url: grains/grain-placement.md
               - itemType: how-to-guide
-                text: Code generation
+                text: "代码生成"
                 url: grains/code-generation.md
               - itemType: how-to-guide
-                text: Stateless worker grains
+                text: "无状态工作 Grain"
                 url: grains/stateless-worker-grains.md
-        - title: Work with grains
+        - title: "开发 Grain"
           links:
               - itemType: overview
-                text: Grain persistence
+                text: "Grain 持久化"
                 url: grains/grain-persistence/index.md
               - itemType: overview
-                text: Grain event sourcing
+                text: "Grain 事件溯源"
                 url: grains/event-sourcing/index.md
               - itemType: overview
-                text: Grain versioning
+                text: "Grain 版本控制"
                 url: grains/grain-versioning/grain-versioning.md
               - itemType: get-started
-                text: Grain services
+                text: "Grain 服务"
                 url: grains/grainservices.md
               - itemType: overview
-                text: Grain observers
+                text: "Grain 观察者"
                 url: grains/observers.md
               - itemType: overview
-                text: Grain interceptors
+                text: "Grain 拦截器"
                 url: grains/interceptors.md
-        - title: Deploy Orleans apps
+        - title: "部署 Orleans 应用"
           links:
               - itemType: concept
-                text: Host on Kubernetes
+                text: "在 Kubernetes 上托管"
                 url: deployment/kubernetes.md
               - itemType: concept
-                text: Production-readiness checklist
+                text: "生产就绪检查清单"
                 url: deployment/production-readiness.md
               - itemType: concept
-                text: Topology, networking, and clustering
+                text: "拓扑、网络和集群"
                 url: deployment/networking.md
               - itemType: how-to-guide
-                text: Host on Service Fabric
+                text: "在 Service Fabric 上托管"
                 url: deployment/service-fabric.md
               - itemType: tutorial
-                text: Deploy to Azure App Service on Windows
+                text: "部署到 Windows 上的 Azure App Service"
                 url: deployment/deploy-to-azure-app-service.md
               - itemType: tutorial
-                text: Deploy to Azure App Service on Linux
+                text: "部署到 Linux 上的 Azure App Service"
                 url: deployment/deploy-to-azure-app-service-linux.md
               - itemType: how-to-guide
-                text: Host on Azure Container Apps
+                text: "在 Azure Container Apps 上托管"
                 url: deployment/deploy-to-azure-container-apps.md
-        - title: Host Orleans apps
+        - title: "托管 Orleans 应用"
           links:
               - itemType: get-started
-                text: Host configuration
+                text: "主机配置"
                 url: host/configuration-guide/index.md
               - itemType: how-to-guide
-                text: Configure Consul clustering
+                text: "配置 Consul 集群"
                 url: host/configuration-guide/clustering/consul.md
               - itemType: get-started
-                text: Observability
+                text: "可观测性"
                 url: host/monitoring/index.md
               - itemType: how-to-guide
-                text: Signals and alerting
+                text: "信号与告警"
                 url: host/monitoring/signals.md
               - itemType: how-to-guide
-                text: Orleans clients
+                text: "Orleans 客户端"
                 url: host/client.md
               - itemType: how-to-guide
-                text: Use the grain directory
+                text: "使用 Grain 目录"
                 url: host/grain-directory.md
               - itemType: architecture
-                text: Heterogeneous silos
+                text: "异构 Silo"
                 url: host/heterogeneous-silos.md
               - itemType: architecture
-                text: Silo lifecycle
+                text: "Silo 生命周期"
                 url: host/silo-lifecycle.md
-        - title: Orleans architecture
+        - title: "Orleans 架构"
           links:
               - itemType: architecture
-                text: Runtime architecture overview
+                text: "运行时架构概述"
                 url: implementation/index.md
               - itemType: architecture
-                text: Runtime architecture
+                text: "运行时架构"
                 url: implementation/runtime-architecture.md
               - itemType: architecture
-                text: Activation lifecycle and migration
+                text: "激活实例生命周期与迁移"
                 url: implementation/activation-lifecycle.md
               - itemType: architecture
-                text: Cluster membership
+                text: "集群成员关系"
                 url: implementation/cluster-management.md
               - itemType: architecture
-                text: Serialization and code generation
+                text: "序列化与代码生成"
                 url: implementation/serialization.md
               - itemType: architecture
-                text: Provider authoring
+                text: "编写提供程序"
                 url: implementation/provider-authoring.md
-        - title: Video content
+        - title: "视频内容"
           links:
             - itemType: video
-              text: An introduction to Orleans
+              text: "Orleans 简介"
               url: https://learn.microsoft.com/shows/reactor/an-introduction-to-orleans
             - itemType: video
-              text: Building real applications with Orleans
+              text: "使用 Orleans 构建实际应用"
               url: https://learn.microsoft.com/shows/on-net/building-real-applications-with-orleans
             - itemType: video
-              text: Building distributed applications with Orleans
+              text: "使用 Orleans 构建应用"
               url: https://learn.microsoft.com/shows/on-net/orleans-onnet
             - itemType: video
-              text: Deploying Orleans Apps to Kubernetes
+              text: "将 Orleans 应用部署到 Kubernetes"
               url: https://learn.microsoft.com/shows/on-net/deploying-orleans-apps-to-kubernetes
             - itemType: video
-              text: Clustering in Orleans
+              text: "Orleans 集群"
               url: https://learn.microsoft.com/shows/on-net/clustering-in-orleans
             - itemType: video
-              text: Setting up Observability in Orleans
+              text: "在 Orleans 中实现可观测性"
               url: https://learn.microsoft.com/shows/on-net/setting-up-observability-in-orleans
 
 additionalContent:
     sections:
-        - title: .NET community resources
+        - title: ".NET 社区资源"
           items:
-              - title: .NET
+              - title: "文档"
                 links:
-                    - text: .NET documentation
+                    - text: ".NET 文档"
                       url: https://learn.microsoft.com/dotnet/
-                    - text: ASP.NET documentation
+                    - text: "ASP.NET 文档"
                       url: https://learn.microsoft.com/aspnet/
-                    - text: Azure documentation
+                    - text: "文档"
                       url: https://learn.microsoft.com/azure/
-                    - text: C# documentation
+                    - text: "C# 文档"
                       url: https://learn.microsoft.com/dotnet/csharp/
-              - title: Webcasts and shows
+              - title: "网络节目"
                 links:
-                    - text: Azure Friday
+                    - text: "Azure Friday"
                       url: https://learn.microsoft.com/shows/azure-friday/
-                    - text: The Cloud Native Show
+                    - text: "云原生节目"
                       url: https://learn.microsoft.com/shows/the-cloud-native-show/
-                    - text: On .NET
+                    - text: "On .NET"
                       url: https://learn.microsoft.com/shows/on-net/
-                    - text: .NET Community Standup
+                    - text: ".NET 社区支持"
                       url: https://dotnet.microsoft.com/platform/community/standup
-                    - text: On .NET Live
+                    - text: ".NET 直播"
                       url: https://dotnet.microsoft.com/live/on-dotnet-live
-              - title: Open source
+              - title: "开源项目"
                 links:
-                    - text: Orleans on GitHub
+                    - text: "GitHub 上的 Orleans"
                       url: https://github.com/dotnet/orleans
-                    - text: Orleans samples on GitHub
+                    - text: "GitHub 上的 Orleans 示例"
                       url: https://github.com/dotnet/orleans/tree/main/samples
-                    - text: Orleans sample catalog
+                    - text: "Orleans 示例目录"
                       url: https://github.com/dotnet/orleans/blob/main/samples/README.md
-                    - text: .NET Platform
+                    - text: ".NET 平台"
                       url: https://github.com/dotnet
-              - title: Interact
+              - title: "互动"
                 links:
-                    - text: Chat on Discord
+                    - text: "在 Discord 上交流"
                       url: https://aka.ms/orleans-discord
-                    - text: Follow @msftorleans on Twitter
+                    - text: "在 Twitter 上关注 @msftorleans"
                       url: https://twitter.com/intent/follow?screen_name=msftorleans
-                    - text: Participate in discussions
+                    - text: "参加讨论"
                       url: https://github.com/dotnet/orleans/discussions
-                    - text: Post an issue (or propose a feature)
+                    - text: "报告问题或提出功能建议"
                       url: https://github.com/dotnet/orleans/issues/new
-                    - text: Comment on pull requests
+                    - text: "评论拉取请求"
                       url: https://github.com/dotnet/orleans/pulls
 
-        - title: API and language reference # < 60 字节( 可选)
-          summary: Search the .NET API and language reference documentation. # < 160个字符( 可选)
+        - title: "API 与语言参考"
+          summary: "搜索 .NET API 和语言参考文档。"
           items:
 
-          - title: ".NET Orleans core API reference"
-            summary: API reference documentation for .NET Orleans.Core
+          - title: "Orleans Core API 参考"
+            summary: "Microsoft.Orleans.Core 的 API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/microsoft.orleans.core/
 
-          - title: ".NET Orleans runtime API reference"
-            summary: API reference documentation for .NET Orleans.Runtime
+          - title: "Orleans Runtime API 参考"
+            summary: "Microsoft.Orleans.Runtime 的 API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/microsoft.orleans.runtime/
 
-          - title: ".NET Orleans streams API reference"
-            summary: API reference documentation for .NET Orleans.Streams
+          - title: "Orleans Streaming API 参考"
+            summary: "Microsoft.Orleans.Streaming 的 API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/microsoft.orleans.streaming/
 
-          - title: ".NET Orleans providers API reference"
-            summary: API reference documentation for .NET Orleans.Providers
+          - title: "Orleans Providers API 参考"
+            summary: "Orleans 提供程序 API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/
 
-          - title: ".NET Orleans storage API reference"
-            summary: API reference documentation for .NET Orleans.Storage
+          - title: "Orleans 存储 API 参考"
+            summary: "Orleans 存储 API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/
 
-          - title: ".NET Orleans Azure Storage API reference"
-            summary: API reference documentation for .NET Orleans.Clustering.AzureStorage
+          - title: "Orleans Azure Storage 集群 API 参考"
+            summary: "Microsoft.Orleans.Clustering.AzureStorage 的 API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/microsoft.orleans.clustering.azurestorage/
 
-          - title: ".NET Orleans services API reference"
-            summary: API reference documentation for .NET Orleans.Services
+          - title: "Orleans Services API 参考"
+            summary: "Orleans Services API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/
 
-          - title: ".NET Orleans transactions API reference"
-            summary: API reference documentation for .NET Orleans.Transactions
+          - title: "Orleans Transactions API 参考"
+            summary: "Microsoft.Orleans.Transactions 的 API 文档"
             url: https://scc172fly.github.io/orleans/docs/api/csharp/microsoft.orleans.transactions/
 
 

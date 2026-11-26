@@ -44,8 +44,8 @@ const displayName = typeDisplayName(type);
 const memberGroups = groupMembersByKind(type.members);
 const source = sourceHref(pkg.package, type.sourceFile, type.sourceLines);
 const headings = [
-  ...(type.docs?.remarks ? [{ depth: 2 as const, slug: 'remarks', text: 'Remarks' }] : []),
-  ...(type.enumMembers?.length ? [{ depth: 2 as const, slug: 'fields', text: 'Fields' }] : []),
+  ...(type.docs?.remarks ? [{ depth: 2 as const, slug: 'remarks', text: '备注' }] : []),
+  ...(type.enumMembers?.length ? [{ depth: 2 as const, slug: 'fields', text: '字段' }] : []),
   ...[...memberGroups.keys()].map((kind) => ({
     depth: 2 as const,
     slug: memberKindPath(pkg.package.name, type, kind).split('/').at(-2) ?? kind,
@@ -57,7 +57,7 @@ const headings = [
 <StarlightPage
   frontmatter={{
     title: displayName,
-    description: `${displayName} ${type.kind} in ${pkg.package.name}.`,
+    description: `${displayName} ${type.kind}，位于 ${pkg.package.name}。`,
     editUrl: false,
     prev: false,
     next: false,
@@ -69,8 +69,8 @@ const headings = [
 >
   <ApiBreadcrumbs
     items={[
-      { label: 'Documentation', href: withBase(base, '/') },
-      { label: 'API reference', href: withBase(base, '/docs/api/csharp/') },
+      { label: '文档', href: withBase(base, '/') },
+      { label: 'API 参考', href: withBase(base, '/docs/api/csharp/') },
       { label: pkg.package.name, href: withBase(base, packagePath(pkg.package.name)) },
       { label: displayName },
     ]}
@@ -79,7 +79,7 @@ const headings = [
     <span>{type.kind}</span>
   </div>
   <p>
-    Namespace: <code>{type.namespace || '(global)'}</code>
+    命名空间： <code>{type.namespace || '（全局）'}</code>
   </p>
   <ApiLinks
     nuget={nugetHref(pkg.package.name)}
@@ -96,7 +96,7 @@ const headings = [
   {
     type.docs?.remarks && (
       <section>
-        <h2 id="remarks">Remarks</h2>
+        <h2 id="remarks">备注</h2>
         <ApiDocContent
           content={type.docs.remarks}
           packages={allPackages}
@@ -109,13 +109,13 @@ const headings = [
   {
     type.enumMembers?.length && (
       <section>
-        <h2 id="fields">Fields</h2>
+        <h2 id="fields">字段</h2>
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Value</th>
-              <th>Description</th>
+              <th>名称</th>
+              <th>值</th>
+              <th>说明</th>
             </tr>
           </thead>
           <tbody>

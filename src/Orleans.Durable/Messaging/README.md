@@ -176,9 +176,9 @@ inbox.Register(reserve, this, static (request, grain, context) => grain.HandleRe
     信件失败 `Send` 。
   - `DeadLettered`:水槽拒绝电文,有原因和可选
     定义的应用程序 `Code`,例如 `orders/duplicate-order`等
-    source receives both in a `Rejected` retirement. The processed record keeps the
-    reason and code, so a retained duplicate, such as a retry whose first answer was
-    lost, is rejected the same way. This is the only permanent rejection.
+    消息源在 `Rejected` 结束结果中收到这两项信息。处理记录会保留
+    原因和代码。因此，在记录保留期间收到重复消息时（例如首次响应
+    丢失后发生重试），会返回相同的拒绝结果。这是唯一的永久拒绝。
 
   汇的例外或其他任何情况,结果不明:收件箱阶段
   送货没有结果,所以发件人用后卸回的发件箱重新处理

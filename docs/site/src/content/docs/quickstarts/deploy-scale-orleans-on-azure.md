@@ -5,7 +5,7 @@ ms.topic: how-to
 ms.devlang: csharp
 ms.date: 08/02/2026
 zone_pivot_groups: orleans-persistence-option
-# CustomerIntent: As a developer, I want to host my Orleans application in Azure so that I can take advantage of the scaling capabilities for the database and application services.
+# CustomerIntent: 开发者希望在 Azure 上托管 Orleans 应用，利用数据库和应用服务的扩缩容功能。
 ---
 
 <a id="deploy-and-scale-an-orleans-app-on-azure"></a>

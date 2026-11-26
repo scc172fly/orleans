@@ -22,8 +22,8 @@ const headings = packages.map((pkg) => ({
 
 <StarlightPage
   frontmatter={{
-    title: '.NET Orleans API reference',
-    description: 'Browse API documentation generated directly from Orleans packages.',
+    title: '.NET Orleans API 参考',
+    description: '浏览直接从 Orleans 包生成的 API 文档。',
     editUrl: false,
     prev: false,
     next: false,
@@ -33,19 +33,19 @@ const headings = packages.map((pkg) => ({
   sidebar={sidebar}
   headings={headings}
 >
-  <ApiBreadcrumbs items={[{ label: 'Documentation', href: withBase(base, '/docs/') }, { label: 'API reference' }]} />
+  <ApiBreadcrumbs items={[{ label: '文档', href: withBase(base, '/docs/') }, { label: 'API 参考' }]} />
   <p>
-    Browse package, type, and member documentation generated directly from Orleans assemblies,
-    XML comments, and Source Link metadata.
+    浏览基于 Orleans 程序集、XML 注释和 Source Link 元数据
+    生成的包、类型和成员文档。
   </p>
   <ApiLinks markdown={withBase(base, '/docs/api/csharp.md')} />
   {
     packages.length === 0 ? (
       <aside class="api-empty">
-        <h2>API metadata has not been generated yet</h2>
+        <h2>尚未生成 API 元数据</h2>
         <p>
-          Add PackageJsonGenerator output to <code>docs/site/src/data/pkgs</code>. Package, type,
-          member, sidebar, search, and Markdown routes are generated automatically.
+          请将 PackageJsonGenerator 的输出放入 <code>docs/site/src/data/pkgs</code>。
+          构建时将自动生成成员页面、侧边栏、搜索及 Markdown 路由。
         </p>
       </aside>
     ) : (
@@ -58,7 +58,7 @@ const headings = packages.map((pkg) => ({
             <p>
               <strong>{pkg.package.version}</strong> · {pkg.package.targetFramework}
             </p>
-            <p>{pkg.types.length} public types</p>
+            <p>{pkg.types.length} 个公共类型</p>
           </article>
         ))}
       </div>

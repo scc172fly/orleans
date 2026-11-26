@@ -23,10 +23,11 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Microsoft Orleans',
-      description: 'Build scalable, cloud-native distributed applications with .NET and Orleans.',
+      locales: { root: { label: '简体中文', lang: 'zh-CN' } },
+      description: '使用 .NET 和 Orleans 构建可伸缩的云原生分布式应用。',
       logo: {
         src: './src/assets/orleans-logo.png',
-        alt: 'Orleans logo',
+        alt: 'Orleans 标志',
       },
       favicon: '/favicon.svg',
       customCss: ['./src/styles/custom.css'],
@@ -52,12 +53,12 @@ export default defineConfig({
       social: [
         {
           icon: 'github',
-          label: 'Orleans on GitHub',
+          label: 'Orleans 的 GitHub 仓库',
           href: 'https://github.com/scc172fly/orleans',
         },
         {
           icon: 'discord',
-          label: 'Orleans on Discord',
+          label: 'Orleans 的 Discord 社区',
           href: 'https://aka.ms/orleans-discord',
         },
       ],

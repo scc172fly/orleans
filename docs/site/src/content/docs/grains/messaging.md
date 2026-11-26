@@ -212,74 +212,22 @@ ID、目的地和身体。目标为 <xref:Orleans.Runtime.GrainId>
 当应用程序本身的日记状态已经拥有有效载荷时, 发件箱
 或收件箱汇将这一状态作为唯一日记副本:
 
-- <xref:Orleans.Durable.Messaging.IOutboxMessageSource>,登记在
-  <xref:Orleans.Durable.Messaging.IOutbox.Register*>,提供ID发送的邮件
-  <xref:Orleans.Durable.Messaging.IOutbox.Send*>.发件箱日记 电文编号和
-  发送状态和适用普通信息的所有发送保证。
-  将信件化为
-  <xref:Orleans.Durable.Messaging.IOutboxMessageSource.TryGetMessage*> 来验证发送和
-  每次发送尝试前; 发件人返回相同的信息, 而提供相同的信息
-  并且将非它自己的信息返回至 `false` 。第一个来源是
-  返回该信息为它所有。
-  - **撤回。** <xref:Orleans.Durable.Messaging.IOutbox.Withdraw*> 删除一个待发信件,
-    例如,一个应用程序超时。 以同一日记写方式进行
-    which the source releases its payload. The outbox makes no further attempt and
-    doesn't call `OnRetired`; an attempt already in flight can still deliver the
-    message.
-  - **退休人员。** 当电文退休后,发件箱会拨打
-    其阶段性<xref:Orleans.Durable.Messaging.IOutboxMessageSource.OnRetired*>
-    removal, so the source's release, application terminal outcome, and follow-up
-    work commit in the same journal write. The
-    <xref:Orleans.Durable.Messaging.OutboxMessageRetirement> is one of three cases:
-    `OutboxMessageRetirement.Delivered` when the receiver accepted the message or
-    reported it as a duplicate; `OutboxMessageRetirement.Rejected` when an inbox sink
-    at the receiver rejected it durably, with the sink's `Reason` and
-    application-defined `Code`; and `OutboxMessageRetirement.DeadLettered` when the
-    outbox dead-lettered it after its retry timeout, a source failure, or an `Expired`
-    answer, with its `Reason`. `DeadLettered` leaves earlier receiver acceptance
-    unknown. `OutboxMessageRetirement` and `DeliveryResult` are C# unions whose cases
-    are classes, so match them with type and property patterns, such as
-    `retirement is OutboxMessageRetirement.Rejected { Code: var code }`.
-    An outbox
-    dead letter receives its own copy of the materialized message first, so the
-    source can release its payload in `OnRetired`. Stage a self-addressed
-    follow-up message there to run application recovery work through the inbox's
-    durable wake-up and handler path. A failure before commit recovers the pending
-    outbox entry and invokes the callback again; a committed retirement recovers
-    the outcome and follow-up together. A callback exception fails the activation
-    so its uncommitted changes are discarded. Perform external I/O in the
-    follow-up handler's preparation phase.
-  - **失败。** 在发送后, 当自发源丢弃时, 当自发来源扔出时返回无效
-    消息,或返回 `false` 发信的发信箱 仅用
-    entry and retires it as `DeadLettered` in the same journal write; the grain keeps
-    processing its other messages. That dead letter carries only the message ID, with
-    an empty payload and a default receiver, and its reason records the failure. A
-    recovered entry which no registered source provides is dead-lettered the same
-    way, without an owner to notify.
+- 使用 <xref:Orleans.Durable.Messaging.IOutbox.Register*> 注册 <xref:Orleans.Durable.Messaging.IOutboxMessageSource>，为通过 <xref:Orleans.Durable.Messaging.IOutbox.Send*> 按 ID 发送的消息提供内容。发件箱记录消息 ID 和投递状态，并提供普通消息的全部投递保证。发件箱在验证发送以及每次尝试投递前调用 <xref:Orleans.Durable.Messaging.IOutboxMessageSource.TryGetMessage*> 获取消息。消息源在负责该消息期间应返回相同的消息。如果消息不归它负责，则返回 `false`。最先返回消息的消息源负责该消息。
+  - **撤回。** <xref:Orleans.Durable.Messaging.IOutbox.Withdraw*> 可移除待投递的消息，例如应用已判定超时的消息。撤回与消息源释放有效负载应安排在同一次日志写入中。发件箱不再重试，也不会调用 `OnRetired`。已经开始的投递仍可能送达消息。
+  - **结束投递。** 发件箱安排移除消息时调用 <xref:Orleans.Durable.Messaging.IOutboxMessageSource.OnRetired*>，使消息源释放负载、应用记录最终结果及安排后续工作在同一次日志写入中提交。<xref:Orleans.Durable.Messaging.OutboxMessageRetirement> 有三种结果：
+    - `OutboxMessageRetirement.Delivered` 表示接收方接受了消息，或将其报告为重复消息。
+    - `OutboxMessageRetirement.Rejected` 表示接收方的收件箱接收器持久地拒绝了消息，结果带有接收器的 `Reason` 和应用定义的 `Code`。
+    - `OutboxMessageRetirement.DeadLettered` 表示发件箱因重试超时、消息源失败或收到 `Expired` 响应而将消息转为死信，结果带有 `Reason`。此前接收方是否接受过消息仍未知。
 
-  在 `Send`期间,源的例外或无效消息向调用者传播
-  并且没有被设置任何设备。发送待发身份证明
-  发送普通信件 <xref:System.InvalidOperationException>。源码源
-  无法发送消息到发件 grain。
-- <xref:Orleans.Durable.Messaging.IInboxMessageSink>,登记在
-  <xref:Orleans.Durable.Messaging.IInbox.Register*>,在接收每次发件人之前接收每条已解码的邮件
-  收件箱接收该内容,包括计划发送的信件和 grain 发送到
-  返回 `true`
-  <xref:Orleans.Durable.Messaging.IInboxMessageSink.TryAccept*> 和设置 `out`
-  <xref:Orleans.Durable.Messaging.DeliveryResult> to one of these cases; a sink that declines
-  返回 `false` ,并将其设置为 `default`:
-  - `DeliveryResult.Accepted.Instance`:汇层使电文的效果发生。
-    仅将同一文字中的处理记录输入到
-    result once the write completes.
-  - `DeliveryResult.Duplicate.Instance`:水槽已经持有此信件。
-  - `DeliveryResult.Backpressured.Instance`:汇清除量在能力,因此发送者
-    稍后再试
-  - `DeadLettered`:创建于 `new DeliveryResult.DeadLettered(reason, code)`,
-    仅永久拒绝。 收件箱记录信件, 与邮件处理
-    reason and the optional application-defined code, such as
-    `orders/duplicate-order`, and returns them to the sender, whose source receives
-    them in an `OutboxMessageRetirement.Rejected` retirement. A duplicate of the
-    message receives the same rejection.
+    `OutboxMessageRetirement` 和 `DeliveryResult` 是 C# 联合类型，各种结果由类表示。可以使用类型模式和属性模式匹配，例如 `retirement is OutboxMessageRetirement.Rejected { Code: var code }`。发件箱先为死信复制一份已取得的消息，因此消息源可以在 `OnRetired` 中释放负载。在此回调中可安排一条发给自身的后续消息，通过收件箱的持久唤醒和处理流程执行应用恢复。若提交前发生故障，恢复时会重新取回待投递条目并调用回调。若结束结果已提交，则与后续工作一同恢复。回调抛出异常会使激活实例失败，其未提交的更改会被丢弃。应在后续消息处理器的准备阶段执行外部 I/O。
+  - **消息源失败。** 发送后，如果负责消息的消息源抛出异常、返回无效消息或对该消息返回 `false`，发件箱只会将这一条目转为死信，并在同一次日志写入中以 `DeadLettered` 结束。Grain 继续处理其他消息。该死信只携带消息 ID，负载为空、接收方为默认值，并记录失败原因。恢复的条目如果没有已注册的消息源能提供，也同样转为死信，但没有可通知的消息源。
+
+  如果消息源在 `Send` 期间抛出异常或返回无效消息，错误会传给调用方，且不会暂存任何更改。再次发送待投递的同一 ID 会合并请求。如果该 ID 已作为普通消息等待投递，则抛出 <xref:System.InvalidOperationException>。由消息源提供的消息不能发给发送方 Grain 自身。
+- 使用 <xref:Orleans.Durable.Messaging.IInbox.Register*> 注册 <xref:Orleans.Durable.Messaging.IInboxMessageSink>。收件箱接受消息之前，接收器会收到每条已去重的消息，包括定时消息和 Grain 发给自身的消息。如果接收器处理该消息，<xref:Orleans.Durable.Messaging.IInboxMessageSink.TryAccept*> 返回 `true` 并将 `out` 参数 <xref:Orleans.Durable.Messaging.DeliveryResult> 设为下列结果之一。若接收器不处理该消息，则返回 `false` 并将该参数设为 `default`。
+  - `DeliveryResult.Accepted.Instance`：接收器已暂存消息产生的更改。收件箱在同一次写入中仅记录消息已处理，并在写入完成后返回结果。
+  - `DeliveryResult.Duplicate.Instance`：接收器已持有该消息。
+  - `DeliveryResult.Backpressured.Instance`：接收器已达到容量上限，发送方稍后重试。
+  - `DeadLettered`：使用 `new DeliveryResult.DeadLettered(reason, code)` 创建，表示永久拒绝。收件箱将消息标记为已处理，记录原因和可选的应用代码（例如 `orders/duplicate-order`），并将两者返回发送方。发送方的消息源通过 `OutboxMessageRetirement.Rejected` 收到这些信息。重复消息会收到相同的拒绝结果。
 
   汇的例外或其他结果使结果不明:收件箱阶段
   发件人发信后再重新整理直到

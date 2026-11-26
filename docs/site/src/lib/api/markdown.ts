@@ -42,7 +42,7 @@ export function renderApiIndexMarkdown(
 ): string {
   const content =
     packages.length === 0
-      ? 'No API package metadata has been generated yet.'
+      ? '尚未生成 API 包元数据。'
       : packages
           .map(
             (pkg) =>
@@ -50,8 +50,8 @@ export function renderApiIndexMarkdown(
           )
           .join('\n');
   return finalizeMarkdown([
-    '# .NET Orleans API reference',
-    'Browse the API surface generated directly from Orleans assemblies, XML documentation, and source information.',
+    '# .NET Orleans API 参考',
+    '浏览从 Orleans 程序集、XML 文档及源码信息生成的 API 参考。',
     content,
   ]);
 }
@@ -78,7 +78,7 @@ export function renderPackageMarkdown(
   return finalizeMarkdown([
     `# ${pkg.package.name}`,
     `${pkg.package.version} | ${pkg.package.targetFramework}`,
-    nuget ? `[NuGet package](${nuget})` : '',
+    nuget ? `[NuGet 包](${nuget})` : '',
     ...groups,
   ]);
 }
@@ -105,7 +105,7 @@ export function renderTypeMarkdown(
   );
   const enumMembers = type.enumMembers?.length
     ? section(
-        'Fields',
+        '字段',
         type.enumMembers
           .map(
             (member) =>
@@ -116,8 +116,8 @@ export function renderTypeMarkdown(
     : '';
   return finalizeMarkdown([
     `# ${markdownText(typeDisplayName(type))}`,
-    `Package: [${pkg.package.name}](${withBase(base, packagePath(pkg.package.name))}) ${pkg.package.version}`,
-    `${nuget ? `[NuGet package](${nuget})` : ''}${nuget && source ? ' | ' : ''}${source ? `[Source](${source})` : ''}`,
+    `包：[${pkg.package.name}](${withBase(base, packagePath(pkg.package.name))}) ${pkg.package.version}`,
+    `${nuget ? `[NuGet 包](${nuget})` : ''}${nuget && source ? ' | ' : ''}${source ? `[源码](${source})` : ''}`,
     codeBlock(buildTypeSignature(type), 'csharp'),
     renderDocumentation(type.docs, context),
     enumMembers,
@@ -136,7 +136,7 @@ export function renderMemberKindMarkdown(
   const context = { packages, packageName: pkg.package.name, base };
   return finalizeMarkdown([
     `# ${markdownText(typeDisplayName(type))} ${memberKindLabels[kind]}`,
-    `[Type overview](${withBase(base, typePath(pkg.package.name, type))})`,
+    `[类型概述](${withBase(base, typePath(pkg.package.name, type))})`,
     ...members.map((member) =>
       renderMemberSectionMarkdown(pkg, type, member, context),
     ),
@@ -153,7 +153,7 @@ export function renderMemberMarkdown(
   const context = { packages, packageName: pkg.package.name, base };
   return finalizeMarkdown([
     `# ${markdownText(typeDisplayName(type))}.${markdownText(memberDisplayName(member, type))}`,
-    `[Type overview](${withBase(base, typePath(pkg.package.name, type))}) | [${memberKindLabels[member.kind]}](${withBase(base, memberKindPath(pkg.package.name, type, member.kind))})`,
+    `[类型概述](${withBase(base, typePath(pkg.package.name, type))}) | [${memberKindLabels[member.kind]}](${withBase(base, memberKindPath(pkg.package.name, type, member.kind))})`,
     renderMemberSectionMarkdown(pkg, type, member, context, false),
   ]);
 }
@@ -240,11 +240,11 @@ function renderDocumentation(
   if (!docs) return '';
   return finalizeMarkdown([
     renderDocNodes(docs.summary, context),
-    section('Remarks', renderDocNodes(docs.remarks, context)),
-    section('Returns', renderDocNodes(docs.returns, context)),
+    section('备注', renderDocNodes(docs.remarks, context)),
+    section('返回值', renderDocNodes(docs.returns, context)),
     docs.typeParameters &&
       section(
-        'Type parameters',
+        '类型参数',
         Object.entries(docs.typeParameters)
           .map(([name, value]) => `- \`${name}\`: ${renderDocNodes(value, context)}`)
           .join('\n'),
@@ -264,7 +264,7 @@ function renderMemberSectionMarkdown(
   const source = sourceHref(pkg.package, member.sourceFile, member.sourceLines);
   const parameters = member.parameters?.length
     ? section(
-        'Parameters',
+        '参数',
         member.parameters
           .map((parameter) => {
             const description = renderDocNodes(
@@ -279,7 +279,7 @@ function renderMemberSectionMarkdown(
     : '';
   const exceptions = member.docs?.exceptions?.length
     ? section(
-        'Exceptions',
+        '异常',
         member.docs.exceptions
           .map(
             (exception) =>
@@ -294,14 +294,14 @@ function renderMemberSectionMarkdown(
       ? `## ${markdownText(memberDisplayName(member, type))} {#${memberSlug(member)}}`
       : '',
     includeHeading
-      ? `[Dedicated page](${withBase(context.base, memberPath(pkg.package.name, type, member))})`
+      ? `[成员详情](${withBase(context.base, memberPath(pkg.package.name, type, member))})`
       : '',
-    source ? `[Source](${source})` : '',
+    source ? `[源码](${source})` : '',
     codeBlock(buildMemberSignature(member), 'csharp'),
     renderDocNodes(member.docs?.summary, context),
     parameters,
-    section('Returns', renderDocNodes(member.docs?.returns, context), 3),
-    section('Value', renderDocNodes(member.docs?.value, context), 3),
+    section('返回值', renderDocNodes(member.docs?.returns, context), 3),
+    section('属性值', renderDocNodes(member.docs?.value, context), 3),
     exceptions,
     renderExamples(member.docs, context, 3),
   ]);
@@ -314,7 +314,7 @@ function renderExamples(
 ): string {
   if (!docs?.examples?.length) return '';
   return section(
-    'Examples',
+    '示例',
     docs.examples
       .map((example) =>
         finalizeMarkdown([
@@ -330,7 +330,7 @@ function renderExamples(
 function renderSeeAlso(docs: ApiDocumentation, context: MarkdownContext): string {
   if (!docs.seeAlso?.length) return '';
   return section(
-    'See also',
+    '另请参阅',
     docs.seeAlso
       .map((docId) => {
         const target = findTypeTargetByDocId(context.packages, docId, context.packageName);

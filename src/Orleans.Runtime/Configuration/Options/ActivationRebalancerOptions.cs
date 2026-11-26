@@ -93,7 +93,7 @@ public sealed class ActivationRebalancerOptions
     /// (如果而且只有在 <see langword="true"/>开始缩放 <see cref="AllowedEntropyDeviation"/>时)
     /// </summary>
     /// <remarks>
-    /// <para>Allowed range: [1000-∞)</para>
+    /// <para>允许的范围：[1000, ∞)。</para>
     /// <para><strong>低于默认值的数值被劝阻。</strong></para>
     /// </remarks>
     public int ScaledEntropyDeviationActivationThreshold { get; set; } = DEFAULT_SCALED_ENTROPY_DEVIATION_ACTIVATION_THRESHOLD;

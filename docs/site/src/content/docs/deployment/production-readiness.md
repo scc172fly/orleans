@@ -16,8 +16,8 @@ ms.topic: checklist
 ## 身份和兼容性
 
 - [ ] 每个 silo 和客户都使用预定的 Orleans 套件版本。
-- [ ] <xref:Orleans.Configuration.ClusterOptions.ServiceId> is stable for the lifetime of the application and isn't reused by an unrelated application.
-- [ ] <xref:Orleans.Configuration.ClusterOptions.ClusterId> identifies this deployment environment. Production, staging, and blue/green clusters use distinct values unless they are intentionally joining the same cluster.
+- [ ] <xref:Orleans.Configuration.ClusterOptions.ServiceId> 在应用整个生命周期中保持不变，且不会被无关应用复用。
+- [ ] <xref:Orleans.Configuration.ClusterOptions.ClusterId> 标识当前部署环境。生产、预发布和蓝绿集群应使用不同的值，有意加入同一个集群时可以共用。
 - [ ] Grain 接口、序列器和持续状态变化与选定的 [战略升级战略](upgrades.md)兼容。
 
 <a id="networking-and-discovery"></a>

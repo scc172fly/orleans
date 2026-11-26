@@ -19,12 +19,12 @@ export const memberKindOrder: MemberKind[] = [
   'indexer',
 ];
 export const memberKindLabels: Record<MemberKind, string> = {
-  constructor: 'Constructors',
-  property: 'Properties',
-  method: 'Methods',
-  field: 'Fields',
-  event: 'Events',
-  indexer: 'Indexers',
+  constructor: '构造函数',
+  property: '属性',
+  method: '方法',
+  field: '字段',
+  event: '事件',
+  indexer: '索引器',
 };
 export const memberKindSlugs: Record<MemberKind, string> = {
   constructor: 'constructors',

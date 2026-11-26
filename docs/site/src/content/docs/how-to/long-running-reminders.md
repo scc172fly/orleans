@@ -51,7 +51,7 @@ Orleans 发送提醒, 以调用 <xref:Orleans.IRemindable.ReceiveReminder*> 的�
 执行取决于以下行为:
 
 1. <xref:Orleans.IRemindable.ReceiveReminder*> 执行请求 grain 。返回 <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> 完成提醒发送,无需等待背景循环。
-1. <xref:System.Threading.Tasks.ConfigureAwaitOptions> controls how the first await resumes. `ForceYielding` ensures that the loop starts after `ReceiveReminder` returns, and `ContinueOnCapturedContext` resumes it on the grain scheduler, where it can safely access grain state.
+1. <xref:System.Threading.Tasks.ConfigureAwaitOptions> 控制首次等待后的续执行方式。`ForceYielding` 确保循环在 `ReceiveReminder` 返回后开始，`ContinueOnCapturedContext` 让循环在 Grain 调度器上继续执行，以便安全访问 Grain 状态。
 1. `_backgroundTask` 限制一个工人的激活。 如果该工人在失败后完成, 下次提醒会选中开始一个新的工人 。
 1. <xref:Orleans.Grain.OnDeactivateAsync*> 取消工人的取消,并在运行期的终止期限内等待。 程序中断可能跳过此回召, 因此持久进展仍然是恢复的来源 。
 

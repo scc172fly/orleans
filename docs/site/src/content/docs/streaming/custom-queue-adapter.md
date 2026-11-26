@@ -25,7 +25,7 @@ ms.topic: how-to
 
 - 将流体编号、事件有效载荷和请求上下文序列成可变信封;
 - 在每个队列分区内指定单单调顺序序列号;
-- return only messages from the requested partition;
+- 仅返回来自所请求分区的消息；
 - 仅在 Orleans 调用完成方法后确认或删除信件;以及
 - 表面队列失败, 而不是返回一个成功的空读取 。
 

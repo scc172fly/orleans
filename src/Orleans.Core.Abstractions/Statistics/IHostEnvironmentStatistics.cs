@@ -13,7 +13,7 @@ namespace Orleans.Statistics
         /// 以字节表示主机的全部物理内存。
         /// </summary>
         /// <example>
-        /// <c>16426476000L</c> for 16 GB.
+        /// 16 GB 对应 <c>16426476000L</c>。
         /// </example>
         long? TotalPhysicalMemory { get; }
 
@@ -29,7 +29,7 @@ namespace Orleans.Statistics
         /// 以字节表示主机可分配的全部内存。
         /// </summary>
         /// <example>
-        /// <c>14426476000L</c> for 14 GB.
+        /// 14 GB 对应 <c>14426476000L</c>。
         /// </example>
         long? AvailableMemory { get; }
     }

@@ -67,7 +67,7 @@ namespace Orleans.Tests.SqlUtils
         ///     public string TABLE_NAME { get; set; }
         /// }
         ///
-        /// //Here reflection (<seealso cref="DbExtensions.ReflectionParameterProvider{T}(IDbCommand, T, IReadOnlyDictionary{string, string})"/>)
+        /// // 此处使用反射（<seealso cref="DbExtensions.ReflectionParameterProvider{T}(IDbCommand, T, IReadOnlyDictionary{string, string})"/>）
         /// 用于匹配参数名并读回结果（<seealso cref="DbExtensions.ReflectionSelector{TResult}(IDataRecord)"/>）。
         /// var query = "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tname;";
         /// IEnumerable&lt;Information&gt; informationData = await db.ReadAsync&lt;Information&gt;(query, new { tname = 200000 });
@@ -110,7 +110,7 @@ namespace Orleans.Tests.SqlUtils
         /// <example>此[使用反映为执行提供参数
         /// 查询中只读取有影响的行数(如果可用)。
         /// <code>
-        /// //Here reflection (<seealso cref="DbExtensions.ReflectionParameterProvider{T}(IDbCommand, T, IReadOnlyDictionary{string, string})"/>)
+        /// // 此处使用反射（<seealso cref="DbExtensions.ReflectionParameterProvider{T}(IDbCommand, T, IReadOnlyDictionary{string, string})"/>）
         /// 用于匹配参数名并读回结果（<seealso cref="DbExtensions.ReflectionSelector{TResult}(IDataRecord)"/>）。
         /// var query = "IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tname) CREATE TABLE Test(Id INT PRIMARY KEY IDENTITY(1, 1) NOT NULL);"
         /// await db.ExecuteAsync(query, new { tname = "test_table" });

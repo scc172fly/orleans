@@ -1,70 +1,70 @@
 items:
-  - name: Microsoft Orleans documentation
+  - name: Microsoft Orleans 文档
     href: index.yml
     homepage: index.yml
-  - name: Concepts
+  - name: 基本概念
     items:
-      - name: Introduction to Orleans
+      - name: Orleans 简介
         href: overview.md
-      - name: Why Orleans?
+      - name: 为何使用 Orleans？
         href: benefits.md
-      - name: Scenarios and use cases
+      - name: 应用场景
         href: scenarios.md
-  - name: Get started
+  - name: 快速入门
     items:
-      - name: Hello World
+      - name: Hello World 入门
         href: tutorials-and-samples/hello-world.md
-      - name: Build your first Orleans app
+      - name: 构建第一个 Orleans 应用
         href: quickstarts/build-your-first-orleans-app.md
-      - name: Deploy and scale on Azure
+      - name: 在 Azure 上部署和扩展
         href: quickstarts/deploy-scale-orleans-on-azure.md
-  - name: Grains
+  - name: Grain 开发
     items:
-      - name: Develop grains
+      - name: 开发 Grain
         href: grains/index.md
-      - name: Grain references
+      - name: Grain 引用
         href: grains/grain-references.md
-      - name: Grain identity
+      - name: Grain 标识
         href: grains/grain-identity.md
-      - name: Grain activation and lifecycle
+      - name: Grain 激活和生命周期
         href: grains/grain-lifecycle.md
-      - name: Grain extensions
+      - name: Grain 扩展
         href: grains/grain-extensions.md
-      - name: Grain services
+      - name: Grain 服务
         href: grains/grainservices.md
-      - name: Stateless worker grains
+      - name: 无状态工作 Grain
         href: grains/stateless-worker-grains.md
-      - name: Grain timers
+      - name: Grain 计时器
         href: grains/timers.md
-      - name: Reminders
+      - name: 提醒
         items:
-          - name: Overview
+          - name: 概述
             href: grains/reminders.md
-          - name: Amazon DynamoDB reminders
+          - name: Amazon DynamoDB 提醒
             href: grains/reminders/dynamodb.md
-      - name: Observers
+      - name: 观察者
         href: grains/observers.md
-      - name: Cancellation
+      - name: 取消
         href: grains/cancellation-tokens.md
-      - name: Response streaming
+      - name: 流式响应
         href: grains/response-streaming.md
-      - name: Request scheduling
+      - name: 请求调度
         href: grains/request-scheduling.md
-      - name: Request context
+      - name: 请求上下文
         href: grains/request-context.md
-      - name: External tasks and grains
+      - name: 外部任务与 Grain
         href: grains/external-tasks-and-grains.md
-      - name: Interceptors
+      - name: 拦截器
         href: grains/interceptors.md
-      - name: One-way requests
+      - name: 单向请求
         href: grains/oneway.md
-      - name: Grain persistence
+      - name: Grain 持久化
         items:
-          - name: Overview
+          - name: 概述
             href: grains/grain-persistence/index.md
           - name: Azure Cosmos DB
             href: grains/grain-persistence/azure-cosmos-db.md
-          - name: Relational storage (ADO.NET)
+          - name: 关系型存储（ADO.NET）
             href: grains/grain-persistence/relational-storage.md
           - name: Azure Storage
             href: grains/grain-persistence/azure-storage.md
@@ -74,272 +74,272 @@ items:
             href: grains/grain-persistence/google-firestore-storage.md
           - name: Redis
             href: grains/grain-persistence/redis-storage.md
-          - name: Memory
+          - name: 内存存储
             href: grains/grain-persistence/memory-storage.md
-      - name: Event Sourcing
+      - name: 事件溯源
         items:
-          - name: Overview
+          - name: 概述
             href: grains/event-sourcing/index.md
-          - name: JournaledGrain basics
+          - name: JournaledGrain 基础
             href: grains/event-sourcing/journaledgrain-basics.md
-          - name: JournaledGrain diagnostics
+          - name: JournaledGrain 诊断
             href: grains/event-sourcing/journaledgrain-diagnostics.md
-          - name: Immediate and delayed confirmation
+          - name: 立即确认与延迟确认
             href: grains/event-sourcing/immediate-vs-delayed-confirmation.md
-          - name: Notifications
+          - name: 通知
             href: grains/event-sourcing/notifications.md
-          - name: Configuration
+          - name: 配置
             href: grains/event-sourcing/event-sourcing-configuration.md
-          - name: Log-consistency providers
+          - name: 日志一致性提供程序
             href: grains/event-sourcing/log-consistency-providers.md
-          - name: Replicated instances
+          - name: 复制实例
             href: grains/event-sourcing/replicated-instances.md
-      - name: Journaling (experimental)
+      - name: 日志记录（实验性）
         items:
-          - name: Overview
+          - name: 概述
             href: grains/journaling/index.md
-          - name: Migrate Durable Jobs storage
+          - name: 迁移持久作业存储
             href: grains/journaling/durable-jobs-migration.md
-          - name: Use durable state
+          - name: 使用持久状态
             href: grains/journaling/durable-state.md
-          - name: Observe state and stream drafts
+          - name: 观察状态和流式传输草稿
             href: grains/journaling/observe-state.md
-          - name: Runtime behavior and consistency
+          - name: 运行时行为与一致性
             href: grains/journaling/runtime-behavior.md
-          - name: Configuration and formats
+          - name: 配置与格式
             href: grains/journaling/configuration.md
-          - name: Azure Storage providers
+          - name: Azure Storage 提供程序
             href: grains/journaling/azure-storage.md
-          - name: Redis journal storage
+          - name: Redis 日志存储
             href: grains/journaling/redis-journal-storage.md
-          - name: Operations and troubleshooting
+          - name: 运维与故障排查
             href: grains/journaling/operations.md
-          - name: Samples
+          - name: 示例
             href: grains/journaling/samples.md
-      - name: Messaging
+      - name: 消息传递
         items:
-          - name: Runtime model and guarantees
+          - name: 运行时模型与保证
             href: grains/messaging.md
-          - name: Idempotency and hierarchical keys
+          - name: 幂等性与分层键
             href: grains/messaging-idempotency.md
-          - name: Practical recipes
+          - name: 实践指南
             href: grains/messaging-recipes.md
-          - name: Operations and throughput
+          - name: 运维与吞吐量
             href: grains/messaging-operations.md
-      - name: Durable tasks
+      - name: 持久任务
         items:
-          - name: Programming model and guarantees
+          - name: 编程模型与保证
             href: grains/durable-tasks.md
-          - name: Task identity and references
+          - name: 任务标识和引用
             href: grains/durable-tasks-identity.md
-          - name: Structured concurrency
+          - name: 结构化并发
             href: grains/durable-tasks-structured-concurrency.md
-          - name: Idempotency
+          - name: 幂等性
             href: grains/durable-tasks-idempotency.md
-          - name: Replay-safety rules
+          - name: 安全重放规则
             href: grains/durable-tasks-replay-rules.md
-          - name: Versioning
+          - name: 版本控制
             href: grains/durable-tasks-versioning.md
-          - name: Integrate with other systems
+          - name: 与其他系统集成
             href: grains/durable-tasks-integrations.md
-          - name: Practical recipes
+          - name: 实践指南
             href: grains/durable-tasks-recipes.md
-          - name: Operations and troubleshooting
+          - name: 运维与故障排查
             href: grains/durable-tasks-operations.md
-      - name: Transactions
+      - name: 事务
         href: grains/transactions.md
-  - name: Serialization and code generation
+  - name: 序列化与代码生成
     items:
-      - name: Serialization overview
+      - name: 序列化概述
         href: host/configuration-guide/serialization.md
-      - name: Immutable types
+      - name: 不可变类型
         href: host/configuration-guide/serialization-immutability.md
-      - name: Configure serialization
+      - name: 配置序列化
         href: host/configuration-guide/serialization-configuration.md
-      - name: Compile-time serializer contexts
+      - name: 编译时序列化器上下文
         href: host/configuration-guide/serializer-contexts.md
-      - name: Customize serialization
+      - name: 自定义序列化
         href: host/configuration-guide/serialization-customization.md
-      - name: Code generation overview
+      - name: 代码生成概述
         href: grains/code-generation.md
-      - name: Advanced code-generation customization
+      - name: 高级代码生成定制
         href: grains/code-generation-customization.md
-  - name: Streaming
+  - name: 流处理
     items:
-      - name: Overview
+      - name: 概述
         href: streaming/index.md
-      - name: Streams quickstart
+      - name: 流快速入门
         href: streaming/streams-quick-start.md
-      - name: Why streams?
+      - name: 为何使用流？
         href: streaming/streams-why.md
-      - name: Programming APIs
+      - name: 编程 API
         href: streaming/streams-programming-apis.md
-      - name: Subscription start positions
+      - name: 订阅起始位置
         href: streaming/subscription-start-positions.md
-      - name: Stream providers
+      - name: 流提供程序
         href: streaming/stream-providers.md
-      - name: External producers and consumers
+      - name: 外部生产者和消费者
         href: streaming/external-streams.md
-      - name: Customize stream data formats
+      - name: 自定义流数据格式
         href: streaming/data-adapters.md
-      - name: Write a custom queue adapter
+      - name: 编写自定义队列适配器
         href: streaming/custom-queue-adapter.md
       - name: Amazon Kinesis
         href: streaming/kinesis-streaming.md
       - name: Amazon SQS
         href: streaming/sqs-streaming.md
-      - name: Delivery semantics
+      - name: 投递语义
         href: streaming/delivery-semantics.md
-      - name: Pub-sub storage
+      - name: 发布订阅存储
         href: streaming/pubsub-storage.md
-      - name: Operate streaming applications
+      - name: 流式应用运维
         href: streaming/streaming-operations.md
-      - name: Broadcast channels
+      - name: 广播通道
         href: streaming/broadcast-channel.md
-  - name: Placement and versioning
+  - name: 放置与版本控制
     items:
-      - name: Grain placement and migration
+      - name: Grain 放置与迁移
         href: grains/grain-placement.md
-      - name: Placement filtering
+      - name: 放置筛选
         href: grains/grain-placement-filtering.md
-      - name: Interface versioning
+      - name: 接口版本控制
         href: grains/grain-versioning/grain-versioning.md
-      - name: Contract compatibility analyzer
+      - name: 契约兼容性分析器
         href: grains/grain-versioning/contract-compatibility-analyzer.md
-      - name: Backward compatibility guidelines
+      - name: 向后兼容指南
         href: grains/grain-versioning/backward-compatibility-guidelines.md
-      - name: Compatible grains
+      - name: 兼容的 Grain
         href: grains/grain-versioning/compatible-grains.md
-      - name: Version selector strategy
+      - name: 版本选择策略
         href: grains/grain-versioning/version-selector-strategy.md
-      - name: Deploy new grain versions
+      - name: 部署新版 Grain
         href: grains/grain-versioning/deploying-new-versions-of-grains.md
-  - name: Testing
+  - name: 测试
     items:
-      - name: Test Orleans applications
+      - name: 测试 Orleans 应用
         href: grains/testing.md
-  - name: Walkthroughs and tutorials
+  - name: 演练和教程
     items:
-      - name: Model an adventure game
+      - name: 为冒险游戏建模
         href: tutorials-and-samples/adventure.md
-      - name: Build custom grain storage
+      - name: 构建自定义 Grain 存储
         href: tutorials-and-samples/custom-grain-storage.md
-      - name: Deploy an Orleans application to Azure Container Apps
+      - name: 将 Orleans 应用部署到 Azure Container Apps
         href: tutorials-and-samples/production-application.md
-      - name: Deploy Orleans to Azure App Service on Windows
+      - name: 将 Orleans 部署到 Windows 上的 Azure App Service
         href: deployment/deploy-to-azure-app-service.md
-      - name: Deploy Orleans to Azure App Service on Linux
+      - name: 将 Orleans 部署到 Linux 上的 Azure App Service
         href: deployment/deploy-to-azure-app-service-linux.md
-      - name: Test an Orleans application end to end
+      - name: 端到端测试 Orleans 应用
         href: tutorials-and-samples/testing-walkthrough.md
-      - name: Build and recover a streaming application
+      - name: 构建与恢复流式应用
         href: tutorials-and-samples/streaming-walkthrough.md
-  - name: How-to guides
+  - name: 操作指南
     items:
-      - name: Recipe index
+      - name: 操作指南索引
         href: how-to/index.md
-      - name: Implement long-running reminders
+      - name: 实现长时间运行的提醒
         href: how-to/long-running-reminders.md
-  - name: Host and configure
+  - name: 托管与配置
     items:
-      - name: Hosting
+      - name: 托管
         items:
-          - name: Orleans clients
+          - name: Orleans 客户端
             href: host/client.md
-          - name: Aspire integration
+          - name: Aspire 集成
             href: host/aspire-integration.md
-          - name: Silo lifecycle
+          - name: Silo 生命周期
             href: host/silo-lifecycle.md
-          - name: Heterogeneous silos
+          - name: 异构 Silo
             href: host/heterogeneous-silos.md
-          - name: Grain directory
+          - name: Grain 目录
             href: host/grain-directory.md
-          - name: Transport Layer Security (TLS)
+          - name: 传输层安全性（TLS）
             href: host/transport-layer-security.md
-          - name: Connection middleware
+          - name: 连接中间件
             href: host/connection-middleware.md
-      - name: Configuration
+      - name: 配置
         items:
-          - name: Overview
+          - name: 概述
             href: host/configuration-guide/index.md
-          - name: Local development
+          - name: 本地开发
             href: host/configuration-guide/local-development-configuration.md
-          - name: Client configuration
+          - name: 客户端配置
             href: host/configuration-guide/client-configuration.md
-          - name: Server configuration
+          - name: 服务器配置
             href: host/configuration-guide/server-configuration.md
-          - name: Typical configurations
+          - name: 典型配置
             href: host/configuration-guide/typical-configurations.md
-          - name: Clustering providers
+          - name: 集群提供程序
             items:
               - name: Consul
                 href: host/configuration-guide/clustering/consul.md
               - name: Google Cloud Firestore
                 href: host/configuration-guide/google-firestore-providers.md
-          - name: Options classes
+          - name: 选项类
             href: host/configuration-guide/list-of-options-classes.md
-          - name: Silo metadata
+          - name: Silo 元数据
             href: host/configuration-guide/silo-metadata.md
-          - name: Activation collection
+          - name: 激活实例回收
             href: host/configuration-guide/activation-collection.md
-          - name: Configure .NET garbage collection
+          - name: 配置 .NET 垃圾回收
             href: host/configuration-guide/configuring-garbage-collection.md
-          - name: Configure ADO.NET providers
+          - name: 配置 ADO.NET 提供程序
             href: host/configuration-guide/configuring-ado-dot-net-providers.md
-          - name: ADO.NET database configuration
+          - name: ADO.NET 数据库配置
             href: host/configuration-guide/adonet-configuration.md
-          - name: Startup tasks
+          - name: 启动任务
             href: host/configuration-guide/startup-tasks.md
-          - name: Graceful shutdown
+          - name: 正常关闭
             href: host/configuration-guide/shutting-down-orleans.md
-      - name: Observability and diagnostics
+      - name: 可观测性与诊断
         items:
-          - name: Overview
+          - name: 概述
             href: host/monitoring/index.md
             displayName: zipkin,jaeger,OpenTelemetry,opentelemetry,meter,counter,activity source,observability,monitoring,logging,metrics,telemetry,distributed tracing
-          - name: Signals and alerting
+          - name: 信号与告警
             href: host/monitoring/signals.md
-          - name: Metrics
+          - name: 指标
             href: host/monitoring/metrics.md
-          - name: Metrics catalog
+          - name: 指标清单
             href: host/monitoring/metrics-catalog.md
-          - name: Troubleshooting workflow
+          - name: 故障排查流程
             href: host/monitoring/troubleshooting.md
-          - name: Silo error codes
+          - name: Silo 错误代码
             href: host/monitoring/silo-error-code-monitoring.md
-          - name: Client error codes
+          - name: 客户端错误代码
             href: host/monitoring/client-error-code-monitoring.md
-          - name: Orleans Dashboard
+          - name: Orleans 仪表板
             href: dashboard/index.md
-  - name: Security
+  - name: 安全性
     items:
-      - name: Security overview
+      - name: 安全性概述
         href: security/index.md
-      - name: Client and grain-call security
+      - name: 客户端与 Grain 调用安全
         href: security/authentication-authorization.md
-      - name: Serialization security
+      - name: 序列化安全
         href: security/serialization.md
-      - name: Secrets and credentials
+      - name: 机密和凭据
         href: security/secrets.md
-      - name: Network hardening
+      - name: 网络加固
         href: security/networking.md
-  - name: Deploy and operate
+  - name: 部署与运维
     items:
-      - name: Overview
+      - name: 概述
         href: deployment/index.md
-      - name: Choose a deployment target
+      - name: 选择部署目标
         href: deployment/choose-deployment-target.md
-      - name: Production-readiness checklist
+      - name: 生产就绪检查清单
         href: deployment/production-readiness.md
-      - name: Operate a production cluster
+      - name: 运维生产集群
         href: deployment/production-operations.md
-      - name: Topology, networking, and clustering
+      - name: 拓扑、网络和集群
         href: deployment/networking.md
-      - name: Run containers across multiple hosts
+      - name: 跨主机运行容器
         href: deployment/containers.md
-      - name: Deployment targets
+      - name: 部署目标
         items:
-          - name: Platform requirements
+          - name: 平台要求
             href: deployment/platform-guides.md
           - name: Azure Kubernetes Service
             href: deployment/azure-kubernetes-service.md
@@ -351,79 +351,79 @@ items:
             href: deployment/azure-app-service.md
           - name: Service Fabric
             href: deployment/service-fabric.md
-      - name: Health and observability
+      - name: 运行状况与可观测性
         href: deployment/health-and-observability.md
-      - name: Capacity planning
+      - name: 容量规划
         href: deployment/capacity-planning.md
-      - name: Handle failures
+      - name: 故障处理
         href: deployment/handling-failures.md
-      - name: Disaster recovery
+      - name: 灾难恢复
         href: deployment/disaster-recovery.md
-      - name: Graceful shutdown and upgrades
+      - name: 正常关闭与升级
         href: deployment/upgrades.md
-      - name: Troubleshoot deployments
+      - name: 排查部署问题
         href: deployment/troubleshooting-deployments.md
-  - name: Architecture and internals
+  - name: 架构与内部实现
     items:
-      - name: Runtime architecture overview
+      - name: 运行时架构概述
         href: implementation/index.md
-      - name: Design principles
+      - name: 设计原则
         href: resources/orleans-architecture-principles-and-approach.md
-      - name: Applicability of Orleans
+      - name: Orleans 的适用场景
         href: resources/orleans-thinking-big-and-small.md
-      - name: Runtime architecture
+      - name: 运行时架构
         href: implementation/runtime-architecture.md
-      - name: Activation lifecycle and migration
+      - name: 激活实例生命周期与迁移
         href: implementation/activation-lifecycle.md
-      - name: Grain directory implementation
+      - name: Grain 目录的实现
         href: implementation/grain-directory.md
-      - name: Cluster membership
+      - name: 集群成员关系
         href: implementation/cluster-management.md
-      - name: Cluster manifest retrieval
+      - name: 获取集群清单
         href: implementation/cluster-manifest-retrieval.md
-      - name: Runtime lifecycle
+      - name: 运行时生命周期
         href: implementation/orleans-lifecycle.md
-      - name: Scheduling and turn execution
+      - name: 调度与轮次执行
         href: implementation/scheduler.md
-      - name: Messaging and delivery semantics
+      - name: 消息传递与投递语义
         href: implementation/messaging-delivery-guarantees.md
-      - name: Transport and networking internals
+      - name: 传输与网络内部实现
         href: implementation/messaging-networking.md
-      - name: Placement and activation balancing
+      - name: 放置与激活实例均衡
         href: implementation/load-balancing.md
-      - name: Serialization and code generation
+      - name: 序列化与代码生成
         href: implementation/serialization.md
-      - name: Reminders
+      - name: 提醒
         href: implementation/reminders.md
-      - name: Transactions
+      - name: 事务
         href: implementation/transactions.md
-      - name: Rolling version skew
+      - name: 滚动升级中的版本差异
         href: implementation/rolling-version-skew.md
-      - name: Persistent streams
+      - name: 持久流
         items:
-          - name: Architecture
+          - name: 架构
             href: implementation/streams-implementation/index.md
-          - name: Azure Queue streams
+          - name: Azure 队列流
             href: implementation/streams-implementation/azure-queue-streams.md
-      - name: Provider authoring
+      - name: 编写提供程序
         href: implementation/provider-authoring.md
-      - name: TestingHost architecture
+      - name: TestingHost 架构
         href: implementation/testing.md
-  - name: Samples
+  - name: 示例
     items:
-      - name: Orleans sample catalog
+      - name: Orleans 示例目录
         href: tutorials-and-samples/index.md
-      - name: Interactive samples gallery
+      - name: 交互式示例库
         href: /samples/
-      - name: Samples repository
+      - name: 示例仓库
         href: https://github.com/dotnet/orleans/tree/main/samples
-  - name: Reference
+  - name: 参考
     items:
-      - name: C# API reference
+      - name: C# API 参考
         href: /docs/api/csharp/
-      - name: Analyzer diagnostics
+      - name: 分析器诊断
         items:
-          - name: Overview
+          - name: 概述
             href: diagnostics/index.md
           - name: ORLEANS0001
             href: diagnostics/orleans0001.md
@@ -535,37 +535,37 @@ items:
             href: diagnostics/orleans0227.md
           - name: ORLEANS0228
             href: diagnostics/orleans0228.md
-      - name: API context and examples
+      - name: API 使用说明与示例
         href: resources/api-reference-guide.md
-      - name: Best practices
+      - name: 最佳实践
         href: resources/best-practices.md
-      - name: NuGet packages
+      - name: NuGet 包
         href: resources/nuget-packages.md
-      - name: Research and student projects
+      - name: 研究与学生项目
         href: resources/student-projects.md
-      - name: Community and external links
+      - name: 社区及外部链接
         href: resources/links.md
-  - name: FAQ and troubleshooting
+  - name: 常见问题与故障排查
     items:
-      - name: Frequently asked questions
+      - name: 常见问题
         href: resources/frequently-asked-questions.md
-      - name: Symptom and signal catalog
+      - name: 症状与信号清单
         href: host/monitoring/troubleshooting-symptom-catalog.md
-  - name: Upgrade and migration
+  - name: 升级与迁移
     items:
-      - name: Migration overview
+      - name: 迁移概述
         href: migration-guide.md
-      - name: Migrate contract identities
+      - name: 迁移契约标识
         href: migration/contract-identities.md
-      - name: Grain directory migration
+      - name: Grain 目录迁移
         href: migration/grain-directory.md
-      - name: Deployment and rollback
+      - name: 部署和回滚
         href: migration/deployment-and-rollback.md
-      - name: Upgrade from Orleans 9
+      - name: 从 Orleans 9 升级
         href: migration/9-to-10.md
-      - name: Upgrade from Orleans 8
+      - name: 从 Orleans 8 升级
         href: migration/8-to-10.md
-      - name: Upgrade from Orleans 7
+      - name: 从 Orleans 7 升级
         href: migration/7-to-10.md
-      - name: Archive - Orleans 3 to 7
+      - name: 归档：从 Orleans 3 升级到 7
         href: migration/3-to-7-archive.md
