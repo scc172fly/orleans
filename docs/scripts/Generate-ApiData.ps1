@@ -403,7 +403,7 @@ try {
             output = $outputPath
             packageVersion = $project.PackageVersion
             packageName = $project.PackageId
-            sourceRepo = "https://github.com/dotnet/orleans"
+            sourceRepo = "https://github.com/scc172fly/orleans"
             sourceCommit = "main"
             sourceRoot = $repositoryRoot
             sourceFileManifest = $sourceFileManifestPath
@@ -451,7 +451,7 @@ try {
         $nameProperty = $package.PSObject.Properties["name"]
         if ($repositoryProperty -and
             $nameProperty -and
-            $repositoryProperty.Value -eq "https://github.com/dotnet/orleans" -and
+            $repositoryProperty.Value -eq "https://github.com/scc172fly/orleans" -and
             $nameProperty.Value -like "Microsoft.Orleans*") {
             Remove-Item $existingFile.FullName
         }
@@ -469,7 +469,7 @@ try {
         if ($document.package.name -ne $project.PackageId -or
             $document.package.version -ne $project.PackageVersion -or
             $document.package.targetFramework -ne $project.TargetFramework -or
-            $document.package.sourceRepository -ne "https://github.com/dotnet/orleans" -or
+            $document.package.sourceRepository -ne "https://github.com/scc172fly/orleans" -or
             $document.package.sourceCommit -ne "main") {
             throw "Package metadata validation failed for '$outputPath'."
         }
