@@ -108,7 +108,7 @@ describe('source link audit', () => {
             '[Fragment](#section)',
             '[Local absolute](/orleans/docs/overview/)',
             '[Learn absolute](https://learn.microsoft.com/dotnet/orleans/)',
-            '[Published absolute](https://dotnet.github.io/orleans/docs/overview/)',
+            '[Published absolute](https://scc172fly.github.io/orleans/docs/overview/)',
           ].join('\n'),
         },
       ],

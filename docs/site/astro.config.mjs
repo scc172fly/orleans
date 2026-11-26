@@ -14,11 +14,11 @@ import { remarkVersionZones } from './src/plugins/remark-version-zones.mjs';
 const sidebar = await createSidebar(new URL('./src/content/docs/toc.yml', import.meta.url));
 const buildConcurrency = getBuildConcurrency();
 const markdownPageExample =
-  'https://dotnet.github.io/orleans/docs/implementation/streams-implementation.md';
-sidebar.unshift({ label: 'Documentation', link: '/docs/' });
+  'https://scc172fly.github.io/orleans/docs/implementation/streams-implementation.md';
+sidebar.unshift({ label: '文档', link: '/docs/' });
 
 export default defineConfig({
-  site: 'https://dotnet.github.io/orleans/',
+  site: 'https://scc172fly.github.io',
   base: '/orleans/',
   integrations: [
     starlight({
@@ -38,7 +38,7 @@ export default defineConfig({
         MarkdownContent: './src/components/MarkdownContent.astro',
       },
       editLink: {
-        baseUrl: 'https://github.com/dotnet/orleans/edit/main/docs/site/',
+        baseUrl: 'https://github.com/scc172fly/orleans/edit/main/docs/site/',
       },
       head: [
         {
@@ -53,7 +53,7 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'Orleans on GitHub',
-          href: 'https://github.com/dotnet/orleans',
+          href: 'https://github.com/scc172fly/orleans',
         },
         {
           icon: 'discord',
@@ -73,7 +73,7 @@ export default defineConfig({
         starlightLlmsTxt({
           details:
             'Every documentation page is available as Markdown. Replace the trailing `/` in a page URL with `.md` to retrieve it. ' +
-            `For example, https://dotnet.github.io/orleans/docs/implementation/streams-implementation/ becomes ${markdownPageExample}. ` +
+            `For example, https://scc172fly.github.io/orleans/docs/implementation/streams-implementation/ becomes ${markdownPageExample}. ` +
             'The Documentation Overview section below links to the first three levels of conceptual documentation.',
         }),
       ],

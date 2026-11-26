@@ -11,7 +11,7 @@ ms.topic: reference
 
 Orleans 选项使用 [.NET 选项模式](https://learn.microsoft.com/dotnet/core/extensions/options)。配置它们时使用 <xref:Orleans.Hosting.SiloBuilderExtensions.Configure*> 或 <xref:Orleans.Hosting.ClientBuilderExtensions.Configure*>。 Orleans 也自动约束 [声明配置](index.md#declarative-configuration)所列的具体部分;其他选项类型需要明确的约束性。
 
-本页是一个整理的起点,不是详尽无遗的财产目录。 <xref:Orleans.Configuration> 和供应商的成套API是安装的 Orleans 版本的真理来源。
+本页整理了常用配置选项，供入门参考。完整的选项类型和属性以当前安装版本的 <xref:Orleans.Configuration> 及各提供程序的 API 参考为准。
 
 <a id="common-core-options-for-client-and-silo-builders"></a>
 

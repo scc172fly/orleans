@@ -795,7 +795,7 @@ async function validateReferenceInventories(repositoryRoot, sourceRoot, packageE
           'Add the source-derived provider and its current status to the matrix.',
         ),
       );
-    } else if (documented.status !== status) {
+    } else if (({ '稳定': 'Stable', '阿尔法': 'Alpha' }[documented.status] ?? documented.status) !== status) {
       issues.push(
         diagnostic(
           'DOCS005',
@@ -824,7 +824,8 @@ async function validateReferenceInventories(repositoryRoot, sourceRoot, packageE
   const optionsPath = path.join(sourceRoot, 'host', 'configuration-guide', 'list-of-options-classes.md');
   const optionsPage = await readFile(optionsPath, 'utf8');
   if (
-    !optionsPage.includes('This page is a curated starting point, not an exhaustive property catalog.') ||
+    (!optionsPage.includes('This page is a curated starting point, not an exhaustive property catalog.') &&
+      !optionsPage.includes('本页整理了常用配置选项，供入门参考。')) ||
     !optionsPage.includes('<xref:Orleans.Configuration>')
   ) {
     issues.push(

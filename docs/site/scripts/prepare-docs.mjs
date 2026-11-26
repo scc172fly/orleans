@@ -74,7 +74,7 @@ for (const sourcePath of sourceFiles) {
       snippetRoots: [sourceRoot],
       includeRoot,
       uidMap,
-      editUrl: `https://github.com/dotnet/orleans/edit/main/${path.relative(repositoryRoot, sourcePath).replaceAll('\\', '/')}`,
+      editUrl: `https://github.com/scc172fly/orleans/edit/main/${path.relative(repositoryRoot, sourcePath).replaceAll('\\', '/')}`,
     });
     await mkdir(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, converted, 'utf8');

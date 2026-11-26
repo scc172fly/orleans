@@ -92,7 +92,7 @@ public class ThermostatGrain : Grain, IThermostat, IThermostatControl
 }
 ```
 
-上面的 `Grain` 类未持久化状态。完整的状态持久化示例见 [Microsoft Orleans：Grain 持久化](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)。
+上面的 `Grain` 类未持久化状态。完整的状态持久化示例见 [Microsoft Orleans：Grain 持久化](https://scc172fly.github.io/orleans/docs/grains/grain-persistence/)。
 
 <a id="orleans-runtime"></a>
 
@@ -116,13 +116,13 @@ Orleans 提供了一系列用于开发分布式系统的服务，下面逐一介
 
 ### 持久化
 
-Orleans 提供简单的持久化模型，确保 Grain 在处理请求前可以读取状态，并维持状态一致性。一个 Grain 可拥有多个具名的持久化数据对象，例如用 “profile” 保存用户资料、用 “inventory” 保存物品清单。这些状态可保存在任意存储系统中，也可分别放在不同的数据库中。Grain 运行期间，状态保存在内存中，读取请求无需访问存储系统。Grain 更新状态后，可以调用 `state.WriteStateAsync()` 来更新后端存储，保证持久性和一致性。详情见 [Microsoft Orleans：Grain 持久化](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)。
+Orleans 提供简单的持久化模型，确保 Grain 在处理请求前可以读取状态，并维持状态一致性。一个 Grain 可拥有多个具名的持久化数据对象，例如用 “profile” 保存用户资料、用 “inventory” 保存物品清单。这些状态可保存在任意存储系统中，也可分别放在不同的数据库中。Grain 运行期间，状态保存在内存中，读取请求无需访问存储系统。Grain 更新状态后，可以调用 `state.WriteStateAsync()` 来更新后端存储，保证持久性和一致性。详情见 [Microsoft Orleans：Grain 持久化](https://scc172fly.github.io/orleans/docs/grains/grain-persistence/)。
 
 <a id="distributed-acid-transactions"></a>
 
 ### 分布式 ACID 事务
 
-除了上述简单持久化模型，Grain 还可以拥有*事务状态*。无论状态最终存放在哪里，多个 Grain 均可参与同一个 [ACID](https://en.wikipedia.org/wiki/ACID) 事务。Orleans 事务采用分布式、去中心化设计（没有中央事务管理器或协调器），并提供[可串行化隔离](https://en.wikipedia.org/wiki/Isolation_(database_systems)#Isolation_levels)。详情见 [Microsoft Orleans：事务](https://dotnet.github.io/orleans/docs/grains/transactions/)。
+除了上述简单持久化模型，Grain 还可以拥有*事务状态*。无论状态最终存放在哪里，多个 Grain 均可参与同一个 [ACID](https://en.wikipedia.org/wiki/ACID) 事务。Orleans 事务采用分布式、去中心化设计（没有中央事务管理器或协调器），并提供[可串行化隔离](https://en.wikipedia.org/wiki/Isolation_(database_systems)#Isolation_levels)。详情见 [Microsoft Orleans：事务](https://scc172fly.github.io/orleans/docs/grains/transactions/)。
 
 <a id="streams"></a>
 
@@ -137,7 +137,7 @@ Orleans 提供简单的持久化模型，确保 Grain 在处理请求前可以�
 
 ### 计时器与提醒
 
-提醒是 Grain 的持久化调度机制，可用于在将来的时间点执行操作，即使届时 Grain 尚未激活。计时器是相应的非持久化机制，适用于无需可靠性保证的高频事件。详情见 [Microsoft Orleans：计时器与提醒](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)。
+提醒是 Grain 的持久化调度机制，可用于在将来的时间点执行操作，即使届时 Grain 尚未激活。计时器是相应的非持久化机制，适用于无需可靠性保证的高频事件。详情见 [Microsoft Orleans：计时器与提醒](https://scc172fly.github.io/orleans/docs/grains/timers-and-reminders/)。
 
 <a id="flexible-grain-placement"></a>
 
@@ -149,7 +149,7 @@ Orleans 激活 Grain 时，运行时会决定在哪台服务器（Silo）上激�
 
 ### Grain 版本控制与异构集群
 
-应用代码会不断演进，如何安全地在运行中的生产系统中部署变更是一个挑战，对有状态系统尤其如此。Orleans 支持按需为 Grain 接口设置版本。集群维护每个 Silo 所提供的 Grain 实现及其版本的映射。运行时在路由调用时结合版本信息和放置策略作出选择。这既支持安全升级带版本的 Grain，也允许异构集群中不同 Silo 提供不同的 Grain 实现。详情见 [Microsoft Orleans：Grain 接口版本控制](https://dotnet.github.io/orleans/docs/grains/grain-versioning/grain-versioning/)。
+应用代码会不断演进，如何安全地在运行中的生产系统中部署变更是一个挑战，对有状态系统尤其如此。Orleans 支持按需为 Grain 接口设置版本。集群维护每个 Silo 所提供的 Grain 实现及其版本的映射。运行时在路由调用时结合版本信息和放置策略作出选择。这既支持安全升级带版本的 Grain，也允许异构集群中不同 Silo 提供不同的 Grain 实现。详情见 [Microsoft Orleans：Grain 接口版本控制](https://scc172fly.github.io/orleans/docs/grains/grain-versioning/grain-versioning/)。
 
 <a id="elastic-scalability-amp-fault-tolerance"></a>
 
@@ -167,25 +167,25 @@ Orleans 可以在支持 .NET Core 或 .NET Framework 的环境中运行。它可
 
 ### 无状态工作 Grain
 
-无状态工作 Grain 带有专门的标记，无关联状态，可以同时在多个 Silo 上激活，从而提高无状态函数的并行度。详情见 [Microsoft Orleans：无状态工作 Grain](https://dotnet.github.io/orleans/docs/grains/stateless-worker-grains/)。
+无状态工作 Grain 带有专门的标记，无关联状态，可以同时在多个 Silo 上激活，从而提高无状态函数的并行度。详情见 [Microsoft Orleans：无状态工作 Grain](https://scc172fly.github.io/orleans/docs/grains/stateless-worker-grains/)。
 
 <a id="grain-call-filters"></a>
 
 ### Grain 调用筛选器
 
-多个 Grain 共用的逻辑可写成[拦截器，也称 Grain 调用筛选器](https://dotnet.github.io/orleans/docs/grains/interceptors/)。Orleans 支持对传入和传出的调用使用筛选器，常见用途包括授权、日志与遥测以及错误处理。
+多个 Grain 共用的逻辑可写成[拦截器，也称 Grain 调用筛选器](https://scc172fly.github.io/orleans/docs/grains/interceptors/)。Orleans 支持对传入和传出的调用使用筛选器，常见用途包括授权、日志与遥测以及错误处理。
 
 <a id="request-context"></a>
 
 ### 请求上下文
 
-可以使用[请求上下文](https://dotnet.github.io/orleans/docs/grains/request-context/)在一系列请求中传递元数据和其他信息。请求上下文可携带分布式跟踪信息或其他用户定义的值。
+可以使用[请求上下文](https://scc172fly.github.io/orleans/docs/grains/request-context/)在一系列请求中传递元数据和其他信息。请求上下文可携带分布式跟踪信息或其他用户定义的值。
 
 <a id="documentation"></a>
 
 ## 文档
 
-请参阅 Microsoft Orleans 官方文档 <https://dotnet.github.io/orleans/docs/>。
+阅读 [Orleans 中文文档](https://scc172fly.github.io/orleans/docs/) 或 [上游英文文档](https://dotnet.github.io/orleans/docs/)。
 
 <a id="samplessamplesreadme"></a>
 
@@ -197,7 +197,7 @@ Orleans 可以在支持 .NET Core 或 .NET Framework 的环境中运行。它可
 
 ## 入门
 
-请参阅 [Orleans Hello World 快速入门](https://dotnet.github.io/orleans/docs/tutorials-and-samples/hello-world/)。
+请参阅 [Orleans Hello World 快速入门](https://scc172fly.github.io/orleans/docs/tutorials-and-samples/hello-world/)。
 
 <a id="building"></a>
 
@@ -275,5 +275,5 @@ Orleans 可以在支持 .NET Core 或 .NET Framework 的环境中运行。它可
 
 * [Microsoft Research 项目主页](http://research.microsoft.com/projects/orleans/)
 * 技术报告：[用于可编程性和可伸缩性的分布式虚拟 Actor](http://research.microsoft.com/apps/pubs/default.aspx?id=210931)
-* [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
+* [Orleans 中文文档](https://scc172fly.github.io/orleans/docs/)
 * [参与贡献](CONTRIBUTING.md)

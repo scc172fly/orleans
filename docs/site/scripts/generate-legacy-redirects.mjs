@@ -113,7 +113,7 @@ for (const legacyPath of new Set([...legacyPaths, ...Object.keys(allRedirects)])
   <head>
     <meta charset="utf-8">
     <meta http-equiv="refresh" content="0; url=${target}">
-    <link rel="canonical" href="https://dotnet.github.io${target}">
+    <link rel="canonical" href="https://scc172fly.github.io${target}">
     <title>Orleans documentation moved</title>
     <script>location.replace(${JSON.stringify(target + '#legacy-redirect')}.replace('#legacy-redirect', location.hash));</script>
   </head>

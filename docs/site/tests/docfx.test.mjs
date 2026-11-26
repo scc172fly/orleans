@@ -149,17 +149,17 @@ describe('DocFX conversion', () => {
     expect(converted).toContain('<div class="image-lightbox" data-image-lightbox>');
     expect(converted).toContain('![An image](image.png)');
     expect(converted).toContain(
-      '[ObserverManager&lt;IChat>](https://dotnet.github.io/orleans/docs/api/csharp/)',
+      '[ObserverManager&lt;IChat>](https://scc172fly.github.io/orleans/docs/api/csharp/)',
     );
     expect(converted).toContain(
-      '[Notify](https://dotnet.github.io/orleans/docs/api/csharp/) method on [ObserverManager&lt;IChat>](https://dotnet.github.io/orleans/docs/api/csharp/)',
+      '[Notify](https://scc172fly.github.io/orleans/docs/api/csharp/) method on [ObserverManager&lt;IChat>](https://scc172fly.github.io/orleans/docs/api/csharp/)',
     );
     expect(converted).toContain('[grain references](/orleans/docs/next/)');
     expect(converted).toContain(
-      '[`[assembly: GenerateSerializer(Type)]`](https://dotnet.github.io/orleans/docs/api/csharp/)',
+      '[`[assembly: GenerateSerializer(Type)]`](https://scc172fly.github.io/orleans/docs/api/csharp/)',
     );
     expect(converted).toContain(
-      '[IGrain](https://dotnet.github.io/orleans/docs/api/csharp/)',
+      '[IGrain](https://scc172fly.github.io/orleans/docs/api/csharp/)',
     );
     expect(converted).toContain('[Overview](/orleans/docs/overview/)');
     expect(converted).toContain('slug: docs/guide');
@@ -1014,7 +1014,7 @@ describe('DocFX conversion', () => {
       sourcePath,
     });
 
-    expect(converted).toContain('(https://dotnet.github.io/orleans/docs/api/csharp/)');
+    expect(converted).toContain('(https://scc172fly.github.io/orleans/docs/api/csharp/)');
   });
 
   test('scans unmatched link labels in linear time', async () => {

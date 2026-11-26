@@ -5,7 +5,7 @@ interface Props {
   sample: GallerySample;
 }
 const { sample } = Astro.props;
-const sourceUrl = `https://github.com/dotnet/orleans/tree/main/samples/${sample.path.replace(/^\/+/, '')}`;
+const sourceUrl = `https://github.com/scc172fly/orleans/tree/main/samples/${sample.path.replace(/^\/+/, '')}`;
 const chips = [...sample.languages, ...sample.tags.slice(0, 2)];
 ---
 

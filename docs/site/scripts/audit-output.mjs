@@ -51,7 +51,7 @@ const llmsEntryPoint = path.join(distRoot, 'llms.txt');
 if (files.includes(llmsEntryPoint)) {
   const llmsText = await readFile(llmsEntryPoint, 'utf8');
   const markdownPageExample =
-    'https://dotnet.github.io/orleans/docs/implementation/streams-implementation.md';
+    'https://scc172fly.github.io/orleans/docs/implementation/streams-implementation.md';
   if (!llmsText.includes('Replace the trailing `/` in a page URL with `.md`')) {
     fail(llmsEntryPoint, 'missing per-page Markdown URL guidance');
   }

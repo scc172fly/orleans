@@ -376,8 +376,8 @@ function renderedInternalTarget(reference, sourceRoot, route) {
     }
   }
   try {
-    const url = new URL(rendered, `https://dotnet.github.io${currentRoute}`);
-    return url.origin === 'https://dotnet.github.io'
+    const url = new URL(rendered, `https://scc172fly.github.io${currentRoute}`);
+    return url.origin === 'https://scc172fly.github.io'
       ? { currentRoute, target: `${url.pathname}${url.search}${url.hash}` }
       : undefined;
   } catch {
@@ -463,7 +463,7 @@ export async function auditSourceLinks({ documents, sourceRoot }) {
         continue;
       }
       if (
-        parsed.hostname.toLowerCase() === 'dotnet.github.io' &&
+        parsed.hostname.toLowerCase() === 'scc172fly.github.io' &&
         (parsed.pathname === deploymentBase ||
           parsed.pathname.startsWith(`${deploymentBase}/`))
       ) {
@@ -663,7 +663,7 @@ function repositorySourceTarget(url, repositoryRoot) {
     return undefined;
   }
   const match =
-    /^\/dotnet\/orleans\/(blob|tree)\/(?:main|[a-f\d]{40})\/(.+)$/i.exec(url.pathname);
+    /^\/(?:dotnet|scc172fly)\/orleans\/(blob|tree)\/(?:main|[a-f\d]{40})\/(.+)$/i.exec(url.pathname);
   if (!match) {
     return undefined;
   }
@@ -739,7 +739,7 @@ export async function auditRenderedInternalLinks({
       }
       let targetUrl;
       try {
-        targetUrl = new URL(href, `https://dotnet.github.io${route}`);
+        targetUrl = new URL(href, `https://scc172fly.github.io${route}`);
       } catch {
         issues.push(`${route}: malformed href '${href}'.`);
         continue;
@@ -754,7 +754,7 @@ export async function auditRenderedInternalLinks({
         continue;
       }
       if (
-        targetUrl.origin !== 'https://dotnet.github.io' &&
+        targetUrl.origin !== 'https://scc172fly.github.io' &&
         targetUrl.origin !== 'https://docs.invalid'
       ) {
         const normalized = new URL(targetUrl);
