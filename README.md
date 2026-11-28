@@ -2,6 +2,7 @@
   <image src="assets/logo_full.png" alt="Orleans 标志" width="600px">
 </p>
 
+[![NuGet](https://img.shields.io/nuget/v/Microsoft.Orleans.Core.svg?style=flat)](http://www.nuget.org/profiles/Orleans)
 [![Follow on Twitter](https://img.shields.io/twitter/follow/msftorleans.svg?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=msftorleans)
 
 [![Discord](https://discordapp.com/api/guilds/333727978460676096/widget.png?style=banner2)](https://aka.ms/orleans-discord)
